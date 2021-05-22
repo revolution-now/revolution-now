@@ -1,6 +1,8 @@
 " =========================== Config ============================
 let s:stems = [
   \ 'frame',
+  \ 'plane',
+  \ 'input',
   \ 'app-ctrl',
   \ 'game',
   \ 'turn',

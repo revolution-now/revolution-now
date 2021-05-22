@@ -35,6 +35,7 @@ using e_input_handled = Plane::e_input_handled;
 /****************************************************************
 ** Globals
 *****************************************************************/
+ColonyId                   g_colony_id{};
 co::stream<input::event_t> g_input;
 
 /****************************************************************
@@ -63,7 +64,7 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   line( "nation: {}", colony.nation() );
   line( "location: {}", colony.location() );
 
-  colview_top_level().view->draw( tx, Coord{} );
+  colview_top_level().view().draw( tx, Coord{} );
 }
 
 /****************************************************************
@@ -88,9 +89,27 @@ waitable<bool> handle_event(
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
   Coord click_pos = event.pos;
-  co_await colview_top_level().col_view->perform_click(
-      click_pos );
+  co_await colview_top_level().perform_click( click_pos );
   co_return false;
+}
+
+waitable<bool> handle_event( input::win_event_t const& event ) {
+  if( event.type == input::e_win_event_type::resized )
+    // Force a re-composite.
+    set_colview_colony( g_colony_id );
+  co_return false;
+}
+
+waitable<bool> handle_event(
+    input::mouse_drag_event_t const& event ) {
+  CHECK( event.state.phase == input::e_drag_phase::begin );
+  Coord const& origin = event.state.origin;
+  while( true ) {
+    input::event_t event = co_await g_input.next();
+    if( !event.holds<input::mouse_drag_event_t>() ) continue;
+    input::mouse_drag_event_t const& drag_event =
+        event.get<input::mouse_drag_event_t>();
+  }
 }
 
 waitable<bool> handle_event( auto const& ) { co_return false; }
@@ -112,27 +131,17 @@ struct ColonyPlane : public Plane {
   ColonyPlane() = default;
   bool covers_screen() const override { return true; }
   void draw( Texture& tx ) const override {
-    draw_colony_view( tx, curr_colony_id );
+    draw_colony_view( tx, g_colony_id );
   }
   e_input_handled input( input::event_t const& event ) override {
-    switch( event.to_enum() ) {
-      case input::e_input_event::win_event: {
-        auto& val = event.get<input::win_event_t>();
-        if( val.type == input::e_win_event_type::resized )
-          // Force a re-composite.
-          set_colview_colony( curr_colony_id );
-        // Generally we should return no here because this is an
-        // event that we want all planes to see.
-        return e_input_handled::no;
-      }
-      default: {
-        g_input.send( event );
-        return e_input_handled::yes;
-      }
-    }
+    g_input.send( event );
+    if( event.holds<input::win_event_t>() )
+      // Generally we should return no here because this is an
+      // event that we want all planes to see. FIXME: need to
+      // find a better way to handle this automatically.
+      return e_input_handled::no;
+    return e_input_handled::yes;
   }
-
-  ColonyId curr_colony_id;
 };
 
 ColonyPlane g_colony_plane;
@@ -147,7 +156,7 @@ Plane* colony_plane() { return &g_colony_plane; }
 waitable<> show_colony_view( ColonyId id ) {
   CHECK( colony_exists( id ) );
   g_input.reset();
-  g_colony_plane.curr_colony_id = id;
+  g_colony_id = id;
   set_colview_colony( id );
   ScopedPlanePush pusher( e_plane_config::colony );
   lg.info( "viewing colony {}.", colony_from_id( id ) );

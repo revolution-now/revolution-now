@@ -24,9 +24,23 @@
 #include "waitable-coro.hpp"
 #include "window.hpp"
 
+// base
+#include "base/maybe-util.hpp"
+
 using namespace std;
 
 namespace rn {
+
+/****************************************************************
+** ColonySubView
+*****************************************************************/
+maybe<IColViewDragSource&> ColonySubView::drag_source() {
+  return base::maybe_dynamic_cast<IColViewDragSource&>( *this );
+}
+
+maybe<IColViewDragSink&> ColonySubView::drag_sink() {
+  return base::maybe_dynamic_cast<IColViewDragSink&>( *this );
+}
 
 namespace {
 
@@ -42,11 +56,10 @@ constexpr W kCommodityTileWidth = 16_w;
 ** Globals
 *****************************************************************/
 struct ColViewComposited {
-  ColonyId                  id;
-  Delta                     screen_size;
-  unique_ptr<ColonySubView> top_level;
-  ColViewEntityPtrs         top_level_ptrs;
-  unordered_map<e_colview_entity, ColViewEntityPtrs> entities;
+  ColonyId                                        id;
+  Delta                                           screen_size;
+  unique_ptr<ColonySubView>                       top_level;
+  unordered_map<e_colview_entity, ColonySubView*> entities;
 };
 
 ColViewComposited g_composition;
@@ -62,6 +75,11 @@ ColonyId colony_id() { return g_composition.id; }
 class TitleBar : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
 
   string title() const {
     auto const& colony = colony_from_id( colony_id() );
@@ -84,11 +102,6 @@ public:
   //   return e_colview_entity::title_bar;
   // }
 
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord ) const override {
-    return nothing;
-  }
-
   TitleBar( Delta size ) : size_( size ) {}
 
 private:
@@ -101,6 +114,11 @@ public:
     return Delta{
         block_width_ * SX{ enum_traits<e_commodity>::count },
         1_h * 32_sy };
+  }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
   }
 
   // Offset within a block that the commodity icon should be dis-
@@ -138,8 +156,8 @@ public:
   //   return e_colview_entity::commodities;
   // }
 
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
+  maybe<ColViewObjectWithBounds> object_here(
+      Coord const& coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
     auto box_upper_left =
@@ -147,10 +165,10 @@ public:
     auto idx        = ( coord / sprite_scale - Coord{} ).w._;
     auto maybe_type = commodity_from_index( idx );
     if( !maybe_type ) return nothing;
-    return ColViewObjectUnderCursor{
+    return ColViewObjectWithBounds{
         .obj =
-            ColViewDraggableObject::market_commodity{
-                .type = *maybe_type },
+            ColViewObject::market_commodity{ .type =
+                                                 *maybe_type },
         .bounds =
             Rect::from(
                 box_upper_left + rendered_commodity_offset(),
@@ -168,6 +186,11 @@ private:
 class PopulationView : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
 
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
@@ -190,12 +213,6 @@ public:
   //   return e_colview_entity::population;
   // }
 
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nothing;
-    return nothing;
-  }
-
   PopulationView( Delta size ) : size_( size ) {}
 
 private:
@@ -205,6 +222,11 @@ private:
 class CargoView : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
 
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
@@ -220,7 +242,7 @@ public:
     int  open_slots =
         unit.has_value() ? unit->desc().cargo_slots : 0;
     auto           bds  = Rect::from( coord + 32_h + 16_h,
-                           Delta( 32_h, delta().w ) );
+                                      Delta( 32_h, delta().w ) );
     auto           grid = bds.to_grid_noalign( g_tile_scale );
     CargoSlotIndex slot{ 0 };
     for( auto upper_left : grid ) {
@@ -282,12 +304,6 @@ public:
   // e_colview_entity entity_id() const override {
   //   return e_colview_entity::cargo;
   // }
-
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nothing;
-    return nothing;
-  }
 
   CargoView( Delta size ) : size_( size ) {
     update_unit_layout();
@@ -374,6 +390,11 @@ class ProductionView : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
 
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
+
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
@@ -386,12 +407,6 @@ public:
   // e_colview_entity entity_id() const override {
   //   return e_colview_entity::production;
   // }
-
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nothing;
-    return nothing;
-  }
 
   ProductionView( Delta size ) : size_( size ) {}
 
@@ -430,6 +445,11 @@ public:
   }
 
   Delta delta() const override { return size_needed( mode_ ); }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
 
   void draw_land_3x3( Texture& tx, Coord coord ) const {
     auto const& colony       = colony_from_id( colony_id() );
@@ -487,12 +507,6 @@ public:
   //   return e_colview_entity::land;
   // }
 
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nothing;
-    return nothing;
-  }
-
   LandView( e_render_mode mode, Texture land_tx )
     : mode_( mode ), land_tx_( std::move( land_tx ) ) {}
 
@@ -512,38 +526,48 @@ struct CompositeColSubView : public ui::InvisibleView,
     for( ui::PositionedView v : *this ) {
       auto* col_view = dynamic_cast<ColonySubView*>( v.view );
       CHECK( col_view );
-      ptrs_.push_back( ColViewEntityPtrs{
-          .col_view = col_view,
-          .view     = v.view,
-      } );
+      ptrs_.push_back( col_view );
     }
+    CHECK( int( ptrs_.size() ) == count() );
   }
 
-  ui::InvisibleView&       as_view() { return *this; }
-  ColonySubView&           as_colview() { return *this; }
-  ui::InvisibleView const& as_view() const { return *this; }
-  ColonySubView const&     as_colview() const { return *this; }
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
 
   // Implement AwaitableView.
   waitable<> perform_click( Coord pos ) override {
-    DCHECK( int( ptrs_.size() ) == count() );
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
       if( !pos.is_inside( pos_view.rect() ) ) continue;
-      return ptrs_[i].col_view->perform_click(
+      return ptrs_[i]->perform_click(
           pos.with_new_origin( pos_view.coord ) );
     }
     return make_waitable<>();
   }
 
+  maybe<PositionedColSubView> view_here( Coord coord ) override {
+    for( int i = 0; i < count(); ++i ) {
+      ui::PositionedView pos_view = at( i );
+      if( !coord.is_inside( pos_view.rect() ) ) continue;
+      maybe<PositionedColSubView> p_view = ptrs_[i]->view_here(
+          coord.with_new_origin( pos_view.coord ) );
+      if( !p_view ) continue;
+      p_view->upper_left =
+          p_view->upper_left.as_if_origin_were( pos_view.coord );
+      return p_view;
+    }
+    return nothing;
+  }
+
   // Implement ColonySubView.
-  maybe<ColViewObjectUnderCursor> obj_under_cursor(
-      Coord coord ) const override {
-    DCHECK( int( ptrs_.size() ) == count() );
+  maybe<ColViewObjectWithBounds> object_here(
+      Coord const& coord ) const override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      if( auto maybe_obj = ptrs_[i].col_view->obj_under_cursor(
+      if( auto maybe_obj = ptrs_[i]->object_here(
               coord.with_new_origin( pos_view.coord ) );
           maybe_obj )
         return maybe_obj;
@@ -551,13 +575,8 @@ struct CompositeColSubView : public ui::InvisibleView,
     return nothing;
   }
 
-  vector<ColViewEntityPtrs> ptrs_;
+  vector<ColonySubView*> ptrs_;
 };
-
-template<typename T>
-ColViewEntityPtrs MakeEntityPtrs( T* p ) {
-  return { .col_view = p, .view = p };
-}
 
 void recomposite( ColonyId id, Delta screen_size ) {
   CHECK( colony_exists( id ) );
@@ -576,7 +595,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto title_bar =
       TitleBar::create( Delta{ 10_h, screen_size.w } );
   g_composition.entities[e_colview_entity::title_bar] =
-      MakeEntityPtrs( title_bar.get() );
+      title_bar.get();
   pos = Coord{};
   Y const title_bar_bottom =
       title_bar->rect( pos ).bottom_edge();
@@ -591,7 +610,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto market_commodities =
       MarketCommodities::create( comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
-      MakeEntityPtrs( market_commodities.get() );
+      market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
                          screen_rect );
   auto const market_commodities_top = pos.y;
@@ -608,7 +627,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
       PopulationView::create( middle_strip_size.with_width(
           middle_strip_size.w / 3_sx ) );
   g_composition.entities[e_colview_entity::population] =
-      MakeEntityPtrs( population_view.get() );
+      population_view.get();
   pos = Coord{ 0_x, middle_strip_top };
   X const population_right_edge =
       population_view->rect( pos ).right_edge();
@@ -620,7 +639,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
       CargoView::create( middle_strip_size.with_width(
           middle_strip_size.w / 3_sx ) );
   g_composition.entities[e_colview_entity::cargo] =
-      MakeEntityPtrs( cargo_view.get() );
+      cargo_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
   X const cargo_right_edge =
       cargo_view->rect( pos ).right_edge();
@@ -632,7 +651,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
       ProductionView::create( middle_strip_size.with_width(
           middle_strip_size.w / 3_sx ) );
   g_composition.entities[e_colview_entity::production] =
-      MakeEntityPtrs( production_view.get() );
+      production_view.get();
   pos = Coord{ cargo_right_edge, middle_strip_top };
   views.push_back( ui::OwningPositionedView(
       std::move( production_view ), pos ) );
@@ -653,9 +672,10 @@ void recomposite( ColonyId id, Delta screen_size ) {
     land_view_mode = LandView::e_render_mode::_3x3;
   auto land_view = LandView::create( land_view_mode );
   g_composition.entities[e_colview_entity::land] =
-      MakeEntityPtrs( land_view.get() );
+      land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
-            .view->rect( Coord{} )
+            ->view()
+            .rect( Coord{} )
             .lower_right() -
         land_view->delta().w;
   views.push_back(
@@ -665,8 +685,6 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto invisible_view = std::make_unique<CompositeColSubView>(
       screen_rect.delta(), std::move( views ) );
   invisible_view->set_delta( screen_rect.delta() );
-  g_composition.top_level_ptrs =
-      MakeEntityPtrs( invisible_view.get() );
   g_composition.top_level = std::move( invisible_view );
 
   for( auto e : enum_traits<e_colview_entity>::values ) {
@@ -680,13 +698,12 @@ void recomposite( ColonyId id, Delta screen_size ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-ColViewEntityPtrs colview_entity( e_colview_entity ) {
+ColonySubView& colview_entity( e_colview_entity ) {
   NOT_IMPLEMENTED;
-  return {};
 }
 
-ColViewEntityPtrs colview_top_level() {
-  return g_composition.top_level_ptrs;
+ColonySubView& colview_top_level() {
+  return *g_composition.top_level;
 }
 
 void set_colview_colony( ColonyId id ) {

@@ -23,12 +23,12 @@ enum e_colview_entity {
   production
 };
 
-sumtype ColViewDraggableObject {
+sumtype ColViewObject {
   unit:
     UnitId id;
   market_commodity:
     e_commodity type;
   cargo_commodity:
-    UnitId id;
+    UnitId holder_id;
     CargoSlotIndex slot;
 };
