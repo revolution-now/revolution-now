@@ -292,11 +292,11 @@ struct latch {
 
   auto waitable() const { return p.waitable(); }
 
-  using Awaitable =
-      detail::awaitable<detail::promise_type<std::monostate>>;
-
-  Awaitable operator co_await() const noexcept {
-    return Awaitable{ waitable() };
+  auto operator co_await() const noexcept {
+    return detail::awaitable(
+        static_cast<detail::promise_type<std::monostate>*>(
+            nullptr ),
+        waitable() );
   }
 
   waitable_promise<> p;

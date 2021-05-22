@@ -14,7 +14,6 @@
 #include "auto-pad.hpp"
 #include "config-files.hpp"
 #include "error.hpp"
-#include "frame.hpp"
 #include "game-ui-views.hpp"
 #include "gfx.hpp"
 #include "input.hpp"

@@ -1,26 +1,24 @@
 /****************************************************************
-**frame-count.hpp
+**frame-count.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2021-04-04.
+* Created by dsicilia on 2021-05-21.
 *
 * Description: Defines a strong int representing a frame count.
 *
 *****************************************************************/
-#pragma once
-
-#include "core-config.hpp"
+#include "frame-count.hpp"
 
 // Revolution Now
-#include "typed-int.hpp"
-#include "waitable.hpp"
+#include "frame.hpp"
 
-// Strongly-typed integer for representing frame counts.
-TYPED_INT( FrameCount, frames );
+using namespace std;
 
 namespace rn {
 
-waitable<> co_await_transform( FrameCount count );
+waitable<> co_await_transform( FrameCount count ) {
+  return wait_n_frames( count );
+}
 
 } // namespace rn

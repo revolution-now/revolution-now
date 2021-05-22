@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "co-registry.hpp"
-#include "frame-count.hpp"
 #include "waitable.hpp"
 
 // base
@@ -22,15 +21,22 @@
 
 namespace rn {
 
+// Implement co_await_transform extension point for waitable<T>.
+template<typename T>
+inline waitable<T> co_await_transform( waitable<T> w ) {
+  return std::move( w );
+}
+
 namespace detail {
 
 // The PromiseT is the type (inside the waitable) that will be
 // returned by the coroutine that is awaiting on this awaitable.
 // The type T is the type that this awaitable will yield.
-template<typename PromiseT, typename T = std::monostate>
+template<typename PromiseT, typename T>
 struct awaitable {
   waitable<T> w_;
-  awaitable( waitable<T> w ) : w_( std::move( w ) ) {}
+  // Promise pointer so that template type can be inferred.
+  awaitable( PromiseT*, waitable<T> w ) : w_( std::move( w ) ) {}
   bool await_ready() noexcept { return w_.ready(); }
   void await_suspend( coro::coroutine_handle<> h ) noexcept {
     w_.shared_state()->add_callback(
@@ -46,10 +52,6 @@ struct awaitable {
     return w_.get();
   }
 };
-
-waitable<> await_transform_impl( FrameCount frame_count );
-waitable<std::chrono::microseconds> await_transform_impl(
-    std::chrono::microseconds us );
 
 // The point of this is that it's not a template, so it can hold
 // all the common stuff that does not depend on the type T para-
@@ -111,21 +113,12 @@ struct promise_type final : public promise_type_base<T> {
     waitable_promise_.set_value( std::move( val ) );
   }
 
-  static auto await_transform( FrameCount frame_count ) {
-    return awaitable<promise_type, std::monostate>(
-        await_transform_impl( frame_count ) );
-  }
-
-  static auto await_transform( std::chrono::microseconds us ) {
-    return awaitable<promise_type, std::chrono::microseconds>(
-        await_transform_impl( us ) );
-  }
-
-  template<typename Waitable>
-  static auto await_transform( Waitable&& w ) {
-    return awaitable<promise_type, typename std::remove_cvref_t<
-                                       Waitable>::value_type>(
-        std::forward<Waitable>( w ) );
+  template<typename U>
+  static auto await_transform( U&& w ) noexcept {
+    // The co_await_transform extension point must be implemented
+    // for the type U somewhere in the rn:: namespace.
+    return awaitable( static_cast<promise_type*>( nullptr ),
+                      co_await_transform( std::move( w ) ) );
   }
 };
 
@@ -155,21 +148,12 @@ struct promise_type<std::monostate> final
     waitable_promise_.set_value( std::monostate{} );
   }
 
-  static auto await_transform( FrameCount frame_count ) {
-    return awaitable<promise_type, std::monostate>(
-        await_transform_impl( frame_count ) );
-  }
-
-  static auto await_transform( std::chrono::microseconds us ) {
-    return awaitable<promise_type, std::chrono::microseconds>(
-        await_transform_impl( us ) );
-  }
-
-  template<typename Waitable>
-  static auto await_transform( Waitable&& w ) {
-    return awaitable<promise_type, typename std::remove_cvref_t<
-                                       Waitable>::value_type>(
-        std::forward<Waitable>( w ) );
+  template<typename U>
+  static auto await_transform( U&& w ) noexcept {
+    // The co_await_transform extension point must be implemented
+    // for the type U somewhere in the rn:: namespace.
+    return awaitable( static_cast<promise_type*>( nullptr ),
+                      co_await_transform( std::move( w ) ) );
   }
 };
 

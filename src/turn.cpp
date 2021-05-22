@@ -16,7 +16,6 @@
 #include "colony-view.hpp"
 #include "cstate.hpp"
 #include "fb.hpp"
-#include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
