@@ -46,4 +46,19 @@ std::vector<T> cat_maybes( std::vector<maybe<T>> const& ms ) {
   return res;
 }
 
+// Does a dynamic cast with references, but returns a maybe so
+// that we can fail by returning nothing if the dynamic cast
+// fails.
+template<typename To, typename From>
+maybe<To&> maybe_dynamic_cast( From& from ) {
+  constexpr bool is_lvalue_ref =
+      std::is_lvalue_reference_v<decltype( from )>;
+  static_assert( is_lvalue_ref );
+  using To_noref_t = std::remove_reference_t<To>;
+  if( To_noref_t* to = dynamic_cast<To_noref_t*>( &from ) )
+    return *to;
+  else
+    return nothing;
+}
+
 } // namespace base
