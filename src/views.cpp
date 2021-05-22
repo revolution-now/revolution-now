@@ -128,8 +128,8 @@ PositionedViewConst CompositeView::at( int idx ) const {
   return { view, pos_of( idx ) };
 }
 
-CompositeSingleView::CompositeSingleView( UPtr<View> view,
-                                          Coord      coord )
+CompositeSingleView::CompositeSingleView( unique_ptr<View> view,
+                                          Coord coord )
   : view_( std::move( view ) ), coord_( coord ) {}
 
 Coord CompositeSingleView::pos_of( int idx ) const {
@@ -137,7 +137,7 @@ Coord CompositeSingleView::pos_of( int idx ) const {
   return coord_;
 }
 
-UPtr<View>& CompositeSingleView::mutable_at( int idx ) {
+unique_ptr<View>& CompositeSingleView::mutable_at( int idx ) {
   CHECK( idx == 0 );
   return view_;
 }
@@ -147,7 +147,7 @@ Coord VectorView::pos_of( int idx ) const {
   return views_[idx].coord();
 }
 
-UPtr<View>& VectorView::mutable_at( int idx ) {
+unique_ptr<View>& VectorView::mutable_at( int idx ) {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
   return views_[idx].mutable_view();
 }
@@ -594,7 +594,7 @@ Coord OkCancelView::pos_of( int idx ) const {
   return {};
 }
 
-UPtr<View>& OkCancelView::mutable_at( int idx ) {
+unique_ptr<View>& OkCancelView::mutable_at( int idx ) {
   CHECK( idx == 0 || idx == 1 );
   return ( idx == 0 ) ? ok_ : cancel_;
 }
@@ -693,10 +693,10 @@ void HorizontalArrayView::recompute_child_positions() {
   }
 }
 
-OkCancelAdapterView::OkCancelAdapterView( UPtr<View>  view,
+OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
                                           OnClickFunc on_click )
   : VerticalArrayView(
-        params_to_vector<UPtr<View>>(
+        params_to_vector<unique_ptr<View>>(
             std::move( view ),
             make_unique<OkCancelView>(
                 /*on_ok=*/
@@ -732,7 +732,7 @@ Coord OptionSelectItemView::pos_of( int idx ) const {
   return Coord{};
 }
 
-UPtr<View>& OptionSelectItemView::mutable_at( int idx ) {
+unique_ptr<View>& OptionSelectItemView::mutable_at( int idx ) {
   CHECK( idx == 0 || idx == 1 );
   switch( idx ) {
     case 0:
@@ -862,7 +862,7 @@ void FakeUnitView::draw( Texture& tx, Coord coord ) const {
 }
 
 ClickableView::ClickableView(
-    UPtr<View> view, std::function<void( void )> on_click )
+    unique_ptr<View> view, std::function<void( void )> on_click )
   : CompositeSingleView( std::move( view ), Coord{} ),
     on_click_( std::move( on_click ) ) {}
 
@@ -873,7 +873,7 @@ bool ClickableView::on_mouse_button(
   return true;
 }
 
-BorderView::BorderView( UPtr<View> view, Color color,
+BorderView::BorderView( unique_ptr<View> view, Color color,
                         int padding, bool on_initially )
   : CompositeSingleView(
         std::move( view ),

@@ -34,53 +34,9 @@ namespace rn::ui {
 // NOTE: Don't put anymore views in here that are specific to
 // game logic.
 
-template<typename T>
-using UPtr = ::std::unique_ptr<T>;
-
 /****************************************************************
 ** Fundamental Views
 *****************************************************************/
-// This is a View coupled with a coordinate representing the po-
-// sition of the upper-left corner of the view. Note that the co-
-// ordinate is in the coordinate system of the parent view or
-// window (whose position in turn will not be know by this
-// struct).
-struct PositionedView {
-  View* view;
-  Coord coord;
-
-  Rect rect() const { return view->rect( coord ); }
-};
-NOTHROW_MOVE( PositionedView );
-struct PositionedViewConst {
-  View const* view;
-  Coord       coord;
-
-  Rect rect() const { return view->rect( coord ); }
-};
-NOTHROW_MOVE( PositionedViewConst );
-
-// Same as above, but owns the view.  The
-class OwningPositionedView {
-public:
-  OwningPositionedView( std::unique_ptr<View> view,
-                        Coord const&          coord )
-    : view_( std::move( view ) ), coord_( coord ) {}
-
-  View* view() const { return view_.get(); }
-  View* view() { return view_.get(); }
-
-  UPtr<View>& mutable_view() { return view_; }
-
-  Coord const& coord() const { return coord_; }
-  Coord&       coord() { return coord_; }
-
-private:
-  std::unique_ptr<View> view_;
-  Coord                 coord_;
-};
-NOTHROW_MOVE( OwningPositionedView );
-
 class CompositeView : public View {
 public:
   // Implement Object
@@ -102,8 +58,8 @@ public:
 
   virtual int count() const = 0;
 
-  virtual UPtr<View>& mutable_at( int idx )   = 0;
-  virtual Coord       pos_of( int idx ) const = 0;
+  virtual std::unique_ptr<View>& mutable_at( int idx )   = 0;
+  virtual Coord                  pos_of( int idx ) const = 0;
 
   // By default this view will be eligible for auto-padding be-
   // tween the views inside of it. However this is not always de-
@@ -153,27 +109,27 @@ private:
 class CompositeSingleView : public CompositeView {
 public:
   CompositeSingleView() = default;
-  CompositeSingleView( UPtr<View> view, Coord coord );
+  CompositeSingleView( std::unique_ptr<View> view, Coord coord );
 
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
   // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
+  std::unique_ptr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 1; }
 
   View*       single() { return view_.get(); }
   View const* single() const { return view_.get(); }
 
-  void set_view( UPtr<View> view, Coord coord ) {
+  void set_view( std::unique_ptr<View> view, Coord coord ) {
     view_  = std::move( view );
     coord_ = coord;
     notify_children_updated();
   }
 
 private:
-  UPtr<View> view_;
-  Coord      coord_;
+  std::unique_ptr<View> view_;
+  Coord                 coord_;
 };
 
 class VectorView : public CompositeView {
@@ -186,7 +142,7 @@ public:
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
   // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
+  std::unique_ptr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return int( views_.size() ); }
 
@@ -474,7 +430,7 @@ public:
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
   // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
+  std::unique_ptr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
   // Implement CompositeView
@@ -484,8 +440,8 @@ public:
   ButtonView* cancel_button() { return cancel_ref_; }
 
 private:
-  UPtr<View> ok_;
-  UPtr<View> cancel_;
+  std::unique_ptr<View> ok_;
+  std::unique_ptr<View> cancel_;
   // Cache these to avoid dynamic_casts.
   ButtonView* ok_ref_;
   ButtonView* cancel_ref_;
@@ -548,7 +504,8 @@ private:
 class OkCancelAdapterView : public VerticalArrayView {
 public:
   using OnClickFunc = std::function<void( e_ok_cancel )>;
-  OkCancelAdapterView( UPtr<View> view, OnClickFunc on_click );
+  OkCancelAdapterView( std::unique_ptr<View> view,
+                       OnClickFunc           on_click );
 };
 
 enum class e_option_active { inactive, active };
@@ -560,7 +517,7 @@ public:
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
   // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
+  std::unique_ptr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
   // Implement CompositeView
@@ -579,11 +536,11 @@ public:
   }
 
 private:
-  e_option_active active_;
-  UPtr<View>      background_active_;
-  UPtr<View>      background_inactive_;
-  UPtr<View>      foreground_active_;
-  UPtr<View>      foreground_inactive_;
+  e_option_active       active_;
+  std::unique_ptr<View> background_active_;
+  std::unique_ptr<View> background_inactive_;
+  std::unique_ptr<View> foreground_active_;
+  std::unique_ptr<View> foreground_inactive_;
 };
 
 class OptionSelectView : public VectorView {
@@ -638,7 +595,7 @@ class ClickableView : public CompositeSingleView {
 public:
   using OnClick = std::function<void( void )>;
 
-  ClickableView( UPtr<View> view, OnClick on_click );
+  ClickableView( std::unique_ptr<View> view, OnClick on_click );
 
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
@@ -653,8 +610,8 @@ private:
 class BorderView : public CompositeSingleView {
 public:
   // padding is how many pixels between inner view and border.
-  BorderView( UPtr<View> view, Color color, int padding,
-              bool on_initially );
+  BorderView( std::unique_ptr<View> view, Color color,
+              int padding, bool on_initially );
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
