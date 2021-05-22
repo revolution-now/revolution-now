@@ -169,11 +169,9 @@ public:
         .obj =
             ColViewObject::market_commodity{ .type =
                                                  *maybe_type },
-        .bounds =
-            Rect::from(
-                box_upper_left + rendered_commodity_offset(),
-                Delta{ 1_w, 1_h } * kCommodityTileScale )
-                .as_if_origin_were( coord ) };
+        .bounds = Rect::from(
+            box_upper_left + rendered_commodity_offset(),
+            Delta{ 1_w, 1_h } * kCommodityTileScale ) };
   }
 
   MarketCommodities( W block_width )
@@ -567,10 +565,12 @@ struct CompositeColSubView : public ui::InvisibleView,
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      if( auto maybe_obj = ptrs_[i]->object_here(
-              coord.with_new_origin( pos_view.coord ) );
-          maybe_obj )
-        return maybe_obj;
+      maybe<ColViewObjectWithBounds> obj = ptrs_[i]->object_here(
+          coord.with_new_origin( pos_view.coord ) );
+      if( !obj ) continue;
+      obj->bounds =
+          obj->bounds.as_if_origin_were( pos_view.coord );
+      return obj;
     }
     return nothing;
   }
