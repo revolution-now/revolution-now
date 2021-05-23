@@ -32,8 +32,23 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** ColonySubView
+** Casting
 *****************************************************************/
+// These are used to test views for supported interfaces and to
+// then get references to the views as those interfaces.
+
+maybe<IColViewDragSourceUserInput const&>
+IColViewDragSource::drag_user_input() const {
+  return base::maybe_dynamic_cast<
+      IColViewDragSourceUserInput const&>( *this );
+}
+
+maybe<IColViewDragSinkConfirm const&>
+IColViewDragSink::drag_confirm() const {
+  return base::maybe_dynamic_cast<
+      IColViewDragSinkConfirm const&>( *this );
+}
+
 maybe<IColViewDragSource&> ColonySubView::drag_source() {
   return base::maybe_dynamic_cast<IColViewDragSource&>( *this );
 }
@@ -152,6 +167,11 @@ public:
     return make_unique<MarketCommodities>( block_width );
   }
 
+  int quantity_of( e_commodity /*type*/ ) const {
+    // TODO
+    return 0;
+  }
+
   // e_colview_entity entity_id() const override {
   //   return e_colview_entity::commodities;
   // }
@@ -166,9 +186,9 @@ public:
     auto maybe_type = commodity_from_index( idx );
     if( !maybe_type ) return nothing;
     return ColViewObjectWithBounds{
-        .obj =
-            ColViewObject::market_commodity{ .type =
-                                                 *maybe_type },
+        .obj    = ColViewObject::commodity{ Commodity{
+            .type     = *maybe_type,
+            .quantity = quantity_of( *maybe_type ) } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
             Delta{ 1_w, 1_h } * kCommodityTileScale ) };
@@ -706,6 +726,53 @@ ColonySubView& colview_top_level() {
   return *g_composition.top_level;
 }
 
+// FIXME: a lot of this needs to be de-duped with the corre-
+// sponding code in old-world-view.
+void colview_drag_n_drop_draw(
+    drag::State<ColViewObject_t> const& state, Texture& tx ) {
+  auto origin_for = [&]( Delta const& tile_size ) {
+    return state.where - tile_size / Scale{ 2 } -
+           state.click_offset;
+  };
+  using namespace ColViewObject;
+  // Render the dragged item.
+  overload_visit(
+      state.object,
+      [&]( unit const& o ) {
+        auto size =
+            lookup_sprite( unit_from_id( o.id ).desc().tile )
+                .size();
+        render_unit( tx, o.id, origin_for( size ),
+                     /*with_icon=*/false );
+      },
+      [&]( commodity const& o ) {
+        auto size = commodity_tile_size( o.comm.type );
+        render_commodity( tx, o.comm.type, origin_for( size ) );
+      } );
+  // Render any indicators on top of it.
+  switch( state.indicator ) {
+    using e = drag::e_status_indicator;
+    case e::none: break;
+    case e::bad: {
+      auto const& status_tx = render_text( "X", Color::red() );
+      copy_texture( status_tx, tx,
+                    origin_for( status_tx.size() ) );
+      break;
+    }
+    case e::good: {
+      auto const& status_tx = render_text( "+", Color::green() );
+      copy_texture( status_tx, tx,
+                    origin_for( status_tx.size() ) );
+      if( state.user_requests_input ) {
+        auto const& mod_tx  = render_text( "?", Color::green() );
+        auto        mod_pos = state.where;
+        mod_pos.y -= mod_tx.size().h;
+        copy_texture( mod_tx, tx, mod_pos - state.click_offset );
+      }
+      break;
+    }
+  }
+}
 void set_colview_colony( ColonyId id ) {
   auto new_id   = id;
   auto new_size = main_window_logical_size();

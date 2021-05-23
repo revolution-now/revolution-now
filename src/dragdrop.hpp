@@ -33,6 +33,8 @@ struct Step {
 template<typename DraggableObject>
 struct State {
   // Input state.
+  // FIXME: this can be removed when dragging is implemented the
+  // way it is in the colony view.
   co::finite_stream<Step> stream;
 
   // Output state.

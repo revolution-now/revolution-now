@@ -26,9 +26,10 @@ enum e_colview_entity {
 sumtype ColViewObject {
   unit:
     UnitId id;
-  market_commodity:
-    e_commodity type;
-  cargo_commodity:
-    UnitId holder_id;
-    CargoSlotIndex slot;
+  commodity:
+    Commodity comm;
+
+  .features:
+    equality,
+    formattable;
 };
