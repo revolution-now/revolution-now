@@ -189,6 +189,8 @@ waitable<> drag_drop_routine(
         continue;
       // The drag has ended but with no dice, so rubber-band the
       // dragged object back to its source.
+      lg.debug( "drag sink cannot accept object {}.",
+                source_object );
       break;
     }
     g_drag_state->indicator = drag::e_status_indicator::good;
@@ -218,9 +220,11 @@ waitable<> drag_drop_routine(
         g_drag_state->user_requests_input ) {
       maybe<ColViewObject_t> new_obj =
           co_await drag_user_input->user_edit_object();
-      if( !new_obj )
-        // Drag is cancelled.
+      if( !new_obj ) {
+        lg.debug( "drag of object {} cancelled by user.",
+                  source_object );
         break;
+      }
       source_object = *new_obj;
     }
 
@@ -228,20 +232,31 @@ waitable<> drag_drop_routine(
     // currently is, and/or allow it to adjust it.
     maybe<ColViewObject_t> sink_edited =
         drag_sink.can_receive( source_object, sink_coord );
-    if( !sink_edited )
-      // The sink can't find a way to make it work, drag is
-      // cancelled.
+    if( !sink_edited ) {
+      // The sink can't find a way to make it work, drag is can-
+      // celled.
+      lg.debug( "drag sink cannot receive object {}.",
+                source_object );
       break;
+    }
+    if( *sink_edited != source_object )
+      lg.debug( "drag sink responded with object {}.",
+                *sink_edited );
     source_object = *sink_edited;
 
     // Since the sink may have edited the object, lets make sure
     // that the source can handle it.
     auto final_scoped_canceller =
         drag_source.try_drag( source_object );
-    if( !final_scoped_canceller )
+    if( !final_scoped_canceller ) {
       // The source and sink can't negotiate a way to make this
       // drag work, so cancel it.
+      lg.debug(
+          "drag source and sink cannot negotiate a draggable "
+          "object, last attempt was {}.",
+          source_object );
       break;
+    }
 
     // The source and sink have agreed on an object that can be
     // transferred, so let's let the sink do a final user confir-
@@ -251,15 +266,19 @@ waitable<> drag_drop_routine(
     if( drag_confirm ) {
       bool proceed = co_await drag_confirm->confirm(
           source_object, sink_coord );
-      if( !proceed )
+      if( !proceed ) {
         // User has cancelled the drag.
+        lg.debug( "drag of object {} cancelled by user.",
+                  source_object );
         break;
+      }
     }
 
     // Finally we can do the drag.
     drag_source.disown_dragged_object();
     drag_sink.drop( source_object, sink_coord );
     // Drag happened successfully.
+    lg.debug( "drag of object {} successful.", source_object );
     co_return;
   }
 
@@ -349,6 +368,12 @@ struct ColonyPlane : public Plane {
       // find a better way to handle this automatically.
       return e_input_handled::no;
     return e_input_handled::yes;
+  }
+  Plane::e_accept_drag can_drag(
+      input::e_mouse_button /*button*/,
+      Coord /*origin*/ ) override {
+    if( g_drag_state ) return Plane::e_accept_drag::swallow;
+    return e_accept_drag::yes_but_raw;
   }
 };
 
