@@ -8,6 +8,9 @@
 # Description: Private RNL definitions for the menu module.
 #
 # ===============================================================
+include "time.hpp";
+include "maybe.hpp";
+
 namespace rn;
 
 sumtype MenuItem {

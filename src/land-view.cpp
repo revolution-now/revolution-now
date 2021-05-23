@@ -18,7 +18,6 @@
 #include "coord.hpp"
 #include "cstate.hpp"
 #include "fb.hpp"
-#include "frame.hpp"
 #include "gfx.hpp"
 #include "id.hpp"
 #include "logging.hpp"

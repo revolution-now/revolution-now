@@ -19,7 +19,6 @@
 #include "dragdrop.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
-#include "frame.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"

@@ -11,6 +11,7 @@
 #include "menu.hpp"
 
 // Revolution Now
+#include "anim.hpp"
 #include "color.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
