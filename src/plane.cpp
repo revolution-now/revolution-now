@@ -345,7 +345,6 @@ Plane::e_input_handled send_input_to_planes(
                   *drag_event );
           CHECK( maybe_button.has_value() );
           (void)plane.input( *maybe_button );
-          g_drag_state.reset();
         }
         break;
       }
@@ -358,12 +357,10 @@ Plane::e_input_handled send_input_to_planes(
                        drag_event->state.origin,
                        drag_event->prev, drag_event->pos );
         // If the drag is finished then send out that event.
-        if( drag_event->state.phase == e_drag_phase::end ) {
+        if( drag_event->state.phase == e_drag_phase::end )
           plane.on_drag_finished(
               drag_event->mod, drag_event->button,
               drag_event->state.origin, drag_event->pos );
-          g_drag_state.reset();
-        }
         break;
       }
       case e_drag_send_mode::raw: {
@@ -371,6 +368,8 @@ Plane::e_input_handled send_input_to_planes(
         break;
       }
     }
+    if( drag_event->state.phase == e_drag_phase::end )
+      g_drag_state.reset();
     // Here it is assumed/required that the plane handle it be-
     // cause the plane has already accepted this drag.
     return Plane::e_input_handled::yes;
@@ -434,6 +433,10 @@ Plane::e_input_handled send_input_to_planes(
                           drag_event->prev, drag_event->pos );
           return Plane::e_input_handled::yes;
         case Plane::e_accept_drag::yes_but_raw:
+          g_drag_state.reset();
+          g_drag_state.emplace();
+          g_drag_state->plane = e;
+          g_drag_state->mode  = e_drag_send_mode::raw;
           (void)plane->input( event );
           return Plane::e_input_handled::yes;
       }
