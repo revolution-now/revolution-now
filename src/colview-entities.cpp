@@ -86,6 +86,14 @@ ColonyId colony_id() { return g_composition.id; }
 
 Colony& colony() { return colony_from_id( colony_id() ); }
 
+Cargo to_cargo( ColViewObject_t const& o ) {
+  switch( o.to_enum() ) {
+    using namespace ColViewObject;
+    case e::unit: return o.get<ColViewObject::unit>().id;
+    case e::commodity: return o.get<commodity>().comm;
+  }
+}
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -267,7 +275,9 @@ private:
   Delta size_;
 };
 
-class CargoView : public ui::View, public ColonySubView {
+class CargoView : public ui::View,
+                  public ColonySubView,
+                  public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
 
@@ -276,16 +286,48 @@ public:
     return *this;
   }
 
+  int max_slots_drawable() const {
+    return delta().w / g_tile_delta.w;
+  }
+
+  // As usual, coordinate must be relative to upper left corner
+  // of this view.
+  maybe<pair<bool, int>> slot_idx_from_coord(
+      Coord const& c ) const {
+    if( !c.is_inside( rect( {} ) ) ) return nothing;
+    if( c.y > 0_y + g_tile_delta.h ) return nothing;
+    int slot_idx =
+        ( c / g_tile_scale ).distance_from_origin().w._;
+    bool is_open =
+        holder_.has_value() &&
+        slot_idx < unit_from_id( *holder_ ).desc().cargo_slots;
+    return pair{ is_open, slot_idx };
+  }
+
+  // Returned rect is relative to upper left of this view.
+  maybe<pair<bool, Rect>> slot_rect_from_idx( int slot ) const {
+    if( slot < 0 ) return nothing;
+    if( slot >= max_slots_drawable() ) return nothing;
+    Coord slot_upper_left =
+        Coord{} + g_tile_delta.w * SX{ slot };
+    bool is_open =
+        holder_.has_value() &&
+        slot < unit_from_id( *holder_ ).desc().cargo_slots;
+    return pair{ is_open,
+                 Rect::from( slot_upper_left, g_tile_delta ) };
+  }
+
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
     auto unit = holder_.fmap( unit_from_id );
-    int  open_slots =
-        unit.has_value() ? unit->desc().cargo_slots : 0;
-    auto bds  = Rect::from( coord, Delta( 32_h, delta().w ) );
-    auto grid = bds.to_grid_noalign( g_tile_scale );
-    CargoSlotIndex slot{ 0 };
-    for( auto upper_left : grid ) {
+    for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
+      UNWRAP_CHECK( info, slot_rect_from_idx( idx ) );
+      auto [is_open, rect] = info;
+      if( !is_open ) {
+        render_fill_rect( tx, Color::wood(), rect );
+        continue;
+      }
       // if( g_drag_state.has_value() ) {
       //   if_get( g_drag_state->object,
       //           OldWorldDraggableObject::cargo_commodity,
@@ -293,47 +335,38 @@ public:
       //     if( cc.slot == slot ) continue;
       //   }
       // }
-      auto rect = Rect::from( upper_left, g_tile_delta );
-      if( open_slots > 0 ) {
-        // FIXME: need to deduplicate this logic with that in
-        // the Old World view.
-        render_fill_rect( tx, Color::wood().highlighted( 4 ),
-                          rect );
-        render_rect( tx, Color::wood(), rect );
-        switch( auto& v = unit->cargo()[slot]; v.to_enum() ) {
-          case CargoSlot::e::empty: {
-            break;
-          }
-          case CargoSlot::e::overflow: {
-            break;
-          }
-          case CargoSlot::e::cargo: {
-            auto& cargo = v.get<CargoSlot::cargo>();
-            overload_visit(
-                cargo.contents,
-                [&]( UnitId id ) {
-                  // if( !g_drag_state ||
-                  //     g_drag_state->object !=
-                  //         OldWorldDraggableObject_t{
-                  //             OldWorldDraggableObject::unit{
-                  //                 id } } )
-                  render_unit( tx, id, upper_left,
-                               /*with_icon=*/false );
-                },
-                [&]( Commodity const& c ) {
-                  render_commodity_annotated(
-                      tx, c,
-                      upper_left +
-                          kCommodityInCargoHoldRenderingOffset );
-                } );
-            break;
-          }
+
+      // FIXME: need to deduplicate this logic with that in
+      // the Old World view.
+      render_fill_rect( tx, Color::wood().highlighted( 4 ),
+                        rect );
+      render_rect( tx, Color::wood(), rect );
+      CargoHold const& hold = unit->cargo();
+      switch( auto& v = hold[idx]; v.to_enum() ) {
+        case CargoSlot::e::empty: break;
+        case CargoSlot::e::overflow: break;
+        case CargoSlot::e::cargo: {
+          auto& cargo = v.get<CargoSlot::cargo>();
+          overload_visit(
+              cargo.contents,
+              [&, rect = rect]( UnitId id ) {
+                // if( !g_drag_state ||
+                //     g_drag_state->object !=
+                //         OldWorldDraggableObject_t{
+                //             OldWorldDraggableObject::unit{
+                //                 id } } )
+                render_unit( tx, id, rect.upper_left(),
+                             /*with_icon=*/false );
+              },
+              [&, rect = rect]( Commodity const& c ) {
+                render_commodity_annotated(
+                    tx, c,
+                    rect.upper_left() +
+                        kCommodityInCargoHoldRenderingOffset );
+              } );
+          break;
         }
-      } else {
-        render_fill_rect( tx, Color::wood(), rect );
       }
-      --open_slots;
-      ++slot;
     }
   }
 
@@ -344,6 +377,51 @@ public:
   CargoView( Delta size ) : size_( size ) {}
 
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
+
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o,
+      Coord const&           where ) const override {
+    if( !holder_ ) return nothing;
+    maybe<pair<bool, int>> slot_info =
+        slot_idx_from_coord( where );
+    if( !slot_info.has_value() ) return nothing;
+    auto& unit = unit_from_id( *holder_ );
+    switch( o.to_enum() ) {
+      using namespace ColViewObject;
+      case e::unit: {
+        UnitId id = o.get<ColViewObject::unit>().id;
+        if( !unit.cargo().fits_somewhere( id ) ) return nothing;
+        return o;
+      }
+      case e::commodity:
+        Commodity c = o.get<commodity>().comm;
+        int       max_quantity =
+            unit.cargo().max_commodity_quantity_that_fits(
+                c.type );
+        c.quantity = clamp( c.quantity, 0, max_quantity );
+        if( c.quantity == 0 ) return nothing;
+        return commodity{ .comm = c };
+    }
+  }
+
+  void drop( ColViewObject_t const& o,
+             Coord const&           where ) override {
+    CHECK( holder_ );
+    auto& cargo_hold = unit_from_id( *holder_ ).cargo();
+    Cargo cargo      = to_cargo( o );
+    CHECK( cargo_hold.fits_somewhere( cargo ) );
+    UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
+    auto [is_open, slot_idx] = slot_info;
+    overload_visit(
+        cargo, //
+        [this]( UnitId id ) {
+          ustate_change_to_cargo( *holder_, id );
+        },
+        [this, slot_idx = slot_idx]( Commodity const& c ) {
+          add_commodity_to_cargo( c, *holder_, slot_idx,
+                                  /*try_other_slots=*/true );
+        } );
+  }
 
 private:
   // FIXME: this gets reset whenever we recomposite. We need to
