@@ -208,7 +208,7 @@ waitable<> drag_drop_routine(
     if( !maybe_target_p_view ) continue;
     ColonySubView& target_view = *maybe_target_p_view->col_view;
     Coord const&   target_upper_left =
-        maybe_source_p_view->upper_left;
+        maybe_target_p_view->upper_left;
 
     // Check if the target view can accept drags.
     maybe<IColViewDragSink&> maybe_drag_sink =

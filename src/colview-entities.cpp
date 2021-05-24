@@ -323,7 +323,8 @@ public:
     auto unit = holder_.fmap( unit_from_id );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
       UNWRAP_CHECK( info, slot_rect_from_idx( idx ) );
-      auto [is_open, rect] = info;
+      auto [is_open, relative_rect] = info;
+      Rect rect = relative_rect.as_if_origin_were( coord );
       if( !is_open ) {
         render_fill_rect( tx, Color::wood(), rect );
         continue;
@@ -349,7 +350,7 @@ public:
           auto& cargo = v.get<CargoSlot::cargo>();
           overload_visit(
               cargo.contents,
-              [&, rect = rect]( UnitId id ) {
+              [&]( UnitId id ) {
                 // if( !g_drag_state ||
                 //     g_drag_state->object !=
                 //         OldWorldDraggableObject_t{
@@ -358,7 +359,7 @@ public:
                 render_unit( tx, id, rect.upper_left(),
                              /*with_icon=*/false );
               },
-              [&, rect = rect]( Commodity const& c ) {
+              [&]( Commodity const& c ) {
                 render_commodity_annotated(
                     tx, c,
                     rect.upper_left() +
@@ -385,6 +386,8 @@ public:
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
     if( !slot_info.has_value() ) return nothing;
+    auto [is_open, slot_idx] = *slot_info;
+    if( !is_open ) return nothing;
     auto& unit = unit_from_id( *holder_ );
     switch( o.to_enum() ) {
       using namespace ColViewObject;
@@ -800,9 +803,9 @@ void recomposite( ColonyId id, Delta screen_size ) {
       std::move( population_view ), pos ) );
 
   // [Cargo] ----------------------------------------------------
-  auto cargo_view =
-      CargoView::create( middle_strip_size.with_width(
-          middle_strip_size.w / 3_sx ) );
+  auto cargo_view = CargoView::create(
+      middle_strip_size.with_width( middle_strip_size.w / 3_sx )
+          .with_height( 32_h ) );
   g_composition.entities[e_colview_entity::cargo] =
       cargo_view.get();
   pos = Coord{ population_right_edge,
