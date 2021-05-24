@@ -20,6 +20,7 @@ enum e_colview_entity {
   title_bar,
   population,
   cargo,
+  units_outside,
   production
 };
 

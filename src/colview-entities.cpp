@@ -279,19 +279,11 @@ public:
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
-    for( auto [unit_id, unit_pos] : positioned_units_ ) {
-      Coord draw_pos = unit_pos.as_if_origin_were( coord );
-      render_unit( tx, unit_id, draw_pos, /*with_icon=*/true );
-      if( selected_ == unit_id )
-        render_rect( tx, Color::green(),
-                     Rect::from( draw_pos, g_tile_delta ) );
-    }
-    auto unit = selected_.fmap( unit_from_id );
+    auto unit = holder_.fmap( unit_from_id );
     int  open_slots =
         unit.has_value() ? unit->desc().cargo_slots : 0;
-    auto           bds  = Rect::from( coord + 32_h + 16_h,
-                                      Delta( 32_h, delta().w ) );
-    auto           grid = bds.to_grid_noalign( g_tile_scale );
+    auto bds  = Rect::from( coord, Delta( 32_h, delta().w ) );
+    auto grid = bds.to_grid_noalign( g_tile_scale );
     CargoSlotIndex slot{ 0 };
     for( auto upper_left : grid ) {
       // if( g_drag_state.has_value() ) {
@@ -349,11 +341,49 @@ public:
     return make_unique<CargoView>( size );
   }
 
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::cargo;
-  // }
+  CargoView( Delta size ) : size_( size ) {}
 
-  CargoView( Delta size ) : size_( size ) {
+  void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
+
+private:
+  // FIXME: this gets reset whenever we recomposite. We need to
+  // either put this in a global place, or not recreate all of
+  // these view objects each time we recomposite (i.e., reuse
+  // them).
+  maybe<UnitId> holder_;
+  Delta         size_;
+};
+
+class UnitsOutsideColonyView : public ui::View,
+                               public ColonySubView {
+public:
+  Delta delta() const override { return size_; }
+
+  ui::View&       view() noexcept override { return *this; }
+  ui::View const& view() const noexcept override {
+    return *this;
+  }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    render_rect( tx, Color::black(),
+                 rect( coord ).with_inc_size() );
+    for( auto [unit_id, unit_pos] : positioned_units_ ) {
+      Coord draw_pos = unit_pos.as_if_origin_were( coord );
+      render_unit( tx, unit_id, draw_pos, /*with_icon=*/true );
+      if( selected_ == unit_id )
+        render_rect( tx, Color::green(),
+                     Rect::from( draw_pos, g_tile_delta ) );
+    }
+  }
+
+  static unique_ptr<UnitsOutsideColonyView> create(
+      CargoView* cargo_view, Delta size ) {
+    return make_unique<UnitsOutsideColonyView>( cargo_view,
+                                                size );
+  }
+
+  UnitsOutsideColonyView( CargoView* cargo_view, Delta size )
+    : cargo_view_( cargo_view ), size_( size ) {
     update_unit_layout();
   }
 
@@ -369,10 +399,15 @@ public:
   }
 
 private:
+  void set_selected_unit( maybe<UnitId> id ) {
+    selected_ = id;
+    cargo_view_->set_unit( id );
+  }
+
   waitable<> click_on_unit( UnitId id ) {
     auto& unit = unit_from_id( id );
     if( selected_ != id ) {
-      selected_ = id;
+      set_selected_unit( id );
       // The first time we select a unit, just select it, but
       // don't pop up the orders menu until the second click.
       // This should make a more polished feel for the UI, and
@@ -427,11 +462,13 @@ private:
         first_with_cargo = unit_id;
     }
     if( selected_.has_value() && !units.contains( *selected_ ) )
-      selected_ = nothing;
-    if( !selected_.has_value() ) selected_ = first_with_cargo;
+      set_selected_unit( nothing );
+    if( !selected_.has_value() )
+      set_selected_unit( first_with_cargo );
   }
 
-  Delta size_;
+  CargoView* cargo_view_;
+  Delta      size_;
 };
 
 class ProductionView : public ui::View, public ColonySubView {
@@ -690,11 +727,23 @@ void recomposite( ColonyId id, Delta screen_size ) {
           middle_strip_size.w / 3_sx ) );
   g_composition.entities[e_colview_entity::cargo] =
       cargo_view.get();
-  pos = Coord{ population_right_edge, middle_strip_top };
+  pos = Coord{ population_right_edge,
+               middle_strip_top + 32_h + 16_h };
   X const cargo_right_edge =
       cargo_view->rect( pos ).right_edge();
+  auto* p_cargo_view = cargo_view.get();
   views.push_back(
       ui::OwningPositionedView( std::move( cargo_view ), pos ) );
+
+  // [Units Outside Colony] -------------------------------------
+  auto units_outside_view = UnitsOutsideColonyView::create(
+      p_cargo_view, middle_strip_size.with_width(
+                        middle_strip_size.w / 3_sx * 2_sx ) );
+  g_composition.entities[e_colview_entity::units_outside] =
+      units_outside_view.get();
+  pos = Coord{ population_right_edge, middle_strip_top };
+  views.push_back( ui::OwningPositionedView(
+      std::move( units_outside_view ), pos ) );
 
   // [Production] -----------------------------------------------
   auto production_view =
