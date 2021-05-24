@@ -84,6 +84,8 @@ ColViewComposited g_composition;
 *****************************************************************/
 ColonyId colony_id() { return g_composition.id; }
 
+Colony& colony() { return colony_from_id( colony_id() ); }
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -123,7 +125,9 @@ private:
   Delta size_;
 };
 
-class MarketCommodities : public ui::View, public ColonySubView {
+class MarketCommodities : public ui::View,
+                          public ColonySubView,
+                          public IColViewDragSource {
 public:
   Delta delta() const override {
     return Delta{
@@ -155,11 +159,19 @@ public:
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, Color::black(), rect );
       label.value = colony.commodity_quantity( *comm_it );
+      // When we drag a commodity we want the effect to be that
+      // the commodity icon is still drawn (because it is a kind
+      // of label for buckets), but we want the quantity to
+      // render as zero to reflect the fact that the player has
+      // removed those from the colony store.
+      if( *comm_it == draggable_.member( &Commodity::type ) )
+        label.value = 0;
       render_commodity_annotated(
-          tx, *comm_it++,
+          tx, *comm_it,
           rect.upper_left() + rendered_commodity_offset(),
           label );
       pos += block_width_;
+      comm_it++;
     }
   }
 
@@ -167,9 +179,8 @@ public:
     return make_unique<MarketCommodities>( block_width );
   }
 
-  int quantity_of( e_commodity /*type*/ ) const {
-    // TODO
-    return 0;
+  int quantity_of( e_commodity type ) const {
+    return colony().commodity_quantity( type );
   }
 
   // e_colview_entity entity_id() const override {
@@ -182,23 +193,42 @@ public:
     auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
     auto box_upper_left =
         ( coord / sprite_scale ) * sprite_scale;
-    auto idx        = ( coord / sprite_scale - Coord{} ).w._;
-    auto maybe_type = commodity_from_index( idx );
-    if( !maybe_type ) return nothing;
+    auto idx = ( coord / sprite_scale - Coord{} ).w._;
+    UNWRAP_CHECK( type, commodity_from_index( idx ) );
+    int quantity = quantity_of( type );
+    if( quantity == 0 ) return nothing;
     return ColViewObjectWithBounds{
         .obj    = ColViewObject::commodity{ Commodity{
-            .type     = *maybe_type,
-            .quantity = quantity_of( *maybe_type ) } },
+            .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
             Delta{ 1_w, 1_h } * kCommodityTileScale ) };
+  }
+
+  bool try_drag( ColViewObject_t const& o ) override {
+    UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
+    CHECK( c.quantity > 0 );
+    draggable_ = c;
+    return true;
+  }
+
+  void cancel_drag() override { draggable_ = nothing; }
+
+  void disown_dragged_object() override {
+    CHECK( draggable_ );
+    e_commodity type = draggable_->type;
+    int         new_quantity =
+        quantity_of( type ) - draggable_->quantity;
+    CHECK( new_quantity >= 0 );
+    colony().set_commodity_quantity( type, new_quantity );
   }
 
   MarketCommodities( W block_width )
     : block_width_( block_width ) {}
 
 private:
-  W block_width_;
+  W                block_width_;
+  maybe<Commodity> draggable_;
 };
 
 class PopulationView : public ui::View, public ColonySubView {
@@ -730,24 +760,17 @@ ColonySubView& colview_top_level() {
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
     drag::State<ColViewObject_t> const& state, Texture& tx ) {
-  auto origin_for = [&]( Delta const& tile_size ) {
-    return state.where - tile_size / Scale{ 2 } -
-           state.click_offset;
-  };
+  Coord sprite_upper_left = state.where - state.click_offset;
   using namespace ColViewObject;
   // Render the dragged item.
   overload_visit(
       state.object,
       [&]( unit const& o ) {
-        auto size =
-            lookup_sprite( unit_from_id( o.id ).desc().tile )
-                .size();
-        render_unit( tx, o.id, origin_for( size ),
+        render_unit( tx, o.id, sprite_upper_left,
                      /*with_icon=*/false );
       },
       [&]( commodity const& o ) {
-        auto size = commodity_tile_size( o.comm.type );
-        render_commodity( tx, o.comm.type, origin_for( size ) );
+        render_commodity( tx, o.comm.type, sprite_upper_left );
       } );
   // Render any indicators on top of it.
   switch( state.indicator ) {
@@ -755,14 +778,12 @@ void colview_drag_n_drop_draw(
     case e::none: break;
     case e::bad: {
       auto const& status_tx = render_text( "X", Color::red() );
-      copy_texture( status_tx, tx,
-                    origin_for( status_tx.size() ) );
+      copy_texture( status_tx, tx, sprite_upper_left );
       break;
     }
     case e::good: {
       auto const& status_tx = render_text( "+", Color::green() );
-      copy_texture( status_tx, tx,
-                    origin_for( status_tx.size() ) );
+      copy_texture( status_tx, tx, sprite_upper_left );
       if( state.user_requests_input ) {
         auto const& mod_tx  = render_text( "?", Color::green() );
         auto        mod_pos = state.where;

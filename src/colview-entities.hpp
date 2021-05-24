@@ -69,28 +69,21 @@ struct IColViewDragSourceUserInput {
       const = 0;
 };
 
-// Interface for views that can be the source for dragging.
+// Interface for views that can be the source for dragging. The
+// idea here is that the view must keep track of what is being
+// dragged.
 struct IColViewDragSource {
-protected:
-  struct [[nodiscard]] ScopedDragCanceller {
-    ScopedDragCanceller( IColViewDragSource* src_ )
-      : src( src_ ) {}
-    ~ScopedDragCanceller() noexcept { src->cancel_drag(); }
-    IColViewDragSource* src;
-  };
-
-  // This function must be safe to call when there is no drag
-  // happening, and it must be idempotent.
-  virtual void cancel_drag() = 0;
-
-public:
   // If this returns something other than nothing, this means
   // that the view has recorded the object and assumes that the
   // drag has begun. Note: this function may be called when a
   // drag is already in progress in order to adjust the object
   // being dragged.
-  virtual maybe<ScopedDragCanceller> try_drag(
-      ColViewObject_t const& o ) = 0;
+  virtual bool try_drag( ColViewObject_t const& o ) = 0;
+
+  // This function must be called if the drag is cancelled for
+  // any reason before it is affected. It is recommended to call
+  // this function in a SCOPE_EXIT just after calling try_drag.
+  virtual void cancel_drag() = 0;
 
   // This is used to indicate whether the user can hold down a
   // modifier key while releasing the drag to signal that they
@@ -124,7 +117,7 @@ struct IColViewDragSink {
   // be updated to reflect the capacity of the cargo so that the
   // controller algorithm knows how much to remove from source.
   virtual maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, Coord const& where ) = 0;
+      ColViewObject_t const& o, Coord const& where ) const = 0;
 
   maybe<IColViewDragSinkConfirm const&> drag_confirm() const;
 

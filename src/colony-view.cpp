@@ -79,11 +79,32 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
 /****************************************************************
 ** Drag/Drop
 *****************************************************************/
+// Must use this to exit the drag_drop_routine function prior to
+// the point where the while look starts taking in new events.
+// This will happen when the source is not draggable for whatever
+// reason; in this case, we need to wait for and discard the re-
+// mainder of the drag events before returning, which is what
+// this macro does.
+//
+// FIXME: make this into a template function after clang learns
+// to handle function templates that are coroutines.
 #define NO_DRAG( ... )                       \
   {                                          \
     lg.debug( "cannot drag: " __VA_ARGS__ ); \
+    co_await eat_remaining_drag_events();    \
     co_return;                               \
   }
+
+waitable<> eat_remaining_drag_events() {
+  while( true ) {
+    input::event_t event = co_await g_input.next();
+    auto drag = event.get_if<input::mouse_drag_event_t>();
+    if( !drag ) continue;
+    CHECK( drag->state.phase != input::e_drag_phase::begin )
+    if( drag->state.phase != input::e_drag_phase::end ) continue;
+    break;
+  }
+}
 
 waitable<> drag_drop_routine(
     input::mouse_drag_event_t const& event ) {
@@ -100,15 +121,19 @@ waitable<> drag_drop_routine(
   if( !maybe_source_p_view )
     NO_DRAG( "there is no view to serve an object." );
   ColonySubView& source_view = *maybe_source_p_view->col_view;
+  Coord const&   source_upper_left =
+      maybe_source_p_view->upper_left;
 
   // Next check if there is an object under the cursor.
   maybe<ColViewObjectWithBounds> source_bounded_object =
-      source_view.object_here( origin );
+      source_view.object_here(
+          origin.with_new_origin( source_upper_left ) );
   if( !source_bounded_object )
     NO_DRAG( "there is no object under the cursor." );
   ColViewObject_t source_object = source_bounded_object->obj;
-  Rect const&     source_object_bounds =
-      source_bounded_object->bounds;
+  Rect            source_object_bounds =
+      source_bounded_object->bounds.as_if_origin_were(
+          source_upper_left );
 
   // Next check if source view allows dragging from that spot.
   maybe<IColViewDragSource&> maybe_drag_source =
@@ -122,8 +147,9 @@ waitable<> drag_drop_routine(
   // during the drag (e.g. early return, or cancellation) then
   // the source object will be told about it so that it can go
   // back to normal rendering of the dragged object.
-  auto scoped_dragger = drag_source.try_drag( source_object );
-  if( !scoped_dragger )
+  bool can_drag = drag_source.try_drag( source_object );
+  SCOPE_EXIT( drag_source.cancel_drag() );
+  if( !can_drag )
     NO_DRAG(
         "the source view does not allow dragging object {}.",
         source_object );
@@ -149,8 +175,20 @@ waitable<> drag_drop_routine(
   goto have_event;
 
   while( true ) {
+    if( auto drag = latest.get_if<input::mouse_drag_event_t>();
+        drag.has_value() &&
+        drag->state.phase == input::e_drag_phase::end ) {
+      // The drag has ended but with no dice, so rubber-band the
+      // dragged object back to its source.
+      lg.debug( "drag rejected." );
+      break;
+    }
     latest = co_await g_input.next();
-    CHECK( event.state.phase != input::e_drag_phase::begin );
+    // Optional sanity check.
+    if( auto drag =
+            latest.get_if<input::mouse_drag_event_t>() ) {
+      CHECK( drag->state.phase != input::e_drag_phase::begin );
+    }
 
   have_event:
     auto drag_event = latest.get_if<input::mouse_drag_event_t>();
@@ -185,13 +223,9 @@ waitable<> drag_drop_routine(
     // Check if the target view can receive the object that is
     // being dragged and can do so at the current mouse position.
     if( !drag_sink.can_receive( source_object, sink_coord ) ) {
-      if( drag_event->state.phase != input::e_drag_phase::end )
-        continue;
-      // The drag has ended but with no dice, so rubber-band the
-      // dragged object back to its source.
       lg.debug( "drag sink cannot accept object {}.",
                 source_object );
-      break;
+      continue;
     }
     g_drag_state->indicator = drag::e_status_indicator::good;
 
@@ -214,6 +248,10 @@ waitable<> drag_drop_routine(
     // the item can be dropped.
     if( drag_event->state.phase != input::e_drag_phase::end )
       continue;
+
+    // *** After this point, we should only `break` as opposed
+    // to `continue`, since we have already received the end drag
+    // event.
 
     // Check if the user wants to input anything.
     if( drag_user_input.has_value() &&
@@ -246,9 +284,9 @@ waitable<> drag_drop_routine(
 
     // Since the sink may have edited the object, lets make sure
     // that the source can handle it.
-    auto final_scoped_canceller =
-        drag_source.try_drag( source_object );
-    if( !final_scoped_canceller ) {
+    bool can_drag = drag_source.try_drag( source_object );
+    SCOPE_EXIT( drag_source.cancel_drag() );
+    if( !can_drag ) {
       // The source and sink can't negotiate a way to make this
       // drag work, so cancel it.
       lg.debug(
