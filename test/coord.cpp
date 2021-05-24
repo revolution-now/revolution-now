@@ -104,12 +104,17 @@ TEST_CASE( "[coord] centered_on" ) {
 TEST_CASE( "[coord] as_if_origin_were" ) {
   auto rect   = Rect{ 5_x, 5_y, 7_w, 9_h };
   auto coord  = Coord{ 10_x, 10_y };
-  auto expect = Rect{ -5_x, -5_y, 7_w, 9_h };
+  auto expect = Rect{ 15_x, 15_y, 7_w, 9_h };
   REQUIRE( rect.as_if_origin_were( coord ) == expect );
 
   rect   = Rect{ 2_x, 3_y, 7_w, 9_h };
   coord  = Coord{ 1_x, 2_y };
-  expect = Rect{ 1_x, 1_y, 7_w, 9_h };
+  expect = Rect{ 3_x, 5_y, 7_w, 9_h };
+  REQUIRE( rect.as_if_origin_were( coord ) == expect );
+
+  rect   = Rect{ 2_x, 3_y, 1_w, 1_h };
+  coord  = Coord{ -1_x, -2_y };
+  expect = Rect{ 1_x, 1_y, 1_w, 1_h };
   REQUIRE( rect.as_if_origin_were( coord ) == expect );
 }
 

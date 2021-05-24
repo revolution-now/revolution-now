@@ -62,7 +62,7 @@ Rect Rect::with_border_added( int thickness ) const {
 }
 
 Rect Rect::as_if_origin_were( Coord const& coord ) const {
-  return this->shifted_by( -coord.distance_from_origin() );
+  return this->shifted_by( coord.distance_from_origin() );
 }
 
 Rect Rect::normalized() const {
@@ -107,7 +107,7 @@ maybe<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
   auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
   maybe<Rect> res    = Rect::from( Coord{ new_x1, new_y1 },
-                                Coord{ new_x2, new_y2 } );
+                                   Coord{ new_x2, new_y2 } );
   if( res->area() == 0 ) res = nothing;
   return res;
 }
