@@ -440,13 +440,13 @@ private:
   Delta         size_;
 };
 
-class UnitsOutsideColonyView : public ui::View,
-                               public ColonySubView {
+class UnitsAtGateColonyView : public ui::View,
+                              public ColonySubView {
 public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
-    return e_colview_entity::units_outside;
+    return e_colview_entity::units_at_gate;
   }
 
   ui::View&       view() noexcept override { return *this; }
@@ -466,13 +466,13 @@ public:
     }
   }
 
-  static unique_ptr<UnitsOutsideColonyView> create(
+  static unique_ptr<UnitsAtGateColonyView> create(
       CargoView* cargo_view, Delta size ) {
-    return make_unique<UnitsOutsideColonyView>( cargo_view,
-                                                size );
+    return make_unique<UnitsAtGateColonyView>( cargo_view,
+                                               size );
   }
 
-  UnitsOutsideColonyView( CargoView* cargo_view, Delta size )
+  UnitsAtGateColonyView( CargoView* cargo_view, Delta size )
     : cargo_view_( cargo_view ), size_( size ) {
     update_unit_layout();
   }
@@ -832,15 +832,15 @@ void recomposite( ColonyId id, Delta screen_size ) {
   views.push_back(
       ui::OwningPositionedView( std::move( cargo_view ), pos ) );
 
-  // [Units Outside Colony] -------------------------------------
-  auto units_outside_view = UnitsOutsideColonyView::create(
+  // [Units at Gate outside colony] -----------------------------
+  auto units_at_gate_view = UnitsAtGateColonyView::create(
       p_cargo_view, middle_strip_size.with_width(
                         middle_strip_size.w / 3_sx * 2_sx ) );
-  g_composition.entities[e_colview_entity::units_outside] =
-      units_outside_view.get();
+  g_composition.entities[e_colview_entity::units_at_gate] =
+      units_at_gate_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
   views.push_back( ui::OwningPositionedView(
-      std::move( units_outside_view ), pos ) );
+      std::move( units_at_gate_view ), pos ) );
 
   // [Production] -----------------------------------------------
   auto production_view =
