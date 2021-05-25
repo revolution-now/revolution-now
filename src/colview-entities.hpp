@@ -78,7 +78,8 @@ struct IColViewDragSource {
   // drag has begun. Note: this function may be called when a
   // drag is already in progress in order to adjust the object
   // being dragged.
-  virtual bool try_drag( ColViewObject_t const& o ) = 0;
+  virtual bool try_drag( ColViewObject_t const& o,
+                         Coord const&           where ) = 0;
 
   // This function must be called if the drag is cancelled for
   // any reason before it is affected. It is recommended to call

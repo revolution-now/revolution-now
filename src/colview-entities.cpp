@@ -94,6 +94,17 @@ Cargo to_cargo( ColViewObject_t const& o ) {
   }
 }
 
+ColViewObject_t from_cargo( Cargo const& o ) {
+  return overload_visit<ColViewObject_t>(
+      o, //
+      []( UnitId id ) {
+        return ColViewObject::unit{ .id = id };
+      },
+      []( Commodity const& c ) {
+        return ColViewObject::commodity{ .comm = c };
+      } );
+}
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -213,9 +224,15 @@ public:
             Delta{ 1_w, 1_h } * kCommodityTileScale ) };
   }
 
-  bool try_drag( ColViewObject_t const& o ) override {
+  bool try_drag( ColViewObject_t const& o,
+                 Coord const&           where ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
+    // Sanity checks.
     CHECK( c.quantity > 0 );
+    UNWRAP_CHECK( here, object_here( where ) );
+    CHECK( here.obj == ColViewObject_t{ ColViewObject::commodity{
+                           .comm = c } } );
+    // End sanity checks.
     draggable_ = c;
     return true;
   }
@@ -277,6 +294,7 @@ private:
 
 class CargoView : public ui::View,
                   public ColonySubView,
+                  public IColViewDragSource,
                   public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
@@ -444,6 +462,57 @@ public:
         } );
   }
 
+  maybe<ColViewObjectWithBounds> object_here(
+      Coord const& where ) const override {
+    if( !holder_ ) return nothing;
+    maybe<pair<bool, int>> slot_info =
+        slot_idx_from_coord( where );
+    if( !slot_info ) return nothing;
+    auto [is_open, slot_idx] = *slot_info;
+    if( !is_open ) return nothing;
+    maybe<pair<Cargo const&, int>> maybe_cargo =
+        unit_from_id( *holder_ )
+            .cargo()
+            .cargo_covering_slot( slot_idx );
+    if( !maybe_cargo ) return nothing;
+    maybe<pair<bool, Rect>> slot_rect =
+        slot_rect_from_idx( slot_idx );
+    CHECK( slot_rect.has_value() );
+    auto [is_open_again, rect] = *slot_rect;
+    CHECK( is_open_again );
+    // FIXME: may been to adjust bounds for cargo items that take
+    // up multiple slots. The following will check fail if we try
+    // to drag such an object by one of its overflow slots.
+    CHECK( maybe_cargo->second == slot_idx );
+    return ColViewObjectWithBounds{
+        .obj    = from_cargo( maybe_cargo->first ),
+        .bounds = rect };
+  }
+
+  // For this one it happens that we need the coordinate instead
+  // of the object, since if the object is a commodity we may not
+  // be able to find a unique cargo slot that holds that com-
+  // modity if there are more than one.
+  bool try_drag( ColViewObject_t const& /*o*/,
+                 Coord const& where ) override {
+    if( !holder_ ) return false;
+    maybe<pair<bool, int>> slot_info =
+        slot_idx_from_coord( where );
+    if( !slot_info ) return false;
+    auto [is_open, slot_idx] = *slot_info;
+    if( !is_open ) return false;
+    dragging_slot_ = slot_idx;
+    return true;
+  }
+
+  void cancel_drag() override { dragging_slot_ = nothing; }
+
+  void disown_dragged_object() override {
+    CHECK( holder_ );
+    CHECK( dragging_slot_ );
+    rm_commodity_from_cargo( *holder_, *dragging_slot_ );
+  }
+
 private:
   // FIXME: this gets reset whenever we recomposite. We need to
   // either put this in a global place, or not recreate all of
@@ -451,6 +520,7 @@ private:
   // them).
   maybe<UnitId> holder_;
   Delta         size_;
+  maybe<int>    dragging_slot_;
 };
 
 class UnitsAtGateColonyView : public ui::View,

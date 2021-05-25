@@ -148,11 +148,13 @@ waitable<> drag_drop_routine(
         "the source view does not allow dragging in general." );
   IColViewDragSource& drag_source = *maybe_drag_source;
 
+  bool can_drag = drag_source.try_drag(
+      source_object,
+      origin.with_new_origin( source_upper_left ) );
   // This ensures that if the coroutine is interrupted somewhere
   // during the drag (e.g. early return, or cancellation) then
   // the source object will be told about it so that it can go
   // back to normal rendering of the dragged object.
-  bool can_drag = drag_source.try_drag( source_object );
   SCOPE_EXIT( drag_source.cancel_drag() );
   if( !can_drag )
     NO_DRAG(
@@ -290,7 +292,9 @@ waitable<> drag_drop_routine(
 
     // Since the sink may have edited the object, lets make sure
     // that the source can handle it.
-    bool can_drag = drag_source.try_drag( source_object );
+    bool can_drag = drag_source.try_drag(
+        source_object,
+        origin.with_new_origin( source_upper_left ) );
     SCOPE_EXIT( drag_source.cancel_drag() );
     if( !can_drag ) {
       // The source and sink can't negotiate a way to make this
