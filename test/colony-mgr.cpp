@@ -93,7 +93,7 @@ TEST_CASE( "[colony-mgr] create colony in water fails" ) {
   Coord coord   = { 1_x, 1_y };
   auto  ship_id = create_ship( coord );
   auto  unit_id = create_colonist();
-  ustate_change_to_cargo( ship_id, unit_id );
+  ustate_change_to_cargo_somewhere( ship_id, unit_id );
   REQUIRE( unit_can_found_colony( unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
 }

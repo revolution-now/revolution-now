@@ -35,7 +35,7 @@ namespace rn {
 
 std::string debug_string( UnitId id );
 
-ND bool unit_exists( UnitId id );
+ND bool             unit_exists( UnitId id );
 ND Unit&            unit_from_id( UnitId id );
 std::vector<UnitId> units_all( maybe<e_nation> n = nothing );
 // Apply a function to all units. The function may mutate the
@@ -173,7 +173,11 @@ maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
 // E.g., this function will happily move a land unit into water.
 void ustate_change_to_map( UnitId id, Coord const& target );
 
-void ustate_change_to_cargo( UnitId new_holder, UnitId held );
+// Will start at the starting slot and rotate right trying to
+// find a place where the unit can fit.
+void ustate_change_to_cargo_somewhere( UnitId new_holder,
+                                       UnitId held,
+                                       int starting_slot = 0 );
 void ustate_change_to_cargo( UnitId new_holder, UnitId held,
                              int slot );
 

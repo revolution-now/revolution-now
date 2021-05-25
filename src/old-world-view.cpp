@@ -1692,9 +1692,10 @@ struct DragPerform {
     // First try to respect the destination slot chosen by
     // the player,
     if( unit_from_id( ship ).cargo().fits( src.id, dst.slot._ ) )
-      ustate_change_to_cargo( ship, src.id, dst.slot._ );
+      ustate_change_to_cargo_somewhere( ship, src.id,
+                                        dst.slot._ );
     else
-      ustate_change_to_cargo( ship, src.id );
+      ustate_change_to_cargo_somewhere( ship, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
@@ -1711,7 +1712,8 @@ struct DragPerform {
         [&]( UnitId id ) {
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo( ship, id, dst.slot._ );
+          ustate_change_to_cargo_somewhere( ship, id,
+                                            dst.slot._ );
         },
         [&]( Commodity const& ) {
           move_commodity_as_much_as_possible(
@@ -1742,7 +1744,7 @@ struct DragPerform {
     SG().selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
-    ustate_change_to_cargo( dst.id, src.id );
+    ustate_change_to_cargo_somewhere( dst.id, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK(
@@ -1754,7 +1756,7 @@ struct DragPerform {
           CHECK( !src.quantity.has_value() );
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo( dst.id, id );
+          ustate_change_to_cargo_somewhere( dst.id, id );
         },
         [&]( Commodity const& ) {
           UNWRAP_CHECK( src_ship,
@@ -1815,7 +1817,7 @@ struct DragPerform {
     auto quantity_wants_to_sell =
         src.quantity.value_or( commodity_ref.quantity );
     int       amount_to_sell = std::min( quantity_wants_to_sell,
-                                   commodity_ref.quantity );
+                                         commodity_ref.quantity );
     Commodity new_comm       = commodity_ref;
     new_comm.quantity -= amount_to_sell;
     rm_commodity_from_cargo( ship, src.slot._ );

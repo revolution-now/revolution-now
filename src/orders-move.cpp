@@ -510,7 +510,7 @@ waitable<> TravelHandler::perform() {
       break;
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      ustate_change_to_cargo( *target_unit, id );
+      ustate_change_to_cargo_somewhere( *target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because

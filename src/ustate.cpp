@@ -470,11 +470,15 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
   SG().holder_from_held[held] = new_holder;
 }
 
-void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
+void ustate_change_to_cargo_somewhere( UnitId new_holder,
+                                       UnitId held,
+                                       int    starting_slot ) {
   auto& cargo = unit_from_id( new_holder ).cargo();
-  for( int i = 0; i < cargo.slots_total(); ++i ) {
-    if( cargo.fits( held, i ) ) {
-      ustate_change_to_cargo( new_holder, held, i );
+  for( int i = starting_slot;
+       i < starting_slot + cargo.slots_total(); ++i ) {
+    int modded = i % cargo.slots_total();
+    if( cargo.fits( held, modded ) ) {
+      ustate_change_to_cargo( new_holder, held, modded );
       return;
     }
   }

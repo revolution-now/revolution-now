@@ -422,8 +422,9 @@ public:
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
-        [this]( UnitId id ) {
-          ustate_change_to_cargo( *holder_, id );
+        [this, slot_idx = slot_idx]( UnitId id ) {
+          ustate_change_to_cargo_somewhere(
+              *holder_, id, /*starting_slot=*/slot_idx );
         },
         [this, slot_idx = slot_idx]( Commodity const& c ) {
           add_commodity_to_cargo( c, *holder_, slot_idx,
