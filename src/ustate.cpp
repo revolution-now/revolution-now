@@ -329,6 +329,10 @@ bool is_unit_on_map_indirect( UnitId id ) {
   return coord_for_unit_indirect_safe( id ).has_value();
 }
 
+bool is_unit_on_map( UnitId id ) {
+  return state_for_unit( id ) == e_unit_state::world;
+}
+
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/

@@ -574,7 +574,8 @@ private:
 };
 
 class UnitsAtGateColonyView : public ui::View,
-                              public ColonySubView {
+                              public ColonySubView,
+                              public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
 
@@ -619,6 +620,118 @@ public:
         co_await click_on_unit( unit_id );
       }
     }
+  }
+
+  maybe<UnitId> contains_unit( Coord const& where ) const {
+    for( PositionedUnit const& pu : positioned_units_ )
+      if( where.is_inside( Rect::from( pu.pos, g_tile_delta ) ) )
+        return pu.id;
+    return nothing;
+  }
+
+  maybe<ColViewObject_t> can_receive_unit(
+      UnitId       dragged, e_colview_entity /*from*/,
+      Coord const& where ) const {
+    auto& unit = unit_from_id( dragged );
+    // Player should not be dragging ships or wagons.
+    CHECK( unit.desc().cargo_slots != 0 );
+    // See if the draga target is over top of a unit.
+    maybe<UnitId> over_unit_id = contains_unit( where );
+    if( !over_unit_id ) {
+      // The player is moving a unit outside of the colony, let's
+      // check if the unit is already outside the colony, in
+      // which case there is no reason to drag the unit here.
+      if( is_unit_on_map( dragged ) ) return nothing;
+      // The player is moving the unit outside the colony, which
+      // is always allowed, at least for now. If the unit is in
+      // the colony (as opposed to cargo) and there is a stockade
+      // then we won't allow the population to be reduced below
+      // three, but that will be checked in the confirmation
+      // stage.
+      return ColViewObject::unit{ .id = dragged };
+    }
+    Unit const& target_unit = unit_from_id( *over_unit_id );
+    if( target_unit.desc().cargo_slots == 0 ) return nothing;
+    // Check if the target_unit is already holding the dragged
+    // unit.
+    maybe<UnitId> maybe_holder_of_dragged =
+        is_unit_onboard( dragged );
+    if( maybe_holder_of_dragged &&
+        *maybe_holder_of_dragged == over_unit_id )
+      // The dragged unit is already in the cargo of the target
+      // unit.
+      return nothing;
+    // At this point, the unit is being dragged on top of another
+    // unit that has cargo slots but is not already being held by
+    // that unit, so we need to check if the unit fits.
+    if( !target_unit.cargo().fits_somewhere( dragged ) )
+      return nothing;
+    return ColViewObject::unit{ .id = dragged };
+  }
+
+  maybe<ColViewObject_t> can_receive_commodity(
+      Commodity const& comm, e_colview_entity from,
+      Coord const& where ) const {
+    maybe<UnitId> over_unit_id = contains_unit( where );
+    if( !over_unit_id ) return nothing;
+    Unit const& target_unit = unit_from_id( *over_unit_id );
+    if( target_unit.desc().cargo_slots == 0 ) return nothing;
+    // Check if the target_unit is already holding the dragged
+    // commodity.
+    if( from == e_colview_entity::cargo ) {
+      CHECK( selected_.has_value() );
+      CHECK( unit_from_id( *selected_ ).desc().cargo_slots > 0 );
+      if( *over_unit_id == *selected_ )
+        // The commodity is already in the cargo of the unit
+        // under the mouse.
+        return nothing;
+    }
+    // At this point, the commodity is being dragged on top of a
+    // unit that has cargo slots but is not already being held by
+    // that unit, so we need to check if the commodity fits.
+    int max_q =
+        target_unit.cargo().max_commodity_quantity_that_fits(
+            comm.type );
+    if( max_q == 0 ) return nothing;
+    // We may need to adjust the quantity.
+    Commodity new_comm = comm;
+    new_comm.quantity  = std::min( new_comm.quantity, max_q );
+    CHECK( new_comm.quantity > 0 );
+    return ColViewObject::commodity{ .comm = new_comm };
+  }
+
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o, e_colview_entity from,
+      Coord const& where ) const override {
+    if( !where.is_inside( rect( {} ) ) ) return nothing;
+    return overload_visit(
+        o, //
+        [&]( ColViewObject::unit const& unit ) {
+          return can_receive_unit( unit.id, from, where );
+        },
+        [&]( ColViewObject::commodity const& comm ) {
+          return can_receive_commodity( comm.comm, from, where );
+        } );
+  }
+
+  void drop( ColViewObject_t const& o,
+             Coord const&           where ) override {
+    maybe<UnitId> target_unit = contains_unit( where );
+    return overload_visit(
+        o, //
+        [&]( ColViewObject::unit const& unit ) {
+          if( target_unit )
+            ustate_change_to_cargo_somewhere( *target_unit,
+                                              unit.id );
+          else
+            ustate_change_to_map( unit.id, colony().location() );
+        },
+        [&]( ColViewObject::commodity const& comm ) {
+          CHECK( target_unit );
+          add_commodity_to_cargo( comm.comm, *target_unit,
+                                  /*slot=*/0,
+                                  /*try_other_slots=*/true );
+        } );
   }
 
 private:

@@ -100,9 +100,13 @@ maybe<Coord> coord_for_unit( UnitId id );
 ND Coord coord_for_unit_indirect( UnitId id );
 ND maybe<Coord> coord_for_unit_indirect_safe( UnitId id );
 
-// These will return true for a unit if it is owned by the map or
+// This will return true for a unit if it is owned by the map or
 // if its owner is on the map.
 bool is_unit_on_map_indirect( UnitId id );
+
+// These will return true for a unit if it is directly on the
+// map.
+bool is_unit_on_map( UnitId id );
 
 /****************************************************************
 ** Colony Ownership
