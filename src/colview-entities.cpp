@@ -146,7 +146,8 @@ private:
 
 class MarketCommodities : public ui::View,
                           public ColonySubView,
-                          public IColViewDragSource {
+                          public IColViewDragSource,
+                          public IColViewDragSink {
 public:
   Delta delta() const override {
     return Delta{
@@ -246,6 +247,22 @@ public:
         quantity_of( type ) - draggable_->quantity;
     CHECK( new_quantity >= 0 );
     colony().set_commodity_quantity( type, new_quantity );
+  }
+
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o, e_colview_entity /*from*/,
+      Coord const&           where ) const override {
+    CHECK( object_here( where ) );
+    if( o.holds<ColViewObject::commodity>() ) return o;
+    return nothing;
+  }
+
+  void drop( ColViewObject_t const& o,
+             Coord const& /*where*/ ) override {
+    UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
+    int q = colony().commodity_quantity( c.type );
+    q += c.quantity;
+    colony().set_commodity_quantity( c.type, q );
   }
 
   MarketCommodities( W block_width )
