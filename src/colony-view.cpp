@@ -205,7 +205,18 @@ waitable<> drag_drop_routine(
       // drag.
       lg.warn(
           "cancelling drag operation due to window resize." );
-      break;
+      //
+      // WARNING: do not force a re-composite here, since there
+      // are SCOPE_EXIT's above that are hanging onto pointers
+      // into the views, that we don't want to invalidate. FIXME:
+      // to fix this, we need to have a way to re-composite
+      // without invalidating the pointers to the views.
+      //
+      // We know that this event is not the last drag event,
+      // since it is a window resize event.  So we need to eat
+      // the remainder of the drag events.
+      co_await eat_remaining_drag_events();
+      co_return; // no rubber banding.
     }
 
   have_event:

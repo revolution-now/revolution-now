@@ -231,8 +231,13 @@ public:
     // Sanity checks.
     CHECK( c.quantity > 0 );
     UNWRAP_CHECK( here, object_here( where ) );
-    CHECK( here.obj == ColViewObject_t{ ColViewObject::commodity{
-                           .comm = c } } );
+    UNWRAP_CHECK( comm_at_source,
+                  here.obj.get_if<ColViewObject::commodity>() );
+    Commodity dragged_c = comm_at_source.comm;
+    CHECK( dragged_c.type == c.type );
+    // Could be less if the destination has limited space and
+    // has edited `o` to be less in quantity than the source.
+    CHECK( c.quantity <= dragged_c.quantity );
     // End sanity checks.
     draggable_ = c;
     return true;
@@ -252,7 +257,7 @@ public:
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity /*from*/,
       Coord const&           where ) const override {
-    CHECK( object_here( where ) );
+    CHECK( where.is_inside( rect( {} ) ) );
     if( o.holds<ColViewObject::commodity>() ) return o;
     return nothing;
   }
@@ -421,6 +426,12 @@ public:
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const override {
+    if( !holder_ ) return nothing;
+    maybe<pair<bool, int>> slot_info =
+        slot_idx_from_coord( where );
+    if( !slot_info.has_value() ) return nothing;
+    auto [is_open, slot_idx] = *slot_info;
+    if( !is_open ) return nothing;
     if( from == e_colview_entity::cargo ) {
       // At this point the player is dragging something from one
       // slot to another in the same cargo, which is guaranteed
@@ -432,14 +443,8 @@ public:
       // within this same cargo.
       return o;
     }
-
-    // We are dragging from another entity.
-    if( !holder_ ) return nothing;
-    maybe<pair<bool, int>> slot_info =
-        slot_idx_from_coord( where );
-    if( !slot_info.has_value() ) return nothing;
-    auto [is_open, slot_idx] = *slot_info;
-    if( !is_open ) return nothing;
+    // We are dragging from another source, so we must check to
+    // see if we have room for what is being dragged.
     auto& unit = unit_from_id( *holder_ );
     switch( o.to_enum() ) {
       using namespace ColViewObject;
@@ -479,6 +484,35 @@ public:
         } );
   }
 
+  // Returns the rect that bounds the sprite corresponding to the
+  // cargo item covered by the given slot.
+  maybe<pair<Cargo, Rect>> cargo_item_with_rect(
+      int slot ) const {
+    maybe<pair<bool, Rect>> slot_rect =
+        slot_rect_from_idx( slot );
+    if( !slot_rect.has_value() ) return nothing;
+    auto [is_open, rect] = *slot_rect;
+    if( !is_open ) return nothing;
+    maybe<pair<Cargo const&, int>> maybe_cargo =
+        unit_from_id( *holder_ )
+            .cargo()
+            .cargo_covering_slot( slot );
+    if( !maybe_cargo ) return nothing;
+    auto const& [cargo, same_slot] = *maybe_cargo;
+    CHECK( slot == same_slot );
+    return pair{
+        cargo,
+        overload_visit<Rect>(
+            cargo, //
+            [rect = rect]( UnitId ) { return rect; },
+            [rect = rect]( Commodity const& ) {
+              return Rect::from(
+                  rect.upper_left() +
+                      kCommodityInCargoHoldRenderingOffset,
+                  kCommodityTileSize );
+            } ) };
+  }
+
   maybe<ColViewObjectWithBounds> object_here(
       Coord const& where ) const override {
     if( !holder_ ) return nothing;
@@ -487,23 +521,12 @@ public:
     if( !slot_info ) return nothing;
     auto [is_open, slot_idx] = *slot_info;
     if( !is_open ) return nothing;
-    maybe<pair<Cargo const&, int>> maybe_cargo =
-        unit_from_id( *holder_ )
-            .cargo()
-            .cargo_covering_slot( slot_idx );
-    if( !maybe_cargo ) return nothing;
-    maybe<pair<bool, Rect>> slot_rect =
-        slot_rect_from_idx( slot_idx );
-    CHECK( slot_rect.has_value() );
-    auto [is_open_again, rect] = *slot_rect;
-    CHECK( is_open_again );
-    // FIXME: may been to adjust bounds for cargo items that take
-    // up multiple slots. The following will check fail if we try
-    // to drag such an object by one of its overflow slots.
-    CHECK( maybe_cargo->second == slot_idx );
+    maybe<pair<Cargo, Rect>> cargo_with_rect =
+        cargo_item_with_rect( slot_idx );
+    if( !cargo_with_rect ) return nothing;
     return ColViewObjectWithBounds{
-        .obj    = from_cargo( maybe_cargo->first ),
-        .bounds = rect };
+        .obj    = from_cargo( cargo_with_rect->first ),
+        .bounds = cargo_with_rect->second };
   }
 
   // For this one it happens that we need the coordinate instead
@@ -527,7 +550,17 @@ public:
   void disown_dragged_object() override {
     CHECK( holder_ );
     CHECK( dragging_slot_ );
-    rm_commodity_from_cargo( *holder_, *dragging_slot_ );
+    UNWRAP_CHECK( c_with_r,
+                  cargo_item_with_rect( *dragging_slot_ ) );
+    Cargo const& cargo = c_with_r.first;
+    overload_visit(
+        cargo,
+        []( UnitId held ) {
+          internal::ustate_disown_unit( held );
+        },
+        [this]( Commodity const& ) {
+          rm_commodity_from_cargo( *holder_, *dragging_slot_ );
+        } );
   }
 
 private:
