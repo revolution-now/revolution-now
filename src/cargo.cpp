@@ -356,6 +356,14 @@ ND bool CargoHold::fits_with_item_removed(
   return new_hold.fits( cargo, insert_slot );
 }
 
+ND bool CargoHold::fits_somewhere_with_item_removed(
+    Cargo const& cargo, int remove_slot,
+    int starting_slot ) const {
+  CargoHold new_hold = *this;
+  new_hold.remove( remove_slot );
+  return new_hold.fits_somewhere( cargo, starting_slot );
+}
+
 bool CargoHold::fits_somewhere( Cargo const& cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;

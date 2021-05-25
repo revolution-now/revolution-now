@@ -148,6 +148,11 @@ public:
       Cargo const& cargo, CargoSlotIndex remove_slot,
       CargoSlotIndex insert_slot ) const;
 
+  // Same as above except it will try the entire cargo.
+  ND bool fits_somewhere_with_item_removed(
+      Cargo const& cargo, int remove_slot,
+      int starting_slot = 0 ) const;
+
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
   // be inserted, or for commodities, if it can be distributed
