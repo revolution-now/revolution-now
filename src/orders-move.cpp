@@ -258,6 +258,12 @@ TravelHandler::analyze_unload() {
       to_offload.push_back( cargo_id );
   }
   if( !to_offload.empty() ) {
+    if( colony_from_coord( move_src ) ) {
+      co_await ui::message_box(
+          "A ship containing units cannot make landfall while "
+          "in port." );
+      co_return e_travel_verdict::land_forbidden;
+    }
     // We have at least one unit in the cargo that is able
     // to make landfall. So we will indicate that the unit
     // is al- lowed to make this move.
