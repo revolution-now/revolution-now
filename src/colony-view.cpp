@@ -197,6 +197,17 @@ waitable<> drag_drop_routine(
       CHECK( drag->state.phase != input::e_drag_phase::begin );
     }
 
+    if( auto win_event = latest.get_if<input::win_event_t>();
+        win_event &&
+        win_event->type == input::e_win_event_type::resized ) {
+      // If the window is getting resized then our coordinates
+      // might get messed up. It seems safest just ot cancel the
+      // drag.
+      lg.warn(
+          "cancelling drag operation due to window resize." );
+      break;
+    }
+
   have_event:
     auto drag_event = latest.get_if<input::mouse_drag_event_t>();
     if( drag_event.has_value() ) mouse_pos = drag_event->pos;
@@ -295,6 +306,10 @@ waitable<> drag_drop_routine(
     bool can_drag = drag_source.try_drag(
         source_object,
         origin.with_new_origin( source_upper_left ) );
+    // This ensures that if the coroutine is interrupted some-
+    // where during the drag (e.g. early return, or cancellation)
+    // then the source object will be told about it so that it
+    // can go back to normal rendering of the dragged object.
     SCOPE_EXIT( drag_source.cancel_drag() );
     if( !can_drag ) {
       // The source and sink can't negotiate a way to make this
