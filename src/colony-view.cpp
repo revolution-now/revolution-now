@@ -124,6 +124,11 @@ waitable<> drag_drop_routine(
   Coord const&   source_upper_left =
       maybe_source_p_view->upper_left;
 
+  // Get entity ID from source view.
+  maybe<e_colview_entity> source_entity = source_view.entity();
+  if( !source_entity )
+    NO_DRAG( "source view has no entity ID." );
+
   // Next check if there is an object under the cursor.
   maybe<ColViewObjectWithBounds> source_bounded_object =
       source_view.object_here(
@@ -222,7 +227,8 @@ waitable<> drag_drop_routine(
 
     // Check if the target view can receive the object that is
     // being dragged and can do so at the current mouse position.
-    if( !drag_sink.can_receive( source_object, sink_coord ) ) {
+    if( !drag_sink.can_receive( source_object, *source_entity,
+                                sink_coord ) ) {
       lg.debug( "drag sink cannot accept object {}.",
                 source_object );
       continue;
@@ -268,8 +274,8 @@ waitable<> drag_drop_routine(
 
     // Check that the target view can receive this object as it
     // currently is, and/or allow it to adjust it.
-    maybe<ColViewObject_t> sink_edited =
-        drag_sink.can_receive( source_object, sink_coord );
+    maybe<ColViewObject_t> sink_edited = drag_sink.can_receive(
+        source_object, *source_entity, sink_coord );
     if( !sink_edited ) {
       // The sink can't find a way to make it work, drag is can-
       // celled.

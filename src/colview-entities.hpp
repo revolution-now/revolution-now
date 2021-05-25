@@ -117,7 +117,8 @@ struct IColViewDragSink {
   // be updated to reflect the capacity of the cargo so that the
   // controller algorithm knows how much to remove from source.
   virtual maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, Coord const& where ) const = 0;
+      ColViewObject_t const& o, e_colview_entity from,
+      Coord const& where ) const = 0;
 
   maybe<IColViewDragSinkConfirm const&> drag_confirm() const;
 
@@ -132,7 +133,7 @@ class ColonySubView : public AwaitableView {
 public:
   ColonySubView() = default;
 
-  // virtual e_colview_entity entity_id() const = 0;
+  virtual maybe<e_colview_entity> entity() const = 0;
 
   // All ColonySubView's will also be unspecified subclassess of
   // ui::View.

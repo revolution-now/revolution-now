@@ -101,6 +101,10 @@ class TitleBar : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
 
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::title_bar;
+  }
+
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
@@ -123,10 +127,6 @@ public:
     return make_unique<TitleBar>( size );
   }
 
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::title_bar;
-  // }
-
   TitleBar( Delta size ) : size_( size ) {}
 
 private:
@@ -141,6 +141,10 @@ public:
     return Delta{
         block_width_ * SX{ enum_traits<e_commodity>::count },
         1_h * 32_sy };
+  }
+
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::commodities;
   }
 
   ui::View&       view() noexcept override { return *this; }
@@ -191,10 +195,6 @@ public:
     return colony().commodity_quantity( type );
   }
 
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::commodities;
-  // }
-
   maybe<ColViewObjectWithBounds> object_here(
       Coord const& coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
@@ -243,6 +243,10 @@ class PopulationView : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
 
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::population;
+  }
+
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
@@ -265,10 +269,6 @@ public:
     return make_unique<PopulationView>( size );
   }
 
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::population;
-  // }
-
   PopulationView( Delta size ) : size_( size ) {}
 
 private:
@@ -280,6 +280,10 @@ class CargoView : public ui::View,
                   public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
+
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::cargo;
+  }
 
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
@@ -380,8 +384,9 @@ public:
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
 
   maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o,
-      Coord const&           where ) const override {
+      ColViewObject_t const& o, e_colview_entity from,
+      Coord const& where ) const override {
+    if( from == e_colview_entity::cargo ) { NOT_IMPLEMENTED; }
     if( !holder_ ) return nothing;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
@@ -439,6 +444,10 @@ class UnitsOutsideColonyView : public ui::View,
                                public ColonySubView {
 public:
   Delta delta() const override { return size_; }
+
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::units_outside;
+  }
 
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
@@ -556,6 +565,10 @@ class ProductionView : public ui::View, public ColonySubView {
 public:
   Delta delta() const override { return size_; }
 
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::production;
+  }
+
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
@@ -569,10 +582,6 @@ public:
   static unique_ptr<ProductionView> create( Delta size ) {
     return make_unique<ProductionView>( size );
   }
-
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::production;
-  // }
 
   ProductionView( Delta size ) : size_( size ) {}
 
@@ -611,6 +620,10 @@ public:
   }
 
   Delta delta() const override { return size_needed( mode_ ); }
+
+  maybe<e_colview_entity> entity() const override {
+    return e_colview_entity::land;
+  }
 
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
@@ -669,10 +682,6 @@ public:
         Texture::create( Delta{ 3_w, 3_h } * g_tile_scale ) );
   }
 
-  // e_colview_entity entity_id() const override {
-  //   return e_colview_entity::land;
-  // }
-
   LandView( e_render_mode mode, Texture land_tx )
     : mode_( mode ), land_tx_( std::move( land_tx ) ) {}
 
@@ -724,6 +733,8 @@ struct CompositeColSubView : public ui::InvisibleView,
           p_view->upper_left.as_if_origin_were( pos_view.coord );
       return p_view;
     }
+    if( coord.is_inside( rect( {} ) ) )
+      return PositionedColSubView{ this, Coord{} };
     return nothing;
   }
 
@@ -740,6 +751,11 @@ struct CompositeColSubView : public ui::InvisibleView,
           obj->bounds.as_if_origin_were( pos_view.coord );
       return obj;
     }
+    // This view itself has no objects.
+    return nothing;
+  }
+
+  maybe<e_colview_entity> entity() const override {
     return nothing;
   }
 
