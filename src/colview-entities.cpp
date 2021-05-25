@@ -386,7 +386,19 @@ public:
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const override {
-    if( from == e_colview_entity::cargo ) { NOT_IMPLEMENTED; }
+    if( from == e_colview_entity::cargo ) {
+      // At this point the player is dragging something from one
+      // slot to another in the same cargo, which is guaranteed
+      // to always be allowed, since when the drag operation will
+      // first remove the cargo from the source slot, then when
+      // it is dropped, the drop will succeed so long as there is
+      // enough space anywhere in the cargo for that cargo, which
+      // there always will be, because the cargo originated from
+      // within this same cargo.
+      return o;
+    }
+
+    // We are dragging from another entity.
     if( !holder_ ) return nothing;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
