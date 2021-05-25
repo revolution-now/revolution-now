@@ -114,6 +114,15 @@ public:
   template<typename T>
   maybe<T const&> slot_holds_cargo_type( int idx ) const;
 
+  // If there is a cargo item whose first (and possibly only)
+  // slot is `idx`, it will be returned.
+  maybe<Cargo const&> cargo_starting_at_slot( int idx ) const;
+  // If there is a cargo item that occupies the given slot either
+  // as its first slot or subsequent slot, it will be returned,
+  // alon with its first slot.
+  maybe<std::pair<Cargo const&, int>> cargo_covering_slot(
+      int idx ) const;
+
   // If unit is in cargo, returns its slot index.
   maybe<int> find_unit( UnitId id ) const;
   // Returns all units in the cargo.

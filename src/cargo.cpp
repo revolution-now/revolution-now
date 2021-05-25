@@ -509,4 +509,30 @@ void CargoHold::clear() {
   check_invariants_or_abort();
 }
 
+maybe<Cargo const&> CargoHold::cargo_starting_at_slot(
+    int idx ) const {
+  CHECK( idx >= 0 && idx < slots_total() );
+  return slots_[idx]              //
+      .get_if<CargoSlot::cargo>() //
+      .member( &CargoSlot::cargo::contents );
+}
+
+maybe<pair<Cargo const&, int>> CargoHold::cargo_covering_slot(
+    int idx ) const {
+  CHECK( idx >= 0 && idx < slots_total() );
+  if( slots_[idx].holds<CargoSlot::empty>() ) return nothing;
+  do {
+    maybe<Cargo const&> ref =
+        slots_[idx]
+            .get_if<CargoSlot::cargo>() //
+            .member( &CargoSlot::cargo::contents );
+    // Need to explicitly specify the types for this pair other-
+    // wise it will infer a Cargo by value, then implicitely con-
+    // vert to a reference (for our return type) and thus will
+    // end up returning reference to a temporary.
+    if( ref ) return pair<Cargo const&, int>{ *ref, idx };
+  } while( --idx >= 0 );
+  return nothing;
+}
+
 } // namespace rn

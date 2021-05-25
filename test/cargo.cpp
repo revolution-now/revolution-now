@@ -24,6 +24,7 @@
 #define REQUIRE_GOOD_INVARIANTS REQUIRE( ch.check_invariants() )
 
 FMT_TO_CATCH( ::rn::CargoSlot_t );
+FMT_TO_CATCH( ::rn::Cargo );
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::Commodity );
 
@@ -2117,6 +2118,100 @@ TEST_CASE( "CargoHold fits_somewhere_with_item_removed" ) {
         unit_id2, /*remove_slot=*/3, /*starting_slot=*/0 ) );
     REQUIRE_FALSE( ch.fits_somewhere_with_item_removed(
         unit_id2, /*remove_slot=*/3, /*starting_slot=*/1 ) );
+  }
+
+  ch.clear();
+}
+
+TEST_CASE( "CargoHold cago_starting_at_slot" ) {
+  CargoHoldTester ch( 6 );
+
+  auto unit_id1 = create_unit( e_nation::english,
+                               e_unit_type::free_colonist );
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure );
+  REQUIRE( ch.try_add( unit_id1, 1 ) );
+  REQUIRE( ch.try_add( unit_id2, 2 ) );
+
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 0 );
+    REQUIRE_FALSE( c.has_value() );
+  }
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 1 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c == Cargo{ unit_id1 } );
+  }
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 2 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c == Cargo{ unit_id2 } );
+  }
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 3 );
+    REQUIRE_FALSE( c.has_value() );
+  }
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 4 );
+    REQUIRE_FALSE( c.has_value() );
+  }
+  {
+    maybe<Cargo const&> c = ch.cargo_starting_at_slot( 5 );
+    REQUIRE_FALSE( c.has_value() );
+  }
+
+  ch.clear();
+}
+
+TEST_CASE( "CargoHold cago_covering_slot" ) {
+  CargoHoldTester ch( 6 );
+
+  auto unit_id1 = create_unit( e_nation::english,
+                               e_unit_type::free_colonist );
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure );
+  REQUIRE( ch.try_add( unit_id1, 1 ) );
+  REQUIRE( ch.try_add( unit_id2, 2 ) );
+
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 0 );
+    REQUIRE_FALSE( c.has_value() );
+  }
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 1 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c->second == 1 );
+    REQUIRE( c->first == Cargo{ unit_id1 } );
+  }
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 2 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c->second == 2 );
+    REQUIRE( c->first == Cargo{ unit_id2 } );
+  }
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 3 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c->second == 2 );
+    REQUIRE( c->first == Cargo{ unit_id2 } );
+  }
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 4 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c->second == 2 );
+    REQUIRE( c->first == Cargo{ unit_id2 } );
+  }
+  {
+    maybe<pair<Cargo const&, int>> c =
+        ch.cargo_covering_slot( 5 );
+    REQUIRE( c.has_value() );
+    REQUIRE( c->second == 2 );
+    REQUIRE( c->first == Cargo{ unit_id2 } );
   }
 
   ch.clear();
