@@ -1623,11 +1623,10 @@ struct DragUserInput {
         "(0-100):",
         commodity_display_name( type ), verb );
 
-    return ui::int_input_box(
-        /*title=*/"Choose Quantity",
-        /*msg=*/text,
-        /*min=*/0,
-        /*max=*/100 );
+    return ui::int_input_box( { .title = "Choose Quantity",
+                                .msg   = text,
+                                .min   = 0,
+                                .max   = 100 } );
   }
 
   waitable<bool> DRAG_CONFIRM_CASE( market, cargo ) const {

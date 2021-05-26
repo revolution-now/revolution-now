@@ -147,6 +147,7 @@ private:
 class MarketCommodities : public ui::View,
                           public ColonySubView,
                           public IColViewDragSource,
+                          public IColViewDragSourceUserInput,
                           public IColViewDragSink {
 public:
   Delta delta() const override {
@@ -270,6 +271,28 @@ public:
     colony().set_commodity_quantity( c.type, q );
   }
 
+  waitable<maybe<ColViewObject_t>> user_edit_object()
+      const override {
+    CHECK( draggable_ );
+    int    min  = 1;
+    int    max  = draggable_->quantity;
+    string text = fmt::format(
+        "What quantity of @[H]{}@[] would you like to move? "
+        "({}-{}):",
+        commodity_display_name( draggable_->type ), min, max );
+    maybe<int> quantity =
+        co_await ui::int_input_box( { .title = "Choose Quantity",
+                                      .msg   = text,
+                                      .min   = min,
+                                      .max   = max,
+                                      .initial = max } );
+    if( !quantity ) co_return nothing;
+    Commodity new_comm = *draggable_;
+    new_comm.quantity  = *quantity;
+    CHECK( new_comm.quantity > 0 );
+    co_return from_cargo( new_comm );
+  }
+
   MarketCommodities( W block_width )
     : block_width_( block_width ) {}
 
@@ -317,6 +340,7 @@ private:
 class CargoView : public ui::View,
                   public ColonySubView,
                   public IColViewDragSource,
+                  public IColViewDragSourceUserInput,
                   public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
@@ -522,44 +546,96 @@ public:
   // of the object, since if the object is a commodity we may not
   // be able to find a unique cargo slot that holds that com-
   // modity if there are more than one.
-  bool try_drag( ColViewObject_t const& /*o*/,
-                 Coord const& where ) override {
+  bool try_drag( ColViewObject_t const& o,
+                 Coord const&           where ) override {
     if( !holder_ ) return false;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
     if( !slot_info ) return false;
     auto [is_open, slot_idx] = *slot_info;
     if( !is_open ) return false;
-    dragging_slot_ = slot_idx;
+    draggable_ = Draggable{ .slot = slot_idx, .object = o };
     return true;
   }
 
-  void cancel_drag() override { dragging_slot_ = nothing; }
+  void cancel_drag() override { draggable_ = nothing; }
 
   void disown_dragged_object() override {
     CHECK( holder_ );
-    CHECK( dragging_slot_ );
-    UNWRAP_CHECK( c_with_r,
-                  cargo_item_with_rect( *dragging_slot_ ) );
-    Cargo const& cargo = c_with_r.first;
+    CHECK( draggable_ );
+    // We need to take the stored object instead of just re-
+    // trieving it from the slot, because the stored object might
+    // have been edited, e.g. the commodity quantity might have
+    // been lowered.
+    Cargo cargo_to_remove = to_cargo( draggable_->object );
     overload_visit(
-        cargo,
+        cargo_to_remove,
         []( UnitId held ) {
           internal::ustate_disown_unit( held );
         },
-        [this]( Commodity const& ) {
-          rm_commodity_from_cargo( *holder_, *dragging_slot_ );
+        [this]( Commodity const& to_remove ) {
+          UNWRAP_CHECK(
+              existing_cargo,
+              unit_from_id( *holder_ )
+                  .cargo()
+                  .cargo_starting_at_slot( draggable_->slot ) );
+          UNWRAP_CHECK( existing_comm,
+                        existing_cargo.get_if<Commodity>() );
+          Commodity reduced_comm = existing_comm;
+          CHECK( reduced_comm.type == existing_comm.type );
+          CHECK( reduced_comm.type == to_remove.type );
+          reduced_comm.quantity -= to_remove.quantity;
+          CHECK( reduced_comm.quantity >= 0 );
+          rm_commodity_from_cargo( *holder_, draggable_->slot );
+          if( reduced_comm.quantity > 0 )
+            add_commodity_to_cargo( reduced_comm, *holder_,
+                                    draggable_->slot,
+                                    /*try_other_slots=*/false );
         } );
   }
 
+  waitable<maybe<ColViewObject_t>> user_edit_object()
+      const override {
+    CHECK( draggable_ );
+    UNWRAP_CHECK( cargo_and_rect,
+                  cargo_item_with_rect( draggable_->slot ) );
+    Cargo const& cargo = cargo_and_rect.first;
+    if( !cargo.holds<Commodity>() )
+      co_return from_cargo( cargo );
+    // We have a commodity.
+    Commodity const& comm = cargo.get<Commodity>();
+    int              min  = 1;
+    int              max  = comm.quantity;
+    string           text = fmt::format(
+                  "What quantity of @[H]{}@[] would you like to move? "
+                            "({}-{}):",
+                  commodity_display_name( comm.type ), min, max );
+    maybe<int> quantity =
+        co_await ui::int_input_box( { .title = "Choose Quantity",
+                                      .msg   = text,
+                                      .min   = min,
+                                      .max   = max,
+                                      .initial = max } );
+    if( !quantity ) co_return nothing;
+    Commodity new_comm = comm;
+    new_comm.quantity  = *quantity;
+    CHECK( new_comm.quantity > 0 );
+    co_return from_cargo( new_comm );
+  }
+
 private:
+  struct Draggable {
+    int             slot;
+    ColViewObject_t object;
+  };
+
   // FIXME: this gets reset whenever we recomposite. We need to
   // either put this in a global place, or not recreate all of
   // these view objects each time we recomposite (i.e., reuse
   // them).
-  maybe<UnitId> holder_;
-  Delta         size_;
-  maybe<int>    dragging_slot_;
+  maybe<UnitId>    holder_;
+  Delta            size_;
+  maybe<Draggable> draggable_;
 };
 
 class UnitsAtGateColonyView : public ui::View,

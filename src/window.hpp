@@ -84,10 +84,16 @@ waitable<e_ok_cancel> ok_cancel( std::string_view question,
       fmt::format( question, std::forward<Args>( args )... ) );
 }
 
-waitable<maybe<int>> int_input_box( std::string_view title,
-                                    std::string_view msg,
-                                    maybe<int> min = nothing,
-                                    maybe<int> max = nothing );
+struct IntInputBoxOptions {
+  std::string_view title   = "";
+  std::string_view msg     = "";
+  maybe<int>       min     = nothing;
+  maybe<int>       max     = nothing;
+  maybe<int>       initial = nothing;
+};
+
+waitable<maybe<int>> int_input_box(
+    IntInputBoxOptions const& options );
 
 waitable<maybe<std::string>> str_input_box(
     std::string_view title, std::string_view msg,
@@ -125,7 +131,7 @@ struct SelectBoxEnum {
           enum_traits<Enum>::values.begin(),
           enum_traits<Enum>::values.end() );
     }();
-    return (*this)( title, options );
+    return ( *this )( title, options );
   }
 };
 

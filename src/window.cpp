@@ -530,7 +530,7 @@ template<typename ResultT>
 waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   waitable_promise<e_ok_cancel> p;
   unique_ptr<Window>            win = ok_cancel_impl(
-      msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
+                 msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
   co_return co_await p.waitable();
 }
 
@@ -586,14 +586,17 @@ namespace {
 }
 } // namespace
 
-waitable<maybe<int>> int_input_box( std::string_view title,
-                                    std::string_view msg,
-                                    maybe<int>       min,
-                                    maybe<int>       max ) {
+waitable<maybe<int>> int_input_box(
+    IntInputBoxOptions const& options ) {
   waitable_promise<maybe<int>> p;
-  unique_ptr<Window>           win = text_input_box(
-      title, msg, /*initial_text=*/"",
-      make_int_validator( min, max ),
+
+  string initial_text =
+      options.initial.has_value()
+          ? fmt::format( "{}", *options.initial )
+          : "";
+  unique_ptr<Window> win = text_input_box(
+      options.title, options.msg, initial_text,
+      make_int_validator( options.min, options.max ),
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
       } );
@@ -605,8 +608,8 @@ waitable<maybe<string>> str_input_box(
     string_view initial_text ) {
   waitable_promise<maybe<string>> p;
   unique_ptr<Window>              win = text_input_box(
-      title, msg, initial_text, L( _.size() > 0 ),
-      [p]( maybe<string> result ) { p.set_value( result ); } );
+                   title, msg, initial_text, L( _.size() > 0 ),
+                   [p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.waitable();
 }
 
