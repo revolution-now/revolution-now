@@ -363,7 +363,18 @@ waitable<> process_player_input(
         // will cause the unit to ask for orders multiple times
         // during a single cycle of "wait" commands, i.e., the
         // user just pressing "wait" through all of the available
-        // units.
+        // units. FIXME: this may still not be working ideally,
+        // since it can still theoretically cause the same unit
+        // to ask for orders twice in a row, if for example some
+        // units were prioritized (effectively rearranging the
+        // order of the queue, then the player hits wait a few
+        // times, then the last unit to ask for orders happens to
+        // be the first in the queue on the next round. I think
+        // this will probably only happen when there are only a
+        // few active units, but it is quite noticeable in that
+        // situation and would be nice to fix if possible (though
+        // it may be nontrivial) since it causes a weird user ex-
+        // perience when it happens.
         CHECK( q.front() == id );
         q.pop_front();
         break;
