@@ -414,6 +414,7 @@ public:
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const override {
+    CHECK( where.is_inside( rect( {} ) ) );
     if( !holder_ ) return nothing;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
@@ -704,6 +705,7 @@ public:
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const override {
+    CHECK( where.is_inside( rect( {} ) ) );
     if( !where.is_inside( rect( {} ) ) ) return nothing;
     return overload_visit(
         o, //
@@ -1109,8 +1111,9 @@ void recomposite( ColonyId id, Delta screen_size ) {
 
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
-      p_cargo_view, middle_strip_size.with_width(
-                        middle_strip_size.w / 3_sx * 2_sx ) );
+      p_cargo_view,
+      middle_strip_size.with_width( middle_strip_size.w / 3_sx )
+          .with_height( middle_strip_size.h - 32_h ) );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
