@@ -353,6 +353,7 @@ waitable<> drag_drop_routine(
     drag_sink.drop( source_object, sink_coord );
     // Drag happened successfully.
     lg.debug( "drag of object {} successful.", source_object );
+    colview_top_level().update();
     co_return;
   }
 

@@ -153,6 +153,13 @@ public:
     return nothing;
   }
 
+  // This will update any internal state held inside the view
+  // that needs to be recomputed if any state external to the
+  // view changes. Note: this assumes that the screen size has
+  // not been changed. If the screen size has not been changed,
+  // then we need to do a full recompositing instead.
+  virtual void update() {}
+
   // For convenience.
   maybe<IColViewDragSource&> drag_source();
   maybe<IColViewDragSink&>   drag_sink();

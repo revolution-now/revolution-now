@@ -373,13 +373,6 @@ public:
         render_fill_rect( tx, Color::wood(), rect );
         continue;
       }
-      // if( g_drag_state.has_value() ) {
-      //   if_get( g_drag_state->object,
-      //           OldWorldDraggableObject::cargo_commodity,
-      //           cc ) {
-      //     if( cc.slot == slot ) continue;
-      //   }
-      // }
 
       // FIXME: need to deduplicate this logic with that in
       // the Old World view.
@@ -395,11 +388,6 @@ public:
           overload_visit(
               cargo.contents,
               [&]( UnitId id ) {
-                // if( !g_drag_state ||
-                //     g_drag_state->object !=
-                //         OldWorldDraggableObject_t{
-                //             OldWorldDraggableObject::unit{
-                //                 id } } )
                 render_unit( tx, id, rect.upper_left(),
                              /*with_icon=*/false );
               },
@@ -608,7 +596,7 @@ public:
 
   UnitsAtGateColonyView( CargoView* cargo_view, Delta size )
     : cargo_view_( cargo_view ), size_( size ) {
-    update_unit_layout();
+    update();
   }
 
   // Implement AwaitableView.
@@ -634,7 +622,7 @@ public:
       Coord const& where ) const {
     auto& unit = unit_from_id( dragged );
     // Player should not be dragging ships or wagons.
-    CHECK( unit.desc().cargo_slots != 0 );
+    CHECK( unit.desc().cargo_slots == 0 );
     // See if the draga target is over top of a unit.
     maybe<UnitId> over_unit_id = contains_unit( where );
     if( !over_unit_id ) {
@@ -720,11 +708,17 @@ public:
     return overload_visit(
         o, //
         [&]( ColViewObject::unit const& unit ) {
-          if( target_unit )
+          if( target_unit ) {
             ustate_change_to_cargo_somewhere( *target_unit,
                                               unit.id );
-          else
+          } else {
             ustate_change_to_map( unit.id, colony().location() );
+            // This is not strictly necessary, but as a conve-
+            // nience to the user, clear the orders, otherwise it
+            // would be sentry'd, which is probably not what the
+            // player wants.
+            unit_from_id( unit.id ).clear_orders();
+          }
         },
         [&]( ColViewObject::commodity const& comm ) {
           CHECK( target_unit );
@@ -783,7 +777,7 @@ private:
   // them).
   maybe<UnitId> selected_;
 
-  void update_unit_layout() {
+  void update() override {
     auto const& colony   = colony_from_id( colony_id() );
     auto const& units    = units_from_coord( colony.location() );
     auto        unit_pos = Coord{} + 16_h;
@@ -1003,6 +997,10 @@ struct CompositeColSubView : public ui::InvisibleView,
 
   maybe<e_colview_entity> entity() const override {
     return nothing;
+  }
+
+  void update() override {
+    for( ColonySubView* p : ptrs_ ) p->update();
   }
 
   vector<ColonySubView*> ptrs_;
