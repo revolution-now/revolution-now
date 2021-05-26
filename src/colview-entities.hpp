@@ -73,11 +73,12 @@ struct IColViewDragSourceUserInput {
 // idea here is that the view must keep track of what is being
 // dragged.
 struct IColViewDragSource {
-  // If this returns something other than nothing, this means
-  // that the view has recorded the object and assumes that the
-  // drag has begun. Note: this function may be called when a
-  // drag is already in progress in order to adjust the object
-  // being dragged.
+  // Decides whether a drag can happen on the given object. Note
+  // that in some cases the coordinate parameter will not be
+  // needed. If this returns true, this means that the view has
+  // recorded the object and assumes that the drag has begun.
+  // Note: this function may be called when a drag is already in
+  // progress in order to adjust the object being dragged.
   virtual bool try_drag( ColViewObject_t const& o,
                          Coord const&           where ) = 0;
 

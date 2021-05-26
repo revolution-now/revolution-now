@@ -563,6 +563,7 @@ private:
 
 class UnitsAtGateColonyView : public ui::View,
                               public ColonySubView,
+                              public IColViewDragSource,
                               public IColViewDragSink {
 public:
   Delta delta() const override { return size_; }
@@ -614,6 +615,18 @@ public:
     for( PositionedUnit const& pu : positioned_units_ )
       if( where.is_inside( Rect::from( pu.pos, g_tile_delta ) ) )
         return pu.id;
+    return nothing;
+  }
+
+  maybe<ColViewObjectWithBounds> object_here(
+      Coord const& where ) const override {
+    for( PositionedUnit const& pu : positioned_units_ ) {
+      auto rect = Rect::from( pu.pos, g_tile_delta );
+      if( where.is_inside( rect ) )
+        return ColViewObjectWithBounds{
+            .obj    = ColViewObject::unit{ .id = pu.id },
+            .bounds = rect };
+    }
     return nothing;
   }
 
@@ -728,6 +741,23 @@ public:
         } );
   }
 
+  bool try_drag( ColViewObject_t const& o,
+                 Coord const& /*where*/ ) override {
+    UNWRAP_CHECK( [id], o.get_if<ColViewObject::unit>() );
+    bool is_cargo_unit =
+        unit_from_id( id ).desc().cargo_slots > 0;
+    if( is_cargo_unit ) return false;
+    dragging_ = id;
+    return true;
+  }
+
+  void cancel_drag() override { dragging_ = nothing; }
+
+  void disown_dragged_object() override {
+    UNWRAP_CHECK( unit_id, dragging_ );
+    internal::ustate_disown_unit( unit_id );
+  }
+
 private:
   void set_selected_unit( maybe<UnitId> id ) {
     selected_ = id;
@@ -765,18 +795,6 @@ private:
     }
   }
 
-  struct PositionedUnit {
-    UnitId id;
-    Coord  pos; // relative to upper left of this CargoView.
-  };
-
-  vector<PositionedUnit> positioned_units_;
-  // FIXME: this gets reset whenever we recomposite. We need to
-  // either put this in a global place, or not recreate all of
-  // these view objects each time we recomposite (i.e., reuse
-  // them).
-  maybe<UnitId> selected_;
-
   void update() override {
     auto const& colony   = colony_from_id( colony_id() );
     auto const& units    = units_from_coord( colony.location() );
@@ -797,8 +815,21 @@ private:
       set_selected_unit( first_with_cargo );
   }
 
-  CargoView* cargo_view_;
-  Delta      size_;
+  struct PositionedUnit {
+    UnitId id;
+    Coord  pos; // relative to upper left of this CargoView.
+  };
+
+  vector<PositionedUnit> positioned_units_;
+  // FIXME: this gets reset whenever we recomposite. We need to
+  // either put this in a global place, or not recreate all of
+  // these view objects each time we recomposite (i.e., reuse
+  // them).
+  maybe<UnitId> selected_;
+
+  CargoView*    cargo_view_;
+  Delta         size_;
+  maybe<UnitId> dragging_;
 };
 
 class ProductionView : public ui::View, public ColonySubView {
