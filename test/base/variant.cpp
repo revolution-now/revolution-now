@@ -8,14 +8,14 @@
 * Description: Tests for variant-handling utilities.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "base/variant.hpp"
 #include "src/variant.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace base {
 namespace {

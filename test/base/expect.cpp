@@ -8,13 +8,13 @@
 * Description: Unit tests for the src/expect.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/base/expect.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 // C++ standard library
 #include <experimental/type_traits>

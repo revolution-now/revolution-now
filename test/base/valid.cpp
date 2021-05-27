@@ -8,13 +8,13 @@
 * Description: Unit tests for the src/base/valid.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/base/valid.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace base {
 namespace {

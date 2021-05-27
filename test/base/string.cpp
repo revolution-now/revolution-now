@@ -8,13 +8,13 @@
 * Description: Unit tests for the src/base/string.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/base/string.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace base {
 namespace {

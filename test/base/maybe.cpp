@@ -9,7 +9,7 @@
 *              code base.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "base/maybe-util.hpp"
@@ -17,7 +17,7 @@
 #include "base/variant.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 // C++ standard library
 #include <experimental/type_traits>

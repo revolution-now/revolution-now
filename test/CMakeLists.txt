@@ -1,10 +1,12 @@
-file( GLOB src_sources "[a-zA-Z]*.cpp" )
-file( GLOB luapp_sources "luapp/[a-zA-Z]*.cpp" )
+file( GLOB src_sources       "[a-zA-Z]*.cpp" )
+file( GLOB src_base_sources  "base/[a-zA-Z]*.cpp" )
+file( GLOB src_luapp_sources "luapp/[a-zA-Z]*.cpp" )
 
 add_executable(
   unittest
   ${src_sources}
-  ${luapp_sources}
+  ${src_base_sources}
+  ${src_luapp_sources}
 )
 
 set_warning_options( unittest )

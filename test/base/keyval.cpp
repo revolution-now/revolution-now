@@ -8,13 +8,13 @@
 * Description: Unit tests for the src/keyval.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "base/keyval.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 // C++ standard library
 #include <unordered_map>

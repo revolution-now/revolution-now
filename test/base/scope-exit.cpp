@@ -8,13 +8,13 @@
 * Description: Unit tests for the src/base/scope-exit.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/base/scope-exit.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace base {
 namespace {

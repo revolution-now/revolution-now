@@ -8,7 +8,7 @@
 * Description: Unit tests for the src/vocab.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/base/vocab.hpp"
@@ -17,7 +17,7 @@
 #include "src/fmt-helper.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace base {
 namespace {

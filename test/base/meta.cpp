@@ -8,13 +8,13 @@
 * Description: Unit tests for the meta module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "base/meta.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 // C++ standard library
 #include <type_traits>
