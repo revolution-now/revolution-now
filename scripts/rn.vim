@@ -76,7 +76,10 @@ function! MyTabLabel( n )
     let path = bufname( buflist[i] )
     let ext = fnamemodify( path, ':e' )
     if ext == 'cpp' || ext == 'hpp'
-      return fnamemodify( path, ':t:r' )
+      let rm_prefix = path
+      let rm_prefix = fnamemodify( rm_prefix, ':s|^src/||' )
+      let rm_prefix = fnamemodify( rm_prefix, ':s|^exe/||' )
+      return fnamemodify( rm_prefix, ':r' )
     endif
     if ext == 'ucl'
       return fnamemodify( 'ucl', ':t:r' )
