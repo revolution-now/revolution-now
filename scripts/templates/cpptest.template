@@ -8,7 +8,7 @@
 * Description: Unit tests for the src/{{FILE}}.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/{{FILE}}.hpp"
@@ -17,7 +17,7 @@
 #include "src/lua.hpp" // FIXME: remove if not needed.
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 // FMT_TO_CATCH( ::rn::UnitId );
 

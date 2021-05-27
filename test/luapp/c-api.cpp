@@ -1,20 +1,20 @@
 /****************************************************************
-**lua-c-api.cpp
+**c-api.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-05-27.
 *
-* Description: Unit tests for the src/cpp-lua/c-api.* module.
+* Description: Unit tests for the src/luapp/c-api.* module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
 #include "src/luapp/c-api.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 namespace luapp {
 namespace {
