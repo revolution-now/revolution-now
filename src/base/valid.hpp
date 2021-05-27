@@ -65,6 +65,11 @@ public:
 
   bool valid() const { return !!( *this ); }
 
+  friend constexpr bool operator==( valid_or<E> const& lhs,
+                                    valid_t const& ) noexcept {
+    return lhs.has_value();
+  }
+
   friend constexpr bool operator==(
       valid_or<E> const& lhs,
       valid_or<E> const&

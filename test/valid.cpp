@@ -55,6 +55,7 @@ TEST_CASE( "[valid] construction/copy/move/assignment" ) {
 
   REQUIRE( v3 );
   REQUIRE( v3.valid() );
+  REQUIRE( v3 == valid );
   REQUIRE( !v1.valid() );
   REQUIRE( !v1 );
   REQUIRE( v1 == v1 );

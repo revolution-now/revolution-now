@@ -52,7 +52,8 @@ concept ExpectTypeRequirements = requires {
 ** Forward Declaration
 *****************************************************************/
 template<typename T, typename E>
-requires ExpectTypeRequirements<T, E> class [[nodiscard]] expect;
+requires ExpectTypeRequirements<T, E>
+class [[nodiscard]] expect;
 
 /****************************************************************
 ** bad_expect_access exception
@@ -1137,10 +1138,11 @@ public:
   /**************************************************************
   ** Storage
   ***************************************************************/
-private:
+private :
   // Allows expect<T> to access private members of expect<U>.
   template<typename U, typename V>
-  requires ExpectTypeRequirements<U, V> friend class expect;
+  requires ExpectTypeRequirements<U, V>
+  friend class expect;
 
   // This is so that we can have a common API with the expect-ref
   // type for assigning, since we need to delete the expect-ref
@@ -1551,11 +1553,12 @@ public:
     return std::invoke( std::forward<Func>( func ), **this );
   }
 
-private:
+private :
   // This allows expect<T, E> to access private members of
   // expect<U, V>.
   template<typename U, typename V>
-  requires ExpectTypeRequirements<U, V> friend class expect;
+  requires ExpectTypeRequirements<U, V>
+  friend class expect;
 
   /**************************************************************
   ** Construction of new error.
@@ -1647,7 +1650,8 @@ template<typename T, typename E, typename U>
 [[nodiscard]] constexpr bool operator==( expect<T, E> const& opt,
                                          U const&            val )
     noexcept( noexcept( *opt == val ) )
-    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> &&
+              !is_expect_v<std::remove_cvref_t<U>> ) {
   /* clang-format on */
   if( !opt.has_value() ) return false;
   return ( *opt == val );
@@ -1668,7 +1672,8 @@ template<typename T, typename E, typename U>
 [[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
                                          U const&            val )
     noexcept( noexcept( opt == val ) )
-    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> &&
+              !is_expect_v<std::remove_cvref_t<U>> ) {
   /* clang-format on */
   return !( opt == val );
 }
