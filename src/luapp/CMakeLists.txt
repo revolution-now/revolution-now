@@ -3,27 +3,27 @@
 file( GLOB sources "[a-zA-Z]*.cpp" )
 
 add_library(
-  rn-cpp-lua
+  rn-luapp
   STATIC
   ${sources}
 )
 
-target_compile_features( rn-cpp-lua PUBLIC cxx_std_20 )
-set_target_properties( rn-cpp-lua PROPERTIES CXX_EXTENSIONS OFF )
-set_warning_options( rn-cpp-lua )
+target_compile_features( rn-luapp PUBLIC cxx_std_20 )
+set_target_properties( rn-luapp PROPERTIES CXX_EXTENSIONS OFF )
+set_warning_options( rn-luapp )
 
 target_link_libraries(
-  rn-cpp-lua
+  rn-luapp
   PRIVATE
   lua::lua
   rn-base
 )
 
 target_include_directories(
-  rn-cpp-lua
+  rn-luapp
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
-clang_tidy( rn-cpp-lua )
+clang_tidy( rn-luapp )

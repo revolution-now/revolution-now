@@ -1,5 +1,7 @@
 " =========================== Config ============================
 let s:stems = [
+  \ 'luapp/c-api',
+  \ 'luapp/state',
   \ 'frame',
   \ 'plane',
   \ 'input',

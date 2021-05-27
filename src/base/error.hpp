@@ -113,6 +113,17 @@
 #endif
 
 /****************************************************************
+** Equality/Inequality checks
+*****************************************************************/
+#define CHECK_GE( a, b )                                       \
+  auto const& STRING_JOIN( __a, __LINE__ ) = a;                \
+  auto const& STRING_JOIN( __b, __LINE__ ) = b;                \
+  CHECK( STRING_JOIN( __a, __LINE__ ) >=                       \
+             STRING_JOIN( __b, __LINE__ ),                     \
+         "{} is not >= than {}", STRING_JOIN( __a, __LINE__ ), \
+         STRING_JOIN( __b, __LINE__ ) );
+
+/****************************************************************
 ** Check that a wrapped type has a value.
 *****************************************************************/
 #define CHECK_HAS_VALUE( e )                        \

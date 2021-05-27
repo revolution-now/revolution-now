@@ -143,3 +143,15 @@ struct fmt::formatter<base::valid_or<E>>
           fmt::format( "invalid{{{}}}", e.error() ), ctx );
   }
 };
+
+// {fmt} formatter for formatting valid_t.
+template<>
+struct fmt::formatter<base::valid_t>
+  : fmt::formatter<std::string> {
+  using formatter_base = fmt::formatter<std::string>;
+  template<typename FormatContext>
+  auto format( base::valid_t const&, FormatContext& ctx ) {
+    static const std::string valid_str( "valid" );
+    return formatter_base::format( valid_str, ctx );
+  }
+};

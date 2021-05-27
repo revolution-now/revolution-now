@@ -2,7 +2,7 @@
 
 add_subdirectory( base )
 add_subdirectory( fb )
-add_subdirectory( cpp-lua )
+add_subdirectory( luapp )
 add_subdirectory( rnl )
 
 # === this directory ==============================================
@@ -39,7 +39,7 @@ target_link_libraries(
     lua::lua
     midifile
     rn-base
-    rn-cpp-lua
+    rn-luapp
     rtmidi
     sol2::sol2
     spdlog::spdlog

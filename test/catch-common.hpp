@@ -18,6 +18,9 @@
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
 
+// base
+#include "base/valid.hpp"
+
 // base-util
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
@@ -71,4 +74,6 @@ FMT_TO_CATCH_T( ( T ), ::std::reference_wrapper );
 FMT_TO_CATCH_T( ( T ), ::std::optional );
 FMT_TO_CATCH_T( ( T ), ::base::maybe );
 FMT_TO_CATCH_T( ( T, E ), ::base::expect );
+FMT_TO_CATCH_T( ( E ), ::base::valid_or );
+FMT_TO_CATCH( ::base::valid_t );
 FMT_TO_CATCH( ::base::nothing_t );
