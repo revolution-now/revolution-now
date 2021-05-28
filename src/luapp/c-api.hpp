@@ -21,10 +21,18 @@
 
 namespace luapp {
 
+// The type we use for reporting errors raised by lua.
 using lua_error_t = std::string;
+// We can change the error type in the future, but it must at
+// least be constructible from a std::string.
+static_assert(
+    std::is_constructible_v<lua_error_t, std::string> );
 
+// valid_or
 using lua_valid = base::valid_or<lua_error_t>;
+lua_valid lua_invalid( lua_error_t err );
 
+// expect
 template<typename T>
 using lua_expect = base::expect<T, lua_error_t>;
 
@@ -96,18 +104,14 @@ struct c_api {
   lua_valid loadstring( char const* script );
   lua_valid loadstring( std::string const& script );
 
-  struct pcall_options {
-    // Setting these to -1 allows us to ensure that the user has
-    // explicitly set them.
-    int nargs    = -1;
-    int nresults = -1;
-  };
+  lua_valid dostring( char const* script );
+  lua_valid dostring( std::string const& script );
 
   // If this function returns `valid` then `nresults` from the
   // function will be pushed onto the stack. If it returns an
   // error then nothing needs to be popped from the stack. In all
   // cases, the function and arguments will be popped.
-  lua_valid pcall( pcall_options const& o );
+  lua_valid pcall( int nargs, int nresults );
 
   // Will check-fail if there are not enough elements on the
   // stack.
@@ -128,6 +132,8 @@ struct c_api {
 
 private:
   e_lua_type lua_type_to_enum( int type ) const;
+
+  [[nodiscard]] lua_error_t pop_and_return_error();
 
   lua_State* L;
 };
