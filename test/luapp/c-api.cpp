@@ -193,7 +193,5 @@ TEST_CASE( "[lua-c-api] type_name" ) {
            string( "thread" ) );
 }
 
-}
-
 } // namespace
 } // namespace luapp
