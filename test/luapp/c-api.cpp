@@ -16,13 +16,17 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+FMT_TO_CATCH( ::luapp::e_lua_type );
+
 namespace luapp {
 namespace {
 
 using namespace std;
 
-using base::valid;
-using Catch::Contains;
+using ::base::maybe;
+using ::base::nothing;
+using ::base::valid;
+using ::Catch::Contains;
 
 string lua_testing_file( string const& filename ) {
   return rn::testing::data_dir() / "lua" / filename;
@@ -191,6 +195,120 @@ TEST_CASE( "[lua-c-api] type_name" ) {
            string( "userdata" ) );
   REQUIRE( st.type_name( e_lua_type::thread ) ==
            string( "thread" ) );
+}
+
+TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
+  c_api st;
+
+  SECTION( "nil" ) {
+    REQUIRE( st.stack_size() == 0 );
+    st.push( nil );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::nil );
+    REQUIRE( st.get<bool>( -1 ) == false );
+    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
+    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
+    REQUIRE( st.get<string>( -1 ) == nothing );
+    st.pop();
+  }
+  SECTION( "bool" ) {
+    REQUIRE( st.stack_size() == 0 );
+    st.push( false );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( true );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::boolean );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::boolean );
+    REQUIRE( st.get<bool>( -1 ) == true );
+    REQUIRE( st.get<bool>( -2 ) == false );
+    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
+    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
+    REQUIRE( st.get<string>( -1 ) == nothing );
+    st.pop();
+    st.pop();
+  }
+  SECTION( "integer" ) {
+    REQUIRE( st.stack_size() == 0 );
+    st.push( int( 0 ) );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( 9LL );
+    REQUIRE( st.stack_size() == 2 );
+    st.push( 7L );
+    REQUIRE( st.stack_size() == 3 );
+    st.push( 5 );
+    REQUIRE( st.stack_size() == 4 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::number );
+    REQUIRE( st.type_of( -3 ) == e_lua_type::number );
+    REQUIRE( st.type_of( -4 ) == e_lua_type::number );
+    REQUIRE( st.get<bool>( -1 ) == true );
+    REQUIRE( st.get<bool>( -2 ) == true );
+    REQUIRE( st.get<bool>( -3 ) == true );
+    REQUIRE( st.get<bool>( -4 ) == true );
+    REQUIRE( st.get<lua_Integer>( -1 ) == 5 );
+    REQUIRE( st.get<lua_Integer>( -2 ) == 7 );
+    REQUIRE( st.get<lua_Integer>( -3 ) == 9 );
+    REQUIRE( st.get<lua_Integer>( -4 ) == 0 );
+    REQUIRE( st.get<lua_Number>( -1 ) == 5.0 );
+    REQUIRE( st.get<lua_Number>( -2 ) == 7.0 );
+    REQUIRE( st.get<string>( -1 ) == "5" );
+    REQUIRE( st.get<string>( -2 ) == "7" );
+    REQUIRE( st.get<string>( -3 ) == "9" );
+    REQUIRE( st.get<string>( -4 ) == "0" );
+    // Lua changes the value on the stack when we convert to a
+    // string.
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -3 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -4 ) == e_lua_type::string );
+    st.pop();
+    st.pop();
+    st.pop();
+    st.pop();
+  }
+  SECTION( "floating" ) {
+    REQUIRE( st.stack_size() == 0 );
+    st.push( 7.1 );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( 5.0f );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::number );
+    REQUIRE( st.get<bool>( -1 ) == true );
+    REQUIRE( st.get<bool>( -2 ) == true );
+    REQUIRE( st.get<lua_Integer>( -1 ) == 5 );
+    // No rounding.
+    REQUIRE( st.get<lua_Integer>( -2 ) == nothing );
+    REQUIRE( st.get<lua_Number>( -1 ) == 5.0 );
+    REQUIRE( st.get<lua_Number>( -2 ) == 7.1 );
+    REQUIRE( st.get<string>( -1 ) == "5.0" );
+    REQUIRE( st.get<string>( -2 ) == "7.1" );
+    // Lua changes the value on the stack when we convert to a
+    // string.
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::string );
+    st.pop();
+    st.pop();
+  }
+  SECTION( "string" ) {
+    REQUIRE( st.stack_size() == 0 );
+    st.push( string( "5" ) );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( "hello" );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::string );
+    REQUIRE( st.get<bool>( -1 ) == true );
+    REQUIRE( st.get<bool>( -2 ) == true );
+    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
+    REQUIRE( st.get<lua_Integer>( -2 ) == 5 );
+    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
+    REQUIRE( st.get<lua_Number>( -2 ) == 5.0 );
+    REQUIRE( st.get<string>( -1 ) == "hello" );
+    REQUIRE( st.get<string>( -2 ) == "5" );
+    st.pop();
+    st.pop();
+  }
 }
 
 } // namespace

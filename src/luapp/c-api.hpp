@@ -11,6 +11,8 @@
 #pragma once
 
 // base
+#include "base/maybe.hpp"
+#include "base/safe-num.hpp"
 #include "base/valid.hpp"
 
 // {fmt}
@@ -60,6 +62,10 @@ enum class e_lua_type {
 };
 
 inline constexpr int kNumLuaTypes = 9;
+
+struct nil_t {};
+
+inline constexpr nil_t nil;
 
 /****************************************************************
 ** c_api
@@ -113,28 +119,62 @@ struct c_api {
   // cases, the function and arguments will be popped.
   lua_valid pcall( int nargs, int nresults );
 
+  void push( nil_t );
+  // We need to take these "safe" versions otherwise we get im-
+  // plicit conversions and ambiguities that mess things up. Note
+  // that we don't have one for unsigned integers, since Lua does
+  // not support those (it used to, but they are deprecated). You
+  // have to cast to one of the signed types before pushing.
+  void push( base::safe::boolean b );
+  void push( base::safe::integral<lua_Integer> n );
+  void push( base::safe::floating<lua_Number> d );
+
+  // We do not have an overload that takes a char const* because
+  // then it has to be zero-terminated, which means that Lua has
+  // scan it to see how long it is. We want to implement this
+  // using lua_pushlstring which takes a size, thereby saving
+  // that effort. So we only want to take string parameters that
+  // know their size, which would be std::string and
+  // std::string_view. However, if we are accepting the latter,
+  // then there does not seem to be any gain by also accepting
+  // the former.
+  void push( std::string_view sv );
+
   // Will check-fail if there are not enough elements on the
   // stack.
   void pop( int n = 1 );
 
+  bool                     get( int idx, bool* ) const;
+  base::maybe<lua_Integer> get( int idx, lua_Integer* ) const;
+  base::maybe<lua_Number>  get( int idx, lua_Number* ) const;
+  base::maybe<std::string> get( int idx, std::string* ) const;
+
+  template<typename T>
+  auto get( int idx ) const {
+    return get( idx, static_cast<T*>( nullptr ) );
+  }
+
   // Returns the type of the value in the given valid index.
-  e_lua_type type_of( int idx );
+  e_lua_type type_of( int idx ) const;
 
   // This will yield Lua's name for the type.
-  char const* type_name( e_lua_type type );
+  char const* type_name( e_lua_type type ) const;
 
-  /**************************************************************
-  ** Error checking helpers.
-  ***************************************************************/
-  void enforce_stack_size_ge( int s );
-
-  lua_valid enforce_type_of( int idx, e_lua_type type );
+  lua_valid enforce_type_of( int idx, e_lua_type type ) const;
 
 private:
   e_lua_type lua_type_to_enum( int type ) const;
 
+  /**************************************************************
+  ** Error checking helpers.
+  ***************************************************************/
+  void enforce_stack_size_ge( int s ) const;
+
+  void validate_index( int idx ) const;
+
   [[nodiscard]] lua_error_t pop_and_return_error();
 
+private:
   lua_State* L;
 };
 
@@ -144,6 +184,11 @@ private:
 void to_str( luapp::e_lua_type t, std::string& out );
 
 } // namespace luapp
+
+// Not sure if these are mandatory, but if they fail they will at
+// least alert us that something has changed.
+static_assert( sizeof( ::lua_Integer ) == sizeof( long long ) );
+static_assert( sizeof( long long ) >= 8 );
 
 /****************************************************************
 ** {fmt}
