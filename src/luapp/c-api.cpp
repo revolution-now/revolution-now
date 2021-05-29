@@ -121,7 +121,6 @@ lua_valid c_api::dostring( string const& script ) {
 lua_valid c_api::pcall( int nargs, int nresults ) {
   CHECK( nargs >= 0 );
   CHECK( nresults >= 0 || nresults == LUA_MULTRET );
-  LUA_MULTRET;
   // Function object plus args should be on the stack at least.
   enforce_stack_size_ge( nargs + 1 );
   lua_valid res = base::valid;
