@@ -25,29 +25,34 @@ using namespace std;
 namespace luapp {
 
 /****************************************************************
+** errors
+*****************************************************************/
+lua_valid lua_invalid( lua_error_t err ) {
+  return base::invalid<lua_error_t>( std::move( err ) );
+}
+
+/****************************************************************
 ** c_api
 *****************************************************************/
 c_api::c_api() {
-  lua_State* st = luaL_newstate();
-  CHECK( st != nullptr );
-  L = st;
+  L = ::luaL_newstate();
+  CHECK( L != nullptr );
 }
 
-c_api::~c_api() noexcept { lua_close( L ); }
+c_api::~c_api() noexcept {
+  // Not sure if this check is a good idea...
+  DCHECK( stack_size() == 0 );
+  ::lua_close( L );
+}
 
-/**************************************************************
+/****************************************************************
 ** Lua C Function Wrappers.
-***************************************************************/
+*****************************************************************/
 void c_api::openlibs() { luaL_openlibs( L ); }
 
 lua_valid c_api::dofile( char const* file ) {
   // luaL_dofile: [-0, +?, e]
-  int error = luaL_dofile( L, file );
-  if( error ) {
-    string msg = lua_tostring( L, -1 );
-    lua_pop( L, 1 );
-    return msg;
-  }
+  if( luaL_dofile( L, file ) ) return pop_and_return_error();
   return base::valid;
 }
 
@@ -88,13 +93,11 @@ lua_expect<e_lua_type> c_api::getglobal(
 lua_valid c_api::loadstring( char const* script ) {
   lua_valid res = base::valid;
   // [-0, +1, –]
-  if( luaL_loadstring( L, script ) == LUA_OK ) {
+  if( luaL_loadstring( L, script ) == LUA_OK )
     // Pushes a function onto the stack.
     enforce_stack_size_ge( 1 );
-  } else {
-    res = lua_tostring( L, -1 );
-    lua_pop( L, 1 );
-  }
+  else
+    return pop_and_return_error();
   return res;
 }
 
@@ -102,22 +105,33 @@ lua_valid c_api::loadstring( string const& script ) {
   return loadstring( script.c_str() );
 }
 
-lua_valid c_api::pcall( pcall_options const& o ) {
-  CHECK( o.nargs >= 0 );
-  CHECK( o.nresults >= 0 );
+lua_valid c_api::dostring( char const* script ) {
+  HAS_VALUE_OR_RET( loadstring( script ) );
+  enforce_stack_size_ge( 1 );
+  return pcall( /*nargs=*/0, /*nresults=*/LUA_MULTRET );
+}
+
+lua_valid c_api::dostring( std::string const& script ) {
+  return dostring( script.c_str() );
+}
+
+lua_valid c_api::pcall( int nargs, int nresults ) {
+  CHECK( nargs >= 0 );
+  CHECK( nresults >= 0 || nresults == LUA_MULTRET );
+  LUA_MULTRET;
   // Function object plus args should be on the stack at least.
-  enforce_stack_size_ge( o.nargs + 1 );
+  enforce_stack_size_ge( nargs + 1 );
   lua_valid res = base::valid;
   // No matter what happens, lua_pcall will remove the function
   // and arguments from the stack.
-  int err = lua_pcall( L, o.nargs, o.nresults, /*msgh=*/0 );
+  int err = lua_pcall( L, nargs, nresults, /*msgh=*/0 );
   if( err == LUA_OK ) {
-    enforce_stack_size_ge( o.nresults );
+    if( nresults != LUA_MULTRET )
+      enforce_stack_size_ge( nresults );
   } else {
     // lua_pcall will have pushed a single value onto the stack,
     // which will be the error object.
-    res = lua_tostring( L, -1 );
-    lua_pop( L, 1 );
+    return pop_and_return_error();
   }
   return res;
 }
@@ -157,9 +171,9 @@ char const* c_api::type_name( e_lua_type type ) {
   return ::lua_typename( L, static_cast<int>( type ) );
 }
 
-/**************************************************************
+/****************************************************************
 ** Error checking helpers.
-***************************************************************/
+*****************************************************************/
 void c_api::enforce_stack_size_ge( int s ) {
   CHECK( s >= 0 );
   if( stack_size() >= s ) return;
@@ -177,9 +191,16 @@ lua_valid c_api::enforce_type_of( int idx, e_lua_type type ) {
          string( type_name( type_of( idx ) ) );
 }
 
-/****************************************************************
+lua_error_t c_api::pop_and_return_error() {
+  enforce_stack_size_ge( 1 );
+  lua_error_t res( lua_tostring( L, -1 ) );
+  pop();
+  return res;
+}
+
+/******************************************************************
 ** to_str
-*****************************************************************/
+*******************************************************************/
 void to_str( luapp::e_lua_type t, string& out ) {
   using namespace luapp;
   string_view s = "unknown";
