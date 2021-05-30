@@ -26,7 +26,6 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 using ::base::valid;
-using ::Catch::Contains;
 
 string lua_testing_file( string const& filename ) {
   return rn::testing::data_dir() / "lua" / filename;
@@ -464,6 +463,22 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     st.pop();
     st.pop();
   }
+}
+
+TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
+  REQUIRE( fmt::format( "{}", e_lua_type::nil ) == "nil" );
+  REQUIRE( fmt::format( "{}", e_lua_type::boolean ) ==
+           "boolean" );
+  REQUIRE( fmt::format( "{}", e_lua_type::light_userdata ) ==
+           "light_userdata" );
+  REQUIRE( fmt::format( "{}", e_lua_type::number ) == "number" );
+  REQUIRE( fmt::format( "{}", e_lua_type::string ) == "string" );
+  REQUIRE( fmt::format( "{}", e_lua_type::table ) == "table" );
+  REQUIRE( fmt::format( "{}", e_lua_type::function ) ==
+           "function" );
+  REQUIRE( fmt::format( "{}", e_lua_type::userdata ) ==
+           "userdata" );
+  REQUIRE( fmt::format( "{}", e_lua_type::thread ) == "thread" );
 }
 
 } // namespace

@@ -28,6 +28,11 @@ namespace luapp {
 using ::base::maybe;
 using ::base::nothing;
 
+// Not sure if these are mandatory, but if they fail they will at
+// least alert us that something has changed.
+static_assert( sizeof( ::lua_Integer ) == sizeof( long long ) );
+static_assert( sizeof( long long ) >= 8 );
+
 /****************************************************************
 ** errors
 *****************************************************************/
@@ -309,27 +314,6 @@ lua_error_t c_api::pop_and_return_error() {
 
 void c_api::validate_index( int idx ) const {
   enforce_stack_size_ge( abs( idx ) );
-}
-
-/******************************************************************
-** to_str
-*******************************************************************/
-void to_str( luapp::e_lua_type t, string& out ) {
-  using namespace luapp;
-  string_view s = "unknown";
-  switch( t ) {
-    case e_lua_type::nil: s = "nil"; break;
-    case e_lua_type::boolean: s = "boolean"; break;
-    case e_lua_type::light_userdata: s = "light_userdata"; break;
-    case e_lua_type::number: s = "number"; break;
-    case e_lua_type::string: s = "string"; break;
-    case e_lua_type::table: s = "table"; break;
-    case e_lua_type::function: s = "function"; break;
-    case e_lua_type::userdata: s = "userdata"; break;
-    case e_lua_type::thread: s = "thread"; break;
-  }
-  CHECK( s != "unknown" );
-  out += string( s );
 }
 
 } // namespace luapp
