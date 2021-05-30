@@ -11,12 +11,6 @@ endif()
 
 # Enable all warnings and treat warnings as errors.
 function( set_warning_options target )
-    set( GCC_RELEASE_NO_MAYBE_UNINITIALIZED "" )
-    if( CMAKE_BUILD_TYPE STREQUAL Release OR
-        CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo )
-      set( GCC_RELEASE_NO_MAYBE_UNINITIALIZED
-         "-Wno-maybe-uninitialized" )
-    endif()
     target_compile_options(
         ${target} PRIVATE
         # clang
@@ -52,12 +46,12 @@ function( set_warning_options target )
             # type system, this shouldn't be a concern.
             -Wno-return-type
             # FIXME: gcc seems to have a bug with coroutines
-            # where in release builds it emits a series of
-            # -Wmaybe-uninitialized warnings that appear to refer
-            # to something inside the generated coroutine itself
-            # that does not appear fixable, so we will suppress
-            # that until it is fixed.
-            ${GCC_RELEASE_NO_MAYBE_UNINITIALIZED}
+            # where it emits a series of -Wmaybe-uninitialized
+            # warnings that appear to refer to something inside
+            # the generated coroutine itself that does not appear
+            # fixable, so we will suppress that until it is
+            # fixed.
+            -Wno-maybe-uninitialized
             -fcoroutines
          >
         # msvc

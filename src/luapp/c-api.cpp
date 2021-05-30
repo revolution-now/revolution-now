@@ -239,7 +239,7 @@ maybe<string> c_api::get( int idx, string* ) const {
   size_t      len = 0;
   char const* p   = ::lua_tolstring( L, idx, &len );
   if( p == nullptr ) return nothing;
-  DCHECK( len >= 0 );
+  DCHECK( int( len ) >= 0 );
   // Use the (pointer, size) constructor because we need to
   // specify the length, 1) so that std::string can pre-allocate,
   // and 2) because there may be zeroes inside the string before

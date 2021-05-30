@@ -24,7 +24,7 @@ namespace rn {
 // Implement co_await_transform extension point for waitable<T>.
 template<typename T>
 inline waitable<T> co_await_transform( waitable<T> w ) {
-  return std::move( w );
+  return w;
 }
 
 namespace detail {
