@@ -35,9 +35,9 @@ TEST_CASE( "[lua-c-api] create and destroy" ) { c_api st; }
 
 TEST_CASE( "[lua-c-api] openlibs" ) {
   c_api st;
-  REQUIRE( st.getglobal( "tostring" ) ==
-           lua_unexpected<e_lua_type>(
-               "global `tostring` not found." ) );
+  REQUIRE( st.getglobal( "tostring" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
   REQUIRE( st.stack_size() == 0 );
   st.openlibs();
   REQUIRE( st.getglobal( "tostring" ) == e_lua_type::function );
@@ -48,11 +48,65 @@ TEST_CASE( "[lua-c-api] openlibs" ) {
   REQUIRE( st.stack_size() == 0 );
 }
 
+TEST_CASE( "[lua-c-api] rotate" ) {
+  c_api st;
+  st.push( true );
+  st.push( "hello" );
+  st.push( false );
+  st.push( 3.5 );
+  REQUIRE( st.stack_size() == 4 );
+  REQUIRE( st.enforce_type_of( -1, e_lua_type::number ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -2, e_lua_type::boolean ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -3, e_lua_type::string ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -4, e_lua_type::boolean ) ==
+           valid );
+
+  st.rotate( -3, 2 );
+
+  REQUIRE( st.stack_size() == 4 );
+  REQUIRE( st.enforce_type_of( -1, e_lua_type::string ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -2, e_lua_type::number ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -3, e_lua_type::boolean ) ==
+           valid );
+  REQUIRE( st.enforce_type_of( -4, e_lua_type::boolean ) ==
+           valid );
+
+  st.pop( 4 );
+}
+
 TEST_CASE( "[lua-c-api] {get,set}global" ) {
   c_api st;
-  REQUIRE(
-      st.getglobal( "xyz" ) ==
-      lua_unexpected<e_lua_type>( "global `xyz` not found." ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
+  st.push( 1 );
+  REQUIRE( st.setglobal( "xyz" ) == valid );
+  REQUIRE( st.stack_size() == 0 );
+  REQUIRE( st.getglobal( "xyz" ) ==
+           lua_expected( e_lua_type::number ) );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+}
+
+TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
+  c_api st;
+  st.openlibs();
+  REQUIRE( st.dostring( R"(
+    setmetatable( _G, {
+      __index = function( k )
+        error( 'this is an error.' )
+      end
+    } )
+  )" ) == valid );
+  REQUIRE( st.getglobal( "xyz" ) ==
+           lua_unexpected<e_lua_type>(
+               "[string \"...\"]:4: this is an error." ) );
   REQUIRE( st.stack_size() == 0 );
   REQUIRE( st.dostring( "xyz = 1" ) == valid );
   REQUIRE( st.getglobal( "xyz" ) ==
@@ -88,14 +142,16 @@ TEST_CASE( "[lua-c-api] dofile" ) {
     )";
     REQUIRE( st.loadstring( lua_script ) == valid );
     REQUIRE( st.stack_size() == 1 );
-    REQUIRE( st.getglobal( "list" ) ==
-             lua_unexpected<e_lua_type>(
-                 "global `list` not found." ) );
+    REQUIRE( st.getglobal( "list" ) == e_lua_type::nil );
+    REQUIRE( st.stack_size() == 2 );
+    st.pop();
+    REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.pcall( /*nargs=*/0, /*nresults=*/0 ) == valid );
     REQUIRE( st.stack_size() == 0 );
     REQUIRE( st.getglobal( "list" ) ==
              lua_expected( e_lua_type::table ) );
     // TODO: test list elements
+    // TODO
     st.pop();
     REQUIRE( st.stack_size() == 0 );
   }
@@ -103,9 +159,10 @@ TEST_CASE( "[lua-c-api] dofile" ) {
 
 TEST_CASE( "[lua-c-api] loadstring" ) {
   c_api st;
-  REQUIRE(
-      st.getglobal( "xyz" ) ==
-      lua_unexpected<e_lua_type>( "global `xyz` not found." ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
   char const* script = "xyz = 1 + 2 + 3";
   REQUIRE( st.loadstring( script ) == valid );
   REQUIRE( st.stack_size() == 1 );
@@ -122,9 +179,10 @@ TEST_CASE( "[lua-c-api] loadstring" ) {
 
 TEST_CASE( "[lua-c-api] dostring" ) {
   c_api st;
-  REQUIRE(
-      st.getglobal( "xyz" ) ==
-      lua_unexpected<e_lua_type>( "global `xyz` not found." ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
   char const* script = "xyz = 1 + 2 + 3";
   REQUIRE( st.dostring( script ) == valid );
   REQUIRE( st.stack_size() == 0 );

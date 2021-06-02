@@ -45,15 +45,15 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
 }
 
 enum class e_lua_type {
-  nil,
-  boolean,
-  light_userdata,
-  number,
-  string,
-  table,
-  function,
-  userdata,
-  thread
+  nil            = 0,
+  boolean        = 1,
+  light_userdata = 2,
+  number         = 3,
+  string         = 4,
+  table          = 5,
+  function       = 6,
+  userdata       = 7,
+  thread         = 8
 };
 
 inline constexpr int kNumLuaTypes = 9;
