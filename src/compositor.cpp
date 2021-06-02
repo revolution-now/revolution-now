@@ -24,7 +24,7 @@ namespace rn::compositor {
 
 namespace {
 
-W g_panel_width{ 6 * 32 };
+W g_panel_width{ 4 * 32 };
 
 void init_compositor() {}
 
