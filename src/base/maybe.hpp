@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 // base
+#include "attributes.hpp"
 #include "meta.hpp"
 #include "source-loc.hpp"
 #include "to-str.hpp"
@@ -1034,20 +1035,11 @@ public:
   ***************************************************************/
   constexpr maybe( T& ref ) noexcept { p_ = &ref; }
 
-  // We don't want to form an rvalue reference to a temporary.
-  maybe( T&& ) = delete;
-
-  /**************************************************************
-  ** Converting Value Constructor
-  ***************************************************************/
-  template<typename U = T> /* clang-format off */
-  constexpr maybe( U& ref ) noexcept
-    requires(
-       std::is_convertible_v<U&, T&> &&
-      !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
-      !is_maybe_v<std::remove_cvref_t<U>> ) {
-    /* clang-format on */
-    p_ = static_cast<T*>( &ref );
+  // We don't want to form a non-const rvalue reference to a tem-
+  // porary, mirroring the behavior of normal references.
+  constexpr maybe( T&& ref ATTR_LIFETIMEBOUND ) noexcept
+      requires( std::is_const_v<T> ) {
+    p_ = &ref;
   }
 
   /**************************************************************

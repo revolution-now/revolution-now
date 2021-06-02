@@ -98,6 +98,11 @@ struct Constexpr {
 };
 
 /****************************************************************
+** Empty
+*****************************************************************/
+struct Empty {};
+
+/****************************************************************
 ** Non-Copyable
 *****************************************************************/
 struct NoCopy {
@@ -344,25 +349,35 @@ static_assert( is_same_v<M<int&>::value_type, int&> );
 static_assert(
     is_same_v<M<int const&>::value_type, int const&> );
 
+// Note: the cases below where we are constructing a maybe-ref to
+// an rvalue ref/temporary will be allowed in order to support
+// maybe-ref as function parameters, but will issue a warning
+// (courtesy of [[clang::lifetimebound]]) if it is used improp-
+// erly and leads to a dangling reference.
+
 static_assert( !is_constructible_v<M<int&>, int> );
 static_assert( is_constructible_v<M<int&>, int&> );
 static_assert( !is_constructible_v<M<int&>, int&&> );
 static_assert( !is_constructible_v<M<int&>, int const&> );
+static_assert( !is_constructible_v<M<int&>, int const&&> );
 
-static_assert( !is_constructible_v<M<int const&>, int> );
+static_assert( is_constructible_v<M<int const&>, int> );
 static_assert( is_constructible_v<M<int const&>, int&> );
-static_assert( !is_constructible_v<M<int const&>, int&&> );
+static_assert( is_constructible_v<M<int const&>, int&&> );
 static_assert( is_constructible_v<M<int const&>, int const&> );
+static_assert( is_constructible_v<M<int const&>, int const&&> );
 
 static_assert( !is_assignable_v<M<int&>, int> );
 static_assert( !is_assignable_v<M<int&>, int&> );
 static_assert( !is_assignable_v<M<int&>, int const&> );
 static_assert( !is_assignable_v<M<int&>, int&&> );
+static_assert( !is_assignable_v<M<int&>, int const&&> );
 
 static_assert( !is_assignable_v<M<int const&>, int> );
 static_assert( !is_assignable_v<M<int const&>, int&> );
 static_assert( !is_assignable_v<M<int const&>, int const&> );
 static_assert( !is_assignable_v<M<int const&>, int&&> );
+static_assert( !is_assignable_v<M<int const&>, int const&&> );
 
 static_assert( !is_constructible_v<M<int&>, char&> );
 static_assert( !is_constructible_v<M<int&>, long&> );
@@ -384,9 +399,67 @@ static_assert(
 static_assert( !is_invocable_v<decltype( just_ref<int> ), int> );
 static_assert( is_invocable_v<decltype( just_ref<int> ), int&> );
 static_assert(
+    !is_invocable_v<decltype( just_ref<int> ), int&&> );
+static_assert(
     !is_invocable_v<decltype( just_ref<int> ), int const&> );
+static_assert(
+    !is_invocable_v<decltype( just_ref<int> ), int const&&> );
+
+static_assert(
+    is_invocable_v<decltype( just_ref<int const> ), int> );
+static_assert(
+    is_invocable_v<decltype( just_ref<int const> ), int&> );
+static_assert(
+    is_invocable_v<decltype( just_ref<int const> ), int&&> );
 static_assert( is_invocable_v<decltype( just_ref<int const> ),
                               int const&> );
+static_assert( is_invocable_v<decltype( just_ref<int const> ),
+                              int const&&> );
+
+// Invocability.
+static_assert(
+    is_invocable_v<void( maybe<Empty const&> ), Empty> );
+static_assert( !is_invocable_v<void( maybe<Empty&> ), Empty> );
+static_assert(
+    is_invocable_v<void( maybe<Empty const&> ), Empty&> );
+static_assert( is_invocable_v<void( maybe<Empty&> ), Empty&> );
+static_assert(
+    is_invocable_v<void( maybe<Empty const&> ), Empty&&> );
+static_assert( !is_invocable_v<void( maybe<Empty&> ), Empty&&> );
+static_assert(
+    is_invocable_v<void( maybe<Empty const&> ), Empty const&> );
+static_assert(
+    !is_invocable_v<void( maybe<Empty&> ), Empty const&> );
+static_assert(
+    is_invocable_v<void( maybe<Empty const&> ), Empty const&&> );
+static_assert(
+    !is_invocable_v<void( maybe<Empty&> ), Empty const&&> );
+
+// Implicit conversions. These are not allowed when binding to a
+// non-const ref, since otherwise that ref would bind to a tempo-
+// rary (the short gets converted to a temporary int). However,
+// it is allowed for the const-ref versions. This is because, al-
+// though it can still lead to a dangling reference, we have
+// placed some attributes ([[clang::lifetimebound]]) in key
+// places so that if such a dangling reference arises it should
+// trigger a compiler warning.
+static_assert(
+    is_invocable_v<void( maybe<int const&> ), short> );
+static_assert( !is_invocable_v<void( maybe<int&> ), short> );
+static_assert(
+    is_invocable_v<void( maybe<int const&> ), short&> );
+static_assert( !is_invocable_v<void( maybe<int&> ), short&> );
+static_assert(
+    is_invocable_v<void( maybe<int const&> ), short&&> );
+static_assert( !is_invocable_v<void( maybe<int&> ), short&&> );
+static_assert(
+    is_invocable_v<void( maybe<int const&> ), short const&> );
+static_assert(
+    !is_invocable_v<void( maybe<int&> ), short const&> );
+static_assert(
+    is_invocable_v<void( maybe<int const&> ), short const&&> );
+static_assert(
+    !is_invocable_v<void( maybe<int&> ), short const&&> );
 
 /****************************************************************
 ** Test Cases
@@ -2694,6 +2767,43 @@ TEST_CASE( "[maybe] stringification" ) {
 
   REQUIRE( out1 == "5" );
   REQUIRE( out2 == "3" );
+}
+
+void takes_empty_ref( maybe<Empty&> ) {}
+
+void takes_empty_const_ref( maybe<Empty const&> ) {}
+
+// The cases that are illegal in this test case, which we cannot
+// uncomment to verify, should be testing and covered by some
+// static_asserts toward the start of this file.
+TEST_CASE( "[maybe-ref] binding to rvalues" ) {
+  Empty a;
+
+  takes_empty_ref( a );
+  takes_empty_const_ref( a );
+
+  // takes_empty_ref( Empty{} ); // error
+  takes_empty_const_ref( Empty{} );
+
+  int  i{ 5 };
+  auto x = maybe<int const&>( i );
+  (void)x;
+  // uncommenting should yield a warning.
+  // auto  y = maybe<int const&>( int{ 5 } );
+  short s{ 5 };
+  (void)s;
+  // uncommenting should yield a warning.
+  // auto  n = maybe<int const&>( s );
+  // uncommenting should yield a warning.
+  // auto  m = maybe<int const&>( short{ 5 } );
+
+  // uncommenting should yield a warning.
+  auto x2 = maybe<int&>( i );
+  (void)x2;
+  // errors:
+  // auto y2 = maybe<int&>( int{ 5 } );
+  // auto n2 = maybe<int&>( s );
+  // auto m2 = maybe<int&>( short{ 5 } );
 }
 
 } // namespace
