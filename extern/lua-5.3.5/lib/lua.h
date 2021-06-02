@@ -11,6 +11,9 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#ifndef NDEBUG // added by dsicilia
+#include <assert.h>
+#endif
 
 
 #include "luaconf.h"

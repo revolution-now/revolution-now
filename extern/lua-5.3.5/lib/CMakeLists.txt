@@ -30,9 +30,17 @@ elseif( CMAKE_SYSTEM_NAME STREQUAL Darwin )
   set( LUA_USE LUA_USE_MACOSX )
 endif()
 
+if( CMAKE_BUILD_TYPE STREQUAL Debug )
+  message( STATUS "Enabling Lua library assertions." )
+  set( LUA_ASSERT "lua_assert=assert" )
+else()
+  set( LUA_ASSERT "" )
+endif()
+
 target_compile_definitions(
   lua
   PUBLIC
   ${LUA_USE}
   LUA_COMPAT_5_2
+  ${LUA_ASSERT}
 )
