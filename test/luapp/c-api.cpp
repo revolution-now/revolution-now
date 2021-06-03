@@ -86,10 +86,9 @@ TEST_CASE( "[lua-c-api] {get,set}global" ) {
   st.pop();
   REQUIRE( st.stack_size() == 0 );
   st.push( 1 );
-  REQUIRE( st.setglobal( "xyz" ) == valid );
+  st.setglobal( "xyz" );
   REQUIRE( st.stack_size() == 0 );
-  REQUIRE( st.getglobal( "xyz" ) ==
-           lua_expected( e_lua_type::number ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
   REQUIRE( st.stack_size() == 1 );
   st.pop();
 }
@@ -104,15 +103,36 @@ TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
       end
     } )
   )" ) == valid );
-  REQUIRE( st.getglobal( "xyz" ) ==
+  REQUIRE( st.getglobal_safe( "xyz" ) ==
            lua_unexpected<e_lua_type>(
                "[string \"...\"]:4: this is an error." ) );
   REQUIRE( st.stack_size() == 0 );
   REQUIRE( st.dostring( "xyz = 1" ) == valid );
-  REQUIRE( st.getglobal( "xyz" ) ==
-           lua_expected( e_lua_type::number ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
   REQUIRE( st.stack_size() == 1 );
   st.pop();
+}
+
+TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
+  c_api st;
+  st.openlibs();
+  REQUIRE( st.dostring( R"(
+    setmetatable( _G, {
+      __newindex = function( k )
+        error( 'this is an error.' )
+      end
+    } )
+  )" ) == valid );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
+  st.push( 1 );
+  REQUIRE(
+      st.setglobal_safe( "xyz" ) ==
+      lua_invalid( "[string \"...\"]:4: this is an error." ) );
+  // The pinvoke will get rid of the parameter.
+  REQUIRE( st.stack_size() == 0 );
 }
 
 TEST_CASE( "[lua-c-api] dofile" ) {
@@ -132,7 +152,7 @@ TEST_CASE( "[lua-c-api] dofile" ) {
     REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.enforce_type_of( -1, e_lua_type::table ) ==
              valid );
-    REQUIRE( st.setglobal( "my_module" ) == valid );
+    st.setglobal( "my_module" );
     REQUIRE( st.stack_size() == 0 );
     char const* lua_script = R"(
       list = {}
@@ -148,8 +168,7 @@ TEST_CASE( "[lua-c-api] dofile" ) {
     REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.pcall( /*nargs=*/0, /*nresults=*/0 ) == valid );
     REQUIRE( st.stack_size() == 0 );
-    REQUIRE( st.getglobal( "list" ) ==
-             lua_expected( e_lua_type::table ) );
+    REQUIRE( st.getglobal( "list" ) == e_lua_type::table );
     // TODO: test list elements
     // TODO
     st.pop();
@@ -168,8 +187,7 @@ TEST_CASE( "[lua-c-api] loadstring" ) {
   REQUIRE( st.stack_size() == 1 );
   REQUIRE( st.pcall( /*nargs=*/0, /*nresults=*/0 ) == valid );
   REQUIRE( st.stack_size() == 0 );
-  REQUIRE( st.getglobal( "xyz" ) ==
-           lua_expected( e_lua_type::number ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
   REQUIRE( st.stack_size() == 1 );
   REQUIRE( st.enforce_type_of( -1, e_lua_type::number ) ==
            valid );
@@ -186,8 +204,7 @@ TEST_CASE( "[lua-c-api] dostring" ) {
   char const* script = "xyz = 1 + 2 + 3";
   REQUIRE( st.dostring( script ) == valid );
   REQUIRE( st.stack_size() == 0 );
-  REQUIRE( st.getglobal( "xyz" ) ==
-           lua_expected( e_lua_type::number ) );
+  REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
   REQUIRE( st.stack_size() == 1 );
   REQUIRE( st.enforce_type_of( -1, e_lua_type::number ) ==
            valid );

@@ -72,14 +72,25 @@ struct c_api {
   int gettop() const noexcept;
   int stack_size() const noexcept;
 
-  lua_valid setglobal( char const* key ) noexcept;
-  lua_valid setglobal( std::string const& key ) noexcept;
+  void setglobal( char const* key ) noexcept;
+  void setglobal( std::string const& key ) noexcept;
+
+  // These versions are much slower, but will run in a protected
+  // environment.
+  lua_valid setglobal_safe( char const* key ) noexcept;
+  lua_valid setglobal_safe( std::string const& key ) noexcept;
 
   // Gets the global named `name` and pushes it onto the stack.
   // Returns the type of the object. If the object doesn't exist
   // then it will push nil.
-  lua_expect<e_lua_type> getglobal( char const* name ) noexcept;
-  lua_expect<e_lua_type> getglobal(
+  e_lua_type getglobal( char const* name ) noexcept;
+  e_lua_type getglobal( std::string const& name ) noexcept;
+
+  // These versions are much slower, but will run in a protected
+  // environment.
+  lua_expect<e_lua_type> getglobal_safe(
+      char const* name ) noexcept;
+  lua_expect<e_lua_type> getglobal_safe(
       std::string const& name ) noexcept;
 
   lua_valid loadstring( char const* script ) noexcept;

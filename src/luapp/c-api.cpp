@@ -95,17 +95,35 @@ lua_valid c_api::dofile( string const& file ) noexcept {
 int c_api::gettop() const noexcept { return lua_gettop( L ); }
 int c_api::stack_size() const noexcept { return gettop(); }
 
-lua_valid c_api::setglobal( char const* key ) noexcept {
+void c_api::setglobal( char const* key ) noexcept {
+  enforce_stack_size_ge( 1 );
+  // [-1,+0,e]
+  ::lua_setglobal( L, key );
+}
+
+void c_api::setglobal( string const& key ) noexcept {
+  return setglobal( key.c_str() );
+}
+
+lua_valid c_api::setglobal_safe( char const* key ) noexcept {
   DECLARE_NUM_CONSUMED_VALUES( 1 );
   // [-1,+0,e]
   return pinvoke( ninputs, ::lua_setglobal, key );
 }
 
-lua_valid c_api::setglobal( string const& key ) noexcept {
-  return setglobal( key.c_str() );
+lua_valid c_api::setglobal_safe( string const& key ) noexcept {
+  return setglobal_safe( key.c_str() );
 }
 
-lua_expect<e_lua_type> c_api::getglobal(
+e_lua_type c_api::getglobal( char const* name ) noexcept {
+  return lua_type_to_enum( ::lua_getglobal( L, name ) );
+}
+
+e_lua_type c_api::getglobal( string const& name ) noexcept {
+  return getglobal( name.c_str() );
+}
+
+lua_expect<e_lua_type> c_api::getglobal_safe(
     char const* name ) noexcept {
   DECLARE_NUM_CONSUMED_VALUES( 0 );
   UNWRAP_RETURN( type,
@@ -118,9 +136,9 @@ lua_expect<e_lua_type> c_api::getglobal(
   return lua_type_to_enum( type );
 }
 
-lua_expect<e_lua_type> c_api::getglobal(
+lua_expect<e_lua_type> c_api::getglobal_safe(
     string const& name ) noexcept {
-  return getglobal( name.c_str() );
+  return getglobal_safe( name.c_str() );
 }
 
 lua_valid c_api::loadstring( char const* script ) noexcept {
