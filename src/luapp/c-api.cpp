@@ -52,6 +52,11 @@ auto to_void_star_if_ptr( T v ) {
     return v;
 }
 
+[[noreturn]] int panic( ::lua_State* L ) {
+  string err = lua_tostring( L, -1 );
+  FATAL( "uncaught lua error: {}", err );
+}
+
 } // namespace
 
 /****************************************************************
@@ -67,6 +72,11 @@ lua_valid lua_invalid( lua_error_t err ) {
 c_api::c_api( ::lua_State* state ) {
   L = state;
   CHECK( L != nullptr );
+  // This will be called whenever an error happens in a Lua call
+  // that is not run in a protected environment. For example, if
+  // we call ::lua_getglobal from C++ (outside of a pcall) and it
+  // raises an error, this panic function will be called.
+  ::lua_atpanic( L, panic );
 }
 
 c_api::c_api() : c_api( ::luaL_newstate() ) {}
