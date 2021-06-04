@@ -12,6 +12,7 @@
 
 // C++ standard library
 #include <memory>
+#include <string_view>
 
 struct lua_State;
 
