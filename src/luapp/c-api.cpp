@@ -37,7 +37,7 @@ using ::base::nothing;
 
 // Not sure if these are mandatory, but if they fail they will at
 // least alert us that something has changed.
-static_assert( sizeof( ::lua_Integer ) == sizeof( long long ) );
+static_assert( sizeof( lua_Integer ) == sizeof( long long ) );
 static_assert( sizeof( long long ) >= 8 );
 
 // This is used when we are pushing values onto the stack and all
@@ -52,7 +52,7 @@ auto to_void_star_if_ptr( T v ) {
     return v;
 }
 
-[[noreturn]] int panic( ::lua_State* L ) {
+[[noreturn]] int panic( lua_State* L ) {
   string err = lua_tostring( L, -1 );
   FATAL( "uncaught lua error: {}", err );
 }
@@ -69,22 +69,20 @@ lua_valid lua_invalid( lua_error_t err ) {
 /****************************************************************
 ** c_api
 *****************************************************************/
-c_api::c_api( ::lua_State* state ) {
-  L = state;
+c_api::c_api( lua_State* state, bool own )
+  : L( state ), own_( own ) {
   CHECK( L != nullptr );
   // This will be called whenever an error happens in a Lua call
   // that is not run in a protected environment. For example, if
-  // we call ::lua_getglobal from C++ (outside of a pcall) and it
+  // we call lua_getglobal from C++ (outside of a pcall) and it
   // raises an error, this panic function will be called.
-  ::lua_atpanic( L, panic );
+  lua_atpanic( L, panic );
 }
 
-c_api::c_api() : c_api( ::luaL_newstate() ) {}
+c_api::c_api() : c_api( luaL_newstate(), /*own=*/true ) {}
 
 c_api::~c_api() noexcept {
-  // Not sure if this check is a good idea...
-  DCHECK( stack_size() == 0 );
-  ::lua_close( L );
+  if( own_ ) lua_close( L );
 }
 
 /****************************************************************
@@ -108,7 +106,7 @@ int c_api::stack_size() const noexcept { return gettop(); }
 void c_api::setglobal( char const* key ) noexcept {
   enforce_stack_size_ge( 1 );
   // [-1,+0,e]
-  ::lua_setglobal( L, key );
+  lua_setglobal( L, key );
 }
 
 void c_api::setglobal( string const& key ) noexcept {
@@ -118,7 +116,7 @@ void c_api::setglobal( string const& key ) noexcept {
 lua_valid c_api::setglobal_safe( char const* key ) noexcept {
   DECLARE_NUM_CONSUMED_VALUES( 1 );
   // [-1,+0,e]
-  return pinvoke( ninputs, ::lua_setglobal, key );
+  return pinvoke( ninputs, lua_setglobal, key );
 }
 
 lua_valid c_api::setglobal_safe( string const& key ) noexcept {
@@ -126,7 +124,7 @@ lua_valid c_api::setglobal_safe( string const& key ) noexcept {
 }
 
 e_lua_type c_api::getglobal( char const* name ) noexcept {
-  return lua_type_to_enum( ::lua_getglobal( L, name ) );
+  return lua_type_to_enum( lua_getglobal( L, name ) );
 }
 
 e_lua_type c_api::getglobal( string const& name ) noexcept {
@@ -136,8 +134,7 @@ e_lua_type c_api::getglobal( string const& name ) noexcept {
 lua_expect<e_lua_type> c_api::getglobal_safe(
     char const* name ) noexcept {
   DECLARE_NUM_CONSUMED_VALUES( 0 );
-  UNWRAP_RETURN( type,
-                 pinvoke( ninputs, ::lua_getglobal, name ) );
+  UNWRAP_RETURN( type, pinvoke( ninputs, lua_getglobal, name ) );
   // Should get here even when the name does not exist, in which
   // case it will have returned nil and pushed it onto the
   // stack..
@@ -181,7 +178,7 @@ lua_valid c_api::dostring( string const& script ) noexcept {
 template<typename R, typename... Params, typename... Args>
 requires( sizeof...( Params ) == sizeof...( Args ) &&
           std::is_invocable_v<LuaApiFunc<R, Params...>*,
-                              ::lua_State*,
+                              lua_State*,
                               Args...> )
 auto c_api::pinvoke( int ninputs,
                      LuaApiFunc<R, Params...>* func,
@@ -198,7 +195,7 @@ auto c_api::pinvoke( int ninputs,
   // equal to last one.
   constexpr int kNumRunnerArgs = 3;
 
-  auto runner = []( ::lua_State* L ) -> int {
+  auto runner = []( lua_State* L ) -> int {
     // 1. Get c_api pointer from stack.
     CHECK( lua_islightuserdata( L, kCApiPtrIdx ) );
     c_api* api = (c_api*)::lua_touserdata( L, kCApiPtrIdx );
@@ -211,7 +208,7 @@ auto c_api::pinvoke( int ninputs,
     CHECK_GE( ninputs, 0 );
 
     // 3. Get pointer to Lua API function that we will call.
-    //    e.g., this will be a pointer to ::lua_gettable.
+    //    e.g., this will be a pointer to lua_gettable.
     CHECK( lua_islightuserdata( L, kFuncIdx ) );
     UNWRAP_CHECK( void_func, api->get<void*>( kFuncIdx ) );
     auto* func =
@@ -304,7 +301,7 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   lua_valid res = base::valid;
   // No matter what happens, lua_pcall will remove the function
   // and arguments from the stack.
-  int err = ::lua_pcall( L, nargs, nresults, /*msgh=*/0 );
+  int err = lua_pcall( L, nargs, nresults, /*msgh=*/0 );
   if( err == LUA_OK ) {
     if( nresults != LUA_MULTRET )
       enforce_stack_size_ge( nresults );
@@ -316,7 +313,11 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   return res;
 }
 
-void c_api::push( nil_t ) noexcept { ::lua_pushnil( L ); }
+void c_api::pushglobaltable() noexcept {
+  lua_pushglobaltable( L );
+}
+
+void c_api::push( nil_t ) noexcept { lua_pushnil( L ); }
 
 void c_api::push( LuaCFunction* f ) noexcept {
   lua_pushcfunction( L, f );
@@ -328,16 +329,16 @@ void c_api::push( void* p ) noexcept {
 
 void c_api::push( base::safe::boolean b ) noexcept {
   int b_int = b; // just to make it explicit.
-  ::lua_pushboolean( L, b_int );
+  lua_pushboolean( L, b_int );
 }
 
 void c_api::push(
     base::safe::integral<lua_Integer> n ) noexcept {
-  ::lua_pushinteger( L, n );
+  lua_pushinteger( L, n );
 }
 
 void c_api::push( base::safe::floating<lua_Number> d ) noexcept {
-  ::lua_pushnumber( L, d );
+  lua_pushnumber( L, d );
 }
 
 void c_api::push( string_view sv ) noexcept {
@@ -350,7 +351,7 @@ void c_api::push( string_view sv ) noexcept {
   //
   // Returns a pointer to the internal copy of the string.
   // [-0, +1, m]
-  ::lua_pushlstring( L, sv.data(), sv.size() );
+  lua_pushlstring( L, sv.data(), sv.size() );
 }
 
 void c_api::pop( int n ) noexcept {
@@ -359,8 +360,39 @@ void c_api::pop( int n ) noexcept {
 }
 
 void c_api::rotate( int idx, int n ) noexcept {
+  validate_index( idx );
   // [-0,+0,–]
-  ::lua_rotate( L, idx, n );
+  lua_rotate( L, idx, n );
+}
+
+void c_api::newtable() noexcept { lua_newtable( L ); }
+
+// (table_idx)[-2] = -1
+void c_api::settable( int table_idx ) noexcept {
+  validate_index( table_idx );
+  lua_settable( L, table_idx );
+}
+
+// (table_idx)[k] = -1
+void c_api::setfield( int table_idx, char const* k ) noexcept {
+  validate_index( table_idx );
+  lua_setfield( L, table_idx, k );
+}
+
+e_lua_type c_api::getfield( int         table_idx,
+                            char const* k ) noexcept {
+  validate_index( table_idx );
+  return lua_type_to_enum( lua_getfield( L, table_idx, k ) );
+}
+
+e_lua_type c_api::rawgeti( int idx, lua_Integer n ) noexcept {
+  validate_index( idx );
+  return lua_type_to_enum( lua_rawgeti( L, idx, n ) );
+}
+
+void c_api::rawseti( int idx, lua_Integer n ) noexcept {
+  validate_index( idx );
+  lua_rawseti( L, idx, n );
 }
 
 bool c_api::get( int idx, bool* ) const noexcept {
@@ -371,7 +403,7 @@ bool c_api::get( int idx, bool* ) const noexcept {
   // wise it returns false. (If you want to accept only actual
   // boolean values, use lua_isboolean to test the value's type.)
   // [-0, +0, –]
-  int i = ::lua_toboolean( L, idx );
+  int i = lua_toboolean( L, idx );
   CHECK( i == 0 || i == 1 );
   return bool( i );
 }
@@ -387,7 +419,7 @@ maybe<lua_Integer> c_api::get( int idx,
   // not NULL, its referent is assigned a boolean value that in-
   // dicates whether the operation succeeded.
   // [-0, +0, –]
-  lua_Integer i = ::lua_tointegerx( L, idx, &is_num );
+  lua_Integer i = lua_tointegerx( L, idx, &is_num );
   if( is_num != 0 ) return i;
   return nothing;
 }
@@ -414,7 +446,7 @@ maybe<lua_Number> c_api::get( int idx,
   //
   // If isnum is not NULL, its referent is assigned a boolean
   // value that indicates whether the operation succeeded.
-  lua_Number num = ::lua_tonumberx( L, idx, &is_num );
+  lua_Number num = lua_tonumberx( L, idx, &is_num );
   if( is_num != 0 ) return num;
   return nothing;
 }
@@ -440,7 +472,7 @@ maybe<string> c_api::get( int idx, string* ) const noexcept {
   // that the pointer returned by lua_tolstring will be valid
   // after the corresponding Lua value is removed from the stack.
   size_t      len = 0;
-  char const* p   = ::lua_tolstring( L, idx, &len );
+  char const* p   = lua_tolstring( L, idx, &len );
   if( p == nullptr ) return nothing;
   DCHECK( int( len ) >= 0 );
   // Use the (pointer, size) constructor because we need to
@@ -452,7 +484,7 @@ maybe<string> c_api::get( int idx, string* ) const noexcept {
 
 base::maybe<void*> c_api::get( int idx, void** ) const noexcept {
   validate_index( idx );
-  void* p = ::lua_touserdata( L, idx );
+  void* p = lua_touserdata( L, idx );
   // Not sure if this check is needed.
   CHECK( p );
   return p;
@@ -465,8 +497,7 @@ base::maybe<char const*> c_api::get(
   CHECK( !lua_isstring( L, idx ) );
   CHECK( lua_islightuserdata( L, idx ),
          "index {} is not a light userdata.", idx );
-  auto* p =
-      static_cast<const char*>( ::lua_touserdata( L, idx ) );
+  auto* p = static_cast<const char*>( lua_touserdata( L, idx ) );
   // Not sure if this check is needed.
   CHECK( p );
   return p;
@@ -478,6 +509,27 @@ e_lua_type c_api::lua_type_to_enum( int type ) const noexcept {
   CHECK( type < kNumLuaTypes,
          "a new lua type may have been added." );
   return static_cast<e_lua_type>( type );
+}
+
+int c_api::ref( int idx ) noexcept {
+  validate_index( idx );
+  return luaL_ref( L, idx );
+}
+
+int c_api::ref_registry() noexcept {
+  return ref( LUA_REGISTRYINDEX );
+}
+
+e_lua_type c_api::registry_get( int id ) noexcept {
+  return rawgeti( LUA_REGISTRYINDEX, id );
+}
+
+void c_api::unref( int t, int ref ) noexcept {
+  luaL_unref( L, t, ref );
+}
+
+void c_api::unref_registry( int ref ) noexcept {
+  unref( LUA_REGISTRYINDEX, ref );
 }
 
 // The Lua types are defined in lua.h, as of Lua 5.3:
@@ -494,13 +546,13 @@ e_lua_type c_api::lua_type_to_enum( int type ) const noexcept {
 //
 e_lua_type c_api::type_of( int idx ) const noexcept {
   validate_index( idx );
-  int res = ::lua_type( L, idx );
+  int res = lua_type( L, idx );
   CHECK( res != LUA_TNONE, "index ({}) not valid.", idx );
   return lua_type_to_enum( res );
 }
 
 char const* c_api::type_name( e_lua_type type ) const noexcept {
-  return ::lua_typename( L, static_cast<int>( type ) );
+  return lua_typename( L, static_cast<int>( type ) );
 }
 
 /****************************************************************
@@ -533,6 +585,9 @@ lua_error_t c_api::pop_and_return_error() noexcept {
 }
 
 void c_api::validate_index( int idx ) const noexcept {
+  // This should allow all valid pseudo indices to pass. Cur-
+  // rently, this means the registry index and up value indices.
+  if( idx <= LUA_REGISTRYINDEX ) return;
   enforce_stack_size_ge( abs( idx ) );
 }
 

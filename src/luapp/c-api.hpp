@@ -50,7 +50,8 @@ using LuaCFunction = int( ::lua_State* );
 // lua C++ interface.
 struct c_api {
   c_api();
-  c_api( ::lua_State* state );
+  // Initialize with a Lua state and whether we own it.
+  c_api( ::lua_State* state, bool own );
   ~c_api() noexcept;
 
   /**************************************************************
@@ -105,6 +106,9 @@ struct c_api {
   // cases, the function and arguments will be popped.
   lua_valid pcall( int nargs, int nresults ) noexcept;
 
+  // Pushes _G.
+  void pushglobaltable() noexcept;
+
   void push( nil_t ) noexcept;
   void push( LuaCFunction* f ) noexcept;
   void push( void* f ) noexcept;
@@ -136,10 +140,50 @@ struct c_api {
   // the top of the stack.
   void rotate( int idx, int n ) noexcept;
 
+  // Creates a new table and pushes it onto the stack.
+  void newtable() noexcept;
+
+  // (table_idx)[-2] = -1
+  void settable( int table_idx ) noexcept;
+
+  // (table_idx)[k] = -1
+  void setfield( int table_idx, char const* k ) noexcept;
+
+  // Pushes (table_idx)[k].  Returns type of pushed value.
+  e_lua_type getfield( int table_idx, char const* k ) noexcept;
+
+  // Pushes (idx)[n] onto the stack without invoking __index, and
+  // returns type of value pushed.
+  e_lua_type rawgeti( int idx, lua_Integer n ) noexcept;
+
+  // Does (idx)[n] = -1, but does not invoke the __newindex
+  // metamethod. Pops the value from the stack.
+  void rawseti( int idx, lua_Integer n ) noexcept;
+
   template<typename T>
   auto get( int idx ) const noexcept {
     return get( idx, static_cast<T*>( nullptr ) );
   }
+
+  // Creates and returns a reference, in the table at index t,
+  // for the object at the top of the stack (and pops the ob-
+  // ject).
+  int ref( int idx ) noexcept;
+  // Same as above, but for the registry table.
+  int ref_registry() noexcept;
+
+  // Pushes (LUA_REGISTRYINDEX)[id] onto the stack, returning the
+  // type of value pushed.
+  e_lua_type registry_get( int id ) noexcept;
+
+  // Releases reference ref from the table at index t (see
+  // luaL_ref). The entry is removed from the table, so that the
+  // referred object can be collected. The reference ref is also
+  // freed to be used again. If ref is LUA_NOREF or LUA_REFNIL,
+  // luaL_unref does nothing.
+  void unref( int t, int ref ) noexcept;
+  // Same as above but for the registry table.
+  void unref_registry( int ref ) noexcept;
 
   // Returns the type of the value in the given valid index.
   e_lua_type type_of( int idx ) const noexcept;
@@ -210,6 +254,8 @@ private:
   // clang-format on
 
   lua_State* L;
+  // Do we own the Lua state.
+  bool own_;
 };
 
 } // namespace luapp

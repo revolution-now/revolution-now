@@ -556,5 +556,97 @@ TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::thread ) == "thread" );
 }
 
+TEST_CASE( "[lua-c-api] newtable" ) {
+  c_api st;
+  REQUIRE( st.stack_size() == 0 );
+  st.newtable();
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::table );
+  st.pop();
+}
+
+TEST_CASE(
+    "[lua-c-api] push_global_table, settable, getfield, "
+    "setfield" ) {
+  c_api st;
+  REQUIRE( st.getglobal( "hello" ) == e_lua_type::nil );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
+  st.pushglobaltable();
+  REQUIRE( st.stack_size() == 1 );
+  st.push( "hello" );
+  st.push( 3.5 );
+  REQUIRE( st.stack_size() == 3 );
+  st.settable( -3 );
+  REQUIRE( st.stack_size() == 1 );
+  // At this point, only the global table is still on the stack.
+  st.pop();
+
+  REQUIRE( st.getglobal( "hello" ) == e_lua_type::number );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( st.get<double>( -1 ) == 3.5 );
+  st.pop();
+
+  st.pushglobaltable();
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.getfield( -1, "hello" ) == e_lua_type::number );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.get<double>( -1 ) == 3.5 );
+  st.pop( 1 );
+
+  // At this point, the global table is on the stack.
+  REQUIRE( st.stack_size() == 1 );
+  st.push( true );
+  st.setfield( -2, "hello" );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::table );
+  REQUIRE( st.getfield( -1, "hello" ) == e_lua_type::boolean );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.get<bool>( -1 ) == true );
+  st.pop( 2 );
+}
+
+TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
+  c_api st;
+  st.pushglobaltable();
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.rawgeti( -1, 42 ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::nil );
+  st.pop();
+  REQUIRE( st.stack_size() == 1 );
+
+  st.push( "world" );
+  st.rawseti( -2, 42 );
+  REQUIRE( st.stack_size() == 1 );
+
+  REQUIRE( st.rawgeti( -1, 42 ) == e_lua_type::string );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( st.get<string>( -1 ) == "world" );
+  st.pop( 2 );
+}
+
+TEST_CASE( "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
+  c_api st;
+
+  st.push( 5 );
+  int r1 = st.ref_registry();
+  st.push( "hello" );
+  int r2 = st.ref_registry();
+  REQUIRE( r1 != r2 );
+  REQUIRE( st.stack_size() == 0 );
+
+  REQUIRE( st.registry_get( r1 ) == e_lua_type::number );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.get<int>( -1 ) == 5 );
+  st.pop();
+  REQUIRE( st.registry_get( r2 ) == e_lua_type::string );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.get<string>( -1 ) == "hello" );
+  st.pop();
+}
+
 } // namespace
 } // namespace luapp
