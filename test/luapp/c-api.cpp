@@ -90,6 +90,7 @@ TEST_CASE( "[lua-c-api] {get,set}global" ) {
   REQUIRE( st.stack_size() == 0 );
   REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
   REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.get<int>( -1 ) == 1 );
   st.pop();
 }
 
@@ -169,8 +170,27 @@ TEST_CASE( "[lua-c-api] dofile" ) {
     REQUIRE( st.pcall( /*nargs=*/0, /*nresults=*/0 ) == valid );
     REQUIRE( st.stack_size() == 0 );
     REQUIRE( st.getglobal( "list" ) == e_lua_type::table );
-    // TODO: test list elements
-    // TODO
+
+    REQUIRE( st.len_pop( -1 ) == 5 );
+
+    REQUIRE( st.geti( -1, 1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello world: 1" );
+    st.pop();
+    REQUIRE( st.geti( -1, 2 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello world: 2" );
+    st.pop();
+    REQUIRE( st.geti( -1, 3 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello world: 3" );
+    st.pop();
+    REQUIRE( st.geti( -1, 4 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello world: 4" );
+    st.pop();
+    REQUIRE( st.geti( -1, 5 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello world: 5" );
+    st.pop();
+    REQUIRE( st.geti( -1, 6 ) == e_lua_type::nil );
+    st.pop();
+
     st.pop();
     REQUIRE( st.stack_size() == 0 );
   }
@@ -646,6 +666,39 @@ TEST_CASE( "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
   REQUIRE( st.stack_size() == 1 );
   REQUIRE( st.get<string>( -1 ) == "hello" );
   st.pop();
+}
+
+TEST_CASE( "[lua-c-api] len" ) {
+  c_api st;
+
+  // Table length.
+  REQUIRE( st.dostring( "x = {4,5,6}" ) == valid );
+  REQUIRE( st.getglobal( "x" ) == e_lua_type::table );
+  REQUIRE( st.len_pop( -1 ) == 3 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
+
+  // String length.
+  REQUIRE( st.dostring( "y = 'hello'" ) == valid );
+  REQUIRE( st.getglobal( "y" ) == e_lua_type::string );
+  REQUIRE( st.len_pop( -1 ) == 5 );
+  st.pop();
+  REQUIRE( st.stack_size() == 0 );
+}
+
+TEST_CASE( "[lua-c-api] geti" ) {
+  c_api st;
+
+  REQUIRE(
+      st.dostring( "x = {[4]='one',[5]='two',[6]='three'}" ) ==
+      valid );
+  REQUIRE( st.getglobal( "x" ) == e_lua_type::table );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.geti( -1, 5 ) == e_lua_type::string );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.get<string>( -1 ) == "two" );
+  st.pop( 2 );
+  REQUIRE( st.stack_size() == 0 );
 }
 
 } // namespace

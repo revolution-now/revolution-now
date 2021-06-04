@@ -165,6 +165,12 @@ struct c_api {
     return get( idx, static_cast<T*>( nullptr ) );
   }
 
+  // Pushes onto the stack the value t[i], where t is the value
+  // at the given index. As in Lua, this function may trigger a
+  // metamethod for the "index" event.4). Returns the type of the
+  // pushed value.
+  e_lua_type geti( int idx, lua_Integer i ) noexcept;
+
   // Creates and returns a reference, in the table at index t,
   // for the object at the top of the stack (and pops the ob-
   // ject).
@@ -184,6 +190,15 @@ struct c_api {
   void unref( int t, int ref ) noexcept;
   // Same as above but for the registry table.
   void unref_registry( int ref ) noexcept;
+
+  // Returns the length of the value at the given index. It is
+  // equivalent to the '#' operator in Lua (see §3.4.7) and may
+  // trigger a metamethod for the "length" event (see §2.4). The
+  // result is pushed on the stack.
+  void len( int idx ) noexcept;
+  // Same as above, but result is popped from the stack and re-
+  // turned.
+  int len_pop( int idx ) noexcept;
 
   // Returns the type of the value in the given valid index.
   e_lua_type type_of( int idx ) const noexcept;

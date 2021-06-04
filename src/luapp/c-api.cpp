@@ -511,6 +511,11 @@ e_lua_type c_api::lua_type_to_enum( int type ) const noexcept {
   return static_cast<e_lua_type>( type );
 }
 
+e_lua_type c_api::geti( int idx, lua_Integer i ) noexcept {
+  validate_index( idx );
+  return lua_type_to_enum( lua_geti( L, idx, i ) );
+}
+
 int c_api::ref( int idx ) noexcept {
   validate_index( idx );
   return luaL_ref( L, idx );
@@ -530,6 +535,18 @@ void c_api::unref( int t, int ref ) noexcept {
 
 void c_api::unref_registry( int ref ) noexcept {
   unref( LUA_REGISTRYINDEX, ref );
+}
+
+void c_api::len( int idx ) noexcept {
+  validate_index( idx );
+  lua_len( L, idx );
+}
+
+int c_api::len_pop( int idx ) noexcept {
+  len( idx );
+  UNWRAP_CHECK( res, get<int>( -1 ) );
+  pop();
+  return res;
 }
 
 // The Lua types are defined in lua.h, as of Lua 5.3:
