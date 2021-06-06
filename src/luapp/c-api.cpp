@@ -313,6 +313,18 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   return res;
 }
 
+void c_api::call( int nargs, int nresults ) noexcept {
+  CHECK( nargs >= 0 );
+  CHECK( nresults >= 0 || nresults == LUA_MULTRET );
+  // Function object plus args should be on the stack at least.
+  enforce_stack_size_ge( nargs + 1 );
+  // No matter what happens, lua_call will remove the function
+  // and arguments from the stack.
+  lua_call( L, nargs, nresults );
+  if( nresults != LUA_MULTRET )
+    enforce_stack_size_ge( nresults );
+}
+
 void c_api::pushglobaltable() noexcept {
   lua_pushglobaltable( L );
 }

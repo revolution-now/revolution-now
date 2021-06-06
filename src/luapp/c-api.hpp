@@ -100,6 +100,9 @@ struct c_api {
   lua_valid dostring( char const* script ) noexcept;
   lua_valid dostring( std::string const& script ) noexcept;
 
+  // Calls (-nargs-1)( ... )
+  void call( int nargs, int nresults ) noexcept;
+
   // If this function returns `valid` then `nresults` from the
   // function will be pushed onto the stack. If it returns an
   // error then nothing needs to be popped from the stack. In all

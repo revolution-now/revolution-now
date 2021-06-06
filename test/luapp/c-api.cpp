@@ -408,6 +408,142 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
   }
 }
 
+TEST_CASE( "[lua-c-api] call" ) {
+  c_api st;
+  st.openlibs();
+
+  SECTION( "no args, no results" ) {
+    char const* lua_script = R"(
+      function foo() end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.call( /*nargs=*/0, /*nresults=*/0 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+
+  SECTION( "no args, one result" ) {
+    char const* lua_script = R"(
+      function foo()
+        return 42
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.call( /*nargs=*/0, /*nresults=*/1 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+    REQUIRE( st.get<lua_Integer>( -1 ) == 42 );
+    st.pop();
+  }
+
+  SECTION( "no args, two results" ) {
+    char const* lua_script = R"(
+      function foo()
+        return 42, "hello"
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.call( /*nargs=*/0, /*nresults=*/2 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::number );
+    REQUIRE( st.get<string>( -1 ) == "hello" );
+    REQUIRE( st.get<lua_Integer>( -2 ) == 42 );
+    st.pop();
+    st.pop();
+  }
+
+  SECTION( "no args, LUA_MULTRET" ) {
+    char const* lua_script = R"(
+      function foo()
+        return 42, "hello", "world"
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.call( /*nargs=*/0, /*nresults=*/LUA_MULTRET );
+    REQUIRE( st.stack_size() == 3 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -3 ) == e_lua_type::number );
+    REQUIRE( st.get<string>( -1 ) == "world" );
+    REQUIRE( st.get<string>( -2 ) == "hello" );
+    REQUIRE( st.get<lua_Integer>( -3 ) == 42 );
+    st.pop();
+    st.pop();
+    st.pop();
+  }
+
+  SECTION( "one arg, no results" ) {
+    char const* lua_script = R"(
+      function foo( n )
+        assert( n == 5 )
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( 5 );
+    REQUIRE( st.stack_size() == 2 );
+    st.call( /*nargs=*/1, /*nresults=*/0 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+
+  SECTION( "two args, no results" ) {
+    char const* lua_script = R"(
+      function foo( n, s )
+        assert( n == 5 )
+        assert( s == "hello" )
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( 5 );
+    st.push( "hello" );
+    REQUIRE( st.stack_size() == 3 );
+    st.call( /*nargs=*/2, /*nresults=*/0 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+
+  SECTION( "two args, two results" ) {
+    char const* lua_script = R"(
+      function foo( n, s )
+        assert( n == 42 )
+        assert( s == "hello" )
+        return n+1, s .. " world"
+      end
+    )";
+    REQUIRE( st.dostring( lua_script ) == valid );
+    REQUIRE( st.stack_size() == 0 );
+    REQUIRE( st.getglobal( "foo" ) == e_lua_type::function );
+    REQUIRE( st.stack_size() == 1 );
+    st.push( 42 );
+    st.push( "hello" );
+    REQUIRE( st.stack_size() == 3 );
+    st.call( /*nargs=*/2, /*nresults=*/2 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.type_of( -2 ) == e_lua_type::number );
+    REQUIRE( st.get<string>( -1 ) == "hello world" );
+    REQUIRE( st.get<lua_Number>( -2 ) == 43 );
+    st.pop();
+    st.pop();
+  }
+}
+
 TEST_CASE( "[lua-c-api] pcall" ) {
   c_api st;
   st.openlibs();
