@@ -543,10 +543,8 @@ void c_api::len( int idx ) noexcept {
 }
 
 int c_api::len_pop( int idx ) noexcept {
-  len( idx );
-  UNWRAP_CHECK( res, get<int>( -1 ) );
-  pop();
-  return res;
+  validate_index( idx );
+  return luaL_len( L, idx );
 }
 
 // The Lua types are defined in lua.h, as of Lua 5.3:

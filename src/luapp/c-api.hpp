@@ -194,7 +194,8 @@ struct c_api {
   // Returns the length of the value at the given index. It is
   // equivalent to the '#' operator in Lua (see §3.4.7) and may
   // trigger a metamethod for the "length" event (see §2.4). The
-  // result is pushed on the stack.
+  // result is pushed on the stack since it could theoretically
+  // be an object of any type (because of the __len metamethod).
   void len( int idx ) noexcept;
   // Same as above, but result is popped from the stack and re-
   // turned.
