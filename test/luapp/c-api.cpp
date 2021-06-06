@@ -13,6 +13,9 @@
 // Under test.
 #include "src/luapp/c-api.hpp"
 
+// Lua
+#include "lauxlib.h"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -699,6 +702,26 @@ TEST_CASE( "[lua-c-api] geti" ) {
   REQUIRE( st.get<string>( -1 ) == "two" );
   st.pop( 2 );
   REQUIRE( st.stack_size() == 0 );
+}
+
+TEST_CASE( "[lua-c-api] push c function" ) {
+  c_api st;
+  st.openlibs();
+
+  st.push( []( lua_State* L ) -> int {
+    int n = luaL_checkinteger( L, 1 );
+    lua_pushinteger( L, n + 3 );
+    return 1;
+  } );
+  st.setglobal( "bar" );
+
+  REQUIRE( st.dostring( R"(
+    local input  = 7
+    local expect = 10
+    local output    = bar( input )
+    assert( output == expect,
+            tostring( output ) .. ' != ' .. tostring( expect ) )
+  )" ) == valid );
 }
 
 } // namespace
