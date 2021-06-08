@@ -25,21 +25,6 @@
 
 namespace luapp {
 
-// This represents the signature of a Lua C API function that in-
-// teracts with a Lua state (i.e., takes the Lua state as first
-// parameter). Any such API function could interact with the Lua
-// state and thus could potentially throw an error (at least most
-// of them do). So the code that wraps Lua C API calls to detect
-// those errors will use this signature.
-//
-// Takes args by value since they will only be simple types.
-template<typename R, typename... Args>
-using LuaApiFunc = R( ::lua_State*, Args... );
-
-// This represents the signature of a Lua C library (extension)
-// method, i.e., a C function that is called from Lua.
-using LuaCFunction = int( ::lua_State* );
-
 /****************************************************************
 ** c_api
 *****************************************************************/
@@ -59,47 +44,33 @@ struct c_api {
   ***************************************************************/
   void openlibs() noexcept;
 
-  // This will load the given lua file (which puts the code into
-  // a function which is then pushed onto the stack) and will
-  // then run the function. If it raises an
-  // error, that error could represent either a failure to load
-  // the file or an exception thrown while running it.
-  lua_valid dofile( char const* file ) noexcept;
-  lua_valid dofile( std::string const& file ) noexcept;
-
   // Returns the index of the top element in the stack. Because
   // indices start at 1, this result is equal to the number of
   // elements in the stack; in particular, 0 means empty stack.
   int gettop() const noexcept;
   int stack_size() const noexcept;
 
-  void setglobal( char const* key ) noexcept;
-  void setglobal( std::string const& key ) noexcept;
+  /**************************************************************
+  ** running lua code
+  ***************************************************************/
+  // This will load the given lua file by loading the code into a
+  // function with varargs, then running the function. If it
+  // raises an error, that error could represent either a failure
+  // to load the file or an exception thrown while running it.
+  lua_valid dofile( char const* file ) noexcept;
+  lua_valid dofile( std::string const& file ) noexcept;
 
-  // These versions are much slower, but will run in a protected
-  // environment.
-  lua_valid setglobal_safe( char const* key ) noexcept;
-  lua_valid setglobal_safe( std::string const& key ) noexcept;
-
-  // Gets the global named `name` and pushes it onto the stack.
-  // Returns the type of the object. If the object doesn't exist
-  // then it will push nil.
-  e_lua_type getglobal( char const* name ) noexcept;
-  e_lua_type getglobal( std::string const& name ) noexcept;
-
-  // These versions are much slower, but will run in a protected
-  // environment.
-  lua_expect<e_lua_type> getglobal_safe(
-      char const* name ) noexcept;
-  lua_expect<e_lua_type> getglobal_safe(
-      std::string const& name ) noexcept;
-
+  // Loads the string into a function which is pushed onto the
+  // stack, but does not run it.
   lua_valid loadstring( char const* script ) noexcept;
-  lua_valid loadstring( std::string const& script ) noexcept;
 
+  // Runs the string of lua code, first wrapping it in a function
+  // with varargs parameters.
   lua_valid dostring( char const* script ) noexcept;
-  lua_valid dostring( std::string const& script ) noexcept;
 
+  /**************************************************************
+  ** call / pcall
+  ***************************************************************/
   // Calls (-nargs-1)( ... )
   void call( int nargs, int nresults ) noexcept;
 
@@ -109,11 +80,14 @@ struct c_api {
   // cases, the function and arguments will be popped.
   lua_valid pcall( int nargs, int nresults ) noexcept;
 
+  /**************************************************************
+  ** pushing & popping, stack manipulation
+  ***************************************************************/
   // Pushes _G.
   void pushglobaltable() noexcept;
 
   void push( nil_t ) noexcept;
-  void push( LuaCFunction* f ) noexcept;
+  void push( LuaCFunction* f, int upvalues = 0 ) noexcept;
   void push( void* f ) noexcept;
   // We need to take these "safe" versions otherwise we get im-
   // plicit conversions and ambiguities that mess things up. Note
@@ -143,6 +117,25 @@ struct c_api {
   // the top of the stack.
   void rotate( int idx, int n ) noexcept;
 
+  // Moves the top element into the given valid index, shifting
+  // up the elements above this index to open space. This func-
+  // tion cannot be called with a pseudo-index, because a
+  // pseudo-index is not an actual stack position.
+  //
+  //           [A]                            [B]
+  //           [B]    --> insert( -3 ) -->    [C]
+  //           [C]           -or-             [A]
+  //           [D]      rotate( -3, 1 )       [D]
+  //
+  void insert( int idx ) noexcept;
+
+  // Swap the top two elements on the stack. There must be at
+  // least two items on the stack.
+  void swap_top() noexcept;
+
+  /**************************************************************
+  ** Table manipulation
+  ***************************************************************/
   // Creates a new table and pushes it onto the stack.
   void newtable() noexcept;
 
@@ -163,6 +156,33 @@ struct c_api {
   // metamethod. Pops the value from the stack.
   void rawseti( int idx, lua_Integer n ) noexcept;
 
+  /**************************************************************
+  ** get/set globals
+  ***************************************************************/
+  void setglobal( char const* key ) noexcept;
+  void setglobal( std::string const& key ) noexcept;
+
+  // These versions are much slower, but will run in a protected
+  // environment.
+  lua_valid setglobal_safe( char const* key ) noexcept;
+  lua_valid setglobal_safe( std::string const& key ) noexcept;
+
+  // Gets the global named `name` and pushes it onto the stack.
+  // Returns the type of the object. If the object doesn't exist
+  // then it will push nil.
+  e_lua_type getglobal( char const* name ) noexcept;
+  e_lua_type getglobal( std::string const& name ) noexcept;
+
+  // These versions are much slower, but will run in a protected
+  // environment.
+  lua_expect<e_lua_type> getglobal_safe(
+      char const* name ) noexcept;
+  lua_expect<e_lua_type> getglobal_safe(
+      std::string const& name ) noexcept;
+
+  /**************************************************************
+  ** Get value from stack
+  ***************************************************************/
   template<typename T>
   auto get( int idx ) const noexcept {
     return get( idx, static_cast<T*>( nullptr ) );
@@ -174,6 +194,9 @@ struct c_api {
   // pushed value.
   e_lua_type geti( int idx, lua_Integer i ) noexcept;
 
+  /**************************************************************
+  ** registry references
+  ***************************************************************/
   // Creates and returns a reference, in the table at index t,
   // for the object at the top of the stack (and pops the ob-
   // ject).
@@ -194,6 +217,76 @@ struct c_api {
   // Same as above but for the registry table.
   void unref_registry( int ref ) noexcept;
 
+  /**************************************************************
+  ** metatables
+  ***************************************************************/
+  // Pops a table from the stack and sets it as the new metatable
+  // for the value at the given index.
+  void setmetatable( int idx ) noexcept;
+
+  // If the value at the given index has a metatable, the func-
+  // tion pushes that metatable onto the stack and returns true.
+  // Otherwise, the function returns false and pushes nothing on
+  // the stack.
+  bool getmetatable( int idx ) noexcept;
+
+  /**************************************************************
+  ** upvalues
+  ***************************************************************/
+  // Gets information about the n-th upvalue of the closure at
+  // index funcindex. It pushes the upvalue's value onto the
+  // stack. This is really only useful for C functions. Hence,
+  // the raw Lua function, which returns the variable name of the
+  // up value, is suppressed here, because upvalues of C func-
+  // tions have no names (empty strings).
+  //
+  // Returns false (and pushes nothing) when the index n is
+  // greater than the number of upvalues. Otherwise returns true.
+  bool getupvalue( int funcindex, int n ) noexcept;
+
+  /**************************************************************
+  ** userdata
+  ***************************************************************/
+  // This function allocates a new block of memory with the given
+  // size, pushes onto the stack a new full userdata with the
+  // block address, and returns this address. The host program
+  // can freely use this memory.
+  void* newuserdata( int size ) noexcept;
+
+  // If the registry already has the key tname, returns false.
+  // Otherwise, creates a new table to be used as a metatable for
+  // userdata, adds to this new table the pair __name = tname,
+  // adds to the registry the pair [tname] = new table, and re-
+  // turns true.
+  //
+  // In both cases pushes onto the stack the final value associ-
+  // ated with tname in the registry.
+  bool udata_newmetatable( char const* tname ) noexcept;
+
+  // Pushes onto the stack the metatable associated with name
+  // tname in the registry (nil if there is no metatable associ-
+  // ated with that name). Returns the type of the pushed value.
+  // This is used for userdata.
+  e_lua_type udata_getmetatable( char const* tname ) noexcept;
+
+  // Sets the metatable of the object at the top of the stack as
+  // the metatable associated with name tname in the registry
+  // (see luaL_newmetatable).
+  void udata_setmetatable( char const* tname ) noexcept;
+
+  // Checks whether the function argument arg is a userdata of
+  // the type tname (see luaL_newmetatable) and returns the user-
+  // data address (see lua_touserdata). If it is not, then it
+  // raises an error.
+  void* checkudata( int arg, char const* tname ) noexcept;
+
+  // This function works like luaL_checkudata, except that, when
+  // the test fails, it returns NULL instead of raising an error.
+  void* testudata( int arg, char const* tname ) noexcept;
+
+  /**************************************************************
+  ** length
+  ***************************************************************/
   // Returns the length of the value at the given index. It is
   // equivalent to the '#' operator in Lua (see §3.4.7) and may
   // trigger a metamethod for the "length" event (see §2.4). The
@@ -204,6 +297,9 @@ struct c_api {
   // turned.
   int len_pop( int idx ) noexcept;
 
+  /**************************************************************
+  ** types
+  ***************************************************************/
   // Returns the type of the value in the given valid index.
   e_lua_type type_of( int idx ) const noexcept;
 

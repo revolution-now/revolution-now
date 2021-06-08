@@ -12,6 +12,7 @@
 
 // base
 #include "base/error.hpp"
+#include "base/scope-exit.hpp"
 
 // Lua
 #include "lauxlib.h"
@@ -57,6 +58,25 @@ auto to_void_star_if_ptr( T v ) {
   FATAL( "uncaught lua error: {}", err );
 }
 
+int msghandler( lua_State* L ) {
+  const char* msg = lua_tostring( L, 1 );
+  // is error object not a string?
+  if( msg == NULL ) {
+    // does it...
+    if( luaL_callmeta( L, 1,
+                       "__tostring" ) && // have a metamethod
+        lua_type( L, -1 ) ==
+            LUA_TSTRING ) // that produces a string?
+      return 1;           // Then that is the message.
+    else
+      msg = lua_pushfstring( L, "(error object is a %s value)",
+                             luaL_typename( L, 1 ) );
+  }
+  luaL_traceback( L, L, msg,
+                  1 ); /* append a standard traceback */
+  return 1;            // return the traceback.
+}
+
 } // namespace
 
 /****************************************************************
@@ -96,7 +116,7 @@ lua_valid c_api::dofile( char const* file ) noexcept {
   return base::valid;
 }
 
-lua_valid c_api::dofile( string const& file ) noexcept {
+lua_valid c_api::dofile( std::string const& file ) noexcept {
   return dofile( file.c_str() );
 }
 
@@ -159,18 +179,10 @@ lua_valid c_api::loadstring( char const* script ) noexcept {
   return res;
 }
 
-lua_valid c_api::loadstring( string const& script ) noexcept {
-  return loadstring( script.c_str() );
-}
-
 lua_valid c_api::dostring( char const* script ) noexcept {
   HAS_VALUE_OR_RET( loadstring( script ) );
   enforce_stack_size_ge( 1 );
   return pcall( /*nargs=*/0, /*nresults=*/LUA_MULTRET );
-}
-
-lua_valid c_api::dostring( string const& script ) noexcept {
-  return dostring( script.c_str() );
 }
 
 // See header file for explanation of this function.
@@ -298,10 +310,21 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   CHECK( nresults >= 0 || nresults == LUA_MULTRET );
   // Function object plus args should be on the stack at least.
   enforce_stack_size_ge( nargs + 1 );
+
+  // Put the message handler on the stack below the function.
+  int fn_idx = gettop() - nargs; // function index.
+  push( msghandler );
+  // Put handler under function and args.
+  insert( fn_idx );
+  int msghandler_idx = fn_idx;
+  // Remove message handler from the stack. This index will re-
+  // main valid because it is positive.
+  SCOPE_EXIT( lua_remove( L, msghandler_idx ) );
+
   lua_valid res = base::valid;
   // No matter what happens, lua_pcall will remove the function
   // and arguments from the stack.
-  int err = lua_pcall( L, nargs, nresults, /*msgh=*/0 );
+  int err = lua_pcall( L, nargs, nresults, msghandler_idx );
   if( err == LUA_OK ) {
     if( nresults != LUA_MULTRET )
       enforce_stack_size_ge( nresults );
@@ -331,8 +354,9 @@ void c_api::pushglobaltable() noexcept {
 
 void c_api::push( nil_t ) noexcept { lua_pushnil( L ); }
 
-void c_api::push( LuaCFunction* f ) noexcept {
-  lua_pushcfunction( L, f );
+void c_api::push( LuaCFunction* f, int upvalues ) noexcept {
+  enforce_stack_size_ge( upvalues );
+  lua_pushcclosure( L, f, upvalues );
 }
 
 void c_api::push( void* p ) noexcept {
@@ -375,6 +399,16 @@ void c_api::rotate( int idx, int n ) noexcept {
   validate_index( idx );
   // [-0,+0,–]
   lua_rotate( L, idx, n );
+}
+
+void c_api::insert( int idx ) noexcept {
+  validate_index( idx );
+  lua_insert( L, idx );
+}
+
+void c_api::swap_top() noexcept {
+  enforce_stack_size_ge( 2 );
+  rotate( -2, 1 );
 }
 
 void c_api::newtable() noexcept { lua_newtable( L ); }
@@ -616,6 +650,51 @@ void c_api::validate_index( int idx ) const noexcept {
   // rently, this means the registry index and up value indices.
   if( idx <= LUA_REGISTRYINDEX ) return;
   enforce_stack_size_ge( abs( idx ) );
+}
+
+void* c_api::newuserdata( int size ) noexcept {
+  // Pushes userdata onto stack, returns pointer to buffer.
+  return lua_newuserdata( L, size );
+}
+
+bool c_api::udata_newmetatable( char const* tname ) noexcept {
+  return luaL_newmetatable( L, tname ) != 0;
+}
+
+e_lua_type c_api::udata_getmetatable(
+    char const* tname ) noexcept {
+  return lua_type_to_enum( luaL_getmetatable( L, tname ) );
+}
+
+void c_api::udata_setmetatable( char const* tname ) noexcept {
+  luaL_setmetatable( L, tname );
+}
+
+void* c_api::checkudata( int arg, char const* tname ) noexcept {
+  return luaL_checkudata( L, arg, tname );
+}
+
+void* c_api::testudata( int arg, char const* tname ) noexcept {
+  return luaL_testudata( L, arg, tname );
+}
+
+void c_api::setmetatable( int idx ) noexcept {
+  validate_index( idx );
+  enforce_stack_size_ge( 2 );
+  lua_setmetatable( L, idx );
+}
+
+bool c_api::getmetatable( int idx ) noexcept {
+  validate_index( idx );
+  return lua_getmetatable( L, idx ) != 0;
+}
+
+bool c_api::getupvalue( int funcindex, int n ) noexcept {
+  validate_index( funcindex );
+  char const* name = lua_getupvalue( L, funcindex, n );
+  // `name` will be "" for C upvalues, NULL for nonexistent
+  // upvalues.
+  return ( name != nullptr );
 }
 
 } // namespace luapp

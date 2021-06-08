@@ -107,9 +107,17 @@ TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
       end
     } )
   )" ) == valid );
+
+  // clang-format off
+  char const* err =
+    "[string \"...\"]:4: this is an error."                  "\n"
+    "stack traceback:"                                       "\n"
+    "\t[C]: in function 'error'"                             "\n"
+    "\t[string \"...\"]:4: in function <[string \"...\"]:3>" "\n"
+    "\t[C]: in ?";
+  // clang-format on
   REQUIRE( st.getglobal_safe( "xyz" ) ==
-           lua_unexpected<e_lua_type>(
-               "[string \"...\"]:4: this is an error." ) );
+           lua_unexpected<e_lua_type>( err ) );
   REQUIRE( st.stack_size() == 0 );
   REQUIRE( st.dostring( "xyz = 1" ) == valid );
   REQUIRE( st.getglobal( "xyz" ) == e_lua_type::number );
@@ -132,9 +140,16 @@ TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
   st.pop();
   REQUIRE( st.stack_size() == 0 );
   st.push( 1 );
-  REQUIRE(
-      st.setglobal_safe( "xyz" ) ==
-      lua_invalid( "[string \"...\"]:4: this is an error." ) );
+  // clang-format off
+  char const* err =
+    "[string \"...\"]:4: this is an error."                  "\n"
+    "stack traceback:"                                       "\n"
+    "\t[C]: in function 'error'"                             "\n"
+    "\t[string \"...\"]:4: in function <[string \"...\"]:3>" "\n"
+    "\t[C]: in ?";
+  // clang-format on
+  REQUIRE( st.setglobal_safe( "xyz" ) == lua_invalid( err ) );
+
   // The pinvoke will get rid of the parameter.
   REQUIRE( st.stack_size() == 0 );
 }
@@ -649,9 +664,15 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( st.stack_size() == 1 );
     st.push( 6 );
     REQUIRE( st.stack_size() == 2 );
-    REQUIRE(
-        st.pcall( /*nargs=*/1, /*nresults=*/0 ) ==
-        lua_invalid( "[string \"...\"]:3: assertion failed!" ) );
+    // clang-format off
+    char const* err =
+      "[string \"...\"]:3: assertion failed!"  "\n"
+      "stack traceback:"                       "\n"
+      "\t[C]: in function 'assert'"            "\n"
+      "\t[string \"...\"]:3: in function 'foo'";
+    // clang-format on
+    REQUIRE( st.pcall( /*nargs=*/1, /*nresults=*/0 ) ==
+             lua_invalid( err ) );
     REQUIRE( st.stack_size() == 0 );
   }
 
@@ -858,6 +879,173 @@ TEST_CASE( "[lua-c-api] push c function" ) {
     assert( output == expect,
             tostring( output ) .. ' != ' .. tostring( expect ) )
   )" ) == valid );
+}
+
+TEST_CASE(
+    "[lua-c-api] push c function with upvalues + getupvalue" ) {
+  c_api st;
+  st.openlibs();
+
+  REQUIRE( st.stack_size() == 0 );
+  st.push( 42 );
+  st.push(
+      []( lua_State* L ) -> int {
+        int n = luaL_checkinteger( L, 1 );
+        int upvalue =
+            luaL_checkinteger( L, lua_upvalueindex( 1 ) );
+        lua_pushinteger( L, n + upvalue );
+        return 1;
+      },
+      /*upvalues=*/1 );
+  // Consumes the upvalue but leaves the closure on the stack.
+  REQUIRE( st.stack_size() == 1 );
+  st.setglobal( "bar" );
+
+  REQUIRE( st.dostring( R"(
+    local input  = 7
+    local expect = 49 -- 7+42
+    local output    = bar( input )
+    assert( output == expect,
+            tostring( output ) .. ' != ' .. tostring( expect ) )
+  )" ) == valid );
+
+  // Test that the function has an up value and that the upvalue
+  // has the right type.
+  st.getglobal( "bar" );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::function );
+  REQUIRE_FALSE( st.getupvalue( -1, 2 ) );
+  REQUIRE( st.getupvalue( -1, 1 ) == true );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.get<int>( -1 ) == 42 );
+  st.pop( 2 );
+  REQUIRE( st.stack_size() == 0 );
+}
+
+TEST_CASE( "[lua-c-api] insert" ) {
+  c_api st;
+
+  REQUIRE( st.stack_size() == 0 );
+  st.push( 5 );
+  st.push( "hello" );
+  st.push( true );
+  st.push( 7 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( st.type_of( -2 ) == e_lua_type::boolean );
+  REQUIRE( st.type_of( -3 ) == e_lua_type::string );
+  REQUIRE( st.type_of( -4 ) == e_lua_type::number );
+
+  st.insert( -3 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::boolean );
+  REQUIRE( st.type_of( -2 ) == e_lua_type::string );
+  REQUIRE( st.type_of( -3 ) == e_lua_type::number );
+  REQUIRE( st.type_of( -4 ) == e_lua_type::number );
+  REQUIRE( st.get<int>( -3 ) == 7 );
+  REQUIRE( st.get<int>( -4 ) == 5 );
+}
+
+TEST_CASE( "[lua-c-api] swap_top" ) {
+  c_api st;
+
+  REQUIRE( st.stack_size() == 0 );
+  st.push( 5 );
+  st.push( "hello" );
+  st.push( true );
+  st.push( 7 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( st.type_of( -2 ) == e_lua_type::boolean );
+  REQUIRE( st.type_of( -3 ) == e_lua_type::string );
+  REQUIRE( st.type_of( -4 ) == e_lua_type::number );
+
+  st.swap_top();
+  REQUIRE( st.type_of( -1 ) == e_lua_type::boolean );
+  REQUIRE( st.type_of( -2 ) == e_lua_type::number );
+  REQUIRE( st.type_of( -3 ) == e_lua_type::string );
+  REQUIRE( st.type_of( -4 ) == e_lua_type::number );
+  REQUIRE( st.get<int>( -2 ) == 7 );
+}
+
+TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
+  c_api st;
+  st.openlibs();
+
+  st.newtable();
+  st.newtable(); // metatable
+  REQUIRE( st.stack_size() == 2 );
+  st.pushglobaltable();
+  REQUIRE( st.stack_size() == 3 );
+  st.setfield( -2, "__index" );
+  REQUIRE( st.stack_size() == 2 );
+  st.setmetatable( -2 );
+  REQUIRE( st.stack_size() == 1 );
+  st.setglobal( "x" );
+  REQUIRE( st.stack_size() == 0 );
+  REQUIRE( st.dostring( R"(
+    x.assert( x.print ~= nil )
+  )" ) == valid );
+  REQUIRE( st.stack_size() == 0 );
+
+  st.getglobal( "x" );
+  REQUIRE( st.stack_size() == 1 );
+  st.getmetatable( -1 );
+  REQUIRE( st.stack_size() == 2 );
+  st.push( nil );
+  REQUIRE( st.stack_size() == 3 );
+  st.setfield( -2, "__index" );
+  REQUIRE( st.stack_size() == 2 );
+  st.pop( 2 );
+  REQUIRE( st.stack_size() == 0 );
+
+  // clang-format off
+  char const* err =
+    "[string \"...\"]:2: attempt to call a nil value (field 'assert')" "\n"
+    "stack traceback:"                                                 "\n"
+    "\t[string \"...\"]:2: in main chunk";
+  // clang-format on
+  REQUIRE( st.dostring( R"(
+    x.assert( x.print ~= nil )
+  )" ) == lua_invalid( err ) );
+}
+
+TEST_CASE( "[lua-c-api] newuserdata" ) {
+  c_api st;
+  void* p = st.newuserdata( 1 );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::userdata );
+  REQUIRE( st.get<void*>( -1 ) == p );
+  st.pop();
+}
+
+TEST_CASE(
+    "[lua-c-api] udata_{new,get,set}metatable + "
+    "{check,test}udata" ) {
+  c_api st;
+
+  REQUIRE( st.udata_getmetatable( "hello" ) == e_lua_type::nil );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.udata_newmetatable( "hello" ) == true );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.udata_newmetatable( "hello" ) == false );
+  REQUIRE( st.stack_size() == 1 );
+  st.pop();
+  REQUIRE( st.udata_getmetatable( "hello" ) ==
+           e_lua_type::table );
+  REQUIRE( st.stack_size() == 1 );
+  st.getfield( -1, "__name" );
+  REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( st.get<string>( -1 ) == "hello" );
+  st.pop( 2 );
+  REQUIRE( st.stack_size() == 0 );
+
+  REQUIRE( st.newuserdata( 1 ) != nullptr );
+  REQUIRE( st.stack_size() == 1 );
+  REQUIRE( st.testudata( -1, "hello" ) == nullptr );
+  REQUIRE( st.stack_size() == 1 );
+  st.udata_setmetatable( "hello" );
+  REQUIRE( st.stack_size() == 1 );
+
+  REQUIRE( st.testudata( -1, "hello" ) != nullptr );
 }
 
 } // namespace
