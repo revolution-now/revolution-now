@@ -16,6 +16,8 @@
 // {fmt}
 #include "fmt/format.h"
 
+struct lua_State;
+
 namespace luapp {
 
 // The type we use for reporting errors raised by lua.
@@ -61,6 +63,24 @@ inline constexpr int kNumLuaTypes = 9;
 struct nil_t {};
 
 inline constexpr nil_t nil;
+
+/****************************************************************
+** function signatures
+*****************************************************************/
+// This represents the signature of a Lua C API function that in-
+// teracts with a Lua state (i.e., takes the Lua state as first
+// parameter). Any such API function could interact with the Lua
+// state and thus could potentially throw an error (at least most
+// of them do). So the code that wraps Lua C API calls to detect
+// those errors will use this signature.
+//
+// Takes args by value since they will only be simple types.
+template<typename R, typename... Args>
+using LuaApiFunc = R( ::lua_State*, Args... );
+
+// This represents the signature of a Lua C library (extension)
+// method, i.e., a C function that is called from Lua.
+using LuaCFunction = int( ::lua_State* );
 
 /****************************************************************
 ** to_str
