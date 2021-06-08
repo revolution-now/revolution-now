@@ -201,67 +201,63 @@ auto c_api::pinvoke( int ninputs,
   // clang-format on
   constexpr bool has_result = !is_same_v<R, void>;
 
-  constexpr int kCApiPtrIdx = 1;
-  constexpr int kNInputsIdx = 2;
-  constexpr int kFuncIdx    = 3;
+  constexpr int kNInputsIdx = 1;
+  constexpr int kFuncIdx    = 2;
   // equal to last one.
-  constexpr int kNumRunnerArgs = 3;
+  constexpr int kNumRunnerArgs = 2;
 
   auto runner = []( lua_State* L ) -> int {
-    // 1. Get c_api pointer from stack.
-    CHECK( lua_islightuserdata( L, kCApiPtrIdx ) );
-    c_api* api = (c_api*)::lua_touserdata( L, kCApiPtrIdx );
-    CHECK( api );
+    c_api api( L, /*own=*/false );
 
-    // 2. Get number of arguments that were pushed onto the stack
+    // 1. Get number of arguments that were pushed onto the stack
     //    for this Lua API function to consume.
     CHECK( lua_isinteger( L, kNInputsIdx ) );
-    UNWRAP_CHECK( ninputs, api->get<int>( kNInputsIdx ) );
+    UNWRAP_CHECK( ninputs, api.get<int>( kNInputsIdx ) );
     CHECK_GE( ninputs, 0 );
 
-    // 3. Get pointer to Lua API function that we will call.
+    // 2. Get pointer to Lua API function that we will call.
     //    e.g., this will be a pointer to lua_gettable.
     CHECK( lua_islightuserdata( L, kFuncIdx ) );
-    UNWRAP_CHECK( void_func, api->get<void*>( kFuncIdx ) );
+    UNWRAP_CHECK( void_func, api.get<void*>( kFuncIdx ) );
     auto* func =
         reinterpret_cast<LuaApiFunc<R, Params...>*>( void_func );
     CHECK( func );
 
-    // 4. Check stack size.
-    CHECK_GE( api->stack_size(), int( kNumRunnerArgs + ninputs +
-                                      sizeof...( Args ) ) );
+    // 3. Check stack size.
+    CHECK_GE( api.stack_size(), int( kNumRunnerArgs + ninputs +
+                                     sizeof...( Args ) ) );
 
-    // 5. Pop parameters into tuple.
+    // 4. Pop parameters into tuple.
     int  idx    = kNumRunnerArgs + 1 + ninputs;
     auto getter = [&]<typename Arg>( Arg* ) {
-      UNWRAP_CHECK( res, api->get<Arg>( idx ) );
+      UNWRAP_CHECK( res, api.get<Arg>( idx ) );
       ++idx;
       return res;
     };
     auto tuple_args = tuple{ L, getter( (Args*)nullptr )... };
 
-    // 6. Now pop everything so that it doesn't get in the way of
+    // 5. Now pop everything so that it doesn't get in the way of
     //    our stack size calculation.
-    api->pop( sizeof...( Args ) );
-    CHECK( api->stack_size() == kNumRunnerArgs + ninputs );
-    api->rotate( -ninputs - kNumRunnerArgs, ninputs );
-    api->pop( kNumRunnerArgs );
+    api.pop( sizeof...( Args ) );
+    CHECK( api.stack_size() == kNumRunnerArgs + ninputs );
+    api.rotate( -ninputs - kNumRunnerArgs, ninputs );
+    api.pop( kNumRunnerArgs );
 
     // At this point on the stack we have only this C function
     // object (just below the zero point which we cannot access),
     // then all of the values that will be popped by the Lua API
     // function we are about to call.
-    CHECK( api->stack_size() == ninputs );
+    CHECK( api.stack_size() == ninputs );
 
-    // 7. Run it
+    // 6. Run it
     if constexpr( has_result ) {
       R res = apply( func, tuple_args );
-      api->push( res );
+      api.push( res );
     } else {
       apply( func, tuple_args );
     }
 
-    return api->stack_size();
+    return api.stack_size();
   };
 
   // For sanity checking.
@@ -271,24 +267,21 @@ auto c_api::pinvoke( int ninputs,
   // 1. Push func onto the stack.
   push( (LuaCFunction*)+runner );
 
-  // 2. Push `this`.
-  push( static_cast<void*>( this ) );
-
-  // 3. Push initial stack size so that our helper function above
+  // 2. Push initial stack size so that our helper function above
   //    can compute how many results are being returned.
   push( ninputs );
 
-  // 4. Push the actual Lua API function we want to run.
+  // 3. Push the actual Lua API function we want to run.
   push( reinterpret_cast<void*>( func ) );
 
-  // 5. Put the initial args behind those that are to be read
+  // 4. Put the initial args behind those that are to be read
   //    by the Lua API function we will call.
   rotate( -ninputs - kNumRunnerArgs - 1, kNumRunnerArgs + 1 );
 
   // For sanity checking.
   if( ninputs > 0 ) { CHECK( type_of( -1 ) == tip_type ); }
 
-  // 5. Push arguments.
+  // k. Push arguments.
   ( push( to_void_star_if_ptr( args ) ), ... );
 
   // 6. Run it.
