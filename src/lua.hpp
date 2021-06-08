@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "cc-specific.hpp"
 #include "coord.hpp"
 #include "error.hpp"
 #include "expect.hpp"
@@ -23,6 +22,9 @@
 
 // Rnl
 #include "rnl/helper/enum.hpp"
+
+// base
+#include "base/cc-specific.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -83,10 +85,11 @@ expect<Ret, LuaError> sol_obj_convert( sol::object const& o ) {
         std::is_same_v<Ret, intermediate_t>
             ? ""
             : ( std::string( " (via `" ) +
-                demangled_typename<intermediate_t>() + "`)" );
+                base::demangled_typename<intermediate_t>() +
+                "`)" );
     return unexpected<Ret>( LuaError{
         fmt::format( "expected type `{}`{} but got `{}`.",
-                     demangled_typename<Ret>(), via,
+                     base::demangled_typename<Ret>(), via,
                      sol::type_name( global_state().lua_state(),
                                      o.get_type() ) ) } );
   }

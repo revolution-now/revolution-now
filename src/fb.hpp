@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "cc-specific.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "fmt-helper.hpp"
@@ -23,6 +22,7 @@
 #include "rnl/helper/enum.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/meta.hpp"
 #include "base/variant.hpp"
 
@@ -627,7 +627,7 @@ auto serialize( FBBuilder&                  builder,
   auto    apply_with_builder = [&]( auto&&... ts ) {
     if constexpr( has_active_index ) {
       return Hint::Traits::Create( builder, active_index,
-                                   ts.get()... );
+                                      ts.get()... );
     } else {
       (void)active_index;
       return Hint::Traits::Create( builder, ts.get()... );
@@ -923,7 +923,7 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
         return invalid_deserial( fmt::format(
             "duplicate key (type {}) found when deserializing "
             "map.",
-            ::rn::demangled_typename<key_t>() ) );
+            ::base::demangled_typename<key_t>() ) );
     }
 
     HAS_VALUE_OR_RET(

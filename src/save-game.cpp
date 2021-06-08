@@ -11,7 +11,6 @@
 #include "save-game.hpp"
 
 // Revolution Now
-#include "cc-specific.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"
 #include "logging.hpp"
@@ -19,6 +18,7 @@
 #include "serial.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/io.hpp"
 #include "base/meta.hpp"
 
@@ -118,7 +118,7 @@ valid_deserial_t savegame_post_validate_impl(
     // If we've already failed on a past step, don't run anymore.
     if( !res ) return;
     lg.debug( "running post-deserialization validation on {}.",
-              demangled_typename<T>() );
+              base::demangled_typename<T>() );
     res = savegame_post_validate( p );
   };
 

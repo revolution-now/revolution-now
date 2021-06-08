@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "core-config.hpp"
-#include "cc-specific.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
 #include "rnl/helper/enum.hpp"
 #include "fmt-helper.hpp"
@@ -21,6 +20,7 @@
 #include "maybe.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/variant.hpp"
 
 // base-util
@@ -98,7 +98,7 @@ struct fmt::formatter<rnltest::Maybe::nothing<T>>
   auto format( rnltest::Maybe::nothing<T> const&, Context& ctx ) {
     return formatter_base::format( fmt::format(
       "Maybe::nothing<{}>"
-      , ::rn::type_list_to_names<T>() ), ctx );
+      , ::base::type_list_to_names<T>() ), ctx );
   }
 };
 
@@ -112,7 +112,7 @@ struct fmt::formatter<rnltest::Maybe::just<T>>
       "Maybe::just<{}>{{"
         "val={}"
       "}}"
-      , ::rn::type_list_to_names<T>(), o.val ), ctx );
+      , ::base::type_list_to_names<T>(), o.val ), ctx );
   }
 };
 
@@ -663,7 +663,7 @@ struct fmt::formatter<rnltest::inner::TemplateTwoParams::first_alternative<T, U>
         "t={},"
         "c={}"
       "}}"
-      , ::rn::type_list_to_names<T, U>(), o.t, o.c ), ctx );
+      , ::base::type_list_to_names<T, U>(), o.t, o.c ), ctx );
   }
 };
 
@@ -675,7 +675,7 @@ struct fmt::formatter<rnltest::inner::TemplateTwoParams::second_alternative<T, U
   auto format( rnltest::inner::TemplateTwoParams::second_alternative<T, U> const&, Context& ctx ) {
     return formatter_base::format( fmt::format(
       "TemplateTwoParams::second_alternative<{}>"
-      , ::rn::type_list_to_names<T, U>() ), ctx );
+      , ::base::type_list_to_names<T, U>() ), ctx );
   }
 };
 
@@ -690,7 +690,7 @@ struct fmt::formatter<rnltest::inner::TemplateTwoParams::third_alternative<T, U>
         "hello={},"
         "u={}"
       "}}"
-      , ::rn::type_list_to_names<T, U>(), o.hello, o.u ), ctx );
+      , ::base::type_list_to_names<T, U>(), o.hello, o.u ), ctx );
   }
 };
 
@@ -750,7 +750,7 @@ struct fmt::formatter<rnltest::inner::CompositeTemplateTwo::first<T, U>>
       "CompositeTemplateTwo::first<{}>{{"
         "ttp={}"
       "}}"
-      , ::rn::type_list_to_names<T, U>(), o.ttp ), ctx );
+      , ::base::type_list_to_names<T, U>(), o.ttp ), ctx );
   }
 };
 
@@ -762,7 +762,7 @@ struct fmt::formatter<rnltest::inner::CompositeTemplateTwo::second<T, U>>
   auto format( rnltest::inner::CompositeTemplateTwo::second<T, U> const&, Context& ctx ) {
     return formatter_base::format( fmt::format(
       "CompositeTemplateTwo::second<{}>"
-      , ::rn::type_list_to_names<T, U>() ), ctx );
+      , ::base::type_list_to_names<T, U>() ), ctx );
   }
 };
 

@@ -10,13 +10,13 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+#include "config.hpp"
 
 // C++ standard library
 #include <string>
 #include <typeinfo>
 
-namespace rn {
+namespace base {
 
 // These will demangle a type or symbol (e.g. one returned from
 // type_id(<type>).name() if the compiler supports it, otherwise
@@ -37,9 +37,4 @@ std::string type_list_to_names() {
   return res;
 }
 
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_cc_specific();
-
-} // namespace rn
+} // namespace base

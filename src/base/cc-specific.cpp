@@ -20,11 +20,7 @@
 
 using namespace std;
 
-namespace rn {
-
-namespace {
-//
-} // namespace
+namespace base {
 
 /****************************************************************
 ** Public API
@@ -39,7 +35,7 @@ string demangle( char const* name ) {
 
   unique_ptr<char, void ( * )( void* )> res{
       abi::__cxa_demangle( name, NULL, NULL, &status ),
-      std::free};
+      std::free };
   return ( status == 0 ) ? res.get() : name;
 }
 #else
@@ -47,11 +43,4 @@ string demangle( char const* name ) {
 string demangle( const char* name ) { return name; }
 #endif
 
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_cc_specific() {
-  //
-}
-
-} // namespace rn
+} // namespace base

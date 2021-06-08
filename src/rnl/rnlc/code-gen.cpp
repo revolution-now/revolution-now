@@ -148,7 +148,7 @@ string template_params_type_names(
     vector<expr::TemplateParam> const& tmpls ) {
   string params = template_params( tmpls, /*put_typename=*/false,
                                    /*space=*/true );
-  return "::rn::type_list_to_names"s + params + "()";
+  return "::base::type_list_to_names"s + params + "()";
 }
 
 bool sumtype_has_feature( expr::Sumtype const&    sumtype,
@@ -757,7 +757,6 @@ struct CodeGenerator {
 
     comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
-    line( "#include \"cc-specific.hpp\"" );
     if( rnl_has_sumtype( rnl ) )
       line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
     if( rnl_has_enum( rnl ) )
@@ -771,6 +770,7 @@ struct CodeGenerator {
     if( rnl_has_enum( rnl ) ) line( "#include \"maybe.hpp\"" );
     line( "" );
     comment( "base" );
+    line( "#include \"base/cc-specific.hpp\"" );
     line( "#include \"base/variant.hpp\"" );
     line( "" );
     comment( "base-util" );
