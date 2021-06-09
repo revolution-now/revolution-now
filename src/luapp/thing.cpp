@@ -105,6 +105,29 @@ thing::operator bool() const noexcept {
   }
 }
 
+
+bool thing::operator==( thing const& rhs ) const noexcept {
+  return std::visit(
+      []( auto const& l, auto const& r ) {
+        using left_t  = std::remove_cvref_t<decltype( l )>;
+        using right_t = std::remove_cvref_t<decltype( r )>;
+        if constexpr( std::is_same_v<left_t, right_t> )
+          return ( l == r );
+        else if constexpr( std::is_convertible_v<
+                               left_t const&, right_t const&> )
+          return ( static_cast<right_t const&>( l ) == r );
+        else if constexpr( std::is_convertible_v<right_t const&,
+                                                 left_t const&> )
+          return ( l == static_cast<left_t const&>( r ) );
+        else
+          return false;
+      },
+      this->as_std(), rhs.as_std() );
+}
+
+/****************************************************************
+** to_str
+*****************************************************************/
 void to_str( table const& o, std::string& out ) {
   (void)o;
   out += "<table>";

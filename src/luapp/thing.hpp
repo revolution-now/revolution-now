@@ -112,34 +112,42 @@ using thing_base = base::variant<nil_t,         //
 struct thing : public thing_base {
   using Base = thing_base;
 
-  // clang-format off
+  // If you are getting an error because of this, that means that
+  // you must explicitely cast the pointer to `void*` before com-
+  // parison so that there is no ambiguity about what it repre-
+  // sents (pointers represent light userdata, not e.g. string
+  // literals).
   template<typename T>
+  // clang-format off
   requires( !std::is_same_v<T*, void*> )
-  bool operator==( T* p ) const noexcept {
-    return (*this) == static_cast<void*>(p);
-  }
+  bool operator==( T* p ) const noexcept = delete;
   // clang-format on
 
   template<typename T>
+  // clang-format off
+  requires( !std::is_same_v<thing, std::remove_cvref_t<T>> )
   bool operator==( T const& rhs ) const noexcept {
-    return this->visit( [&]<typename U>( U&& elem ) {
-      using elem_t  = decltype( std::forward<U>( elem ) );
-      using decayed = std::remove_cvref_t<U>;
-      if constexpr( std::is_same_v<T, decayed> ) {
+    // clang-format on
+    return this->visit( [&]<typename U>( U&& o ) {
+      using elem_t      = decltype( std::forward<U>( o ) );
+      using elem_base_t = std::remove_cvref_t<elem_t>;
+      if constexpr( std::is_same_v<T, std::remove_cvref_t<U>> ) {
         static_assert(
             std::equality_comparable_with<elem_t, T const&> );
-        return ( std::forward<U>( elem ) == rhs );
+        return ( o == rhs );
       } else if constexpr( std::is_convertible_v<T const&,
                                                  elem_t> ) {
-        return ( elem == static_cast<elem_t>( rhs ) );
+        return ( o == static_cast<elem_t>( rhs ) );
       } else if constexpr( std::is_convertible_v<elem_t,
                                                  T const&> ) {
-        return ( static_cast<T const&>( elem ) == rhs );
+        return ( static_cast<T const&>( o ) == rhs );
       } else {
         return false;
       }
     } );
   }
+
+  bool operator==( thing const& rhs ) const noexcept;
 
   // Follows Lua's rules, where every value is true except for
   // boolean:false and nil.
@@ -153,21 +161,15 @@ struct thing : public thing_base {
   e_lua_type type() const noexcept;
 
   /**************************************************************
-  ** Take everything from std::variant.
+  ** Take things that we're not going to call explicitly.
   ***************************************************************/
-  using Base::as_std;
   using Base::Base;
   using Base::operator=;
-  // using Base::emplace;
-  // using Base::get;
-  // using Base::get_if;
-  // using Base::holds;
-  // using Base::index;
-  // using Base::swap;
-  // using Base::to_enum;
-  // using Base::valueless_by_exception;
 };
 
+/****************************************************************
+** to_str
+*****************************************************************/
 void to_str( table const& o, std::string& out );
 void to_str( lstring const& o, std::string& out );
 void to_str( lfunction const& o, std::string& out );
@@ -177,6 +179,9 @@ void to_str( lightuserdata const& o, std::string& out );
 
 } // namespace luapp
 
+/****************************************************************
+** fmt
+*****************************************************************/
 TOSTR_TO_FMT( luapp::table );
 TOSTR_TO_FMT( luapp::lstring );
 TOSTR_TO_FMT( luapp::lfunction );

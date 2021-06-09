@@ -82,9 +82,24 @@ void to_str( luapp::nil_t, std::string& out );
 ** Numeric types
 *****************************************************************/
 using boolean  = base::safe::boolean;
-using integer  = base::safe::integer<long long>;
 using floating = base::safe::floating<double>;
 using void_p   = base::safe::void_p;
+
+// Derive from it so that we can add an implicit conversion to
+// floating, which we need in order to be able to easily convert
+// integrals to floats when comparing the two like Lua would do.
+struct integer : public base::safe::integer<long long> {
+  using Base = base::safe::integer<long long>;
+
+  using Base::Base;
+  using Base::operator<=>;
+  using Base::operator long long;
+  using Base::get;
+
+  operator floating() const noexcept {
+    return static_cast<double>( get() );
+  }
+};
 
 /****************************************************************
 ** function signatures
@@ -111,3 +126,5 @@ using LuaCFunction = int( ::lua_State* );
 *****************************************************************/
 TOSTR_TO_FMT( luapp::e_lua_type );
 TOSTR_TO_FMT( luapp::nil_t );
+
+DEFINE_FORMAT( luapp::integer, "{}", o.get() );
