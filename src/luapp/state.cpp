@@ -29,10 +29,9 @@ namespace {} // namespace
 /****************************************************************
 ** state
 *****************************************************************/
-state::state( ::lua_State* L )
-  : api_( new c_api( L, /*own=*/false ) ), C( *api_ ) {}
+state::state( ::lua_State* L ) : C( L, /*own=*/false ) {}
 
-state::state() : api_( new c_api ), C( *api_ ) {}
+state::state() : C() {}
 
 c_api& state::api() noexcept { return C; }
 
@@ -44,7 +43,7 @@ int state::noref() { return LUA_NOREF; }
 // into the registry. Can remove eventually.
 void state::tables_slow( std::string_view path ) noexcept {
   if( tables_func_ref == LUA_NOREF ) {
-    static string code = R"lua(
+    static string const code = R"lua(
       local path = ...
       local tab = _G
       for p in string.gmatch( path, '[^.]+' ) do
@@ -133,7 +132,7 @@ template<typename T>
 bool state::create_userdata( T&& object ) noexcept {
   int initial_stack_size = C.stack_size();
 
-  static string type_name = base::demangled_typename<T>();
+  static string const type_name = base::demangled_typename<T>();
 
   // 1. Create userdata to hold unique_func.
   void* ud = C.newuserdata( sizeof( object ) );
@@ -205,7 +204,7 @@ bool state::push_stateful_lua_c_function(
   // 1. Create the closure with one upvalue (the userdata).
   static auto closure_caller = []( lua_State* L ) -> int {
     using Closure_t = remove_cvref_t<decltype( func )>;
-    static string type_name =
+    static string const type_name =
         base::demangled_typename<Closure_t>();
     // Use `testudata` instead of `checkudata` so that we throw a
     // C++ error instead of a Lua error.

@@ -147,8 +147,15 @@ TEST_CASE( "[state] push_function, stateless lua C function" ) {
     return 1;
   } );
   C.setglobal( "add_one" );
-  REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-           valid );
+
+  SECTION( "once" ) {
+    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
+             valid );
+  }
+  SECTION( "twice" ) {
+    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
+             valid );
+  }
 
   // Make sure that it has no upvalues.
   C.getglobal( "add_one" );
@@ -399,6 +406,178 @@ TEST_CASE( "[state] push_function, cpp function, calling" ) {
                   tostring( expected ) .. '".'
       assert( result == expected, err )
     )" ) == valid );
+  }
+}
+
+TEST_CASE( "[state] call/pcall" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  REQUIRE( C.dostring( R"(
+    function foo( n, s, d )
+      assert( n ~= nil, 'n is nil' )
+      assert( s ~= nil, 's is nil' )
+      assert( d ~= nil, 'd is nil' )
+      local fmt = string.format
+      return fmt( "args: n=%s, s='%s', d=%s", n, s, d )
+    end
+  )" ) == valid );
+
+  C.getglobal( "foo" );
+  REQUIRE( C.stack_size() == 1 );
+
+  SECTION( "call" ) {
+    REQUIRE( st.call( 3, "hello", 3.5 ) == 1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "args: n=3, s='hello', d=3.5" );
+  }
+
+  SECTION( "pcall" ) {
+    REQUIRE( st.pcall( 3, "hello", 3.5 ) == 1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "args: n=3, s='hello', d=3.5" );
+  }
+
+  SECTION( "pcall with error" ) {
+    // clang-format off
+    char const* err =
+      "[string \"...\"]:4: s is nil\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'assert'\n"
+      "\t[string \"...\"]:4: in function 'foo'";
+    // clang-format on
+
+    REQUIRE( st.pcall( 3, nil, 3.5 ) ==
+             lua_unexpected<int>( err ) );
+    REQUIRE( C.stack_size() == 0 );
+  }
+}
+
+TEST_CASE( "[state] call/pcall multret" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  REQUIRE( C.dostring( R"(
+    function foo( n, s, d )
+      return n+1, s .. '!', d+1.5
+    end
+  )" ) == valid );
+
+  C.getglobal( "foo" );
+  REQUIRE( C.stack_size() == 1 );
+
+  SECTION( "call" ) {
+    REQUIRE( st.call( 3, "hello", 3.5 ) == 3 );
+    REQUIRE( C.stack_size() == 3 );
+    REQUIRE( C.get<int>( -3 ) == 4 );
+    REQUIRE( C.get<string>( -2 ) == "hello!" );
+    REQUIRE( C.get<int>( -1 ) == 5.0 );
+  }
+
+  SECTION( "pcall" ) {
+    REQUIRE( st.pcall( 3, "hello", 3.5 ) == 3 );
+    REQUIRE( C.stack_size() == 3 );
+    REQUIRE( C.get<int>( -3 ) == 4 );
+    REQUIRE( C.get<string>( -2 ) == "hello!" );
+    REQUIRE( C.get<int>( -1 ) == 5.0 );
+  }
+}
+
+TEST_CASE( "[state] cpp from cpp via lua" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  st.push_function( []( int n, string const& s,
+                        double d ) -> string {
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  } );
+  C.setglobal( "go" );
+  REQUIRE( C.stack_size() == 0 );
+
+  C.getglobal( "go" );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.get<string>( -1 ) ==
+           "args: n=3, s='hello', d=3.6" );
+}
+
+TEST_CASE( "[state] cpp->lua->cpp round trip" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  st.push_function( [&]( int n, string const& s,
+                         double d ) -> string {
+    if( n == 4 ) C.error( "n cannot be 4." );
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  } );
+  C.setglobal( "go" );
+
+  REQUIRE( C.dostring( R"(
+    function foo( n, s, d )
+      assert( n ~= nil, 'n is nil' )
+      assert( s ~= nil, 's is nil' )
+      assert( d ~= nil, 'd is nil' )
+      return go( n, s, d )
+    end
+  )" ) == valid );
+
+  C.getglobal( "foo" );
+  REQUIRE( C.stack_size() == 1 );
+
+  SECTION( "call" ) {
+    REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "args: n=3, s='hello', d=3.6" );
+  }
+
+  SECTION( "call again" ) {
+    REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "args: n=3, s='hello', d=3.6" );
+  }
+
+  SECTION( "pcall" ) {
+    REQUIRE( st.pcall( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "args: n=3, s='hello', d=3.6" );
+  }
+
+  SECTION( "pcall with error" ) {
+    // clang-format off
+    char const* err =
+      "[string \"...\"]:4: s is nil\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'assert'\n"
+      "\t[string \"...\"]:4: in function 'foo'";
+    // clang-format on
+
+    REQUIRE( st.pcall( 3, nil, 3.6 ) ==
+             lua_unexpected<int>( err ) );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  SECTION( "pcall with from C function" ) {
+    // clang-format off
+    char const* err =
+      "[string \"...\"]:6: n cannot be 4.\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'go'\n"
+      "\t[string \"...\"]:6: in function 'foo'";
+    // clang-format on
+
+    REQUIRE( st.pcall( 4, "hello", 3.6 ) ==
+             lua_unexpected<int>( err ) );
+    REQUIRE( C.stack_size() == 0 );
   }
 }
 
