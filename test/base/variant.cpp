@@ -38,6 +38,19 @@ TEST_CASE( "[variant] visitation" ) {
 #endif
 }
 
+TEST_CASE( "[variant] visit member" ) {
+  V<int, double> v = 4.4;
+  auto f = []( auto&& _ ) { return fmt::format( "{}", _ ); };
+  REQUIRE( v.visit( f ) == "4.4" );
+
+  // FIXME: remove this guard once libc++ adds the C++20
+  // std::visit<R> overload.
+#if !defined( _LIBCPP_VERSION )
+  v = 3;
+  REQUIRE( v.visit<string>( f ) == "3" );
+#endif
+}
+
 TEST_CASE( "[variant] get_if" ) {
   V<int, double> v = 4.4;
   REQUIRE( v.get_if<int>() == nothing );

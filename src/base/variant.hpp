@@ -113,6 +113,19 @@ public:
     using Enum = variant_to_enum_t<variant>;
     return static_cast<Enum>( index() );
   }
+
+  /**************************************************************
+  ** visit member
+  ***************************************************************/
+  template<typename Func>
+  auto visit( Func&& func ) const {
+    return std::visit( std::forward<Func>( func ), as_std() );
+  }
+
+  template<typename R, typename Func>
+  auto visit( Func&& func ) const {
+    return std::visit<R>( std::forward<Func>( func ), as_std() );
+  }
 };
 
 /****************************************************************
