@@ -11,15 +11,20 @@
 #pragma once
 
 // base
+#include "base/fmt.hpp"
+#include "base/safe-num.hpp"
 #include "base/valid.hpp"
 
-// {fmt}
-#include "fmt/format.h"
+// Lua
+#include "lua.h"
 
 struct lua_State;
 
 namespace luapp {
 
+/****************************************************************
+** expect/valid
+*****************************************************************/
 // The type we use for reporting errors raised by lua.
 using lua_error_t = std::string;
 // We can change the error type in the future, but it must at
@@ -46,6 +51,9 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
       std::forward<Arg>( arg ) );
 }
 
+/****************************************************************
+** Lua types
+*****************************************************************/
 enum class e_lua_type {
   nil            = 0,
   boolean        = 1,
@@ -58,11 +66,27 @@ enum class e_lua_type {
   thread         = 8
 };
 
+void to_str( luapp::e_lua_type t, std::string& out );
+
 inline constexpr int kNumLuaTypes = 9;
 
-struct nil_t {};
+/****************************************************************
+** nil
+*****************************************************************/
+struct nil_t {
+  auto operator<=>( nil_t const& ) const = default;
+};
 
 inline constexpr nil_t nil;
+
+void to_str( luapp::nil_t, std::string& out );
+
+/****************************************************************
+** Numeric types
+*****************************************************************/
+using boolean  = base::safe::boolean;
+using integer  = base::safe::integral<lua_Integer>;
+using floating = base::safe::floating<lua_Number>;
 
 /****************************************************************
 ** function signatures
@@ -82,29 +106,10 @@ using LuaApiFunc = R( ::lua_State*, Args... );
 // method, i.e., a C function that is called from Lua.
 using LuaCFunction = int( ::lua_State* );
 
-/****************************************************************
-** to_str
-*****************************************************************/
-void to_str( luapp::e_lua_type t, std::string& out );
-
 } // namespace luapp
 
 /****************************************************************
 ** {fmt}
 *****************************************************************/
-namespace fmt {
-
-// {fmt} formatter for e_lua_type.
-template<>
-struct formatter<luapp::e_lua_type>
-  : fmt::formatter<std::string> {
-  using formatter_base = fmt::formatter<std::string>;
-  template<typename FormatContext>
-  auto format( luapp::e_lua_type o, FormatContext& ctx ) {
-    std::string res;
-    to_str( o, res );
-    return formatter_base::format( res, ctx );
-  }
-};
-
-} // namespace fmt
+TOSTR_TO_FMT( luapp::e_lua_type );
+TOSTR_TO_FMT( luapp::nil_t );

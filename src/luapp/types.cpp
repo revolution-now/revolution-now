@@ -16,6 +16,9 @@
 // Lua
 #include "lua.h"
 
+// C++ standard library
+#include <string_view>
+
 using namespace std;
 
 namespace luapp {
@@ -42,6 +45,10 @@ namespace {
 /******************************************************************
 ** to_str
 *******************************************************************/
+void to_str( luapp::nil_t, std::string& out ) {
+  out += string_view( "nil" );
+}
+
 #define TYPE_CASE( e ) \
   case e_lua_type::e: s = #e; break
 

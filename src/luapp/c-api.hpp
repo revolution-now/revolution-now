@@ -20,9 +20,6 @@
 // {fmt}
 #include "fmt/format.h"
 
-// Lua
-#include "lua.h"
-
 namespace luapp {
 
 /****************************************************************
@@ -88,7 +85,7 @@ struct c_api {
 
   void push( nil_t ) noexcept;
   void push( LuaCFunction* f, int upvalues = 0 ) noexcept;
-  void push( void* f ) noexcept;
+  void push( base::safe::void_p p ) noexcept;
   // We need to take these "safe" versions otherwise we get im-
   // plicit conversions and ambiguities that mess things up. Note
   // that we don't have one for unsigned integers, since Lua does

@@ -352,7 +352,7 @@ void c_api::push( LuaCFunction* f, int upvalues ) noexcept {
   lua_pushcclosure( L, f, upvalues );
 }
 
-void c_api::push( void* p ) noexcept {
+void c_api::push( base::safe::void_p p ) noexcept {
   lua_pushlightuserdata( L, p );
 }
 
