@@ -13,6 +13,9 @@
 // Under test.
 #include "src/base/expect.hpp"
 
+// Testing
+#include "test/monitoring-types.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -31,6 +34,7 @@ using namespace std;
 using ::Catch::Contains;
 using ::Catch::Equals;
 using ::std::experimental::is_detected_v;
+using ::testing::Tracker;
 
 template<typename T, typename V>
 using E = ::base::expect<T, V>;
@@ -46,43 +50,8 @@ struct Empty {};
 template<typename T>
 using EE = ::base::expect<T, Empty>;
 
-/****************************************************************
-** Tracker
-*****************************************************************/
-// Tracks number of constructions and destructions.
-struct Tracker {
-  static int  constructed;
-  static int  destructed;
-  static int  copied;
-  static int  move_constructed;
-  static int  move_assigned;
-  static void reset() {
-    constructed = destructed = copied = move_constructed =
-        move_assigned                 = 0;
-  }
-
-  Tracker() noexcept { ++constructed; }
-  Tracker( Tracker const& ) noexcept { ++copied; }
-  Tracker( Tracker&& ) noexcept { ++move_constructed; }
-  ~Tracker() noexcept { ++destructed; }
-
-  Tracker& operator=( Tracker const& ) = delete;
-  Tracker& operator                    =( Tracker&& ) noexcept {
-    ++move_assigned;
-    return *this;
-  }
-};
-int Tracker::constructed      = 0;
-int Tracker::destructed       = 0;
-int Tracker::copied           = 0;
-int Tracker::move_constructed = 0;
-int Tracker::move_assigned    = 0;
-
 } // namespace
 } // namespace base
-
-DEFINE_FORMAT_( base::Tracker, "Tracker" );
-FMT_TO_CATCH( base::Tracker );
 
 /****************************************************************
 ** Constexpr type
