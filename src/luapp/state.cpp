@@ -124,7 +124,7 @@ e_lua_type state::push_path(
   return type;
 }
 
-void state::push_stateless_function(
+void state::push_stateless_lua_c_function(
     LuaCFunction* func ) noexcept {
   C.push( func );
 }
@@ -197,7 +197,7 @@ bool state::create_userdata( T&& object ) noexcept {
   return metatable_created;
 }
 
-bool state::push_closure(
+bool state::push_stateful_lua_c_function(
     base::unique_func<int( lua_State* ) const> func ) noexcept {
   // Pushes new userdata onto stack.
   bool metatable_created = create_userdata( std::move( func ) );

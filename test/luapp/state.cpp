@@ -135,7 +135,7 @@ TEST_CASE( "[state] tables" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[state] push_closure, stateless function" ) {
+TEST_CASE( "[state] push_function, stateless lua C function" ) {
   state st;
   st.openlibs();
   c_api& C = st.api();
@@ -158,7 +158,7 @@ TEST_CASE( "[state] push_closure, stateless function" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[state] push_function, closure" ) {
+TEST_CASE( "[state] push_function, stateful lua C function" ) {
   Tracker::reset();
 
   SECTION( "__gc metamethod is called, twice" ) {
@@ -249,6 +249,157 @@ TEST_CASE( "[state] push_function, closure" ) {
   REQUIRE( Tracker::copied == 0 );
   REQUIRE( Tracker::move_constructed == 0 );
   REQUIRE( Tracker::move_assigned == 0 );
+}
+
+TEST_CASE( "[state] push_function, cpp function has upvalue" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  st.push_function( []( int n, string const& s,
+                        double d ) -> string {
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  } );
+  C.setglobal( "go" );
+
+  // Make sure that it has no upvalues.
+  C.getglobal( "go" );
+  REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+  REQUIRE_FALSE( C.getupvalue( -1, 2 ) );
+  REQUIRE( C.getupvalue( -1, 1 ) == true );
+  REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C.getmetatable( -1 ) );
+  REQUIRE( C.stack_size() == 3 );
+  REQUIRE( C.getfield( -1, "__name" ) == e_lua_type::string );
+  REQUIRE( C.stack_size() == 4 );
+  REQUIRE( C.get<string>( -1 ) ==
+           "base::unique_func<int (lua_State*) const>" );
+  C.pop( 4 );
+  REQUIRE( C.stack_size() == 0 );
+}
+
+TEST_CASE( "[state] push_function, cpp function, trivial" ) {
+  state  st;
+  c_api& C = st.api();
+
+  bool called = false;
+
+  st.push_function( [&] { called = !called; } );
+  C.setglobal( "go" );
+  REQUIRE_FALSE( called );
+
+  REQUIRE( C.dostring( "go()" ) == valid );
+  REQUIRE( called );
+  REQUIRE( C.dostring( "go()" ) == valid );
+  REQUIRE_FALSE( called );
+  REQUIRE( C.dostring( "go()" ) == valid );
+  REQUIRE( called );
+  REQUIRE( C.dostring( "go()" ) == valid );
+  REQUIRE_FALSE( called );
+}
+
+TEST_CASE( "[state] push_function, cpp function, simple/bool" ) {
+  state  st;
+  c_api& C = st.api();
+
+  bool called_with = false;
+
+  st.push_function( [&]( bool b ) { called_with = b; } );
+  C.setglobal( "go" );
+  REQUIRE_FALSE( called_with );
+
+  REQUIRE( C.dostring( "go( false )" ) == valid );
+  REQUIRE_FALSE( called_with );
+
+  REQUIRE( C.dostring( "go( false )" ) == valid );
+  REQUIRE_FALSE( called_with );
+
+  REQUIRE( C.dostring( "go( true )" ) == valid );
+  REQUIRE( called_with );
+
+  REQUIRE( C.dostring( "go( 'hello' )" ) == valid );
+  REQUIRE( called_with );
+
+  REQUIRE( C.dostring( "go( nil )" ) == valid );
+  REQUIRE_FALSE( called_with );
+}
+
+TEST_CASE( "[state] push_function, cpp function, calling" ) {
+  state st;
+  st.openlibs();
+  c_api& C = st.api();
+
+  st.push_function( []( int n, string const& s,
+                        double d ) -> string {
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  } );
+  C.setglobal( "go" );
+
+  SECTION( "successful call" ) {
+    REQUIRE( C.dostring( R"(
+      local result =
+        go( 6, 'hello this is a very long string', 3.5 )
+      local expected =
+        "args: n=6, s='hello this is a very long string', d=3.5"
+      local err = tostring( result ) .. ' not equal to "' ..
+                  tostring( expected ) .. '".'
+      assert( result == expected, err )
+    )" ) == valid );
+  }
+
+  SECTION( "too few args" ) {
+    // clang-format off
+    char const* err =
+      "C++ function expected 3 arguments, but received 2 from Lua.\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'go'\n"
+      "\t[string \"...\"]:2: in main chunk";
+    // clang-format on
+
+    REQUIRE( C.dostring( R"(
+      go( 6, 'hello this is a very long string' )
+    )" ) == lua_invalid( err ) );
+  }
+
+  SECTION( "too many args" ) {
+    // clang-format off
+    char const* err =
+      "C++ function expected 3 arguments, but received 4 from Lua.\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'go'\n"
+      "\t[string \"...\"]:2: in main chunk";
+    // clang-format on
+
+    REQUIRE( C.dostring( R"(
+      go( 6, 'hello this is a very long string', 3.5, true )
+    )" ) == lua_invalid( err ) );
+  }
+
+  SECTION( "wrong arg type" ) {
+    // clang-format off
+    char const* err =
+      "C++ function expected type 'double' for argument 3 "
+        "(1-based), but received non-convertible type 'string' "
+        "from Lua.\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'go'\n"
+      "\t[string \"...\"]:2: in main chunk";
+    // clang-format on
+    REQUIRE( C.dostring( R"(
+      go( 6, 'hello this is a very long string', 'world' )
+    )" ) == lua_invalid( err ) );
+  }
+
+  SECTION( "convertible arg types" ) {
+    REQUIRE( C.dostring( R"(
+      local result = go( '6', 1.23, '3.5' )
+      local expected = "args: n=6, s='1.23', d=3.5"
+      local err = tostring( result ) .. ' not equal to "' ..
+                  tostring( expected ) .. '".'
+      assert( result == expected, err )
+    )" ) == valid );
+  }
 }
 
 } // namespace
