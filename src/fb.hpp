@@ -913,7 +913,7 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
                      serial::ADL{} ) );
 
-    if constexpr( has_fmt<key_t> ) {
+    if constexpr( base::has_fmt<key_t> ) {
       if( m->find( key ) != m->end() )
         return invalid_deserial( fmt::format(
             "duplicate key ({}) found when deserializing map.",

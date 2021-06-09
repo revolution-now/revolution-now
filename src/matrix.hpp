@@ -168,10 +168,10 @@ valid_deserial_t deserialize( SrcT const* src, Matrix<T>* m,
 namespace fmt {
 
 template<typename T>
-struct formatter<::rn::Matrix<T>> : formatter_base {
+struct formatter<::rn::Matrix<T>> : base::formatter_base {
   template<typename FormatContext>
   auto format( ::rn::Matrix<T> const& o, FormatContext& ctx ) {
-    return formatter_base::format(
+    return base::formatter_base::format(
         fmt::format( "Matrix{{size={}}}", o.size() ), ctx );
   }
 };

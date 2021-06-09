@@ -375,7 +375,8 @@ struct CodeGenerator {
           full_alt_name, maybe_o );
     {
       auto _ = indent();
-      line( "return formatter_base::format( fmt::format(" );
+      line(
+          "return base::formatter_base::format( fmt::format(" );
       {
         auto _ = indent();
         emit_format_str_for_formatting_alternative(
@@ -411,7 +412,7 @@ struct CodeGenerator {
     line( "struct fmt::formatter<{}>", full_alt_name );
     {
       auto _ = indent();
-      line( ": formatter_base {" );
+      line( ": base::formatter_base {" );
       emit_fmt_format_method( alt, full_alt_name, tmpls,
                               sumtype_name );
     }

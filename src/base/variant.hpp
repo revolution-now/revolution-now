@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 // base
+#include "fmt.hpp"
 #include "maybe.hpp"
 
 // C++ standard library
@@ -175,3 +176,26 @@ T visit( Visitor&& visitor, Variants&&... variants ) {
 }
 
 } // namespace std
+
+/****************************************************************
+** fmt
+*****************************************************************/
+// {fmt} formatter for formatting variant-like things whose
+// constituent types are also formattable.
+template<template<typename...> typename V, typename... Ts>
+/* clang-format off */
+    requires( std::is_convertible_v<V<Ts...>&,
+              std::variant<Ts...>&> &&
+              (base::has_fmt<Ts> &&...) )
+struct fmt::formatter<V<Ts...>> : dynamic_formatter<> {
+  /* clang-format on */
+  using B = dynamic_formatter<>;
+  template<typename Context>
+  auto format( V<Ts...> const& v, Context& ctx ) {
+    return std::visit(
+        [&]( auto const& _ ) {
+          return B::format( fmt::format( "{}", _ ), ctx );
+        },
+        static_cast<std::variant<Ts...> const&>( v ) );
+  }
+};

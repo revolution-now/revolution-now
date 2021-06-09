@@ -98,7 +98,7 @@ TEST_CASE( "[rnl] Maybe" ) {
 }
 
 TEST_CASE( "[rnl] MyVariant1" ) {
-  static_assert( !has_fmt<MyVariant1_t> );
+  static_assert( !base::has_fmt<MyVariant1_t> );
   MyVariant1_t my1;
   my1    = MyVariant1::happy{ { 'c', 4 } };
   my1    = MyVariant1::excited{};
@@ -123,7 +123,7 @@ TEST_CASE( "[rnl] MyVariant1" ) {
 }
 
 TEST_CASE( "[rnl] MyVariant2" ) {
-  static_assert( has_fmt<MyVariant2_t> );
+  static_assert( base::has_fmt<MyVariant2_t> );
   MyVariant2_t my2;
   my2 = MyVariant2::first{ "hello", true };
   my2 = MyVariant2::second{ true, false };
@@ -152,7 +152,7 @@ TEST_CASE( "[rnl] MyVariant2" ) {
 }
 
 TEST_CASE( "[rnl] MyVariant3" ) {
-  static_assert( has_fmt<inner::MyVariant3_t> );
+  static_assert( base::has_fmt<inner::MyVariant3_t> );
   inner::MyVariant3_t my3;
   my3 = inner::MyVariant3::a1{ MyVariant0_t{} };
   my3 = inner::MyVariant3::a2{ MyVariant0_t{}, MyVariant2_t{} };
@@ -183,7 +183,7 @@ TEST_CASE( "[rnl] MyVariant3" ) {
 }
 
 TEST_CASE( "[rnl] MyVariant4" ) {
-  static_assert( has_fmt<inner::MyVariant4_t> );
+  static_assert( base::has_fmt<inner::MyVariant4_t> );
   inner::MyVariant4_t my4;
   my4 = inner::MyVariant4::first{ 1, 'r', true, { 3 } };
   my4 = inner::MyVariant4::_2nd{};
@@ -232,7 +232,7 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
   namespace V_ns = inner::CompositeTemplateTwo;
-  static_assert( has_fmt<V> );
+  static_assert( base::has_fmt<V> );
   V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
                                            short>{
       .ttp = inner::TemplateTwoParams::third_alternative<
@@ -282,7 +282,7 @@ TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(
-      root / fs::path( rnl_testing_genfile ) );
+          root / fs::path( rnl_testing_genfile ) );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not

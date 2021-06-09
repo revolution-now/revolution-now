@@ -419,7 +419,7 @@ namespace fmt {
 // {fmt} formatters.
 
 template<typename T>
-struct formatter<::rn::waitable<T>> : formatter_base {
+struct formatter<::rn::waitable<T>> : base::formatter_base {
   template<typename FormatContext>
   auto format( ::rn::waitable<T> const& o, FormatContext& ctx ) {
     std::string res;
@@ -427,12 +427,13 @@ struct formatter<::rn::waitable<T>> : formatter_base {
       res = "<waiting>";
     else if( o.ready() )
       res = fmt::format( "<ready>" );
-    return formatter_base::format( res, ctx );
+    return base::formatter_base::format( res, ctx );
   }
 };
 
 template<typename T>
-struct formatter<::rn::waitable_promise<T>> : formatter_base {
+struct formatter<::rn::waitable_promise<T>>
+  : base::formatter_base {
   template<typename FormatContext>
   auto format( ::rn::waitable_promise<T> const& o,
                FormatContext&                   ctx ) {
@@ -441,7 +442,7 @@ struct formatter<::rn::waitable_promise<T>> : formatter_base {
       res = "<empty>";
     else
       res = fmt::format( "<ready>" );
-    return formatter_base::format( res, ctx );
+    return base::formatter_base::format( res, ctx );
   }
 };
 

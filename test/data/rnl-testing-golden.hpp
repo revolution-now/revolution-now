@@ -93,10 +93,10 @@ struct base::variant_to_enum<rnltest::Maybe_t<T>> {
 // rnltest::Maybe::nothing
 template<typename T>
 struct fmt::formatter<rnltest::Maybe::nothing<T>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::Maybe::nothing<T> const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "Maybe::nothing<{}>"
       , ::base::type_list_to_names<T>() ), ctx );
   }
@@ -105,10 +105,10 @@ struct fmt::formatter<rnltest::Maybe::nothing<T>>
 // rnltest::Maybe::just
 template<typename T>
 struct fmt::formatter<rnltest::Maybe::just<T>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::Maybe::just<T> const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "Maybe::just<{}>{{"
         "val={}"
       "}}"
@@ -353,10 +353,10 @@ struct base::variant_to_enum<rnltest::MyVariant2_t> {
 // rnltest::MyVariant2::first
 template<>
 struct fmt::formatter<rnltest::MyVariant2::first>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::MyVariant2::first const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant2::first{{"
         "name={},"
         "b={}"
@@ -368,10 +368,10 @@ struct fmt::formatter<rnltest::MyVariant2::first>
 // rnltest::MyVariant2::second
 template<>
 struct fmt::formatter<rnltest::MyVariant2::second>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::MyVariant2::second const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant2::second{{"
         "flag1={},"
         "flag2={}"
@@ -383,10 +383,10 @@ struct fmt::formatter<rnltest::MyVariant2::second>
 // rnltest::MyVariant2::third
 template<>
 struct fmt::formatter<rnltest::MyVariant2::third>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::MyVariant2::third const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant2::third{{"
         "cost={}"
       "}}"
@@ -452,10 +452,10 @@ struct base::variant_to_enum<rnltest::inner::MyVariant3_t> {
 // rnltest::inner::MyVariant3::a1
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant3::a1>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant3::a1 const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant3::a1{{"
         "var0={}"
       "}}"
@@ -466,10 +466,10 @@ struct fmt::formatter<rnltest::inner::MyVariant3::a1>
 // rnltest::inner::MyVariant3::a2
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant3::a2>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant3::a2 const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant3::a2{{"
         "var1={},"
         "var2={}"
@@ -481,10 +481,10 @@ struct fmt::formatter<rnltest::inner::MyVariant3::a2>
 // rnltest::inner::MyVariant3::a3
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant3::a3>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant3::a3 const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant3::a3{{"
         "c={}"
       "}}"
@@ -552,10 +552,10 @@ struct base::variant_to_enum<rnltest::inner::MyVariant4_t> {
 // rnltest::inner::MyVariant4::first
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant4::first>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant4::first const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant4::first{{"
         "i={},"
         "c={},"
@@ -569,10 +569,10 @@ struct fmt::formatter<rnltest::inner::MyVariant4::first>
 // rnltest::inner::MyVariant4::_2nd
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant4::_2nd>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant4::_2nd const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant4::_2nd"
        ), ctx );
   }
@@ -581,10 +581,10 @@ struct fmt::formatter<rnltest::inner::MyVariant4::_2nd>
 // rnltest::inner::MyVariant4::third
 template<>
 struct fmt::formatter<rnltest::inner::MyVariant4::third>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::MyVariant4::third const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MyVariant4::third{{"
         "s={},"
         "var3={}"
@@ -655,10 +655,10 @@ struct base::variant_to_enum<rnltest::inner::TemplateTwoParams_t<T, U>> {
 // rnltest::inner::TemplateTwoParams::first_alternative
 template<typename T, typename U>
 struct fmt::formatter<rnltest::inner::TemplateTwoParams::first_alternative<T, U>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::TemplateTwoParams::first_alternative<T, U> const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "TemplateTwoParams::first_alternative<{}>{{"
         "t={},"
         "c={}"
@@ -670,10 +670,10 @@ struct fmt::formatter<rnltest::inner::TemplateTwoParams::first_alternative<T, U>
 // rnltest::inner::TemplateTwoParams::second_alternative
 template<typename T, typename U>
 struct fmt::formatter<rnltest::inner::TemplateTwoParams::second_alternative<T, U>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::TemplateTwoParams::second_alternative<T, U> const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "TemplateTwoParams::second_alternative<{}>"
       , ::base::type_list_to_names<T, U>() ), ctx );
   }
@@ -682,10 +682,10 @@ struct fmt::formatter<rnltest::inner::TemplateTwoParams::second_alternative<T, U
 // rnltest::inner::TemplateTwoParams::third_alternative
 template<typename T, typename U>
 struct fmt::formatter<rnltest::inner::TemplateTwoParams::third_alternative<T, U>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::TemplateTwoParams::third_alternative<T, U> const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "TemplateTwoParams::third_alternative<{}>{{"
         "hello={},"
         "u={}"
@@ -743,10 +743,10 @@ struct base::variant_to_enum<rnltest::inner::CompositeTemplateTwo_t<T, U>> {
 // rnltest::inner::CompositeTemplateTwo::first
 template<typename T, typename U>
 struct fmt::formatter<rnltest::inner::CompositeTemplateTwo::first<T, U>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::CompositeTemplateTwo::first<T, U> const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "CompositeTemplateTwo::first<{}>{{"
         "ttp={}"
       "}}"
@@ -757,10 +757,10 @@ struct fmt::formatter<rnltest::inner::CompositeTemplateTwo::first<T, U>>
 // rnltest::inner::CompositeTemplateTwo::second
 template<typename T, typename U>
 struct fmt::formatter<rnltest::inner::CompositeTemplateTwo::second<T, U>>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rnltest::inner::CompositeTemplateTwo::second<T, U> const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "CompositeTemplateTwo::second<{}>"
       , ::base::type_list_to_names<T, U>() ), ctx );
   }
@@ -934,10 +934,10 @@ struct base::variant_to_enum<rn::MySumtype_t> {
 // rn::MySumtype::none
 template<>
 struct fmt::formatter<rn::MySumtype::none>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::MySumtype::none const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MySumtype::none"
        ), ctx );
   }
@@ -946,10 +946,10 @@ struct fmt::formatter<rn::MySumtype::none>
 // rn::MySumtype::some
 template<>
 struct fmt::formatter<rn::MySumtype::some>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::MySumtype::some const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MySumtype::some{{"
         "s={},"
         "y={}"
@@ -961,10 +961,10 @@ struct fmt::formatter<rn::MySumtype::some>
 // rn::MySumtype::more
 template<>
 struct fmt::formatter<rn::MySumtype::more>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::MySumtype::more const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "MySumtype::more{{"
         "d={}"
       "}}"
@@ -1178,10 +1178,10 @@ struct base::variant_to_enum<rn::OnOffState_t> {
 // rn::OnOffState::off
 template<>
 struct fmt::formatter<rn::OnOffState::off>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffState::off const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffState::off"
        ), ctx );
   }
@@ -1190,10 +1190,10 @@ struct fmt::formatter<rn::OnOffState::off>
 // rn::OnOffState::on
 template<>
 struct fmt::formatter<rn::OnOffState::on>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffState::on const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffState::on{{"
         "user={}"
       "}}"
@@ -1204,10 +1204,10 @@ struct fmt::formatter<rn::OnOffState::on>
 // rn::OnOffState::switching_on
 template<>
 struct fmt::formatter<rn::OnOffState::switching_on>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffState::switching_on const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffState::switching_on{{"
         "percent={}"
       "}}"
@@ -1218,10 +1218,10 @@ struct fmt::formatter<rn::OnOffState::switching_on>
 // rn::OnOffState::switching_off
 template<>
 struct fmt::formatter<rn::OnOffState::switching_off>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffState::switching_off const& o, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffState::switching_off{{"
         "percent={}"
       "}}"
@@ -1274,10 +1274,10 @@ struct base::variant_to_enum<rn::OnOffEvent_t> {
 // rn::OnOffEvent::turn_off
 template<>
 struct fmt::formatter<rn::OnOffEvent::turn_off>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffEvent::turn_off const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffEvent::turn_off"
        ), ctx );
   }
@@ -1286,10 +1286,10 @@ struct fmt::formatter<rn::OnOffEvent::turn_off>
 // rn::OnOffEvent::turn_on
 template<>
 struct fmt::formatter<rn::OnOffEvent::turn_on>
-  : formatter_base {
+  : base::formatter_base {
   template<typename Context>
   auto format( rn::OnOffEvent::turn_on const&, Context& ctx ) {
-    return formatter_base::format( fmt::format(
+    return base::formatter_base::format( fmt::format(
       "OnOffEvent::turn_on"
        ), ctx );
   }

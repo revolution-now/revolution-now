@@ -44,7 +44,7 @@
   };                                                         \
   }
 
-#define RN_HAS_FMT_FORMAT( type ) ::rn::has_fmt<type>
+#define RN_HAS_FMT_FORMAT( type ) ::base::has_fmt<type>
 
 #define FMT_TO_CATCH_T_IMPL( t_args, type )                    \
   namespace Catch {                                            \
