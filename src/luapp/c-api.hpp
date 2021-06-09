@@ -29,8 +29,10 @@ namespace luapp {
 struct c_api {
   c_api();
   // Initialize with a Lua state and whether we own it.
-  c_api( ::lua_State* state, bool own );
+  c_api( lua_State* state, bool own );
   ~c_api() noexcept;
+
+  lua_State* state() const noexcept { return L; }
 
   /**************************************************************
   ** Lua C Function Wrappers.
@@ -108,6 +110,10 @@ struct c_api {
   // Will check-fail if there are not enough elements on the
   // stack.
   void pop( int n = 1 ) noexcept;
+
+  // Pushes a copy of the element at the given index onto the
+  // stack.
+  void pushvalue( int idx ) noexcept;
 
   // Rotates a window starting at idx n times in the direction of
   // the top of the stack.
@@ -297,6 +303,27 @@ struct c_api {
   // Same as above, but result is popped from the stack and re-
   // turned.
   int len_pop( int idx ) noexcept;
+
+  /**************************************************************
+  ** threads
+  ***************************************************************/
+  // Creates a new thread, pushes it on the stack, and returns a
+  // pointer to a lua_State that represents this new thread. The
+  // new thread returned by this function shares with the orig-
+  // inal thread its global environment, but has an independent
+  // execution stack.
+  //
+  // There is no explicit function to close or to destroy a
+  // thread. Threads are subject to garbage collection, like any
+  // Lua object.
+  [[nodiscard]] lua_State* newthread() noexcept;
+
+  /**************************************************************
+  ** garbage collection
+  ***************************************************************/
+  // Runs a full garbage collection cycle. This should probably
+  // only be used for testing.
+  void gc_collect();
 
   /**************************************************************
   ** types

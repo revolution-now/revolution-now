@@ -697,4 +697,18 @@ void c_api::error( std::string const& msg ) noexcept( false ) {
 
 int c_api::noref() noexcept { return LUA_NOREF; }
 
+void c_api::gc_collect() {
+  // The last parameter are unused by the LUA_GCCOLLECT mode.
+  lua_gc( L, LUA_GCCOLLECT, 0 );
+}
+
+lua_State* c_api::newthread() noexcept {
+  return lua_newthread( L );
+}
+
+void c_api::pushvalue( int idx ) noexcept {
+  validate_index( idx );
+  lua_pushvalue( L, idx );
+}
+
 } // namespace luapp

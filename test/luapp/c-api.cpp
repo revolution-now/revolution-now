@@ -1088,5 +1088,22 @@ TEST_CASE( "[lua-c-api] constants" ) {
   REQUIRE( c_api::multret() == LUA_MULTRET );
 }
 
+TEST_CASE( "[lua-c-api] pushvalue" ) {
+  c_api st;
+  st.push( 5 );
+  REQUIRE( st.stack_size() == 1 );
+  st.pushvalue( -1 );
+  REQUIRE( st.stack_size() == 2 );
+  REQUIRE( st.get<int>( -1 ) == 5 );
+  st.push( 7 );
+  REQUIRE( st.stack_size() == 3 );
+  REQUIRE( st.get<int>( -1 ) == 7 );
+  st.pushvalue( -2 );
+  REQUIRE( st.stack_size() == 4 );
+  REQUIRE( st.get<int>( -1 ) == 5 );
+  st.pop( 4 );
+  REQUIRE( st.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace luapp
