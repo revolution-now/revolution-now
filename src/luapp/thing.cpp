@@ -10,18 +10,75 @@
 *****************************************************************/
 #include "thing.hpp"
 
+// luapp
+#include "c-api.hpp"
+
 // base
 #include "base/error.hpp"
+
+// Lua
+#include "lauxlib.h"
+#include "lua.h"
 
 using namespace std;
 
 namespace luapp {
 
+/****************************************************************
+** reference
+*****************************************************************/
+reference::reference( lua_State* st, int ref )
+  : L( st ), ref_( ref ) {}
+
+reference::~reference() noexcept { release(); }
+
+void reference::release() noexcept {
+  if( ref_ != LUA_NOREF ) {
+    luaL_unref( L, LUA_REGISTRYINDEX, ref_ );
+    ref_ = LUA_NOREF;
+  }
+}
+
+reference::reference( reference&& rhs ) noexcept
+  : L( rhs.L ), ref_( std::exchange( rhs.ref_, LUA_NOREF ) ) {}
+
+reference& reference::operator=( reference&& rhs ) noexcept {
+  if( this == &rhs ) return *this;
+  if( ref_ != LUA_NOREF ) {
+    // We have a reference already.
+    if( L == rhs.L ) {
+      // If we referring to the same Lua state then we should
+      // never be holding the same reference as the rhs (unless
+      // it's LUA_NOREF which we've already checked).
+      CHECK( ref_ != rhs.ref_ );
+    }
+    release();
+  }
+  L    = rhs.L;
+  ref_ = rhs.ref_;
+  rhs.release();
+  return *this;
+}
+
+reference::operator bool() const noexcept {
+  return ref_ != LUA_NOREF;
+}
+
+int reference::noref() noexcept { return c_api::noref(); }
+
+void reference::push() const noexcept {
+  c_api C( L, /*own=*/false );
+  C.registry_get( ref_ );
+}
+
+/****************************************************************
+** thing
+*****************************************************************/
 e_lua_type thing::type() const noexcept {
   switch( index() ) {
     case 0: return e_lua_type::nil;
     case 1: return e_lua_type::boolean;
-    case 2: return e_lua_type::light_userdata;
+    case 2: return e_lua_type::lightuserdata;
     case 3: return e_lua_type::number;
     case 4: return e_lua_type::number;
     case 5: return e_lua_type::string;

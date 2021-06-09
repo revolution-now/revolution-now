@@ -16,17 +16,77 @@
 #include "types.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/fmt.hpp"
 #include "base/variant.hpp"
-
-// Lua
-#include "lua.h"
 
 // C++ standard library
 #include <string>
 
 namespace luapp {
 
+struct reference {
+  reference() = delete;
+  reference( lua_State* st, int ref );
+  ~reference() noexcept;
+
+  void release() noexcept;
+
+  reference( reference&& rhs ) noexcept;
+  reference& operator=( reference&& rhs ) noexcept;
+
+  reference( reference const& ) = delete;
+  reference& operator=( reference const& ) = delete;
+
+  operator bool() const noexcept;
+
+  // Pushes nil if there is no reference.
+  void push() const noexcept;
+
+  static int noref() noexcept;
+
+protected:
+  lua_State* L = nullptr; // not owned.
+private:
+  int ref_ = noref();
+};
+
+struct table : public reference {
+  using Base = reference;
+
+  using Base::Base;
+  using Base::operator bool;
+};
+
+struct lstring : public reference {
+  using Base = reference;
+
+  using Base::Base;
+  using Base::operator bool;
+};
+
+struct lfunction : public reference {
+  using Base = reference;
+
+  using Base::Base;
+  using Base::operator bool;
+};
+
+struct userdata : public reference {
+  using Base = reference;
+
+  using Base::Base;
+  using Base::operator bool;
+};
+
+struct lthread : public reference {
+  using Base = reference;
+
+  using Base::Base;
+  using Base::operator bool;
+};
+
+// This is just a value type.
 struct lightuserdata : public base::safe::void_p {
   using Base = base::safe::void_p;
 
@@ -34,31 +94,6 @@ struct lightuserdata : public base::safe::void_p {
   // using Base::operator==;
   // using Base::operator void*;
   using Base::get;
-};
-
-template<typename Derived>
-struct reference {
-  //
-};
-
-struct table : public reference<table> {
-  //
-};
-
-struct lstring : public reference<lstring> {
-  //
-};
-
-struct lfunction : public reference<lfunction> {
-  //
-};
-
-struct userdata : public reference<userdata> {
-  //
-};
-
-struct lthread : public reference<lthread> {
-  //
 };
 
 // nil_t should be first so that it is selected as the default.

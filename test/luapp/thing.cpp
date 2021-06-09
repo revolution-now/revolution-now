@@ -115,7 +115,7 @@ TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   REQUIRE( th ); // Lua's rules.
   REQUIRE( th == nullptr );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::light_userdata );
+  REQUIRE( th.type() == e_lua_type::lightuserdata );
   REQUIRE( th.index() == 2 );
 
   int x = 3;
@@ -123,7 +123,7 @@ TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   REQUIRE( th );
   REQUIRE( th != nullptr );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::light_userdata );
+  REQUIRE( th.type() == e_lua_type::lightuserdata );
   REQUIRE( th.index() == 2 );
   REQUIRE( th == &x );
 }
@@ -155,13 +155,13 @@ TEST_CASE( "[thing] fmt/to_str" ) {
 
   void* p = nullptr;
   th      = p;
-  REQUIRE( th.type() == e_lua_type::light_userdata );
+  REQUIRE( th.type() == e_lua_type::lightuserdata );
   REQUIRE( th == nullptr );
   REQUIRE( fmt::format( "{}", th ) == "<lightuserdata:0x0>" );
   int x = 3;
   p     = &x;
   th    = p;
-  REQUIRE( th.type() == e_lua_type::light_userdata );
+  REQUIRE( th.type() == e_lua_type::lightuserdata );
   REQUIRE( th == &x );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "<lightuserdata:0x[0-9a-z]+>" ) );
