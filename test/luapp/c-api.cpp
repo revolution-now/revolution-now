@@ -255,8 +255,8 @@ TEST_CASE( "[lua-c-api] fmt e_lua_type" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::nil ) == "nil" );
   REQUIRE( fmt::format( "{}", e_lua_type::boolean ) ==
            "boolean" );
-  REQUIRE( fmt::format( "{}", e_lua_type::light_userdata ) ==
-           "light_userdata" );
+  REQUIRE( fmt::format( "{}", e_lua_type::lightuserdata ) ==
+           "lightuserdata" );
   REQUIRE( fmt::format( "{}", e_lua_type::number ) == "number" );
   REQUIRE( fmt::format( "{}", e_lua_type::string ) == "string" );
   REQUIRE( fmt::format( "{}", e_lua_type::table ) == "table" );
@@ -276,8 +276,8 @@ TEST_CASE( "[lua-c-api] to_str e_lua_type" ) {
   };
   REQUIRE( to_str_( e_lua_type::nil ) == "nil" );
   REQUIRE( to_str_( e_lua_type::boolean ) == "boolean" );
-  REQUIRE( to_str_( e_lua_type::light_userdata ) ==
-           "light_userdata" );
+  REQUIRE( to_str_( e_lua_type::lightuserdata ) ==
+           "lightuserdata" );
   REQUIRE( to_str_( e_lua_type::number ) == "number" );
   REQUIRE( to_str_( e_lua_type::string ) == "string" );
   REQUIRE( to_str_( e_lua_type::table ) == "table" );
@@ -293,7 +293,7 @@ TEST_CASE( "[lua-c-api] type_name" ) {
            string( "boolean" ) );
   // Confirmed that the Lua 5.3 implementation uses "userdata"
   // also for light userdata, not sure wy...
-  REQUIRE( st.type_name( e_lua_type::light_userdata ) ==
+  REQUIRE( st.type_name( e_lua_type::lightuserdata ) ==
            string( "userdata" ) );
   REQUIRE( st.type_name( e_lua_type::number ) ==
            string( "number" ) );
@@ -318,8 +318,8 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.type_of( -1 ) == e_lua_type::nil );
     REQUIRE( st.get<bool>( -1 ) == false );
-    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
-    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
+    REQUIRE( st.get<int>( -1 ) == nothing );
+    REQUIRE( st.get<double>( -1 ) == nothing );
     REQUIRE( st.get<string>( -1 ) == nothing );
     st.pop();
   }
@@ -333,8 +333,8 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( st.type_of( -2 ) == e_lua_type::boolean );
     REQUIRE( st.get<bool>( -1 ) == true );
     REQUIRE( st.get<bool>( -2 ) == false );
-    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
-    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
+    REQUIRE( st.get<int>( -1 ) == nothing );
+    REQUIRE( st.get<double>( -1 ) == nothing );
     REQUIRE( st.get<string>( -1 ) == nothing );
     st.pop();
     st.pop();
@@ -357,12 +357,12 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( st.get<bool>( -2 ) == true );
     REQUIRE( st.get<bool>( -3 ) == true );
     REQUIRE( st.get<bool>( -4 ) == true );
-    REQUIRE( st.get<lua_Integer>( -1 ) == 5 );
-    REQUIRE( st.get<lua_Integer>( -2 ) == 7 );
-    REQUIRE( st.get<lua_Integer>( -3 ) == 9 );
-    REQUIRE( st.get<lua_Integer>( -4 ) == 0 );
-    REQUIRE( st.get<lua_Number>( -1 ) == 5.0 );
-    REQUIRE( st.get<lua_Number>( -2 ) == 7.0 );
+    REQUIRE( st.get<int>( -1 ) == 5 );
+    REQUIRE( st.get<int>( -2 ) == 7 );
+    REQUIRE( st.get<int>( -3 ) == 9 );
+    REQUIRE( st.get<int>( -4 ) == 0 );
+    REQUIRE( st.get<double>( -1 ) == 5.0 );
+    REQUIRE( st.get<double>( -2 ) == 7.0 );
     REQUIRE( st.get<string>( -1 ) == "5" );
     REQUIRE( st.get<string>( -2 ) == "7" );
     REQUIRE( st.get<string>( -3 ) == "9" );
@@ -388,11 +388,11 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( st.type_of( -2 ) == e_lua_type::number );
     REQUIRE( st.get<bool>( -1 ) == true );
     REQUIRE( st.get<bool>( -2 ) == true );
-    REQUIRE( st.get<lua_Integer>( -1 ) == 5 );
+    REQUIRE( st.get<int>( -1 ) == 5 );
     // No rounding.
-    REQUIRE( st.get<lua_Integer>( -2 ) == nothing );
-    REQUIRE( st.get<lua_Number>( -1 ) == 5.0 );
-    REQUIRE( st.get<lua_Number>( -2 ) == 7.1 );
+    REQUIRE( st.get<int>( -2 ) == nothing );
+    REQUIRE( st.get<double>( -1 ) == 5.0 );
+    REQUIRE( st.get<double>( -2 ) == 7.1 );
     REQUIRE( st.get<string>( -1 ) == "5.0" );
     REQUIRE( st.get<string>( -2 ) == "7.1" );
     // Lua changes the value on the stack when we convert to a
@@ -412,10 +412,10 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( st.type_of( -2 ) == e_lua_type::string );
     REQUIRE( st.get<bool>( -1 ) == true );
     REQUIRE( st.get<bool>( -2 ) == true );
-    REQUIRE( st.get<lua_Integer>( -1 ) == nothing );
-    REQUIRE( st.get<lua_Integer>( -2 ) == 5 );
-    REQUIRE( st.get<lua_Number>( -1 ) == nothing );
-    REQUIRE( st.get<lua_Number>( -2 ) == 5.0 );
+    REQUIRE( st.get<int>( -1 ) == nothing );
+    REQUIRE( st.get<int>( -2 ) == 5 );
+    REQUIRE( st.get<double>( -1 ) == nothing );
+    REQUIRE( st.get<double>( -2 ) == 5.0 );
     REQUIRE( st.get<string>( -1 ) == "hello" );
     REQUIRE( st.get<string>( -2 ) == "5" );
     st.pop();
@@ -452,7 +452,7 @@ TEST_CASE( "[lua-c-api] call" ) {
     st.call( /*nargs=*/0, /*nresults=*/1 );
     REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.type_of( -1 ) == e_lua_type::number );
-    REQUIRE( st.get<lua_Integer>( -1 ) == 42 );
+    REQUIRE( st.get<int>( -1 ) == 42 );
     st.pop();
   }
 
@@ -471,7 +471,7 @@ TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( st.type_of( -1 ) == e_lua_type::string );
     REQUIRE( st.type_of( -2 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "hello" );
-    REQUIRE( st.get<lua_Integer>( -2 ) == 42 );
+    REQUIRE( st.get<int>( -2 ) == 42 );
     st.pop();
     st.pop();
   }
@@ -493,7 +493,7 @@ TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( st.type_of( -3 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "world" );
     REQUIRE( st.get<string>( -2 ) == "hello" );
-    REQUIRE( st.get<lua_Integer>( -3 ) == 42 );
+    REQUIRE( st.get<int>( -3 ) == 42 );
     st.pop();
     st.pop();
     st.pop();
@@ -553,7 +553,7 @@ TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( st.type_of( -1 ) == e_lua_type::string );
     REQUIRE( st.type_of( -2 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "hello world" );
-    REQUIRE( st.get<lua_Number>( -2 ) == 43 );
+    REQUIRE( st.get<double>( -2 ) == 43 );
     st.pop();
     st.pop();
   }
@@ -588,7 +588,7 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( st.pcall( /*nargs=*/0, /*nresults=*/1 ) == valid );
     REQUIRE( st.stack_size() == 1 );
     REQUIRE( st.type_of( -1 ) == e_lua_type::number );
-    REQUIRE( st.get<lua_Integer>( -1 ) == 42 );
+    REQUIRE( st.get<int>( -1 ) == 42 );
     st.pop();
   }
 
@@ -607,7 +607,7 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( st.type_of( -1 ) == e_lua_type::string );
     REQUIRE( st.type_of( -2 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "hello" );
-    REQUIRE( st.get<lua_Integer>( -2 ) == 42 );
+    REQUIRE( st.get<int>( -2 ) == 42 );
     st.pop();
     st.pop();
   }
@@ -630,7 +630,7 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( st.type_of( -3 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "world" );
     REQUIRE( st.get<string>( -2 ) == "hello" );
-    REQUIRE( st.get<lua_Integer>( -3 ) == 42 );
+    REQUIRE( st.get<int>( -3 ) == 42 );
     st.pop();
     st.pop();
     st.pop();
@@ -714,7 +714,7 @@ TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( st.type_of( -1 ) == e_lua_type::string );
     REQUIRE( st.type_of( -2 ) == e_lua_type::number );
     REQUIRE( st.get<string>( -1 ) == "hello world" );
-    REQUIRE( st.get<lua_Number>( -2 ) == 43 );
+    REQUIRE( st.get<double>( -2 ) == 43 );
     st.pop();
     st.pop();
   }
@@ -724,8 +724,8 @@ TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::nil ) == "nil" );
   REQUIRE( fmt::format( "{}", e_lua_type::boolean ) ==
            "boolean" );
-  REQUIRE( fmt::format( "{}", e_lua_type::light_userdata ) ==
-           "light_userdata" );
+  REQUIRE( fmt::format( "{}", e_lua_type::lightuserdata ) ==
+           "lightuserdata" );
   REQUIRE( fmt::format( "{}", e_lua_type::number ) == "number" );
   REQUIRE( fmt::format( "{}", e_lua_type::string ) == "string" );
   REQUIRE( fmt::format( "{}", e_lua_type::table ) == "table" );
@@ -1081,6 +1081,11 @@ TEST_CASE( "[lua-c-api] error" ) {
     // clang-format on
     REQUIRE( st.pcall( 0, 0 ) == lua_invalid( err ) );
   }
+}
+
+TEST_CASE( "[lua-c-api] constants" ) {
+  REQUIRE( c_api::noref() == LUA_NOREF );
+  REQUIRE( c_api::multret() == LUA_MULTRET );
 }
 
 } // namespace

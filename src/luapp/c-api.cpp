@@ -38,7 +38,7 @@ using ::base::nothing;
 
 // Not sure if these are mandatory, but if they fail they will at
 // least alert us that something has changed.
-static_assert( sizeof( lua_Integer ) == sizeof( long long ) );
+static_assert( sizeof( integer ) == sizeof( long long ) );
 static_assert( sizeof( long long ) >= 8 );
 
 // This is used when we are pushing values onto the stack and all
@@ -298,6 +298,8 @@ auto c_api::pinvoke( int ninputs,
   }
 }
 
+int c_api::multret() noexcept { return LUA_MULTRET; }
+
 lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   CHECK( nargs >= 0 );
   CHECK( nresults >= 0 || nresults == LUA_MULTRET );
@@ -352,21 +354,20 @@ void c_api::push( LuaCFunction* f, int upvalues ) noexcept {
   lua_pushcclosure( L, f, upvalues );
 }
 
-void c_api::push( base::safe::void_p p ) noexcept {
+void c_api::push( void_p p ) noexcept {
   lua_pushlightuserdata( L, p );
 }
 
-void c_api::push( base::safe::boolean b ) noexcept {
+void c_api::push( boolean b ) noexcept {
   int b_int = b; // just to make it explicit.
   lua_pushboolean( L, b_int );
 }
 
-void c_api::push(
-    base::safe::integral<lua_Integer> n ) noexcept {
+void c_api::push( integer n ) noexcept {
   lua_pushinteger( L, n );
 }
 
-void c_api::push( base::safe::floating<lua_Number> d ) noexcept {
+void c_api::push( floating d ) noexcept {
   lua_pushnumber( L, d );
 }
 
@@ -424,12 +425,12 @@ e_lua_type c_api::getfield( int         table_idx,
   return lua_type_to_enum( lua_getfield( L, table_idx, k ) );
 }
 
-e_lua_type c_api::rawgeti( int idx, lua_Integer n ) noexcept {
+e_lua_type c_api::rawgeti( int idx, integer n ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_rawgeti( L, idx, n ) );
 }
 
-void c_api::rawseti( int idx, lua_Integer n ) noexcept {
+void c_api::rawseti( int idx, integer n ) noexcept {
   validate_index( idx );
   lua_rawseti( L, idx, n );
 }
@@ -447,8 +448,7 @@ bool c_api::get( int idx, bool* ) const noexcept {
   return bool( i );
 }
 
-maybe<lua_Integer> c_api::get( int idx,
-                               lua_Integer* ) const noexcept {
+maybe<integer> c_api::get( int idx, integer* ) const noexcept {
   validate_index( idx );
   int is_num = 0;
   // Converts the Lua value at the given index to the signed in-
@@ -458,22 +458,21 @@ maybe<lua_Integer> c_api::get( int idx,
   // not NULL, its referent is assigned a boolean value that in-
   // dicates whether the operation succeeded.
   // [-0, +0, –]
-  lua_Integer i = lua_tointegerx( L, idx, &is_num );
+  integer i = lua_tointegerx( L, idx, &is_num );
   if( is_num != 0 ) return i;
   return nothing;
 }
 
 base::maybe<int> c_api::get( int idx, int* ) const noexcept {
   validate_index( idx );
-  auto i = get<lua_Integer>( idx );
+  auto i = get<integer>( idx );
   if( i )
     return (int)*i;
   else
     return nothing;
 }
 
-maybe<lua_Number> c_api::get( int idx,
-                              lua_Number* ) const noexcept {
+maybe<double> c_api::get( int idx, double* ) const noexcept {
   validate_index( idx );
   int is_num = 0;
   // lua_tonumberx: [-0, +0, –]
@@ -485,7 +484,7 @@ maybe<lua_Number> c_api::get( int idx,
   //
   // If isnum is not NULL, its referent is assigned a boolean
   // value that indicates whether the operation succeeded.
-  lua_Number num = lua_tonumberx( L, idx, &is_num );
+  double num = lua_tonumberx( L, idx, &is_num );
   if( is_num != 0 ) return num;
   return nothing;
 }
@@ -550,7 +549,7 @@ e_lua_type c_api::lua_type_to_enum( int type ) const noexcept {
   return static_cast<e_lua_type>( type );
 }
 
-e_lua_type c_api::geti( int idx, lua_Integer i ) noexcept {
+e_lua_type c_api::geti( int idx, integer i ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_geti( L, idx, i ) );
 }
@@ -695,5 +694,7 @@ void c_api::error() noexcept( false ) { lua_error( L ); }
 void c_api::error( std::string const& msg ) noexcept( false ) {
   luaL_error( L, msg.c_str() );
 }
+
+int c_api::noref() noexcept { return LUA_NOREF; }
 
 } // namespace luapp

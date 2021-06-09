@@ -15,9 +15,6 @@
 #include "base/safe-num.hpp"
 #include "base/valid.hpp"
 
-// Lua
-#include "lua.h"
-
 struct lua_State;
 
 namespace luapp {
@@ -55,15 +52,15 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
 ** Lua types
 *****************************************************************/
 enum class e_lua_type {
-  nil            = 0,
-  boolean        = 1,
-  light_userdata = 2,
-  number         = 3,
-  string         = 4,
-  table          = 5,
-  function       = 6,
-  userdata       = 7,
-  thread         = 8
+  nil           = 0,
+  boolean       = 1,
+  lightuserdata = 2,
+  number        = 3,
+  string        = 4,
+  table         = 5,
+  function      = 6,
+  userdata      = 7,
+  thread        = 8
 };
 
 void to_str( luapp::e_lua_type t, std::string& out );
@@ -85,8 +82,9 @@ void to_str( luapp::nil_t, std::string& out );
 ** Numeric types
 *****************************************************************/
 using boolean  = base::safe::boolean;
-using integer  = base::safe::integral<lua_Integer>;
-using floating = base::safe::floating<lua_Number>;
+using integer  = base::safe::integer<long long>;
+using floating = base::safe::floating<double>;
+using void_p   = base::safe::void_p;
 
 /****************************************************************
 ** function signatures

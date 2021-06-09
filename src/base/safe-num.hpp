@@ -71,8 +71,8 @@ private:
 };
 
 template<typename T>
-struct integral {
-  integral() = delete;
+struct integer {
+  integer() = delete;
 
   // clang-format off
   template<typename U>
@@ -81,10 +81,10 @@ struct integral {
            !std::is_same_v<U, bool> &&
             sizeof( U ) <= sizeof( T ) &&
             std::is_signed_v<T> == std::is_signed_v<U> )
-  integral( U n ) noexcept : value_( n ) {}
+  integer( U n ) noexcept : value_( n ) {}
   // clang-format on
 
-  auto operator<=>( integral const& ) const = default;
+  auto operator<=>( integer const& ) const = default;
 
   operator T() const noexcept { return value_; }
 
@@ -120,7 +120,7 @@ private:
 
 DEFINE_FORMAT( base::safe::void_p, "{}", o.get() );
 DEFINE_FORMAT( base::safe::boolean, "{}", o.get() );
-DEFINE_FORMAT_T( ( T ), (base::safe::integral<T>), "{}",
+DEFINE_FORMAT_T( ( T ), (base::safe::integer<T>), "{}",
                  o.get() );
 DEFINE_FORMAT_T( ( T ), (base::safe::floating<T>), "{}",
                  o.get() );

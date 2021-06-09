@@ -205,7 +205,7 @@ int state::call( Args&&... args ) {
 
   ( C.push( std::forward<Args>( args ) ), ... );
   C.call( /*nargs=*/sizeof...( Args ),
-          /*nresults=*/LUA_MULTRET );
+          /*nresults=*/c_api::multret() );
 
   int nresults = C.stack_size() - starting_stack_size;
   CHECK_GE( nresults, 0 );
@@ -221,7 +221,7 @@ lua_expect<int> state::pcall( Args&&... args ) noexcept {
 
   ( C.push( std::forward<Args>( args ) ), ... );
   HAS_VALUE_OR_RET( C.pcall( /*nargs=*/sizeof...( Args ),
-                             /*nresults=*/LUA_MULTRET ) );
+                             /*nresults=*/c_api::multret() ) );
 
   int nresults = C.stack_size() - starting_stack_size;
   CHECK_GE( nresults, 0 );

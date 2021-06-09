@@ -15,10 +15,6 @@
 
 // base
 #include "base/maybe.hpp"
-#include "base/safe-num.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 namespace luapp {
 
@@ -68,6 +64,9 @@ struct c_api {
   /**************************************************************
   ** call / pcall
   ***************************************************************/
+  // Returns the LUA_MULTRET constant.
+  static int multret() noexcept;
+
   // Calls (-nargs-1)( ... )
   void call( int nargs, int nresults ) noexcept;
 
@@ -85,15 +84,15 @@ struct c_api {
 
   void push( nil_t ) noexcept;
   void push( LuaCFunction* f, int upvalues = 0 ) noexcept;
-  void push( base::safe::void_p p ) noexcept;
+  void push( void_p p ) noexcept;
   // We need to take these "safe" versions otherwise we get im-
   // plicit conversions and ambiguities that mess things up. Note
   // that we don't have one for unsigned integers, since Lua does
   // not support those (it used to, but they are deprecated). You
   // have to cast to one of the signed types before pushing.
-  void push( base::safe::boolean b ) noexcept;
-  void push( base::safe::integral<lua_Integer> n ) noexcept;
-  void push( base::safe::floating<lua_Number> d ) noexcept;
+  void push( boolean b ) noexcept;
+  void push( integer n ) noexcept;
+  void push( floating d ) noexcept;
 
   // We do not have an overload that takes a char const* because
   // then it has to be zero-terminated, which means that Lua has
@@ -147,11 +146,11 @@ struct c_api {
 
   // Pushes (idx)[n] onto the stack without invoking __index, and
   // returns type of value pushed.
-  e_lua_type rawgeti( int idx, lua_Integer n ) noexcept;
+  e_lua_type rawgeti( int idx, integer n ) noexcept;
 
   // Does (idx)[n] = -1, but does not invoke the __newindex
   // metamethod. Pops the value from the stack.
-  void rawseti( int idx, lua_Integer n ) noexcept;
+  void rawseti( int idx, integer n ) noexcept;
 
   /**************************************************************
   ** get/set globals
@@ -189,11 +188,16 @@ struct c_api {
   // at the given index. As in Lua, this function may trigger a
   // metamethod for the "index" event.4). Returns the type of the
   // pushed value.
-  e_lua_type geti( int idx, lua_Integer i ) noexcept;
+  e_lua_type geti( int idx, integer i ) noexcept;
 
   /**************************************************************
   ** registry references
   ***************************************************************/
+  // Returns a value that will never be held by any valid reg-
+  // istry reference. This can be thought of as a kind of "null"
+  // for registry references.
+  static int noref() noexcept;
+
   // Creates and returns a reference, in the table at index t,
   // for the object at the top of the stack (and pops the ob-
   // ject).
@@ -321,13 +325,11 @@ struct c_api {
   void error( std::string const& msg ) noexcept( false );
 
 private:
-  bool                     get( int idx, bool* ) const noexcept;
-  base::maybe<lua_Integer> get( int idx,
-                                lua_Integer* ) const noexcept;
+  bool                 get( int idx, bool* ) const noexcept;
+  base::maybe<integer> get( int idx, integer* ) const noexcept;
   // This is for when you know the result will fit into an int.
-  base::maybe<int>         get( int idx, int* ) const noexcept;
-  base::maybe<lua_Number>  get( int idx,
-                                lua_Number* ) const noexcept;
+  base::maybe<int>    get( int idx, int* ) const noexcept;
+  base::maybe<double> get( int idx, double* ) const noexcept;
   base::maybe<std::string> get( int idx,
                                 std::string* ) const noexcept;
   // This is done as light userdata.

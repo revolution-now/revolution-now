@@ -29,7 +29,7 @@ namespace luapp {
 // clang-format off
 ASSERT_MATCH( nil,            LUA_TNIL           );
 ASSERT_MATCH( boolean,        LUA_TBOOLEAN       );
-ASSERT_MATCH( light_userdata, LUA_TLIGHTUSERDATA );
+ASSERT_MATCH( lightuserdata, LUA_TLIGHTUSERDATA );
 ASSERT_MATCH( number,         LUA_TNUMBER        );
 ASSERT_MATCH( string,         LUA_TSTRING        );
 ASSERT_MATCH( table,          LUA_TTABLE         );
@@ -58,7 +58,7 @@ void to_str( luapp::e_lua_type t, string& out ) {
   switch( t ) {
     TYPE_CASE( nil );
     TYPE_CASE( boolean );
-    TYPE_CASE( light_userdata );
+    TYPE_CASE( lightuserdata );
     TYPE_CASE( number );
     TYPE_CASE( string );
     TYPE_CASE( table );
