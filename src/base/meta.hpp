@@ -168,6 +168,26 @@ using callable_arg_types_t =
     typename callable_traits<F>::arg_types;
 
 /****************************************************************
+** Make function type from type_list of args.
+*****************************************************************/
+namespace detail {
+
+template<typename Ret, typename... Args>
+struct func_type_from_typelist;
+
+template<typename Ret, typename... Args>
+struct func_type_from_typelist<Ret, type_list<Args...>> {
+  using type = Ret( Args... );
+};
+
+} // namespace detail
+
+template<typename Ret, typename TypeList>
+using function_type_from_typelist_t =
+    typename detail::func_type_from_typelist<Ret,
+                                             TypeList>::type;
+
+/****************************************************************
 ** List contains element
 *****************************************************************/
 namespace detail {
@@ -345,7 +365,7 @@ inline constexpr bool has_reserve_method<
 //     [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
 //       ... Do some work...
 //       ... with Idx available as a compile-time constant...
-//     } );
+//     };
 //
 //   for_index_seq<5>( func );
 //

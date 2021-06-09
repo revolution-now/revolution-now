@@ -126,6 +126,26 @@ static_assert(
 } // namespace callable_traits_test
 
 /****************************************************************
+** Make function type from type_list of args.
+*****************************************************************/
+static_assert(
+    is_same_v<function_type_from_typelist_t<void, type_list<>>,
+              void()> );
+static_assert(
+    is_same_v<function_type_from_typelist_t<int, type_list<>>,
+              int()> );
+static_assert(
+    is_same_v<
+        function_type_from_typelist_t<void, type_list<char>>,
+        void( char )> );
+static_assert( is_same_v<function_type_from_typelist_t<
+                             void, type_list<int, float>>,
+                         void( int, float )> );
+static_assert( is_same_v<function_type_from_typelist_t<
+                             double, type_list<int const&>>,
+                         double( int const& )> );
+
+/****************************************************************
 ** List contains element
 *****************************************************************/
 static_assert( list_contains_v<type_list<>, int> == false );
