@@ -690,4 +690,10 @@ bool c_api::getupvalue( int funcindex, int n ) noexcept {
   return ( name != nullptr );
 }
 
+void c_api::error() noexcept( false ) { lua_error( L ); }
+
+void c_api::error( std::string const& msg ) noexcept( false ) {
+  luaL_error( L, msg.c_str() );
+}
+
 } // namespace luapp

@@ -1048,5 +1048,40 @@ TEST_CASE(
   REQUIRE( st.testudata( -1, "hello" ) != nullptr );
 }
 
+TEST_CASE( "[lua-c-api] error" ) {
+  c_api st;
+
+  SECTION( "error push" ) {
+    st.push( []( lua_State* L ) -> int {
+      c_api C( L, /*own=*/false );
+      C.push( "this is an error." );
+      C.error();
+      return 0;
+    } );
+    // clang-format off
+    char const* err =
+      "this is an error.\n"
+      "stack traceback:\n"
+      "\t[C]: in ?";
+    // clang-format on
+    REQUIRE( st.pcall( 0, 0 ) == lua_invalid( err ) );
+  }
+
+  SECTION( "error arg" ) {
+    st.push( []( lua_State* L ) -> int {
+      c_api C( L, /*own=*/false );
+      C.error( "this is an error." );
+      return 0;
+    } );
+    // clang-format off
+    char const* err =
+      "this is an error.\n"
+      "stack traceback:\n"
+      "\t[C]: in ?";
+    // clang-format on
+    REQUIRE( st.pcall( 0, 0 ) == lua_invalid( err ) );
+  }
+}
+
 } // namespace
 } // namespace luapp

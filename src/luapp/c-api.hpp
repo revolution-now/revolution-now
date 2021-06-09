@@ -309,6 +309,20 @@ struct c_api {
   lua_valid enforce_type_of( int        idx,
                              e_lua_type type ) const noexcept;
 
+  /**************************************************************
+  ** error
+  ***************************************************************/
+  // Generates a Lua error, using the value at the top of the
+  // stack as the error object. This function does a long jump,
+  // and therefore never returns (see luaL_error).
+  //
+  // These are not noexcept because, in general, Lua needs to be
+  // able to throw from these functions. This matters when we
+  // need to call one of these from a Lua C function to throw a
+  // Lua error that can be caught by Lua.
+  void error() noexcept( false );
+  void error( std::string const& msg ) noexcept( false );
+
 private:
   bool                     get( int idx, bool* ) const noexcept;
   base::maybe<lua_Integer> get( int idx,
