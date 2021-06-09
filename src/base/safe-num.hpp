@@ -13,6 +13,9 @@
 
 #include "config.hpp"
 
+// base
+#include "fmt.hpp"
+
 // C++ standard library
 #include <compare>
 
@@ -28,14 +31,16 @@ struct boolean {
   // clang-format off
   template<typename U>
   requires( std::is_same_v<U, bool> )
-  boolean( U b ) : value_( b ) {}
+  boolean( U b ) noexcept : value_( b ) {}
   // clang-format on
 
   auto operator<=>( boolean const& ) const = default;
 
-  operator bool() const { return value_; }
+  operator bool() const noexcept { return value_; }
 
-  bool operator!() const { return !value_; }
+  bool operator!() const noexcept { return !value_; }
+
+  bool get() const noexcept { return value_; }
 
 private:
   bool value_;
@@ -52,12 +57,14 @@ struct integral {
            !std::is_same_v<U, bool> &&
             sizeof( U ) <= sizeof( T ) &&
             std::is_signed_v<T> == std::is_signed_v<U> )
-  integral( U n ) : value_( n ) {}
+  integral( U n ) noexcept : value_( n ) {}
   // clang-format on
 
   auto operator<=>( integral const& ) const = default;
 
-  operator T() const { return value_; }
+  operator T() const noexcept { return value_; }
+
+  bool get() const noexcept { return value_; }
 
 private:
   T value_;
@@ -72,15 +79,23 @@ struct floating {
   requires( std::is_floating_point_v<U> &&
             std::is_constructible_v<T, U> &&
             sizeof( U ) <= sizeof( T ) )
-  floating( U n ) : value_( n ) {}
+  floating( U n ) noexcept : value_( n ) {}
   // clang-format on
 
   auto operator<=>( floating const& ) const = default;
 
-  operator T() const { return value_; }
+  operator T() const noexcept { return value_; }
+
+  bool get() const noexcept { return value_; }
 
 private:
   T value_;
 };
 
 } // namespace base::safe
+
+DEFINE_FORMAT( base::safe::boolean, "{}", o.get() );
+DEFINE_FORMAT_T( ( T ), (base::safe::integral<T>), "{}",
+                 o.get() );
+DEFINE_FORMAT_T( ( T ), (base::safe::floating<T>), "{}",
+                 o.get() );

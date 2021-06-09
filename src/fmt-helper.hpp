@@ -23,7 +23,6 @@
 #include "base/source-loc.hpp"
 
 // base-util
-#include "base-util/pp.hpp"
 #include "base-util/string.hpp"
 
 // {fmt}

@@ -12,6 +12,9 @@
 
 #include "config.hpp"
 
+// base-util
+#include "base-util/pp.hpp"
+
 // {fmt}
 #include "fmt/format.h"
 
