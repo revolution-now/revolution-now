@@ -15,6 +15,7 @@
 
 // base
 #include "base/error.hpp"
+#include "base/lambda.hpp"
 
 // Lua
 #include "lauxlib.h"
@@ -22,54 +23,234 @@
 
 using namespace std;
 
+#undef L
+
 namespace luapp {
+
+namespace {
+
+// Expects value to be pushed onto stack of L.
+string call_tostring( lua_State* L ) noexcept {
+  c_api       C   = c_api::view( L );
+  size_t      len = 0;
+  char const* p   = C.tostring( -1, &len );
+  string_view sv( p, len );
+  string      res = string( sv );
+  C.pop();
+  return res;
+}
+
+/****************************************************************
+** scratch lua state
+*****************************************************************/
+// The Lua state returned here should ONLY be used to do simple
+// things such as compare value types. It should not be used to
+// hold any objects and nothing in its state should be changed.
+//
+// This state is never reset or released.
+c_api& scratch_state() {
+  static c_api& C = []() -> c_api& {
+    static c_api C = c_api::view( luaL_newstate() );
+    // Kill the global table.
+    C.push( nil );
+    C.rawseti( LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS );
+    CHECK( C.stack_size() == 0 );
+    C.pushglobaltable();
+    CHECK( C.type_of( -1 ) == e_lua_type::nil );
+    C.pop();
+    return C;
+  }();
+  return C;
+}
+
+} // namespace
+
+/****************************************************************
+** value types
+*****************************************************************/
+namespace {
+
+template<typename Left, typename Right>
+bool eq_value_and_value( Left const& l, Right const& r ) {
+  c_api& C = scratch_state();
+  C.push( l );
+  C.push( r );
+  bool res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
+}
+
+} // namespace
+
+#define EQ_VAL_VAL_IMPL( left_t, right_t )               \
+  bool operator==( left_t const& l, right_t const& r ) { \
+    return eq_value_and_value( l, r );                   \
+  }
+
+EQ_VAL_VAL_IMPL( nil_t, boolean );
+EQ_VAL_VAL_IMPL( nil_t, lightuserdata );
+EQ_VAL_VAL_IMPL( nil_t, integer );
+EQ_VAL_VAL_IMPL( nil_t, floating );
+EQ_VAL_VAL_IMPL( boolean, lightuserdata );
+EQ_VAL_VAL_IMPL( boolean, integer );
+EQ_VAL_VAL_IMPL( boolean, floating );
+EQ_VAL_VAL_IMPL( lightuserdata, integer );
+EQ_VAL_VAL_IMPL( lightuserdata, floating );
+EQ_VAL_VAL_IMPL( integer, floating );
 
 /****************************************************************
 ** reference
 *****************************************************************/
-reference::reference( lua_State* st, int ref )
-  : L( st ), ref_( ref ) {}
+reference::reference( lua_State* st, int ref,
+                      e_lua_type type ) noexcept
+  : L( st ), ref_( ref ) {
+#ifndef NDEBUG
+  // In debug mode, check that we have the right type.
+  c_api C = c_api::view( L );
+  C.registry_get( ref_ );
+  CHECK( C.type_of( -1 ) == type );
+  C.pop();
+#else
+  (void)type;
+#endif
+}
 
 reference::~reference() noexcept { release(); }
 
 void reference::release() noexcept {
-  if( ref_ != LUA_NOREF ) {
-    luaL_unref( L, LUA_REGISTRYINDEX, ref_ );
-    ref_ = LUA_NOREF;
-  }
+  CHECK( ref_ != LUA_NOREF );
+  c_api C = c_api::view( L );
+  C.unref_registry( ref_ );
 }
 
-reference::reference( reference&& rhs ) noexcept
-  : L( rhs.L ), ref_( std::exchange( rhs.ref_, LUA_NOREF ) ) {}
+reference::reference( reference const& rhs ) noexcept
+  : L( rhs.L ) {
+  rhs.push();
+  c_api C = c_api::view( L );
+  ref_    = C.ref_registry();
+}
 
-reference& reference::operator=( reference&& rhs ) noexcept {
+reference& reference::operator=(
+    reference const& rhs ) noexcept {
   if( this == &rhs ) return *this;
-  if( ref_ != LUA_NOREF ) {
-    // We have a reference already.
-    if( L == rhs.L ) {
-      // If we referring to the same Lua state then we should
-      // never be holding the same reference as the rhs (unless
-      // it's LUA_NOREF which we've already checked).
-      CHECK( ref_ != rhs.ref_ );
-    }
-    release();
-  }
-  L    = rhs.L;
-  ref_ = rhs.ref_;
-  rhs.release();
+  // If we're different objects then we should never be holding
+  // the same reference, even if they refer to the same under-
+  // lying object.
+  CHECK( ref_ != rhs.ref_ );
+  release();
+  L = rhs.L;
+  rhs.push();
+  c_api C = c_api::view( L );
+  ref_    = C.ref_registry();
   return *this;
-}
-
-reference::operator bool() const noexcept {
-  return ref_ != LUA_NOREF;
 }
 
 int reference::noref() noexcept { return c_api::noref(); }
 
-void reference::push() const noexcept {
-  c_api C( L, /*own=*/false );
-  C.registry_get( ref_ );
+e_lua_type reference::push() const noexcept {
+  c_api C = c_api::view( L );
+  return C.registry_get( ref_ );
 }
+
+lua_State* reference::lua_state() const noexcept { return L; }
+
+bool operator==( reference const& lhs, reference const& rhs ) {
+  CHECK( lhs.lua_state() == rhs.lua_state(),
+         "not sure if it is OK to push values with different "
+         "states and then try to compare them.  Need to "
+         "investigate this more." );
+  lhs.push();
+  rhs.push();
+  c_api C   = c_api::view( lhs.lua_state() );
+  bool  res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
+}
+
+namespace {
+
+template<typename T>
+bool ref_op_eq( reference const& r, T const& o ) {
+  c_api C = c_api::view( r.lua_state() );
+  r.push();
+  C.push( o );
+  bool res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
+}
+
+} // namespace
+
+bool operator==( reference const& r, nil_t o ) {
+  return ref_op_eq( r, o );
+}
+
+bool operator==( reference const& r, boolean const& o ) {
+  return ref_op_eq( r, o );
+}
+
+bool operator==( reference const& r, lightuserdata const& o ) {
+  return ref_op_eq( r, o );
+}
+
+bool operator==( reference const& r, integer const& o ) {
+  return ref_op_eq( r, o );
+}
+
+bool operator==( reference const& r, floating const& o ) {
+  return ref_op_eq( r, o );
+}
+
+/****************************************************************
+** table
+*****************************************************************/
+table::table( lua_State* st, int ref ) noexcept
+  : reference( st, ref, e_lua_type::table ) {}
+
+/****************************************************************
+** lstring
+*****************************************************************/
+lstring::lstring( lua_State* st, int ref ) noexcept
+  : reference( st, ref, e_lua_type::string ) {}
+
+string lstring::as_cpp() const {
+  c_api C = c_api::view( L );
+  push();
+  CHECK( C.type_of( -1 ) == e_lua_type::string );
+  UNWRAP_CHECK( res, C.get<string>( -1 ) );
+  C.pop();
+  return res;
+}
+
+bool lstring::operator==( char const* s ) const {
+  return as_cpp() == s;
+}
+
+bool lstring::operator==( string_view s ) const {
+  return as_cpp() == s;
+}
+
+bool lstring::operator==( string const& s ) const {
+  return as_cpp() == s;
+}
+
+/****************************************************************
+** lfunction
+*****************************************************************/
+lfunction::lfunction( lua_State* st, int ref ) noexcept
+  : reference( st, ref, e_lua_type::function ) {}
+
+/****************************************************************
+** userdata
+*****************************************************************/
+userdata::userdata( lua_State* st, int ref ) noexcept
+  : reference( st, ref, e_lua_type::userdata ) {}
+
+/****************************************************************
+** lthread
+*****************************************************************/
+lthread::lthread( lua_State* st, int ref ) noexcept
+  : reference( st, ref, e_lua_type::thread ) {}
 
 /****************************************************************
 ** thing
@@ -105,56 +286,48 @@ thing::operator bool() const noexcept {
   }
 }
 
+void thing::push( lua_State* L ) const noexcept {
+  this->visit( [&]<typename T>( T&& o ) {
+    if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
+      CHECK( o.lua_state() == L );
+      o.push();
+    } else {
+      c_api C = c_api::view( L );
+      C.push( o );
+    }
+  } );
+}
+
+string thing::tostring() const noexcept {
+  lua_State* L = nullptr;
+  this->visit( [&]<typename T>( T&& o ) {
+    if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
+      L = o.lua_state();
+    } else {
+      c_api& C = scratch_state();
+      L        = C.state();
+    }
+  } );
+  push( L );
+  return call_tostring( L );
+}
 
 bool thing::operator==( thing const& rhs ) const noexcept {
-  return std::visit(
-      []( auto const& l, auto const& r ) {
-        using left_t  = std::remove_cvref_t<decltype( l )>;
-        using right_t = std::remove_cvref_t<decltype( r )>;
-        if constexpr( std::is_same_v<left_t, right_t> )
-          return ( l == r );
-        else if constexpr( std::is_convertible_v<
-                               left_t const&, right_t const&> )
-          return ( static_cast<right_t const&>( l ) == r );
-        else if constexpr( std::is_convertible_v<right_t const&,
-                                                 left_t const&> )
-          return ( l == static_cast<left_t const&>( r ) );
-        else
-          return false;
-      },
-      this->as_std(), rhs.as_std() );
+  if( this == &rhs ) return true;
+  return std::visit( L2( _1 == _2 ), this->as_std(),
+                     rhs.as_std() );
 }
 
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( table const& o, std::string& out ) {
-  (void)o;
-  out += "<table>";
+void to_str( reference const& r, string& out ) {
+  r.push();
+  out += call_tostring( r.lua_state() );
 }
 
-void to_str( lstring const& o, std::string& out ) {
-  (void)o;
-  out += "<string>";
-}
-
-void to_str( lfunction const& o, std::string& out ) {
-  (void)o;
-  out += "<function>";
-}
-
-void to_str( userdata const& o, std::string& out ) {
-  (void)o;
-  out += "<userdata>";
-}
-
-void to_str( lthread const& o, std::string& out ) {
-  (void)o;
-  out += "<thread>";
-}
-
-void to_str( lightuserdata const& o, std::string& out ) {
-  out += fmt::format( "<lightuserdata:{}>", o.get() );
+void to_str( thing const& th, std::string& out ) {
+  out += th.tostring();
 }
 
 } // namespace luapp

@@ -25,157 +25,149 @@
 
 namespace luapp {
 
+/****************************************************************
+** value types
+*****************************************************************/
+bool operator==( nil_t const& l, boolean const& r );
+bool operator==( nil_t const& l, lightuserdata const& r );
+bool operator==( nil_t const& l, integer const& r );
+bool operator==( nil_t const& l, floating const& r );
+bool operator==( boolean const& l, lightuserdata const& r );
+bool operator==( boolean const& l, integer const& r );
+bool operator==( boolean const& l, floating const& r );
+bool operator==( lightuserdata const& l, integer const& r );
+bool operator==( lightuserdata const& l, floating const& r );
+bool operator==( integer const& l, floating const& r );
+
+/****************************************************************
+** reference
+*****************************************************************/
 struct reference {
   reference() = delete;
-  reference( lua_State* st, int ref );
   ~reference() noexcept;
 
   void release() noexcept;
 
-  reference( reference&& rhs ) noexcept;
-  reference& operator=( reference&& rhs ) noexcept;
-
-  reference( reference const& ) = delete;
-  reference& operator=( reference const& ) = delete;
-
-  operator bool() const noexcept;
+  reference( reference const& ) noexcept;
+  reference& operator=( reference const& ) noexcept;
 
   // Pushes nil if there is no reference.
-  void push() const noexcept;
+  e_lua_type push() const noexcept;
 
   static int noref() noexcept;
 
+  lua_State* lua_state() const noexcept;
+
 protected:
-  lua_State* L = nullptr; // not owned.
+  reference( lua_State* st, int ref, e_lua_type type ) noexcept;
+
+  lua_State* L; // not owned.
+
 private:
-  int ref_ = noref();
+  int ref_;
 };
 
+bool operator==( reference const& lhs, reference const& rhs );
+
+bool operator==( reference const& r, nil_t );
+bool operator==( reference const& r, boolean const& b );
+bool operator==( reference const& r, lightuserdata const& lud );
+bool operator==( reference const& r, integer const& i );
+bool operator==( reference const& r, floating const& f );
+
+/****************************************************************
+** table
+*****************************************************************/
 struct table : public reference {
   using Base = reference;
 
-  using Base::Base;
-  using Base::operator bool;
+  table( lua_State* st, int ref ) noexcept;
 };
 
+/****************************************************************
+** lstring
+*****************************************************************/
 struct lstring : public reference {
   using Base = reference;
 
-  using Base::Base;
-  using Base::operator bool;
+  lstring( lua_State* st, int ref ) noexcept;
+
+  std::string as_cpp() const;
+
+  bool operator==( char const* s ) const;
+  bool operator==( std::string_view s ) const;
+  bool operator==( std::string const& s ) const;
 };
 
+/****************************************************************
+** lfunction
+*****************************************************************/
 struct lfunction : public reference {
   using Base = reference;
 
-  using Base::Base;
-  using Base::operator bool;
+  lfunction( lua_State* st, int ref ) noexcept;
 };
 
+/****************************************************************
+** userdata
+*****************************************************************/
 struct userdata : public reference {
   using Base = reference;
 
-  using Base::Base;
-  using Base::operator bool;
+  userdata( lua_State* st, int ref ) noexcept;
 };
 
+/****************************************************************
+** lthread
+*****************************************************************/
 struct lthread : public reference {
   using Base = reference;
 
-  using Base::Base;
-  using Base::operator bool;
+  lthread( lua_State* st, int ref ) noexcept;
 };
 
-// This is just a value type.
-struct lightuserdata : public base::safe::void_p {
-  using Base = base::safe::void_p;
-
-  using Base::Base;
-  // using Base::operator==;
-  // using Base::operator void*;
-  using Base::get;
-};
-
+/****************************************************************
+** thing
+*****************************************************************/
 // nil_t should be first so that it is selected as the default.
-using thing_base = base::variant<nil_t,         //
-                                 boolean,       //
-                                 lightuserdata, //
-                                 integer,       //
-                                 floating,      //
-                                 lstring,       //
-                                 table,         //
-                                 lfunction,     //
-                                 userdata,      //
-                                 lthread        //
-                                 >;
+using thing_base =
+    base::variant<nil_t, boolean, lightuserdata, integer,
+                  floating, lstring, table, lfunction, userdata,
+                  lthread>;
 
 struct thing : public thing_base {
   using Base = thing_base;
 
-  // If you are getting an error because of this, that means that
-  // you must explicitely cast the pointer to `void*` before com-
-  // parison so that there is no ambiguity about what it repre-
-  // sents (pointers represent light userdata, not e.g. string
-  // literals).
-  template<typename T>
-  // clang-format off
-  requires( !std::is_same_v<T*, void*> )
-  bool operator==( T* p ) const noexcept = delete;
-  // clang-format on
-
-  template<typename T>
-  // clang-format off
-  requires( !std::is_same_v<thing, std::remove_cvref_t<T>> )
-  bool operator==( T const& rhs ) const noexcept {
-    // clang-format on
-    return this->visit( [&]<typename U>( U&& o ) {
-      using elem_t      = decltype( std::forward<U>( o ) );
-      using elem_base_t = std::remove_cvref_t<elem_t>;
-      if constexpr( std::is_same_v<T, std::remove_cvref_t<U>> ) {
-        static_assert(
-            std::equality_comparable_with<elem_t, T const&> );
-        return ( o == rhs );
-      } else if constexpr( std::is_convertible_v<T const&,
-                                                 elem_t> ) {
-        return ( o == static_cast<elem_t>( rhs ) );
-      } else if constexpr( std::is_convertible_v<elem_t,
-                                                 T const&> ) {
-        return ( static_cast<T const&>( o ) == rhs );
-      } else {
-        return false;
-      }
-    } );
-  }
+  using Base::Base;
+  using Base::operator=;
 
   bool operator==( thing const& rhs ) const noexcept;
 
-  // Follows Lua's rules, where every value is true except for
-  // boolean:false and nil.
-  operator bool() const noexcept;
-
   template<typename T>
-  bool operator!=( T const& rhs ) const noexcept {
-    return !( *this == rhs );
+  // clang-format off
+  requires( !std::is_same_v<thing, T> &&
+             std::is_constructible_v<thing, T const&> )
+  bool operator==( T const& rhs ) const noexcept {
+    // clang-format on
+    return ( *this ) == thing( rhs );
   }
+
+  std::string tostring() const noexcept;
+
+  // Follows Lua's rules, where every value is true except for
+  // false and nil.
+  operator bool() const noexcept;
 
   e_lua_type type() const noexcept;
 
-  /**************************************************************
-  ** Take things that we're not going to call explicitly.
-  ***************************************************************/
-  using Base::Base;
-  using Base::operator=;
+  void push( lua_State* L ) const noexcept;
 };
 
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( table const& o, std::string& out );
-void to_str( lstring const& o, std::string& out );
-void to_str( lfunction const& o, std::string& out );
-void to_str( userdata const& o, std::string& out );
-void to_str( lthread const& o, std::string& out );
-void to_str( lightuserdata const& o, std::string& out );
+void to_str( reference const& r, std::string& out );
+void to_str( thing const& th, std::string& out );
 
 } // namespace luapp
 
@@ -187,6 +179,5 @@ TOSTR_TO_FMT( luapp::lstring );
 TOSTR_TO_FMT( luapp::lfunction );
 TOSTR_TO_FMT( luapp::userdata );
 TOSTR_TO_FMT( luapp::lthread );
-TOSTR_TO_FMT( luapp::lightuserdata );
 
-DEFINE_FORMAT( luapp::thing, "{}", o.as_std() );
+TOSTR_TO_FMT( luapp::thing );

@@ -149,7 +149,7 @@ bool state::push_cpp_function(
     Func&& func, R*, mp::type_list<Args...>* ) noexcept {
   static auto const runner =
       [func = std::move( func )]( lua_State* L ) -> int {
-    c_api C( L, /*own=*/false );
+    c_api C         = c_api::view( L );
     using ArgsTuple = std::tuple<std::remove_cvref_t<Args>...>;
     ArgsTuple args;
 

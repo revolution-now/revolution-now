@@ -70,6 +70,10 @@ private:
   bool value_;
 };
 
+inline bool operator==( boolean l, bool b ) {
+  return l == boolean( b );
+}
+
 template<typename T>
 struct integer {
   integer() = delete;
@@ -94,6 +98,14 @@ private:
   T value_;
 };
 
+// clang-format off
+template<typename T, typename U>
+requires( std::is_integral_v<U> )
+inline bool operator==( integer<T> l, U v ) {
+  // clang-format on
+  return l == integer<T>( v );
+}
+
 template<typename T>
 struct floating {
   floating() = delete;
@@ -115,6 +127,11 @@ struct floating {
 private:
   T value_;
 };
+
+template<typename T>
+inline bool operator==( floating<T> l, T v ) {
+  return l == floating<T>( v );
+}
 
 } // namespace base::safe
 

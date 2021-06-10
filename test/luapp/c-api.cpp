@@ -29,6 +29,7 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 using ::base::valid;
+using ::Catch::Matches;
 
 string lua_testing_file( string const& filename ) {
   return rn::testing::data_dir() / "lua" / filename;
@@ -1053,7 +1054,7 @@ TEST_CASE( "[lua-c-api] error" ) {
 
   SECTION( "error push" ) {
     st.push( []( lua_State* L ) -> int {
-      c_api C( L, /*own=*/false );
+      c_api C = c_api::view( L );
       C.push( "this is an error." );
       C.error();
       return 0;
@@ -1069,7 +1070,7 @@ TEST_CASE( "[lua-c-api] error" ) {
 
   SECTION( "error arg" ) {
     st.push( []( lua_State* L ) -> int {
-      c_api C( L, /*own=*/false );
+      c_api C = c_api::view( L );
       C.error( "this is an error." );
       return 0;
     } );
@@ -1102,6 +1103,241 @@ TEST_CASE( "[lua-c-api] pushvalue" ) {
   REQUIRE( st.stack_size() == 4 );
   REQUIRE( st.get<int>( -1 ) == 5 );
   st.pop( 4 );
+  REQUIRE( st.stack_size() == 0 );
+}
+
+TEST_CASE( "[lua-c-api] compare" ) {
+  c_api st;
+
+  SECTION( "eq" ) {
+    st.push( 5 );
+    st.push( 5 );
+    REQUIRE( st.compare_eq( -2, -1 ) );
+    REQUIRE( st.compare_eq( -1, -2 ) );
+    st.push( 6 );
+    REQUIRE_FALSE( st.compare_eq( -2, -1 ) );
+    REQUIRE_FALSE( st.compare_eq( -1, -2 ) );
+    st.pop( 3 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+
+  SECTION( "lt" ) {
+    st.push( 5 );
+    st.push( 5 );
+    REQUIRE_FALSE( st.compare_lt( -2, -1 ) );
+    REQUIRE_FALSE( st.compare_lt( -1, -2 ) );
+    st.push( 6 );
+    REQUIRE( st.compare_lt( -2, -1 ) );
+    REQUIRE_FALSE( st.compare_lt( -1, -2 ) );
+    st.pop( 3 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+
+  SECTION( "le" ) {
+    st.push( 5 );
+    st.push( 5 );
+    REQUIRE( st.compare_le( -2, -1 ) );
+    REQUIRE( st.compare_le( -1, -2 ) );
+    st.push( 6 );
+    REQUIRE( st.compare_le( -2, -1 ) );
+    REQUIRE_FALSE( st.compare_le( -1, -2 ) );
+    st.pop( 3 );
+    REQUIRE( st.stack_size() == 0 );
+  }
+}
+
+TEST_CASE( "[lua-c-api] concat" ) {
+  c_api st;
+
+  SECTION( "empty" ) {
+    st.concat( 0 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "" );
+    st.pop();
+  }
+
+  SECTION( "single empty string" ) {
+    st.push( "" );
+    st.concat( 1 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "" );
+    st.pop();
+  }
+
+  SECTION( "single non-empty string" ) {
+    st.push( "hello" );
+    st.concat( 1 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello" );
+    st.pop();
+  }
+
+  SECTION( "two strings" ) {
+    st.push( "hello" );
+    st.push( "world" );
+    st.concat( 2 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "helloworld" );
+    st.pop();
+  }
+
+  SECTION( "single nil" ) {
+    st.push( nil );
+    st.concat( 1 );
+    REQUIRE( st.stack_size() == 1 );
+    // no dice.
+    REQUIRE( st.type_of( -1 ) == e_lua_type::nil );
+    st.pop();
+  }
+
+  SECTION( "single bool" ) {
+    st.push( true );
+    st.concat( 1 );
+    REQUIRE( st.stack_size() == 1 );
+    // no dice.
+    REQUIRE( st.type_of( -1 ) == e_lua_type::boolean );
+    REQUIRE( st.get<bool>( -1 ) == true );
+    st.pop();
+  }
+
+  SECTION( "single number" ) {
+    st.push( 5 );
+    st.concat( 1 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::number );
+    st.pop();
+  }
+
+  SECTION( "two numbers" ) {
+    st.push( 5 );
+    st.push( 4.5 );
+    st.concat( 2 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "54.5" );
+    st.pop();
+  }
+
+  SECTION( "numbers and strings" ) {
+    st.push( 5 );
+    st.push( "hello" );
+    st.push( 4.5 );
+    st.push( "4.5" );
+    st.concat( 4 );
+    REQUIRE( st.stack_size() == 1 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "5hello4.54.5" );
+    st.pop();
+  }
+
+  REQUIRE( st.stack_size() == 0 );
+}
+
+TEST_CASE( "[lua-c-api] tostring" ) {
+  c_api  st;
+  size_t len = 10000;
+
+  SECTION( "nil" ) {
+    st.push( nil );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "nil" );
+    REQUIRE( len == 3 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "nil" );
+    st.pop( 2 );
+  }
+
+  SECTION( "empty string" ) {
+    st.push( "" );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "" );
+    REQUIRE( len == 0 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "" );
+    st.pop( 2 );
+  }
+
+  SECTION( "non-empty string" ) {
+    st.push( "hello" );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "hello" );
+    REQUIRE( len == 5 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "hello" );
+    st.pop( 2 );
+  }
+
+  SECTION( "bool" ) {
+    st.push( true );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "true" );
+    REQUIRE( len == 4 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "true" );
+    st.pop( 2 );
+  }
+
+  SECTION( "integer" ) {
+    st.push( 5 );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "5" );
+    REQUIRE( len == 1 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "5" );
+    st.pop( 2 );
+  }
+
+  SECTION( "float" ) {
+    st.push( 5.5 );
+    REQUIRE( string( st.tostring( -1, &len ) ) == "5.5" );
+    REQUIRE( len == 3 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( st.get<string>( -1 ) == "5.5" );
+    st.pop( 2 );
+  }
+
+  SECTION( "table" ) {
+    st.newtable();
+    REQUIRE_THAT( st.tostring( -1, &len ),
+                  Matches( "table: 0x[0-9a-z]+" ) );
+    REQUIRE( len > 9 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE_THAT( *st.get<string>( -1 ),
+                  Matches( "table: 0x[0-9a-z]+" ) );
+    st.pop( 2 );
+  }
+
+  SECTION( "function" ) {
+    st.push( []( lua_State* ) -> int { return 0; } );
+    REQUIRE_THAT( st.tostring( -1, &len ),
+                  Matches( "function: 0x[0-9a-z]+" ) );
+    REQUIRE( len > 12 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE_THAT( *st.get<string>( -1 ),
+                  Matches( "function: 0x[0-9a-z]+" ) );
+    st.pop( 2 );
+  }
+
+  SECTION( "lightuserdata" ) {
+    int x = 0;
+    st.push( (void*)&x );
+    REQUIRE_THAT( st.tostring( -1, &len ),
+                  Matches( "userdata: 0x[0-9a-z]+" ) );
+    REQUIRE( len > 12 );
+    REQUIRE( st.stack_size() == 2 );
+    REQUIRE( st.type_of( -1 ) == e_lua_type::string );
+    REQUIRE_THAT( *st.get<string>( -1 ),
+                  Matches( "userdata: 0x[0-9a-z]+" ) );
+    st.pop( 2 );
+  }
+
   REQUIRE( st.stack_size() == 0 );
 }
 

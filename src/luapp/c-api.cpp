@@ -354,7 +354,7 @@ void c_api::push( LuaCFunction* f, int upvalues ) noexcept {
   lua_pushcclosure( L, f, upvalues );
 }
 
-void c_api::push( void_p p ) noexcept {
+void c_api::push( lightuserdata p ) noexcept {
   lua_pushlightuserdata( L, p );
 }
 
@@ -575,12 +575,12 @@ void c_api::unref_registry( int ref ) noexcept {
   unref( LUA_REGISTRYINDEX, ref );
 }
 
-void c_api::len( int idx ) noexcept {
+void c_api::len( int idx ) {
   validate_index( idx );
   lua_len( L, idx );
 }
 
-int c_api::len_pop( int idx ) noexcept {
+int c_api::len_pop( int idx ) {
   validate_index( idx );
   return luaL_len( L, idx );
 }
@@ -709,6 +709,41 @@ lua_State* c_api::newthread() noexcept {
 void c_api::pushvalue( int idx ) noexcept {
   validate_index( idx );
   lua_pushvalue( L, idx );
+}
+
+c_api c_api::view( lua_State* st ) {
+  return c_api( st, /*own=*/false );
+}
+
+bool c_api::compare_eq( int idx1, int idx2 ) {
+  validate_index( idx1 );
+  validate_index( idx2 );
+  constexpr int op = LUA_OPEQ;
+  return ( lua_compare( L, idx1, idx2, op ) == 1 );
+}
+
+bool c_api::compare_lt( int idx1, int idx2 ) {
+  validate_index( idx1 );
+  validate_index( idx2 );
+  constexpr int op = LUA_OPLT;
+  return ( lua_compare( L, idx1, idx2, op ) == 1 );
+}
+
+bool c_api::compare_le( int idx1, int idx2 ) {
+  validate_index( idx1 );
+  validate_index( idx2 );
+  constexpr int op = LUA_OPLE;
+  return ( lua_compare( L, idx1, idx2, op ) == 1 );
+}
+
+void c_api::concat( int n ) noexcept {
+  enforce_stack_size_ge( n );
+  lua_concat( L, n );
+}
+
+char const* c_api::tostring( int idx, size_t* len ) noexcept {
+  validate_index( idx );
+  return luaL_tolstring( L, idx, len );
 }
 
 } // namespace luapp

@@ -141,7 +141,7 @@ TEST_CASE( "[state] push_function, stateless lua C function" ) {
   c_api& C = st.api();
 
   st.push_function( []( lua_State* L ) -> int {
-    c_api C( L, /*own=*/false );
+    c_api C = c_api::view( L );
     int   n = luaL_checkinteger( L, 1 );
     C.push( n + 1 );
     return 1;
@@ -175,7 +175,7 @@ TEST_CASE( "[state] push_function, stateful lua C function" ) {
 
     bool created = st.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C( L, /*own=*/false );
+          c_api C = c_api::view( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 1 );
           return 1;
@@ -221,7 +221,7 @@ TEST_CASE( "[state] push_function, stateful lua C function" ) {
     // gets reused.
     created = st.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C( L, /*own=*/false );
+          c_api C = c_api::view( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 2 );
           return 1;

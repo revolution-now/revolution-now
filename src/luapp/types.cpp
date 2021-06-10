@@ -49,6 +49,10 @@ void to_str( luapp::nil_t, std::string& out ) {
   out += string_view( "nil" );
 }
 
+void to_str( lightuserdata const& o, std::string& out ) {
+  out += fmt::format( "<lightuserdata:{}>", o.get() );
+}
+
 #define TYPE_CASE( e ) \
   case e_lua_type::e: s = #e; break
 

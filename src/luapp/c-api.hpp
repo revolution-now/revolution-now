@@ -28,9 +28,9 @@ namespace luapp {
 // lua C++ interface.
 struct c_api {
   c_api();
-  // Initialize with a Lua state and whether we own it.
-  c_api( lua_State* state, bool own );
   ~c_api() noexcept;
+
+  static c_api view( lua_State* st );
 
   lua_State* state() const noexcept { return L; }
 
@@ -86,7 +86,7 @@ struct c_api {
 
   void push( nil_t ) noexcept;
   void push( LuaCFunction* f, int upvalues = 0 ) noexcept;
-  void push( void_p p ) noexcept;
+  void push( lightuserdata p ) noexcept;
   // We need to take these "safe" versions otherwise we get im-
   // plicit conversions and ambiguities that mess things up. Note
   // that we don't have one for unsigned integers, since Lua does
@@ -299,10 +299,52 @@ struct c_api {
   // trigger a metamethod for the "length" event (see §2.4). The
   // result is pushed on the stack since it could theoretically
   // be an object of any type (because of the __len metamethod).
-  void len( int idx ) noexcept;
+  void len( int idx );
   // Same as above, but result is popped from the stack and re-
   // turned.
-  int len_pop( int idx ) noexcept;
+  int len_pop( int idx );
+
+  /**************************************************************
+  ** comparison
+  ***************************************************************/
+  // Compares two Lua values. Returns true if the value at index
+  // idx1 satisfies the given operation when compared with the
+  // value at index idx2, following the semantics of the corre-
+  // sponding Lua operator (that is, it may call metamethods).
+  // Otherwise returns false.
+  bool compare_eq( int idx1, int idx2 );
+  bool compare_lt( int idx1, int idx2 );
+  bool compare_le( int idx1, int idx2 );
+
+  /**************************************************************
+  ** string conversion
+  ***************************************************************/
+  // Concatenates the n values at the top of the stack, pops
+  // them, and leaves the result at the top. If n is 1, the re-
+  // sult is the single value on the stack (that is, the function
+  // does nothing)! If n is 0, the result is the empty string.
+  // Concatenation is performed following the usual semantics of
+  // Lua (see §3.4.6). The types must be either strings or num-
+  // bers. Otherwise either the value will be left untouched, or
+  // an error will be thrown (in the case of attempting to con-
+  // catenate an invalid value to a valid value).
+  //
+  // To convert a single value to a string, use tostring.
+  void concat( int n ) noexcept;
+
+  // Converts any Lua value at the given index to a C string in a
+  // reasonable format. The resulting string is pushed onto the
+  // stack and also returned by the function. If len is not NULL,
+  // the function also sets *len with the string length.
+  //
+  // If the value has a metatable with a __tostring field, then
+  // luaL_tolstring calls the corresponding metamethod with the
+  // value as argument, and uses the result of the call as its
+  // result.
+  //
+  // Note: calls luaL_tolstring. The returned pointer may not be
+  // valid after the string gets removed from the stack.
+  char const* tostring( int idx, size_t* len ) noexcept;
 
   /**************************************************************
   ** threads
@@ -375,6 +417,9 @@ private:
   void validate_index( int idx ) const noexcept;
 
   [[nodiscard]] lua_error_t pop_and_return_error() noexcept;
+
+  // Initialize with a Lua state and whether we own it.
+  c_api( lua_State* state, bool own );
 
 private:
   c_api( c_api const& ) = delete;

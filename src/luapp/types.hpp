@@ -76,30 +76,22 @@ struct nil_t {
 
 inline constexpr nil_t nil;
 
-void to_str( luapp::nil_t, std::string& out );
+void to_str( nil_t, std::string& out );
 
 /****************************************************************
-** Numeric types
+** value types
 *****************************************************************/
 using boolean  = base::safe::boolean;
 using floating = base::safe::floating<double>;
-using void_p   = base::safe::void_p;
+using integer  = base::safe::integer<long long>;
 
-// Derive from it so that we can add an implicit conversion to
-// floating, which we need in order to be able to easily convert
-// integrals to floats when comparing the two like Lua would do.
-struct integer : public base::safe::integer<long long> {
-  using Base = base::safe::integer<long long>;
-
+// This is just a value type.
+struct lightuserdata : public base::safe::void_p {
+  using Base = base::safe::void_p;
   using Base::Base;
-  using Base::operator<=>;
-  using Base::operator long long;
-  using Base::get;
-
-  operator floating() const noexcept {
-    return static_cast<double>( get() );
-  }
 };
+
+void to_str( lightuserdata const& lud, std::string& out );
 
 /****************************************************************
 ** function signatures
@@ -126,5 +118,6 @@ using LuaCFunction = int( ::lua_State* );
 *****************************************************************/
 TOSTR_TO_FMT( luapp::e_lua_type );
 TOSTR_TO_FMT( luapp::nil_t );
+TOSTR_TO_FMT( luapp::lightuserdata );
 
 DEFINE_FORMAT( luapp::integer, "{}", o.get() );
