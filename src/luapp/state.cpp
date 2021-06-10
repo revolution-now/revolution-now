@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace luapp {
+namespace lua {
 
 namespace {} // namespace
 
@@ -224,4 +224,4 @@ bool state::push_stateful_lua_c_function(
   return metatable_created;
 }
 
-} // namespace luapp
+} // namespace lua

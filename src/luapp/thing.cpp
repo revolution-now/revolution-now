@@ -25,7 +25,7 @@ using namespace std;
 
 #undef L
 
-namespace luapp {
+namespace lua {
 
 namespace {
 
@@ -330,4 +330,4 @@ void to_str( thing const& th, std::string& out ) {
   out += th.tostring();
 }
 
-} // namespace luapp
+} // namespace lua

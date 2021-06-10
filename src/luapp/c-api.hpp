@@ -16,7 +16,7 @@
 // base
 #include "base/maybe.hpp"
 
-namespace luapp {
+namespace lua {
 
 /****************************************************************
 ** c_api
@@ -458,4 +458,4 @@ private:
   bool own_;
 };
 
-} // namespace luapp
+} // namespace lua

@@ -19,9 +19,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::luapp::e_lua_type );
+FMT_TO_CATCH( ::lua::e_lua_type );
 
-namespace luapp {
+namespace lua {
 namespace {
 
 using namespace std;
@@ -1342,4 +1342,4 @@ TEST_CASE( "[lua-c-api] tostring" ) {
 }
 
 } // namespace
-} // namespace luapp
+} // namespace lua

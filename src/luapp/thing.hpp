@@ -23,7 +23,7 @@
 // C++ standard library
 #include <string>
 
-namespace luapp {
+namespace lua {
 
 /****************************************************************
 ** value types
@@ -169,15 +169,15 @@ struct thing : public thing_base {
 void to_str( reference const& r, std::string& out );
 void to_str( thing const& th, std::string& out );
 
-} // namespace luapp
+} // namespace lua
 
 /****************************************************************
 ** fmt
 *****************************************************************/
-TOSTR_TO_FMT( luapp::table );
-TOSTR_TO_FMT( luapp::lstring );
-TOSTR_TO_FMT( luapp::lfunction );
-TOSTR_TO_FMT( luapp::userdata );
-TOSTR_TO_FMT( luapp::lthread );
+TOSTR_TO_FMT( lua::table );
+TOSTR_TO_FMT( lua::lstring );
+TOSTR_TO_FMT( lua::lfunction );
+TOSTR_TO_FMT( lua::userdata );
+TOSTR_TO_FMT( lua::lthread );
 
-TOSTR_TO_FMT( luapp::thing );
+TOSTR_TO_FMT( lua::thing );

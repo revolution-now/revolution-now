@@ -29,7 +29,7 @@
 
 struct lua_State;
 
-namespace luapp {
+namespace lua {
 
 struct c_api;
 
@@ -228,4 +228,4 @@ lua_expect<int> state::pcall( Args&&... args ) noexcept {
   return nresults;
 }
 
-} // namespace luapp
+} // namespace lua

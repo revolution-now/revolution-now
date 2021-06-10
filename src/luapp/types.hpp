@@ -17,7 +17,7 @@
 
 struct lua_State;
 
-namespace luapp {
+namespace lua {
 
 /****************************************************************
 ** expect/valid
@@ -63,7 +63,7 @@ enum class e_lua_type {
   thread        = 8
 };
 
-void to_str( luapp::e_lua_type t, std::string& out );
+void to_str( e_lua_type t, std::string& out );
 
 inline constexpr int kNumLuaTypes = 9;
 
@@ -111,13 +111,13 @@ using LuaApiFunc = R( ::lua_State*, Args... );
 // method, i.e., a C function that is called from Lua.
 using LuaCFunction = int( ::lua_State* );
 
-} // namespace luapp
+} // namespace lua
 
 /****************************************************************
 ** {fmt}
 *****************************************************************/
-TOSTR_TO_FMT( luapp::e_lua_type );
-TOSTR_TO_FMT( luapp::nil_t );
-TOSTR_TO_FMT( luapp::lightuserdata );
+TOSTR_TO_FMT( lua::e_lua_type );
+TOSTR_TO_FMT( lua::nil_t );
+TOSTR_TO_FMT( lua::lightuserdata );
 
-DEFINE_FORMAT( luapp::integer, "{}", o.get() );
+DEFINE_FORMAT( lua::integer, "{}", o.get() );

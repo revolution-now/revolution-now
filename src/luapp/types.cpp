@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace luapp {
+namespace lua {
 
 #define ASSERT_MATCH( e, lua_e ) \
   static_assert( static_cast<int>( e_lua_type::e ) == lua_e )
@@ -45,7 +45,7 @@ namespace {
 /******************************************************************
 ** to_str
 *******************************************************************/
-void to_str( luapp::nil_t, std::string& out ) {
+void to_str( nil_t, std::string& out ) {
   out += string_view( "nil" );
 }
 
@@ -56,8 +56,7 @@ void to_str( lightuserdata const& o, std::string& out ) {
 #define TYPE_CASE( e ) \
   case e_lua_type::e: s = #e; break
 
-void to_str( luapp::e_lua_type t, string& out ) {
-  using namespace luapp;
+void to_str( e_lua_type t, string& out ) {
   string_view s = "unknown";
   switch( t ) {
     TYPE_CASE( nil );
@@ -74,4 +73,4 @@ void to_str( luapp::e_lua_type t, string& out ) {
   out += string( s );
 }
 
-} // namespace luapp
+} // namespace lua

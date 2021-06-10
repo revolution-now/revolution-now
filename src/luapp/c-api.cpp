@@ -30,7 +30,7 @@ using namespace std;
   int ninputs = n;                       \
   enforce_stack_size_ge( ninputs )
 
-namespace luapp {
+namespace lua {
 namespace {
 
 using ::base::maybe;
@@ -746,4 +746,4 @@ char const* c_api::tostring( int idx, size_t* len ) noexcept {
   return luaL_tolstring( L, idx, len );
 }
 
-} // namespace luapp
+} // namespace lua
