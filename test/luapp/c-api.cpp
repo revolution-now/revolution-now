@@ -13,6 +13,9 @@
 // Under test.
 #include "src/luapp/c-api.hpp"
 
+// Testing
+#include "test/luapp/common.hpp"
+
 // Lua
 #include "lauxlib.h"
 
@@ -35,10 +38,9 @@ string lua_testing_file( string const& filename ) {
   return rn::testing::data_dir() / "lua" / filename;
 }
 
-TEST_CASE( "[lua-c-api] create and destroy" ) { c_api C; }
+LUA_TEST_CASE( "[lua-c-api] create and destroy" ) {}
 
-TEST_CASE( "[lua-c-api] openlibs" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] openlibs" ) {
   REQUIRE( C.getglobal( "tostring" ) == e_lua_type::nil );
   REQUIRE( C.stack_size() == 1 );
   C.pop();
@@ -52,8 +54,7 @@ TEST_CASE( "[lua-c-api] openlibs" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] rotate" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] rotate" ) {
   C.push( true );
   C.push( "hello" );
   C.push( false );
@@ -83,8 +84,7 @@ TEST_CASE( "[lua-c-api] rotate" ) {
   C.pop( 4 );
 }
 
-TEST_CASE( "[lua-c-api] {get,set}global" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] {get,set}global" ) {
   REQUIRE( C.getglobal( "xyz" ) == e_lua_type::nil );
   REQUIRE( C.stack_size() == 1 );
   C.pop();
@@ -99,8 +99,7 @@ TEST_CASE( "[lua-c-api] {get,set}global" ) {
   C.pop();
 }
 
-TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
   C.openlibs();
   REQUIRE( C.dostring( R"(
     setmetatable( _G, {
@@ -127,8 +126,7 @@ TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
   C.pop();
 }
 
-TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
   C.openlibs();
   REQUIRE( C.dostring( R"(
     setmetatable( _G, {
@@ -156,8 +154,7 @@ TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] dofile" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] dofile" ) {
   C.openlibs();
 
   SECTION( "non-existent" ) {
@@ -216,8 +213,7 @@ TEST_CASE( "[lua-c-api] dofile" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] loadstring" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] loadstring" ) {
   REQUIRE( C.getglobal( "xyz" ) == e_lua_type::nil );
   REQUIRE( C.stack_size() == 1 );
   C.pop();
@@ -235,8 +231,7 @@ TEST_CASE( "[lua-c-api] loadstring" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] dostring" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] dostring" ) {
   REQUIRE( C.getglobal( "xyz" ) == e_lua_type::nil );
   REQUIRE( C.stack_size() == 1 );
   C.pop();
@@ -252,8 +247,7 @@ TEST_CASE( "[lua-c-api] dostring" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] fmt e_lua_type" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] fmt e_lua_type" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::nil ) == "nil" );
   REQUIRE( fmt::format( "{}", e_lua_type::boolean ) ==
            "boolean" );
@@ -269,9 +263,8 @@ TEST_CASE( "[lua-c-api] fmt e_lua_type" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::thread ) == "thread" );
 }
 
-TEST_CASE( "[lua-c-api] to_str e_lua_type" ) {
-  c_api C;
-  auto  to_str_ = []( e_lua_type type ) {
+LUA_TEST_CASE( "[lua-c-api] to_str e_lua_type" ) {
+  auto to_str_ = []( e_lua_type type ) {
     string res;
     to_str( type, res );
     return res;
@@ -288,8 +281,7 @@ TEST_CASE( "[lua-c-api] to_str e_lua_type" ) {
   REQUIRE( to_str_( e_lua_type::thread ) == "thread" );
 }
 
-TEST_CASE( "[lua-c-api] type_name" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] type_name" ) {
   REQUIRE( C.type_name( e_lua_type::nil ) == string( "nil" ) );
   REQUIRE( C.type_name( e_lua_type::boolean ) ==
            string( "boolean" ) );
@@ -311,9 +303,7 @@ TEST_CASE( "[lua-c-api] type_name" ) {
            string( "thread" ) );
 }
 
-TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
   SECTION( "nil" ) {
     REQUIRE( C.stack_size() == 0 );
     C.push( nil );
@@ -454,8 +444,7 @@ TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] call" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] call" ) {
   C.openlibs();
 
   SECTION( "no args, no results" ) {
@@ -594,8 +583,7 @@ TEST_CASE( "[lua-c-api] call" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] pcall" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   C.openlibs();
 
   SECTION( "no args, no results" ) {
@@ -759,7 +747,7 @@ TEST_CASE( "[lua-c-api] pcall" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
+LUA_TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::nil ) == "nil" );
   REQUIRE( fmt::format( "{}", e_lua_type::boolean ) ==
            "boolean" );
@@ -775,8 +763,7 @@ TEST_CASE( "[lua-c-api] e_lua_type to string" ) {
   REQUIRE( fmt::format( "{}", e_lua_type::thread ) == "thread" );
 }
 
-TEST_CASE( "[lua-c-api] newtable" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] newtable" ) {
   REQUIRE( C.stack_size() == 0 );
   C.newtable();
   REQUIRE( C.stack_size() == 1 );
@@ -784,10 +771,9 @@ TEST_CASE( "[lua-c-api] newtable" ) {
   C.pop();
 }
 
-TEST_CASE(
+LUA_TEST_CASE(
     "[lua-c-api] push_global_table, settable, gettable, "
     "getfield, setfield" ) {
-  c_api C;
   REQUIRE( C.getglobal( "hello" ) == e_lua_type::nil );
   C.pop();
   REQUIRE( C.stack_size() == 0 );
@@ -839,8 +825,7 @@ TEST_CASE(
   C.pop( 2 );
 }
 
-TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
   C.pushglobaltable();
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.rawgeti( -1, 42 ) == e_lua_type::nil );
@@ -860,9 +845,8 @@ TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
   C.pop( 2 );
 }
 
-TEST_CASE( "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
-  c_api C;
-
+LUA_TEST_CASE(
+    "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
   C.push( 5 );
   int r1 = C.ref_registry();
   C.push( "hello" );
@@ -881,9 +865,7 @@ TEST_CASE( "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
   C.pop();
 }
 
-TEST_CASE( "[lua-c-api] len" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] len" ) {
   // Table length.
   REQUIRE( C.dostring( "x = {4,5,6}" ) == valid );
   REQUIRE( C.getglobal( "x" ) == e_lua_type::table );
@@ -899,9 +881,7 @@ TEST_CASE( "[lua-c-api] len" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] geti" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] geti" ) {
   REQUIRE(
       C.dostring( "x = {[4]='one',[5]='two',[6]='three'}" ) ==
       valid );
@@ -914,8 +894,7 @@ TEST_CASE( "[lua-c-api] geti" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] push c function" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] push c function" ) {
   C.openlibs();
 
   C.push( []( lua_State* L ) -> int {
@@ -934,9 +913,8 @@ TEST_CASE( "[lua-c-api] push c function" ) {
   )" ) == valid );
 }
 
-TEST_CASE(
+LUA_TEST_CASE(
     "[lua-c-api] push c function with upvalues + getupvalue" ) {
-  c_api C;
   C.openlibs();
 
   REQUIRE( C.stack_size() == 0 );
@@ -976,9 +954,7 @@ TEST_CASE(
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] insert" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] insert" ) {
   REQUIRE( C.stack_size() == 0 );
   C.push( 5 );
   C.push( "hello" );
@@ -1000,9 +976,7 @@ TEST_CASE( "[lua-c-api] insert" ) {
   REQUIRE( C.get<integer>( -4 ) == 5 );
 }
 
-TEST_CASE( "[lua-c-api] swap_top" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] swap_top" ) {
   REQUIRE( C.stack_size() == 0 );
   C.push( 5 );
   C.push( "hello" );
@@ -1022,8 +996,7 @@ TEST_CASE( "[lua-c-api] swap_top" ) {
   REQUIRE( C.get<integer>( -2 ) == 7 );
 }
 
-TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
   C.openlibs();
 
   C.newtable();
@@ -1064,8 +1037,7 @@ TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
   )" ) == lua_invalid( err ) );
 }
 
-TEST_CASE( "[lua-c-api] newuserdata" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] newuserdata" ) {
   void* p = C.newuserdata( 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
   REQUIRE( C.get<void*>( -1 ) == p );
@@ -1073,11 +1045,9 @@ TEST_CASE( "[lua-c-api] newuserdata" ) {
   C.pop();
 }
 
-TEST_CASE(
+LUA_TEST_CASE(
     "[lua-c-api] udata_{new,get,set}metatable + "
     "{check,test}udata" ) {
-  c_api C;
-
   REQUIRE( C.udata_getmetatable( "hello" ) == e_lua_type::nil );
   REQUIRE( C.stack_size() == 1 );
   C.pop();
@@ -1106,12 +1076,10 @@ TEST_CASE(
   REQUIRE( C.testudata( -1, "hello" ) != nullptr );
 }
 
-TEST_CASE( "[lua-c-api] error" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] error" ) {
   SECTION( "error push" ) {
     C.push( []( lua_State* L ) -> int {
-      c_api C = c_api::view( L );
+      c_api C( L );
       C.push( "this is an error." );
       C.error();
       return 0;
@@ -1127,7 +1095,7 @@ TEST_CASE( "[lua-c-api] error" ) {
 
   SECTION( "error arg" ) {
     C.push( []( lua_State* L ) -> int {
-      c_api C = c_api::view( L );
+      c_api C( L );
       C.error( "this is an error." );
       return 0;
     } );
@@ -1141,13 +1109,12 @@ TEST_CASE( "[lua-c-api] error" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] constants" ) {
+LUA_TEST_CASE( "[lua-c-api] constants" ) {
   REQUIRE( c_api::noref() == LUA_NOREF );
   REQUIRE( c_api::multret() == LUA_MULTRET );
 }
 
-TEST_CASE( "[lua-c-api] pushvalue" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] pushvalue" ) {
   C.push( 5 );
   REQUIRE( C.stack_size() == 1 );
   C.pushvalue( -1 );
@@ -1166,9 +1133,7 @@ TEST_CASE( "[lua-c-api] pushvalue" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] compare" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] compare" ) {
   SECTION( "eq" ) {
     C.push( 5 );
     C.push( 5 );
@@ -1206,9 +1171,7 @@ TEST_CASE( "[lua-c-api] compare" ) {
   }
 }
 
-TEST_CASE( "[lua-c-api] concat" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] concat" ) {
   SECTION( "empty" ) {
     C.concat( 0 );
     REQUIRE( C.stack_size() == 1 );
@@ -1298,8 +1261,7 @@ TEST_CASE( "[lua-c-api] concat" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] tostring" ) {
-  c_api  C;
+LUA_TEST_CASE( "[lua-c-api] tostring" ) {
   size_t len = 10000;
 
   SECTION( "nil" ) {
@@ -1402,8 +1364,7 @@ TEST_CASE( "[lua-c-api] tostring" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[lua-c-api] isinteger" ) {
-  c_api C;
+LUA_TEST_CASE( "[lua-c-api] isinteger" ) {
   // bool
   C.push( true );
   REQUIRE_FALSE( C.isinteger( -1 ) );
@@ -1429,16 +1390,14 @@ TEST_CASE( "[lua-c-api] isinteger" ) {
 
 // This demonstrates that different threads within a state have
 // separate stacks.
-TEST_CASE( "[lua-c-api] separate thread stacks" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[lua-c-api] separate thread stacks" ) {
   cthread thread1 = C.this_cthread();
   cthread thread2 = C.newthread();
   cthread thread3 = C.newthread();
 
-  c_api view1 = c_api::view( thread1 );
-  c_api view2 = c_api::view( thread2 );
-  c_api view3 = c_api::view( thread3 );
+  c_api view1( thread1 );
+  c_api view2( thread2 );
+  c_api view3( thread3 );
 
   REQUIRE( view1.stack_size() == 2 );
   REQUIRE( view2.stack_size() == 0 );

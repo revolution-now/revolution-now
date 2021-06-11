@@ -12,10 +12,13 @@
 
 // Under test.
 #include "src/luapp/indexer.hpp"
-#include "src/luapp/thing.hpp"
+
+// Testing
+#include "test/luapp/common.hpp"
 
 // luapp
 #include "src/luapp/c-api.hpp"
+#include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -45,7 +48,7 @@ struct EmptyTable : TableBase<EmptyTable> {
 
   EmptyTable( cthread L )
     : Base( L, [L] {
-        c_api C = c_api::view( L );
+        c_api C( L );
         CHECK( C.dostring( "return {}" ) );
         return C.ref_registry();
       }() ) {}
@@ -56,7 +59,7 @@ struct GlobalTable : TableBase<EmptyTable> {
 
   GlobalTable( cthread L )
     : Base( L, [L] {
-        c_api C = c_api::view( L );
+        c_api C( L );
         C.pushglobaltable();
         return C.ref_registry();
       }() ) {}
@@ -67,7 +70,7 @@ struct SomeTable : TableBase<EmptyTable> {
 
   SomeTable( cthread L )
     : Base( L, [L] {
-        c_api C = c_api::view( L );
+        c_api C( L );
         CHECK( C.dostring( R"(
           return {
             [5] = {
@@ -81,9 +84,7 @@ struct SomeTable : TableBase<EmptyTable> {
       }() ) {}
 };
 
-TEST_CASE( "[indexer] construct" ) {
-  c_api      C;
-  cthread    L = C.this_cthread();
+LUA_TEST_CASE( "[indexer] construct" ) {
   EmptyTable mt( L );
 
   indexer idxr1 = mt[5];
@@ -96,9 +97,7 @@ TEST_CASE( "[indexer] construct" ) {
   (void)idxr3;
 }
 
-TEST_CASE( "[indexer] index" ) {
-  c_api      C;
-  cthread    L = C.this_cthread();
+LUA_TEST_CASE( "[indexer] index" ) {
   EmptyTable mt( L );
 
   auto idxr = mt[5][1]["hello"]['c'][string( "hello" )];
@@ -111,9 +110,7 @@ TEST_CASE( "[indexer] index" ) {
   static_assert( is_same_v<decltype( idxr ), expected_t> );
 }
 
-TEST_CASE( "[indexer] push" ) {
-  c_api     C;
-  cthread   L = C.this_cthread();
+LUA_TEST_CASE( "[indexer] push" ) {
   SomeTable mt( L );
 
   REQUIRE( C.stack_size() == 0 );
@@ -130,8 +127,7 @@ TEST_CASE( "[indexer] push" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[indexer] assignment" ) {
-  c_api C;
+LUA_TEST_CASE( "[indexer] assignment" ) {
   C.openlibs();
   cthread L = C.this_cthread();
 

@@ -14,6 +14,7 @@
 #include "src/luapp/helper.hpp"
 
 // Testing
+#include "test/luapp/common.hpp"
 #include "test/monitoring-types.hpp"
 
 // luapp
@@ -36,11 +37,12 @@ using namespace std;
 using ::base::valid;
 using ::testing::Tracker;
 
-TEST_CASE( "[helper] creation/destruction" ) { helper st; }
+LUA_TEST_CASE( "[helper] creation/destruction" ) {
+  helper st( L );
+}
 
-TEST_CASE( "[helper] tables" ) {
-  helper st;
-  c_api& C = st.api();
+LUA_TEST_CASE( "[helper] tables" ) {
+  helper st( L );
   REQUIRE( C.getglobal( "t1" ) == e_lua_type::nil );
   C.pop();
   REQUIRE( C.stack_size() == 0 );
@@ -135,13 +137,13 @@ TEST_CASE( "[helper] tables" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[helper] push_function, stateless lua C function" ) {
-  helper st;
+LUA_TEST_CASE(
+    "[helper] push_function, stateless lua C function" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   st.push_function( []( lua_State* L ) -> int {
-    c_api C = c_api::view( L );
+    c_api C( L );
     int   n = luaL_checkinteger( L, 1 );
     C.push( n + 1 );
     return 1;
@@ -165,17 +167,17 @@ TEST_CASE( "[helper] push_function, stateless lua C function" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[helper] push_function, stateful lua C function" ) {
+LUA_TEST_CASE(
+    "[helper] push_function, stateful lua C function" ) {
   Tracker::reset();
 
   SECTION( "__gc metamethod is called, twice" ) {
-    helper st;
+    helper st( L );
     st.openlibs();
-    c_api& C = st.api();
 
     bool created = st.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C = c_api::view( L );
+          c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 1 );
           return 1;
@@ -221,7 +223,7 @@ TEST_CASE( "[helper] push_function, stateful lua C function" ) {
     // gets reused.
     created = st.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C = c_api::view( L );
+          c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 2 );
           return 1;
@@ -247,6 +249,9 @@ TEST_CASE( "[helper] push_function, stateful lua C function" ) {
     Tracker::reset();
   }
 
+  global_state.close();
+  // !! do not call any lua functions after this.
+
   // Ensure that precisely two closures get destroyed (will
   // happen when `st` goes out of scope and Lua calls the final-
   // izers on the userdatas for the two closures that we created
@@ -258,10 +263,10 @@ TEST_CASE( "[helper] push_function, stateful lua C function" ) {
   REQUIRE( Tracker::move_assigned == 0 );
 }
 
-TEST_CASE( "[helper] push_function, cpp function has upvalue" ) {
-  helper st;
+LUA_TEST_CASE(
+    "[helper] push_function, cpp function has upvalue" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   st.push_function( []( int n, string const& s,
                         double d ) -> string {
@@ -286,9 +291,9 @@ TEST_CASE( "[helper] push_function, cpp function has upvalue" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[helper] push_function, cpp function, trivial" ) {
-  helper st;
-  c_api& C = st.api();
+LUA_TEST_CASE(
+    "[helper] push_function, cpp function, trivial" ) {
+  helper st( L );
 
   bool called = false;
 
@@ -306,10 +311,9 @@ TEST_CASE( "[helper] push_function, cpp function, trivial" ) {
   REQUIRE_FALSE( called );
 }
 
-TEST_CASE(
+LUA_TEST_CASE(
     "[helper] push_function, cpp function, simple/bool" ) {
-  helper st;
-  c_api& C = st.api();
+  helper st( L );
 
   bool called_with = false;
 
@@ -333,10 +337,10 @@ TEST_CASE(
   REQUIRE_FALSE( called_with );
 }
 
-TEST_CASE( "[helper] push_function, cpp function, calling" ) {
-  helper st;
+LUA_TEST_CASE(
+    "[helper] push_function, cpp function, calling" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   st.push_function( []( int n, string const& s,
                         double d ) -> string {
@@ -410,10 +414,9 @@ TEST_CASE( "[helper] push_function, cpp function, calling" ) {
   }
 }
 
-TEST_CASE( "[helper] call/pcall" ) {
-  helper st;
+LUA_TEST_CASE( "[helper] call/pcall" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -457,10 +460,9 @@ TEST_CASE( "[helper] call/pcall" ) {
   }
 }
 
-TEST_CASE( "[helper] call/pcall multret" ) {
-  helper st;
+LUA_TEST_CASE( "[helper] call/pcall multret" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -488,10 +490,9 @@ TEST_CASE( "[helper] call/pcall multret" ) {
   }
 }
 
-TEST_CASE( "[helper] cpp from cpp via lua" ) {
-  helper st;
+LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   st.push_function( []( int n, string const& s,
                         double d ) -> string {
@@ -508,10 +509,9 @@ TEST_CASE( "[helper] cpp from cpp via lua" ) {
            "args: n=3, s='hello', d=3.6" );
 }
 
-TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
-  helper st;
+LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
+  helper st( L );
   st.openlibs();
-  c_api& C = st.api();
 
   st.push_function( [&]( int n, string const& s,
                          double d ) -> string {

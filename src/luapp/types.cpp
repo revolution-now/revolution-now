@@ -45,57 +45,57 @@ ASSERT_MATCH( thread,         LUA_TTHREAD        );
 ** push
 *******************************************************************/
 void push( cthread L, nil_t ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( nil );
 }
 
 void push( cthread L, boolean b ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( b );
 }
 
 void push( cthread L, bool b ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( b );
 }
 
 void push( cthread L, integer i ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( i );
 }
 
 void push( cthread L, int i ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( i );
 }
 
 void push( cthread L, floating f ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( f );
 }
 
 void push( cthread L, double f ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( f );
 }
 
 void push( cthread L, lightuserdata lud ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( lud );
 }
 
 void push( cthread L, void* lud ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( lud );
 }
 
 void push( cthread L, string_view sv ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( sv );
 }
 
 void push( cthread L, char const* p ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.push( string_view( p ) );
 }
 

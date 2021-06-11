@@ -29,17 +29,10 @@
 
 namespace lua {
 
-struct c_api;
-
 struct helper {
-  helper();
-  // TODO: this constructor can be removed (as well as the lua.h
-  // include) after migration away from sol2.
   helper( cthread helper );
 
   using c_string_list = std::vector<char const*>;
-
-  c_api& api() noexcept;
 
   template<typename Func>
   auto push_function( Func&& func ) noexcept;
@@ -147,7 +140,7 @@ bool helper::push_cpp_function(
     Func&& func, R*, mp::type_list<Args...>* ) noexcept {
   static auto const runner =
       [func = std::move( func )]( lua_State* L ) -> int {
-    c_api C         = c_api::view( L );
+    c_api C( L );
     using ArgsTuple = std::tuple<std::remove_cvref_t<Args>...>;
     ArgsTuple args;
 

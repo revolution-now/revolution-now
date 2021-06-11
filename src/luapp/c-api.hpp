@@ -27,10 +27,7 @@ namespace lua {
 // to be an intermediate step or building block to the ultimate
 // lua C++ interface.
 struct c_api {
-  c_api();
-  ~c_api() noexcept;
-
-  static c_api view( cthread st );
+  c_api( cthread L_ ) noexcept : L( L_ ) {}
 
   cthread this_cthread() const noexcept { return L; }
   cthread main_cthread() const noexcept;
@@ -305,6 +302,9 @@ struct c_api {
   // trigger a metamethod for the "length" event (see §2.4). The
   // result is pushed on the stack since it could theoretically
   // be an object of any type (because of the __len metamethod).
+  //
+  // NOTE: for tables, it only works for arrays, up until the
+  // first nil, as in the usual Lua behavior.
   void len( int idx );
   // Same as above, but result is popped from the stack and re-
   // turned.
@@ -468,9 +468,8 @@ private:
                           lua_expect<R>>;
   // clang-format on
 
+  // Not necessarily the main thread.
   cthread L;
-  // Do we own the Lua state.
-  bool own_;
 };
 
 } // namespace lua

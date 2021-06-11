@@ -18,14 +18,14 @@ using namespace std;
 namespace lua {
 
 void indexer_gettable( cthread L ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.gettable( -2 );
   C.swap_top();
   C.pop();
 }
 
 void indexer_settable( cthread L ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.settable( -3 );
   C.pop();
 }

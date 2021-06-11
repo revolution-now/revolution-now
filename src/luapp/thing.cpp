@@ -12,6 +12,7 @@
 
 // luapp
 #include "c-api.hpp"
+#include "state.hpp"
 
 // base
 #include "base/error.hpp"
@@ -31,7 +32,7 @@ namespace {
 
 // Expects value to be pushed onto stack of L.
 string call_tostring( cthread L ) noexcept {
-  c_api       C   = c_api::view( L );
+  c_api       C( L );
   size_t      len = 0;
   char const* p   = C.tostring( -1, &len );
   string_view sv( p, len );
@@ -46,11 +47,10 @@ string call_tostring( cthread L ) noexcept {
 // The Lua state returned here should ONLY be used to do simple
 // things such as compare value types. It should not be used to
 // hold any objects and nothing in its state should be changed.
-//
-// This state is never reset or released.
-c_api& scratch_state() {
-  static c_api& C = []() -> c_api& {
-    static c_api C = c_api::view( luaL_newstate() );
+c_api scratch_state() {
+  static state& st = []() -> state& {
+    static state st;
+    c_api        C( st.main_cthread() );
     // Kill the global table.
     C.push( nil );
     C.rawseti( LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS );
@@ -58,9 +58,9 @@ c_api& scratch_state() {
     C.pushglobaltable();
     CHECK( C.type_of( -1 ) == e_lua_type::nil );
     C.pop();
-    return C;
+    return st;
   }();
-  return C;
+  return c_api( st.main_cthread() );
 }
 
 } // namespace
@@ -72,7 +72,7 @@ namespace {
 
 template<typename Left, typename Right>
 bool eq_value_and_value( Left const& l, Right const& r ) {
-  c_api& C = scratch_state();
+  c_api C = scratch_state();
   C.push( l );
   C.push( r );
   bool res = C.compare_eq( -2, -1 );
@@ -108,15 +108,15 @@ reference::~reference() noexcept { release(); }
 
 void reference::release() noexcept {
   CHECK( ref_ != LUA_NOREF );
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.unref_registry( ref_ );
 }
 
 reference::reference( reference const& rhs ) noexcept
   : L( rhs.L ) {
   push( L, rhs );
-  c_api C = c_api::view( L );
-  ref_    = C.ref_registry();
+  c_api C( L );
+  ref_ = C.ref_registry();
 }
 
 reference& reference::operator=(
@@ -129,8 +129,8 @@ reference& reference::operator=(
   release();
   L = rhs.L;
   push( L, rhs );
-  c_api C = c_api::view( L );
-  ref_    = C.ref_registry();
+  c_api C( L );
+  ref_ = C.ref_registry();
   return *this;
 }
 
@@ -143,7 +143,7 @@ bool operator==( reference const& lhs, reference const& rhs ) {
   cthread L = lhs.this_cthread();
   push( L, lhs );
   push( L, rhs );
-  c_api C   = c_api::view( L );
+  c_api C( L );
   bool  res = C.compare_eq( -2, -1 );
   C.pop( 2 );
   return res;
@@ -153,7 +153,7 @@ namespace {
 
 template<typename T>
 bool ref_op_eq( reference const& r, T const& o ) {
-  c_api C = c_api::view( r.this_cthread() );
+  c_api C( r.this_cthread() );
   push( r.this_cthread(), r );
   C.push( o );
   bool res = C.compare_eq( -2, -1 );
@@ -184,7 +184,7 @@ bool operator==( reference const& r, floating const& o ) {
 }
 
 void push( cthread L, reference const& r ) {
-  c_api C = c_api::view( L );
+  c_api C( L );
   C.registry_get( r.ref_ );
 }
 
@@ -201,7 +201,7 @@ lstring::lstring( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 string lstring::as_cpp() const {
-  c_api C = c_api::view( L );
+  c_api C( L );
   push( L, *this );
   CHECK( C.type_of( -1 ) == e_lua_type::string );
   UNWRAP_CHECK( res, C.get<string>( -1 ) );
@@ -274,7 +274,7 @@ thing::operator bool() const noexcept {
 }
 
 thing thing::pop( cthread L ) noexcept {
-  c_api      C    = c_api::view( L );
+  c_api      C( L );
   thing      res  = nil;
   e_lua_type type = C.type_of( -1 );
   switch( type ) {
@@ -321,8 +321,8 @@ string thing::tostring() const noexcept {
     if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
       L = o.this_cthread();
     } else {
-      c_api& C = scratch_state();
-      L        = C.this_cthread();
+      c_api C = scratch_state();
+      L       = C.this_cthread();
     }
   } );
   push( L, *this );

@@ -29,11 +29,7 @@ namespace {} // namespace
 /****************************************************************
 ** helper
 *****************************************************************/
-helper::helper( cthread L ) : C( c_api::view( L ) ) {}
-
-helper::helper() : C() {}
-
-c_api& helper::api() noexcept { return C; }
+helper::helper( cthread L ) : C( c_api( L ) ) {}
 
 void helper::openlibs() noexcept { C.openlibs(); }
 

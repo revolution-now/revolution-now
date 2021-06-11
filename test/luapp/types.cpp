@@ -13,6 +13,9 @@
 // Under test.
 #include "src/luapp/types.hpp"
 
+// Testing
+#include "test/luapp/common.hpp"
+
 // luapp
 #include "src/luapp/c-api.hpp"
 
@@ -26,10 +29,7 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[types] push" ) {
-  c_api   C;
-  cthread L = C.this_cthread();
-
+LUA_TEST_CASE( "[types] push" ) {
   push( L, nil );
   REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
 

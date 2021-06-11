@@ -13,6 +13,9 @@
 // Under test.
 #include "src/luapp/thing.hpp"
 
+// Testing
+#include "test/luapp/common.hpp"
+
 // luapp
 #include "src/luapp/c-api.hpp"
 
@@ -33,9 +36,7 @@ using ::Catch::Matches;
 /****************************************************************
 ** value equality
 *****************************************************************/
-TEST_CASE( "[value types] equality" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[value types] equality" ) {
   SECTION( "nil with nil" ) {
     REQUIRE( nil == nil );
     REQUIRE( nil == nil_t{} );
@@ -218,9 +219,7 @@ TEST_CASE( "[value types] equality" ) {
 /****************************************************************
 ** reference objects
 *****************************************************************/
-TEST_CASE( "[reference] reference equality" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[reference] reference equality" ) {
   boolean       b   = true;
   integer       i   = 1;
   floating      f   = 2.3;
@@ -366,13 +365,11 @@ TEST_CASE( "[reference] reference equality" ) {
   }
 }
 
-TEST_CASE( "[reference] reference create/push/gc" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[reference] reference create/push/gc" ) {
   auto create_metatable = [&] {
     C.newtable();
     C.push( []( lua_State* L ) -> int {
-      c_api C = c_api::view( L );
+      c_api C( L );
       C.push( true );
       C.setglobal( "was_collected" );
       return 0;
@@ -450,13 +447,11 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
   }
 }
 
-TEST_CASE( "[reference] reference copy --> no collect" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[reference] reference copy --> no collect" ) {
   auto create_metatable = [&] {
     C.newtable();
     C.push( []( lua_State* L ) -> int {
-      c_api C = c_api::view( L );
+      c_api C( L );
       C.push( true );
       C.setglobal( "was_collected" );
       return 0;
@@ -559,8 +554,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
   verify_collect( true );
 }
 
-TEST_CASE( "[lstring] as_cpp / string literal cmp" ) {
-  c_api C;
+LUA_TEST_CASE( "[lstring] as_cpp / string literal cmp" ) {
   C.push( "hello" );
   int ref = C.ref_registry();
   REQUIRE( C.stack_size() == 0 );
@@ -577,7 +571,7 @@ TEST_CASE( "[lstring] as_cpp / string literal cmp" ) {
 /****************************************************************
 ** thing
 *****************************************************************/
-TEST_CASE( "[thing] static checks" ) {
+LUA_TEST_CASE( "[thing] static checks" ) {
   static_assert( is_default_constructible_v<thing> );
 
   static_assert( is_nothrow_move_constructible_v<thing> );
@@ -608,14 +602,14 @@ TEST_CASE( "[thing] static checks" ) {
   static_assert( is_nothrow_convertible_v<thing, bool> );
 }
 
-TEST_CASE( "[thing] defaults to nil + equality with nil" ) {
+LUA_TEST_CASE( "[thing] defaults to nil + equality with nil" ) {
   thing th;
   REQUIRE( th == nil );
   REQUIRE( th.type() == e_lua_type::nil );
   REQUIRE( !th );
 }
 
-TEST_CASE( "[thing] nil assignment / equality" ) {
+LUA_TEST_CASE( "[thing] nil assignment / equality" ) {
   thing th = nil;
   REQUIRE( th.type() == e_lua_type::nil );
   REQUIRE( th.index() == 0 );
@@ -628,7 +622,7 @@ TEST_CASE( "[thing] nil assignment / equality" ) {
   REQUIRE( !th );
 }
 
-TEST_CASE( "[thing] bool assignment / equality" ) {
+LUA_TEST_CASE( "[thing] bool assignment / equality" ) {
   thing th = true;
   REQUIRE( th );
   REQUIRE( th.type() == e_lua_type::boolean );
@@ -641,7 +635,7 @@ TEST_CASE( "[thing] bool assignment / equality" ) {
   REQUIRE( !th );
 }
 
-TEST_CASE( "[thing] int assignment / equality" ) {
+LUA_TEST_CASE( "[thing] int assignment / equality" ) {
   thing th = 5;
   REQUIRE( th );
   REQUIRE( th != nil );
@@ -668,7 +662,7 @@ TEST_CASE( "[thing] int assignment / equality" ) {
   REQUIRE( th.index() == 3 );
 }
 
-TEST_CASE( "[thing] double assignment / equality" ) {
+LUA_TEST_CASE( "[thing] double assignment / equality" ) {
   thing th = 5.5;
   REQUIRE( th );
   REQUIRE( th != nil );
@@ -691,7 +685,7 @@ TEST_CASE( "[thing] double assignment / equality" ) {
   REQUIRE( th.index() == 4 );
 }
 
-TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
+LUA_TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   thing th = nullptr;
   REQUIRE( th ); // Lua's rules.
   REQUIRE( th == nullptr );
@@ -709,8 +703,7 @@ TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   REQUIRE( th == (void*)&x );
 }
 
-TEST_CASE( "[thing] string assignment / equality" ) {
-  c_api C;
+LUA_TEST_CASE( "[thing] string assignment / equality" ) {
   C.push( "hello" );
   lstring s1( C.this_cthread(), C.ref_registry() );
   thing   th1 = s1;
@@ -732,8 +725,7 @@ TEST_CASE( "[thing] string assignment / equality" ) {
   REQUIRE( th3 != th1 );
 }
 
-TEST_CASE( "[thing] table assignment / equality" ) {
-  c_api C;
+LUA_TEST_CASE( "[thing] table assignment / equality" ) {
   C.newtable();
   table t1( C.this_cthread(), C.ref_registry() );
   thing th1 = t1;
@@ -754,8 +746,7 @@ TEST_CASE( "[thing] table assignment / equality" ) {
   REQUIRE( th3 != th1 );
 }
 
-TEST_CASE( "[thing] thread assignment / equality" ) {
-  c_api C;
+LUA_TEST_CASE( "[thing] thread assignment / equality" ) {
   (void)C.newthread();
   lthread o1( C.this_cthread(), C.ref_registry() );
   REQUIRE( C.stack_size() == 0 );
@@ -771,9 +762,7 @@ TEST_CASE( "[thing] thread assignment / equality" ) {
   REQUIRE( th3 == th2 );
 }
 
-TEST_CASE( "[thing] thing inequality" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[thing] thing inequality" ) {
   vector<thing> v;
   v.push_back( 5 );
   v.push_back( 5.5 );
@@ -814,9 +803,7 @@ TEST_CASE( "[thing] thing inequality" ) {
   }
 }
 
-TEST_CASE( "[thing] thing inequality convertiblae" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[thing] thing inequality convertiblae" ) {
   thing th1 = 5;
   thing th2 = 5.0;
   thing th3 = true;
@@ -846,9 +833,7 @@ TEST_CASE( "[thing] thing inequality convertiblae" ) {
   REQUIRE( thing( 5 ) != thing( s2 ) );
 }
 
-TEST_CASE( "[thing] fmt/to_str" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[thing] fmt/to_str" ) {
   thing th;
   REQUIRE( th.type() == e_lua_type::nil );
   REQUIRE( fmt::format( "{}", th ) == "nil" );
@@ -916,9 +901,7 @@ TEST_CASE( "[thing] fmt/to_str" ) {
                 Matches( "thread: 0x[0-9a-z]+" ) );
 }
 
-TEST_CASE( "[thing] thing::push" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[thing] thing::push" ) {
   SECTION( "nil" ) {
     thing th = nil;
     push( C.this_cthread(), th );
@@ -1007,9 +990,7 @@ TEST_CASE( "[thing] thing::push" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[thing] thing::pop" ) {
-  c_api C;
-
+LUA_TEST_CASE( "[thing] thing::pop" ) {
   thing th;
 
   // nil

@@ -54,11 +54,6 @@ auto to_void_star_if_ptr( T v ) {
     return v;
 }
 
-[[noreturn]] int panic( lua_State* L ) {
-  string err = lua_tostring( L, -1 );
-  FATAL( "uncaught lua error: {}", err );
-}
-
 int msghandler( lua_State* L ) {
   const char* msg = lua_tostring( L, 1 );
   // is error object not a string?
@@ -89,25 +84,6 @@ lua_valid lua_invalid( lua_error_t err ) {
 
 /****************************************************************
 ** c_api
-*****************************************************************/
-c_api::c_api( cthread state, bool own )
-  : L( state ), own_( own ) {
-  CHECK( L != nullptr );
-  // This will be called whenever an error happens in a Lua call
-  // that is not run in a protected environment. For example, if
-  // we call lua_getglobal from C++ (outside of a pcall) and it
-  // raises an error, this panic function will be called.
-  lua_atpanic( L, panic );
-}
-
-c_api::c_api() : c_api( luaL_newstate(), /*own=*/true ) {}
-
-c_api::~c_api() noexcept {
-  if( own_ ) lua_close( L );
-}
-
-/****************************************************************
-** Lua C Function Wrappers.
 *****************************************************************/
 void c_api::openlibs() noexcept { luaL_openlibs( L ); }
 
@@ -208,7 +184,7 @@ auto c_api::pinvoke( int ninputs,
   constexpr int kNumRunnerArgs = 2;
 
   auto runner = []( lua_State* L ) -> int {
-    c_api api( L, /*own=*/false );
+    c_api api( L );
 
     // 1. Get number of arguments that were pushed onto the stack
     //    for this Lua API function to consume.
@@ -728,10 +704,6 @@ cthread c_api::newthread() noexcept {
 void c_api::pushvalue( int idx ) noexcept {
   validate_index( idx );
   lua_pushvalue( L, idx );
-}
-
-c_api c_api::view( cthread st ) {
-  return c_api( st, /*own=*/false );
 }
 
 bool c_api::compare_eq( int idx1, int idx2 ) {
