@@ -17,9 +17,9 @@
 namespace lua {
 
 struct harness {
-  state   global_state;
-  c_api   C = global_state.main_cthread();
-  cthread L = global_state.main_cthread();
+  state   st;
+  c_api   C = st.main_cthread();
+  cthread L = st.main_cthread();
 };
 
 } // namespace lua

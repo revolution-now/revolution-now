@@ -31,10 +31,6 @@ struct table : public reference {
   auto operator[]( U&& idx ) noexcept {
     return indexer<U, table>( std::forward<U>( idx ), *this );
   }
-
-  // FIXME: remove
-  static table global( cthread L ) noexcept;
-  static table new_empty( cthread L ) noexcept;
 };
 
 } // namespace lua

@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "state.hpp"
 
+// luapp
+#include "c-api.hpp"
+
 // base
 #include "base/error.hpp"
 
@@ -48,6 +51,30 @@ void state::close() {
     lua_close( L );
     L = nullptr;
   }
+}
+
+/****************************************************************
+** Strings
+*****************************************************************/
+rstring state::str( std::string_view sv ) noexcept {
+  c_api C( L );
+  C.push( sv );
+  return rstring( C.this_cthread(), C.ref_registry() );
+}
+
+/****************************************************************
+** Tables
+*****************************************************************/
+table state::global_table() noexcept {
+  c_api C( L );
+  C.pushglobaltable();
+  return table( C.this_cthread(), C.ref_registry() );
+}
+
+table state::new_table() noexcept {
+  c_api C( L );
+  C.newtable();
+  return table( C.this_cthread(), C.ref_registry() );
 }
 
 } // namespace lua

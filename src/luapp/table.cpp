@@ -15,21 +15,4 @@
 
 using namespace std;
 
-namespace lua {
-
-/****************************************************************
-** table
-*****************************************************************/
-table table::global( cthread L ) noexcept {
-  c_api C( L );
-  C.pushglobaltable();
-  return table( C.this_cthread(), C.ref_registry() );
-}
-
-table table::new_empty( cthread L ) noexcept {
-  c_api C( L );
-  C.newtable();
-  return table( C.this_cthread(), C.ref_registry() );
-}
-
-} // namespace lua
+namespace lua {} // namespace lua

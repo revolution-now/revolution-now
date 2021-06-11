@@ -156,48 +156,30 @@ LUA_TEST_CASE( "[table] table copy --> no collect" ) {
   verify_collect( true );
 }
 
-LUA_TEST_CASE( "[thing] standard tables" ) {
-  C.openlibs();
-  cthread L = C.this_cthread();
-
-  table G = table::global( L );
-  push( L, G );
-  C.getfield( -1, "tostring" );
-  REQUIRE( C.stack_size() == 2 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::function );
-  C.pop( 2 );
-  REQUIRE( C.stack_size() == 0 );
-
-  table empty1 = table::new_empty( L );
-  push( L, empty1 );
-  push( L, empty1 );
-  REQUIRE( C.compare_eq( -2, -1 ) );
-  C.pop( 2 );
-  REQUIRE( C.stack_size() == 0 );
-
-  table empty2 = table::new_empty( L );
-  push( L, empty1 );
-  push( L, empty2 );
-  REQUIRE_FALSE( C.compare_eq( -2, -1 ) );
-  C.pop( 2 );
-
-  REQUIRE( C.stack_size() == 0 );
-}
-
 LUA_TEST_CASE( "[thing] table index" ) {
   cthread L = C.this_cthread();
 
-  table G = table::global( L );
+  auto new_table = [&] {
+    C.newtable();
+    table t( L, C.ref_registry() );
+    REQUIRE( C.stack_size() == 0 );
+    return t;
+  };
+
+  table G = new_table();
+  push( L, G );
+  C.setglobal( "G" );
+  REQUIRE( C.stack_size() == 0 );
 
   G[7.7] = "target";
 
-  G["hello"]    = table::new_empty( L );
-  G["hello"][5] = table::new_empty( L );
+  G["hello"]    = new_table();
+  G["hello"][5] = new_table();
   // Create circular reference.
   G["hello"][5]["foo"] = G;
 
   REQUIRE( C.dostring( R"(
-    return hello[5].foo.hello[5]['foo'][7.7]
+    return G.hello[5].foo.hello[5]['foo'][7.7]
   )" ) == valid );
 
   REQUIRE( C.get<string>( -1 ) == "target" );

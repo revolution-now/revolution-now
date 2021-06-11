@@ -531,15 +531,15 @@ LUA_TEST_CASE( "[thing] thing::pop" ) {
 }
 
 LUA_TEST_CASE( "[thing] index with thing" ) {
-  cthread L = C.this_cthread();
-
-  thing G = table::global( L );
+  thing G = st.global_table();
 
   REQUIRE( G.is<table>() );
   G.as<table>()[7.7] = "target";
 
-  G.as<table>()["hello"]    = table::new_empty( L );
-  G.as<table>()["hello"][5] = table::new_empty( L );
+  thing s = st.str( "hello" );
+
+  G.as<table>()[s]    = st.new_table();
+  G.as<table>()[s][5] = st.new_table();
   // Create circular reference.
   G.as<table>()["hello"][5]["foo"] = G;
 

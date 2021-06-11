@@ -12,6 +12,12 @@
 
 // luapp
 #include "cthread.hpp"
+#include "string.hpp"
+#include "table.hpp"
+#include "thread.hpp"
+
+// C++ standard library
+#include <string_view>
 
 namespace lua {
 
@@ -26,12 +32,33 @@ struct state {
   state();
   ~state() noexcept;
 
+  // Do not use the state after this.
+  void close();
+
+  /**************************************************************
+  ** Threads
+  ***************************************************************/
   // L is guaranteed to be the main thread because it is the one
   // that we get when we create the state.
   cthread main_cthread() const noexcept { return L; }
 
-  // Do not use the state after this.
-  void close();
+  rthread main_rthread() const noexcept;
+
+  /**************************************************************
+  ** Strings
+  ***************************************************************/
+  rstring str( std::string_view sv ) noexcept;
+
+  /**************************************************************
+  ** Tables
+  ***************************************************************/
+  table global_table() noexcept;
+  table new_table() noexcept;
+
+  template<typename U>
+  auto operator[]( U&& idx ) noexcept {
+    return global_table()[std::forward<U>( idx )];
+  }
 
 private:
   state( state const& ) = delete;
@@ -42,5 +69,9 @@ private:
   // main thread.
   cthread L;
 };
+
+// Cannot push an entire global state. You can push a thread
+// though (rthread).
+void push( cthread, state const& ) = delete;
 
 } // namespace lua

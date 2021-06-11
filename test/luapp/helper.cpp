@@ -42,22 +42,22 @@ LUA_TEST_CASE( "[helper] creation/destruction" ) {
 }
 
 LUA_TEST_CASE( "[helper] tables" ) {
-  helper st( L );
+  helper h( L );
   REQUIRE( C.getglobal( "t1" ) == e_lua_type::nil );
   C.pop();
   REQUIRE( C.stack_size() == 0 );
 
-  SECTION( "empty" ) { st.tables( { "" } ); }
+  SECTION( "empty" ) { h.tables( { "" } ); }
 
   SECTION( "single" ) {
-    st.tables( { "t1" } );
+    h.tables( { "t1" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.stack_size() == 1 );
     C.pop();
   }
 
   SECTION( "double" ) {
-    st.tables( { "t1", "t2" } );
+    h.tables( { "t1", "t2" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
     REQUIRE( C.stack_size() == 2 );
@@ -65,7 +65,7 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "triple" ) {
-    st.tables( { "t1", "t2", "t3" } );
+    h.tables( { "t1", "t2", "t3" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
@@ -74,24 +74,24 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "tables already present" ) {
-    st.tables( { "t1" } );
+    h.tables( { "t1" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::nil );
     REQUIRE( C.stack_size() == 2 );
     C.pop( 2 );
-    st.tables( { "t1", "t2" } );
+    h.tables( { "t1", "t2" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::nil );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
-    st.tables( { "t1", "t2", "t3" } );
+    h.tables( { "t1", "t2", "t3" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
-    st.tables( { "t1", "t2", "t3" } );
+    h.tables( { "t1", "t2", "t3" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
@@ -100,7 +100,7 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "triple 2" ) {
-    st.tables( { "hello_world", "yes123x", "_" } );
+    h.tables( { "hello_world", "yes123x", "_" } );
     REQUIRE( C.getglobal( "hello_world" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "yes123x" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "_" ) == e_lua_type::table );
@@ -109,7 +109,7 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "spaces" ) {
-    st.tables( { " t1", " t2" } );
+    h.tables( { " t1", " t2" } );
     REQUIRE( C.getglobal( " t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, " t2" ) == e_lua_type::table );
     REQUIRE( C.stack_size() == 2 );
@@ -117,7 +117,7 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "with reserved" ) {
-    st.tables( { "t1", "if", "t3" } );
+    h.tables( { "t1", "if", "t3" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "if" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
@@ -126,7 +126,7 @@ LUA_TEST_CASE( "[helper] tables" ) {
   }
 
   SECTION( "bad identifier" ) {
-    st.tables( { "t1", "x-z", "t3" } );
+    h.tables( { "t1", "x-z", "t3" } );
     REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "x-z" ) == e_lua_type::table );
     REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
@@ -139,10 +139,10 @@ LUA_TEST_CASE( "[helper] tables" ) {
 
 LUA_TEST_CASE(
     "[helper] push_function, stateless lua C function" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
-  st.push_function( []( lua_State* L ) -> int {
+  h.push_function( []( lua_State* L ) -> int {
     c_api C( L );
     int   n = luaL_checkinteger( L, 1 );
     C.push( n + 1 );
@@ -172,10 +172,10 @@ LUA_TEST_CASE(
   Tracker::reset();
 
   SECTION( "__gc metamethod is called, twice" ) {
-    helper st( L );
-    st.openlibs();
+    helper h( L );
+    h.openlibs();
 
-    bool created = st.push_function(
+    bool created = h.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
           c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
@@ -221,7 +221,7 @@ LUA_TEST_CASE(
 
     // Now set a second closure and ensure that the metatable
     // gets reused.
-    created = st.push_function(
+    created = h.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
           c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
@@ -249,7 +249,7 @@ LUA_TEST_CASE(
     Tracker::reset();
   }
 
-  global_state.close();
+  st.close();
   // !! do not call any lua functions after this.
 
   // Ensure that precisely two closures get destroyed (will
@@ -265,11 +265,11 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE(
     "[helper] push_function, cpp function has upvalue" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
-  st.push_function( []( int n, string const& s,
-                        double d ) -> string {
+  h.push_function( []( int n, string const& s,
+                       double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -293,11 +293,11 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE(
     "[helper] push_function, cpp function, trivial" ) {
-  helper st( L );
+  helper h( L );
 
   bool called = false;
 
-  st.push_function( [&] { called = !called; } );
+  h.push_function( [&] { called = !called; } );
   C.setglobal( "go" );
   REQUIRE_FALSE( called );
 
@@ -313,11 +313,11 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE(
     "[helper] push_function, cpp function, simple/bool" ) {
-  helper st( L );
+  helper h( L );
 
   bool called_with = false;
 
-  st.push_function( [&]( bool b ) { called_with = b; } );
+  h.push_function( [&]( bool b ) { called_with = b; } );
   C.setglobal( "go" );
   REQUIRE_FALSE( called_with );
 
@@ -339,11 +339,11 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE(
     "[helper] push_function, cpp function, calling" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
-  st.push_function( []( int n, string const& s,
-                        double d ) -> string {
+  h.push_function( []( int n, string const& s,
+                       double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -415,8 +415,8 @@ LUA_TEST_CASE(
 }
 
 LUA_TEST_CASE( "[helper] call/pcall" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -432,14 +432,14 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
   REQUIRE( C.stack_size() == 1 );
 
   SECTION( "call" ) {
-    REQUIRE( st.call( 3, "hello", 3.5 ) == 1 );
+    REQUIRE( h.call( 3, "hello", 3.5 ) == 1 );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.5" );
   }
 
   SECTION( "pcall" ) {
-    REQUIRE( st.pcall( 3, "hello", 3.5 ) == 1 );
+    REQUIRE( h.pcall( 3, "hello", 3.5 ) == 1 );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.5" );
@@ -454,15 +454,15 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
       "\t[string \"...\"]:4: in function 'foo'";
     // clang-format on
 
-    REQUIRE( st.pcall( 3, nil, 3.5 ) ==
+    REQUIRE( h.pcall( 3, nil, 3.5 ) ==
              lua_unexpected<int>( err ) );
     REQUIRE( C.stack_size() == 0 );
   }
 }
 
 LUA_TEST_CASE( "[helper] call/pcall multret" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -474,7 +474,7 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
   REQUIRE( C.stack_size() == 1 );
 
   SECTION( "call" ) {
-    REQUIRE( st.call( 3, "hello", 3.5 ) == 3 );
+    REQUIRE( h.call( 3, "hello", 3.5 ) == 3 );
     REQUIRE( C.stack_size() == 3 );
     REQUIRE( C.get<int>( -3 ) == 4 );
     REQUIRE( C.get<string>( -2 ) == "hello!" );
@@ -482,7 +482,7 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
   }
 
   SECTION( "pcall" ) {
-    REQUIRE( st.pcall( 3, "hello", 3.5 ) == 3 );
+    REQUIRE( h.pcall( 3, "hello", 3.5 ) == 3 );
     REQUIRE( C.stack_size() == 3 );
     REQUIRE( C.get<int>( -3 ) == 4 );
     REQUIRE( C.get<string>( -2 ) == "hello!" );
@@ -491,11 +491,11 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
 }
 
 LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
-  st.push_function( []( int n, string const& s,
-                        double d ) -> string {
+  h.push_function( []( int n, string const& s,
+                       double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -503,18 +503,18 @@ LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
 
   C.getglobal( "go" );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+  REQUIRE( h.call( 3, "hello", 3.6 ) == 1 );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.get<string>( -1 ) ==
            "args: n=3, s='hello', d=3.6" );
 }
 
 LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
-  helper st( L );
-  st.openlibs();
+  helper h( L );
+  h.openlibs();
 
-  st.push_function( [&]( int n, string const& s,
-                         double d ) -> string {
+  h.push_function( [&]( int n, string const& s,
+                        double d ) -> string {
     if( n == 4 ) C.error( "n cannot be 4." );
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
@@ -533,21 +533,21 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
   REQUIRE( C.stack_size() == 1 );
 
   SECTION( "call" ) {
-    REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( h.call( 3, "hello", 3.6 ) == 1 );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
   }
 
   SECTION( "call again" ) {
-    REQUIRE( st.call( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( h.call( 3, "hello", 3.6 ) == 1 );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
   }
 
   SECTION( "pcall" ) {
-    REQUIRE( st.pcall( 3, "hello", 3.6 ) == 1 );
+    REQUIRE( h.pcall( 3, "hello", 3.6 ) == 1 );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
@@ -562,7 +562,7 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
       "\t[string \"...\"]:4: in function 'foo'";
     // clang-format on
 
-    REQUIRE( st.pcall( 3, nil, 3.6 ) ==
+    REQUIRE( h.pcall( 3, nil, 3.6 ) ==
              lua_unexpected<int>( err ) );
     REQUIRE( C.stack_size() == 0 );
   }
@@ -576,7 +576,7 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
       "\t[string \"...\"]:6: in function 'foo'";
     // clang-format on
 
-    REQUIRE( st.pcall( 4, "hello", 3.6 ) ==
+    REQUIRE( h.pcall( 4, "hello", 3.6 ) ==
              lua_unexpected<int>( err ) );
     REQUIRE( C.stack_size() == 0 );
   }
