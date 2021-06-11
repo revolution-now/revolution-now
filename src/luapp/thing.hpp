@@ -51,15 +51,14 @@ struct reference {
   reference( reference const& ) noexcept;
   reference& operator=( reference const& ) noexcept;
 
-  // Pushes nil if there is no reference. We take a Lua state
-  // here instead of using the one we have in order to force all
-  // callers to specify one, that way there are no bugs when
-  // working with multiple Lua threads.
-  e_lua_type push( lua_State* L ) const noexcept;
-
   static int noref() noexcept;
 
   lua_State* lua_state() const noexcept;
+
+  // Pushes nil if there is no reference. Note that we don't push
+  // onto the Lua state that is held instead the reference ob-
+  // ject, since that could correspond to a different thread.
+  friend void push( lua_State* L, reference const& r );
 
 protected:
   reference( lua_State* st, int ref, e_lua_type type ) noexcept;
@@ -77,8 +76,6 @@ bool operator==( reference const& r, boolean const& b );
 bool operator==( reference const& r, lightuserdata const& lud );
 bool operator==( reference const& r, integer const& i );
 bool operator==( reference const& r, floating const& f );
-
-void push( lua_State* L, reference const& r );
 
 /****************************************************************
 ** table
@@ -167,7 +164,6 @@ struct thing : public thing_base {
 
   e_lua_type type() const noexcept;
 
-  void         push( lua_State* L ) const noexcept;
   static thing pop( lua_State* L ) noexcept;
 };
 

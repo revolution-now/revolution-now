@@ -399,7 +399,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       table o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::table );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -423,7 +423,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       lfunction o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::function );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -439,7 +439,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -486,7 +486,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       table o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::table );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -517,7 +517,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       lfunction o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::function );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -540,7 +540,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.state(), ref );
-      o.push( C.state() );
+      push( C.state(), o );
       REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -921,14 +921,14 @@ TEST_CASE( "[thing] thing::push" ) {
 
   SECTION( "nil" ) {
     thing th = nil;
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
     C.pop();
   }
   SECTION( "boolean" ) {
     thing th = true;
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
     REQUIRE( C.get<bool>( -1 ) == true );
@@ -937,7 +937,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "lightuserdata" ) {
     int   x  = 0;
     thing th = (void*)&x;
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::lightuserdata );
     REQUIRE( C.get<void*>( -1 ) == &x );
@@ -945,7 +945,7 @@ TEST_CASE( "[thing] thing::push" ) {
   }
   SECTION( "integer" ) {
     thing th = 5;
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::number );
     REQUIRE( C.get<int>( -1 ) == 5 );
@@ -953,7 +953,7 @@ TEST_CASE( "[thing] thing::push" ) {
   }
   SECTION( "floating" ) {
     thing th = 5.5;
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::number );
     REQUIRE( C.get<double>( -1 ) == 5.5 );
@@ -962,7 +962,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "lstring" ) {
     C.push( "hello" );
     thing th = lstring( C.state(), C.ref_registry() );
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::string );
     REQUIRE( C.get<string>( -1 ) == "hello" );
@@ -971,7 +971,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "table" ) {
     C.newtable();
     thing th = table( C.state(), C.ref_registry() );
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::table );
     REQUIRE( th == table( C.state(), C.ref_registry() ) );
@@ -979,7 +979,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "lfunction" ) {
     C.push( []( lua_State* ) -> int { return 0; } );
     thing th = lfunction( C.state(), C.ref_registry() );
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::function );
     REQUIRE( th == lfunction( C.state(), C.ref_registry() ) );
@@ -987,7 +987,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "userdata" ) {
     C.newuserdata( 10 );
     thing th = userdata( C.state(), C.ref_registry() );
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
     REQUIRE( th == userdata( C.state(), C.ref_registry() ) );
@@ -995,7 +995,7 @@ TEST_CASE( "[thing] thing::push" ) {
   SECTION( "lthread" ) {
     (void)C.newthread();
     thing th = lthread( C.state(), C.ref_registry() );
-    th.push( C.state() );
+    push( C.state(), th );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == e_lua_type::thread );
     REQUIRE( th == lthread( C.state(), C.ref_registry() ) );
