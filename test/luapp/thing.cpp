@@ -399,7 +399,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       table o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::table );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -423,7 +423,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       lfunction o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::function );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -439,7 +439,7 @@ TEST_CASE( "[reference] reference create/push/gc" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -486,7 +486,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       table o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::table );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -517,7 +517,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       lfunction o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::function );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
@@ -540,7 +540,7 @@ TEST_CASE( "[reference] reference copy --> no collect" ) {
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.state(), ref );
-      o.push();
+      o.push( C.state() );
       REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();

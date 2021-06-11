@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "types.hpp"
 
+// luapp
+#include "c-api.hpp"
+
 // base
 #include "base/error.hpp"
 
@@ -29,7 +32,7 @@ namespace lua {
 // clang-format off
 ASSERT_MATCH( nil,            LUA_TNIL           );
 ASSERT_MATCH( boolean,        LUA_TBOOLEAN       );
-ASSERT_MATCH( lightuserdata, LUA_TLIGHTUSERDATA );
+ASSERT_MATCH( lightuserdata,  LUA_TLIGHTUSERDATA );
 ASSERT_MATCH( number,         LUA_TNUMBER        );
 ASSERT_MATCH( string,         LUA_TSTRING        );
 ASSERT_MATCH( table,          LUA_TTABLE         );
@@ -38,9 +41,33 @@ ASSERT_MATCH( userdata,       LUA_TUSERDATA      );
 ASSERT_MATCH( thread,         LUA_TTHREAD        );
 // clang-format on
 
-namespace {
-//
-} // namespace
+/******************************************************************
+** push
+*******************************************************************/
+void push( lua_State* L, nil_t ) {
+  c_api C = c_api::view( L );
+  C.push( nil );
+}
+
+void push( lua_State* L, boolean b ) {
+  c_api C = c_api::view( L );
+  C.push( b );
+}
+
+void push( lua_State* L, integer i ) {
+  c_api C = c_api::view( L );
+  C.push( i );
+}
+
+void push( lua_State* L, floating f ) {
+  c_api C = c_api::view( L );
+  C.push( f );
+}
+
+void push( lua_State* L, lightuserdata lud ) {
+  c_api C = c_api::view( L );
+  C.push( lud );
+}
 
 /******************************************************************
 ** to_str

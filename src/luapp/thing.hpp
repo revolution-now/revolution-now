@@ -51,8 +51,11 @@ struct reference {
   reference( reference const& ) noexcept;
   reference& operator=( reference const& ) noexcept;
 
-  // Pushes nil if there is no reference.
-  e_lua_type push() const noexcept;
+  // Pushes nil if there is no reference. We take a Lua state
+  // here instead of using the one we have in order to force all
+  // callers to specify one, that way there are no bugs when
+  // working with multiple Lua threads.
+  e_lua_type push( lua_State* L ) const noexcept;
 
   static int noref() noexcept;
 
@@ -74,6 +77,8 @@ bool operator==( reference const& r, boolean const& b );
 bool operator==( reference const& r, lightuserdata const& lud );
 bool operator==( reference const& r, integer const& i );
 bool operator==( reference const& r, floating const& f );
+
+void push( lua_State* L, reference const& r );
 
 /****************************************************************
 ** table
@@ -165,6 +170,8 @@ struct thing : public thing_base {
   void         push( lua_State* L ) const noexcept;
   static thing pop( lua_State* L ) noexcept;
 };
+
+void push( lua_State* L, thing const& th );
 
 /****************************************************************
 ** to_str

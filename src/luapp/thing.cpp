@@ -125,7 +125,7 @@ void reference::release() noexcept {
 
 reference::reference( reference const& rhs ) noexcept
   : L( rhs.L ) {
-  rhs.push();
+  rhs.push( L );
   c_api C = c_api::view( L );
   ref_    = C.ref_registry();
 }
@@ -139,7 +139,7 @@ reference& reference::operator=(
   CHECK( ref_ != rhs.ref_ );
   release();
   L = rhs.L;
-  rhs.push();
+  rhs.push( L );
   c_api C = c_api::view( L );
   ref_    = C.ref_registry();
   return *this;
@@ -147,7 +147,7 @@ reference& reference::operator=(
 
 int reference::noref() noexcept { return c_api::noref(); }
 
-e_lua_type reference::push() const noexcept {
+e_lua_type reference::push( lua_State* L ) const noexcept {
   c_api C = c_api::view( L );
   return C.registry_get( ref_ );
 }
@@ -159,9 +159,10 @@ bool operator==( reference const& lhs, reference const& rhs ) {
          "not sure if it is OK to push values with different "
          "states and then try to compare them.  Need to "
          "investigate this more." );
-  lhs.push();
-  rhs.push();
-  c_api C   = c_api::view( lhs.lua_state() );
+  lua_State* L = lhs.lua_state();
+  lhs.push( L );
+  rhs.push( L );
+  c_api C   = c_api::view( L );
   bool  res = C.compare_eq( -2, -1 );
   C.pop( 2 );
   return res;
@@ -172,7 +173,7 @@ namespace {
 template<typename T>
 bool ref_op_eq( reference const& r, T const& o ) {
   c_api C = c_api::view( r.lua_state() );
-  r.push();
+  r.push( r.lua_state() );
   C.push( o );
   bool res = C.compare_eq( -2, -1 );
   C.pop( 2 );
@@ -201,6 +202,8 @@ bool operator==( reference const& r, floating const& o ) {
   return ref_op_eq( r, o );
 }
 
+void push( lua_State* L, reference const& r ) { r.push( L ); }
+
 /****************************************************************
 ** table
 *****************************************************************/
@@ -215,7 +218,7 @@ lstring::lstring( lua_State* st, int ref ) noexcept
 
 string lstring::as_cpp() const {
   c_api C = c_api::view( L );
-  push();
+  push( L );
   CHECK( C.type_of( -1 ) == e_lua_type::string );
   UNWRAP_CHECK( res, C.get<string>( -1 ) );
   C.pop();
@@ -290,7 +293,7 @@ void thing::push( lua_State* L ) const noexcept {
   this->visit( [&]<typename T>( T&& o ) {
     if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
       CHECK( o.lua_state() == L );
-      o.push();
+      o.push( L );
     } else {
       c_api C = c_api::view( L );
       C.push( o );
@@ -366,11 +369,13 @@ bool thing::operator==( std::string_view rhs ) const noexcept {
   return *maybe_s == rhs;
 }
 
+void push( lua_State* L, thing const& th ) { th.push( L ); }
+
 /****************************************************************
 ** to_str
 *****************************************************************/
 void to_str( reference const& r, string& out ) {
-  r.push();
+  r.push( r.lua_state() );
   out += call_tostring( r.lua_state() );
 }
 

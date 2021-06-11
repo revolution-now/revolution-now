@@ -78,6 +78,8 @@ inline constexpr nil_t nil;
 
 void to_str( nil_t, std::string& out );
 
+void push( lua_State* L, nil_t );
+
 /****************************************************************
 ** value types
 *****************************************************************/
@@ -90,6 +92,11 @@ struct lightuserdata : public base::safe::void_p {
   using Base = base::safe::void_p;
   using Base::Base;
 };
+
+void push( lua_State* L, boolean b );
+void push( lua_State* L, integer i );
+void push( lua_State* L, floating f );
+void push( lua_State* L, lightuserdata lud );
 
 void to_str( lightuserdata const& lud, std::string& out );
 
