@@ -101,19 +101,8 @@ EQ_VAL_VAL_IMPL( integer, floating );
 /****************************************************************
 ** reference
 *****************************************************************/
-reference::reference( lua_State* st, int ref,
-                      e_lua_type type ) noexcept
-  : L( st ), ref_( ref ) {
-#ifndef NDEBUG
-  // In debug mode, check that we have the right type.
-  c_api C = c_api::view( L );
-  C.registry_get( ref_ );
-  CHECK( C.type_of( -1 ) == type );
-  C.pop();
-#else
-  (void)type;
-#endif
-}
+reference::reference( lua_State* st, int ref ) noexcept
+  : L( st ), ref_( ref ) {}
 
 reference::~reference() noexcept { release(); }
 
@@ -144,8 +133,6 @@ reference& reference::operator=(
   ref_    = C.ref_registry();
   return *this;
 }
-
-int reference::noref() noexcept { return c_api::noref(); }
 
 lua_State* reference::lua_state() const noexcept { return L; }
 
@@ -205,13 +192,13 @@ void push( lua_State* L, reference const& r ) {
 ** table
 *****************************************************************/
 table::table( lua_State* st, int ref ) noexcept
-  : reference( st, ref, e_lua_type::table ) {}
+  : reference( st, ref ) {}
 
 /****************************************************************
 ** lstring
 *****************************************************************/
 lstring::lstring( lua_State* st, int ref ) noexcept
-  : reference( st, ref, e_lua_type::string ) {}
+  : reference( st, ref ) {}
 
 string lstring::as_cpp() const {
   c_api C = c_api::view( L );
@@ -238,19 +225,19 @@ bool lstring::operator==( string const& s ) const {
 ** lfunction
 *****************************************************************/
 lfunction::lfunction( lua_State* st, int ref ) noexcept
-  : reference( st, ref, e_lua_type::function ) {}
+  : reference( st, ref ) {}
 
 /****************************************************************
 ** userdata
 *****************************************************************/
 userdata::userdata( lua_State* st, int ref ) noexcept
-  : reference( st, ref, e_lua_type::userdata ) {}
+  : reference( st, ref ) {}
 
 /****************************************************************
 ** lthread
 *****************************************************************/
 lthread::lthread( lua_State* st, int ref ) noexcept
-  : reference( st, ref, e_lua_type::thread ) {}
+  : reference( st, ref ) {}
 
 /****************************************************************
 ** thing

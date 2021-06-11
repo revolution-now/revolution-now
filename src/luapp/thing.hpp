@@ -49,8 +49,6 @@ struct reference {
   reference( reference const& ) noexcept;
   reference& operator=( reference const& ) noexcept;
 
-  static int noref() noexcept;
-
   lua_State* lua_state() const noexcept;
 
   // Pushes nil if there is no reference. Note that we don't push
@@ -59,7 +57,7 @@ struct reference {
   friend void push( lua_State* L, reference const& r );
 
 protected:
-  reference( lua_State* st, int ref, e_lua_type type ) noexcept;
+  reference( lua_State* st, int ref ) noexcept;
 
   lua_State* L; // not owned.
 
