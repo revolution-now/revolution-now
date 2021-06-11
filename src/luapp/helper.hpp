@@ -1,11 +1,11 @@
 /****************************************************************
-**state.hpp
+**helper.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-05-29.
 *
-* Description: High-level Lua state object.
+* Description: High-level Lua helper object.
 *
 *****************************************************************/
 #pragma once
@@ -31,11 +31,11 @@ namespace lua {
 
 struct c_api;
 
-struct state {
-  state();
+struct helper {
+  helper();
   // TODO: this constructor can be removed (as well as the lua.h
   // include) after migration away from sol2.
-  state( cthread state );
+  helper( cthread helper );
 
   using c_string_list = std::vector<char const*>;
 
@@ -75,10 +75,10 @@ struct state {
   e_lua_type push_path( c_string_list const& path ) noexcept;
 
 private:
-  state( state const& ) = delete;
-  state( state&& )      = delete;
-  state& operator=( state const& ) = delete;
-  state& operator=( state&& ) = delete;
+  helper( helper const& ) = delete;
+  helper( helper&& )      = delete;
+  helper& operator=( helper const& ) = delete;
+  helper& operator=( helper&& ) = delete;
 
   template<typename T>
   bool create_userdata( T&& object ) noexcept;
@@ -112,7 +112,7 @@ private:
 };
 
 template<typename Func>
-auto state::push_function( Func&& func ) noexcept {
+auto helper::push_function( Func&& func ) noexcept {
   using args_t = mp::callable_arg_types_t<Func>;
   if constexpr( std::is_same_v<args_t,
                                mp::type_list<lua_State*>> ) {
@@ -143,7 +143,7 @@ auto state::push_function( Func&& func ) noexcept {
 }
 
 template<typename Func, typename R, typename... Args>
-bool state::push_cpp_function(
+bool helper::push_cpp_function(
     Func&& func, R*, mp::type_list<Args...>* ) noexcept {
   static auto const runner =
       [func = std::move( func )]( lua_State* L ) -> int {
@@ -195,7 +195,7 @@ bool state::push_cpp_function(
 }
 
 template<typename... Args>
-int state::call( Args&&... args ) {
+int helper::call( Args&&... args ) {
   CHECK( C.stack_size() >= 1 );
   CHECK( C.type_of( -1 ) == e_lua_type::function );
   // Get size of stack before function was pushed.
@@ -211,7 +211,7 @@ int state::call( Args&&... args ) {
 }
 
 template<typename... Args>
-lua_expect<int> state::pcall( Args&&... args ) noexcept {
+lua_expect<int> helper::pcall( Args&&... args ) noexcept {
   CHECK( C.stack_size() >= 1 );
   CHECK( C.type_of( -1 ) == e_lua_type::function );
   // Get size of stack before function was pushed.

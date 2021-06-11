@@ -1,14 +1,14 @@
 /****************************************************************
-**state.cpp
+**helper.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-05-29.
 *
-* Description: High-level Lua state object.
+* Description: High-level Lua helper object.
 *
 *****************************************************************/
-#include "state.hpp"
+#include "helper.hpp"
 
 // luapp
 #include "c-api.hpp"
@@ -27,21 +27,21 @@ namespace lua {
 namespace {} // namespace
 
 /****************************************************************
-** state
+** helper
 *****************************************************************/
-state::state( cthread L ) : C( c_api::view( L ) ) {}
+helper::helper( cthread L ) : C( c_api::view( L ) ) {}
 
-state::state() : C() {}
+helper::helper() : C() {}
 
-c_api& state::api() noexcept { return C; }
+c_api& helper::api() noexcept { return C; }
 
-void state::openlibs() noexcept { C.openlibs(); }
+void helper::openlibs() noexcept { C.openlibs(); }
 
-int state::noref() { return LUA_NOREF; }
+int helper::noref() { return LUA_NOREF; }
 
 // TODO: use this as a model for loading a piece of code once
 // into the registry. Can remove eventually.
-void state::tables_slow( std::string_view path ) noexcept {
+void helper::tables_slow( std::string_view path ) noexcept {
   if( tables_func_ref == LUA_NOREF ) {
     static string const code = R"lua(
       local path = ...
@@ -61,7 +61,7 @@ void state::tables_slow( std::string_view path ) noexcept {
   CHECK_HAS_VALUE( C.pcall( /*nargs=*/1, /*nresults=*/0 ) );
 }
 
-void state::tables( c_string_list const& path ) noexcept {
+void helper::tables( c_string_list const& path ) noexcept {
   C.pushglobaltable();
   for( char const* elem : path ) {
     e_lua_type type = C.getfield( /*table_idx=*/-1, elem );
@@ -85,7 +85,7 @@ void state::tables( c_string_list const& path ) noexcept {
   C.pop( path.size() + 1 ); // + global table
 }
 
-void state::traverse_and_push_table_and_key(
+void helper::traverse_and_push_table_and_key(
     c_string_list const& path ) noexcept {
   CHECK( path.size() > 0 );
   C.pushglobaltable();
@@ -105,7 +105,7 @@ void state::traverse_and_push_table_and_key(
   }
 }
 
-e_lua_type state::push_path(
+e_lua_type helper::push_path(
     c_string_list const& path ) noexcept {
   C.pushglobaltable();
   char const* elem = "_G";
@@ -123,13 +123,13 @@ e_lua_type state::push_path(
   return type;
 }
 
-void state::push_stateless_lua_c_function(
+void helper::push_stateless_lua_c_function(
     LuaCFunction* func ) noexcept {
   C.push( func );
 }
 
 template<typename T>
-bool state::create_userdata( T&& object ) noexcept {
+bool helper::create_userdata( T&& object ) noexcept {
   int initial_stack_size = C.stack_size();
 
   static string const type_name = base::demangled_typename<T>();
@@ -196,7 +196,7 @@ bool state::create_userdata( T&& object ) noexcept {
   return metatable_created;
 }
 
-bool state::push_stateful_lua_c_function(
+bool helper::push_stateful_lua_c_function(
     base::unique_func<int( lua_State* ) const> func ) noexcept {
   // Pushes new userdata onto stack.
   bool metatable_created = create_userdata( std::move( func ) );

@@ -1,17 +1,17 @@
 /****************************************************************
-**state.cpp
+**helper.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-05-29.
 *
-* Description: Unit tests for the src/luapp/state.* module.
+* Description: Unit tests for the src/luapp/helper.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/state.hpp"
+#include "src/luapp/helper.hpp"
 
 // Testing
 #include "test/monitoring-types.hpp"
@@ -36,10 +36,10 @@ using namespace std;
 using ::base::valid;
 using ::testing::Tracker;
 
-TEST_CASE( "[state] creation/destruction" ) { state st; }
+TEST_CASE( "[helper] creation/destruction" ) { helper st; }
 
-TEST_CASE( "[state] tables" ) {
-  state  st;
+TEST_CASE( "[helper] tables" ) {
+  helper st;
   c_api& C = st.api();
   REQUIRE( C.getglobal( "t1" ) == e_lua_type::nil );
   C.pop();
@@ -135,8 +135,8 @@ TEST_CASE( "[state] tables" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[state] push_function, stateless lua C function" ) {
-  state st;
+TEST_CASE( "[helper] push_function, stateless lua C function" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -165,11 +165,11 @@ TEST_CASE( "[state] push_function, stateless lua C function" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[state] push_function, stateful lua C function" ) {
+TEST_CASE( "[helper] push_function, stateful lua C function" ) {
   Tracker::reset();
 
   SECTION( "__gc metamethod is called, twice" ) {
-    state st;
+    helper st;
     st.openlibs();
     c_api& C = st.api();
 
@@ -258,8 +258,8 @@ TEST_CASE( "[state] push_function, stateful lua C function" ) {
   REQUIRE( Tracker::move_assigned == 0 );
 }
 
-TEST_CASE( "[state] push_function, cpp function has upvalue" ) {
-  state st;
+TEST_CASE( "[helper] push_function, cpp function has upvalue" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -286,8 +286,8 @@ TEST_CASE( "[state] push_function, cpp function has upvalue" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
-TEST_CASE( "[state] push_function, cpp function, trivial" ) {
-  state  st;
+TEST_CASE( "[helper] push_function, cpp function, trivial" ) {
+  helper st;
   c_api& C = st.api();
 
   bool called = false;
@@ -306,8 +306,9 @@ TEST_CASE( "[state] push_function, cpp function, trivial" ) {
   REQUIRE_FALSE( called );
 }
 
-TEST_CASE( "[state] push_function, cpp function, simple/bool" ) {
-  state  st;
+TEST_CASE(
+    "[helper] push_function, cpp function, simple/bool" ) {
+  helper st;
   c_api& C = st.api();
 
   bool called_with = false;
@@ -332,8 +333,8 @@ TEST_CASE( "[state] push_function, cpp function, simple/bool" ) {
   REQUIRE_FALSE( called_with );
 }
 
-TEST_CASE( "[state] push_function, cpp function, calling" ) {
-  state st;
+TEST_CASE( "[helper] push_function, cpp function, calling" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -409,8 +410,8 @@ TEST_CASE( "[state] push_function, cpp function, calling" ) {
   }
 }
 
-TEST_CASE( "[state] call/pcall" ) {
-  state st;
+TEST_CASE( "[helper] call/pcall" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -456,8 +457,8 @@ TEST_CASE( "[state] call/pcall" ) {
   }
 }
 
-TEST_CASE( "[state] call/pcall multret" ) {
-  state st;
+TEST_CASE( "[helper] call/pcall multret" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -487,8 +488,8 @@ TEST_CASE( "[state] call/pcall multret" ) {
   }
 }
 
-TEST_CASE( "[state] cpp from cpp via lua" ) {
-  state st;
+TEST_CASE( "[helper] cpp from cpp via lua" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
@@ -507,8 +508,8 @@ TEST_CASE( "[state] cpp from cpp via lua" ) {
            "args: n=3, s='hello', d=3.6" );
 }
 
-TEST_CASE( "[state] cpp->lua->cpp round trip" ) {
-  state st;
+TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
+  helper st;
   st.openlibs();
   c_api& C = st.api();
 
