@@ -318,9 +318,9 @@ struct c_api {
   // value at index idx2, following the semantics of the corre-
   // sponding Lua operator (that is, it may call metamethods).
   // Otherwise returns false.
-  bool compare_eq( int idx1, int idx2 );
-  bool compare_lt( int idx1, int idx2 );
-  bool compare_le( int idx1, int idx2 );
+  [[nodiscard]] bool compare_eq( int idx1, int idx2 );
+  [[nodiscard]] bool compare_lt( int idx1, int idx2 );
+  [[nodiscard]] bool compare_le( int idx1, int idx2 );
 
   /**************************************************************
   ** string conversion

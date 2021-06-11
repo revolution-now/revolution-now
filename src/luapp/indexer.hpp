@@ -34,9 +34,9 @@ struct indexer {
                                 std::move( *this ) );
   }
 
-  template<typename IndexT_, typename Precedessor_>
+  template<typename IndexT_, typename Predecessor_>
   friend void push( cthread                               L,
-                    indexer<IndexT_, Precedessor_> const& idxr );
+                    indexer<IndexT_, Predecessor_> const& idxr );
 
   cthread this_cthread() const noexcept {
     return pred_.this_cthread();
@@ -44,6 +44,9 @@ struct indexer {
 
   template<typename U>
   indexer& operator=( U&& rhs );
+
+  template<typename U>
+  bool operator==( U const& idx ) const noexcept;
 
 private:
   Predecessor pred_;
@@ -56,9 +59,12 @@ void indexer_gettable( cthread L );
 // Pushes (-3)[-2] = (-1) onto the stack, and pops all three.
 void indexer_settable( cthread L );
 
-template<typename IndexT, typename Precedessor>
+// Asks lua if (-2) == (-1), and pops both.
+bool indexer_eq( cthread L );
+
+template<typename IndexT, typename Predecessor>
 void push( cthread                             L,
-           indexer<IndexT, Precedessor> const& idxr ) {
+           indexer<IndexT, Predecessor> const& idxr ) {
   push( L, idxr.pred_ );
   push( L, idxr.index_ );
   indexer_gettable( L );
@@ -74,6 +80,16 @@ indexer<IndexT, Predecessor>::operator=( U&& rhs ) {
   push( L, std::forward<U>( rhs ) );
   indexer_settable( L );
   return *this;
+}
+
+template<typename IndexT, typename Predecessor>
+template<typename U>
+bool indexer<IndexT, Predecessor>::operator==(
+    U const& rhs ) const noexcept {
+  cthread L = this_cthread();
+  push( L, *this );
+  push( L, rhs );
+  return indexer_eq( L );
 }
 
 } // namespace lua

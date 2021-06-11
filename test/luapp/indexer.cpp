@@ -221,5 +221,24 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
+LUA_TEST_CASE( "[indexer] equality" ) {
+  EmptyTable mt( L );
+  mt[5]             = EmptyTable( L );
+  mt[5][1]          = EmptyTable( L );
+  mt[5][1]["hello"] = "payload";
+
+  // Use extra parens here because Catch's expression template
+  // mechanism messes with our equality.
+  REQUIRE( ( mt[5] == mt[5] ) );
+  REQUIRE( ( mt[5] != 0 ) );
+  REQUIRE( ( mt[5] != nil ) );
+  REQUIRE( ( mt[6] == nil ) );
+  REQUIRE( ( mt[5][1] != nil ) );
+  REQUIRE( ( mt[5][1]["hello"] != "hello" ) );
+  REQUIRE( ( mt[5][1]["hello"] == "payload" ) );
+
+  REQUIRE( ( mt[5][1]["hello"] == mt[5][1]["hello"] ) );
+}
+
 } // namespace
 } // namespace lua

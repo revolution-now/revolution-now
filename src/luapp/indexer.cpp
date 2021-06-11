@@ -13,12 +13,16 @@
 // luapp
 #include "c-api.hpp"
 
+// base
+#include "error.hpp"
+
 using namespace std;
 
 namespace lua {
 
 void indexer_gettable( cthread L ) {
   c_api C( L );
+  CHECK( C.stack_size() >= 2 );
   C.gettable( -2 );
   C.swap_top();
   C.pop();
@@ -26,8 +30,17 @@ void indexer_gettable( cthread L ) {
 
 void indexer_settable( cthread L ) {
   c_api C( L );
+  CHECK( C.stack_size() >= 3 );
   C.settable( -3 );
   C.pop();
+}
+
+bool indexer_eq( cthread L ) {
+  c_api C( L );
+  CHECK( C.stack_size() >= 2 );
+  bool res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
 }
 
 } // namespace lua

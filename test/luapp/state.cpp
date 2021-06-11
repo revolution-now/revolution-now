@@ -79,11 +79,10 @@ LUA_TEST_CASE( "[lua-state] state indexing" ) {
 
   table G = st.global_table();
 
-  push( L, G["a"][5]["world"] );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::number );
-  REQUIRE( C.isinteger( -1 ) );
-  REQUIRE( C.get<int>( -1 ) == 9 );
-  C.pop();
+  REQUIRE( ( G["a"][5]["world"] == 9 ) );
+  REQUIRE( ( G["a"] == st["a"] ) );
+  REQUIRE( ( G["a"][5] == st["a"][5] ) );
+  REQUIRE( ( G["a"][5] != st["a"] ) );
 
   REQUIRE( C.stack_size() == 0 );
 }

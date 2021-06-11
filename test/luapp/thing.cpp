@@ -547,6 +547,13 @@ LUA_TEST_CASE( "[thing] index with thing" ) {
     return hello[5].foo.hello[5]['foo'][7.7]
   )" ) == valid );
 
+  REQUIRE(
+      ( G.as<table>()["hello"][5]["foo"][s][5]["foo"][7.7] ==
+        "target" ) );
+
+  thing target = st.str( "target" );
+  REQUIRE( ( target == st[7.7] ) );
+
   REQUIRE( C.get<string>( -1 ) == "target" );
   C.pop();
 
