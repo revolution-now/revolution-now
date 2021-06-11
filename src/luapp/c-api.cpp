@@ -408,21 +408,25 @@ void c_api::swap_top() noexcept {
 void c_api::newtable() noexcept { lua_newtable( L ); }
 
 // (table_idx)[-2] = -1
-void c_api::settable( int table_idx ) noexcept {
+void c_api::settable( int table_idx ) {
   validate_index( table_idx );
   lua_settable( L, table_idx );
 }
 
 // (table_idx)[k] = -1
-void c_api::setfield( int table_idx, char const* k ) noexcept {
+void c_api::setfield( int table_idx, char const* k ) {
   validate_index( table_idx );
   lua_setfield( L, table_idx, k );
 }
 
-e_lua_type c_api::getfield( int         table_idx,
-                            char const* k ) noexcept {
+e_lua_type c_api::getfield( int table_idx, char const* k ) {
   validate_index( table_idx );
   return lua_type_to_enum( lua_getfield( L, table_idx, k ) );
+}
+
+e_lua_type c_api::gettable( int idx ) {
+  validate_index( idx );
+  return lua_type_to_enum( lua_gettable( L, idx ) );
 }
 
 e_lua_type c_api::rawgeti( int idx, integer n ) noexcept {

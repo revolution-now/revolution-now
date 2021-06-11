@@ -142,13 +142,17 @@ struct c_api {
   void newtable() noexcept;
 
   // (table_idx)[-2] = -1
-  void settable( int table_idx ) noexcept;
+  void settable( int table_idx );
+
+  // Pushes (idx)[-1], Pops the key from the stack, but not the
+  // table. Returns the type of the pushed value.
+  e_lua_type gettable( int idx );
 
   // (table_idx)[k] = -1
-  void setfield( int table_idx, char const* k ) noexcept;
+  void setfield( int table_idx, char const* k );
 
   // Pushes (table_idx)[k].  Returns type of pushed value.
-  e_lua_type getfield( int table_idx, char const* k ) noexcept;
+  e_lua_type getfield( int table_idx, char const* k );
 
   // Pushes (idx)[n] onto the stack without invoking __index, and
   // returns type of value pushed.

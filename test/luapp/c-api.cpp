@@ -785,8 +785,8 @@ TEST_CASE( "[lua-c-api] newtable" ) {
 }
 
 TEST_CASE(
-    "[lua-c-api] push_global_table, settable, getfield, "
-    "setfield" ) {
+    "[lua-c-api] push_global_table, settable, gettable, "
+    "getfield, setfield" ) {
   c_api C;
   REQUIRE( C.getglobal( "hello" ) == e_lua_type::nil );
   C.pop();
@@ -798,8 +798,18 @@ TEST_CASE(
   REQUIRE( C.stack_size() == 3 );
   C.settable( -3 );
   REQUIRE( C.stack_size() == 1 );
+
+  C.push( "hello" );
+  REQUIRE( C.gettable( -2 ) == e_lua_type::number );
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C.get<double>( -1 ) == 3.5 );
+  C.pop();
+  REQUIRE( C.stack_size() == 1 );
+
   // At this point, only the global table is still on the stack.
   C.pop();
+  // Not anymore.
+  REQUIRE( C.stack_size() == 0 );
 
   REQUIRE( C.getglobal( "hello" ) == e_lua_type::number );
   REQUIRE( C.stack_size() == 1 );
