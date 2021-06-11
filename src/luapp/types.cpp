@@ -69,6 +69,11 @@ void push( lua_State* L, lightuserdata lud ) {
   C.push( lud );
 }
 
+void push( lua_State* L, string_view sv ) {
+  c_api C = c_api::view( L );
+  C.push( sv );
+}
+
 /******************************************************************
 ** to_str
 *******************************************************************/

@@ -98,6 +98,8 @@ void push( lua_State* L, integer i );
 void push( lua_State* L, floating f );
 void push( lua_State* L, lightuserdata lud );
 
+void push( lua_State* L, std::string_view sv );
+
 void to_str( lightuserdata const& lud, std::string& out );
 
 /****************************************************************
