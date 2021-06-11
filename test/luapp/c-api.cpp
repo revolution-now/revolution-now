@@ -1417,5 +1417,53 @@ TEST_CASE( "[lua-c-api] isinteger" ) {
   C.pop( 6 );
 }
 
+// This demonstrates that different threads within a state have
+// separate stacks.
+TEST_CASE( "[lua-c-api] separate thread stacks" ) {
+  c_api C;
+
+  lua_State* thread1 = C.state();
+  lua_State* thread2 = C.newthread();
+  lua_State* thread3 = C.newthread();
+
+  c_api view1 = c_api::view( thread1 );
+  c_api view2 = c_api::view( thread2 );
+  c_api view3 = c_api::view( thread3 );
+
+  REQUIRE( view1.stack_size() == 2 );
+  REQUIRE( view2.stack_size() == 0 );
+  REQUIRE( view3.stack_size() == 0 );
+
+  view1.push( 5 );
+  REQUIRE( view1.stack_size() == 3 );
+  REQUIRE( view2.stack_size() == 0 );
+  REQUIRE( view3.stack_size() == 0 );
+
+  view2.push( 5 );
+  REQUIRE( view1.stack_size() == 3 );
+  REQUIRE( view2.stack_size() == 1 );
+  REQUIRE( view3.stack_size() == 0 );
+
+  view3.push( 5 );
+  REQUIRE( view1.stack_size() == 3 );
+  REQUIRE( view2.stack_size() == 1 );
+  REQUIRE( view3.stack_size() == 1 );
+
+  view3.pop();
+  REQUIRE( view1.stack_size() == 3 );
+  REQUIRE( view2.stack_size() == 1 );
+  REQUIRE( view3.stack_size() == 0 );
+
+  view2.pop();
+  REQUIRE( view1.stack_size() == 3 );
+  REQUIRE( view2.stack_size() == 0 );
+  REQUIRE( view3.stack_size() == 0 );
+
+  view1.pop( 3 );
+  REQUIRE( view1.stack_size() == 0 );
+  REQUIRE( view2.stack_size() == 0 );
+  REQUIRE( view3.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace lua
