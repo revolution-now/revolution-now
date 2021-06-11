@@ -12,6 +12,8 @@
 
 // luapp
 #include "c-api.hpp"
+#include "scratch.hpp"
+#include "state.hpp"
 
 // base
 #include "base/error.hpp"
@@ -40,6 +42,39 @@ ASSERT_MATCH( function,       LUA_TFUNCTION      );
 ASSERT_MATCH( userdata,       LUA_TUSERDATA      );
 ASSERT_MATCH( thread,         LUA_TTHREAD        );
 // clang-format on
+
+/****************************************************************
+** equality
+*****************************************************************/
+namespace {
+
+template<typename Left, typename Right>
+bool eq_value_and_value( Left const& l, Right const& r ) {
+  c_api C( scratch_state().main_cthread() );
+  C.push( l );
+  C.push( r );
+  bool res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
+}
+
+} // namespace
+
+#define EQ_VAL_VAL_IMPL( left_t, right_t )               \
+  bool operator==( left_t const& l, right_t const& r ) { \
+    return eq_value_and_value( l, r );                   \
+  }
+
+EQ_VAL_VAL_IMPL( nil_t, boolean );
+EQ_VAL_VAL_IMPL( nil_t, lightuserdata );
+EQ_VAL_VAL_IMPL( nil_t, integer );
+EQ_VAL_VAL_IMPL( nil_t, floating );
+EQ_VAL_VAL_IMPL( boolean, lightuserdata );
+EQ_VAL_VAL_IMPL( boolean, integer );
+EQ_VAL_VAL_IMPL( boolean, floating );
+EQ_VAL_VAL_IMPL( lightuserdata, integer );
+EQ_VAL_VAL_IMPL( lightuserdata, floating );
+EQ_VAL_VAL_IMPL( integer, floating );
 
 /******************************************************************
 ** push

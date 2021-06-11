@@ -108,6 +108,17 @@ void push( cthread L, std::string_view sv );
 
 void to_str( lightuserdata const& lud, std::string& out );
 
+bool operator==( nil_t const& l, boolean const& r );
+bool operator==( nil_t const& l, lightuserdata const& r );
+bool operator==( nil_t const& l, integer const& r );
+bool operator==( nil_t const& l, floating const& r );
+bool operator==( boolean const& l, lightuserdata const& r );
+bool operator==( boolean const& l, integer const& r );
+bool operator==( boolean const& l, floating const& r );
+bool operator==( lightuserdata const& l, integer const& r );
+bool operator==( lightuserdata const& l, floating const& r );
+bool operator==( integer const& l, floating const& r );
+
 /****************************************************************
 ** function signatures
 *****************************************************************/

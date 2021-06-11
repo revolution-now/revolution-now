@@ -14,8 +14,10 @@
 #include "config.hpp"
 
 // base
+#include "error.hpp"
 #include "fmt.hpp"
 #include "maybe.hpp"
+#include "source-loc.hpp"
 
 // C++ standard library
 #include <variant>
@@ -69,16 +71,39 @@ public:
   ** get (no checks!)
   ***************************************************************/
   template<typename T>
-  T const& get() const noexcept {
+  T const& get(
+      SourceLoc loc = SourceLoc::current() ) const noexcept {
     auto* p = std::get_if<T>( this );
-    assert( p );
+    CHECK( p, "invalid base::variant::get():{}:{}",
+           loc.file_name(), loc.line() );
     return *p;
   }
 
   template<typename T>
-  T& get() noexcept {
+  T& get( SourceLoc loc = SourceLoc::current() ) noexcept {
     auto* p = std::get_if<T>( this );
-    assert( p );
+    CHECK( p, "invalid base::variant::get():{}:{}",
+           loc.file_name(), loc.line() );
+    return *p;
+  }
+
+  /**************************************************************
+  ** as (same as get
+  ***************************************************************/
+  template<typename T>
+  T const& as(
+      SourceLoc loc = SourceLoc::current() ) const noexcept {
+    auto* p = std::get_if<T>( this );
+    CHECK( p, "invalid base::variant::get():{}:{}",
+           loc.file_name(), loc.line() );
+    return *p;
+  }
+
+  template<typename T>
+  T& as( SourceLoc loc = SourceLoc::current() ) noexcept {
+    auto* p = std::get_if<T>( this );
+    CHECK( p, "invalid base::variant::get():{}:{}",
+           loc.file_name(), loc.line() );
     return *p;
   }
 
@@ -102,6 +127,15 @@ public:
   ***************************************************************/
   template<typename T>
   bool holds() const noexcept {
+    auto* p = std::get_if<T>( &this->as_std() );
+    return p != nullptr;
+  }
+
+  /**************************************************************
+  ** is (same as holds)
+  ***************************************************************/
+  template<typename T>
+  bool is() const noexcept {
     auto* p = std::get_if<T>( &this->as_std() );
     return p != nullptr;
   }

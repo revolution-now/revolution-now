@@ -1,0 +1,45 @@
+/****************************************************************
+**table.hpp
+*
+* Project: Revolution Now
+*
+* Created by dsicilia on 2021-06-11.
+*
+* Description: RAII holder for registry references to Lua tables.
+*
+*****************************************************************/
+#pragma once
+
+// luapp
+#include "indexer.hpp"
+#include "ref.hpp"
+
+// base
+#include "base/fmt.hpp"
+
+namespace lua {
+
+/****************************************************************
+** table
+*****************************************************************/
+struct table : public reference {
+  using Base = reference;
+
+  using Base::Base;
+
+  template<typename U>
+  auto operator[]( U&& idx ) noexcept {
+    return indexer<U, table>( std::forward<U>( idx ), *this );
+  }
+
+  // FIXME: remove
+  static table global( cthread L ) noexcept;
+  static table new_empty( cthread L ) noexcept;
+};
+
+} // namespace lua
+
+/****************************************************************
+** fmt
+*****************************************************************/
+TOSTR_TO_FMT( lua::table );

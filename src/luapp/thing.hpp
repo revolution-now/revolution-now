@@ -11,7 +11,14 @@
 #pragma once
 
 // luapp
+#include "function.hpp"
+#include "indexer.hpp"
+#include "ref.hpp"
+#include "string.hpp"
+#include "table.hpp"
+#include "thread.hpp"
 #include "types.hpp"
+#include "userdata.hpp"
 
 // base
 #include "base/error.hpp"
@@ -24,114 +31,13 @@
 namespace lua {
 
 /****************************************************************
-** value types
-*****************************************************************/
-bool operator==( nil_t const& l, boolean const& r );
-bool operator==( nil_t const& l, lightuserdata const& r );
-bool operator==( nil_t const& l, integer const& r );
-bool operator==( nil_t const& l, floating const& r );
-bool operator==( boolean const& l, lightuserdata const& r );
-bool operator==( boolean const& l, integer const& r );
-bool operator==( boolean const& l, floating const& r );
-bool operator==( lightuserdata const& l, integer const& r );
-bool operator==( lightuserdata const& l, floating const& r );
-bool operator==( integer const& l, floating const& r );
-
-/****************************************************************
-** reference
-*****************************************************************/
-struct reference {
-  reference() = delete;
-  ~reference() noexcept;
-
-  void release() noexcept;
-
-  reference( reference const& ) noexcept;
-  reference& operator=( reference const& ) noexcept;
-
-  cthread this_cthread() const noexcept;
-
-  // Pushes nil if there is no reference. Note that we don't push
-  // onto the Lua state that is held instead the reference ob-
-  // ject, since that could correspond to a different thread.
-  friend void push( cthread L, reference const& r );
-
-protected:
-  reference( cthread st, int ref ) noexcept;
-
-  cthread L; // not owned.
-
-private:
-  int ref_;
-};
-
-bool operator==( reference const& lhs, reference const& rhs );
-
-bool operator==( reference const& r, nil_t );
-bool operator==( reference const& r, boolean const& b );
-bool operator==( reference const& r, lightuserdata const& lud );
-bool operator==( reference const& r, integer const& i );
-bool operator==( reference const& r, floating const& f );
-
-/****************************************************************
-** table
-*****************************************************************/
-struct table : public reference {
-  using Base = reference;
-
-  table( cthread st, int ref ) noexcept;
-};
-
-/****************************************************************
-** lstring
-*****************************************************************/
-struct lstring : public reference {
-  using Base = reference;
-
-  lstring( cthread st, int ref ) noexcept;
-
-  std::string as_cpp() const;
-
-  bool operator==( char const* s ) const;
-  bool operator==( std::string_view s ) const;
-  bool operator==( std::string const& s ) const;
-};
-
-/****************************************************************
-** lfunction
-*****************************************************************/
-struct lfunction : public reference {
-  using Base = reference;
-
-  lfunction( cthread st, int ref ) noexcept;
-};
-
-/****************************************************************
-** userdata
-*****************************************************************/
-struct userdata : public reference {
-  using Base = reference;
-
-  userdata( cthread st, int ref ) noexcept;
-};
-
-/****************************************************************
-** lthread
-*****************************************************************/
-struct lthread : public reference {
-  using Base = reference;
-
-  lthread( cthread st, int ref ) noexcept;
-};
-
-/****************************************************************
 ** thing
 *****************************************************************/
 // nil_t should be first so that it is selected as the default.
 using thing_base =
     base::variant<nil_t, boolean, lightuserdata, integer,
-                  floating, lstring, table, lfunction, userdata,
-                  lthread>;
+                  floating, rstring, table, rfunction, userdata,
+                  rthread>;
 
 struct thing : public thing_base {
   using Base = thing_base;
@@ -154,6 +60,28 @@ struct thing : public thing_base {
 
   std::string tostring() const noexcept;
 
+  // Cannot index a thing.  Cast first to a table or userdata:
+  //
+  //   thing th = ...;
+  //   th.as<table>()["key"] = ...;
+  //
+  template<typename U>
+  auto operator[]( U&& idx ) noexcept = delete;
+
+  template<typename IndexT, typename Predecessor>
+  thing( indexer<IndexT, Predecessor> const& idxr ) noexcept {
+    *this = idxr;
+  }
+
+  template<typename IndexT, typename Predecessor>
+  thing& operator=(
+      indexer<IndexT, Predecessor> const& idxr ) noexcept {
+    cthread L = idxr.this_cthread();
+    push( L, idxr );
+    *this = pop( L );
+    return *this;
+  }
+
   // Follows Lua's rules, where every value is true except for
   // false and nil.
   operator bool() const noexcept;
@@ -168,7 +96,6 @@ void push( cthread L, thing const& th );
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( reference const& r, std::string& out );
 void to_str( thing const& th, std::string& out );
 
 } // namespace lua
@@ -176,10 +103,4 @@ void to_str( thing const& th, std::string& out );
 /****************************************************************
 ** fmt
 *****************************************************************/
-TOSTR_TO_FMT( lua::table );
-TOSTR_TO_FMT( lua::lstring );
-TOSTR_TO_FMT( lua::lfunction );
-TOSTR_TO_FMT( lua::userdata );
-TOSTR_TO_FMT( lua::lthread );
-
 TOSTR_TO_FMT( lua::thing );
