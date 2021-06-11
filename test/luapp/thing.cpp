@@ -1004,5 +1004,82 @@ TEST_CASE( "[thing] thing::push" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
+TEST_CASE( "[thing] thing::pop" ) {
+  c_api C;
+
+  thing th;
+
+  // nil
+  C.push( nil );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.holds<nil_t>() );
+  REQUIRE( th == nil );
+
+  // bool
+  C.push( true );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::boolean );
+  REQUIRE( th.holds<boolean>() );
+  REQUIRE( th == true );
+
+  // lightuserdata
+  C.push( (void*)&C );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.holds<lightuserdata>() );
+  REQUIRE( th == (void*)&C );
+
+  // int
+  C.push( 5 );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.holds<integer>() );
+  REQUIRE( th == 5 );
+
+  // double
+  C.push( 5.0 );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.holds<floating>() );
+  REQUIRE( th == 5.0 );
+  C.push( 5.5 );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.holds<floating>() );
+  REQUIRE( th == 5.5 );
+
+  // string
+  C.push( "hello" );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::string );
+  REQUIRE( th.holds<lstring>() );
+  REQUIRE( th == "hello" );
+
+  // table
+  C.newtable();
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::table );
+  REQUIRE( th.holds<table>() );
+
+  // function
+  C.push( []( lua_State* ) -> int { return 0; } );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::function );
+  REQUIRE( th.holds<lfunction>() );
+
+  // userdata
+  C.newuserdata( 10 );
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::userdata );
+  REQUIRE( th.holds<userdata>() );
+
+  // thread
+  (void)C.newthread();
+  th = thing::pop( C.state() );
+  REQUIRE( th.type() == e_lua_type::thread );
+  REQUIRE( th.holds<lthread>() );
+}
+
 } // namespace
 } // namespace lua

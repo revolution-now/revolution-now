@@ -298,6 +298,48 @@ void thing::push( lua_State* L ) const noexcept {
   } );
 }
 
+thing thing::pop( lua_State* L ) noexcept {
+  c_api      C    = c_api::view( L );
+  thing      res  = nil;
+  e_lua_type type = C.type_of( -1 );
+  switch( type ) {
+    case e_lua_type::nil: C.pop(); break;
+    case e_lua_type::boolean:
+      res = C.get<boolean>( -1 );
+      C.pop();
+      break;
+    case e_lua_type::lightuserdata:
+      res = *C.get<lightuserdata>( -1 );
+      C.pop();
+      break;
+    case e_lua_type::number:
+      if( C.isinteger( -1 ) )
+        res = *C.get<integer>( -1 );
+      else
+        res = *C.get<floating>( -1 );
+      C.pop();
+      break;
+    case e_lua_type::string:
+      res = lstring( C.state(), C.ref_registry() );
+      break;
+    case e_lua_type::table:
+      res = table( C.state(), C.ref_registry() );
+      break;
+    case e_lua_type::function:
+      res = lfunction( C.state(), C.ref_registry() );
+      break;
+    case e_lua_type::userdata:
+      res = userdata( C.state(), C.ref_registry() );
+      break;
+    case e_lua_type::thread:
+      res = lthread( C.state(), C.ref_registry() );
+      break;
+  }
+  DCHECK( res.type() == type, "{} not equal to {}", res.type(),
+          type );
+  return res;
+}
+
 string thing::tostring() const noexcept {
   lua_State* L = nullptr;
   this->visit( [&]<typename T>( T&& o ) {
@@ -316,6 +358,12 @@ bool thing::operator==( thing const& rhs ) const noexcept {
   if( this == &rhs ) return true;
   return std::visit( L2( _1 == _2 ), this->as_std(),
                      rhs.as_std() );
+}
+
+bool thing::operator==( std::string_view rhs ) const noexcept {
+  auto maybe_s = get_if<lstring>();
+  if( !maybe_s.has_value() ) return false;
+  return *maybe_s == rhs;
 }
 
 /****************************************************************

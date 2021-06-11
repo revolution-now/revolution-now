@@ -143,6 +143,8 @@ struct thing : public thing_base {
 
   bool operator==( thing const& rhs ) const noexcept;
 
+  bool operator==( std::string_view rhs ) const noexcept;
+
   template<typename T>
   // clang-format off
   requires( !std::is_same_v<thing, T> &&
@@ -160,7 +162,8 @@ struct thing : public thing_base {
 
   e_lua_type type() const noexcept;
 
-  void push( lua_State* L ) const noexcept;
+  void         push( lua_State* L ) const noexcept;
+  static thing pop( lua_State* L ) noexcept;
 };
 
 /****************************************************************
