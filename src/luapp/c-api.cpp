@@ -448,6 +448,10 @@ bool c_api::get( int idx, bool* ) const noexcept {
   return bool( i );
 }
 
+boolean c_api::get( int idx, boolean* ) const noexcept {
+  return get<bool>( idx );
+}
+
 maybe<integer> c_api::get( int idx, integer* ) const noexcept {
   validate_index( idx );
   int is_num = 0;
@@ -489,6 +493,11 @@ maybe<double> c_api::get( int idx, double* ) const noexcept {
   return nothing;
 }
 
+base::maybe<floating> c_api::get( int idx,
+                                  floating* ) const noexcept {
+  return get<double>( idx );
+}
+
 maybe<string> c_api::get( int idx, string* ) const noexcept {
   validate_index( idx );
   // lua_tolstring:  [-0, +0, m]
@@ -526,6 +535,11 @@ base::maybe<void*> c_api::get( int idx, void** ) const noexcept {
   // Not sure if this check is needed.
   CHECK( p );
   return p;
+}
+
+base::maybe<lightuserdata> c_api::get(
+    int idx, lightuserdata* ) const noexcept {
+  return get<void*>( idx );
 }
 
 base::maybe<char const*> c_api::get(
@@ -744,6 +758,11 @@ void c_api::concat( int n ) noexcept {
 char const* c_api::tostring( int idx, size_t* len ) noexcept {
   validate_index( idx );
   return luaL_tolstring( L, idx, len );
+}
+
+bool c_api::isinteger( int idx ) const noexcept {
+  validate_index( idx );
+  return ( lua_isinteger( L, idx ) == 1 );
 }
 
 } // namespace lua

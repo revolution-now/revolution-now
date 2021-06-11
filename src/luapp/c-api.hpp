@@ -379,6 +379,11 @@ struct c_api {
   lua_valid enforce_type_of( int        idx,
                              e_lua_type type ) const noexcept;
 
+  // Returns true if the value at the given index is an integer
+  // (that is, the value is a number and is represented as an in-
+  // teger), and false otherwise.
+  bool isinteger( int idx ) const noexcept;
+
   /**************************************************************
   ** error
   ***************************************************************/
@@ -395,14 +400,18 @@ struct c_api {
 
 private:
   bool                 get( int idx, bool* ) const noexcept;
+  boolean              get( int idx, boolean* ) const noexcept;
   base::maybe<integer> get( int idx, integer* ) const noexcept;
   // This is for when you know the result will fit into an int.
-  base::maybe<int>    get( int idx, int* ) const noexcept;
-  base::maybe<double> get( int idx, double* ) const noexcept;
+  base::maybe<int>      get( int idx, int* ) const noexcept;
+  base::maybe<double>   get( int idx, double* ) const noexcept;
+  base::maybe<floating> get( int idx, floating* ) const noexcept;
   base::maybe<std::string> get( int idx,
                                 std::string* ) const noexcept;
   // This is done as light userdata.
   base::maybe<void*> get( int idx, void** ) const noexcept;
+  base::maybe<lightuserdata> get(
+      int idx, lightuserdata* ) const noexcept;
   // This is done as light userdata.
   base::maybe<char const*> get( int idx,
                                 char const** ) const noexcept;
