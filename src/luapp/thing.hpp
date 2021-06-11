@@ -49,17 +49,17 @@ struct reference {
   reference( reference const& ) noexcept;
   reference& operator=( reference const& ) noexcept;
 
-  lua_State* lua_state() const noexcept;
+  cthread this_cthread() const noexcept;
 
   // Pushes nil if there is no reference. Note that we don't push
   // onto the Lua state that is held instead the reference ob-
   // ject, since that could correspond to a different thread.
-  friend void push( lua_State* L, reference const& r );
+  friend void push( cthread L, reference const& r );
 
 protected:
-  reference( lua_State* st, int ref ) noexcept;
+  reference( cthread st, int ref ) noexcept;
 
-  lua_State* L; // not owned.
+  cthread L; // not owned.
 
 private:
   int ref_;
@@ -79,7 +79,7 @@ bool operator==( reference const& r, floating const& f );
 struct table : public reference {
   using Base = reference;
 
-  table( lua_State* st, int ref ) noexcept;
+  table( cthread st, int ref ) noexcept;
 };
 
 /****************************************************************
@@ -88,7 +88,7 @@ struct table : public reference {
 struct lstring : public reference {
   using Base = reference;
 
-  lstring( lua_State* st, int ref ) noexcept;
+  lstring( cthread st, int ref ) noexcept;
 
   std::string as_cpp() const;
 
@@ -103,7 +103,7 @@ struct lstring : public reference {
 struct lfunction : public reference {
   using Base = reference;
 
-  lfunction( lua_State* st, int ref ) noexcept;
+  lfunction( cthread st, int ref ) noexcept;
 };
 
 /****************************************************************
@@ -112,7 +112,7 @@ struct lfunction : public reference {
 struct userdata : public reference {
   using Base = reference;
 
-  userdata( lua_State* st, int ref ) noexcept;
+  userdata( cthread st, int ref ) noexcept;
 };
 
 /****************************************************************
@@ -121,7 +121,7 @@ struct userdata : public reference {
 struct lthread : public reference {
   using Base = reference;
 
-  lthread( lua_State* st, int ref ) noexcept;
+  lthread( cthread st, int ref ) noexcept;
 };
 
 /****************************************************************
@@ -160,10 +160,10 @@ struct thing : public thing_base {
 
   e_lua_type type() const noexcept;
 
-  static thing pop( lua_State* L ) noexcept;
+  static thing pop( cthread L ) noexcept;
 };
 
-void push( lua_State* L, thing const& th );
+void push( cthread L, thing const& th );
 
 /****************************************************************
 ** to_str

@@ -27,8 +27,6 @@
 #include <string_view>
 #include <tuple>
 
-struct lua_State;
-
 namespace lua {
 
 struct c_api;
@@ -37,7 +35,7 @@ struct state {
   state();
   // TODO: this constructor can be removed (as well as the lua.h
   // include) after migration away from sol2.
-  state( lua_State* state );
+  state( cthread state );
 
   using c_string_list = std::vector<char const*>;
 

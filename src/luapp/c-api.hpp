@@ -30,9 +30,10 @@ struct c_api {
   c_api();
   ~c_api() noexcept;
 
-  static c_api view( lua_State* st );
+  static c_api view( cthread st );
 
-  lua_State* state() const noexcept { return L; }
+  cthread this_cthread() const noexcept { return L; }
+  cthread main_cthread() const noexcept;
 
   /**************************************************************
   ** Lua C Function Wrappers.
@@ -363,7 +364,7 @@ struct c_api {
   // There is no explicit function to close or to destroy a
   // thread. Threads are subject to garbage collection, like any
   // Lua object.
-  [[nodiscard]] lua_State* newthread() noexcept;
+  [[nodiscard]] cthread newthread() noexcept;
 
   /**************************************************************
   ** garbage collection
@@ -433,7 +434,7 @@ private:
   [[nodiscard]] lua_error_t pop_and_return_error() noexcept;
 
   // Initialize with a Lua state and whether we own it.
-  c_api( lua_State* state, bool own );
+  c_api( cthread state, bool own );
 
 private:
   c_api( c_api const& ) = delete;
@@ -457,7 +458,7 @@ private:
   template<typename R, typename... Params, typename... Args>
   requires( sizeof...( Params ) == sizeof...( Args ) &&
             std::is_invocable_v<LuaApiFunc<R, Params...>*,
-                                ::lua_State*,
+                                cthread,
                                 Args...> )
   auto pinvoke( int ninputs,
                 LuaApiFunc<R, Params...>* func,
@@ -467,7 +468,7 @@ private:
                           lua_expect<R>>;
   // clang-format on
 
-  lua_State* L;
+  cthread L;
   // Do we own the Lua state.
   bool own_;
 };

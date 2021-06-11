@@ -16,6 +16,7 @@
 
 // Lua
 #include "lauxlib.h"
+#include "lua.h"
 #include "lualib.h"
 
 // C++ standard library
@@ -89,7 +90,7 @@ lua_valid lua_invalid( lua_error_t err ) {
 /****************************************************************
 ** c_api
 *****************************************************************/
-c_api::c_api( lua_State* state, bool own )
+c_api::c_api( cthread state, bool own )
   : L( state ), own_( own ) {
   CHECK( L != nullptr );
   // This will be called whenever an error happens in a Lua call
@@ -190,7 +191,7 @@ lua_valid c_api::dostring( char const* script ) noexcept {
 template<typename R, typename... Params, typename... Args>
 requires( sizeof...( Params ) == sizeof...( Args ) &&
           std::is_invocable_v<LuaApiFunc<R, Params...>*,
-                              lua_State*,
+                              cthread,
                               Args...> )
 auto c_api::pinvoke( int ninputs,
                      LuaApiFunc<R, Params...>* func,
@@ -265,7 +266,7 @@ auto c_api::pinvoke( int ninputs,
       ninputs > 0 ? type_of( -1 ) : e_lua_type::nil;
 
   // 1. Push func onto the stack.
-  push( (LuaCFunction*)+runner );
+  push( runner );
 
   // 2. Push initial stack size so that our helper function above
   //    can compute how many results are being returned.
@@ -720,7 +721,7 @@ void c_api::gc_collect() {
   lua_gc( L, LUA_GCCOLLECT, 0 );
 }
 
-lua_State* c_api::newthread() noexcept {
+cthread c_api::newthread() noexcept {
   return lua_newthread( L );
 }
 
@@ -729,7 +730,7 @@ void c_api::pushvalue( int idx ) noexcept {
   lua_pushvalue( L, idx );
 }
 
-c_api c_api::view( lua_State* st ) {
+c_api c_api::view( cthread st ) {
   return c_api( st, /*own=*/false );
 }
 

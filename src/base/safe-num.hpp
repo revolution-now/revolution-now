@@ -21,24 +21,34 @@
 
 namespace base::safe {
 
+struct Void;
+
 // We don't really need many operations on these because they are
 // mainly used as function parameter types to prevent implicit
 // conversions from other types for the purpose of overload se-
 // lection.
 
-struct void_p {
-  void_p() = delete;
+// T could be a pointer if you want a double pointer, e.g void**.
+template<typename T>
+struct pointer {
+  pointer() = delete;
   // clang-format off
   template<typename U>
-  requires( std::is_same_v<U, void*> )
-  void_p( U b ) noexcept : value_( b ) {}
+  requires( std::is_same_v<U, T*> )
+  pointer( U b ) noexcept : value_( b ) {}
   // clang-format on
 
-  void_p( std::nullptr_t ) noexcept : value_( nullptr ) {}
+  pointer( std::nullptr_t ) noexcept : value_( nullptr ) {}
 
-  auto operator<=>( void_p const& ) const = default;
+  auto operator<=>( pointer const& ) const = default;
 
-  operator void*() const noexcept { return value_; }
+  operator T*() const noexcept { return value_; }
+
+  std::conditional_t<std::is_same_v<T, void>, Void, T>&
+  operator*() const noexcept
+      requires( !std::is_same_v<T, void> ) {
+    return *value_;
+  }
 
   auto get() const noexcept { return value_; }
 
@@ -47,7 +57,7 @@ struct void_p {
   }
 
 private:
-  void* value_;
+  T* value_;
 };
 
 struct boolean {
@@ -135,9 +145,10 @@ inline bool operator==( floating<T> l, T v ) {
 
 } // namespace base::safe
 
-DEFINE_FORMAT( base::safe::void_p, "{}", o.get() );
 DEFINE_FORMAT( base::safe::boolean, "{}", o.get() );
 DEFINE_FORMAT_T( ( T ), (base::safe::integer<T>), "{}",
                  o.get() );
 DEFINE_FORMAT_T( ( T ), (base::safe::floating<T>), "{}",
+                 o.get() );
+DEFINE_FORMAT_T( ( T ), (base::safe::pointer<T>), "{}",
                  o.get() );

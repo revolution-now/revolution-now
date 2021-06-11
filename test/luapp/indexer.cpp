@@ -31,7 +31,7 @@ using ::base::valid;
 
 template<typename Derived>
 struct TableBase : reference {
-  TableBase( lua_State* st, int ref ) : reference( st, ref ) {}
+  TableBase( cthread st, int ref ) : reference( st, ref ) {}
 
   template<typename U>
   auto operator[]( U&& idx ) noexcept {
@@ -43,7 +43,7 @@ struct TableBase : reference {
 struct EmptyTable : TableBase<EmptyTable> {
   using Base = TableBase<EmptyTable>;
 
-  EmptyTable( lua_State* L )
+  EmptyTable( cthread L )
     : Base( L, [L] {
         c_api C = c_api::view( L );
         CHECK( C.dostring( "return {}" ) );
@@ -54,7 +54,7 @@ struct EmptyTable : TableBase<EmptyTable> {
 struct GlobalTable : TableBase<EmptyTable> {
   using Base = TableBase<EmptyTable>;
 
-  GlobalTable( lua_State* L )
+  GlobalTable( cthread L )
     : Base( L, [L] {
         c_api C = c_api::view( L );
         C.pushglobaltable();
@@ -65,7 +65,7 @@ struct GlobalTable : TableBase<EmptyTable> {
 struct SomeTable : TableBase<EmptyTable> {
   using Base = TableBase<EmptyTable>;
 
-  SomeTable( lua_State* L )
+  SomeTable( cthread L )
     : Base( L, [L] {
         c_api C = c_api::view( L );
         CHECK( C.dostring( R"(
@@ -83,7 +83,7 @@ struct SomeTable : TableBase<EmptyTable> {
 
 TEST_CASE( "[indexer] construct" ) {
   c_api      C;
-  lua_State* L = C.state();
+  cthread    L = C.this_cthread();
   EmptyTable mt( L );
 
   indexer idxr1 = mt[5];
@@ -98,7 +98,7 @@ TEST_CASE( "[indexer] construct" ) {
 
 TEST_CASE( "[indexer] index" ) {
   c_api      C;
-  lua_State* L = C.state();
+  cthread    L = C.this_cthread();
   EmptyTable mt( L );
 
   auto idxr = mt[5][1]["hello"]['c'][string( "hello" )];
@@ -112,17 +112,17 @@ TEST_CASE( "[indexer] index" ) {
 }
 
 TEST_CASE( "[indexer] push" ) {
-  c_api      C;
-  lua_State* L = C.state();
-  SomeTable  mt( L );
+  c_api     C;
+  cthread   L = C.this_cthread();
+  SomeTable mt( L );
 
   REQUIRE( C.stack_size() == 0 );
 
-  push( C.state(), mt[5][1]["hello"] );
+  push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.get<string>( -1 ) == "payload" );
 
-  push( C.state(), mt[5][1]["hello"] );
+  push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 2 );
   REQUIRE( C.get<string>( -1 ) == "payload" );
 
@@ -133,7 +133,7 @@ TEST_CASE( "[indexer] push" ) {
 TEST_CASE( "[indexer] assignment" ) {
   c_api C;
   C.openlibs();
-  lua_State* L = C.state();
+  cthread L = C.this_cthread();
 
   REQUIRE( C.stack_size() == 0 );
 
@@ -142,35 +142,35 @@ TEST_CASE( "[indexer] assignment" ) {
   mt[5][1]          = EmptyTable( L );
   mt[5][1]["hello"] = "payload";
 
-  push( C.state(), mt[5][1]["hello"] );
+  push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::string );
   REQUIRE( C.get<string>( -1 ) == "payload" );
   C.pop();
 
   mt[5][1]["hello"] = 42;
-  push( C.state(), mt[5][1]["hello"] );
+  push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::number );
   REQUIRE( C.get<int>( -1 ) == 42 );
   C.pop();
 
   mt[5][1]["hello"] = "world";
-  push( C.state(), mt[5][1]["hello"] );
+  push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::string );
   REQUIRE( C.get<string>( -1 ) == "world" );
   C.pop();
 
   mt[5]["x"] = SomeTable( L );
-  push( C.state(), mt[5]["x"][5][1]["hello"] );
+  push( C.this_cthread(), mt[5]["x"][5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::string );
   REQUIRE( C.get<string>( -1 ) == "payload" );
   C.pop();
 
   mt[5]["x"][5][1]["hello"] = true;
-  push( C.state(), mt[5]["x"][5][1]["hello"] );
+  push( C.this_cthread(), mt[5]["x"][5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
   REQUIRE( C.get<bool>( -1 ) == true );

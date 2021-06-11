@@ -11,7 +11,10 @@
 #pragma once
 
 // luapp
-#include "types.hpp"
+#include "cthread.hpp"
+
+// C++ standard library
+#include <utility>
 
 namespace lua {
 
@@ -32,11 +35,11 @@ struct indexer {
   }
 
   template<typename IndexT_, typename Precedessor_>
-  friend void push( lua_State*                            L,
+  friend void push( cthread                               L,
                     indexer<IndexT_, Precedessor_> const& idxr );
 
-  lua_State* lua_state() const noexcept {
-    return pred_.lua_state();
+  cthread this_cthread() const noexcept {
+    return pred_.this_cthread();
   }
 
   template<typename U>
@@ -48,13 +51,13 @@ private:
 };
 
 // Pushes (-2)[-1] onto the stack, and pops both table and key.
-void indexer_gettable( lua_State* L );
+void indexer_gettable( cthread L );
 
 // Pushes (-3)[-2] = (-1) onto the stack, and pops all three.
-void indexer_settable( lua_State* L );
+void indexer_settable( cthread L );
 
 template<typename IndexT, typename Precedessor>
-void push( lua_State*                          L,
+void push( cthread                             L,
            indexer<IndexT, Precedessor> const& idxr ) {
   push( L, idxr.pred_ );
   push( L, idxr.index_ );
@@ -65,7 +68,7 @@ template<typename IndexT, typename Predecessor>
 template<typename U>
 indexer<IndexT, Predecessor>&
 indexer<IndexT, Predecessor>::operator=( U&& rhs ) {
-  lua_State* L = lua_state();
+  cthread L = this_cthread();
   push( L, pred_ );
   push( L, index_ );
   push( L, std::forward<U>( rhs ) );

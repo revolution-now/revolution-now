@@ -1432,9 +1432,9 @@ TEST_CASE( "[lua-c-api] isinteger" ) {
 TEST_CASE( "[lua-c-api] separate thread stacks" ) {
   c_api C;
 
-  lua_State* thread1 = C.state();
-  lua_State* thread2 = C.newthread();
-  lua_State* thread3 = C.newthread();
+  cthread thread1 = C.this_cthread();
+  cthread thread2 = C.newthread();
+  cthread thread3 = C.newthread();
 
   c_api view1 = c_api::view( thread1 );
   c_api view2 = c_api::view( thread2 );

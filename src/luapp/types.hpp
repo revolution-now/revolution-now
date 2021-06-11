@@ -10,12 +10,13 @@
 *****************************************************************/
 #pragma once
 
+// luapp
+#include "cthread.hpp"
+
 // base
 #include "base/fmt.hpp"
 #include "base/safe-num.hpp"
 #include "base/valid.hpp"
-
-struct lua_State;
 
 namespace lua {
 
@@ -78,7 +79,7 @@ inline constexpr nil_t nil;
 
 void to_str( nil_t, std::string& out );
 
-void push( lua_State* L, nil_t );
+void push( cthread L, nil_t );
 
 /****************************************************************
 ** value types
@@ -88,17 +89,22 @@ using floating = base::safe::floating<double>;
 using integer  = base::safe::integer<long long>;
 
 // This is just a value type.
-struct lightuserdata : public base::safe::void_p {
-  using Base = base::safe::void_p;
+struct lightuserdata : public base::safe::pointer<void> {
+  using Base = base::safe::pointer<void>;
   using Base::Base;
 };
 
-void push( lua_State* L, boolean b );
-void push( lua_State* L, integer i );
-void push( lua_State* L, floating f );
-void push( lua_State* L, lightuserdata lud );
+void push( cthread L, boolean b );
+void push( cthread L, integer i );
+void push( cthread L, floating f );
+void push( cthread L, lightuserdata lud );
+void push( cthread L, bool b );
+void push( cthread L, int i );
+void push( cthread L, double f );
+void push( cthread L, void* lud );
+void push( cthread L, char const* lud );
 
-void push( lua_State* L, std::string_view sv );
+void push( cthread L, std::string_view sv );
 
 void to_str( lightuserdata const& lud, std::string& out );
 

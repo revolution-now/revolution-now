@@ -29,7 +29,7 @@ namespace {} // namespace
 /****************************************************************
 ** state
 *****************************************************************/
-state::state( ::lua_State* L ) : C( c_api::view( L ) ) {}
+state::state( cthread L ) : C( c_api::view( L ) ) {}
 
 state::state() : C() {}
 

@@ -27,8 +27,8 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[types] push" ) {
-  c_api      C;
-  lua_State* L = C.state();
+  c_api   C;
+  cthread L = C.this_cthread();
 
   push( L, nil );
   REQUIRE( C.type_of( -1 ) == e_lua_type::nil );

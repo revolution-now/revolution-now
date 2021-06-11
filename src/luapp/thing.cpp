@@ -30,7 +30,7 @@ namespace lua {
 namespace {
 
 // Expects value to be pushed onto stack of L.
-string call_tostring( lua_State* L ) noexcept {
+string call_tostring( cthread L ) noexcept {
   c_api       C   = c_api::view( L );
   size_t      len = 0;
   char const* p   = C.tostring( -1, &len );
@@ -101,7 +101,7 @@ EQ_VAL_VAL_IMPL( integer, floating );
 /****************************************************************
 ** reference
 *****************************************************************/
-reference::reference( lua_State* st, int ref ) noexcept
+reference::reference( cthread st, int ref ) noexcept
   : L( st ), ref_( ref ) {}
 
 reference::~reference() noexcept { release(); }
@@ -134,13 +134,13 @@ reference& reference::operator=(
   return *this;
 }
 
-lua_State* reference::lua_state() const noexcept { return L; }
+cthread reference::this_cthread() const noexcept { return L; }
 
 bool operator==( reference const& lhs, reference const& rhs ) {
   // Need to use the same Lua state for both pushes in the
   // event that lhs and rhs have L's that correspond to different
   // threads.
-  lua_State* L = lhs.lua_state();
+  cthread L = lhs.this_cthread();
   push( L, lhs );
   push( L, rhs );
   c_api C   = c_api::view( L );
@@ -153,8 +153,8 @@ namespace {
 
 template<typename T>
 bool ref_op_eq( reference const& r, T const& o ) {
-  c_api C = c_api::view( r.lua_state() );
-  push( r.lua_state(), r );
+  c_api C = c_api::view( r.this_cthread() );
+  push( r.this_cthread(), r );
   C.push( o );
   bool res = C.compare_eq( -2, -1 );
   C.pop( 2 );
@@ -183,7 +183,7 @@ bool operator==( reference const& r, floating const& o ) {
   return ref_op_eq( r, o );
 }
 
-void push( lua_State* L, reference const& r ) {
+void push( cthread L, reference const& r ) {
   c_api C = c_api::view( L );
   C.registry_get( r.ref_ );
 }
@@ -191,13 +191,13 @@ void push( lua_State* L, reference const& r ) {
 /****************************************************************
 ** table
 *****************************************************************/
-table::table( lua_State* st, int ref ) noexcept
+table::table( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 /****************************************************************
 ** lstring
 *****************************************************************/
-lstring::lstring( lua_State* st, int ref ) noexcept
+lstring::lstring( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 string lstring::as_cpp() const {
@@ -224,19 +224,19 @@ bool lstring::operator==( string const& s ) const {
 /****************************************************************
 ** lfunction
 *****************************************************************/
-lfunction::lfunction( lua_State* st, int ref ) noexcept
+lfunction::lfunction( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 /****************************************************************
 ** userdata
 *****************************************************************/
-userdata::userdata( lua_State* st, int ref ) noexcept
+userdata::userdata( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 /****************************************************************
 ** lthread
 *****************************************************************/
-lthread::lthread( lua_State* st, int ref ) noexcept
+lthread::lthread( cthread st, int ref ) noexcept
   : reference( st, ref ) {}
 
 /****************************************************************
@@ -273,7 +273,7 @@ thing::operator bool() const noexcept {
   }
 }
 
-thing thing::pop( lua_State* L ) noexcept {
+thing thing::pop( cthread L ) noexcept {
   c_api      C    = c_api::view( L );
   thing      res  = nil;
   e_lua_type type = C.type_of( -1 );
@@ -295,19 +295,19 @@ thing thing::pop( lua_State* L ) noexcept {
       C.pop();
       break;
     case e_lua_type::string:
-      res = lstring( C.state(), C.ref_registry() );
+      res = lstring( C.this_cthread(), C.ref_registry() );
       break;
     case e_lua_type::table:
-      res = table( C.state(), C.ref_registry() );
+      res = table( C.this_cthread(), C.ref_registry() );
       break;
     case e_lua_type::function:
-      res = lfunction( C.state(), C.ref_registry() );
+      res = lfunction( C.this_cthread(), C.ref_registry() );
       break;
     case e_lua_type::userdata:
-      res = userdata( C.state(), C.ref_registry() );
+      res = userdata( C.this_cthread(), C.ref_registry() );
       break;
     case e_lua_type::thread:
-      res = lthread( C.state(), C.ref_registry() );
+      res = lthread( C.this_cthread(), C.ref_registry() );
       break;
   }
   DCHECK( res.type() == type, "{} not equal to {}", res.type(),
@@ -316,13 +316,13 @@ thing thing::pop( lua_State* L ) noexcept {
 }
 
 string thing::tostring() const noexcept {
-  lua_State* L = nullptr;
+  cthread L = nullptr;
   this->visit( [&]<typename T>( T&& o ) {
     if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
-      L = o.lua_state();
+      L = o.this_cthread();
     } else {
       c_api& C = scratch_state();
-      L        = C.state();
+      L        = C.this_cthread();
     }
   } );
   push( L, *this );
@@ -341,7 +341,7 @@ bool thing::operator==( std::string_view rhs ) const noexcept {
   return *maybe_s == rhs;
 }
 
-void push( lua_State* L, thing const& th ) {
+void push( cthread L, thing const& th ) {
   th.visit( [L]( auto const& o ) { push( L, o ); } );
 }
 
@@ -349,8 +349,8 @@ void push( lua_State* L, thing const& th ) {
 ** to_str
 *****************************************************************/
 void to_str( reference const& r, string& out ) {
-  push( r.lua_state(), r );
-  out += call_tostring( r.lua_state() );
+  push( r.this_cthread(), r );
+  out += call_tostring( r.this_cthread() );
 }
 
 void to_str( thing const& th, std::string& out ) {
