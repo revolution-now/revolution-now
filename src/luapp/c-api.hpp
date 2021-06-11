@@ -141,7 +141,8 @@ struct c_api {
   // Creates a new table and pushes it onto the stack.
   void newtable() noexcept;
 
-  // (table_idx)[-2] = -1
+  // (table_idx)[-2] = -1. Pops both key and value, leaving
+  // table.
   void settable( int table_idx );
 
   // Pushes (idx)[-1], Pops the key from the stack, but not the
@@ -156,11 +157,11 @@ struct c_api {
 
   // Pushes (idx)[n] onto the stack without invoking __index, and
   // returns type of value pushed.
-  e_lua_type rawgeti( int idx, integer n ) noexcept;
+  e_lua_type rawgeti( int idx, int n ) noexcept;
 
   // Does (idx)[n] = -1, but does not invoke the __newindex
   // metamethod. Pops the value from the stack.
-  void rawseti( int idx, integer n ) noexcept;
+  void rawseti( int idx, int n ) noexcept;
 
   /**************************************************************
   ** get/set globals

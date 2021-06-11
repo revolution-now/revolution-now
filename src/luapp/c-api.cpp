@@ -429,12 +429,12 @@ e_lua_type c_api::gettable( int idx ) {
   return lua_type_to_enum( lua_gettable( L, idx ) );
 }
 
-e_lua_type c_api::rawgeti( int idx, integer n ) noexcept {
+e_lua_type c_api::rawgeti( int idx, int n ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_rawgeti( L, idx, n ) );
 }
 
-void c_api::rawseti( int idx, integer n ) noexcept {
+void c_api::rawseti( int idx, int n ) noexcept {
   validate_index( idx );
   lua_rawseti( L, idx, n );
 }
