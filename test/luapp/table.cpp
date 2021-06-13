@@ -184,8 +184,6 @@ LUA_TEST_CASE( "[thing] table index" ) {
 
   REQUIRE( C.get<string>( -1 ) == "target" );
   C.pop();
-
-  REQUIRE( C.stack_size() == 0 );
 }
 
 } // namespace

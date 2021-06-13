@@ -51,7 +51,6 @@ LUA_TEST_CASE( "[lua-c-api] openlibs" ) {
   REQUIRE( C.enforce_type_of( -1, e_lua_type::function ) ==
            valid );
   C.pop();
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE( "[lua-c-api] rotate" ) {
@@ -974,6 +973,8 @@ LUA_TEST_CASE( "[lua-c-api] insert" ) {
   REQUIRE( C.get<integer>( -3 ) == 7 );
   REQUIRE( C.get<int>( -4 ) == 5 );
   REQUIRE( C.get<integer>( -4 ) == 5 );
+
+  C.pop( 4 );
 }
 
 LUA_TEST_CASE( "[lua-c-api] swap_top" ) {
@@ -994,6 +995,8 @@ LUA_TEST_CASE( "[lua-c-api] swap_top" ) {
   REQUIRE( C.type_of( -4 ) == e_lua_type::number );
   REQUIRE( C.get<int>( -2 ) == 7 );
   REQUIRE( C.get<integer>( -2 ) == 7 );
+
+  C.pop( 4 );
 }
 
 LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
@@ -1074,6 +1077,7 @@ LUA_TEST_CASE(
   REQUIRE( C.stack_size() == 1 );
 
   REQUIRE( C.testudata( -1, "hello" ) != nullptr );
+  C.pop();
 }
 
 LUA_TEST_CASE( "[lua-c-api] error" ) {

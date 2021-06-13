@@ -32,33 +32,40 @@ using namespace std;
 LUA_TEST_CASE( "[types] push" ) {
   push( L, nil );
   REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
+  C.pop();
 
   push( L, 5 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::number );
   REQUIRE( C.isinteger( -1 ) );
   REQUIRE( C.get<int>( -1 ) == 5 );
+  C.pop();
 
   push( L, 5.0 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::number );
   REQUIRE_FALSE( C.isinteger( -1 ) );
   REQUIRE( C.get<double>( -1 ) == 5.0 );
+  C.pop();
 
   push( L, 5.5 );
   REQUIRE( C.type_of( -1 ) == e_lua_type::number );
   REQUIRE_FALSE( C.isinteger( -1 ) );
   REQUIRE( C.get<double>( -1 ) == 5.5 );
+  C.pop();
 
   push( L, true );
   REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
   REQUIRE( C.get<bool>( -1 ) == true );
+  C.pop();
 
   push( L, (void*)L );
   REQUIRE( C.type_of( -1 ) == e_lua_type::lightuserdata );
   REQUIRE( C.get<void*>( -1 ) == L );
+  C.pop();
 
   push( L, "hello" );
   REQUIRE( C.type_of( -1 ) == e_lua_type::string );
   REQUIRE( C.get<string>( -1 ) == "hello" );
+  C.pop();
 }
 
 LUA_TEST_CASE( "[types] equality" ) {
@@ -87,6 +94,7 @@ LUA_TEST_CASE( "[types] equality" ) {
     REQUIRE( lud1 != nil );
     REQUIRE( nil != lud2 );
     REQUIRE( lud2 != nil );
+    C.pop();
   }
 
   SECTION( "nil with integer" ) {
@@ -135,6 +143,7 @@ LUA_TEST_CASE( "[types] equality" ) {
     REQUIRE( b != lud );
     REQUIRE( lud != true );
     REQUIRE( true != lud );
+    C.pop();
   }
 
   // This section has some extra parens around the comparisons to
@@ -188,6 +197,7 @@ LUA_TEST_CASE( "[types] equality" ) {
     REQUIRE( i != lud );
     REQUIRE( lud != 1 );
     REQUIRE( 1 != lud );
+    C.pop();
   }
 
   SECTION( "lightuserdata with floating" ) {
@@ -197,6 +207,7 @@ LUA_TEST_CASE( "[types] equality" ) {
     REQUIRE( f != lud );
     REQUIRE( lud != 1. );
     REQUIRE( 1. != lud );
+    C.pop();
   }
 
   SECTION( "integer with integer" ) {

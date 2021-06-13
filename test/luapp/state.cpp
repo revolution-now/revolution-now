@@ -50,8 +50,6 @@ LUA_TEST_CASE( "[lua-state] standard tables" ) {
   push( L, empty2 );
   REQUIRE_FALSE( C.compare_eq( -2, -1 ) );
   C.pop( 2 );
-
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE( "[lua-state] string gen" ) {
@@ -83,8 +81,6 @@ LUA_TEST_CASE( "[lua-state] state indexing" ) {
   REQUIRE( ( G["a"] == st["a"] ) );
   REQUIRE( ( G["a"][5] == st["a"][5] ) );
   REQUIRE( ( G["a"][5] != st["a"] ) );
-
-  REQUIRE( C.stack_size() == 0 );
 }
 
 } // namespace

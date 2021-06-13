@@ -124,7 +124,6 @@ LUA_TEST_CASE( "[indexer] push" ) {
   REQUIRE( C.get<string>( -1 ) == "payload" );
 
   C.pop( 2 );
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE( "[indexer] assignment" ) {
@@ -217,8 +216,6 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
       "[1] = { ['hello'] = true,} ,} ,} ,} ,} ";
   REQUIRE( *C.get<string>( -1 ) == full_table );
   C.pop();
-
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE( "[indexer] equality" ) {

@@ -14,12 +14,19 @@
 #include "src/luapp/c-api.hpp"
 #include "src/luapp/state.hpp"
 
+// base
+#include "base/error.hpp"
+
 namespace lua {
 
 struct harness {
   state   st;
-  c_api   C = st.main_cthread();
-  cthread L = st.main_cthread();
+  cthread L = st.thread.main.cthread();
+  c_api   C = L;
+
+  ~harness() {
+    if( st.alive() ) { CHECK_EQ( C.stack_size(), 0 ); }
+  }
 };
 
 } // namespace lua

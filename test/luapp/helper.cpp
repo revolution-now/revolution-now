@@ -133,8 +133,6 @@ LUA_TEST_CASE( "[helper] tables" ) {
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
-
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE(
@@ -164,7 +162,6 @@ LUA_TEST_CASE(
   REQUIRE( C.type_of( -1 ) == e_lua_type::function );
   REQUIRE_FALSE( C.getupvalue( -1, 1 ) );
   C.pop();
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE(
@@ -288,7 +285,6 @@ LUA_TEST_CASE(
   REQUIRE( C.get<string>( -1 ) ==
            "base::unique_func<int (lua_State*) const>" );
   C.pop( 4 );
-  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE(
@@ -436,6 +432,7 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.5" );
+    C.pop();
   }
 
   SECTION( "pcall" ) {
@@ -443,6 +440,7 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.5" );
+    C.pop();
   }
 
   SECTION( "pcall with error" ) {
@@ -456,7 +454,6 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
 
     REQUIRE( h.pcall( 3, nil, 3.5 ) ==
              lua_unexpected<int>( err ) );
-    REQUIRE( C.stack_size() == 0 );
   }
 }
 
@@ -479,6 +476,7 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
     REQUIRE( C.get<int>( -3 ) == 4 );
     REQUIRE( C.get<string>( -2 ) == "hello!" );
     REQUIRE( C.get<int>( -1 ) == 5.0 );
+    C.pop( 3 );
   }
 
   SECTION( "pcall" ) {
@@ -487,6 +485,7 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
     REQUIRE( C.get<int>( -3 ) == 4 );
     REQUIRE( C.get<string>( -2 ) == "hello!" );
     REQUIRE( C.get<int>( -1 ) == 5.0 );
+    C.pop( 3 );
   }
 }
 
@@ -507,6 +506,7 @@ LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.get<string>( -1 ) ==
            "args: n=3, s='hello', d=3.6" );
+  C.pop();
 }
 
 LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
@@ -537,6 +537,7 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
+    C.pop();
   }
 
   SECTION( "call again" ) {
@@ -544,6 +545,7 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
+    C.pop();
   }
 
   SECTION( "pcall" ) {
@@ -551,6 +553,7 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.get<string>( -1 ) ==
              "args: n=3, s='hello', d=3.6" );
+    C.pop();
   }
 
   SECTION( "pcall with error" ) {
@@ -564,7 +567,6 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
 
     REQUIRE( h.pcall( 3, nil, 3.6 ) ==
              lua_unexpected<int>( err ) );
-    REQUIRE( C.stack_size() == 0 );
   }
 
   SECTION( "pcall with from C function" ) {
@@ -578,7 +580,6 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
 
     REQUIRE( h.pcall( 4, "hello", 3.6 ) ==
              lua_unexpected<int>( err ) );
-    REQUIRE( C.stack_size() == 0 );
   }
 }
 
