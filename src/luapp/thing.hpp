@@ -91,7 +91,9 @@ struct thing : public thing_base {
   static thing pop( cthread L ) noexcept;
 };
 
-void push( cthread L, thing const& th );
+void push_thing( cthread L, thing const& th );
+
+LUA_PUSH_FUNC( thing ) { push_thing( L, o ); }
 
 /****************************************************************
 ** to_str

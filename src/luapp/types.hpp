@@ -21,6 +21,17 @@
 namespace lua {
 
 /****************************************************************
+** Macros
+*****************************************************************/
+// This macro is used to define a push function that can only be
+// called for a specific type, preventing issues with ambiguious
+// overloads due to implicit conversions.
+#define LUA_PUSH_FUNC( type )                                   \
+  template<typename T>                                          \
+  requires( std::is_same_v<std::remove_cvref_t<T>, type> ) void \
+  push( cthread L, T const& o )
+
+/****************************************************************
 ** expect/valid
 *****************************************************************/
 // The type we use for reporting errors raised by lua.
@@ -98,13 +109,12 @@ void push( cthread L, boolean b );
 void push( cthread L, integer i );
 void push( cthread L, floating f );
 void push( cthread L, lightuserdata lud );
-void push( cthread L, bool b );
-void push( cthread L, int i );
-void push( cthread L, double f );
-void push( cthread L, void* lud );
-void push( cthread L, char const* lud );
 
 void push( cthread L, std::string_view sv );
+
+LUA_PUSH_FUNC( char const* ) {
+  push( L, std::string_view( o ) );
+}
 
 void to_str( lightuserdata const& lud, std::string& out );
 

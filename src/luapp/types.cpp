@@ -89,17 +89,7 @@ void push( cthread L, boolean b ) {
   C.push( b );
 }
 
-void push( cthread L, bool b ) {
-  c_api C( L );
-  C.push( b );
-}
-
 void push( cthread L, integer i ) {
-  c_api C( L );
-  C.push( i );
-}
-
-void push( cthread L, int i ) {
   c_api C( L );
   C.push( i );
 }
@@ -109,17 +99,7 @@ void push( cthread L, floating f ) {
   C.push( f );
 }
 
-void push( cthread L, double f ) {
-  c_api C( L );
-  C.push( f );
-}
-
 void push( cthread L, lightuserdata lud ) {
-  c_api C( L );
-  C.push( lud );
-}
-
-void push( cthread L, void* lud ) {
   c_api C( L );
   C.push( lud );
 }
@@ -127,11 +107,6 @@ void push( cthread L, void* lud ) {
 void push( cthread L, string_view sv ) {
   c_api C( L );
   C.push( sv );
-}
-
-void push( cthread L, char const* p ) {
-  c_api C( L );
-  C.push( string_view( p ) );
 }
 
 /******************************************************************

@@ -146,7 +146,7 @@ bool thing::operator==( std::string_view rhs ) const noexcept {
   return *maybe_s == rhs;
 }
 
-void push( cthread L, thing const& th ) {
+void push_thing( cthread L, thing const& th ) {
   th.visit( [L]( auto const& o ) { push( L, o ); } );
 }
 
