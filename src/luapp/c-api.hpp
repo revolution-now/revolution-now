@@ -366,6 +366,10 @@ struct c_api {
   // Lua object.
   [[nodiscard]] cthread newthread() noexcept;
 
+  // Pushes the thread held by this object onto the stack. Re-
+  // turns true if this thread is the main thread of its state.
+  bool pushthread() noexcept;
+
   /**************************************************************
   ** garbage collection
   ***************************************************************/

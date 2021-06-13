@@ -742,4 +742,8 @@ bool c_api::isinteger( int idx ) const noexcept {
   return ( lua_isinteger( L, idx ) == 1 );
 }
 
+bool c_api::pushthread() noexcept {
+  return ( lua_pushthread( L ) == 1 );
+}
+
 } // namespace lua

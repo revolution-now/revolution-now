@@ -1434,5 +1434,28 @@ LUA_TEST_CASE( "[lua-c-api] separate thread stacks" ) {
   REQUIRE( view3.stack_size() == 0 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] pushthread" ) {
+  REQUIRE( C.pushthread() );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == e_lua_type::thread );
+
+  c_api C2 = C.newthread();
+  // The new thread gets pushed into the stack of C.
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE_FALSE( C2.pushthread() );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == e_lua_type::thread );
+
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C2.stack_size() == 1 );
+
+  C.pop( 2 );
+  C2.pop();
+
+  REQUIRE( C.stack_size() == 0 );
+  REQUIRE( C2.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace lua
