@@ -534,15 +534,15 @@ LUA_TEST_CASE( "[thing] thing::pop" ) {
 }
 
 LUA_TEST_CASE( "[thing] index with thing" ) {
-  thing G = st.global_table();
+  thing G = st.table.global;
 
   REQUIRE( G.is<table>() );
   G.as<table>()[7.7] = "target";
 
-  thing s = st.str( "hello" );
+  thing s = st.string.create( "hello" );
 
-  G.as<table>()[s]    = st.new_table();
-  G.as<table>()[s][5] = st.new_table();
+  G.as<table>()[s]    = st.table.create();
+  G.as<table>()[s][5] = st.table.create();
   // Create circular reference.
   G.as<table>()["hello"][5]["foo"] = G;
 
@@ -554,7 +554,7 @@ LUA_TEST_CASE( "[thing] index with thing" ) {
       ( G.as<table>()["hello"][5]["foo"][s][5]["foo"][7.7] ==
         "target" ) );
 
-  thing target = st.str( "target" );
+  thing target = st.string.create( "target" );
   REQUIRE( ( target == st[7.7] ) );
 
   REQUIRE( C.get<string>( -1 ) == "target" );

@@ -29,7 +29,7 @@ state& scratch_state() {
   static state& st = []() -> state& {
     static state st;
 
-    c_api C( st.main_cthread() );
+    c_api C( st.thread.main.cthread() );
     // Kill the global table since we're not supposed to every
     // use it on this scratch state.
     C.push( nil );

@@ -28,9 +28,8 @@ using namespace std;
 
 LUA_TEST_CASE( "[lua-state] standard tables" ) {
   C.openlibs();
-  cthread L = C.this_cthread();
 
-  table G = st.global_table();
+  table G = st.table.global;
   push( L, G );
   C.getfield( -1, "tostring" );
   REQUIRE( C.stack_size() == 2 );
@@ -38,14 +37,15 @@ LUA_TEST_CASE( "[lua-state] standard tables" ) {
   C.pop( 2 );
   REQUIRE( C.stack_size() == 0 );
 
-  table empty1 = st.new_table();
+  table empty1 = st.table.create();
   push( L, empty1 );
   push( L, empty1 );
   REQUIRE( C.compare_eq( -2, -1 ) );
   C.pop( 2 );
   REQUIRE( C.stack_size() == 0 );
 
-  table empty2 = st.new_table();
+  table empty2 = st.table.create();
+
   push( L, empty1 );
   push( L, empty2 );
   REQUIRE_FALSE( C.compare_eq( -2, -1 ) );
@@ -53,9 +53,9 @@ LUA_TEST_CASE( "[lua-state] standard tables" ) {
 }
 
 LUA_TEST_CASE( "[lua-state] string gen" ) {
-  rstring s1 = st.str( "hello" );
-  rstring s2 = st.str( "world" );
-  rstring s3 = st.str( "hello" );
+  rstring s1 = st.string.create( "hello" );
+  rstring s2 = st.string.create( "world" );
+  rstring s3 = st.string.create( "hello" );
 
   REQUIRE( s1 == "hello" );
   REQUIRE( s2 == "world" );
@@ -71,11 +71,11 @@ LUA_TEST_CASE( "[lua-state] string gen" ) {
 }
 
 LUA_TEST_CASE( "[lua-state] state indexing" ) {
-  st["a"]             = st.new_table();
-  st["a"][5]          = st.new_table();
+  st["a"]             = st.table.create();
+  st["a"][5]          = st.table.create();
   st["a"][5]["world"] = 9;
 
-  table G = st.global_table();
+  table G = st.table.global;
 
   REQUIRE( ( G["a"][5]["world"] == 9 ) );
   REQUIRE( ( G["a"] == st["a"] ) );

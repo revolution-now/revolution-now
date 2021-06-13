@@ -126,7 +126,7 @@ string thing::tostring() const noexcept {
     if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
       L = o.this_cthread();
     } else {
-      c_api C( scratch_state().main_cthread() );
+      c_api C( scratch_state().thread.main.cthread() );
       L = C.this_cthread();
     }
   } );

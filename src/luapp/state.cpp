@@ -36,7 +36,8 @@ namespace {
 
 } // namespace
 
-state::state() : L( luaL_newstate() ) {
+state::state()
+  : L( luaL_newstate() ), thread( L ), string( L ), table( L ) {
   // This will be called whenever an error happens in a Lua call
   // that is not run in a protected environment. For example, if
   // we call lua_getglobal from C++ (outside of a pcall) and it
@@ -47,34 +48,49 @@ state::state() : L( luaL_newstate() ) {
 state::~state() noexcept { close(); }
 
 void state::close() {
-  if( L != nullptr ) {
-    lua_close( L );
-    L = nullptr;
-  }
+  if( !alive() ) return;
+
+  // These need to be released before we destroy the Lua state,
+  // otherwise their destructors will try to use it to release
+  // themselves.
+  thread.main.release();
+  table.global.release();
+
+  lua_close( L );
+  L = nullptr;
 }
 
 /****************************************************************
-** Strings
+** Threads
 *****************************************************************/
-rstring state::str( std::string_view sv ) noexcept {
-  c_api C( L );
-  C.push( sv );
-  return rstring( C.this_cthread(), C.ref_registry() );
+state::Thread::Thread( cthread cth )
+  : main( cth, ( c_api( cth ).pushthread(),
+                 c_api( cth ).ref_registry() ) ),
+    L( cth ) {
+  (void)L;
 }
 
 /****************************************************************
 ** Tables
 *****************************************************************/
-table state::global_table() noexcept {
-  c_api C( L );
-  C.pushglobaltable();
-  return table( C.this_cthread(), C.ref_registry() );
-}
+state::Table::Table( cthread cth )
+  : global( cth, ( c_api( cth ).pushglobaltable(),
+                   c_api( cth ).ref_registry() ) ),
+    L( cth ) {}
 
-table state::new_table() noexcept {
+table state::Table::create() noexcept {
   c_api C( L );
   C.newtable();
-  return table( C.this_cthread(), C.ref_registry() );
+  return lua::table( C.this_cthread(), C.ref_registry() );
+}
+
+/****************************************************************
+** Strings
+*****************************************************************/
+rstring state::String::create( string_view sv ) noexcept {
+  c_api C( L );
+  C.push( sv );
+  return rstring( C.this_cthread(), C.ref_registry() );
 }
 
 } // namespace lua

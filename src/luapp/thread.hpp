@@ -28,6 +28,8 @@ namespace lua {
 struct rthread : public reference {
   using Base = reference;
 
+  cthread cthread() const noexcept { return L; }
+
   using Base::Base;
 };
 

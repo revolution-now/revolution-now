@@ -35,29 +35,58 @@ struct state {
   // Do not use the state after this.
   void close();
 
+  bool alive() const { return L != nullptr; }
+
+private:
+  // main thread.
+  cthread L;
+
+public:
   /**************************************************************
   ** Threads
   ***************************************************************/
-  // L is guaranteed to be the main thread because it is the one
-  // that we get when we create the state.
-  cthread main_cthread() const noexcept { return L; }
+  struct Thread {
+    Thread( cthread cth );
 
-  rthread main_rthread() const noexcept;
+    // This is guaranteed to be the main thread because it is the
+    // one that we get when we create the state.
+    rthread main;
+
+  private:
+    cthread L;
+  } thread;
 
   /**************************************************************
   ** Strings
   ***************************************************************/
-  rstring str( std::string_view sv ) noexcept;
+  struct String {
+    String( cthread cth ) : L( cth ) {}
+
+    rstring create( std::string_view sv ) noexcept;
+
+  private:
+    cthread L;
+  } string;
 
   /**************************************************************
   ** Tables
   ***************************************************************/
-  table global_table() noexcept;
-  table new_table() noexcept;
+  struct Table {
+    Table( cthread cth );
 
+    table global;
+    table create() noexcept;
+
+  private:
+    cthread L;
+  } table;
+
+  /**************************************************************
+  ** Indexer
+  ***************************************************************/
   template<typename U>
   auto operator[]( U&& idx ) noexcept {
-    return global_table()[std::forward<U>( idx )];
+    return table.global[std::forward<U>( idx )];
   }
 
 private:
@@ -65,9 +94,6 @@ private:
   state( state&& )      = delete;
   state& operator=( state const& ) = delete;
   state& operator=( state&& ) = delete;
-
-  // main thread.
-  cthread L;
 };
 
 // Cannot push an entire global state. You can push a thread

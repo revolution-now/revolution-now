@@ -50,7 +50,7 @@ namespace {
 
 template<typename Left, typename Right>
 bool eq_value_and_value( Left const& l, Right const& r ) {
-  c_api C( scratch_state().main_cthread() );
+  c_api C( scratch_state().thread.main.cthread() );
   C.push( l );
   C.push( r );
   bool res = C.compare_eq( -2, -1 );
