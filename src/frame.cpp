@@ -16,6 +16,7 @@
 #include "config-files.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
 #include "plane.hpp"
@@ -40,6 +41,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+int g_target_fps = 60;
 
 MovingAverage frame_rate( chrono::seconds( 3 ) );
 
@@ -113,13 +116,12 @@ void frame_loop_scheduler( waitable<> const& what,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
 
-  auto normal_frame_length =
-      1000000us / config_rn.target_frame_rate;
-  auto slow_frame_length = 1000000us / 5;
+  constexpr auto slow_frame_length = 1000000us / 5;
 
   static auto time_of_last_input = Clock_t::now();
 
   while( !what.ready() && !what.has_exception() ) {
+    microseconds normal_frame_length = 1000000us / g_target_fps;
     // If we go more than the configured time without any user
     // input then slow down the frame rate to save battery.
     auto frame_length = ( Clock_t::now() - time_of_last_input >
@@ -247,8 +249,24 @@ uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( waitable<> const& what ) {
+  g_target_fps = config_rn.target_frame_rate;
   frame_loop_scheduler( what, frame_loop_body );
   deinit_frame();
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( get_target_framerate, int ) { return g_target_fps; }
+
+LUA_FN( set_target_framerate, void, int target ) {
+  CHECK( target > 0 );
+  CHECK( target < 1000 );
+  g_target_fps = target;
+}
+
+} // namespace
 
 } // namespace rn
