@@ -37,7 +37,7 @@ state& scratch_state() {
     CHECK( C.stack_size() == 0 );
     // Verify.
     C.pushglobaltable();
-    CHECK( C.type_of( -1 ) == e_lua_type::nil );
+    CHECK( C.type_of( -1 ) == type::nil );
     C.pop();
     return st;
   }();

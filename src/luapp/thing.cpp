@@ -47,18 +47,18 @@ string call_tostring( cthread L ) noexcept {
 /****************************************************************
 ** thing
 *****************************************************************/
-e_lua_type thing::type() const noexcept {
+type thing::type() const noexcept {
   switch( index() ) {
-    case 0: return e_lua_type::nil;
-    case 1: return e_lua_type::boolean;
-    case 2: return e_lua_type::lightuserdata;
-    case 3: return e_lua_type::number;
-    case 4: return e_lua_type::number;
-    case 5: return e_lua_type::string;
-    case 6: return e_lua_type::table;
-    case 7: return e_lua_type::function;
-    case 8: return e_lua_type::userdata;
-    case 9: return e_lua_type::thread;
+    case 0: return type::nil;
+    case 1: return type::boolean;
+    case 2: return type::lightuserdata;
+    case 3: return type::number;
+    case 4: return type::number;
+    case 5: return type::string;
+    case 6: return type::table;
+    case 7: return type::function;
+    case 8: return type::userdata;
+    case 9: return type::thread;
   }
   SHOULD_NOT_BE_HERE;
 }
@@ -79,39 +79,39 @@ thing::operator bool() const noexcept {
 }
 
 thing thing::pop( cthread L ) noexcept {
-  c_api      C( L );
-  thing      res  = nil;
-  e_lua_type type = C.type_of( -1 );
+  c_api     C( L );
+  thing     res  = nil;
+  lua::type type = C.type_of( -1 );
   switch( type ) {
-    case e_lua_type::nil: C.pop(); break;
-    case e_lua_type::boolean:
+    case type::nil: C.pop(); break;
+    case type::boolean:
       res = C.get<boolean>( -1 );
       C.pop();
       break;
-    case e_lua_type::lightuserdata:
+    case type::lightuserdata:
       res = *C.get<lightuserdata>( -1 );
       C.pop();
       break;
-    case e_lua_type::number:
+    case type::number:
       if( C.isinteger( -1 ) )
         res = *C.get<integer>( -1 );
       else
         res = *C.get<floating>( -1 );
       C.pop();
       break;
-    case e_lua_type::string:
+    case type::string:
       res = rstring( C.this_cthread(), C.ref_registry() );
       break;
-    case e_lua_type::table:
+    case type::table:
       res = table( C.this_cthread(), C.ref_registry() );
       break;
-    case e_lua_type::function:
+    case type::function:
       res = rfunction( C.this_cthread(), C.ref_registry() );
       break;
-    case e_lua_type::userdata:
+    case type::userdata:
       res = userdata( C.this_cthread(), C.ref_registry() );
       break;
-    case e_lua_type::thread:
+    case type::thread:
       res = rthread( C.this_cthread(), C.ref_registry() );
       break;
   }

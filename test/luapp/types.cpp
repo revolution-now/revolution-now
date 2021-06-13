@@ -22,7 +22,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {
@@ -31,39 +31,39 @@ using namespace std;
 
 LUA_TEST_CASE( "[types] push" ) {
   push( L, nil );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
+  REQUIRE( C.type_of( -1 ) == type::nil );
   C.pop();
 
   push( L, 5 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( C.type_of( -1 ) == type::number );
   REQUIRE( C.isinteger( -1 ) );
   REQUIRE( C.get<int>( -1 ) == 5 );
   C.pop();
 
   push( L, 5.0 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( C.type_of( -1 ) == type::number );
   REQUIRE_FALSE( C.isinteger( -1 ) );
   REQUIRE( C.get<double>( -1 ) == 5.0 );
   C.pop();
 
   push( L, 5.5 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( C.type_of( -1 ) == type::number );
   REQUIRE_FALSE( C.isinteger( -1 ) );
   REQUIRE( C.get<double>( -1 ) == 5.5 );
   C.pop();
 
   push( L, true );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
+  REQUIRE( C.type_of( -1 ) == type::boolean );
   REQUIRE( C.get<bool>( -1 ) == true );
   C.pop();
 
   push( L, (void*)L );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::lightuserdata );
+  REQUIRE( C.type_of( -1 ) == type::lightuserdata );
   REQUIRE( C.get<void*>( -1 ) == L );
   C.pop();
 
   push( L, "hello" );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( C.type_of( -1 ) == type::string );
   REQUIRE( C.get<string>( -1 ) == "hello" );
   C.pop();
 }

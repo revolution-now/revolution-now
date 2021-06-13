@@ -52,7 +52,7 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
 /****************************************************************
 ** Lua types
 *****************************************************************/
-enum class e_lua_type {
+enum class type {
   nil           = 0,
   boolean       = 1,
   lightuserdata = 2,
@@ -64,7 +64,7 @@ enum class e_lua_type {
   thread        = 8
 };
 
-void to_str( e_lua_type t, std::string& out );
+void to_str( type t, std::string& out );
 
 inline constexpr int kNumLuaTypes = 9;
 
@@ -142,7 +142,7 @@ using LuaCFunction = int( ::lua_State* );
 /****************************************************************
 ** {fmt}
 *****************************************************************/
-TOSTR_TO_FMT( lua::e_lua_type );
+TOSTR_TO_FMT( lua::type );
 TOSTR_TO_FMT( lua::nil_t );
 TOSTR_TO_FMT( lua::lightuserdata );
 

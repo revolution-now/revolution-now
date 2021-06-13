@@ -19,7 +19,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {
@@ -78,7 +78,7 @@ LUA_TEST_CASE( "[ref] can push released ref as nil" ) {
   r.release();
   push( L, r );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
+  REQUIRE( C.type_of( -1 ) == type::nil );
   C.pop();
 }
 
@@ -113,7 +113,7 @@ LUA_TEST_CASE( "[ref] reference create/push/gc" ) {
     REQUIRE( C.stack_size() == 0 );
     reference o( C.this_cthread(), ref );
     push( C.this_cthread(), o );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::table );
+    REQUIRE( C.type_of( -1 ) == type::table );
     REQUIRE( C.stack_size() == 1 );
     create_metatable();
     verify_collect( false );
@@ -157,7 +157,7 @@ LUA_TEST_CASE( "[ref] reference copy --> no collect" ) {
       REQUIRE( C.stack_size() == 0 );
       reference o( C.this_cthread(), ref );
       push( C.this_cthread(), o );
-      REQUIRE( C.type_of( -1 ) == e_lua_type::table );
+      REQUIRE( C.type_of( -1 ) == type::table );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
       verify_collect( false );

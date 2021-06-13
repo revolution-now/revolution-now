@@ -19,7 +19,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {
@@ -92,7 +92,7 @@ LUA_TEST_CASE( "[userdata] userdata create/push/gc" ) {
     REQUIRE( C.stack_size() == 0 );
     userdata o( C.this_cthread(), ref );
     push( C.this_cthread(), o );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
     REQUIRE( C.stack_size() == 1 );
     create_metatable();
     verify_collect( false );
@@ -136,7 +136,7 @@ LUA_TEST_CASE( "[userdata] userdata copy --> no collect" ) {
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.this_cthread(), ref );
       push( C.this_cthread(), o );
-      REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+      REQUIRE( C.type_of( -1 ) == type::userdata );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
       verify_collect( false );

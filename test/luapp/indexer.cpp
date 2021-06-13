@@ -139,35 +139,35 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
 
   push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( C.type_of( -1 ) == type::string );
   REQUIRE( C.get<string>( -1 ) == "payload" );
   C.pop();
 
   mt[5][1]["hello"] = 42;
   push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+  REQUIRE( C.type_of( -1 ) == type::number );
   REQUIRE( C.get<int>( -1 ) == 42 );
   C.pop();
 
   mt[5][1]["hello"] = "world";
   push( C.this_cthread(), mt[5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( C.type_of( -1 ) == type::string );
   REQUIRE( C.get<string>( -1 ) == "world" );
   C.pop();
 
   mt[5]["x"] = SomeTable( L );
   push( C.this_cthread(), mt[5]["x"][5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( C.type_of( -1 ) == type::string );
   REQUIRE( C.get<string>( -1 ) == "payload" );
   C.pop();
 
   mt[5]["x"][5][1]["hello"] = true;
   push( C.this_cthread(), mt[5]["x"][5][1]["hello"] );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
+  REQUIRE( C.type_of( -1 ) == type::boolean );
   REQUIRE( C.get<bool>( -1 ) == true );
   C.pop();
 
@@ -195,7 +195,7 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
     return dump( my_table )
   )" ) == valid );
   REQUIRE( C.stack_size() == 1 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+  REQUIRE( C.type_of( -1 ) == type::string );
   // The following is what we're expecting, modulo some spacing.
   //  table = {
   //    [5] = {

@@ -27,7 +27,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {
@@ -43,7 +43,7 @@ LUA_TEST_CASE( "[helper] creation/destruction" ) {
 
 LUA_TEST_CASE( "[helper] tables" ) {
   helper h( L );
-  REQUIRE( C.getglobal( "t1" ) == e_lua_type::nil );
+  REQUIRE( C.getglobal( "t1" ) == type::nil );
   C.pop();
   REQUIRE( C.stack_size() == 0 );
 
@@ -51,85 +51,85 @@ LUA_TEST_CASE( "[helper] tables" ) {
 
   SECTION( "single" ) {
     h.tables( { "t1" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
     REQUIRE( C.stack_size() == 1 );
     C.pop();
   }
 
   SECTION( "double" ) {
     h.tables( { "t1", "t2" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::table );
     REQUIRE( C.stack_size() == 2 );
     C.pop( 2 );
   }
 
   SECTION( "triple" ) {
     h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
 
   SECTION( "tables already present" ) {
     h.tables( { "t1" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::nil );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::nil );
     REQUIRE( C.stack_size() == 2 );
     C.pop( 2 );
     h.tables( { "t1", "t2" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::nil );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::nil );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
     h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
     h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "t2" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
 
   SECTION( "triple 2" ) {
     h.tables( { "hello_world", "yes123x", "_" } );
-    REQUIRE( C.getglobal( "hello_world" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "yes123x" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "_" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "hello_world" ) == type::table );
+    REQUIRE( C.getfield( -1, "yes123x" ) == type::table );
+    REQUIRE( C.getfield( -1, "_" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
 
   SECTION( "spaces" ) {
     h.tables( { " t1", " t2" } );
-    REQUIRE( C.getglobal( " t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, " t2" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( " t1" ) == type::table );
+    REQUIRE( C.getfield( -1, " t2" ) == type::table );
     REQUIRE( C.stack_size() == 2 );
     C.pop( 2 );
   }
 
   SECTION( "with reserved" ) {
     h.tables( { "t1", "if", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "if" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "if" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
 
   SECTION( "bad identifier" ) {
     h.tables( { "t1", "x-z", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "x-z" ) == e_lua_type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == e_lua_type::table );
+    REQUIRE( C.getglobal( "t1" ) == type::table );
+    REQUIRE( C.getfield( -1, "x-z" ) == type::table );
+    REQUIRE( C.getfield( -1, "t3" ) == type::table );
     REQUIRE( C.stack_size() == 3 );
     C.pop( 3 );
   }
@@ -159,7 +159,7 @@ LUA_TEST_CASE(
 
   // Make sure that it has no upvalues.
   C.getglobal( "add_one" );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+  REQUIRE( C.type_of( -1 ) == type::function );
   REQUIRE_FALSE( C.getupvalue( -1, 1 ) );
   C.pop();
 }
@@ -202,14 +202,14 @@ LUA_TEST_CASE(
     // Test that the function has an up value and that the upval-
     // ue's metatable has the right name.
     C.getglobal( "add_one" );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+    REQUIRE( C.type_of( -1 ) == type::function );
     REQUIRE_FALSE( C.getupvalue( -1, 2 ) );
     REQUIRE( C.getupvalue( -1, 1 ) == true );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
     REQUIRE( C.stack_size() == 2 );
     REQUIRE( C.getmetatable( -1 ) );
     REQUIRE( C.stack_size() == 3 );
-    REQUIRE( C.getfield( -1, "__name" ) == e_lua_type::string );
+    REQUIRE( C.getfield( -1, "__name" ) == type::string );
     REQUIRE( C.stack_size() == 4 );
     REQUIRE( C.get<string>( -1 ) ==
              "base::unique_func<int (lua_State*) const>" );
@@ -273,14 +273,14 @@ LUA_TEST_CASE(
 
   // Make sure that it has no upvalues.
   C.getglobal( "go" );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+  REQUIRE( C.type_of( -1 ) == type::function );
   REQUIRE_FALSE( C.getupvalue( -1, 2 ) );
   REQUIRE( C.getupvalue( -1, 1 ) == true );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+  REQUIRE( C.type_of( -1 ) == type::userdata );
   REQUIRE( C.stack_size() == 2 );
   REQUIRE( C.getmetatable( -1 ) );
   REQUIRE( C.stack_size() == 3 );
-  REQUIRE( C.getfield( -1, "__name" ) == e_lua_type::string );
+  REQUIRE( C.getfield( -1, "__name" ) == type::string );
   REQUIRE( C.stack_size() == 4 );
   REQUIRE( C.get<string>( -1 ) ==
            "base::unique_func<int (lua_State*) const>" );

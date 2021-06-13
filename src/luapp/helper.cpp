@@ -51,8 +51,7 @@ void helper::tables_slow( std::string_view path ) noexcept {
     tables_func_ref = C.ref_registry();
   }
 
-  CHECK( C.registry_get( tables_func_ref ) ==
-         e_lua_type::function );
+  CHECK( C.registry_get( tables_func_ref ) == type::function );
   C.push( string( path ).c_str() );
   CHECK_HAS_VALUE( C.pcall( /*nargs=*/1, /*nresults=*/0 ) );
 }
@@ -60,16 +59,16 @@ void helper::tables_slow( std::string_view path ) noexcept {
 void helper::tables( c_string_list const& path ) noexcept {
   C.pushglobaltable();
   for( char const* elem : path ) {
-    e_lua_type type = C.getfield( /*table_idx=*/-1, elem );
+    lua::type type = C.getfield( /*table_idx=*/-1, elem );
     switch( type ) {
-      case e_lua_type::nil: {
+      case type::nil: {
         C.pop(); // nil
         C.newtable();
         C.setfield( /*table_idx=*/-2, elem );
         C.getfield( /*table_idx=*/-1, elem );
         break;
       }
-      case e_lua_type::table: {
+      case type::table: {
         break;
       }
       default: {
@@ -92,23 +91,22 @@ void helper::traverse_and_push_table_and_key(
       C.push( elem );
       return;
     }
-    e_lua_type type = C.getfield( /*table_idx=*/-1, elem );
-    CHECK( type == e_lua_type::table,
-           "field '{}' is not a table.", elem );
+    lua::type type = C.getfield( /*table_idx=*/-1, elem );
+    CHECK( type == type::table, "field '{}' is not a table.",
+           elem );
     ++i;
     C.swap_top();
     C.pop();
   }
 }
 
-e_lua_type helper::push_path(
-    c_string_list const& path ) noexcept {
+type helper::push_path( c_string_list const& path ) noexcept {
   C.pushglobaltable();
   char const* elem = "_G";
-  e_lua_type  type = e_lua_type::table;
+  lua::type   type = type::table;
   auto        i    = path.begin();
   while( i != path.end() ) {
-    CHECK( C.type_of( -1 ) == e_lua_type::table,
+    CHECK( C.type_of( -1 ) == type::table,
            "field '{}' is not a table.", elem );
     elem = *i;
     type = C.getfield( /*table_idx=*/-1, elem );

@@ -145,17 +145,17 @@ struct c_api {
 
   // Pushes (idx)[-1], Pops the key from the stack, but not the
   // table. Returns the type of the pushed value.
-  e_lua_type gettable( int idx );
+  type gettable( int idx );
 
   // (table_idx)[k] = -1
   void setfield( int table_idx, char const* k );
 
   // Pushes (table_idx)[k].  Returns type of pushed value.
-  e_lua_type getfield( int table_idx, char const* k );
+  type getfield( int table_idx, char const* k );
 
   // Pushes (idx)[n] onto the stack without invoking __index, and
   // returns type of value pushed.
-  e_lua_type rawgeti( int idx, int n ) noexcept;
+  type rawgeti( int idx, int n ) noexcept;
 
   // Does (idx)[n] = -1, but does not invoke the __newindex
   // metamethod. Pops the value from the stack.
@@ -175,14 +175,13 @@ struct c_api {
   // Gets the global named `name` and pushes it onto the stack.
   // Returns the type of the object. If the object doesn't exist
   // then it will push nil.
-  e_lua_type getglobal( char const* name ) noexcept;
-  e_lua_type getglobal( std::string const& name ) noexcept;
+  type getglobal( char const* name ) noexcept;
+  type getglobal( std::string const& name ) noexcept;
 
   // These versions are much slower, but will run in a protected
   // environment.
-  lua_expect<e_lua_type> getglobal_safe(
-      char const* name ) noexcept;
-  lua_expect<e_lua_type> getglobal_safe(
+  lua_expect<type> getglobal_safe( char const* name ) noexcept;
+  lua_expect<type> getglobal_safe(
       std::string const& name ) noexcept;
 
   /**************************************************************
@@ -197,7 +196,7 @@ struct c_api {
   // at the given index. As in Lua, this function may trigger a
   // metamethod for the "index" event.4). Returns the type of the
   // pushed value.
-  e_lua_type geti( int idx, integer i ) noexcept;
+  type geti( int idx, integer i ) noexcept;
 
   /**************************************************************
   ** registry references
@@ -216,7 +215,7 @@ struct c_api {
 
   // Pushes (LUA_REGISTRYINDEX)[id] onto the stack, returning the
   // type of value pushed.
-  e_lua_type registry_get( int id ) noexcept;
+  type registry_get( int id ) noexcept;
 
   // Releases reference ref from the table at index t (see
   // luaL_ref). The entry is removed from the table, so that the
@@ -277,7 +276,7 @@ struct c_api {
   // tname in the registry (nil if there is no metatable associ-
   // ated with that name). Returns the type of the pushed value.
   // This is used for userdata.
-  e_lua_type udata_getmetatable( char const* tname ) noexcept;
+  type udata_getmetatable( char const* tname ) noexcept;
 
   // Sets the metatable of the object at the top of the stack as
   // the metatable associated with name tname in the registry
@@ -381,13 +380,12 @@ struct c_api {
   ** types
   ***************************************************************/
   // Returns the type of the value in the given valid index.
-  e_lua_type type_of( int idx ) const noexcept;
+  type type_of( int idx ) const noexcept;
 
   // This will yield Lua's name for the type.
-  char const* type_name( e_lua_type type ) const noexcept;
+  char const* type_name( type type ) const noexcept;
 
-  lua_valid enforce_type_of( int        idx,
-                             e_lua_type type ) const noexcept;
+  lua_valid enforce_type_of( int idx, type type ) const noexcept;
 
   // Returns true if the value at the given index is an integer
   // (that is, the value is a number and is represented as an in-
@@ -426,7 +424,7 @@ private:
   base::maybe<char const*> get( int idx,
                                 char const** ) const noexcept;
 
-  e_lua_type lua_type_to_enum( int type ) const noexcept;
+  type lua_type_to_enum( int type ) const noexcept;
 
   /**************************************************************
   ** Error checking helpers.

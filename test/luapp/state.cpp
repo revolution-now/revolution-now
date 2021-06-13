@@ -19,7 +19,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {
@@ -33,7 +33,7 @@ LUA_TEST_CASE( "[lua-state] standard tables" ) {
   push( L, G );
   C.getfield( -1, "tostring" );
   REQUIRE( C.stack_size() == 2 );
-  REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+  REQUIRE( C.type_of( -1 ) == type::function );
   C.pop( 2 );
   REQUIRE( C.stack_size() == 0 );
 

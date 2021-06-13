@@ -65,7 +65,7 @@ struct helper {
   // that they are all tables (except for possibly the last one),
   // and will leave the final object on the stack, and will re-
   // turn its type.
-  e_lua_type push_path( c_string_list const& path ) noexcept;
+  type push_path( c_string_list const& path ) noexcept;
 
 private:
   helper( helper const& ) = delete;
@@ -190,7 +190,7 @@ bool helper::push_cpp_function(
 template<typename... Args>
 int helper::call( Args&&... args ) {
   CHECK( C.stack_size() >= 1 );
-  CHECK( C.type_of( -1 ) == e_lua_type::function );
+  CHECK( C.type_of( -1 ) == type::function );
   // Get size of stack before function was pushed.
   int starting_stack_size = C.stack_size() - 1;
 
@@ -206,7 +206,7 @@ int helper::call( Args&&... args ) {
 template<typename... Args>
 lua_expect<int> helper::pcall( Args&&... args ) noexcept {
   CHECK( C.stack_size() >= 1 );
-  CHECK( C.type_of( -1 ) == e_lua_type::function );
+  CHECK( C.type_of( -1 ) == type::function );
   // Get size of stack before function was pushed.
   int starting_stack_size = C.stack_size() - 1;
 

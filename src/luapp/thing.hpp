@@ -86,7 +86,7 @@ struct thing : public thing_base {
   // false and nil.
   operator bool() const noexcept;
 
-  e_lua_type type() const noexcept;
+  type type() const noexcept;
 
   static thing pop( cthread L ) noexcept;
 };

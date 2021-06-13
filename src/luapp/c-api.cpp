@@ -120,15 +120,15 @@ lua_valid c_api::setglobal_safe( string const& key ) noexcept {
   return setglobal_safe( key.c_str() );
 }
 
-e_lua_type c_api::getglobal( char const* name ) noexcept {
+type c_api::getglobal( char const* name ) noexcept {
   return lua_type_to_enum( lua_getglobal( L, name ) );
 }
 
-e_lua_type c_api::getglobal( string const& name ) noexcept {
+type c_api::getglobal( string const& name ) noexcept {
   return getglobal( name.c_str() );
 }
 
-lua_expect<e_lua_type> c_api::getglobal_safe(
+lua_expect<type> c_api::getglobal_safe(
     char const* name ) noexcept {
   DECLARE_NUM_CONSUMED_VALUES( 0 );
   UNWRAP_RETURN( type, pinvoke( ninputs, lua_getglobal, name ) );
@@ -140,7 +140,7 @@ lua_expect<e_lua_type> c_api::getglobal_safe(
   return lua_type_to_enum( type );
 }
 
-lua_expect<e_lua_type> c_api::getglobal_safe(
+lua_expect<type> c_api::getglobal_safe(
     string const& name ) noexcept {
   return getglobal_safe( name.c_str() );
 }
@@ -238,8 +238,7 @@ auto c_api::pinvoke( int ninputs,
   };
 
   // For sanity checking.
-  e_lua_type tip_type =
-      ninputs > 0 ? type_of( -1 ) : e_lua_type::nil;
+  type tip_type = ninputs > 0 ? type_of( -1 ) : type::nil;
 
   // 1. Push func onto the stack.
   push( runner );
@@ -396,17 +395,17 @@ void c_api::setfield( int table_idx, char const* k ) {
   lua_setfield( L, table_idx, k );
 }
 
-e_lua_type c_api::getfield( int table_idx, char const* k ) {
+type c_api::getfield( int table_idx, char const* k ) {
   validate_index( table_idx );
   return lua_type_to_enum( lua_getfield( L, table_idx, k ) );
 }
 
-e_lua_type c_api::gettable( int idx ) {
+type c_api::gettable( int idx ) {
   validate_index( idx );
   return lua_type_to_enum( lua_gettable( L, idx ) );
 }
 
-e_lua_type c_api::rawgeti( int idx, int n ) noexcept {
+type c_api::rawgeti( int idx, int n ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_rawgeti( L, idx, n ) );
 }
@@ -536,15 +535,15 @@ base::maybe<char const*> c_api::get(
   return p;
 }
 
-e_lua_type c_api::lua_type_to_enum( int type ) const noexcept {
+type c_api::lua_type_to_enum( int type ) const noexcept {
   CHECK( type != LUA_TNONE, "type ({}) not valid.", type );
   CHECK( type >= 0 );
   CHECK( type < kNumLuaTypes,
          "a new lua type may have been added." );
-  return static_cast<e_lua_type>( type );
+  return static_cast<lua::type>( type );
 }
 
-e_lua_type c_api::geti( int idx, integer i ) noexcept {
+type c_api::geti( int idx, integer i ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_geti( L, idx, i ) );
 }
@@ -558,7 +557,7 @@ int c_api::ref_registry() noexcept {
   return ref( LUA_REGISTRYINDEX );
 }
 
-e_lua_type c_api::registry_get( int id ) noexcept {
+type c_api::registry_get( int id ) noexcept {
   return rawgeti( LUA_REGISTRYINDEX, id );
 }
 
@@ -592,14 +591,14 @@ int c_api::len_pop( int idx ) {
 //   LUA_TUSERDATA		  7
 //   LUA_TTHREAD		    8
 //
-e_lua_type c_api::type_of( int idx ) const noexcept {
+type c_api::type_of( int idx ) const noexcept {
   validate_index( idx );
   int res = lua_type( L, idx );
   CHECK( res != LUA_TNONE, "index ({}) not valid.", idx );
   return lua_type_to_enum( res );
 }
 
-char const* c_api::type_name( e_lua_type type ) const noexcept {
+char const* c_api::type_name( type type ) const noexcept {
   return lua_typename( L, static_cast<int>( type ) );
 }
 
@@ -615,8 +614,8 @@ void c_api::enforce_stack_size_ge( int s ) const noexcept {
       s, stack_size() );
 }
 
-lua_valid c_api::enforce_type_of(
-    int idx, e_lua_type type ) const noexcept {
+lua_valid c_api::enforce_type_of( int  idx,
+                                  type type ) const noexcept {
   validate_index( idx );
   if( type_of( idx ) == type ) return base::valid;
   return "type of element at index " + to_string( idx ) +
@@ -648,8 +647,7 @@ bool c_api::udata_newmetatable( char const* tname ) noexcept {
   return luaL_newmetatable( L, tname ) != 0;
 }
 
-e_lua_type c_api::udata_getmetatable(
-    char const* tname ) noexcept {
+type c_api::udata_getmetatable( char const* tname ) noexcept {
   return lua_type_to_enum( luaL_getmetatable( L, tname ) );
 }
 

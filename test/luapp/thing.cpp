@@ -22,7 +22,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::e_lua_type );
+FMT_TO_CATCH( ::lua::type );
 FMT_TO_CATCH( ::lua::thing );
 
 namespace lua {
@@ -70,18 +70,18 @@ LUA_TEST_CASE( "[thing] static checks" ) {
 LUA_TEST_CASE( "[thing] defaults to nil + equality with nil" ) {
   thing th;
   REQUIRE( th == nil );
-  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.type() == type::nil );
   REQUIRE( !th );
 }
 
 LUA_TEST_CASE( "[thing] nil assignment / equality" ) {
   thing th = nil;
-  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.type() == type::nil );
   REQUIRE( th.index() == 0 );
   REQUIRE( th == nil );
   REQUIRE( !th );
   th = nil;
-  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.type() == type::nil );
   REQUIRE( th.index() == 0 );
   REQUIRE( th == nil );
   REQUIRE( !th );
@@ -90,7 +90,7 @@ LUA_TEST_CASE( "[thing] nil assignment / equality" ) {
 LUA_TEST_CASE( "[thing] bool assignment / equality" ) {
   thing th = true;
   REQUIRE( th );
-  REQUIRE( th.type() == e_lua_type::boolean );
+  REQUIRE( th.type() == type::boolean );
   REQUIRE( th.index() == 1 );
   REQUIRE( th == true );
   th = false;
@@ -104,7 +104,7 @@ LUA_TEST_CASE( "[thing] int assignment / equality" ) {
   thing th = 5;
   REQUIRE( th );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 3 );
   REQUIRE( th == 5 );
   th = 6;
@@ -113,17 +113,17 @@ LUA_TEST_CASE( "[thing] int assignment / equality" ) {
   REQUIRE( th == 6 );
   th = 7L;
   REQUIRE( th == 7L );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 3 );
   th = -1;
   REQUIRE( th );
   REQUIRE( th == -1 );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 3 );
   th = 0;
   REQUIRE( th ); // Lua's rules.
   REQUIRE( th == 0 );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 3 );
 }
 
@@ -131,7 +131,7 @@ LUA_TEST_CASE( "[thing] double assignment / equality" ) {
   thing th = 5.5;
   REQUIRE( th );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 4 );
   REQUIRE( th == 5.5 );
   th = 6.5;
@@ -141,12 +141,12 @@ LUA_TEST_CASE( "[thing] double assignment / equality" ) {
   th = -1.3;
   REQUIRE( th );
   REQUIRE( th == -1.3 );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 4 );
   th = 0.0;
   REQUIRE( th ); // Lua's rules.
   REQUIRE( th == 0.0 );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.index() == 4 );
 }
 
@@ -155,7 +155,7 @@ LUA_TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   REQUIRE( th ); // Lua's rules.
   REQUIRE( th == nullptr );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.type() == type::lightuserdata );
   REQUIRE( th.index() == 2 );
 
   int x = 3;
@@ -163,7 +163,7 @@ LUA_TEST_CASE( "[thing] lightuserdata assignment / equality" ) {
   REQUIRE( th );
   REQUIRE( th != nullptr );
   REQUIRE( th != nil );
-  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.type() == type::lightuserdata );
   REQUIRE( th.index() == 2 );
   REQUIRE( th == (void*)&x );
 }
@@ -181,7 +181,7 @@ LUA_TEST_CASE( "[thing] string assignment / equality" ) {
   REQUIRE( th1 );
   REQUIRE( th1 == s1 );
   REQUIRE( th1 != nil );
-  REQUIRE( th1.type() == e_lua_type::string );
+  REQUIRE( th1.type() == type::string );
   REQUIRE( th1.index() == 5 );
 
   REQUIRE( th1 == th2 );
@@ -202,7 +202,7 @@ LUA_TEST_CASE( "[thing] table assignment / equality" ) {
   REQUIRE( th1 );
   REQUIRE( th1 == t1 );
   REQUIRE( th1 != nil );
-  REQUIRE( th1.type() == e_lua_type::table );
+  REQUIRE( th1.type() == type::table );
   REQUIRE( th1.index() == 6 );
 
   REQUIRE( th1 == th2 );
@@ -300,38 +300,38 @@ LUA_TEST_CASE( "[thing] thing inequality convertiblae" ) {
 
 LUA_TEST_CASE( "[thing] fmt/to_str" ) {
   thing th;
-  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.type() == type::nil );
   REQUIRE( fmt::format( "{}", th ) == "nil" );
 
   th = true;
-  REQUIRE( th.type() == e_lua_type::boolean );
+  REQUIRE( th.type() == type::boolean );
   REQUIRE( th == true );
   REQUIRE( fmt::format( "{}", th ) == "true" );
 
   th = false;
-  REQUIRE( th.type() == e_lua_type::boolean );
+  REQUIRE( th.type() == type::boolean );
   REQUIRE( th == false );
   REQUIRE( fmt::format( "{}", th ) == "false" );
 
   th = 42;
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th == 42 );
   REQUIRE( fmt::format( "{}", th ) == "42" );
 
   th = 3.5;
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th == 3.5 );
   REQUIRE( fmt::format( "{}", th ) == "3.5" );
 
   void* p = nullptr;
   th      = p;
-  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.type() == type::lightuserdata );
   REQUIRE( th == nullptr );
   REQUIRE( fmt::format( "{}", th ) == "userdata: (nil)" );
   int x = 3;
   p     = &x;
   th    = p;
-  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.type() == type::lightuserdata );
   REQUIRE( th == (void*)&x );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "userdata: 0x[0-9a-z]+" ) );
@@ -376,14 +376,14 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = nil;
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
+    REQUIRE( C.type_of( -1 ) == type::nil );
     C.pop();
   }
   SECTION( "boolean" ) {
     thing th = true;
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::boolean );
+    REQUIRE( C.type_of( -1 ) == type::boolean );
     REQUIRE( C.get<bool>( -1 ) == true );
     C.pop();
   }
@@ -392,7 +392,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = (void*)&x;
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::lightuserdata );
+    REQUIRE( C.type_of( -1 ) == type::lightuserdata );
     REQUIRE( C.get<void*>( -1 ) == &x );
     C.pop();
   }
@@ -400,7 +400,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = 5;
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+    REQUIRE( C.type_of( -1 ) == type::number );
     REQUIRE( C.get<int>( -1 ) == 5 );
     C.pop();
   }
@@ -408,7 +408,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = 5.5;
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::number );
+    REQUIRE( C.type_of( -1 ) == type::number );
     REQUIRE( C.get<double>( -1 ) == 5.5 );
     C.pop();
   }
@@ -417,7 +417,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = rstring( C.this_cthread(), C.ref_registry() );
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::string );
+    REQUIRE( C.type_of( -1 ) == type::string );
     REQUIRE( C.get<string>( -1 ) == "hello" );
     C.pop();
   }
@@ -426,7 +426,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = table( C.this_cthread(), C.ref_registry() );
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::table );
+    REQUIRE( C.type_of( -1 ) == type::table );
     REQUIRE( th == table( C.this_cthread(), C.ref_registry() ) );
   }
   SECTION( "rfunction" ) {
@@ -434,7 +434,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = rfunction( C.this_cthread(), C.ref_registry() );
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::function );
+    REQUIRE( C.type_of( -1 ) == type::function );
     REQUIRE( th ==
              rfunction( C.this_cthread(), C.ref_registry() ) );
   }
@@ -443,7 +443,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = userdata( C.this_cthread(), C.ref_registry() );
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::userdata );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
     REQUIRE( th ==
              userdata( C.this_cthread(), C.ref_registry() ) );
   }
@@ -452,7 +452,7 @@ LUA_TEST_CASE( "[thing] thing::push" ) {
     thing th = rthread( C.this_cthread(), C.ref_registry() );
     push( C.this_cthread(), th );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == e_lua_type::thread );
+    REQUIRE( C.type_of( -1 ) == type::thread );
     REQUIRE( th ==
              rthread( C.this_cthread(), C.ref_registry() ) );
   }
@@ -464,72 +464,72 @@ LUA_TEST_CASE( "[thing] thing::pop" ) {
   // nil
   C.push( nil );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::nil );
+  REQUIRE( th.type() == type::nil );
   REQUIRE( th.holds<nil_t>() );
   REQUIRE( th == nil );
 
   // bool
   C.push( true );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::boolean );
+  REQUIRE( th.type() == type::boolean );
   REQUIRE( th.holds<boolean>() );
   REQUIRE( th == true );
 
   // lightuserdata
   C.push( (void*)&C );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::lightuserdata );
+  REQUIRE( th.type() == type::lightuserdata );
   REQUIRE( th.holds<lightuserdata>() );
   REQUIRE( th == (void*)&C );
 
   // int
   C.push( 5 );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.holds<integer>() );
   REQUIRE( th == 5 );
 
   // double
   C.push( 5.0 );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.holds<floating>() );
   REQUIRE( th == 5.0 );
   C.push( 5.5 );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::number );
+  REQUIRE( th.type() == type::number );
   REQUIRE( th.holds<floating>() );
   REQUIRE( th == 5.5 );
 
   // string
   C.push( "hello" );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::string );
+  REQUIRE( th.type() == type::string );
   REQUIRE( th.holds<rstring>() );
   REQUIRE( th == "hello" );
 
   // table
   C.newtable();
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::table );
+  REQUIRE( th.type() == type::table );
   REQUIRE( th.holds<table>() );
 
   // function
   C.push( []( lua_State* ) -> int { return 0; } );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::function );
+  REQUIRE( th.type() == type::function );
   REQUIRE( th.holds<rfunction>() );
 
   // userdata
   C.newuserdata( 10 );
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::userdata );
+  REQUIRE( th.type() == type::userdata );
   REQUIRE( th.holds<userdata>() );
 
   // thread
   (void)C.newthread();
   th = thing::pop( C.this_cthread() );
-  REQUIRE( th.type() == e_lua_type::thread );
+  REQUIRE( th.type() == type::thread );
   REQUIRE( th.holds<rthread>() );
 }
 

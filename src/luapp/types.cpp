@@ -29,7 +29,7 @@ using namespace std;
 namespace lua {
 
 #define ASSERT_MATCH( e, lua_e ) \
-  static_assert( static_cast<int>( e_lua_type::e ) == lua_e )
+  static_assert( static_cast<int>( type::e ) == lua_e )
 
 // clang-format off
 ASSERT_MATCH( nil,            LUA_TNIL           );
@@ -146,9 +146,9 @@ void to_str( lightuserdata const& o, std::string& out ) {
 }
 
 #define TYPE_CASE( e ) \
-  case e_lua_type::e: s = #e; break
+  case type::e: s = #e; break
 
-void to_str( e_lua_type t, string& out ) {
+void to_str( type t, string& out ) {
   string_view s = "unknown";
   switch( t ) {
     TYPE_CASE( nil );
