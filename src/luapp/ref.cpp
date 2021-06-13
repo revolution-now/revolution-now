@@ -27,14 +27,17 @@ namespace lua {
 ** reference
 *****************************************************************/
 reference::reference( cthread st, int ref ) noexcept
-  : L( st ), ref_( ref ) {}
+  : L( st ), ref_( ref ) {
+  CHECK( ref_ != LUA_NOREF );
+}
 
 reference::~reference() noexcept { release(); }
 
 void reference::release() noexcept {
-  CHECK( ref_ != LUA_NOREF );
+  if( ref_ == LUA_NOREF ) return;
   c_api C( L );
   C.unref_registry( ref_ );
+  ref_ = LUA_NOREF;
 }
 
 reference::reference( reference const& rhs ) noexcept

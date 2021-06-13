@@ -58,6 +58,30 @@ LUA_TEST_CASE( "[ref] reference equality" ) {
   REQUIRE( lud != o1 );
 }
 
+// This test just verifies
+LUA_TEST_CASE( "[ref] can release multiple times" ) {
+  C.newtable();
+  reference r( C.this_cthread(), C.ref_registry() );
+  REQUIRE( C.stack_size() == 0 );
+
+  r.release();
+  r.release();
+  r.release();
+}
+
+// This test just verifies
+LUA_TEST_CASE( "[ref] can push released ref as nil" ) {
+  C.newtable();
+  reference r( C.this_cthread(), C.ref_registry() );
+  REQUIRE( C.stack_size() == 0 );
+
+  r.release();
+  push( L, r );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == e_lua_type::nil );
+  C.pop();
+}
+
 LUA_TEST_CASE( "[ref] reference create/push/gc" ) {
   auto create_metatable = [&] {
     C.newtable();
