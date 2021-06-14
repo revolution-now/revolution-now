@@ -46,6 +46,15 @@ struct Tracker {
 };
 
 /****************************************************************
+** Formattable
+*****************************************************************/
+struct Formattable {
+  int         n = 5;
+  double      d = 7.7;
+  std::string s = "hello";
+};
+
+/****************************************************************
 ** Constexpr type
 *****************************************************************/
 struct Constexpr {
@@ -177,6 +186,10 @@ struct BaseClass {};
 struct DerivedClass : BaseClass {};
 
 } // namespace testing::monitoring_types
+
+DEFINE_FORMAT( testing::monitoring_types::Formattable,
+               "Formattable{{n={},d={},s={}}}", o.n, o.d, o.s );
+FMT_TO_CATCH( testing::monitoring_types::Formattable );
 
 DEFINE_FORMAT_( testing::monitoring_types::Tracker, "Tracker" );
 FMT_TO_CATCH( testing::monitoring_types::Tracker );
