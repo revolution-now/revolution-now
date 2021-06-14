@@ -73,13 +73,10 @@ private:
   helper& operator=( helper const& ) = delete;
   helper& operator=( helper&& ) = delete;
 
-  template<typename T>
-  bool create_userdata( T&& object ) noexcept;
-
   // Creates the closure and sets it on the path. The return
   // value, which indicates whether it created a new metatable,
   // is mainly used for testing.
-  bool push_stateful_lua_c_function(
+  void push_stateful_lua_c_function(
       base::unique_func<int( lua_State* ) const>
           closure ) noexcept;
 
@@ -87,7 +84,7 @@ private:
       LuaCFunction* func ) noexcept;
 
   template<typename Func, typename R, typename... Args>
-  bool push_cpp_function( Func&& func, R*,
+  void push_cpp_function( Func&& func, R*,
                           mp::type_list<Args...>* ) noexcept;
 
   // Given t1.t2.t3.key, it will assume that t1,t2,t3 are tables
@@ -124,19 +121,17 @@ auto helper::push_function( Func&& func ) noexcept {
     if constexpr( std::is_convertible_v<Func, LuaCFunction*> )
       push_stateless_lua_c_function( +func );
     else
-      return push_stateful_lua_c_function(
-          std::forward<Func>( func ) );
+      push_stateful_lua_c_function( std::forward<Func>( func ) );
   } else {
     using ret_t  = mp::callable_ret_type_t<Func>;
     using args_t = mp::callable_arg_types_t<Func>;
-    return push_cpp_function( std::forward<Func>( func ),
-                              (ret_t*)nullptr,
-                              (args_t*)nullptr );
+    push_cpp_function( std::forward<Func>( func ),
+                       (ret_t*)nullptr, (args_t*)nullptr );
   }
 }
 
 template<typename Func, typename R, typename... Args>
-bool helper::push_cpp_function(
+void helper::push_cpp_function(
     Func&& func, R*, mp::type_list<Args...>* ) noexcept {
   static auto const runner =
       [func = std::move( func )]( lua_State* L ) -> int {
@@ -184,7 +179,7 @@ bool helper::push_cpp_function(
       return 1;
     }
   };
-  return push_stateful_lua_c_function( std::move( runner ) );
+  push_stateful_lua_c_function( std::move( runner ) );
 }
 
 template<typename... Args>

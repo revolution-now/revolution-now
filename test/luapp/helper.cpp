@@ -143,14 +143,13 @@ LUA_TEST_CASE(
     helper h( L );
     h.openlibs();
 
-    bool created = h.push_function(
+    h.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
           c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 1 );
           return 1;
         } );
-    REQUIRE( created );
     C.setglobal( "add_one" );
     REQUIRE( Tracker::constructed == 1 );
     REQUIRE( Tracker::destructed == 2 );
@@ -187,16 +186,14 @@ LUA_TEST_CASE(
     C.pop( 4 );
     REQUIRE( C.stack_size() == 0 );
 
-    // Now set a second closure and ensure that the metatable
-    // gets reused.
-    created = h.push_function(
+    // Now set a second closure.
+    h.push_function(
         [tracker = Tracker{}]( lua_State* L ) -> int {
           c_api C( L );
           int   n = luaL_checkinteger( L, 1 );
           C.push( n + 2 );
           return 1;
         } );
-    REQUIRE_FALSE( created );
     C.setglobal( "add_two" );
     REQUIRE( Tracker::constructed == 1 );
     REQUIRE( Tracker::destructed == 2 );

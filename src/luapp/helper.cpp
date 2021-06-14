@@ -12,6 +12,7 @@
 
 // luapp
 #include "c-api.hpp"
+#include "userdata.hpp"
 
 // base
 #include "base/cc-specific.hpp"
@@ -122,78 +123,10 @@ void helper::push_stateless_lua_c_function(
   C.push( func );
 }
 
-template<typename T>
-bool helper::create_userdata( T&& object ) noexcept {
-  int initial_stack_size = C.stack_size();
-
-  static string const type_name = base::demangled_typename<T>();
-
-  // 1. Create userdata to hold unique_func.
-  void* ud = C.newuserdata( sizeof( object ) );
-  // Stack:
-  //   userdata
-  DCHECK( C.stack_size() == initial_stack_size + 1 );
-
-  // The ud pointer, since it is allocated by malloc, will appar-
-  // ently have the correct alignment to store any type.
-  new( ud ) T( forward<T>( object ) );
-  // !! `object` is moved-from at this point.
-
-  // 2. Get the metatable for this userdata type and set it. The
-  // first time we do this for this type, created == true.
-  bool metatable_created =
-      C.udata_newmetatable( type_name.c_str() );
-  // Stack:
-  //   metatable
-  //   userdata
-  DCHECK( C.stack_size() == initial_stack_size + 2 );
-
-  if( metatable_created ) {
-    // This is the first time that we are creating a userdata of
-    // this type, so the metatable will basically be empty. So
-    // now we have to give it a __gc method so that it will get
-    // freed properly when Lua garbage collects it. We must set
-    // the __gc method in the metatable *before* setting the
-    // metatable on the userdata.
-    static auto gc = []( lua_State* L ) -> int {
-      // We should get the object to be garbage collected as the
-      // first argument. Use `testudata` instead of `checkudata`
-      // so that we throw a C++ error instead of a Lua error.
-      void* ud = luaL_testudata( L, 1, type_name.c_str() );
-      DCHECK(
-          ud != nullptr,
-          "__gc method expected type {} but did not find it.",
-          type_name );
-      T* object = static_cast<T*>( ud );
-      object->~T();
-      return 0;
-    };
-    C.push( gc );
-    // Stack:
-    //   __gc method
-    //   metatable
-    //   userdata
-    DCHECK( C.stack_size() == initial_stack_size + 3 );
-
-    C.setfield( /*table_idx=*/-2, "__gc" );
-    // Stack:
-    //   metatable
-    //   userdata
-    DCHECK( C.stack_size() == initial_stack_size + 2 );
-  }
-
-  C.setmetatable( -2 );
-  // Stack:
-  //   userdata
-  DCHECK( C.stack_size() == initial_stack_size + 1 );
-
-  return metatable_created;
-}
-
-bool helper::push_stateful_lua_c_function(
+void helper::push_stateful_lua_c_function(
     base::unique_func<int( lua_State* ) const> func ) noexcept {
   // Pushes new userdata onto stack.
-  bool metatable_created = create_userdata( std::move( func ) );
+  push_userdata_by_value( C.this_cthread(), std::move( func ) );
 
   // 1. Create the closure with one upvalue (the userdata).
   static auto closure_caller = []( lua_State* L ) -> int {
@@ -214,8 +147,6 @@ bool helper::push_stateful_lua_c_function(
   };
 
   C.push( closure_caller, /*upvalues=*/1 );
-
-  return metatable_created;
 }
 
 } // namespace lua
