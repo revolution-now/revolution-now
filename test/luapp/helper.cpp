@@ -35,7 +35,7 @@ namespace {
 using namespace std;
 
 using ::base::valid;
-using ::testing::Tracker;
+using ::testing::monitoring_types::Tracker;
 
 LUA_TEST_CASE( "[helper] creation/destruction" ) {
   helper st( L );

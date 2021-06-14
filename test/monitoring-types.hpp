@@ -13,7 +13,10 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-namespace testing {
+// C++ standard library
+#include <type_traits>
+
+namespace testing::monitoring_types {
 
 /****************************************************************
 ** Tracker
@@ -42,7 +45,142 @@ struct Tracker {
   }
 };
 
-} // namespace testing
+/****************************************************************
+** Constexpr type
+*****************************************************************/
+struct Constexpr {
+  constexpr Constexpr() = default;
+  constexpr Constexpr( int n_ ) noexcept : n( n_ ) {}
+  constexpr Constexpr( Constexpr const& ) = default;
+  constexpr Constexpr( Constexpr&& )      = default;
+  constexpr Constexpr& operator=( Constexpr const& ) = default;
+  constexpr Constexpr& operator=( Constexpr&& )       = default;
+  constexpr bool operator==( Constexpr const& ) const = default;
 
-DEFINE_FORMAT_( testing::Tracker, "Tracker" );
-FMT_TO_CATCH( testing::Tracker );
+  int n;
+};
+
+/****************************************************************
+** Empty
+*****************************************************************/
+struct Empty {};
+
+/****************************************************************
+** Non-Copyable
+*****************************************************************/
+struct NoCopy {
+  explicit NoCopy( char c_ ) : c( c_ ) {}
+  NoCopy( NoCopy const& ) = delete;
+  NoCopy( NoCopy&& )      = default;
+  NoCopy& operator=( NoCopy const& ) = delete;
+  NoCopy& operator=( NoCopy&& )              = default;
+  bool    operator==( NoCopy const& ) const& = default;
+  char    c;
+};
+static_assert( !std::is_copy_constructible_v<NoCopy> );
+static_assert( std::is_move_constructible_v<NoCopy> );
+static_assert( !std::is_copy_assignable_v<NoCopy> );
+static_assert( std::is_move_assignable_v<NoCopy> );
+
+/****************************************************************
+** Non-Copyable, Non-Movable
+*****************************************************************/
+struct NoCopyNoMove {
+  NoCopyNoMove( char c_ ) : c( c_ ) {}
+  NoCopyNoMove( NoCopyNoMove const& ) = delete;
+  NoCopyNoMove( NoCopyNoMove&& )      = delete;
+  NoCopyNoMove& operator=( NoCopyNoMove const& ) = delete;
+  NoCopyNoMove& operator=( NoCopyNoMove&& ) = delete;
+  NoCopyNoMove& operator=( char c_ ) noexcept {
+    c = c_;
+    return *this;
+  }
+  bool operator==( NoCopyNoMove const& ) const& = default;
+  char c;
+};
+static_assert( !std::is_copy_constructible_v<NoCopyNoMove> );
+static_assert( !std::is_move_constructible_v<NoCopyNoMove> );
+static_assert( !std::is_copy_assignable_v<NoCopyNoMove> );
+static_assert( !std::is_move_assignable_v<NoCopyNoMove> );
+
+/****************************************************************
+** Thrower
+*****************************************************************/
+struct Throws {
+  Throws( bool should_throw = true ) {
+    if( should_throw )
+      throw std::runtime_error( "default construction" );
+  }
+  Throws( Throws const& ) {
+    throw std::runtime_error( "copy construction" );
+  }
+  Throws( Throws&& ) {
+    throw std::runtime_error( "move construction" );
+  }
+  Throws& operator=( Throws const& ) {
+    throw std::runtime_error( "copy assignment" );
+  }
+  Throws& operator=( Throws&& ) {
+    throw std::runtime_error( "move assignment" );
+  }
+};
+
+/****************************************************************
+** Trivial Everything
+*****************************************************************/
+struct Trivial {
+  Trivial()                 = default;
+  ~Trivial()                = default;
+  Trivial( Trivial const& ) = default;
+  Trivial( Trivial&& )      = default;
+  Trivial& operator=( Trivial const& ) = default;
+  Trivial& operator=( Trivial&& ) = default;
+
+  double d;
+  int    n;
+};
+
+/****************************************************************
+** Convertibles
+*****************************************************************/
+struct Boolable {
+  Boolable() = default;
+  Boolable( bool m ) : n( m ) {}
+  // clang-format off
+  operator bool() const { return n; }
+  // clang-format on
+  bool n = {};
+};
+
+struct Intable {
+  Intable() = default;
+  Intable( int m ) : n( m ) {}
+  // clang-format off
+  operator int() const { return n; }
+  // clang-format on
+  int n = {};
+};
+
+struct Stringable {
+  Stringable() = default;
+  Stringable( std::string s_ ) : s( s_ ) {}
+  // clang-format off
+  operator std::string() const { return s; }
+  // clang-format on
+  std::string s = {};
+};
+
+/****************************************************************
+** Base/Derived
+*****************************************************************/
+struct BaseClass {};
+struct DerivedClass : BaseClass {};
+
+} // namespace testing::monitoring_types
+
+DEFINE_FORMAT_( testing::monitoring_types::Tracker, "Tracker" );
+FMT_TO_CATCH( testing::monitoring_types::Tracker );
+
+DEFINE_FORMAT( testing::monitoring_types::NoCopy,
+               "NoCopy{{c={}}}", o.c );
+FMT_TO_CATCH( testing::monitoring_types::NoCopy );
