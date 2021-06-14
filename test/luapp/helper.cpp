@@ -136,35 +136,6 @@ LUA_TEST_CASE( "[helper] tables" ) {
 }
 
 LUA_TEST_CASE(
-    "[helper] push_function, stateless lua C function" ) {
-  helper h( L );
-  h.openlibs();
-
-  h.push_function( []( lua_State* L ) -> int {
-    c_api C( L );
-    int   n = luaL_checkinteger( L, 1 );
-    C.push( n + 1 );
-    return 1;
-  } );
-  C.setglobal( "add_one" );
-
-  SECTION( "once" ) {
-    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-             valid );
-  }
-  SECTION( "twice" ) {
-    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-             valid );
-  }
-
-  // Make sure that it has no upvalues.
-  C.getglobal( "add_one" );
-  REQUIRE( C.type_of( -1 ) == type::function );
-  REQUIRE_FALSE( C.getupvalue( -1, 1 ) );
-  C.pop();
-}
-
-LUA_TEST_CASE(
     "[helper] push_function, stateful lua C function" ) {
   Tracker::reset();
 

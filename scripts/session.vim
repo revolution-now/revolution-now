@@ -10,6 +10,8 @@ let s:stems = [
   \ 'luapp/thread',
   \ 'luapp/function',
   \ 'luapp/thing',
+  \ 'base/func-concepts',
+  \ 'luapp/func-push',
   \ 'luapp/helper',
   \ 'luapp/state',
 \]
