@@ -29,21 +29,6 @@ using namespace std;
 
 namespace lua {
 
-namespace {
-
-// Expects value to be pushed onto stack of L.
-string call_tostring( cthread L ) noexcept {
-  c_api       C( L );
-  size_t      len = 0;
-  char const* p   = C.tostring( -1, &len );
-  string_view sv( p, len );
-  string      res = string( sv );
-  C.pop();
-  return res;
-}
-
-} // namespace
-
 /****************************************************************
 ** thing
 *****************************************************************/
@@ -131,7 +116,7 @@ string thing::tostring() const noexcept {
     }
   } );
   push( L, *this );
-  return call_tostring( L );
+  return c_api( L ).pop_tostring();
 }
 
 bool thing::operator==( thing const& rhs ) const noexcept {
@@ -153,11 +138,6 @@ void push_thing( cthread L, thing const& th ) {
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( reference const& r, string& out ) {
-  push( r.this_cthread(), r );
-  out += call_tostring( r.this_cthread() );
-}
-
 void to_str( thing const& th, std::string& out ) {
   out += th.tostring();
 }

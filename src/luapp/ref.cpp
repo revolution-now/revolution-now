@@ -116,4 +116,10 @@ void push( cthread L, reference const& r ) {
   C.registry_get( r.ref_ );
 }
 
+void to_str( reference const& r, string& out ) {
+  c_api C( r.this_cthread() );
+  push( C, r );
+  out += C.pop_tostring();
+}
+
 } // namespace lua

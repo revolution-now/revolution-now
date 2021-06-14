@@ -335,37 +335,38 @@ LUA_TEST_CASE( "[thing] fmt/to_str" ) {
 
   // strings.
   C.push( "hello" );
+  REQUIRE( C.stack_size() == 1 );
   th = rstring( C.this_cthread(), C.ref_registry() );
   REQUIRE( fmt::format( "{}", th ) == "hello" );
-  C.pop();
+  REQUIRE( C.stack_size() == 0 );
 
   // tables.
   C.newtable();
   th = table( C.this_cthread(), C.ref_registry() );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "table: 0x[0-9a-z]+" ) );
-  C.pop();
+  REQUIRE( C.stack_size() == 0 );
 
   // function.
   C.push( []( lua_State* ) -> int { return 0; } );
   th = rfunction( C.this_cthread(), C.ref_registry() );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "function: 0x[0-9a-z]+" ) );
-  C.pop();
+  REQUIRE( C.stack_size() == 0 );
 
   // userdata.
   C.newuserdata( 10 );
   th = userdata( C.this_cthread(), C.ref_registry() );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "userdata: 0x[0-9a-z]+" ) );
-  C.pop();
+  REQUIRE( C.stack_size() == 0 );
 
   // thread.
   (void)C.newthread();
   th = rthread( C.this_cthread(), C.ref_registry() );
   REQUIRE_THAT( fmt::format( "{}", th ),
                 Matches( "thread: 0x[0-9a-z]+" ) );
-  C.pop();
+  REQUIRE( C.stack_size() == 0 );
 }
 
 LUA_TEST_CASE( "[thing] thing::push" ) {
