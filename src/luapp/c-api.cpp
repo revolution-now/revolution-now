@@ -754,4 +754,9 @@ string c_api::pop_tostring() noexcept {
   return res;
 }
 
+int c_api::rawlen( int idx ) noexcept {
+  validate_index( idx );
+  return int( lua_rawlen( L, idx ) );
+}
+
 } // namespace lua

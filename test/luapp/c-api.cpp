@@ -1455,5 +1455,29 @@ LUA_TEST_CASE( "[lua-c-api] pop_tostring" ) {
   REQUIRE( C.stack_size() == 0 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] rawlen" ) {
+  C.push( "hello" );
+  REQUIRE( C.rawlen( -1 ) == 5 );
+  C.pop();
+
+  C.newtable();
+  REQUIRE( C.rawlen( -1 ) == 0 );
+  C.push( "hello" );
+  C.push( 5 );
+  C.settable( -3 );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.rawlen( -1 ) == 0 );
+  C.push( 1 );
+  C.push( "hello" );
+  C.settable( -3 );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.rawlen( -1 ) == 1 );
+  C.pop();
+
+  C.newuserdata( 1000 );
+  REQUIRE( C.rawlen( -1 ) == 1000 );
+  C.pop();
+}
+
 } // namespace
 } // namespace lua

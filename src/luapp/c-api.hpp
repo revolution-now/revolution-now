@@ -309,6 +309,13 @@ struct c_api {
   // turned.
   int len_pop( int idx );
 
+  // Returns the raw "length" of the value at the given index:
+  // for strings, this is the string length; for tables, this is
+  // the result of the length operator ('#') with no metamethods;
+  // for userdata, this is the size of the block of memory allo-
+  // cated for the userdata; for other values, it is 0.
+  int rawlen( int idx ) noexcept;
+
   /**************************************************************
   ** comparison
   ***************************************************************/
