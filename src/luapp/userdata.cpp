@@ -52,17 +52,6 @@ void setup_new_metatable( cthread L, int metatable_idx,
 
 namespace detail {
 
-void* check_udata( cthread L, int idx, char const* name ) {
-  c_api C( L );
-  // Use `testudata` instead of `checkudata` so that we throw a
-  // C++ error instead of a Lua error.
-  void* ud = C.testudata( idx, name );
-  DCHECK( ud != nullptr,
-          "__gc method expected type {} but did not find it.",
-          name );
-  return ud;
-}
-
 void push_string( cthread L, std::string const& s ) {
   c_api C( L );
   C.push( s );
@@ -120,5 +109,16 @@ bool push_userdata_impl(
 }
 
 } // namespace detail
+
+void* check_udata( cthread L, int idx, char const* name ) {
+  c_api C( L );
+  // Use `testudata` instead of `checkudata` so that we throw a
+  // C++ error instead of a Lua error.
+  void* ud = C.testudata( idx, name );
+  DCHECK( ud != nullptr,
+          "__gc method expected type {} but did not find it.",
+          name );
+  return ud;
+}
 
 } // namespace lua

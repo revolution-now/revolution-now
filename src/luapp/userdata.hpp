@@ -16,6 +16,7 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/fmt.hpp"
+#include "base/func-concepts.hpp"
 #include "base/function-ref.hpp"
 #include "base/maybe.hpp"
 
@@ -23,8 +24,7 @@ namespace lua {
 
 namespace detail {
 
-void* check_udata( cthread L, int idx, char const* name );
-void  push_string( cthread L, std::string const& s );
+void push_string( cthread L, std::string const& s );
 
 bool push_userdata_impl(
     cthread L, int object_size,
@@ -32,6 +32,16 @@ bool push_userdata_impl(
     LuaCFunction* fmt, LuaCFunction* call_destructor,
     std::string const& type_name );
 
+} // namespace detail
+
+// This will check that the value at idx is a userdata with the
+// given name. If not, then it will check fail. Returns the
+// pointer to the userdata C buffer.
+void* check_udata( cthread L, int idx, char const* name );
+
+// Get the canonical name for a userdata by type. For consis-
+// tency, this function should always be used whenever a name for
+// a userdata is needed.
 template<typename T>
 std::string userdata_typename() {
   static_assert( !std::is_rvalue_reference_v<T> );
@@ -46,8 +56,6 @@ std::string userdata_typename() {
   return res;
 }
 
-} // namespace detail
-
 // Push a C++ object as userdata by value, meaning that it will
 // be moved into the storage.
 //
@@ -61,12 +69,12 @@ bool push_userdata_by_value( cthread L, T&& object ) noexcept {
   static_assert( !std::is_pointer_v<T_noref> );
 
   static std::string const type_name =
-      detail::userdata_typename<T>();
+      userdata_typename<T_noref>();
 
   static constexpr bool fmtable = base::has_fmt<T>;
 
   static auto call_destructor = []( lua_State* L ) -> int {
-    void* ud = detail::check_udata( L, 1, type_name.c_str() );
+    void* ud     = check_udata( L, 1, type_name.c_str() );
     auto* object = static_cast<T*>( ud );
     object->~T();
     return 0;
@@ -74,7 +82,7 @@ bool push_userdata_by_value( cthread L, T&& object ) noexcept {
 
   static auto tostring = []( lua_State* L ) -> int {
     if constexpr( fmtable ) {
-      void* ud = detail::check_udata( L, 1, type_name.c_str() );
+      void* ud     = check_udata( L, 1, type_name.c_str() );
       T*    object = static_cast<T*>( ud );
       detail::push_string(
           L,
@@ -104,14 +112,14 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
   static_assert( !std::is_pointer_v<T_noref> );
 
   static std::string const type_name =
-      detail::userdata_typename<fwd_t>();
+      userdata_typename<fwd_t>();
 
   static constexpr bool fmtable =
       base::has_fmt<std::remove_const_t<T_noref>>;
 
   static auto tostring = []( lua_State* L ) -> int {
     if constexpr( fmtable ) {
-      void*  ud = detail::check_udata( L, 1, type_name.c_str() );
+      void*  ud     = check_udata( L, 1, type_name.c_str() );
       auto** object = static_cast<T_noref**>( ud );
       CHECK( object != nullptr );
       std::string res = fmt::format( "{}@{}: ", type_name, ud );
@@ -142,6 +150,7 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
 template<typename T>
 void push( cthread L, T&& o )
   requires(
+      !base::NonOverloadedCallable<T> &&
       !std::is_pointer_v<std::remove_reference_t<T>> &&
        std::is_reference_v<decltype(std::forward<T>(o))> ) {
   // clang-format on

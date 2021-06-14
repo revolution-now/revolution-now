@@ -18,9 +18,10 @@ using namespace std;
 namespace lua {
 
 void push_stateless_lua_c_function( cthread       L,
-                                    LuaCFunction* func ) {
+                                    LuaCFunction* func,
+                                    int           upvalues ) {
   c_api C( L );
-  C.push( func );
+  C.push( func, upvalues );
 }
 
 } // namespace lua

@@ -33,9 +33,28 @@ using ::testing::monitoring_types::Empty;
 using ::testing::monitoring_types::Formattable;
 using ::testing::monitoring_types::Tracker;
 
-LUA_TEST_CASE( "[userdata] userdata create" ) {
+LUA_TEST_CASE( "[userdata] userdata type name" ) {
+  REQUIRE( userdata_typename<Empty>() ==
+           "testing::monitoring_types::Empty" );
+  REQUIRE( userdata_typename<Empty const&>() ==
+           "testing::monitoring_types::Empty const&" );
+  REQUIRE( userdata_typename<Empty&>() ==
+           "testing::monitoring_types::Empty&" );
+  REQUIRE( userdata_typename<Empty const>() ==
+           "testing::monitoring_types::Empty const" );
+  REQUIRE( userdata_typename<int>() == "int" );
+  REQUIRE( userdata_typename<int const&>() == "int const&" );
+}
+
+LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   REQUIRE( push_userdata_by_value( L, Empty{} ) );
   REQUIRE( C.stack_size() == 1 );
+
+  // Test data size.
+  REQUIRE( C.rawlen( -1 ) == sizeof( Empty ) );
+  // This is not really needed, but just so we have an idea of
+  // what the numbers should be.
+  static_assert( sizeof( Empty ) == 1 );
 
   // Test that the userdata's metatable has the right name.
   REQUIRE( C.type_of( -1 ) == type::userdata );
@@ -45,13 +64,172 @@ LUA_TEST_CASE( "[userdata] userdata create" ) {
   REQUIRE( C.stack_size() == 3 );
   REQUIRE( C.get<string>( -1 ) ==
            "testing::monitoring_types::Empty" );
-  C.pop( 3 );
-  REQUIRE( C.stack_size() == 0 );
+  C.pop( 1 );
+  REQUIRE( C.stack_size() == 2 );
+  // Stack:
+  //   metatable1
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
 
   // Now set a second object of the same type and ensure that
-  // the metatable gets reused.
+  // the metatable gets reused, and actually verify it.
   REQUIRE_FALSE( push_userdata_by_value( L, Empty{} ) );
+  // Stack:
+  //   userdata2
+  //   metatable1
+  //   userdata1
+  C.swap_top();
+  // Stack:
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  C.getmetatable( -2 );
+  // Stack:
+  //   metatable2
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.stack_size() == 4 );
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::table );
+  // Ensure that they are equal.
+  REQUIRE( C.compare_eq( -2, -1 ) );
+  C.pop( 2 );
+  // Stack:
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::userdata );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
+  C.pop( 2 );
+}
+
+LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
+  Empty e;
+  REQUIRE( push_userdata_by_ref( L, e ) );
   REQUIRE( C.stack_size() == 1 );
+
+  // Test data size.
+  REQUIRE( C.rawlen( -1 ) == sizeof( Empty* ) );
+  // This is not really needed, but just so we have an idea of
+  // what the numbers should be.
+  static_assert( sizeof( Empty* ) == 8 );
+
+  // Test that the userdata's metatable has the right name.
+  REQUIRE( C.type_of( -1 ) == type::userdata );
+  REQUIRE( C.getmetatable( -1 ) );
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C.getfield( -1, "__name" ) == type::string );
+  REQUIRE( C.stack_size() == 3 );
+  REQUIRE( C.get<string>( -1 ) ==
+           "testing::monitoring_types::Empty&" );
+  C.pop( 1 );
+  REQUIRE( C.stack_size() == 2 );
+  // Stack:
+  //   metatable1
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
+
+  // Now set a second object of the same type and ensure that
+  // the metatable gets reused, and actually verify it.
+  REQUIRE_FALSE( push_userdata_by_ref( L, e ) );
+  // Stack:
+  //   userdata2
+  //   metatable1
+  //   userdata1
+  C.swap_top();
+  // Stack:
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  C.getmetatable( -2 );
+  // Stack:
+  //   metatable2
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.stack_size() == 4 );
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::table );
+  // Ensure that they are equal.
+  REQUIRE( C.compare_eq( -2, -1 ) );
+  C.pop( 2 );
+  // Stack:
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::userdata );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
+  C.pop( 2 );
+
+  // Now set a third object but this time one that is const,
+  // and ensure that a new metatable is created.
+  REQUIRE( push_userdata_by_ref( L, std::as_const( e ) ) );
+  C.pop();
+}
+
+LUA_TEST_CASE( "[userdata] userdata created by const ref" ) {
+  Empty const e;
+  REQUIRE( push_userdata_by_ref( L, e ) );
+  REQUIRE( C.stack_size() == 1 );
+
+  // Test data size.
+  REQUIRE( C.rawlen( -1 ) == sizeof( Empty* ) );
+  // This is not really needed, but just so we have an idea of
+  // what the numbers should be.
+  static_assert( sizeof( Empty* ) == 8 );
+
+  // Test that the userdata's metatable has the right name.
+  REQUIRE( C.type_of( -1 ) == type::userdata );
+  REQUIRE( C.getmetatable( -1 ) );
+  REQUIRE( C.stack_size() == 2 );
+  REQUIRE( C.getfield( -1, "__name" ) == type::string );
+  REQUIRE( C.stack_size() == 3 );
+  REQUIRE( C.get<string>( -1 ) ==
+           "testing::monitoring_types::Empty const&" );
+  C.pop( 1 );
+  REQUIRE( C.stack_size() == 2 );
+  // Stack:
+  //   metatable1
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
+
+  // Now set a second object of the same type and ensure that
+  // the metatable gets reused, and actually verify it.
+  REQUIRE_FALSE( push_userdata_by_ref( L, e ) );
+  // Stack:
+  //   userdata2
+  //   metatable1
+  //   userdata1
+  C.swap_top();
+  // Stack:
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  C.getmetatable( -2 );
+  // Stack:
+  //   metatable2
+  //   metatable1
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.stack_size() == 4 );
+  REQUIRE( C.type_of( -1 ) == type::table );
+  REQUIRE( C.type_of( -2 ) == type::table );
+  // Ensure that they are equal.
+  REQUIRE( C.compare_eq( -2, -1 ) );
+  C.pop( 2 );
+  // Stack:
+  //   userdata2
+  //   userdata1
+  REQUIRE( C.type_of( -1 ) == type::userdata );
+  REQUIRE( C.type_of( -2 ) == type::userdata );
+  C.pop( 2 );
+
+  // Now set a third object but this time one that is not const,
+  // and ensure that a new metatable is created.
+  Empty e2;
+  REQUIRE( push_userdata_by_ref( L, e2 ) );
   C.pop();
 }
 

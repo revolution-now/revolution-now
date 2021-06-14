@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/luapp/common.hpp"
+#include "test/monitoring-types.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -25,6 +26,7 @@ namespace {
 using namespace std;
 
 using ::base::valid;
+using ::testing::monitoring_types::Tracker;
 
 /****************************************************************
 ** Function props.
@@ -198,23 +200,31 @@ static_assert( !StatefulLuaCExtensionFunction<
 LUA_TEST_CASE( "[func-push] stateless lua C function" ) {
   C.openlibs();
 
-  auto f = []( lua_State* L ) -> int {
-    c_api C( L );
-    UNWRAP_CHECK( n, C.get<int>( 1 ) );
-    C.push( n + 1 );
-    return 1;
-  };
-  push( L, f );
-  C.setglobal( "add_one" );
+  SECTION( "temporary" ) {
+    push( L, []( lua_State* L ) -> int {
+      c_api C( L );
+      UNWRAP_CHECK( n, C.get<int>( 1 ) );
+      C.push( n + 1 );
+      return 1;
+    } );
+  }
 
-  SECTION( "once" ) {
-    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-             valid );
+  SECTION( "move" ) {
+    auto f = []( lua_State* L ) -> int {
+      c_api C( L );
+      UNWRAP_CHECK( n, C.get<int>( 1 ) );
+      C.push( n + 1 );
+      return 1;
+    };
+    push( L, std::move( f ) );
   }
-  SECTION( "twice" ) {
-    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-             valid );
-  }
+
+  REQUIRE( C.stack_size() == 1 );
+  C.setglobal( "add_one" );
+  REQUIRE( C.stack_size() == 0 );
+
+  REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
+           valid );
 
   // Make sure that it has no upvalues.
   C.getglobal( "add_one" );
@@ -223,13 +233,143 @@ LUA_TEST_CASE( "[func-push] stateless lua C function" ) {
   C.pop();
 }
 
-// LUA_TEST_CASE( "[func-push] can push stateful lua C extension
-// function" ) {
-//   int  x  = 1;
-//   auto f = [x]( lua_State* ) -> int { return x; };
-//
-//   push( L, f );
-// }
+LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
+  Tracker::reset();
+
+  SECTION( "__gc metamethod is called, twice" ) {
+    C.openlibs();
+
+    push( L, [tracker = Tracker{}]( lua_State* L ) -> int {
+      c_api C( L );
+      UNWRAP_CHECK( n, C.get<int>( 1 ) );
+      C.push( n + 1 );
+      return 1;
+    } );
+    C.setglobal( "add_one" );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
+    REQUIRE( Tracker::move_assigned == 0 );
+    Tracker::reset();
+
+    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
+             valid );
+    REQUIRE( C.dostring( "assert( add_one( 7 ) == 8 )" ) ==
+             valid );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+    Tracker::reset();
+
+    // Test that the function has an up value and that the upval-
+    // ue's metatable has the right name.
+    C.getglobal( "add_one" );
+    REQUIRE( C.type_of( -1 ) == type::function );
+    REQUIRE_FALSE( C.getupvalue( -1, 2 ) );
+    REQUIRE( C.getupvalue( -1, 1 ) == true );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
+    REQUIRE( C.stack_size() == 2 );
+    REQUIRE( C.getmetatable( -1 ) );
+    REQUIRE( C.stack_size() == 3 );
+    REQUIRE( C.getfield( -1, "__name" ) == type::string );
+    REQUIRE( C.stack_size() == 4 );
+    REQUIRE( C.get<string>( -1 ) ==
+             "lua::(anonymous namespace)::(anonymous "
+             "namespace)::____C_A_T_C_H____T_E_S_T____6::test():"
+             ":$_4" );
+
+    C.pop( 4 );
+    REQUIRE( C.stack_size() == 0 );
+
+    // Now set a second closure.
+    push( L, [tracker = Tracker{}]( lua_State* L ) -> int {
+      c_api C( L );
+      UNWRAP_CHECK( n, C.get<int>( 1 ) );
+      C.push( n + 2 );
+      return 1;
+    } );
+    C.setglobal( "add_two" );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
+    REQUIRE( Tracker::move_assigned == 0 );
+    Tracker::reset();
+
+    REQUIRE( C.dostring( "assert( add_two( 6 ) == 8 )" ) ==
+             valid );
+    REQUIRE( C.dostring( "assert( add_two( 7 ) == 9 )" ) ==
+             valid );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+    Tracker::reset();
+  }
+
+  st.close();
+  // !! do not call any lua functions after this.
+
+  // Ensure that precisely two closures get destroyed (will
+  // happen when `st` goes out of scope and Lua calls the final-
+  // izers on the userdatas for the two closures that we created
+  // above).
+  REQUIRE( Tracker::constructed == 0 );
+  REQUIRE( Tracker::destructed == 2 );
+  REQUIRE( Tracker::copied == 0 );
+  REQUIRE( Tracker::move_constructed == 0 );
+  REQUIRE( Tracker::move_assigned == 0 );
+}
+
+struct Adder {
+  Adder( int x, int y, bool* destroyed )
+    : x_( x ), y_( y ), destroyed_( destroyed ) {}
+  ~Adder() { *destroyed_ = true; }
+  int operator()( lua_State* L ) const {
+    c_api C( L );
+    UNWRAP_CHECK( n, C.get<int>( 1 ) );
+    C.push( n + 2 + x_ + y_ );
+    return 1;
+  }
+  int   x_;
+  int   y_;
+  bool* destroyed_;
+};
+
+LUA_TEST_CASE( "[func-push] another stateful lua C function" ) {
+  C.openlibs();
+
+  int x = 4;
+  int y = 9;
+
+  SECTION( "lambda with captures" ) {
+    push( L, [=]( lua_State* L ) -> int {
+      c_api C( L );
+      UNWRAP_CHECK( n, C.get<int>( 1 ) );
+      C.push( n + 1 + x + y );
+      return 1;
+    } );
+    C.setglobal( "add_some" );
+
+    REQUIRE( C.dostring( "assert( add_some( 6 ) == 20 )" ) ==
+             valid );
+  }
+
+  SECTION( "class object with captures" ) {
+    bool destroyed = false;
+    {
+      push( L, Adder( x, y, &destroyed ) );
+      C.setglobal( "add_some" );
+      REQUIRE( C.dostring( "assert( add_some( 6 ) == 21 )" ) ==
+               valid );
+    }
+    REQUIRE( destroyed );
+  }
+}
 
 } // namespace
 } // namespace lua
