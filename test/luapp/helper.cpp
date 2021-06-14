@@ -37,201 +37,10 @@ using namespace std;
 using ::base::valid;
 using ::testing::monitoring_types::Tracker;
 
-LUA_TEST_CASE( "[helper] creation/destruction" ) {
-  helper st( L );
-}
-
-LUA_TEST_CASE( "[helper] tables" ) {
-  helper h( L );
-  REQUIRE( C.getglobal( "t1" ) == type::nil );
-  C.pop();
-  REQUIRE( C.stack_size() == 0 );
-
-  SECTION( "empty" ) { h.tables( { "" } ); }
-
-  SECTION( "single" ) {
-    h.tables( { "t1" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.stack_size() == 1 );
-    C.pop();
-  }
-
-  SECTION( "double" ) {
-    h.tables( { "t1", "t2" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::table );
-    REQUIRE( C.stack_size() == 2 );
-    C.pop( 2 );
-  }
-
-  SECTION( "triple" ) {
-    h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-  }
-
-  SECTION( "tables already present" ) {
-    h.tables( { "t1" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::nil );
-    REQUIRE( C.stack_size() == 2 );
-    C.pop( 2 );
-    h.tables( { "t1", "t2" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::nil );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-    h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-    h.tables( { "t1", "t2", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "t2" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-  }
-
-  SECTION( "triple 2" ) {
-    h.tables( { "hello_world", "yes123x", "_" } );
-    REQUIRE( C.getglobal( "hello_world" ) == type::table );
-    REQUIRE( C.getfield( -1, "yes123x" ) == type::table );
-    REQUIRE( C.getfield( -1, "_" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-  }
-
-  SECTION( "spaces" ) {
-    h.tables( { " t1", " t2" } );
-    REQUIRE( C.getglobal( " t1" ) == type::table );
-    REQUIRE( C.getfield( -1, " t2" ) == type::table );
-    REQUIRE( C.stack_size() == 2 );
-    C.pop( 2 );
-  }
-
-  SECTION( "with reserved" ) {
-    h.tables( { "t1", "if", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "if" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-  }
-
-  SECTION( "bad identifier" ) {
-    h.tables( { "t1", "x-z", "t3" } );
-    REQUIRE( C.getglobal( "t1" ) == type::table );
-    REQUIRE( C.getfield( -1, "x-z" ) == type::table );
-    REQUIRE( C.getfield( -1, "t3" ) == type::table );
-    REQUIRE( C.stack_size() == 3 );
-    C.pop( 3 );
-  }
-}
-
-LUA_TEST_CASE(
-    "[helper] push_function, stateful lua C function" ) {
-  Tracker::reset();
-
-  SECTION( "__gc metamethod is called, twice" ) {
-    helper h( L );
-    h.openlibs();
-
-    h.push_function(
-        [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C( L );
-          int   n = luaL_checkinteger( L, 1 );
-          C.push( n + 1 );
-          return 1;
-        } );
-    C.setglobal( "add_one" );
-    REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 2 );
-    REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 2 );
-    REQUIRE( Tracker::move_assigned == 0 );
-    Tracker::reset();
-
-    REQUIRE( C.dostring( "assert( add_one( 6 ) == 7 )" ) ==
-             valid );
-    REQUIRE( C.dostring( "assert( add_one( 7 ) == 8 )" ) ==
-             valid );
-    REQUIRE( Tracker::constructed == 0 );
-    REQUIRE( Tracker::destructed == 0 );
-    REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 0 );
-    REQUIRE( Tracker::move_assigned == 0 );
-    Tracker::reset();
-
-    // Test that the function has an up value and that the upval-
-    // ue's metatable has the right name.
-    C.getglobal( "add_one" );
-    REQUIRE( C.type_of( -1 ) == type::function );
-    REQUIRE_FALSE( C.getupvalue( -1, 2 ) );
-    REQUIRE( C.getupvalue( -1, 1 ) == true );
-    REQUIRE( C.type_of( -1 ) == type::userdata );
-    REQUIRE( C.stack_size() == 2 );
-    REQUIRE( C.getmetatable( -1 ) );
-    REQUIRE( C.stack_size() == 3 );
-    REQUIRE( C.getfield( -1, "__name" ) == type::string );
-    REQUIRE( C.stack_size() == 4 );
-    REQUIRE( C.get<string>( -1 ) ==
-             "base::unique_func<int (lua_State*) const>" );
-    C.pop( 4 );
-    REQUIRE( C.stack_size() == 0 );
-
-    // Now set a second closure.
-    h.push_function(
-        [tracker = Tracker{}]( lua_State* L ) -> int {
-          c_api C( L );
-          int   n = luaL_checkinteger( L, 1 );
-          C.push( n + 2 );
-          return 1;
-        } );
-    C.setglobal( "add_two" );
-    REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 2 );
-    REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 2 );
-    REQUIRE( Tracker::move_assigned == 0 );
-    Tracker::reset();
-
-    REQUIRE( C.dostring( "assert( add_two( 6 ) == 8 )" ) ==
-             valid );
-    REQUIRE( C.dostring( "assert( add_two( 7 ) == 9 )" ) ==
-             valid );
-    REQUIRE( Tracker::constructed == 0 );
-    REQUIRE( Tracker::destructed == 0 );
-    REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 0 );
-    REQUIRE( Tracker::move_assigned == 0 );
-    Tracker::reset();
-  }
-
-  st.close();
-  // !! do not call any lua functions after this.
-
-  // Ensure that precisely two closures get destroyed (will
-  // happen when `st` goes out of scope and Lua calls the final-
-  // izers on the userdatas for the two closures that we created
-  // above).
-  REQUIRE( Tracker::constructed == 0 );
-  REQUIRE( Tracker::destructed == 2 );
-  REQUIRE( Tracker::copied == 0 );
-  REQUIRE( Tracker::move_constructed == 0 );
-  REQUIRE( Tracker::move_assigned == 0 );
-}
-
 LUA_TEST_CASE(
     "[helper] push_function, cpp function has upvalue" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   h.push_function( []( int n, string const& s,
                        double d ) -> string {
@@ -250,8 +59,7 @@ LUA_TEST_CASE(
   REQUIRE( C.stack_size() == 3 );
   REQUIRE( C.getfield( -1, "__name" ) == type::string );
   REQUIRE( C.stack_size() == 4 );
-  REQUIRE( C.get<string>( -1 ) ==
-           "base::unique_func<int (lua_State*) const>" );
+  // Don't test the string name, because it's long and ugly.
   C.pop( 4 );
 }
 
@@ -304,7 +112,7 @@ LUA_TEST_CASE(
 LUA_TEST_CASE(
     "[helper] push_function, cpp function, calling" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   h.push_function( []( int n, string const& s,
                        double d ) -> string {
@@ -380,7 +188,7 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE( "[helper] call/pcall" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -427,7 +235,7 @@ LUA_TEST_CASE( "[helper] call/pcall" ) {
 
 LUA_TEST_CASE( "[helper] call/pcall multret" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )
@@ -459,7 +267,7 @@ LUA_TEST_CASE( "[helper] call/pcall multret" ) {
 
 LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   h.push_function( []( int n, string const& s,
                        double d ) -> string {
@@ -479,7 +287,7 @@ LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
 
 LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
   helper h( L );
-  h.openlibs();
+  C.openlibs();
 
   h.push_function( [&]( int n, string const& s,
                         double d ) -> string {

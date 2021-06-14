@@ -12,6 +12,7 @@
 
 // luapp
 #include "c-api.hpp"
+#include "func-push.hpp"
 #include "types.hpp"
 
 // base
@@ -49,52 +50,15 @@ struct helper {
   template<typename... Args>
   lua_expect<int> pcall( Args&&... args ) noexcept;
 
-  /**************************************************************
-  ** FIXME: The stuff below will likely change.
-  ***************************************************************/
-  void openlibs() noexcept;
-
-  void tables( c_string_list const& path ) noexcept;
-
-  // TODO: use this as a model for loading a piece of code once
-  // into the registry. Can remove eventually.
-  void tables_slow( std::string_view path ) noexcept;
-  int  tables_func_ref = noref();
-
-  // Will traverse the list of components in `path` and assume
-  // that they are all tables (except for possibly the last one),
-  // and will leave the final object on the stack, and will re-
-  // turn its type.
-  type push_path( c_string_list const& path ) noexcept;
-
 private:
   helper( helper const& ) = delete;
   helper( helper&& )      = delete;
   helper& operator=( helper const& ) = delete;
   helper& operator=( helper&& ) = delete;
 
-  // Creates the closure and sets it on the path. The return
-  // value, which indicates whether it created a new metatable,
-  // is mainly used for testing.
-  void push_stateful_lua_c_function(
-      base::unique_func<int( lua_State* ) const>
-          closure ) noexcept;
-
-  void push_stateless_lua_c_function(
-      LuaCFunction* func ) noexcept;
-
   template<typename Func, typename R, typename... Args>
   void push_cpp_function( Func&& func, R*,
                           mp::type_list<Args...>* ) noexcept;
-
-  // Given t1.t2.t3.key, it will assume that t1,t2,t3 are tables
-  // and will traverse them, leaving t3 pushed onto the stack
-  // followed by 'key'. This function is therefore meant to be
-  // followed by a push of a value, and then a call to settable.
-  // If there is only one element in the path ('key') then the
-  // global table will be pushed, followed by 'key'.
-  void traverse_and_push_table_and_key(
-      c_string_list const& path ) noexcept;
 
   static int noref();
 
@@ -103,31 +67,10 @@ private:
 
 template<typename Func>
 auto helper::push_function( Func&& func ) noexcept {
+  using ret_t  = mp::callable_ret_type_t<Func>;
   using args_t = mp::callable_arg_types_t<Func>;
-  if constexpr( std::is_same_v<args_t,
-                               mp::type_list<lua_State*>> ) {
-    // This is a function that just takes a lua_State* and thus
-    // it is a Lua C extension function, i.e. one which does not
-    // take parameters explicitly, but which pulls them off of
-    // the Lua stack. We have to handle this differently than any
-    // other normal C++ function.
-    //
-    // Befor emoving on, try to catch cases where we are at-
-    // tempting to write a Lua C extension function but forget to
-    // return an int.
-    static_assert(
-        std::is_same_v<std::invoke_result_t<Func, lua_State*>,
-                       int> );
-    if constexpr( std::is_convertible_v<Func, LuaCFunction*> )
-      push_stateless_lua_c_function( +func );
-    else
-      push_stateful_lua_c_function( std::forward<Func>( func ) );
-  } else {
-    using ret_t  = mp::callable_ret_type_t<Func>;
-    using args_t = mp::callable_arg_types_t<Func>;
-    push_cpp_function( std::forward<Func>( func ),
-                       (ret_t*)nullptr, (args_t*)nullptr );
-  }
+  push_cpp_function( std::forward<Func>( func ), (ret_t*)nullptr,
+                     (args_t*)nullptr );
 }
 
 template<typename Func, typename R, typename... Args>
@@ -179,7 +122,8 @@ void helper::push_cpp_function(
       return 1;
     }
   };
-  push_stateful_lua_c_function( std::move( runner ) );
+  push_stateful_lua_c_function( C.this_cthread(),
+                                std::move( runner ) );
 }
 
 template<typename... Args>
