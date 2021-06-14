@@ -744,4 +744,14 @@ bool c_api::pushthread() noexcept {
   return ( lua_pushthread( L ) == 1 );
 }
 
+string c_api::pop_tostring() noexcept {
+  enforce_stack_size_ge( 1 );
+  size_t      len = 0;
+  char const* p   = tostring( -1, &len );
+  string_view sv( p, len );
+  string      res = string( sv );
+  pop( 2 );
+  return res;
+}
+
 } // namespace lua

@@ -1436,5 +1436,24 @@ LUA_TEST_CASE( "[lua-c-api] pushthread" ) {
   REQUIRE( C2.stack_size() == 0 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] pop_tostring" ) {
+  C.push( 5 );
+  REQUIRE( C.pop_tostring() == "5" );
+  REQUIRE( C.stack_size() == 0 );
+
+  C.push( 5.5 );
+  REQUIRE( C.pop_tostring() == "5.5" );
+  REQUIRE( C.stack_size() == 0 );
+
+  C.newtable();
+  REQUIRE_THAT( C.pop_tostring(),
+                Matches( "table: 0x[0-9a-z]+$" ) );
+  REQUIRE( C.stack_size() == 0 );
+
+  C.push( "hello" );
+  REQUIRE( C.pop_tostring() == "hello" );
+  REQUIRE( C.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace lua

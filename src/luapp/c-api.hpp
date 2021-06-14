@@ -347,9 +347,23 @@ struct c_api {
   // value as argument, and uses the result of the call as its
   // result.
   //
-  // Note: calls luaL_tolstring. The returned pointer may not be
-  // valid after the string gets removed from the stack.
+  // Note: calls luaL_tolstring, and thus it is NOT equivalent to
+  // calling get<string>(), which calls lua_tolstring and so only
+  // works for strings and numbers.
+  //
+  // The returned pointer may not be valid after the string gets
+  // removed from the stack.
   char const* tostring( int idx, size_t* len ) noexcept;
+
+  // This will call tostring(-1), which will convert any Lua
+  // value to a string (potentially callint the __tostring
+  // metamethod) and then this method will efficiently extract it
+  // into a C++ string. It will then pop the string and the orig-
+  // inal value off of the stack. Essentially, this is equivalent
+  // to calling the above `tostring` method, popping and putting
+  // the result into a C++ string efficiently, then calling pop()
+  // once again.
+  std::string pop_tostring() noexcept;
 
   /**************************************************************
   ** threads
@@ -473,5 +487,11 @@ private:
   // Not necessarily the main thread.
   cthread L;
 };
+
+// For convenience.
+template<typename T>
+void push( c_api& C, T&& o ) {
+  push( C.this_cthread(), std::forward<T>( o ) );
+}
 
 } // namespace lua
