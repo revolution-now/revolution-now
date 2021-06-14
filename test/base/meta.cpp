@@ -89,6 +89,38 @@ inline constexpr auto auto_lambda_ref = []( auto const& ) {};
 using F9                              = decltype( auto_lambda );
 using F10 = decltype( auto_lambda_ref );
 using F11 = A ( *const )( B );
+using F12 = A( B ) const;
+
+// Lambda with capture.
+auto F13 = [x = 1.0]( A* ) -> int {
+  (void)x;
+  return 0;
+};
+
+struct Stateful {
+  void operator()();
+  int  x;
+};
+
+static_assert( is_same_v<A(), callable_func_type_t<F1>> );
+static_assert( is_same_v<void( A ), callable_func_type_t<F2>> );
+static_assert( is_same_v<A( B ), callable_func_type_t<F3>> );
+static_assert( is_same_v<A( B, C ), callable_func_type_t<F4>> );
+static_assert( is_same_v<A( B ), callable_func_type_t<F5>> );
+static_assert( is_same_v<A( B, C ), callable_func_type_t<F6>> );
+static_assert(
+    is_same_v<A const( B ), callable_func_type_t<F7>> );
+static_assert(
+    is_same_v<A*(C const&), callable_func_type_t<F8>> );
+static_assert( is_same_v<A( B ), callable_func_type_t<F11>> );
+static_assert(
+    is_same_v<int( A* ),
+              callable_func_type_t<decltype( F13 )>> );
+static_assert(
+    is_same_v<void(), callable_func_type_t<Stateful>> );
+static_assert(
+    is_same_v<void(),
+              callable_func_type_t<decltype( Stateful{} )>> );
 
 static_assert( is_same_v<A, callable_ret_type_t<F1>> );
 static_assert( is_same_v<void, callable_ret_type_t<F2>> );
@@ -99,6 +131,8 @@ static_assert( is_same_v<A, callable_ret_type_t<F6>> );
 static_assert( is_same_v<A const, callable_ret_type_t<F7>> );
 static_assert( is_same_v<A*, callable_ret_type_t<F8>> );
 static_assert( is_same_v<A, callable_ret_type_t<F11>> );
+static_assert(
+    is_same_v<int, callable_ret_type_t<decltype( F13 )>> );
 
 static_assert(
     is_same_v<type_list<>, callable_arg_types_t<F1>> );
@@ -122,6 +156,30 @@ static_assert(
     is_same_v<type_list<mp::Auto>, callable_arg_types_t<F10>> );
 static_assert(
     is_same_v<type_list<B>, callable_arg_types_t<F11>> );
+static_assert(
+    is_same_v<type_list<A*>,
+              callable_arg_types_t<decltype( F13 )>> );
+
+// Abominable types.
+static_assert(
+    is_same_v<int( A* ) const,
+              callable_func_type_t<int( A* ) const>> );
+static_assert(
+    is_same_v<int( A* ), callable_func_type_t<int( A* )>> );
+static_assert(
+    is_same_v<int( A* ) const,
+              callable_func_type_t<int( A* ) const&>> );
+static_assert(
+    is_same_v<int( A* ), callable_func_type_t<int( A* ) &>> );
+static_assert(
+    is_same_v<int( A* ) const,
+              callable_func_type_t<int( A* ) const&&>> );
+static_assert(
+    is_same_v<int( A* ), callable_func_type_t<int( A* ) &&>> );
+
+static_assert( !callable_traits<int( A* )>::abominable_const );
+static_assert(
+    callable_traits<int( A* ) const>::abominable_const );
 
 } // namespace callable_traits_test
 

@@ -80,14 +80,37 @@ template<typename R, typename... Arg>
 struct callable_traits_impl<R( Arg... )> {
   using arg_types = type_list<Arg...>;
   using ret_type  = R;
+  using func_type = R( Arg... );
+
+  static constexpr bool abominable_const = false;
+};
+
+// Function const (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits_impl<R( Arg... ) const> {
+  using arg_types = type_list<Arg...>;
+  using ret_type  = R;
+  using func_type = R( Arg... ) const;
+
+  static constexpr bool abominable_const = true;
 };
 
 // Pointer to member-function.
 template<typename T, typename R, typename... Arg>
-struct callable_traits_impl<R ( T::* )( Arg... ) const>
+struct callable_traits_impl<R ( T::* )( Arg... )>
   : public callable_traits_impl<R( Arg... )> {};
 
 // Const Pointer to member-function.
+template<typename T, typename R, typename... Arg>
+struct callable_traits_impl<R ( T::*const )( Arg... )>
+  : public callable_traits_impl<R( Arg... )> {};
+
+// Pointer to member-function (const abominable).
+template<typename T, typename R, typename... Arg>
+struct callable_traits_impl<R ( T::* )( Arg... ) const>
+  : public callable_traits_impl<R( Arg... )> {};
+
+// Const Pointer to member-function (const abominable).
 template<typename T, typename R, typename... Arg>
 struct callable_traits_impl<R ( T::*const )( Arg... ) const>
   : public callable_traits_impl<R( Arg... )> {};
@@ -117,6 +140,31 @@ template<typename R, typename... Arg>
 struct callable_traits<R( Arg... )>
   : public detail::callable_traits_impl<R( Arg... )> {};
 
+// Function const (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits<R( Arg... ) const>
+  : public detail::callable_traits_impl<R( Arg... ) const> {};
+
+// Function ref-qualified (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits<R( Arg... )&>
+  : public detail::callable_traits_impl<R( Arg... )> {};
+
+// Function refref-qualified (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits<R( Arg... ) &&>
+  : public detail::callable_traits_impl<R( Arg... )> {};
+
+// Function const ref-qualified (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits<R( Arg... ) const&>
+  : public detail::callable_traits_impl<R( Arg... ) const> {};
+
+// Function const refref-qualified (abominable function type).
+template<typename R, typename... Arg>
+struct callable_traits<R( Arg... ) const&&>
+  : public detail::callable_traits_impl<R( Arg... ) const> {};
+
 // Pointer.
 template<typename O>
 struct callable_traits<
@@ -136,25 +184,27 @@ struct callable_traits<R ( C::* )( Arg... )>
 
 // Object.
 template<typename O>
-struct callable_traits<
-    O, typename std::enable_if_t<
-           !std::is_function_v<std::remove_cvref_t<O>> &&
-           !std::is_pointer_v<std::remove_cvref_t<O>> &&
-           !detail::is_single_arg_generic_lambda_v<O> &&
-           !std::is_member_function_pointer_v<
-               std::remove_cvref_t<O>>>>
+// clang-format off
+requires(
+    !std::is_function_v<std::remove_cvref_t<O>> &&
+    !std::is_pointer_v<std::remove_cvref_t<O>> &&
+    !detail::is_single_arg_generic_lambda_v<O> &&
+    !std::is_member_function_pointer_v<std::remove_cvref_t<O>> )
+struct callable_traits<O>
+  // clang-format on
   : public detail::callable_traits_impl<
         decltype( &O::operator() )> {};
 
+// clang-format off
 // Single Arg Generic Lambda.
 template<typename O>
-struct callable_traits<
-    O, typename std::enable_if_t<
-           !std::is_function_v<std::remove_cvref_t<O>> &&
-           !std::is_pointer_v<std::remove_cvref_t<O>> &&
-           detail::is_single_arg_generic_lambda_v<O> &&
-           !std::is_member_function_pointer_v<
-               std::remove_cvref_t<O>>>> {
+requires(
+    !std::is_function_v<std::remove_cvref_t<O>> &&
+    !std::is_pointer_v<std::remove_cvref_t<O>> &&
+     detail::is_single_arg_generic_lambda_v<O> &&
+    !std::is_member_function_pointer_v<std::remove_cvref_t<O>> )
+struct callable_traits<O> {
+  // clang-format on
   using arg_types = type_list<Auto>;
   /* no ret_type since we cannot know it. */
 };
@@ -166,6 +216,10 @@ using callable_ret_type_t =
 template<typename F>
 using callable_arg_types_t =
     typename callable_traits<F>::arg_types;
+
+template<typename F>
+using callable_func_type_t =
+    typename callable_traits<F>::func_type;
 
 /****************************************************************
 ** Make function type from type_list of args.
