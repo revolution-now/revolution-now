@@ -1,17 +1,17 @@
 /****************************************************************
-**table.cpp
+**rfunction.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-06-11.
 *
-* Description: Unit tests for the src/luapp/table.* module.
+* Description: Unit tests for the src/luapp/function.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/table.hpp"
+#include "src/luapp/rfunction.hpp"
 
 // Testing
 #include "test/luapp/common.hpp"
@@ -26,27 +26,25 @@ namespace {
 
 using namespace std;
 
-using ::base::valid;
-
 /****************************************************************
-** table objects
+** rfunction objects
 *****************************************************************/
-LUA_TEST_CASE( "[table] table equality" ) {
+LUA_TEST_CASE( "[lfunction] lfunction equality" ) {
   boolean       b   = true;
   integer       i   = 1;
   floating      f   = 2.3;
   lightuserdata lud = C.newuserdata( 10 );
   C.pop();
 
-  C.newtable();
-  table o1( C.this_cthread(), C.ref_registry() );
+  C.push( []( lua_State* ) -> int { return 0; } );
+  rfunction o1( C.this_cthread(), C.ref_registry() );
   REQUIRE( C.stack_size() == 0 );
 
-  C.newtable();
-  table o2( C.this_cthread(), C.ref_registry() );
+  C.push( []( lua_State* ) -> int { return 0; } );
+  rfunction o2( C.this_cthread(), C.ref_registry() );
   REQUIRE( C.stack_size() == 0 );
 
-  table o3 = o1;
+  rfunction o3 = o1;
 
   REQUIRE( o1 != o2 );
   REQUIRE( o1 == o3 );
@@ -63,7 +61,7 @@ LUA_TEST_CASE( "[table] table equality" ) {
   REQUIRE( lud != o1 );
 }
 
-LUA_TEST_CASE( "[table] table create/push/gc" ) {
+LUA_TEST_CASE( "[lfunction] lfunction create/push/gc" ) {
   auto create_metatable = [&] {
     C.newtable();
     C.push( []( lua_State* L ) -> int {
@@ -89,12 +87,20 @@ LUA_TEST_CASE( "[table] table create/push/gc" ) {
   };
 
   {
+    // Need to track gc in the upvalue for a function, since a
+    // function can't have a metatable directly.
     C.newtable();
+    C.pushvalue( -1 );
+    REQUIRE( C.stack_size() == 2 );
+    create_metatable();
+    REQUIRE( C.stack_size() == 1 );
+    C.push( []( lua_State* ) -> int { return 0; },
+            /*upvalues=*/1 );
     int ref = C.ref_registry();
     REQUIRE( C.stack_size() == 0 );
-    table o( C.this_cthread(), ref );
+    rfunction o( C.this_cthread(), ref );
     push( C.this_cthread(), o );
-    REQUIRE( C.type_of( -1 ) == type::table );
+    REQUIRE( C.type_of( -1 ) == type::function );
     REQUIRE( C.stack_size() == 1 );
     create_metatable();
     verify_collect( false );
@@ -103,7 +109,7 @@ LUA_TEST_CASE( "[table] table create/push/gc" ) {
   verify_collect( true );
 }
 
-LUA_TEST_CASE( "[table] table copy --> no collect" ) {
+LUA_TEST_CASE( "[lfunction] lfunction copy --> no collect" ) {
   auto create_metatable = [&] {
     C.newtable();
     C.push( []( lua_State* L ) -> int {
@@ -129,23 +135,31 @@ LUA_TEST_CASE( "[table] table copy --> no collect" ) {
   };
 
   {
-    C.newtable();
-    table t0( C.this_cthread(), C.ref_registry() );
+    C.push( []( lua_State* ) -> int { return 0; } );
+    rfunction f0( C.this_cthread(), C.ref_registry() );
     REQUIRE( C.stack_size() == 0 );
     {
+      // Need to track gc in the upvalue for a function, since a
+      // function can't have a metatable directly.
       C.newtable();
+      C.pushvalue( -1 );
+      REQUIRE( C.stack_size() == 2 );
+      create_metatable();
+      REQUIRE( C.stack_size() == 1 );
+      C.push( []( lua_State* ) -> int { return 0; },
+              /*upvalues=*/1 );
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
-      table o( C.this_cthread(), ref );
+      rfunction o( C.this_cthread(), ref );
       push( C.this_cthread(), o );
-      REQUIRE( C.type_of( -1 ) == type::table );
+      REQUIRE( C.type_of( -1 ) == type::function );
       REQUIRE( C.stack_size() == 1 );
       create_metatable();
       verify_collect( false );
       // This copy should prevent it from being garbage col-
       // lected, since it should take out a new reference on the
       // same object.
-      t0 = o;
+      f0 = o;
     }
     // *** This is the test!
     verify_collect( false );
@@ -154,36 +168,6 @@ LUA_TEST_CASE( "[table] table copy --> no collect" ) {
   // *** This is the test! The copy has now gone out of scope,
   // so we should collect the original object.
   verify_collect( true );
-}
-
-LUA_TEST_CASE( "[thing] table index" ) {
-  cthread L = C.this_cthread();
-
-  auto new_table = [&] {
-    C.newtable();
-    table t( L, C.ref_registry() );
-    REQUIRE( C.stack_size() == 0 );
-    return t;
-  };
-
-  table G = new_table();
-  push( L, G );
-  C.setglobal( "G" );
-  REQUIRE( C.stack_size() == 0 );
-
-  G[7.7] = "target";
-
-  G["hello"]    = new_table();
-  G["hello"][5] = new_table();
-  // Create circular reference.
-  G["hello"][5]["foo"] = G;
-
-  REQUIRE( C.dostring( R"(
-    return G.hello[5].foo.hello[5]['foo'][7.7]
-  )" ) == valid );
-
-  REQUIRE( C.get<string>( -1 ) == "target" );
-  C.pop();
 }
 
 } // namespace

@@ -1,5 +1,5 @@
 /****************************************************************
-**thread.cpp
+**rthread.cpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/thread.hpp"
+#include "src/luapp/rthread.hpp"
 
 // Testing
 #include "test/luapp/common.hpp"

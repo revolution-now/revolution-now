@@ -1,12 +1,12 @@
 /****************************************************************
-**userdata.hpp
+**rfunction.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-06-11.
 *
 * Description: RAII holder for registry references to Lua
-*              userdata.
+*              functions.
 *
 *****************************************************************/
 #pragma once
@@ -17,15 +17,12 @@
 // base
 #include "base/fmt.hpp"
 
-// C++ standard library
-#include <string>
-
 namespace lua {
 
 /****************************************************************
-** userdata
+** rfunction
 *****************************************************************/
-struct userdata : public reference {
+struct rfunction : public reference {
   using Base = reference;
 
   using Base::Base;
@@ -36,4 +33,4 @@ struct userdata : public reference {
 /****************************************************************
 ** fmt
 *****************************************************************/
-TOSTR_TO_FMT( lua::userdata );
+TOSTR_TO_FMT( lua::rfunction );

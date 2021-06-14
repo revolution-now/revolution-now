@@ -1,36 +1,36 @@
 /****************************************************************
-**thread.hpp
+**rtable.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-06-11.
 *
-* Description: RAII holder for registry references to Lua
-*              threads.
+* Description: RAII holder for registry references to Lua tables.
 *
 *****************************************************************/
 #pragma once
 
 // luapp
+#include "indexer.hpp"
 #include "ref.hpp"
 
 // base
 #include "base/fmt.hpp"
 
-// C++ standard library
-#include <string>
-
 namespace lua {
 
 /****************************************************************
-** rthread
+** table
 *****************************************************************/
-struct rthread : public reference {
+struct table : public reference {
   using Base = reference;
 
-  ::lua::cthread cthread() const noexcept { return L; }
-
   using Base::Base;
+
+  template<typename U>
+  auto operator[]( U&& idx ) noexcept {
+    return indexer<U, table>( std::forward<U>( idx ), *this );
+  }
 };
 
 } // namespace lua
@@ -38,4 +38,4 @@ struct rthread : public reference {
 /****************************************************************
 ** fmt
 *****************************************************************/
-TOSTR_TO_FMT( lua::rthread );
+TOSTR_TO_FMT( lua::table );

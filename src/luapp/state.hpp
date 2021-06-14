@@ -12,9 +12,9 @@
 
 // luapp
 #include "cthread.hpp"
-#include "string.hpp"
-#include "table.hpp"
-#include "thread.hpp"
+#include "rstring.hpp"
+#include "rtable.hpp"
+#include "rthread.hpp"
 
 // C++ standard library
 #include <string_view>

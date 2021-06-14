@@ -1,36 +1,40 @@
 /****************************************************************
-**table.hpp
+**rstring.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-06-11.
 *
-* Description: RAII holder for registry references to Lua tables.
+* Description: RAII holder for registry references to Lua
+*              strings.
 *
 *****************************************************************/
 #pragma once
 
 // luapp
-#include "indexer.hpp"
 #include "ref.hpp"
 
 // base
 #include "base/fmt.hpp"
 
+// C++ standard library
+#include <string>
+
 namespace lua {
 
 /****************************************************************
-** table
+** rstring
 *****************************************************************/
-struct table : public reference {
+struct rstring : public reference {
   using Base = reference;
 
   using Base::Base;
 
-  template<typename U>
-  auto operator[]( U&& idx ) noexcept {
-    return indexer<U, table>( std::forward<U>( idx ), *this );
-  }
+  std::string as_cpp() const;
+
+  bool operator==( char const* s ) const;
+  bool operator==( std::string_view s ) const;
+  bool operator==( std::string const& s ) const;
 };
 
 } // namespace lua
@@ -38,4 +42,4 @@ struct table : public reference {
 /****************************************************************
 ** fmt
 *****************************************************************/
-TOSTR_TO_FMT( lua::table );
+TOSTR_TO_FMT( lua::rstring );

@@ -1,5 +1,5 @@
 /****************************************************************
-**table.cpp
+**rtable.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: RAII holder for registry references to Lua tables.
 *
 *****************************************************************/
-#include "table.hpp"
+#include "rtable.hpp"
 
 // luapp
 #include "c-api.hpp"

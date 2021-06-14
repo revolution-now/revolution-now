@@ -1,5 +1,5 @@
 /****************************************************************
-**string.cpp
+**rstring.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *              strings.
 *
 *****************************************************************/
-#include "string.hpp"
+#include "rstring.hpp"
 
 // luapp
 #include "c-api.hpp"

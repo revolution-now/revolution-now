@@ -1,5 +1,5 @@
 /****************************************************************
-**userdata.cpp
+**ruserdata.cpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/userdata.hpp"
+#include "src/luapp/ruserdata.hpp"
 
 // Testing
 #include "test/luapp/common.hpp"

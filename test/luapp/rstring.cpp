@@ -1,5 +1,5 @@
 /****************************************************************
-**string.cpp
+**rstring.cpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/string.hpp"
+#include "src/luapp/rstring.hpp"
 
 // Testing
 #include "test/luapp/common.hpp"
