@@ -140,4 +140,11 @@ void to_str( type t, string& out ) {
   out += string( s );
 }
 
+/****************************************************************
+** helpers
+*****************************************************************/
+int upvalue_index( int upvalue ) {
+  return lua_upvalueindex( upvalue );
+}
+
 } // namespace lua
