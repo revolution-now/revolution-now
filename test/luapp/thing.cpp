@@ -16,9 +16,6 @@
 // Testing
 #include "test/luapp/common.hpp"
 
-// luapp
-#include "src/luapp/c-api.hpp"
-
 // Must be last.
 #include "test/catch-common.hpp"
 
