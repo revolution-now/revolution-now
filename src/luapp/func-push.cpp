@@ -25,27 +25,14 @@ namespace lua {
 
 namespace detail {
 
-[[noreturn]] void func_push_throw_lua_error(
-    cthread L, std::string_view msg ) {
-  c_api C( L );
-  C.push( msg );
-  C.error();
-  UNREACHABLE_LOCATION;
-}
-
 void func_push_cpp_check_args( cthread L, int num_cpp_args ) {
   c_api C( L );
   int   num_lua_args = C.gettop();
   if( num_lua_args != num_cpp_args )
-    func_push_throw_lua_error(
-        L, fmt::format(
-               "Native function expected {} arguments, but "
-               "received {} from Lua.",
-               num_cpp_args, num_lua_args ) );
-}
-
-char const* func_push_lua_type_at_idx( cthread L, int idx ) {
-  return lua_typename( L, lua_type( L, idx ) );
+    throw_lua_error( L,
+                     "Native function expected {} arguments, "
+                     "but received {} from Lua.",
+                     num_cpp_args, num_lua_args );
 }
 
 } // namespace detail

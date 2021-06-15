@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "error.hpp"
 #include "types.hpp"
 #include "userdata.hpp"
 
@@ -134,11 +135,6 @@ namespace detail {
 // stack is not equal to the number of cpp arguments.
 void func_push_cpp_check_args( cthread L, int num_cpp_args );
 
-[[noreturn]] void func_push_throw_lua_error(
-    cthread L, std::string_view msg );
-
-char const* func_push_lua_type_at_idx( cthread L, int idx );
-
 template<typename Func, typename R, typename... Args>
 void push_cpp_function_impl( cthread L, Func&& func, R*,
                              mp::type_list<Args...>* ) noexcept {
@@ -148,28 +144,26 @@ void push_cpp_function_impl( cthread L, Func&& func, R*,
 
     func_push_cpp_check_args( L, sizeof...( Args ) );
 
-    auto to_cpp_arg = [&]<size_t Idx>(
-                          std::integral_constant<size_t, Idx> ) {
-      using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
-      int  lua_idx = Idx + 1;
-      auto m       = lua::get<elem_t>( L, lua_idx );
-      if constexpr( !std::is_same_v<bool, decltype( m )> ) {
-        if( !m.has_value() )
-          func_push_throw_lua_error(
-              L,
-              fmt::format(
+    auto to_cpp_arg =
+        [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+          using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
+          int  lua_idx = Idx + 1;
+          auto m       = lua::get<elem_t>( L, lua_idx );
+          if constexpr( !std::is_same_v<bool, decltype( m )> ) {
+            if( !m.has_value() )
+              throw_lua_error(
+                  L,
                   "Native function expected type '{}' for "
-                  "argument "
-                  "{} (1-based), but received non-convertible "
-                  "type '{}' from Lua.",
+                  "argument {} (1-based), but received "
+                  "non-convertible type '{}' from Lua.",
                   base::demangled_typename<elem_t>(), Idx + 1,
-                  func_push_lua_type_at_idx( L, lua_idx ) ) );
-        std::get<Idx>( args ) = *m;
-      } else {
-        // for bools
-        std::get<Idx>( args ) = m;
-      }
-    };
+                  type_name( L, lua_idx ) );
+            std::get<Idx>( args ) = *m;
+          } else {
+            // for bools
+            std::get<Idx>( args ) = m;
+          }
+        };
     mp::for_index_seq<sizeof...( Args )>( to_cpp_arg );
 
     if constexpr( std::is_same_v<R, void> ) {

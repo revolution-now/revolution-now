@@ -45,6 +45,8 @@ void to_str( type t, std::string& out );
 
 inline constexpr int kNumLuaTypes = 9;
 
+char const* type_name( cthread L, int idx ) noexcept;
+
 /****************************************************************
 ** nil
 *****************************************************************/

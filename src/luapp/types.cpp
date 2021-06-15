@@ -46,6 +46,11 @@ ASSERT_MATCH( userdata,       LUA_TUSERDATA      );
 ASSERT_MATCH( thread,         LUA_TTHREAD        );
 // clang-format on
 
+// TODO: add test for this
+char const* type_name( cthread L, int idx ) noexcept {
+  return lua_typename( L, lua_type( L, idx ) );
+}
+
 /****************************************************************
 ** equality
 *****************************************************************/

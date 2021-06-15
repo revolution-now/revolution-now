@@ -10,9 +10,16 @@
 *****************************************************************/
 #pragma once
 
+// luapp
+#include "cthread.hpp"
+
 // base
 #include "base/expect.hpp"
+#include "base/fmt.hpp"
 #include "base/valid.hpp"
+
+// C++ standard library
+#include <string_view>
 
 namespace lua {
 
@@ -43,6 +50,24 @@ template<typename T, typename Arg>
 lua_expect<T> lua_unexpected( Arg&& arg ) {
   return base::unexpected<T, lua_error_t>(
       std::forward<Arg>( arg ) );
+}
+
+/****************************************************************
+** Throwing errors
+*****************************************************************/
+namespace detail {
+
+[[noreturn]] void throw_lua_error_impl( cthread          L,
+                                        std::string_view msg );
+
+}
+
+template<typename... Args>
+[[noreturn]] void throw_lua_error( cthread          L,
+                                   std::string_view fmt_str,
+                                   Args&&... args ) {
+  detail::throw_lua_error_impl(
+      L, fmt::format( fmt_str, std::forward<Args>( args )... ) );
 }
 
 } // namespace lua
