@@ -21,6 +21,42 @@
 
 namespace lua {
 
+/****************************************************************
+** Interface: Function on stack, results on stack.
+*****************************************************************/
+// These functions will take the function object from the stack
+// at position (-1) and will leave the results (if any) on the
+// stack.
+
+// Expects a function to be at the top of the stack and will call
+// it with the given C++ args. The function will be run in unsafe
+// mode, so any Lua errors will be thrown as such. Otherwise, it
+// returns the number of results that are on the stack.
+template<typename... Args>
+int call_lua_unsafe( cthread L, Args&&... args );
+
+// Same as above but allows specifying nresults.
+template<typename... Args>
+void call_lua_unsafe_nresults( cthread L, int nresults,
+                               Args&&... args );
+
+// Expects a function to be at the top of the stack and will call
+// it with the given C++ args. The function will be run in pro-
+// tected mode, so any Lua errors will be caught and returned.
+// Otherwise, it returns the number of results that are on the
+// stack.
+template<typename... Args>
+lua_expect<int> call_lua_safe( cthread L,
+                               Args&&... args ) noexcept;
+
+// Same as above but allows specifying nresults.
+template<typename... Args>
+lua_valid call_lua_safe_nresults( cthread L, int nresults,
+                                  Args&&... args ) noexcept;
+
+/****************************************************************
+** Implementation: Function on stack, results on stack.
+*****************************************************************/
 namespace detail {
 
 // If nresults is `nothing` then it will use LUA_MULTRET.
@@ -30,10 +66,6 @@ lua_expect<int> call_lua_from_cpp(
 
 } // namespace detail
 
-// Expects a function to be at the top of the stack and will call
-// it with the given C++ args. The function will be run in unsafe
-// mode, so any Lua errors will be thrown as such. Otherwise, it
-// returns the number of results that are on the stack.
 template<typename... Args>
 int call_lua_unsafe( cthread L, Args&&... args ) {
   // This result will always be present, since in unsafe mode we
@@ -48,7 +80,6 @@ int call_lua_unsafe( cthread L, Args&&... args ) {
   return nresults;
 }
 
-// Same as above but allows specifying nresults.
 template<typename... Args>
 void call_lua_unsafe_nresults( cthread L, int nresults,
                                Args&&... args ) {
@@ -61,11 +92,6 @@ void call_lua_unsafe_nresults( cthread L, int nresults,
       } ) );
 }
 
-// Expects a function to be at the top of the stack and will call
-// it with the given C++ args. The function will be run in pro-
-// tected mode, so any Lua errors will be caught and returned.
-// Otherwise, it returns the number of results that are on the
-// stack.
 template<typename... Args>
 lua_expect<int> call_lua_safe( cthread L,
                                Args&&... args ) noexcept {
@@ -74,7 +100,6 @@ lua_expect<int> call_lua_safe( cthread L,
       [&] { ( push( L, std::forward<Args>( args ) ), ... ); } );
 }
 
-// Same as above but allows specifying nresults.
 template<typename... Args>
 lua_valid call_lua_safe_nresults( cthread L, int nresults,
                                   Args&&... args ) noexcept {
