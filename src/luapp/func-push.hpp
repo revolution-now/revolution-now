@@ -40,6 +40,13 @@ void push_stateless_lua_c_function( cthread       L,
 template<typename T>
 void push_stateful_lua_c_function( cthread L, T&& func );
 
+// Pushes the function as a Lua closure, where the upvalue is a
+// lambda that captures the callable (which itself may be an ob-
+// ject, lambda, or simply a function pointers). But there will
+// always be an upvalue.
+template<typename Func>
+auto push_cpp_function( cthread L, Func&& func ) noexcept;
+
 /****************************************************************
 ** Concepts
 *****************************************************************/
@@ -88,14 +95,13 @@ template<typename T>
 void push( cthread L, T&& o )
   requires(
     StatefulLuaCExtensionFunction<T> &&
-    std::is_rvalue_reference_v<decltype(std::forward<T>( o ))> )
-{
+    std::is_rvalue_reference_v<decltype(std::forward<T>( o ))> ) {
   // clang-format on
   push_stateful_lua_c_function( L, std::forward<T>( o ) );
 }
 
 /****************************************************************
-** Implementations.
+** Implementation: push_stateful_lua_c_function
 *****************************************************************/
 template<typename T>
 void push_stateful_lua_c_function( cthread L, T&& func ) {
@@ -117,6 +123,75 @@ void push_stateful_lua_c_function( cthread L, T&& func ) {
   push_userdata_by_value( L, std::move( func ) );
   push_stateless_lua_c_function( L, closure_caller,
                                  /*upvalues=*/1 );
+}
+
+/****************************************************************
+** Implementation: push_cpp_function
+*****************************************************************/
+namespace detail {
+
+// Will throw a Lua error if the number of Lua arguments on the
+// stack is not equal to the number of cpp arguments.
+void func_push_cpp_check_args( cthread L, int num_cpp_args );
+
+[[noreturn]] void func_push_throw_lua_error(
+    cthread L, std::string_view msg );
+
+char const* func_push_lua_type_at_idx( cthread L, int idx );
+
+template<typename Func, typename R, typename... Args>
+void push_cpp_function_impl( cthread L, Func&& func, R*,
+                             mp::type_list<Args...>* ) noexcept {
+  auto runner = [func = std::move( func )]( lua_State* L ) {
+    using ArgsTuple = std::tuple<std::remove_cvref_t<Args>...>;
+    ArgsTuple args;
+
+    func_push_cpp_check_args( L, sizeof...( Args ) );
+
+    auto to_cpp_arg = [&]<size_t Idx>(
+                          std::integral_constant<size_t, Idx> ) {
+      using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
+      int  lua_idx = Idx + 1;
+      auto m       = lua::get<elem_t>( L, lua_idx );
+      if constexpr( !std::is_same_v<bool, decltype( m )> ) {
+        if( !m.has_value() )
+          func_push_throw_lua_error(
+              L,
+              fmt::format(
+                  "Native function expected type '{}' for "
+                  "argument "
+                  "{} (1-based), but received non-convertible "
+                  "type '{}' from Lua.",
+                  base::demangled_typename<elem_t>(), Idx + 1,
+                  func_push_lua_type_at_idx( L, lua_idx ) ) );
+        std::get<Idx>( args ) = *m;
+      } else {
+        // for bools
+        std::get<Idx>( args ) = m;
+      }
+    };
+    mp::for_index_seq<sizeof...( Args )>( to_cpp_arg );
+
+    if constexpr( std::is_same_v<R, void> ) {
+      std::apply( func, std::move( args ) );
+      return 0;
+    } else {
+      push( L, std::apply( func, std::move( args ) ) );
+      return 1;
+    }
+  };
+  push_stateful_lua_c_function( L, std::move( runner ) );
+}
+
+} // namespace detail
+
+template<typename Func>
+auto push_cpp_function( cthread L, Func&& func ) noexcept {
+  using ret_t  = mp::callable_ret_type_t<Func>;
+  using args_t = mp::callable_arg_types_t<Func>;
+  detail::push_cpp_function_impl( L, std::forward<Func>( func ),
+                                  (ret_t*)nullptr,
+                                  (args_t*)nullptr );
 }
 
 } // namespace lua

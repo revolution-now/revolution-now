@@ -1,3 +1,42 @@
+Pushing a C++ Function into Lua
+===============================
+
+Given that a C++ function is requesting a given cv-qualified
+form of a type, here is how to deal with each one, split into
+three categories:
+
+  - T is a type that can be passed by value, such as
+    one of the primitive types, one of the references,
+    or a `thing`:
+
+      T:
+
+      T const&:
+
+      T&:
+
+  - T is some kind of string (string, string const&,
+    string_view, char const*, etc.:
+
+      string:
+
+      string&:
+
+      string const&:
+
+      string_view:
+
+      char const*:
+
+  - T is a userdata:
+
+      T:
+
+      T const&:
+
+     T&:
+
+
 Serialization/Game State
 ========================
 
