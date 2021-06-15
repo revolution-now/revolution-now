@@ -14,7 +14,7 @@
 #include "c-api.hpp"
 
 // base
-#include "error.hpp"
+#include "base/error.hpp"
 
 using namespace std;
 

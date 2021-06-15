@@ -14,7 +14,7 @@
 #include "c-api.hpp"
 
 // base
-#include "error.hpp"
+#include "base/error.hpp"
 
 // C++ standard library
 #include <unordered_map>

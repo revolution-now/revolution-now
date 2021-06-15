@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "error.hpp"
 #include "types.hpp"
 
 // base
