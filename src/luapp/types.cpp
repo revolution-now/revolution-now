@@ -28,6 +28,9 @@ using namespace std;
 
 namespace lua {
 
+/****************************************************************
+** Lua types
+*****************************************************************/
 #define ASSERT_MATCH( e, lua_e ) \
   static_assert( static_cast<int>( type::e ) == lua_e )
 
@@ -79,73 +82,76 @@ EQ_VAL_VAL_IMPL( integer, floating );
 /******************************************************************
 ** push
 *******************************************************************/
-void push( cthread L, nil_t ) {
+void lua_push( cthread L, nil_t ) {
   c_api C( L );
   C.push( nil );
 }
 
-void push( cthread L, boolean b ) {
+void lua_push( cthread L, boolean b ) {
   c_api C( L );
   C.push( b );
 }
 
-void push( cthread L, integer i ) {
+void lua_push( cthread L, integer i ) {
   c_api C( L );
   C.push( i );
 }
 
-void push( cthread L, floating f ) {
+void lua_push( cthread L, floating f ) {
   c_api C( L );
   C.push( f );
 }
 
-void push( cthread L, lightuserdata lud ) {
+void lua_push( cthread L, lightuserdata lud ) {
   c_api C( L );
   C.push( lud );
 }
 
-void push( cthread L, string_view sv ) {
+void lua_push( cthread L, string_view sv ) {
   c_api C( L );
   C.push( sv );
 }
 
 /******************************************************************
-** get
+** lua_get
 *******************************************************************/
-base::maybe<boolean> get( cthread L, int idx, tag<boolean> ) {
+base::maybe<boolean> lua_get( cthread L, int idx,
+                              tag<boolean> ) {
   return c_api( L ).get<boolean>( idx );
 }
 
-base::maybe<integer> get( cthread L, int idx, tag<integer> ) {
+base::maybe<integer> lua_get( cthread L, int idx,
+                              tag<integer> ) {
   return c_api( L ).get<integer>( idx );
 }
 
-base::maybe<floating> get( cthread L, int idx, tag<floating> ) {
+base::maybe<floating> lua_get( cthread L, int idx,
+                               tag<floating> ) {
   return c_api( L ).get<floating>( idx );
 }
 
-base::maybe<lightuserdata> get( cthread L, int idx,
-                                tag<lightuserdata> ) {
+base::maybe<lightuserdata> lua_get( cthread L, int idx,
+                                    tag<lightuserdata> ) {
   return c_api( L ).get<lightuserdata>( idx );
 }
 
-base::maybe<string> get( cthread L, int idx, tag<string> ) {
+base::maybe<string> lua_get( cthread L, int idx, tag<string> ) {
   return c_api( L ).get<string>( idx );
 }
 
-base::maybe<bool> get( cthread L, int idx, tag<bool> ) {
+base::maybe<bool> lua_get( cthread L, int idx, tag<bool> ) {
   return c_api( L ).get<bool>( idx );
 }
 
-base::maybe<int> get( cthread L, int idx, tag<int> ) {
+base::maybe<int> lua_get( cthread L, int idx, tag<int> ) {
   return c_api( L ).get<int>( idx );
 }
 
-base::maybe<double> get( cthread L, int idx, tag<double> ) {
+base::maybe<double> lua_get( cthread L, int idx, tag<double> ) {
   return c_api( L ).get<double>( idx );
 }
 
-base::maybe<void*> get( cthread L, int idx, tag<void*> ) {
+base::maybe<void*> lua_get( cthread L, int idx, tag<void*> ) {
   return c_api( L ).get<void*>( idx );
 }
 

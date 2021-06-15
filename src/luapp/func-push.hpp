@@ -85,14 +85,14 @@ concept StatefulLuaCExtensionFunction =
 // clang-format off
 template<typename T>
 requires( StatelessLuaCExtensionFunction<T> )
-void push( cthread L, T&& o ) {
+void lua_push( cthread L, T&& o ) {
   // clang-format on
   push_stateless_lua_c_function( L, std::forward<T>( o ) );
 }
 
 // clang-format off
 template<typename T>
-void push( cthread L, T&& o )
+void lua_push( cthread L, T&& o )
   requires(
     StatefulLuaCExtensionFunction<T> &&
     std::is_rvalue_reference_v<decltype(std::forward<T>( o ))> ) {

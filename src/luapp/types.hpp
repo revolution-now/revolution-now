@@ -22,17 +22,6 @@
 namespace lua {
 
 /****************************************************************
-** Macros
-*****************************************************************/
-// This macro is used to define a push function that can only be
-// called for a specific type, preventing issues with ambiguious
-// overloads due to implicit conversions.
-#define LUA_PUSH_FUNC( type )                                   \
-  template<typename T>                                          \
-  requires( std::is_same_v<std::remove_cvref_t<T>, type> ) void \
-  push( cthread L, T const& o )
-
-/****************************************************************
 ** helpers
 *****************************************************************/
 int upvalue_index( int upvalue );
@@ -67,8 +56,8 @@ inline constexpr nil_t nil;
 
 void to_str( nil_t, std::string& out );
 
-void push( cthread L, nil_t );
-void get( cthread L, int idx, tag<nil_t> ) = delete;
+void lua_push( cthread L, nil_t );
+void lua_get( cthread L, int idx, tag<nil_t> ) = delete;
 
 /****************************************************************
 ** value types
@@ -83,26 +72,6 @@ struct lightuserdata : public base::safe::pointer<void> {
   using Base::Base;
 };
 
-void push( cthread L, boolean b );
-void push( cthread L, integer i );
-void push( cthread L, floating f );
-void push( cthread L, lightuserdata lud );
-void push( cthread L, std::string_view sv );
-
-base::maybe<bool>     get( cthread L, int idx, tag<bool> );
-base::maybe<int>      get( cthread L, int idx, tag<int> );
-base::maybe<double>   get( cthread L, int idx, tag<double> );
-base::maybe<void*>    get( cthread L, int idx, tag<void*> );
-base::maybe<boolean>  get( cthread L, int idx, tag<boolean> );
-base::maybe<integer>  get( cthread L, int idx, tag<integer> );
-base::maybe<floating> get( cthread L, int idx, tag<floating> );
-base::maybe<lightuserdata> get( cthread L, int idx,
-                                tag<lightuserdata> );
-base::maybe<std::string>   get( cthread L, int idx,
-                                tag<std::string> );
-void get( cthread L, int idx, tag<std::string_view> ) = delete;
-void get( cthread L, int idx, tag<char const*> )      = delete;
-
 void to_str( lightuserdata const& lud, std::string& out );
 
 bool operator==( nil_t const& l, boolean const& r );
@@ -115,6 +84,34 @@ bool operator==( boolean const& l, floating const& r );
 bool operator==( lightuserdata const& l, integer const& r );
 bool operator==( lightuserdata const& l, floating const& r );
 bool operator==( integer const& l, floating const& r );
+
+/****************************************************************
+** extension point: push
+*****************************************************************/
+void lua_push( cthread L, boolean b );
+void lua_push( cthread L, integer i );
+void lua_push( cthread L, floating f );
+void lua_push( cthread L, lightuserdata lud );
+void lua_push( cthread L, std::string_view sv );
+
+/****************************************************************
+** extension point: lua_get
+*****************************************************************/
+base::maybe<bool>    lua_get( cthread L, int idx, tag<bool> );
+base::maybe<int>     lua_get( cthread L, int idx, tag<int> );
+base::maybe<double>  lua_get( cthread L, int idx, tag<double> );
+base::maybe<void*>   lua_get( cthread L, int idx, tag<void*> );
+base::maybe<boolean> lua_get( cthread L, int idx, tag<boolean> );
+base::maybe<integer> lua_get( cthread L, int idx, tag<integer> );
+base::maybe<floating>      lua_get( cthread L, int idx,
+                                    tag<floating> );
+base::maybe<lightuserdata> lua_get( cthread L, int idx,
+                                    tag<lightuserdata> );
+base::maybe<std::string>   lua_get( cthread L, int idx,
+                                    tag<std::string> );
+void                       lua_get( cthread L, int idx,
+                                    tag<std::string_view> ) = delete;
+void lua_get( cthread L, int idx, tag<char const*> ) = delete;
 
 /****************************************************************
 ** function signatures

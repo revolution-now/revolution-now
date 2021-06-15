@@ -12,6 +12,7 @@
 
 // luapp
 #include "error.hpp"
+#include "ext.hpp"
 #include "types.hpp"
 
 // base
@@ -504,8 +505,8 @@ void push( c_api& C, T&& o ) {
 
 // For convenience.
 template<typename T>
-base::maybe<T> get( c_api& C, int idx, T* p ) {
-  return get( C.this_cthread(), idx, p );
+base::maybe<T> get( c_api& C, int idx, tag<T> t ) {
+  return get( C.this_cthread(), idx, t );
 }
 
 } // namespace lua

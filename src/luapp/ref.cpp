@@ -111,7 +111,7 @@ bool operator==( reference const& r, floating const& o ) {
   return ref_op_eq( r, o );
 }
 
-void push( cthread L, reference const& r ) {
+void lua_push( cthread L, reference const& r ) {
   c_api C( L );
   C.registry_get( r.ref_ );
 }

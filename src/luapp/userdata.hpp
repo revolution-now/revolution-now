@@ -148,7 +148,7 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
 // into the requires clause to eliminate the unwanted ones.
 // clang-format off
 template<typename T>
-void push( cthread L, T&& o )
+void lua_push( cthread L, T&& o )
   requires(
       !std::is_scalar_v<std::remove_cvref_t<T>> &&
       !std::is_constructible_v<std::string, T> &&

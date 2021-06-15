@@ -37,7 +37,7 @@ struct reference {
   // Pushes nil if there is no reference. Note that we don't push
   // onto the Lua state that is held instead the reference ob-
   // ject, since that could correspond to a different thread.
-  friend void push( cthread L, reference const& r );
+  friend void lua_push( cthread L, reference const& r );
 
 protected:
   cthread L; // not owned.

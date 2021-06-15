@@ -35,8 +35,8 @@ struct indexer {
   }
 
   template<typename IndexT_, typename Predecessor_>
-  friend void push( cthread                               L,
-                    indexer<IndexT_, Predecessor_> const& idxr );
+  friend void lua_push(
+      cthread L, indexer<IndexT_, Predecessor_> const& idxr );
 
   cthread this_cthread() const noexcept {
     return pred_.this_cthread();
@@ -63,8 +63,8 @@ void indexer_settable( cthread L );
 bool indexer_eq( cthread L );
 
 template<typename IndexT, typename Predecessor>
-void push( cthread                             L,
-           indexer<IndexT, Predecessor> const& idxr ) {
+void lua_push( cthread                             L,
+               indexer<IndexT, Predecessor> const& idxr ) {
   push( L, idxr.pred_ );
   push( L, idxr.index_ );
   indexer_gettable( L );

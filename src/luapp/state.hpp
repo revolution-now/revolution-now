@@ -98,6 +98,6 @@ private:
 
 // Cannot push an entire global state. You can push a thread
 // though (rthread).
-void push( cthread, state const& ) = delete;
+void lua_push( cthread, state const& ) = delete;
 
 } // namespace lua
