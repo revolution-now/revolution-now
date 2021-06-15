@@ -36,7 +36,7 @@ struct helper {
   using c_string_list = std::vector<char const*>;
 
   template<typename Func>
-  auto push_function( Func&& func ) noexcept;
+  auto push_cpp_function( Func&& func ) noexcept;
 
   // Expects a function on the top of the stack, and will call it
   // with the given C++ arguments. Returns the number of argu-
@@ -57,8 +57,8 @@ private:
   helper& operator=( helper&& ) = delete;
 
   template<typename Func, typename R, typename... Args>
-  void push_cpp_function( Func&& func, R*,
-                          mp::type_list<Args...>* ) noexcept;
+  void push_cpp_function_impl(
+      Func&& func, R*, mp::type_list<Args...>* ) noexcept;
 
   static int noref();
 
@@ -66,15 +66,15 @@ private:
 };
 
 template<typename Func>
-auto helper::push_function( Func&& func ) noexcept {
+auto helper::push_cpp_function( Func&& func ) noexcept {
   using ret_t  = mp::callable_ret_type_t<Func>;
   using args_t = mp::callable_arg_types_t<Func>;
-  push_cpp_function( std::forward<Func>( func ), (ret_t*)nullptr,
-                     (args_t*)nullptr );
+  push_cpp_function_impl( std::forward<Func>( func ),
+                          (ret_t*)nullptr, (args_t*)nullptr );
 }
 
 template<typename Func, typename R, typename... Args>
-void helper::push_cpp_function(
+void helper::push_cpp_function_impl(
     Func&& func, R*, mp::type_list<Args...>* ) noexcept {
   static auto const runner =
       [func = std::move( func )]( lua_State* L ) -> int {
@@ -84,10 +84,10 @@ void helper::push_cpp_function(
 
     int num_args = C.gettop();
     if( num_args != sizeof...( Args ) ) {
-      C.push(
-          fmt::format( "C++ function expected {} arguments, but "
-                       "received {} from Lua.",
-                       sizeof...( Args ), num_args ) );
+      C.push( fmt::format(
+          "Native function expected {} arguments, but "
+          "received {} from Lua.",
+          sizeof...( Args ), num_args ) );
       C.error();
     }
 

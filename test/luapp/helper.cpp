@@ -38,12 +38,12 @@ using ::base::valid;
 using ::testing::monitoring_types::Tracker;
 
 LUA_TEST_CASE(
-    "[helper] push_function, cpp function has upvalue" ) {
+    "[helper] push_cpp_function, cpp function has upvalue" ) {
   helper h( L );
   C.openlibs();
 
-  h.push_function( []( int n, string const& s,
-                       double d ) -> string {
+  h.push_cpp_function( []( int n, string const& s,
+                           double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -64,12 +64,12 @@ LUA_TEST_CASE(
 }
 
 LUA_TEST_CASE(
-    "[helper] push_function, cpp function, trivial" ) {
+    "[helper] push_cpp_function, cpp function, trivial" ) {
   helper h( L );
 
   bool called = false;
 
-  h.push_function( [&] { called = !called; } );
+  h.push_cpp_function( [&] { called = !called; } );
   C.setglobal( "go" );
   REQUIRE_FALSE( called );
 
@@ -84,12 +84,12 @@ LUA_TEST_CASE(
 }
 
 LUA_TEST_CASE(
-    "[helper] push_function, cpp function, simple/bool" ) {
+    "[helper] push_cpp_function, cpp function, simple/bool" ) {
   helper h( L );
 
   bool called_with = false;
 
-  h.push_function( [&]( bool b ) { called_with = b; } );
+  h.push_cpp_function( [&]( bool b ) { called_with = b; } );
   C.setglobal( "go" );
   REQUIRE_FALSE( called_with );
 
@@ -110,12 +110,12 @@ LUA_TEST_CASE(
 }
 
 LUA_TEST_CASE(
-    "[helper] push_function, cpp function, calling" ) {
+    "[helper] push_cpp_function, cpp function, calling" ) {
   helper h( L );
   C.openlibs();
 
-  h.push_function( []( int n, string const& s,
-                       double d ) -> string {
+  h.push_cpp_function( []( int n, string const& s,
+                           double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -135,7 +135,7 @@ LUA_TEST_CASE(
   SECTION( "too few args" ) {
     // clang-format off
     char const* err =
-      "C++ function expected 3 arguments, but received 2 from Lua.\n"
+      "Native function expected 3 arguments, but received 2 from Lua.\n"
       "stack traceback:\n"
       "\t[C]: in function 'go'\n"
       "\t[string \"...\"]:2: in main chunk";
@@ -149,7 +149,7 @@ LUA_TEST_CASE(
   SECTION( "too many args" ) {
     // clang-format off
     char const* err =
-      "C++ function expected 3 arguments, but received 4 from Lua.\n"
+      "Native function expected 3 arguments, but received 4 from Lua.\n"
       "stack traceback:\n"
       "\t[C]: in function 'go'\n"
       "\t[string \"...\"]:2: in main chunk";
@@ -163,7 +163,7 @@ LUA_TEST_CASE(
   SECTION( "wrong arg type" ) {
     // clang-format off
     char const* err =
-      "C++ function expected type 'double' for argument 3 "
+      "Native function expected type 'double' for argument 3 "
         "(1-based), but received non-convertible type 'string' "
         "from Lua.\n"
       "stack traceback:\n"
@@ -269,8 +269,8 @@ LUA_TEST_CASE( "[helper] cpp from cpp via lua" ) {
   helper h( L );
   C.openlibs();
 
-  h.push_function( []( int n, string const& s,
-                       double d ) -> string {
+  h.push_cpp_function( []( int n, string const& s,
+                           double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
   C.setglobal( "go" );
@@ -289,8 +289,8 @@ LUA_TEST_CASE( "[helper] cpp->lua->cpp round trip" ) {
   helper h( L );
   C.openlibs();
 
-  h.push_function( [&]( int n, string const& s,
-                        double d ) -> string {
+  h.push_cpp_function( [&]( int n, string const& s,
+                            double d ) -> string {
     if( n == 4 ) C.error( "n cannot be 4." );
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   } );
