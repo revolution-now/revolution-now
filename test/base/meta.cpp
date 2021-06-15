@@ -277,6 +277,14 @@ static_assert( any_v<true, true, false> == true );
 static_assert( any_v<false, true, false> == true );
 
 /****************************************************************
+** use me
+*****************************************************************/
+// To suppress compiler warnings.
+TEST_CASE( "[meta] use some variables" ) {
+  (void)callable_traits_test::F13;
+}
+
+/****************************************************************
 ** for_index_seq
 *****************************************************************/
 TEST_CASE( "[meta] for_index_seq" ) {
