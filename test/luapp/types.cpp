@@ -29,6 +29,9 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
+
 LUA_TEST_CASE( "[types] push" ) {
   push( L, nil );
   REQUIRE( C.type_of( -1 ) == type::nil );
@@ -65,6 +68,92 @@ LUA_TEST_CASE( "[types] push" ) {
   push( L, "hello" );
   REQUIRE( C.type_of( -1 ) == type::string );
   REQUIRE( C.get<string>( -1 ) == "hello" );
+  C.pop();
+}
+
+LUA_TEST_CASE( "[types] get" ) {
+  push( L, nil );
+  REQUIRE( get<bool>( L, -1 ) == false );
+  REQUIRE( get<boolean>( L, -1 ) == false );
+  REQUIRE( get<int>( L, -1 ) == nothing );
+  REQUIRE( get<integer>( L, -1 ) == nothing );
+  REQUIRE( get<double>( L, -1 ) == nothing );
+  REQUIRE( get<floating>( L, -1 ) == nothing );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == nothing );
+  C.pop();
+
+  push( L, 5 );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == 5 );
+  REQUIRE( get<integer>( L, -1 ) == 5 );
+  REQUIRE( get<double>( L, -1 ) == 5.0 );
+  REQUIRE( get<floating>( L, -1 ) == 5.0 );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == "5" );
+  C.pop();
+
+  push( L, 5.0 );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == 5 );
+  REQUIRE( get<integer>( L, -1 ) == 5 );
+  REQUIRE( get<double>( L, -1 ) == 5.0 );
+  REQUIRE( get<floating>( L, -1 ) == 5.0 );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == "5.0" );
+  C.pop();
+
+  push( L, 5.5 );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == nothing );
+  REQUIRE( get<integer>( L, -1 ) == nothing );
+  REQUIRE( get<double>( L, -1 ) == 5.5 );
+  REQUIRE( get<floating>( L, -1 ) == 5.5 );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == "5.5" );
+  C.pop();
+
+  push( L, true );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == nothing );
+  REQUIRE( get<integer>( L, -1 ) == nothing );
+  REQUIRE( get<double>( L, -1 ) == nothing );
+  REQUIRE( get<floating>( L, -1 ) == nothing );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == nothing );
+  C.pop();
+
+  push( L, (void*)L );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == nothing );
+  REQUIRE( get<integer>( L, -1 ) == nothing );
+  REQUIRE( get<double>( L, -1 ) == nothing );
+  REQUIRE( get<floating>( L, -1 ) == nothing );
+  REQUIRE( get<lightuserdata>( L, -1 ) == (void*)L );
+  REQUIRE( get<void*>( L, -1 ) == (void*)L );
+  REQUIRE( get<string>( L, -1 ) == nothing );
+  C.pop();
+
+  push( L, "hello" );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == nothing );
+  REQUIRE( get<integer>( L, -1 ) == nothing );
+  REQUIRE( get<double>( L, -1 ) == nothing );
+  REQUIRE( get<floating>( L, -1 ) == nothing );
+  REQUIRE( get<lightuserdata>( L, -1 ) == nothing );
+  REQUIRE( get<void*>( L, -1 ) == nothing );
+  REQUIRE( get<string>( L, -1 ) == "hello" );
   C.pop();
 }
 

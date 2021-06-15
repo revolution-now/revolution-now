@@ -512,8 +512,7 @@ maybe<string> c_api::get( int idx, string* ) const noexcept {
 base::maybe<void*> c_api::get( int idx, void** ) const noexcept {
   validate_index( idx );
   void* p = lua_touserdata( L, idx );
-  // Not sure if this check is needed.
-  CHECK( p );
+  if( !p ) return nothing;
   return p;
 }
 

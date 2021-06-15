@@ -65,6 +65,14 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
 *****************************************************************/
 int upvalue_index( int upvalue );
 
+// All get( ... ) calls should go here, then this should dispatch
+// using ADL. It will look in the ::lua namespace as well as the
+// namespace associated wtih T, if any.
+template<typename T>
+base::maybe<T> get( cthread L, int idx ) noexcept {
+  return get( L, idx, static_cast<T*>( nullptr ) );
+}
+
 /****************************************************************
 ** Lua types
 *****************************************************************/
@@ -96,6 +104,9 @@ inline constexpr nil_t nil;
 void to_str( nil_t, std::string& out );
 
 void push( cthread L, nil_t );
+void get( cthread L, int idx, nil_t* ) = delete;
+
+void get( cthread L, nil_t );
 
 /****************************************************************
 ** value types
@@ -114,12 +125,20 @@ void push( cthread L, boolean b );
 void push( cthread L, integer i );
 void push( cthread L, floating f );
 void push( cthread L, lightuserdata lud );
-
 void push( cthread L, std::string_view sv );
 
-LUA_PUSH_FUNC( char const* ) {
-  push( L, std::string_view( o ) );
-}
+base::maybe<bool>          get( cthread L, int idx, bool* );
+base::maybe<int>           get( cthread L, int idx, int* );
+base::maybe<double>        get( cthread L, int idx, double* );
+base::maybe<void*>         get( cthread L, int idx, void** );
+base::maybe<boolean>       get( cthread L, int idx, boolean* );
+base::maybe<integer>       get( cthread L, int idx, integer* );
+base::maybe<floating>      get( cthread L, int idx, floating* );
+base::maybe<lightuserdata> get( cthread L, int idx,
+                                lightuserdata* );
+base::maybe<std::string> get( cthread L, int idx, std::string* );
+void get( cthread L, int idx, std::string_view* ) = delete;
+void get( cthread L, int idx, char const* )       = delete;
 
 void to_str( lightuserdata const& lud, std::string& out );
 

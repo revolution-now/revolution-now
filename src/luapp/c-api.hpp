@@ -501,4 +501,10 @@ void push( c_api& C, T&& o ) {
   push( C.this_cthread(), std::forward<T>( o ) );
 }
 
+// For convenience.
+template<typename T>
+base::maybe<T> get( c_api& C, int idx, T* p ) {
+  return get( C.this_cthread(), idx, p );
+}
+
 } // namespace lua
