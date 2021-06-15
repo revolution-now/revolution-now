@@ -150,6 +150,7 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
 template<typename T>
 void push( cthread L, T&& o )
   requires(
+      !std::is_constructible_v<std::string, T> &&
       !base::NonOverloadedCallable<T> &&
       !std::is_pointer_v<std::remove_reference_t<T>> &&
        std::is_reference_v<decltype(std::forward<T>(o))> ) {
