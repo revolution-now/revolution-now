@@ -18,6 +18,7 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/error.hpp"
+#include "base/function-ref.hpp"
 #include "base/meta.hpp"
 #include "base/unique-func.hpp"
 
@@ -30,55 +31,65 @@
 
 namespace lua {
 
-struct helper {
-  helper( cthread helper );
+// If nresults is `nothing` then it will use LUA_MULTRET.
+lua_expect<int> call_lua_from_cpp(
+    cthread L, base::maybe<int> nresults, bool safe,
+    base::function_ref<void()> push_args );
 
-  // Expects a function on the top of the stack, and will call it
-  // with the given C++ arguments. Returns the number of argu-
-  // ments returned by the Lua function.
-  template<typename... Args>
-  int call( Args&&... args );
-
-  // Expects a function on the top of the stack, and will pcall
-  // it with the given C++ arguments. If successful, returns the
-  // number of arguments returned by the Lua function.
-  template<typename... Args>
-  lua_expect<int> pcall( Args&&... args ) noexcept;
-
-private:
-  c_api C;
-};
-
+// Expects a function to be at the top of the stack and will call
+// it with the given C++ args. The function will be run in unsafe
+// mode, so any Lua errors will be thrown as such. Otherwise, it
+// returns the number of results that are on the stack.
 template<typename... Args>
-int helper::call( Args&&... args ) {
-  CHECK( C.stack_size() >= 1 );
-  CHECK( C.type_of( -1 ) == type::function );
-  // Get size of stack before function was pushed.
-  int starting_stack_size = C.stack_size() - 1;
-
-  ( C.push( std::forward<Args>( args ) ), ... );
-  C.call( /*nargs=*/sizeof...( Args ),
-          /*nresults=*/c_api::multret() );
-
-  int nresults = C.stack_size() - starting_stack_size;
-  CHECK_GE( nresults, 0 );
+int call_lua_unsafe( cthread L, Args&&... args ) {
+  // This result will always be present, since in unsafe mode we
+  // will throw a Lua error (and thus not return) if anything
+  // goes wrong.
+  UNWRAP_CHECK(
+      nresults,
+      call_lua_from_cpp(
+          L, /*nresults=*/base::nothing, /*safe=*/false, [&] {
+            ( push( L, std::forward<Args>( args ) ), ... );
+          } ) );
   return nresults;
 }
 
+// Same as above but allows specifying nresults.
 template<typename... Args>
-lua_expect<int> helper::pcall( Args&&... args ) noexcept {
-  CHECK( C.stack_size() >= 1 );
-  CHECK( C.type_of( -1 ) == type::function );
-  // Get size of stack before function was pushed.
-  int starting_stack_size = C.stack_size() - 1;
+void call_lua_unsafe_nresults( cthread L, int nresults,
+                               Args&&... args ) {
+  // This result will always be present, since in unsafe mode we
+  // will throw a Lua error (and thus not return) if anything
+  // goes wrong.
+  CHECK( call_lua_from_cpp( L, nresults, /*safe=*/false, [&] {
+    ( push( L, std::forward<Args>( args ) ), ... );
+  } ) );
+}
 
-  ( C.push( std::forward<Args>( args ) ), ... );
-  HAS_VALUE_OR_RET( C.pcall( /*nargs=*/sizeof...( Args ),
-                             /*nresults=*/c_api::multret() ) );
+// Expects a function to be at the top of the stack and will call
+// it with the given C++ args. The function will be run in pro-
+// tected mode, so any Lua errors will be caught and returned.
+// Otherwise, it returns the number of results that are on the
+// stack.
+template<typename... Args>
+lua_expect<int> call_lua_safe( cthread L,
+                               Args&&... args ) noexcept {
+  return call_lua_from_cpp(
+      L, /*nresults=*/base::nothing, /*safe=*/true,
+      [&] { ( push( L, std::forward<Args>( args ) ), ... ); } );
+}
 
-  int nresults = C.stack_size() - starting_stack_size;
-  CHECK_GE( nresults, 0 );
-  return nresults;
+// Same as above but allows specifying nresults.
+template<typename... Args>
+lua_valid call_lua_safe_nresults( cthread L, int nresults,
+                                  Args&&... args ) noexcept {
+  UNWRAP_CHECK(
+      actual_nresults,
+      call_lua_from_cpp( L, nresults, /*safe=*/true, [&] {
+        ( push( L, std::forward<Args>( args ) ), ... );
+      } ) );
+  CHECK_EQ( actual_nresults, nresults );
+  return base::valid;
 }
 
 } // namespace lua
