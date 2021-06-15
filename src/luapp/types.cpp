@@ -112,40 +112,40 @@ void push( cthread L, string_view sv ) {
 /******************************************************************
 ** get
 *******************************************************************/
-base::maybe<boolean> get( cthread L, int idx, boolean* ) {
+base::maybe<boolean> get( cthread L, int idx, tag<boolean> ) {
   return c_api( L ).get<boolean>( idx );
 }
 
-base::maybe<integer> get( cthread L, int idx, integer* ) {
+base::maybe<integer> get( cthread L, int idx, tag<integer> ) {
   return c_api( L ).get<integer>( idx );
 }
 
-base::maybe<floating> get( cthread L, int idx, floating* ) {
+base::maybe<floating> get( cthread L, int idx, tag<floating> ) {
   return c_api( L ).get<floating>( idx );
 }
 
 base::maybe<lightuserdata> get( cthread L, int idx,
-                                lightuserdata* ) {
+                                tag<lightuserdata> ) {
   return c_api( L ).get<lightuserdata>( idx );
 }
 
-base::maybe<string> get( cthread L, int idx, string* ) {
+base::maybe<string> get( cthread L, int idx, tag<string> ) {
   return c_api( L ).get<string>( idx );
 }
 
-base::maybe<bool> get( cthread L, int idx, bool* ) {
+base::maybe<bool> get( cthread L, int idx, tag<bool> ) {
   return c_api( L ).get<bool>( idx );
 }
 
-base::maybe<int> get( cthread L, int idx, int* ) {
+base::maybe<int> get( cthread L, int idx, tag<int> ) {
   return c_api( L ).get<int>( idx );
 }
 
-base::maybe<double> get( cthread L, int idx, double* ) {
+base::maybe<double> get( cthread L, int idx, tag<double> ) {
   return c_api( L ).get<double>( idx );
 }
 
-base::maybe<void*> get( cthread L, int idx, void** ) {
+base::maybe<void*> get( cthread L, int idx, tag<void*> ) {
   return c_api( L ).get<void*>( idx );
 }
 
