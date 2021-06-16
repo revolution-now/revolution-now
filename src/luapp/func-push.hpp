@@ -17,6 +17,7 @@
 
 // base
 #include "base/func-concepts.hpp"
+#include "base/macros.hpp"
 #include "base/meta.hpp"
 
 // C++ standard library
@@ -83,22 +84,14 @@ concept StatefulLuaCExtensionFunction =
 /****************************************************************
 ** push overloads.
 *****************************************************************/
-// clang-format off
-template<typename T>
-requires( StatelessLuaCExtensionFunction<T> )
-void lua_push( cthread L, T&& o ) {
-  // clang-format on
-  push_stateless_lua_c_function( L, std::forward<T>( o ) );
+void lua_push( cthread                               L,
+               StatelessLuaCExtensionFunction auto&& o ) {
+  push_stateless_lua_c_function( L, FWD( o ) );
 }
 
-// clang-format off
-template<typename T>
-void lua_push( cthread L, T&& o )
-  requires(
-    StatefulLuaCExtensionFunction<T> &&
-    std::is_rvalue_reference_v<decltype(std::forward<T>( o ))> ) {
-  // clang-format on
-  push_stateful_lua_c_function( L, std::forward<T>( o ) );
+void lua_push( cthread                              L,
+               StatefulLuaCExtensionFunction auto&& o ) {
+  push_stateful_lua_c_function( L, FWD( o ) );
 }
 
 /****************************************************************
