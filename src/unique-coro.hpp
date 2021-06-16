@@ -14,8 +14,13 @@
 
 // base
 #include "base/co-compat.hpp"
+#include "base/zero.hpp"
 
 namespace rn {
+
+struct unique_coro;
+using unique_coro_base =
+    base::RuleOfZero<unique_coro, coro::coroutine_handle<>>;
 
 // unique_coro
 //
@@ -33,20 +38,15 @@ namespace rn {
 // above whereby a coroutine can destroy itself after it finishes
 // running, we must have the coroutine always suspend at the
 // final suspend point.
-class unique_coro {
-public:
-  explicit unique_coro( coro::coroutine_handle<> h );
-  ~unique_coro() noexcept;
-
-  unique_coro( unique_coro const& ) = delete;
-  unique_coro& operator=( unique_coro const& ) = delete;
-  unique_coro( unique_coro&& rhs ) noexcept;
-  unique_coro& operator=( unique_coro&& rhs ) noexcept;
+struct unique_coro : unique_coro_base {
+  explicit unique_coro( coro::coroutine_handle<> h )
+    : unique_coro_base( h ) {}
+  MOVABLE_ONLY( unique_coro );
 
 private:
-  void destroy() noexcept;
-
-  coro::coroutine_handle<> h_;
+  friend unique_coro_base;
+  // Implement base::RuleOfZero.
+  void free_resource() { resource().destroy(); }
 };
 
 } // namespace rn
