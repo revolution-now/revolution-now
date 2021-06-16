@@ -32,6 +32,120 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 
+static_assert( Pushable<nil_t> );
+static_assert( PushableViaAdl<nil_t> );
+static_assert( !PushableViaTraits<nil_t> );
+static_assert( !Gettable<nil_t> );
+static_assert( !GettableViaAdl<nil_t> );
+static_assert( !GettableViaTraits<nil_t> );
+static_assert( !HasTraitsNvalues<nil_t> );
+
+static_assert( Pushable<int> );
+static_assert( PushableViaAdl<int> );
+static_assert( !PushableViaTraits<int> );
+static_assert( Gettable<int> );
+static_assert( GettableViaAdl<int> );
+static_assert( !GettableViaTraits<int> );
+static_assert( !HasTraitsNvalues<int> );
+
+static_assert( Pushable<char[6]> );
+static_assert( PushableViaAdl<char[6]> );
+static_assert( !PushableViaTraits<char[6]> );
+static_assert( !Gettable<char[6]> );
+static_assert( !GettableViaAdl<char[6]> );
+static_assert( !GettableViaTraits<char[6]> );
+static_assert( !HasTraitsNvalues<char[6]> );
+
+static_assert( Pushable<string> );
+static_assert( PushableViaAdl<string> );
+static_assert( !PushableViaTraits<string> );
+static_assert( Gettable<string> );
+static_assert( GettableViaAdl<string> );
+static_assert( !GettableViaTraits<string> );
+static_assert( !HasTraitsNvalues<string> );
+
+static_assert( Pushable<string_view> );
+static_assert( PushableViaAdl<string_view> );
+static_assert( !PushableViaTraits<string_view> );
+static_assert( !Gettable<string_view> );
+static_assert( !GettableViaAdl<string_view> );
+static_assert( !GettableViaTraits<string_view> );
+static_assert( !HasTraitsNvalues<string_view> );
+
+static_assert( Pushable<char const*> );
+static_assert( PushableViaAdl<char const*> );
+static_assert( !PushableViaTraits<char const*> );
+static_assert( !Gettable<char const*> );
+static_assert( !GettableViaAdl<char const*> );
+static_assert( !GettableViaTraits<char const*> );
+static_assert( !HasTraitsNvalues<char const*> );
+
+static_assert( Pushable<char*> );
+static_assert( PushableViaAdl<char*> );
+static_assert( !PushableViaTraits<char*> );
+static_assert( !Gettable<char*> );
+static_assert( !GettableViaAdl<char*> );
+static_assert( !GettableViaTraits<char*> );
+static_assert( !HasTraitsNvalues<char*> );
+
+static_assert( Pushable<boolean> );
+static_assert( PushableViaAdl<boolean> );
+static_assert( !PushableViaTraits<boolean> );
+static_assert( Gettable<boolean> );
+static_assert( GettableViaAdl<boolean> );
+static_assert( !GettableViaTraits<boolean> );
+static_assert( !HasTraitsNvalues<boolean> );
+
+static_assert( Pushable<long long> );
+static_assert( PushableViaAdl<long long> );
+static_assert( !PushableViaTraits<long long> );
+static_assert( !Gettable<long long> );
+static_assert( !GettableViaAdl<long long> );
+static_assert( !GettableViaTraits<long long> );
+static_assert( !HasTraitsNvalues<long long> );
+
+static_assert( !Pushable<uint32_t> );
+static_assert( !PushableViaAdl<uint32_t> );
+static_assert( !PushableViaTraits<uint32_t> );
+static_assert( !Gettable<uint32_t> );
+static_assert( !GettableViaAdl<uint32_t> );
+static_assert( !GettableViaTraits<uint32_t> );
+static_assert( !HasTraitsNvalues<uint32_t> );
+
+static_assert( Pushable<float> );
+static_assert( PushableViaAdl<float> );
+static_assert( !PushableViaTraits<float> );
+// May need these in the future, but maybe not.
+static_assert( !Gettable<float> );
+static_assert( !GettableViaAdl<float> );
+static_assert( !GettableViaTraits<float> );
+static_assert( !HasTraitsNvalues<float> );
+
+static_assert( Pushable<void*> );
+static_assert( PushableViaAdl<void*> );
+static_assert( !PushableViaTraits<void*> );
+static_assert( Gettable<void*> );
+static_assert( GettableViaAdl<void*> );
+static_assert( !GettableViaTraits<void*> );
+static_assert( !HasTraitsNvalues<void*> );
+
+static_assert( Pushable<lightuserdata> );
+static_assert( PushableViaAdl<lightuserdata> );
+static_assert( !PushableViaTraits<lightuserdata> );
+static_assert( Gettable<lightuserdata> );
+static_assert( GettableViaAdl<lightuserdata> );
+static_assert( !GettableViaTraits<lightuserdata> );
+static_assert( !HasTraitsNvalues<lightuserdata> );
+
+// Use rthread instead.
+static_assert( !Pushable<cthread> );
+static_assert( !PushableViaAdl<cthread> );
+static_assert( !PushableViaTraits<cthread> );
+static_assert( !Gettable<cthread> );
+static_assert( !GettableViaAdl<cthread> );
+static_assert( !GettableViaTraits<cthread> );
+static_assert( !HasTraitsNvalues<cthread> );
+
 LUA_TEST_CASE( "[types] push" ) {
   push( L, nil );
   REQUIRE( C.type_of( -1 ) == type::nil );
