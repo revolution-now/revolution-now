@@ -325,16 +325,38 @@ LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
   REQUIRE( Tracker::move_assigned == 0 );
 }
 
-struct Adder {
-  Adder( int x, int y, bool* destroyed )
+// This is a callable that adds some numbers, and also tracks
+// when it gets destroyed. It is a bit non-trivial because we
+// have to ensure that moved-from instances do not track a de-
+// struction -- that is because we want to know when all in-
+// stances are gone.
+struct AdderTracker {
+  AdderTracker( int x, int y, bool* destroyed )
     : x_( x ), y_( y ), destroyed_( destroyed ) {}
-  ~Adder() { *destroyed_ = true; }
+  ~AdderTracker() {
+    if( destroyed_ ) *destroyed_ = true;
+  }
   int operator()( lua_State* L ) const {
     c_api C( L );
     UNWRAP_CHECK( n, C.get<int>( 1 ) );
     C.push( n + 2 + x_ + y_ );
     return 1;
   }
+  AdderTracker( AdderTracker const& ) = delete;
+  AdderTracker& operator=( AdderTracker const& ) = delete;
+  AdderTracker( AdderTracker&& rhs ) {
+    x_         = rhs.x_;
+    y_         = rhs.y_;
+    destroyed_ = exchange( rhs.destroyed_, nullptr );
+  }
+  AdderTracker& operator=( AdderTracker&& rhs ) {
+    if( this == &rhs ) return *this;
+    x_         = rhs.x_;
+    y_         = rhs.y_;
+    destroyed_ = exchange( rhs.destroyed_, nullptr );
+    return *this;
+  }
+
   int   x_;
   int   y_;
   bool* destroyed_;
@@ -362,11 +384,22 @@ LUA_TEST_CASE( "[func-push] another stateful lua C function" ) {
   SECTION( "class object with captures" ) {
     bool destroyed = false;
     {
-      push( L, Adder( x, y, &destroyed ) );
+      push( L, AdderTracker( x, y, &destroyed ) );
       C.setglobal( "add_some" );
       REQUIRE( C.dostring( "assert( add_some( 6 ) == 21 )" ) ==
                valid );
     }
+    // Must do this to ensure that the AdderTracker gets de-
+    // stroyed before the `destroyed` variable goes out of scope,
+    // since it will try to write to it in its destructor. If we
+    // didn't do this, then since the AdderTracker object is tied
+    // to a global symbol ("add_some"), the Lua garbage collector
+    // would not release it until the state got destroyed
+    // (wherein it runs the finalizers on things), but by then
+    // the `destroyed variable will have gone out of scope.
+    C.push( nil );
+    C.setglobal( "add_some" ); // remove reference to it.
+    C.gc_collect();
     REQUIRE( destroyed );
   }
 }
