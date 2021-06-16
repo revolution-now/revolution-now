@@ -67,6 +67,7 @@ TEST_CASE( "[zero] frees resource" ) {
 
   {
     MockFile mf;
+    REQUIRE( mf.own() );
     REQUIRE( mf.resource() == 0 );
     REQUIRE( next_key == 1 );
     REQUIRE( next_val == 1 );
@@ -86,9 +87,11 @@ TEST_CASE( "[zero] no free after relinquish" ) {
     REQUIRE( next_key == 1 );
     REQUIRE( next_val == 1 );
     REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
-    REQUIRE( mf.alive() );
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf.own() );
     mf.relinquish();
-    REQUIRE( !mf.alive() );
+    REQUIRE( mf.has_value() );
+    REQUIRE( !mf.own() );
   }
 
   REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
@@ -104,26 +107,63 @@ TEST_CASE( "[zero] manual free" ) {
     REQUIRE( next_key == 1 );
     REQUIRE( next_val == 1 );
     REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
-    REQUIRE( mf.alive() );
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf.own() );
 
     mf.free();
-    REQUIRE( !mf.alive() );
+    REQUIRE( !mf.has_value() );
+    REQUIRE( !mf.own() );
     REQUIRE( next_key == 1 );
     REQUIRE( next_val == 1 );
     REQUIRE( resources == unordered_map<int, int>{} );
 
     mf.free();
-    REQUIRE( !mf.alive() );
+    REQUIRE( !mf.has_value() );
+    REQUIRE( !mf.own() );
     REQUIRE( next_key == 1 );
     REQUIRE( next_val == 1 );
     REQUIRE( resources == unordered_map<int, int>{} );
 
     mf.relinquish();
-    REQUIRE( !mf.alive() );
+    REQUIRE( !mf.has_value() );
+    REQUIRE( !mf.own() );
     REQUIRE( resources == unordered_map<int, int>{} );
   }
 
   REQUIRE( resources == unordered_map<int, int>{} );
+}
+
+TEST_CASE( "[zero] copy after relinquish" ) {
+  reset_resources();
+  REQUIRE( resources.size() == 0 );
+
+  {
+    // Default construction.
+    MockFile mf;
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf.own() );
+    REQUIRE( mf.resource() == 0 );
+    REQUIRE( next_key == 1 );
+    REQUIRE( next_val == 1 );
+    REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
+
+    mf.relinquish();
+    REQUIRE( !mf.own() );
+
+    // Copy assignment after relinquish.
+    MockFile mf2 = mf;
+    REQUIRE( mf.resource() == 0 );
+    REQUIRE( mf2.resource() == 0 );
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf2.has_value() );
+    REQUIRE( !mf.own() );
+    REQUIRE( !mf2.own() );
+    REQUIRE( next_key == 1 );
+    REQUIRE( next_val == 1 );
+    REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
+  }
+
+  REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
 }
 
 TEST_CASE( "[zero] copy and move" ) {
@@ -133,7 +173,8 @@ TEST_CASE( "[zero] copy and move" ) {
   {
     // Default construction.
     MockFile mf;
-    REQUIRE( mf.alive() );
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf.own() );
     REQUIRE( mf.resource() == 0 );
 
     REQUIRE( next_key == 1 );
@@ -143,7 +184,8 @@ TEST_CASE( "[zero] copy and move" ) {
     {
       // Copy constructor.
       MockFile mf2( mf );
-      REQUIRE( mf2.alive() );
+      REQUIRE( mf2.has_value() );
+      REQUIRE( mf2.own() );
       REQUIRE( mf2.resource() == 1 );
       REQUIRE( next_key == 2 );
       REQUIRE( next_val == 1 );
@@ -153,8 +195,10 @@ TEST_CASE( "[zero] copy and move" ) {
       {
         // Move constructor.
         MockFile mf3( std::move( mf2 ) );
-        REQUIRE( mf3.alive() );
-        REQUIRE( !mf2.alive() );
+        REQUIRE( mf3.has_value() );
+        REQUIRE( mf3.own() );
+        REQUIRE( !mf2.has_value() );
+        REQUIRE( !mf2.own() );
         REQUIRE( mf3.resource() == 1 );
         REQUIRE( next_key == 2 );
         REQUIRE( next_val == 1 );
@@ -162,7 +206,8 @@ TEST_CASE( "[zero] copy and move" ) {
                  unordered_map<int, int>{ { 0, 0 }, { 1, 0 } } );
 
         MockFile mf4;
-        REQUIRE( mf4.alive() );
+        REQUIRE( mf4.has_value() );
+        REQUIRE( mf4.own() );
         REQUIRE( mf4.resource() == 2 );
         REQUIRE( next_key == 3 );
         REQUIRE( next_val == 2 );
@@ -172,7 +217,8 @@ TEST_CASE( "[zero] copy and move" ) {
 
         {
           MockFile mf4b;
-          REQUIRE( mf4b.alive() );
+          REQUIRE( mf4b.has_value() );
+          REQUIRE( mf4b.own() );
           REQUIRE( mf4b.resource() == 3 );
           REQUIRE( next_key == 4 );
           REQUIRE( next_val == 3 );
@@ -182,7 +228,8 @@ TEST_CASE( "[zero] copy and move" ) {
                   { 0, 0 }, { 1, 0 }, { 2, 1 }, { 3, 2 } } );
 
           MockFile mf5;
-          REQUIRE( mf5.alive() );
+          REQUIRE( mf5.has_value() );
+          REQUIRE( mf5.own() );
           REQUIRE( mf5.resource() == 4 );
           REQUIRE( next_key == 5 );
           REQUIRE( next_val == 4 );
@@ -195,8 +242,10 @@ TEST_CASE( "[zero] copy and move" ) {
 
           // Move assignment.
           mf5 = std::move( mf4b );
-          REQUIRE( mf5.alive() );
-          REQUIRE( !mf4b.alive() );
+          REQUIRE( mf5.has_value() );
+          REQUIRE( mf5.own() );
+          REQUIRE( !mf4b.has_value() );
+          REQUIRE( !mf4b.own() );
           REQUIRE( mf5.resource() == 3 );
           REQUIRE( next_key == 5 );
           REQUIRE( next_val == 4 );
@@ -225,7 +274,8 @@ TEST_CASE( "[zero] copy and move" ) {
     REQUIRE( resources == unordered_map<int, int>{ { 0, 0 } } );
 
     MockFile mf6;
-    REQUIRE( mf6.alive() );
+    REQUIRE( mf6.has_value() );
+    REQUIRE( mf6.own() );
     REQUIRE( next_key == 6 );
     REQUIRE( next_val == 5 );
     REQUIRE( resources ==
@@ -234,8 +284,10 @@ TEST_CASE( "[zero] copy and move" ) {
     // Copy assignment.
     mf6 = mf;
     REQUIRE( mf6.resource() == 6 );
-    REQUIRE( mf.alive() );
-    REQUIRE( mf6.alive() );
+    REQUIRE( mf.has_value() );
+    REQUIRE( mf.own() );
+    REQUIRE( mf6.has_value() );
+    REQUIRE( mf6.own() );
     REQUIRE( next_key == 7 );
     REQUIRE( next_val == 5 );
     REQUIRE( resources ==

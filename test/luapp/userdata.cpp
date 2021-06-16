@@ -360,7 +360,7 @@ LUA_TEST_CASE( "[userdata] userdata with tracker" ) {
     REQUIRE( Tracker::move_assigned == 0 );
     Tracker::reset();
 
-    st.close();
+    st.free();
     // !! do not call any lua functions after this.
 
     // Ensure that precisely two closures get destroyed (will
@@ -414,7 +414,7 @@ LUA_TEST_CASE( "[userdata] userdata with tracker" ) {
     REQUIRE( Tracker::move_assigned == 0 );
     Tracker::reset();
 
-    st.close();
+    st.free();
     // !! do not call any lua functions after this.
 
     REQUIRE( Tracker::constructed == 0 );

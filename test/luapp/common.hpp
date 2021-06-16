@@ -39,7 +39,7 @@ struct harness {
     // the end of the test in order to test garbage-collection
     // related things. So if that has happened then it is not
     // safe to check the stack size, so check for that as well.
-    bool state_closed_early = !st.alive();
+    bool state_closed_early = !st.has_value();
 
     if( !test_case_failed && !state_closed_early ) {
       CHECK_EQ( C.stack_size(), 0 );

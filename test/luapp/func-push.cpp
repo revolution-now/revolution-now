@@ -311,7 +311,7 @@ LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
     Tracker::reset();
   }
 
-  st.close();
+  st.free();
   // !! do not call any lua functions after this.
 
   // Ensure that precisely two closures get destroyed (will

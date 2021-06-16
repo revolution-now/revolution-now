@@ -93,7 +93,7 @@ bool operator==( reference const& r, floating const& o ) {
 
 void lua_push( cthread L, reference const& r ) {
   c_api C( L );
-  int   ref = r.alive() ? r.resource() : LUA_REFNIL;
+  int   ref = r.has_value() ? r.resource() : LUA_REFNIL;
   C.registry_get( ref );
 }
 

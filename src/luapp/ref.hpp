@@ -25,7 +25,7 @@ namespace lua {
 /****************************************************************
 ** reference
 *****************************************************************/
-struct reference : public base::RuleOfZero<reference, int> {
+struct reference : base::RuleOfZero<reference, int> {
   reference() = delete;
   reference( cthread st, int ref ) noexcept;
 

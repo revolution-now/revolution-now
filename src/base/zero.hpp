@@ -32,53 +32,72 @@ namespace base {
 //
 //  resource_type copy_resource( resource_type const& r );
 //
+// The copy_resource method MUST ALWAYS return something that is
+// owned, on which free_resource can be called. copy_resource
+// will not be called when there is either no value to be copied
+// or if the resource is not owned.
+//
 template<typename Derived, typename Resource> // CRTP
 struct RuleOfZero {
   RuleOfZero() = default;
   // Must be a live resource on which we can call free.
-  RuleOfZero( Resource r ) noexcept : r_( std::move( r ) ) {}
+  RuleOfZero( Resource r ) noexcept
+    : r_( std::move( r ) ), own_( true ) {}
+
+  RuleOfZero( Resource r, bool own ) noexcept
+    : r_( std::move( r ) ), own_( own ) {}
 
   ~RuleOfZero() noexcept { free(); }
 
-  RuleOfZero( RuleOfZero const& rhs ) : r_( rhs.copy() ) {}
+  RuleOfZero( RuleOfZero const& rhs ) : r_{}, own_{ false } {
+    *this = rhs;
+  }
 
+  // There is some non-trivial logic in this copy operation. If
+  // `rhs` does not own its resource, then it is OK for us to
+  // just do a dumb copy. Otherwise, if it does own it, then we
+  // need to ask it to make a proper copy (where a "copy" here is
+  // defined as something that we will own and on which we can
+  // later call free_resource).
   RuleOfZero& operator=( RuleOfZero const& rhs ) {
     if( this == &rhs ) return *this;
     free();
-    r_ = rhs.copy();
+    if( rhs.own_ ) {
+      r_   = rhs.copy();
+      own_ = true;
+    } else {
+      r_   = rhs.r_;
+      own_ = rhs.own_; // false
+    }
     return *this;
   }
 
   RuleOfZero( RuleOfZero&& rhs ) noexcept
-    : r_( std::move( rhs.r_ ) ) {
-    // A moved-from maybe type is not equal to nothing.
-    rhs.relinquish();
+    : r_( std::move( rhs.r_ ) ), own_( rhs.own_ ) {
+    rhs.reset();
   }
 
   RuleOfZero& operator=( RuleOfZero&& rhs ) noexcept {
     if( this == &rhs ) return *this;
     free();
-    r_ = std::move( rhs.r_ );
-    rhs.relinquish();
+    r_   = std::move( rhs.r_ );
+    own_ = rhs.own_;
+    rhs.reset();
     return *this;
   }
 
-  bool alive() const noexcept { return r_.has_value(); }
+  bool has_value() const noexcept { return r_.has_value(); }
+  bool own() const noexcept { return own_; }
 
   // These relinquishes ownership over the resource, but does not
-  // free it. Here we are assuming that the resource in question
-  // is not freed by merely destorying the Resource object, as it
-  // would be if Resource were a pointer to allocated memory.
-  void relinquish() noexcept { r_.reset(); }
+  // free it.  I.e., it can cause leaks.
+  void relinquish() noexcept { own_ = false; }
 
   // Free the resource.
   void free() {
-    if( !alive() ) return;
-    // We are assuming here that the act of freeing the resource
-    // does not require modifying the Resource object; i.e., the
-    // Resource object is just usually a handle.
+    if( !has_value() || !own() ) return;
     derived().free_resource();
-    relinquish();
+    reset();
   }
 
   // These can go BOOM! Must check alive() first.
@@ -100,20 +119,27 @@ private:
     return *static_cast<Derived const*>( this );
   }
 
+  void reset() {
+    r_.reset();
+    own_ = false;
+  }
+
   // This should return a resource that can be freed indepen-
-  // dently of this one. Depending on how the resource works, it
-  // doesn't have to be a physically different entity, it just
-  // has to be something on which .free() can be called indepen-
-  // dently without triggering a double-free problem, e.g., it
-  // could increase a reference count on something. Or, of
-  // course, it could do a deep clone of the resource as well.
+  // dently of this one, i.e., one that we can take ownership
+  // over. Depending on how the resource works, it doesn't have
+  // to be a physically different entity, it just has to be some-
+  // thing on which .free() can be called independently without
+  // triggering a double-free problem, e.g., it could increase a
+  // reference count on something. Or, of course, it could do a
+  // deep clone of the resource as well.
   maybe<Resource> copy() const {
-    if( !alive() ) return nothing;
+    if( !has_value() ) return nothing;
     return derived().copy_resource();
   }
 
 protected:
   maybe<Resource> r_;
+  bool            own_ = false;
 };
 
 } // namespace base
