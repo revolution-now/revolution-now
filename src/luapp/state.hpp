@@ -50,11 +50,11 @@ public:
 
     // This is guaranteed to be the main thread because it is the
     // one that we get when we create the state.
-    rthread main;
+    rthread main() const noexcept;
 
   private:
     cthread L;
-  } thread;
+  } const thread;
 
   /**************************************************************
   ** Strings
@@ -62,11 +62,11 @@ public:
   struct String {
     String( cthread cth ) : L( cth ) {}
 
-    rstring create( std::string_view sv ) noexcept;
+    rstring create( std::string_view sv ) const noexcept;
 
   private:
     cthread L;
-  } string;
+  } const string;
 
   /**************************************************************
   ** Tables
@@ -74,19 +74,19 @@ public:
   struct Table {
     Table( cthread cth );
 
-    table global;
-    table create() noexcept;
+    table global() const noexcept;
+    table create() const noexcept;
 
   private:
     cthread L;
-  } table;
+  } const table;
 
   /**************************************************************
   ** Indexer
   ***************************************************************/
   template<typename U>
   auto operator[]( U&& idx ) noexcept {
-    return table.global[std::forward<U>( idx )];
+    return table.global()[std::forward<U>( idx )];
   }
 
 private:

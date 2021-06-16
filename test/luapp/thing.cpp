@@ -532,7 +532,7 @@ LUA_TEST_CASE( "[thing] thing::pop" ) {
 }
 
 LUA_TEST_CASE( "[thing] index with thing" ) {
-  thing G = st.table.global;
+  thing G = st.table.global();
 
   REQUIRE( G.is<table>() );
   G.as<table>()[7.7] = "target";

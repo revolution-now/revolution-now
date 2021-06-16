@@ -48,14 +48,7 @@ state::state()
 state::~state() noexcept { close(); }
 
 void state::close() {
-  if( !alive() ) return;
-
-  // These need to be released before we destroy the Lua state,
-  // otherwise their destructors will try to use it to release
-  // themselves.
-  thread.main.release();
-  table.global.release();
-
+  if( L == nullptr ) return;
   lua_close( L );
   L = nullptr;
 }
@@ -63,22 +56,26 @@ void state::close() {
 /****************************************************************
 ** Threads
 *****************************************************************/
-state::Thread::Thread( cthread cth )
-  : main( cth, ( c_api( cth ).pushthread(),
-                 c_api( cth ).ref_registry() ) ),
-    L( cth ) {
-  (void)L;
+state::Thread::Thread( cthread cth ) : L( cth ) {}
+
+rthread state::Thread::main() const noexcept {
+  c_api C( L );
+  C.pushthread();
+  return rthread( L, C.ref_registry() );
 }
 
 /****************************************************************
 ** Tables
 *****************************************************************/
-state::Table::Table( cthread cth )
-  : global( cth, ( c_api( cth ).pushglobaltable(),
-                   c_api( cth ).ref_registry() ) ),
-    L( cth ) {}
+state::Table::Table( cthread cth ) : L( cth ) {}
 
-table state::Table::create() noexcept {
+table state::Table::global() const noexcept {
+  c_api C( L );
+  C.pushglobaltable();
+  return lua::table( L, C.ref_registry() );
+}
+
+table state::Table::create() const noexcept {
   c_api C( L );
   C.newtable();
   return lua::table( C.this_cthread(), C.ref_registry() );
@@ -87,7 +84,7 @@ table state::Table::create() noexcept {
 /****************************************************************
 ** Strings
 *****************************************************************/
-rstring state::String::create( string_view sv ) noexcept {
+rstring state::String::create( string_view sv ) const noexcept {
   c_api C( L );
   C.push( sv );
   return rstring( C.this_cthread(), C.ref_registry() );

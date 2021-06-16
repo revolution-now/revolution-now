@@ -1,5 +1,7 @@
 " =========================== Config ============================
 let s:stems = [
+  \ 'luapp/ext',
+  \ 'luapp/error',
   \ 'luapp/types',
   \ 'luapp/c-api',
   \ 'luapp/indexer',
@@ -12,6 +14,7 @@ let s:stems = [
   \ 'luapp/thing',
   \ 'base/func-concepts',
   \ 'luapp/userdata',
+  \ 'luapp/call',
   \ 'luapp/func-push',
   \ 'luapp/helper',
   \ 'luapp/state',

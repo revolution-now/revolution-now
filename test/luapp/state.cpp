@@ -29,7 +29,7 @@ using namespace std;
 LUA_TEST_CASE( "[lua-state] standard tables" ) {
   C.openlibs();
 
-  table G = st.table.global;
+  table G = st.table.global();
   push( L, G );
   C.getfield( -1, "tostring" );
   REQUIRE( C.stack_size() == 2 );
@@ -75,7 +75,7 @@ LUA_TEST_CASE( "[lua-state] state indexing" ) {
   st["a"][5]          = st.table.create();
   st["a"][5]["world"] = 9;
 
-  table G = st.table.global;
+  table G = st.table.global();
 
   REQUIRE( ( G["a"][5]["world"] == 9 ) );
   REQUIRE( ( G["a"] == st["a"] ) );

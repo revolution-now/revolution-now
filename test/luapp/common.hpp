@@ -21,7 +21,7 @@ namespace lua {
 
 struct harness {
   state   st;
-  cthread L = st.thread.main.cthread();
+  cthread L = st.thread.main().cthread();
   c_api   C = L;
 
   ~harness() {
