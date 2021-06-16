@@ -72,7 +72,8 @@ concept MaybeTypeRequirements = requires {
 ** Forward Declaration
 *****************************************************************/
 template<typename T>
-requires MaybeTypeRequirements<T> class [[nodiscard]] maybe;
+requires MaybeTypeRequirements<T>
+class [[nodiscard]] maybe;
 
 /****************************************************************
 ** Deduction Guide
@@ -655,9 +656,18 @@ public:
   /**************************************************************
   ** value_or
   ***************************************************************/
+private:
+  // C++ does not support returning C array types by value from
+  // functions, so we need to check for that here otherwise the
+  // value_or methods below will cause hard compile errors.
+  using return_type_for_arrays =
+      std::conditional_t<std::is_array_v<T>, void, T>;
+
+public:
   template<typename U = T>
   // clang-format off
-  [[nodiscard]] constexpr T value_or( U&& def ) const&
+  [[nodiscard]] return_type_for_arrays constexpr
+  value_or( U&& def ) const&
     noexcept( std::is_nothrow_convertible_v<U&&, T> &&
               std::is_nothrow_copy_constructible_v<T>)
     requires( std::is_convertible_v<U&&, T> &&
@@ -670,7 +680,8 @@ public:
 
   template<typename U = T>
   // clang-format off
-  [[nodiscard]] constexpr T value_or( U&& def ) &&
+  [[nodiscard]] return_type_for_arrays constexpr
+  value_or( U&& def ) &&
     noexcept( std::is_nothrow_convertible_v<U&&, T> &&
               std::is_nothrow_move_constructible_v<T>)
     requires( std::is_convertible_v<U&&, T> &&
@@ -968,10 +979,11 @@ public:
   /**************************************************************
   ** Storage
   ***************************************************************/
-private:
+private :
   // This allows maybe<T> to access private members of maybe<U>.
   template<typename U>
-  requires MaybeTypeRequirements<U> friend class maybe;
+  requires MaybeTypeRequirements<U>
+  friend class maybe;
 
   // This is so that we can have a common API with the maybe-ref
   // type for assigning, since we need to delete the maybe-ref
@@ -1244,10 +1256,11 @@ public:
     return res;
   }
 
-private:
+private :
   // This allows maybe<T> to access private members of maybe<U>.
   template<typename U>
-  requires MaybeTypeRequirements<U> friend class maybe;
+  requires MaybeTypeRequirements<U>
+  friend class maybe;
 
   /**************************************************************
   ** Converting Value Assignment Operator

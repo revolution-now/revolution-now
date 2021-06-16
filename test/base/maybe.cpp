@@ -329,6 +329,16 @@ TEST_CASE( "[maybe] default construction" ) {
   }
 }
 
+TEST_CASE( "[maybe] works with C arrays" ) {
+  M<char[6]> m1;
+  m1.emplace();
+  ( *m1 )[0] = 'c';
+  // Error: does not work with const C arrays because of some
+  // issue with placement new.
+  // M<char const[6]> m2;
+  // m2.emplace();
+}
+
 TEST_CASE( "[maybe] has_value/bool" ) {
   M<int> m1;
   REQUIRE( !m1.has_value() );
