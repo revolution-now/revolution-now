@@ -534,6 +534,11 @@ TEST_CASE( "[maybe] state after move" ) {
   // `maybe`s (like `optional`s) with values that are moved from
   // still have values.
   REQUIRE( m.has_value() );
+
+  // And for move-assignment.
+  M<int> m4 = std::move( m3 );
+  REQUIRE( m4.has_value() );
+  REQUIRE( m3.has_value() );
 }
 
 TEST_CASE( "[maybe] move construction" ) {
