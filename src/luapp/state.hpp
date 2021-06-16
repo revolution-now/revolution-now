@@ -16,6 +16,9 @@
 #include "rtable.hpp"
 #include "rthread.hpp"
 
+// base
+#include "base/zero.hpp"
+
 // C++ standard library
 #include <string_view>
 
@@ -27,7 +30,9 @@ namespace lua {
 // This represents a global Lua state (including all of the
 // threads that it contains). It is an RAII object and thus owns
 // the state.
-struct state {
+struct state : base::RuleOfZero<state, cthread> {
+  using Base = base::RuleOfZero<state, cthread>;
+
 private:
   // Creates a non-owned (view) state.
   state( cthread L );
@@ -35,20 +40,18 @@ private:
 public:
   // Creates an owned Lua state and sets a panic function.
   state();
-  ~state() noexcept;
 
   // Creates a non-owning view of the state.
   static state view( cthread L ) { return state( L ); }
 
-  // Do not use the state after this.
-  void close();
-
-  bool alive() const { return L != nullptr; }
-
 private:
-  // main thread.
-  cthread L;
-  bool    own_;
+  friend Base;
+
+  // Implement base::RuleOfZero.
+  void free_resource();
+
+  // Implement base::RuleOfZero.
+  int copy_resource() const;
 
 public:
   /**************************************************************
@@ -99,8 +102,9 @@ public:
   }
 
 private:
+  state( state&& ) = default;
+
   state( state const& ) = delete;
-  state( state&& )      = delete;
   state& operator=( state const& ) = delete;
   state& operator=( state&& ) = delete;
 };

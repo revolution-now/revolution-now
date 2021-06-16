@@ -37,28 +37,24 @@ namespace {
 } // namespace
 
 state::state( cthread cth )
-  : L( cth ),
-    own_( false ),
-    thread( L ),
-    string( L ),
-    table( L ) {
+  : Base( cth, /*own=*/false ),
+    thread( resource() ),
+    string( resource() ),
+    table( resource() ) {}
+
+state::state()
+  : Base( luaL_newstate(), /*own=*/true ),
+    thread( resource() ),
+    string( resource() ),
+    table( resource() ) {
   // This will be called whenever an error happens in a Lua call
   // that is not run in a protected environment. For example, if
   // we call lua_getglobal from C++ (outside of a pcall) and it
   // raises an error, this panic function will be called.
-  lua_atpanic( L, panic );
+  lua_atpanic( resource(), panic );
 }
 
-state::state() : state( luaL_newstate() ) { own_ = true; }
-
-state::~state() noexcept { close(); }
-
-void state::close() {
-  if( !own_ ) return;
-  lua_close( L );
-  L    = nullptr;
-  own_ = false;
-}
+void state::free_resource() { lua_close( resource() ); }
 
 /****************************************************************
 ** Threads
