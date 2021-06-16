@@ -15,19 +15,22 @@
 // base
 #include "maybe.hpp"
 
+// C++ standard library
+#include <cassert>
+
 namespace base {
 
 // Any type that needs to manage resources should do so by inher-
 // iting from this class.  Derived class needs to implement at
-// least the following:
+// least the following;
 //
 //  using resource_type = ...;
-//  static void free_resource( resource_type const& r );
+//  void free_resource( resource_type const& r );
 //
 // and optionally the following if copyability is to be sup-
-// ported:
+// ported;
 //
-//  static resource_type copy_resource( resource_type const& r );
+//  resource_type copy_resource( resource_type const& r );
 //
 template<typename Derived, typename Resource> // CRTP
 struct RuleOfZero {
@@ -74,22 +77,29 @@ struct RuleOfZero {
     // We are assuming here that the act of freeing the resource
     // does not require modifying the Resource object; i.e., the
     // Resource object is just usually a handle.
-    Derived::free_resource( *std::as_const( r_ ) );
+    derived().free_resource();
     relinquish();
   }
 
   // These can go BOOM! Must check alive() first.
   Resource& resource() {
-    DCHECK( r_.has_value(), "is this a moved-from object?" );
+    assert( r_.has_value() );
     return *r_;
   }
 
   Resource const& resource() const {
-    DCHECK( r_.has_value(), "is this a moved-from object?" );
+    assert( r_.has_value() );
     return *r_;
   }
 
 private:
+  Derived& derived() noexcept {
+    return *static_cast<Derived*>( this );
+  }
+  Derived const& derived() const noexcept {
+    return *static_cast<Derived const*>( this );
+  }
+
   // This should return a resource that can be freed indepen-
   // dently of this one. Depending on how the resource works, it
   // doesn't have to be a physically different entity, it just
@@ -99,7 +109,7 @@ private:
   // course, it could do a deep clone of the resource as well.
   maybe<Resource> copy() const {
     if( !alive() ) return nothing;
-    return Derived::copy_resource( *r_ );
+    return derived().copy_resource();
   }
 
 protected:

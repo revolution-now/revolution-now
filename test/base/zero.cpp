@@ -45,13 +45,15 @@ struct MockFile : public RuleOfZero<MockFile, int> {
 
   MockFile() : Base( new_resource() ) {}
 
-  static void free_resource( int i ) {
+  void free_resource() {
+    int i = resource();
     BASE_CHECK( resources.contains( i ), "does not contain {}.",
                 i );
     resources.erase( i );
   }
 
-  static int copy_resource( int r ) {
+  int copy_resource() const {
+    int r = resource();
     BASE_CHECK( resources.contains( r ), "does not contain {}.",
                 r );
     resources.insert( { next_key, resources[r] } );
