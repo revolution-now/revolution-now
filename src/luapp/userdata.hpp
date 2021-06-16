@@ -144,12 +144,16 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
       /*call_destructor=*/nullptr, type_name );
 }
 
+// TODO: not sure if we want a generic fallback that pushes as
+// userdata.
+//
 // TODO: as ambiguities arise with this overload, add conditions
 // into the requires clause to eliminate the unwanted ones.
 // clang-format off
 template<typename T>
 void lua_push( cthread L, T&& o )
   requires(
+      false && // NOTE: disabled
       !std::is_scalar_v<std::remove_cvref_t<T>> &&
       !std::is_constructible_v<std::string, T> &&
       !base::NonOverloadedCallable<T> &&
