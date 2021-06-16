@@ -41,6 +41,7 @@ enum class e_tx_blend_mode {
 };
 
 // RAII wrapper and type eraser for SDL Surface.
+// TODO: rewrite this in terms of base::RuleOfZero.
 class Surface {
 public:
   explicit Surface( void* sf );
@@ -93,6 +94,7 @@ private:
 NOTHROW_MOVE( Surface );
 
 // RAII wrapper and type eraser for SDL Texture.
+// TODO: rewrite this in terms of base::RuleOfZero.
 class Texture {
 public:
   Texture() = default; // try to get rid of this.
@@ -127,7 +129,8 @@ public:
 
   void set_render_target() const;
 
-  Surface to_surface( maybe<Delta> override_size = nothing ) const;
+  Surface to_surface(
+      maybe<Delta> override_size = nothing ) const;
 
   // Texture that is a proxy for the screen.
   static Texture& screen();
