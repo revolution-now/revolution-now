@@ -565,5 +565,17 @@ LUA_TEST_CASE( "[thing] index with thing" ) {
   REQUIRE( th == "target" );
 }
 
+LUA_TEST_CASE( "[thing] construct by push+pop" ) {
+  SECTION( "int" ) {
+    thing th( L, 4 );
+    REQUIRE( th.is<integer>() );
+  }
+  SECTION( "thread" ) {
+    thing th( L, st.thread.main() );
+    REQUIRE( th.is<rthread>() );
+    REQUIRE( th == st.thread.main() );
+  }
+}
+
 } // namespace
 } // namespace lua

@@ -68,6 +68,12 @@ struct thing : public thing_base {
   template<typename U>
   auto operator[]( U&& idx ) noexcept = delete;
 
+  template<typename T>
+  thing( cthread L, T&& o ) noexcept {
+    push( L, std::forward<T>( o ) );
+    *this = pop( L );
+  }
+
   template<typename IndexT, typename Predecessor>
   thing( indexer<IndexT, Predecessor> const& idxr ) noexcept {
     *this = idxr;
