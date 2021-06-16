@@ -27,39 +27,19 @@ namespace lua {
 ** reference
 *****************************************************************/
 reference::reference( cthread st, int ref ) noexcept
-  : L( st ), ref_( ref ) {
-  CHECK( ref_ != LUA_NOREF );
+  : Base( ref ), L( st ) {
+  DCHECK( ref != LUA_NOREF );
 }
 
-reference::~reference() noexcept { release(); }
-
-void reference::release() noexcept {
-  if( ref_ == LUA_NOREF ) return;
+void reference::free_resource() {
   c_api C( L );
-  C.unref_registry( ref_ );
-  ref_ = LUA_NOREF;
+  C.unref_registry( resource() );
 }
 
-reference::reference( reference const& rhs ) noexcept
-  : L( rhs.L ) {
-  push( L, rhs );
+int reference::copy_resource() const {
   c_api C( L );
-  ref_ = C.ref_registry();
-}
-
-reference& reference::operator=(
-    reference const& rhs ) noexcept {
-  if( this == &rhs ) return *this;
-  // If we're different objects then we should never be holding
-  // the same reference, even if they refer to the same under-
-  // lying object.
-  CHECK( ref_ != rhs.ref_ );
-  release();
-  L = rhs.L;
-  push( L, rhs );
-  c_api C( L );
-  ref_ = C.ref_registry();
-  return *this;
+  C.registry_get( resource() );
+  return C.ref_registry();
 }
 
 cthread reference::this_cthread() const noexcept { return L; }
@@ -113,7 +93,8 @@ bool operator==( reference const& r, floating const& o ) {
 
 void lua_push( cthread L, reference const& r ) {
   c_api C( L );
-  C.registry_get( r.ref_ );
+  int   ref = r.alive() ? r.resource() : LUA_REFNIL;
+  C.registry_get( ref );
 }
 
 void to_str( reference const& r, string& out ) {

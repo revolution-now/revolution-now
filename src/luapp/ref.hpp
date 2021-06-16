@@ -14,6 +14,9 @@
 #include "cthread.hpp"
 #include "types.hpp"
 
+// base
+#include "base/zero.hpp"
+
 // C++ standard library
 #include <string>
 
@@ -22,15 +25,9 @@ namespace lua {
 /****************************************************************
 ** reference
 *****************************************************************/
-struct reference {
+struct reference : public base::RuleOfZero<reference, int> {
   reference() = delete;
   reference( cthread st, int ref ) noexcept;
-  ~reference() noexcept;
-
-  void release() noexcept;
-
-  reference( reference const& ) noexcept;
-  reference& operator=( reference const& ) noexcept;
 
   cthread this_cthread() const noexcept;
 
@@ -39,11 +36,18 @@ struct reference {
   // ject, since that could correspond to a different thread.
   friend void lua_push( cthread L, reference const& r );
 
+private:
+  using Base = base::RuleOfZero<reference, int>;
+  friend Base;
+
+  // Implement base::RuleOfZero.
+  void free_resource();
+
+  // Implement base::RuleOfZero.
+  int copy_resource() const;
+
 protected:
   cthread L; // not owned.
-
-private:
-  int ref_;
 };
 
 bool operator==( reference const& lhs, reference const& rhs );
