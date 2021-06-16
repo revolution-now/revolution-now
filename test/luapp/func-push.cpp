@@ -279,7 +279,7 @@ LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
     REQUIRE( C.get<string>( -1 ) ==
              "lua::(anonymous namespace)::(anonymous "
              "namespace)::____C_A_T_C_H____T_E_S_T____6::test():"
-             ":$_8" );
+             ":$_4" );
 
     C.pop( 4 );
     REQUIRE( C.stack_size() == 0 );
