@@ -157,7 +157,7 @@
 #define UNWRAP_RETURN( var, ... )                             \
   auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;          \
   if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \
-    return std::move( STRING_JOIN( __x, __LINE__ ).error() ); \
+    return std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
 
 /****************************************************************
