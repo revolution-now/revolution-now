@@ -36,8 +36,12 @@ namespace {
 
 } // namespace
 
-state::state()
-  : L( luaL_newstate() ), thread( L ), string( L ), table( L ) {
+state::state( cthread cth )
+  : L( cth ),
+    own_( false ),
+    thread( L ),
+    string( L ),
+    table( L ) {
   // This will be called whenever an error happens in a Lua call
   // that is not run in a protected environment. For example, if
   // we call lua_getglobal from C++ (outside of a pcall) and it
@@ -45,12 +49,15 @@ state::state()
   lua_atpanic( L, panic );
 }
 
+state::state() : state( luaL_newstate() ) { own_ = true; }
+
 state::~state() noexcept { close(); }
 
 void state::close() {
-  if( L == nullptr ) return;
+  if( !own_ ) return;
   lua_close( L );
-  L = nullptr;
+  L    = nullptr;
+  own_ = false;
 }
 
 /****************************************************************
@@ -78,7 +85,7 @@ table state::Table::global() const noexcept {
 table state::Table::create() const noexcept {
   c_api C( L );
   C.newtable();
-  return lua::table( C.this_cthread(), C.ref_registry() );
+  return lua::table( L, C.ref_registry() );
 }
 
 /****************************************************************
@@ -87,7 +94,7 @@ table state::Table::create() const noexcept {
 rstring state::String::create( string_view sv ) const noexcept {
   c_api C( L );
   C.push( sv );
-  return rstring( C.this_cthread(), C.ref_registry() );
+  return rstring( L, C.ref_registry() );
 }
 
 } // namespace lua

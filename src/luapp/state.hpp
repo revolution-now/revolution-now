@@ -28,9 +28,17 @@ namespace lua {
 // threads that it contains). It is an RAII object and thus owns
 // the state.
 struct state {
+private:
+  // Creates a non-owned (view) state.
+  state( cthread L );
+
+public:
   // Creates an owned Lua state and sets a panic function.
   state();
   ~state() noexcept;
+
+  // Creates a non-owning view of the state.
+  static state view( cthread L ) { return state( L ); }
 
   // Do not use the state after this.
   void close();
@@ -40,6 +48,7 @@ struct state {
 private:
   // main thread.
   cthread L;
+  bool    own_;
 
 public:
   /**************************************************************

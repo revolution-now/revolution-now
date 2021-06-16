@@ -26,6 +26,14 @@ namespace {
 
 using namespace std;
 
+LUA_TEST_CASE( "[lua-state] views don't free" ) {
+  state view1 = state::view( L );
+  state view2 = state::view( L );
+  state view3 = state::view( L );
+  state view4 = state::view( L );
+  state view5 = state::view( L );
+}
+
 LUA_TEST_CASE( "[lua-state] standard tables" ) {
   C.openlibs();
 
