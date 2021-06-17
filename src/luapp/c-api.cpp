@@ -758,4 +758,8 @@ int c_api::rawlen( int idx ) noexcept {
   return int( lua_rawlen( L, idx ) );
 }
 
+int c_api::checkinteger( int arg ) {
+  return luaL_checkinteger( L, arg );
+}
+
 } // namespace lua

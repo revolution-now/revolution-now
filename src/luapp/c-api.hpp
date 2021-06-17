@@ -200,6 +200,13 @@ struct c_api {
   // pushed value.
   type geti( int idx, integer i ) noexcept;
 
+  // Checks whether the function argument arg is an integer (or
+  // can be converted to an integer) and returns this integer
+  // cast to a lua_Integer. `arg` should be positive here since
+  // it is referring to an argument. This will raise a Lua error
+  // if it can't deliver an integer.
+  int checkinteger( int arg );
+
   /**************************************************************
   ** registry references
   ***************************************************************/

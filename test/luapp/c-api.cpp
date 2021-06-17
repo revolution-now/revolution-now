@@ -1479,5 +1479,36 @@ LUA_TEST_CASE( "[lua-c-api] rawlen" ) {
   C.pop();
 }
 
+LUA_TEST_CASE( "[lua-c-api] checkinteger" ) {
+  C.push( []( lua_State* L ) -> int {
+    c_api C( L );
+    int   n = C.checkinteger( 1 );
+    C.push( fmt::format( "hello {}", n ) );
+    return 1;
+  } );
+  REQUIRE( C.stack_size() == 1 );
+
+  SECTION( "good" ) {
+    C.push( 3 );
+    REQUIRE( C.stack_size() == 2 );
+    C.call( /*nargs=*/1, /*nresults=*/1 );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.get<string>( -1 ) == "hello 3" );
+    C.pop();
+  }
+
+  SECTION( "bad" ) {
+    C.push( "world" );
+    REQUIRE( C.stack_size() == 2 );
+    char const* err =
+        "bad argument #1 to '?' (number expected, got string)\n"
+        "stack traceback:\n"
+        "\t[C]: in ?";
+
+    REQUIRE( C.pcall( /*nargs=*/1, /*nresults=*/1 ) ==
+             lua_invalid( err ) );
+  }
+}
+
 } // namespace
 } // namespace lua
