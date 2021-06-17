@@ -14,6 +14,9 @@
 #include "ext.hpp"
 #include "ref.hpp"
 
+// base
+#include "base/fmt.hpp"
+
 namespace lua {
 
 /****************************************************************
@@ -33,3 +36,8 @@ struct any : reference {
 static_assert( Stackable<any> );
 
 } // namespace lua
+
+/****************************************************************
+** fmt
+*****************************************************************/
+TOSTR_TO_FMT( lua::any );
