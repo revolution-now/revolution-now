@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 --[[ ------------------------------------------------------------
 |
 | header-dependency-gen.lua
@@ -14,13 +15,16 @@ re = require( 're' )
 start = arg[1] or
             error( 'need starting file as first argument.' )
 
-pattern = re.compile( [=['#include "'{[a-z.-]+}'"']=] )
-
+extract_file_pattern = re.compile( [['#include "'{[a-z.-]+}'"']] )
 function extract_file( subject )
-  return (re.match( subject, pattern ))
+  return (re.match( subject, extract_file_pattern ))
 end
 
-re.match( '#include "xyz.hpp"', pattern )
+extract_stem_pattern = re.compile( [[{[a-z0-9-]+}'.'.'pp']] )
+function extract_stem( subject )
+  return string.gsub( re.match( subject, extract_stem_pattern ), '-', '_' )
+end
+
 
 to_search = {}
 to_search[start] = false
@@ -49,7 +53,8 @@ while num_to_search() > 0 do
     for line in io.lines( file ) do
       local header = extract_file( line )
       if header ~= nil then
-        print( '  ' .. file .. ' -> ' .. header .. ';' )
+        print( '  ' .. extract_stem( file ) .. ' -> ' ..
+                       extract_stem( header ) .. ';' )
         if to_search[header] == nil then
           to_search[header] = false
         end
