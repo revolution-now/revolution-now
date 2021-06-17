@@ -18,6 +18,7 @@
 #include "base/maybe.hpp"
 
 // C++ standard library
+#include <cassert>
 #include <type_traits>
 
 namespace lua {
@@ -137,15 +138,26 @@ template<typename T>
 concept Stackable = Pushable<T> && Gettable<T>;
 
 /****************************************************************
+** helpers
+*****************************************************************/
+namespace internal {
+
+  int ext_stack_size( cthread L );
+
+} // namespace internal
+
+/****************************************************************
 ** nvalues_for
 *****************************************************************/
 template<typename T>
 requires Pushable<T> || Gettable<T>
 consteval int nvalues_for() {
-  if constexpr( HasTraitsNvalues<T> )
+  if constexpr( HasTraitsNvalues<T> ) {
+    static_assert( traits_for<T>::nvalues > 0 );
     return traits_for<T>::nvalues;
-  else
+  } else {
     return 1;
+  }
 }
 
 /****************************************************************
@@ -153,12 +165,15 @@ consteval int nvalues_for() {
 *****************************************************************/
 template<Pushable T>
 void push( cthread L, T&& o ) {
+  int start_stack_size = internal::ext_stack_size( L );
   if constexpr( PushableViaAdl<T> )
     lua_push( L, std::forward<T>( o ) );
   else if constexpr( PushableViaTraits<T> )
     traits_for<T>::push( L, std::forward<T>( o ) );
   else
     static_assert( "should not be here." );
+  assert( internal::ext_stack_size( L ) - start_stack_size ==
+          nvalues_for<T>() );
 }
 
 /****************************************************************
