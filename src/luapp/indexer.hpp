@@ -28,6 +28,10 @@ namespace lua {
 
 template<typename IndexT, typename Predecessor>
 struct indexer {
+  // Signal that objects of this type should not be treated as
+  // any old user object.
+  using luapp_internal = void;
+
   explicit indexer( IndexT index, Predecessor pred )
     : pred_( std::move( pred ) ), index_( index ) {}
 

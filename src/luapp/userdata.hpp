@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "ext.hpp"
 #include "types.hpp"
 
 // base
@@ -155,6 +156,7 @@ template<typename T>
 void lua_push( cthread L, T&& o )
   requires(
       false && // NOTE: disabled
+      !LuappInternal<T> &&
       !std::is_scalar_v<std::remove_cvref_t<T>> &&
       !std::is_constructible_v<std::string, T> &&
       !base::NonOverloadedCallable<T> &&

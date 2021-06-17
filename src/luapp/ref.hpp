@@ -26,6 +26,10 @@ namespace lua {
 ** reference
 *****************************************************************/
 struct reference : base::RuleOfZero<reference, int> {
+  // Signal that objects of this type should not be treated as
+  // any old user object.
+  using luapp_internal = void;
+
   reference() = delete;
   reference( cthread st, int ref ) noexcept;
 
@@ -52,6 +56,7 @@ protected:
 
 static_assert( Pushable<reference> );
 static_assert( !Gettable<reference> );
+static_assert( LuappInternal<reference> );
 
 namespace internal {
 

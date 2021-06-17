@@ -27,6 +27,10 @@ FMT_TO_CATCH( ::lua::type );
 
 namespace my_ns {
 
+struct SomethingInternal {
+  using luapp_internal = void;
+};
+
 struct Point {
   int x = 0;
   int y = 0;
@@ -120,6 +124,8 @@ using ::base::nothing;
 using ::base::valid;
 using ::my_ns::Point;
 
+static_assert( LuappInternal<my_ns::SomethingInternal> );
+
 static_assert( !Stackable<my_ns::NonPushableNonGettable> );
 static_assert( !Pushable<my_ns::NonPushableNonGettable> );
 static_assert( !PushableViaAdl<my_ns::NonPushableNonGettable> );
@@ -137,7 +143,9 @@ static_assert( PushableViaTraits<my_ns::Both> );
 static_assert( !Gettable<my_ns::Both> );
 static_assert( GettableViaAdl<my_ns::Both> );
 static_assert( GettableViaTraits<my_ns::Both> );
+static_assert( !LuappInternal<my_ns::Both> );
 
+static_assert( !LuappInternal<my_ns::Point> );
 static_assert( Stackable<my_ns::Point> );
 static_assert( Pushable<my_ns::Point> );
 static_assert( PushableViaAdl<my_ns::Point> );
@@ -146,6 +154,7 @@ static_assert( Gettable<my_ns::Point> );
 static_assert( GettableViaAdl<my_ns::Point> );
 static_assert( !GettableViaTraits<my_ns::Point> );
 
+static_assert( !LuappInternal<my_ns::Pair<int, int>> );
 static_assert( Stackable<my_ns::Pair<int, int>> );
 static_assert( Pushable<my_ns::Pair<int, int>> );
 static_assert( !PushableViaAdl<my_ns::Pair<int, int>> );

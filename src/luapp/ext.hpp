@@ -137,6 +137,15 @@ concept Gettable = bool( GettableViaAdl<T> ^
 template<typename T>
 concept Stackable = Pushable<T> && Gettable<T>;
 
+// This generally can be used on extension point overloads that
+// are highly unconstrained and that can accept many unknown
+// types, for which types internal to the luapp library need to
+// be excluded.
+template<typename T>
+concept LuappInternal = requires {
+  typename std::remove_reference_t<T>::luapp_internal;
+};
+
 /****************************************************************
 ** helpers
 *****************************************************************/
