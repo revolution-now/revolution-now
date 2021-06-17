@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "ext.hpp"
 #include "indexer.hpp"
 #include "ref.hpp"
 #include "rfunction.hpp"
@@ -99,7 +100,12 @@ struct thing : public thing_base {
 
 void push_thing( cthread L, thing const& th );
 
+/****************************************************************
+** Lua extension points.
+*****************************************************************/
 LUA_PUSH_FUNC( thing ) { push_thing( L, o ); }
+base::maybe<thing> lua_get( cthread L, int idx, tag<thing> );
+static_assert( Stackable<thing> );
 
 /****************************************************************
 ** to_str

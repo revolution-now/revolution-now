@@ -135,6 +135,12 @@ void push_thing( cthread L, thing const& th ) {
   th.visit( [L]( auto const& o ) { push( L, o ); } );
 }
 
+base::maybe<thing> lua_get( cthread L, int idx, tag<thing> ) {
+  c_api C( L );
+  C.pushvalue( idx );
+  return thing::pop( L );
+}
+
 /****************************************************************
 ** to_str
 *****************************************************************/

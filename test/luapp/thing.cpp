@@ -27,6 +27,8 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
 using ::base::valid;
 using ::Catch::Matches;
 
@@ -574,6 +576,32 @@ LUA_TEST_CASE( "[thing] construct by push+pop" ) {
     thing th( L, st.thread.main() );
     REQUIRE( th.is<rthread>() );
     REQUIRE( th == st.thread.main() );
+  }
+}
+
+LUA_TEST_CASE( "[thing] get" ) {
+  SECTION( "int" ) {
+    C.push( 5 );
+    maybe<thing> th = lua::get<thing>( L, -1 );
+    REQUIRE( th.has_value() );
+    REQUIRE( th->is<integer>() );
+    REQUIRE( th == 5 );
+    C.pop();
+  }
+  SECTION( "string" ) {
+    C.push( "hello" );
+    maybe<thing> th = lua::get<thing>( L, -1 );
+    REQUIRE( th.has_value() );
+    REQUIRE( th->is<rstring>() );
+    REQUIRE( th == "hello" );
+    C.pop();
+  }
+  SECTION( "table" ) {
+    C.newtable();
+    maybe<thing> th = lua::get<thing>( L, -1 );
+    REQUIRE( th.has_value() );
+    REQUIRE( th->is<table>() );
+    C.pop();
   }
 }
 
