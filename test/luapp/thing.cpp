@@ -16,6 +16,9 @@
 // Testing
 #include "test/luapp/common.hpp"
 
+// luapp
+#include "src/luapp/func-push.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -603,6 +606,27 @@ LUA_TEST_CASE( "[thing] get" ) {
     REQUIRE( th->is<table>() );
     C.pop();
   }
+}
+
+LUA_TEST_CASE( "[thing] convertible from any" ) {
+  st["x"]      = st.table.create();
+  st["x"]["y"] = []( lua_State* L ) -> int {
+    c_api C( L );
+    int   n = C.checkinteger( 1 );
+    c_api( L ).push( fmt::format( "hello {}", n ) );
+    return 1;
+  };
+
+  thing th = st["x"]["y"];
+  REQUIRE( th.is<rfunction>() );
+  rfunction f = th.as<rfunction>();
+  // This is a conversion from the `any'.
+  th = f( 3 );
+  REQUIRE( th == "hello 3" );
+
+  // This is a conversion from the `any'.
+  th = st["x"]["y"]( 7 );
+  REQUIRE( th == "hello 7" );
 }
 
 } // namespace

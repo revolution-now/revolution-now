@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "any.hpp"
 #include "ext.hpp"
 #include "indexer.hpp"
 #include "ref.hpp"
@@ -85,6 +86,15 @@ struct thing : public thing_base {
       indexer<IndexT, Predecessor> const& idxr ) noexcept {
     cthread L = idxr.this_cthread();
     push( L, idxr );
+    *this = pop( L );
+    return *this;
+  }
+
+  thing( any a ) noexcept { *this = a; }
+
+  thing& operator=( any a ) noexcept {
+    cthread L = a.this_cthread();
+    push( L, a );
     *this = pop( L );
     return *this;
   }
