@@ -46,6 +46,7 @@ void to_str( type t, std::string& out );
 inline constexpr int kNumLuaTypes = 9;
 
 char const* type_name( cthread L, int idx ) noexcept;
+type        type_of( cthread L, int idx ) noexcept;
 
 /****************************************************************
 ** nil
@@ -141,5 +142,3 @@ using LuaCFunction = int( ::lua_State* );
 TOSTR_TO_FMT( lua::type );
 TOSTR_TO_FMT( lua::nil_t );
 TOSTR_TO_FMT( lua::lightuserdata );
-
-DEFINE_FORMAT( lua::integer, "{}", o.get() );

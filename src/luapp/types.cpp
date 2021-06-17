@@ -51,6 +51,10 @@ char const* type_name( cthread L, int idx ) noexcept {
   return lua_typename( L, lua_type( L, idx ) );
 }
 
+type type_of( cthread L, int idx ) noexcept {
+  return c_api( L ).type_of( idx );
+}
+
 /****************************************************************
 ** equality
 *****************************************************************/
