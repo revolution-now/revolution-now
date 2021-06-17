@@ -16,6 +16,10 @@
 // Testing
 #include "test/luapp/common.hpp"
 
+// luapp
+#include "src/luapp/ext-base.hpp"
+#include "src/luapp/thing.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -26,9 +30,10 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
 using ::base::valid;
 
-LUA_TEST_CASE( "[func-call] no args" ) {
+LUA_TEST_CASE( "[lua-call] no args" ) {
   C.openlibs();
 
   REQUIRE( C.dostring( R"(
@@ -62,7 +67,7 @@ LUA_TEST_CASE( "[func-call] no args" ) {
   }
 }
 
-LUA_TEST_CASE( "[func-call] multiple args, one result" ) {
+LUA_TEST_CASE( "[lua-call] multiple args, one result" ) {
   C.openlibs();
 
   REQUIRE( C.dostring( R"(
@@ -108,7 +113,7 @@ LUA_TEST_CASE( "[func-call] multiple args, one result" ) {
   }
 }
 
-LUA_TEST_CASE( "[func-call] with nresults" ) {
+LUA_TEST_CASE( "[lua-call] with nresults" ) {
   C.openlibs();
 
   REQUIRE( C.dostring( R"(
@@ -166,7 +171,7 @@ LUA_TEST_CASE( "[func-call] with nresults" ) {
   }
 }
 
-LUA_TEST_CASE( "[func-call] call/pcall multret" ) {
+LUA_TEST_CASE( "[lua-call] call/pcall multret" ) {
   C.openlibs();
 
   REQUIRE( C.dostring( R"(
@@ -194,6 +199,108 @@ LUA_TEST_CASE( "[func-call] call/pcall multret" ) {
     REQUIRE( C.get<string>( -2 ) == "hello!" );
     REQUIRE( C.get<int>( -1 ) == 5.0 );
     C.pop( 3 );
+  }
+}
+
+LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
+  C.openlibs();
+
+  SECTION( "call" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        return {n+1, s .. '!', d+1.5}
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    thing th =
+        call_lua_unsafe_and_get<thing>( L, 3, "hello", 3.5 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( th.is<table>() );
+    table t = th.as<table>();
+    REQUIRE( t[1] == 4 );
+    REQUIRE( t[2] == "hello!" );
+    REQUIRE( t[3] == 5.0 );
+  }
+
+  SECTION( "call limit one result" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        return n+1, s .. '!', d+1.5
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    int res = call_lua_unsafe_and_get<int>( L, 3, "hello", 3.5 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( res == 4 );
+  }
+
+  SECTION( "pcall" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        assert( n ~= 9 )
+        return {n+1, s .. '!', d+1.5}
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    lua_expect<thing> th =
+        call_lua_safe_and_get<thing>( L, 3, "hello", 3.5 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( th.has_value() );
+    REQUIRE( th->is<table>() );
+    table t = th->as<table>();
+    REQUIRE( t[1] == 4 );
+    REQUIRE( t[2] == "hello!" );
+    REQUIRE( t[3] == 5.0 );
+  }
+
+  SECTION( "pcall with error" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        assert( n ~= 9 )
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    lua_expect<thing> th =
+        call_lua_safe_and_get<thing>( L, 9, "hello", 3.5 );
+    REQUIRE( th ==
+             lua_unexpected<thing>(
+                 "[string \"...\"]:3: assertion failed!\n"
+                 "stack traceback:\n"
+                 "\t[C]: in function 'assert'\n"
+                 "\t[string \"...\"]:3: in function 'foo'" ) );
+  }
+
+  SECTION( "call with maybe result" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( s )
+        return 'hello' .. s
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    auto n = call_lua_unsafe_and_get<maybe<int>>( L, "hello" );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( !n.has_value() );
+
+    C.getglobal( "foo" );
+    auto s =
+        call_lua_unsafe_and_get<maybe<string>>( L, "hello" );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( s == "hellohello" );
   }
 }
 
