@@ -26,6 +26,9 @@ struct rfunction : public reference {
   using Base = reference;
 
   using Base::Base;
+
+  friend base::maybe<rfunction> lua_get( cthread L, int idx,
+                                         tag<rfunction> );
 };
 
 } // namespace lua

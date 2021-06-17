@@ -35,6 +35,9 @@ struct rstring : public reference {
   bool operator==( char const* s ) const;
   bool operator==( std::string_view s ) const;
   bool operator==( std::string const& s ) const;
+
+  friend base::maybe<rstring> lua_get( cthread L, int idx,
+                                       tag<rstring> );
 };
 
 } // namespace lua

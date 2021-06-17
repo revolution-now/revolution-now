@@ -27,6 +27,9 @@ struct table : public reference {
 
   using Base::Base;
 
+  friend base::maybe<table> lua_get( cthread L, int idx,
+                                     tag<table> );
+
   template<typename U>
   auto operator[]( U&& idx ) noexcept {
     return indexer<U, table>( std::forward<U>( idx ), *this );

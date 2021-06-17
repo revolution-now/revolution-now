@@ -1,14 +1,15 @@
 /****************************************************************
-**rtable.cpp
+**rfunction.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2021-06-11.
+* Created by dsicilia on 2021-06-17.
 *
-* Description: RAII holder for registry references to Lua tables.
+* Description: RAII holder for registry references to Lua
+*              functions.
 *
 *****************************************************************/
-#include "rtable.hpp"
+#include "rfunction.hpp"
 
 // luapp
 #include "c-api.hpp"
@@ -17,12 +18,13 @@ using namespace std;
 
 namespace lua {
 
-base::maybe<table> lua_get( cthread L, int idx, tag<table> ) {
+base::maybe<rfunction> lua_get( cthread L, int idx,
+                                tag<rfunction> ) {
   lua::c_api C( L );
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );
   // Then pop it into a registry reference.
-  return table( L, C.ref_registry() );
+  return rfunction( L, C.ref_registry() );
 }
 
 } // namespace lua

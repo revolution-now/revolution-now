@@ -45,4 +45,13 @@ bool rstring::operator==( string const& s ) const {
   return as_cpp() == s;
 }
 
+base::maybe<rstring> lua_get( cthread L, int idx,
+                              tag<rstring> ) {
+  lua::c_api C( L );
+  // Copy the requested value to the top of the stack.
+  C.pushvalue( idx );
+  // Then pop it into a registry reference.
+  return rstring( L, C.ref_registry() );
+}
+
 } // namespace lua
