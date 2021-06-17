@@ -81,6 +81,12 @@ concept StatefulLuaCExtensionFunction =
     LuaCExtensionFunction<T> &&
     base::NonOverloadedStatefulCallable<T>;
 
+// Just any old C++ function.
+template<typename T>
+concept RegularNonOverloadedCppFunction =
+    !LuappInternal<T> && base::NonOverloadedCallable<T> &&
+    !LuaCExtensionFunction<T>;
+
 /****************************************************************
 ** push overloads.
 *****************************************************************/
@@ -92,6 +98,11 @@ void lua_push( cthread                               L,
 void lua_push( cthread                              L,
                StatefulLuaCExtensionFunction auto&& o ) {
   push_stateful_lua_c_function( L, FWD( o ) );
+}
+
+void lua_push( cthread                                L,
+               RegularNonOverloadedCppFunction auto&& o ) {
+  push_cpp_function( L, FWD( o ) );
 }
 
 /****************************************************************
