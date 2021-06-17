@@ -44,19 +44,6 @@ int reference::copy_resource() const {
 
 cthread reference::this_cthread() const noexcept { return L; }
 
-bool operator==( reference const& lhs, reference const& rhs ) {
-  // Need to use the same Lua state for both pushes in the
-  // event that lhs and rhs have L's that correspond to different
-  // threads.
-  cthread L = lhs.this_cthread();
-  push( L, lhs );
-  push( L, rhs );
-  c_api C( L );
-  bool  res = C.compare_eq( -2, -1 );
-  C.pop( 2 );
-  return res;
-}
-
 namespace {
 
 template<typename T>
@@ -70,6 +57,17 @@ bool ref_op_eq( reference const& r, T const& o ) {
 }
 
 } // namespace
+
+namespace internal {
+
+bool compare_top_two_and_pop( cthread L ) {
+  c_api C( L );
+  bool  res = C.compare_eq( -2, -1 );
+  C.pop( 2 );
+  return res;
+}
+
+} // namespace internal
 
 bool operator==( reference const& r, nil_t o ) {
   return ref_op_eq( r, o );

@@ -12,7 +12,7 @@
 
 // luapp
 #include "cthread.hpp"
-#include "types.hpp"
+#include "ext.hpp"
 
 // base
 #include "base/zero.hpp"
@@ -50,13 +50,24 @@ protected:
   cthread L; // not owned.
 };
 
-bool operator==( reference const& lhs, reference const& rhs );
+static_assert( Pushable<reference> );
+static_assert( !Gettable<reference> );
 
-bool operator==( reference const& r, nil_t );
-bool operator==( reference const& r, boolean const& b );
-bool operator==( reference const& r, lightuserdata const& lud );
-bool operator==( reference const& r, integer const& i );
-bool operator==( reference const& r, floating const& f );
+namespace internal {
+
+// Asks Lua to compare the top to values on the stack and returns
+// true if they are equal, and pops them.
+bool compare_top_two_and_pop( cthread L );
+
+} // namespace internal
+
+template<typename T>
+bool operator==( reference const& r, T const& rhs ) {
+  cthread L = r.this_cthread();
+  push( L, r );
+  push( L, rhs );
+  return internal::compare_top_two_and_pop( L );
+}
 
 void to_str( reference const& r, std::string& out );
 
