@@ -26,6 +26,7 @@ namespace {
 using namespace std;
 
 using ::base::valid;
+using ::Catch::Matches;
 using ::testing::monitoring_types::Tracker;
 
 /****************************************************************
@@ -276,10 +277,11 @@ LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
     REQUIRE( C.stack_size() == 3 );
     REQUIRE( C.getfield( -1, "__name" ) == type::string );
     REQUIRE( C.stack_size() == 4 );
-    REQUIRE( C.get<string>( -1 ) ==
-             "lua::(anonymous namespace)::(anonymous "
-             "namespace)::____C_A_T_C_H____T_E_S_T____6::test():"
-             ":$_4" );
+    REQUIRE_THAT(
+        *C.get<string>( -1 ),
+        Matches( "lua::.anonymous namespace.::.anonymous "
+                 "namespace.::____C_A_T_C_H____T_E_S_T____"
+                 "6::test..::.*" ) );
 
     C.pop( 4 );
     REQUIRE( C.stack_size() == 0 );

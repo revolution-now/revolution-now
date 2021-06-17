@@ -97,7 +97,8 @@ bool push_userdata_by_value( cthread L, T&& object ) noexcept {
       [&]( void* ud ) {
         new( ud ) T( std::forward<T>( object ) );
       },
-      fmtable ? tostring : nullptr, call_destructor, type_name );
+      fmtable ? +tostring : nullptr, call_destructor,
+      type_name );
 }
 
 // Push a C++ object as userdata by reference.
@@ -140,7 +141,7 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
         // Store a pointer to the object.
         *pointer_storage = &object;
       },
-      fmtable ? tostring : nullptr,
+      fmtable ? +tostring : nullptr,
       /*call_destructor=*/nullptr, type_name );
 }
 

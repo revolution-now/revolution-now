@@ -174,6 +174,8 @@ void push( cthread L, T&& o ) {
     static_assert( "should not be here." );
   assert( internal::ext_stack_size( L ) - start_stack_size ==
           nvalues_for<T>() );
+  // If removing above, remove below.
+  (void)start_stack_size;
 }
 
 /****************************************************************

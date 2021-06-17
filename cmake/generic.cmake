@@ -110,6 +110,11 @@ set( SANITIZER_FLAGS
   -fno-sanitize=pointer-overflow
 )
 
+if( CMAKE_CXX_COMPILER_ID MATCHES "GNU" )
+  # This is to fix a gcc linker error with asan.
+  set( SANITIZER_FLAGS "${SANITIZER_FLAGS} -static-libasan" )
+endif()
+
 function( enable_sanitizers )
   message( STATUS "Enabling Sanitizers." )
   string( JOIN " " SANITIZER_FLAGS_STRING ${SANITIZER_FLAGS} )
