@@ -42,6 +42,8 @@ using thing_base =
                   rthread>;
 
 struct thing : public thing_base {
+  using luapp_internal = void;
+
   using Base = thing_base;
 
   using Base::Base;
