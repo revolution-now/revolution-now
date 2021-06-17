@@ -18,6 +18,7 @@
 
 // luapp
 #include "src/luapp/c-api.hpp"
+#include "src/luapp/ext-base.hpp"
 #include "src/luapp/thing.hpp"
 
 // Must be last.
@@ -30,6 +31,8 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
 using ::base::valid;
 
 template<typename Derived>
@@ -235,6 +238,49 @@ LUA_TEST_CASE( "[indexer] equality" ) {
   REQUIRE( ( mt[5][1]["hello"] == "payload" ) );
 
   REQUIRE( ( mt[5][1]["hello"] == mt[5][1]["hello"] ) );
+}
+
+LUA_TEST_CASE( "[indexer] assignment to maybe" ) {
+  EmptyTable mt( L );
+  mt[5]             = EmptyTable( L );
+  mt[5][1]          = EmptyTable( L );
+  mt[5][1]["hello"] = "payload";
+  mt[5][1][2]       = 7.7;
+
+  static_assert( Gettable<maybe<int>> );
+
+  SECTION( "from nil" ) {
+    auto mb = mt[5][1]["xxx"].as<maybe<bool>>();
+    auto mi = mt[5][1]["xxx"].as<maybe<int>>();
+    auto ms = mt[5][1]["xxx"].as<maybe<string>>();
+    auto md = mt[5][1]["xxx"].as<maybe<double>>();
+    REQUIRE( mb == false );
+    REQUIRE( mi == nothing );
+    REQUIRE( ms == nothing );
+    REQUIRE( md == nothing );
+  }
+
+  SECTION( "from string" ) {
+    auto mb = mt[5][1]["hello"].as<maybe<bool>>();
+    auto mi = mt[5][1]["hello"].as<maybe<int>>();
+    auto ms = mt[5][1]["hello"].as<maybe<string>>();
+    auto md = mt[5][1]["hello"].as<maybe<double>>();
+    REQUIRE( mb == true );
+    REQUIRE( mi == nothing );
+    REQUIRE( ms == "payload" );
+    REQUIRE( md == nothing );
+  }
+
+  SECTION( "from double" ) {
+    auto mb = mt[5][1][2].as<maybe<bool>>();
+    auto mi = mt[5][1][2].as<maybe<int>>();
+    auto ms = mt[5][1][2].as<maybe<string>>();
+    auto md = mt[5][1][2].as<maybe<double>>();
+    REQUIRE( mb == true );
+    REQUIRE( mi == nothing );
+    REQUIRE( ms == "7.7" );
+    REQUIRE( md == 7.7 );
+  }
 }
 
 } // namespace

@@ -20,6 +20,8 @@ using namespace std;
 
 namespace lua {
 
+namespace internal {
+
 void indexer_gettable( cthread L ) {
   c_api C( L );
   CHECK( C.stack_size() >= 2 );
@@ -42,5 +44,9 @@ bool indexer_eq( cthread L ) {
   C.pop( 2 );
   return res;
 }
+
+void indexer_pop( cthread L, int n ) { c_api( L ).pop( n ); }
+
+} // namespace internal
 
 } // namespace lua
