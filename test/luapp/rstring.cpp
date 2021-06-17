@@ -83,5 +83,15 @@ LUA_TEST_CASE( "[rstring] as_cpp / string literal cmp" ) {
   REQUIRE( s.as_cpp() == "hello" );
 }
 
+LUA_TEST_CASE( "[rstring] get+convert" ) {
+  C.push( "hello" );
+  REQUIRE( lua::get<rstring>( L, -1 ) == "hello" );
+
+  C.push( 5 );
+  REQUIRE( lua::get<rstring>( L, -1 ) == "5" );
+
+  C.pop( 2 );
+}
+
 } // namespace
 } // namespace lua

@@ -69,7 +69,7 @@ template<Gettable R, Pushable... Args>
 lua_expect<R> table::pcall( Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
-  return call_lua_safe_and_get<any>( L, FWD( args )... );
+  return call_lua_safe_and_get<R>( L, FWD( args )... );
 }
 
 } // namespace lua

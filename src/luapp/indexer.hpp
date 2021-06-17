@@ -168,7 +168,7 @@ lua_expect<R> indexer<IndexT, Predecessor>::pcall(
     Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
-  return call_lua_safe_and_get<any>( L, FWD( args )... );
+  return call_lua_safe_and_get<R>( L, FWD( args )... );
 }
 
 } // namespace lua

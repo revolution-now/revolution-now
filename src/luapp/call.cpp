@@ -28,7 +28,8 @@ lua_expect<int> call_lua_from_cpp(
     base::function_ref<void()> push_args ) {
   c_api C( L );
   CHECK( C.stack_size() >= 1 );
-  CHECK( C.type_of( -1 ) == type::function );
+  CHECK( C.type_of( -1 ) == type::function ||
+         C.type_of( -1 ) == type::table );
   // Get size of stack before function was pushed.
   int starting_stack_size = C.stack_size() - 1;
 

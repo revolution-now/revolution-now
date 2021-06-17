@@ -18,6 +18,7 @@
 
 // luapp
 #include "src/luapp/func-push.hpp"
+#include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -192,9 +193,26 @@ LUA_TEST_CASE( "[thing] table index" ) {
 LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
   C.openlibs();
 
-  st["go"] = []( int n, string const& s, double d ) -> string {
+  st["go"] = st.table.create();
+  push( L, st["go"] );
+  REQUIRE( C.stack_size() == 1 );
+  C.newtable();
+  REQUIRE( C.stack_size() == 2 );
+  C.setmetatable( -2 );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.getmetatable( -1 ) );
+  REQUIRE( C.stack_size() == 2 );
+  table metatable = table( L, C.ref_registry() );
+  REQUIRE( C.stack_size() == 1 );
+  C.pop();
+  REQUIRE( C.stack_size() == 0 );
+
+  metatable["__call"] = [&]( thing th, int n, string const& s,
+                             double d ) {
+    CHECK( th == st["go"] );
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
+
   table t = st["go"].as<table>();
 
   any a = t( 3, "hello", 3.6 );

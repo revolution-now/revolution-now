@@ -19,6 +19,7 @@ namespace lua {
 
 base::maybe<table> lua_get( cthread L, int idx, tag<table> ) {
   lua::c_api C( L );
+  if( C.type_of( idx ) != type::table ) return base::nothing;
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );
   // Then pop it into a registry reference.
