@@ -142,20 +142,15 @@ void push_cpp_function_impl( cthread L, Func&& func, R*,
           using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
           int  lua_idx = Idx + 1;
           auto m       = lua::get<elem_t>( L, lua_idx );
-          if constexpr( !std::is_same_v<bool, decltype( m )> ) {
-            if( !m.has_value() )
-              throw_lua_error(
-                  L,
-                  "Native function expected type '{}' for "
-                  "argument {} (1-based), but received "
-                  "non-convertible type '{}' from Lua.",
-                  base::demangled_typename<elem_t>(), Idx + 1,
-                  type_name( L, lua_idx ) );
-            std::get<Idx>( args ) = *m;
-          } else {
-            // for bools
-            std::get<Idx>( args ) = m;
-          }
+          if( !m.has_value() )
+            throw_lua_error(
+                L,
+                "Native function expected type '{}' for "
+                "argument {} (1-based), but received "
+                "non-convertible type '{}' from Lua.",
+                base::demangled_typename<elem_t>(), Idx + 1,
+                type_name( L, lua_idx ) );
+          std::get<Idx>( args ) = *m;
         };
     mp::for_index_seq<sizeof...( Args )>( to_cpp_arg );
 
