@@ -19,12 +19,14 @@
 // luapp
 #include "src/luapp/c-api.hpp"
 #include "src/luapp/ext-base.hpp"
+#include "src/luapp/func-push.hpp"
 #include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
 
-// FMT_TO_CATCH( ::rn::UnitId );
+FMT_TO_CATCH( ::lua::thing );
+FMT_TO_CATCH( ::lua::any );
 
 namespace lua {
 namespace {
@@ -281,6 +283,88 @@ LUA_TEST_CASE( "[indexer] assignment to maybe" ) {
     REQUIRE( ms == "7.7" );
     REQUIRE( md == 7.7 );
   }
+}
+
+LUA_TEST_CASE( "[indexer] cpp from cpp via lua" ) {
+  C.openlibs();
+
+  st["go"] = []( int n, string const& s, double d ) -> string {
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  };
+  thing th = st["go"];
+  REQUIRE( th.is<rfunction>() );
+
+  any a = st["go"]( 3, "hello", 3.6 );
+  REQUIRE( a == "args: n=3, s='hello', d=3.6" );
+
+  string s = st["go"].call<string>( 3, "hello", 3.6 );
+  REQUIRE( s == "args: n=3, s='hello', d=3.6" );
+
+  th = a;
+  REQUIRE( th.is<rstring>() );
+  REQUIRE( th == "args: n=3, s='hello', d=3.6" );
+
+  th = st["go"]( 4, "hello", 3.6 );
+  REQUIRE( th.is<rstring>() );
+  REQUIRE( th == "args: n=4, s='hello', d=3.6" );
+
+  REQUIRE( st["go"]( 3, "hello", 3.7 ) ==
+           "args: n=3, s='hello', d=3.7" );
+}
+
+LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
+  C.openlibs();
+
+  int bad_value = 4;
+
+  st["go"] = [this, bad_value]( int n, string const& s,
+                                double d ) -> string {
+    if( n == bad_value ) C.error( "n cannot be 4." );
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  };
+  thing th = st["go"];
+  REQUIRE( th.is<rfunction>() );
+
+  REQUIRE( C.dostring( R"(
+    function foo( n, s, d )
+      assert( n ~= nil, 'n is nil' )
+      assert( s ~= nil, 's is nil' )
+      assert( d ~= nil, 'd is nil' )
+      return go( n, s, d )
+    end
+  )" ) == valid );
+
+  // call with no errors.
+  REQUIRE( st["foo"]( 3, "hello", 3.6 ) ==
+           "args: n=3, s='hello', d=3.6" );
+  rstring s = st["go"].call<rstring>( 5, "hello", 3.6 );
+  REQUIRE( s == "args: n=5, s='hello', d=3.6" );
+
+  // pcall with no errors.
+  REQUIRE( st["foo"].pcall( 3, "hello", 3.6 ) ==
+           "args: n=3, s='hello', d=3.6" );
+
+  // pcall with error coming from Lua function.
+  // clang-format off
+  char const* err =
+    "[string \"...\"]:4: s is nil\n"
+    "stack traceback:\n"
+    "\t[C]: in function 'assert'\n"
+    "\t[string \"...\"]:4: in function 'foo'";
+  // clang-format on
+  REQUIRE( st["foo"].pcall( 3, nil, 3.6 ) ==
+           lua_unexpected<any>( err ) );
+
+  // pcall with error coming from C function.
+  // clang-format off
+  err =
+    "[string \"...\"]:6: n cannot be 4.\n"
+    "stack traceback:\n"
+    "\t[C]: in function 'go'\n"
+    "\t[string \"...\"]:6: in function 'foo'";
+  // clang-format on
+  REQUIRE( st["foo"].pcall( 4, "hello", 3.6 ) ==
+           lua_unexpected<any>( err ) );
 }
 
 } // namespace

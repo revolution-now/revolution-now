@@ -11,6 +11,8 @@
 #pragma once
 
 // luapp
+#include "any.hpp"
+#include "call.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "ext.hpp"
@@ -19,6 +21,7 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/error.hpp"
+#include "base/macros.hpp"
 #include "base/maybe.hpp"
 
 // C++ standard library
@@ -63,6 +66,15 @@ struct indexer {
   template<Pushable U>
   bool operator==( U const& rhs ) const noexcept;
 
+  template<Pushable... Args>
+  any operator()( Args&&... args );
+
+  template<Gettable R = any, Pushable... Args>
+  R call( Args&&... args );
+
+  template<Gettable R = any, Pushable... Args>
+  lua_expect<R> pcall( Args&&... args );
+
 private:
   Predecessor pred_;
   IndexT      index_;
@@ -84,6 +96,9 @@ void indexer_pop( cthread L, int n );
 
 } // namespace internal
 
+/****************************************************************
+** Template implementations.
+*****************************************************************/
 template<typename IndexT, typename Predecessor>
 void lua_push( cthread                             L,
                indexer<IndexT, Predecessor> const& idxr ) {
@@ -129,6 +144,31 @@ U indexer<IndexT, Predecessor>::as() const {
         base::demangled_typename<U>(), type_of( L, -1 ) );
   internal::indexer_pop( L, 1 );
   return *res;
+}
+
+template<typename IndexT, typename Predecessor>
+template<Pushable... Args>
+any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
+  cthread L = this_cthread();
+  push( L, *this );
+  return call_lua_unsafe_and_get<any>( L, FWD( args )... );
+}
+
+template<typename IndexT, typename Predecessor>
+template<Gettable R, Pushable... Args>
+R indexer<IndexT, Predecessor>::call( Args&&... args ) {
+  cthread L = this_cthread();
+  push( L, *this );
+  return call_lua_unsafe_and_get<R>( L, FWD( args )... );
+}
+
+template<typename IndexT, typename Predecessor>
+template<Gettable R, Pushable... Args>
+lua_expect<R> indexer<IndexT, Predecessor>::pcall(
+    Args&&... args ) {
+  cthread L = this_cthread();
+  push( L, *this );
+  return call_lua_safe_and_get<any>( L, FWD( args )... );
 }
 
 } // namespace lua

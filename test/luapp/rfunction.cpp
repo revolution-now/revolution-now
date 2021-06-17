@@ -16,6 +16,9 @@
 // Testing
 #include "test/luapp/common.hpp"
 
+// luapp
+#include "src/luapp/func-push.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -25,6 +28,8 @@ namespace lua {
 namespace {
 
 using namespace std;
+
+using ::base::valid;
 
 /****************************************************************
 ** rfunction objects
@@ -168,6 +173,63 @@ LUA_TEST_CASE( "[lfunction] lfunction copy --> no collect" ) {
   // *** This is the test! The copy has now gone out of scope,
   // so we should collect the original object.
   verify_collect( true );
+}
+
+LUA_TEST_CASE( "[table] cpp->lua->cpp round trip" ) {
+  C.openlibs();
+
+  int bad_value = 4;
+
+  st["go"] = [this, bad_value]( int n, string const& s,
+                                double d ) -> string {
+    if( n == bad_value ) C.error( "n cannot be 4." );
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  };
+
+  REQUIRE( C.dostring( R"(
+    function foo( n, s, d )
+      assert( n ~= nil, 'n is nil' )
+      assert( s ~= nil, 's is nil' )
+      assert( d ~= nil, 'd is nil' )
+      return go( n, s, d )
+    end
+  )" ) == valid );
+  rfunction foo = st["foo"].as<rfunction>();
+
+  any a = foo( 3, "hello", 3.6 );
+  REQUIRE( a == "args: n=3, s='hello', d=3.6" );
+
+  // call with no errors.
+  REQUIRE( foo( 3, "hello", 3.6 ) ==
+           "args: n=3, s='hello', d=3.6" );
+  rstring s = foo.call<rstring>( 5, "hello", 3.6 );
+  REQUIRE( s == "args: n=5, s='hello', d=3.6" );
+
+  // pcall with no errors.
+  REQUIRE( foo.pcall( 3, "hello", 3.6 ) ==
+           "args: n=3, s='hello', d=3.6" );
+
+  // pcall with error coming from Lua function.
+  // clang-format off
+  char const* err =
+    "[string \"...\"]:4: s is nil\n"
+    "stack traceback:\n"
+    "\t[C]: in function 'assert'\n"
+    "\t[string \"...\"]:4: in function 'foo'";
+  // clang-format on
+  REQUIRE( foo.pcall( 3, nil, 3.6 ) ==
+           lua_unexpected<any>( err ) );
+
+  // pcall with error coming from C function.
+  // clang-format off
+  err =
+    "[string \"...\"]:6: n cannot be 4.\n"
+    "stack traceback:\n"
+    "\t[C]: in function 'go'\n"
+    "\t[string \"...\"]:6: in function 'foo'";
+  // clang-format on
+  REQUIRE( foo.pcall( 4, "hello", 3.6 ) ==
+           lua_unexpected<any>( err ) );
 }
 
 } // namespace

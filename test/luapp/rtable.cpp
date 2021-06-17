@@ -16,6 +16,9 @@
 // Testing
 #include "test/luapp/common.hpp"
 
+// luapp
+#include "src/luapp/func-push.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -184,6 +187,30 @@ LUA_TEST_CASE( "[thing] table index" ) {
 
   REQUIRE( C.get<string>( -1 ) == "target" );
   C.pop();
+}
+
+LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
+  C.openlibs();
+
+  st["go"] = []( int n, string const& s, double d ) -> string {
+    return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
+  };
+  table t = st["go"].as<table>();
+
+  any a = t( 3, "hello", 3.6 );
+  REQUIRE( a == "args: n=3, s='hello', d=3.6" );
+
+  string s = t.call<string>( 3, "hello", 3.6 );
+  REQUIRE( s == "args: n=3, s='hello', d=3.6" );
+
+  REQUIRE( t( 4, "hello", 3.6 ) ==
+           "args: n=4, s='hello', d=3.6" );
+
+  REQUIRE( t( 3, "hello", 3.7 ) ==
+           "args: n=3, s='hello', d=3.7" );
+
+  REQUIRE( t.pcall( 3, "hello", 3.7 ) ==
+           "args: n=3, s='hello', d=3.7" );
 }
 
 } // namespace
