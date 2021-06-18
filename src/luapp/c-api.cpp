@@ -681,10 +681,20 @@ bool c_api::getupvalue( int funcindex, int n ) noexcept {
   return ( name != nullptr );
 }
 
-void c_api::error() noexcept( false ) { lua_error( L ); }
+void c_api::error() noexcept( false ) {
+  lua_error( L );
+  // We won't get here, it is just to suppress the warning
+  // telling us that this function should not return, since we
+  // cannot mark lua_error as [[noreturn]].
+  throw 0;
+}
 
 void c_api::error( std::string const& msg ) noexcept( false ) {
   luaL_error( L, msg.c_str() );
+  // We won't get here, it is just to suppress the warning
+  // telling us that this function should not return, since we
+  // cannot mark lua_error as [[noreturn]].
+  throw 0;
 }
 
 int c_api::noref() noexcept { return LUA_NOREF; }

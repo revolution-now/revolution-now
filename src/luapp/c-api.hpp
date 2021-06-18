@@ -433,8 +433,9 @@ struct c_api {
   // able to throw from these functions. This matters when we
   // need to call one of these from a Lua C function to throw a
   // Lua error that can be caught by Lua.
-  void error() noexcept( false );
-  void error( std::string const& msg ) noexcept( false );
+  [[noreturn]] void error() noexcept( false );
+  [[noreturn]] void error( std::string const& msg ) noexcept(
+      false );
 
 private:
   bool                 get( int idx, bool* ) const noexcept;
