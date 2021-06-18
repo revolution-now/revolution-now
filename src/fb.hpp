@@ -605,19 +605,18 @@ auto serialize( FBBuilder&                  builder,
 
   int count = 0;
 
-  mp::for_index_seq<sizeof...( Ts )>(
-      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-        auto* p = std::get_if<Idx>( &o );
-        if( !p ) return;
-        auto& tuple_elem = std::get<Idx>( t );
-        auto& return_container_tuple_elem =
-            std::get<Idx>( t_return );
-        using elem_hint_t =
-            fb_serialize_hint_t<decltype( tuple_elem )>;
-        return_container_tuple_elem =
-            serialize<elem_hint_t>( builder, *p, serial::ADL{} );
-        count++;
-      } );
+  FOR_CONSTEXPR_IDX( Idx, sizeof...( Ts ) ) {
+    auto* p = std::get_if<Idx>( &o );
+    if( !p ) return;
+    auto& tuple_elem = std::get<Idx>( t );
+    auto& return_container_tuple_elem =
+        std::get<Idx>( t_return );
+    using elem_hint_t =
+        fb_serialize_hint_t<decltype( tuple_elem )>;
+    return_container_tuple_elem =
+        serialize<elem_hint_t>( builder, *p, serial::ADL{} );
+    count++;
+  };
 
   CHECK( count == 1,
          "Failed to find one active variant state to serialize. "
@@ -983,18 +982,19 @@ valid_deserial_t visit_tuple_variant_deserialize(
     SrcT const* src, Variant& dst, int active_index ) {
   valid_deserial_t err   = valid;
   bool             found = false;
-  mp::for_index_seq<std::variant_size_v<Variant>>(
-      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-        // Return true means we will stop iterating.
-        if( active_index != Idx ) return false;
-        err = deserialize(
-            detail::to_const_ptr(
-                src->template get_field<Idx + Offset>() ),
-            &dst.template emplace<Idx>(), ADL{} );
-        if( !err ) return true;
-        found = true;
-        return true; // stop iterating early.
-      } );
+
+  FOR_CONSTEXPR_IDX( Idx, std::variant_size_v<Variant> ) {
+    // Return true means we will stop iterating.
+    if( active_index != Idx ) return false;
+    err = deserialize(
+        detail::to_const_ptr(
+            src->template get_field<Idx + Offset>() ),
+        &dst.template emplace<Idx>(), ADL{} );
+    if( !err ) return true;
+    found = true;
+    return true; // stop iterating early.
+  };
+
   if( !err ) return err;
   if( !found )
     return invalid_deserial(
@@ -1014,20 +1014,21 @@ expect<int, DeserialError> find_active_index_in_fb(
   int              count = 0;
   maybe<int>       active_index;
   constexpr size_t field_count = SrcT::Traits::fields_number;
-  mp::for_index_seq<field_count>(
-      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-        static_assert(
-            std::is_pointer_v<std::remove_reference_t<
-                decltype( src->template get_field<Idx>() )>>,
-            "expected get_field to have all pointer types since "
-            "this is supposed to be an FB variant with no "
-            "active_index." );
-        auto* p = src->template get_field<Idx>();
-        if( p != nullptr ) {
-          ++count;
-          active_index = Idx;
-        }
-      } );
+
+  FOR_CONSTEXPR_IDX( Idx, field_count ) {
+    static_assert(
+        std::is_pointer_v<std::remove_reference_t<
+            decltype( src->template get_field<Idx>() )>>,
+        "expected get_field to have all pointer types since "
+        "this is supposed to be an FB variant with no "
+        "active_index." );
+    auto* p = src->template get_field<Idx>();
+    if( p != nullptr ) {
+      ++count;
+      active_index = Idx;
+    }
+  };
+
   if( count != 1 )
     return invalid_deserial(
                fmt::format( "failed to find precisely one "

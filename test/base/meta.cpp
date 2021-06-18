@@ -314,6 +314,23 @@ TEST_CASE( "[meta] for_index_seq" ) {
     REQUIRE( std::get<3>( t ) == 3 );
     REQUIRE( std::get<4>( t ) == 4 );
   }
+  SECTION( "non-stop with macro" ) {
+    std::tuple<int, int, int, int, int> t{};
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 0 );
+    REQUIRE( std::get<2>( t ) == 0 );
+    REQUIRE( std::get<3>( t ) == 0 );
+    REQUIRE( std::get<4>( t ) == 0 );
+
+    FOR_CONSTEXPR_IDX( Idx, 5 ) { std::get<Idx>( t ) = Idx; };
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 1 );
+    REQUIRE( std::get<2>( t ) == 2 );
+    REQUIRE( std::get<3>( t ) == 3 );
+    REQUIRE( std::get<4>( t ) == 4 );
+  }
   SECTION( "stop early" ) {
     std::tuple<int, int, int, int, int> t{};
 

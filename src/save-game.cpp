@@ -134,12 +134,11 @@ valid_deserial_t load_from_blob(
   util::StopWatch watch;
   watch.start( "load" );
   valid_deserial_t res = valid;
-  mp::for_index_seq<kNumSavegameModules>(
-      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-        res = savegame_deserializer( root->get_field<Idx>() );
-        if( !res ) return true;
-        return false;
-      } );
+  FOR_CONSTEXPR_IDX( Idx, kNumSavegameModules ) {
+    res = savegame_deserializer( root->get_field<Idx>() );
+    if( !res ) return true;
+    return false;
+  };
   if( !res ) return res;
   watch.stop( "load" );
 

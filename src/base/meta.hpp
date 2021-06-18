@@ -471,6 +471,22 @@ constexpr auto for_index_seq( Func&& func ) {
   }
 }
 
+namespace detail {
+
+template<size_t Limit>
+struct ForIndexRunner {
+  template<typename Func>
+  void operator=( Func&& func ) const {
+    for_index_seq<Limit>( std::forward<Func>( func ) );
+  }
+};
+
+} // namespace detail
+
+#define FOR_CONSTEXPR_IDX( var, limit )                    \
+  ::mp::detail::ForIndexRunner<limit>{} = [&]<size_t var>( \
+      std::integral_constant<size_t, var> )
+
 /****************************************************************
 ** tuple_tail
 *****************************************************************/

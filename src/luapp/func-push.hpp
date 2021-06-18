@@ -148,22 +148,20 @@ void push_cpp_function_impl( cthread L, Func&& func, R*,
 
     func_push_cpp_check_args( L, sizeof...( Args ) );
 
-    auto to_cpp_arg =
-        [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-          using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
-          int  lua_idx = Idx + 1;
-          auto m       = lua::get<elem_t>( L, lua_idx );
-          if( !m.has_value() )
-            throw_lua_error(
-                L,
-                "Native function expected type '{}' for "
-                "argument {} (1-based), but received "
-                "non-convertible type '{}' from Lua.",
-                base::demangled_typename<elem_t>(), Idx + 1,
-                type_name( L, lua_idx ) );
-          std::get<Idx>( args ) = *m;
-        };
-    mp::for_index_seq<sizeof...( Args )>( to_cpp_arg );
+    FOR_CONSTEXPR_IDX( Idx, sizeof...( Args ) ) {
+      using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
+      int  lua_idx = Idx + 1;
+      auto m       = lua::get<elem_t>( L, lua_idx );
+      if( !m.has_value() )
+        throw_lua_error(
+            L,
+            "Native function expected type '{}' for "
+            "argument {} (1-based), but received "
+            "non-convertible type '{}' from Lua.",
+            base::demangled_typename<elem_t>(), Idx + 1,
+            type_name( L, lua_idx ) );
+      std::get<Idx>( args ) = *m;
+    };
 
     if constexpr( std::is_same_v<R, void> ) {
       std::apply( func, std::move( args ) );
