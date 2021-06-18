@@ -189,6 +189,7 @@ TEST_CASE( "[waitable] coro" ) {
 /****************************************************************
 ** Coroutine Cancellation
 *****************************************************************/
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 vector<string> string_log;
 
 struct LogDestructionStr {
@@ -874,6 +875,7 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     REQUIRE( !w.ready() );
   }
 }
+#endif
 
 } // namespace
 } // namespace rn
