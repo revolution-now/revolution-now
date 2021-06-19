@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ ------------------------------------------------------------
 |
 | header-dependency-gen.lua
@@ -15,16 +14,17 @@ re = require( 're' )
 start = arg[1] or
             error( 'need starting file as first argument.' )
 
-extract_file_pattern = re.compile( [['#include "'{[a-z.-]+}'"']] )
+extract_file_pattern =
+    re.compile( [['#include "'{[a-z.-]+}'"']] )
 function extract_file( subject )
   return (re.match( subject, extract_file_pattern ))
 end
 
 extract_stem_pattern = re.compile( [[{[a-z0-9-]+}'.'.'pp']] )
 function extract_stem( subject )
-  return string.gsub( re.match( subject, extract_stem_pattern ), '-', '_' )
+  return string.gsub( re.match( subject, extract_stem_pattern ),
+                      '-', '_' )
 end
-
 
 to_search = {}
 to_search[start] = false
@@ -32,9 +32,7 @@ to_search[start] = false
 function num_to_search()
   local n = 0
   for file, done in pairs( to_search ) do
-    if done == false then
-      n = n + 1
-    end
+    if done == false then n = n + 1 end
   end
   return n
 end
@@ -54,7 +52,7 @@ while num_to_search() > 0 do
       local header = extract_file( line )
       if header ~= nil then
         print( '  ' .. extract_stem( file ) .. ' -> ' ..
-                       extract_stem( header ) .. ';' )
+                   extract_stem( header ) .. ';' )
         if to_search[header] == nil then
           to_search[header] = false
         end

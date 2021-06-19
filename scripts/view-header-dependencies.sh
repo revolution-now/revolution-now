@@ -20,8 +20,8 @@ stem="$(basename $start)"
 
 out_prefix=/tmp/$stem-dependencies
 
-$dot_gen $(basename $start) \
-  | tee $out_prefix.dot     \
+lua $dot_gen $(basename $start) \
+  | tee $out_prefix.dot         \
   | dot -Tpng -o$out_prefix.png
 
 xdg-open $out_prefix.png
