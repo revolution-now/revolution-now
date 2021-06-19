@@ -29,6 +29,26 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 
+// This is not so much to test push/get on references, it is to
+// test that maybe<T> can be pushed/popped when T is a reference.
+struct Reffable {
+  int x = 9;
+
+  friend void lua_push( lua::cthread L, Reffable const& r ) {
+    lua::c_api C( L );
+    push( L, (void*)&r );
+  }
+
+  friend base::maybe<Reffable&> lua_get( lua::cthread L, int idx,
+                                         lua::tag<Reffable&> ) {
+    lua::c_api C( L );
+    CHECK( C.type_of( idx ) == type::lightuserdata );
+    UNWRAP_RETURN( m, C.get<void*>( idx ) );
+    Reffable* p_r = static_cast<Reffable*>( m );
+    return *p_r;
+  }
+};
+
 LUA_TEST_CASE( "[ext-base] maybe push" ) {
   maybe<int> m;
 
@@ -66,6 +86,20 @@ LUA_TEST_CASE( "[ext-base] maybe get" ) {
     REQUIRE( **m == 9 );
     C.pop();
   }
+}
+
+LUA_TEST_CASE( "[ext-base] maybe ref" ) {
+  Reffable         r;
+  maybe<Reffable&> m = r;
+
+  push( L, m );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == type::lightuserdata );
+  maybe<Reffable&> m2 = get<Reffable&>( L, -1 );
+  REQUIRE( m2.has_value() );
+  REQUIRE( m2->x == 9 );
+
+  C.pop();
 }
 
 } // namespace
