@@ -19,7 +19,6 @@
 #include "types.hpp"
 
 // base
-#include "base/cc-specific.hpp"
 #include "base/error.hpp"
 #include "base/macros.hpp"
 #include "base/maybe.hpp"
@@ -60,11 +59,10 @@ struct indexer {
   template<Pushable U>
   indexer& operator=( U&& rhs );
 
-  template<Gettable U>
-  U as() const;
-
   template<Pushable U>
   bool operator==( U const& rhs ) const noexcept;
+
+  operator any() const noexcept;
 
   template<Pushable... Args>
   any operator()( Args&&... args );
@@ -130,23 +128,6 @@ bool indexer<IndexT, Predecessor>::operator==(
 }
 
 template<typename IndexT, typename Predecessor>
-template<Gettable U>
-U indexer<IndexT, Predecessor>::as() const {
-  cthread L = this_cthread();
-  push( L, *this );
-  // The indexer only ever occupies one stack slot, since pushing
-  // an indexer is always pushing a single Lua value.
-  static_assert( nvalues_for<U>() == 1 );
-  base::maybe<U> res = lua::get<U>( L, -1 );
-  if( !res.has_value() )
-    throw_lua_error(
-        L, "expected type `{}' but received type `{}' from Lua.",
-        base::demangled_typename<U>(), type_of( L, -1 ) );
-  internal::indexer_pop( L, 1 );
-  return *res;
-}
-
-template<typename IndexT, typename Predecessor>
 template<Pushable... Args>
 any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
   cthread L = this_cthread();
@@ -169,6 +150,17 @@ lua_expect<R> indexer<IndexT, Predecessor>::pcall(
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_safe_and_get<R>( L, FWD( args )... );
+}
+
+template<typename IndexT, typename Predecessor>
+indexer<IndexT, Predecessor>::operator any() const noexcept {
+  cthread L = this_cthread();
+  push( L, *this );
+  // This should never fail regardless of C++ programmer error
+  // or Lua programmer error.
+  UNWRAP_CHECK( res, lua::get<any>( L, -1 ) );
+  internal::indexer_pop( L, 1 );
+  return res;
 }
 
 } // namespace lua

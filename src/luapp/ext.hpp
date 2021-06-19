@@ -167,8 +167,12 @@ namespace internal {
 ** nvalues_for
 *****************************************************************/
 template<typename T>
+// We must have the Pushable and Gettable here in order to en-
+// force that the extension point overrides for the type T are
+// visible at this point, otherwise we might just silently de-
+// fault to a value of 1 below which we do not want.
 requires Pushable<T> || Gettable<T>
-consteval int nvalues_for() {
+constexpr int nvalues_for() {
   if constexpr( HasTraitsNvalues<T> ) {
     static_assert( traits_for<T>::nvalues > 0 );
     return traits_for<T>::nvalues;
@@ -181,7 +185,7 @@ consteval int nvalues_for() {
 ** push
 *****************************************************************/
 template<Pushable T>
-void push( cthread L, T&& o ) {
+int push( cthread L, T&& o ) {
   int start_stack_size = internal::ext_stack_size( L );
   if constexpr( PushableViaAdl<T> )
     lua_push( L, std::forward<T>( o ) );
@@ -189,10 +193,10 @@ void push( cthread L, T&& o ) {
     traits_for<T>::push( L, std::forward<T>( o ) );
   else
     static_assert( "should not be here." );
-  assert( internal::ext_stack_size( L ) - start_stack_size ==
-          nvalues_for<T>() );
-  // If removing above, remove below.
-  (void)start_stack_size;
+  int n_pushed =
+      internal::ext_stack_size( L ) - start_stack_size;
+  assert( n_pushed == nvalues_for<T>() );
+  return n_pushed;
 }
 
 /****************************************************************

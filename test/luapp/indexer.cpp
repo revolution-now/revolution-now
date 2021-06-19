@@ -18,6 +18,7 @@
 
 // luapp
 #include "src/luapp/c-api.hpp"
+#include "src/luapp/cast.hpp"
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
 #include "src/luapp/thing.hpp"
@@ -242,46 +243,76 @@ LUA_TEST_CASE( "[indexer] equality" ) {
   REQUIRE( ( mt[5][1]["hello"] == mt[5][1]["hello"] ) );
 }
 
-LUA_TEST_CASE( "[indexer] assignment to maybe" ) {
+LUA_TEST_CASE( "[indexer] conversion to any" ) {
+  any a = st["x"];
+  REQUIRE( a == nil );
+  st["x"] = 7.7;
+  a       = st["x"];
+  REQUIRE( a == 7.7 );
+}
+
+LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   EmptyTable mt( L );
   mt[5]             = EmptyTable( L );
   mt[5][1]          = EmptyTable( L );
   mt[5][1]["hello"] = "payload";
   mt[5][1][2]       = 7.7;
 
-  static_assert( Gettable<maybe<int>> );
-
   SECTION( "from nil" ) {
-    auto mb = mt[5][1]["xxx"].as<maybe<bool>>();
-    auto mi = mt[5][1]["xxx"].as<maybe<int>>();
-    auto ms = mt[5][1]["xxx"].as<maybe<string>>();
-    auto md = mt[5][1]["xxx"].as<maybe<double>>();
+    auto mb = cast<maybe<bool>>( mt[5][1]["xxx"] );
+    auto mi = cast<maybe<int>>( mt[5][1]["xxx"] );
+    auto ms = cast<maybe<string>>( mt[5][1]["xxx"] );
+    auto md = cast<maybe<double>>( mt[5][1]["xxx"] );
+    auto t  = cast<maybe<table>>( mt[5][1]["xxx"] );
     REQUIRE( mb == false );
     REQUIRE( mi == nothing );
     REQUIRE( ms == nothing );
     REQUIRE( md == nothing );
+    REQUIRE( t == nothing );
+  }
+
+  SECTION( "from table" ) {
+    auto mb = cast<maybe<bool>>( mt[5][1] );
+    auto mi = cast<maybe<int>>( mt[5][1] );
+    auto ms = cast<maybe<string>>( mt[5][1] );
+    auto md = cast<maybe<double>>( mt[5][1] );
+    auto t  = cast<maybe<table>>( mt[5][1] );
+    auto t2 = cast<table>( mt[5][1] );
+    REQUIRE( mb == true );
+    REQUIRE( mi == nothing );
+    REQUIRE( ms == nothing );
+    REQUIRE( md == nothing );
+    REQUIRE( t.has_value() );
+    REQUIRE( t == mt[5][1] );
+    REQUIRE( t2 == mt[5][1] );
   }
 
   SECTION( "from string" ) {
-    auto mb = mt[5][1]["hello"].as<maybe<bool>>();
-    auto mi = mt[5][1]["hello"].as<maybe<int>>();
-    auto ms = mt[5][1]["hello"].as<maybe<string>>();
-    auto md = mt[5][1]["hello"].as<maybe<double>>();
+    auto mb = cast<maybe<bool>>( mt[5][1]["hello"] );
+    auto mi = cast<maybe<int>>( mt[5][1]["hello"] );
+    auto ms = cast<maybe<string>>( mt[5][1]["hello"] );
+    auto md = cast<maybe<double>>( mt[5][1]["hello"] );
+    auto t  = cast<maybe<table>>( mt[5][1]["hello"] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == "payload" );
     REQUIRE( md == nothing );
+    REQUIRE( t == nothing );
   }
 
   SECTION( "from double" ) {
-    auto mb = mt[5][1][2].as<maybe<bool>>();
-    auto mi = mt[5][1][2].as<maybe<int>>();
-    auto ms = mt[5][1][2].as<maybe<string>>();
-    auto md = mt[5][1][2].as<maybe<double>>();
+    auto   mb  = cast<maybe<bool>>( mt[5][1][2] );
+    auto   mi  = cast<maybe<int>>( mt[5][1][2] );
+    auto   ms  = cast<maybe<string>>( mt[5][1][2] );
+    auto   md  = cast<maybe<double>>( mt[5][1][2] );
+    double md2 = cast<double>( mt[5][1][2] );
+    auto   t   = cast<maybe<table>>( mt[5][1][2] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == "7.7" );
     REQUIRE( md == 7.7 );
+    REQUIRE( md2 == 7.7 );
+    REQUIRE( t == nothing );
   }
 }
 
