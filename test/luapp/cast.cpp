@@ -144,6 +144,29 @@ LUA_TEST_CASE( "[cast] cast to maybe<_>" ) {
   }
 }
 
+LUA_TEST_CASE( "[cast] safe_cast" ) {
+  SECTION( "int" ) {
+    st["x"] = 5;
+    REQUIRE( safe_cast<int>( st["x"] ) == 5 );
+    REQUIRE( safe_cast<string>( st["x"] ) == "5" );
+    REQUIRE( safe_cast<table>( st["x"] ) == nothing );
+  }
+  SECTION( "string" ) {
+    st["x"] = "hello";
+    REQUIRE( safe_cast<int>( st["x"] ) == nothing );
+    REQUIRE( safe_cast<string>( st["x"] ) == "hello" );
+    REQUIRE( safe_cast<table>( st["x"] ) == nothing );
+  }
+  SECTION( "table" ) {
+    st["x"] = st.table.create();
+    table t = cast<table>( st["x"] );
+    REQUIRE( safe_cast<int>( st["x"] ) == nothing );
+    REQUIRE( safe_cast<string>( st["x"] ) == nothing );
+    REQUIRE( safe_cast<table>( st["x"] ) == st["x"] );
+    REQUIRE( safe_cast<table>( st["x"] ) == t );
+  }
+}
+
 LUA_TEST_CASE( "[cast] Point" ) {
   st["point"] = Point{ .x = 3, .y = 5 };
   table t     = cast<table>( st["point"] );

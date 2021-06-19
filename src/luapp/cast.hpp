@@ -66,4 +66,15 @@ requires( HasCthread<From> && CompatibleNvalues<To, From> &&
   return *m;
 }
 
+// Wraps the type in a maybe<...> so that it won't throw errors
+// if the conversion does not succeed (maybe has a type_traits
+// specialization that makes this happen).
+template<typename To, typename From>
+requires Castable<From, To>
+[[nodiscard]] auto safe_cast(
+    From&&          from,
+    base::SourceLoc loc = base::SourceLoc::current() ) {
+  return cast<base::maybe<To>>( FWD( from ), loc );
+}
+
 } // namespace lua
