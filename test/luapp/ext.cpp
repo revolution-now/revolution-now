@@ -17,7 +17,6 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/c-api.hpp"
 #include "src/luapp/thing.hpp"
 
 // Must be last.
@@ -77,9 +76,55 @@ struct Both {
                                     lua::tag<Both> );
 };
 
+// This is not so much to test push/get on references, it is to
+// test that maybe<T> can be pushed/popped when T is a reference.
+struct ReffableViaAdl {
+  int x = 9;
+
+  friend void lua_push( lua::cthread          L,
+                        ReffableViaAdl const& r ) {
+    lua::c_api C( L );
+    push( L, (void*)&r );
+  }
+
+  friend base::maybe<ReffableViaAdl&> lua_get(
+      lua::cthread L, int idx, lua::tag<ReffableViaAdl&> ) {
+    lua::c_api C( L );
+    CHECK( C.type_of( idx ) == lua::type::lightuserdata );
+    UNWRAP_RETURN( m, C.get<void*>( idx ) );
+    ReffableViaAdl* p_r = static_cast<ReffableViaAdl*>( m );
+    return *p_r;
+  }
+};
+
+struct ReffableViaTraits {
+  int x = 9;
+};
+
 } // namespace my_ns
 
 namespace lua {
+
+template<>
+struct type_traits<my_ns::ReffableViaTraits> {
+  static constexpr int nvalues = 1;
+
+  static void push( cthread                         L,
+                    my_ns::ReffableViaTraits const& r ) {
+    lua::c_api C( L );
+    lua::push( L, (void*)&r );
+  }
+
+  static base::maybe<my_ns::ReffableViaTraits&> get(
+      cthread L, int idx, tag<my_ns::ReffableViaTraits&> ) {
+    lua::c_api C( L );
+    CHECK( C.type_of( idx ) == lua::type::lightuserdata );
+    UNWRAP_RETURN( m, C.get<void*>( idx ) );
+    my_ns::ReffableViaTraits* p_r =
+        static_cast<my_ns::ReffableViaTraits*>( m );
+    return *p_r;
+  }
+};
 
 template<Gettable First, Gettable Second>
 struct type_traits<my_ns::Pair<First, Second>> {
@@ -251,6 +296,34 @@ LUA_TEST_CASE( "[ext] Pair" ) {
   REQUIRE( get<P>( L, -1 ) == P{ { "world", 3 }, 9.3 } );
   C.pop( 3 );
   REQUIRE( C.stack_size() == 0 );
+}
+
+LUA_TEST_CASE( "[ext-base] ref via adl" ) {
+  my_ns::ReffableViaAdl r;
+
+  push( L, r );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == type::lightuserdata );
+  maybe<my_ns::ReffableViaAdl&> m2 =
+      get<my_ns::ReffableViaAdl&>( L, -1 );
+  REQUIRE( m2.has_value() );
+  REQUIRE( m2->x == 9 );
+
+  C.pop();
+}
+
+LUA_TEST_CASE( "[ext-base] ref via traits" ) {
+  my_ns::ReffableViaTraits r;
+
+  push( L, r );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == type::lightuserdata );
+  maybe<my_ns::ReffableViaTraits&> m2 =
+      get<my_ns::ReffableViaTraits&>( L, -1 );
+  REQUIRE( m2.has_value() );
+  REQUIRE( m2->x == 9 );
+
+  C.pop();
 }
 
 } // namespace

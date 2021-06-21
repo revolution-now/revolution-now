@@ -50,7 +50,9 @@ namespace lua {
 // different namespaces (and hence where specializing a function
 // template won't work).
 template<typename T>
-struct tag {};
+struct tag {
+  using type = T;
+};
 
 /****************************************************************
 ** type traits
@@ -64,33 +66,15 @@ using traits_type = std::remove_cvref_t<T>;
 template<typename T>
 using traits_for = type_traits<traits_type<T>>;
 
-// This is a default implementation that can be used to aid in
-// specializing a type_traits struct, but it will not be used au-
-// tomatically.
-template<typename T>
-struct default_traits {
-  // This should only be a base type.
-  static_assert( !std::is_reference_v<T> );
-  static_assert( !std::is_const_v<T> );
-
-  static constexpr int nvalues = 1;
-
-  template<typename U>
-  static base::maybe<T> get( cthread L, int idx,
-                             tag<U> ) noexcept {
-    return lua_get( L, idx, tag<T>{} );
-  }
-
-  static void push( cthread L, T const& o ) { lua_push( L, o ); }
-
-  static void push( cthread L, T&& o ) {
-    lua_push( L, std::move( o ) );
-  }
-};
-
 /****************************************************************
 ** Concepts
 *****************************************************************/
+template<typename T>
+concept HasTraitsStorageType = requires {
+  typename traits_for<T>;
+  typename traits_for<T>::storage_type;
+};
+
 template<typename T>
 concept HasTraitsNvalues = requires {
   typename traits_for<T>;
@@ -105,8 +89,10 @@ concept PushableViaAdl = requires( T const& o, cthread L ) {
 
 template<typename T>
 concept PushableViaTraits = HasTraitsNvalues<T> &&
-    requires( T const& o, cthread L ) {
-  { traits_for<T>::push( L, o ) } -> std::same_as<void>;
+    requires( T o, cthread L ) {
+  {
+    traits_for<T>::push( L, std::forward<T>( o ) )
+    } -> std::same_as<void>;
 };
 
 template<typename T>
@@ -161,7 +147,29 @@ namespace internal {
 
   int ext_stack_size( cthread L );
 
+  template<typename T>
+  auto storage_type_impl() {
+    using unqualified_t = std::remove_cvref_t<T>;
+    if constexpr( HasTraitsStorageType<T> )
+      return tag<typename traits_for<T>::storage_type>{};
+    else
+      return tag<unqualified_t>{};
+  }
+
 } // namespace internal
+
+/****************************************************************
+** storage_type_for
+*****************************************************************/
+template<typename T>
+using storage_type_for =
+    typename decltype( internal::storage_type_impl<T>() )::type;
+
+template<typename T>
+concept StorageGettable =
+    Gettable<storage_type_for<T>> && requires {
+  requires std::is_constructible_v<T, storage_type_for<T>>;
+};
 
 /****************************************************************
 ** nvalues_for

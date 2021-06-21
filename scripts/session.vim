@@ -1,15 +1,11 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'luapp/ext',
-  \ 'luapp/ext-base',
   \ 'luapp/types',
   \ 'luapp/c-api',
   \ 'luapp/indexer',
   \ 'luapp/ref',
   \ 'luapp/any',
   \ 'luapp/rtable',
-  \ 'luapp/rstring',
-  \ 'luapp/rthread',
   \ 'luapp/rfunction',
   \ 'luapp/ruserdata',
   \ 'luapp/thing',
@@ -18,6 +14,10 @@ let s:stems = [
   \ 'luapp/call',
   \ 'luapp/func-push',
   \ 'luapp/state',
+  \ 'luapp/ext',
+  \ 'luapp/ext-userdata',
+  \ 'luapp/ext-base',
+  \ 'luapp/cast',
 \]
 
 let s:luas = [

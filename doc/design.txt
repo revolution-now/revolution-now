@@ -1,41 +1,132 @@
-Pushing a C++ Function into Lua
-===============================
+Uservalue Ownership Semantics
+=============================
 
-Given that a C++ function is requesting a given cv-qualified
-form of a type, here is how to deal with each one, split into
-three categories:
+A given userdata type must have a type traits (or ADL) special-
+ization in order to be pushed/popped from the Lua stack. Further-
+more, that specialization must choose precisely one ownership
+model:
 
-  - T is a type that can be passed by value, such as
-    one of the primitive types, one of the references,
-    or a `thing`:
+  1. Objects of that type are stored as C++ objects by value and
+     are always owned by Lua.
 
-      T:
+  2. Objects of that type are stored as C++ objects owned by C++,
+     and Lua always just holds references to them.
 
-      T const&:
+  3. The object has reference semantics, such as std::string_view
+     or std::reference_wrapper; when these objects are pushed,
+     they must push the object that they refer to according to
+     its semantics. When they are gotten, a reference to the
+     referred-to object is gotten and then the reference type is
+     constructed from it.
 
-      T&:
+  4. Objects of that type are converted to some Lua representa-
+     tion when pushed, and thus are not pushed as userdata.
 
-  - T is some kind of string (string, string const&,
-    string_view, char const*, etc.:
+Objects owned by Lua (#1)
+-------------------------
 
-      string:
+  These userdata objects will be given new() methods in their
+  metatables to allow constructing new objects, and the signature
+  of that constructor will be given in the type_traits.
 
-      string&:
+  These userdata objects will have the is_native_ref() method in
+  their metatables and it will return false.
 
-      string const&:
+    Type o;
+    Type const& r1 = ...;
+    Type& r2 = ...;
 
-      string_view:
+  For the translation from C++ to Lua:
 
-      char const*:
+    st["foo"]( o, r1, r2, Type{} );
 
-  - T is a userdata:
+    st["foo"] = []( ... ) -> Type const& {
+      Type const& r = ...;
+      return r;
+    };
 
-      T:
+  All of those need to be copied pushed by value, to then be
+  owned by Lua. This requires that Type be copyable.
 
-      T const&:
+  For the translation from Lua to C++:
 
-     T&:
+    st["foo"] = []( Type o, Type const& r1, Type& r2, Type&& r3 ) {
+      // Each of the reference parameters will be initialized
+      // from a non-const lvalue reference to Type which lives
+      // inside Lua.
+    };
 
+  That means that lua::get<Type>( ... ) must have only one overload
+  in the traits struct or via ADL:
+
+    maybe<Type&>     get( cthread L, int idx, tag<Type&> );
+    maybe<Type&> lua_get( cthread L, int idx, tag<Type&> );
+
+  Note that the returned reference to the object MUST be used be-
+  fore the values are popped from the stack, since Lua could then
+  free them immediately.
+
+  The push functions can have two overloads:
+
+    void push( cthread L, Type const& o ) {
+      push_userdata_by_value( L, o );
+    }
+    void push( cthread L, Type&& o )  
+      push_userdata_by_value( L, std::move( o ) );
+    }
+
+Objects owned by C++ (#2)
+-------------------------
+ 
+  These userdata objects will not have new() methods in their
+  metatables since they can only really be created by C++.
+
+  These userdata objects will have the is_native_ref() method in
+  their metatables and it will return true.
+
+    Type o;
+    Type const& r1 = ...;
+    Type& r2 = ...;
+
+  For the translation from C++ to Lua:
+
+    st["foo"]( o, r1, r2, Type{} );
+
+  the first three will be pushed as references, and the last
+  one will trigger a compile error.  For a C++ function returning
+  the type, it cannot return by value and it cannot return
+  by const ref, it must return by non-const ref:
+
+    st["foo"] = []( ... ) -> Type& {
+      Type& r = ...;
+      return r;
+    };
+
+  otherwise there will be a compile error. For the translation
+  from Lua to C++:
+
+    st["foo"] = []( Type o, Type const& r1, Type& r2, Type&& r3 ) {
+      // Each of the reference parameters will be initialized
+      // from a non-const lvalue reference to Type which lives
+      // inside C++. If the type is non-copyable, the first para-
+      // meter will just trigger an error.
+    };
+
+  That means that lua::get<Type>( ... ) must have only one overload
+  in the traits struct or via ADL:
+
+    maybe<Type&>     get( cthread L, int idx, tag<Type&> );
+    maybe<Type&> lua_get( cthread L, int idx, tag<Type&> );
+
+  In this case, the stack values can be popped off of the stack
+  without any risk of the returned references dangling. The push
+  functions can have only one overload:
+
+    void push( cthread L, Type& o ) {
+      push_userdata_by_ref( L, o );
+    }
+
+  where the reference must be non-const.
 
 Serialization/Game State
 ========================

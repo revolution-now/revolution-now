@@ -17,6 +17,9 @@
 #include "test/luapp/common.hpp"
 #include "test/monitoring-types.hpp"
 
+// luapp
+#include "src/luapp/cast.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -550,6 +553,22 @@ LUA_TEST_CASE(
       assert( result == expected, err )
     )" ) == valid );
   }
+}
+
+LUA_TEST_CASE(
+    "[func-push] string_view and string ref params" ) {
+  static_assert( !StorageGettable<string&> );
+  static_assert( StorageGettable<string const&> );
+  static_assert( StorageGettable<string&&> );
+  static_assert( StorageGettable<string> );
+  st["foo"] = []( string&& s, string const& s2,
+                  string_view sv ) {
+    REQUIRE( &s[2] != &sv[2] );
+    REQUIRE( &s[2] != &s2[2] );
+    return s + "-" + s2 + "-" + string( sv );
+  };
+  REQUIRE( cast<string>( st["foo"]( "one", "two", "three" ) ) ==
+           "one-two-three" );
 }
 
 } // namespace

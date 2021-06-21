@@ -25,12 +25,42 @@ namespace lua {
 
 namespace {
 
-void setup_new_metatable( cthread L, int metatable_idx,
-                          LuaCFunction* fmt,
-                          LuaCFunction* call_destructor ) {
-  c_api C( L );
-  CHECK( C.type_of( metatable_idx ) == type::table );
+using ::base::maybe;
+using ::base::nothing;
 
+void build_index_table(
+    cthread L, detail::e_ownership_semantics semantics ) {
+  c_api C( L );
+  C.newtable();
+  // Stack:
+  //   __index table
+  bool is_owned_by_lua = false;
+  switch( semantics ) {
+    case detail::e_ownership_semantics::by_ref:
+      is_owned_by_lua = false;
+      break;
+    case detail::e_ownership_semantics::by_value:
+      is_owned_by_lua = true;
+      break;
+  }
+  C.push( is_owned_by_lua );
+  // Stack:
+  //   is_owned_by_lua
+  //   __index table
+  C.setfield( -2, "is_owned_by_lua" );
+  // Stack:
+  //   __index table
+}
+
+void setup_new_metatable(
+    cthread L, detail::e_ownership_semantics semantics,
+    LuaCFunction* fmt, LuaCFunction* call_destructor ) {
+  c_api C( L );
+  // Check metatable.
+  CHECK( C.type_of( -1 ) == type::table );
+
+  // We will only use those values where the function pointer is
+  // not nullptr, so we can freely put them all in this list.
   initializer_list<pair<string, LuaCFunction*>> metatable{
       { "__gc", call_destructor },
       { "__tostring", fmt },
@@ -44,8 +74,19 @@ void setup_new_metatable( cthread L, int metatable_idx,
     // Stack:
     //   c function
     //   metatable
-    C.setfield( metatable_idx - 1, name.c_str() );
+    C.setfield( -2, name.c_str() );
   }
+  // Stack:
+  //   metatable
+
+  build_index_table( L, semantics );
+  // Stack:
+  //   __index table
+  //   metatable
+  CHECK( C.type_of( -1 ) == type::table );
+  C.setfield( -2, "__index" );
+  // Stack:
+  //   metatable
 }
 
 } // namespace
@@ -58,7 +99,7 @@ void push_string( cthread L, std::string const& s ) {
 }
 
 bool push_userdata_impl(
-    cthread L, int object_size,
+    cthread L, e_ownership_semantics semantics, int object_size,
     base::function_ref<void( void* )> placement_new,
     LuaCFunction* fmt, LuaCFunction* call_destructor,
     std::string const& type_name ) {
@@ -96,8 +137,7 @@ bool push_userdata_impl(
     // Stack:
     //   metatable
     //   userdata
-    setup_new_metatable( L, /*metatable_idx=*/-1, fmt,
-                         call_destructor );
+    setup_new_metatable( L, semantics, fmt, call_destructor );
   }
 
   C.setmetatable( -2 );
@@ -118,6 +158,16 @@ void* check_udata( cthread L, int idx, char const* name ) {
   DCHECK( ud != nullptr,
           "__gc method expected type {} but did not find it.",
           name );
+  return ud;
+}
+
+base::maybe<void*> try_udata( cthread L, int idx,
+                              char const* name ) {
+  c_api C( L );
+  // Use `testudata` instead of `checkudata` so that we dont'
+  // throw a Lua error if it fails.
+  void* ud = C.testudata( idx, name );
+  if( ud == nullptr ) return base::nothing;
   return ud;
 }
 

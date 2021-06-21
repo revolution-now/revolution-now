@@ -139,18 +139,26 @@ namespace detail {
 // stack is not equal to the number of cpp arguments.
 void func_push_cpp_check_args( cthread L, int num_cpp_args );
 
-template<typename Func, typename R, typename... Args>
-void push_cpp_function_impl( cthread L, Func&& func, R*,
-                             mp::type_list<Args...>* ) noexcept {
-  auto runner = [func = std::move( func )]( lua_State* L ) {
-    using ArgsTuple = std::tuple<std::remove_cvref_t<Args>...>;
-    ArgsTuple args;
+template<typename T>
+concept PushableOrVoid = Pushable<T> || std::same_as<void, T>;
 
+template<typename Func, PushableOrVoid R,
+         StorageGettable... Args, size_t... Idx>
+void push_cpp_function_impl(
+    cthread L, Func&& func, R*, mp::type_list<Args...>*,
+    std::index_sequence<Idx...> ) noexcept {
+  auto runner = [func = std::move( func )]( lua_State* L ) {
     func_push_cpp_check_args( L, sizeof...( Args ) );
 
-    FOR_CONSTEXPR_IDX( Idx, sizeof...( Args ) ) {
-      using elem_t = std::tuple_element_t<Idx, ArgsTuple>;
-      int  lua_idx = Idx + 1;
+    using CalledArgs  = std::tuple<Args...>;
+    using StorageArgs = std::tuple<storage_type_for<Args>...>;
+
+    auto get_arg = [&]<size_t Index>(
+                       std::integral_constant<size_t, Index> )
+        -> std::tuple_element_t<Index, StorageArgs> {
+      using elem_t =
+          typename std::tuple_element_t<Index, StorageArgs>;
+      int  lua_idx = Index + 1;
       auto m       = lua::get<elem_t>( L, lua_idx );
       if( !m.has_value() )
         throw_lua_error(
@@ -158,10 +166,13 @@ void push_cpp_function_impl( cthread L, Func&& func, R*,
             "Native function expected type '{}' for "
             "argument {} (1-based), but received "
             "non-convertible type '{}' from Lua.",
-            base::demangled_typename<elem_t>(), Idx + 1,
+            base::demangled_typename<elem_t>(), Index + 1,
             type_name( L, lua_idx ) );
-      std::get<Idx>( args ) = *m;
+      return *m;
     };
+
+    StorageArgs args{
+        get_arg( std::integral_constant<size_t, Idx>{} )... };
 
     if constexpr( std::is_same_v<R, void> ) {
       std::apply( func, std::move( args ) );
@@ -180,9 +191,10 @@ template<typename Func>
 auto push_cpp_function( cthread L, Func&& func ) noexcept {
   using ret_t  = mp::callable_ret_type_t<Func>;
   using args_t = mp::callable_arg_types_t<Func>;
-  detail::push_cpp_function_impl( L, std::forward<Func>( func ),
-                                  (ret_t*)nullptr,
-                                  (args_t*)nullptr );
+  detail::push_cpp_function_impl(
+      L, std::forward<Func>( func ), (ret_t*)nullptr,
+      (args_t*)nullptr,
+      std::make_index_sequence<mp::type_list_size_v<args_t>>() );
 }
 
 } // namespace lua

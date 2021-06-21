@@ -22,13 +22,16 @@ namespace lua {
 /****************************************************************
 ** maybe
 *****************************************************************/
-template<Stackable T>
+template<typename T>
 struct type_traits<base::maybe<T>> {
   using M = base::maybe<T>;
 
   static constexpr int nvalues = nvalues_for<T>();
 
-  static void push( cthread L, M const& m ) {
+  // clang-format off
+  static void push( cthread L, M const& m )
+    requires Pushable<T> {
+    // clang-format on
     if( m.has_value() )
       lua::push( L, *m );
     else {
@@ -37,7 +40,10 @@ struct type_traits<base::maybe<T>> {
     }
   }
 
-  static base::maybe<M> get( cthread L, int idx, tag<M> ) {
+  // clang-format off
+  static base::maybe<M> get( cthread L, int idx, tag<M> )
+    requires Gettable<T> {
+    // clang-format on
     return lua::get<T>( L, idx );
   }
 };

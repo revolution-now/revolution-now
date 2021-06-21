@@ -12,7 +12,6 @@
 
 // luapp
 #include "ext.hpp"
-#include "types.hpp"
 
 // base
 #include "base/cc-specific.hpp"
@@ -27,8 +26,10 @@ namespace detail {
 
 void push_string( cthread L, std::string const& s );
 
+enum class e_ownership_semantics { by_value, by_ref };
+
 bool push_userdata_impl(
-    cthread L, int object_size,
+    cthread L, e_ownership_semantics semantics, int object_size,
     base::function_ref<void( void* )> placement_new,
     LuaCFunction* fmt, LuaCFunction* call_destructor,
     std::string const& type_name );
@@ -40,9 +41,16 @@ bool push_userdata_impl(
 // pointer to the userdata C buffer.
 void* check_udata( cthread L, int idx, char const* name );
 
+// Same as above but will return nothing if we dont' have a user
+// data by the given name.
+base::maybe<void*> try_udata( cthread L, int idx,
+                              char const* name );
+
 // Get the canonical name for a userdata by type. For consis-
 // tency, this function should always be used whenever a name for
-// a userdata is needed.
+// a userdata is needed. It is recommended to store the result of
+// this function in a local static variable so that it only needs
+// to be computed once.
 template<typename T>
 std::string userdata_typename() {
   static_assert( !std::is_rvalue_reference_v<T> );
@@ -94,7 +102,8 @@ bool push_userdata_by_value( cthread L, T&& object ) noexcept {
   };
 
   return detail::push_userdata_impl(
-      L, sizeof( object ),
+      L, detail::e_ownership_semantics::by_value,
+      sizeof( object ),
       [&]( void* ud ) {
         new( ud ) T( std::forward<T>( object ) );
       },
@@ -136,7 +145,7 @@ bool push_userdata_by_ref( cthread L, T&& object ) noexcept {
   };
 
   return detail::push_userdata_impl(
-      L, sizeof( void* ),
+      L, detail::e_ownership_semantics::by_ref, sizeof( void* ),
       [&]( void* ud ) {
         auto** pointer_storage = static_cast<T_noref**>( ud );
         // Store a pointer to the object.
