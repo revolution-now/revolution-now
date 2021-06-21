@@ -94,7 +94,7 @@ struct default_traits {
 template<typename T>
 concept HasTraitsNvalues = requires {
   typename traits_for<T>;
-  { traits_for<T>::nvalues } -> std::same_as<int const&>;
+  { traits_for<T>::nvalues } -> std::convertible_to<int>;
   traits_for<T>::nvalues > 0;
 };
 
