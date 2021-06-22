@@ -56,4 +56,12 @@ using LuaApiFunc = R( ::lua_State*, Args... );
 // method, i.e., a C function that is called from Lua.
 using LuaCFunction = int( ::lua_State* );
 
+/****************************************************************
+** Concepts
+*****************************************************************/
+template<typename T>
+concept HasCthread = requires( T const& o ) {
+  { o.this_cthread() } -> std::same_as<cthread>;
+};
+
 } // namespace lua

@@ -20,11 +20,6 @@
 
 namespace lua {
 
-template<typename T>
-concept HasCthread = requires( T const& o ) {
-  { o.this_cthread() } -> std::same_as<cthread>;
-};
-
 template<typename T1, typename T2>
 concept CompatibleNvalues = requires {
   nvalues_for<T1>() == nvalues_for<T2>();
