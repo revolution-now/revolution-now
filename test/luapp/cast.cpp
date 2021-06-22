@@ -18,6 +18,7 @@
 
 // luapp
 #include "src/luapp/ext-base.hpp"
+#include "src/luapp/func-push.hpp"
 #include "src/luapp/thing.hpp"
 
 // Must be last.
@@ -32,6 +33,7 @@ using namespace std;
 
 using ::base::maybe;
 using ::base::nothing;
+using ::Catch::Matches;
 
 struct A {};
 
@@ -63,6 +65,17 @@ struct Point {
     return Point{ .x = x, .y = y };
   }
 };
+
+static_assert( nvalues_for<Point>() == 1 );
+
+} // namespace
+} // namespace lua
+
+DEFINE_FORMAT( ::lua::Point, "Point{{x={},y={}}}", o.x, o.y );
+FMT_TO_CATCH( ::lua::Point );
+
+namespace lua {
+namespace {
 
 LUA_TEST_CASE( "[cast] castability test" ) {
   using indexer_t = decltype( st["foo"] );
@@ -184,6 +197,23 @@ LUA_TEST_CASE( "[cast] Point" ) {
 
   st["non-point"] = 5;
   REQUIRE( cast<maybe<Point>>( st["non-point"] ) == nothing );
+}
+
+LUA_TEST_CASE( "[cast] failed cast" ) {
+  st["point"]         = "hello";
+  static int err_line = __LINE__ + 1;
+  st["foo"] = [&] { return cast<Point>( st["point"] ); };
+
+  lua_expect<Point> xp = st["foo"].pcall<Point>();
+  REQUIRE( xp.has_error() );
+
+  static string regex = fmt::format(
+      ".*cast.cpp:{}:error: failed to convert Lua type `string' "
+      "to native type `lua::\\(anonymous "
+      "namespace\\)::Point'.*\n.*\n.*",
+      err_line );
+
+  REQUIRE_THAT( xp.error(), Matches( regex ) );
 }
 
 } // namespace

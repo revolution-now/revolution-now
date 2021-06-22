@@ -14,6 +14,7 @@
 #include "cthread.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/expect.hpp"
 #include "base/fmt.hpp"
 #include "base/valid.hpp"
@@ -71,8 +72,14 @@ template<typename... Args>
 [[noreturn]] void throw_lua_error( cthread          L,
                                    std::string_view fmt_str,
                                    Args&&... args ) {
-  detail::throw_lua_error_impl(
-      L, fmt::format( fmt_str, std::forward<Args>( args )... ) );
+  try {
+    std::string msg =
+        fmt::format( fmt_str, std::forward<Args>( args )... );
+    detail::throw_lua_error_impl( L, msg );
+  } catch( fmt::format_error const& e ) {
+    FATAL( "fmt format error while formatting Lua error: {}",
+           e.what() );
+  }
 }
 
 } // namespace lua

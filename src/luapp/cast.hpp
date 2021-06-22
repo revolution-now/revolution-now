@@ -47,18 +47,11 @@ requires( HasCthread<From> && CompatibleNvalues<To, From> &&
                        base::SourceLoc loc =
                            base::SourceLoc::current() ) {
   // clang-format on
-  cthread         L        = from.this_cthread();
-  int             n_pushed = lua::push( L, from );
-  base::maybe<To> m        = lua::get<To>( L, -1 );
-  if( !m.has_value() )
-    throw_lua_error( L,
-                     "{}:{}:error: failed to convert Lua type "
-                     "{} to native type {}.",
-                     loc.file_name(), loc.line(),
-                     detail::cast_type_name( L, -1 ),
-                     base::demangled_typename<To>() );
+  cthread L        = from.this_cthread();
+  int     n_pushed = lua::push( L, from );
+  To      to       = get_or_luaerr<To>( L, -1, loc );
   detail::cast_pop( L, n_pushed );
-  return *m;
+  return to;
 }
 
 // Wraps the type in a maybe<...> so that it won't throw errors

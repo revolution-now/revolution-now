@@ -13,8 +13,10 @@
 
 // luapp
 #include "cthread.hpp"
+#include "error.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/maybe.hpp"
 
 // C++ standard library
@@ -154,7 +156,8 @@ concept GettableOrVoid = Gettable<T> || std::same_as<void, T>;
 *****************************************************************/
 namespace internal {
 
-  int ext_stack_size( cthread L );
+  int         ext_stack_size( cthread L );
+  std::string ext_type_name( cthread L, int idx );
 
   template<typename T>
   auto storage_type_impl() {
@@ -228,6 +231,23 @@ auto get( cthread L, int idx ) {
     return traits_for<T>::get( L, idx, tag<T>{} );
   else
     static_assert( "should not be here." );
+}
+
+// This function will attempt to get a value off of the stack and
+// convert it to the given type and will throw a lua error if it
+// cannot convert it.
+template<Gettable T>
+T get_or_luaerr(
+    cthread L, int idx,
+    base::SourceLoc loc = base::SourceLoc::current() ) {
+  base::maybe<T> m = lua::get<T>( L, idx );
+  if( m.has_value() ) return *m;
+  throw_lua_error( L,
+                   "{}:{}:error: failed to convert Lua type "
+                   "`{}' to native type `{}'.",
+                   loc.file_name(), loc.line(),
+                   internal::ext_type_name( L, idx ),
+                   base::demangled_typename<T>() );
 }
 
 } // namespace lua

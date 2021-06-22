@@ -448,6 +448,11 @@ struct c_api {
   [[noreturn]] void error( std::string const& msg ) noexcept(
       false );
 
+  /**************************************************************
+  ** Debugging
+  ***************************************************************/
+  void print_stack( std::string_view label = "" ) noexcept;
+
 private:
   bool                 get( int idx, bool* ) noexcept;
   boolean              get( int idx, boolean* ) noexcept;

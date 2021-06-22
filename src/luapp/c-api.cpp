@@ -628,6 +628,7 @@ lua_valid c_api::enforce_type_of( int idx, type type ) noexcept {
 
 lua_error_t c_api::pop_and_return_error() noexcept {
   enforce_stack_size_ge( 1 );
+  CHECK( type_of( -1 ) == type::string );
   lua_error_t res( lua_tostring( L, -1 ) );
   pop();
   return res;
@@ -778,6 +779,16 @@ int c_api::checkinteger( int arg ) {
 bool c_api::next( int idx ) noexcept {
   validate_index( idx );
   return lua_next( L, idx ) == 1;
+}
+
+void c_api::print_stack( string_view label ) noexcept {
+  fmt::print( "[{}] Lua Stack:\n", label );
+  for( int i = stack_size(); i >= 1; --i ) {
+    string s = tostring( i, nullptr );
+    pop();
+    fmt::print( "  {: 2}. {}: {}\n", i - stack_size() - 1,
+                type_of( i ), s );
+  }
 }
 
 } // namespace lua

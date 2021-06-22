@@ -14,6 +14,7 @@
 #include "c-api.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/macros.hpp"
 
 using namespace std;
@@ -23,12 +24,10 @@ namespace lua {
 namespace detail {
 
 // TODO: add test for this.
-[[noreturn]] void throw_lua_error_impl( cthread     L,
-                                        string_view msg ) {
+void throw_lua_error_impl( cthread L, string_view msg ) {
   c_api C( L );
   C.push( msg );
   C.error();
-  UNREACHABLE_LOCATION;
 }
 
 } // namespace detail

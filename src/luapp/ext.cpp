@@ -24,6 +24,10 @@ int ext_stack_size( cthread L ) {
   return c_api( L ).stack_size();
 }
 
+string ext_type_name( cthread L, int idx ) {
+  return fmt::format( "{}", c_api( L ).type_of( idx ) );
+}
+
 } // namespace internal
 
 } // namespace lua
