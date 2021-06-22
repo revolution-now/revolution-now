@@ -105,13 +105,13 @@ public:
 
     void operator()( std::string_view code ) const;
 
-    template<typename R = void>
+    template<GettableOrVoid R = void>
     R run( std::string_view code ) const {
       lua::push( L, load( code ) );
       return call_lua_unsafe_and_get<R>( L );
     }
 
-    template<typename R = void>
+    template<GettableOrVoid R = void>
     error_type_for_return_type<R> run_safe(
         std::string_view code ) const noexcept {
       lua::push( L, load( code ) );
