@@ -304,5 +304,79 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   }
 }
 
+LUA_TEST_CASE(
+    "[lua-call] call_lua_{un}safe_and_get void return" ) {
+  C.openlibs();
+
+  SECTION( "call" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        res = {n+1, s .. '!', d+1.5}
+        -- These results should be ignored.
+        return 1, 2, 3
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    static_assert(
+        std::is_same_v<decltype( call_lua_unsafe_and_get<void>(
+                           L, 3, "hello", 3.5 ) ),
+                       void> );
+    call_lua_unsafe_and_get<void>( L, 3, "hello", 3.5 );
+    REQUIRE( C.stack_size() == 0 );
+    C.getglobal( "res" );
+    table t( L, C.ref_registry() );
+    REQUIRE( t[1] == 4 );
+    REQUIRE( t[2] == "hello!" );
+    REQUIRE( t[3] == 5.0 );
+  }
+
+  SECTION( "pcall" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        assert( n ~= 9 )
+        res = {n+1, s .. '!', d+1.5}
+        -- Should be ignored
+        return 1
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    lua_valid v = call_lua_safe_and_get( L, 3, "hello", 3.5 );
+    REQUIRE( v == valid );
+    REQUIRE( C.stack_size() == 0 );
+
+    C.getglobal( "res" );
+    table t( L, C.ref_registry() );
+    REQUIRE( t[1] == 4 );
+    REQUIRE( t[2] == "hello!" );
+    REQUIRE( t[3] == 5.0 );
+  }
+
+  SECTION( "pcall with error" ) {
+    REQUIRE( C.dostring( R"(
+      function foo( n, s, d )
+        assert( n ~= 9 )
+      end
+    )" ) == valid );
+
+    C.getglobal( "foo" );
+    REQUIRE( C.stack_size() == 1 );
+
+    lua_valid v =
+        call_lua_safe_and_get<void>( L, 9, "hello", 3.5 );
+    REQUIRE( v ==
+             lua_invalid(
+                 "[string \"...\"]:3: assertion failed!\n"
+                 "stack traceback:\n"
+                 "\t[C]: in function 'assert'\n"
+                 "\t[string \"...\"]:3: in function 'foo'" ) );
+  }
+}
+
 } // namespace
 } // namespace lua

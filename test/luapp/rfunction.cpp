@@ -207,7 +207,7 @@ LUA_TEST_CASE( "[table] cpp->lua->cpp round trip" ) {
   REQUIRE( s == "args: n=5, s='hello', d=3.6" );
 
   // pcall with no errors.
-  REQUIRE( foo.pcall( 3, "hello", 3.6 ) ==
+  REQUIRE( foo.pcall<rstring>( 3, "hello", 3.6 ) ==
            "args: n=3, s='hello', d=3.6" );
 
   // pcall with error coming from Lua function.
@@ -218,7 +218,7 @@ LUA_TEST_CASE( "[table] cpp->lua->cpp round trip" ) {
     "\t[C]: in function 'assert'\n"
     "\t[string \"...\"]:4: in function 'foo'";
   // clang-format on
-  REQUIRE( foo.pcall( 3, nil, 3.6 ) ==
+  REQUIRE( foo.pcall<any>( 3, nil, 3.6 ) ==
            lua_unexpected<any>( err ) );
 
   // pcall with error coming from C function.
@@ -229,8 +229,7 @@ LUA_TEST_CASE( "[table] cpp->lua->cpp round trip" ) {
     "\t[C]: in function 'go'\n"
     "\t[string \"...\"]:6: in function 'foo'";
   // clang-format on
-  REQUIRE( foo.pcall( 4, "hello", 3.6 ) ==
-           lua_unexpected<any>( err ) );
+  REQUIRE( foo.pcall( 4, "hello", 3.6 ) == lua_invalid( err ) );
 }
 
 } // namespace

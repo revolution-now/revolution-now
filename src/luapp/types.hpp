@@ -63,6 +63,14 @@ void lua_push( cthread L, nil_t );
 void lua_get( cthread L, int idx, tag<nil_t> ) = delete;
 
 /****************************************************************
+** void
+*****************************************************************/
+template<>
+struct type_traits<void> {
+  static constexpr int nvalues = 0;
+};
+
+/****************************************************************
 ** value types
 *****************************************************************/
 using boolean  = base::safe::boolean;

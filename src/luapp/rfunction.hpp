@@ -36,11 +36,11 @@ struct rfunction : public reference {
   template<Pushable... Args>
   any operator()( Args&&... args );
 
-  template<Gettable R = any, Pushable... Args>
+  template<GettableOrVoid R = void, Pushable... Args>
   R call( Args&&... args );
 
-  template<Gettable R = any, Pushable... Args>
-  lua_expect<R> pcall( Args&&... args );
+  template<GettableOrVoid R = void, Pushable... Args>
+  error_type_for_return_type<R> pcall( Args&&... args );
 };
 
 /****************************************************************
@@ -53,15 +53,16 @@ any rfunction::operator()( Args&&... args ) {
   return call_lua_unsafe_and_get<any>( L, FWD( args )... );
 }
 
-template<Gettable R, Pushable... Args>
+template<GettableOrVoid R, Pushable... Args>
 R rfunction::call( Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_unsafe_and_get<R>( L, FWD( args )... );
 }
 
-template<Gettable R, Pushable... Args>
-lua_expect<R> rfunction::pcall( Args&&... args ) {
+template<GettableOrVoid R, Pushable... Args>
+error_type_for_return_type<R> rfunction::pcall(
+    Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_safe_and_get<R>( L, FWD( args )... );

@@ -139,9 +139,6 @@ namespace detail {
 // stack is not equal to the number of cpp arguments.
 void func_push_cpp_check_args( cthread L, int num_cpp_args );
 
-template<typename T>
-concept PushableOrVoid = Pushable<T> || std::same_as<void, T>;
-
 template<typename Func, PushableOrVoid R,
          StorageGettable... Args, size_t... Idx>
 void push_cpp_function_impl(

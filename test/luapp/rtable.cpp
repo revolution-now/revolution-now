@@ -228,7 +228,7 @@ LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
   REQUIRE( t( 3, "hello", 3.7 ) ==
            "args: n=3, s='hello', d=3.7" );
 
-  REQUIRE( t.pcall( 3, "hello", 3.7 ) ==
+  REQUIRE( t.pcall<rstring>( 3, "hello", 3.7 ) ==
            "args: n=3, s='hello', d=3.7" );
 }
 

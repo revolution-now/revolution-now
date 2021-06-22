@@ -372,7 +372,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
   REQUIRE( s == "args: n=5, s='hello', d=3.6" );
 
   // pcall with no errors.
-  REQUIRE( st["foo"].pcall( 3, "hello", 3.6 ) ==
+  REQUIRE( st["foo"].pcall<rstring>( 3, "hello", 3.6 ) ==
            "args: n=3, s='hello', d=3.6" );
 
   // pcall with error coming from Lua function.
@@ -384,7 +384,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
     "\t[string \"...\"]:4: in function 'foo'";
   // clang-format on
   REQUIRE( st["foo"].pcall( 3, nil, 3.6 ) ==
-           lua_unexpected<any>( err ) );
+           lua_invalid( err ) );
 
   // pcall with error coming from C function.
   // clang-format off
@@ -394,7 +394,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
     "\t[C]: in function 'go'\n"
     "\t[string \"...\"]:6: in function 'foo'";
   // clang-format on
-  REQUIRE( st["foo"].pcall( 4, "hello", 3.6 ) ==
+  REQUIRE( st["foo"].pcall<any>( 4, "hello", 3.6 ) ==
            lua_unexpected<any>( err ) );
 }
 

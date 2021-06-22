@@ -140,6 +140,15 @@ concept LuappInternal = requires {
   typename std::remove_reference_t<T>::luapp_internal;
 };
 
+// These are used when dealing with return values either from C++
+// to Lua or vice versa. `void` is treated specially in those
+// cases.
+template<typename T>
+concept PushableOrVoid = Pushable<T> || std::same_as<void, T>;
+
+template<typename T>
+concept GettableOrVoid = Gettable<T> || std::same_as<void, T>;
+
 /****************************************************************
 ** helpers
 *****************************************************************/
@@ -175,14 +184,15 @@ concept StorageGettable =
 ** nvalues_for
 *****************************************************************/
 template<typename T>
-// We must have the Pushable and Gettable here in order to en-
+// We must have these concept constraints here in order to en-
 // force that the extension point overrides for the type T are
 // visible at this point, otherwise we might just silently de-
 // fault to a value of 1 below which we do not want.
-requires Pushable<T> || Gettable<T>
+requires Pushable<T> || Gettable<T> || HasTraitsNvalues<T>
 constexpr int nvalues_for() {
   if constexpr( HasTraitsNvalues<T> ) {
-    static_assert( traits_for<T>::nvalues > 0 );
+    static_assert( traits_for<T>::nvalues > 0 ||
+                   std::is_same_v<T, void> );
     return traits_for<T>::nvalues;
   } else {
     return 1;

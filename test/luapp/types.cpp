@@ -129,6 +129,15 @@ static_assert( GettableViaAdl<void*> );
 static_assert( !GettableViaTraits<void*> );
 static_assert( !HasTraitsNvalues<void*> );
 
+static_assert( !Pushable<void> );
+static_assert( !PushableViaAdl<void> );
+static_assert( !PushableViaTraits<void> );
+static_assert( !Gettable<void> );
+static_assert( !GettableViaAdl<void> );
+static_assert( !GettableViaTraits<void> );
+static_assert( HasTraitsNvalues<void> );
+static_assert( nvalues_for<void>() == 0 );
+
 static_assert( Pushable<lightuserdata> );
 static_assert( PushableViaAdl<lightuserdata> );
 static_assert( !PushableViaTraits<lightuserdata> );

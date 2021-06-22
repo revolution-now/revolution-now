@@ -3,20 +3,19 @@
 # ===============================================================
 
   1.  usertype.
-  2.  calls with void return instead of any.
-  3.  table get or create.
-  4.  state script and script_safe.
-  5.  state open libraries.
-  6.  Rewrite src/ with luapp.
-  7.  Remove sol2.
-  8.  Upgrade to Lua 5.4, look at local changes made.
-  9.  Integrate waitable<> with Lua, and add coroutine support to
+  2.  table get or create.
+  3.  state script and script_safe.
+  4.  state open libraries.
+  5.  Rewrite src/ with luapp.
+  6.  Remove sol2.
+  7.  Upgrade to Lua 5.4, look at local changes made.
+  8.  Integrate waitable<> with Lua, and add coroutine support to
       luapp as necessary.
-  10. Make a coroutine-based dialog/animation sequence as a demo
+  9.  Make a coroutine-based dialog/animation sequence as a demo
       of Lua coroutines.
-  11. Create proper Lua API design in order to avoid coupling
+  10. Create proper Lua API design in order to avoid coupling
       with the C++ modules.
-  12. Generate Flatbuffers Lua modules so that Lua can read and
+  11. Generate Flatbuffers Lua modules so that Lua can read and
       write game save files.
 
 # ===============================================================

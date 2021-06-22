@@ -52,6 +52,11 @@ lua_expect<T> lua_unexpected( Arg&& arg ) {
       std::forward<Arg>( arg ) );
 }
 
+template<typename R>
+using error_type_for_return_type =
+    std::conditional_t<std::is_same_v<R, void>, lua_valid,
+                       lua_expect<R>>;
+
 /****************************************************************
 ** Throwing errors
 *****************************************************************/

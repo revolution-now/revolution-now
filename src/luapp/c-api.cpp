@@ -172,9 +172,7 @@ requires( sizeof...( Params ) == sizeof...( Args ) &&
 auto c_api::pinvoke( int ninputs,
                      LuaApiFunc<R, Params...>* func,
                      Args... args )
-    -> std::conditional_t<std::is_same_v<R, void>,
-                          lua_valid,
-                          lua_expect<R>> {
+    -> error_type_for_return_type<R> {
   // clang-format on
   constexpr bool has_result = !is_same_v<R, void>;
 

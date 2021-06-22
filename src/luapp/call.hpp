@@ -63,19 +63,20 @@ lua_valid call_lua_safe_nresults( cthread L, int nresults,
 // Expects a function to be at the top of the stack and will call
 // it with the given C++ args. The result(s) will be popped off
 // of the stack and converted to the requested C++ type and re-
-// turned. The function will be run in unsafe mode, so any Lua
-// errors will be left uncaught. Any errors encountered while
-// converting the Lua result values to the C++ type will be
-// thrown as a Lua error.
-template<Gettable R, Pushable... Args>
+// turned (unless R is void). The function will be run in unsafe
+// mode, so any Lua errors will be left uncaught. Any errors en-
+// countered while converting the Lua result values to the C++
+// type will be thrown as a Lua error.
+template<GettableOrVoid R = void, Pushable... Args>
 R call_lua_unsafe_and_get( cthread L, Args&&... args );
 
 // Same as above but, in the event of an error (either during ex-
 // ecution or in converting the results to C++) the function will
 // return the error. In other words, this function should never
 // throw a Lua error or check-fail.
-template<Gettable R, Pushable... Args>
-lua_expect<R> call_lua_safe_and_get( cthread L, Args&&... args );
+template<GettableOrVoid R = void, Pushable... Args>
+error_type_for_return_type<R> call_lua_safe_and_get(
+    cthread L, Args&&... args );
 
 /****************************************************************
 ** Implementation: Function on stack, results on stack.
@@ -143,41 +144,33 @@ void pop_call_results( cthread L, int n );
 [[noreturn]] void throw_lua_error_bad_return_values(
     cthread L, int nresults, std::string_view ret_type_name );
 
-template<typename R>
-consteval int nresults_for_return_type() {
-  if constexpr( !std::is_same_v<R, void> )
-    return nvalues_for<R>();
-  else
-    return 0;
-}
-
 } // namespace internal
 
-template<Gettable R, Pushable... Args>
+template<GettableOrVoid R, Pushable... Args>
 R call_lua_unsafe_and_get( cthread L, Args&&... args ) {
-  constexpr int nresults =
-      internal::nresults_for_return_type<R>();
+  static constexpr int nresults = nvalues_for<R>();
   // We need to set nresults here in order to ensure that pre-
   // cisely that many return values are pushed onto the stack.
   // Otherwise, Lua could return fewer than that, and our `get`
   // method (if it consumes multiple stack values) would run the
   // risk of consuming values that are already on the stack.
   call_lua_unsafe_nresults( L, nresults, FWD( args )... );
-  // Should consume the nvalues starting at index (-1). Typically
-  // this will just be one value, but could be more.
-  base::maybe<R> res = lua::get<R>( L, -1 );
-  if( !res.has_value() )
-    internal::throw_lua_error_bad_return_values(
-        L, nresults, base::demangled_typename<R>() );
-  internal::pop_call_results( L, nresults );
-  return std::move( *res );
+  if constexpr( !std::is_same_v<R, void> ) {
+    // Should consume the nvalues starting at index (-1). Typi-
+    // cally this will just be one value, but could be more.
+    base::maybe<R> res = lua::get<R>( L, -1 );
+    if( !res.has_value() )
+      internal::throw_lua_error_bad_return_values(
+          L, nresults, base::demangled_typename<R>() );
+    internal::pop_call_results( L, nresults );
+    return std::move( *res );
+  }
 }
 
-template<Gettable R, Pushable... Args>
-lua_expect<R> call_lua_safe_and_get( cthread L,
-                                     Args&&... args ) {
-  constexpr int nresults =
-      internal::nresults_for_return_type<R>();
+template<GettableOrVoid R, Pushable... Args>
+error_type_for_return_type<R> call_lua_safe_and_get(
+    cthread L, Args&&... args ) {
+  static constexpr int nresults = nvalues_for<R>();
   // We need to set nresults here in order to ensure that pre-
   // cisely that many return values are pushed onto the stack.
   // Otherwise, Lua could return fewer than that, and our `get`
@@ -185,14 +178,18 @@ lua_expect<R> call_lua_safe_and_get( cthread L,
   // risk of consuming values that are already on the stack.
   HAS_VALUE_OR_RET(
       call_lua_safe_nresults( L, nresults, FWD( args )... ) );
-  // Should consume the nvalues starting at index (-1). Typically
-  // this will just be one value, but could be more.
-  base::maybe<R> res = lua::get<R>( L, -1 );
-  if( !res.has_value() )
-    internal::throw_lua_error_bad_return_values(
-        L, nresults, base::demangled_typename<R>() );
-  internal::pop_call_results( L, nresults );
-  return std::move( *res );
+  if constexpr( !std::is_same_v<R, void> ) {
+    // Should consume the nvalues starting at index (-1). Typi-
+    // cally this will just be one value, but could be more.
+    base::maybe<R> res = lua::get<R>( L, -1 );
+    if( !res.has_value() )
+      internal::throw_lua_error_bad_return_values(
+          L, nresults, base::demangled_typename<R>() );
+    internal::pop_call_results( L, nresults );
+    return std::move( *res );
+  } else {
+    return base::valid;
+  }
 }
 
 } // namespace lua

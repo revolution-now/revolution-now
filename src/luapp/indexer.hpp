@@ -67,11 +67,11 @@ struct indexer {
   template<Pushable... Args>
   any operator()( Args&&... args );
 
-  template<Gettable R = any, Pushable... Args>
+  template<GettableOrVoid R = void, Pushable... Args>
   R call( Args&&... args );
 
-  template<Gettable R = any, Pushable... Args>
-  lua_expect<R> pcall( Args&&... args );
+  template<GettableOrVoid R = void, Pushable... Args>
+  error_type_for_return_type<R> pcall( Args&&... args );
 
 private:
   Predecessor pred_;
@@ -136,7 +136,7 @@ any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
 }
 
 template<typename IndexT, typename Predecessor>
-template<Gettable R, Pushable... Args>
+template<GettableOrVoid R, Pushable... Args>
 R indexer<IndexT, Predecessor>::call( Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
@@ -144,9 +144,9 @@ R indexer<IndexT, Predecessor>::call( Args&&... args ) {
 }
 
 template<typename IndexT, typename Predecessor>
-template<Gettable R, Pushable... Args>
-lua_expect<R> indexer<IndexT, Predecessor>::pcall(
-    Args&&... args ) {
+template<GettableOrVoid R, Pushable... Args>
+error_type_for_return_type<R>
+indexer<IndexT, Predecessor>::pcall( Args&&... args ) {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_safe_and_get<R>( L, FWD( args )... );
