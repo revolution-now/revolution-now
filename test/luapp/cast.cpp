@@ -206,6 +206,7 @@ LUA_TEST_CASE( "[cast] failed cast" ) {
 
   lua_expect<Point> xp = st["foo"].pcall<Point>();
   REQUIRE( xp.has_error() );
+  REQUIRE( C.stack_size() == 0 );
 
   static string regex = fmt::format(
       ".*cast.cpp:{}:error: failed to convert Lua type `string' "
