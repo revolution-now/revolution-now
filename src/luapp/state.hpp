@@ -11,7 +11,9 @@
 #pragma once
 
 // luapp
+#include "call.hpp"
 #include "cthread.hpp"
+#include "rfunction.hpp"
 #include "rstring.hpp"
 #include "rtable.hpp"
 #include "rthread.hpp"
@@ -92,6 +94,33 @@ public:
   private:
     cthread L;
   } const table;
+
+  /**************************************************************
+  ** Scripts
+  ***************************************************************/
+  struct Script {
+    Script( cthread cth );
+
+    rfunction load( std::string_view code ) const noexcept;
+
+    void operator()( std::string_view code ) const;
+
+    template<typename R = void>
+    R run( std::string_view code ) const {
+      lua::push( L, load( code ) );
+      return call_lua_unsafe_and_get<R>( L );
+    }
+
+    template<typename R = void>
+    error_type_for_return_type<R> run_safe(
+        std::string_view code ) const noexcept {
+      lua::push( L, load( code ) );
+      return call_lua_safe_and_get<R>( L );
+    }
+
+  private:
+    cthread L;
+  } const script;
 
   /**************************************************************
   ** Indexer

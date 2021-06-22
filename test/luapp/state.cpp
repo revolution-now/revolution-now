@@ -91,5 +91,40 @@ LUA_TEST_CASE( "[lua-state] state indexing" ) {
   REQUIRE( ( G["a"][5] != st["a"] ) );
 }
 
+LUA_TEST_CASE( "[lua-state] script loading" ) {
+  rfunction f = st.script.load( R"(
+    return 'hello'
+  )" );
+
+  REQUIRE( f() == "hello" );
+}
+
+LUA_TEST_CASE( "[lua-state] script run unsafe" ) {
+  REQUIRE( st.script.run<string>( R"(
+    return 'hello'
+  )" ) == "hello" );
+}
+
+LUA_TEST_CASE( "[lua-state] script run unsafe void" ) {
+  st.script( R"(
+    res = 'hello'
+  )" );
+  REQUIRE( st["res"] == "hello" );
+}
+
+LUA_TEST_CASE( "[lua-state] script run safe" ) {
+  C.openlibs();
+  lua_valid   v = st.script.run_safe( R"(
+    assert( 1 == 2 )
+  )" );
+  char const* err =
+      "[string \"...\"]:2: assertion failed!\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'assert'\n"
+      "\t[string \"...\"]:2: in main chunk";
+
+  REQUIRE( v == lua_invalid( err ) );
+}
+
 } // namespace
 } // namespace lua

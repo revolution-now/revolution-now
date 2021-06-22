@@ -40,13 +40,15 @@ state::state( cthread cth )
   : Base( cth, /*own=*/false ),
     thread( resource() ),
     string( resource() ),
-    table( resource() ) {}
+    table( resource() ),
+    script( resource() ) {}
 
 state::state()
   : Base( luaL_newstate(), /*own=*/true ),
     thread( resource() ),
     string( resource() ),
-    table( resource() ) {
+    table( resource() ),
+    script( resource() ) {
   // This will be called whenever an error happens in a Lua call
   // that is not run in a protected environment. For example, if
   // we call lua_getglobal from C++ (outside of a pcall) and it
@@ -91,6 +93,25 @@ rstring state::String::create( string_view sv ) const noexcept {
   c_api C( L );
   C.push( sv );
   return rstring( L, C.ref_registry() );
+}
+
+/****************************************************************
+** Scripts
+*****************************************************************/
+state::Script::Script( cthread cth ) : L( cth ) {}
+
+rfunction state::Script::load(
+    string_view code ) const noexcept {
+  c_api     C( L );
+  lua_valid res = C.loadstring( std::string( code ).c_str() );
+  if( !res.valid() )
+    throw_lua_error( L, "failed to load code string: {}", res );
+  return rfunction( L, C.ref_registry() );
+}
+
+void state::Script::operator()( string_view code ) const {
+  lua::push( L, load( code ) );
+  return call_lua_unsafe_and_get<void>( L );
 }
 
 } // namespace lua
