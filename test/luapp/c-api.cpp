@@ -354,12 +354,6 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<string>( -2 ) == "7" );
     REQUIRE( C.get<string>( -3 ) == "9" );
     REQUIRE( C.get<string>( -4 ) == "0" );
-    // Lua changes the value on the stack when we convert to a
-    // string.
-    REQUIRE( C.type_of( -1 ) == type::string );
-    REQUIRE( C.type_of( -2 ) == type::string );
-    REQUIRE( C.type_of( -3 ) == type::string );
-    REQUIRE( C.type_of( -4 ) == type::string );
     C.pop();
     C.pop();
     C.pop();
@@ -388,10 +382,6 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<floating>( -2 ) == 7.1 );
     REQUIRE( C.get<string>( -1 ) == "5.0" );
     REQUIRE( C.get<string>( -2 ) == "7.1" );
-    // Lua changes the value on the stack when we convert to a
-    // string.
-    REQUIRE( C.type_of( -1 ) == type::string );
-    REQUIRE( C.type_of( -2 ) == type::string );
     C.pop();
     C.pop();
   }

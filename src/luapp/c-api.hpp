@@ -31,8 +31,8 @@ namespace lua {
 struct c_api {
   c_api( cthread L_ ) noexcept : L( L_ ) {}
 
-  cthread this_cthread() const noexcept { return L; }
-  cthread main_cthread() const noexcept;
+  cthread this_cthread() noexcept { return L; }
+  cthread main_cthread() noexcept;
 
   /**************************************************************
   ** Lua C Function Wrappers.
@@ -42,8 +42,8 @@ struct c_api {
   // Returns the index of the top element in the stack. Because
   // indices start at 1, this result is equal to the number of
   // elements in the stack; in particular, 0 means empty stack.
-  int gettop() const noexcept;
-  int stack_size() const noexcept;
+  int gettop() noexcept;
+  int stack_size() noexcept;
 
   /**************************************************************
   ** running lua code
@@ -190,7 +190,7 @@ struct c_api {
   ** Get value from stack
   ***************************************************************/
   template<typename T>
-  auto get( int idx ) const noexcept {
+  auto get( int idx ) noexcept {
     return get( idx, static_cast<T*>( nullptr ) );
   }
 
@@ -410,17 +410,17 @@ struct c_api {
   ** types
   ***************************************************************/
   // Returns the type of the value in the given valid index.
-  type type_of( int idx ) const noexcept;
+  type type_of( int idx ) noexcept;
 
   // This will yield Lua's name for the type.
-  char const* type_name( type type ) const noexcept;
+  char const* type_name( type type ) noexcept;
 
-  lua_valid enforce_type_of( int idx, type type ) const noexcept;
+  lua_valid enforce_type_of( int idx, type type ) noexcept;
 
   // Returns true if the value at the given index is an integer
   // (that is, the value is a number and is represented as an in-
   // teger), and false otherwise.
-  bool isinteger( int idx ) const noexcept;
+  bool isinteger( int idx ) noexcept;
 
   /**************************************************************
   ** error
@@ -438,31 +438,29 @@ struct c_api {
       false );
 
 private:
-  bool                 get( int idx, bool* ) const noexcept;
-  boolean              get( int idx, boolean* ) const noexcept;
-  base::maybe<integer> get( int idx, integer* ) const noexcept;
+  bool                 get( int idx, bool* ) noexcept;
+  boolean              get( int idx, boolean* ) noexcept;
+  base::maybe<integer> get( int idx, integer* ) noexcept;
   // This is for when you know the result will fit into an int.
-  base::maybe<int>      get( int idx, int* ) const noexcept;
-  base::maybe<double>   get( int idx, double* ) const noexcept;
-  base::maybe<floating> get( int idx, floating* ) const noexcept;
-  base::maybe<std::string> get( int idx,
-                                std::string* ) const noexcept;
+  base::maybe<int>         get( int idx, int* ) noexcept;
+  base::maybe<double>      get( int idx, double* ) noexcept;
+  base::maybe<floating>    get( int idx, floating* ) noexcept;
+  base::maybe<std::string> get( int idx, std::string* ) noexcept;
   // This is done as light userdata.
-  base::maybe<void*> get( int idx, void** ) const noexcept;
-  base::maybe<lightuserdata> get(
-      int idx, lightuserdata* ) const noexcept;
+  base::maybe<void*>         get( int idx, void** ) noexcept;
+  base::maybe<lightuserdata> get( int idx,
+                                  lightuserdata* ) noexcept;
   // This is done as light userdata.
-  base::maybe<char const*> get( int idx,
-                                char const** ) const noexcept;
+  base::maybe<char const*> get( int idx, char const** ) noexcept;
 
-  type lua_type_to_enum( int type ) const noexcept;
+  type lua_type_to_enum( int type ) noexcept;
 
   /**************************************************************
   ** Error checking helpers.
   ***************************************************************/
-  void enforce_stack_size_ge( int s ) const noexcept;
+  void enforce_stack_size_ge( int s ) noexcept;
 
-  void validate_index( int idx ) const noexcept;
+  void validate_index( int idx ) noexcept;
 
   [[nodiscard]] lua_error_t pop_and_return_error() noexcept;
 

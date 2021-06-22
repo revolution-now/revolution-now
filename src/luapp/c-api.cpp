@@ -97,8 +97,8 @@ lua_valid c_api::dofile( std::string const& file ) noexcept {
   return dofile( file.c_str() );
 }
 
-int c_api::gettop() const noexcept { return lua_gettop( L ); }
-int c_api::stack_size() const noexcept { return gettop(); }
+int c_api::gettop() noexcept { return lua_gettop( L ); }
+int c_api::stack_size() noexcept { return gettop(); }
 
 void c_api::setglobal( char const* key ) noexcept {
   enforce_stack_size_ge( 1 );
@@ -415,7 +415,7 @@ void c_api::rawseti( int idx, int n ) noexcept {
   lua_rawseti( L, idx, n );
 }
 
-bool c_api::get( int idx, bool* ) const noexcept {
+bool c_api::get( int idx, bool* ) noexcept {
   validate_index( idx );
   // Converts the Lua value at the given index to a C boolean
   // value (0 or 1). Like all tests in Lua, lua_toboolean returns
@@ -428,11 +428,11 @@ bool c_api::get( int idx, bool* ) const noexcept {
   return bool( i );
 }
 
-boolean c_api::get( int idx, boolean* ) const noexcept {
+boolean c_api::get( int idx, boolean* ) noexcept {
   return get<bool>( idx );
 }
 
-maybe<integer> c_api::get( int idx, integer* ) const noexcept {
+maybe<integer> c_api::get( int idx, integer* ) noexcept {
   validate_index( idx );
   int is_num = 0;
   // Converts the Lua value at the given index to the signed in-
@@ -447,7 +447,7 @@ maybe<integer> c_api::get( int idx, integer* ) const noexcept {
   return nothing;
 }
 
-base::maybe<int> c_api::get( int idx, int* ) const noexcept {
+base::maybe<int> c_api::get( int idx, int* ) noexcept {
   validate_index( idx );
   auto i = get<integer>( idx );
   if( i )
@@ -456,7 +456,7 @@ base::maybe<int> c_api::get( int idx, int* ) const noexcept {
     return nothing;
 }
 
-maybe<double> c_api::get( int idx, double* ) const noexcept {
+maybe<double> c_api::get( int idx, double* ) noexcept {
   validate_index( idx );
   int is_num = 0;
   // lua_tonumberx: [-0, +0, –]
@@ -473,25 +473,32 @@ maybe<double> c_api::get( int idx, double* ) const noexcept {
   return nothing;
 }
 
-base::maybe<floating> c_api::get( int idx,
-                                  floating* ) const noexcept {
+base::maybe<floating> c_api::get( int idx, floating* ) noexcept {
   return get<double>( idx );
 }
 
-maybe<string> c_api::get( int idx, string* ) const noexcept {
+maybe<string> c_api::get( int idx, string* ) noexcept {
   validate_index( idx );
+  // The function we will use below, lua_tolstring, will actually
+  // change the value on the stack to a string if it is not al-
+  // ready a string (i.e., if it is a number). We don't really
+  // want this, so we're going to push a copy of the value on the
+  // stack (this should be cheap, I don't believe it should make
+  // a copy of the string...but not sure).
+  pushvalue( idx );
+  SCOPE_EXIT( pop() );
   // lua_tolstring:  [-0, +0, m]
   //
-  // Converts the Lua value at the given index to a C string.If
+  // Converts the Lua value at the given index to a C string. If
   // len is not NULL, it sets *len with the string length.The Lua
   // value must be a string or a number; otherwise, the function
   // returns NULL.If the value is a number, then lua_tolstring
-  // also changes the actual value in the stack to a string
-  // .(This change confuses lua_next when lua_tolstring is ap-
-  // plied to keys during a table traversal.)
+  // also changes the actual value in the stack to a string, but
+  // this won't be a problem for us because we are operating on a
+  // temporary value at the top of the stack.
   //
   // lua_tolstring returns a pointer to a string inside the Lua
-  // state.This string always has a zero( '\0' ) after its last
+  // state. This string always has a zero( '\0' ) after its last
   // character( as in C ), but can contain other zeros in its
   // body.
   //
@@ -499,9 +506,8 @@ maybe<string> c_api::get( int idx, string* ) const noexcept {
   // that the pointer returned by lua_tolstring will be valid
   // after the corresponding Lua value is removed from the stack.
   size_t      len = 0;
-  char const* p   = lua_tolstring( L, idx, &len );
+  char const* p   = lua_tolstring( L, -1, &len );
   if( p == nullptr ) return nothing;
-  DCHECK( int( len ) >= 0 );
   // Use the (pointer, size) constructor because we need to
   // specify the length, 1) so that std::string can pre-allocate,
   // and 2) because there may be zeroes inside the string before
@@ -509,7 +515,7 @@ maybe<string> c_api::get( int idx, string* ) const noexcept {
   return string( p, len );
 }
 
-base::maybe<void*> c_api::get( int idx, void** ) const noexcept {
+base::maybe<void*> c_api::get( int idx, void** ) noexcept {
   validate_index( idx );
   void* p = lua_touserdata( L, idx );
   if( !p ) return nothing;
@@ -517,12 +523,12 @@ base::maybe<void*> c_api::get( int idx, void** ) const noexcept {
 }
 
 base::maybe<lightuserdata> c_api::get(
-    int idx, lightuserdata* ) const noexcept {
+    int idx, lightuserdata* ) noexcept {
   return get<void*>( idx );
 }
 
-base::maybe<char const*> c_api::get(
-    int idx, char const** ) const noexcept {
+base::maybe<char const*> c_api::get( int idx,
+                                     char const** ) noexcept {
   validate_index( idx );
   // We are susceptible to this because of the char const*.
   CHECK( !lua_isstring( L, idx ) );
@@ -534,7 +540,7 @@ base::maybe<char const*> c_api::get(
   return p;
 }
 
-type c_api::lua_type_to_enum( int type ) const noexcept {
+type c_api::lua_type_to_enum( int type ) noexcept {
   CHECK( type != LUA_TNONE, "type ({}) not valid.", type );
   CHECK( type >= 0 );
   CHECK( type < kNumLuaTypes,
@@ -590,21 +596,21 @@ int c_api::len_pop( int idx ) {
 //   LUA_TUSERDATA		  7
 //   LUA_TTHREAD		    8
 //
-type c_api::type_of( int idx ) const noexcept {
+type c_api::type_of( int idx ) noexcept {
   validate_index( idx );
   int res = lua_type( L, idx );
   CHECK( res != LUA_TNONE, "index ({}) not valid.", idx );
   return lua_type_to_enum( res );
 }
 
-char const* c_api::type_name( type type ) const noexcept {
+char const* c_api::type_name( type type ) noexcept {
   return lua_typename( L, static_cast<int>( type ) );
 }
 
 /****************************************************************
 ** Error checking helpers.
 *****************************************************************/
-void c_api::enforce_stack_size_ge( int s ) const noexcept {
+void c_api::enforce_stack_size_ge( int s ) noexcept {
   CHECK( s >= 0 );
   if( stack_size() >= s ) return;
   FATAL(
@@ -613,8 +619,7 @@ void c_api::enforce_stack_size_ge( int s ) const noexcept {
       s, stack_size() );
 }
 
-lua_valid c_api::enforce_type_of( int  idx,
-                                  type type ) const noexcept {
+lua_valid c_api::enforce_type_of( int idx, type type ) noexcept {
   validate_index( idx );
   if( type_of( idx ) == type ) return base::valid;
   return "type of element at index " + to_string( idx ) +
@@ -630,7 +635,7 @@ lua_error_t c_api::pop_and_return_error() noexcept {
   return res;
 }
 
-void c_api::validate_index( int idx ) const noexcept {
+void c_api::validate_index( int idx ) noexcept {
   // This should allow all valid pseudo indices to pass. Cur-
   // rently, this means the registry index and up value indices.
   if( idx <= LUA_REGISTRYINDEX ) return;
@@ -744,7 +749,7 @@ char const* c_api::tostring( int idx, size_t* len ) noexcept {
   return luaL_tolstring( L, idx, len );
 }
 
-bool c_api::isinteger( int idx ) const noexcept {
+bool c_api::isinteger( int idx ) noexcept {
   validate_index( idx );
   return ( lua_isinteger( L, idx ) == 1 );
 }
