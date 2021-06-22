@@ -26,4 +26,25 @@ base::maybe<table> lua_get( cthread L, int idx, tag<table> ) {
   return table( L, C.ref_registry() );
 }
 
+table table::pop_or_create_table( cthread L ) {
+  lua::c_api C( L );
+  CHECK( C.stack_size() >= 1 );
+  switch( C.type_of( -1 ) ) {
+    case type::nil: {
+      C.newtable();
+      table res = table( L, C.ref_registry() );
+      C.pop();
+      return res;
+    }
+    case type::table: {
+      return table( L, C.ref_registry() );
+    }
+    default:
+      throw_lua_error( L,
+                       "expected either a table or nil but "
+                       "found an object of type {}.",
+                       C.type_of( -1 ) );
+  }
+}
+
 } // namespace lua

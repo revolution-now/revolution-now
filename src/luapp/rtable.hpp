@@ -46,6 +46,19 @@ struct table : public reference {
 
   template<GettableOrVoid R = void, Pushable... Args>
   error_type_for_return_type<R> pcall( Args&&... args );
+
+  template<typename IndexT, typename Predecessor>
+  static table create_or_get(
+      indexer<IndexT, Predecessor>&& idxr ) {
+    cthread L = idxr.this_cthread();
+    lua::push( L, idxr );
+    table res = pop_or_create_table( L );
+    idxr      = res;
+    return res;
+  }
+
+private:
+  static table pop_or_create_table( cthread L );
 };
 
 /****************************************************************

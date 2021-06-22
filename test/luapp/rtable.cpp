@@ -232,5 +232,29 @@ LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
            "args: n=3, s='hello', d=3.7" );
 }
 
+LUA_TEST_CASE( "[table] table create_or_get" ) {
+  table t1 = table::create_or_get( st["t1"] );
+  table t2 = table::create_or_get( st["t1"] );
+  REQUIRE( t1 == t2 );
+  table t3 = table::create_or_get( st["t1"]["t3"] );
+  REQUIRE( t3 != t1 );
+  table t4 = table::create_or_get( st["t1"]["t3"] );
+  REQUIRE( t3 == t4 );
+
+  st["foo"] = [&] {
+    st["number"] = 5.5;
+    return table::create_or_get( st["number"] );
+  };
+
+  char const* err =
+      "expected either a table or nil but found an object of "
+      "type number.\n"
+      "stack traceback:\n"
+      "\t[C]: in ?";
+
+  REQUIRE( st["foo"].pcall<table>() ==
+           lua_unexpected<table>( err ) );
+}
+
 } // namespace
 } // namespace lua
