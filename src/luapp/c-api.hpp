@@ -524,4 +524,13 @@ base::maybe<T> get( c_api& C, int idx, tag<T> t ) {
   return get( C.this_cthread(), idx, t );
 }
 
+/****************************************************************
+** Macro helpers
+*****************************************************************/
+// This requires including base/scope-exit.hpp and also requires
+// C to be in scope.
+#define SCOPE_CHECK_STACK_UNCHANGED         \
+  int starting_stack_size = C.stack_size(); \
+  SCOPE_EXIT( CHECK_EQ( C.stack_size(), starting_stack_size ) )
+
 } // namespace lua

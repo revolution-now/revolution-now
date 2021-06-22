@@ -29,10 +29,6 @@ raw_table_iterator end( table tbl ) noexcept {
   return raw_table_iterator( tbl, /*is_end=*/true );
 }
 
-#define SCOPE_CHECK_STACK_UNCHANGED         \
-  int starting_stack_size = C.stack_size(); \
-  SCOPE_EXIT( CHECK_EQ( C.stack_size(), starting_stack_size ) )
-
 /****************************************************************
 ** raw_table_iterator
 *****************************************************************/
