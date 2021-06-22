@@ -777,4 +777,9 @@ int c_api::checkinteger( int arg ) {
   return luaL_checkinteger( L, arg );
 }
 
+bool c_api::next( int idx ) noexcept {
+  validate_index( idx );
+  return lua_next( L, idx ) == 1;
+}
+
 } // namespace lua

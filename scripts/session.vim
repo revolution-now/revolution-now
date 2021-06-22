@@ -6,6 +6,7 @@ let s:stems = [
   \ 'luapp/ref',
   \ 'luapp/any',
   \ 'luapp/rtable',
+  \ 'luapp/iter',
   \ 'luapp/rfunction',
   \ 'luapp/ruserdata',
   \ 'luapp/thing',

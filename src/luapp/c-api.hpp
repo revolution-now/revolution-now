@@ -382,6 +382,17 @@ struct c_api {
   std::string pop_tostring() noexcept;
 
   /**************************************************************
+  ** iteration
+  ***************************************************************/
+  // Pops a key from the stack, and pushes a key–value pair from
+  // the table at the given index (the "next" pair after the
+  // given key). If there are no more elements in the table, then
+  // next returns false (and pushes nothing).
+  //
+  // This does NOT call the __pairs method.
+  bool next( int idx ) noexcept;
+
+  /**************************************************************
   ** threads
   ***************************************************************/
   // Creates a new thread, pushes it on the stack, and returns a
