@@ -34,6 +34,16 @@ concept FunctionReference = //
     std::is_reference_v<T> &&
     std::is_function_v<std::remove_reference_t<T>>;
 
+template<typename T>
+concept MemberFunctionPointer = //
+    std::is_member_function_pointer_v<
+        std::remove_reference_t<T>>;
+
+template<typename T>
+concept MemberPointer =
+    !MemberFunctionPointer<T> &&
+    std::is_member_pointer_v<std::remove_reference_t<T>>;
+
 // clang-format off
 template<typename T>
 concept NonOverloadedCallable =
@@ -48,8 +58,7 @@ concept NonOverloadedCallable =
 template<typename T>
 concept NonOverloadedStatelessCallable =
     NonOverloadedCallable<T> && //
-    std::is_convertible_v<
-        T, std::add_pointer_t<mp::callable_func_type_t<T>>>;
+    std::is_convertible_v<T, mp::callable_func_ptr_type_t<T>>;
 
 template<typename T>
 concept NonOverloadedStatefulCallable =

@@ -158,5 +158,35 @@ static_assert( NonOverloadedStatelessCallable<
 static_assert( !NonOverloadedStatefulCallable<
                decltype( func::StaticCallable::fun )> );
 
+/****************************************************************
+** Member Functions
+*****************************************************************/
+struct HasMembers {
+  int    n;
+  double foo();
+  int    bar( string const& ) const;
+};
+
+using foo_t = decltype( &HasMembers::foo );
+using bar_t = decltype( &HasMembers::bar );
+using n_t   = decltype( &HasMembers::n );
+
+static_assert( MemberFunctionPointer<foo_t> );
+static_assert( !MemberPointer<foo_t> );
+static_assert( MemberFunctionPointer<bar_t> );
+static_assert( !MemberPointer<bar_t> );
+static_assert( !MemberFunctionPointer<n_t> );
+static_assert( MemberPointer<n_t> );
+
+static_assert( !Function<foo_t> );
+static_assert( !Function<bar_t> );
+static_assert( !Function<n_t> );
+static_assert( !FunctionPointer<foo_t> );
+static_assert( !FunctionPointer<bar_t> );
+static_assert( !FunctionPointer<n_t> );
+static_assert( !NonOverloadedCallable<foo_t> );
+static_assert( !NonOverloadedCallable<bar_t> );
+static_assert( !NonOverloadedCallable<n_t> );
+
 } // namespace
 } // namespace base
