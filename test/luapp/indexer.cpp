@@ -398,5 +398,39 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
            lua_unexpected<any>( err ) );
 }
 
+// This tests that if we call C++ from Lua using pcall, and if
+// that C++ throws a Lua error while there are still things on
+// the stack, that the stack won't have lingering things on it
+// when the pcall returns. I think this is guaranteed by Lua, so
+// it may not need testing, but...
+LUA_TEST_CASE( "[indexer] error recovery" ) {
+  C.openlibs();
+  REQUIRE( C.dostring( R"(
+    a = {}
+    a.b = {}
+    a.b.c = {}
+    setmetatable( a.b.c, {
+      __index = function()
+          error( 'no go.' )
+        end
+    } )
+  )" ) == valid );
+
+  st["go"] = [&] { st["a"]["b"]["c"]["d"]["e"] = 1; };
+
+  rfunction go = cast<rfunction>( st["go"] );
+
+  char const* err =
+      "[string \"...\"]:7: no go.\n"
+      "stack traceback:\n"
+      "\t[C]: in function 'error'\n"
+      "\t[string \"...\"]:7: in function <[string \"...\"]:6>\n"
+      "\t[C]: in function 'go'";
+
+  REQUIRE( go.pcall() == lua_invalid( err ) );
+
+  REQUIRE( C.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace lua
