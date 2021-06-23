@@ -97,9 +97,22 @@ auto F13 = [x = 1.0]( A* ) -> int {
   return 0;
 };
 
+// mutable
+auto F14 = [x = 1.0]( A* ) mutable -> int {
+  (void)x;
+  return 0;
+};
+
 struct Stateful {
   void operator()();
   int  x;
+  int  foo() const;
+};
+
+struct HasMembers {
+  void operator()();
+  int  x;
+  int  foo() const;
 };
 
 static_assert( is_same_v<A(), callable_func_type_t<F1>> );
@@ -111,16 +124,124 @@ static_assert( is_same_v<A( B, C ), callable_func_type_t<F6>> );
 static_assert(
     is_same_v<A const( B ), callable_func_type_t<F7>> );
 static_assert(
-    is_same_v<A*(C const&), callable_func_type_t<F8>> );
+    is_same_v<A ( * )(), callable_func_ptr_type_t<F1>> );
+static_assert(
+    is_same_v<void ( * )( A ), callable_func_ptr_type_t<F2>> );
+static_assert(
+    is_same_v<A ( * )( B ), callable_func_ptr_type_t<F3>> );
+static_assert(
+    is_same_v<A ( * )( B, C ), callable_func_ptr_type_t<F4>> );
+static_assert(
+    is_same_v<A ( * )( B ), callable_func_ptr_type_t<F5>> );
+static_assert(
+    is_same_v<A ( * )( B, C ), callable_func_ptr_type_t<F6>> );
+static_assert( is_same_v<A const ( * )( B ),
+                         callable_func_ptr_type_t<F7>> );
+static_assert( is_same_v<A const ( Foo::* )( B ),
+                         callable_member_func_type_t<F7>> );
+static_assert(
+    is_same_v<A const( Foo*, B ),
+              callable_member_func_flattened_type_t<F7>> );
+static_assert(
+    is_same_v<A*( C const& ) const, callable_func_type_t<F8>> );
+static_assert(
+    is_same_v<A* (*)(C const&), callable_func_ptr_type_t<F8>> );
+static_assert( is_same_v<A* (F8::*)( C const& ) const,
+                         callable_member_func_type_t<F8>> );
+static_assert(
+    is_same_v<A*(F8*, C const&),
+              callable_member_func_flattened_type_t<F8>> );
 static_assert( is_same_v<A( B ), callable_func_type_t<F11>> );
 static_assert(
-    is_same_v<int( A* ),
+    is_same_v<A ( * )( B ), callable_func_ptr_type_t<F11>> );
+static_assert(
+    is_same_v<int( A* ) const,
               callable_func_type_t<decltype( F13 )>> );
 static_assert(
+    is_same_v<int ( * )( A* ),
+              callable_func_ptr_type_t<decltype( F13 )>> );
+static_assert(
+    is_same_v<int ( decltype( F13 )::* )( A* ) const,
+              callable_member_func_type_t<decltype( F13 )>> );
+static_assert( is_same_v<int( decltype( F13 ) const*, A* ),
+                         callable_member_func_flattened_type_t<
+                             decltype( F13 )>> );
+static_assert(
+    is_same_v<int( A* ),
+              callable_func_type_t<decltype( F14 )>> );
+static_assert(
+    is_same_v<int ( * )( A* ),
+              callable_func_ptr_type_t<decltype( F14 )>> );
+static_assert(
+    is_same_v<int ( decltype( F14 )::* )( A* ),
+              callable_member_func_type_t<decltype( F14 )>> );
+static_assert( is_same_v<int( decltype( F14 )*, A* ),
+                         callable_member_func_flattened_type_t<
+                             decltype( F14 )>> );
+static_assert(
     is_same_v<void(), callable_func_type_t<Stateful>> );
+static_assert( is_same_v<void ( * )(),
+                         callable_func_ptr_type_t<Stateful>> );
 static_assert(
     is_same_v<void(),
               callable_func_type_t<decltype( Stateful{} )>> );
+static_assert(
+    is_same_v<void ( * )(), callable_func_ptr_type_t<
+                                decltype( Stateful{} )>> );
+static_assert(
+    is_same_v<void(), callable_func_type_t<
+                          decltype( &Stateful::operator() )>> );
+static_assert(
+    is_same_v<void ( * )(),
+              callable_func_ptr_type_t<
+                  decltype( &Stateful::operator() )>> );
+static_assert(
+    is_same_v<void ( Stateful::* )(),
+              callable_member_func_type_t<
+                  decltype( &Stateful::operator() )>> );
+static_assert(
+    is_same_v<void( Stateful* ),
+              callable_member_func_flattened_type_t<
+                  decltype( &Stateful::operator() )>> );
+
+static_assert(
+    is_same_v<void(),
+              callable_func_type_t<
+                  decltype( &HasMembers::operator() )>> );
+static_assert(
+    is_same_v<void ( * )(),
+              callable_func_ptr_type_t<
+                  decltype( &HasMembers::operator() )>> );
+static_assert(
+    is_same_v<void ( HasMembers::* )(),
+              callable_member_func_type_t<
+                  decltype( &HasMembers::operator() )>> );
+static_assert(
+    is_same_v<void( HasMembers* ),
+              callable_member_func_flattened_type_t<
+                  decltype( &HasMembers::operator() )>> );
+static_assert(
+    is_same_v<int() const, callable_func_type_t<
+                               decltype( &HasMembers::foo )>> );
+static_assert(
+    is_same_v<int ( * )(), callable_func_ptr_type_t<
+                               decltype( &HasMembers::foo )>> );
+static_assert( is_same_v<int ( HasMembers::* )() const,
+                         callable_member_func_type_t<
+                             decltype( &HasMembers::foo )>> );
+static_assert( is_same_v<int( HasMembers const* ),
+                         callable_member_func_flattened_type_t<
+                             decltype( &HasMembers::foo )>> );
+
+static_assert( is_same_v<int( HasMembers::* ),
+                         callable_member_func_type_t<
+                             decltype( &HasMembers::x )>> );
+static_assert( is_same_v<int( HasMembers* ),
+                         callable_member_func_flattened_type_t<
+                             decltype( &HasMembers::x )>> );
+static_assert(
+    is_same_v<int, callable_traits<
+                       decltype( &HasMembers::x )>::var_type> );
 
 static_assert( is_same_v<A, callable_ret_type_t<F1>> );
 static_assert( is_same_v<void, callable_ret_type_t<F2>> );
@@ -282,6 +403,7 @@ static_assert( any_v<false, true, false> == true );
 // To suppress compiler warnings.
 TEST_CASE( "[meta] use some variables" ) {
   (void)callable_traits_test::F13;
+  (void)callable_traits_test::F14;
 }
 
 /****************************************************************

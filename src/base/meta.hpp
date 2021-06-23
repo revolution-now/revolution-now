@@ -75,12 +75,22 @@ inline constexpr bool is_single_arg_generic_lambda_v =
 template<typename...>
 struct callable_traits_impl;
 
+template<typename...>
+struct member_fn_callable_traits_impl;
+
+template<typename...>
+struct member_fn_const_callable_traits_impl;
+
+template<typename...>
+struct member_var_callable_traits_impl;
+
 // Function.
 template<typename R, typename... Arg>
 struct callable_traits_impl<R( Arg... )> {
-  using arg_types = type_list<Arg...>;
-  using ret_type  = R;
-  using func_type = R( Arg... );
+  using arg_types     = type_list<Arg...>;
+  using ret_type      = R;
+  using func_type     = R( Arg... );
+  using func_ptr_type = R ( * )( Arg... );
 
   static constexpr bool abominable_const = false;
 };
@@ -91,29 +101,51 @@ struct callable_traits_impl<R( Arg... ) const> {
   using arg_types = type_list<Arg...>;
   using ret_type  = R;
   using func_type = R( Arg... ) const;
+  // Cannot have const.
+  using func_ptr_type = R ( * )( Arg... );
 
   static constexpr bool abominable_const = true;
 };
 
-// Pointer to member-function.
-template<typename T, typename R, typename... Arg>
-struct callable_traits_impl<R ( T::* )( Arg... )>
-  : public callable_traits_impl<R( Arg... )> {};
+// Member Function.
+template<typename R, typename O, typename... Arg>
+struct member_fn_callable_traits_impl<R( O*, Arg... )> {
+  using arg_types                  = type_list<Arg...>;
+  using ret_type                   = R;
+  using func_type                  = R( Arg... );
+  using func_ptr_type              = R ( * )( Arg... );
+  using member_func_type           = R ( O::* )( Arg... );
+  using member_func_flattened_type = R( O*, Arg... );
 
-// Const Pointer to member-function.
-template<typename T, typename R, typename... Arg>
-struct callable_traits_impl<R ( T::*const )( Arg... )>
-  : public callable_traits_impl<R( Arg... )> {};
+  static constexpr bool abominable_const = false;
+};
 
-// Pointer to member-function (const abominable).
-template<typename T, typename R, typename... Arg>
-struct callable_traits_impl<R ( T::* )( Arg... ) const>
-  : public callable_traits_impl<R( Arg... )> {};
+// Member Function (const abominable).
+template<typename R, typename O, typename... Arg>
+struct member_fn_const_callable_traits_impl<R( O*, Arg... )> {
+  using arg_types = type_list<Arg...>;
+  using ret_type  = R;
+  using func_type = R( Arg... ) const;
+  // Cannot have const.
+  using func_ptr_type = R ( * )( Arg... );
+  // Don't need const here since it will be in O already.
+  using member_func_type           = R ( O::* )( Arg... ) const;
+  using member_func_flattened_type = R( O const*, Arg... );
 
-// Const Pointer to member-function (const abominable).
-template<typename T, typename R, typename... Arg>
-struct callable_traits_impl<R ( T::*const )( Arg... ) const>
-  : public callable_traits_impl<R( Arg... )> {};
+  static constexpr bool abominable_const = true;
+};
+
+// Member variable.
+template<typename R, typename O>
+struct member_var_callable_traits_impl<R( O* )> {
+  using arg_types                  = type_list<>;
+  using ret_type                   = R;
+  using func_type                  = R();
+  using func_ptr_type              = R ( * )();
+  using member_func_type           = R( O::* );
+  using member_func_flattened_type = R( O* );
+  using var_type                   = R;
+};
 
 // Function pointer.
 template<typename R, typename... Arg>
@@ -180,7 +212,32 @@ struct callable_traits<R ( & )( Arg... )>
 // Pointer to member function.
 template<typename R, typename C, typename... Arg>
 struct callable_traits<R ( C::* )( Arg... )>
-  : public detail::callable_traits_impl<R( Arg... )> {};
+  : public detail::member_fn_callable_traits_impl<R(
+        C*, Arg... )> {};
+
+// Const pointer to member function.
+template<typename R, typename C, typename... Arg>
+struct callable_traits<R ( C::*const )( Arg... )>
+  : public detail::member_fn_callable_traits_impl<R(
+        C*, Arg... )> {};
+
+// Pointer to member function (const abominable).
+template<typename R, typename C, typename... Arg>
+struct callable_traits<R ( C::* )( Arg... ) const>
+  : public detail::member_fn_const_callable_traits_impl<R(
+        C*, Arg... )> {};
+
+// Const pointer to member function (const abominable).
+template<typename R, typename C, typename... Arg>
+struct callable_traits<R ( C::*const )( Arg... ) const>
+  : public detail::member_fn_const_callable_traits_impl<R(
+        C*, Arg... )> {};
+
+// Pointer to member variable.
+template<typename R, typename C>
+requires( !std::is_const_v<C> ) struct callable_traits<R( C::* )>
+  : public detail::member_var_callable_traits_impl<R( C* )> {
+};
 
 // Object.
 template<typename O>
@@ -192,8 +249,7 @@ requires(
     !std::is_member_function_pointer_v<std::remove_cvref_t<O>> )
 struct callable_traits<O>
   // clang-format on
-  : public detail::callable_traits_impl<
-        decltype( &O::operator() )> {};
+  : public callable_traits<decltype( &O::operator() )> {};
 
 // clang-format off
 // Single Arg Generic Lambda.
@@ -220,6 +276,18 @@ using callable_arg_types_t =
 template<typename F>
 using callable_func_type_t =
     typename callable_traits<F>::func_type;
+
+template<typename F>
+using callable_func_ptr_type_t =
+    typename callable_traits<F>::func_ptr_type;
+
+template<typename F>
+using callable_member_func_type_t =
+    typename callable_traits<F>::member_func_type;
+
+template<typename F>
+using callable_member_func_flattened_type_t =
+    typename callable_traits<F>::member_func_flattened_type;
 
 /****************************************************************
 ** Make function type from type_list of args.
