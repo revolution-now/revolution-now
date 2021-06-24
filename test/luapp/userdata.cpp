@@ -17,16 +17,23 @@
 #include "test/luapp/common.hpp"
 #include "test/monitoring-types.hpp"
 
+// luapp
+#include "src/luapp/cast.hpp"
+#include "src/luapp/iter.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
 FMT_TO_CATCH( ::lua::type );
+
+DEFINE_FORMAT_( testing::monitoring_types::Empty, "Empty{{}}" );
 
 namespace lua {
 namespace {
 
 using namespace std;
 
+using ::base::maybe;
 using ::base::valid;
 using ::Catch::Matches;
 using ::testing::monitoring_types::Empty;
@@ -56,30 +63,58 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   // what the numbers should be.
   static_assert( sizeof( Empty ) == 1 );
 
-  // Test that the userdata's metatable has the right name.
+  // Test that the userdata's metatable has the right contents.
   REQUIRE( C.type_of( -1 ) == type::userdata );
   REQUIRE( C.getmetatable( -1 ) );
   REQUIRE( C.stack_size() == 2 );
-  REQUIRE( C.getfield( -1, "__name" ) == type::string );
-  REQUIRE( C.stack_size() == 3 );
-  REQUIRE( C.get<string>( -1 ) ==
-           "testing::monitoring_types::Empty" );
-  C.pop( 1 );
-  REQUIRE( C.stack_size() == 2 );
+  table metatable1( L, C.ref_registry() );
+  REQUIRE( C.stack_size() == 1 );
   // Stack:
-  //   metatable1
   //   userdata1
-  REQUIRE( C.type_of( -1 ) == type::table );
-  REQUIRE( C.type_of( -2 ) == type::userdata );
+
+  // Metatable should have: __gc, __tostring, __index, __name,
+  // member_types, members.
+  REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
+           6 );
+
+  // check __index.
+  table m__index = cast<table>( metatable1["__index"] );
+  REQUIRE( distance( begin( m__index ), end( m__index ) ) == 1 );
+  REQUIRE( m__index["is_owned_by_lua"].type() == type::boolean );
+  REQUIRE( m__index["is_owned_by_lua"] == true );
+
+  // check __gc.
+  rfunction m__gc = cast<rfunction>( metatable1["__gc"] );
+
+  // check __tostring.
+  rfunction m__tostring =
+      cast<rfunction>( metatable1["__tostring"] );
+
+  // check __name.
+  string m__name = cast<string>( metatable1["__name"] );
+  REQUIRE( m__name == "testing::monitoring_types::Empty" );
+
+  // check member_types.
+  table member_types = cast<table>( metatable1["member_types"] );
+  REQUIRE( distance( begin( member_types ),
+                     end( member_types ) ) == 0 );
+
+  // check members.
+  table members = cast<table>( metatable1["members"] );
+  REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+
+  // Stack:
+  //   userdata1
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == type::userdata );
 
   // Now set a second object of the same type and ensure that
   // the metatable gets reused, and actually verify it.
   REQUIRE_FALSE( push_userdata_by_value( L, Empty{} ) );
   // Stack:
   //   userdata2
-  //   metatable1
   //   userdata1
-  C.swap_top();
+  C.getmetatable( -2 );
   // Stack:
   //   metatable1
   //   userdata2
@@ -115,30 +150,56 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   // what the numbers should be.
   static_assert( sizeof( Empty* ) == 8 );
 
-  // Test that the userdata's metatable has the right name.
+  // Test that the userdata's metatable has the right contents.
   REQUIRE( C.type_of( -1 ) == type::userdata );
   REQUIRE( C.getmetatable( -1 ) );
   REQUIRE( C.stack_size() == 2 );
-  REQUIRE( C.getfield( -1, "__name" ) == type::string );
-  REQUIRE( C.stack_size() == 3 );
-  REQUIRE( C.get<string>( -1 ) ==
-           "testing::monitoring_types::Empty&" );
-  C.pop( 1 );
-  REQUIRE( C.stack_size() == 2 );
+  table metatable1( L, C.ref_registry() );
+  REQUIRE( C.stack_size() == 1 );
   // Stack:
-  //   metatable1
   //   userdata1
-  REQUIRE( C.type_of( -1 ) == type::table );
-  REQUIRE( C.type_of( -2 ) == type::userdata );
+
+  // Metatable should have: __tostring, __index, __name,
+  // member_types, members. __gc is not in the list because this
+  // is by ref.
+  REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
+           5 );
+
+  // check __index.
+  table m__index = cast<table>( metatable1["__index"] );
+  REQUIRE( distance( begin( m__index ), end( m__index ) ) == 1 );
+  REQUIRE( m__index["is_owned_by_lua"].type() == type::boolean );
+  REQUIRE( m__index["is_owned_by_lua"] == false );
+
+  // check __tostring.
+  rfunction m__tostring =
+      cast<rfunction>( metatable1["__tostring"] );
+
+  // check __name.
+  string m__name = cast<string>( metatable1["__name"] );
+  REQUIRE( m__name == "testing::monitoring_types::Empty&" );
+
+  // check member_types.
+  table member_types = cast<table>( metatable1["member_types"] );
+  REQUIRE( distance( begin( member_types ),
+                     end( member_types ) ) == 0 );
+
+  // check members.
+  table members = cast<table>( metatable1["members"] );
+  REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+
+  // Stack:
+  //   userdata1
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C.type_of( -1 ) == type::userdata );
 
   // Now set a second object of the same type and ensure that
   // the metatable gets reused, and actually verify it.
   REQUIRE_FALSE( push_userdata_by_ref( L, e ) );
   // Stack:
   //   userdata2
-  //   metatable1
   //   userdata1
-  C.swap_top();
+  C.getmetatable( -2 );
   // Stack:
   //   metatable1
   //   userdata2
@@ -245,10 +306,9 @@ LUA_TEST_CASE( "[userdata] userdata tostring" ) {
     REQUIRE( C.dostring( "return tostring( empty )" ) == valid );
     REQUIRE( C.stack_size() == 1 );
     UNWRAP_CHECK( name, C.get<string>( -1 ) );
-    REQUIRE_THAT(
-        name,
-        Matches(
-            "testing::monitoring_types::Empty: 0x[0-9a-z]+$" ) );
+    REQUIRE_THAT( name,
+                  Matches( "testing::monitoring_types::Empty@0x["
+                           "0-9a-z]+: Empty\\{\\}$" ) );
     C.pop();
   }
   SECTION( "int" ) {

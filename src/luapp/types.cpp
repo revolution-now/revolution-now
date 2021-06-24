@@ -51,8 +51,12 @@ char const* type_name( cthread L, int idx ) noexcept {
   return lua_typename( L, lua_type( L, idx ) );
 }
 
-type type_of( cthread L, int idx ) noexcept {
+type type_of_idx( cthread L, int idx ) noexcept {
   return c_api( L ).type_of( idx );
+}
+
+void pop_stack( cthread L, int n ) noexcept {
+  c_api( L ).pop( n );
 }
 
 /****************************************************************

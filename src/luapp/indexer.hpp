@@ -56,6 +56,10 @@ struct indexer {
     return pred_.this_cthread();
   }
 
+  lua::type type() const noexcept {
+    return type_of( this_cthread(), *this );
+  }
+
   template<Pushable U>
   indexer& operator=( U&& rhs );
 

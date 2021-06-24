@@ -87,6 +87,26 @@ void setup_new_metatable( cthread                    L,
   //   metatable
   CHECK( C.type_of( -1 ) == type::table );
   C.setfield( -2, "__index" );
+
+  // Build member type table. This is a table that will have one
+  // boolean entry per member function or variable and will tell
+  // whether it is a member function or a member variable.
+  C.newtable();
+  // Stack:
+  //   member type table
+  //   metatable
+  C.setfield( -2, "member_types" );
+  // Stack:
+  //   metatable
+
+  // Build members table. This is a table that will have one
+  // entry per member function or variable (whose values will be
+  // functions).
+  C.newtable();
+  // Stack:
+  //   members table
+  //   metatable
+  C.setfield( -2, "members" );
   // Stack:
   //   metatable
 }

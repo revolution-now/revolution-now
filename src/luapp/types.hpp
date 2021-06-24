@@ -46,7 +46,16 @@ void to_str( type t, std::string& out );
 inline constexpr int kNumLuaTypes = 9;
 
 char const* type_name( cthread L, int idx ) noexcept;
-type        type_of( cthread L, int idx ) noexcept;
+type        type_of_idx( cthread L, int idx ) noexcept;
+void        pop_stack( cthread L, int n ) noexcept;
+
+template<Pushable P>
+type type_of( cthread L, P&& o ) noexcept {
+  lua::push( L, o );
+  type res = type_of_idx( L, -1 );
+  pop_stack( L, nvalues_for<P>() );
+  return res;
+}
 
 /****************************************************************
 ** nil
