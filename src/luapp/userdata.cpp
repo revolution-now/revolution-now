@@ -12,6 +12,7 @@
 
 // luapp
 #include "c-api.hpp"
+#include "types.hpp"
 
 // base
 #include "base/error.hpp"
@@ -30,13 +31,25 @@ using ::base::nothing;
 
 void build_index_table( cthread L ) {
   c_api C( L );
-  C.push( []( lua_State* st ) -> int {
+  // Stack:
+  //   metatable
+
+  // Push the metatable as an upvalue.
+  C.pushvalue( -1 );
+  // Stack:
+  //   metatable
+  //   metatable
+  auto index = []( lua_State* st ) -> int {
     c_api C( st );
     DCHECK( C.stack_size() == 2 );
     if( C.type_of( -1 ) != type::string ) return 0;
     // The key is a string.
+
+    /************************************************************
+    ** See if key is in metatable.
+    *************************************************************/
     // FIXME: find a better way to handle these special members.
-    C.getmetatable( 1 );
+    C.pushvalue( upvalue_index( 1 ) ); // userdata metatable.
     // Stack:
     //   metatable
     //   key
@@ -59,93 +72,257 @@ void build_index_table( cthread L ) {
     //   metatable
     //   key
     //   userdata
-    C.pop( 2 );
+    C.pop();
+
+    /************************************************************
+    ** Key is not in metatable, check member_types.
+    *************************************************************/
     // Stack:
+    //   metatable
     //   key
     //   userdata
 
-    // Params: userdata, key
-    C.getfield( /*table_idx=*/1, "member_types" );
-    DCHECK( C.stack_size() == 3 );
+    C.getfield( -1, "member_types" );
+    DCHECK( C.stack_size() == 4 );
     DCHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   member types table
+    //   metatable
     //   key
     //   userdata
-    C.pushvalue( -2 );
-    DCHECK( C.stack_size() == 4 );
+    C.pushvalue( -3 );
+    DCHECK( C.stack_size() == 5 );
     // Stack:
     //   key
     //   member types table
+    //   metatable
     //   key
     //   userdata
     C.gettable( -2 );
-    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   member type
+    //   member types table
+    //   metatable
+    //   key
+    //   userdata
+    DCHECK( C.stack_size() == 5 );
+    // If this is nil, then the field just doesn't exist.
     if( C.type_of( -1 ) == type::nil ) return 0;
     // The key exists.
     CHECK( C.type_of( -1 ) == type::boolean );
 
+    /************************************************************
+    ** Key is in the member_types table.  Get member type.
+    *************************************************************/
     // Stack:
     //   member type
     //   member types table
+    //   metatable
     //   key
     //   userdata
     bool is_member_function = get_or_luaerr<bool>( st, -1 );
     C.pop( 2 );
-    DCHECK( C.stack_size() == 2 );
-    DCHECK( C.type_of( -1 ) == type::string );
+    DCHECK( C.stack_size() == 3 );
+    DCHECK( C.type_of( -1 ) == type::table );
+
+    /************************************************************
+    ** Key the associated function from the members table.
+    *************************************************************/
+    // This is the function that is called with the userdata ob-
+    // ject as the first argument to either get the variable
+    // value (if this is a member variable) or to call the member
+    // function (if it's a function).
+
     // Stack:
+    //   metatable
     //   key
     //   userdata
-    C.getfield( /*table_idx=*/1, "members" );
-    DCHECK( C.stack_size() == 3 );
+    C.getfield( -1, "members" );
+    DCHECK( C.stack_size() == 4 );
     DCHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   members table
+    //   metatable
     //   key
     //   userdata
-    C.pushvalue( -2 );
-    DCHECK( C.stack_size() == 4 );
+    C.pushvalue( -3 );
+    DCHECK( C.stack_size() == 5 );
     // Stack:
     //   key
     //   members table
+    //   metatable
     //   key
     //   userdata
     C.gettable( -2 );
-    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   function
+    //   members table
+    //   metatable
+    //   key
+    //   userdata
+    DCHECK( C.stack_size() == 5 );
     CHECK( C.type_of( -1 ) == type::function );
     // Stack:
     //   function
     //   members table
+    //   metatable
     //   key
     //   userdata
+
+    /************************************************************
+    ** Run the function (for vars) or return it (for functions).
+    *************************************************************/
     if( !is_member_function ) {
       // We have a member variable.
       C.pushvalue( 1 );
-      DCHECK( C.stack_size() == 5 );
+      DCHECK( C.stack_size() == 6 );
       // Stack:
       //   userdata
       //   function
       //   members table
+      //   metatable
       //   key
       //   userdata
       C.call( /*nargs=*/1, /*nresults=*/1 );
-      DCHECK( C.stack_size() == 4 );
+      DCHECK( C.stack_size() == 5 );
       // Stack:
       //   member variable value
       //   members table
+      //   metatable
       //   key
       //   userdata
       return 1;
     } else {
       // We have a member function.
-      DCHECK( C.stack_size() == 4 );
+      DCHECK( C.stack_size() == 5 );
       DCHECK( C.type_of( -1 ) == type::function );
+      // Stack:
+      //   function
+      //   members table
+      //   metatable
+      //   key
+      //   userdata
       return 1;
     }
-  } );
+  };
+  C.push( index, /*nupvalues=*/1 );
   // Stack:
   //   __index function
+  //   metatable
+}
+
+void build_newindex_table( cthread L ) {
+  c_api C( L );
+  // Stack:
+  //   metatable
+
+  // Push the metatable as an upvalue.
+  C.pushvalue( -1 );
+  // Stack:
+  //   metatable
+  //   metatable
+  auto newindex = []( lua_State* st ) -> int {
+    c_api C( st );
+    DCHECK( C.stack_size() == 3 );
+    // Stack:
+    //   newval
+    //   key
+    //   userdata
+    if( C.type_of( -2 ) != type::string ) return 0;
+    UNWRAP_CHECK( key, C.get<string>( -2 ) );
+    // The key is a string.
+
+    /************************************************************
+    ** Check member_setters.
+    *************************************************************/
+    C.pushvalue( upvalue_index( 1 ) ); // userdata metatable.
+    // Stack:
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+
+    C.getfield( -1, "member_setters" );
+    DCHECK( C.stack_size() == 5 );
+    DCHECK( C.type_of( -1 ) == type::table );
+    // Stack:
+    //   member setters table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    C.pushvalue( -4 ); // key
+    DCHECK( C.stack_size() == 6 );
+    // Stack:
+    //   key
+    //   member setters table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    C.gettable( -2 );
+    // Stack:
+    //   member setter
+    //   member setters table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    DCHECK( C.stack_size() == 6 );
+    // If this is nil, then the field just doesn't exist.
+    if( C.type_of( -1 ) == type::nil )
+      throw_lua_error(
+          st, "attempt to set nonexistent field `{}'.", key );
+    // The key exists.
+    CHECK( C.type_of( -1 ) == type::function );
+
+    /************************************************************
+    ** Call the function to set the value.
+    *************************************************************/
+    // Stack:
+    //   member setter
+    //   member setters table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+
+    C.rotate( -6, 1 );
+    DCHECK( C.stack_size() == 6 );
+    // Stack:
+    //   member setters table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    //   member setter
+
+    C.pop( 2 );
+    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   newval
+    //   key
+    //   userdata
+    //   member setter
+
+    C.swap_top();
+    C.pop();
+    DCHECK( C.stack_size() == 3 );
+    // Stack:
+    //   newval
+    //   userdata
+    //   member setter
+
+    C.call( /*nargs=*/2, /*nresults=*/0 );
+    DCHECK( C.stack_size() == 0 );
+    // Stack:
+
+    return 0;
+  };
+  C.push( newindex, /*nupvalues=*/1 );
+  // Stack:
+  //   __newindex function
+  //   metatable
 }
 
 void setup_special_members(
@@ -209,6 +386,13 @@ void setup_new_metatable( cthread                    L,
   CHECK( C.type_of( -1 ) == type::function );
   C.setfield( -2, "__index" );
 
+  build_newindex_table( L );
+  // Stack:
+  //   __newindex function
+  //   metatable
+  CHECK( C.type_of( -1 ) == type::function );
+  C.setfield( -2, "__newindex" );
+
   // Build member type table. This is a table that will have one
   // boolean entry per member function or variable and will tell
   // whether it is a member function or a member variable.
@@ -217,6 +401,17 @@ void setup_new_metatable( cthread                    L,
   //   member type table
   //   metatable
   C.setfield( -2, "member_types" );
+  // Stack:
+  //   metatable
+
+  // Build member setters table. This is a table that will have
+  // one entry per non-const member variable to allow the user
+  // set them.
+  C.newtable();
+  // Stack:
+  //   member setters table
+  //   metatable
+  C.setfield( -2, "member_setters" );
   // Stack:
   //   metatable
 

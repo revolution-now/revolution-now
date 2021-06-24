@@ -78,10 +78,11 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   // Stack:
   //   userdata1
 
-  // Metatable should have: __gc, __tostring, __index, __name,
-  // member_types, members, is_owned_by_lua.
+  // Metatable should have: __gc, __tostring, __index,
+  // __newindex, __name, member_types, members, member_setters,
+  // is_owned_by_lua.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           7 );
+           9 );
   REQUIRE( metatable1["is_owned_by_lua"].type() ==
            type::boolean );
   REQUIRE( metatable1["is_owned_by_lua"] == true );
@@ -91,6 +92,10 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
            type::boolean );
   REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == true );
+
+  // check __newindex.
+  rfunction m__newindex =
+      cast<rfunction>( metatable1["__newindex"] );
 
   // check __gc.
   rfunction m__gc = cast<rfunction>( metatable1["__gc"] );
@@ -113,6 +118,12 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   // check members.
   table members = cast<table>( metatable1["members"] );
   REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+
+  // check member_setters.
+  table member_setters =
+      cast<table>( metatable1["member_setters"] );
+  REQUIRE( distance( begin( member_setters ),
+                     end( member_setters ) ) == 0 );
 
   // Stack:
   //   userdata1
@@ -175,21 +186,25 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   // Stack:
   //   userdata1
 
-  // Metatable should have: __tostring, __index, __name,
-  // member_types, members, is_owned_by_lua. __gc is not in the
-  // list because this is by ref.
+  // Metatable should have: __tostring, __index, __newindex,
+  // __name, member_types, members, member_setters,
+  // is_owned_by_lua. __gc is not in the list because this is by
+  // ref.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           6 );
+           8 );
   REQUIRE( metatable1["is_owned_by_lua"].type() ==
            type::boolean );
   REQUIRE( metatable1["is_owned_by_lua"] == false );
 
   // check __index.
-  // check __index.
   rfunction m__index = cast<rfunction>( metatable1["__index"] );
   REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
            type::boolean );
   REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == false );
+
+  // check __newindex.
+  rfunction m__newindex =
+      cast<rfunction>( metatable1["__newindex"] );
 
   // check __tostring.
   rfunction m__tostring =
@@ -207,6 +222,12 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   // check members.
   table members = cast<table>( metatable1["members"] );
   REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+
+  // check member_setters.
+  table member_setters =
+      cast<table>( metatable1["member_setters"] );
+  REQUIRE( distance( begin( member_setters ),
+                     end( member_setters ) ) == 0 );
 
   // Stack:
   //   userdata1
