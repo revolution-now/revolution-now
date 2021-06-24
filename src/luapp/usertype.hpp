@@ -88,11 +88,9 @@ struct usertype {
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
     using args_t = typename traits::arg_types;
-    static_assert( mp::type_list_size_v<args_t> == 0 );
-    static_assert(
-        std::is_same_v<
-            R&, decltype( make_member_var_getter_lambda<O>(
-                    func )( std::declval<O&>() ) )> );
+    using ref_t  = decltype( make_member_var_getter_lambda<O>(
+        func )( std::declval<O&>() ) );
+    static_assert( std::is_same_v<R&, ref_t> );
 
     push_existing_userdata_metatable<Usertype>( L );
     push_cpp_function(
@@ -101,11 +99,16 @@ struct usertype {
         L, std::string( name ).c_str(),
         /*is_function=*/false );
 
-    push_existing_userdata_metatable<Usertype>( L );
-    push_cpp_function(
-        L, make_member_var_setter_lambda<O>( func ) );
-    detail::usertype_set_member_setter(
-        L, std::string( name ).c_str() );
+    constexpr bool is_const_member_variable =
+        std::is_const_v<std::remove_reference_t<ref_t>>;
+
+    if constexpr( !is_const_member_variable ) {
+      push_existing_userdata_metatable<Usertype>( L );
+      push_cpp_function(
+          L, make_member_var_setter_lambda<O>( func ) );
+      detail::usertype_set_member_setter(
+          L, std::string( name ).c_str() );
+    }
   }
 
   // clang-format off
@@ -134,9 +137,6 @@ private:
   template<typename O, typename Func, typename... Args>
   static auto make_member_function_lambda(
       Func&& func, mp::type_list<Args...>* ) {
-    // Need to take O as a reference because that is what our C++
-    // <-> userdata conversion framework can convert between (it
-    // currently does not support pointers to userdata).
     return [func]( O& o, Args&&... args ) -> decltype( auto ) {
       return ( o.*func )( std::forward<Args>( args )... );
     };
@@ -144,18 +144,12 @@ private:
 
   template<typename O, typename Func>
   static auto make_member_var_getter_lambda( Func&& func ) {
-    // Need to take O as a reference because that is what our C++
-    // <-> userdata conversion framework can convert between (it
-    // currently does not support pointers to userdata).
     return
         [func]( O& o ) -> decltype( auto ) { return o.*func; };
   }
 
   template<typename O, typename Func>
   static auto make_member_var_setter_lambda( Func&& func ) {
-    // Need to take O as a reference because that is what our C++
-    // <-> userdata conversion framework can convert between (it
-    // currently does not support pointers to userdata).
     return [func]( O& o, any rhs ) -> decltype( auto ) {
       cthread L = rhs.this_cthread();
       lua::push( L, rhs );

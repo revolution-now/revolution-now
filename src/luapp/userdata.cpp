@@ -233,15 +233,71 @@ void build_newindex_table( cthread L ) {
     // The key is a string.
 
     /************************************************************
-    ** Check member_setters.
+    ** Check if key is in member_types.
     *************************************************************/
+    // We need to do this just in case the key is not in
+    // member_setters and we need to distinguish a non-existent
+    // key from a const one.
+
     C.pushvalue( upvalue_index( 1 ) ); // userdata metatable.
+    DCHECK( C.stack_size() == 4 );
+    DCHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   metatable
     //   newval
     //   key
     //   userdata
 
+    C.getfield( -1, "member_types" );
+    DCHECK( C.stack_size() == 5 );
+    DCHECK( C.type_of( -1 ) == type::table );
+    // Stack:
+    //   member types table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    C.pushvalue( -4 );
+    DCHECK( C.stack_size() == 6 );
+    // Stack:
+    //   key
+    //   member types table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+    C.gettable( -2 );
+    DCHECK( C.stack_size() == 6 );
+    // Stack:
+    //   member type
+    //   member types table
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+
+    // If this is nil, then the field just doesn't exist.
+    if( C.type_of( -1 ) == type::nil )
+      throw_lua_error(
+          st, "attempt to set nonexistent field `{}'.", key );
+    // The key exists.
+    CHECK( C.type_of( -1 ) == type::boolean );
+    // Are we a member function?
+    if( C.get<bool>( -1 ) == true )
+      throw_lua_error( st, "attempt to set member function`{}'.",
+                       key );
+    // We are setting an existent member variable.
+    C.pop( 2 );
+    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   metatable
+    //   newval
+    //   key
+    //   userdata
+
+    /************************************************************
+    ** Check member_setters.
+    *************************************************************/
     C.getfield( -1, "member_setters" );
     DCHECK( C.stack_size() == 5 );
     DCHECK( C.type_of( -1 ) == type::table );
@@ -269,12 +325,13 @@ void build_newindex_table( cthread L ) {
     //   key
     //   userdata
     DCHECK( C.stack_size() == 6 );
-    // If this is nil, then the field just doesn't exist.
+    // Given that we already tested that the field exists by
+    // finding it in the member_types table, that means that If
+    // this is nil, then the field is const.
     if( C.type_of( -1 ) == type::nil )
-      throw_lua_error(
-          st, "attempt to set nonexistent field `{}'.", key );
-    // The key exists.
-    CHECK( C.type_of( -1 ) == type::function );
+      throw_lua_error( st, "attempt to set const field `{}'.",
+                       key );
+    // The key is non-const.
 
     /************************************************************
     ** Call the function to set the value.

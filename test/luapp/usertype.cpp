@@ -35,6 +35,8 @@ struct CppOwnedType {
   double d = 9.9;
   string s = "hello";
 
+  int const n_const = 10;
+
   int get_n() const { return n; }
   int get_n_plus( int m ) const { return n + m; }
 
@@ -50,6 +52,8 @@ struct LuaOwnedType {
   int    n = 5;
   double d = 9.9;
   string s = "hello";
+
+  int const n_const = 10;
 
   int get_n() const { return n; }
   int get_n_plus( int m ) const { return n + m; }
@@ -94,6 +98,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   // ut.set_constructor([]{} );
 
   ut["n"]          = &CppOwnedType::n;
+  ut["n_const"]    = &CppOwnedType::n_const;
   ut["d"]          = &CppOwnedType::d;
   ut["s"]          = &CppOwnedType::s;
   ut["get_n"]      = &CppOwnedType::get_n;
@@ -186,10 +191,11 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
     assert_eq( o.s, 'hellohello' )
     assert_suffix( tostring( o ),
                   'CppOwnedType{n=6,d=1.2,s=hellohello}' )
+    assert_eq( o.n_const, 10 )
   )" );
   REQUIRE( res == valid );
 
-  char const* err =
+  char const* err_non_existent =
       "attempt to set nonexistent field `non_existent'.\n"
       "stack traceback:\n"
       "\t[C]: in metamethod '__newindex'\n"
@@ -200,7 +206,18 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )" ) == lua_invalid( err ) );
+  )" ) == lua_invalid( err_non_existent ) );
+
+  char const* err_const =
+      "attempt to set const field `n_const'.\n"
+      "stack traceback:\n"
+      "\t[C]: in metamethod '__newindex'\n"
+      "\t[string \"...\"]:3: in main chunk";
+
+  REQUIRE( st.script.run_safe( R"(
+    o.n       = 5 -- ok
+    o.n_const = 5 -- boom!
+  )" ) == lua_invalid( err_const ) );
 }
 
 LUA_TEST_CASE( "[usertype] lua owned" ) {
@@ -210,6 +227,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   ut.set_constructor( [] {} );
 
   ut["n"]          = &LuaOwnedType::n;
+  ut["n_const"]    = &LuaOwnedType::n_const;
   ut["d"]          = &LuaOwnedType::d;
   ut["s"]          = &LuaOwnedType::s;
   ut["get_n"]      = &LuaOwnedType::get_n;
@@ -301,10 +319,11 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     assert_eq( o.s, 'hellohello' )
     assert_suffix( tostring( o ),
                   'LuaOwnedType{n=6,d=1.2,s=hellohello}' )
+    assert_eq( o.n_const, 10 )
   )" );
   REQUIRE( res == valid );
 
-  char const* err =
+  char const* err_non_existent =
       "attempt to set nonexistent field `non_existent'.\n"
       "stack traceback:\n"
       "\t[C]: in metamethod '__newindex'\n"
@@ -315,7 +334,18 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )" ) == lua_invalid( err ) );
+  )" ) == lua_invalid( err_non_existent ) );
+
+  char const* err_const =
+      "attempt to set const field `n_const'.\n"
+      "stack traceback:\n"
+      "\t[C]: in metamethod '__newindex'\n"
+      "\t[string \"...\"]:3: in main chunk";
+
+  REQUIRE( st.script.run_safe( R"(
+    o.n       = 5 -- ok
+    o.n_const = 5 -- boom!
+  )" ) == lua_invalid( err_const ) );
 }
 
 } // namespace
