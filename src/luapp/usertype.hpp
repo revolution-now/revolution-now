@@ -112,6 +112,25 @@ struct usertype {
 private:
   // clang-format on
 
+  struct proxy {
+    proxy( usertype& ut, std::string_view name )
+      : ut_( ut ), name_( name ) {}
+
+    template<typename Func>
+    void operator=( Func&& func ) && {
+      ut_.set_member( name_, std::forward<Func>( func ) );
+    }
+
+    usertype&   ut_;
+    std::string name_;
+  };
+
+public:
+  proxy operator[]( std::string_view sv ) {
+    return proxy( *this, sv );
+  }
+
+private:
   template<typename O, typename Func, typename... Args>
   static auto make_member_function_lambda(
       Func&& func, mp::type_list<Args...>* ) {

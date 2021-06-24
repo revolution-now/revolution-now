@@ -93,12 +93,12 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( C.stack_size() == 0 );
   // ut.set_constructor([]{} );
 
-  ut.set_member( "n", &CppOwnedType::n );
-  ut.set_member( "d", &CppOwnedType::d );
-  ut.set_member( "s", &CppOwnedType::s );
-  ut.set_member( "get_n", &CppOwnedType::get_n );
-  ut.set_member( "get_n_plus", &CppOwnedType::get_n_plus );
-  ut.set_member( "say", &CppOwnedType::say );
+  ut["n"]          = &CppOwnedType::n;
+  ut["d"]          = &CppOwnedType::d;
+  ut["s"]          = &CppOwnedType::s;
+  ut["get_n"]      = &CppOwnedType::get_n;
+  ut["get_n_plus"] = &CppOwnedType::get_n_plus;
+  ut["say"]        = &CppOwnedType::say;
   REQUIRE( C.stack_size() == 0 );
 
   // Check if the various members tables have been set.
@@ -209,12 +209,12 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( C.stack_size() == 0 );
   ut.set_constructor( [] {} );
 
-  ut.set_member( "n", &LuaOwnedType::n );
-  ut.set_member( "d", &LuaOwnedType::d );
-  ut.set_member( "s", &LuaOwnedType::s );
-  ut.set_member( "get_n", &LuaOwnedType::get_n );
-  ut.set_member( "get_n_plus", &LuaOwnedType::get_n_plus );
-  ut.set_member( "say", &LuaOwnedType::say );
+  ut["n"]          = &LuaOwnedType::n;
+  ut["d"]          = &LuaOwnedType::d;
+  ut["s"]          = &LuaOwnedType::s;
+  ut["get_n"]      = &LuaOwnedType::get_n;
+  ut["get_n_plus"] = &LuaOwnedType::get_n_plus;
+  ut["say"]        = &LuaOwnedType::say;
   REQUIRE( C.stack_size() == 0 );
 
   st["o"] = LuaOwnedType{};
