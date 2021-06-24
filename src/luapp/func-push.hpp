@@ -142,7 +142,7 @@ void func_push_cpp_check_args( cthread L, int num_cpp_args );
 template<typename Func, PushableOrVoid R,
          StorageGettable... Args, size_t... Idx>
 void push_cpp_function_impl(
-    cthread L, Func&& func, R*, mp::type_list<Args...>*,
+    cthread L, Func&& func, tag<R>, mp::type_list<Args...>*,
     std::index_sequence<Idx...> ) noexcept {
   auto runner = [func = std::move( func )]( lua_State* L ) {
     func_push_cpp_check_args( L, sizeof...( Args ) );
@@ -189,7 +189,7 @@ auto push_cpp_function( cthread L, Func&& func ) noexcept {
   using ret_t  = mp::callable_ret_type_t<Func>;
   using args_t = mp::callable_arg_types_t<Func>;
   detail::push_cpp_function_impl(
-      L, std::forward<Func>( func ), (ret_t*)nullptr,
+      L, std::forward<Func>( func ), tag<ret_t>{},
       (args_t*)nullptr,
       std::make_index_sequence<mp::type_list_size_v<args_t>>() );
 }
