@@ -28,18 +28,18 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-void build_index_table(
-    cthread L, detail::e_ownership_semantics semantics ) {
+void build_index_table( cthread               L,
+                        e_ownership_semantics semantics ) {
   c_api C( L );
   C.newtable();
   // Stack:
   //   __index table
   bool is_owned_by_lua = false;
   switch( semantics ) {
-    case detail::e_ownership_semantics::by_ref:
+    case e_ownership_semantics::by_ref:
       is_owned_by_lua = false;
       break;
-    case detail::e_ownership_semantics::by_value:
+    case e_ownership_semantics::by_value:
       is_owned_by_lua = true;
       break;
   }
@@ -52,9 +52,11 @@ void build_index_table(
   //   __index table
 }
 
-void setup_new_metatable(
-    cthread L, detail::e_ownership_semantics semantics,
-    LuaCFunction* fmt, LuaCFunction* call_destructor ) {
+// Expects metatable to be at the top of the stack.
+void setup_new_metatable( cthread               L,
+                          e_ownership_semantics semantics,
+                          LuaCFunction*         fmt,
+                          LuaCFunction* call_destructor ) {
   c_api C( L );
   // Check metatable.
   CHECK( C.type_of( -1 ) == type::table );
@@ -98,11 +100,23 @@ void push_string( cthread L, std::string const& s ) {
   C.push( s );
 }
 
-bool push_userdata_impl(
-    cthread L, e_ownership_semantics semantics, int object_size,
+void push_existing_userdata_metatable_impl(
+    cthread L, std::string const& type_name ) {
+  c_api C( L );
+  bool  metatable_created =
+      C.udata_newmetatable( type_name.c_str() );
+  // Stack:
+  //   metatable
+  CHECK( !metatable_created,
+         "attempt to get userdata metatable for type {} before "
+         "it was registered.",
+         type_name );
+}
+
+void push_userdata_impl(
+    cthread L, int object_size,
     base::function_ref<void( void* )> placement_new,
-    LuaCFunction* fmt, LuaCFunction* call_destructor,
-    std::string const& type_name ) {
+    std::string const&                type_name ) {
   c_api C( L );
   int   initial_stack_size = C.stack_size();
 
@@ -117,34 +131,33 @@ bool push_userdata_impl(
   // callback should move the object into the allocated storage.
   placement_new( ud );
 
-  // 2. Get the metatable for this userdata type and set it. The
-  // first time we do this for this type, created == true.
-  bool metatable_created =
-      C.udata_newmetatable( type_name.c_str() );
+  // 2. Get the metatable for this userdata type and set it.
+  push_existing_userdata_metatable_impl( L, type_name );
   // Stack:
   //   metatable
   //   userdata
   DCHECK( C.stack_size() == initial_stack_size + 2 );
 
-  if( metatable_created ) {
-    // This is the first time that we are creating a userdata of
-    // this type, so the metatable will basically be empty. So
-    // now we have to give it a __gc method so that it will get
-    // freed properly when Lua garbage collects it. We must set
-    // the __gc method in the metatable *before* setting the
-    // metatable on the userdata.
-    //
-    // Stack:
-    //   metatable
-    //   userdata
-    setup_new_metatable( L, semantics, fmt, call_destructor );
-  }
-
   C.setmetatable( -2 );
   // Stack:
   //   userdata
   CHECK( C.stack_size() == initial_stack_size + 1 );
+}
 
+bool register_userdata_metatable_if_needed_impl(
+    cthread L, e_ownership_semantics semantics,
+    LuaCFunction* fmt, LuaCFunction* call_destructor,
+    string const& type_name ) {
+  c_api C( L );
+  // Get or create metatable for userdata type.
+  bool metatable_created =
+      C.udata_newmetatable( type_name.c_str() );
+  // Stack:
+  //   metatable
+  if( metatable_created )
+    // This is a newly-created metatable.
+    setup_new_metatable( L, semantics, fmt, call_destructor );
+  C.pop();
   return metatable_created;
 }
 
