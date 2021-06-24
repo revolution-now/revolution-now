@@ -28,13 +28,132 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-void build_index_table( cthread                    L,
-                        e_userdata_ownership_model semantics ) {
+void build_index_table( cthread L ) {
   c_api C( L );
-  C.newtable();
+  C.push( []( lua_State* st ) -> int {
+    c_api C( st );
+    DCHECK( C.stack_size() == 2 );
+    if( C.type_of( -1 ) != type::string ) return 0;
+    // The key is a string.
+    // FIXME: find a better way to handle these special members.
+    C.getmetatable( 1 );
+    // Stack:
+    //   metatable
+    //   key
+    //   userdata
+    C.pushvalue( -2 );
+    // Stack:
+    //   key
+    //   metatable
+    //   key
+    //   userdata
+    C.gettable( -2 );
+    // Stack:
+    //   value
+    //   metatable
+    //   key
+    //   userdata
+    if( C.type_of( -1 ) != type::nil ) return 1;
+    // Stack:
+    //   nil
+    //   metatable
+    //   key
+    //   userdata
+    C.pop( 2 );
+    // Stack:
+    //   key
+    //   userdata
+
+    // Params: userdata, key
+    C.getfield( /*table_idx=*/1, "member_types" );
+    DCHECK( C.stack_size() == 3 );
+    DCHECK( C.type_of( -1 ) == type::table );
+    // Stack:
+    //   member types table
+    //   key
+    //   userdata
+    C.pushvalue( -2 );
+    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   key
+    //   member types table
+    //   key
+    //   userdata
+    C.gettable( -2 );
+    DCHECK( C.stack_size() == 4 );
+    if( C.type_of( -1 ) == type::nil ) return 0;
+    // The key exists.
+    CHECK( C.type_of( -1 ) == type::boolean );
+
+    // Stack:
+    //   member type
+    //   member types table
+    //   key
+    //   userdata
+    bool is_member_function = get_or_luaerr<bool>( st, -1 );
+    C.pop( 2 );
+    DCHECK( C.stack_size() == 2 );
+    DCHECK( C.type_of( -1 ) == type::string );
+    // Stack:
+    //   key
+    //   userdata
+    C.getfield( /*table_idx=*/1, "members" );
+    DCHECK( C.stack_size() == 3 );
+    DCHECK( C.type_of( -1 ) == type::table );
+    // Stack:
+    //   members table
+    //   key
+    //   userdata
+    C.pushvalue( -2 );
+    DCHECK( C.stack_size() == 4 );
+    // Stack:
+    //   key
+    //   members table
+    //   key
+    //   userdata
+    C.gettable( -2 );
+    DCHECK( C.stack_size() == 4 );
+    CHECK( C.type_of( -1 ) == type::function );
+    // Stack:
+    //   function
+    //   members table
+    //   key
+    //   userdata
+    if( !is_member_function ) {
+      // We have a member variable.
+      C.pushvalue( 1 );
+      DCHECK( C.stack_size() == 5 );
+      // Stack:
+      //   userdata
+      //   function
+      //   members table
+      //   key
+      //   userdata
+      C.call( /*nargs=*/1, /*nresults=*/1 );
+      DCHECK( C.stack_size() == 4 );
+      // Stack:
+      //   member variable value
+      //   members table
+      //   key
+      //   userdata
+      return 1;
+    } else {
+      // We have a member function.
+      DCHECK( C.stack_size() == 4 );
+      DCHECK( C.type_of( -1 ) == type::function );
+      return 1;
+    }
+  } );
   // Stack:
-  //   __index table
-  bool is_owned_by_lua = false;
+  //   __index function
+}
+
+void setup_special_members(
+    cthread L, e_userdata_ownership_model semantics ) {
+  // Stack:
+  //   metatable
+  c_api C( L );
+  bool  is_owned_by_lua = false;
   switch( semantics ) {
     case e_userdata_ownership_model::owned_by_cpp:
       is_owned_by_lua = false;
@@ -46,10 +165,10 @@ void build_index_table( cthread                    L,
   C.push( is_owned_by_lua );
   // Stack:
   //   is_owned_by_lua
-  //   __index table
+  //   metatable
   C.setfield( -2, "is_owned_by_lua" );
   // Stack:
-  //   __index table
+  //   metatable
 }
 
 // Expects metatable to be at the top of the stack.
@@ -81,11 +200,13 @@ void setup_new_metatable( cthread                    L,
   // Stack:
   //   metatable
 
-  build_index_table( L, semantics );
+  setup_special_members( L, semantics );
+
+  build_index_table( L );
   // Stack:
-  //   __index table
+  //   __index function
   //   metatable
-  CHECK( C.type_of( -1 ) == type::table );
+  CHECK( C.type_of( -1 ) == type::function );
   C.setfield( -2, "__index" );
 
   // Build member type table. This is a table that will have one

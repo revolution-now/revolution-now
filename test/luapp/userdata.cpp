@@ -20,6 +20,7 @@
 // luapp
 #include "src/luapp/cast.hpp"
 #include "src/luapp/iter.hpp"
+#include "src/luapp/ruserdata.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -56,6 +57,11 @@ LUA_TEST_CASE( "[userdata] userdata type name" ) {
 LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   REQUIRE( push_userdata_by_value( L, Empty{} ) );
   REQUIRE( C.stack_size() == 1 );
+  userdata userdata1( L, C.ref_registry() );
+  lua::push( L, userdata1 );
+  REQUIRE( C.stack_size() == 1 );
+  // Stack:
+  //   userdata1
 
   // Test data size.
   REQUIRE( C.rawlen( -1 ) == sizeof( Empty ) );
@@ -73,18 +79,23 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   //   userdata1
 
   // Metatable should have: __gc, __tostring, __index, __name,
-  // member_types, members.
+  // member_types, members, is_owned_by_lua.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           6 );
+           7 );
+  REQUIRE( metatable1["is_owned_by_lua"].type() ==
+           type::boolean );
+  REQUIRE( metatable1["is_owned_by_lua"] == true );
 
   // check __index.
-  table m__index = cast<table>( metatable1["__index"] );
-  REQUIRE( distance( begin( m__index ), end( m__index ) ) == 1 );
-  REQUIRE( m__index["is_owned_by_lua"].type() == type::boolean );
-  REQUIRE( m__index["is_owned_by_lua"] == true );
+  rfunction m__index = cast<rfunction>( metatable1["__index"] );
+  REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
+           type::boolean );
+  REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == true );
 
   // check __gc.
   rfunction m__gc = cast<rfunction>( metatable1["__gc"] );
+  // Stack:
+  //   userdata1
 
   // check __tostring.
   rfunction m__tostring =
@@ -143,6 +154,11 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   Empty e;
   REQUIRE( push_userdata_by_ref( L, e ) );
   REQUIRE( C.stack_size() == 1 );
+  userdata userdata1( L, C.ref_registry() );
+  lua::push( L, userdata1 );
+  REQUIRE( C.stack_size() == 1 );
+  // Stack:
+  //   userdata1
 
   // Test data size.
   REQUIRE( C.rawlen( -1 ) == sizeof( Empty* ) );
@@ -160,16 +176,20 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   //   userdata1
 
   // Metatable should have: __tostring, __index, __name,
-  // member_types, members. __gc is not in the list because this
-  // is by ref.
+  // member_types, members, is_owned_by_lua. __gc is not in the
+  // list because this is by ref.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           5 );
+           6 );
+  REQUIRE( metatable1["is_owned_by_lua"].type() ==
+           type::boolean );
+  REQUIRE( metatable1["is_owned_by_lua"] == false );
 
   // check __index.
-  table m__index = cast<table>( metatable1["__index"] );
-  REQUIRE( distance( begin( m__index ), end( m__index ) ) == 1 );
-  REQUIRE( m__index["is_owned_by_lua"].type() == type::boolean );
-  REQUIRE( m__index["is_owned_by_lua"] == false );
+  // check __index.
+  rfunction m__index = cast<rfunction>( metatable1["__index"] );
+  REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
+           type::boolean );
+  REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == false );
 
   // check __tostring.
   rfunction m__tostring =

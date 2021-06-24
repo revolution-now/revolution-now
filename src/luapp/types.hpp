@@ -49,12 +49,24 @@ char const* type_name( cthread L, int idx ) noexcept;
 type        type_of_idx( cthread L, int idx ) noexcept;
 void        pop_stack( cthread L, int n ) noexcept;
 
-template<Pushable P>
-type type_of( cthread L, P&& o ) noexcept {
+// clang-format off
+template<typename T>
+requires( Pushable<T> )
+type type_of( cthread L, T&& o ) noexcept {
+  // clang-format on
   lua::push( L, o );
   type res = type_of_idx( L, -1 );
-  pop_stack( L, nvalues_for<P>() );
+  pop_stack( L, nvalues_for<T>() );
   return res;
+}
+
+// clang-format off
+template<typename T>
+requires( HasCthread<T> && Pushable<T> )
+type type_of( T&& o ) noexcept {
+  // clang-format on
+  cthread L = o.this_cthread();
+  return type_of( L, std::forward<T>( o ) );
 }
 
 /****************************************************************
