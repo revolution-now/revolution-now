@@ -116,6 +116,7 @@ struct member_fn_callable_traits_impl<R( O*, Arg... )> {
   using func_ptr_type              = R ( * )( Arg... );
   using member_func_type           = R ( O::* )( Arg... );
   using member_func_flattened_type = R( O*, Arg... );
+  using object_type                = O;
 
   static constexpr bool abominable_const = false;
 };
@@ -131,6 +132,7 @@ struct member_fn_const_callable_traits_impl<R( O*, Arg... )> {
   // Don't need const here since it will be in O already.
   using member_func_type           = R ( O::* )( Arg... ) const;
   using member_func_flattened_type = R( O const*, Arg... );
+  using object_type                = O const;
 
   static constexpr bool abominable_const = true;
 };
@@ -145,6 +147,7 @@ struct member_var_callable_traits_impl<R( O* )> {
   using member_func_type           = R( O::* );
   using member_func_flattened_type = R( O* );
   using var_type                   = R;
+  using object_type                = O;
 };
 
 // Function pointer.

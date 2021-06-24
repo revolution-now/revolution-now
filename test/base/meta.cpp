@@ -110,10 +110,18 @@ struct Stateful {
 };
 
 struct HasMembers {
-  void operator()();
-  int  x;
-  int  foo() const;
+  void      operator()();
+  int       x;
+  int const y;
+  int       foo() const;
 };
+
+using get_x_t = decltype( &HasMembers::x );
+static_assert( is_same_v<int&, decltype( declval<HasMembers&>().*
+                                         declval<get_x_t>() )> );
+static_assert( is_same_v<int const&,
+                         decltype( declval<HasMembers const&>().*
+                                   declval<get_x_t>() )> );
 
 static_assert( is_same_v<A(), callable_func_type_t<F1>> );
 static_assert( is_same_v<void( A ), callable_func_type_t<F2>> );
@@ -140,6 +148,8 @@ static_assert( is_same_v<A const ( * )( B ),
 static_assert( is_same_v<A const ( Foo::* )( B ),
                          callable_member_func_type_t<F7>> );
 static_assert(
+    is_same_v<Foo, callable_traits<F7>::object_type> );
+static_assert(
     is_same_v<A const( Foo*, B ),
               callable_member_func_flattened_type_t<F7>> );
 static_assert(
@@ -148,6 +158,9 @@ static_assert(
     is_same_v<A* (*)(C const&), callable_func_ptr_type_t<F8>> );
 static_assert( is_same_v<A* (F8::*)( C const& ) const,
                          callable_member_func_type_t<F8>> );
+static_assert( is_same_v<F8, callable_traits<F8>::object_type> );
+static_assert( is_same_v<F8 const, // same if/when const
+                         callable_traits<F8>::object_type> );
 static_assert(
     is_same_v<A*(F8*, C const&),
               callable_member_func_flattened_type_t<F8>> );
@@ -175,6 +188,12 @@ static_assert(
 static_assert(
     is_same_v<int ( decltype( F14 )::* )( A* ),
               callable_member_func_type_t<decltype( F14 )>> );
+static_assert(
+    is_same_v<decltype( F14 ),
+              callable_traits<decltype( F14 )>::object_type> );
+static_assert(
+    !is_same_v<decltype( F14 ) const, // not const
+               callable_traits<decltype( F14 )>::object_type> );
 static_assert( is_same_v<int( decltype( F14 )*, A* ),
                          callable_member_func_flattened_type_t<
                              decltype( F14 )>> );
@@ -200,6 +219,11 @@ static_assert(
               callable_member_func_type_t<
                   decltype( &Stateful::operator() )>> );
 static_assert(
+    is_same_v<
+        Stateful,
+        callable_traits<
+            decltype( &Stateful::operator() )>::object_type> );
+static_assert(
     is_same_v<void( Stateful* ),
               callable_member_func_flattened_type_t<
                   decltype( &Stateful::operator() )>> );
@@ -217,6 +241,11 @@ static_assert(
               callable_member_func_type_t<
                   decltype( &HasMembers::operator() )>> );
 static_assert(
+    is_same_v<
+        HasMembers,
+        callable_traits<
+            decltype( &HasMembers::operator() )>::object_type> );
+static_assert(
     is_same_v<void( HasMembers* ),
               callable_member_func_flattened_type_t<
                   decltype( &HasMembers::operator() )>> );
@@ -229,6 +258,10 @@ static_assert(
 static_assert( is_same_v<int ( HasMembers::* )() const,
                          callable_member_func_type_t<
                              decltype( &HasMembers::foo )>> );
+static_assert(
+    is_same_v<HasMembers const,
+              callable_traits<
+                  decltype( &HasMembers::foo )>::object_type> );
 static_assert( is_same_v<int( HasMembers const* ),
                          callable_member_func_flattened_type_t<
                              decltype( &HasMembers::foo )>> );
@@ -236,12 +269,20 @@ static_assert( is_same_v<int( HasMembers const* ),
 static_assert( is_same_v<int( HasMembers::* ),
                          callable_member_func_type_t<
                              decltype( &HasMembers::x )>> );
+static_assert(
+    is_same_v<HasMembers,
+              callable_traits<
+                  decltype( &HasMembers::x )>::object_type> );
 static_assert( is_same_v<int( HasMembers* ),
                          callable_member_func_flattened_type_t<
                              decltype( &HasMembers::x )>> );
 static_assert(
     is_same_v<int, callable_traits<
                        decltype( &HasMembers::x )>::var_type> );
+static_assert(
+    is_same_v<
+        int const,
+        callable_traits<decltype( &HasMembers::y )>::var_type> );
 
 static_assert( is_same_v<A, callable_ret_type_t<F1>> );
 static_assert( is_same_v<void, callable_ret_type_t<F2>> );
