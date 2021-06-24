@@ -35,6 +35,9 @@ struct CppOwned {
 };
 
 LUA_USERDATA_TRAITS( CppOwned, owned_by_cpp ){};
+static_assert( HasUserdataOwnershipModel<CppOwned> );
+static_assert( HasRefUserdataOwnershipModel<CppOwned> );
+static_assert( !HasValueUserdataOwnershipModel<CppOwned> );
 
 struct CppOwnedNonCopyable {
   int n = 5;
@@ -49,12 +52,20 @@ struct CppOwnedNonCopyable {
 };
 
 LUA_USERDATA_TRAITS( CppOwnedNonCopyable, owned_by_cpp ){};
+static_assert( HasUserdataOwnershipModel<CppOwnedNonCopyable> );
+static_assert(
+    HasRefUserdataOwnershipModel<CppOwnedNonCopyable> );
+static_assert(
+    !HasValueUserdataOwnershipModel<CppOwnedNonCopyable> );
 
 struct LuaOwned {
   int n = 5;
 };
 
 LUA_USERDATA_TRAITS( LuaOwned, owned_by_lua ){};
+static_assert( HasUserdataOwnershipModel<LuaOwned> );
+static_assert( !HasRefUserdataOwnershipModel<LuaOwned> );
+static_assert( HasValueUserdataOwnershipModel<LuaOwned> );
 
 struct LuaOwnedNonCopyable {
   int n = 5;
@@ -69,6 +80,24 @@ struct LuaOwnedNonCopyable {
 };
 
 LUA_USERDATA_TRAITS( LuaOwnedNonCopyable, owned_by_lua ){};
+static_assert( HasUserdataOwnershipModel<LuaOwnedNonCopyable> );
+static_assert(
+    !HasRefUserdataOwnershipModel<LuaOwnedNonCopyable> );
+static_assert(
+    HasValueUserdataOwnershipModel<LuaOwnedNonCopyable> );
+
+struct NoOwnershipModel {};
+static_assert( !HasTraitsNvalues<NoOwnershipModel> );
+static_assert( !HasUserdataOwnershipModel<NoOwnershipModel> );
+
+struct NoOwnershipModelButHasTraits {};
+template<>
+struct type_traits<NoOwnershipModelButHasTraits> {
+  static constexpr int nvalues = 1;
+};
+static_assert( HasTraitsNvalues<NoOwnershipModelButHasTraits> );
+static_assert(
+    !HasUserdataOwnershipModel<NoOwnershipModelButHasTraits> );
 
 } // namespace lua
 

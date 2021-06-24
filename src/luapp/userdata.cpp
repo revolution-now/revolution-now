@@ -28,18 +28,18 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-void build_index_table( cthread               L,
-                        e_ownership_semantics semantics ) {
+void build_index_table( cthread                    L,
+                        e_userdata_ownership_model semantics ) {
   c_api C( L );
   C.newtable();
   // Stack:
   //   __index table
   bool is_owned_by_lua = false;
   switch( semantics ) {
-    case e_ownership_semantics::by_ref:
+    case e_userdata_ownership_model::owned_by_cpp:
       is_owned_by_lua = false;
       break;
-    case e_ownership_semantics::by_value:
+    case e_userdata_ownership_model::owned_by_lua:
       is_owned_by_lua = true;
       break;
   }
@@ -53,9 +53,9 @@ void build_index_table( cthread               L,
 }
 
 // Expects metatable to be at the top of the stack.
-void setup_new_metatable( cthread               L,
-                          e_ownership_semantics semantics,
-                          LuaCFunction*         fmt,
+void setup_new_metatable( cthread                    L,
+                          e_userdata_ownership_model semantics,
+                          LuaCFunction*              fmt,
                           LuaCFunction* call_destructor ) {
   c_api C( L );
   // Check metatable.
@@ -145,7 +145,7 @@ void push_userdata_impl(
 }
 
 bool register_userdata_metatable_if_needed_impl(
-    cthread L, e_ownership_semantics semantics,
+    cthread L, e_userdata_ownership_model semantics,
     LuaCFunction* fmt, LuaCFunction* call_destructor,
     string const& type_name ) {
   c_api C( L );

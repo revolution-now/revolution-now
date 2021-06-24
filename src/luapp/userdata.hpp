@@ -22,26 +22,16 @@
 
 namespace lua {
 
-enum class e_ownership_semantics { by_value, by_ref };
-
-namespace detail {
-
-void push_string( cthread L, std::string const& s );
-
-void push_userdata_impl(
-    cthread L, int object_size,
-    base::function_ref<void( void* )> placement_new,
-    std::string const&                type_name );
-
-bool register_userdata_metatable_if_needed_impl(
-    cthread L, e_ownership_semantics semantics,
-    LuaCFunction* fmt, LuaCFunction* call_destructor,
-    std::string const& type_name );
-
-void push_existing_userdata_metatable_impl(
-    cthread L, std::string const& type_name );
-
-} // namespace detail
+// We support a canned ownership model, with two choices.
+enum class e_userdata_ownership_model {
+  // Objects of that type are stored as C++ objects by value and
+  // are always owned by Lua. They are always non-const.
+  owned_by_cpp,
+  // Objects of that type are stored as C++ objects owned by C++,
+  // and Lua always just holds references to them. They are al-
+  // ways non-const.
+  owned_by_lua,
+};
 
 // This will check that the value at idx is a userdata with the
 // given name. If not, then it will check fail. Returns the
@@ -52,15 +42,6 @@ void* check_udata( cthread L, int idx, char const* name );
 // data by the given name.
 base::maybe<void*> try_udata( cthread L, int idx,
                               char const* name );
-
-// WARNING: the metadata for the type must have already been reg-
-// istered by calling register_userdata_metatable_if_needed, oth-
-// erwise this function will check-fail.
-template<typename T>
-void push_existing_userdata_metatable( cthread L ) {
-  static std::string const type_name = userdata_typename<T>();
-  detail::push_existing_userdata_metatable_impl( L, type_name );
-}
 
 // Get the canonical name for a userdata by type. For consis-
 // tency, this function should always be used whenever a name for
@@ -80,6 +61,23 @@ std::string userdata_typename() {
   res      = base::demangled_typename<T3>() + res;
   return res;
 }
+
+namespace detail {
+
+void push_string( cthread L, std::string const& s );
+
+void push_userdata_impl(
+    cthread L, int object_size,
+    base::function_ref<void( void* )> placement_new,
+    std::string const&                type_name );
+
+bool register_userdata_metatable_if_needed_impl(
+    cthread L, e_userdata_ownership_model semantics,
+    LuaCFunction* fmt, LuaCFunction* call_destructor,
+    std::string const& type_name );
+
+void push_existing_userdata_metatable_impl(
+    cthread L, std::string const& type_name );
 
 template<typename T>
 bool register_userdata_metatable_by_val_if_needed( cthread L ) {
@@ -112,12 +110,13 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
       fmtable ? +tostring : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
-      L, e_ownership_semantics::by_value, fmt_func,
+      L, e_userdata_ownership_model::owned_by_lua, fmt_func,
       call_destructor, type_name );
 }
 
 template<typename T>
-bool register_userdata_metatable_by_ref_if_needed( cthread L ) {
+bool register_userdata_metatable_owned_by_cpp_if_needed(
+    cthread L ) {
   using T_noref = std::remove_reference_t<T>;
   static_assert( !std::is_pointer_v<T_noref> );
   static constexpr bool fmtable =
@@ -145,16 +144,32 @@ bool register_userdata_metatable_by_ref_if_needed( cthread L ) {
       fmtable ? +tostring : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
-      L, e_ownership_semantics::by_ref, fmt_func,
+      L, e_userdata_ownership_model::owned_by_cpp, fmt_func,
       /*call_destructor=*/nullptr, type_name );
 }
 
-template<typename T, e_ownership_semantics Semantics>
+} // namespace detail
+
+// WARNING: the metadata for the type must have already been reg-
+// istered by calling register_userdata_metatable_if_needed, oth-
+// erwise this function will check-fail.
+template<typename T>
+void push_existing_userdata_metatable( cthread L ) {
+  static std::string const type_name = userdata_typename<T>();
+  detail::push_existing_userdata_metatable_impl( L, type_name );
+}
+
+template<typename T, e_userdata_ownership_model Semantics>
 bool register_userdata_metatable_if_needed( cthread L ) {
-  if constexpr( Semantics == e_ownership_semantics::by_value )
-    return register_userdata_metatable_by_val_if_needed<T>( L );
-  else if constexpr( Semantics == e_ownership_semantics::by_ref )
-    return register_userdata_metatable_by_ref_if_needed<T>( L );
+  if constexpr( Semantics ==
+                e_userdata_ownership_model::owned_by_lua )
+    return detail::register_userdata_metatable_by_val_if_needed<
+        T>( L );
+  else if constexpr( Semantics ==
+                     e_userdata_ownership_model::owned_by_cpp )
+    return detail::
+        register_userdata_metatable_owned_by_cpp_if_needed<T>(
+            L );
 }
 
 // Push a C++ object as userdata by value, meaning that it will
@@ -174,7 +189,7 @@ bool push_userdata_by_value( cthread L, T&& object ) noexcept {
 
   // This can't be static because of L.
   bool metatable_created = register_userdata_metatable_if_needed<
-      T_noref, e_ownership_semantics::by_value>( L );
+      T_noref, e_userdata_ownership_model::owned_by_lua>( L );
 
   detail::push_userdata_impl(
       L, sizeof( object ),
@@ -201,7 +216,7 @@ bool push_userdata_by_ref( cthread L, T& object ) noexcept {
 
   // This can't be static because of L.
   bool metatable_created = register_userdata_metatable_if_needed<
-      fwd_t, e_ownership_semantics::by_ref>( L );
+      fwd_t, e_userdata_ownership_model::owned_by_cpp>( L );
 
   detail::push_userdata_impl(
       L, sizeof( void* ),

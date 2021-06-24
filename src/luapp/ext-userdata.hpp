@@ -19,23 +19,14 @@ namespace lua {
 /****************************************************************
 ** Userdata traits
 *****************************************************************/
-enum class e_userdata_ownership_model {
-  // Objects of that type are stored as C++ objects by value and
-  // are always owned by Lua.
-  owned_by_cpp,
-  // Objects of that type are stored as C++ objects owned by C++,
-  // and Lua always just holds references to them.
-  owned_by_lua,
-  // Objects of that type are converted to some Lua representa-
-  // tion when pushed, and thus are not pushed as userdata.
-  dual_representation
-};
-
 template<typename T>
 struct userdata_type_traits_cpp_owned {
   // This should only be a base type.
   static_assert( !std::is_reference_v<T> );
   static_assert( !std::is_const_v<T> );
+
+  static constexpr auto model =
+      e_userdata_ownership_model::owned_by_cpp;
 
   // When we call a C++ function from Lua that takes a parameter
   // of type T that means that we need only to extract a T& from
@@ -79,6 +70,9 @@ struct userdata_type_traits_lua_owned {
   // This should only be a base type.
   static_assert( !std::is_reference_v<T> );
   static_assert( !std::is_const_v<T> );
+
+  static constexpr auto model =
+      e_userdata_ownership_model::owned_by_lua;
 
   // When we call a C++ function from Lua that takes a parameter
   // of type T that means that we need only to extract a T& from
@@ -126,7 +120,21 @@ using TraitsForModel = std::conditional_t<
     userdata_type_traits_cpp_owned<T>,
     std::conditional_t<
         Model == e_userdata_ownership_model::owned_by_lua,
-        userdata_type_traits_lua_owned<T>, void> >;
+        userdata_type_traits_lua_owned<T>, void>>;
+
+template<typename T>
+concept HasRefUserdataOwnershipModel = HasTraitsNvalues<T> &&
+    std::is_base_of_v<userdata_type_traits_cpp_owned<T>,
+                      traits_for<T>>;
+
+template<typename T>
+concept HasValueUserdataOwnershipModel = HasTraitsNvalues<T> &&
+    std::is_base_of_v<userdata_type_traits_lua_owned<T>,
+                      traits_for<T>>;
+template<typename T>
+concept HasUserdataOwnershipModel =
+    HasRefUserdataOwnershipModel<T> ||
+    HasValueUserdataOwnershipModel<T>;
 
 #define LUA_USERDATA_TRAITS( type, model ) \
   template<>                               \
