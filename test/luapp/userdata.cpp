@@ -79,8 +79,8 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   //   userdata1
 
   // Metatable should have: __gc, __tostring, __index,
-  // __newindex, __name, member_types, members, member_setters,
-  // is_owned_by_lua.
+  // __newindex, __name, member_types, member_getters,
+  // member_setters, is_owned_by_lua.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
            9 );
   REQUIRE( metatable1["is_owned_by_lua"].type() ==
@@ -115,9 +115,11 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   REQUIRE( distance( begin( member_types ),
                      end( member_types ) ) == 0 );
 
-  // check members.
-  table members = cast<table>( metatable1["members"] );
-  REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+  // check member_getters.
+  table member_getters =
+      cast<table>( metatable1["member_getters"] );
+  REQUIRE( distance( begin( member_getters ),
+                     end( member_getters ) ) == 0 );
 
   // check member_setters.
   table member_setters =
@@ -187,7 +189,7 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   //   userdata1
 
   // Metatable should have: __tostring, __index, __newindex,
-  // __name, member_types, members, member_setters,
+  // __name, member_types, member_getters, member_setters,
   // is_owned_by_lua. __gc is not in the list because this is by
   // ref.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
@@ -219,9 +221,11 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   REQUIRE( distance( begin( member_types ),
                      end( member_types ) ) == 0 );
 
-  // check members.
-  table members = cast<table>( metatable1["members"] );
-  REQUIRE( distance( begin( members ), end( members ) ) == 0 );
+  // check member_getters.
+  table member_getters =
+      cast<table>( metatable1["member_getters"] );
+  REQUIRE( distance( begin( member_getters ),
+                     end( member_getters ) ) == 0 );
 
   // check member_setters.
   table member_setters =

@@ -126,7 +126,7 @@ void build_index_table( cthread L ) {
     DCHECK( C.type_of( -1 ) == type::table );
 
     /************************************************************
-    ** Key the associated function from the members table.
+    ** Get the associated function from the member_getters table.
     *************************************************************/
     // This is the function that is called with the userdata ob-
     // ject as the first argument to either get the variable
@@ -137,11 +137,11 @@ void build_index_table( cthread L ) {
     //   metatable
     //   key
     //   userdata
-    C.getfield( -1, "members" );
+    C.getfield( -1, "member_getters" );
     DCHECK( C.stack_size() == 4 );
     DCHECK( C.type_of( -1 ) == type::table );
     // Stack:
-    //   members table
+    //   member_getters table
     //   metatable
     //   key
     //   userdata
@@ -149,14 +149,14 @@ void build_index_table( cthread L ) {
     DCHECK( C.stack_size() == 5 );
     // Stack:
     //   key
-    //   members table
+    //   member_getters table
     //   metatable
     //   key
     //   userdata
     C.gettable( -2 );
     // Stack:
     //   function
-    //   members table
+    //   member_getters table
     //   metatable
     //   key
     //   userdata
@@ -164,7 +164,7 @@ void build_index_table( cthread L ) {
     CHECK( C.type_of( -1 ) == type::function );
     // Stack:
     //   function
-    //   members table
+    //   member_getters table
     //   metatable
     //   key
     //   userdata
@@ -179,7 +179,7 @@ void build_index_table( cthread L ) {
       // Stack:
       //   userdata
       //   function
-      //   members table
+      //   member_getters table
       //   metatable
       //   key
       //   userdata
@@ -187,7 +187,7 @@ void build_index_table( cthread L ) {
       DCHECK( C.stack_size() == 5 );
       // Stack:
       //   member variable value
-      //   members table
+      //   member_getters table
       //   metatable
       //   key
       //   userdata
@@ -198,7 +198,7 @@ void build_index_table( cthread L ) {
       DCHECK( C.type_of( -1 ) == type::function );
       // Stack:
       //   function
-      //   members table
+      //   member_getters table
       //   metatable
       //   key
       //   userdata
@@ -415,14 +415,14 @@ void setup_new_metatable( cthread                    L,
   // Stack:
   //   metatable
 
-  // Build members table. This is a table that will have one
-  // entry per member function or variable (whose values will be
-  // functions).
+  // Build member_getters table. This is a table that will have
+  // one entry per member function or variable (whose values will
+  // be functions).
   C.newtable();
   // Stack:
-  //   members table
+  //   member_getters table
   //   metatable
-  C.setfield( -2, "members" );
+  C.setfield( -2, "member_getters" );
   // Stack:
   //   metatable
 }
