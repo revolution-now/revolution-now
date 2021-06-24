@@ -46,12 +46,6 @@ struct usertype {
   }
 
   template<typename F>
-  void set_constructor( F&& ) //
-      requires HasValueUserdataOwnershipModel<T> {
-    //
-  }
-
-  template<typename F>
   requires                              //
       base::MemberFunctionPointer<F> && //
       std::is_same_v<

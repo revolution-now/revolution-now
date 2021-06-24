@@ -224,7 +224,6 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   C.openlibs();
   usertype<LuaOwnedType> ut( L );
   REQUIRE( C.stack_size() == 0 );
-  ut.set_constructor( [] {} );
 
   ut["n"]          = &LuaOwnedType::n;
   ut["n_const"]    = &LuaOwnedType::n_const;
@@ -346,6 +345,44 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     o.n       = 5 -- ok
     o.n_const = 5 -- boom!
   )" ) == lua_invalid( err_const ) );
+}
+
+LUA_TEST_CASE( "[usertype] lua owned constructor" ) {
+  C.openlibs();
+  usertype<LuaOwnedType> ut( L );
+  REQUIRE( C.stack_size() == 0 );
+
+  ut["n"]          = &LuaOwnedType::n;
+  ut["n_const"]    = &LuaOwnedType::n_const;
+  ut["d"]          = &LuaOwnedType::d;
+  ut["s"]          = &LuaOwnedType::s;
+  ut["get_n"]      = &LuaOwnedType::get_n;
+  ut["get_n_plus"] = &LuaOwnedType::get_n_plus;
+  ut["say"]        = &LuaOwnedType::say;
+  REQUIRE( C.stack_size() == 0 );
+
+  st["LuaOwned"] = []( int n ) {
+    LuaOwnedType lo;
+    lo.n = n;
+    return lo;
+  };
+
+  int res = st.script.run<int>( R"(
+    lo = LuaOwned( 7 )
+    return lo.n + lo.n_const
+  )" );
+  REQUIRE( res == 7 + 10 );
+
+  LuaOwnedType& lo = cast<LuaOwnedType&>( st["lo"] );
+  REQUIRE( lo.n == 7 );
+
+  st.script.run( R"(
+    lo.d = 11
+    lo.n = 21
+  )" );
+
+  REQUIRE( lo.d == 11.0 );
+  REQUIRE( lo.n == 21 );
 }
 
 } // namespace
