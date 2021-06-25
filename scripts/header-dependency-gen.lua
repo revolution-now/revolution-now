@@ -22,7 +22,8 @@ end
 
 extract_stem_pattern = re.compile( [[{[a-z0-9-]+}'.'.'pp']] )
 function extract_stem( subject )
-  return string.gsub( re.match( subject, extract_stem_pattern ),
+  return string.gsub( assert( re.match( subject,
+                                        extract_stem_pattern ) ),
                       '-', '_' )
 end
 
