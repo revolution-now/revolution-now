@@ -548,19 +548,9 @@ void lua_push( lua::cthread L, Coord const& coord ) {
   t["x"]       = coord.x;
   t["y"]       = coord.y;
 
-  // FIXME: setting these metatables each time is too slow.
-  lua::table meta = st.table.create();
-
-  meta["__tostring"] = []( Coord const& c ) {
-    return fmt::format( "Coord{{x={},y={}}}", c.x._, c.y._ );
-  };
-
-  meta["__eq"] = []( Coord const& l, Coord const& r ) {
-    return l == r;
-  };
-
-  setmetatable( t, meta );
-  lua::push( L, t );
+  // Delegate to the Lua factory function because it puts some
+  // metatables in there for us.
+  lua::push( L, st["Coord"]( t ) );
 }
 
 LUA_ENUM( direction );

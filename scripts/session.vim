@@ -3,6 +3,7 @@ let s:stems = [
   \ 'luapp/types',
   \ 'luapp/c-api',
   \ 'luapp/indexer',
+  \ 'luapp/metatable',
   \ 'luapp/ref',
   \ 'luapp/any',
   \ 'luapp/rtable',
