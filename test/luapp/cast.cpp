@@ -200,19 +200,16 @@ LUA_TEST_CASE( "[cast] Point" ) {
 }
 
 LUA_TEST_CASE( "[cast] failed cast" ) {
-  st["point"]         = "hello";
-  static int err_line = __LINE__ + 1;
-  st["foo"] = [&] { return cast<Point>( st["point"] ); };
+  st["point"] = "hello";
+  st["foo"]   = [&] { return cast<Point>( st["point"] ); };
 
   lua_expect<Point> xp = st["foo"].pcall<Point>();
   REQUIRE( xp.has_error() );
   REQUIRE( C.stack_size() == 0 );
 
   static string regex = fmt::format(
-      ".*cast.cpp:{}:error: failed to convert Lua type `string' "
-      "to native type `lua::\\(anonymous "
-      "namespace\\)::Point'.*\n.*\n.*",
-      err_line );
+      ".*:error: failed to convert Lua type `string' to native "
+      "type `lua::\\(anonymous namespace\\)::Point'.*\n.*\n.*" );
 
   REQUIRE_THAT( xp.error(), Matches( regex ) );
 }

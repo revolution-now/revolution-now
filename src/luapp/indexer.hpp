@@ -38,7 +38,28 @@ struct indexer {
     : pred_( std::move( pred ) ), index_( index ) {}
 
   indexer( indexer&& ) noexcept = default;
-  indexer& operator=( indexer&& ) noexcept = default;
+
+  // When we assign to an indexer we don't want to copy/move the
+  // indexer itself, we want it to trigger a copy action inside
+  // Lua, so we use the more generic operator= further below. Ex-
+  // ample:
+  //
+  //   st[1] = st[2];
+  //
+  // gcc seems to want to pick the default move assignment oper-
+  // ator for this, which would not be what we want, and does not
+  // work in some cases anyway some the pred_ and index_ members
+  // can sometimes be references and so cannot be moved. So we
+  // cannot use this default move assignment operator, but we
+  // also cannot delete it, otherwise it would prevent us from
+  // doing the above. So we just leave it commented:
+  //
+  //   indexer& operator=( indexer&& ) noexcept = delete;
+  //
+  // and let the compiler default to this one:
+  //
+  template<Pushable U>
+  indexer& operator=( U&& rhs );
 
   indexer( indexer const& ) = delete;
 
@@ -59,9 +80,6 @@ struct indexer {
   lua::type type() const noexcept {
     return type_of( this_cthread(), *this );
   }
-
-  template<Pushable U>
-  indexer& operator=( U&& rhs );
 
   template<Pushable U>
   bool operator==( U const& rhs ) const noexcept;

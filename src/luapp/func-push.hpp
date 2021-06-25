@@ -147,7 +147,6 @@ void push_cpp_function_impl(
   auto runner = [func = std::move( func )]( lua_State* L ) {
     func_push_cpp_check_args( L, sizeof...( Args ) );
 
-    using CalledArgs  = std::tuple<Args...>;
     using StorageArgs = std::tuple<storage_type_for<Args>...>;
 
     auto get_arg = [&]<size_t Index>(
@@ -167,6 +166,7 @@ void push_cpp_function_impl(
             type_name( L, lua_idx ) );
       return *m;
     };
+    (void)get_arg; // use it in case zero args.
 
     StorageArgs args{
         get_arg( std::integral_constant<size_t, Idx>{} )... };

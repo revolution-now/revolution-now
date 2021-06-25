@@ -81,8 +81,7 @@ struct usertype {
     using traits = mp::callable_traits<F>;
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
-    using args_t = typename traits::arg_types;
-    using ref_t  = decltype( make_member_var_getter_lambda<O>(
+    using ref_t = decltype( make_member_var_getter_lambda<O>(
         func )( std::declval<O&>() ) );
     static_assert( std::is_same_v<R&, ref_t> );
 

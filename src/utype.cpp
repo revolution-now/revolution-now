@@ -26,6 +26,9 @@
 // Revolution Now (config)
 #include "../config/ucl/units.inl"
 
+// C++ standard library
+#include <unordered_map>
+
 using namespace std;
 
 #define LOAD_UNIT_DESC( u )                             \
@@ -113,7 +116,7 @@ LUA_ENUM( unit_death );
 
 namespace {
 
-// #define RO_FIELD( n ) \
+// #define RO_FIELD( n )
 //   utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
 #define RO_FIELD( n ) utype[#n] = &rn::UnitDescriptor::n
 

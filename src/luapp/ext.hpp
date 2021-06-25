@@ -187,11 +187,6 @@ concept StorageGettable =
 ** nvalues_for
 *****************************************************************/
 template<typename T>
-// We must have these concept constraints here in order to en-
-// force that the extension point overrides for the type T are
-// visible at this point, otherwise we might just silently de-
-// fault to a value of 1 below which we do not want.
-requires Pushable<T> || Gettable<T> || HasTraitsNvalues<T>
 constexpr int nvalues_for() {
   if constexpr( HasTraitsNvalues<T> ) {
     static_assert( traits_for<T>::nvalues > 0 ||
