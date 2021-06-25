@@ -13,7 +13,15 @@
 #define LUA_MODULE_NAME_OVERRIDE "testing"
 
 // Revolution Now
+#include "coord.hpp"
 #include "lua.hpp"
+
+// luapp
+#include "luapp/cast.hpp"
+#include "luapp/error.hpp"
+#include "luapp/ext-base.hpp"
+#include "luapp/rstring.hpp"
+#include "luapp/state.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -27,64 +35,72 @@ using Catch::Contains;
 using Catch::Equals;
 
 TEST_CASE( "[lua] run trivial script" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     local x = 5+6
   )";
-  REQUIRE( lua::run<void>( script ) == valid );
+  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     local x =
   )";
 
-  auto xp = lua::run<void>( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what,
-                Contains( "unexpected symbol" ) );
+  auto xp = st.script.run_safe( script );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
 }
 
 TEST_CASE( "[lua] semantic error" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     local a, b
     local x = a + b
   )";
 
-  auto xp = lua::run<void>( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what,
+  auto xp = st.script.run_safe( script );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(),
                 Contains( "attempt to perform arithmetic" ) );
 }
 
 TEST_CASE( "[lua] has base lib" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     return tostring( 5 ) .. type( function() end )
   )";
-  REQUIRE( lua::run<string>( script ) == "5function" );
+  REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
+           "5function" );
 }
 
-TEST_CASE( "[lua] returns int" ) {
-  auto script = R"(
+TEST_CASE( "[lua] no implicit conversions from double to int" ) {
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     return 5+8.5
   )";
-  REQUIRE( lua::run<int>( script ) == 13 );
+  REQUIRE( st.script.run_safe<maybe<int>>( script ) == nothing );
 }
 
 TEST_CASE( "[lua] returns double" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     return 5+8.5
   )";
-  REQUIRE( lua::run<double>( script ) == 13.5 );
+  REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
 }
 
 TEST_CASE( "[lua] returns string" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     local function f( s )
       return s .. '!'
     end
     return f( 'hello' )
   )";
-  REQUIRE( lua::run<string>( script ) == "hello!" );
+  REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
+           "hello!" );
 }
 
 // FIXME: need to implement some kind of "from string" method for
@@ -94,41 +110,46 @@ TEST_CASE( "[lua] returns string" ) {
 //  auto script = R"(
 //    return tostring( e.nation.dutch ) .. type( e.nation.dutch )
 //  )";
-//  REQUIRE( lua::run<string>( script ) == "dutchuserdata" );
+//  REQUIRE( st.script.run_safe<string>( script ) ==
+//  "dutchuserdata" );
 //}
 
 TEST_CASE( "[lua] enums no assign" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     e.nation.dutch = 3
   )";
 
-  auto xp = lua::run<void>( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what,
+  auto xp = st.script.run_safe( script );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(),
                 Contains( "modify a read-only table" ) );
 }
 
 TEST_CASE( "[lua] enums from string" ) {
-  auto script = R"(
-    return e.nation.dutch == e.nation_from_string( "dutch" )
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
+    return e.nation.dutch == e.nation["dutch"]
   )";
 
-  REQUIRE( lua::run<bool>( script ) == true );
+  REQUIRE( st.script.run_safe<bool>( script ) == true );
 }
 
 TEST_CASE( "[lua] has startup.run" ) {
-  lua::reload();
+  lua::state& st = lua_global_state();
+  lua_reload();
   auto script = R"(
     return tostring( startup.main )
   )";
 
-  auto xp = lua::run<string>( script );
+  auto xp = st.script.run_safe<lua::rstring>( script );
   REQUIRE( xp.has_value() );
-  REQUIRE_THAT( xp.value(), Contains( "function" ) );
+  REQUIRE_THAT( xp.value().as_cpp(), Contains( "function" ) );
 }
 
 TEST_CASE( "[lua] C++ function binding" ) {
-  lua::reload();
+  lua::state& st = lua_global_state();
+  lua_reload();
   auto script = R"(
     local id1 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
     local id2 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
@@ -136,84 +157,90 @@ TEST_CASE( "[lua] C++ function binding" ) {
     return id3-id1
   )";
 
-  REQUIRE( lua::run<int>( script ) == 2 );
+  REQUIRE( st.script.run_safe<int>( script ) == 2 );
 }
 
 TEST_CASE( "[lua] frozen globals" ) {
-  auto xp = lua::run<void>( "e = 1" );
-  REQUIRE( !xp.has_value() );
+  lua::state& st = lua_global_state();
+  auto        xp = st.script.run_safe( "e = 1" );
+  REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = lua::run<void>( "startup = 1" );
-  REQUIRE( !xp.has_value() );
+  xp = st.script.run_safe( "startup = 1" );
+  REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = lua::run<void>( "startup.x = 1" );
-  REQUIRE( !xp.has_value() );
+  xp = st.script.run_safe( "startup.x = 1" );
+  REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "attempt to modify a read-only table." ) );
 
-  xp = lua::run<void>( "id = 1" );
-  REQUIRE( !xp.has_value() );
+  xp = st.script.run_safe( "id = 1" );
+  REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = lua::run<void>( "id.x = 1" );
-  REQUIRE( !xp.has_value() );
+  xp = st.script.run_safe( "id.x = 1" );
+  REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "attempt to modify a read-only table." ) );
 
-  REQUIRE( lua::run<int>( "x = 1; return x" ) == 1 );
+  REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
 
-  REQUIRE( lua::run<int>( "d = {}; d.x = 1; return d.x" ) == 1 );
+  REQUIRE( st.script.run_safe<int>(
+               "d = {}; d.x = 1; return d.x" ) == 1 );
 }
 
 TEST_CASE( "[lua] rawset is locked down" ) {
+  lua::state& st = lua_global_state();
   // `id` is locked down.
-  auto xp = lua::run<void>( "rawset( _ENV, 'id', 3 )" );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what, Contains( "nil value" ) );
+  auto xp = st.script.run_safe( "rawset( _ENV, 'id', 3 )" );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
 
   // `xxx` is not locked down, but rawset should fail for any
   // key.
-  xp = lua::run<void>( "rawset( _ENV, 'xxx', 3 )" );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what, Contains( "nil value" ) );
+  xp = st.script.run_safe( "rawset( _ENV, 'xxx', 3 )" );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
 }
 
 TEST_CASE( "[lua] has modules" ) {
-  auto script = R"lua(
+  lua::state& st     = lua_global_state();
+  auto        script = R"lua(
     assert( modules['startup'] ~= nil )
     assert( modules['util']    ~= nil )
     assert( modules['meta']    ~= nil )
     assert( modules['utype']   ~= nil )
   )lua";
-  REQUIRE( lua::run<void>( script ) == valid );
+  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 LUA_FN( throwing, int, int x ) {
+  lua::cthread L = lua_global_state().thread.main().cthread();
   if( x >= 10 )
-    THROW_LUA_ERROR( "x (which is {}) must be less than 10.",
-                     x );
+    lua::throw_lua_error(
+        L, "x (which is {}) must be less than 10.", x );
   return x + 1;
 };
 
 TEST_CASE( "[lua] throwing" ) {
-  auto script = "return testing.throwing( 5 )";
-  REQUIRE( lua::run<int>( script ) == 6 );
+  lua::state& st     = lua_global_state();
+  auto        script = "return testing.throwing( 5 )";
+  REQUIRE( st.script.run_safe<int>( script ) == 6 );
 
   script  = "return testing.throwing( 11 )";
-  auto xp = lua::run<int>( script );
+  auto xp = st.script.run_safe<int>( script );
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT(
-      xp.error().what,
+      xp.error(),
       Contains( "x (which is 11) must be less than 10." ) );
 }
 
@@ -225,7 +252,8 @@ LUA_FN( coord_test, Coord, Coord const& coord ) {
 }
 
 TEST_CASE( "[lua] Coord" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     local coord = Coord{x=2, y=2}
     -- Test equality.
     assert_eq( coord, Coord{x=2,y=2} )
@@ -242,7 +270,8 @@ TEST_CASE( "[lua] Coord" ) {
     coord.y = coord.y + 2
     return coord
   )";
-  REQUIRE( lua::run<Coord>( script ) == Coord{ 4_x, 5_y } );
+  REQUIRE( st.script.run_safe<Coord>( script ) ==
+           Coord{ 4_x, 5_y } );
 }
 
 LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
@@ -260,6 +289,7 @@ LUA_FN( opt_test2, maybe<Coord>,
 }
 
 TEST_CASE( "[lua] optional" ) {
+  lua::state& st = lua_global_state();
   // string/int
   auto script = R"(
     assert( testing.opt_test( nil ) == "got nothing"  )
@@ -270,64 +300,70 @@ TEST_CASE( "[lua] optional" ) {
     assert( testing.opt_test( 10  ) == "10"           )
     assert( testing.opt_test( 100 ) == "100"          )
   )";
-  REQUIRE( lua::run<void>( script ) == valid );
+  REQUIRE( st.script.run_safe( script ) == valid );
 
-  REQUIRE( lua::run<maybe<string>>( "return nil" ) == nothing );
-  REQUIRE( lua::run<maybe<string>>( "return 'hello'" ) ==
-           "hello" );
-  REQUIRE( lua::run<maybe<int>>( "return 'hello'" ) == nothing );
+  REQUIRE( st.script.run_safe<maybe<string>>( "return nil" ) ==
+           nothing );
+  REQUIRE( st.script.run_safe<maybe<string>>(
+               "return 'hello'" ) == "hello" );
+  REQUIRE( st.script.run_safe<maybe<int>>( "return 'hello'" ) ==
+           nothing );
 
   // Coord
   auto script2 = R"(
     assert( testing.opt_test2( nil            ) == Coord{x=5,y=7} )
     assert( testing.opt_test2( Coord{x=2,y=3} ) == Coord{x=3,y=4} )
   )";
-  REQUIRE( lua::run<void>( script2 ) == valid );
+  REQUIRE( st.script.run_safe( script2 ) == valid );
 
-  REQUIRE( lua::run<maybe<Coord>>( "return nil" ) == nothing );
-  REQUIRE( lua::run<maybe<Coord>>( "return Coord{x=9, y=8}" ) ==
-           Coord{ 9_x, 8_y } );
-  REQUIRE( lua::run<maybe<Coord>>( "return 'hello'" ) ==
+  REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
            nothing );
-  REQUIRE( lua::run<maybe<Coord>>( "return 5" ) == nothing );
+  REQUIRE( st.script.run_safe<maybe<Coord>>(
+               "return Coord{x=9, y=8}" ) == Coord{ 9_x, 8_y } );
+  REQUIRE( st.script.run_safe<maybe<Coord>>(
+               "return 'hello'" ) == nothing );
+  REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==
+           nothing );
 }
 
 // Test the o.as<maybe<?>>() constructs. This tests the custom
 // handlers that we've defined for maybe<>.
 TEST_CASE( "[lua] get as maybe" ) {
-  sol::state st{};
-  st["func"] = []( sol::object o ) -> string {
-    if( o == sol::lua_nil ) return "nil";
-    if( auto maybe_string = o.as<maybe<string>>();
-        maybe_string.has_value() ) {
-      return *maybe_string + "!";
-    } else if( auto maybe_bool = o.as<maybe<bool>>();
-               maybe_bool.has_value() ) {
-      return fmt::format( "a bool: {}", *maybe_bool );
-    } else if( auto maybe_double = o.as<maybe<double>>();
+  lua::state& st = lua_global_state();
+  st["func"]     = []( lua::any o ) -> string {
+    if( o == lua::nil ) return "nil";
+    if( lua::type_of( o ) == lua::type::string ) {
+      return lua::cast<string>( o ) + "!";
+    } else if( auto maybe_double = lua::cast<maybe<double>>( o );
                maybe_double.has_value() ) {
       return fmt::format( "a double: {}", *maybe_double );
+    } else if( auto maybe_bool = lua::cast<maybe<bool>>( o );
+               maybe_bool.has_value() ) {
+      return fmt::format( "a bool: {}", *maybe_bool );
     } else {
       return "?";
     }
   };
-  REQUIRE( st["func"]( "hello" ).get<string>() == "hello!" );
-  REQUIRE( st["func"]( 5 ).get<string>() == "a double: 5.0" );
-  REQUIRE( st["func"]( true ).get<string>() == "a bool: true" );
+  REQUIRE( lua::cast<string>( st["func"]( "hello" ) ) ==
+           "hello!" );
+  REQUIRE( lua::cast<string>( st["func"]( 5 ) ) ==
+           "a double: 5.0" );
+  REQUIRE( lua::cast<string>( st["func"]( true ) ) ==
+           "a bool: true" );
 
-  REQUIRE( st["func"]( false ).get<maybe<string>>() ==
+  REQUIRE( lua::cast<maybe<string>>( st["func"]( false ) ) ==
            "a bool: false" );
-  REQUIRE( st["func"]( true ).get<maybe<int>>() == nothing );
 }
 
 TEST_CASE( "[lua] new_usertype" ) {
-  auto script = R"(
+  lua::state& st     = lua_global_state();
+  auto        script = R"(
     u = MyType.new()
     assert( u.x == 5 )
     assert( u:get() == "c" )
-    assert( u:add( 4, 5 ) == 9 )
+    assert( u:add( 4, 5 ) == 9+5 )
   )";
-  REQUIRE( lua::run<void>( script ) == valid );
+  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 } // namespace

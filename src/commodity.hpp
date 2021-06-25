@@ -17,6 +17,7 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
+#include "lua-enum.hpp"
 #include "tx.hpp"
 
 // Rnl
@@ -129,6 +130,11 @@ void render_commodity_annotated( Texture& tx, e_commodity type,
 void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
+
+/****************************************************************
+** Lua
+*****************************************************************/
+LUA_ENUM_DECL( commodity );
 
 } // namespace rn
 

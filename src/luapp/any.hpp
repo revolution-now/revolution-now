@@ -31,6 +31,20 @@ struct any : reference {
 
   friend base::maybe<any> lua_get( cthread L, int idx,
                                    tag<any> );
+
+  // clang-format off
+  template<typename T>
+  requires( Pushable<T> && HasCthread<T> )
+  explicit any( T&& o ) : reference((
+                   lua::push( o.this_cthread(), o ),
+                   pop_ref_from_stack(o.this_cthread()))) {
+    // clang-format on
+  }
+
+  // clang-format off
+private:
+  static reference pop_ref_from_stack(cthread L);
+  // clang-format on
 };
 
 static_assert( Stackable<any> );

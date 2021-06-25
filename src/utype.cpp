@@ -14,6 +14,12 @@
 #include "config-files.hpp"
 #include "lua.hpp"
 
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 // base
 #include "base/keyval.hpp"
 
@@ -102,18 +108,22 @@ void UnitDescriptor::check_invariants() const {
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
+LUA_ENUM( unit_type );
+LUA_ENUM( unit_death );
+
 namespace {
 
-LUA_ENUM( unit_type );
+// #define RO_FIELD( n ) \
+//   utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
+#define RO_FIELD( n ) utype[#n] = &rn::UnitDescriptor::n
 
-#define RO_FIELD( n ) \
-  utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
-
-LUA_STARTUP( sol::state& st ) {
+LUA_STARTUP( lua::state& st ) {
   using UD = ::rn::UnitDescriptor;
 
-  sol::usertype<UD> utype = st.new_usertype<UD>(
-      "UnitDescriptor", sol::no_constructor );
+  auto utype = st.usertype.create<UD>();
+
+  // FIXME: these are writable to lua. Find an equivalent of
+  // sol::readonly to make them appear constant to luapp.
 
   RO_FIELD( name );
   RO_FIELD( type );

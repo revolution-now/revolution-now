@@ -14,6 +14,11 @@
 // {fmt}
 #include "fmt/format.h"
 
+// luapp
+#include "luapp/cast.hpp"
+#include "luapp/metatable.hpp"
+#include "luapp/state.hpp"
+
 namespace rn {
 
 namespace {} // namespace
@@ -36,6 +41,41 @@ valid_deserial_t MovementPoints::check_invariants_safe() const {
     return invalid_deserial(
         "MovementPoints object has negative points" );
   return valid;
+}
+
+maybe<MovementPoints> lua_get( lua::cthread L, int idx,
+                               lua::tag<MovementPoints> ) {
+  auto st = lua::state::view( L );
+
+  maybe<lua::table> maybe_t = lua::get<lua::table>( L, idx );
+  if( !maybe_t.has_value() ) return nothing;
+  lua::table& t = *maybe_t;
+  if( t["atoms"] == lua::nil ) return nothing;
+  MovementPoints mv_pts( lua::cast<int>( t["atoms"] ) );
+  return mv_pts;
+}
+
+void lua_push( lua::cthread L, MovementPoints mv_pts ) {
+  auto st = lua::state::view( L );
+
+  lua::table t = st.table.create();
+  t["atoms"]   = mv_pts.points_atoms;
+
+  // FIXME: setting these metatables each time is too slow.
+  lua::table meta = st.table.create();
+
+  meta["__tostring"] = []( MovementPoints o ) {
+    return fmt::format( "MovementPoints{{atoms={}}}",
+                        o.points_atoms );
+  };
+
+  meta["__eq"] = []( MovementPoints const& l,
+                     MovementPoints const& r ) {
+    return l == r;
+  };
+
+  setmetatable( t, meta );
+  lua::push( L, t );
 }
 
 } // namespace rn

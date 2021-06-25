@@ -15,7 +15,6 @@
 #include "conductor.hpp"
 #include "game.hpp"
 #include "logging.hpp"
-#include "lua.hpp"
 #include "main-menu.hpp"
 #include "plane-ctrl.hpp"
 #include "turn.hpp"

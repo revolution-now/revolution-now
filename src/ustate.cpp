@@ -22,6 +22,10 @@
 #include "sg-macros.hpp"
 #include "variant.hpp"
 
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
@@ -567,7 +571,7 @@ void ustate_disown_unit( UnitId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( create_unit_on_map, Unit const&, e_nation nation,
+LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         e_unit_type type, Coord const& coord ) {
   auto id = create_unit_on_map( nation, type, coord );
   lg.info( "created a {} on square {}.", unit_desc( type ).name,
@@ -575,7 +579,7 @@ LUA_FN( create_unit_on_map, Unit const&, e_nation nation,
   return unit_from_id( id );
 }
 
-LUA_FN( unit_from_id, Unit const&, UnitId id ) {
+LUA_FN( unit_from_id, Unit&, UnitId id ) {
   return unit_from_id( id );
 }
 
@@ -583,10 +587,11 @@ LUA_FN( coord_for_unit, maybe<Coord>, UnitId id ) {
   return coord_for_unit( id );
 }
 
-LUA_FN( units_from_coord, sol::as_table_t<vector<int>>,
-        Coord c ) {
-  vector<int> res;
-  for( UnitId id : units_from_coord( c ) ) res.push_back( id._ );
+LUA_FN( units_from_coord, lua::table, Coord c ) {
+  lua::state& st  = lua_global_state();
+  lua::table  res = st.table.create();
+  int         i   = 1;
+  for( UnitId id : units_from_coord( c ) ) res[i++] = id;
   return res;
 }
 

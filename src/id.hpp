@@ -15,6 +15,9 @@
 // Revolution Now
 #include "typed-int.hpp"
 
+// luapp
+#include "luapp/ext.hpp"
+
 TYPED_ID( UnitId )
 UD_LITERAL( UnitId, id )
 
@@ -43,3 +46,10 @@ DEFINE_HASH_FOR_TYPED_INT( ::rn::UnitId )
 DEFINE_HASH_FOR_TYPED_INT( ::rn::ColonyId )
 
 } // namespace std
+
+namespace rn {
+
+LUA_TYPED_INT_DECL( ::rn::UnitId );
+LUA_TYPED_INT_DECL( ::rn::ColonyId );
+
+} // namespace rn

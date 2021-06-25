@@ -16,9 +16,9 @@ end
 -- Takes a table and just returns a new table with all the same
 -- key/value pairs that come from the pairs(...) iterator. This
 -- is useful if e.g. a table's pairs are produced by a __pairs
--- metafunction that we either can't call (sol2 doesn't seem to
--- call it when iterating over a table, possibly a bug) or don't
--- want to call (maybe it's expensive).
+-- metafunction that we either can't call (luapp doesn't cur-
+-- rently call it when iterating over a table) or don't want to
+-- call (maybe it's expensive).
 local function all_pairs( tbl )
   res = {}
   for k, v in pairs( tbl ) do res[k] = v end

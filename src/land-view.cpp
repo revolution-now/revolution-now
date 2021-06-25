@@ -46,6 +46,14 @@
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 
+#ifdef L
+#  undef L
+#endif
+
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+
 // Rnl
 #include "rnl/land-view-impl.hpp"
 

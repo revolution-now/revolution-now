@@ -25,12 +25,12 @@ fs::path const& data_dir() {
 
 void reset_savegame_state() {
   CHECK_HAS_VALUE( rn::reset_savegame_state() );
-  rn::lua::reload();
+  rn::lua_reload();
 }
 
 void default_construct_all_game_state() {
   rn::default_construct_savegame_state();
-  rn::lua::reload();
+  rn::lua_reload();
 }
 
 } // namespace rn::testing

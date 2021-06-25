@@ -18,6 +18,9 @@
 #include "ustate.hpp"
 #include "utype.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -120,9 +123,10 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
 }
 
 TEST_CASE( "[colony-mgr] lua" ) {
+  lua::state& st = lua_global_state();
   init_game_world_for_test();
   auto script = R"(
-    coord = Coord{y=2, x=2}
+    local coord = Coord{y=2, x=2}
     unit_ = ustate.create_unit_on_map(
              e.nation.english,
              e.unit_type.free_colonist,
@@ -137,7 +141,8 @@ TEST_CASE( "[colony-mgr] lua" ) {
     assert_eq( colony:location(), Coord{x=2,y=2} )
     return col_id
   )";
-  REQUIRE( lua::run<ColonyId>( script ) == ColonyId{ 1 } );
+  REQUIRE( st.script.run_safe<ColonyId>( script ) ==
+           ColonyId{ 1 } );
   REQUIRE( colony_from_id( ColonyId{ 1 } ).name() ==
            "New York" );
 }

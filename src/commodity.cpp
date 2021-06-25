@@ -24,6 +24,11 @@
 // base
 #include "base/variant.hpp"
 
+// luapp
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 
@@ -272,10 +277,6 @@ void render_commodity_annotated( Texture&         tx,
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
-namespace {
-
 LUA_ENUM( commodity )
-
-}
 
 } // namespace rn

@@ -14,6 +14,9 @@
 #include "cstate.hpp"
 #include "lua.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -112,6 +115,7 @@ TEST_CASE( "[cstate] colonies_in_rect" ) {
 }
 
 TEST_CASE( "[cstate] lua" ) {
+  lua::state& st = lua_global_state();
   default_construct_all_game_state();
   auto xp = cstate_create_colony(
       e_nation::english, Coord{ 1_x, 2_y }, "my colony" );
@@ -123,11 +127,11 @@ TEST_CASE( "[cstate] lua" ) {
     assert_eq( colony:nation(), e.nation.english )
     assert_eq( colony:location(), Coord{x=1,y=2} )
   )";
-  REQUIRE( lua::run<void>( script ) == valid );
+  REQUIRE( st.script.run_safe( script ) == valid );
 
-  auto xp2 = lua::run<void>( "cstate.colony_from_id( 2 )" );
-  REQUIRE( !xp2.has_value() );
-  REQUIRE_THAT( xp2.error().what,
+  auto xp2 = st.script.run_safe( "cstate.colony_from_id( 2 )" );
+  REQUIRE( !xp2.valid() );
+  REQUIRE_THAT( xp2.error(),
                 Contains( "colony 2_id does not exist" ) );
 }
 

@@ -17,6 +17,9 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
+// luapp
+#include "luapp/ext.hpp"
+
 // Flatbuffers
 #include "fb/mv-points_generated.h"
 
@@ -118,6 +121,10 @@ public:
   std::string to_string() const;
 
   valid_deserial_t check_invariants_safe() const;
+
+  friend maybe<MovementPoints> lua_get(
+      lua::cthread L, int idx, lua::tag<MovementPoints> );
+  friend void lua_push( lua::cthread L, MovementPoints mv_pts );
 
 private:
   // atoms can be > 2

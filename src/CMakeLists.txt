@@ -41,7 +41,6 @@ target_link_libraries(
     rn-base
     rn-luapp
     rtmidi
-    sol2::sol2
     spdlog::spdlog
     Threads::Threads
     ucl
@@ -93,12 +92,6 @@ endif()
 target_compile_definitions(
   rn
   PUBLIC
-  LUA_VERSION_NUM=503
-  SOL_USING_CXX_LUA=1
-  SOL_CXX17_FEATURES=1  # won't need this in future versions.
-  SOL_ALL_SAFETIES_ON=1
-  SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
-  SOL_PRINT_ERRORS=0
-  )
+)
 
 clang_tidy( rn )

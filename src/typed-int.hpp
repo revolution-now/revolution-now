@@ -16,6 +16,9 @@
 // Revolution Now
 #include "fmt-helper.hpp"
 
+// luapp
+#include "luapp/ext.hpp"
+
 // This is a minimal wrapper around an T. It allows nothing ex-
 // cept for (explicit) construction from T, copying/assignment,
 // equality, ordering, and (explicit) conversion back to T.
@@ -717,3 +720,30 @@ DEFINE_HASH_FOR_TYPED_INT( ::rn::W );
 DEFINE_HASH_FOR_TYPED_INT( ::rn::H );
 
 } // namespace std
+
+#define LUA_TYPED_INT_DECL( name )                    \
+  base::maybe<name> lua_get( lua::cthread L, int idx, \
+                             lua::tag<name> );        \
+                                                      \
+  void lua_push( lua::cthread L, name const& o );
+
+#define LUA_TYPED_INT_IMPL( name )                    \
+  base::maybe<name> lua_get( lua::cthread L, int idx, \
+                             lua::tag<name> ) {       \
+    base::maybe<int> n = lua::get<int>( L, idx );     \
+    if( !n ) return base::nothing;                    \
+    return name{ *n };                                \
+  }                                                   \
+                                                      \
+  void lua_push( lua::cthread L, name const& o ) {    \
+    lua::push( L, o._ );                              \
+  }
+
+namespace rn {
+
+LUA_TYPED_INT_DECL( ::rn::X );
+LUA_TYPED_INT_DECL( ::rn::Y );
+LUA_TYPED_INT_DECL( ::rn::W );
+LUA_TYPED_INT_DECL( ::rn::H );
+
+} // namespace rn

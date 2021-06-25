@@ -59,8 +59,8 @@ waitable<> run_existing_game() {
 
 waitable<> run_new_game() {
   default_construct_savegame_state();
-  lua::reload();
-  lua::run_startup_main();
+  lua_reload();
+  run_lua_startup_main();
 
   // 1. Take user through game setup/configuration.
 

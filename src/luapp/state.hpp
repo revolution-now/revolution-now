@@ -17,8 +17,10 @@
 #include "rstring.hpp"
 #include "rtable.hpp"
 #include "rthread.hpp"
+#include "usertype.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/zero.hpp"
 
 // C++ standard library
@@ -46,6 +48,9 @@ public:
   // Creates a non-owning view of the state.
   static state view( cthread L ) { return state( L ); }
 
+  state( state&& ) = default;
+  state& operator=( state&& ) = default;
+
 private:
   friend Base;
 
@@ -64,11 +69,11 @@ public:
 
     // This is guaranteed to be the main thread because it is the
     // one that we get when we create the state.
-    rthread main() const noexcept;
+    rthread main() noexcept;
 
   private:
     cthread L;
-  } const thread;
+  } thread;
 
   /**************************************************************
   ** Strings
@@ -76,11 +81,11 @@ public:
   struct String {
     String( cthread cth ) : L( cth ) {}
 
-    rstring create( std::string_view sv ) const noexcept;
+    rstring create( std::string_view sv ) noexcept;
 
   private:
     cthread L;
-  } const string;
+  } string;
 
   /**************************************************************
   ** Tables
@@ -88,12 +93,39 @@ public:
   struct Table {
     Table( cthread cth );
 
-    table global() const noexcept;
-    table create() const noexcept;
+    table global() noexcept;
+    table create() noexcept;
 
   private:
     cthread L;
-  } const table;
+  } table;
+
+  /**************************************************************
+  ** Libs
+  ***************************************************************/
+  struct Lib {
+    Lib( cthread cth ) : L( cth ) {}
+
+    void open_all();
+
+  private:
+    cthread L;
+  } lib;
+
+  /**************************************************************
+  ** Usertype
+  ***************************************************************/
+  struct Usertype {
+    Usertype( cthread cth ) : L( cth ) {}
+
+    template<CanHaveUsertype T>
+    usertype<T> create() {
+      return lua::usertype<T>( L );
+    }
+
+  private:
+    cthread L;
+  } usertype;
 
   /**************************************************************
   ** Scripts
@@ -101,26 +133,46 @@ public:
   struct Script {
     Script( cthread cth );
 
-    rfunction load( std::string_view code ) const noexcept;
+    rfunction load( std::string_view code ) noexcept;
 
-    void operator()( std::string_view code ) const;
+    lua_expect<rfunction> load_safe(
+        std::string_view code ) noexcept;
+
+    void operator()( std::string_view code );
 
     template<GettableOrVoid R = void>
-    R run( std::string_view code ) const {
+    R run( std::string_view code ) {
       lua::push( L, load( code ) );
       return call_lua_unsafe_and_get<R>( L );
     }
 
     template<GettableOrVoid R = void>
     error_type_for_return_type<R> run_safe(
-        std::string_view code ) const noexcept {
-      lua::push( L, load( code ) );
+        std::string_view code ) noexcept {
+      UNWRAP_RETURN( func, load_safe( code ) );
+      lua::push( L, func );
+      return call_lua_safe_and_get<R>( L );
+    }
+
+    template<GettableOrVoid R = void>
+    R run_file( std::string_view file ) {
+      load_file( file );
+      return call_lua_unsafe_and_get<R>( L );
+    }
+
+    template<GettableOrVoid R = void>
+    error_type_for_return_type<R> run_file_safe(
+        std::string_view file ) noexcept {
+      HAS_VALUE_OR_RET( load_file_safe( file ) );
       return call_lua_safe_and_get<R>( L );
     }
 
   private:
+    lua_valid load_file_safe( std::string_view file );
+    void      load_file( std::string_view file );
+
     cthread L;
-  } const script;
+  } script;
 
   /**************************************************************
   ** Indexer
@@ -131,11 +183,8 @@ public:
   }
 
 private:
-  state( state&& ) = default;
-
   state( state const& ) = delete;
   state& operator=( state const& ) = delete;
-  state& operator=( state&& ) = delete;
 };
 
 // Cannot push an entire global state. You can push a thread

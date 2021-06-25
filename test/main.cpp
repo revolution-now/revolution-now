@@ -25,7 +25,7 @@ int main( int argc, char** argv ) {
                              e_init_routine::rng, //
                              e_init_routine::lua, //
                          } );
-  lua::reload();
+  lua_reload();
 
   int result = Catch::Session().run( argc, argv );
 

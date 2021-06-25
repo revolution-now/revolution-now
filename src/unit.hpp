@@ -16,10 +16,14 @@
 #include "cargo.hpp"
 #include "fb.hpp"
 #include "id.hpp"
+#include "lua-enum.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "util.hpp"
 #include "utype.hpp"
+
+// luapp
+#include "luapp/ext-userdata.hpp"
 
 // Rnl
 #include "rnl/unit.hpp"
@@ -46,8 +50,10 @@ public:
 
   UnitId                id() const { return id_; }
   UnitDescriptor const& desc() const;
-  e_unit_orders         orders() const { return orders_; }
-  CargoHold const&      cargo() const { return cargo_; }
+  // FIXME: luapp can only take this as non-const....
+  UnitDescriptor&  desc_non_const() const;
+  e_unit_orders    orders() const { return orders_; }
+  CargoHold const& cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
@@ -148,4 +154,13 @@ NOTHROW_MOVE( Unit );
 
 std::string debug_string( Unit const& unit );
 
+LUA_ENUM_DECL( unit_orders );
+
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::Unit, owned_by_cpp ){};
+}

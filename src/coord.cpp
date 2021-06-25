@@ -13,6 +13,15 @@
 // Revolution Now
 #include "error.hpp"
 #include "fmt-helper.hpp"
+#include "lua.hpp"
+
+// luapp
+#include "luapp/cast.hpp"
+#include "luapp/func-push.hpp"
+#include "luapp/metatable.hpp"
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // c++ standard library
 #include <algorithm>
@@ -516,5 +525,44 @@ Scale operator*( Scale const& lhs, Scale const& rhs ) {
 Scale operator/( Scale const& lhs, Scale const& rhs ) {
   return { lhs.sx / rhs.sx, lhs.sy / rhs.sy };
 }
+
+/****************************************************************
+** Lua
+*****************************************************************/
+maybe<Coord> lua_get( lua::cthread L, int idx,
+                      lua::tag<Coord> ) {
+  auto st = lua::state::view( L );
+
+  maybe<lua::table> maybe_t = lua::get<lua::table>( L, idx );
+  if( !maybe_t.has_value() ) return nothing;
+  lua::table& t = *maybe_t;
+  if( t["x"] == lua::nil || t["y"] == lua::nil ) return nothing;
+  Coord coord{ lua::cast<X>( t["x"] ), lua::cast<Y>( t["y"] ) };
+  return coord;
+}
+
+void lua_push( lua::cthread L, Coord const& coord ) {
+  auto st = lua::state::view( L );
+
+  lua::table t = st.table.create();
+  t["x"]       = coord.x;
+  t["y"]       = coord.y;
+
+  // FIXME: setting these metatables each time is too slow.
+  lua::table meta = st.table.create();
+
+  meta["__tostring"] = []( Coord const& c ) {
+    return fmt::format( "Coord{{x={},y={}}}", c.x._, c.y._ );
+  };
+
+  meta["__eq"] = []( Coord const& l, Coord const& r ) {
+    return l == r;
+  };
+
+  setmetatable( t, meta );
+  lua::push( L, t );
+}
+
+LUA_ENUM( direction );
 
 } // namespace rn

@@ -15,6 +15,10 @@
 #include "lua.hpp"
 #include "sg-macros.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 // Flatbuffers
 #include "fb/sg-id_generated.h"
 
@@ -104,5 +108,8 @@ LUA_FN( last_unit_id, UnitId ) { return last_unit_id(); }
 LUA_FN( last_colony_id, ColonyId ) { return last_colony_id(); }
 
 } // namespace
+
+LUA_TYPED_INT_IMPL( ::rn::UnitId );
+LUA_TYPED_INT_IMPL( ::rn::ColonyId );
 
 } // namespace rn

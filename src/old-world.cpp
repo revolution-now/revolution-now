@@ -17,6 +17,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // base
 #include "base/lambda.hpp"
 

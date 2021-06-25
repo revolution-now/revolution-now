@@ -22,6 +22,9 @@
 #include "views.hpp"
 #include "waitable-coro.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // base
 #include "base/scope-exit.hpp"
 

@@ -123,8 +123,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
 
   // Make sure that the metatable has been populated correctly.
   lua::push( L, st["o"] );
-  C.udata_getmetatable(
-      userdata_typename<CppOwnedType&>().c_str() );
+  // Try this one this time to make sure it works.
+  C.getmetatable( -1 );
   REQUIRE( C.stack_size() == 2 );
   table metatable( L, C.ref_registry() );
   C.pop();
@@ -250,8 +250,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
 
   // Make sure that the metatable has been populated correctly.
   lua::push( L, st["o"] );
-  C.udata_getmetatable(
-      userdata_typename<LuaOwnedType>().c_str() );
+  // Try this one this time to make sure it works.
+  C.getmetatable( -1 );
   REQUIRE( C.stack_size() == 2 );
   table metatable( L, C.ref_registry() );
   C.pop();

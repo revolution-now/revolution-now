@@ -43,8 +43,8 @@ end
 
 local function ls( table )
   if type( table ) == 'userdata' then
-    -- For sol2 userdata. Unfortunately the types of the members
-    -- all show as functions.
+    -- For userdata. Unfortunately the types of the members all
+    -- show as functions.
     table = getmetatable( table ) or {}
   end
   for k, v in pairs( table ) do

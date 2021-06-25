@@ -17,13 +17,26 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+
+// luapp
+#include "luapp/any.hpp"
+#include "luapp/cast.hpp"
+#include "luapp/iter.hpp"
+#include "luapp/metatable.hpp"
+#include "luapp/rstring.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 #include "base/range-lite.hpp"
+
+// base-util
+#include "base-util/string.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -36,6 +49,8 @@ namespace rn::term {
 namespace rl = ::base::rl;
 
 namespace {
+
+using ::lua::lua_valid;
 
 /****************************************************************
 ** Global State
@@ -78,14 +93,13 @@ bool is_placeholder( string const& cmd ) {
          cmd[1] <= '9';
 }
 
-valid_or<lua::LuaError> run_lua_cmd( string const& cmd ) {
-  valid_or<lua::LuaError> result = valid;
+lua_valid run_lua_cmd( string const& cmd ) {
+  lua_valid result = valid;
   // Wrap the command if it's an expression.
-  auto cmd_wrapper = cmd;
+  auto        cmd_wrapper = cmd;
+  lua::state& st          = lua_global_state();
   if( !is_statement( cmd ) ) {
-    sol::state_view st = lua::global_state();
-    sol::lua_value  val( st );
-    val = st["_"];
+    lua::any val = st["_"];
     // Wrap command.
     if( !is_placeholder( cmd ) )
       cmd_wrapper = fmt::format(
@@ -93,46 +107,32 @@ valid_or<lua::LuaError> run_lua_cmd( string const& cmd ) {
     else
       cmd_wrapper = fmt::format( "util.print_passthrough(({}))",
                                  cmd_wrapper );
-    if( auto run_result = lua::run<void>( cmd_wrapper );
+    if( auto run_result = st.script.run_safe( cmd_wrapper );
         !run_result )
       result = run_result.error();
     if( !is_placeholder( cmd ) && result ) {
-      // The below is to workaround a gcc error with sol that I
-      // am not going to solve since sol is on its way out.
-      {
-        sol::lua_value v = st["_4"];
-        st["_5"]         = v;
-      }
-      {
-        sol::lua_value v = st["_3"];
-        st["_4"]         = v;
-      }
-      {
-        sol::lua_value v = st["_2"];
-        st["_3"]         = v;
-      }
+      st["_5"] = st["_4"];
+      st["_4"] = st["_3"];
+      st["_3"] = st["_2"];
       st["_2"] = val;
       // alias.
-      {
-        sol::lua_value v = st["_"];
-        st["_1"]         = v;
-      }
+      st["_1"] = st["_"];
     }
   } else {
-    if( auto run_result = lua::run<void>( cmd_wrapper );
+    if( auto run_result = st.script.run_safe( cmd_wrapper );
         !run_result )
       result = run_result.error();
   }
   if( !result ) {
     log( "lua command failed:" );
     for( auto const& line :
-         lua::format_lua_error_msg( result.error().what ) )
+         format_lua_error_msg( result.error() ) )
       log( "  "s + line );
   }
   return result;
 }
 
-valid_or<lua::LuaError> run_cmd_impl( string const& cmd ) {
+lua_valid run_cmd_impl( string const& cmd ) {
   g_history.push_back( cmd );
   log( "> "s + cmd );
   auto maybe_fn = base::lookup( g_console_commands, cmd );
@@ -160,9 +160,8 @@ void log( std::string&& msg ) {
   trim();
 }
 
-valid_or<string> run_cmd( string const& cmd ) {
-  if( auto res = run_cmd_impl( cmd ); !res )
-    return res.error().what;
+lua_valid run_cmd( string const& cmd ) {
+  if( auto res = run_cmd_impl( cmd ); !res ) return res.error();
   return valid;
 }
 
@@ -206,73 +205,75 @@ vector<string> autocomplete( string_view fragment ) {
   vector<string> initial_segments(
       segments.begin(),
       segments.empty() ? segments.end() : segments.end() - 1 );
-  auto lua_type_string = []( sol::object   parent,
+  auto lua_type_string = []( lua::any      parent,
                              string const& key ) {
-    // FIXME: this shouldn't be needed, but it seems that sol2
-    // reports userdata members always as type function.
-    auto pfr = lua::global_state()["meta"]["type_of_child"](
-        parent, key );
-    DCHECK( pfr.valid() );
-    auto maybe_res = pfr.get<sol::optional<string>>();
-    CHECK( maybe_res );
-    return *maybe_res;
+    // Userdata members always have type function, so we have to
+    // do this.
+    UNWRAP_CHECK( type,
+                  lua_global_state()["meta"]["type_of_child"]
+                      .pcall<lua::rstring>( parent, key ) );
+    return type.as_cpp();
   };
 
-  auto sep_for_parent_child = [&]( sol::object   parent,
+  auto sep_for_parent_child = [&]( lua::any      parent,
                                    string const& key ) {
-    if( parent.get_type() == sol::type::userdata &&
+    if( lua::type_of( parent ) == lua::type::userdata &&
         lua_type_string( parent, key ) == "function" ) {
       return ':';
     }
     return '.';
   };
 
-  auto table_for_object = []( sol::object o ) {
-    maybe<sol::table> res;
-    if( o.get_type() == sol::type::table )
-      res = o.as<sol::table>();
-    if( o.get_type() == sol::type::userdata )
-      res = o.as<sol::userdata>()[sol::metatable_key]
-                .get<sol::table>();
+  auto table_for_object = []( lua::any o ) {
+    maybe<lua::table> res;
+    if( lua::type_of( o ) == lua::type::table )
+      res = lua::cast<lua::table>( o );
+    if( lua::type_of( o ) == lua::type::userdata ) {
+      res = lua::metatable_for( o );
+      if( res )
+        res = lua::cast<lua::table>( ( *res )["member_types"] );
+    }
     return res;
   };
 
-  auto lifted_pairs_for_table = []( sol::table t ) {
-    // FIXME: sol2 should access __pairs.
-    return lua::global_state()["meta"]["all_pairs"]( t )
-        .get<sol::table>();
+  auto lifted_pairs_for_table = []( lua::table t ) {
+    // FIXME: luapp should access __pairs.
+    return lua::cast<lua::table>(
+        lua_global_state()["meta"]["all_pairs"]( t ) );
   };
 
-  auto table_count_if = [&]( sol::table t, auto&& func ) {
+  auto table_count_if = [&]( lua::table t, auto&& func ) {
     int  size   = 0;
     auto lifted = lifted_pairs_for_table( t );
-    lifted.for_each( [&]( auto const& p ) {
-      if( func( lifted, p.first ) ) ++size;
-    } );
+    for( auto p : lifted )
+      if( func( lua::any( lifted ), p.first ) ) ++size;
     return size;
   };
 
-  auto table_size_non_meta = [&]( sol::table t ) {
-    return table_count_if( t, []( sol::object /*parent*/,
-                                  sol::object key_obj ) {
-      if( !key_obj.is<string>() ) return false;
-      return !util::starts_with( key_obj.as<string>(), "__" );
-    } );
+  auto table_size_non_meta = [&]( lua::table t ) {
+    return table_count_if(
+        t, []( lua::any /*parent*/, lua::any key_obj ) {
+          if( lua::type_of( key_obj ) != lua::type::string )
+            return false;
+          return !util::starts_with(
+              lua::cast<string>( key_obj ), "__" );
+        } );
   };
 
-  auto table_fn_members_non_meta = [&]( sol::table t ) {
-    return table_count_if( t, [&]( sol::object parent,
-                                   sol::object key_obj ) {
-      if( !key_obj.is<string>() ) return false;
-      auto key = key_obj.as<string>();
+  auto table_fn_members_non_meta = [&]( lua::table t ) {
+    return table_count_if( t, [&]( lua::any parent,
+                                   lua::any key_obj ) {
+      if( lua::type_of( key_obj ) != lua::type::string )
+        return false;
+      auto key = lua::cast<string>( key_obj );
       if( util::starts_with( key, "__" ) ) return false;
       return ( lua_type_string( parent, key ) == "function" );
     } );
   };
 
-  sol::table      curr_table = lua::global_state().globals();
-  sol::object     curr_obj   = lua::global_state().globals();
-  sol::state_view st_view( lua::global_state() );
+  lua::table curr_table = lua_global_state().table.global();
+  lua::any   curr_obj =
+      lua::any( lua_global_state().table.global() );
 
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
@@ -291,10 +292,10 @@ vector<string> autocomplete( string_view fragment ) {
   string initial = absl::StrJoin( initial_segments, "." );
   vector<string> res;
 
-  auto add_keys = [&]( sol::object parent, auto kv ) {
-    sol::object o = kv.first;
-    if( o.is<string>() ) {
-      string key = o.as<string>();
+  auto add_keys = [&]( lua::any parent, auto kv ) {
+    lua::any o = kv.first;
+    if( lua::type_of( o ) == lua::type::string ) {
+      string key = lua::cast<string>( o );
       lg.trace( "does {} start with last?", key, last );
       if( util::starts_with( key, "__" ) ) return;
       if( util::starts_with( key, last ) ) {
@@ -311,9 +312,8 @@ vector<string> autocomplete( string_view fragment ) {
       }
     }
   };
-  lifted_pairs_for_table( curr_table ).for_each( [&]( auto p ) {
+  for( auto p : lifted_pairs_for_table( curr_table ) )
     add_keys( curr_obj, p );
-  } );
 
   sort( res.begin(), res.end() );
   lg.trace( "sorted; size: {}", res.size() );
@@ -343,15 +343,15 @@ vector<string> autocomplete( string_view fragment ) {
   DCHECK( res.size() == 1 );
   if( res[0] == fragment ) {
     lg.trace( "res[0], fragment: {},{}", res[0], fragment );
-    sol::object o = curr_table[last];
-    DCHECK( o != sol::lua_nil );
-    if( o.get_type() == sol::type::table ) {
+    lua::any o = curr_table[last];
+    DCHECK( o != lua::nil );
+    if( lua::type_of( o ) == lua::type::table ) {
       UNWRAP_CHECK( t, table_for_object( o ) );
       auto size = table_size_non_meta( t );
       lg.trace( "table size: {}", size );
       if( size > 0 ) res[0] += '.';
     }
-    if( o.get_type() == sol::type::userdata ) {
+    if( lua::type_of( o ) == lua::type::userdata ) {
       UNWRAP_CHECK( t, table_for_object( o ) );
       auto fn_count = table_fn_members_non_meta( t );
       auto size     = table_size_non_meta( t );
@@ -407,9 +407,9 @@ vector<string> autocomplete_iterative( string_view fragment ) {
 namespace rn {
 namespace {
 
-LUA_STARTUP( sol::state& st ) {
+LUA_STARTUP( lua::state& st ) {
   // Need to do this somewhere.
-  st["terminal"].get_or_create<sol::table>();
+  lua::table::create_or_get( st["terminal"] );
 
   st["log"]["console"] = []( string const& msg ) {
     ::rn::term::log( msg );

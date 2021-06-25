@@ -51,7 +51,7 @@ TEST_CASE( "[stacktrace] path filter" ) {
   REQUIRE( f( p.string(), mode ) );
   p = base::source_tree_root() / "src/base/../../CMakeLists.txt";
   REQUIRE_FALSE( f( p.string(), mode ) );
-  p = base::source_tree_root() / "extern/sol2/CMakeLists.txt";
+  p = base::source_tree_root() / "extern/rtmidi/CMakeLists.txt";
   REQUIRE_FALSE( f( p.string(), mode ) );
   p = base::source_tree_root() / "exe/main.cpp";
   REQUIRE( f( p.string(), mode ) );
@@ -76,7 +76,7 @@ TEST_CASE( "[stacktrace] path filter" ) {
   REQUIRE( f( p.string(), mode ) );
   p = base::source_tree_root() / "src/base/../../CMakeLists.txt";
   REQUIRE_FALSE( f( p.string(), mode ) );
-  p = base::source_tree_root() / "extern/sol2/CMakeLists.txt";
+  p = base::source_tree_root() / "extern/rtmidi/CMakeLists.txt";
   REQUIRE( f( p.string(), mode ) );
   p = base::source_tree_root() / "exe/main.cpp";
   REQUIRE( f( p.string(), mode ) );

@@ -14,6 +14,9 @@
 #include "error.hpp"
 #include "lua.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -88,9 +91,8 @@ namespace {
 
 LUA_MODULE()
 
-LUA_STARTUP( sol::state& st ) {
-  sol::usertype<Colony> colony =
-      st.new_usertype<Colony>( "Colony", sol::no_constructor );
+LUA_STARTUP( lua::state& st ) {
+  auto colony = st.usertype.create<Colony>();
 
   // Getters.
   colony["id"]        = &Colony::id;

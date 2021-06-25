@@ -20,8 +20,8 @@ int main( int /*unused*/, char** /*unused*/ ) {
   try {
     if( do_game ) {
       run_all_init_routines( e_log_level::debug );
-      lua::reload();
-      lua::run_startup_main();
+      lua_reload();
+      run_lua_startup_main();
       print_bar( '-', "[ Starting Game ]" );
       // The action.
       frame_loop( revolution_now() );

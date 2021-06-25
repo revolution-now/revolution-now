@@ -14,6 +14,11 @@
 // Revolution Now
 #include "lua.hpp"
 
+// luapp
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -27,14 +32,10 @@ namespace {} // namespace
 
 void linker_dont_discard_module_colony_mfg() {}
 
-} // namespace rn
-
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
-namespace {
-
 LUA_ENUM( colony_building );
 LUA_ENUM( mfg_job );
 
-} // namespace
+} // namespace rn

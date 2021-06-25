@@ -28,4 +28,8 @@ base::maybe<any> lua_get( cthread L, int idx, tag<any> ) {
   return any( L, C.ref_registry() );
 }
 
+reference any::pop_ref_from_stack( cthread L ) {
+  return reference( L, c_api( L ).ref_registry() );
+}
+
 } // namespace lua

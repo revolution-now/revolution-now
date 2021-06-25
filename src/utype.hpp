@@ -15,8 +15,12 @@
 // Revolution Now
 #include "coord.hpp"
 #include "fb.hpp"
+#include "lua-enum.hpp"
 #include "mv-points.hpp"
 #include "tiles.hpp"
+
+// luapp
+#include "luapp/ext-userdata.hpp"
 
 // Rnl
 #include "rnl/utype.hpp"
@@ -78,4 +82,14 @@ NOTHROW_MOVE( UnitDescriptor );
 
 UnitDescriptor const& unit_desc( e_unit_type type );
 
+LUA_ENUM_DECL( unit_type );
+LUA_ENUM_DECL( unit_death );
+
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::UnitDescriptor, owned_by_cpp ){};
+}

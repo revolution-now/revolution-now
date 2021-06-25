@@ -19,6 +19,9 @@
 #include "lua.hpp"
 #include "sg-macros.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
@@ -178,9 +181,10 @@ vector<ColonyId> colonies_in_rect( Rect const& rect ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( colony_from_id, Colony const&, ColonyId id ) {
+LUA_FN( colony_from_id, Colony&, ColonyId id ) {
+  lua::cthread L = lua_global_state().thread.main().cthread();
   if( !colony_exists( id ) )
-    THROW_LUA_ERROR( "colony {} does not exist.", id );
+    lua::throw_lua_error( L, "colony {} does not exist.", id );
   return colony_from_id( id );
 }
 

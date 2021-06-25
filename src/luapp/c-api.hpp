@@ -43,7 +43,10 @@ struct c_api {
   // indices start at 1, this result is equal to the number of
   // elements in the stack; in particular, 0 means empty stack.
   int gettop() noexcept;
-  int stack_size() noexcept;
+  // Could throw because it could cause __close to be called on
+  // some objects.
+  void settop( int top );
+  int  stack_size() noexcept;
 
   /**************************************************************
   ** running lua code
@@ -62,6 +65,12 @@ struct c_api {
   // Runs the string of lua code, first wrapping it in a function
   // with varargs parameters.
   lua_valid dostring( char const* script ) noexcept;
+
+  // Loads a file; if the loading is successful then it will be
+  // pushed on the stack as a function (not run). If the loading
+  // is not successfull then there will be an error message re-
+  // turned.
+  lua_valid loadfile( const char* filename );
 
   /**************************************************************
   ** call / pcall

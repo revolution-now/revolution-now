@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "lua-enum.hpp"
 #include "tx.hpp"
 #include "util.hpp"
 
@@ -93,5 +94,7 @@ void render_rect_of_sprites_with_border(
 
 void load_tile_maps();
 // void render_tile_map( std::string_view name );
+
+LUA_ENUM_DECL( tile );
 
 } // namespace rn

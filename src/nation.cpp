@@ -19,6 +19,11 @@
 // Revolution Now (config)
 #include "../config/ucl/nation.inl"
 
+// luapp
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 // C++ standard library
 #include <cctype>
 
@@ -71,13 +76,9 @@ maybe<e_nation> nation_from_coord( Coord coord ) {
   return first;
 }
 
-} // namespace rn
-
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
-namespace {
-
 LUA_ENUM( nation );
 
-}
+} // namespace rn

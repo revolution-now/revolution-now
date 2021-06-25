@@ -90,11 +90,11 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation";
-  out = { "e.nation", "e.nation_from_string" };
+  out = { "e.nation." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "e.nation_from_string";
-  out = { "e.nation_from_string(" };
+  in  = "e.nation_xxx";
+  out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.";
@@ -240,11 +240,11 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "e.nat";
-  out = { "e.nation" };
+  out = { "e.nation." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "e.nation_from_string";
-  out = { "e.nation_from_string(" };
+  in  = "e.nation_xxx";
+  out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation.";

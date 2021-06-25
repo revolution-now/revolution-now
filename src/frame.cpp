@@ -28,6 +28,9 @@
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
+// luapp
+#include "luapp/state.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"

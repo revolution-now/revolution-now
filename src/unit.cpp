@@ -15,6 +15,12 @@
 #include "lua.hpp"
 #include "ustate.hpp"
 
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -51,6 +57,11 @@ valid_deserial_t Unit::check_invariants_safe() const {
 
 UnitDescriptor const& Unit::desc() const {
   return unit_desc( type_ );
+}
+
+// FIXME: luapp can only take this as non-const....
+UnitDescriptor& Unit::desc_non_const() const {
+  return const_cast<UnitDescriptor&>( unit_desc( type_ ) );
 }
 
 // Mark unit as having moved.
@@ -112,31 +123,26 @@ string debug_string( Unit const& unit ) {
                       unit.desc().name );
 }
 
-} // namespace rn
-
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
-namespace {
-
 LUA_ENUM( unit_orders );
 
-LUA_STARTUP( sol::state& st ) {
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
   using U = ::rn::Unit;
 
-  sol::usertype<U> u =
-      st.new_usertype<U>( "Unit", sol::no_constructor );
+  auto u = st.usertype.create<rn::Unit>();
 
   // Getters.
-  u["id"]              = &U::id;
-  u["desc"]            = &U::desc;
+  u["id"] = &U::id;
+  // FIXME: luapp can only take this as non-const...
+  u["desc"]            = &U::desc_non_const;
   u["orders"]          = &U::orders;
   u["nation"]          = &U::nation;
   u["worth"]           = &U::worth;
   u["movement_points"] = &U::movement_points;
-  // u["cargo"] = &U::cargo;
-  // CargoHold&     cargo() { return cargo_; }
-  // maybe<vector<UnitId>> units_in_cargo() const;
 
   // Actions.
   u["change_nation"] = &U::change_nation;
@@ -147,3 +153,4 @@ LUA_STARTUP( sol::state& st ) {
 };
 
 } // namespace
+} // namespace rn

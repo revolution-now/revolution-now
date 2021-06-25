@@ -21,6 +21,9 @@
 #include "id.hpp"
 #include "nation.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // Rnl
 #include "rnl/colony.hpp"
 
@@ -136,3 +139,10 @@ NOTHROW_MOVE( Colony );
 } // namespace rn
 
 DEFINE_FORMAT( ::rn::Colony, "{}", o.to_string() );
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::Colony, owned_by_cpp ){};
+}

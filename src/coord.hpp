@@ -16,10 +16,15 @@
 #include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
+#include "lua-enum.hpp"
+#include "maybe.hpp"
 #include "typed-int.hpp"
 
 // Rnl
 #include "rnl/coord.hpp"
+
+// luapp
+#include "luapp/ext.hpp"
 
 // Flatbuffers
 #include "fb/coord_generated.h"
@@ -232,6 +237,10 @@ public:
 
   // True if e.g. x is in [x,x+w).
   bool is_on_border_of( Rect const& rect ) const;
+
+  friend maybe<Coord> lua_get( lua::cthread L, int idx,
+                               lua::tag<Coord> );
+  friend void lua_push( lua::cthread L, Coord const& coord );
 };
 NOTHROW_MOVE( Coord );
 
@@ -613,3 +622,10 @@ struct hash<::rn::Coord> {
 };
 
 } // namespace std
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace rn {
+LUA_ENUM_DECL( direction );
+}

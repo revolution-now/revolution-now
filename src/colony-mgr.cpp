@@ -25,6 +25,10 @@
 #include "waitable-coro.hpp"
 #include "window.hpp"
 
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+
 // base-util
 #include "base-util/string.hpp"
 

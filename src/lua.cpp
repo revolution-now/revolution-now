@@ -12,9 +12,18 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "expect.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+
+// luapp
+#include "luapp/c-api.hpp"
+#include "luapp/ext-userdata.hpp"
+#include "luapp/func-push.hpp"
+#include "luapp/iter.hpp"
+#include "luapp/state.hpp"
+#include "luapp/usertype.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -25,14 +34,14 @@
 
 using namespace std;
 
-namespace rn::lua {
+namespace rn {
 
 namespace {
 
-sol::state g_lua;
+lua::state g_lua;
 
 auto& registration_functions() {
-  static vector<pair<string, RegistrationFnSig**>> fns;
+  static vector<pair<string, LuaRegistrationFnSig**>> fns;
   return fns;
 }
 
@@ -50,78 +59,77 @@ valid_or<string> load_module( string const& name ) {
   fs::path file_name = "src/lua/" + name + ".lua";
   CHECK( fs::exists( file_name ), "file {} does not exist.",
          file_name );
-  g_lua["package_exports"] = sol::lua_nil;
-  auto pf_result           = g_lua.safe_script_file(
-      "src/lua/" + name + ".lua",
-      []( auto*, auto pfr ) { return pfr; } );
-  if( !pf_result.valid() ) {
-    sol::error err = pf_result;
-    return err.what();
-  }
-  CHECK( g_lua["package_exports"] != sol::lua_nil,
+  g_lua["package_exports"] = lua::nil;
+  HAS_VALUE_OR_RET(
+      g_lua.script.run_file_safe( "src/lua/" + name + ".lua" ) );
+  CHECK( g_lua["package_exports"] != lua::nil,
          "module `{}` does not have package exports.", name );
   // In case the symbol already exists we will assume that it is
   // a table and merge its contents into this one.
-  auto old_table = g_lua[name].get_or_create<sol::table>();
+  auto old_table = lua::table::create_or_get( g_lua[name] );
   g_lua[name]    = g_lua["package_exports"];
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
 
-  g_lua["package_exports"] = sol::lua_nil;
+  g_lua["package_exports"] = lua::nil;
   return valid;
 }
 
 void reset_sol_state() {
-  g_lua = sol::state{};
-  g_lua.open_libraries( sol::lib::base, sol::lib::table,
-                        sol::lib::string, sol::lib::debug );
-  CHECK( g_lua["log"] == sol::lua_nil );
-  g_lua["log"].get_or_create<sol::table>();
-  g_lua["log"]["info"] = []( string const& msg ) {
+  g_lua = lua::state{};
+  // FIXME
+  g_lua.lib.open_all();
+  CHECK( g_lua["log"] == lua::nil );
+  lua::table log = lua::table::create_or_get( g_lua["log"] );
+  log["info"]    = []( string const& msg ) {
     lg.info( "{}", msg );
   };
-  g_lua["log"]["debug"] = []( string const& msg ) {
+  log["debug"] = []( string const& msg ) {
     lg.debug( "{}", msg );
   };
-  g_lua["log"]["trace"] = []( string const& msg ) {
+  log["trace"] = []( string const& msg ) {
     lg.trace( "{}", msg );
   };
-  g_lua["log"]["warn"] = []( string const& msg ) {
+  log["warn"] = []( string const& msg ) {
     lg.warn( "{}", msg );
   };
-  g_lua["log"]["error"] = []( string const& msg ) {
+  log["error"] = []( string const& msg ) {
     lg.error( "{}", msg );
   };
-  g_lua["log"]["critical"] = []( string const& msg ) {
+  log["critical"] = []( string const& msg ) {
     lg.critical( "{}", msg );
   };
-  g_lua["print"] = []( sol::object o ) {
-    if( o == sol::lua_nil ) return;
-    if( auto maybe_string = o.as<maybe<string>>();
-        maybe_string.has_value() ) {
-      if( *maybe_string == "nil" ) return;
-      lg.info( "{}", *maybe_string );
-    } else if( auto maybe_bool = o.as<maybe<bool>>();
-               maybe_bool.has_value() )
-      lg.info( "{}", *maybe_bool );
-    else if( auto maybe_double = o.as<maybe<double>>();
-             maybe_double.has_value() )
-      lg.info( "{}", *maybe_double );
-    else
-      lg.info( "(print: object cannot be converted to string)" );
+  // FIXME: needs to be able to take multiple arguments.
+  g_lua["print"] = []( lua::any o ) {
+    lua::push( o.this_cthread(), o );
+    lua::c_api C( o.this_cthread() );
+    lg.info( "{}", C.pop_tostring() );
   };
 }
 
 // This is for use in the unit tests.
 struct MyType {
-  int  x{ 5 };
-  char get() { return 'c'; }
-  int  add( int a, int b ) { return a + b; }
+  int    x{ 5 };
+  string get() { return "c"; }
+  int    add( int a, int b ) { return a + b + x; }
 };
 NOTHROW_MOVE( MyType );
 
+} // namespace
+} // namespace rn
+
+namespace lua {
+LUA_USERDATA_TRAITS( rn::MyType, owned_by_lua ){};
+}
+
+namespace rn {
+namespace {
+
 void register_my_type() {
-  sol::usertype<MyType> u = g_lua.new_usertype<MyType>(
-      "MyType", sol::constructors<MyType()>{} );
+  lua::cthread          L = g_lua.thread.main().cthread();
+  lua::usertype<MyType> u( L );
+
+  g_lua["MyType"]        = g_lua.table.create();
+  g_lua["MyType"]["new"] = [] { return MyType{}; };
 
   u["x"]   = &MyType::x;
   u["get"] = &MyType::get;
@@ -130,7 +138,7 @@ void register_my_type() {
 
 void init_lua() {}
 
-void cleanup_lua() { g_lua = sol::state{}; }
+void cleanup_lua() { g_lua = lua::state{}; }
 
 REGISTER_INIT_ROUTINE( lua );
 
@@ -139,22 +147,22 @@ REGISTER_INIT_ROUTINE( lua );
 /****************************************************************
 ** Public API
 *****************************************************************/
-sol::state& global_state() { return g_lua; }
+lua::state& lua_global_state() { return g_lua; }
 
-void run_startup_routines() {
+void run_lua_startup_routines() {
   lg.info( "registering Lua functions." );
-  auto modules = g_lua["modules"].get_or_create<sol::table>();
+  auto modules = lua::table::create_or_get( g_lua["modules"] );
   for( auto const& [mod_name, fn] : registration_functions() ) {
     modules[mod_name] = "module";
     ( *fn )( g_lua );
-    CHECK( g_lua[mod_name] != sol::lua_nil,
+    CHECK( g_lua[mod_name] != lua::nil,
            "module \"{}\" has not been defined.", mod_name );
   }
   register_my_type(); // for unit testing.
 }
 
-void load_modules() {
-  auto modules = g_lua["modules"].get_or_create<sol::table>();
+void load_lua_modules() {
+  auto modules = lua::table::create_or_get( g_lua["modules"] );
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) ) {
     string stem = path.stem();
     CHECK_HAS_VALUE( load_module( stem ) );
@@ -162,16 +170,17 @@ void load_modules() {
   }
 }
 
-void run_startup_main() {
-  CHECK_HAS_VALUE( lua::run<void>( "startup.main()" ) );
+void run_lua_startup_main() {
+  CHECK_HAS_VALUE( g_lua.script.run_safe( "startup.main()" ) );
 }
 
-void reload() {
+void lua_reload() {
   reset_sol_state();
-  run_startup_routines();
-  load_modules();
+  run_lua_startup_routines();
+  load_lua_modules();
   // Freeze all existing global variables and tables.
-  CHECK_HAS_VALUE( run<void>( "meta.freeze_all()" ) );
+  CHECK_HAS_VALUE(
+      g_lua.script.run_safe( "meta.freeze_all()" ) );
 }
 
 vector<string> format_lua_error_msg( string const& msg ) {
@@ -183,32 +192,14 @@ vector<string> format_lua_error_msg( string const& msg ) {
   return res;
 }
 
-void register_fn( string_view         module_name,
-                  RegistrationFnSig** fn ) {
+void register_lua_fn( string_view            module_name,
+                      LuaRegistrationFnSig** fn ) {
   registration_functions().emplace_back( module_name, fn );
 }
 
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_lua() {
-  sol::state st;
-  st.open_libraries( sol::lib::base );
-  enum class color { red, blue };
-  constexpr bool ro = false;
-  st.new_enum<color, /*read_only=*/ro>(
-      "color",
-      { { "red", color::red }, { "blue", color::blue } } );
-  auto script = R"lua(
-    print( "start" )
-    for k, v in pairs( color ) do
-      print( tostring(k) .. ": " .. tostring(v) )
-    end
-    print( "end" )
-  )lua";
-  st.safe_script( script );
-}
+void reset_state() { lua_reload(); }
 
-void reset_state() { reload(); }
-
-} // namespace rn::lua
+} // namespace rn

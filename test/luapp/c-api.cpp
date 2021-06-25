@@ -1500,5 +1500,23 @@ LUA_TEST_CASE( "[lua-c-api] checkinteger" ) {
   }
 }
 
+LUA_TEST_CASE( "[lua-c-api] settop" ) {
+  C.push( 1 );
+  C.push( 1 );
+  C.push( 1 );
+  REQUIRE( C.gettop() == 3 );
+  C.settop( 5 );
+  REQUIRE( C.gettop() == 5 );
+  REQUIRE( C.type_of( -1 ) == type::nil );
+  REQUIRE( C.type_of( -2 ) == type::nil );
+  REQUIRE( C.type_of( -3 ) == type::number );
+  C.settop( 2 );
+  REQUIRE( C.gettop() == 2 );
+  REQUIRE( C.type_of( -1 ) == type::number );
+  REQUIRE( C.type_of( -2 ) == type::number );
+  C.settop( 0 );
+  REQUIRE( C.gettop() == 0 );
+}
+
 } // namespace
 } // namespace lua

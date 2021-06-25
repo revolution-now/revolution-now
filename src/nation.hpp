@@ -15,6 +15,7 @@
 // Revolution Now
 #include "color.hpp"
 #include "coord.hpp"
+#include "lua-enum.hpp"
 #include "maybe.hpp"
 
 // Rnl
@@ -53,5 +54,10 @@ constexpr auto all_nations() {
                  enum_traits<e_nation>::count );
   return nations;
 }
+
+/****************************************************************
+** Lua
+*****************************************************************/
+LUA_ENUM_DECL( nation );
 
 } // namespace rn

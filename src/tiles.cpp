@@ -14,9 +14,15 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
+#include "lua.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/art.inl"
+
+// luapp
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // base-util
 #include "base-util/fs.hpp"
@@ -431,5 +437,7 @@ void render_rect_of_sprites_with_border(
 void load_tile_maps() {
   // tile_maps["panel"] = load_tile_map( "assets/art/panel.tm" );
 }
+
+LUA_ENUM( tile );
 
 } // namespace rn

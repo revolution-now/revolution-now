@@ -22,6 +22,9 @@
 #include "sg-macros.hpp"
 #include "tiles.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // Flatbuffers
 #include "fb/sg-terrain_generated.h"
 

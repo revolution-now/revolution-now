@@ -17,6 +17,11 @@
 #include "sg-macros.hpp"
 #include "util.hpp"
 
+// luapp
+#include "luapp/cast.hpp"
+#include "luapp/iter.hpp"
+#include "luapp/state.hpp"
+
 // Flatbuffers
 #include "fb/sg-player_generated.h"
 
@@ -96,9 +101,10 @@ void linker_dont_discard_module_player() {}
 *****************************************************************/
 namespace {
 
-LUA_FN( set_players, void,
-        sol::as_table_t<vector<e_nation>> const& nations ) {
-  auto const& vec = nations.value();
+LUA_FN( set_players, void, lua::table nations ) {
+  vector<e_nation> vec;
+  for( auto p : nations )
+    vec.push_back( lua::cast<e_nation>( p.second ) );
   lg.info( "enabling nations: {}", FmtJsonStyleList{ vec } );
   set_players( vec );
 }

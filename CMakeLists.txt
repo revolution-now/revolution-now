@@ -55,9 +55,6 @@ set( CMAKE_CXX_STANDARD 20 )
 # vious CMake run because we do enable tests us.
 set( BUILD_TESTING OFF )
 
-set( SOL2_LUA_VERSION "5.3"  )
-set( SOL2_BUILD_LUA    FALSE )
-
 set( FLATBUFFERS_BUILD_TESTS       OFF CACHE BOOL "" )
 set( FLATBUFFERS_INSTALL           OFF CACHE BOOL "" )
 set( FLATBUFFERS_BUILD_FLATHASH    OFF CACHE BOOL "" )
@@ -73,7 +70,6 @@ add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/lua-5.3.5     EXCLUDE_FROM_ALL )
-add_subdirectory( extern/sol2          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
 add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/cpp-peglib    EXCLUDE_FROM_ALL )
