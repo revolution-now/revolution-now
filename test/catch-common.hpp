@@ -44,16 +44,16 @@
   };                                                         \
   }
 
-#define RN_HAS_FMT_FORMAT( type ) ::base::has_fmt<type>
+#define RN_HAS_FMT_FORMAT( ... ) ::base::has_fmt<__VA_ARGS__>
 
-#define FMT_TO_CATCH_T_IMPL( t_args, type )                    \
+#define FMT_TO_CATCH_T_IMPL( t_args, ... )                     \
   namespace Catch {                                            \
   template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
   requires( mp::and_v<PP_MAP_COMMAS( RN_HAS_FMT_FORMAT,        \
                                      EXPAND t_args )> ) struct \
-      StringMaker<type<EXPAND t_args>> {                       \
+      StringMaker<__VA_ARGS__<EXPAND t_args>> {                \
     static std::string convert(                                \
-        type<EXPAND t_args> const& value ) {                   \
+        __VA_ARGS__<EXPAND t_args> const& value ) {            \
       return fmt::format( "{}", value );                       \
     }                                                          \
   };                                                           \
@@ -61,8 +61,8 @@
 
 // Use this to teach Catch2 how to convert types to strings that
 // are a) templated, and b) can be printed using {fmt}.
-#define FMT_TO_CATCH_T( t_args, type ) \
-  EVAL( FMT_TO_CATCH_T_IMPL( t_args, type ) )
+#define FMT_TO_CATCH_T( t_args, ... ) \
+  EVAL( FMT_TO_CATCH_T_IMPL( t_args, __VA_ARGS__ ) )
 
 namespace rn {} // namespace rn
 
