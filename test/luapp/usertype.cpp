@@ -18,6 +18,7 @@
 
 // luapp
 #include "src/luapp/cast.hpp"
+#include "src/luapp/ruserdata.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -110,6 +111,11 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   CppOwnedType o;
   st["o"] = o;
 
+  REQUIRE( cast<userdata>( st["o"] )[metatable_key]["__name"] ==
+           "lua::CppOwnedType&" );
+  REQUIRE( cast<userdata>( st["o"] ).name() ==
+           "lua::CppOwnedType&" );
+
   REQUIRE( C.stack_size() == 0 );
 
   // Make sure that the wrong type name is not used.
@@ -122,12 +128,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   C.pop( 2 );
 
   // Make sure that the metatable has been populated correctly.
-  lua::push( L, st["o"] );
   // Try this one this time to make sure it works.
-  C.getmetatable( -1 );
-  REQUIRE( C.stack_size() == 2 );
-  table metatable( L, C.ref_registry() );
-  C.pop();
+  auto metatable = cast<table>( st["o"][metatable_key] );
   REQUIRE( C.stack_size() == 0 );
   REQUIRE( metatable["__name"] == "lua::CppOwnedType&" );
   table member_setters =
@@ -235,8 +237,12 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( C.stack_size() == 0 );
 
   st["o"] = LuaOwnedType{};
-
   REQUIRE( C.stack_size() == 0 );
+
+  REQUIRE( cast<userdata>( st["o"] )[metatable_key]["__name"] ==
+           "lua::LuaOwnedType" );
+  REQUIRE( cast<userdata>( st["o"] ).name() ==
+           "lua::LuaOwnedType" );
 
   // Make sure that the wrong type name is not used.
   lua::push( L, st["o"] );

@@ -13,6 +13,8 @@
 
 // luapp
 #include "any.hpp"
+#include "ext.hpp"
+#include "indexer.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -29,6 +31,16 @@ struct userdata : public any {
   using Base = any;
 
   using Base::Base;
+
+  friend base::maybe<userdata> lua_get( cthread L, int idx,
+                                        tag<userdata> );
+
+  template<typename U>
+  auto operator[]( U&& idx ) const noexcept {
+    return indexer<U, userdata>( std::forward<U>( idx ), *this );
+  }
+
+  std::string name() const;
 };
 
 } // namespace lua
