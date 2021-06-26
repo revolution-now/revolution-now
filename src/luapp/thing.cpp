@@ -108,7 +108,7 @@ thing thing::pop( cthread L ) noexcept {
 string thing::tostring() const noexcept {
   cthread L = nullptr;
   this->visit( [&]<typename T>( T&& o ) {
-    if constexpr( is_base_of_v<reference, remove_cvref_t<T>> ) {
+    if constexpr( is_base_of_v<any, remove_cvref_t<T>> ) {
       L = o.this_cthread();
     } else {
       c_api C( scratch_state().thread.main().cthread() );

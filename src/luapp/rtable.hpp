@@ -14,7 +14,6 @@
 #include "any.hpp"
 #include "call.hpp"
 #include "indexer.hpp"
-#include "ref.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -25,8 +24,8 @@ namespace lua {
 /****************************************************************
 ** table
 *****************************************************************/
-struct table : public reference {
-  using Base = reference;
+struct table : public any {
+  using Base = any;
 
   using Base::Base;
 

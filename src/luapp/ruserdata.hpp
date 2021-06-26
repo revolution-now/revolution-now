@@ -12,7 +12,7 @@
 #pragma once
 
 // luapp
-#include "ref.hpp"
+#include "any.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -25,8 +25,8 @@ namespace lua {
 /****************************************************************
 ** userdata
 *****************************************************************/
-struct userdata : public reference {
-  using Base = reference;
+struct userdata : public any {
+  using Base = any;
 
   using Base::Base;
 };

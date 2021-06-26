@@ -39,8 +39,8 @@ using ::base::nothing;
 using ::base::valid;
 
 template<typename Derived>
-struct TableBase : reference {
-  TableBase( cthread st, int ref ) : reference( st, ref ) {}
+struct TableBase : any {
+  TableBase( cthread st, int ref ) : any( st, ref ) {}
 
   template<typename U>
   auto operator[]( U&& idx ) noexcept {

@@ -14,7 +14,6 @@
 // luapp
 #include "any.hpp"
 #include "call.hpp"
-#include "ref.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -25,8 +24,8 @@ namespace lua {
 /****************************************************************
 ** rfunction
 *****************************************************************/
-struct rfunction : public reference {
-  using Base = reference;
+struct rfunction : public any {
+  using Base = any;
 
   using Base::Base;
 

@@ -12,7 +12,7 @@
 #pragma once
 
 // luapp
-#include "ref.hpp"
+#include "any.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -25,8 +25,8 @@ namespace lua {
 /****************************************************************
 ** rthread
 *****************************************************************/
-struct rthread : public reference {
-  using Base = reference;
+struct rthread : public any {
+  using Base = any;
 
   ::lua::cthread cthread() const noexcept { return L; }
 
