@@ -4,7 +4,6 @@ let s:stems = [
   \ 'luapp/c-api',
   \ 'luapp/indexer',
   \ 'luapp/cast',
-  \ 'luapp/ref',
   \ 'luapp/any',
   \ 'luapp/rtable',
   \ 'luapp/metatable',
