@@ -56,20 +56,27 @@ void pop_call_results( cthread L, int n ) {
   c_api( L ).pop( n );
 }
 
-[[noreturn]] void throw_lua_error_bad_return_values(
-    cthread L, int nresults, string_view ret_type_name ) {
+std::string lua_error_bad_return_values(
+    cthread L, int nresults, std::string_view ret_type_name ) {
   std::string msg = fmt::format(
       "native code expected type `{}' as a return value (which "
       "requires {} Lua value{}), but the values returned by Lua "
       "were not convertible to that native type.  The Lua "
       "values received were: [",
       ret_type_name, nresults, nresults > 1 ? "s" : "" );
-  for( int i = 1; i <= nresults; ++i ) {
+  for( int i = -nresults; i <= -1; ++i ) {
     msg += type_name( L, -i );
-    if( i != nresults ) msg += ", ";
+    if( i != -1 ) msg += ", ";
   }
   msg += "].";
-  throw_lua_error( L, "{}", msg );
+  return msg;
+}
+
+[[noreturn]] void throw_lua_error_bad_return_values(
+    cthread L, int nresults, string_view ret_type_name ) {
+  throw_lua_error( L, "{}",
+                   lua_error_bad_return_values(
+                       L, nresults, ret_type_name ) );
 }
 
 } // namespace internal

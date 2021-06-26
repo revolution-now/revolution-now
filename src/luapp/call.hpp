@@ -141,6 +141,9 @@ namespace internal {
 
 void pop_call_results( cthread L, int n );
 
+std::string lua_error_bad_return_values(
+    cthread L, int nresults, std::string_view ret_type_name );
+
 [[noreturn]] void throw_lua_error_bad_return_values(
     cthread L, int nresults, std::string_view ret_type_name );
 
@@ -182,9 +185,12 @@ error_type_for_return_type<R> call_lua_safe_and_get(
     // Should consume the nvalues starting at index (-1). Typi-
     // cally this will just be one value, but could be more.
     base::maybe<R> res = lua::get<R>( L, -1 );
-    if( !res.has_value() )
-      internal::throw_lua_error_bad_return_values(
+    if( !res.has_value() ) {
+      std::string msg = internal::lua_error_bad_return_values(
           L, nresults, base::demangled_typename<R>() );
+      internal::pop_call_results( L, nresults );
+      return lua_unexpected<R>( std::move( msg ) );
+    }
     internal::pop_call_results( L, nresults );
     return std::move( *res );
   } else {
