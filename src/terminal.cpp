@@ -27,6 +27,7 @@
 #include "luapp/iter.hpp"
 #include "luapp/metatable.hpp"
 #include "luapp/rstring.hpp"
+#include "luapp/ruserdata.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
@@ -229,9 +230,10 @@ vector<string> autocomplete( string_view fragment ) {
     if( lua::type_of( o ) == lua::type::table )
       res = lua::cast<lua::table>( o );
     if( lua::type_of( o ) == lua::type::userdata ) {
-      res = lua::metatable_for( o );
-      if( res )
-        res = lua::cast<lua::table>( ( *res )["member_types"] );
+      lua::userdata ud = lua::cast<lua::userdata>( o );
+
+      res = ud[lua::metatable_key]["member_types"]
+                .cast<lua::table>();
     }
     return res;
   };
