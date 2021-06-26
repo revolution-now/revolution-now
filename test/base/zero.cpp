@@ -40,8 +40,8 @@ int new_resource() {
   return next_key++;
 }
 
-struct MockFile : public RuleOfZero<MockFile, int> {
-  using Base = RuleOfZero<MockFile, int>;
+struct MockFile : public zero<MockFile, int> {
+  using Base = zero<MockFile, int>;
 
   MockFile() : Base( new_resource() ) {}
 

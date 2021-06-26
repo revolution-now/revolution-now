@@ -34,8 +34,8 @@ namespace lua {
 // This represents a global Lua state (including all of the
 // threads that it contains). It is an RAII object and thus owns
 // the state.
-struct state : base::RuleOfZero<state, cthread> {
-  using Base = base::RuleOfZero<state, cthread>;
+struct state : base::zero<state, cthread> {
+  using Base = base::zero<state, cthread>;
 
 private:
   // Creates a non-owned (view) state.
@@ -54,10 +54,10 @@ public:
 private:
   friend Base;
 
-  // Implement base::RuleOfZero.
+  // Implement base::zero.
   void free_resource();
 
-  // Implement base::RuleOfZero.
+  // Implement base::zero.
   int copy_resource() const;
 
 public:

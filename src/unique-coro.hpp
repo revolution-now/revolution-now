@@ -20,7 +20,7 @@ namespace rn {
 
 struct unique_coro;
 using unique_coro_base =
-    base::RuleOfZero<unique_coro, coro::coroutine_handle<>>;
+    base::zero<unique_coro, coro::coroutine_handle<>>;
 
 // unique_coro
 //
@@ -45,7 +45,7 @@ struct unique_coro : unique_coro_base {
 
 private:
   friend unique_coro_base;
-  // Implement base::RuleOfZero.
+  // Implement base::zero.
   void free_resource() { resource().destroy(); }
 };
 

@@ -41,7 +41,7 @@ enum class e_tx_blend_mode {
 };
 
 // RAII wrapper and type eraser for SDL Surface.
-// TODO: rewrite this in terms of base::RuleOfZero.
+// TODO: rewrite this in terms of base::zero.
 class Surface {
 public:
   explicit Surface( void* sf );
@@ -94,7 +94,7 @@ private:
 NOTHROW_MOVE( Surface );
 
 // RAII wrapper and type eraser for SDL Texture.
-// TODO: rewrite this in terms of base::RuleOfZero.
+// TODO: rewrite this in terms of base::zero.
 class Texture {
 public:
   Texture() = default; // try to get rid of this.

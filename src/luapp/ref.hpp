@@ -25,7 +25,7 @@ namespace lua {
 /****************************************************************
 ** reference
 *****************************************************************/
-struct reference : base::RuleOfZero<reference, int> {
+struct reference : base::zero<reference, int> {
   // Signal that objects of this type should not be treated as
   // any old user object.
   using luapp_internal = void;
@@ -41,13 +41,13 @@ struct reference : base::RuleOfZero<reference, int> {
   friend void lua_push( cthread L, reference const& r );
 
 private:
-  using Base = base::RuleOfZero<reference, int>;
+  using Base = base::zero<reference, int>;
   friend Base;
 
-  // Implement base::RuleOfZero.
+  // Implement base::zero.
   void free_resource();
 
-  // Implement base::RuleOfZero.
+  // Implement base::zero.
   int copy_resource() const;
 
 protected:

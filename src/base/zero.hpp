@@ -38,20 +38,18 @@ namespace base {
 // or if the resource is not owned.
 //
 template<typename Derived, typename Resource> // CRTP
-struct RuleOfZero {
-  RuleOfZero() = default;
+struct zero {
+  zero() = default;
   // Must be a live resource on which we can call free.
-  RuleOfZero( Resource r ) noexcept
+  zero( Resource r ) noexcept
     : r_( std::move( r ) ), own_( true ) {}
 
-  RuleOfZero( Resource r, bool own ) noexcept
+  zero( Resource r, bool own ) noexcept
     : r_( std::move( r ) ), own_( own ) {}
 
-  ~RuleOfZero() noexcept { free(); }
+  ~zero() noexcept { free(); }
 
-  RuleOfZero( RuleOfZero const& rhs ) : r_{}, own_{ false } {
-    *this = rhs;
-  }
+  zero( zero const& rhs ) : r_{}, own_{ false } { *this = rhs; }
 
   // There is some non-trivial logic in this copy operation. If
   // `rhs` does not own its resource, then it is OK for us to
@@ -59,7 +57,7 @@ struct RuleOfZero {
   // need to ask it to make a proper copy (where a "copy" here is
   // defined as something that we will own and on which we can
   // later call free_resource).
-  RuleOfZero& operator=( RuleOfZero const& rhs ) {
+  zero& operator=( zero const& rhs ) {
     if( this == &rhs ) return *this;
     free();
     if( rhs.own_ ) {
@@ -72,12 +70,12 @@ struct RuleOfZero {
     return *this;
   }
 
-  RuleOfZero( RuleOfZero&& rhs ) noexcept
+  zero( zero&& rhs ) noexcept
     : r_( std::move( rhs.r_ ) ), own_( rhs.own_ ) {
     rhs.reset();
   }
 
-  RuleOfZero& operator=( RuleOfZero&& rhs ) noexcept {
+  zero& operator=( zero&& rhs ) noexcept {
     if( this == &rhs ) return *this;
     free();
     r_   = std::move( rhs.r_ );
