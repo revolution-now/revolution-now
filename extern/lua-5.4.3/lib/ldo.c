@@ -62,6 +62,7 @@
 
 #elif defined(LUA_USE_POSIX)				/* }{ */
 
+#error "__cplusplus not defined; must compile as C++." // added by dsicilia
 /* in POSIX, try _longjmp/_setjmp (more efficient) */
 #define LUAI_THROW(L,c)		_longjmp((c)->b, 1)
 #define LUAI_TRY(L,c,a)		if (_setjmp((c)->b) == 0) { a }
@@ -69,6 +70,7 @@
 
 #else							/* }{ */
 
+#error "__cplusplus not defined; must compile as C++." // added by dsicilia
 /* ISO C handling with long jumps */
 #define LUAI_THROW(L,c)		longjmp((c)->b, 1)
 #define LUAI_TRY(L,c,a)		if (setjmp((c)->b) == 0) { a }
