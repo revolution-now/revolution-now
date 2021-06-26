@@ -47,6 +47,22 @@ bool indexer_eq( cthread L ) {
 
 void indexer_pop( cthread L, int n ) { c_api( L ).pop( n ); }
 
+void indexer_getmetatable( cthread L ) {
+  c_api C( L );
+  CHECK( C.stack_size() >= 1 );
+  bool has_metatable = C.getmetatable( -1 );
+  if( !has_metatable ) C.push( nil );
+  C.swap_top();
+  C.pop();
+}
+
+void indexer_setmetatable( cthread L ) {
+  c_api C( L );
+  CHECK( C.stack_size() >= 2 );
+  C.setmetatable( -2 );
+  C.pop();
+}
+
 } // namespace internal
 
 } // namespace lua

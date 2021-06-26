@@ -13,13 +13,16 @@
 // luapp
 #include "any.hpp"
 #include "call.hpp"
+#include "cast.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "ext.hpp"
+#include "metatable-key.hpp"
 #include "types.hpp"
 
 // base
 #include "base/error.hpp"
+#include "base/fmt.hpp"
 #include "base/macros.hpp"
 #include "base/maybe.hpp"
 
@@ -28,16 +31,37 @@
 
 namespace lua {
 
-template<typename IndexT, typename Predecessor>
-struct indexer {
+template<Pushable Predecessor>
+struct indexer_base {
   // Signal that objects of this type should not be treated as
   // any old user object.
   using luapp_internal = void;
 
+  indexer_base( Predecessor pred )
+    : pred_( std::move( pred ) ) {}
+
+  cthread this_cthread() const noexcept {
+    return pred_.this_cthread();
+  }
+
+protected:
+  Predecessor pred_;
+};
+
+template<typename IndexT, Pushable Predecessor>
+struct indexer : indexer_base<Predecessor> {
+  using Base = indexer_base<Predecessor>;
+
+  using Base::this_cthread;
+
   explicit indexer( IndexT index, Predecessor pred )
-    : pred_( std::move( pred ) ), index_( index ) {}
+    : Base( std::move( pred ) ), index_( index ) {}
 
   indexer( indexer&& ) noexcept = default;
+
+  lua::type type() const noexcept {
+    return type_of( this_cthread(), *this );
+  }
 
   // When we assign to an indexer we don't want to copy/move the
   // indexer itself, we want it to trigger a copy action inside
@@ -69,20 +93,14 @@ struct indexer {
                                 std::move( *this ) );
   }
 
-  template<typename IndexT_, typename Predecessor_>
+  auto operator[]( metatable_key_t ) && noexcept {
+    return indexer<metatable_key_t const&, indexer>(
+        metatable_key_t{}, std::move( *this ) );
+  }
+
+  template<Pushable IndexT_, Pushable Predecessor_>
   friend void lua_push(
       cthread L, indexer<IndexT_, Predecessor_> const& idxr );
-
-  cthread this_cthread() const noexcept {
-    return pred_.this_cthread();
-  }
-
-  lua::type type() const noexcept {
-    return type_of( this_cthread(), *this );
-  }
-
-  template<Pushable U>
-  bool operator==( U const& rhs ) const noexcept;
 
   operator any() const noexcept;
 
@@ -95,9 +113,13 @@ struct indexer {
   template<GettableOrVoid R = void, Pushable... Args>
   error_type_for_return_type<R> pcall( Args&&... args );
 
+  template<typename T>
+  T cast() const {
+    return lua::cast<T>( *this );
+  }
+
 private:
-  Predecessor pred_;
-  IndexT      index_;
+  IndexT index_;
 };
 
 namespace internal {
@@ -114,12 +136,19 @@ bool indexer_eq( cthread L );
 // Pops n values from stack.
 void indexer_pop( cthread L, int n );
 
+// Gets the metatable for (-1) and pops (-1), leaving the metat-
+// able, which might be nil.
+void indexer_getmetatable( cthread L );
+
+// (-2)[metatable] = (-1), and pops both.
+void indexer_setmetatable( cthread L );
+
 } // namespace internal
 
 /****************************************************************
 ** Template implementations.
 *****************************************************************/
-template<typename IndexT, typename Predecessor>
+template<Pushable IndexT, Pushable Predecessor>
 void lua_push( cthread                             L,
                indexer<IndexT, Predecessor> const& idxr ) {
   push( L, idxr.pred_ );
@@ -127,29 +156,19 @@ void lua_push( cthread                             L,
   internal::indexer_gettable( L );
 }
 
-template<typename IndexT, typename Predecessor>
+template<typename IndexT, Pushable Predecessor>
 template<Pushable U>
 indexer<IndexT, Predecessor>&
 indexer<IndexT, Predecessor>::operator=( U&& rhs ) {
   cthread L = this_cthread();
-  push( L, pred_ );
+  push( L, this->pred_ );
   push( L, index_ );
   push( L, std::forward<U>( rhs ) );
   internal::indexer_settable( L );
   return *this;
 }
 
-template<typename IndexT, typename Predecessor>
-template<Pushable U>
-bool indexer<IndexT, Predecessor>::operator==(
-    U const& rhs ) const noexcept {
-  cthread L = this_cthread();
-  push( L, *this );
-  push( L, rhs );
-  return internal::indexer_eq( L );
-}
-
-template<typename IndexT, typename Predecessor>
+template<typename IndexT, Pushable Predecessor>
 template<Pushable... Args>
 any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
   cthread L = this_cthread();
@@ -157,7 +176,7 @@ any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
   return call_lua_unsafe_and_get<any>( L, FWD( args )... );
 }
 
-template<typename IndexT, typename Predecessor>
+template<typename IndexT, Pushable Predecessor>
 template<GettableOrVoid R, Pushable... Args>
 R indexer<IndexT, Predecessor>::call( Args&&... args ) {
   cthread L = this_cthread();
@@ -165,7 +184,7 @@ R indexer<IndexT, Predecessor>::call( Args&&... args ) {
   return call_lua_unsafe_and_get<R>( L, FWD( args )... );
 }
 
-template<typename IndexT, typename Predecessor>
+template<typename IndexT, Pushable Predecessor>
 template<GettableOrVoid R, Pushable... Args>
 error_type_for_return_type<R>
 indexer<IndexT, Predecessor>::pcall( Args&&... args ) {
@@ -174,7 +193,7 @@ indexer<IndexT, Predecessor>::pcall( Args&&... args ) {
   return call_lua_safe_and_get<R>( L, FWD( args )... );
 }
 
-template<typename IndexT, typename Predecessor>
+template<typename IndexT, Pushable Predecessor>
 indexer<IndexT, Predecessor>::operator any() const noexcept {
   cthread L = this_cthread();
   push( L, *this );
@@ -185,4 +204,72 @@ indexer<IndexT, Predecessor>::operator any() const noexcept {
   return res;
 }
 
+/****************************************************************
+** metatable
+*****************************************************************/
+template<Pushable Predecessor>
+struct indexer<metatable_key_t const&, Predecessor>
+  : indexer_base<Predecessor> {
+  using Base = indexer_base<Predecessor>;
+
+  using Base::this_cthread;
+
+  explicit indexer( metatable_key_t, Predecessor pred )
+    : Base( std::move( pred ) ) {}
+
+  lua::type type() const noexcept {
+    return type_of( this_cthread(), *this );
+  }
+
+  friend void lua_push( cthread                     L,
+                        indexer<metatable_key_t const&,
+                                Predecessor> const& idxr ) {
+    push( L, idxr.pred_ );
+    internal::indexer_getmetatable( L );
+  }
+
+  template<Pushable U>
+  auto operator[]( U&& idx ) && noexcept {
+    return indexer<U, indexer>( std::forward<U>( idx ),
+                                std::move( *this ) );
+  }
+
+  operator any() const noexcept {
+    cthread L = this_cthread();
+    push( L, *this );
+    // This should never fail regardless of C++ programmer error
+    // or Lua programmer error.
+    UNWRAP_CHECK( res, lua::get<any>( L, -1 ) );
+    internal::indexer_pop( L, 1 );
+    return res;
+  }
+
+  template<Pushable U>
+  indexer& operator=( U&& rhs ) {
+    cthread L = this_cthread();
+    push( L, this->pred_ );
+    push( L, std::forward<U>( rhs ) );
+    internal::indexer_setmetatable( L );
+    return *this;
+  }
+};
+
+/****************************************************************
+** Equality
+*****************************************************************/
+// clang-format off
+template<typename IndexT, Pushable Predecessor, Pushable U>
+requires( Pushable<indexer<IndexT, Predecessor>> )
+bool operator==( indexer<IndexT, Predecessor> const& idxr,
+                 U const&                            rhs ) {
+  // clang-format on
+  cthread L = idxr.this_cthread();
+  push( L, idxr );
+  push( L, rhs );
+  return internal::indexer_eq( L );
+}
+
 } // namespace lua
+
+EVAL( DEFINE_FORMAT_T( ( I, P ), (::lua::indexer<I, P>), "{}",
+                       ::lua::any( o ) ) );

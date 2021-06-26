@@ -26,8 +26,11 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// FIXME: These don't appear to be working...
 FMT_TO_CATCH( ::lua::thing );
 FMT_TO_CATCH( ::lua::any );
+FMT_TO_CATCH( ::lua::table );
+FMT_TO_CATCH_T( ( I, P ), ::lua::indexer );
 
 namespace lua {
 namespace {
@@ -430,6 +433,60 @@ LUA_TEST_CASE( "[indexer] error recovery" ) {
   REQUIRE( go.pcall() == lua_invalid( err ) );
 
   REQUIRE( C.stack_size() == 0 );
+}
+
+LUA_TEST_CASE( "[indexer] metatable" ) {
+  C.openlibs();
+  static_assert( !Pushable<metatable_key_t> );
+  static_assert( Pushable<decltype( st[metatable_key] )> );
+  static_assert( Pushable<decltype( st["x"][metatable_key] )> );
+  // Create the following:
+  //
+  // x = {
+  //   __metatable = {
+  //     __index = {
+  //       __metatable = {
+  //         __index = {
+  //           "y" = 42
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // and then assert( x.y == 42 ).
+  REQUIRE( st["x"][metatable_key] == nil );
+  st["x"] = st.table.create();
+  REQUIRE( st["x"][metatable_key] == nil );
+
+  st["x"][metatable_key]            = st.table.create();
+  st["x"][metatable_key]["__index"] = st.table.create();
+  st["x"][metatable_key]["__index"][metatable_key] =
+      st.table.create();
+  st["x"][metatable_key]["__index"][metatable_key]["__index"] =
+      st.table.create();
+  st["x"][metatable_key]["__index"][metatable_key]["__index"]
+    ["y"] = 42;
+
+  REQUIRE( st["x"]["y"] == 42 );
+  REQUIRE( st["x"][metatable_key]["y"] == nil );
+  REQUIRE( st["x"][metatable_key]["__index"]["y"] == 42 );
+  REQUIRE(
+      st["x"][metatable_key]["__index"][metatable_key]["y"] ==
+      nil );
+  REQUIRE( st["x"][metatable_key]["__index"][metatable_key]
+             ["__index"]["y"] == 42 );
+
+  REQUIRE( st.script.run_safe( R"(
+    assert( x.y == 42 )
+  )" ) == valid );
+}
+
+LUA_TEST_CASE( "[indexer] inline cast" ) {
+  st["x"]      = st.table.create();
+  st["x"]["y"] = 42;
+  table t      = st["x"].cast<table>();
+  REQUIRE( st["x"].cast<table>()["y"].cast<int>() == 42 );
 }
 
 } // namespace
