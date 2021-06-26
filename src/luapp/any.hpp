@@ -40,7 +40,14 @@ struct any : base::zero<any, int> {
   // Pushes nil if there is no reference. Note that we don't push
   // onto the Lua state that is held inside the any object, since
   // that could correspond to a different thread.
-  friend void             lua_push( cthread L, any const& r );
+  // clang-format off
+  template<typename T>
+  requires( std::is_base_of_v<any, T> )
+  friend void lua_push( cthread L, T const& a ) {
+    // clang-format on
+    a.lua_push_impl( L );
+  }
+
   friend base::maybe<any> lua_get( cthread L, int idx,
                                    tag<any> );
 
@@ -55,6 +62,8 @@ private:
   int copy_resource() const;
 
 protected:
+  void lua_push_impl( cthread L ) const;
+
   cthread L; // not owned.
 };
 

@@ -44,6 +44,12 @@ int any::copy_resource() const {
 
 cthread any::this_cthread() const noexcept { return L; }
 
+void any::lua_push_impl( cthread L ) const {
+  c_api C( L );
+  int   ref = this->has_value() ? this->resource() : LUA_REFNIL;
+  C.registry_get( ref );
+}
+
 namespace {
 
 template<typename T>
@@ -87,12 +93,6 @@ bool operator==( any const& r, integer const& o ) {
 
 bool operator==( any const& r, floating const& o ) {
   return ref_op_eq( r, o );
-}
-
-void lua_push( cthread L, any const& r ) {
-  c_api C( L );
-  int   ref = r.has_value() ? r.resource() : LUA_REFNIL;
-  C.registry_get( ref );
 }
 
 base::maybe<any> lua_get( cthread L, int idx, tag<any> ) {
