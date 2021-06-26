@@ -207,8 +207,9 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   thing th = st["x"];
   REQUIRE( th.type() == type::userdata );
   userdata ud = th.as<userdata>();
-  REQUIRE( fmt::format( "{}", ud ) ==
-           "lua::CppOwnedNonCopyable&: (nil)" );
+  REQUIRE_THAT(
+      fmt::format( "{}", ud ),
+      Matches( "lua::CppOwnedNonCopyable&: 0x[0-9a-z]+" ) );
 
   decltype( auto ) o2 = cast<CppOwnedNonCopyable&>( st["x"] );
   static_assert(
@@ -344,8 +345,9 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   thing th = st["x"];
   REQUIRE( th.type() == type::userdata );
   userdata ud = th.as<userdata>();
-  REQUIRE( fmt::format( "{}", ud ) ==
-           "lua::LuaOwnedNonCopyable: (nil)" );
+  REQUIRE_THAT(
+      fmt::format( "{}", ud ),
+      Matches( "lua::LuaOwnedNonCopyable: 0x[0-9a-z]+" ) );
 
   decltype( auto ) o2 = cast<LuaOwnedNonCopyable&>( st["x"] );
   static_assert(

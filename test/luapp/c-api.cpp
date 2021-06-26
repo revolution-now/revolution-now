@@ -995,12 +995,12 @@ LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
   C.pop( 2 );
   REQUIRE( C.stack_size() == 0 );
 
-  // clang-format off
   char const* err =
-    "[string \"...\"]:2: attempt to call a nil value (field 'assert')" "\n"
-    "stack traceback:"                                                 "\n"
-    "\t[string \"...\"]:2: in main chunk";
-  // clang-format on
+      "[string \"...\"]:2: field 'assert' is not callable (a "
+      "nil value)\n"
+      "stack traceback:\n"
+      "\t[string \"...\"]:2: in main chunk";
+
   REQUIRE( C.dostring( R"(
     x.assert( x.print ~= nil )
   )" ) == lua_invalid( err ) );

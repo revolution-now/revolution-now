@@ -198,7 +198,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   char const* err_non_existent =
       "attempt to set nonexistent field `non_existent'.\n"
       "stack traceback:\n"
-      "\t[C]: in metamethod '__newindex'\n"
+      "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:5: in main chunk";
 
   REQUIRE( st.script.run_safe( R"(
@@ -211,7 +211,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   char const* err_const =
       "attempt to set const field `n_const'.\n"
       "stack traceback:\n"
-      "\t[C]: in metamethod '__newindex'\n"
+      "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:3: in main chunk";
 
   REQUIRE( st.script.run_safe( R"(
@@ -325,7 +325,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   char const* err_non_existent =
       "attempt to set nonexistent field `non_existent'.\n"
       "stack traceback:\n"
-      "\t[C]: in metamethod '__newindex'\n"
+      "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:5: in main chunk";
 
   REQUIRE( st.script.run_safe( R"(
@@ -338,7 +338,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   char const* err_const =
       "attempt to set const field `n_const'.\n"
       "stack traceback:\n"
-      "\t[C]: in metamethod '__newindex'\n"
+      "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:3: in main chunk";
 
   REQUIRE( st.script.run_safe( R"(
