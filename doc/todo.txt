@@ -2,16 +2,15 @@
 # Lua
 # ===============================================================
 
-  1. Fix enum/string issue.
-  2. Integrate waitable<> with Lua, and add coroutine support to
+  1. Integrate waitable<> with Lua, and add coroutine support to
      luapp as necessary.
-  3. Make a coroutine-based dialog/animation sequence as a demo
+  2. Make a coroutine-based dialog/animation sequence as a demo
      of Lua coroutines.
-  4. Create proper Lua API design in order to avoid coupling with
+  3. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  5. Generate Flatbuffers Lua modules so that Lua can read and
+  4. Generate Flatbuffers Lua modules so that Lua can read and
      write game save files.
-  6. Add some other standard containers like vector,
+  5. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================

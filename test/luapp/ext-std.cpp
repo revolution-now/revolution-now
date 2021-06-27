@@ -47,6 +47,8 @@ DEFINE_FORMAT( lua::MyUserdata, "MyUserdata{{n={}}}", o.n );
 namespace lua {
 namespace {
 
+using ::Catch::Matches;
+
 LUA_TEST_CASE( "[ext-std] tuple" ) {
   SECTION( "single" ) {
     st.script.run( R"(
@@ -128,15 +130,17 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
       end
     )" );
 
-    char const* err =
-        "native code expected type `std::tuple<int, "
-        "lua::MyUserdata&>' as a return value (which requires 2 "
-        "Lua values), but the values returned by Lua were not "
-        "convertible to that native type.  The Lua values "
-        "received were: [nil, number].";
-
-    REQUIRE( st["foo"].pcall<tuple<int, MyUserdata&>>( 42 ) ==
-             lua_unexpected<tuple<int, MyUserdata&>>( err ) );
+    auto res = st["foo"].pcall<tuple<int, MyUserdata&>>( 42 );
+    REQUIRE( !res.has_value() );
+    REQUIRE_THAT(
+        res.error(),
+        Matches(
+            "native code expected type `std::.*tuple\\<int, "
+            "lua::MyUserdata&\\>' as a return value \\(which "
+            "requires 2 Lua values\\), but the values returned "
+            "by Lua were not convertible to that native type.  "
+            "The Lua values received were: \\[nil, "
+            "number\\]." ) );
   }
   SECTION( "not enough but ok" ) {
     MyUserdata mud{ .n = 9 };
@@ -220,15 +224,16 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
       end
     )" );
 
-    char const* err =
-        "native code expected type `std::pair<int, "
-        "lua::MyUserdata&>' as a return value (which requires 2 "
-        "Lua values), but the values returned by Lua were not "
-        "convertible to that native type.  The Lua values "
-        "received were: [nil, number].";
-
-    REQUIRE( st["foo"].pcall<pair<int, MyUserdata&>>( 42 ) ==
-             lua_unexpected<pair<int, MyUserdata&>>( err ) );
+    auto res = st["foo"].pcall<pair<int, MyUserdata&>>( 42 );
+    REQUIRE( !res.has_value() );
+    REQUIRE_THAT(
+        res.error(),
+        Matches( "native code expected type `std::.*pair\\<int, "
+                 "lua::MyUserdata&\\>' as a return value "
+                 "\\(which requires 2 Lua values\\), but the "
+                 "values returned by Lua were not convertible "
+                 "to that native type.  The Lua values received "
+                 "were: \\[nil, number\\]." ) );
   }
   SECTION( "not enough but ok" ) {
     MyUserdata mud{ .n = 9 };
