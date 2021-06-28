@@ -28,10 +28,20 @@ namespace lua {
 struct rthread : public any {
   using Base = any;
 
-  ::lua::cthread cthread() const noexcept { return L; }
+  rthread( lua::cthread L, int ref );
 
-  using Base::Base;
+  friend base::maybe<rthread> lua_get( lua::cthread L, int idx,
+                                       tag<rthread> );
+
+  // In an rthread, the particular `L' held represents the
+  // thread. This is unlike other objects where the L is only
+  // held for access to the global state.
+  lua::cthread cthread() const noexcept { return L; }
+
+  bool is_main() const noexcept;
 };
+
+static_assert( Stackable<rthread> );
 
 } // namespace lua
 

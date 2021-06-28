@@ -26,10 +26,12 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+
 /****************************************************************
-** lthread objects
+** rthread objects
 *****************************************************************/
-LUA_TEST_CASE( "[lthread] lthread equality" ) {
+LUA_TEST_CASE( "[rthread] rthread equality" ) {
   boolean       b   = true;
   integer       i   = 1;
   floating      f   = 2.3;
@@ -59,6 +61,31 @@ LUA_TEST_CASE( "[lthread] lthread equality" ) {
   REQUIRE( i != o1 );
   REQUIRE( f != o1 );
   REQUIRE( lud != o1 );
+}
+
+LUA_TEST_CASE( "[rthread] construction + is_main" ) {
+  C.pushthread();
+  rthread th1( L, C.ref_registry() );
+  REQUIRE( th1.is_main() );
+  C.pushthread();
+  rthread th2( L, C.ref_registry() );
+  REQUIRE( th2.is_main() );
+  REQUIRE( th1 == th2 );
+
+  cthread NL = C.newthread();
+  rthread th3( L, C.ref_registry() );
+  REQUIRE( !th3.is_main() );
+  REQUIRE( th3.cthread() == NL );
+  REQUIRE( th3 != th1 );
+  REQUIRE( th3 != th2 );
+
+  lua::push( L, th3 );
+  maybe<rthread> m = lua::get<rthread>( L, -1 );
+  REQUIRE( m.has_value() );
+  REQUIRE( m == th3 );
+  REQUIRE( m != th1 );
+  REQUIRE( !m->is_main() );
+  C.pop();
 }
 
 } // namespace
