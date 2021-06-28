@@ -74,6 +74,12 @@ rthread state::Thread::main() noexcept {
   return rthread( L, C.ref_registry() );
 }
 
+rthread state::Thread::create() noexcept {
+  c_api C( L );
+  (void)C.newthread();
+  return rthread( L, C.ref_registry() );
+}
+
 /****************************************************************
 ** Tables
 *****************************************************************/

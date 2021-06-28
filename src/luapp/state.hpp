@@ -71,6 +71,9 @@ public:
     // one that we get when we create the state.
     rthread main() noexcept;
 
+    // Create a new coroutine.
+    rthread create() noexcept;
+
   private:
     cthread L;
   } thread;

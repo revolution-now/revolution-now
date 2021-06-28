@@ -126,5 +126,13 @@ LUA_TEST_CASE( "[lua-state] script run safe" ) {
   REQUIRE( v == lua_invalid( err ) );
 }
 
+LUA_TEST_CASE( "[lua-state] thread create" ) {
+  rthread th_main = st.thread.main();
+  REQUIRE( th_main.is_main() );
+  rthread th2 = st.thread.create();
+  REQUIRE( !th2.is_main() );
+  REQUIRE( th2 != th_main );
+}
+
 } // namespace
 } // namespace lua
