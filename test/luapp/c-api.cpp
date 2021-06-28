@@ -1518,5 +1518,26 @@ LUA_TEST_CASE( "[lua-c-api] settop" ) {
   REQUIRE( C.gettop() == 0 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] tothread" ) {
+  CHECK( C.pushthread() );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( L == C.tothread( -1 ) );
+  C.pop();
+  REQUIRE( C.stack_size() == 0 );
+  cthread cth2 = C.newthread();
+  cthread cth3 = C.tothread( -1 );
+  REQUIRE( cth3 == cth2 );
+  c_api C2( cth2 );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( !C2.pushthread() );
+  REQUIRE( C.stack_size() == 1 );
+  REQUIRE( C2.stack_size() == 1 );
+  C.pop();
+  C2.pop();
+  REQUIRE( C.stack_size() == 0 );
+  REQUIRE( C2.stack_size() == 0 );
+}
+
 } // namespace
 } // namespace lua

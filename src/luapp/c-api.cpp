@@ -812,4 +812,9 @@ lua_valid c_api::loadfile( const char* filename ) {
   }
 }
 
+cthread c_api::tothread( int idx ) {
+  validate_index( idx );
+  return lua_tothread( L, idx );
+}
+
 } // namespace lua

@@ -419,6 +419,11 @@ struct c_api {
   // turns true if this thread is the main thread of its state.
   bool pushthread() noexcept;
 
+  // Converts the value at the given index to a Lua thread (rep-
+  // resented as lua_State*). This value must be a thread; other-
+  // wise, the function returns NULL.
+  cthread tothread( int idx );
+
   /**************************************************************
   ** garbage collection
   ***************************************************************/
