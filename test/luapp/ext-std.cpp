@@ -49,6 +49,29 @@ namespace {
 
 using ::Catch::Matches;
 
+LUA_TEST_CASE( "[ext-std] push/get" ) {
+  SECTION( "tuple" ) {
+    tuple<double, string, int> t{ 7.7, "hello", 9 };
+    REQUIRE( C.stack_size() == 0 );
+    lua::push( L, t );
+    REQUIRE( C.stack_size() == 3 );
+    auto m = lua::get<tuple<double, string, int>>( L, -1 );
+    REQUIRE( m.has_value() );
+    REQUIRE( m == t );
+    C.pop( 3 );
+  }
+  SECTION( "pair" ) {
+    pair<double, string> p{ 7.7, "hello" };
+    REQUIRE( C.stack_size() == 0 );
+    lua::push( L, p );
+    REQUIRE( C.stack_size() == 2 );
+    auto m = lua::get<pair<double, string>>( L, -1 );
+    REQUIRE( m.has_value() );
+    REQUIRE( m == p );
+    C.pop( 2 );
+  }
+}
+
 LUA_TEST_CASE( "[ext-std] tuple" ) {
   SECTION( "single" ) {
     st.script.run( R"(
