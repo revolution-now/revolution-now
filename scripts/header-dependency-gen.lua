@@ -27,6 +27,11 @@ function extract_stem( subject )
                       '-', '_' )
 end
 
+function ends_with( s, what )
+  if #s < #what then return false end
+  return (string.sub( s, #s-#what+1 ) == what)
+end
+
 to_search = {}
 to_search[start] = false
 
@@ -51,7 +56,7 @@ while num_to_search() > 0 do
     -- print( '=== scanning', file, '===' )
     for line in io.lines( file ) do
       local header = extract_file( line )
-      if header ~= nil then
+      if header ~= nil and ends_with( header, ".hpp" ) then
         print( '  ' .. extract_stem( file ) .. ' -> ' ..
                    extract_stem( header ) .. ';' )
         if to_search[header] == nil then
