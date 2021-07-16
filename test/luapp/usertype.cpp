@@ -98,6 +98,10 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( C.stack_size() == 0 );
   // ut.set_constructor([]{} );
 
+  auto flattened_member_fn_1 = []( CppOwnedType& o, int n ) {
+    return o.n + n;
+  };
+
   ut["n"]          = &CppOwnedType::n;
   ut["n_const"]    = &CppOwnedType::n_const;
   ut["d"]          = &CppOwnedType::d;
@@ -105,6 +109,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   ut["get_n"]      = &CppOwnedType::get_n;
   ut["get_n_plus"] = &CppOwnedType::get_n_plus;
   ut["say"]        = &CppOwnedType::say;
+  ut["flat1"]      = +flattened_member_fn_1;
+  ut["flat2"] = [n = 3]( CppOwnedType& o ) { return o.n + n; };
   REQUIRE( C.stack_size() == 0 );
 
   // Check if the various members tables have been set.
@@ -145,6 +151,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( member_types["get_n"] == true );
   REQUIRE( member_types["get_n_plus"] == true );
   REQUIRE( member_types["say"] == true );
+  REQUIRE( member_types["flat1"] == true );
+  REQUIRE( member_types["flat2"] == true );
 
   REQUIRE( member_getters["n"].type() == type::function );
   REQUIRE( member_getters["d"].type() == type::function );
@@ -153,6 +161,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( member_getters["get_n_plus"].type() ==
            type::function );
   REQUIRE( member_getters["say"].type() == type::function );
+  REQUIRE( member_getters["flat1"].type() == type::function );
+  REQUIRE( member_getters["flat2"].type() == type::function );
 
   REQUIRE( member_setters["n"].type() == type::function );
   REQUIRE( member_setters["d"].type() == type::function );
@@ -160,6 +170,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( member_setters["get_n"] == nil );
   REQUIRE( member_setters["get_n_plus"] == nil );
   REQUIRE( member_setters["say"] == nil );
+  REQUIRE( member_setters["flat1"] == nil );
+  REQUIRE( member_setters["flat2"] == nil );
 
   lua_valid res = st.script.run_safe( R"(
     function assert_eq( l, r )
@@ -190,6 +202,8 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
     assert_eq( o:get_n(), 6 )
     assert_eq( o:get_n_plus( 4 ), 10 )
     assert_eq( o:say( 'hello' ), 'saying: hello' )
+    assert_eq( o:flat1( 4 ), 6+4 )
+    assert_eq( o:flat2(), 6+3 )
     assert_eq( o.s, 'hello' )
     o.s = o.s .. o.s
     assert_eq( o.s, 'hellohello' )
@@ -229,6 +243,10 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   usertype<LuaOwnedType> ut( L );
   REQUIRE( C.stack_size() == 0 );
 
+  auto flattened_member_fn_1 = []( LuaOwnedType& o, int n ) {
+    return o.n + n;
+  };
+
   ut["n"]          = &LuaOwnedType::n;
   ut["n_const"]    = &LuaOwnedType::n_const;
   ut["d"]          = &LuaOwnedType::d;
@@ -236,6 +254,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   ut["get_n"]      = &LuaOwnedType::get_n;
   ut["get_n_plus"] = &LuaOwnedType::get_n_plus;
   ut["say"]        = &LuaOwnedType::say;
+  ut["flat1"]      = +flattened_member_fn_1;
+  ut["flat2"] = [n = 3]( LuaOwnedType& o ) { return o.n + n; };
   REQUIRE( C.stack_size() == 0 );
 
   st["o"] = LuaOwnedType{};
@@ -279,6 +299,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( member_types["get_n"] == true );
   REQUIRE( member_types["get_n_plus"] == true );
   REQUIRE( member_types["say"] == true );
+  REQUIRE( member_types["flat1"] == true );
+  REQUIRE( member_types["flat2"] == true );
 
   REQUIRE( member_getters["n"].type() == type::function );
   REQUIRE( member_getters["d"].type() == type::function );
@@ -287,6 +309,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( member_getters["get_n_plus"].type() ==
            type::function );
   REQUIRE( member_getters["say"].type() == type::function );
+  REQUIRE( member_getters["flat1"].type() == type::function );
+  REQUIRE( member_getters["flat2"].type() == type::function );
 
   REQUIRE( member_setters["n"].type() == type::function );
   REQUIRE( member_setters["d"].type() == type::function );
@@ -294,6 +318,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( member_setters["get_n"] == nil );
   REQUIRE( member_setters["get_n_plus"] == nil );
   REQUIRE( member_setters["say"] == nil );
+  REQUIRE( member_setters["flat1"] == nil );
+  REQUIRE( member_setters["flat2"] == nil );
 
   lua_valid res = st.script.run_safe( R"(
     function assert_eq( l, r )
@@ -324,6 +350,8 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     assert_eq( o:get_n(), 6 )
     assert_eq( o:get_n_plus( 4 ), 10 )
     assert_eq( o:say( 'hello' ), 'saying: hello' )
+    assert_eq( o:flat1( 4 ), 6+4 )
+    assert_eq( o:flat2(), 6+3 )
     assert_eq( o.s, 'hello' )
     o.s = o.s .. o.s
     assert_eq( o.s, 'hellohello' )

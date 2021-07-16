@@ -37,6 +37,16 @@ using usertype_type_held =
     std::conditional_t<HasRefUserdataOwnershipModel<T>, T&, T>;
 
 template<CanHaveUsertype T>
+struct usertype;
+
+template<typename Func, typename T>
+concept CanSetAsMember = requires( usertype<T>&       ut,
+                                   std::string const& n,
+                                   Func&&             func ) {
+  ut.set_member( n, std::forward<Func>( func ) );
+};
+
+template<CanHaveUsertype T>
 struct usertype {
   using Usertype = usertype_type_held<T>;
 
@@ -47,9 +57,8 @@ struct usertype {
         L );
   }
 
-  template<typename F>
-  requires                              //
-      base::MemberFunctionPointer<F> && //
+  template<base::MemberFunctionPointer F>
+  requires //
       std::is_same_v<
           std::remove_const_t<
               typename mp::callable_traits<F>::object_type>,
@@ -59,22 +68,34 @@ struct usertype {
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
     using args_t = typename traits::arg_types;
-    push_existing_userdata_metatable<Usertype>( L );
     static_assert(
         std::is_same_v<
             R, typename mp::callable_traits<
-                   decltype( make_member_function_lambda<O>(
+                   decltype( make_flattened_member_function<O>(
                        func, (args_t*)nullptr ) )>::ret_type> );
-    push_cpp_function( L, make_member_function_lambda<O>(
-                              func, (args_t*)nullptr ) );
+    // Delegate to "flattened" version.
+    set_member( name, make_flattened_member_function<O>(
+                          func, (args_t*)nullptr ) );
+  }
+
+  // This is for "flattened" member functions, i.e. regular func-
+  // tions that take a reference to the object type as a first
+  // parameter.
+  // clang-format off
+  template<base::NonOverloadedCallable F>
+  requires std::is_same_v<
+      mp::head_t<typename mp::callable_traits<F>::arg_types>, T&>
+  void set_member( std::string_view name, F&& func ) {
+    // clang-format on
+    push_existing_userdata_metatable<Usertype>( L );
+    push_cpp_function( L, FWD( func ) );
     detail::usertype_set_member_getter(
         L, std::string( name ).c_str(),
         /*is_function=*/true );
   }
 
-  template<typename F>
-  requires                      //
-      base::MemberPointer<F> && //
+  template<base::MemberPointer F>
+  requires //
       std::is_same_v<
           std::remove_const_t<
               typename mp::callable_traits<F>::object_type>,
@@ -114,7 +135,7 @@ private:
     proxy( usertype& ut, std::string_view name )
       : ut_( ut ), name_( name ) {}
 
-    template<typename Func>
+    template<CanSetAsMember<T> Func>
     void operator=( Func&& func ) && {
       ut_.set_member( name_, std::forward<Func>( func ) );
     }
@@ -137,7 +158,7 @@ public:
 
 private:
   template<typename O, typename Func, typename... Args>
-  static auto make_member_function_lambda(
+  static auto make_flattened_member_function(
       Func&& func, mp::type_list<Args...>* ) {
     return [func]( O& o, Args&&... args ) -> decltype( auto ) {
       return ( o.*func )( std::forward<Args>( args )... );
