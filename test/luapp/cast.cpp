@@ -93,6 +93,11 @@ LUA_TEST_CASE( "[cast] castability test" ) {
   static_assert( !Castable<indexer_t, maybe<char const*>> );
   static_assert( !Castable<indexer_t, maybe<A>> );
 
+  static_assert( !Castable<table, any> );
+  static_assert( !Castable<rfunction, any> );
+  static_assert( !Castable<userdata, any> );
+  static_assert( !Castable<rthread, any> );
+
   // Things that should be castable.
   static_assert( Castable<indexer_t, int> );
   static_assert( Castable<indexer_t, bool> );
@@ -104,6 +109,13 @@ LUA_TEST_CASE( "[cast] castability test" ) {
   static_assert( Castable<indexer_t, userdata> );
   static_assert( Castable<indexer_t, rthread> );
   static_assert( Castable<indexer_t, Point> );
+
+  static_assert( Castable<int, any> );
+  static_assert( Castable<string, any> );
+  static_assert( Castable<bool, any> );
+  static_assert( Castable<double, any> );
+  static_assert( Castable<lightuserdata, any> );
+  static_assert( Castable<Point, any> );
 
   static_assert( Castable<indexer_t, maybe<int>> );
   static_assert( Castable<indexer_t, maybe<bool>> );
