@@ -173,6 +173,25 @@ namespace internal {
 /****************************************************************
 ** storage_type_for
 *****************************************************************/
+// What is the meaning of storage type? Given a type T (which may
+// or may not be a reference, and/or may or may not have refer-
+// ence semantics), storage_type_for<T> is the type that must be
+// held by C++ (usually temporarily) in order to be able to pass
+// a Lua value to C++ and have it be exposed as a T.
+//
+// Examples:
+//
+//   * std::string_view has a storage type of std::string, since
+//     a string_view cannot directly reference a string inside of
+//     Lua.
+//   * An int has a storage type of int, since it can just be
+//     copied around by value.
+//   * A std::string& has a storage type of std::string, since a
+//     std::string& can only reference a std::string.
+//   * A `double const&` has a storage type of `double`.
+//   * U or U&, where U is a userdata of unqualified type, will
+//     have a storage type of U& (non-const).
+//
 template<typename T>
 using storage_type_for =
     typename decltype( internal::storage_type_impl<T>() )::type;
@@ -196,6 +215,11 @@ constexpr int nvalues_for() {
     return 1;
   }
 }
+
+template<typename T1, typename T2>
+concept CompatibleNvalues = requires {
+  nvalues_for<T1>() == nvalues_for<T2>();
+};
 
 /****************************************************************
 ** push
