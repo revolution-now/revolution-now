@@ -9,7 +9,9 @@
 | Description: Meta utilities.
 |
 --]] ------------------------------------------------------------
-local function type_of_child( parent, child_name )
+local M = {}
+
+function M.type_of_child( parent, child_name )
   return type( parent[child_name] )
 end
 
@@ -19,7 +21,7 @@ end
 -- metafunction that we either can't call (luapp doesn't cur-
 -- rently call it when iterating over a table) or don't want to
 -- call (maybe it's expensive).
-local function all_pairs( tbl )
+function M.all_pairs( tbl )
   res = {}
   for k, v in pairs( tbl ) do res[k] = v end
   return res
@@ -126,7 +128,7 @@ local function freeze_existing_globals()
   for k, v in pairs( globals ) do _G[k] = nil end
 end
 
-local function freeze_all()
+function M.freeze_all()
   -- Freeze modules.
   for k, v in pairs( modules ) do freeze_table( _G, k ) end
   freeze_table( _G, 'modules' )
@@ -137,8 +139,4 @@ local function freeze_all()
   freeze_existing_globals()
 end
 
-package_exports = {
-  freeze_all=freeze_all,
-  all_pairs=all_pairs,
-  type_of_child=type_of_child
-}
+return M

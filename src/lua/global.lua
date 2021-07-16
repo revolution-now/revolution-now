@@ -9,6 +9,8 @@
 | Description: Globals.
 |
 --]] ------------------------------------------------------------
+local M = {}
+
 -- Global function
 function grid() terrain.toggle_grid() end
 
@@ -44,6 +46,4 @@ function convert_units( unit_type, nation )
   end
 end
 
--- This module does not export anything since its purpose is to
--- create globals.
-package_exports = {}
+return M

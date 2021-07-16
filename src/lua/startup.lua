@@ -9,6 +9,8 @@
 | Description: Code to be run at startup.
 |
 --]] ------------------------------------------------------------
+local M = {}
+
 local function create_some_units_in_old_world()
   -- Dutch ------------------------------------------------------
   local nation = e.nation.dutch
@@ -93,7 +95,7 @@ local function create_some_colonies()
   colony:set_commodity_quantity( e.commodity.horses, 100 )
 end
 
-local function main()
+function M.main()
   terrain.generate_terrain()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
@@ -105,4 +107,4 @@ local function main()
   create_some_colonies()
 end
 
-package_exports = { main=main }
+return M

@@ -59,18 +59,15 @@ valid_or<string> load_module( string const& name ) {
   fs::path file_name = "src/lua/" + name + ".lua";
   CHECK( fs::exists( file_name ), "file {} does not exist.",
          file_name );
-  g_lua["package_exports"] = lua::nil;
-  HAS_VALUE_OR_RET(
-      g_lua.script.run_file_safe( "src/lua/" + name + ".lua" ) );
-  CHECK( g_lua["package_exports"] != lua::nil,
-         "module `{}` does not have package exports.", name );
+  UNWRAP_RETURN( package_exports,
+                 g_lua.script.run_file_safe<lua::table>(
+                     "src/lua/" + name + ".lua" ) );
   // In case the symbol already exists we will assume that it is
   // a table and merge its contents into this one.
   auto old_table = lua::table::create_or_get( g_lua[name] );
-  g_lua[name]    = g_lua["package_exports"];
+  g_lua[name]    = package_exports;
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
 
-  g_lua["package_exports"] = lua::nil;
   return valid;
 }
 

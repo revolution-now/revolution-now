@@ -9,6 +9,9 @@
 | Description: Utilities.
 |
 --]] ------------------------------------------------------------
+local M = {}
+
+-- FIXME: global
 function Coord( arg )
   return setmetatable( { x=arg.x, y=arg.y }, {
     __tostring=function( self )
@@ -21,6 +24,7 @@ function Coord( arg )
   } )
 end
 
+-- FIXME: global
 function assert_eq( lhs, rhs )
   if lhs ~= rhs then
     error( 'assertion failed: ' .. tostring( lhs ) .. ' != ' ..
@@ -28,20 +32,20 @@ function assert_eq( lhs, rhs )
   end
 end
 
-local function starts_with( str, start )
+function M.starts_with( str, start )
   return str:sub( 1, #start ) == start
 end
 
-local function foreach( list, f )
+function M.foreach( list, f )
   for _, e in ipairs( list ) do f( e ) end
 end
 
-local function print_passthrough( arg )
+function M.print_passthrough( arg )
   print( tostring( arg ) )
   return arg
 end
 
-local function ls( table )
+function M.ls( table )
   if type( table ) == 'userdata' then
     -- For userdata. Unfortunately the types of the members all
     -- show as functions.
@@ -54,9 +58,4 @@ local function ls( table )
   end
 end
 
-package_exports = {
-  foreach=foreach,
-  ls=ls,
-  starts_with=starts_with,
-  print_passthrough=print_passthrough
-}
+return M
