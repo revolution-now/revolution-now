@@ -14,6 +14,8 @@
 #include "any.hpp"
 #include "ext-userdata.hpp"
 #include "func-push.hpp"
+#include "metatable-key.hpp"
+#include "rtable.hpp"
 
 namespace lua {
 
@@ -124,6 +126,13 @@ private:
 public:
   proxy operator[]( std::string_view sv ) {
     return proxy( *this, sv );
+  }
+
+  table operator[]( metatable_key_t ) {
+    push_existing_userdata_metatable<Usertype>( L );
+    UNWRAP_CHECK( res, lua::get<table>( L, -1 ) );
+    pop_stack( L, 1 );
+    return res;
   }
 
 private:
