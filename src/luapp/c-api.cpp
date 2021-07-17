@@ -73,6 +73,14 @@ int msghandler( lua_State* L ) {
   return 1;            // return the traceback.
 }
 
+thread_status to_thread_status( int status ) noexcept {
+  switch( status ) {
+    case LUA_OK: return thread_status::ok;
+    case LUA_YIELD: return thread_status::yield;
+  }
+  return thread_status::err;
+}
+
 } // namespace
 
 /****************************************************************
@@ -477,12 +485,25 @@ base::maybe<floating> c_api::get( int idx, floating* ) noexcept {
 
 maybe<string> c_api::get( int idx, string* ) noexcept {
   validate_index( idx );
+  size_t len = 0;
   // The function we will use below, lua_tolstring, will actually
   // change the value on the stack to a string if it is not al-
   // ready a string (i.e., if it is a number). We don't really
   // want this, so we're going to push a copy of the value on the
   // stack (this should be cheap, I don't believe it should make
   // a copy of the string...but not sure).
+  //
+  // The exception is if the thread is in an error state in which
+  // case it is not safe to push things onto the stack (it seems
+  // to yield a Lua stack overflow error). So in that case we
+  // will just call lua_tolstring in place.
+  if( status() == thread_status::err ) {
+    char const* p = lua_tolstring( L, idx, &len );
+    if( p == nullptr ) return nothing;
+    // See below for why we use this constructor.
+    return string( p, len );
+  }
+  // Thread is not in an error state, so we can push things.
   pushvalue( idx );
   SCOPE_EXIT( pop() );
   // lua_tolstring:  [-0, +0, m]
@@ -503,8 +524,7 @@ maybe<string> c_api::get( int idx, string* ) noexcept {
   // Because Lua has garbage collection, there is no guarantee
   // that the pointer returned by lua_tolstring will be valid
   // after the corresponding Lua value is removed from the stack.
-  size_t      len = 0;
-  char const* p   = lua_tolstring( L, -1, &len );
+  char const* p = lua_tolstring( L, -1, &len );
   if( p == nullptr ) return nothing;
   // Use the (pointer, size) constructor because we need to
   // specify the length, 1) so that std::string can pre-allocate,
@@ -815,6 +835,74 @@ lua_valid c_api::loadfile( const char* filename ) {
 cthread c_api::tothread( int idx ) {
   validate_index( idx );
   return lua_tothread( L, idx );
+}
+
+thread_status c_api::status() noexcept {
+  return to_thread_status( lua_status( L ) );
+}
+
+lua_valid c_api::thread_ok() noexcept {
+  thread_status stat = status();
+  lua_valid     res  = base::valid;
+  switch( stat ) {
+    case thread_status::err: {
+      enforce_stack_size_ge( 1 );
+      CHECK( type_of( -1 ) == type::string );
+      res = lua_tostring( L, -1 );
+      // NOTE: we do not pop the error off of the stack so that
+      // we can retrieve it a second time if needed.
+    }
+    default: break;
+  }
+  return res;
+}
+
+lua_valid c_api::resetthread() noexcept {
+  int res = lua_resetthread( L );
+  if( res == LUA_OK ) return base::valid;
+  // We have an error, either in closing the to-be-closed vari-
+  // ables, or the original error that caused the coroutine to
+  // stop, which is on the top of the stack.
+  enforce_stack_size_ge( 1 );
+  CHECK( type_of( -1 ) == type::string );
+  return lua_tostring( L, -1 );
+}
+
+lua_expect<resume_result> c_api::resume_or_leak(
+    cthread L_toresume, int nargs ) noexcept {
+  CHECK( L != L_toresume );
+  c_api C_toresume( L_toresume );
+  C_toresume.enforce_stack_size_ge( nargs );
+  lua_State*    L_from   = L;
+  int           nresults = 0;
+  thread_status status   = to_thread_status(
+        lua_resume( L_toresume, L_from, nargs, &nresults ) );
+  HAS_VALUE_OR_RET( C_toresume.thread_ok() );
+  CHECK( status != thread_status::err );
+  return resume_result{ .status = ( status == thread_status::ok )
+                                      ? resume_status::ok
+                                      : resume_status::yield,
+                        .nresults = nresults };
+}
+
+lua_expect<resume_result> c_api::resume_or_reset(
+    cthread L_toresume, int nargs ) noexcept {
+  CHECK( L != L_toresume );
+  lua_expect<resume_result> res =
+      resume_or_leak( L_toresume, nargs );
+  if( !res ) {
+    c_api     C_toresume( L_toresume );
+    lua_valid close_result = C_toresume.resetthread();
+    // close_result will always just contain the original error
+    // even if there is an error while closing, so there is no
+    // point in looking at it.
+    (void)close_result;
+    // resetthread is supposed to leave the error object on the
+    // top of the stack, and it appears that it is the ONLY thing
+    // left on the stack.
+    DCHECK( C_toresume.stack_size() == 1 );
+  }
+  return res;
 }
 
 } // namespace lua

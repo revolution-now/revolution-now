@@ -1539,5 +1539,381 @@ LUA_TEST_CASE( "[lua-c-api] tothread" ) {
   REQUIRE( C2.stack_size() == 0 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
+  C.openlibs();
+  st.script.run( R"(
+    f0 = coroutine.create( function() end )
+    f1 = coroutine.create( function() end )
+    f2 = coroutine.create( function()
+      coroutine.yield()
+    end )
+    f3 = coroutine.create( function()
+      error( 'some error' )
+    end )
+    -- Don't start f0.
+    coroutine.resume( f1 )
+    coroutine.resume( f2 )
+    coroutine.resume( f3 )
+  )" );
+
+  {
+    C.getglobal( "f0" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
+    REQUIRE( c_api( cth ).thread_ok() == valid );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
+    REQUIRE( c_api( cth ).thread_ok() == valid );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).thread_ok() == valid );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f3" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).thread_ok() ==
+             lua_invalid( "[string \"...\"]:8: some error" ) );
+    REQUIRE( C.stack_size() == 0 );
+  }
+}
+
+LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
+  C.openlibs();
+  st.script.run( R"(
+    f1 = coroutine.create( function()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f1_closed = true
+        end
+      } )
+      coroutine.yield()
+    end )
+    f2 = coroutine.create( function()
+      coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f2_closed = true
+        end
+      } )
+      coroutine.yield()
+    end )
+    f3 = coroutine.create( function()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f3_closed = true
+        end
+      } )
+      -- x will not be closed on error.
+      error( 'some error' )
+    end )
+    f4 = coroutine.create( function()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          error( 'error in closing' )
+        end
+      } )
+      coroutine.yield()
+    end )
+    coroutine.resume( f1 )
+    coroutine.resume( f2 )
+    coroutine.resume( f3 )
+    coroutine.resume( f4 )
+  )" );
+
+  {
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f1_closed"] == nil );
+    REQUIRE( c_api( cth ).resetthread() == valid );
+    REQUIRE( st["f1_closed"] == true );
+  }
+
+  {
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f2_closed"] == nil );
+    REQUIRE( c_api( cth ).resetthread() == valid );
+    REQUIRE( st["f2_closed"] == nil );
+  }
+
+  {
+    C.getglobal( "f3" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( st["f3_closed"] == nil );
+    REQUIRE( c_api( cth ).resetthread() ==
+             lua_invalid( "[string \"...\"]:26: some error" ) );
+    REQUIRE( st["f3_closed"] == true );
+  }
+
+  {
+    C.getglobal( "f4" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        lua_invalid( "[string \"...\"]:31: error in closing" ) );
+  }
+}
+
+LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
+  C.openlibs();
+  st.script.run( R"(
+    f1 = coroutine.create( function()
+      coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f1_closed = true
+        end
+      } )
+      return 1, 2, 3
+    end )
+    f2 = coroutine.create( function()
+      local n = coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f2_closed = n
+        end
+      } )
+      -- x will not be closed on error.
+      error( 'some error' )
+    end )
+    f3 = coroutine.create( function()
+      coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          error( 'error in closing' )
+        end
+      } )
+    end )
+    coroutine.resume( f1 )
+    coroutine.resume( f2 )
+    coroutine.resume( f3 )
+  )" );
+
+  {
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f1_closed"] == nil );
+    resume_result expected{ .status   = resume_status::ok,
+                            .nresults = 3 };
+    REQUIRE( C.resume_or_leak( cth, /*nargs=*/0 ) == expected );
+    REQUIRE( c_api( cth ).stack_size() == 3 );
+    c_api( cth ).pop( 3 );
+    REQUIRE( st["f1_closed"] == true );
+  }
+
+  {
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    REQUIRE( cth );
+    C.pop();
+    REQUIRE( c_api( cth ).stack_size() == 0 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f2_closed"] == nil );
+    c_api( cth ).push( 42 );
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::number );
+    REQUIRE( C.resume_or_leak( cth, /*nargs=*/1 ) ==
+             lua_unexpected<resume_result>(
+                 "[string \"...\"]:19: some error" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    // Error object on top of stack. Not sure why the stack size
+    // is 3 here (though it probably has something to do with the
+    // fact that we have not yet reset the thread state yet;
+    // after we do that, it will be 1). Note: at this point it
+    // will cause a Lua stack overflow if we push any values onto
+    // the cth stack before resetting it.
+    REQUIRE( c_api( cth ).stack_size() == 3 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
+    REQUIRE( c_api( cth ).get<string>( -1 ) ==
+             "[string \"...\"]:19: some error" );
+    REQUIRE( st["f2_closed"] == nil );
+    REQUIRE( c_api( cth ).resetthread() ==
+             lua_invalid( "[string \"...\"]:19: some error" ) );
+    // This verifies the parameter that we passed to resume.
+    REQUIRE( st["f2_closed"] == 42 );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+  }
+
+  {
+    C.getglobal( "f3" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    REQUIRE( cth );
+    C.pop();
+    REQUIRE( c_api( cth ).stack_size() == 0 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( C.resume_or_leak( cth, /*nargs=*/0 ) ==
+             lua_unexpected<resume_result>(
+                 "[string \"...\"]:25: error in closing" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    // Error object on top of stack. Not sure why the stack size
+    // is 3 here (though it probably has something to do with the
+    // fact that we have not yet reset the thread state yet;
+    // after we do that, it will be 1). Note: at this point it
+    // will cause a Lua stack overflow if we push any values onto
+    // the cth stack before resetting it.
+    REQUIRE( c_api( cth ).stack_size() == 3 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
+    REQUIRE( c_api( cth ).get<string>( -1 ) ==
+             "[string \"...\"]:25: error in closing" );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        lua_invalid( "[string \"...\"]:25: error in closing" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+  }
+}
+
+LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
+  C.openlibs();
+  st.script.run( R"(
+    f1 = coroutine.create( function()
+      coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f1_closed = true
+        end
+      } )
+      return 1, 2, 3
+    end )
+    f2 = coroutine.create( function()
+      local n = coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          f2_closed = n
+        end
+      } )
+      -- x will not be closed on error.
+      error( 'some error' )
+    end )
+    f3 = coroutine.create( function()
+      coroutine.yield()
+      local x<close> = setmetatable( {}, {
+        __close = function()
+          error( 'error in closing' )
+        end
+      } )
+    end )
+    coroutine.resume( f1 )
+    coroutine.resume( f2 )
+    coroutine.resume( f3 )
+  )" );
+
+  {
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    C.pop();
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f1_closed"] == nil );
+    resume_result expected{ .status   = resume_status::ok,
+                            .nresults = 3 };
+    REQUIRE( C.resume_or_reset( cth, /*nargs=*/0 ) == expected );
+    REQUIRE( c_api( cth ).stack_size() == 3 );
+    c_api( cth ).pop( 3 );
+    REQUIRE( st["f1_closed"] == true );
+  }
+
+  {
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    REQUIRE( cth );
+    C.pop();
+    REQUIRE( c_api( cth ).stack_size() == 0 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( st["f2_closed"] == nil );
+    c_api( cth ).push( 42 );
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::number );
+    REQUIRE( C.resume_or_reset( cth, /*nargs=*/1 ) ==
+             lua_unexpected<resume_result>(
+                 "[string \"...\"]:19: some error" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    // Error object on top of stack.
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
+    REQUIRE( c_api( cth ).get<string>( -1 ) ==
+             "[string \"...\"]:19: some error" );
+    // This verifies the parameter that we passed to resume AND
+    // that the thread was reset by resume_or_reset.
+    REQUIRE( st["f2_closed"] == 42 );
+    REQUIRE( c_api( cth ).resetthread() ==
+             lua_invalid( "[string \"...\"]:19: some error" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+  }
+
+  {
+    C.getglobal( "f3" );
+    REQUIRE( C.stack_size() == 1 );
+    cthread cth = C.tothread( -1 );
+    REQUIRE( cth );
+    C.pop();
+    REQUIRE( c_api( cth ).stack_size() == 0 );
+    REQUIRE( C.stack_size() == 0 );
+    REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( C.resume_or_reset( cth, /*nargs=*/0 ) ==
+             lua_unexpected<resume_result>(
+                 "[string \"...\"]:25: error in closing" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+    // Error object on top of stack.
+    REQUIRE( c_api( cth ).stack_size() == 1 );
+    REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
+    REQUIRE( c_api( cth ).get<string>( -1 ) ==
+             "[string \"...\"]:25: error in closing" );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        lua_invalid( "[string \"...\"]:25: error in closing" ) );
+    REQUIRE( c_api( cth ).status() == thread_status::err );
+  }
+}
+
 } // namespace
 } // namespace lua

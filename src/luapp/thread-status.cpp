@@ -1,0 +1,29 @@
+/****************************************************************
+**thread-status.cpp
+*
+* Project: Revolution Now
+*
+* Created by dsicilia on 2021-07-16.
+*
+* Description: Representation for Lua thread/coroutine status.
+*
+*****************************************************************/
+#include "thread-status.hpp"
+
+using namespace std;
+
+namespace lua {
+
+void to_str( resume_status status, std::string& out ) {
+  switch( status ) {
+    case resume_status::ok: out += "ok"; break;
+    case resume_status::yield: out += "yield"; break;
+  }
+}
+
+void to_str( resume_result result, std::string& out ) {
+  out += fmt::format( "resume_result{{status={}, nresults={}}}",
+                      result.status, result.nresults );
+}
+
+} // namespace lua

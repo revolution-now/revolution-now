@@ -13,6 +13,7 @@
 // luapp
 #include "error.hpp"
 #include "ext.hpp"
+#include "thread-status.hpp"
 #include "types.hpp"
 
 // base
@@ -423,6 +424,92 @@ struct c_api {
   // resented as lua_State*). This value must be a thread; other-
   // wise, the function returns NULL.
   cthread tothread( int idx );
+
+  // Returns the status of the thread L.
+  //
+  // The status can be LUA_OK for a normal thread, an error code
+  // if the thread finished the execution of a lua_resume with an
+  // error, or LUA_YIELD if the thread is suspended.
+  //
+  // You can call functions only in threads with status LUA_OK.
+  // You can resume threads with status LUA_OK (to start a new
+  // coroutine) or LUA_YIELD (to resume a coroutine).
+  //
+  // WARNING: if the thread status is error then you should not
+  // push anything onto the stack until it is reset (this seems
+  // to yield a Lua stack overflow).
+  thread_status status() noexcept;
+
+  // If the thread state is not in error then this will return
+  // valid, otherwise it will assume that the error object is on
+  // the top of the stack and will return it WITHOUT popping it
+  // from the stack. So this function can be called multiple
+  // times on the same thread.
+  //
+  // WARNING: if the thread status is error then you should not
+  // push anything onto the stack until it is reset (this seems
+  // to yield a Lua stack overflow).
+  lua_valid thread_ok() noexcept;
+
+  // Resets a thread, cleaning its call stack and closing all
+  // pending to-be-closed variables. In case of error (either the
+  // original error that stopped the thread or errors in closing
+  // methods), leaves the error object on the top of the stack
+  // and also returns it.
+  lua_valid resetthread() noexcept;
+
+  // Starts and resumes a coroutine in the given thread
+  // L_toresume.
+  //
+  // To start a coroutine, you push the main function plus any
+  // arguments onto the empty stack of the thread. then you call
+  // resume, with nargs being the number of arguments. This call
+  // returns when the coroutine suspends or finishes its execu-
+  // tion. When it returns, the return value will contain either
+  // an error (in which case the coroutine failed with an error)
+  // or it will contain the function/yield results. Specifically,
+  // it returns LUA_YIELD if the coroutine yields, LUA_OK if the
+  // coroutine finishes its execution without errors, or an error
+  // code in case of errors.4.1).
+  //
+  // In case of errors, the error object is left on the top of
+  // the stack, but it is returned in the lua_expect object.
+  //
+  // To resume a coroutine, you remove the *nresults yielded
+  // values from its stack, push the values to be passed as re-
+  // sults from yield, and then call resume.
+  //
+  // NOTE: you should probably prefer to call resume_or_reset,
+  // since that one will guarantee that if the coroutine fails
+  // with an error that all of it's to-be-closed variables will
+  // be closed. This one is suffixed with _or_leak to indicate
+  // that if it finishes with an error, the thread will not be
+  // closed, and so any to-be-closed variables will not be closed
+  // and hence may leak resources (and the documentation seems to
+  // say that they won't even be closed when the thread is
+  // garbage collected). Therefore, the caller must take care to
+  // call resetthread on the L_toresume thread at some point if
+  // this function fails. The `resume_or_reset' function handles
+  // this automatically, and so should probably be preferred.
+  //
+  // This function is noexcept because when an error is thrown
+  // from another thread, it will not translate to an error in
+  // the calling thread.
+  //
+  // WARNING: if the thread status is error then you should not
+  // push anything onto the stack until it is reset (this seems
+  // to yield a Lua stack overflow).
+  lua_expect<resume_result> resume_or_leak( cthread L_toresume,
+                                            int nargs ) noexcept;
+
+  // Same as above, but will call resetthread on L_toresume if it
+  // finishes with an error (this is done in order to ensure that
+  // all to-be-closed variables get closed). In such a case, the
+  // error returned will be the original error that terminated
+  // the thread, and any errors that happen during closing will
+  // be logged, but then dropped.
+  lua_expect<resume_result> resume_or_reset(
+      cthread L_toresume, int nargs ) noexcept;
 
   /**************************************************************
   ** garbage collection
