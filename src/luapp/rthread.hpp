@@ -13,6 +13,7 @@
 
 // luapp
 #include "any.hpp"
+#include "thread-status.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -39,9 +40,46 @@ struct rthread : public any {
   lua::cthread cthread() const noexcept { return L; }
 
   bool is_main() const noexcept;
+
+  lua_valid        resetthread() const noexcept;
+  thread_status    status() const noexcept;
+  coroutine_status coro_status() const noexcept;
+
+  template<typename R = void, typename... Args>
+  [[nodiscard]] R resume( Args&&... args ) {
+    lua::cthread L = this->cthread();
+
+    lua_expect<resume_result_with_value<R>> res =
+        call_lua_resume_safe_and_get<R>( L, FWD( args )... );
+    if( !res )
+      throw_lua_error( L,
+                       "error while resuming Lua coroutine: {}",
+                       res.error() );
+    if constexpr( !std::is_same_v<R, void> )
+      return std::move( res->value );
+  }
+
+  template<typename R = void, typename... Args>
+  error_type_for_return_type<R> resume_safe( Args&&... args ) {
+    lua::cthread L = this->cthread();
+
+    lua_expect<resume_result_with_value<R>> res =
+        call_lua_resume_safe_and_get<R>( L, FWD( args )... );
+    if( !res ) return res.error();
+    if constexpr( !std::is_same_v<R, void> )
+      return std::move( res->value );
+    else
+      return base::valid;
+  }
 };
 
 static_assert( Stackable<rthread> );
+
+// For when we want to push onto the stack of another thread.
+template<Pushable T>
+int push( rthread th, T&& o ) {
+  return lua::push( th.cthread(), std::forward<T>( o ) );
+}
 
 } // namespace lua
 

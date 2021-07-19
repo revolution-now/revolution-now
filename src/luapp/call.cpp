@@ -53,8 +53,7 @@ lua_expect<int> call_lua_from_cpp(
 }
 
 lua_expect<resume_result> call_lua_resume_from_cpp(
-    cthread L_toresume, cthread L_from,
-    base::function_ref<void()> push_args ) {
+    cthread L_toresume, base::function_ref<void()> push_args ) {
   c_api C_toresume( L_toresume );
 
   thread_status status = C_toresume.status();
@@ -71,7 +70,7 @@ lua_expect<resume_result> call_lua_resume_from_cpp(
 
   int nargs = after_args - before_args;
   DCHECK( nargs >= 0 );
-  return c_api( L_from ).resume_or_reset( L_toresume, nargs );
+  return C_toresume.resume_or_reset( L_toresume, nargs );
 }
 
 void pop_call_results( cthread L, int n ) {

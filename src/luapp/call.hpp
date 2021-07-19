@@ -72,8 +72,7 @@ lua_valid call_lua_safe_nresults( cthread L, int nresults,
 // arguments to be returned by coroutine.yield.
 template<Pushable... Args>
 lua_expect<resume_result> call_lua_resume_safe(
-    cthread L_toresume, cthread L_from,
-    Args&&... args ) noexcept;
+    cthread L_toresume, Args&&... args ) noexcept;
 
 /****************************************************************
 ** Interface: Function on stack, results converted+returned.
@@ -106,7 +105,7 @@ error_type_for_return_type<R> call_lua_safe_and_get(
 // off of the thread's stack).
 template<GettableOrVoid R = void, Pushable... Args>
 lua_expect<resume_result_with_value<R>>
-call_lua_resume_safe_and_get( cthread L_toresume, cthread L_from,
+call_lua_resume_safe_and_get( cthread L_toresume,
                               Args&&... args );
 
 /****************************************************************
@@ -120,8 +119,7 @@ lua_expect<int> call_lua_from_cpp(
     base::function_ref<void()> push_args );
 
 lua_expect<resume_result> call_lua_resume_from_cpp(
-    cthread L_toresume, cthread L_from,
-    base::function_ref<void()> push_args );
+    cthread L_toresume, base::function_ref<void()> push_args );
 
 } // namespace internal
 
@@ -171,12 +169,10 @@ lua_valid call_lua_safe_nresults( cthread L, int nresults,
 
 template<Pushable... Args>
 lua_expect<resume_result> call_lua_resume_safe(
-    cthread L_toresume, cthread L_from,
-    Args&&... args ) noexcept {
-  return internal::call_lua_resume_from_cpp(
-      L_toresume, L_from, [&] {
-        ( push( L_toresume, std::forward<Args>( args ) ), ... );
-      } );
+    cthread L_toresume, Args&&... args ) noexcept {
+  return internal::call_lua_resume_from_cpp( L_toresume, [&] {
+    ( push( L_toresume, std::forward<Args>( args ) ), ... );
+  } );
 }
 
 /****************************************************************
@@ -255,11 +251,11 @@ error_type_for_return_type<R> call_lua_safe_and_get(
 
 template<GettableOrVoid R, Pushable... Args>
 lua_expect<resume_result_with_value<R>>
-call_lua_resume_safe_and_get( cthread L_toresume, cthread L_from,
+call_lua_resume_safe_and_get( cthread L_toresume,
                               Args&&... args ) {
   static constexpr int      nresults_needed = nvalues_for<R>();
   lua_expect<resume_result> res =
-      call_lua_resume_safe( L_toresume, L_from, FWD( args )... );
+      call_lua_resume_safe( L_toresume, FWD( args )... );
   HAS_VALUE_OR_RET( res );
   // This basically does what call/pcall do when we specify a
   // fixed nresults, which we can't do for some reason with

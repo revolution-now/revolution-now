@@ -134,5 +134,17 @@ LUA_TEST_CASE( "[lua-state] thread create" ) {
   REQUIRE( th2 != th_main );
 }
 
+LUA_TEST_CASE( "[lua-state] thread create coro" ) {
+  st.script.run( "function f() end" );
+  rfunction f      = st["f"].cast<rfunction>();
+  rthread   coro   = st.thread.create_coro( f );
+  cthread   L_coro = coro.cthread();
+  c_api     C_coro( L_coro );
+  REQUIRE( C_coro.stack_size() == 1 );
+  REQUIRE( C_coro.type_of( -1 ) == type::function );
+  rfunction f2( coro.cthread(), C_coro.ref_registry() );
+  REQUIRE( f2 == f );
+}
+
 } // namespace
 } // namespace lua

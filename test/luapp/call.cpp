@@ -408,8 +408,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
       .status   = resume_status::yield,
       .nresults = 1,
   };
-  REQUIRE( call_lua_resume_safe( L2, L, 5, "hello" ) ==
-           expected );
+  REQUIRE( call_lua_resume_safe( L2, 5, "hello" ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( C2.type_of( -1 ) == type::string );
@@ -417,7 +416,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   C2.pop();
   expected = resume_result{ .status   = resume_status::yield,
                             .nresults = 1 };
-  REQUIRE( call_lua_resume_safe( L2, L, 6 ) == expected );
+  REQUIRE( call_lua_resume_safe( L2, 6 ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( C2.type_of( -1 ) == type::string );
@@ -425,7 +424,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   C2.pop();
   expected = resume_result{ .status   = resume_status::yield,
                             .nresults = 1 };
-  REQUIRE( call_lua_resume_safe( L2, L, "world" ) == expected );
+  REQUIRE( call_lua_resume_safe( L2, "world" ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( C2.type_of( -1 ) == type::string );
@@ -434,7 +433,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   REQUIRE( st["f_is_closed"] == nil );
   expected = resume_result{ .status   = resume_status::ok,
                             .nresults = 1 };
-  REQUIRE( call_lua_resume_safe( L2, L ) == expected );
+  REQUIRE( call_lua_resume_safe( L2 ) == expected );
   // The coro_status thinks that we're suspended because we
   // haven't yet popped the result off of the stack (that's a
   // quirk of the implementation that was taken from Lua and that
@@ -478,15 +477,14 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
       .status   = resume_status::yield,
       .nresults = 1,
   };
-  REQUIRE( call_lua_resume_safe( L2, L, 5, "hello" ) ==
-           expected );
+  REQUIRE( call_lua_resume_safe( L2, 5, "hello" ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( C2.type_of( -1 ) == type::string );
   REQUIRE( C2.get<string>( -1 ) == "hello5" );
   C2.pop();
   REQUIRE( st["f_is_closed"] == nil );
-  REQUIRE( call_lua_resume_safe( L2, L, 6 ) ==
+  REQUIRE( call_lua_resume_safe( L2, 6 ) ==
            lua_unexpected<resume_result>(
                "[string \"...\"]:9: some error" ) );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
@@ -534,25 +532,25 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
       .value  = "hello5",
   };
   REQUIRE( call_lua_resume_safe_and_get<string>(
-               L2, L, 5, "hello" ) == expected1 );
+               L2, 5, "hello" ) == expected1 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   resume_result_with_value<string> expected2{
       .status = resume_status::yield, .value = "hello6" };
-  REQUIRE( call_lua_resume_safe_and_get<string>( L2, L, 6 ) ==
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, 6 ) ==
            expected2 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   resume_result_with_value<string> expected3{
       .status = resume_status::yield, .value = "world6" };
-  REQUIRE( call_lua_resume_safe_and_get<string>(
-               L2, L, "world" ) == expected3 );
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, "world" ) ==
+           expected3 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result_with_value<int> expected4{
       .status = resume_status::ok, .value = 18 };
-  REQUIRE( call_lua_resume_safe_and_get<int>( L2, L ) ==
+  REQUIRE( call_lua_resume_safe_and_get<int>( L2 ) ==
            expected4 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( st["f_is_closed"] == true );
@@ -590,11 +588,11 @@ LUA_TEST_CASE(
       .value  = "hello5",
   };
   REQUIRE( call_lua_resume_safe_and_get<string>(
-               L2, L, 5, "hello" ) == expected1 );
+               L2, 5, "hello" ) == expected1 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( st["f_is_closed"] == nil );
-  REQUIRE( call_lua_resume_safe_and_get<string>( L2, L, 6 ) ==
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, 6 ) ==
            lua_unexpected<resume_result_with_value<string>>(
                "[string \"...\"]:9: some error" ) );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
@@ -617,7 +615,7 @@ LUA_TEST_CASE(
   )" );
   C2.getglobal( "f" );
   REQUIRE( C2.stack_size() == 1 );
-  REQUIRE( call_lua_resume_safe_and_get<int>( L2, L, 5 ) ==
+  REQUIRE( call_lua_resume_safe_and_get<int>( L2, 5 ) ==
            lua_unexpected<resume_result_with_value<int>>(
                "cannot resume dead coroutine" ) );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
@@ -644,7 +642,7 @@ LUA_TEST_CASE(
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE(
-      call_lua_resume_safe_and_get<int>( L2, L ) ==
+      call_lua_resume_safe_and_get<int>( L2 ) ==
       lua_unexpected<resume_result_with_value<int>>(
           "native code expected type `int' as a return value "
           "(which requires 1 Lua value), but the values "

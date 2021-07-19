@@ -23,7 +23,7 @@ namespace lua {
 // tatus function, which is derived from this plus some other in-
 // formation. It is probably more useful to use coroutine_status
 // further below which mirrors coroutine.status.
-enum class thread_status { ok, yield, err };
+enum class [[nodiscard]] thread_status{ ok, yield, err };
 
 /****************************************************************
 ** Resume Results
@@ -32,12 +32,12 @@ enum class thread_status { ok, yield, err };
 // lua_expect being in an error state. In other words, this type
 // is supposed to be used in a lua_expect<resume_status> or some-
 // thing similar.
-enum class resume_status { ok, yield };
+enum class [[nodiscard]] resume_status{ ok, yield };
 
 void to_str( resume_status status, std::string& out );
 
 // This is used to communicate the results from lua_resume.
-struct resume_result {
+struct [[nodiscard]] resume_result {
   resume_status status;
   int           nresults;
 
@@ -47,7 +47,7 @@ struct resume_result {
 void to_str( resume_result result, std::string& out );
 
 template<typename R>
-struct resume_result_with_value {
+struct [[nodiscard]] resume_result_with_value {
   resume_status status;
   R             value;
 
@@ -66,7 +66,7 @@ struct resume_result_with_value {
 };
 
 template<>
-struct resume_result_with_value<void> {
+struct [[nodiscard]] resume_result_with_value<void> {
   resume_status status;
 
   bool operator==( resume_result_with_value const& ) const =

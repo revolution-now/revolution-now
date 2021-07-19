@@ -46,4 +46,19 @@ bool rthread::is_main() const noexcept {
   return is_main_thread;
 }
 
+lua_valid rthread::resetthread() const noexcept {
+  lua::c_api C( L );
+  return C.resetthread();
+}
+
+thread_status rthread::status() const noexcept {
+  lua::c_api C( L );
+  return C.status();
+}
+
+coroutine_status rthread::coro_status() const noexcept {
+  lua::c_api C( L );
+  return C.coro_status();
+}
+
 } // namespace lua

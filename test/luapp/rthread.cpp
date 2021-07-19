@@ -27,6 +27,7 @@ namespace {
 using namespace std;
 
 using ::base::maybe;
+using ::base::valid;
 
 /****************************************************************
 ** rthread objects
@@ -86,6 +87,68 @@ LUA_TEST_CASE( "[rthread] construction + is_main" ) {
   REQUIRE( m != th1 );
   REQUIRE( !m->is_main() );
   C.pop();
+}
+
+LUA_TEST_CASE( "[lua-state] thread resume unsafe" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f()
+    coroutine.yield()
+    local n = coroutine.yield( "hello" )
+    assert( n == 6 )
+    local m = coroutine.yield( n*2 )
+    assert( m == 7 )
+    return n+m
+  end
+  )" );
+  rfunction f = st["f"].cast<rfunction>();
+
+  rthread coro = st.thread.create_coro( f );
+  REQUIRE( coro.status() == thread_status::ok );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  coro.resume();
+  REQUIRE( coro.status() == thread_status::yield );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  string s = coro.resume<string>();
+  REQUIRE( coro.status() == thread_status::yield );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  REQUIRE( s == "hello" );
+  int i = coro.resume<int>( 6 );
+  REQUIRE( coro.status() == thread_status::yield );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  REQUIRE( i == 12 );
+  int res = coro.resume<int>( 7 );
+  REQUIRE( coro.status() == thread_status::ok );
+  REQUIRE( coro.coro_status() == coroutine_status::dead );
+  REQUIRE( res == 13 );
+}
+
+LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f()
+    coroutine.yield()
+    local n = coroutine.yield( "hello" )
+    error( 'some error' )
+  end
+  )" );
+  rfunction f = st["f"].cast<rfunction>();
+
+  rthread coro = st.thread.create_coro( f );
+  REQUIRE( coro.status() == thread_status::ok );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  REQUIRE( coro.resume_safe() == valid );
+  REQUIRE( coro.status() == thread_status::yield );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  lua_expect<rstring> s = coro.resume_safe<rstring>();
+  REQUIRE( coro.status() == thread_status::yield );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
+  REQUIRE( s == "hello" );
+  REQUIRE(
+      coro.resume_safe<int>( 6 ) ==
+      lua_unexpected<int>( "[string \"...\"]:5: some error" ) );
+  REQUIRE( coro.status() == thread_status::err );
+  REQUIRE( coro.coro_status() == coroutine_status::dead );
 }
 
 } // namespace

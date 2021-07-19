@@ -870,7 +870,7 @@ lua_valid c_api::resetthread() noexcept {
 
 lua_expect<resume_result> c_api::resume_or_leak(
     cthread L_toresume, int nargs ) noexcept {
-  CHECK( L != L_toresume );
+  // L and L_toresume may or may not be the same here.
   c_api C_toresume( L_toresume );
   C_toresume.enforce_stack_size_ge( nargs );
   lua_State*    L_from   = L;
@@ -887,7 +887,7 @@ lua_expect<resume_result> c_api::resume_or_leak(
 
 lua_expect<resume_result> c_api::resume_or_reset(
     cthread L_toresume, int nargs ) noexcept {
-  CHECK( L != L_toresume );
+  // L and L_toresume may or may not be the same here.
   lua_expect<resume_result> res =
       resume_or_leak( L_toresume, nargs );
   if( !res ) {

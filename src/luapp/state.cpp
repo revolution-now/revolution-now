@@ -75,9 +75,21 @@ rthread state::Thread::main() noexcept {
 }
 
 rthread state::Thread::create() noexcept {
-  c_api C( L );
-  (void)C.newthread();
-  return rthread( L, C.ref_registry() );
+  c_api   C( L );
+  cthread NL = C.newthread();
+  rthread res( L, C.ref_registry() );
+  CHECK( res.this_cthread() == NL );
+  return res;
+}
+
+rthread state::Thread::create_coro( rfunction func ) noexcept {
+  rthread coro = create();
+  // This mirrors the way that Lua's coroutine.create method
+  // works, namely that it creates a new thread, then pushing the
+  // function to run onto the top of the (new) stack of the new
+  // thread.
+  lua::push( coro, func );
+  return coro;
 }
 
 /****************************************************************

@@ -71,8 +71,13 @@ public:
     // one that we get when we create the state.
     rthread main() noexcept;
 
-    // Create a new coroutine.
+    // Create a new thread with empty stack.
     rthread create() noexcept;
+
+    // Create a new coroutine, which is defined as a new thread
+    // with a function pushed onto its stack, ready to be run by
+    // coroutine.resume.
+    rthread create_coro( rfunction func ) noexcept;
 
   private:
     cthread L;
