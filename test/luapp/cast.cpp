@@ -146,6 +146,23 @@ LUA_TEST_CASE( "[cast] cast to _" ) {
   }
 }
 
+LUA_TEST_CASE( "[cast] cast with L" ) {
+  SECTION( "int" ) {
+    st["x"] = 5;
+    (void)cast<int>( L, st["x"] );
+  }
+  SECTION( "string" ) {
+    st["x"] = "hello";
+    (void)cast<string>( L, st["x"] );
+    st["x"] = 5;
+    (void)cast<string>( L, st["x"] );
+  }
+  SECTION( "table" ) {
+    st["x"] = st.table.create();
+    (void)cast<table>( L, st["x"] );
+  }
+}
+
 LUA_TEST_CASE( "[cast] cast to maybe<_>" ) {
   SECTION( "int" ) {
     st["x"] = 5;

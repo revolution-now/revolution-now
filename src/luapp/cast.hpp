@@ -33,8 +33,8 @@ namespace detail {
 void        cast_pop( cthread L, int n );
 std::string cast_type_name( cthread L, int idx );
 
-// If this is ever taken out of the detail namespace then it
-// needs to be independently unit tested.
+} // namespace detail
+
 template<typename To, typename From>
 requires Castable<From, To>
 [[nodiscard]] To cast(
@@ -46,15 +46,13 @@ requires Castable<From, To>
   return to;
 }
 
-} // namespace detail
-
 template<typename To, typename From>
 requires Castable<From, To> && HasCthread<From>
 [[nodiscard]] To cast(
     From&&          from,
     base::SourceLoc loc = base::SourceLoc::current() ) {
   cthread L = from.this_cthread();
-  return detail::cast<To>( L, FWD( from ), loc );
+  return cast<To>( L, FWD( from ), loc );
 }
 
 // Wraps the type in a maybe<...> so that it won't throw errors
