@@ -18,8 +18,8 @@ void to_str( int const& o, std::string& out ) {
   out += std::to_string( o );
 }
 
-void to_str( std::string const& o, std::string& out ) {
-  out += o;
+void to_str( std::string_view o, std::string& out ) {
+  out += string( o );
 }
 
 } // namespace base
