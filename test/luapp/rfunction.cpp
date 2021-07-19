@@ -176,7 +176,7 @@ LUA_TEST_CASE( "[lfunction] lfunction copy --> no collect" ) {
   verify_collect( true );
 }
 
-LUA_TEST_CASE( "[table] cpp->lua->cpp round trip" ) {
+LUA_TEST_CASE( "[rfunction] cpp->lua->cpp round trip" ) {
   C.openlibs();
 
   int bad_value = 4;
