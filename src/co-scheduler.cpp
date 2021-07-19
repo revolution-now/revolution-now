@@ -1,5 +1,5 @@
 /****************************************************************
-**co-registry.cpp
+**co-scheduler.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *              coroutine continuations.
 *
 *****************************************************************/
-#include "co-registry.hpp"
+#include "co-scheduler.hpp"
 
 // Revolution Now
 #include "error.hpp"
@@ -42,7 +42,8 @@ void run_all_coroutines() {
     coro::coroutine_handle<> h = g_coros_to_resume.front();
     g_coros_to_resume.pop();
     h.resume();
-    // May have added some more coroutines into the queue.
+    // May have added some more coroutines into the queue or re-
+    // moved some (due to coroutine cancellation).
   }
 }
 

@@ -12,7 +12,7 @@
 
 // Under test.
 #include "src/co-combinator.hpp"
-#include "src/co-registry.hpp"
+#include "src/co-scheduler.hpp"
 #include "src/waitable-coro.hpp"
 
 // base

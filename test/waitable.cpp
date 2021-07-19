@@ -11,7 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "co-registry.hpp"
+#include "co-scheduler.hpp"
 #include "waitable-coro.hpp"
 #include "waitable.hpp"
 

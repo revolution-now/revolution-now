@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "co-registry.hpp"
+#include "co-scheduler.hpp"
 #include "waitable.hpp"
 
 // base

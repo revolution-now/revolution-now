@@ -1,5 +1,5 @@
 /****************************************************************
-**co-registry.hpp
+**co-scheduler.hpp
 *
 * Project: Revolution Now
 *

@@ -11,7 +11,7 @@
 #include "frame.hpp"
 
 // Revolution Now
-#include "co-registry.hpp"
+#include "co-scheduler.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"

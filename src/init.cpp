@@ -11,7 +11,7 @@
 #include "init.hpp"
 
 // Revolution Now
-#include "co-registry.hpp"
+#include "co-scheduler.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
