@@ -52,6 +52,28 @@ lua_expect<int> call_lua_from_cpp(
   return actual_nresults;
 }
 
+lua_expect<resume_result> call_lua_resume_from_cpp(
+    cthread L_toresume, cthread L_from,
+    base::function_ref<void()> push_args ) {
+  c_api C_toresume( L_toresume );
+
+  thread_status status = C_toresume.status();
+  // First time we are resuming the coroutine?
+  if( status == thread_status::ok ) {
+    CHECK( C_toresume.stack_size() >= 1 );
+    CHECK( C_toresume.type_of( -1 ) == type::function ||
+           C_toresume.type_of( -1 ) == type::table );
+  }
+
+  int before_args = C_toresume.stack_size();
+  push_args();
+  int after_args = C_toresume.stack_size();
+
+  int nargs = after_args - before_args;
+  DCHECK( nargs >= 0 );
+  return c_api( L_from ).resume_or_reset( L_toresume, nargs );
+}
+
 void pop_call_results( cthread L, int n ) {
   c_api( L ).pop( n );
 }
@@ -77,6 +99,24 @@ std::string lua_error_bad_return_values(
   throw_lua_error( L, "{}",
                    lua_error_bad_return_values(
                        L, nresults, ret_type_name ) );
+}
+
+void adjust_return_values( cthread L, int nresults_returned,
+                           int nresults_needed ) {
+  c_api C( L );
+  CHECK( C.stack_size() >= nresults_returned );
+  int diff = nresults_needed - nresults_returned;
+
+  if( diff > 0 ) {
+    for( int i = 0; i < diff; ++i ) C.push( nil );
+  } else if( diff < 0 ) {
+    C.pop( -diff );
+  }
+  DCHECK( C.stack_size() >= nresults_needed );
+}
+
+lua_valid resetthread( cthread L ) {
+  return c_api( L ).resetthread();
 }
 
 } // namespace internal

@@ -24,6 +24,8 @@
 #include "test/catch-common.hpp"
 
 FMT_TO_CATCH( ::lua::type );
+FMT_TO_CATCH( ::lua::coroutine_status );
+FMT_TO_CATCH_T( ( R ), ::lua::resume_result_with_value );
 
 namespace lua {
 namespace {
@@ -376,6 +378,252 @@ LUA_TEST_CASE(
                  "\t[C]: in function 'assert'\n"
                  "\t[string \"...\"]:3: in function 'foo'" ) );
   }
+}
+
+LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f( n, s )
+    n = coroutine.yield( s .. tostring( n ) )
+    local _<close> = setmetatable( {}, {
+      __close = function()
+          f_is_closed = true
+        end
+    } )
+    s = coroutine.yield( s .. tostring( n ) )
+    coroutine.yield( s .. tostring( n ) )
+    return n*3
+  end
+  )" );
+  REQUIRE( C.stack_size() == 0 );
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.stack_size() == 0 );
+  C2.getglobal( "f" );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( st["f_is_closed"] == nil );
+  resume_result expected{
+      .status   = resume_status::yield,
+      .nresults = 1,
+  };
+  REQUIRE( call_lua_resume_safe( L2, L, 5, "hello" ) ==
+           expected );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == type::string );
+  REQUIRE( C2.get<string>( -1 ) == "hello5" );
+  C2.pop();
+  expected = resume_result{ .status   = resume_status::yield,
+                            .nresults = 1 };
+  REQUIRE( call_lua_resume_safe( L2, L, 6 ) == expected );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == type::string );
+  REQUIRE( C2.get<string>( -1 ) == "hello6" );
+  C2.pop();
+  expected = resume_result{ .status   = resume_status::yield,
+                            .nresults = 1 };
+  REQUIRE( call_lua_resume_safe( L2, L, "world" ) == expected );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == type::string );
+  REQUIRE( C2.get<string>( -1 ) == "world6" );
+  C2.pop();
+  REQUIRE( st["f_is_closed"] == nil );
+  expected = resume_result{ .status   = resume_status::ok,
+                            .nresults = 1 };
+  REQUIRE( call_lua_resume_safe( L2, L ) == expected );
+  // The coro_status thinks that we're suspended because we
+  // haven't yet popped the result off of the stack (that's a
+  // quirk of the implementation that was taken from Lua and that
+  // is not really expecting to be called from C++ I think.
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( st["f_is_closed"] == true );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == type::number );
+  REQUIRE( C2.get<int>( -1 ) == 18 );
+  C2.pop();
+  // Now it's considered dead after popping.
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop(); // new thread
+}
+
+LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f( n, s )
+    n = coroutine.yield( s .. tostring( n ) )
+    local _<close> = setmetatable( {}, {
+      __close = function()
+          f_is_closed = true
+        end
+    } )
+    error( 'some error' )
+  end
+  )" );
+  REQUIRE( C.stack_size() == 0 );
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.stack_size() == 0 );
+  C2.getglobal( "f" );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( st["f_is_closed"] == nil );
+  resume_result expected{
+      .status   = resume_status::yield,
+      .nresults = 1,
+  };
+  REQUIRE( call_lua_resume_safe( L2, L, 5, "hello" ) ==
+           expected );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.type_of( -1 ) == type::string );
+  REQUIRE( C2.get<string>( -1 ) == "hello5" );
+  C2.pop();
+  REQUIRE( st["f_is_closed"] == nil );
+  REQUIRE( call_lua_resume_safe( L2, L, 6 ) ==
+           lua_unexpected<resume_result>(
+               "[string \"...\"]:9: some error" ) );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( st["f_is_closed"] == true );
+  // Error object is still on the stack.
+  REQUIRE( C2.stack_size() == 1 );
+  C2.pop();
+  REQUIRE( C2.status() == thread_status::err );
+
+  // Ensure that we can push things once again to the L2 stack.
+  C2.push( 5 );
+  REQUIRE( C2.stack_size() == 1 );
+  C2.pop();
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop(); // new thread
+}
+
+LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f( n, s )
+    n = coroutine.yield( s .. tostring( n ) )
+    local _<close> = setmetatable( {}, {
+      __close = function()
+          f_is_closed = true
+        end
+    } )
+    s = coroutine.yield( s .. tostring( n ) )
+    coroutine.yield( s .. tostring( n ) )
+    return n*3
+  end
+  )" );
+  REQUIRE( C.stack_size() == 0 );
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.stack_size() == 0 );
+  C2.getglobal( "f" );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( st["f_is_closed"] == nil );
+  resume_result_with_value<string> expected1{
+      .status = resume_status::yield,
+      .value  = "hello5",
+  };
+  REQUIRE( call_lua_resume_safe_and_get<string>(
+               L2, L, 5, "hello" ) == expected1 );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 0 );
+  resume_result_with_value<string> expected2{
+      .status = resume_status::yield, .value = "hello6" };
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, L, 6 ) ==
+           expected2 );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 0 );
+  resume_result_with_value<string> expected3{
+      .status = resume_status::yield, .value = "world6" };
+  REQUIRE( call_lua_resume_safe_and_get<string>(
+               L2, L, "world" ) == expected3 );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( st["f_is_closed"] == nil );
+  resume_result_with_value<int> expected4{
+      .status = resume_status::ok, .value = 18 };
+  REQUIRE( call_lua_resume_safe_and_get<int>( L2, L ) ==
+           expected4 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( st["f_is_closed"] == true );
+  REQUIRE( C2.stack_size() == 0 );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop(); // new thread
+}
+
+LUA_TEST_CASE(
+    "[lua-call] call_lua_resume_safe_and_get w/ error" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f( n, s )
+    n = coroutine.yield( s .. tostring( n ) )
+    local _<close> = setmetatable( {}, {
+      __close = function()
+          f_is_closed = true
+        end
+    } )
+    error( 'some error' )
+  end
+  )" );
+  REQUIRE( C.stack_size() == 0 );
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.stack_size() == 0 );
+  C2.getglobal( "f" );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( st["f_is_closed"] == nil );
+  resume_result_with_value<string> expected1{
+      .status = resume_status::yield,
+      .value  = "hello5",
+  };
+  REQUIRE( call_lua_resume_safe_and_get<string>(
+               L2, L, 5, "hello" ) == expected1 );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( st["f_is_closed"] == nil );
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, L, 6 ) ==
+           lua_unexpected<resume_result_with_value<string>>(
+               "[string \"...\"]:9: some error" ) );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( st["f_is_closed"] == true );
+  // Error object is still on the stack.
+  REQUIRE( C2.stack_size() == 1 );
+  C2.pop();
+  REQUIRE( C2.status() == thread_status::err );
+
+  // Ensure that we can push things once again to the L2 stack.
+  C2.push( 5 );
+  REQUIRE( C2.stack_size() == 1 );
+  C2.pop();
+
+  // Let's try to run another coroutine on it.
+  st.script.run( R"(
+  function f( n )
+    return coroutine.yield( n+1 )
+  end
+  )" );
+  C2.getglobal( "f" );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( call_lua_resume_safe_and_get<int>( L2, L, 5 ) ==
+           lua_unexpected<resume_result_with_value<int>>(
+               "cannot resume dead coroutine" ) );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop(); // new thread
 }
 
 } // namespace
