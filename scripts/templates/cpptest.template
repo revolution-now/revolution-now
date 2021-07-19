@@ -50,9 +50,8 @@ TEST_CASE( "[{{FILE}}] lua bindings" ) {
   )";
 
   auto xp = st.script.run_safe( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what,
-                Contains( "unexpected symbol" ) );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
 
   script = R"(
     return 5+8.5
