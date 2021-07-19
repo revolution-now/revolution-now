@@ -626,5 +626,38 @@ LUA_TEST_CASE(
   C.pop(); // new thread
 }
 
+LUA_TEST_CASE(
+    "[lua-call] call_lua_resume_safe_and_get w/ conversion "
+    "error" ) {
+  C.openlibs();
+  st.script.run( R"(
+  function f()
+    coroutine.yield( "hello" )
+  end
+  )" );
+  REQUIRE( C.stack_size() == 0 );
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.stack_size() == 0 );
+  C2.getglobal( "f" );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE(
+      call_lua_resume_safe_and_get<int>( L2, L ) ==
+      lua_unexpected<resume_result_with_value<int>>(
+          "native code expected type `int' as a return value "
+          "(which requires 1 Lua value), but the values "
+          "returned by Lua were not convertible to that native "
+          "type.  The Lua values received were: [string]." ) );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  // No error object on the stack.
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( C2.status() == thread_status::ok );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop(); // new thread
+}
+
 } // namespace
 } // namespace lua
