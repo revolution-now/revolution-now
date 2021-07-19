@@ -11,7 +11,7 @@
 #include "frame.hpp"
 
 // Revolution Now
-#include "co-scheduler.hpp"
+#include "co-runner.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
@@ -156,7 +156,7 @@ void frame_loop_body( InputReceivedFunc input_received ) {
   // scribers that want to be notified at regular tick or time
   // intervals.
   notify_subscribers();
-  run_all_cpp_coroutines();
+  run_all_coroutines();
 
   // Keep the state of the moving averages up to date even when
   // there are no ticks happening on them. Specifically, if there
@@ -182,13 +182,13 @@ void frame_loop_body( InputReceivedFunc input_received ) {
     if( is_win_resize( event ) ) on_main_window_resized();
     (void)send_input_to_planes( event );
     q.pop();
-    run_all_cpp_coroutines();
+    run_all_coroutines();
   }
 
   // ----------------------------------------------------------
   // 2. Update State.
   advance_plane_state();
-  run_all_cpp_coroutines();
+  run_all_coroutines();
 
   // ----------------------------------------------------------
   // 3. Draw.

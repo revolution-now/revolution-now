@@ -13,11 +13,9 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logging.hpp"
 
 // C++ standard library
 #include <queue>
-#include <vector>
 
 using namespace std;
 
