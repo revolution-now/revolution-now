@@ -32,12 +32,12 @@ queue<coro::coroutine_handle<>> g_coros_to_resume;
 /****************************************************************
 ** Public API
 *****************************************************************/
-void queue_coroutine_handle( coro::coroutine_handle<> h ) {
+void queue_cpp_coroutine_handle( coro::coroutine_handle<> h ) {
   CHECK( h );
   g_coros_to_resume.push( h );
 }
 
-void run_all_coroutines() {
+void run_all_cpp_coroutines() {
   while( !g_coros_to_resume.empty() ) {
     coro::coroutine_handle<> h = g_coros_to_resume.front();
     g_coros_to_resume.pop();
@@ -47,7 +47,8 @@ void run_all_coroutines() {
   }
 }
 
-void remove_coroutine_if_queued( coro::coroutine_handle<> h ) {
+void remove_cpp_coroutine_if_queued(
+    coro::coroutine_handle<> h ) {
   queue<coro::coroutine_handle<>> coros_to_resume;
   while( !g_coros_to_resume.empty() ) {
     coro::coroutine_handle<> front = g_coros_to_resume.front();
@@ -57,7 +58,7 @@ void remove_coroutine_if_queued( coro::coroutine_handle<> h ) {
   g_coros_to_resume = std::move( coros_to_resume );
 }
 
-int number_of_queued_coroutines() {
+int number_of_queued_cpp_coroutines() {
   return int( g_coros_to_resume.size() );
 }
 

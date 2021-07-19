@@ -56,7 +56,7 @@ TEST_CASE( "[co-combinator] any" ) {
     p2.finish();
     REQUIRE( !w.ready() );
   }
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
 }
 
@@ -89,21 +89,21 @@ TEST_CASE( "[co-combinator] all" ) {
   }( std::move( w1 ), std::move( w2 ), std::move( w3 ) );
 
   SECTION( "run to completion" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !ss1->has_value() );
     REQUIRE( !ss2->has_value() );
     REQUIRE( !ss3->has_value() );
     REQUIRE( !w.ready() );
     p1.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( ss1->has_value() );
     REQUIRE( !w.ready() );
     p3.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( ss3->has_value() );
     REQUIRE( !w.ready() );
     p2.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
     REQUIRE( ss1->has_value() );
@@ -111,37 +111,37 @@ TEST_CASE( "[co-combinator] all" ) {
     REQUIRE( ss3->has_value() );
   }
   SECTION( "cancellation scheduled" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
     REQUIRE( !w.ready() );
     // don't run all coroutines here -- keep it queued.
     w.cancel();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p3.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( ss1->has_value() );
     REQUIRE( !ss2->has_value() );
     REQUIRE( !ss3->has_value() );
   }
   SECTION( "cancellation" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     w.cancel();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p3.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( ss1->has_value() );
     REQUIRE( ss2->has_value() );
@@ -161,10 +161,10 @@ TEST_CASE( "[co-combinator] first" ) {
   SECTION( "w1 finishes first" ) {
     waitable<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w->index() == 0 );
     REQUIRE( w.get().get_if<int>() == 5 );
@@ -172,10 +172,10 @@ TEST_CASE( "[co-combinator] first" ) {
   SECTION( "w2 finishes first" ) {
     waitable<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w->index() == 1 );
     REQUIRE( w.get().get_if<monostate>().has_value() );
@@ -183,10 +183,10 @@ TEST_CASE( "[co-combinator] first" ) {
   SECTION( "w3 finishes first" ) {
     waitable<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p3.set_value( "hello" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w->index() == 2 );
     REQUIRE( w.get().get_if<string>() == "hello" );
@@ -194,11 +194,11 @@ TEST_CASE( "[co-combinator] first" ) {
   SECTION( "both p1 and p3 finish (p1 first)" ) {
     waitable<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
     p3.set_value( "hello" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w->index() == 0 );
     REQUIRE( w.get().get_if<int>() == 5 );
@@ -206,11 +206,11 @@ TEST_CASE( "[co-combinator] first" ) {
   SECTION( "both p1 and p3 finish (p3 first)" ) {
     waitable<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p3.set_value( "hello" );
     p1.set_value( 5 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w->index() == 2 );
     REQUIRE( w.get().get_if<string>() == "hello" );
@@ -237,10 +237,10 @@ TEST_CASE( "[co-combinator] background" ) {
     {
       waitable<int> w =
           background( std::move( w1 ), std::move( w2 ) );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       p1.set_value( 5 );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w.get() == 5 );
       // At this point, `w` should go out of scope which should
@@ -252,37 +252,37 @@ TEST_CASE( "[co-combinator] background" ) {
     }
     // Verify cancellation.
     p2.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !ss2->has_value() );
   }
   SECTION( "w2 finishes first, w1 does not finish" ) {
     waitable<int> w =
         background( std::move( w1 ), std::move( w2 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
   }
   SECTION( "both (p1 first)" ) {
     waitable<int> w =
         background( std::move( w1 ), std::move( w2 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
     p2.finish();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
   }
   SECTION( "both (p2 first)" ) {
     waitable<int> w =
         background( std::move( w1 ), std::move( w2 ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
     p1.set_value( 5 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
   }
@@ -338,22 +338,22 @@ TEST_CASE( "[co-combinator] stream" ) {
   stream<int> s;
   waitable    w = s.next();
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   s.send( 5 );
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( w.get() == 5 );
   w = s.next();
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   s.send( 7 );
   s.send( 6 );
   s.send( 5 );
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( w.get() == 7 );
   w = s.next();
@@ -367,7 +367,7 @@ TEST_CASE( "[co-combinator] stream" ) {
   s.send( 4 );
   REQUIRE( !w.ready() );
   w.cancel();
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   w = s.next();
   REQUIRE( w.ready() );
@@ -378,22 +378,22 @@ TEST_CASE( "[co-combinator] finite_stream" ) {
   finite_stream<int> s;
   waitable           w = s.next();
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   s.send( 5 );
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( w.get() == 5 );
   w = s.next();
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   s.send( 7 );
   s.send( 6 );
   s.send( 5 );
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( w.get() == 7 );
   w = s.next();
@@ -407,7 +407,7 @@ TEST_CASE( "[co-combinator] finite_stream" ) {
   s.send( 4 );
   REQUIRE( !w.ready() );
   w.cancel();
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   w = s.next();
   REQUIRE( w.ready() );
@@ -419,7 +419,7 @@ TEST_CASE( "[co-combinator] finite_stream" ) {
   s.finish();
   s.send( 9 );
   REQUIRE( !w.ready() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( w.get() == nothing );
   w = s.next();
@@ -441,7 +441,7 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
       detect_suspend( some_coroutine( std::move( w1 ) ) );
   auto should_suspend =
       detect_suspend( some_coroutine( std::move( w2 ) ) );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
 
   REQUIRE( should_not_suspend.ready() );
   REQUIRE( !should_suspend.ready() );
@@ -451,7 +451,7 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   REQUIRE( rws1.suspended == false );
 
   p2.set_value( 7 );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
 
   REQUIRE( should_suspend.ready() );
   ResultWithSuspend<int> const& rws2 = should_suspend.get();
@@ -518,18 +518,18 @@ TEST_CASE( "[co-combinator] exception with any" ) {
   REQUIRE( !w.has_exception() );
 
   p2.set_exception( runtime_error( "test-failed" ) );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
 
   // Subsequent exceptions have no effect.
   p3.set_exception( runtime_error( "test-failed" ) );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
 
   p1.set_exception( runtime_error( "test-failed" ) );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
 }
@@ -604,10 +604,10 @@ TEST_CASE(
   REQUIRE( places == "kcfgia" );
 
   SECTION( "sanity check - run to completion" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     int_stream.send( 3 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 9 );
     // Depends on order of parameter destruction.
@@ -615,23 +615,23 @@ TEST_CASE(
                               Equals( "kcfgiabBAjJICGFlLK" ) );
   }
   SECTION( "sanity check - cancellation" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     w.cancel();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     // Depends on order of parameter destruction.
     REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
                               Equals( "kcfgiaCGFAIK" ) );
   }
   SECTION( "get_int1, get_int2, get_int3 all throw" ) {
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
     SECTION( "get_int3 first" ) {
       // First, have get_int3 throw exception manually.
       int_stream.set_exception();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -641,14 +641,14 @@ TEST_CASE(
       // branches have already been cancelled. Let get_int1
       // throw.
       get_int1_p.finish();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
       REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
                                 Equals( "kcfgiaAICGFK" ) );
       get_int2_p.set_exception( runtime_error( "test-failed" ) );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -658,7 +658,7 @@ TEST_CASE(
     SECTION( "get_int2 first" ) {
       // Let get_int2 throw manually.
       get_int2_p.set_exception( runtime_error( "test-failed" ) );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -667,7 +667,7 @@ TEST_CASE(
       // Subsequent exceptions should have no effect as those
       // branches have already been cancelled.
       get_int1_p.finish(); // causes exception.
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -675,7 +675,7 @@ TEST_CASE(
                                 Equals( "kcfgiaGFCAIK" ) );
       // Let get_int3 throw.
       int_stream.set_exception();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -684,7 +684,7 @@ TEST_CASE(
     }
     SECTION( "get_int1 first" ) {
       get_int1_p.finish(); // causes exception.
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -694,7 +694,7 @@ TEST_CASE(
       // branches have already been cancelled.
       // Let get_int3 throw.
       int_stream.set_exception();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -702,7 +702,7 @@ TEST_CASE(
                                 Equals( "kcfgiadDCGFAIK" ) );
       // Let get_int2 throw manually.
       get_int2_p.set_exception( runtime_error( "test-failed" ) );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
       // Depends on order of parameter destruction.
@@ -712,7 +712,7 @@ TEST_CASE(
 
     // Now cancel w, just to make sure nothing goes wrong.
     w.cancel();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
   }
@@ -741,7 +741,7 @@ TEST_CASE( "[co-combinator] try" ) {
     waitable<maybe<int>> w = co::try_<runtime_error>(
         LC0( throwing_coro( true, true ) ), catcher );
     REQUIRE( what == "" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( what == "first" );
     REQUIRE( w.ready() );
     REQUIRE( !w.has_exception() );
@@ -751,12 +751,12 @@ TEST_CASE( "[co-combinator] try" ) {
     waitable<maybe<int>> w = co::try_<runtime_error>(
         LC0( throwing_coro( true, false ) ), catcher );
     REQUIRE( what == "" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
     REQUIRE( what == "" );
     wp.set_value( 9 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( what == "second" );
     REQUIRE( w.ready() );
     REQUIRE( !w.has_exception() );
@@ -766,12 +766,12 @@ TEST_CASE( "[co-combinator] try" ) {
     waitable<maybe<int>> w = co::try_<runtime_error>(
         L0( throwing_coro( false, false ) ), catcher );
     REQUIRE( what == "" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
     REQUIRE( what == "" );
     wp.set_value( 9 );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( !w.has_exception() );
     REQUIRE( what == "" );
@@ -814,10 +814,10 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     co::stream<int> s;
     {
       waitable<int> w = wait_on_stream( s );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       s.send( kFirst );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       // Now send the remainder of the values, but instead of
       // then running all coroutines, just let w get cancelled,
@@ -830,12 +830,12 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     // w has now been cancelled.
     waitable<int> w = wait_on_stream( s );
     REQUIRE( !w.ready() );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     // At this point, we should be waiting at #3.
     s.send( kFourth );
     REQUIRE( !w.ready() );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( *w == kSecond + kThird + kFourth );
   }
@@ -843,10 +843,10 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     co::finite_stream<int> s;
     {
       waitable<int> w = wait_on_finite_stream( s );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       s.send( kFirst );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       // Now send the remainder of the values, but instead of
       // then running all coroutines, just let w get cancelled,
@@ -859,12 +859,12 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     // w has now been cancelled.
     waitable<int> w = wait_on_finite_stream( s );
     REQUIRE( !w.ready() );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     // At this point, we should be waiting at #3.
     s.send( kFourth );
     REQUIRE( !w.ready() );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( *w == kSecond + kThird + kFourth );
 
@@ -873,7 +873,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     {
       waitable<maybe<int>> w = s.next();
       REQUIRE( !w.ready() );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       s.finish();
       REQUIRE( !w.ready() );
@@ -905,7 +905,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       found.push_back( std::visit( L( _ ), *w ) );
     }
@@ -920,7 +920,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     for( int i = 3; i < 6; ++i ) s1.send( i );
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 0 );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -929,7 +929,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     for( int i = 0; i < 3; ++i ) s2.send( i );
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 1 );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -938,7 +938,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     for( int i = 6; i < 9; ++i ) s3.send( i );
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 2 );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -958,7 +958,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     idx = 0;
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -970,7 +970,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     idx = 0;
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -982,7 +982,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     idx = 0;
     while( true ) {
       waitable<base::variant<int, int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
       found.push_back( std::visit( L( _ ), *w ) );
@@ -1006,7 +1006,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s3.send( 6 );
       while( true ) {
         waitable<base::variant<int, int, int>> w = il.next();
-        run_all_coroutines();
+        run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
       }
@@ -1019,7 +1019,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s3.send( 7 );
       while( true ) {
         waitable<base::variant<int, int, int>> w = il.next();
-        run_all_coroutines();
+        run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
       }
@@ -1032,7 +1032,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s3.send( 8 );
       while( true ) {
         waitable<base::variant<int, int, int>> w = il.next();
-        run_all_coroutines();
+        run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
       }
@@ -1058,7 +1058,7 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
 
   while( true ) {
     waitable<base::variant<int, double, string>> w = il.next();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     if( !w.ready() ) break;
     found.push_back( *w );
   }
@@ -1073,18 +1073,18 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
 TEST_CASE( "[co-combinator] one shot stream adapter" ) {
   waitable_promise<int> p;
   auto shot = co::make_streamable( p.waitable() );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
 
   waitable<int> w1 = shot.next();
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w1.ready() );
   p.set_value( 5 );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w1.ready() );
   REQUIRE( *w1 == 5 );
 
   waitable<int> w2 = shot.next();
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( !w2.ready() );
 }
 
@@ -1107,14 +1107,14 @@ TEST_CASE(
       REQUIRE( !w.ready() );
       p2.set_value( 5 );
       p1.set_value( 6 );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w->index() == 1 );
       REQUIRE( get<1>( *w ) == 5 );
     }
     {
       waitable<base::variant<int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w->index() == 0 );
       REQUIRE( get<0>( *w ) == 6 );
@@ -1125,17 +1125,17 @@ TEST_CASE(
       waitable<base::variant<int, int>> w = il.next();
       REQUIRE( !w.ready() );
       p2.set_value( 5 );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w->index() == 1 );
       REQUIRE( get<1>( *w ) == 5 );
     }
     {
       waitable<base::variant<int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       p1.set_value( 6 );
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w->index() == 0 );
       REQUIRE( get<0>( *w ) == 6 );
@@ -1144,7 +1144,7 @@ TEST_CASE(
     // have anything further.
     {
       waitable<base::variant<int, int>> w = il.next();
-      run_all_coroutines();
+      run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
     }
   }
@@ -1162,7 +1162,7 @@ TEST_CASE( "[co-combinator] repeater" ) {
     waitable<int> w = r.next();
     REQUIRE( !w.ready() );
     p.set_value( i );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( *w == i );
   }
@@ -1176,7 +1176,7 @@ TEST_CASE( "[co-combinator] fmap" ) {
 
   REQUIRE( !w.ready() );
   p.set_value( 5 );
-  run_all_coroutines();
+  run_all_cpp_coroutines();
   REQUIRE( w.ready() );
   REQUIRE( *w == "5." );
 }

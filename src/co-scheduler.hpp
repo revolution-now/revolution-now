@@ -19,16 +19,17 @@
 namespace rn {
 
 // Add the coroutine to the queue to be resumed.
-void queue_coroutine_handle( coro::coroutine_handle<> h );
+void queue_cpp_coroutine_handle( coro::coroutine_handle<> h );
 
 // This will run all coroutines including the new coroutines that
 // are queued in the process of running other coroutines.
-void run_all_coroutines();
+void run_all_cpp_coroutines();
 
-int number_of_queued_coroutines();
+int number_of_queued_cpp_coroutines();
 
 // This is to be called when a coroutine that has already been
 // queued for running needs to be cancelled.
-void remove_coroutine_if_queued( coro::coroutine_handle<> h );
+void remove_cpp_coroutine_if_queued(
+    coro::coroutine_handle<> h );
 
 } // namespace rn

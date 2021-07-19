@@ -180,7 +180,7 @@ TEST_CASE( "[waitable] coro" ) {
   while( !ws.ready() ) {
     ++i;
     deliver_promise();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
   }
   REQUIRE( ws.get() == "3-12-8.800000" );
   REQUIRE( i == 20 );
@@ -261,29 +261,29 @@ TEST_CASE( "[waitable] coro cancel" ) {
 
   SECTION( "no cancel" ) {
     REQUIRE( !ws.ready() );
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p1.set_value( 7 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p.set_value( "!" );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( ws.ready() );
     // Cancelling a ready waitable should do nothing.
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( ws.ready() );
 
     REQUIRE( ws.get() == "12!." );
@@ -311,10 +311,10 @@ TEST_CASE( "[waitable] coro cancel" ) {
   }
 
   SECTION( "cancel coro0 no schedule" ) {
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -330,13 +330,13 @@ TEST_CASE( "[waitable] coro cancel" ) {
 
   SECTION( "cancel coro0 with schedule" ) {
     REQUIRE( !ws.ready() );
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -351,16 +351,16 @@ TEST_CASE( "[waitable] coro cancel" ) {
   }
 
   SECTION( "cancel coro1 no schedule" ) {
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -379,19 +379,19 @@ TEST_CASE( "[waitable] coro cancel" ) {
   }
 
   SECTION( "cancel coro1 with schedule" ) {
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p1.set_value( 7 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -411,20 +411,20 @@ TEST_CASE( "[waitable] coro cancel" ) {
 
   SECTION( "cancel coro no schedule" ) {
     REQUIRE( !ws.ready() );
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p1.set_value( 7 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -450,24 +450,24 @@ TEST_CASE( "[waitable] coro cancel" ) {
 
   SECTION( "cancel coro with schedule" ) {
     REQUIRE( !ws.ready() );
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p0.set_value( 5 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     p1.set_value( 7 );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
-    run_all_coroutines();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    run_all_cpp_coroutines();
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     p.set_value( "!" );
-    REQUIRE( number_of_queued_coroutines() == 1 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 1 );
     REQUIRE( !ws.ready() );
     ws.cancel();
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
@@ -502,16 +502,16 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
     {
       waitable<string> ws = coro3();
 
-      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
       p0.set_value( 5 );
-      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 1 );
       REQUIRE( !ws.ready() );
-      run_all_coroutines();
-      REQUIRE( number_of_queued_coroutines() == 0 );
+      run_all_cpp_coroutines();
+      REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
       p1.set_value( 7 );
-      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 1 );
       REQUIRE( !ws.ready() );
 
       vector<string> expected{
@@ -528,7 +528,7 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
       // !! ws goes out of scope here and should get cancelled in
       // the process.
     }
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
 
     vector<string> expected{
         "run: coro3-1", //
@@ -548,19 +548,19 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
     {
       waitable<string> ws = coro3();
 
-      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
       p0.set_value( 5 );
-      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 1 );
       REQUIRE( !ws.ready() );
-      run_all_coroutines();
-      REQUIRE( number_of_queued_coroutines() == 0 );
+      run_all_cpp_coroutines();
+      REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
       p1.set_value( 7 );
-      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( number_of_queued_cpp_coroutines() == 1 );
       REQUIRE( !ws.ready() );
-      run_all_coroutines();
-      REQUIRE( number_of_queued_coroutines() == 0 );
+      run_all_cpp_coroutines();
+      REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
 
       vector<string> expected{
@@ -583,7 +583,7 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
       // !! ws goes out of scope here and should get cancelled in
       // the process.
     }
-    REQUIRE( number_of_queued_coroutines() == 0 );
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
 
     vector<string> expected{
         "run: coro3-1", //
@@ -684,7 +684,7 @@ TEST_CASE( "[waitable] exception coro simple" ) {
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "abBA" );
     REQUIRE( !w.ready() );
     REQUIRE( w.has_exception() );
@@ -754,20 +754,20 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     w.cancel();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -776,19 +776,19 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     // ally do anything, but we just want to make sure that it
     // doesn't crash and doesn't change anything.
     exception_p0.set_exception( runtime_error( "test-failed" ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p1.set_exception( runtime_error( "test-failed" ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p2.set_exception( runtime_error( "test-failed" ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -798,7 +798,7 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     exception_p0.set_exception( runtime_error( "test-failed" ) );
     exception_p1.set_exception( runtime_error( "test-failed" ) );
     exception_p2.set_exception( runtime_error( "test-failed" ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -810,20 +810,20 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     // This stage will set the exception.
     exception_p1.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhiIHFEBA" );
     REQUIRE( !w.ready() );
@@ -843,25 +843,25 @@ TEST_CASE( "[waitable] exception coro complex" ) {
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p0.set_value_emplace();
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
     exception_p1.set_exception( runtime_error( "test-failed" ) );
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
     REQUIRE( w.has_exception() );
 
-    run_all_coroutines();
+    run_all_cpp_coroutines();
     REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );

@@ -40,10 +40,10 @@ struct awaitable {
   bool await_ready() noexcept { return w_.ready(); }
   void await_suspend( coro::coroutine_handle<> h ) noexcept {
     w_.shared_state()->add_callback(
-        [h]( T const& ) { queue_coroutine_handle( h ); } );
+        [h]( T const& ) { queue_cpp_coroutine_handle( h ); } );
     w_.shared_state()->set_exception_callback(
         [h]( std::exception_ptr ) {
-          queue_coroutine_handle( h );
+          queue_cpp_coroutine_handle( h );
         } );
   }
   T await_resume() {
@@ -103,7 +103,7 @@ struct promise_type final : public promise_type_base<T> {
   ~promise_type() noexcept {
     auto h = coro::coroutine_handle<promise_type>::from_promise(
         *this );
-    remove_coroutine_if_queued( h );
+    remove_cpp_coroutine_if_queued( h );
   }
 
   void return_value( T const& val ) {
@@ -141,7 +141,7 @@ struct promise_type<std::monostate> final
   ~promise_type() noexcept {
     auto h = coro::coroutine_handle<promise_type>::from_promise(
         *this );
-    remove_coroutine_if_queued( h );
+    remove_cpp_coroutine_if_queued( h );
   }
 
   void return_void() {
