@@ -440,6 +440,14 @@ struct c_api {
   // to yield a Lua stack overflow).
   thread_status status() noexcept;
 
+  // This is equivalent to calling Lua's coroutine.status. The
+  // thread (coroutine) is taken to be the one associated with
+  // this c_api object. The only difference is that the result
+  // does not include the "running" option, since that wouldn't
+  // make sense given that this is a C function not called from
+  // Lua.
+  coroutine_status coro_status() noexcept;
+
   // If the thread state is not in error then this will return
   // valid, otherwise it will assume that the error object is on
   // the top of the stack and will return it WITHOUT popping it

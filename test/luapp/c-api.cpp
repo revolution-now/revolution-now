@@ -1539,9 +1539,17 @@ LUA_TEST_CASE( "[lua-c-api] tothread" ) {
   REQUIRE( C2.stack_size() == 0 );
 }
 
-LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
+LUA_TEST_CASE(
+    "[lua-c-api] thread status, thread_ok, coro_status" ) {
   C.openlibs();
-  st.script.run( R"(
+  st["get_coro_status_from_c"] = []( lua_State* L ) -> int {
+    c_api C( L );
+    C.push( fmt::format( "{}", C.coro_status() ) );
+    return 1;
+  };
+  // Use run_safe because there is an assertion in this Lua code
+  // that is part of this unit test.
+  REQUIRE( st.script.run_safe( R"(
     f0 = coroutine.create( function() end )
     f1 = coroutine.create( function() end )
     f2 = coroutine.create( function()
@@ -1550,11 +1558,23 @@ LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
     f3 = coroutine.create( function()
       error( 'some error' )
     end )
+    f4 = coroutine.create( function()
+      return get_coro_status_from_c()
+    end )
     -- Don't start f0.
     coroutine.resume( f1 )
     coroutine.resume( f2 )
     coroutine.resume( f3 )
-  )" );
+    -- To test the "normal" state, we need to get the coroutine
+    -- status while the coroutine is running, but from the C
+    -- function.
+    local status, status_from_cpp = coroutine.resume( f4 )
+    assert( status, "f4 failed" )
+    local expected_coro_status = "normal"
+    assert( status_from_cpp == expected_coro_status,
+            tostring( status_from_cpp ) .. " != " ..
+            tostring( expected_coro_status ) )
+  )" ) == valid );
 
   {
     C.getglobal( "f0" );
@@ -1562,6 +1582,8 @@ LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
     cthread cth = C.tothread( -1 );
     C.pop();
     REQUIRE( c_api( cth ).status() == thread_status::ok );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( c_api( cth ).thread_ok() == valid );
     REQUIRE( C.stack_size() == 0 );
   }
@@ -1572,6 +1594,8 @@ LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
     cthread cth = C.tothread( -1 );
     C.pop();
     REQUIRE( c_api( cth ).status() == thread_status::ok );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE( c_api( cth ).thread_ok() == valid );
     REQUIRE( C.stack_size() == 0 );
   }
@@ -1582,6 +1606,8 @@ LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
     cthread cth = C.tothread( -1 );
     C.pop();
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( c_api( cth ).thread_ok() == valid );
     REQUIRE( C.stack_size() == 0 );
   }
@@ -1592,6 +1618,8 @@ LUA_TEST_CASE( "[lua-c-api] thread status, thread_ok" ) {
     cthread cth = C.tothread( -1 );
     C.pop();
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE( c_api( cth ).thread_ok() ==
              lua_invalid( "[string \"...\"]:8: some error" ) );
     REQUIRE( C.stack_size() == 0 );
@@ -1648,6 +1676,8 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f1_closed"] == nil );
     REQUIRE( c_api( cth ).resetthread() == valid );
     REQUIRE( st["f1_closed"] == true );
@@ -1660,6 +1690,8 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f2_closed"] == nil );
     REQUIRE( c_api( cth ).resetthread() == valid );
     REQUIRE( st["f2_closed"] == nil );
@@ -1672,6 +1704,8 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE( st["f3_closed"] == nil );
     REQUIRE( c_api( cth ).resetthread() ==
              lua_invalid( "[string \"...\"]:26: some error" ) );
@@ -1685,6 +1719,8 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE(
         c_api( cth ).resetthread() ==
         lua_invalid( "[string \"...\"]:31: error in closing" ) );
@@ -1733,6 +1769,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f1_closed"] == nil );
     resume_result expected{ .status   = resume_status::ok,
                             .nresults = 3 };
@@ -1751,6 +1789,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     REQUIRE( c_api( cth ).stack_size() == 0 );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f2_closed"] == nil );
     c_api( cth ).push( 42 );
     REQUIRE( c_api( cth ).stack_size() == 1 );
@@ -1775,6 +1815,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     // This verifies the parameter that we passed to resume.
     REQUIRE( st["f2_closed"] == 42 );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE( c_api( cth ).stack_size() == 1 );
   }
 
@@ -1787,10 +1829,14 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     REQUIRE( c_api( cth ).stack_size() == 0 );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( C.resume_or_leak( cth, /*nargs=*/0 ) ==
              lua_unexpected<resume_result>(
                  "[string \"...\"]:25: error in closing" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     // Error object on top of stack. Not sure why the stack size
     // is 3 here (though it probably has something to do with the
     // fact that we have not yet reset the thread state yet;
@@ -1805,6 +1851,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
         c_api( cth ).resetthread() ==
         lua_invalid( "[string \"...\"]:25: error in closing" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE( c_api( cth ).stack_size() == 1 );
   }
 }
@@ -1851,6 +1899,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     C.pop();
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f1_closed"] == nil );
     resume_result expected{ .status   = resume_status::ok,
                             .nresults = 3 };
@@ -1869,6 +1919,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     REQUIRE( c_api( cth ).stack_size() == 0 );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( st["f2_closed"] == nil );
     c_api( cth ).push( 42 );
     REQUIRE( c_api( cth ).stack_size() == 1 );
@@ -1877,6 +1929,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
              lua_unexpected<resume_result>(
                  "[string \"...\"]:19: some error" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     // Error object on top of stack.
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
@@ -1888,6 +1942,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     REQUIRE( c_api( cth ).resetthread() ==
              lua_invalid( "[string \"...\"]:19: some error" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
   }
 
   {
@@ -1899,10 +1955,14 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     REQUIRE( c_api( cth ).stack_size() == 0 );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( c_api( cth ).status() == thread_status::yield );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
     REQUIRE( C.resume_or_reset( cth, /*nargs=*/0 ) ==
              lua_unexpected<resume_result>(
                  "[string \"...\"]:25: error in closing" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     // Error object on top of stack.
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
@@ -1912,6 +1972,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
         c_api( cth ).resetthread() ==
         lua_invalid( "[string \"...\"]:25: error in closing" ) );
     REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
   }
 }
 

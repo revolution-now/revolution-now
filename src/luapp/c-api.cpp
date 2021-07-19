@@ -905,4 +905,23 @@ lua_expect<resume_result> c_api::resume_or_reset(
   return res;
 }
 
+// The implementation of this function was taken from the Lua
+// source code.
+coroutine_status c_api::coro_status() noexcept {
+  switch( lua_status( L ) ) {
+    case LUA_YIELD: return coroutine_status::suspended;
+    case LUA_OK: {
+      lua_Debug ar;
+      if( lua_getstack( L, 0, &ar ) )    // does it have frames?
+        return coroutine_status::normal; // it is running
+      else if( lua_gettop( L ) == 0 )
+        return coroutine_status::dead;
+      else
+        return coroutine_status::suspended; // initial state
+    }
+    default: // some error occurred
+      return coroutine_status::dead;
+  }
+}
+
 } // namespace lua

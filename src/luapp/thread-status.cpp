@@ -21,6 +21,14 @@ void to_str( resume_status status, std::string& out ) {
   }
 }
 
+void to_str( coroutine_status status, std::string& out ) {
+  switch( status ) {
+    case coroutine_status::suspended: out += "suspended"; break;
+    case coroutine_status::normal: out += "normal"; break;
+    case coroutine_status::dead: out += "dead"; break;
+  }
+}
+
 void to_str( resume_result result, std::string& out ) {
   out += fmt::format( "resume_result{{status={}, nresults={}}}",
                       result.status, result.nresults );
