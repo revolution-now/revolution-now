@@ -12,6 +12,7 @@
 
 // luapp
 #include "call.hpp"
+#include "cast.hpp"
 #include "cthread.hpp"
 #include "rfunction.hpp"
 #include "rstring.hpp"
@@ -188,6 +189,18 @@ public:
   template<typename U>
   auto operator[]( U&& idx ) noexcept {
     return table.global()[std::forward<U>( idx )];
+  }
+
+  /**************************************************************
+  ** Casting
+  ***************************************************************/
+  template<typename To, typename From>
+  requires Castable<From, To>
+  [[nodiscard]] To cast(
+      From&&          from,
+      base::SourceLoc loc = base::SourceLoc::current() ) {
+    cthread L = resource();
+    return lua::cast<To>( L, std::forward<From>( from ), loc );
   }
 
 private:

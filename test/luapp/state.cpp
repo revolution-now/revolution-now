@@ -146,5 +146,22 @@ LUA_TEST_CASE( "[lua-state] thread create coro" ) {
   REQUIRE( f2 == f );
 }
 
+LUA_TEST_CASE( "[lua-state] cast" ) {
+  SECTION( "int" ) {
+    st["x"] = 5;
+    REQUIRE( st.cast<int>( st["x"] ) == 5 );
+  }
+  SECTION( "string" ) {
+    st["x"] = "hello";
+    REQUIRE( st.cast<string>( st["x"] ) == "hello" );
+    st["x"] = 5;
+    REQUIRE( st.cast<string>( st["x"] ) == "5" );
+  }
+  SECTION( "table" ) {
+    st["x"] = st.table.create();
+    REQUIRE( st.cast<table>( st["x"] ) == st["x"] );
+  }
+}
+
 } // namespace
 } // namespace lua

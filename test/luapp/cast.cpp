@@ -149,17 +149,17 @@ LUA_TEST_CASE( "[cast] cast to _" ) {
 LUA_TEST_CASE( "[cast] cast with L" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    (void)cast<int>( L, st["x"] );
+    REQUIRE( cast<int>( L, st["x"] ) == 5 );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    (void)cast<string>( L, st["x"] );
+    REQUIRE( cast<string>( L, st["x"] ) == "hello" );
     st["x"] = 5;
-    (void)cast<string>( L, st["x"] );
+    REQUIRE( cast<string>( L, st["x"] ) == "5" );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    (void)cast<table>( L, st["x"] );
+    REQUIRE( cast<table>( L, st["x"] ) == st["x"] );
   }
 }
 
