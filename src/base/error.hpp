@@ -100,7 +100,7 @@
   {                                                          \
     if( ( x ) != ( y ) ) {                                   \
       ::base::abort_with_msg( ::base::detail::check_msg(     \
-          #x " != " #y, fmt::format( "{} != {}", x, y ) ) ); \
+          #x " == " #y, fmt::format( "{} != {}", x, y ) ) ); \
     }                                                        \
   }
 
