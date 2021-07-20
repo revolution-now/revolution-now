@@ -4,6 +4,7 @@
 #include "init.hpp"
 #include "linking.hpp"
 #include "logging.hpp"
+#include "lua-ui.hpp"
 #include "lua.hpp"
 #include "open-gl.hpp"
 #include "screen.hpp"
@@ -12,28 +13,31 @@
 using namespace rn;
 using namespace std;
 
-enum class e_mode { game, ui_test, gl_test };
+enum class e_mode { game, ui_test, lua_ui_test, gl_test };
 
-waitable<> ui_test() {
-  ScopedPlanePush pusher( e_plane_config::black );
-  return make_waitable<>();
+waitable<> ui_test() { return make_waitable<>(); }
+waitable<> lua_ui_test() { return rn::lua_ui_test(); }
+
+void full_init() {
+  run_all_init_routines( e_log_level::debug );
+  lua_reload();
+  run_lua_startup_main();
 }
 
 void run( e_mode mode ) {
   switch( mode ) {
     case e_mode::game:
-      run_all_init_routines( e_log_level::debug );
-      lua_reload();
-      run_lua_startup_main();
+      full_init();
       print_bar( '-', "[ Starting Game ]" );
-      // The action.
       frame_loop( revolution_now() );
       break;
     case e_mode::ui_test: //
-      run_all_init_routines( e_log_level::debug );
-      lua_reload();
-      run_lua_startup_main();
+      full_init();
       frame_loop( ui_test() );
+      break;
+    case e_mode::lua_ui_test: //
+      full_init();
+      frame_loop( rn::lua_ui_test() );
       break;
     case e_mode::gl_test:
       run_all_init_routines(
