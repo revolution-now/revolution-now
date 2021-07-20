@@ -260,11 +260,7 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
 
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
-  string msg;
-  try {
-    std::rethrow_exception( w.exception() );
-    REQUIRE( false );
-  } catch( runtime_error const& e ) { msg = e.what(); }
+  string msg = base::rethrow_and_get_msg( w.exception() );
   REQUIRE_THAT( msg,
                 Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: "
                          "error from cpp" ) );
@@ -297,11 +293,7 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
 
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
-  string msg;
-  try {
-    std::rethrow_exception( w.exception() );
-    REQUIRE( false );
-  } catch( runtime_error const& e ) { msg = e.what(); }
+  string msg = base::rethrow_and_get_msg( w.exception() );
   REQUIRE_THAT(
       msg,
       Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: .*:[0-9]+: "
@@ -451,11 +443,7 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
            "ahgfbadahgfbadadahgf" );
 
   REQUIRE( w.has_exception() );
-  string msg;
-  try {
-    std::rethrow_exception( w.exception() );
-    REQUIRE( false );
-  } catch( runtime_error const& e ) { msg = e.what(); }
+  string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
   REQUIRE_THAT( msg, Matches(
     ".*:[0-9]+: "

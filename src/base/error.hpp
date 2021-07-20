@@ -241,6 +241,11 @@ using generic_err = std::unique_ptr<GenericError>;
 
 void to_str( generic_err const& ge, std::string& out );
 
+// This is supposed to be an exception in the std::exception hi-
+// erarchy. If it is not then it will still work, but will return
+// "unknown exception type" or something like that.
+std::string rethrow_and_get_msg( std::exception_ptr p );
+
 } // namespace base
 
 template<>

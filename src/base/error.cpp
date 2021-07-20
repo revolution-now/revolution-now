@@ -48,4 +48,12 @@ void to_str( generic_err const& ge, std::string& out ) {
   out += ge->what;
 }
 
+string rethrow_and_get_msg( exception_ptr p ) {
+  try {
+    rethrow_exception( p );
+  } catch( exception const& e ) {
+    return e.what();
+  } catch( ... ) { return "unknown exception type"; }
+}
+
 } // namespace base

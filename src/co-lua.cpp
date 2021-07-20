@@ -36,10 +36,7 @@ LUA_STARTUP( lua::state& st ) {
 
   ut["error"] = []( waitable<lua::any>& w ) -> maybe<string> {
     if( !w.has_exception() ) return nothing;
-    try {
-      std::rethrow_exception( w.exception() );
-    } catch( exception const& e ) { return e.what(); }
-    SHOULD_NOT_BE_HERE;
+    return base::rethrow_and_get_msg( w.exception() );
   };
 
   ut["set_resume"] = []( W& w, lua::rthread coro ) {
