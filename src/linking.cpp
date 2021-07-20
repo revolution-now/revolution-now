@@ -11,9 +11,11 @@
 #include "linking.hpp"
 
 // Revolution Now
+#include "co-lua.hpp"
 #include "colony-mfg.hpp"
 #include "conductor.hpp"
 #include "error.hpp"
+#include "lua-ui.hpp"
 #include "player.hpp"
 #include "sound.hpp"
 #include "turn.hpp"
@@ -29,6 +31,8 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_colony_mfg();
   linker_dont_discard_module_error();
   conductor::linker_dont_discard_module_conductor();
+  linker_dont_discard_module_co_lua();
+  linker_dont_discard_module_lua_ui();
   // Add more here as needed.
 }
 
