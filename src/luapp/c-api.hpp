@@ -88,6 +88,23 @@ struct c_api {
   // cases, the function and arguments will be popped.
   lua_valid pcall( int nargs, int nresults ) noexcept;
 
+  // This function behaves exactly like lua_pcall, except that it
+  // allows the called function to yield.
+  //
+  // NOTE: If/when a yield happens, it will be done (by Lua) by
+  // throwing an exception which is of type int in practice, and
+  // so this function is really only intended to be run under a
+  // protected environment, such as lua_resume.
+  //
+  // NOTE: this function will leave the message handler on the
+  // stack since it would be tricky to clean it up given that the
+  // function can yield and resume. So it is the caller's respon-
+  // sibility to remove it if necessary (which would have to be
+  // done in both the function that calls pcallk and in the con-
+  // tinuation).
+  lua_valid pcallk( int nargs, int nresults, LuaKContext ctx,
+                    LuaKFunction k );
+
   /**************************************************************
   ** pushing & popping, stack manipulation
   ***************************************************************/
@@ -586,6 +603,8 @@ private:
   void enforce_stack_size_ge( int s ) noexcept;
 
   void validate_index( int idx ) noexcept;
+
+  int pcall_preamble( int nargs, int nresults ) noexcept;
 
   [[nodiscard]] lua_error_t pop_and_return_error() noexcept;
 

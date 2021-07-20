@@ -34,6 +34,8 @@ using namespace std;
 namespace lua {
 namespace {
 
+static_assert( is_same_v<LuaKContext, lua_KContext> );
+
 using ::base::maybe;
 using ::base::nothing;
 
@@ -282,35 +284,54 @@ auto c_api::pinvoke( int ninputs,
 
 int c_api::multret() noexcept { return LUA_MULTRET; }
 
-lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
+int c_api::pcall_preamble( int nargs, int nresults ) noexcept {
   CHECK( nargs >= 0 );
   CHECK( nresults >= 0 || nresults == LUA_MULTRET );
   // Function object plus args should be on the stack at least.
   enforce_stack_size_ge( nargs + 1 );
-
   // Put the message handler on the stack below the function.
   int fn_idx = gettop() - nargs; // function index.
   push( msghandler );
   // Put handler under function and args.
   insert( fn_idx );
   int msghandler_idx = fn_idx;
+  return msghandler_idx;
+}
+
+lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
+  int msghandler_idx = pcall_preamble( nargs, nresults );
+  DCHECK( msghandler_idx > 0 );
   // Remove message handler from the stack. This index will re-
   // main valid because it is positive.
   SCOPE_EXIT( lua_remove( L, msghandler_idx ) );
 
-  lua_valid res = base::valid;
   // No matter what happens, lua_pcall will remove the function
   // and arguments from the stack.
-  int err = lua_pcall( L, nargs, nresults, msghandler_idx );
-  if( err == LUA_OK ) {
-    if( nresults != LUA_MULTRET )
-      enforce_stack_size_ge( nresults );
-  } else {
-    // lua_pcall will have pushed a single value onto the stack,
-    // which will be the error object.
-    return pop_and_return_error();
-  }
-  return res;
+  int status = lua_pcall( L, nargs, nresults, msghandler_idx );
+
+  if( status == LUA_OK ) return base::valid;
+  return pop_and_return_error();
+}
+
+lua_valid c_api::pcallk( int nargs, int nresults,
+                         LuaKContext ctx, LuaKFunction k ) {
+  int msghandler_idx = pcall_preamble( nargs, nresults );
+  DCHECK( msghandler_idx > 0 );
+  // !! Note that we cannot use SCOPE_EXIT to remove the message
+  // handler from the stack here because it will get called pre-
+  // maturely if the lua_pcallk yields, so it is unfortunately
+  // the responsibility of the caller of pcallk to do it.
+
+  // No matter what happens, lua_pcallk will remove the function
+  // and arguments from the stack when it returns. But note that
+  // it may never return, if the function being called yields.
+  int status =
+      lua_pcallk( L, nargs, nresults, msghandler_idx, ctx, k );
+
+  // NOTE: we may never get here if the function yields. In that
+  // case, the continuation k will be called.
+  if( status == LUA_OK ) return base::valid;
+  return pop_and_return_error();
 }
 
 void c_api::call( int nargs, int nresults ) noexcept {
