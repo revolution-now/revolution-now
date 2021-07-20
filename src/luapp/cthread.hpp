@@ -56,6 +56,11 @@ using LuaApiFunc = R( ::lua_State*, Args... );
 // method, i.e., a C function that is called from Lua.
 using LuaCFunction = int( ::lua_State* );
 
+// This needs to agree with Lua's lua_KContext.
+using LuaKContext = intptr_t;
+
+using LuaKFunction = int( ::lua_State*, int, LuaKContext );
+
 /****************************************************************
 ** Concepts
 *****************************************************************/
