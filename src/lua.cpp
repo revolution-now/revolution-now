@@ -176,8 +176,7 @@ void lua_reload() {
   run_lua_startup_routines();
   load_lua_modules();
   // Freeze all existing global variables and tables.
-  CHECK_HAS_VALUE(
-      g_lua.script.run_safe( "meta.freeze_all()" ) );
+  g_lua["meta"]["freeze_all"]();
 }
 
 vector<string> format_lua_error_msg( string const& msg ) {
