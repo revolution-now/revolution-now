@@ -74,7 +74,7 @@ waitable<> lua_ui_test() {
   ScopedPlanePush pusher( e_plane_config::black );
   lua::state&     st = lua_global_state();
 
-  auto n = co_await lua_waitable<maybe<int>>{}(
+  auto n = co_await lua_waitable<maybe<int>>(
       st["test"]["some_ui_routine"], 42 );
 
   lg.info( "received {} from some_ui_routine.", n );

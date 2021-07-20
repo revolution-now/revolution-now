@@ -62,7 +62,7 @@ void trace( string_view msg ) { trace_log += string( msg ); }
 waitable<int> do_lua_coroutine() {
   TRACE( A );
   lua::state& st = lua_global_state();
-  int         r  = co_await lua_waitable<int>{}( st["get_int"] );
+  int         r  = co_await lua_waitable<int>( st["get_int"] );
   TRACE( B );
   co_return r;
 }
@@ -127,7 +127,7 @@ waitable<int> do_lua_coroutine() {
   TRACE( A );
   lua::state& st = lua_global_state();
   int         r =
-      co_await lua_waitable<int>{}( st["get_and_add_ints"], 5 );
+      co_await lua_waitable<int>( st["get_and_add_ints"], 5 );
   TRACE( B );
   co_return r;
 }
@@ -173,7 +173,7 @@ waitable<int> get_int_from_user2() {
   if( result == 43 ) {
     lua::state& st = lua_global_state();
     TRACE( O );
-    co_await lua_waitable{}( st["throw_error_from_lua"],
+    co_await lua_waitable<>( st["throw_error_from_lua"],
                              "error from lua" );
     SHOULD_NOT_BE_HERE;
   }
@@ -323,7 +323,6 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
   REQUIRE_THAT( msg, Matches(
-    ".*:[0-9]+:\n"
     "\\[string \"...\"\\]:15: error from cpp\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
@@ -364,9 +363,7 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
   REQUIRE_THAT( msg, Matches(
-    ".*:[0-9]+:\n"
     "\\[string \"...\"\\]:15: "
-    ".*:[0-9]+:\n"
     "\\[string \"...\"\\]:24: error from lua\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
@@ -407,8 +404,8 @@ waitable<string> accum_cpp( int n ) {
   }
   if( n % 3 == 0 ) {
     TRACE( B );
-    int m = n + co_await lua_waitable<int>{}( st["accum_lua"],
-                                              n - 1 );
+    int m =
+        n + co_await lua_waitable<int>( st["accum_lua"], n - 1 );
     TRACE( C );
     co_return to_string( m );
   }
@@ -469,7 +466,7 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   REQUIRE( trace_log == "" );
 
   waitable<string> w =
-      lua_waitable<string>{}( st["accum_lua"], 15 );
+      lua_waitable<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -505,7 +502,7 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   REQUIRE( trace_log == "" );
 
   waitable<string> w =
-      lua_waitable<string>{}( st["accum_lua"], 15 );
+      lua_waitable<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -527,11 +524,10 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
   REQUIRE_THAT( msg, Matches(
-    ".*:[0-9]+:\n"
-    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
-    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
-    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
-    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: "
+    "\\[string \"...\"\\]:19: "
+    "\\[string \"...\"\\]:19: "
+    "\\[string \"...\"\\]:19: "
     "\\[string \"...\"\\]:19: c\\+\\+ failed\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
@@ -577,7 +573,7 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   REQUIRE( trace_log == "" );
 
   waitable<string> w =
-      lua_waitable<string>{}( st["accum_lua"], 15 );
+      lua_waitable<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -715,7 +711,7 @@ TEST_CASE( "[co-lua] scenario 3" ) {
 
   setup( st );
 
-  waitable<int> w = lua_waitable<int>{}( st["launch"] );
+  waitable<int> w = lua_waitable<int>( st["launch"] );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJC" );
   run_all_coroutines();

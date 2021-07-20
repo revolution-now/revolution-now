@@ -58,16 +58,10 @@ template<typename T>
 concept GettableOrMonostate =
     lua::Gettable<T> || std::same_as<std::monostate, T>;
 
-// We're putting this as a struct because it seems tricky to have
-// a function template with variadic arguments that also can take
-// a default SourceLoc parameter.
-template<GettableOrMonostate R = std::monostate>
-struct lua_waitable {
-  base::SourceLoc loc_;
-  lua_waitable(
-      base::SourceLoc loc = base::SourceLoc::current() )
-    : loc_( loc ) {}
-
+// We're putting this as a struct as a workaround because clang
+// somehow doesn't like function templates that are coroutines.
+template<GettableOrMonostate R>
+struct LuaWaitable {
   template<LuaAwaitable T, lua::Pushable... Args>
   waitable<R> operator()( T&& o, Args&&... args ) const {
     static constexpr bool is_mono =
@@ -95,12 +89,8 @@ struct lua_waitable {
                  },
                  /*set_error=*/
                  [&]( std::string msg ) {
-                   std::string err_line = fmt::format(
-                       "{}:{}:\n{}", loc_.file_name(),
-                       loc_.line(), msg );
                    p.template set_exception_emplace<
-                       lua_error_exception>(
-                       std::move( err_line ) );
+                       lua_error_exception>( std::move( msg ) );
                  },
                  f, FWD( args )... );
 
@@ -111,6 +101,9 @@ struct lua_waitable {
       co_return co_await p.waitable();
   }
 };
+
+template<GettableOrMonostate R = std::monostate>
+inline constexpr LuaWaitable<R> lua_waitable{};
 
 void linker_dont_discard_module_co_lua();
 
