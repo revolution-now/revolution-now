@@ -65,11 +65,6 @@ LUA_FN( str_input_box, waitable<lua::any>, string_view title,
 
 } // namespace
 
-using namespace rn;
-using namespace std;
-
-enum class e_mode { game, ui_test, gl_test };
-
 waitable<> lua_ui_test() {
   ScopedPlanePush pusher( e_plane_config::black );
   lua::state&     st = lua_global_state();
