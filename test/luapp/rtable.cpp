@@ -19,7 +19,6 @@
 // luapp
 #include "src/luapp/cast.hpp"
 #include "src/luapp/func-push.hpp"
-#include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -161,7 +160,7 @@ LUA_TEST_CASE( "[table] table copy --> no collect" ) {
   verify_collect( true );
 }
 
-LUA_TEST_CASE( "[thing] table index" ) {
+LUA_TEST_CASE( "[rtable] table index" ) {
   cthread L = C.this_cthread();
 
   auto new_table = [&] {
@@ -208,9 +207,9 @@ LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
   C.pop();
   REQUIRE( C.stack_size() == 0 );
 
-  metatable["__call"] = [&]( thing th, int n, string const& s,
+  metatable["__call"] = [&]( any a, int n, string const& s,
                              double d ) {
-    CHECK( th == st["go"] );
+    CHECK( a == st["go"] );
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
 

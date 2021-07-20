@@ -21,7 +21,7 @@
 #include "src/luapp/cast.hpp"
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
-#include "src/luapp/thing.hpp"
+#include "src/luapp/ruserdata.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -135,10 +135,10 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
   static_assert( Castable<decltype( st["x"] ), CppOwned&> );
 
   CppOwned o;
-  st["x"]  = o;
-  thing th = st["x"];
-  REQUIRE( th.type() == type::userdata );
-  userdata ud = th.as<userdata>();
+  st["x"] = o;
+  any a   = st["x"];
+  REQUIRE( type_of( a ) == type::userdata );
+  userdata ud = cast<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches(
@@ -203,10 +203,10 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
       Castable<decltype( st["x"] ), CppOwnedNonCopyable&> );
 
   CppOwnedNonCopyable o;
-  st["x"]  = o;
-  thing th = st["x"];
-  REQUIRE( th.type() == type::userdata );
-  userdata ud = th.as<userdata>();
+  st["x"] = o;
+  any a   = st["x"];
+  REQUIRE( type_of( a ) == type::userdata );
+  userdata ud = cast<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches( "lua::CppOwnedNonCopyable&: 0x[0-9a-z]+" ) );
@@ -272,10 +272,10 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   static_assert( Castable<decltype( st["x"] ), LuaOwned&> );
 
   LuaOwned o;
-  st["x"]  = std::move( o );
-  thing th = st["x"];
-  REQUIRE( th.type() == type::userdata );
-  userdata ud = th.as<userdata>();
+  st["x"] = std::move( o );
+  any a   = st["x"];
+  REQUIRE( type_of( a ) == type::userdata );
+  userdata ud = cast<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches(
@@ -341,10 +341,10 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
       Castable<decltype( st["x"] ), LuaOwnedNonCopyable&> );
 
   LuaOwnedNonCopyable o;
-  st["x"]  = std::move( o );
-  thing th = st["x"];
-  REQUIRE( th.type() == type::userdata );
-  userdata ud = th.as<userdata>();
+  st["x"] = std::move( o );
+  any a   = st["x"];
+  REQUIRE( type_of( a ) == type::userdata );
+  userdata ud = cast<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches( "lua::LuaOwnedNonCopyable: 0x[0-9a-z]+" ) );

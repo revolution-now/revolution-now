@@ -21,13 +21,11 @@
 #include "src/luapp/cast.hpp"
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
-#include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
 
 // FIXME: These don't appear to be working...
-FMT_TO_CATCH( ::lua::thing );
 FMT_TO_CATCH( ::lua::any );
 FMT_TO_CATCH( ::lua::table );
 FMT_TO_CATCH_T( ( I, P ), ::lua::indexer );
@@ -325,8 +323,8 @@ LUA_TEST_CASE( "[indexer] cpp from cpp via lua" ) {
   st["go"] = []( int n, string const& s, double d ) -> string {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
-  thing th = st["go"];
-  REQUIRE( th.is<rfunction>() );
+  any a_ = st["go"];
+  REQUIRE( type_of( a_ ) == type::function );
 
   any a = st["go"]( 3, "hello", 3.6 );
   REQUIRE( a == "args: n=3, s='hello', d=3.6" );
@@ -334,13 +332,9 @@ LUA_TEST_CASE( "[indexer] cpp from cpp via lua" ) {
   string s = st["go"].call<string>( 3, "hello", 3.6 );
   REQUIRE( s == "args: n=3, s='hello', d=3.6" );
 
-  th = a;
-  REQUIRE( th.is<rstring>() );
-  REQUIRE( th == "args: n=3, s='hello', d=3.6" );
-
-  th = st["go"]( 4, "hello", 3.6 );
-  REQUIRE( th.is<rstring>() );
-  REQUIRE( th == "args: n=4, s='hello', d=3.6" );
+  a = st["go"]( 4, "hello", 3.6 );
+  REQUIRE( type_of( a ) == type::string );
+  REQUIRE( a == "args: n=4, s='hello', d=3.6" );
 
   REQUIRE( st["go"]( 3, "hello", 3.7 ) ==
            "args: n=3, s='hello', d=3.7" );
@@ -356,8 +350,8 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
     if( n == bad_value ) C.error( "n cannot be 4." );
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
-  thing th = st["go"];
-  REQUIRE( th.is<rfunction>() );
+  any a = st["go"];
+  REQUIRE( type_of( a ) == type::function );
 
   REQUIRE( C.dostring( R"(
     function foo( n, s, d )

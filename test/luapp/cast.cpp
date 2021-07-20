@@ -19,7 +19,7 @@
 // luapp
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
-#include "src/luapp/thing.hpp"
+#include "src/luapp/ruserdata.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -82,13 +82,11 @@ LUA_TEST_CASE( "[cast] castability test" ) {
 
   // Things that should not be castable.
   static_assert( !Castable<indexer_t, any> );
-  static_assert( !Castable<indexer_t, thing> );
   static_assert( !Castable<indexer_t, string_view> );
   static_assert( !Castable<indexer_t, char const*> );
   static_assert( !Castable<indexer_t, A> );
 
   static_assert( !Castable<indexer_t, maybe<any>> );
-  static_assert( !Castable<indexer_t, maybe<thing>> );
   static_assert( !Castable<indexer_t, maybe<string_view>> );
   static_assert( !Castable<indexer_t, maybe<char const*>> );
   static_assert( !Castable<indexer_t, maybe<A>> );

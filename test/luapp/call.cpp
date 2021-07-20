@@ -18,7 +18,6 @@
 
 // luapp
 #include "src/luapp/ext-base.hpp"
-#include "src/luapp/thing.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -217,11 +216,10 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
 
-    thing th =
-        call_lua_unsafe_and_get<thing>( L, 3, "hello", 3.5 );
+    any a = call_lua_unsafe_and_get<any>( L, 3, "hello", 3.5 );
     REQUIRE( C.stack_size() == 0 );
-    REQUIRE( th.is<table>() );
-    table t = th.as<table>();
+    REQUIRE( type_of( a ) == type::table );
+    table t = cast<table>( a );
     REQUIRE( t[1] == 4 );
     REQUIRE( t[2] == "hello!" );
     REQUIRE( t[3] == 5.0 );
@@ -253,12 +251,12 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
 
-    lua_expect<thing> th =
-        call_lua_safe_and_get<thing>( L, 3, "hello", 3.5 );
+    lua_expect<any> a =
+        call_lua_safe_and_get<any>( L, 3, "hello", 3.5 );
     REQUIRE( C.stack_size() == 0 );
-    REQUIRE( th.has_value() );
-    REQUIRE( th->is<table>() );
-    table t = th->as<table>();
+    REQUIRE( a.has_value() );
+    REQUIRE( type_of( *a ) == type::table );
+    table t = cast<table>( *a );
     REQUIRE( t[1] == 4 );
     REQUIRE( t[2] == "hello!" );
     REQUIRE( t[3] == 5.0 );
@@ -274,10 +272,10 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
 
-    lua_expect<thing> th =
-        call_lua_safe_and_get<thing>( L, 9, "hello", 3.5 );
-    REQUIRE( th ==
-             lua_unexpected<thing>(
+    lua_expect<any> a =
+        call_lua_safe_and_get<any>( L, 9, "hello", 3.5 );
+    REQUIRE( a ==
+             lua_unexpected<any>(
                  "[string \"...\"]:3: assertion failed!\n"
                  "stack traceback:\n"
                  "\t[C]: in function 'assert'\n"

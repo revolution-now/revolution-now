@@ -16,9 +16,6 @@
 // Testing
 #include "test/luapp/common.hpp"
 
-// luapp
-#include "src/luapp/thing.hpp"
-
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -241,9 +238,9 @@ LUA_TEST_CASE( "[ext] Point" ) {
   REQUIRE( st["my_point"]["x"] == 4 );
   REQUIRE( st["my_point"]["y"] == 5 );
 
-  thing th( L, Point{ .x = 1, .y = 2 } );
-  REQUIRE( th.as<table>()["x"] == 1 );
-  REQUIRE( th.as<table>()["y"] == 2 );
+  any a = cast<any>( L, Point{ .x = 1, .y = 2 } );
+  REQUIRE( cast<table>( a )["x"] == 1 );
+  REQUIRE( cast<table>( a )["y"] == 2 );
 
   // get.
   table lua_point = st.table.create();
