@@ -54,10 +54,14 @@ template<typename T>
 concept LuaAwaitable =
     lua::Castable<T, lua::rfunction> && lua::HasCthread<T>;
 
+template<typename T>
+concept GettableOrMonostate =
+    lua::Gettable<T> || std::same_as<std::monostate, T>;
+
 // We're putting this as a struct because it seems tricky to have
 // a function template with variadic arguments that also can take
 // a default SourceLoc parameter.
-template<lua::Gettable R = lua::any>
+template<GettableOrMonostate R = std::monostate>
 struct lua_waitable {
   base::SourceLoc loc_;
   lua_waitable(
@@ -66,6 +70,8 @@ struct lua_waitable {
 
   template<LuaAwaitable T, lua::Pushable... Args>
   waitable<R> operator()( T&& o, Args&&... args ) const {
+    static constexpr bool is_mono =
+        std::is_same_v<R, std::monostate>;
     lua::rthread coro =
         internal::create_runner_coro( o.this_cthread() );
     // Ensure that all to-be-closed variables get closed and the
@@ -81,8 +87,11 @@ struct lua_waitable {
     // calls (ei- ther the first or subsequent) because the value
     // is returned to us in the waitable.
     coro.resume( /*set_result=*/
-                 [&]( R res ) {
-                   p.set_value( std::move( res ) );
+                 [&]( lua::any res ) {
+                   if constexpr( is_mono )
+                     p.set_value_emplace();
+                   else
+                     p.set_value( lua::cast<R>( res ) );
                  },
                  /*set_error=*/
                  [&]( std::string msg ) {
@@ -96,7 +105,10 @@ struct lua_waitable {
                  f, FWD( args )... );
 
     // Need to keep the SCOPE_EXIT alive while we wait.
-    co_return co_await p.waitable();
+    if constexpr( is_mono )
+      co_await p.waitable();
+    else
+      co_return co_await p.waitable();
   }
 };
 
