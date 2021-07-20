@@ -201,6 +201,17 @@ static_assert( !StatefulLuaCExtensionFunction<
 /****************************************************************
 ** push for functions.
 *****************************************************************/
+LUA_TEST_CASE( "[func-push] push stateless lua C function" ) {
+  int ( *f )( lua_State* );
+  f = +[]( lua_State* ) -> int { return 0; };
+  lua_push( L, f );
+
+  auto g = []( lua_State* ) -> int { return 0; };
+  lua_push( L, g );
+
+  C.pop( 2 );
+}
+
 LUA_TEST_CASE( "[func-push] stateless lua C function" ) {
   C.openlibs();
 
@@ -284,7 +295,7 @@ LUA_TEST_CASE( "[func-push] stateful lua C function" ) {
         *C.get<string>( -1 ),
         Matches( "lua::.anonymous namespace.::.anonymous "
                  "namespace.::____C_A_T_C_H____T_E_S_T____"
-                 "6::test..::.*" ) );
+                 "[0-9]+::test..::.*" ) );
 
     C.pop( 4 );
     REQUIRE( C.stack_size() == 0 );

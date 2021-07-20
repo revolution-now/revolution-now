@@ -90,18 +90,21 @@ concept RegularNonOverloadedCppFunction =
 /****************************************************************
 ** push overloads.
 *****************************************************************/
-void lua_push( cthread                               L,
-               StatelessLuaCExtensionFunction auto&& o ) {
+template<typename T>
+requires StatelessLuaCExtensionFunction<std::remove_cvref_t<T>>
+void lua_push( cthread L, T&& o ) {
   push_stateless_lua_c_function( L, FWD( o ) );
 }
 
-void lua_push( cthread                              L,
-               StatefulLuaCExtensionFunction auto&& o ) {
+template<typename T>
+requires StatefulLuaCExtensionFunction<std::remove_cvref_t<T>>
+void lua_push( cthread L, T&& o ) {
   push_stateful_lua_c_function( L, FWD( o ) );
 }
 
-void lua_push( cthread                                L,
-               RegularNonOverloadedCppFunction auto&& o ) {
+template<typename T>
+requires RegularNonOverloadedCppFunction<std::remove_cvref_t<T>>
+void lua_push( cthread L, T&& o ) {
   push_cpp_function( L, FWD( o ) );
 }
 

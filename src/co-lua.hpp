@@ -24,7 +24,6 @@
 
 // base
 #include "base/scope-exit.hpp"
-#include "base/source-loc.hpp"
 
 // C++ standard library
 #include <stdexcept>
