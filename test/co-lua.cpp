@@ -50,6 +50,66 @@ string to_lower_str( string_view c ) {
   SCOPE_EXIT( trace( to_lower_str( #letter ) ) )
 
 /****************************************************************
+** Scenario 0: Ready
+*****************************************************************/
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
+namespace scenario_0 {
+
+string trace_log;
+
+void trace( string_view msg ) { trace_log += string( msg ); }
+
+waitable<int> do_lua_coroutine() {
+  TRACE( A );
+  lua::state& st = lua_global_state();
+  int         r  = co_await lua_waitable<int>{}( st["get_int"] );
+  TRACE( B );
+  co_return r;
+}
+
+constexpr string_view lua_1 = R"(
+  local await = waitable.await
+
+  function TRACE( letter )
+    trace( letter )
+    return setmetatable( {}, {
+      __close = function() trace( string.lower( letter ) ) end
+    } )
+  end
+
+  function get_int()
+    local _<close> = TRACE( "C" )
+    return 42
+  end
+)";
+
+void setup( lua::state& st ) {
+  st["trace"] = trace;
+  st.script.run( lua_1 );
+}
+
+} // namespace scenario_0
+
+TEST_CASE( "[co-lua] scenario 0" ) {
+  using namespace scenario_0;
+  lua::state& st = lua_global_state();
+
+  trace_log = {};
+  setup( st );
+
+  REQUIRE( trace_log == "" );
+
+  waitable<int> w = do_lua_coroutine();
+  run_all_coroutines();
+  REQUIRE( trace_log == "ACcBba" );
+
+  REQUIRE( w.ready() );
+  REQUIRE( *w == 42 );
+}
+
+#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
+
+/****************************************************************
 ** Scenario 1
 *****************************************************************/
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
@@ -261,9 +321,17 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
   string msg = base::rethrow_and_get_msg( w.exception() );
-  REQUIRE_THAT( msg,
-                Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: "
-                         "error from cpp" ) );
+  // clang-format off
+  REQUIRE_THAT( msg, Matches(
+    ".*:[0-9]+:\n"
+    "\\[string \"...\"\\]:15: error from cpp\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
+      "\t\\[C\\]: in \\?"
+  ) );
+  // clang-format on
 }
 
 TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
@@ -294,10 +362,23 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
   string msg = base::rethrow_and_get_msg( w.exception() );
-  REQUIRE_THAT(
-      msg,
-      Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: .*:[0-9]+: "
-               "\\[string \"...\"\\]:24: error from lua" ) );
+  // clang-format off
+  REQUIRE_THAT( msg, Matches(
+    ".*:[0-9]+:\n"
+    "\\[string \"...\"\\]:15: "
+    ".*:[0-9]+:\n"
+    "\\[string \"...\"\\]:24: error from lua\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[string \"...\"\\]:24: in function 'throw_error_from_lua'\n"
+      "\t\\[C\\]: in \\?\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
+      "\t\\[C\\]: in \\?"
+  ) );
+  // clang-format on
 }
 
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
@@ -446,17 +527,37 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
   REQUIRE_THAT( msg, Matches(
-    ".*:[0-9]+: "
-    "\\[string \"...\"\\]:19: "
-    ".*:[0-9]+: "
-    "\\[string \"...\"\\]:19: "
-    ".*:[0-9]+: "
-    "\\[string \"...\"\\]:19: "
-    ".*:[0-9]+: "
-    "\\[string \"...\"\\]:19: "
-    ".*:[0-9]+: "
-    "\\[string \"...\"\\]:19: "
-    "c\\+\\+ failed"
+    ".*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: .*:[0-9]+:\n"
+    "\\[string \"...\"\\]:19: c\\+\\+ failed\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
+      "\t\\[C\\]: in \\?\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
+      "\t\\[C\\]: in \\?\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
+      "\t\\[C\\]: in \\?\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
+      "\t\\[C\\]: in \\?\n"
+    "stack traceback:\n"
+      "\t\\[C\\]: in global 'error'\n"
+      "\tsrc/lua/waitable.lua:34: in upvalue 'await'\n"
+      "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
+      "\t\\[C\\]: in \\?"
   ) );
   // clang-format on
 }

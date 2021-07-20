@@ -36,16 +36,6 @@ function M.await( waitable )
   return waitable:get()
 end
 
--- TODO: rewrite this in C++.
-function M.runner( set_result, set_error, func, ... )
-  local success, result = pcall( func, ... )
-  if not success then
-    set_error( tostring( result ) )
-    return
-  end
-  set_result( result )
-end
-
 -- You can wrap a function using this so that you don't have to
 -- call await( ... ) on it. However, we still need to have access
 -- to the unwrapped versions in general so that we can run mul-

@@ -15,8 +15,12 @@
 #include "lua.hpp"
 
 // luapp
+#include "luapp/c-api.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
+
+// Lua
+#include "lua.h"
 
 using namespace std;
 
@@ -52,16 +56,52 @@ LUA_STARTUP( lua::state& st ) {
       []( W& w, lua::any /*error_object*/ ) { w.cancel(); };
 };
 
+int coro_continuation( lua_State* L, int status, lua_KContext ) {
+  // Stack:
+  //  -1 result (could be error)
+  //  -2 message handler that C.pcallk pushed onto the stack
+  //     which it wasn't able to pop.
+  //  -3 set_error
+  //  -4 set_result
+  DCHECK( lua::c_api( L ).gettop() == 4 );
+  // Here we are supposed to have the same set of parameters that
+  // we had when we entered coro_runner.
+  auto set_result = lua::get_or_luaerr<lua::rfunction>( L, 1 );
+  auto set_error  = lua::get_or_luaerr<lua::rfunction>( L, 2 );
+  // We get LUA_OK if there was no yielding (in which case this
+  // continuation function was called manually by us below), or
+  // LUA_YIELD if pcallk yielded in which Lua called this contin-
+  // uation function. But LUA_YIELD here does not mean that the
+  // function is still yielded, it just means that it yielded at
+  // least once.
+  if( status == LUA_OK || status == LUA_YIELD )
+    set_result( lua::get<lua::any>( L, -1 ) );
+  else // error
+    set_error( lua::get<string>( L, -1 ) );
+  return 0;
+}
+
+int coro_runner( lua_State* L ) {
+  int nargs = lua::c_api( L ).gettop() - 3;
+
+  lua::lua_valid res = lua::c_api( L ).pcallk(
+      /*nargs=*/nargs,
+      /*nresults=*/1, /*ctx=*/0, /*k=*/coro_continuation );
+
+  // NOTE: we only get here if the function did not yield. At
+  // this point we just call the continuation function for conve-
+  // nience so that we don't have to duplicate code.
+  return coro_continuation( L, res ? LUA_OK : LUA_ERRRUN, 0 );
+}
+
 } // namespace
 
 namespace internal {
 
 lua::rthread create_runner_coro( lua::cthread L ) {
   auto st = lua::state::view( L );
-  // TODO: Find a way to preregister this.
-  lua::rfunction runner =
-      st["waitable"]["runner"].cast<lua::rfunction>();
-  return st.thread.create_coro( runner );
+  return st.thread.create_coro(
+      st.cast<lua::rfunction>( std::move( coro_runner ) ) );
 }
 
 void cleanup_coro( lua::rthread coro ) {

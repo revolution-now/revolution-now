@@ -96,7 +96,7 @@ struct lua_waitable {
                  /*set_error=*/
                  [&]( std::string msg ) {
                    std::string err_line = fmt::format(
-                       "{}:{}: {}", loc_.file_name(),
+                       "{}:{}:\n{}", loc_.file_name(),
                        loc_.line(), msg );
                    p.template set_exception_emplace<
                        lua_error_exception>(
