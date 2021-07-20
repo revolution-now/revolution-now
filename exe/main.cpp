@@ -6,7 +6,6 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "open-gl.hpp"
-#include "plane-ctrl.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 

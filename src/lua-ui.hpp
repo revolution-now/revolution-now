@@ -12,8 +12,13 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "waitable.hpp"
+
 namespace rn {
 
 void linker_dont_discard_module_lua_ui();
+
+waitable<> lua_ui_test();
 
 } // namespace rn

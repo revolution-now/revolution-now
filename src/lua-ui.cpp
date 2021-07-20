@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "co-lua.hpp"
+#include "logging.hpp"
 #include "lua.hpp"
+#include "plane-ctrl.hpp"
 #include "waitable-coro.hpp"
 #include "window.hpp"
 
@@ -20,6 +22,11 @@
 #include "luapp/ext-base.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
+
+#include "co-lua.hpp"
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+#include "waitable-coro.hpp"
 
 using namespace std;
 
@@ -57,5 +64,20 @@ LUA_FN( str_input_box, waitable<lua::any>, string_view title,
 }
 
 } // namespace
+
+using namespace rn;
+using namespace std;
+
+enum class e_mode { game, ui_test, gl_test };
+
+waitable<> lua_ui_test() {
+  ScopedPlanePush pusher( e_plane_config::black );
+  lua::state&     st = lua_global_state();
+
+  auto n = co_await lua_waitable<maybe<int>>{}(
+      st["test"]["some_ui_routine"], 42 );
+
+  lg.info( "received {} from some_ui_routine.", n );
+}
 
 } // namespace rn
