@@ -2,15 +2,11 @@
 # Lua
 # ===============================================================
 
-  1. Integrate waitable<> with Lua, and add coroutine support to
-     luapp as necessary.
-  2. Make a coroutine-based dialog/animation sequence as a demo
-     of Lua coroutines.
-  3. Create proper Lua API design in order to avoid coupling with
+  1. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  4. Generate Flatbuffers Lua modules so that Lua can read and
+  2. Generate Flatbuffers Lua modules so that Lua can read and
      write game save files.
-  5. Add some other standard containers like vector,
+  3. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================

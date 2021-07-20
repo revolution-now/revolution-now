@@ -1,20 +1,13 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'luapp/c-api',
-  \ 'luapp/thread-status',
-  \ 'luapp/ruserdata',
   \ 'luapp/ext',
-  \ 'luapp/userdata',
-  \ 'luapp/cast',
-  \ 'luapp/ext-userdata',
-  \ 'luapp/usertype',
-  \ 'luapp/call',
   \ 'luapp/rthread',
   \ 'luapp/rfunction',
   \ 'luapp/state',
   \ 'co-scheduler',
   \ 'co-lua-scheduler',
   \ 'co-lua',
+  \ 'lua-ui',
 \]
 
 let s:luas = [

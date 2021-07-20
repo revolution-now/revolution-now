@@ -46,4 +46,12 @@ function M.runner( set_result, set_error, func, ... )
   set_result( result )
 end
 
+-- You can wrap a function using this so that you don't have to
+-- call await( ... ) on it. However, we still need to have access
+-- to the unwrapped versions in general so that we can run mul-
+-- tiple coroutines in parallel and await on all of them.
+function M.wrap( f )
+  return function( ... ) return M.await( f( ... ) ) end
+end
+
 return M
