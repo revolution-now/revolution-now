@@ -52,3 +52,25 @@ void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
 }
 
 } // namespace base
+
+// If you want a C library to be able to abort with a stack
+// trace, just go to the C source file and add the following to
+// the top:
+//
+//   void c_abort_with_backtrace_here();
+//
+// and then call it, and the linker should find it. The C code
+// still needs to be compiled as C++ I believe, since this is not
+// extern "C", but it does not require any C++ parameters, so
+// that C code should be able to call it. It also doesn't filter
+// out any frames and trims less off the top.
+void c_abort_with_backtrace_here() {
+  auto here = ::rn::stack_trace_here();
+  rn::print_SDL_error();
+  rn::run_all_cleanup_routines();
+  print_stack_trace(
+      here, ::rn::StackTraceOptions{
+                .skip_frames = 3,
+                .frames      = rn::e_stack_trace_frames::all } );
+  std::abort();
+}
