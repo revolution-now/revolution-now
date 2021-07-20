@@ -14,7 +14,9 @@ M = {}
 local wrap = waitable.wrap
 
 local function message_box_format( ... )
-  return lua_ui.message_box( string.format( ... ) )
+  local msg = string.format( ... )
+  log.info( 'message box: ' .. msg )
+  return lua_ui.message_box( msg )
 end
 
 local message_box = wrap( message_box_format )
@@ -32,19 +34,34 @@ function M.some_ui_routine( n )
 
   message_box( 'You will now be asked to enter a string.' )
   if ok_cancel( 'Would you like to proceed?' ) == 'cancel' then
-    return nil
+    return
   end
   log.info( 'proceeding.' )
 
   local n
-  while true do
-    n = str_input_box( 'User Input',
-                       'Please enter an even number', '2' )
-    n = n + 0
-    log.info( 'received ' .. tostring( n ) )
-    if n % 2 == 0 then break end
-    message_box( 'The number must be even!' )
-    log.info( 'retrying...' )
+  do
+    -- Run message box concurrently. We don't want to use the
+    -- wrapped version here because that will await it.
+    local _<close> = message_box_format(
+                         '------- Outter Background -------' )
+    local count = 1
+    while true do
+      -- Run message box concurrently. Again, no wrapped version.
+      local _<close> = message_box_format(
+                           'Inner Background: %d', count )
+      n = str_input_box( 'User Input',
+                         'Please enter an even number', '2' )
+      if n == nil then
+        message_box( 'Press enter to cancel.' )
+        return
+      end
+      n = n + 0
+      log.info( 'received ' .. tostring( n ) )
+      if n % 2 == 0 then break end
+      message_box( 'The number must be even!' )
+      log.info( 'retrying...' )
+      count = count + 1
+    end
   end
   if n == 42 then error( 'you cannot select 42.' ) end
 
@@ -52,6 +69,10 @@ function M.some_ui_routine( n )
 
   local s = str_input_box( '?', 'Ok, you selected ' .. n ..
                                '.  Enter a string', '' )
+  if n == nil then
+    message_box( 'Press enter to cancel.' )
+    return
+  end
   message_box( 'The string "%s" has length %d.', s, #s )
   local m = n + #s
   message_box( 'n (=%d) + #"%s" is %d.', n, s, m )
