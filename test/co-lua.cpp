@@ -35,6 +35,7 @@ using namespace std;
 using ::Catch::Equals;
 using ::Catch::Matches;
 
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 string to_lower_str( string_view c ) {
   CHECK( c.size() == 1 );
   char   cl = (char)std::tolower( c[0] );
@@ -42,6 +43,7 @@ string to_lower_str( string_view c ) {
   res += cl;
   return res;
 }
+#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 #define TRACE( letter ) \
   trace( #letter );     \
@@ -50,6 +52,7 @@ string to_lower_str( string_view c ) {
 /****************************************************************
 ** Scenario 1
 *****************************************************************/
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_1 {
 
 waitable_promise<int> p1;
@@ -263,8 +266,8 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
     REQUIRE( false );
   } catch( runtime_error const& e ) { msg = e.what(); }
   REQUIRE_THAT( msg,
-                Matches( ".*test/co-lua.cpp:[0-9]+: \\[string "
-                         "\"...\"\\]:15: error from cpp" ) );
+                Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: "
+                         "error from cpp" ) );
 }
 
 TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
@@ -301,15 +304,16 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   } catch( runtime_error const& e ) { msg = e.what(); }
   REQUIRE_THAT(
       msg,
-      Matches(
-          ".*test/co-lua.cpp:[0-9]+: \\[string "
-          "\"...\"\\]:15: .*test/co-lua.cpp:[0-9]+: \\[string "
-          "\"...\"\\]:24: error from lua" ) );
+      Matches( ".*:[0-9]+: \\[string \"...\"\\]:15: .*:[0-9]+: "
+               "\\[string \"...\"\\]:24: error from lua" ) );
 }
+
+#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 /****************************************************************
 ** Scenario 2
 *****************************************************************/
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_2 {
 
 waitable_promise<int>    p1;
@@ -454,15 +458,15 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   } catch( runtime_error const& e ) { msg = e.what(); }
   // clang-format off
   REQUIRE_THAT( msg, Matches(
-    ".*test/co-lua.cpp:[0-9]+: "
+    ".*:[0-9]+: "
     "\\[string \"...\"\\]:19: "
-    ".*test/co-lua.cpp:[0-9]+: "
+    ".*:[0-9]+: "
     "\\[string \"...\"\\]:19: "
-    ".*test/co-lua.cpp:[0-9]+: "
+    ".*:[0-9]+: "
     "\\[string \"...\"\\]:19: "
-    ".*test/co-lua.cpp:[0-9]+: "
+    ".*:[0-9]+: "
     "\\[string \"...\"\\]:19: "
-    ".*test/co-lua.cpp:[0-9]+: "
+    ".*:[0-9]+: "
     "\\[string \"...\"\\]:19: "
     "c\\+\\+ failed"
   ) );
@@ -505,6 +509,8 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
            "FGADADABFGADABFGADABFGADABFGALHHHHHlahgfbadahgfbad"
            "ahgfbadahgfbadadahgf" );
 }
+
+#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 } // namespace
 } // namespace rn
