@@ -75,6 +75,10 @@ struct Window {
     position = centered( delta(), main_window_logical_rect() );
   }
 
+  bool operator==( Window const& rhs ) const {
+    return this == &rhs;
+  }
+
   void  draw( Texture& tx ) const;
   Delta delta() const;
   Rect  rect() const;
@@ -127,7 +131,15 @@ private:
   // Gets the window with focus, throws if no windows.
   Window& focused();
 
+  // Get the top-most window under the cursor position.
+  maybe<Window&> window_for_cursor_pos( Coord const& pos );
+  // Same as above but only when cursor is in a window's view.
+  maybe<Window&> window_for_cursor_pos_in_view(
+      Coord const& pos );
+
   vector<Window*> windows_;
+  // The value of this is only relevant during a drag.
+  Window* dragging_win_ = nullptr;
 };
 NOTHROW_MOVE( WindowManager );
 
@@ -295,47 +307,79 @@ void WindowManager::draw_layout( Texture& tx ) const {
   for( Window* window : active_windows() ) window->draw( tx );
 }
 
+maybe<Window&> WindowManager::window_for_cursor_pos(
+    Coord const& pos ) {
+  for( Window* win : rl::rall( active_windows() ) )
+    if( pos.is_inside( win->rect() ) ) //
+      return *win;
+  return nothing;
+}
+
+maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
+    Coord const& pos ) {
+  for( Window* win : rl::rall( active_windows() ) ) {
+    auto view_rect =
+        Rect::from( win->view_pos(), win->view->delta() );
+    if( pos.is_inside( view_rect ) ) //
+      return *win;
+  }
+  return nothing;
+}
+
 Plane::e_input_handled WindowManager::input(
     input::event_t const& event ) {
   if( this->num_windows() == 0 )
     return Plane::e_input_handled::no;
-  auto& win = focused();
-  auto  view_rect =
-      Rect::from( win.view_pos(), win.view->delta() );
 
-  if( auto* val =
-          std::get_if<input::mouse_move_event_t>( &event ) ) {
-    auto new_pos = val->pos;
-    auto old_pos = val->prev;
-    if( new_pos.is_inside( view_rect ) &&
-        !old_pos.is_inside( view_rect ) )
-      win.view->on_mouse_enter(
-          new_pos.with_new_origin( view_rect.upper_left() ) );
-    if( !new_pos.is_inside( view_rect ) &&
-        old_pos.is_inside( view_rect ) )
-      win.view->on_mouse_leave(
-          old_pos.with_new_origin( view_rect.upper_left() ) );
+  maybe<input::mouse_event_base_t const&> mouse_event =
+      input::is_mouse_event( event );
+  if( !mouse_event ) {
+    // It's a non-mouse event, so just send it to the top-most
+    // window and return if it was handled.
+    return focused().view->input( event )
+               ? Plane::e_input_handled::yes
+               : Plane::e_input_handled::no;
   }
 
-  if( input::is_mouse_event( event ) ) {
-    auto maybe_pos = input::mouse_position( event );
-    CHECK( maybe_pos.has_value() );
-    // Only send the event if the mouse position is within the
-    // view. And, when we send it, we make the mouse position
-    // relative to the upper left corner of the view.
-    if( maybe_pos->is_inside( view_rect ) ) {
-      auto new_event = input::move_mouse_origin_by(
-          event, win.view_pos() - Coord{} );
-      (void)win.view->input( new_event );
-      // Always return that we handled the mouse event if we are
-      // inside a view.
-      return Plane::e_input_handled::yes;
+  // It's a mouse event.
+  maybe<Window&> win = window_for_cursor_pos( mouse_event->pos );
+  if( !win )
+    // Only send mouse events when the cursor is over a window.
+    return Plane::e_input_handled::no;
+  auto view_rect =
+      Rect::from( win->view_pos(), win->view->delta() );
+
+  // If it's a movement event then see if we need to send
+  // on-leave and on-enter notifications to any views that are
+  // being entered or left.
+  if( auto* val =
+          std::get_if<input::mouse_move_event_t>( &event ) ) {
+    auto           new_pos = val->pos;
+    auto           old_pos = val->prev;
+    maybe<Window&> old_view =
+        window_for_cursor_pos_in_view( old_pos );
+    maybe<Window&> new_view =
+        window_for_cursor_pos_in_view( new_pos );
+    if( old_view != new_view ) {
+      if( old_view )
+        old_view->view->on_mouse_leave(
+            old_pos.with_new_origin( view_rect.upper_left() ) );
+      if( new_view )
+        new_view->view->on_mouse_enter(
+            new_pos.with_new_origin( view_rect.upper_left() ) );
     }
-  } else {
-    // It's a non-mouse event, so just send it and return if it
-    // was handled.
-    return win.view->input( event ) ? Plane::e_input_handled::yes
-                                    : Plane::e_input_handled::no;
+  }
+
+  // Only send the event if the mouse position is within the
+  // view. And, when we send it, we make the mouse position rela-
+  // tive to the upper left corner of the view.
+  if( mouse_event->pos.is_inside( view_rect ) ) {
+    auto new_event = input::move_mouse_origin_by(
+        event, win->view_pos() - Coord{} );
+    (void)win->view->input( new_event );
+    // Always return that we handled the mouse event if we are
+    // inside a view.
+    return Plane::e_input_handled::yes;
   }
   return Plane::e_input_handled::no;
 }
@@ -343,19 +387,20 @@ Plane::e_input_handled WindowManager::input(
 Plane::e_accept_drag WindowManager::can_drag(
     input::e_mouse_button /*unused*/, Coord origin ) {
   if( num_windows() == 0 ) return Plane::e_accept_drag::no;
+  maybe<Window&> win = window_for_cursor_pos( origin );
+  // If it's not in a window then swallow it to prevent any other
+  // plane from handling it.
+  if( !win ) return Plane::e_accept_drag::swallow;
+  dragging_win_ = &*win;
   // If we're in the title bar then we'll drag; if we not, but
   // still in the window somewhere, we will "swallow" which means
   // that no other planes should get this drag even (because the
   // cursor is rightly in the window) but we don't want to handle
   // it ourselves because we only drag from the title bar.
-  if( origin.is_inside( focused().title_bar() ) )
+  if( origin.is_inside( win->title_bar() ) )
     return Plane::e_accept_drag::yes;
-  if( origin.is_inside( focused().rect() ) )
-    // Receive drag events as normal mouse events.
-    return Plane::e_accept_drag::motion;
-  // If it's not in our window then swallow it to prevent any
-  // other plane from handling it (i.e., windows are modal).
-  return Plane::e_accept_drag::swallow;
+  // Receive drag events as normal mouse events.
+  return Plane::e_accept_drag::motion;
 }
 
 void WindowManager::on_drag( input::mod_keys const& /*unused*/,
@@ -363,7 +408,8 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
                              Coord /*unused*/, Coord prev,
                              Coord current ) {
   if( button == input::e_mouse_button::l ) {
-    auto& pos = focused().position;
+    CHECK( dragging_win_ );
+    auto& pos = dragging_win_->position;
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
     pos.y =
@@ -377,7 +423,7 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
 
 Window& WindowManager::focused() {
   CHECK( num_windows() > 0 );
-  return **active_windows().begin();
+  return *active_windows().back();
 }
 
 /****************************************************************
