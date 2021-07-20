@@ -31,7 +31,8 @@ namespace lua {
 namespace {
 
 [[noreturn]] int panic( lua_State* L ) {
-  string err = lua_tostring( L, -1 );
+  string err = "unknown";
+  if( c_api( L ).gettop() > 0 ) err = lua_tostring( L, -1 );
   FATAL( "uncaught lua error: {}", err );
 }
 
