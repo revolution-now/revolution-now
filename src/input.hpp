@@ -197,7 +197,8 @@ maybe<char> ascii_char_for_event( key_event_t const& event );
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta );
 
-bool                is_mouse_event( event_t const& event );
+maybe<mouse_event_base_t const&> is_mouse_event(
+    event_t const& event );
 maybe<Coord const&> mouse_position( event_t const& event );
 
 // These are useful if a client of the input events wants to

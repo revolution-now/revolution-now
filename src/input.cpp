@@ -500,12 +500,15 @@ event_t move_mouse_origin_by( event_t const& event,
   return new_event;
 }
 
-bool is_mouse_event( event_t const& event ) {
-  // For any events that are mouse events it will return true,
-  // otherwise false.
+maybe<mouse_event_base_t const&> is_mouse_event(
+    event_t const& event ) {
+  // For any events that are mouse events it will return the base
+  // type in a maybe, which can be used for boolean checking and
+  // getting useful info out of it.
   return apply_to_alternatives_with_base(
-      event, false,
-      []( mouse_event_base_t const& ) { return true; } );
+      event, nothing,
+      []( mouse_event_base_t const& r )
+          -> maybe<mouse_event_base_t const&> { return r; } );
 }
 
 maybe<Coord const&> mouse_position( event_t const& event ) {
