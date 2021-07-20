@@ -31,6 +31,9 @@ void run( e_mode mode ) {
       frame_loop( revolution_now() );
       break;
     case e_mode::ui_test: //
+      run_all_init_routines( e_log_level::debug );
+      lua_reload();
+      run_lua_startup_main();
       frame_loop( ui_test() );
       break;
     case e_mode::gl_test:
