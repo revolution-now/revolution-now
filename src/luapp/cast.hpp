@@ -40,7 +40,7 @@ requires Castable<From, To>
 [[nodiscard]] To cast(
     cthread L, From&& from,
     base::SourceLoc loc = base::SourceLoc::current() ) {
-  int n_pushed = lua::push( L, from );
+  int n_pushed = lua::push( L, FWD( from ) );
   To  to       = get_or_luaerr<To>( L, -1, loc );
   detail::cast_pop( L, n_pushed );
   return to;
