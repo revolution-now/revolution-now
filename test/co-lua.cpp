@@ -469,5 +469,42 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   // clang-format on
 }
 
+TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
+  using namespace scenario_2;
+  lua::state& st = lua_global_state();
+
+  p1        = {};
+  p2        = {};
+  trace_log = {};
+
+  setup( st );
+
+  REQUIRE( !p1.has_value() );
+  REQUIRE( !p2.has_value() );
+  REQUIRE( trace_log == "" );
+
+  waitable<string> w =
+      lua_waitable<string>{}( st["accum_lua"], 15 );
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
+
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
+
+  w.cancel();
+  REQUIRE( trace_log ==
+           "FGADADABFGADABFGADABFGADABFGALHHHHHlahgfbadahgfbad"
+           "ahgfbadahgfbadadahgf" );
+
+  p1.set_value_emplace( 1 );
+  p2.set_value_emplace( "1" );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log ==
+           "FGADADABFGADABFGADABFGADABFGALHHHHHlahgfbadahgfbad"
+           "ahgfbadahgfbadadahgf" );
+}
+
 } // namespace
 } // namespace rn
