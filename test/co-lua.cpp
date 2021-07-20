@@ -500,5 +500,150 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
 
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
+/****************************************************************
+** Scenario 3: Cancellation from Lua
+*****************************************************************/
+#if !defined( CORO_TEST_DISABLE_FOR_GCC )
+namespace scenario_3 {
+
+waitable_promise<>    p1;
+waitable_promise<>    p2;
+waitable_promise<int> p3;
+waitable_promise<>    p4;
+string                trace_log;
+
+void trace( string_view msg ) { trace_log += string( msg ); }
+
+waitable<> to_auto_cancel() {
+  TRACE( P );
+  co_await p4.waitable();
+  TRACE( Q );
+}
+
+waitable<> cpp_1() {
+  TRACE( H );
+  co_await p1.waitable();
+  TRACE( I );
+}
+
+waitable<> another_cpp() {
+  TRACE( J );
+  co_await p2.waitable();
+  TRACE( K );
+}
+
+waitable<> cpp_2() {
+  TRACE( L );
+  co_await another_cpp();
+  TRACE( M );
+}
+
+waitable<int> cpp_3() {
+  TRACE( N );
+  int n = co_await p3.waitable();
+  TRACE( O );
+  co_return n;
+}
+
+constexpr string_view lua_1 = R"(
+  local await = waitable.await
+
+  function TRACE( letter )
+    trace( letter )
+    return setmetatable( {}, {
+      __close = function() trace( string.lower( letter ) ) end
+    } )
+  end
+
+  function launch( z )
+    local _<close> = TRACE( "Z" )
+    local _<close> = to_auto_cancel()
+    local _<close> = TRACE( "A" )
+    local w1<close> = cpp_1()
+    local _<close> = TRACE( "B" )
+    local w2<close> = cpp_2()
+    local _<close> = TRACE( "C" )
+    await( w1 )
+    local _<close> = TRACE( "D" )
+    local w3<close> = cpp_3()
+    local _<close> = TRACE( "E" )
+    w2:cancel()
+    local _<close> = TRACE( "F" )
+    local n = await( w3 )
+    local _<close> = TRACE( "G" )
+    return n
+  end
+)";
+
+void setup( lua::state& st ) {
+  st["trace"] = trace;
+
+  st["to_auto_cancel"] = [&]() -> waitable<lua::any> {
+    co_await to_auto_cancel();
+    co_return st.cast<lua::any>( lua::nil );
+  };
+
+  st["cpp_1"] = [&]() -> waitable<lua::any> {
+    co_await cpp_1();
+    co_return st.cast<lua::any>( lua::nil );
+  };
+
+  st["cpp_2"] = [&]() -> waitable<lua::any> {
+    co_await cpp_2();
+    co_return st.cast<lua::any>( lua::nil );
+  };
+
+  st["cpp_3"] = [&]() -> waitable<lua::any> {
+    co_return st.cast<lua::any>( co_await cpp_3() );
+  };
+
+  st.script.run( lua_1 );
+}
+
+} // namespace scenario_3
+
+TEST_CASE( "[co-lua] scenario 3" ) {
+  using namespace scenario_3;
+  lua::state& st = lua_global_state();
+
+  p1        = {};
+  p2        = {};
+  p3        = {};
+  p4        = {};
+  trace_log = {};
+
+  setup( st );
+
+  waitable<int> w = lua_waitable<int>{}( st["launch"] );
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ZPAHBLJC" );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ZPAHBLJC" );
+
+  p1.set_value_emplace();
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
+
+  p2.set_value_emplace();
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
+
+  p3.set_value( 42 );
+  run_all_coroutines();
+  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
+
+  p4.set_value_emplace();
+  run_all_coroutines();
+  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
+
+  REQUIRE( w.ready() );
+  REQUIRE( *w == 42 );
+}
+
+#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
+
 } // namespace
 } // namespace rn
