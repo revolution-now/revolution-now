@@ -12,6 +12,7 @@
 M = {}
 
 local wrap = waitable.wrap
+local await = waitable.await
 
 local function message_box_format( ... )
   local msg = string.format( ... )
@@ -42,8 +43,7 @@ function M.some_ui_routine( n )
   do
     -- Run message box concurrently. We don't want to use the
     -- wrapped version here because that will await it.
-    local _<close> = message_box_format(
-                         '------- Outter Background -------' )
+    local outter<close> = lua_ui.message_box( 'Outter Window' )
     local count = 1
     while true do
       -- Run message box concurrently. Again, no wrapped version.
@@ -62,6 +62,7 @@ function M.some_ui_routine( n )
       log.info( 'retrying...' )
       count = count + 1
     end
+    await( outter )
   end
   if n == 42 then error( 'you cannot select 42.' ) end
 
