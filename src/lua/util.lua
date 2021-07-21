@@ -52,7 +52,7 @@ function M.ls( table )
     table = getmetatable( table ) or {}
   end
   for k, v in pairs( table ) do
-    if not starts_with( tostring( k ), '__' ) then
+    if not M.starts_with( tostring( k ), '__' ) then
       log.console( tostring( k ) .. ': ' .. tostring( v ) )
     end
   end

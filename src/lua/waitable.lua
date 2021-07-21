@@ -15,7 +15,8 @@ local M = {}
 assert( coroutine, 'The coroutine library must be available.' )
 
 function M.await( waitable )
-  assert( coroutine.isyieldable() )
+  assert( coroutine.isyieldable(), 'This function can only ' ..
+              'called from within a coroutine.' )
   assert( type( waitable ) == 'userdata',
           'await should only be called on native waitable types.' )
   -- Must be first.
