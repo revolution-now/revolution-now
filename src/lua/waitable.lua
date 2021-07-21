@@ -15,6 +15,7 @@ local M = {}
 assert( coroutine, 'The coroutine library must be available.' )
 
 function M.await( waitable )
+  assert( coroutine.isyieldable() )
   assert( type( waitable ) == 'userdata',
           'await should only be called on native waitable types.' )
   -- Must be first.
@@ -26,7 +27,6 @@ function M.await( waitable )
   if waitable:ready() then return waitable:get() end
 
   waitable:set_resume( thread )
-  assert( coroutine.isyieldable() )
   coroutine.yield()
   local err = waitable:error()
   -- 2 means to use the source location of the calling function
