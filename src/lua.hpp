@@ -27,6 +27,15 @@
 // FIXME: get rid of this
 #include "absl/strings/str_replace.h"
 
+#define LUA_CHECK( st, a, ... )                          \
+  {                                                      \
+    if( !( a ) ) {                                       \
+      st.error( fmt::format(                             \
+          "{} is false. {}", #a,                         \
+          fmt::format( FMT_SAFE( "" __VA_ARGS__ ) ) ) ); \
+    }                                                    \
+  }
+
 namespace lua {
 
 struct state;

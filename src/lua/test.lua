@@ -11,6 +11,8 @@
 --]] ------------------------------------------------------------
 M = {}
 
+local waitable = require( 'waitable' )
+
 local wrap = waitable.wrap
 local await = waitable.await
 

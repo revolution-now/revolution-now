@@ -14,6 +14,7 @@
 #include "call.hpp"
 #include "cast.hpp"
 #include "cthread.hpp"
+#include "error.hpp"
 #include "rfunction.hpp"
 #include "rstring.hpp"
 #include "rtable.hpp"
@@ -201,6 +202,15 @@ public:
       base::SourceLoc loc = base::SourceLoc::current() ) {
     cthread L = resource();
     return lua::cast<To>( L, std::forward<From>( from ), loc );
+  }
+
+  /**************************************************************
+  ** Throw error
+  ***************************************************************/
+  template<typename... Args>
+  [[noreturn]] void error( std::string_view msg,
+                           Args&&... args ) const {
+    throw_lua_error( resource(), msg, FWD( args )... );
   }
 
 private:

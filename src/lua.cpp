@@ -51,24 +51,34 @@ bool is_valid_lua_identifier( string_view name ) {
          !util::contains( name, "." );
 }
 
-valid_or<string> load_module( string const& name ) {
+lua::table require( string const& name ) {
+  lua::state& st  = lua_global_state();
+  lua::table  ext = lua::table::create_or_get( st["ext"] );
+  lg.debug( "requiring lua module \"{}\".", name );
+  if( ext[name] != lua::nil ) {
+    LUA_CHECK( st, ext[name] != "loading",
+               "cyclic dependency detected." )
+    return ext[name].cast<lua::table>();
+  }
   lg.info( "loading lua module \"{}\".", name );
-  CHECK( is_valid_lua_identifier( name ),
-         "module name `{}` is not a valid lua identifier.",
-         name );
+  LUA_CHECK( st, is_valid_lua_identifier( name ),
+             "module name `{}` is not a valid lua identifier.",
+             name );
+  // Set the module to something while we're loading in order to
+  // detect and break cyclic dependencies.
+  ext[name]          = "loading";
   fs::path file_name = "src/lua/" + name + ".lua";
-  CHECK( fs::exists( file_name ), "file {} does not exist.",
-         file_name );
-  UNWRAP_RETURN( package_exports,
-                 g_lua.script.run_file_safe<lua::table>(
-                     "src/lua/" + name + ".lua" ) );
+  LUA_CHECK( st, fs::exists( file_name ),
+             "file {} does not exist.", file_name );
+  lua::table package_exports = g_lua.script.run_file<lua::table>(
+      "src/lua/" + name + ".lua" );
+  ext[name] = package_exports;
   // In case the symbol already exists we will assume that it is
   // a table and merge its contents into this one.
   auto old_table = lua::table::create_or_get( g_lua[name] );
   g_lua[name]    = package_exports;
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
-
-  return valid;
+  return package_exports;
 }
 
 void reset_sol_state() {
@@ -101,6 +111,7 @@ void reset_sol_state() {
     lua::c_api C( o.this_cthread() );
     lg.info( "{}", C.pop_tostring() );
   };
+  g_lua["require"] = require;
 }
 
 // This is for use in the unit tests.
@@ -162,7 +173,7 @@ void load_lua_modules() {
   auto modules = lua::table::create_or_get( g_lua["modules"] );
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) ) {
     string stem = path.stem();
-    CHECK_HAS_VALUE( load_module( stem ) );
+    require( stem );
     modules[stem] = "module";
   }
 }

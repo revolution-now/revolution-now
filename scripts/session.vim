@@ -1,13 +1,9 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'luapp/ext',
-  \ 'luapp/rthread',
-  \ 'luapp/rfunction',
   \ 'luapp/state',
-  \ 'co-scheduler',
-  \ 'co-lua-scheduler',
   \ 'co-lua',
   \ 'lua-ui',
+  \ 'lua',
 \]
 
 let s:luas = [
