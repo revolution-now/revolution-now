@@ -37,7 +37,7 @@ using ::Catch::Matches;
 
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
 string to_lower_str( string_view c ) {
-  CHECK( c.size() == 1 );
+  BASE_CHECK( c.size() == 1 );
   char   cl = (char)std::tolower( c[0] );
   string res;
   res += cl;
@@ -376,6 +376,74 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
       "\t\\[C\\]: in \\?"
   ) );
   // clang-format on
+}
+
+TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
+  using namespace scenario_1;
+  lua::state& st = lua_global_state();
+
+  p1        = {};
+  p2        = {};
+  p3        = {};
+  shown_int = {};
+  trace_log = {};
+
+  setup( st );
+
+  REQUIRE( !p1.has_value() );
+  REQUIRE( !p2.has_value() );
+  REQUIRE( !p3.has_value() );
+  REQUIRE( shown_int == "" );
+  REQUIRE( trace_log == "" );
+
+  st.script.run( R"(
+    coro = coroutine.create( get_and_add_ints )
+    assert( coroutine.resume( coro, 5 ) )
+    assert( coroutine.status( coro ) == "suspended" )
+  )" );
+
+  // When the test fails we need to make sure that the coroutine
+  // gets closed otherwise some of the C++ resources might not
+  // get freed until the global Lua state is torn down, which is
+  // too late because by then they may have dangling references
+  // to things. In other words, this line is only to prevent the
+  // test from crashing when it fails (for some other reason).
+  // When the test is passing, there is no need for this since
+  // all of the waitables are assigned to <close> variables that
+  // get cleaned up when the coroutine finishes running.
+  //
+  // This isn't needed in some of the other test cases in this
+  // file because they initiate the coroutine via a C++ corou-
+  // tine, which handles the RAII cleanup when a REQUIRE fails.
+  //
+  // Removing this actually doesn't cause a crash at the time of
+  // writing even when the test fails, but it seems like the
+  // right thing to do anyway.
+  SCOPE_EXIT( st.script.run( "coroutine.close( coro )" ) );
+
+  run_all_coroutines();
+  REQUIRE( trace_log == "CG" );
+  REQUIRE( shown_int == "" );
+
+  p1.set_value( 7 );
+  run_all_coroutines();
+  REQUIRE( trace_log == "CGHhgDI" );
+  REQUIRE( shown_int == "" );
+
+  p2.set_value( 8 );
+  run_all_coroutines();
+  REQUIRE( trace_log == "CGHhgDIJjiEMK" );
+  REQUIRE( shown_int == "20" );
+  st.script.run( R"(
+    assert( coroutine.status( coro ) == "suspended" )
+  )" );
+
+  p3.set_value_emplace();
+  run_all_coroutines();
+  REQUIRE( trace_log == "CGHhgDIJjiEMKLlkNnmFfedc" );
+  st.script.run( R"(
+    assert( coroutine.status( coro ) == "dead" )
+  )" );
 }
 
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
