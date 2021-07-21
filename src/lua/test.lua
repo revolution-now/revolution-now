@@ -69,7 +69,7 @@ function M.some_ui_routine( n )
 
   local s = str_input_box( '?', 'Ok, you selected ' .. n ..
                                '.  Enter a string', '' )
-  if n == nil then
+  if s == nil then
     message_box( 'Press enter to cancel.' )
     return
   end
