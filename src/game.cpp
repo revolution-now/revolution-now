@@ -52,14 +52,15 @@ waitable<> run_loaded_game() {
 ** Public API
 *****************************************************************/
 waitable<> run_existing_game() {
+  lua_reload();
   CHECK_HAS_VALUE( load_game( 0 ) );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
 
 waitable<> run_new_game() {
-  default_construct_savegame_state();
   lua_reload();
+  default_construct_savegame_state();
   run_lua_startup_main();
 
   // 1. Take user through game setup/configuration.
