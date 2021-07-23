@@ -49,6 +49,20 @@ namespace {
 
 using ::Catch::Matches;
 
+LUA_TEST_CASE( "[ext-std] std::monostate" ) {
+  lua::push( L, monostate{} );
+  REQUIRE( C.type_of( -1 ) == type::nil );
+
+  REQUIRE( lua::get<monostate>( L, -1 ) == monostate{} );
+
+  lua::push( L, 5 );
+  lua::push( L, "hello" );
+  REQUIRE( lua::get<monostate>( L, -1 ) == base::nothing );
+  REQUIRE( lua::get<monostate>( L, -2 ) == base::nothing );
+
+  C.pop( 3 );
+}
+
 LUA_TEST_CASE( "[ext-std] push/get" ) {
   SECTION( "tuple" ) {
     tuple<double, string, int> t{ 7.7, "hello", 9 };
