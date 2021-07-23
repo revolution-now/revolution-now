@@ -94,7 +94,7 @@ struct c_api {
   // NOTE: If/when a yield happens, it will be done (by Lua) by
   // throwing an exception which is of type int in practice, and
   // so this function is really only intended to be run under a
-  // protected environment, such as lua_resume.
+  // protected environment, particularly lua_resume.
   //
   // NOTE: this function will leave the message handler on the
   // stack since it would be tricky to clean it up given that the
@@ -102,8 +102,33 @@ struct c_api {
   // sibility to remove it if necessary (which would have to be
   // done in both the function that calls pcallk and in the con-
   // tinuation).
-  lua_valid pcallk( int nargs, int nresults, LuaKContext ctx,
-                    LuaKFunction k );
+  //
+  // In the case of an error or a yield, this function will not
+  // return. It only returns when the function finished success-
+  // fully without yielding, and so there is no point in having a
+  // return value. A typical scenario is:
+  //
+  //   1. lua_resume starts a coroutine that, at some point in
+  //      the call stack, calls a C function.
+  //   2. The C function wants to call into Lua in a way that al-
+  //      lows Lua to yield (and it wants to trap errors like
+  //      pcall normally does).
+  //   3. The C function calls pcallk which calls into Lua, and
+  //      then Lua throws an error.
+  //   4. The Lua interpreter C code throws an exceptions which
+  //      unwinds the C call stack back through this call to
+  //      pcallk (so pcallk will never return).
+  //   5. lua_resume catches the C++ exception and it then starts
+  //      to unwind the Lua stack, until it hits the frame repre-
+  //      senting the C function that called lua_pcallk.
+  //   6. It cannot resume that function since its call frame is
+  //      gone, so it just calls the continuation function (`k`)
+  //      passed into pcallk.
+  //   7. When the continuation function returns, Lua resumes,
+  //      the Lua function that called the original C function.
+  //
+  void pcallk( int nargs, int nresults, LuaKContext ctx,
+               LuaKFunction k );
 
   /**************************************************************
   ** pushing & popping, stack manipulation

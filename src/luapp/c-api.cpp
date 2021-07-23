@@ -313,8 +313,15 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   return pop_and_return_error();
 }
 
-lua_valid c_api::pcallk( int nargs, int nresults,
-                         LuaKContext ctx, LuaKFunction k ) {
+void c_api::pcallk( int nargs, int nresults, LuaKContext ctx,
+                    LuaKFunction k ) {
+  // Lua defines lua_pcall as lua_pcallk with no continuation
+  // function, so if there is no continuation function then you
+  // should instead just call pcall. Requiring this allows us to
+  // put some additional restrictions on the return value of
+  // lua_pcallk should we actually call it.
+  CHECK( k != nullptr, "continuation must be non-null." );
+  // We have a continuation function.
   int msghandler_idx = pcall_preamble( nargs, nresults );
   DCHECK( msghandler_idx > 0 );
   // !! Note that we cannot use SCOPE_EXIT to remove the message
@@ -327,11 +334,9 @@ lua_valid c_api::pcallk( int nargs, int nresults,
   // it may never return, if the function being called yields.
   int status =
       lua_pcallk( L, nargs, nresults, msghandler_idx, ctx, k );
-
-  // NOTE: we may never get here if the function yields. In that
-  // case, the continuation k will be called.
-  if( status == LUA_OK ) return base::valid;
-  return pop_and_return_error();
+  // If we get here then the function finished successfully
+  // without yielding.
+  CHECK( status == LUA_OK );
 }
 
 void c_api::call( int nargs, int nresults ) noexcept {

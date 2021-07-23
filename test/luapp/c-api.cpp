@@ -23,6 +23,7 @@
 #include "test/catch-common.hpp"
 
 FMT_TO_CATCH( ::lua::type );
+FMT_TO_CATCH( ::lua::resume_result );
 
 namespace lua {
 namespace {
@@ -715,7 +716,67 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 }
 
-LUA_TEST_CASE( "[lua-c-api] pcallk" ) {
+LUA_TEST_CASE( "[lua-c-api] pcallk no yield or error" ) {
+  C.openlibs();
+
+  static bool k_ran      = false;
+  k_ran                  = false;
+  static bool k_returned = false;
+  k_returned             = false;
+
+  static auto k = []( lua_State*, int, LuaKContext ) -> int {
+    k_ran = true;
+    return 0;
+  };
+
+  static auto runner = []( lua_State* L ) -> int {
+    c_api C2( L );
+    C2.getglobal( "foo" );
+    BASE_CHECK_EQ( C2.stack_size(), 1 );
+    BASE_CHECK_EQ( C2.status(), thread_status::ok );
+    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( !k_ran );
+
+    // This is what's under test.
+    C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
+
+    k_returned = true;
+    return 0;
+  };
+
+  char const* lua_script = R"(
+    function foo()
+      --
+    end
+  )";
+  REQUIRE( C.dostring( lua_script ) == valid );
+
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+
+  C2.push( runner );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( k_ran == false );
+  REQUIRE( k_returned == false );
+
+  resume_result expected = resume_result{
+      .status = resume_status::ok, .nresults = 0 };
+  REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
+  REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( k_ran == false );
+  REQUIRE( k_returned == true );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop();
+}
+
+LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
   C.openlibs();
 
   static bool k_ran = false;
@@ -735,10 +796,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk" ) {
     BASE_CHECK( !k_ran );
 
     // This is what's under test.
-    BASE_CHECK_EQ(
-        C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0,
-                   /*k=*/k ),
-        valid );
+    C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
 
     SHOULD_NOT_BE_HERE;
     return 0;
@@ -778,6 +836,128 @@ LUA_TEST_CASE( "[lua-c-api] pcallk" ) {
   REQUIRE( k_ran == true );
 
   REQUIRE( C2.stack_size() == 0 );
+  REQUIRE( C.stack_size() == 1 );
+  C.pop();
+}
+
+LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
+  C.openlibs();
+
+  static bool k_ran = false;
+  k_ran             = false;
+
+  static auto k = []( lua_State*, int, LuaKContext ) -> int {
+    k_ran = true;
+    return 0;
+  };
+
+  static auto runner = []( lua_State* L ) -> int {
+    c_api C2( L );
+    C2.getglobal( "foo" );
+    BASE_CHECK_EQ( C2.stack_size(), 1 );
+    BASE_CHECK_EQ( C2.status(), thread_status::ok );
+    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( !k_ran );
+
+    // This is what's under test.
+    C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
+
+    SHOULD_NOT_BE_HERE;
+    return 0;
+  };
+
+  char const* lua_script = R"(
+    function foo()
+      error( 'some error' )
+    end
+  )";
+  REQUIRE( C.dostring( lua_script ) == valid );
+
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+
+  C2.push( runner );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( k_ran == false );
+
+  resume_result expected = resume_result{
+      .status = resume_status::ok, .nresults = 0 };
+  // The error will be caught by pcallk and the continuation will
+  // run, so the thread will not be in an error state.
+  REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( k_ran == true );
+
+  REQUIRE( C.stack_size() == 1 );
+  C.pop();
+}
+
+LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
+  C.openlibs();
+
+  static bool k_ran = false;
+  k_ran             = false;
+
+  static auto k = []( lua_State*, int, LuaKContext ) -> int {
+    k_ran = true;
+    return 0;
+  };
+
+  static auto runner = []( lua_State* L ) -> int {
+    c_api C2( L );
+    C2.getglobal( "foo" );
+    BASE_CHECK_EQ( C2.stack_size(), 1 );
+    BASE_CHECK_EQ( C2.status(), thread_status::ok );
+    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( !k_ran );
+
+    // This is what's under test.
+    C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
+
+    SHOULD_NOT_BE_HERE;
+    return 0;
+  };
+
+  char const* lua_script = R"(
+    function foo()
+      coroutine.yield()
+      error( 'some error' )
+    end
+  )";
+  REQUIRE( C.dostring( lua_script ) == valid );
+
+  cthread L2 = C.newthread();
+  c_api   C2( L2 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+
+  C2.push( runner );
+  REQUIRE( C2.stack_size() == 1 );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( k_ran == false );
+
+  resume_result expected = resume_result{
+      .status = resume_status::yield, .nresults = 0 };
+  REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
+  REQUIRE( C2.status() == thread_status::yield );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+  REQUIRE( k_ran == false );
+
+  expected = resume_result{ .status   = resume_status::ok,
+                            .nresults = 0 };
+  // The error will be caught by pcallk and the continuation will
+  // run, so the thread will not be in an error state.
+  REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
+  REQUIRE( C2.status() == thread_status::ok );
+  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( k_ran == true );
+
   REQUIRE( C.stack_size() == 1 );
   C.pop();
 }
