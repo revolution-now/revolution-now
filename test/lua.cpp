@@ -178,7 +178,7 @@ TEST_CASE( "[lua] frozen globals" ) {
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
-      Contains( "attempt to modify a read-only table." ) );
+      Contains( "attempt to modify a read-only table:" ) );
 
   xp = st.script.run_safe( "id = 1" );
   REQUIRE( !xp.valid() );
@@ -190,7 +190,7 @@ TEST_CASE( "[lua] frozen globals" ) {
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
-      Contains( "attempt to modify a read-only table." ) );
+      Contains( "attempt to modify a read-only table:" ) );
 
   REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
 
@@ -210,17 +210,6 @@ TEST_CASE( "[lua] rawset is locked down" ) {
   xp = st.script.run_safe( "rawset( _ENV, 'xxx', 3 )" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
-}
-
-TEST_CASE( "[lua] has modules" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"lua(
-    assert( modules['startup'] ~= nil )
-    assert( modules['util']    ~= nil )
-    assert( modules['meta']    ~= nil )
-    assert( modules['utype']   ~= nil )
-  )lua";
-  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 LUA_FN( throwing, int, int x ) {

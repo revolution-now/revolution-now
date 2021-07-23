@@ -41,7 +41,7 @@ namespace {
 lua::state g_lua;
 
 auto& registration_functions() {
-  static vector<pair<string, LuaRegistrationFnSig**>> fns;
+  static vector<LuaRegistrationFnSig* const*> fns;
   return fns;
 }
 
@@ -159,28 +159,16 @@ lua::state& lua_global_state() { return g_lua; }
 
 void run_lua_startup_routines() {
   lg.info( "registering Lua functions." );
-  auto modules = lua::table::create_or_get( g_lua["modules"] );
-  for( auto const& [mod_name, fn] : registration_functions() ) {
-    modules[mod_name] = "module";
-    ( *fn )( g_lua );
-    CHECK( g_lua[mod_name] != lua::nil,
-           "module \"{}\" has not been defined.", mod_name );
-  }
+  for( auto fn : registration_functions() ) ( *fn )( g_lua );
   register_my_type(); // for unit testing.
 }
 
 void load_lua_modules() {
-  auto modules = lua::table::create_or_get( g_lua["modules"] );
-  for( auto const& path : util::wildcard( "src/lua/*.lua" ) ) {
-    string stem = path.stem();
-    require( stem );
-    modules[stem] = "module";
-  }
+  for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
+    require( path.stem() );
 }
 
-void run_lua_startup_main() {
-  CHECK_HAS_VALUE( g_lua.script.run_safe( "startup.main()" ) );
-}
+void run_lua_startup_main() { g_lua["startup"]["main"](); }
 
 void lua_reload() {
   reset_sol_state();
@@ -199,9 +187,8 @@ vector<string> format_lua_error_msg( string const& msg ) {
   return res;
 }
 
-void register_lua_fn( string_view            module_name,
-                      LuaRegistrationFnSig** fn ) {
-  registration_functions().emplace_back( module_name, fn );
+void register_lua_fn( LuaRegistrationFnSig* const* fn ) {
+  registration_functions().push_back( fn );
 }
 
 /****************************************************************

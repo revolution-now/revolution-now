@@ -63,8 +63,7 @@ void lua_reload();
 *****************************************************************/
 using LuaRegistrationFnSig = void( lua::state& );
 
-void register_lua_fn( std::string_view       module_name,
-                      LuaRegistrationFnSig** fn );
+void register_lua_fn( LuaRegistrationFnSig* const* fn );
 
 /****************************************************************
 ** Registration: General
@@ -79,14 +78,14 @@ void register_lua_fn( std::string_view       module_name,
 // capture the address of it instead of its value. This init_fn
 // won't be dereferenced and called until long after all static
 // initialization has completed.
-#define LUA_STARTUP( st )                                     \
-  struct STRING_JOIN( register_, __LINE__ ) {                 \
-    STRING_JOIN( register_, __LINE__ )() {                    \
-      rn::register_lua_fn( rn::lua_module_name__, &init_fn ); \
-    }                                                         \
-    static rn::LuaRegistrationFnSig* init_fn;                 \
-  } STRING_JOIN( obj, __LINE__ );                             \
-  rn::LuaRegistrationFnSig* STRING_JOIN(                      \
+#define LUA_STARTUP( st )                     \
+  struct STRING_JOIN( register_, __LINE__ ) { \
+    STRING_JOIN( register_, __LINE__ )() {    \
+      rn::register_lua_fn( &init_fn );        \
+    }                                         \
+    static rn::LuaRegistrationFnSig* init_fn; \
+  } STRING_JOIN( obj, __LINE__ );             \
+  rn::LuaRegistrationFnSig* STRING_JOIN(      \
       register_, __LINE__ )::init_fn = []( st )
 
 /****************************************************************

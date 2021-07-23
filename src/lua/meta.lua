@@ -80,7 +80,7 @@ local function freeze_table( parent, tbl_name )
     __pairs=pairs_table_override( tbl ),
     __ipairs=ipairs_table_override( tbl ),
     __newindex=function( t, k, v )
-      error( 'attempt to modify a read-only table.' )
+      error( 'attempt to modify a read-only table: ' .. tbl_name )
     end,
     __metatable=false
   } );
@@ -129,12 +129,14 @@ local function freeze_existing_globals()
 end
 
 function M.freeze_all()
-  -- Freeze modules.
-  for k, v in pairs( modules ) do freeze_table( _G, k ) end
-  freeze_table( _G, 'modules' )
   -- Freeze enums.
   freeze_table_members( _G['e'] )
-  freeze_table( _G, 'e' )
+  -- Freeze global tables.
+  for k, v in pairs( _G ) do
+    if type( v ) == 'table' and k ~= '_G' then
+      freeze_table( _G, k )
+    end
+  end
   -- Freeze existing globals.
   freeze_existing_globals()
 end
