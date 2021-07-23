@@ -41,7 +41,7 @@ waitable<> message_box_basic( std::string_view msg );
 
 template<typename... Args>
 waitable<> message_box( std::string_view msg, Args&&... args ) {
-  return message_box(
+  return message_box_basic(
       fmt::format( msg, std::forward<Args>( args )... ) );
 }
 
