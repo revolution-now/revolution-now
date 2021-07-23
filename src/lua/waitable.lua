@@ -15,12 +15,18 @@ local M = {}
 assert( coroutine, 'The coroutine library must be available.' )
 
 function M.await( waitable )
-  assert( coroutine.isyieldable(), 'This function can only ' ..
-              'called from within a coroutine.' )
   assert( type( waitable ) == 'userdata',
           'await should only be called on native waitable types.' )
-  -- Must be first.
+  assert( type( waitable.set_resume ) == 'function',
+          'await called on invalid waitable type. This may ' ..
+              'mean that the waitable type\'s usertype was not ' ..
+              'registered.' )
+
+  -- DO NOT put anything more before this line.
   local closer<close> = waitable
+
+  assert( coroutine.isyieldable(), 'This function can only ' ..
+              'called from within a coroutine.' )
 
   local thread, is_main = coroutine.running()
   assert( not is_main )
