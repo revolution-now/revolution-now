@@ -10,13 +10,8 @@
 *****************************************************************/
 #include "co-lua.hpp"
 
-// Revolution Now
-#include "co-lua-scheduler.hpp"
-#include "lua.hpp"
-
 // luapp
 #include "luapp/c-api.hpp"
-#include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
 
 // Lua
@@ -27,34 +22,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-LUA_MODULE();
-
-LUA_STARTUP( lua::state& st ) {
-  using W = waitable<lua::any>;
-  auto ut = st.usertype.create<W>();
-
-  ut["cancel"] = &W::cancel;
-  ut["ready"]  = &W::ready;
-  ut["get"]    = []( W& w ) { return w.get(); };
-
-  ut["error"] = []( waitable<lua::any>& w ) -> maybe<string> {
-    if( !w.has_exception() ) return nothing;
-    return base::rethrow_and_get_msg( w.exception() );
-  };
-
-  ut["set_resume"] = []( W& w, lua::rthread coro ) {
-    w.shared_state()->add_callback( [coro]( lua::any const& ) {
-      queue_lua_coroutine( coro );
-    } );
-    w.shared_state()->set_exception_callback(
-        [coro]( std::exception_ptr ) {
-          queue_lua_coroutine( coro );
-        } );
-  };
-  ut[lua::metatable_key]["__close"] =
-      []( W& w, lua::any /*error_object*/ ) { w.cancel(); };
-};
 
 int coro_continuation( lua_State* L, int status, lua_KContext ) {
   // Stack:

@@ -23,11 +23,6 @@
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 
-#include "co-lua.hpp"
-#include "luapp/ext-base.hpp"
-#include "luapp/state.hpp"
-#include "waitable-coro.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -38,29 +33,19 @@ namespace {
 
 LUA_MODULE();
 
-LUA_FN( message_box, waitable<lua::any>, string_view msg ) {
-  lua::state& st = lua_global_state();
+LUA_FN( message_box, waitable<>, string_view msg ) {
   co_await ui::message_box( msg );
-  co_return st.cast<lua::any>( lua::nil );
 }
 
-LUA_FN( ok_cancel, waitable<lua::any>, string_view msg ) {
-  lua::state&     st  = lua_global_state();
+LUA_FN( ok_cancel, waitable<string>, string_view msg ) {
   ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
-  switch( res ) {
-    case ui::e_ok_cancel::ok:
-      co_return st.cast<lua::any>( "ok" );
-    case ui::e_ok_cancel::cancel:
-      co_return st.cast<lua::any>( "cancel" );
-  }
+  co_return fmt::to_string( res );
 }
 
-LUA_FN( str_input_box, waitable<lua::any>, string_view title,
-        string_view msg, string_view initial_text ) {
-  lua::state&   st = lua_global_state();
-  maybe<string> res =
-      co_await ui::str_input_box( title, msg, initial_text );
-  co_return st.cast<lua::any>( res );
+LUA_FN( str_input_box, waitable<maybe<string>>,
+        string_view title, string_view msg,
+        string_view initial_text ) {
+  return ui::str_input_box( title, msg, initial_text );
 }
 
 } // namespace
