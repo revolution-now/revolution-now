@@ -37,7 +37,7 @@ namespace rn::ui {
 // user input apart from waiting for the <CR> or Space keys to be
 // pressed, which then closes the window. It takes markup text as
 // input and it will reflow the message.
-waitable<> message_box( std::string_view msg );
+waitable<> message_box_basic( std::string_view msg );
 
 template<typename... Args>
 waitable<> message_box( std::string_view msg, Args&&... args ) {
@@ -75,14 +75,6 @@ ValidatorFunc make_int_validator( maybe<int> min,
 ** Windows
 *****************************************************************/
 waitable<e_ok_cancel> ok_cancel( std::string_view msg );
-
-template<typename... Args>
-waitable<e_ok_cancel> ok_cancel( std::string_view question,
-                                 Args&&... args ) //
-    requires( sizeof...( Args ) > 0 ) {
-  return ok_cancel(
-      fmt::format( question, std::forward<Args>( args )... ) );
-}
 
 struct IntInputBoxOptions {
   std::string_view title   = "";

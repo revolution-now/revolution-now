@@ -91,12 +91,11 @@ void register_lua_fn( LuaRegistrationFnSig* const* fn );
 /****************************************************************
 ** Registration: Functions
 *****************************************************************/
-// This is only needed in modules that include only LUA_STARTUP
-// macros (which themselves won't register the module name),
-// though it shouldn't hurt to include it.
-#define LUA_MODULE()                                          \
+// `name` is supposed to be a string.
+#define LUA_AUTO_FN( name, func )                             \
   LUA_STARTUP( lua::state& st ) {                             \
     ::lua::table::create_or_get( st[rn::lua_module_name__] ); \
+    st[rn::lua_module_name__][name] = func;                   \
   };
 
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_2( LUA_FN, __VA_ARGS__ )

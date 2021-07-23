@@ -31,21 +31,12 @@ void linker_dont_discard_module_lua_ui() {}
 
 namespace {
 
-LUA_MODULE();
-
-LUA_FN( message_box, waitable<>, string_view msg ) {
-  co_await ui::message_box( msg );
-}
+LUA_AUTO_FN( "message_box", ui::message_box_basic );
+LUA_AUTO_FN( "str_input_box", ui::str_input_box );
 
 LUA_FN( ok_cancel, waitable<string>, string_view msg ) {
   ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
   co_return fmt::to_string( res );
-}
-
-LUA_FN( str_input_box, waitable<maybe<string>>,
-        string_view title, string_view msg,
-        string_view initial_text ) {
-  return ui::str_input_box( title, msg, initial_text );
 }
 
 } // namespace

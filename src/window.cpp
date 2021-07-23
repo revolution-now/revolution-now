@@ -705,7 +705,7 @@ waitable<e_confirm> yes_no( std::string_view title ) {
   return select_box_enum<e_confirm>( title );
 }
 
-waitable<> message_box( string_view msg ) {
+waitable<> message_box_basic( string_view msg ) {
   waitable_promise<> p;
   unique_ptr<Window> win = async_window_builder(
       /*title=*/"note",

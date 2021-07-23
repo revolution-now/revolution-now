@@ -89,8 +89,6 @@ void Colony::set_nation( e_nation new_nation ) {
 namespace rn {
 namespace {
 
-LUA_MODULE()
-
 LUA_STARTUP( lua::state& st ) {
   auto colony = st.usertype.create<Colony>();
 

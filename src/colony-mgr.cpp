@@ -207,10 +207,10 @@ waitable<> evolve_colony_one_turn( ColonyId id ) {
                                 e_unit_type::free_colonist );
     ustate_change_to_map( unit_id, colony.location() );
     co_await landview_ensure_visible( colony.location() );
-    ui::e_ok_cancel answer = co_await ui::ok_cancel(
+    ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "
         "View colony?",
-        colony.name() );
+        colony.name() ) );
     if( answer == ui::e_ok_cancel::ok )
       co_await show_colony_view( id );
   }
