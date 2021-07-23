@@ -77,8 +77,17 @@ struct LuaWaitable {
     // sulting waitable should be ready right away. If not, then
     // we will suspend on the co_await below. In other words, we
     // don't care about the return values of the coro.resume
-    // calls (ei- ther the first or subsequent) because the value
+    // calls (either the first or subsequent) because the value
     // is returned to us in the waitable.
+    //
+    // Although this version of `resume` will propagate errors
+    // (exceptions), that is not relevant here, because the func-
+    // tion we are immediately calling (the "runner") uses pcallk
+    // to call `f`, so all errors are caught and diverted into
+    // the promise as stored exceptions. We could have used
+    // resume_safe here, it doesn't make a difference, especially
+    // because the return type is void and so we won't have any
+    // errors converting the return type.
     coro.resume( /*set_result=*/
                  [&]( lua::any res ) {
                    if constexpr( is_mono )
@@ -93,6 +102,10 @@ struct LuaWaitable {
                  },
                  f, FWD( args )... );
 
+    // If an exception already happened before the first yield
+    // point, then the waitable will have an exception in it, and
+    // it will be dealt with by the co_await.
+    //
     // Need to keep the SCOPE_EXIT alive while we wait.
     if constexpr( is_mono )
       co_await p.waitable();

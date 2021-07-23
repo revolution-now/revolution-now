@@ -59,10 +59,10 @@ string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-waitable<int> do_lua_coroutine() {
+waitable<int> do_lua_coroutine( int n ) {
   TRACE( A );
   lua::state& st = lua_global_state();
-  int         r  = co_await lua_waitable<int>( st["get_int"] );
+  int         r = co_await lua_waitable<int>( st["get_int"], n );
   TRACE( B );
   co_return r;
 }
@@ -77,8 +77,9 @@ constexpr string_view lua_1 = R"(
     } )
   end
 
-  function get_int()
+  function get_int( n )
     local _<close> = TRACE( "C" )
+    if n == 50 then error( 'some error' ) end
     return 42
   end
 )";
@@ -99,12 +100,33 @@ TEST_CASE( "[co-lua] scenario 0" ) {
 
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine();
+  waitable<int> w = do_lua_coroutine( 0 );
   run_all_coroutines();
   REQUIRE( trace_log == "ACcBba" );
 
   REQUIRE( w.ready() );
   REQUIRE( *w == 42 );
+}
+
+TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
+  using namespace scenario_0;
+  lua::state& st = lua_global_state();
+
+  trace_log = {};
+  setup( st );
+
+  REQUIRE( trace_log == "" );
+
+  waitable<int> w = do_lua_coroutine( 50 );
+  REQUIRE( w.has_exception() );
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ACca" );
+
+  // This should be redundant.
+  run_all_coroutines();
+  REQUIRE( w.has_exception() );
+  REQUIRE( !w.ready() );
+  REQUIRE( trace_log == "ACca" );
 }
 
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )

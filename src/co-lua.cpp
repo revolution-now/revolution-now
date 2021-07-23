@@ -84,14 +84,22 @@ int coro_continuation( lua_State* L, int status, lua_KContext ) {
 int coro_runner( lua_State* L ) {
   int nargs = lua::c_api( L ).gettop() - 3;
 
-  lua::lua_valid res = lua::c_api( L ).pcallk(
-      /*nargs=*/nargs,
-      /*nresults=*/1, /*ctx=*/0, /*k=*/coro_continuation );
+  // We must call lua_pcallk here and now lua_callk so that that
+  // if an error happens after a yield it will call the continua-
+  // tion which will set the exception in the downstream wait-
+  // able. This will also cause errors that happen before the
+  // first yield to go to the continuation, so we don't have to
+  // rely on the lua_resume return values to tell us whether
+  // there was such an error.
+  lua::c_api( L ).pcallk( /*nargs=*/nargs, /*nresults=*/1,
+                          /*ctx=*/0, /*k=*/coro_continuation );
 
-  // NOTE: we only get here if the function did not yield. At
-  // this point we just call the continuation function for conve-
-  // nience so that we don't have to duplicate code.
-  return coro_continuation( L, res ? LUA_OK : LUA_ERRRUN, 0 );
+  // Because we called pcallk and because we specified a continu-
+  // ation, we only get here if the function finished without er-
+  // rors and did not yield. At this point we just call the con-
+  // tinuation function for convenience so that we don't have to
+  // duplicate code.
+  return coro_continuation( L, LUA_OK, 0 );
 }
 
 } // namespace
