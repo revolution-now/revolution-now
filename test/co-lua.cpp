@@ -832,5 +832,52 @@ TEST_CASE( "[co-lua] scenario 3" ) {
 
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
+struct MyType {};
+
+} // namespace
+} // namespace rn
+
+namespace lua {
+LUA_USERDATA_TRAITS( rn::MyType, owned_by_lua ){};
+}
+
+namespace rn {
+namespace {
+
+TEST_CASE( "[co-lua] waitable auto registration" ) {
+  lua::state& st = lua_global_state();
+
+  st.script.run( R"(
+    function assert_func( f )
+      assert( type( f ) == "function" )
+    end
+
+    function verify( w )
+      assert_func( w.cancel )
+      assert_func( w.ready )
+      assert_func( w.get )
+      assert_func( w.error )
+      assert_func( w.set_resume )
+      assert_func( getmetatable( w ).__close )
+    end
+
+    function go( w1, w2, w3, w4 )
+      verify( w1 )
+      verify( w2 )
+      verify( w3 )
+      verify( w4 )
+    end
+  )" );
+
+  waitable_promise<>       p1;
+  waitable_promise<int>    p2;
+  waitable_promise<string> p3;
+  waitable_promise<MyType> p4;
+
+  REQUIRE( st["go"].pcall( p1.waitable(), p2.waitable(),
+                           p3.waitable(),
+                           p4.waitable() ) == valid );
+}
+
 } // namespace
 } // namespace rn
