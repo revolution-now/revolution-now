@@ -37,7 +37,9 @@ struct awaitable {
   waitable<T> w_;
   // Promise pointer so that template type can be inferred.
   awaitable( PromiseT*, waitable<T> w ) : w_( std::move( w ) ) {}
-  bool await_ready() noexcept { return w_.ready(); }
+  bool await_ready() noexcept {
+    return w_.ready() || w_.has_exception();
+  }
   void await_suspend( coro::coroutine_handle<> h ) noexcept {
     w_.shared_state()->add_callback(
         [h]( T const& ) { queue_cpp_coroutine_handle( h ); } );

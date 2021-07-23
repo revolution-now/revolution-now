@@ -740,7 +740,11 @@ TEST_CASE( "[co-combinator] try" ) {
   SECTION( "eager throw" ) {
     waitable<maybe<int>> w = co::try_<runtime_error>(
         LC0( throwing_coro( true, true ) ), catcher );
-    REQUIRE( what == "" );
+    REQUIRE( what == "first" );
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( w.get() == nothing );
+    // The following should be redundant.
     run_all_cpp_coroutines();
     REQUIRE( what == "first" );
     REQUIRE( w.ready() );

@@ -616,6 +616,38 @@ TEST_CASE( "[waitable] simple exception" ) {
   REQUIRE( !w.ready() );
 }
 
+waitable<> throws_eagerly_from_non_coro() {
+  // This is not a coroutine (even though it returns a waitable),
+  // and so the following exception will just fly out.
+  throw runtime_error( "eager exception" );
+}
+
+waitable<> doomed_awaiter_on_non_coro() {
+  co_await throws_eagerly_from_non_coro();
+}
+
+waitable<> throws_eagerly_from_coro() {
+  // This is a coroutine (because we have a co_return in it),
+  // which changes how it will handle the below exception (it
+  // will catch it instead of letting it fly).
+  throw runtime_error( "eager exception" );
+  co_return;
+}
+
+waitable<> doomed_awaiter_on_coro() {
+  co_await throws_eagerly_from_coro();
+}
+
+TEST_CASE( "[waitable] eager co_await'd exception" ) {
+  waitable<> w2 = doomed_awaiter_on_non_coro();
+  REQUIRE( w2.has_exception() );
+  REQUIRE( !w2.ready() );
+
+  waitable<> w1 = doomed_awaiter_on_coro();
+  REQUIRE( w1.has_exception() );
+  REQUIRE( !w1.ready() );
+}
+
 waitable_promise<> exception_p0;
 waitable_promise<> exception_p1;
 waitable_promise<> exception_p2;
