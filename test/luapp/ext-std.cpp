@@ -15,6 +15,7 @@
 
 // luapp
 #include "src/luapp/call.hpp"
+#include "src/luapp/ext-monostate.hpp"
 #include "src/luapp/types.hpp"
 
 // Testing

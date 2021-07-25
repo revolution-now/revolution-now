@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-lua.hpp"
 #include "logging.hpp"
+#include "lua-waitable.hpp"
 #include "lua.hpp"
 #include "plane-ctrl.hpp"
 #include "waitable-coro.hpp"
@@ -20,6 +21,7 @@
 
 // luapp
 #include "luapp/ext-base.hpp"
+#include "luapp/ext-monostate.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 

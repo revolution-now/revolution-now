@@ -10,8 +10,12 @@
 *****************************************************************/
 #include "co-lua.hpp"
 
+// Revolution now
+#include "co-lua-scheduler.hpp"
+
 // luapp
 #include "luapp/c-api.hpp"
+#include "luapp/rfunction.hpp"
 #include "luapp/state.hpp"
 
 // Lua
@@ -42,9 +46,9 @@ int coro_continuation( lua_State* L, int status, lua_KContext ) {
   // function is still yielded, it just means that it yielded at
   // least once.
   if( status == LUA_OK || status == LUA_YIELD )
-    set_result( lua::get<lua::any>( L, -1 ) );
+    set_result( lua::get_or_luaerr<lua::any>( L, -1 ) );
   else // error
-    set_error( lua::get<string>( L, -1 ) );
+    set_error( lua::get_or_luaerr<string>( L, -1 ) );
   return 0;
 }
 
