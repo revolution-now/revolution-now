@@ -21,12 +21,8 @@
 namespace lua {
 
 template<typename From, typename To>
-concept Castable =
-    Pushable<From> && Gettable<To> &&
-    CompatibleNvalues<From, To> &&
-    // If it's already assignable then no need to cast.
-    !std::is_assignable_v<To, From> &&
-    !std::is_convertible_v<From, To>;
+concept Castable = Pushable<From> && Gettable<To> &&
+    CompatibleNvalues<From, To>;
 
 namespace detail {
 

@@ -81,20 +81,13 @@ LUA_TEST_CASE( "[cast] castability test" ) {
   using indexer_t = decltype( st["foo"] );
 
   // Things that should not be castable.
-  static_assert( !Castable<indexer_t, any> );
   static_assert( !Castable<indexer_t, string_view> );
   static_assert( !Castable<indexer_t, char const*> );
   static_assert( !Castable<indexer_t, A> );
 
-  static_assert( !Castable<indexer_t, maybe<any>> );
   static_assert( !Castable<indexer_t, maybe<string_view>> );
   static_assert( !Castable<indexer_t, maybe<char const*>> );
   static_assert( !Castable<indexer_t, maybe<A>> );
-
-  static_assert( !Castable<table, any> );
-  static_assert( !Castable<rfunction, any> );
-  static_assert( !Castable<userdata, any> );
-  static_assert( !Castable<rthread, any> );
 
   // Things that should be castable.
   static_assert( Castable<indexer_t, int> );
