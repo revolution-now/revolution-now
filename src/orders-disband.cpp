@@ -11,9 +11,9 @@
 #include "orders-disband.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "fmt-helper.hpp"
 #include "ustate.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // Rnl

@@ -11,6 +11,7 @@
 #include "panel.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
 #include "gfx.hpp"
@@ -20,7 +21,6 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
-#include "waitable-coro.hpp"
 
 // luapp
 #include "luapp/state.hpp"

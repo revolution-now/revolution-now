@@ -13,7 +13,7 @@
 // Under test.
 #include "src/co-combinator.hpp"
 #include "src/co-scheduler.hpp"
-#include "src/waitable-coro.hpp"
+#include "src/co-waitable.hpp"
 
 // base
 #include "base/lambda.hpp"

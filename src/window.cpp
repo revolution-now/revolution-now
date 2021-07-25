@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "auto-pad.hpp"
+#include "co-waitable.hpp"
 #include "config-files.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
@@ -27,7 +28,6 @@
 #include "ustate.hpp"
 #include "util.hpp"
 #include "views.hpp"
-#include "waitable-coro.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"

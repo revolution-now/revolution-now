@@ -14,6 +14,7 @@
 #include "anim.hpp"
 #include "cargo.hpp"
 #include "co-combinator.hpp"
+#include "co-waitable.hpp"
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
@@ -35,7 +36,6 @@
 #include "tiles.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
-#include "waitable-coro.hpp"
 #include "waitable.hpp"
 #include "window.hpp"
 

@@ -11,6 +11,7 @@
 #include "colview-entities.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
 #include "cstate.hpp"
@@ -21,7 +22,6 @@
 #include "text.hpp"
 #include "ustate.hpp"
 #include "views.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base

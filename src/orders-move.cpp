@@ -12,6 +12,7 @@
 #include "orders-move.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "conductor.hpp"
@@ -22,7 +23,6 @@
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
+#include "co-waitable.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "cstate.hpp"
@@ -30,7 +31,6 @@
 #include "unit.hpp"
 #include "ustate.hpp"
 #include "viewport.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base

@@ -11,8 +11,8 @@
 #include "orders-fortify.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "ustate.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 using namespace std;

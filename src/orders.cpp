@@ -13,12 +13,12 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
+#include "co-waitable.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
 #include "orders-move.hpp"
 #include "ustate.hpp"
-#include "waitable-coro.hpp"
 
 // base
 #include "base/lambda.hpp"

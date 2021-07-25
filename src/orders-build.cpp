@@ -11,10 +11,10 @@
 #include "orders-build.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "maybe.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // Rnl

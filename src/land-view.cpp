@@ -13,6 +13,7 @@
 // Revolution Now
 #include "anim.hpp"
 #include "co-combinator.hpp"
+#include "co-waitable.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
@@ -38,7 +39,6 @@
 #include "utype.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base

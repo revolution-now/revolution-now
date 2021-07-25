@@ -12,11 +12,11 @@
 
 // Revolution Now
 #include "co-lua.hpp"
+#include "co-waitable.hpp"
 #include "logging.hpp"
 #include "lua-waitable.hpp"
 #include "lua.hpp"
 #include "plane-ctrl.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // luapp

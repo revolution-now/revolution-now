@@ -15,10 +15,10 @@
 
 // Revolution Now
 #include "src/co-runner.hpp"
+#include "src/co-waitable.hpp"
 #include "src/lua-waitable.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
-#include "src/waitable-coro.hpp"
 
 // luapp
 #include "src/luapp/ext-monostate.hpp"

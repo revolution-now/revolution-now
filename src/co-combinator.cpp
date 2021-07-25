@@ -11,8 +11,8 @@
 #include "co-combinator.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "error.hpp"
-#include "waitable-coro.hpp"
 
 using namespace std;
 

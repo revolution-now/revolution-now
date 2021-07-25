@@ -11,6 +11,7 @@
 #include "colony-mgr.hpp"
 
 // Revolution Now
+#include "co-waitable.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
@@ -22,7 +23,6 @@
 #include "rand.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
-#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // luapp
