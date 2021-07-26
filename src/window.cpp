@@ -125,6 +125,7 @@ public:
 
   void remove_window( Window* p_win ) {
     erase_if( windows_, LC( _ == p_win ) );
+    if( dragging_win_ == p_win ) dragging_win_ = nullptr;
   }
 
 private:
@@ -407,8 +408,12 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
                              input::e_mouse_button button,
                              Coord /*unused*/, Coord prev,
                              Coord current ) {
+  if( dragging_win_ == nullptr )
+    // This can happen if the window is destroyed while dragging
+    // is in progress, which can happen if a waitable that owns
+    // the window is cancelled.
+    return;
   if( button == input::e_mouse_button::l ) {
-    CHECK( dragging_win_ );
     auto& pos = dragging_win_->position;
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
