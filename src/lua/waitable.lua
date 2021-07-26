@@ -54,7 +54,9 @@ end
 function M.create_coroutine( f )
   return function( ... )
     local pack = table.pack( ... )
-    local function run() return f( table.unpack( pack ) ) end
+    local function run()
+      return f( table.unpack( pack, 1, pack.n ) )
+    end
     -- This will start running `run` until it suspends, and will
     -- return a native waitable object.
     return co_lua.waitable_from_lua( run )
