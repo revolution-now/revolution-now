@@ -15,7 +15,7 @@ local waitable = require( 'waitable' )
 
 local auto_await = waitable.auto_await
 local await = waitable.await
-local create_coroutine = waitable.create_coroutine
+local as_native_coroutine = waitable.as_native_coroutine
 local auto_assert = waitable.auto_assert
 
 local function message_box_format( ... )
@@ -45,12 +45,14 @@ function timer_routine( seconds )
         string.format( 'waiting, iteration number %d.', n )
     local win<close> = lua_ui.message_box( msg )
     local actual = wait_for_micros( wait_micros )
+    log.debug( string.format( 'actually waited %d microseconds.',
+                              actual ) )
     n = n + 1
     -- Don't await for `win` here because the idea of this loop
     -- is that we want to auto-close the window after sleeping.
   end
 end
-local timer_routine_coro = create_coroutine( timer_routine )
+local timer_routine_coro = as_native_coroutine( timer_routine )
 
 function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
@@ -77,8 +79,7 @@ function M.some_ui_routine( n )
   do
     -- Run message box concurrently. We don't want to use the
     -- wrapped version here because that will await it.
-    local outter<close> = auto_assert(
-                              lua_ui.message_box( 'Outter Window' ) )
+    local outter<close> = lua_ui.message_box( 'Outter Window' )
     assert( type( outter.ready ) == 'function' )
     assert( type( outter.xyz ) == 'nil' )
     local count = 1

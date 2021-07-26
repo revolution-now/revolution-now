@@ -55,7 +55,7 @@ end
 -- waitable object. If the resulting object will not be awaited
 -- on (i.e., it will run in parallel) then you might want to wrap
 -- it in `auto_assert`.
-function M.create_coroutine( f )
+function M.as_native_coroutine( f )
   return function( ... )
     local pack = table.pack( ... )
     local function run()
@@ -89,6 +89,7 @@ end
 -- at least not awaited on right away (ones that run in parallel
 -- and are later joined on some code paths).
 function M.auto_assert( w )
+  M.assert( w )
   return setmetatable( {}, {
     __close=function()
       local _<close> = w
