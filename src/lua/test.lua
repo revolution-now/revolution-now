@@ -15,7 +15,7 @@ local waitable = require( 'waitable' )
 
 local auto_await = waitable.auto_await
 local await = waitable.await
-local as_native_coroutine = waitable.as_native_coroutine
+local native_coroutine = waitable.native_coroutine
 local auto_assert = waitable.auto_assert
 
 local function message_box_format( ... )
@@ -52,7 +52,7 @@ function timer_routine( seconds )
     -- is that we want to auto-close the window after sleeping.
   end
 end
-local timer_routine_coro = as_native_coroutine( timer_routine )
+local timer_routine_coro = native_coroutine( timer_routine )
 
 function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )

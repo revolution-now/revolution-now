@@ -55,7 +55,7 @@ end
 -- waitable object. If the resulting object will not be awaited
 -- on (i.e., it will run in parallel) then you might want to wrap
 -- it in `auto_assert`.
-function M.as_native_coroutine( f )
+function M.native_coroutine( f )
   return function( ... )
     local pack = table.pack( ... )
     local function run()
