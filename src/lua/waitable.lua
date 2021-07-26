@@ -47,8 +47,18 @@ end
 -- call await( ... ) on it. However, we still need to have access
 -- to the unwrapped versions in general so that we can run mul-
 -- tiple coroutines in parallel and await on all of them.
-function M.wrap( f )
+function M.auto_await( f )
   return function( ... ) return M.await( f( ... ) ) end
+end
+
+function M.create_coroutine( f )
+  return function( ... )
+    local pack = table.pack( ... )
+    local function run() return f( table.unpack( pack ) ) end
+    -- This will start running `run` until it suspends, and will
+    -- return a native waitable object.
+    return co_lua.waitable_from_lua( run )
+  end
 end
 
 return M

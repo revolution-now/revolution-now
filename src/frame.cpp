@@ -12,10 +12,12 @@
 
 // Revolution Now
 #include "co-runner.hpp"
+#include "co-waitable.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "lua-waitable.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
@@ -270,6 +272,12 @@ LUA_FN( set_target_framerate, void, int target ) {
   CHECK( target > 0 );
   CHECK( target < 1000 );
   g_target_fps = target;
+}
+
+LUA_FN( wait_for_micros, waitable<int>, int micros ) {
+  chrono::microseconds actual = co_await wait_for_duration(
+      chrono::microseconds{ micros } );
+  co_return actual.count();
 }
 
 } // namespace

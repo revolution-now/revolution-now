@@ -12,6 +12,9 @@
 
 // Revolution now
 #include "co-lua-scheduler.hpp"
+#include "co-waitable.hpp"
+#include "lua-waitable.hpp"
+#include "lua.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"
@@ -91,5 +94,14 @@ void cleanup_coro( lua::rthread coro ) {
 } // namespace internal
 
 void linker_dont_discard_module_co_lua() {}
+
+namespace {
+
+LUA_FN( waitable_from_lua, waitable<lua::any>,
+        lua::rfunction func ) {
+  return lua_waitable<lua::any>( func );
+}
+
+} // namespace
 
 } // namespace rn

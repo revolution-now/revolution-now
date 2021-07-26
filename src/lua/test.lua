@@ -13,8 +13,9 @@ M = {}
 
 local waitable = require( 'waitable' )
 
-local wrap = waitable.wrap
+local auto_await = waitable.auto_await
 local await = waitable.await
+local create_coroutine = waitable.create_coroutine
 
 local function message_box_format( ... )
   local msg = string.format( ... )
@@ -22,9 +23,10 @@ local function message_box_format( ... )
   return lua_ui.message_box( msg )
 end
 
-local message_box = wrap( message_box_format )
-local ok_cancel = wrap( lua_ui.ok_cancel )
-local str_input_box = wrap( lua_ui.str_input_box )
+local message_box = auto_await( message_box_format )
+local ok_cancel = auto_await( lua_ui.ok_cancel )
+local str_input_box = auto_await( lua_ui.str_input_box )
+local wait_for_micros = auto_await( frame.wait_for_micros )
 
 local function multiply( n )
   local m = n * 5
@@ -32,14 +34,32 @@ local function multiply( n )
   return m
 end
 
+function timer_routine( seconds )
+  local wait_micros = seconds * 1000 * 1000
+  local n = 1
+  while true do
+    log.debug( string.format( 'waiting for %d seconds...',
+                              wait_micros / 1000000 ) )
+    local msg =
+        string.format( 'waiting, iteration number %d.', n )
+    local win<close> = lua_ui.message_box( msg )
+    local actual = wait_for_micros( wait_micros )
+    n = n + 1
+  end
+end
+local timer_routine_coro = create_coroutine( timer_routine )
+
 function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
 
-  message_box( 'You will now be asked to enter a string.' )
-  if ok_cancel( 'Would you like to proceed?' ) == 'cancel' then
-    return
+  do
+    local _<close> = timer_routine_coro( 5 )
+    message_box( 'You will now be asked to enter a string.' )
+    if ok_cancel( 'Would you like to proceed?' ) == 'cancel' then
+      return
+    end
+    log.info( 'proceeding.' )
   end
-  log.info( 'proceeding.' )
 
   local n
   do
