@@ -15,12 +15,11 @@ local M = {}
 assert( coroutine, 'The coroutine library must be available.' )
 
 function M.await( waitable )
-  assert( type( waitable ) == 'userdata',
-          'await should only be called on native waitable types.' )
+  assert( waitable )
   assert( type( waitable.set_resume ) == 'function',
           'await called on invalid waitable type. This may ' ..
-              'mean that the waitable type\'s usertype was not ' ..
-              'registered.' )
+              'mean that it is not a waitable type or that the ' ..
+              'waitable type\'s usertype was not registered.' )
 
   -- DO NOT put anything more before this line.
   local closer<close> = waitable
@@ -77,14 +76,18 @@ end
 --
 -- Note: you may just want to use `auto_checker` below which will
 -- automatically call this on waitables at scope exit.
-function M.assert( w ) assert( not w:error(), w:error() ) end
+function M.assert( w )
+  local err = w:error()
+  assert( not err, err )
+end
 
 -- Takes a waitable and will return an object that wraps the
 -- waitable (and exposes its interface methods) but will check
 -- for errors when it is closed an propagate the error. This is
--- useful for catching errors in waitables that are run in par-
--- allel and which are never awaited on (maybe they run forever,
--- and are only ever cancelled).
+-- only needed for waitables that are either never awaited on
+-- (run in parallel and are then cancelled) or waitables that are
+-- at least not awaited on right away (ones that run in parallel
+-- and are later joined on some code paths).
 function M.auto_checker( w )
   return setmetatable( {}, {
     __close=function()
@@ -92,16 +95,13 @@ function M.auto_checker( w )
       M.assert( w )
     end,
     __index=function( _, k )
-      if w[k] == nil then return nil end
-      if type( w[k] ) == 'function' then
-        return function( _, ... )
-          -- Assume that all function members of waitable are
-          -- "member functions" that take the waitable as first
-          -- parameter.
-          return w[k]( w, ... )
-        end
+      if type( w[k] ) ~= 'function' then return w[k] end
+      return function( _, ... )
+        -- Assume that all function members of waitable are
+        -- "member functions" that take the waitable as first pa-
+        -- rameter.
+        return w[k]( w, ... )
       end
-      return w[k]
     end
   } )
 end

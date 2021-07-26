@@ -77,7 +77,10 @@ function M.some_ui_routine( n )
   do
     -- Run message box concurrently. We don't want to use the
     -- wrapped version here because that will await it.
-    local outter<close> = lua_ui.message_box( 'Outter Window' )
+    local outter<close> = auto_checker(
+                              lua_ui.message_box( 'Outter Window' ) )
+    assert( type( outter.ready ) == 'function' )
+    assert( type( outter.xyz ) == 'nil' )
     local count = 1
     while true do
       -- Run message box concurrently. Again, no wrapped version.
