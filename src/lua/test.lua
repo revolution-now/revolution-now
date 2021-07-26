@@ -16,7 +16,7 @@ local waitable = require( 'waitable' )
 local auto_await = waitable.auto_await
 local await = waitable.await
 local create_coroutine = waitable.create_coroutine
-local auto_checker = waitable.auto_checker
+local auto_assert = waitable.auto_assert
 
 local function message_box_format( ... )
   local msg = string.format( ... )
@@ -56,12 +56,12 @@ function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
 
   do
-    -- auto_checker will wrap the resulting waitable in an object
+    -- auto_assert will wrap the resulting waitable in an object
     -- that will automatically check for errors at scope exit.
     -- This is useful because otherwise errors in the timer
     -- thread would not be propagated because we are not going to
     -- ever await on the timer (it never ends).
-    local timer<close> = auto_checker( timer_routine_coro( 5 ) )
+    local timer<close> = auto_assert( timer_routine_coro( 5 ) )
     log.info( 'timer is ready: ' .. tostring( timer:ready() ) )
     -- We want to catch any errors that happen in `timer`, but we
     -- can't await on it because it runs forever, so we'll just
@@ -77,7 +77,7 @@ function M.some_ui_routine( n )
   do
     -- Run message box concurrently. We don't want to use the
     -- wrapped version here because that will await it.
-    local outter<close> = auto_checker(
+    local outter<close> = auto_assert(
                               lua_ui.message_box( 'Outter Window' ) )
     assert( type( outter.ready ) == 'function' )
     assert( type( outter.xyz ) == 'nil' )

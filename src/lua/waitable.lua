@@ -54,7 +54,7 @@ end
 -- function f with the given parameters and returns a native
 -- waitable object. If the resulting object will not be awaited
 -- on (i.e., it will run in parallel) then you might want to wrap
--- it in `auto_checker`.
+-- it in `auto_assert`.
 function M.create_coroutine( f )
   return function( ... )
     local pack = table.pack( ... )
@@ -74,7 +74,7 @@ end
 -- this is only for parallel-running waitables that
 -- can't/shouldn't be awaited on.
 --
--- Note: you may just want to use `auto_checker` below which will
+-- Note: you may just want to use `auto_assert` below which will
 -- automatically call this on waitables at scope exit.
 function M.assert( w )
   local err = w:error()
@@ -88,7 +88,7 @@ end
 -- (run in parallel and are then cancelled) or waitables that are
 -- at least not awaited on right away (ones that run in parallel
 -- and are later joined on some code paths).
-function M.auto_checker( w )
+function M.auto_assert( w )
   return setmetatable( {}, {
     __close=function()
       local _<close> = w
