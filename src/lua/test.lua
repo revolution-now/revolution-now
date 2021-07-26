@@ -45,6 +45,8 @@ function timer_routine( seconds )
     local win<close> = lua_ui.message_box( msg )
     local actual = wait_for_micros( wait_micros )
     n = n + 1
+    -- Don't await for `win` here because the idea of this loop
+    -- is that we want to auto-close the window after sleeping.
   end
 end
 local timer_routine_coro = create_coroutine( timer_routine )
@@ -53,12 +55,17 @@ function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
 
   do
-    local _<close> = timer_routine_coro( 5 )
+    local timer<close> = timer_routine_coro( 5 )
+    -- We want to catch any errors that happen in `timer`, but we
+    -- can't await on it because it runs forever, so we'll just
+    -- check at the exit points of this function with assertions.
     message_box( 'You will now be asked to enter a string.' )
     if ok_cancel( 'Would you like to proceed?' ) == 'cancel' then
+      assert( not timer:error(), timer:error() )
       return
     end
     log.info( 'proceeding.' )
+    assert( not timer:error(), timer:error() )
   end
 
   local n
