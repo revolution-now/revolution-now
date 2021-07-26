@@ -16,6 +16,7 @@ local waitable = require( 'waitable' )
 local auto_await = waitable.auto_await
 local await = waitable.await
 local create_coroutine = waitable.create_coroutine
+local auto_checker = waitable.auto_checker
 
 local function message_box_format( ... )
   local msg = string.format( ... )
@@ -55,17 +56,21 @@ function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
 
   do
-    local timer<close> = timer_routine_coro( 5 )
+    -- auto_checker will wrap the resulting waitable in an object
+    -- that will automatically check for errors at scope exit.
+    -- This is useful because otherwise errors in the timer
+    -- thread would not be propagated because we are not going to
+    -- ever await on the timer (it never ends).
+    local timer<close> = auto_checker( timer_routine_coro( 5 ) )
+    log.info( 'timer is ready: ' .. tostring( timer:ready() ) )
     -- We want to catch any errors that happen in `timer`, but we
     -- can't await on it because it runs forever, so we'll just
     -- check at the exit points of this function with assertions.
     message_box( 'You will now be asked to enter a string.' )
     if ok_cancel( 'Would you like to proceed?' ) == 'cancel' then
-      assert( not timer:error(), timer:error() )
       return
     end
     log.info( 'proceeding.' )
-    assert( not timer:error(), timer:error() )
   end
 
   local n
