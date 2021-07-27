@@ -81,5 +81,41 @@ LUA_TEST_CASE( "[iter] iterate" ) {
   REQUIRE_THAT( pairs, Catch::UnorderedEquals( expected ) );
 }
 
+LUA_TEST_CASE( "[iter] iterate with numbers" ) {
+  st["tbl"]          = st.table.create();
+  st["tbl"][5]       = 5;
+  st["tbl"]["world"] = 6;
+  st["tbl"][1]       = 7;
+  st["tbl"][2]       = 9;
+
+  vector<pair<string, int>> pairs;
+
+  table tbl = cast<table>( st["tbl"] );
+
+  auto it = begin( tbl );
+
+  REQUIRE( it != end( tbl ) );
+  REQUIRE( it->first == 1 );
+  REQUIRE( it->second == 7 );
+  ++it;
+
+  REQUIRE( it != end( tbl ) );
+  REQUIRE( it->first == 2 );
+  REQUIRE( it->second == 9 );
+  ++it;
+
+  REQUIRE( it != end( tbl ) );
+  REQUIRE( it->first == "world" );
+  REQUIRE( it->second == 6 );
+  ++it;
+
+  REQUIRE( it != end( tbl ) );
+  REQUIRE( it->first == 5 );
+  REQUIRE( it->second == 5 );
+  ++it;
+
+  REQUIRE( it == end( tbl ) );
+}
+
 } // namespace
 } // namespace lua
