@@ -60,6 +60,13 @@ raw_table_iterator::operator*() const {
   return *curr_pair_;
 }
 
+raw_table_iterator::value_type const*
+raw_table_iterator::operator->() const {
+  CHECK( curr_pair_.has_value(),
+         "attempt to dereference an invalid table iterator." );
+  return &*curr_pair_;
+}
+
 bool raw_table_iterator::operator==(
     raw_table_iterator const& rhs ) const {
   if( curr_pair_.has_value() != rhs.curr_pair_.has_value() )

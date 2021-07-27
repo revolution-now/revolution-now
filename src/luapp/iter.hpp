@@ -41,6 +41,8 @@ struct raw_table_iterator {
 
   value_type const& operator*() const;
 
+  value_type const* operator->() const;
+
   raw_table_iterator& operator++();
 
   raw_table_iterator operator++( int ) {
