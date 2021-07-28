@@ -253,7 +253,7 @@ waitable<> drag_drop_routine(
     // being dragged and can do so at the current mouse position.
     if( !drag_sink.can_receive( source_object, *source_entity,
                                 sink_coord ) ) {
-      lg.debug( "drag sink cannot accept object {}.",
+      lg.trace( "drag sink cannot accept object {}.",
                 source_object );
       continue;
     }
@@ -294,6 +294,7 @@ waitable<> drag_drop_routine(
         break;
       }
       source_object = *new_obj;
+      lg.debug( "user requests {}.", source_object );
     }
 
     // Check that the target view can receive this object as it

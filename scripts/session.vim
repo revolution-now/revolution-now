@@ -1,9 +1,9 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'luapp/state',
-  \ 'co-lua',
-  \ 'lua-ui',
-  \ 'lua',
+  \ 'colony-view',
+  \ 'colview-entities',
+  \ 'utype',
+  \ 'unit-conv',
 \]
 
 let s:luas = [
