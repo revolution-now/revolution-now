@@ -9,11 +9,11 @@
 | Description: RDS definitions for the old-world-view module.
 |
 --]] ------------------------------------------------------------
-include'cargo.hpp'
-include'commodity.hpp'
-include'id.hpp'
+include 'cargo.hpp'
+include 'commodity.hpp'
+include 'id.hpp'
 
-namespace'rn'
+namespace 'rn'
 
 -- This object needs to specify all of the information necessary
 -- for a dragged item to be drawn. We cannot simply use a tile
@@ -21,70 +21,53 @@ namespace'rn'
 -- it can (potentially) be left out when rendering the scene, to
 -- create the appearance that the mouse is dragging it.
 OldWorldDraggableObject = sumtype{
-  {
-    unit={ --
-      { id='UnitId' }
-    }
-  },
-  {
-    market_commodity={ --
-      { type='e_commodity' }
-    }
-  },
-  {
-    cargo_commodity={
-      { comm='Commodity' }, --
-      { slot='CargoSlotIndex' }
-    }
-  },
+  {unit={
+    {id='UnitId'},
+  }},
+  {market_commodity={
+    {type='e_commodity'},
+  }},
+  {cargo_commodity={
+    {comm='Commodity'},
+    {slot='CargoSlotIndex'},
+  }},
 
   [features_key]={ 'formattable', 'equality' }
 }
 
 OldWorldDragSrc = sumtype{
-  {
-    dock={ --
-      { id='UnitId' }
-    }
-  }, {
-    cargo={
-      { slot='CargoSlotIndex' }, --
-      { quantity='maybe<int>' }
-    }
-  }, {
-    outbound={ --
-      { id='UnitId' }
-    }
-  }, {
-    inbound={ --
-      { id='UnitId' }
-    }
-  }, {
-    inport={ --
-      { id='UnitId' }
-    }
-  }, {
-    market={
-      { type='e_commodity' }, --
-      { quantity='maybe<int>' }
-    }
-  }
+  {dock={
+    {id='UnitId'},
+  }},
+  {cargo={
+    {slot='CargoSlotIndex'},
+    {quantity='maybe<int>'},
+  }},
+  {outbound={
+    {id='UnitId'},
+  }},
+  {inbound={
+    {id='UnitId'},
+  }},
+  {inport={
+    {id='UnitId'},
+  }},
+  {market={
+    {type='e_commodity'},
+    {quantity='maybe<int>'},
+  }},
 }
 
 OldWorldDragDst = sumtype{
-  {
-    cargo={ --
-      { slot='CargoSlotIndex' }
-    }
-  }, --
-  { dock={} }, --
-  { outbound={} }, --
-  { inbound={} }, --
-  { inport={} }, --
-  {
-    inport_ship={ --
-      { id='UnitId' }
-    }
-  }, --
-  { market={} }
+  {cargo={
+    {slot='CargoSlotIndex'},
+  }},
+  {dock={}},
+  {outbound={}},
+  {inbound={}},
+  {inport={}},
+  {inport_ship={
+    {id='UnitId'},
+  }},
+  {market={}},
 }

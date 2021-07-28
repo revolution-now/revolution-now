@@ -120,7 +120,7 @@ endfunction
 autocmd BufWritePre *.hpp,*.cpp :silent! call MaybeFormat( 'ClangFormatAll' )
 " Automatically format the Lua source files just before saving.
 autocmd BufWritePre *.lua       :silent! call MaybeFormat( 'LuaFormatAll' )
-autocmd BufWritePre *.rds       :silent! call MaybeFormat( 'LuaFormatAll' )
+" autocmd BufWritePre *.rds       :silent! call MaybeFormat( 'LuaFormatAll' )
 
 " We set this ycm global variable to point YCM to the conf script.  The
 " reason we don't just put a .ycm_extra_conf.py in the root folder

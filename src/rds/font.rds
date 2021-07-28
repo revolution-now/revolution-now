@@ -9,10 +9,10 @@
 | Description: RDS definitions for the font module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_font = enum{
-  '_7_12_serif_16pt', --
-  '_6x6', --
-  'habbo_15' --
+  '_7_12_serif_16pt',
+  '_6x6',
+  'habbo_15',
 }

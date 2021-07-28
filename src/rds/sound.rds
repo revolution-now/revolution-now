@@ -9,10 +9,10 @@
 | Description: RDS definitions for the sound module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_sfx = enum{
-  'move', --
-  'attacker_lost', --
-  'attacker_won' --
+  'move',
+  'attacker_lost',
+  'attacker_won',
 }

@@ -9,11 +9,11 @@
 | Description: RDS definitions for the nation module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_nation = enum{
-  'dutch', --
-  'french', --
-  'english', --
-  'spanish' --
+  'dutch',
+  'french',
+  'english',
+  'spanish',
 }

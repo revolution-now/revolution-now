@@ -9,69 +9,55 @@
 | Description: RDS definitions for the land-view module.
 |
 --]] ------------------------------------------------------------
-include'coord.hpp'
-include'id.hpp'
-include'physics.hpp'
+include 'coord.hpp'
+include 'id.hpp'
+include 'physics.hpp'
 
 -- Rds
-include'rds/orders.hpp'
+include 'rds/orders.hpp'
 
-namespace'rn'
+namespace 'rn'
 
 LandViewState = sumtype{
-  { none={} }, --
-  {
-    unit_input={ --
-      { unit_id='UnitId' }
-    }
-  }, {
-    unit_move={ --
-      { unit_id='UnitId' }
-    }
-  }, --
-  {
-    unit_attack={
-      { attacker='UnitId' }, --
-      { defender='UnitId' }, --
-      { attacker_wins='bool' }
-    }
-  }
+  {none={}},
+  {unit_input={
+    {unit_id='UnitId'},
+  }},
+  {unit_move={
+    {unit_id='UnitId'},
+  }},
+  {unit_attack={
+    {attacker='UnitId'},
+    {defender='UnitId'},
+    {attacker_wins='bool'},
+  }},
 }
 
 LandViewRawInput = sumtype{
-  {
-    orders={ --
-      { orders='orders_t' }
-    }
-  }, {
-    tile_click={ --
-      { coord='Coord' }
-    }
-  }, -- Center on blinking unit, if any.
-  { center={} }
+  {orders={
+    {orders='orders_t'},
+  }},
+  {tile_click={
+    {coord='Coord'},
+  }},
+  {center={}}, -- Center on blinking unit, if any.
 }
 
 -- These are animation primitives. A unit "move" is a slide, and
 -- a unit attack sequence is constructed from a slide + depixela-
 -- tion.
 UnitAnimation = sumtype{
-  {
-    blink={ --
-      { visible='bool' }
-    }
-  }, --
-  {
-    slide={
-      { target='Coord' }, --
-      { percent='double' }, --
-      { percent_vel='DissipativeVelocity' }
-    }
-  }, --
-  {
-    depixelate={
-      { tx_depixelate_from='Texture' },
-      { pixels='std::vector<Coord>' },
-      { demoted_pixels='Matrix<Color>' }
-    }
-  }
+  {blink={
+    {visible='bool'},
+  }},
+  {slide={
+    {target='Coord'},
+    {percent='double'},
+    {percent_vel='DissipativeVelocity'},
+  }},
+  {depixelate={
+    {tx_depixelate_from='Texture'},
+    {pixels='std::vector<Coord>'},
+    {demoted_pixels='Matrix<Color>'},
+  }},
 }

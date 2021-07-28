@@ -9,23 +9,23 @@
 | Description: RDS definitions for the utype module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_unit_type = enum{
-  'free_colonist', --
-  'soldier', --
-  'merchantman', --
-  'privateer', --
-  'large_treasure', --
-  'small_treasure', --
-  'dragoon' --
+  'free_colonist',
+  'soldier',
+  'merchantman',
+  'privateer',
+  'large_treasure',
+  'small_treasure',
+  'dragoon',
 }
 
 e_unit_death = enum{
-  'destroy', --
-  'naval', --
-  'capture', --
-  'demote', --
-  'maybe_demote', --
-  'demote_and_capture' --
+  'destroy',
+  'naval',
+  'capture',
+  'demote',
+  'maybe_demote',
+  'demote_and_capture',
 }

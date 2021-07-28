@@ -9,13 +9,13 @@
 | Description: RDS definitions for the compositor module.
 |
 --]] ------------------------------------------------------------
-namespace'rn.compositor'
+namespace 'rn.compositor'
 
 -- In general, these sections may overlap.
 e_section = enum{
-  'menu_bar', --
+  'menu_bar',
   -- All parts of the screen except for the menu bar.
-  'non_menu_bar', --
-  'viewport', --
-  'panel' --
+  'non_menu_bar',
+  'viewport',
+  'panel',
 }

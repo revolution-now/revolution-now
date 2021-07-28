@@ -9,9 +9,9 @@
 | Description: RDS definitions for the land-square module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_surface = enum{
-  'water', --
-  'land' --
+  'water',
+  'land',
 }

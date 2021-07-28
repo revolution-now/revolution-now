@@ -9,10 +9,10 @@
 | Description: RDS definitions for the unit module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_unit_orders = enum{
-  'none', --
-  'sentry', --
-  'fortified' --
+  'none',
+  'sentry',
+  'fortified',
 }

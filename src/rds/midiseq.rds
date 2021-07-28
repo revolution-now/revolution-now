@@ -10,9 +10,9 @@
 |
 --]] ------------------------------------------------------------
 -- base
-include'base/fs.hpp'
+include 'base/fs.hpp'
 
-namespace'rn.midiseq'
+namespace 'rn.midiseq'
 
 -- The possible commands that can be sent to the midi thread.
 -- Generally, after receiving one of these commands the midi
@@ -39,20 +39,16 @@ namespace'rn.midiseq'
 --           need to be done with the synthesizer.
 --
 command = sumtype{
-  {
-    play={ --
-      { file='fs::path' }
-    }
-  },
-  { stop={} },
-  { pause={} },
-  { resume={} },
-  { off={} },
-  {
-    volume={ --
-      { value='double' }
-    }
-  },
+  {play={
+    {file='fs::path'},
+  }},
+  {stop={}},
+  {pause={}},
+  {resume={}},
+  {off={}},
+  {volume={
+    {value='double'},
+  }},
 
   [features_key]={}
 }

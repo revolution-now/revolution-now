@@ -9,9 +9,9 @@
 | Description: RDS definitions for the input module.
 |
 --]] ------------------------------------------------------------
-include'coord.hpp'
+include 'coord.hpp'
 
-namespace'rn.input'
+namespace 'rn.input'
 
 -- This type will keep track of the dragging state of a given
 -- mouse button. When a drag is initiated is it represented as a
@@ -28,16 +28,12 @@ namespace'rn.input'
 -- tally moving the mouse a bit during a click (that would be bad
 -- because it would not be sent as a click event).
 drag_phase = sumtype{
-  { none={} }, --
-  {
-    maybe={ --
-      { origin='Coord' }
-    }
-  }, --
-  {
-    dragging={
-      { origin='Coord' }, --
-      { phase='e_drag_phase' }
-    }
-  }
+  {none={}},
+  {maybe={
+    {origin='Coord'},
+  }},
+  {dragging={
+    {origin='Coord'},
+    {phase='e_drag_phase'},
+  }},
 }

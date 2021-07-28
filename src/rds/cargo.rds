@@ -1,4 +1,5 @@
 --[[ ------------------------------------------------------------
+|
 | cargo.rds
 |
 | Project: Revolution Now
@@ -8,10 +9,11 @@
 | Description: RDS definitions for the cargo module.
 |
 --]] ------------------------------------------------------------
--- Flatbuffers
-include'fb/cargo_generated.h'
 
-namespace'rn'
+-- Flatbuffers
+include 'fb/cargo_generated.h'
+
+namespace 'rn'
 
 -- Here is an example of the way the cargo layout works:
 --
@@ -31,13 +33,11 @@ namespace'rn'
 -- NOTE: the `empty` state must be first in the list so that it
 -- it will be the default-constructed value.
 CargoSlot = sumtype{
-  { empty={} },
-  { overflow={} },
-  {
-    cargo={ --
-      { contents='Cargo' }
-    }
-  },
+  {empty={}},
+  {overflow={}},
+  {cargo={
+    {contents='Cargo'},
+  }},
 
   [features_key]={ 'formattable', 'equality', 'serializable' }
 }

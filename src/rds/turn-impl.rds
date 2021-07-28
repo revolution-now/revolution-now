@@ -9,9 +9,9 @@
 | Description: RDS definitions for the turn (impl) module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_revolution_confirmation = enum{
-  'no', --
-  'revolution' --
+  'no',
+  'revolution',
 }

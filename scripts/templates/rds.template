@@ -10,29 +10,44 @@
 |
 --]] ------------------------------------------------------------
 -- Revolution Now
-include'some-header.hpp'
+include 'some-header.hpp'
 
 -- Rds
-include'rds/orders.hpp'
+include 'rds/orders.hpp'
 
 -- C++ standard library
-include'<string>'
+include '<string>'
 
-namespace'rn'
+namespace 'rn'
 
 MyVariant = sumtype{
-  alt{ first={ var{ i='int' }, var{ c='char' } } },
-  alt{ second={} },
-  alt{ third={ var{ s='std::string' } } }
+  {first={
+    {i='int'},
+    {c='char'},
+  }},
+  {second={}},
+  {third={
+    {s='std::string'},
+  }},
   -- No features listed defaults to 'formattable' and 'equality'.
 }
 
 MyTemplateVariant = template{ 'T', 'U' }.sumtype{
-  alt{ first={ var{ t='T' }, var{ c='char' } } },
-  alt{ second={} },
-  alt{ third={ var{ u='U' } } },
+  {first={
+    {t='T'},
+    {c='char'},
+  }},
+  {second={}},
+  {third={
+    {u='U'},
+  }},
 
   [features_key]={ 'serializable', 'equality', 'formattable' }
 }
 
-e_menu = enum{ 'hello', 'world', 'test', 'value' }
+e_menu = enum{
+  'hello',
+  'world',
+  'test',
+  'value',
+}

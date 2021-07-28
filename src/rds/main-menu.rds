@@ -9,12 +9,12 @@
 | Description: RDS definitions for the main-menu module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_main_menu_item = enum{
-  'new_', --
-  'load', --
-  'settings_graphics', --
-  'settings_sound', --
-  'quit' --
+  'new_',
+  'load',
+  'settings_graphics',
+  'settings_sound',
+  'quit',
 }

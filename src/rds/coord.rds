@@ -9,10 +9,10 @@
 | Description: RDS definitions for the coord module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 e_direction = enum{
-  'nw', 'n', 'ne', --
-  'w', 'c', 'e', --
-  'sw', 's', 'se' --
+  'nw', 'n', 'ne',
+   'w', 'c',  'e',
+  'sw', 's', 'se',
 }

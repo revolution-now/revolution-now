@@ -9,33 +9,29 @@
 | Description: RDS definitions for the colview-entities module.
 |
 --]] ------------------------------------------------------------
-include'cargo.hpp'
-include'commodity.hpp'
-include'id.hpp'
+include 'cargo.hpp'
+include 'commodity.hpp'
+include 'id.hpp'
 
-namespace'rn'
+namespace 'rn'
 
 e_colview_entity = enum{
-  'commodities', --
-  'land', --
-  'title_bar', --
-  'population', --
-  'cargo', --
-  'units_at_gate', --
-  'production' --
+  'commodities',
+  'land',
+  'title_bar',
+  'population',
+  'cargo',
+  'units_at_gate',
+  'production',
 }
 
 ColViewObject = sumtype{
-  {
-    unit={ --
-      { id='UnitId' }
-    }
-  },
-  {
-    commodity={ --
-      { comm='Commodity' }
-    }
-  },
+  {unit={
+    {id='UnitId'},
+  }},
+  {commodity={
+    {comm='Commodity'},
+  }},
 
   [features_key]={ 'equality', 'formattable' }
 }

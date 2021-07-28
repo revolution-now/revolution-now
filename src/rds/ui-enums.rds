@@ -9,7 +9,7 @@
 | Description: RDS definitions for the ui-enums module.
 |
 --]] ------------------------------------------------------------
-namespace'rn.ui'
+namespace 'rn.ui'
 
 e_ok_cancel = enum{ 'ok', 'cancel' }
 

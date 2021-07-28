@@ -9,39 +9,31 @@
 | Description: Private RDS definitions for the ustate module.
 |
 --]] ------------------------------------------------------------
-include'coord.hpp'
-include'id.hpp'
+include 'coord.hpp'
+include 'id.hpp'
 
 -- Rds
-include'rds/ustate.hpp'
+include 'rds/ustate.hpp'
 
 -- Flatbuffers
-include'fb/sg-unit_generated.h'
+include 'fb/sg-unit_generated.h'
 
-namespace'rn'
+namespace 'rn'
 
 UnitState = sumtype{
-  { free={} },
-  {
-    world={ --
-      { coord='Coord' }
-    }
-  },
-  {
-    cargo={ --
-      { holder='UnitId' }
-    }
-  },
-  {
-    old_world={ --
-      { st='UnitOldWorldViewState_t' }
-    }
-  },
-  {
-    colony={ --
-      { id='ColonyId' }
-    }
-  },
+  {free={}},
+  {world={
+    {coord='Coord' },
+  }},
+  {cargo={
+    {holder='UnitId' },
+  }},
+  {old_world={
+    {st='UnitOldWorldViewState_t' },
+  }},
+  {colony={
+    {id='ColonyId' },
+  }},
 
-  [features_key]={ 'formattable', 'serializable', 'equality' }
+  [features_key]={'formattable', 'serializable', 'equality' }
 }

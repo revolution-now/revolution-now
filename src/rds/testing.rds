@@ -9,191 +9,154 @@
 | Description: RDS definitions for unit testing.
 |
 --]] ------------------------------------------------------------
+
 -- Revolution Now
-include'maybe.hpp'
+include 'maybe.hpp'
 
 -- C++ standard library
-include'<string>'
-include'<vector>'
+include '<string>'
+include '<vector>'
 
 -- This is included because MyVariant2 is serializable.
-include'fb/testing_generated.h'
+include 'fb/testing_generated.h'
 
-namespace'rdstest'
+namespace 'rdstest'
 
 -- Descriptive comment.
-Maybe = template{ 'T' }.sumtype{
-  { nothing={} }, --
-  {
-    just={ --
-      { val='T' }
-    }
-  }
+Maybe = template{'T'}.sumtype{
+  {nothing={}},
+  {just={
+    {val='T'},
+  }},
 }
 
 MyVariant0 = sumtype{}
 
 -- Descriptive comment.
 MyVariant1 = sumtype{
-  {
-    happy={ --
-      { p='std::pair<char,int>' }
-    }
-  },
-  {
-    sad={
-      { hello='bool' }, --
-      { ptr='bool*' }
-    }
-  },
-  { excited={} },
+  {happy={
+    {p='std::pair<char,int>'},
+  }},
+  {sad={
+    {hello='bool'},
+    {ptr='bool*'},
+  }},
+  {excited={}},
 
-  [features_key]={ 'equality' }
+  [features_key]={'equality'}
 }
 
 MyVariant2 = sumtype{
-  {
-    first={
-      { name='std::string' }, --
-      { b='bool' }
-    }
-  },
-  {
-    second={
-      { flag1='bool' }, --
-      { flag2='bool' }
-    }
-  },
-  {
-    third={ --
-      { cost='int' }
-    }
-  },
+  {first={
+    {name='std::string'},
+    {b='bool'},
+  }},
+  {second={
+    {flag1='bool'},
+    {flag2='bool'},
+  }},
+  {third={
+    {cost='int'},
+  }},
 
-  [features_key]={ 'formattable', 'serializable' }
+  [features_key]={'formattable', 'serializable'}
 }
 
-namespace'rdstest.inner'
+namespace 'rdstest.inner'
 
 MyVariant3 = sumtype{
-  {
-    a1={ --
-      { var0='MyVariant0_t' }
-    }
-  }, --
-  {
-    a2={
-      { var1='MyVariant0_t' }, --
-      { var2='MyVariant2_t' }
-    }
-  }, --
-  {
-    a3={ --
-      { c='char' }
-    }
-  }
+  {a1={
+    {var0='MyVariant0_t'},
+  }},
+  {a2={
+    {var1='MyVariant0_t'},
+    {var2='MyVariant2_t'},
+  }},
+  {a3={
+    {c='char'},
+  }},
 }
 
 -- Descriptive comment.
 MyVariant4 = sumtype{
   -- Alternatives.
-  {
-    first={
-      { i='int' }, --
-      { c='char' }, --
-      { b='bool' }, --
-      { op='rn::maybe<uint32_t>' }
-    }
-  }, --
-  { _2nd={} }, --
-  {
-    third={
-      { s='std::string' }, --
-      { var3='MyVariant3_t' }
-    }
-  }
+  {first={
+    {i='int'},
+    {c='char'},
+    {b='bool'},
+    {op='rn::maybe<uint32_t>'},
+  }},
+  {_2nd={}},
+  {third={
+    {s='std::string'},
+    {var3='MyVariant3_t'},
+  }},
 }
 
 -- Descriptive comment.
-TemplateTwoParams = template{ 'T', 'U' }.sumtype{
+TemplateTwoParams = template{'T', 'U'}.sumtype{
   -- Alternatives.
-  {
-    first_alternative={
-      { t='T' }, --
-      { c='char' }
-    }
-  }, --
-  { second_alternative={} }, --
-  {
-    third_alternative={
-      { hello='Maybe_t<T>' }, --
-      { u='U' }
-    }
-  }
+  {first_alternative={
+    {t='T'},
+    {c='char'},
+  }},
+  {second_alternative={}},
+  {third_alternative={
+    {hello='Maybe_t<T>'},
+    {u='U'},
+  }},
 }
 
 -- This one has two template parameters are references another
 -- sumtype that also has two parameters.
-CompositeTemplateTwo = template{ 'T', 'U' }.sumtype{
-  {
-    first={ --
-      { ttp='rdstest::inner::TemplateTwoParams_t<T,U>' }
-    }
-  }, --
-  { second={} }
+CompositeTemplateTwo = template{'T', 'U'}.sumtype{
+  {first={
+    {ttp='rdstest::inner::TemplateTwoParams_t<T,U>'},
+  }},
+  {second={}},
 }
 
-namespace'rn'
+namespace 'rn'
 
 MySumtype = sumtype{
-  { none={} },
-  {
-    some={
-      { s='std::string' }, --
-      { y='int' }
-    }
-  },
-  {
-    more={ --
-      { d='double' }
-    }
-  },
+  {none={}},
+  {some={
+    {s='std::string'},
+    {y='int'},
+  }},
+  {more={
+    {d='double'},
+  }},
 
-  [features_key]={ 'equality', 'formattable', 'serializable' }
+  [features_key]={'equality', 'formattable', 'serializable'}
 }
 
 OnOffState = sumtype{
-  { off={} },
-  {
-    on={ --
-      { user='std::string' }
-    }
-  },
-  {
-    switching_on={ --
-      { percent='double' }
-    }
-  },
-  {
-    switching_off={ --
-      { percent='double' }
-    }
-  },
+  {off={}},
+  {on={
+    {user='std::string'},
+  }},
+  {switching_on={
+    {percent='double'},
+  }},
+  {switching_off={
+    {percent='double'},
+  }},
 
-  [features_key]={ 'equality', 'formattable', 'serializable' }
+  [features_key]={'equality', 'formattable', 'serializable'}
 }
 
 OnOffEvent = sumtype{
-  { turn_off={} }, --
-  { turn_on={} }
+  {turn_off={}},
+  {turn_on={}},
 }
 
 e_empty = enum{}
 
-e_single = enum{ 'hello' }
+e_single = enum{'hello'}
 
-e_two = enum{ 'hello', 'world' }
+e_two = enum{'hello', 'world'}
 
-e_color = enum{ 'red', 'green', 'blue' }
+e_color = enum{'red', 'green', 'blue'}
 
-e_hand = enum{ 'left', 'right' }
+e_hand = enum{'left', 'right'}

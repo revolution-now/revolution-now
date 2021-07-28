@@ -9,11 +9,11 @@
 | Description: RDS definitions for the orders module.
 |
 --]] ------------------------------------------------------------
-include'coord.hpp'
+include 'coord.hpp'
 
-include'fb/orders_generated.h'
+include 'fb/orders_generated.h'
 
-namespace'rn'
+namespace 'rn'
 
 -- An `orders_t` is a general term describing what the player
 -- proposes that a unit do when the unit asks the player. Roughly
@@ -28,17 +28,15 @@ namespace'rn'
 -- would not be allowed. In that case, the orders are not al-
 -- lowed.
 orders = sumtype{
-  { wait={} },
-  { forfeight={} },
-  { build={} },
-  { fortify={} },
-  { sentry={} },
-  { disband={} },
-  {
-    move={ --
-      { d='e_direction' }
-    }
-  },
+  {wait={}},
+  {forfeight={}},
+  {build={}},
+  {fortify={}},
+  {sentry={}},
+  {disband={}},
+  {move={
+    {d='e_direction'},
+  }},
 
   [features_key]={ 'formattable', 'equality', 'serializable' }
 }

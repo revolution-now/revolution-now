@@ -9,23 +9,23 @@
 | Description: RDS definitions for the conductor module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 -- NOTE: The ordering of these determines priority in the event
 -- that the first and second choices (set in the config files)
 -- are not available.
 e_music_player = enum{
-  'midiseq', --
-  'ogg', --
-  'silent' --
+  'midiseq',
+  'ogg',
+  'silent',
 }
 
 e_special_music_event = enum{
-  'fountain_of_youth', --
-  'founding_father' --
+  'fountain_of_youth',
+  'founding_father',
 }
 
-namespace'rn.conductor'
+namespace 'rn.conductor'
 
 -- Tune Selection. Each of these methods will search through
 -- available tunes and select one that meets the criteria and
@@ -33,27 +33,27 @@ namespace'rn.conductor'
 -- ductor will return to autoplay when it is finished, if auto-
 -- play is enabled.
 e_request = enum{
-  'won_battle_europeans', --
-  'won_battle_natives', --
-  'lost_battle_europeans', --
-  'lost_battle_natives', --
-  'slow_sad', --
-  'happy_fast', --
-  'orchestrated', --
-  'fiddle_tune', --
-  'fife_drum_sad', --
-  'fife_drum_slow', --
-  'fife_drum_fast', --
-  'fife_drum_happy', --
-  'native_sad', --
-  'native_happy', --
-  'king_happy', --
-  'king_sad', --
-  'king_war' --
+  'won_battle_europeans',
+  'won_battle_natives',
+  'lost_battle_europeans',
+  'lost_battle_natives',
+  'slow_sad',
+  'happy_fast',
+  'orchestrated',
+  'fiddle_tune',
+  'fife_drum_sad',
+  'fife_drum_slow',
+  'fife_drum_fast',
+  'fife_drum_happy',
+  'native_sad',
+  'native_happy',
+  'king_happy',
+  'king_sad',
+  'king_war',
 }
 
 e_music_state = enum{
-  'playing', --
-  'stopped', --
-  'paused' --
+  'playing',
+  'stopped',
+  'paused',
 }

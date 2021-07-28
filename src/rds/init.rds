@@ -9,29 +9,29 @@
 | Description: RDS definitions for the init module.
 |
 --]] ------------------------------------------------------------
-namespace'rn'
+namespace 'rn'
 
 -- Ordering of these enum values does not matter.
 e_init_routine = enum{
-  'compositor', --
-  'conductor', --
-  'configs', --
-  'old_world_view', --
-  'lua', --
-  'images', --
-  'menus', --
-  'midiplayer', --
-  'midiseq', --
-  'oggplayer', --
-  'planes', --
-  'renderer', --
-  'rng', --
-  'screen', --
-  'sdl', --
-  'sound', --
-  'sprites', --
-  'terrain', --
-  'text', --
-  'ttf', --
-  'tunes' --
+  'compositor',
+  'conductor',
+  'configs',
+  'old_world_view',
+  'lua',
+  'images',
+  'menus',
+  'midiplayer',
+  'midiseq',
+  'oggplayer',
+  'planes',
+  'renderer',
+  'rng',
+  'screen',
+  'sdl',
+  'sound',
+  'sprites',
+  'terrain',
+  'text',
+  'ttf',
+  'tunes',
 }

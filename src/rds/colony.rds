@@ -9,26 +9,22 @@
 | Description: RDS definitions for the colony module.
 |
 --]] ------------------------------------------------------------
-include'colony-mfg.hpp'
-include'commodity.hpp'
-include'coord.hpp'
+include 'colony-mfg.hpp'
+include 'commodity.hpp'
+include 'coord.hpp'
 
-include'fb/colony_generated.h'
+include 'fb/colony_generated.h'
 
-namespace'rn'
+namespace 'rn'
 
 ColonyJob = sumtype{
-  {
-    land={
-      { d='e_direction' }, --
-      { producing='e_commodity' }
-    }
-  },
-  {
-    mfg={ --
-      { mfg_job='e_mfg_job' }
-    }
-  },
+  {land={
+    {d='e_direction'},
+    {producing='e_commodity'},
+  }},
+  {mfg={
+    {mfg_job='e_mfg_job'},
+  }},
 
   [features_key]={ 'serializable', 'equality' }
 }
