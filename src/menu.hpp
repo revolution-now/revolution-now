@@ -15,8 +15,8 @@
 // Revolution Now
 #include "typed-int.hpp"
 
-// Rnl
-#include "rnl/menu.hpp"
+// Rds
+#include "rds/menu.hpp"
 
 // base-util
 #include "base-util/macros.hpp"

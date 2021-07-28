@@ -22,8 +22,8 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Rnl
-#include "rnl/utype.hpp"
+// Rds
+#include "rds/utype.hpp"
 
 // Flatbuffers
 #include "fb/utype_generated.h"

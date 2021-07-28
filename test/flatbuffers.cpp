@@ -19,8 +19,8 @@
 #include "unit.hpp"
 #include "ustate.hpp"
 
-// Rnl
-#include "rnl/testing.hpp"
+// Rds
+#include "rds/testing.hpp"
 
 // base
 #include "base/build-properties.hpp"
@@ -178,7 +178,7 @@ BinaryBlob create_monster_blob() {
   auto sword = fb::CreateWeapon( builder, weapon_one_name,
                                  weapon_one_damage );
   auto axe   = fb::CreateWeapon( builder, weapon_two_name,
-                               weapon_two_damage );
+                                 weapon_two_damage );
 
   auto name = builder.CreateString( "Orc" );
   // Null offset (empty string).
@@ -1092,7 +1092,7 @@ TEST_CASE( "[flatbuffers] Golden Comparison" ) {
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(
-      root / "src/fb/testing_generated.h" );
+          root / "src/fb/testing_generated.h" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not

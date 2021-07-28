@@ -20,8 +20,8 @@
 #include "lua-enum.hpp"
 #include "tx.hpp"
 
-// Rnl
-#include "rnl/commodity.hpp"
+// Rds
+#include "rds/commodity.hpp"
 
 // Flatbuffers
 #include "fb/commodity_generated.h"

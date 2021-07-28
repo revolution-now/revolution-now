@@ -1,0 +1,22 @@
+--[[ ------------------------------------------------------------
+| colony-mgr.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2021-02-28.
+|
+| Description: RDS definitions for the colony-mgr module.
+|
+--]] ------------------------------------------------------------
+namespace'rn'
+
+e_found_colony_err = enum{
+  'colony_exists_here', --
+  'no_water_colony', --
+  'colonist_not_on_map', --
+  'ship_cannot_found_colony' --
+}
+
+e_new_colony_name_err = enum{
+  'already_exists' --
+}

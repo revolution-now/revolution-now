@@ -1,0 +1,17 @@
+--[[ ------------------------------------------------------------
+|
+| land-square.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2021-03-02.
+|
+| Description: RDS definitions for the land-square module.
+|
+--]] ------------------------------------------------------------
+namespace'rn'
+
+e_surface = enum{
+  'water', --
+  'land' --
+}

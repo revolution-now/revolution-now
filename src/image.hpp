@@ -15,8 +15,8 @@
 // Revolution Now
 #include "tx.hpp"
 
-// Rnl
-#include "rnl/image.hpp"
+// Rds
+#include "rds/image.hpp"
 
 namespace rn {
 

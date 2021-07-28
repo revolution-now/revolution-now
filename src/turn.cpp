@@ -37,8 +37,8 @@
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 
-// Rnl
-#include "rnl/turn-impl.hpp"
+// Rds
+#include "rds/turn-impl.hpp"
 
 // Flatbuffers
 #include "fb/sg-turn_generated.h"

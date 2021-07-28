@@ -1,0 +1,16 @@
+--[[ ------------------------------------------------------------
+|
+| ui-enums.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2021-02-28.
+|
+| Description: RDS definitions for the ui-enums module.
+|
+--]] ------------------------------------------------------------
+namespace'rn.ui'
+
+e_ok_cancel = enum{ 'ok', 'cancel' }
+
+e_confirm = enum{ 'yes', 'no' }

@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Rnl
-#include "rnl/font.hpp"
+// Rds
+#include "rds/font.hpp"
 
 namespace rn {
 

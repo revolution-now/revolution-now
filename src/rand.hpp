@@ -15,8 +15,8 @@
 // Revolution Now
 #include "error.hpp"
 
-// Rnl
-#include "rnl/helper/enum.hpp"
+// Rds
+#include "rds/helper/enum.hpp"
 
 // C++ standard library
 #include <algorithm>

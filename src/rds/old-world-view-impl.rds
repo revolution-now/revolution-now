@@ -1,0 +1,63 @@
+--[[ ------------------------------------------------------------
+|
+| old-world-view.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2020-11-13.
+|
+| Description: RDS definitions for the old-world-view module.
+|
+--]] ------------------------------------------------------------
+include'cargo.hpp'
+include'commodity.hpp'
+include'id.hpp'
+
+namespace'rn'
+
+-- This object needs to specify all of the information necessary
+-- for a dragged item to be drawn. We cannot simply use a tile
+-- here because we need to know where the item came from so that
+-- it can (potentially) be left out when rendering the scene, to
+-- create the appearance that the mouse is dragging it.
+OldWorldDraggableObject = sumtype{
+  alt{ unit={ var{ id='UnitId' } } },
+  alt{ market_commodity={ var{ type='e_commodity' } } },
+  alt{
+    cargo_commodity={
+      var{ comm='Commodity' }, --
+      var{ slot='CargoSlotIndex' }
+    }
+  },
+
+  [features_key]={ 'formattable', 'equality' }
+}
+
+OldWorldDragSrc = sumtype{
+  alt{ dock={ var{ id='UnitId' } } }, --
+  alt{
+    cargo={
+      var{ slot='CargoSlotIndex' }, --
+      var{ quantity='maybe<int>' }
+    }
+  }, --
+  alt{ outbound={ var{ id='UnitId' } } },
+  alt{ inbound={ var{ id='UnitId' } } },
+  alt{ inport={ var{ id='UnitId' } } }, --
+  alt{
+    market={
+      var{ type='e_commodity' }, --
+      var{ quantity='maybe<int>' }
+    }
+  }
+}
+
+OldWorldDragDst = sumtype{
+  alt{ cargo={ var{ slot='CargoSlotIndex' } } }, --
+  alt{ dock={} }, --
+  alt{ outbound={} }, --
+  alt{ inbound={} }, --
+  alt{ inport={} }, --
+  alt{ inport_ship={ var{ id='UnitId' } } }, --
+  alt{ market={} }
+}

@@ -16,8 +16,8 @@
 // Revolution Now
 #include "lua-enum.hpp"
 
-// Rnl
-#include "rnl/colony-mfg.hpp"
+// Rds
+#include "rds/colony-mfg.hpp"
 
 // Flatbuffers
 #include "fb/colony-mfg_generated.h"

@@ -22,8 +22,8 @@
 #include "view.hpp"
 #include "waitable.hpp"
 
-// Rnl
-#include "rnl/colview-entities.hpp"
+// Rds
+#include "rds/colview-entities.hpp"
 
 namespace rn {
 

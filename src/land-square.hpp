@@ -15,8 +15,8 @@
 // Revolution Now
 #include "fb.hpp"
 
-// Rnl
-#include "rnl/land-square.hpp"
+// Rds
+#include "rds/land-square.hpp"
 
 // Flatbuffers
 #include "fb/land-square_generated.h"

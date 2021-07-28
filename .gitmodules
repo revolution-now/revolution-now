@@ -40,6 +40,3 @@
 [submodule "extern/flatbuffers"]
 	path = extern/flatbuffers
 	url = ../../dpacbach/flatbuffers.git
-[submodule "extern/cpp-peglib"]
-	path = extern/cpp-peglib
-	url = ../../dpacbach/cpp-peglib

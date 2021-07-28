@@ -16,8 +16,8 @@
 #include "co-combinator.hpp"
 #include "waitable.hpp"
 
-// Rnl
-#include "rnl/main-menu.hpp"
+// Rds
+#include "rds/main-menu.hpp"
 
 namespace rn {
 

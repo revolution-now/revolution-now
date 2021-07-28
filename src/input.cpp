@@ -22,8 +22,8 @@
 #include "base/lambda.hpp"
 #include "base/meta.hpp"
 
-// Rnl
-#include "rnl/input.hpp"
+// Rds
+#include "rds/input.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/input.inl"

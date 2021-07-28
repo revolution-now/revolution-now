@@ -15,8 +15,8 @@
 // Revolution Now
 #include "coord.hpp"
 
-// Rnl
-#include "rnl/compositor.hpp"
+// Rds
+#include "rds/compositor.hpp"
 
 namespace rn::compositor {
 

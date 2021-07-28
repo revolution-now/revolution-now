@@ -3,7 +3,7 @@
 add_subdirectory( base )
 add_subdirectory( fb )
 add_subdirectory( luapp )
-add_subdirectory( rnl )
+add_subdirectory( rds )
 
 # === this directory ==============================================
 
@@ -49,7 +49,7 @@ target_link_libraries(
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_MIXER_LIBRARY} )
 
-add_dependencies( rn rn-flatbuf rn-rnls rn-rds )
+add_dependencies( rn rn-flatbuf rn-rds )
 get_target_property( FLATBUFF_INCLUDE_DIR rn-flatbuf INCLUDE_DIR )
 get_target_property( RDS_INCLUDE_DIR rn-rds INCLUDE_DIR )
 

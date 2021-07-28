@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Rnl
-#include "rnl/ui-enums.hpp"
+// Rds
+#include "rds/ui-enums.hpp"
 
 namespace rn::ui {
 

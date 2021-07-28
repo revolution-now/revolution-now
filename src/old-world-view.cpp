@@ -46,8 +46,8 @@
 #include "base/scope-exit.hpp"
 #include "base/vocab.hpp"
 
-// Rnl
-#include "rnl/old-world-view-impl.hpp"
+// Rds
+#include "rds/old-world-view-impl.hpp"
 
 // Flatbuffers
 #include "fb/sg-old-world-view_generated.h"

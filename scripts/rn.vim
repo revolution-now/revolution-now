@@ -13,15 +13,11 @@ let s:this_folder = fnamemodify( resolve( expand( '<sfile>:p' ) ), ':h' )
 
 "exec 'source ' . s:this_path . '/another.vim'
 
-" This is so that the RNL syntax file gets picked up.
-let &runtimepath .= ',' . s:this_path . '/../src/rnl'
-
 " This makes the design doc look nicer because it typically con-
 " tains snippets of code.
 au BufNewFile,BufRead *design.txt set syntax=cpp11
 " jsav files are not yaml, but it seems to work nicely.
 au BufNewFile,BufRead *.jsav set syntax=yaml
-au BufNewFile,BufRead *.rnl set filetype=rnl
 au BufNewFile,BufRead *.rds set filetype=lua
 
 "function! CloseTerminal()

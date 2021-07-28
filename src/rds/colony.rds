@@ -1,0 +1,30 @@
+--[[ ------------------------------------------------------------
+|
+| colony.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2020-11-13.
+|
+| Description: RDS definitions for the colony module.
+|
+--]] ------------------------------------------------------------
+include'colony-mfg.hpp'
+include'commodity.hpp'
+include'coord.hpp'
+
+include'fb/colony_generated.h'
+
+namespace'rn'
+
+ColonyJob = sumtype{
+  alt{
+    land={
+      var{ d='e_direction' }, --
+      var{ producing='e_commodity' }
+    }
+  },
+  alt{ mfg={ var{ mfg_job='e_mfg_job' } } },
+
+  [features_key]={ 'serializable', 'equality' }
+}

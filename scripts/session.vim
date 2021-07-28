@@ -21,13 +21,13 @@ let s:quads = [
 
 function s:Open3( stem )
   echo '  - ' . a:stem
-  let l:rnl_impl_opened = 0
-  if filereadable( 'src/rnl/' . a:stem . '.rnl' )
-    exe 'silent tabnew src/rnl/' . a:stem . '.rnl'
+  let l:rds_impl_opened = 0
+  if filereadable( 'src/rds/' . a:stem . '.rds' )
+    exe 'silent tabnew src/rds/' . a:stem . '.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
-  elseif filereadable( 'src/rnl/' . a:stem . '-impl.rnl' )
-    let l:rnl_impl_opened = 1
-    exe 'silent tabnew src/rnl/' . a:stem . '-impl.rnl'
+  elseif filereadable( 'src/rds/' . a:stem . '-impl.rds' )
+    let l:rds_impl_opened = 1
+    exe 'silent tabnew src/rds/' . a:stem . '-impl.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
   else
     exe 'silent tabnew src/' . a:stem . '.hpp'
@@ -51,9 +51,9 @@ function s:Open3( stem )
   ":TagbarOpen
   "3wincmd h
   4wincmd h
-  if l:rnl_impl_opened == 0
-    if filereadable( 'src/rnl/' . a:stem . '-impl.rnl' )
-      exe 'silent split src/rnl/' . a:stem . '-impl.rnl'
+  if l:rds_impl_opened == 0
+    if filereadable( 'src/rds/' . a:stem . '-impl.rds' )
+      exe 'silent split src/rds/' . a:stem . '-impl.rds'
       wincmd k
     endif
   endif

@@ -1,4 +1,12 @@
 # ===============================================================
+# Compile times
+# ===============================================================
+
+  1. spdlog may be very slow to include, see:
+     https://github.com/s9w/cpp-lit
+     Need to get rid of this library.
+
+# ===============================================================
 # Lua
 # ===============================================================
 
@@ -8,6 +16,13 @@
      write game save files.
   3. Add some other standard containers like vector,
      unordered_map, etc.
+
+# ===============================================================
+# TODO
+# ===============================================================
+
+  1. Move all global save-game data into one giant data structure
+     and get all the SG stuff out of the individual modules.
 
 # ===============================================================
 # Bugs
@@ -39,6 +54,9 @@ Low priority:
 # ===============================================================
 # Infrastructure
 # ===============================================================
+
+  - Consider replacing any string-joining stuff with fmt::join,
+    but first see if it will be included in C++20.
 
   - Add a generic texture cache to the cache module that can
     cache textures. It will also support pruning and/or automatic

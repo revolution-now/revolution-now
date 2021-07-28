@@ -20,8 +20,8 @@
 #include "nation.hpp"
 #include "waitable.hpp"
 
-// Rnl
-#include "rnl/colony-mgr.hpp"
+// Rds
+#include "rds/colony-mgr.hpp"
 
 // C++ standard library
 #include <string_view>

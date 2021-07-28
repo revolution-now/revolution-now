@@ -16,8 +16,8 @@
 #include "maybe.hpp"
 #include "time.hpp"
 
-// Rnl
-#include "rnl/midiseq.hpp"
+// Rds
+#include "rds/midiseq.hpp"
 
 // C++ standard library.
 #include <string>

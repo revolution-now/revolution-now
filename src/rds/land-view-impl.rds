@@ -1,0 +1,59 @@
+--[[ ------------------------------------------------------------
+|
+| land-view-impl.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2020-11-13.
+|
+| Description: RDS definitions for the land-view module.
+|
+--]] ------------------------------------------------------------
+include'coord.hpp'
+include'id.hpp'
+include'physics.hpp'
+
+-- Rds
+include'rds/orders.hpp'
+
+namespace'rn'
+
+LandViewState = sumtype{
+  alt{ none={} }, --
+  alt{ unit_input={ var{ unit_id='UnitId' } } },
+  alt{ unit_move={ var{ unit_id='UnitId' } } }, --
+  alt{
+    unit_attack={
+      var{ attacker='UnitId' }, --
+      var{ defender='UnitId' }, --
+      var{ attacker_wins='bool' }
+    }
+  }
+}
+
+LandViewRawInput = sumtype{
+  alt{ orders={ var{ orders='orders_t' } } },
+  alt{ tile_click={ var{ coord='Coord' } } },
+  -- Center on blinking unit, if any.
+  alt{ center={} }
+}
+
+-- These are animation primitives. A unit "move" is a slide, and
+-- a unit attack sequence is constructed from a slide + depixela-
+-- tion.
+UnitAnimation = sumtype{
+  alt{ blink={ var{ visible='bool' } } }, --
+  alt{
+    slide={
+      var{ target='Coord' }, var{ percent='double' },
+      var{ percent_vel='DissipativeVelocity' }
+    }
+  }, --
+  alt{
+    depixelate={
+      var{ tx_depixelate_from='Texture' },
+      var{ pixels='std::vector<Coord>' },
+      var{ demoted_pixels='Matrix<Color>' }
+    }
+  }
+}

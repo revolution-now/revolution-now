@@ -18,8 +18,8 @@
 #include "lua-enum.hpp"
 #include "maybe.hpp"
 
-// Rnl
-#include "rnl/nation.hpp"
+// Rds
+#include "rds/nation.hpp"
 
 // C++ standard library
 #include <string>

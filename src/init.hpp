@@ -15,8 +15,8 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// Rnl
-#include "rnl/init.hpp"
+// Rds
+#include "rds/init.hpp"
 
 // base-util
 #include "base-util/macros.hpp"

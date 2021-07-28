@@ -1,0 +1,37 @@
+--[[ ------------------------------------------------------------
+|
+| init.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2021-02-28.
+|
+| Description: RDS definitions for the init module.
+|
+--]] ------------------------------------------------------------
+namespace'rn'
+
+-- Ordering of these enum values does not matter.
+e_init_routine = enum{
+  'compositor', --
+  'conductor', --
+  'configs', --
+  'old_world_view', --
+  'lua', --
+  'images', --
+  'menus', --
+  'midiplayer', --
+  'midiseq', --
+  'oggplayer', --
+  'planes', --
+  'renderer', --
+  'rng', --
+  'screen', --
+  'sdl', --
+  'sound', --
+  'sprites', --
+  'terrain', --
+  'text', --
+  'ttf', --
+  'tunes' --
+}

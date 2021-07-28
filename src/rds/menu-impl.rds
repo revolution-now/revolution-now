@@ -1,0 +1,53 @@
+--[[ ------------------------------------------------------------
+|
+| menu-impl.rds
+|
+| Project: Revolution Now
+|
+| Created by dsicilia on 2020-11-16.
+|
+| Description: Private RDS definitions for the menu module.
+|
+--]] ------------------------------------------------------------
+include'time.hpp'
+include'maybe.hpp'
+
+namespace'rn'
+
+MenuItem = sumtype{
+  alt{ menu_divider={} },
+  alt{
+    menu_clickable={
+      var{ item='e_menu_item' }, --
+      var{ name='std::string' }, --
+      var{ callbacks='MenuCallbacks' }
+    }
+  },
+
+  [features_key]={}
+}
+
+MenuState = sumtype{
+  alt{ menus_hidden={} },
+  alt{ menus_closed={ var{ hover='maybe<e_menu>' } } }, --
+  alt{
+    menu_open={
+      var{ menu='e_menu' }, --
+      var{ hover='maybe<e_menu_item>' }
+    }
+  }, --
+  alt{
+    item_click={
+      var{ item='e_menu_item' }, --
+      var{ start='Time_t' }
+    }
+  }
+}
+
+MouseOver = sumtype{
+  alt{ header={ var{ menu='e_menu' } } },
+  alt{ item={ var{ item='e_menu_item' } } },
+  alt{ divider={ var{ menu='e_menu' } } },
+  alt{ border={ var{ menu='e_menu' } } }, --
+  alt{ bar={} }
+}

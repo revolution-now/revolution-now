@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Rnl
-#include "rnl/sound.hpp"
+// Rds
+#include "rds/sound.hpp"
 
 namespace rn {
 

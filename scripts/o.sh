@@ -13,7 +13,7 @@ set -o pipefail
   echo "  examples:"
   echo
   echo "    $0 src/cargo.cpp"
-  echo "    $0 src/rnl/rnlc/parser.cpp"
+  echo "    $0 src/rds/rdsc/parser.cpp"
   echo "    $0 test/cargo.cpp"
   echo
   exit 1

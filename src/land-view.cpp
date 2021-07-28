@@ -54,8 +54,8 @@
 #include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
 
-// Rnl
-#include "rnl/land-view-impl.hpp"
+// Rds
+#include "rds/land-view-impl.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/land-view.inl"

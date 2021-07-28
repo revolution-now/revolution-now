@@ -24,8 +24,8 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Rnl
-#include "rnl/colony.hpp"
+// Rds
+#include "rds/colony.hpp"
 
 // Flatbuffers
 #include "fb/colony_generated.h"
