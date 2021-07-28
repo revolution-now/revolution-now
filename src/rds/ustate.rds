@@ -21,17 +21,25 @@ UnitOldWorldViewState = sumtype{
   -- from 0 and goes to 1.0 at arrival. This means that the value
   -- should never actually assume a value of 1.0, because as soon
   -- as it does, the state is transitioned to in_port.
-  alt{ outbound={ var{ percent='double' } } },
+  {
+    outbound={ --
+      { percent='double' }
+    }
+  },
   -- For ships that are traveling from europe to the new world.
   -- `percent` starts from 0 and goes to 1.0 at arrival. This
   -- means that the value should never actually assume a value of
   -- 1.0, because as soon as it does, the state is transitioned
   -- to the map.
-  alt{ inbound={ var{ percent='double' } } },
+  {
+    inbound={ --
+      { percent='double' }
+    }
+  },
   -- If a ship is in this state then it is in port (shown in the
   -- "in port" box) whereas for land units this means that they
   -- are on the dock.
-  alt{ in_port={} },
+  { in_port={} },
 
   [features_key]={ 'formattable', 'serializable', 'equality' }
 };

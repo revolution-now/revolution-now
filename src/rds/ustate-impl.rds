@@ -21,11 +21,27 @@ include'fb/sg-unit_generated.h'
 namespace'rn'
 
 UnitState = sumtype{
-  alt{ free={} },
-  alt{ world={ var{ coord='Coord' } } },
-  alt{ cargo={ var{ holder='UnitId' } } },
-  alt{ old_world={ var{ st='UnitOldWorldViewState_t' } } },
-  alt{ colony={ var{ id='ColonyId' } } },
+  { free={} },
+  {
+    world={ --
+      { coord='Coord' }
+    }
+  },
+  {
+    cargo={ --
+      { holder='UnitId' }
+    }
+  },
+  {
+    old_world={ --
+      { st='UnitOldWorldViewState_t' }
+    }
+  },
+  {
+    colony={ --
+      { id='ColonyId' }
+    }
+  },
 
   [features_key]={ 'formattable', 'serializable', 'equality' }
 }

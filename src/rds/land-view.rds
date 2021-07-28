@@ -27,13 +27,24 @@ LandViewPlayerInput = sumtype{
   -- a bad state (a fortified unit asking for orders). But by
   -- this back to the turn processor, it can handle that issue
   -- and we don't have that problem.
-  alt{ colony={ var{ id='ColonyId' } } },
-  -- Player has given orders to a unit.
-  alt{ give_orders={ var{ orders='orders_t' } } },
+  {
+    colony={ --
+      { id='ColonyId' }
+    }
+  }, -- Player has given orders to a unit.
+  {
+    give_orders={ --
+      { orders='orders_t' }
+    }
+  },
   -- Prioritize these units and make them ask for orders now, as-
   -- suming that they have not used their turn. This needs to be
   -- a vector so that if there are multiple, then they can all be
   -- prioritized before the first of them starts asking for or-
   -- ders.
-  alt{ prioritize={ var{ units='std::vector<UnitId>' } } }
+  {
+    prioritize={ --
+      { units='std::vector<UnitId>' }
+    }
+  }
 }

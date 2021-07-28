@@ -21,12 +21,20 @@ namespace'rn'
 -- it can (potentially) be left out when rendering the scene, to
 -- create the appearance that the mouse is dragging it.
 OldWorldDraggableObject = sumtype{
-  alt{ unit={ var{ id='UnitId' } } },
-  alt{ market_commodity={ var{ type='e_commodity' } } },
-  alt{
+  {
+    unit={ --
+      { id='UnitId' }
+    }
+  },
+  {
+    market_commodity={ --
+      { type='e_commodity' }
+    }
+  },
+  {
     cargo_commodity={
-      var{ comm='Commodity' }, --
-      var{ slot='CargoSlotIndex' }
+      { comm='Commodity' }, --
+      { slot='CargoSlotIndex' }
     }
   },
 
@@ -34,30 +42,49 @@ OldWorldDraggableObject = sumtype{
 }
 
 OldWorldDragSrc = sumtype{
-  alt{ dock={ var{ id='UnitId' } } }, --
-  alt{
-    cargo={
-      var{ slot='CargoSlotIndex' }, --
-      var{ quantity='maybe<int>' }
+  {
+    dock={ --
+      { id='UnitId' }
     }
-  }, --
-  alt{ outbound={ var{ id='UnitId' } } },
-  alt{ inbound={ var{ id='UnitId' } } },
-  alt{ inport={ var{ id='UnitId' } } }, --
-  alt{
+  }, {
+    cargo={
+      { slot='CargoSlotIndex' }, --
+      { quantity='maybe<int>' }
+    }
+  }, {
+    outbound={ --
+      { id='UnitId' }
+    }
+  }, {
+    inbound={ --
+      { id='UnitId' }
+    }
+  }, {
+    inport={ --
+      { id='UnitId' }
+    }
+  }, {
     market={
-      var{ type='e_commodity' }, --
-      var{ quantity='maybe<int>' }
+      { type='e_commodity' }, --
+      { quantity='maybe<int>' }
     }
   }
 }
 
 OldWorldDragDst = sumtype{
-  alt{ cargo={ var{ slot='CargoSlotIndex' } } }, --
-  alt{ dock={} }, --
-  alt{ outbound={} }, --
-  alt{ inbound={} }, --
-  alt{ inport={} }, --
-  alt{ inport_ship={ var{ id='UnitId' } } }, --
-  alt{ market={} }
+  {
+    cargo={ --
+      { slot='CargoSlotIndex' }
+    }
+  }, --
+  { dock={} }, --
+  { outbound={} }, --
+  { inbound={} }, --
+  { inport={} }, --
+  {
+    inport_ship={ --
+      { id='UnitId' }
+    }
+  }, --
+  { market={} }
 }

@@ -19,41 +19,59 @@ include'rds/orders.hpp'
 namespace'rn'
 
 LandViewState = sumtype{
-  alt{ none={} }, --
-  alt{ unit_input={ var{ unit_id='UnitId' } } },
-  alt{ unit_move={ var{ unit_id='UnitId' } } }, --
-  alt{
+  { none={} }, --
+  {
+    unit_input={ --
+      { unit_id='UnitId' }
+    }
+  }, {
+    unit_move={ --
+      { unit_id='UnitId' }
+    }
+  }, --
+  {
     unit_attack={
-      var{ attacker='UnitId' }, --
-      var{ defender='UnitId' }, --
-      var{ attacker_wins='bool' }
+      { attacker='UnitId' }, --
+      { defender='UnitId' }, --
+      { attacker_wins='bool' }
     }
   }
 }
 
 LandViewRawInput = sumtype{
-  alt{ orders={ var{ orders='orders_t' } } },
-  alt{ tile_click={ var{ coord='Coord' } } },
-  -- Center on blinking unit, if any.
-  alt{ center={} }
+  {
+    orders={ --
+      { orders='orders_t' }
+    }
+  }, {
+    tile_click={ --
+      { coord='Coord' }
+    }
+  }, -- Center on blinking unit, if any.
+  { center={} }
 }
 
 -- These are animation primitives. A unit "move" is a slide, and
 -- a unit attack sequence is constructed from a slide + depixela-
 -- tion.
 UnitAnimation = sumtype{
-  alt{ blink={ var{ visible='bool' } } }, --
-  alt{
-    slide={
-      var{ target='Coord' }, var{ percent='double' },
-      var{ percent_vel='DissipativeVelocity' }
+  {
+    blink={ --
+      { visible='bool' }
     }
   }, --
-  alt{
+  {
+    slide={
+      { target='Coord' }, --
+      { percent='double' }, --
+      { percent_vel='DissipativeVelocity' }
+    }
+  }, --
+  {
     depixelate={
-      var{ tx_depixelate_from='Texture' },
-      var{ pixels='std::vector<Coord>' },
-      var{ demoted_pixels='Matrix<Color>' }
+      { tx_depixelate_from='Texture' },
+      { pixels='std::vector<Coord>' },
+      { demoted_pixels='Matrix<Color>' }
     }
   }
 }

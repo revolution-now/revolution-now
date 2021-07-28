@@ -28,13 +28,17 @@ namespace'rn'
 -- would not be allowed. In that case, the orders are not al-
 -- lowed.
 orders = sumtype{
-  alt{ wait={} },
-  alt{ forfeight={} },
-  alt{ build={} },
-  alt{ fortify={} },
-  alt{ sentry={} },
-  alt{ disband={} },
-  alt{ move={ var{ d='e_direction' } } },
+  { wait={} },
+  { forfeight={} },
+  { build={} },
+  { fortify={} },
+  { sentry={} },
+  { disband={} },
+  {
+    move={ --
+      { d='e_direction' }
+    }
+  },
 
   [features_key]={ 'formattable', 'equality', 'serializable' }
 }

@@ -46,8 +46,8 @@ void add_enum( string_view name, lua::table tbl,
   rds.items.push_back( item );
 }
 
-void add_sumtype( string_view name, lua::table tbl,
-                  expr::Rds& rds ) {
+void add_sumtype( lua::state& st, string_view name,
+                  lua::table tbl, expr::Rds& rds ) {
   expr::Item item;
   item.ns = lua::cast<string>( tbl[meta_key]["namespace"] );
 
@@ -78,8 +78,10 @@ void add_sumtype( string_view name, lua::table tbl,
   }
 
   for( int i = 1; tbl[i] != lua::nil; ++i ) {
-    lua::any k        = tbl[i]["alt_name"];
-    lua::any v        = tbl[i]["alt_vars"];
+    lua::table alt_tbl =
+        lua::cast<lua::table>( st["alt"]( tbl[i] ) );
+    lua::any k        = alt_tbl["alt_name"];
+    lua::any v        = alt_tbl["alt_vars"];
     string   alt_name = lua::cast<string>( k );
     if( alt_name.starts_with( "__" ) ) continue;
     expr::Alternative alt;
@@ -90,7 +92,7 @@ void add_sumtype( string_view name, lua::table tbl,
     lua::table alt_members = lua::cast<lua::table>( v );
     for( int j = 1; alt_members[j] != lua::nil; ++j ) {
       lua::table var_tbl =
-          lua::cast<lua::table>( alt_members[j] );
+          lua::cast<lua::table>( st["var"]( alt_members[j] ) );
       string var_name = lua::cast<string>( var_tbl["var_name"] );
       string var_type = lua::cast<string>( var_tbl["var_type"] );
       expr::AlternativeMember alt_member{ .type = var_type,
@@ -129,7 +131,7 @@ maybe<expr::Rds> parse( string_view preamble_filename,
     if( type == "enum" )
       add_enum( name, tbl, rds );
     else if( type == "sumtype" )
-      add_sumtype( name, tbl, rds );
+      add_sumtype( st, name, tbl, rds );
     else {
       FATAL( "unknown type: {}", type );
     }

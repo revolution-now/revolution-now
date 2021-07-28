@@ -15,12 +15,12 @@ include'maybe.hpp'
 namespace'rn'
 
 MenuItem = sumtype{
-  alt{ menu_divider={} },
-  alt{
+  { menu_divider={} },
+  {
     menu_clickable={
-      var{ item='e_menu_item' }, --
-      var{ name='std::string' }, --
-      var{ callbacks='MenuCallbacks' }
+      { item='e_menu_item' }, --
+      { name='std::string' }, --
+      { callbacks='MenuCallbacks' }
     }
   },
 
@@ -28,26 +28,40 @@ MenuItem = sumtype{
 }
 
 MenuState = sumtype{
-  alt{ menus_hidden={} },
-  alt{ menus_closed={ var{ hover='maybe<e_menu>' } } }, --
-  alt{
-    menu_open={
-      var{ menu='e_menu' }, --
-      var{ hover='maybe<e_menu_item>' }
+  { menus_hidden={} }, {
+    menus_closed={ --
+      { hover='maybe<e_menu>' }
     }
-  }, --
-  alt{
+  }, {
+    menu_open={
+      { menu='e_menu' }, --
+      { hover='maybe<e_menu_item>' }
+    }
+  }, {
     item_click={
-      var{ item='e_menu_item' }, --
-      var{ start='Time_t' }
+      { item='e_menu_item' }, --
+      { start='Time_t' }
     }
   }
 }
 
 MouseOver = sumtype{
-  alt{ header={ var{ menu='e_menu' } } },
-  alt{ item={ var{ item='e_menu_item' } } },
-  alt{ divider={ var{ menu='e_menu' } } },
-  alt{ border={ var{ menu='e_menu' } } }, --
-  alt{ bar={} }
+  {
+    header={ --
+      { menu='e_menu' }
+    }
+  }, {
+    item={ --
+      { item='e_menu_item' }
+    }
+  }, {
+    divider={ --
+      { menu='e_menu' }
+    }
+  }, {
+    border={ --
+      { menu='e_menu' }
+    }
+  }, --
+  { bar={} }
 }

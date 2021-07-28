@@ -18,13 +18,17 @@ include'fb/colony_generated.h'
 namespace'rn'
 
 ColonyJob = sumtype{
-  alt{
+  {
     land={
-      var{ d='e_direction' }, --
-      var{ producing='e_commodity' }
+      { d='e_direction' }, --
+      { producing='e_commodity' }
     }
   },
-  alt{ mfg={ var{ mfg_job='e_mfg_job' } } },
+  {
+    mfg={ --
+      { mfg_job='e_mfg_job' }
+    }
+  },
 
   [features_key]={ 'serializable', 'equality' }
 }

@@ -34,12 +34,16 @@ e_commodity = enum{
 }
 
 CommodityLabel = sumtype{
-  alt{ none={} }, --
-  alt{ quantity={ var{ value='int' } } }, --
-  alt{
+  { none={} }, --
+  {
+    quantity={ --
+      { value='int' }
+    }
+  }, --
+  {
     buy_sell={
-      var{ sell='int' }, --
-      var{ buy='int' }
+      { sell='int' }, --
+      { buy='int' }
     }
   }
 }

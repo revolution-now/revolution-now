@@ -28,12 +28,16 @@ namespace'rn.input'
 -- tally moving the mouse a bit during a click (that would be bad
 -- because it would not be sent as a click event).
 drag_phase = sumtype{
-  alt{ none={} }, --
-  alt{ maybe={ var{ origin='Coord' } } }, --
-  alt{
+  { none={} }, --
+  {
+    maybe={ --
+      { origin='Coord' }
+    }
+  }, --
+  {
     dragging={
-      var{ origin='Coord' }, --
-      var{ phase='e_drag_phase' }
+      { origin='Coord' }, --
+      { phase='e_drag_phase' }
     }
   }
 }

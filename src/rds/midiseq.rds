@@ -39,12 +39,20 @@ namespace'rn.midiseq'
 --           need to be done with the synthesizer.
 --
 command = sumtype{
-  alt{ play={ var{ file='fs::path' } } },
-  alt{ stop={} },
-  alt{ pause={} },
-  alt{ resume={} },
-  alt{ off={} },
-  alt{ volume={ var{ value='double' } } },
+  {
+    play={ --
+      { file='fs::path' }
+    }
+  },
+  { stop={} },
+  { pause={} },
+  { resume={} },
+  { off={} },
+  {
+    volume={ --
+      { value='double' }
+    }
+  },
 
   [features_key]={}
 }

@@ -26,8 +26,16 @@ e_colview_entity = enum{
 }
 
 ColViewObject = sumtype{
-  alt{ unit={ var{ id='UnitId' } } },
-  alt{ commodity={ var{ comm='Commodity' } } },
+  {
+    unit={ --
+      { id='UnitId' }
+    }
+  },
+  {
+    commodity={ --
+      { comm='Commodity' }
+    }
+  },
 
   [features_key]={ 'equality', 'formattable' }
 }
