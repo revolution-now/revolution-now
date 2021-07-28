@@ -5,32 +5,27 @@
 *
 * Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
 *
-* Description: [FILL ME IN]
+* Description: TODO [FILL ME IN]
 *
 *****************************************************************/
 #include "{{FILE}}.hpp"
 
 // Revolution Now
-//#include "dummy.hpp"
+#include "hello.hpp"
+
+// base
+#include "base/hello.hpp"
 
 using namespace std;
 
 namespace rn {
 
 namespace {
-  // 
+
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-// ...
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_{{FILE}}() {
-  //
-}
 
 } // namespace rn

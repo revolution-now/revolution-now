@@ -126,4 +126,8 @@ echo 'opening docs...'
 tabdo set cmdheight=1
 tabdo wincmd =
 
-tabnext
+" This goes to the first tab and closes it.  If you want the
+" `main` tab to appear, then comment out the :q line.
+tabn 1
+:q
+tabprev
