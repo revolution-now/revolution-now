@@ -1,0 +1,38 @@
+--[[ ------------------------------------------------------------
+|
+| {{FILEE}}
+|
+| Project: Revolution Now
+|
+| Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+|
+| Description: RDS definitions for the {{FILE}} module.
+|
+--]] ------------------------------------------------------------
+-- Revolution Now
+include'some-header.hpp'
+
+-- Rds
+include'rds/orders.hpp'
+
+-- C++ standard library
+include'<string>'
+
+namespace'rn'
+
+MyVariant = sumtype{
+  alt{ first={ var{ i='int' }, var{ c='char' } } },
+  alt{ second={} },
+  alt{ third={ var{ s='std::string' } } }
+  -- No features listed defaults to 'formattable' and 'equality'.
+}
+
+MyTemplateVariant = template{ 'T', 'U' }.sumtype{
+  alt{ first={ var{ t='T' }, var{ c='char' } } },
+  alt{ second={} },
+  alt{ third={ var{ u='U' } } },
+
+  [features_key]={ 'serializable', 'equality', 'formattable' }
+}
+
+e_menu = enum{ 'hello', 'world', 'test', 'value' }

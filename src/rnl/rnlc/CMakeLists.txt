@@ -19,6 +19,7 @@ target_link_libraries(
     cpp-peglib::cpp-peglib
     fmt::fmt
     rn-base
+    rn-luapp
 )
 
 target_include_directories(

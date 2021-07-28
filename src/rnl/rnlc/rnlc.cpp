@@ -13,6 +13,7 @@
 #include "expr.hpp"
 #include "parser.hpp"
 #include "post-process.hpp"
+#include "rds-parser.hpp"
 #include "rnl-util.hpp"
 #include "validate.hpp"
 
@@ -35,12 +36,17 @@ using namespace std;
 
 using ::base::maybe;
 
+namespace base {
+void abort_with_backtrace_here( SourceLoc /*loc*/ ) { abort(); }
+} // namespace base
+
 int main( int argc, char** argv ) {
   if( argc != 4 )
     rnl::error_msg( "usage: rnlc <rnl-file> <out-file>" );
 
   string_view filename = argv[1];
-  if( !filename.ends_with( ".rnl" ) )
+  if( !filename.ends_with( ".rnl" ) &&
+      !filename.ends_with( ".rds" ) )
     rnl::error_msg(
         "filename '{}' does not have a .rnl extension.",
         filename );
@@ -56,13 +62,18 @@ int main( int argc, char** argv ) {
   string_view peg_file = argv[3];
   if( !peg_file.ends_with( ".peg" ) )
     rnl::error_msg( "peg file must end with '.peg'." );
+  auto rds_preamble_filename =
+      fs::path( peg_file ).parent_path() / "preamble.lua";
 
   auto peg = base::read_text_file_as_string( peg_file );
   if( !peg.has_value() )
     rnl::error_msg( "failed to open peg file '{}'.", peg_file );
 
   maybe<rnl::expr::Rnl> maybe_rnl =
-      rnl::parse( peg_file, filename, *peg, *rnl );
+      filename.ends_with( ".rds" )
+          ? rnl::parse_rds( rds_preamble_filename.string(),
+                            filename )
+          : rnl::parse( peg_file, filename, *peg, *rnl );
   if( !maybe_rnl.has_value() )
     rnl::error_msg( "failed to parse RNL file '{}'.", filename );
 
