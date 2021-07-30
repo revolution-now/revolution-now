@@ -10,13 +10,11 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // base
 #include "base/co-compat.hpp"
 #include "base/zero.hpp"
 
-namespace rn {
+namespace base {
 
 struct unique_coro;
 using unique_coro_base =
@@ -49,4 +47,4 @@ private:
   void free_resource() { resource().destroy(); }
 };
 
-} // namespace rn
+} // namespace base

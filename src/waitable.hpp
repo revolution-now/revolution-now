@@ -16,10 +16,10 @@
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
-#include "unique-coro.hpp"
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/unique-coro.hpp"
 #include "base/unique-func.hpp"
 
 // C++ standard library
@@ -84,7 +84,7 @@ public:
           std::forward<Func>( func ) );
   }
 
-  void set_coro( unique_coro coro ) {
+  void set_coro( base::unique_coro coro ) {
     CHECK( !coro_ );
     coro_ = std::move( coro );
   }
@@ -209,7 +209,7 @@ private:
 
   // Will be populated if this shared state is created by a
   // coroutine.
-  maybe<unique_coro> coro_;
+  maybe<base::unique_coro> coro_;
 };
 
 } // namespace detail
