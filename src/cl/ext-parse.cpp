@@ -22,33 +22,28 @@
 #include <vector>
 
 using namespace std;
+using namespace parz;
 
 namespace cl {
 
-parz::parser<key_val> parser_for( parz::tag<key_val> ) {
-  string k = co_await parz::parse<string>();
-  co_await parz::exact_char( ':' );
-  value v = co_await parz::parse<value>();
+parser<key_val> parser_for( tag<key_val> ) {
+  string k = co_await parse<string>();
+  co_await exact_char( ':' );
+  value v = co_await parse<value::base_type>();
   co_return key_val{ k, make_unique<value>( std::move( v ) ) };
 }
 
-parz::parser<table> parser_for( parz::tag<table> ) {
-  co_await parz::eat_spaces();
-  co_await parz::exact_char( '{' );
-  auto kv_pairs = co_await parz::repeated(
-      [] { return parz::parse<key_val>(); } );
-  co_await parz::eat_spaces();
-  co_await parz::exact_char( '}' );
+parser<table> parser_for( tag<table> ) {
+  co_await eat_spaces();
+  co_await exact_char( '{' );
+  auto kv_pairs = co_await repeated_parse<key_val>();
+  co_await eat_spaces();
+  co_await exact_char( '}' );
   co_return table{ std::move( kv_pairs ) };
 }
 
-parz::parser<value> parser_for( parz::tag<value> ) {
-  co_return co_await parz::parse<value::base_type>();
-}
-
-parz::parser<doc> parser_for( parz::tag<doc> ) {
-  co_return doc{ co_await parz::repeated(
-      [] { return parz::parse<key_val>(); } ) };
+parser<doc> parser_for( tag<doc> ) {
+  co_return doc{ co_await repeated_parse<key_val>() };
 }
 
 } // namespace cl

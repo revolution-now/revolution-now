@@ -11,6 +11,7 @@
 #pragma once
 
 // parz
+#include "ext.hpp"
 #include "parser.hpp"
 #include "promise.hpp"
 
@@ -41,9 +42,28 @@ struct Repeated {
     }
     co_return res;
   }
+
+  template<typename T>
+  auto operator()( tag<T> ) const -> parser<std::vector<T>> {
+    return ( *this )( []() -> parser<T> { return parse<T>(); } );
+  }
 };
 
 inline constexpr Repeated repeated{};
+
+/****************************************************************
+** repeat_parse
+*****************************************************************/
+// Parses zero or more of the given type.
+template<typename T>
+struct RepeatedParse {
+  auto operator()() const -> parser<std::vector<T>> {
+    return repeated( []() -> parser<T> { return parse<T>(); } );
+  }
+};
+
+template<typename T>
+inline constexpr RepeatedParse<T> repeated_parse{};
 
 /****************************************************************
 ** some
