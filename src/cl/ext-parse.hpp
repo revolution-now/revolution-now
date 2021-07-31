@@ -18,8 +18,9 @@
 
 namespace cl {
 
-parz::parser<table> parser_for( parz::tag<table> );
-parz::parser<value> parser_for( parz::tag<value> );
-parz::parser<doc>   parser_for( parz::tag<doc> );
+parz::parser<table>   parser_for( parz::tag<table> );
+parz::parser<key_val> parser_for( parz::tag<key_val> );
+parz::parser<value>   parser_for( parz::tag<value> );
+parz::parser<doc>     parser_for( parz::tag<doc> );
 
 } // namespace cl

@@ -1,9 +1,21 @@
 " =========================== Config ============================
+  " \ 'colony-view',
+  " \ 'colview-entities',
+  " \ 'utype',
+  " \ 'unit-conv',
 let s:stems = [
-  \ 'colony-view',
-  \ 'colview-entities',
-  \ 'utype',
-  \ 'unit-conv',
+  \ 'parz/runner',
+  \ 'parz/error',
+  \ 'parz/parser',
+  \ 'parz/magic',
+  \ 'parz/promise',
+  \ 'parz/combinator',
+  \ 'parz/ext',
+  \ 'parz/ext-basic',
+  \ 'parz/ext-variant',
+  \ 'cl/model',
+  \ 'cl/ext-parse',
+  \ 'cl/parse',
 \]
 
 let s:luas = [
@@ -129,5 +141,5 @@ tabdo wincmd =
 " This goes to the first tab and closes it.  If you want the
 " `main` tab to appear, then comment out the :q line.
 tabn 1
-:q
+" :q
 tabprev

@@ -25,33 +25,21 @@ using namespace std;
 
 namespace cl {
 
-namespace {
-
-table table_from_kv_pairs(
-    vector<pair<string, value>>&& kv_pairs ) {
-  table res;
-  for( auto& [k, v] : kv_pairs )
-    res.members.push_back(
-        key_val{ k, make_unique<value>( std::move( v ) ) } );
-  return res;
-}
-
-parz::parser<pair<string, value>> parse_kv() {
+parz::parser<key_val> parser_for( parz::tag<key_val> ) {
   string k = co_await parz::parse<string>();
   co_await parz::exact_char( ':' );
   value v = co_await parz::parse<value>();
-  co_return pair{ k, std::move( v ) };
+  co_return key_val{ k, make_unique<value>( std::move( v ) ) };
 }
-
-} // namespace
 
 parz::parser<table> parser_for( parz::tag<table> ) {
   co_await parz::eat_spaces();
   co_await parz::exact_char( '{' );
-  auto kv_pairs = co_await parz::repeated( parse_kv );
+  auto kv_pairs = co_await parz::repeated(
+      [] { return parz::parse<key_val>(); } );
   co_await parz::eat_spaces();
   co_await parz::exact_char( '}' );
-  co_return table_from_kv_pairs( std::move( kv_pairs ) );
+  co_return table{ std::move( kv_pairs ) };
 }
 
 parz::parser<value> parser_for( parz::tag<value> ) {
@@ -59,11 +47,8 @@ parz::parser<value> parser_for( parz::tag<value> ) {
 }
 
 parz::parser<doc> parser_for( parz::tag<doc> ) {
-  vector<pair<string, value>> kvs =
-      co_await parz::repeated( parse_kv );
-  doc res;
-  res.tbl = table_from_kv_pairs( std::move( kvs ) );
-  co_return res;
+  co_return doc{ co_await parz::repeated(
+      [] { return parz::parse<key_val>(); } ) };
 }
 
 } // namespace cl

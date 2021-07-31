@@ -35,6 +35,8 @@ struct key_val {
 
 struct table {
   table() = default;
+  table( std::vector<key_val>&& m )
+    : members( std::move( m ) ) {}
 
   table( table const& ) = delete;
   table& operator=( table const& ) = delete;
