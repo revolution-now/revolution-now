@@ -45,22 +45,4 @@ enum class e_log_level {
   off
 };
 
-#define NON_COPYABLE( C ) \
-  C( C const& ) = delete; \
-  C& operator=( C const& ) = delete
-
-#define MOVABLE_ONLY( C )            \
-  C( C const& ) = delete;            \
-  C( C&& )      = default;           \
-  C& operator=( C const& ) = delete; \
-  C& operator=( C&& ) = default
-
-#define NO_COPY_NO_MOVE( C )         \
-  C( C const& ) = delete;            \
-  C( C&& )      = delete;            \
-  C& operator=( C const& ) = delete; \
-  C& operator=( C&& ) = delete
-
-#define NO_MOVE_NO_COPY( C ) NO_COPY_NO_MOVE( C )
-
 } // namespace rn

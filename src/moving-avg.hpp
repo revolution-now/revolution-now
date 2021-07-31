@@ -18,6 +18,7 @@
 
 // base
 #include "base/function-ref.hpp"
+#include "base/macros.hpp"
 
 // C++ standard library
 #include <chrono>
