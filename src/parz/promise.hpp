@@ -117,8 +117,8 @@ struct promise_type
     o_.emplace( T{} );
   }
 
-  auto await_transform( error const& w ) noexcept {
-    o_ = w;
+  auto await_transform( fail const& f ) noexcept {
+    o_ = f.err;
     return base::suspend_always{};
   }
 
@@ -172,8 +172,9 @@ struct promise_type
   }
 
   // This parser is allowed to fail.
-  template<typename U>
-  auto await_transform( Try<U> t ) noexcept {
+  template<typename P>
+  auto await_transform( Try<P> t ) noexcept {
+    using U = typename P::value_type;
     // Slight modification to awaitable to allow it to fail.
     struct tryable_awaitable : awaitable<U> {
       using Base = awaitable<U>;

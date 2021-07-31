@@ -30,7 +30,7 @@ parser<int> parser_for( tag<int> ) {
   vector<char> chars   = co_await some( digit );
   string       num_str = string( chars.begin(), chars.end() );
   base::maybe<int> i   = base::stoi( num_str );
-  if( !i ) co_await parz::error( "" );
+  if( !i ) co_await fail( "" );
   co_return *i;
 }
 

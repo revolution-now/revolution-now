@@ -79,7 +79,7 @@ struct Some {
     using res_t =
         typename std::invoke_result_t<Func>::value_type;
     std::vector<res_t> res = co_await repeated( f );
-    if( res.empty() ) co_await parz::error( "" );
+    if( res.empty() ) co_await fail( "" );
     co_return res;
   }
 };

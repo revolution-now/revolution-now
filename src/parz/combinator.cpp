@@ -22,24 +22,24 @@ parser<> eat_spaces() { co_await repeated( space_char ); }
 
 parser<> exact_char( char c ) {
   char next = co_await next_char{};
-  if( next != c ) co_await error( "" );
+  if( next != c ) co_await fail( "" );
 }
 
 parser<> space_char() {
   char next = co_await next_char{};
-  if( next != ' ' && next != '\n' ) co_await parz::error( "" );
+  if( next != ' ' && next != '\n' ) co_await fail( "" );
 }
 
 parser<char> identifier_char() {
   char c = co_await next_char{};
   if( !( ( c >= 'a' && c <= 'z' ) || c == '_' ) )
-    co_await parz::error( "" );
+    co_await fail( "" );
   co_return c;
 }
 
 parser<char> digit() {
   char c = co_await next_char{};
-  if( !( c >= '0' && c <= '9' ) ) co_await parz::error( "" );
+  if( !( c >= '0' && c <= '9' ) ) co_await fail( "" );
   co_return c;
 }
 

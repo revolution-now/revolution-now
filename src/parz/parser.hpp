@@ -106,6 +106,15 @@ private:
   base::unique_coro h_;
 };
 
+/****************************************************************
+** Concept
+*****************************************************************/
+template<typename P>
+struct is_parser : std::false_type {};
+
+template<typename T>
+struct is_parser<parser<T>> : std::true_type {};
+
 } // namespace parz
 
 DEFINE_FORMAT_T( ( T ), (parz::parser<T>), "{}",
