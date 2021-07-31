@@ -39,7 +39,7 @@ struct VariantParser {
     if( !res )
       co_return parz::error();
     else
-      co_return *res;
+      co_return std::move( *res );
   }
 };
 

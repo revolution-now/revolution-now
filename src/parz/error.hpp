@@ -40,7 +40,7 @@ private:
 };
 
 template<typename T>
-using result = base::expect<T, error>;
+using result_t = base::expect<T, error>;
 
 } // namespace parz
 

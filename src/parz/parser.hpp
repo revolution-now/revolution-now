@@ -36,7 +36,7 @@ struct promise_type;
 template<typename T = std::monostate>
 struct parser {
   using value_type  = T;
-  using result_type = result<T>;
+  using result_type = result_t<T>;
 
   parser( promise_type<T>* p )
     : promise_( p ),

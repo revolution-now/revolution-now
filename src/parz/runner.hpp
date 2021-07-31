@@ -11,9 +11,10 @@
 #pragma once
 
 // parz
-#include "parser.hpp"
-#include "ext.hpp"
 #include "error.hpp"
+#include "ext.hpp"
+#include "parser.hpp"
+#include "promise.hpp"
 
 // base
 #include "base/error.hpp"
@@ -36,8 +37,8 @@ struct ErrorPos {
 // `filename` is the original file name that the string came
 // from, in order to improve error messages.
 template<typename T>
-result<T> parse_from_string( std::string_view filename,
-                             std::string_view in ) {
+result_t<T> parse_from_string( std::string_view filename,
+                               std::string_view in ) {
   parz::parser<T> p = parz::parse<T>();
   p.resume( in );
   DCHECK( p.finished() );
@@ -50,7 +51,7 @@ result<T> parse_from_string( std::string_view filename,
         p.is_error() ? p.error()
                       : parz::error( "unexpected character" ) ) );
   }
-  return p.result();
+  return std::move( p.result() );
 }
 
 namespace internal {
@@ -61,7 +62,7 @@ base::expect<std::string, error> read_file_into_buffer(
 }
 
 template<typename T>
-result<T> parse_from_file( std::string_view filename ) {
+result_t<T> parse_from_file( std::string_view filename ) {
   UNWRAP_RETURN( buffer,
                  internal::read_file_into_buffer( filename ) );
   return parse_from_string<T>( filename, buffer );

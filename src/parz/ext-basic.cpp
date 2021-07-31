@@ -11,8 +11,8 @@
 #include "ext-basic.hpp"
 
 // parz
-#include "promise.hpp"
 #include "combinator.hpp"
+#include "promise.hpp"
 
 // base
 #include "base/conv.hpp"

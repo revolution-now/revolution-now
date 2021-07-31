@@ -10,7 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// parz
 #include "magic.hpp"
+#include "parser.hpp"
 
 // base
 #include "base/co-compat.hpp"
@@ -39,6 +41,11 @@ template<typename Derived, typename T>
 struct promise_value_returner {
   void return_value( T const& val ) {
     static_cast<Derived&>( *this ).return_value_( val );
+  }
+
+  void return_value( T&& val ) {
+    static_cast<Derived&>( *this ).return_value_(
+        std::move( val ) );
   }
 };
 
@@ -92,6 +99,11 @@ struct promise_type
   // Note this ends in an underscore; the real return_value, if
   // present, is provided by a base class so that we can control
   // when it appears.
+  void return_value_( T&& val ) {
+    DCHECK( !o_ );
+    o_.emplace( std::move( val ) );
+  }
+
   void return_value_( T const& val ) {
     DCHECK( !o_ );
     o_.emplace( val );
@@ -150,7 +162,7 @@ struct promise_type
       // We only consume chars upon success.
       promise_->buffer().remove_prefix( chars_consumed );
       promise_->consumed_ += chars_consumed;
-      return parser_.get();
+      return std::move( parser_.get() );
     }
   };
 
