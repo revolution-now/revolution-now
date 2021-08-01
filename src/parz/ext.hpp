@@ -19,11 +19,14 @@
 namespace parz {
 
 template<typename T>
-struct tag {};
+struct lang {};
 
 template<typename T>
+struct tag {};
+
+template<typename Lang, typename T>
 parser<T> parse() {
-  return parser_for( tag<T>{} );
+  return parser_for( lang<Lang>{}, tag<T>{} );
 }
 
 } // namespace parz

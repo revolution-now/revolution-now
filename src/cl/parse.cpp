@@ -109,8 +109,8 @@ doc parse_file( string_view filename ) {
         "incorrect/missing comment delimiter." );
     FATAL( "{}", msg );
   }
-  UNWRAP_CHECK(
-      d, parz::parse_from_string<doc>( filename, *buffer ) );
+  UNWRAP_CHECK( d, ( parz::parse_from_string<cl_lang, doc>(
+                       filename, *buffer ) ) );
   return std::move( d );
 }
 

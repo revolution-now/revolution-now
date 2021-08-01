@@ -155,15 +155,15 @@ inline constexpr Repeated repeated{};
 ** repeat_parse
 *****************************************************************/
 // Parses zero or more of the given type.
-template<typename T>
+template<typename Lang, typename T>
 struct RepeatedParse {
   auto operator()() const -> parser<std::vector<T>> {
-    return repeated( []() -> parser<T> { return parse<T>(); } );
+    return repeated( []() { return parse<Lang, T>(); } );
   }
 };
 
-template<typename T>
-inline constexpr RepeatedParse<T> repeated_parse{};
+template<typename Lang, typename T>
+inline constexpr RepeatedParse<Lang, T> repeated_parse{};
 
 /****************************************************************
 ** some

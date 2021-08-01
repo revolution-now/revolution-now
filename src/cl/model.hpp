@@ -26,6 +26,8 @@
 *****************************************************************/
 namespace cl {
 
+struct cl_lang {};
+
 struct table;
 
 struct string_val {

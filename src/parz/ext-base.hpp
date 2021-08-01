@@ -22,6 +22,7 @@ namespace parz {
 /****************************************************************
 ** variant
 *****************************************************************/
+template<typename Lang>
 struct VariantParser {
   template<typename... Args>
   parser<base::variant<Args...>> operator()(
@@ -31,7 +32,7 @@ struct VariantParser {
 
     auto one = [&]<typename Alt>( Alt* ) -> parser<> {
       if( res.has_value() ) co_return;
-      auto exp = co_await Try{ parse<Alt>() };
+      auto exp = co_await Try{ parse<Lang, Alt>() };
       if( !exp ) co_return;
       res.emplace( std::move( *exp ) );
     };
@@ -42,12 +43,13 @@ struct VariantParser {
   }
 };
 
-inline constexpr VariantParser variant_parser{};
+template<typename Lang>
+inline constexpr VariantParser<Lang> variant_parser{};
 
-template<typename... Args>
+template<typename Lang, typename... Args>
 parser<base::variant<Args...>> parser_for(
-    tag<base::variant<Args...>> t ) {
-  return variant_parser( t );
+    lang<Lang>, tag<base::variant<Args...>> t ) {
+  return variant_parser<Lang>( t );
 }
 
 } // namespace parz

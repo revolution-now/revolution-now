@@ -27,25 +27,27 @@ using namespace parz;
 
 namespace cl {
 
-parser<string_val> parser_for( tag<string_val> ) {
+parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
   return construct<string_val>( quoted_str() | identifier() );
 }
 
-parser<key_val> parser_for( tag<key_val> ) {
+parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {
   return construct<key_val>(
       blanks() >> identifier(),
-      chr( ':' ) >> blanks() >> parse<value>() );
+      chr( ':' ) >> blanks() >> parse<cl_lang, value>() );
 }
 
-parser<table> parser_for( tag<table> ) {
+parser<table> parser_for( lang<cl_lang>, tag<table> ) {
   co_await( blanks() >> chr( '{' ) );
-  auto tbl = table{ co_await repeated_parse<key_val>() };
+  auto tbl =
+      table{ co_await repeated_parse<cl_lang, key_val>() };
   co_await( blanks() >> chr( '}' ) );
   co_return tbl;
 }
 
-parser<doc> parser_for( tag<doc> ) {
-  doc d = co_await construct<doc>( repeated_parse<key_val>() );
+parser<doc> parser_for( lang<cl_lang>, tag<doc> ) {
+  doc d = co_await construct<doc>(
+      repeated_parse<cl_lang, key_val>() );
   co_await blanks();
   co_return d;
 }

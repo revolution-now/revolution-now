@@ -54,10 +54,11 @@ result_t<T> run_parser( std::string_view filename,
 
 // `filename` is the original file name that the string came
 // from, in order to improve error messages.
-template<typename T>
+template<typename Lang, typename T>
 result_t<T> parse_from_string( std::string_view filename,
                                std::string_view in ) {
-  return run_parser( filename, in, exhaust( parz::parse<T>() ) );
+  return run_parser( filename, in,
+                     exhaust( parz::parse<Lang, T>() ) );
 }
 
 namespace internal {
@@ -67,11 +68,11 @@ base::expect<std::string, error> read_file_into_buffer(
 
 }
 
-template<typename T>
+template<typename Lang, typename T>
 result_t<T> parse_from_file( std::string_view filename ) {
   UNWRAP_RETURN( buffer,
                  internal::read_file_into_buffer( filename ) );
-  return parse_from_string<T>( filename, buffer );
+  return parse_from_string<Lang, T>( filename, buffer );
 }
 
 } // namespace parz
