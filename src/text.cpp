@@ -137,6 +137,46 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
 /****************************************************************
 ** Markup Parsing
 *****************************************************************/
+/*
+ * // The below is a parz parser for this markup DSL if it will
+ * // ever be of interest.
+ *
+ * struct markup_lang {};
+ *
+ * struct text {
+ *   text( string s_ ) : s( std::move( s_ ) ) {}
+ *   string s;
+ * };
+ *
+ * struct markup {
+ *   markup( string s ) : contents( std::move( s ) ) {}
+ *   string contents;
+ * };
+ *
+ * using item = base::variant<text, markup>;
+ *
+ * struct doc {
+ *   doc( vector<item> v ) : items( std::move( v ) ) {}
+ *   vector<item> items;
+ * };
+ *
+ * parser<text> parser_for( lang<markup_lang>, tag<text> ) {
+ *   auto at = [] { return str( "@@" ) >> ret( '@' ); };
+ *   return construct<text>( some_L( not_of( "@" ) | at() ) );
+ * }
+ *
+ * parser<markup> parser_for( lang<markup_lang>, tag<markup> ) {
+ *   return construct<markup>(
+ *       chr( '@' ) >>
+ *       bracketed( '[', repeated( one_of, "HS" ), ']' ) );
+ * }
+ *
+ * parser<doc> parser_for( lang<markup_lang>, tag<doc> ) {
+ *   return construct<doc>(
+ *       exhaust( repeated_parse<markup_lang, item>() ) );
+ * }
+ */
+
 struct MarkupStyle {
   bool highlight{ false };
   bool shadow{ false };
