@@ -38,9 +38,8 @@ struct ErrorPos {
 // `filename` is the original file name that the string came
 // from, in order to improve error messages.
 template<typename T>
-result_t<T> parse_from_string( std::string_view filename,
-                               std::string_view in ) {
-  parz::parser<T> p = exhaust( parz::parse<T>() );
+result_t<T> run_parser( std::string_view filename,
+                        std::string_view in, parser<T> p ) {
   p.resume( in );
   DCHECK( p.finished() );
   if( p.is_error() ) {
@@ -51,6 +50,14 @@ result_t<T> parse_from_string( std::string_view filename,
                       ep.col, p.error() ) );
   }
   return std::move( p.result() );
+}
+
+// `filename` is the original file name that the string came
+// from, in order to improve error messages.
+template<typename T>
+result_t<T> parse_from_string( std::string_view filename,
+                               std::string_view in ) {
+  return run_parser( filename, in, exhaust( parz::parse<T>() ) );
 }
 
 namespace internal {

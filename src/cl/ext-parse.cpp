@@ -45,7 +45,9 @@ parser<table> parser_for( tag<table> ) {
 }
 
 parser<doc> parser_for( tag<doc> ) {
-  return construct<doc>( repeated_parse<key_val>() );
+  doc d = co_await construct<doc>( repeated_parse<key_val>() );
+  co_await blanks();
+  co_return d;
 }
 
 } // namespace cl

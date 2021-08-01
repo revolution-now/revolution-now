@@ -52,7 +52,8 @@ parser<char> any_chr();
 
 // Returns a parser that will always yield the given char. Would
 // be nice to make this inline, clang triggers UB.
-parser<char> ret( char c );
+parser<char>        ret( char c );
+parser<std::string> ret_str( std::string_view s );
 
 /****************************************************************
 ** Character Classes
