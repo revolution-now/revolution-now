@@ -69,7 +69,7 @@ parser<> crlf() { co_await one_of( "\r\n" ); }
 parser<> tab() { co_await chr( '\t' ); }
 parser<> blank() { co_await pred( is_blank ); }
 
-parser<> blanks() { co_await repeated( blank ); }
+parser<> blanks() { co_await many( blank ); }
 
 parser<char> identifier_char() {
   co_return co_await pred( is_identifier_char );
@@ -81,7 +81,7 @@ parser<char> leading_identifier_char() {
 
 parser<std::string> identifier() {
   co_return( co_await leading_identifier_char() +
-             co_await repeated( identifier_char ) );
+             co_await many( identifier_char ) );
 }
 
 parser<char> digit() { return pred( is_digit ); }
@@ -114,11 +114,11 @@ parser<> eof() {
 }
 
 parser<std::string> double_quoted_str() {
-  return bracketed( '"', repeated( not_of, "\"\n\r" ), '"' );
+  return bracketed( '"', many( not_of, "\"\n\r" ), '"' );
 }
 
 parser<std::string> single_quoted_str() {
-  return bracketed( '\'', repeated( not_of, "'\n\r" ), '\'' );
+  return bracketed( '\'', many( not_of, "'\n\r" ), '\'' );
 }
 
 parser<std::string> quoted_str() {

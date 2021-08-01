@@ -28,8 +28,8 @@
 #define PZ_LAMBDA( name, ... ) \
   name( [&] { return __VA_ARGS__; } )
 
-#define repeated_L( ... ) PZ_LAMBDA( repeated, __VA_ARGS__ )
-#define some_L( ... ) PZ_LAMBDA( some, __VA_ARGS__ )
+#define many_L( ... ) PZ_LAMBDA( many, __VA_ARGS__ )
+#define many1_L( ... ) PZ_LAMBDA( many1, __VA_ARGS__ )
 
 namespace parz {
 
@@ -37,7 +37,7 @@ namespace parz {
 // value type of the parser and decide what container is best to
 // return the results in.
 template<typename T>
-using repeated_result_container_t =
+using many_result_container_t =
     std::conditional_t<std::is_same_v<T, char>, std::string,
                        std::vector<T>>;
 
@@ -126,20 +126,20 @@ struct Pred {
 inline constexpr Pred pred{};
 
 /****************************************************************
-** repeated
+** many
 *****************************************************************/
 // Parses zero or more of the given parser.
-struct Repeated {
+struct Many {
   // This is a struct instead of a function to work around a
   // clang issue where it doesn't like coroutine function tem-
   // plates.  Take args by value for lifetime reasons.
   template<typename Func, typename... Args>
   auto operator()( Func f, Args... args ) const -> parser<
-      repeated_result_container_t<typename std::invoke_result_t<
+      many_result_container_t<typename std::invoke_result_t<
           Func, Args...>::value_type>> {
     using res_t =
         typename std::invoke_result_t<Func, Args...>::value_type;
-    repeated_result_container_t<res_t> res;
+    many_result_container_t<res_t> res;
     while( true ) {
       auto m = co_await Try{ f( std::move( args )... ) };
       if( !m ) break;
@@ -149,44 +149,44 @@ struct Repeated {
   }
 };
 
-inline constexpr Repeated repeated{};
+inline constexpr Many many{};
 
 /****************************************************************
-** repeat_parse
+** many_type
 *****************************************************************/
 // Parses zero or more of the given type.
 template<typename Lang, typename T>
-struct RepeatedParse {
+struct ManyType {
   auto operator()() const -> parser<std::vector<T>> {
-    return repeated( []() { return parse<Lang, T>(); } );
+    return many( []() { return parse<Lang, T>(); } );
   }
 };
 
 template<typename Lang, typename T>
-inline constexpr RepeatedParse<Lang, T> repeated_parse{};
+inline constexpr ManyType<Lang, T> many_type{};
 
 /****************************************************************
-** some
+** many1
 *****************************************************************/
 // Parses one or more of the given parser.
-struct Some {
+struct Many1 {
   // This is a struct instead of a function to work around a
   // clang issue where it doesn't like coroutine function tem-
   // plates.
   template<typename Func, typename... Args>
   auto operator()( Func f, Args... args ) const -> parser<
-      repeated_result_container_t<typename std::invoke_result_t<
+      many_result_container_t<typename std::invoke_result_t<
           Func, Args...>::value_type>> {
     using res_t =
         typename std::invoke_result_t<Func, Args...>::value_type;
-    repeated_result_container_t<res_t> res = co_await repeated(
-        std::move( f ), std::move( args )... );
+    many_result_container_t<res_t> res =
+        co_await many( std::move( f ), std::move( args )... );
     if( res.empty() ) co_await fail();
     co_return res;
   }
 };
 
-inline constexpr Some some{};
+inline constexpr Many1 many1{};
 
 /****************************************************************
 ** seq

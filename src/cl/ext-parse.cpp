@@ -39,17 +39,14 @@ parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {
 
 parser<table> parser_for( lang<cl_lang>, tag<table> ) {
   co_await( blanks() >> chr( '{' ) );
-  auto tbl =
-      table{ co_await repeated_parse<cl_lang, key_val>() };
+  auto tbl = table{ co_await many_type<cl_lang, key_val>() };
   co_await( blanks() >> chr( '}' ) );
   co_return tbl;
 }
 
 parser<doc> parser_for( lang<cl_lang>, tag<doc> ) {
-  doc d = co_await construct<doc>(
-      repeated_parse<cl_lang, key_val>() );
-  co_await blanks();
-  co_return d;
+  return construct<doc>(
+      seq_first( many_type<cl_lang, key_val>(), blanks() ) );
 }
 
 } // namespace cl

@@ -4,7 +4,6 @@
   " \ 'utype',
   " \ 'unit-conv',
 let s:stems = [
-  \ 'parz/runner',
   \ 'parz/error',
   \ 'parz/concepts',
   \ 'parz/parser',
@@ -15,6 +14,7 @@ let s:stems = [
   \ 'parz/ext-basic',
   \ 'parz/ext-std',
   \ 'parz/ext-base',
+  \ 'parz/runner',
   \ 'cl/model',
   \ 'cl/ext-parse',
   \ 'cl/parse',

@@ -28,7 +28,7 @@ template<typename Lang>
 struct IntParser {
   parser<int> operator()() const {
     co_return co_await unwrap(
-        base::stoi( co_await some( digit ) ) );
+        base::stoi( co_await many1( digit ) ) );
   }
 };
 
