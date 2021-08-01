@@ -101,8 +101,10 @@ inline constexpr valid_t valid{};
 
 // Constructs a valid_or in-place in an error state.
 template<typename E>
-inline constexpr valid_or<E> invalid( E&& e ) {
-  return valid_or<E>( std::forward<E>( e ) );
+inline constexpr valid_or<std::remove_cvref_t<E>> invalid(
+    E&& e ) {
+  return valid_or<std::remove_cvref_t<E>>(
+      std::forward<E>( e ) );
 }
 
 /****************************************************************

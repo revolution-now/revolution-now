@@ -42,6 +42,13 @@ TEST_CASE( "[valid] valid equality" ) {
   REQUIRE( valid == valid );
 }
 
+TEST_CASE( "[valid] invalid from lvalue ref" ) {
+  int n = 5;
+  // Test that the below can compile since `n' is an lvalue ref.
+  valid_or<int> v = invalid( n );
+  REQUIRE( v.error() == 5 );
+}
+
 TEST_CASE( "[valid] construction/copy/move/assignment" ) {
   V<e_code> v1 = e_code::red;
   V<e_code> v2 = e_code::green;
