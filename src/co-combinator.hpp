@@ -125,8 +125,9 @@ struct First {
   template<typename... Ts>
   waitable<base::variant<Ts...>> operator()(
       waitable<Ts>... ws ) const {
-    return (*this)( std::make_index_sequence<sizeof...( Ts )>(),
-                    std::move( ws )... );
+    return ( *this )(
+        std::make_index_sequence<sizeof...( Ts )>(),
+        std::move( ws )... );
   }
 };
 
@@ -209,8 +210,9 @@ struct Try {
   //         ...
   //       } );
   //
+  // Take functions by value for lifetime reasons.
   template<typename TryFunc, typename CatchFunc>
-  auto operator()( TryFunc&& body, CatchFunc&& catcher ) const
+  auto operator()( TryFunc body, CatchFunc catcher ) const
       -> waitable<maybe<
           typename std::invoke_result_t<TryFunc>::value_type>> {
     using result_t = maybe<
