@@ -42,14 +42,12 @@ result_t<T> parse_from_string( std::string_view filename,
   parz::parser<T> p = parz::parse<T>();
   p.resume( in );
   DCHECK( p.finished() );
-
-  if( p.is_error() || p.consumed() != int( in.size() ) ) {
+  if( p.is_error() ) {
     // It's always one too far, not sure why.
     ErrorPos ep = ErrorPos::from_index( in, p.farthest() - 1 );
-    p.result()  = parz::error( fmt::format(
-         "{}:error:{}:{}: {}\n", filename, ep.line, ep.col,
-        p.is_error() ? p.error()
-                      : parz::error( "unexpected character" ) ) );
+    p.result()  = parz::error(
+         fmt::format( "{}:error:{}:{}: {}\n", filename, ep.line,
+                      ep.col, p.error() ) );
   }
   return std::move( p.result() );
 }

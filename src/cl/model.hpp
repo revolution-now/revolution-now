@@ -26,11 +26,21 @@
 *****************************************************************/
 namespace cl {
 
-struct value;
+struct table;
+
+struct string_val {
+  string_val( std::string s ) : val( std::move( s ) ) {}
+  std::string val;
+};
+
+using value =
+    base::variant<int, string_val, std::unique_ptr<table>>;
 
 struct key_val {
-  std::string            k;
-  std::unique_ptr<value> v;
+  key_val( std::string k_, value v_ )
+    : k( std::move( k_ ) ), v( std::move( v_ ) ) {}
+  std::string k;
+  value       v;
 };
 
 struct table {
@@ -49,30 +59,13 @@ struct table {
   std::string pretty_print( std::string_view indent = "" ) const;
 };
 
-using value_base = base::variant<int, std::string, table>;
-
-struct value : public value_base {
-  using base_type = value_base;
-  using base_type::base_type;
-
-  value( value&& ) = default;
-  value& operator=( value&& ) = default;
-
-  value( base_type&& b ) : base_type( std::move( b ) ) {}
-
-  base_type const& as_base() const {
-    return static_cast<base_type const&>( *this );
-  }
-
-  std::string pretty_print( std::string_view indent = "" ) const;
-};
-
 struct doc {
+  doc( table t ) : tbl( std::move( t ) ) {}
   table tbl;
 };
 
 } // namespace cl
 
-DEFINE_FORMAT( cl::value, "{}", o.pretty_print() );
 DEFINE_FORMAT( cl::table, "{}", o.pretty_print() );
+DEFINE_FORMAT( cl::string_val, "{}", o.val );
 DEFINE_FORMAT( cl::doc, "{}", o.tbl.pretty_print() );

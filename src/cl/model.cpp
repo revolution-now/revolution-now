@@ -22,16 +22,12 @@ struct value_printer {
 
   string operator()( int n ) { return fmt::to_string( n ); }
 
-  string operator()( string const& s ) { return s; }
+  string operator()( string_val const& s ) { return s.val; }
 
-  string operator()( table const& tbl ) {
-    return tbl.pretty_print( indent );
+  string operator()( std::unique_ptr<table> const& tbl ) {
+    return tbl->pretty_print( indent );
   }
 };
-
-string value::pretty_print( string_view indent ) const {
-  return std::visit( value_printer{ indent }, this->as_base() );
-}
 
 string table::pretty_print( string_view indent ) const {
   bool          is_top_level = ( indent.size() == 0 );
@@ -42,7 +38,8 @@ string table::pretty_print( string_view indent ) const {
   for( auto& [k, v] : members ) {
     oss << fmt::format(
         "{}{}: {}\n", indent, k,
-        v->pretty_print( string( indent ) + "  " ) );
+        std::visit( value_printer{ string( indent ) + "  " },
+                    v ) );
     if( is_top_level && n-- > 1 ) oss << "\n";
   }
 

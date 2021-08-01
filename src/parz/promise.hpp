@@ -37,13 +37,19 @@ namespace detail {
 // clude (we are only allowed to have one in a promise type).
 // When T is std::monostate we want the void one, otherwise we
 // want the value one.
+//
+// Having these will also allow us to automatically support im-
+// plicit conversion, since the below take U as an argument, but
+// the return_value_ functions are strictly T.
 template<typename Derived, typename T>
 struct promise_value_returner {
-  void return_value( T const& val ) {
+  template<typename U>
+  void return_value( U const& val ) {
     static_cast<Derived&>( *this ).return_value_( val );
   }
 
-  void return_value( T&& val ) {
+  template<typename U>
+  void return_value( U&& val ) {
     static_cast<Derived&>( *this ).return_value_(
         std::move( val ) );
   }

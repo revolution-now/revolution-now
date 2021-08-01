@@ -402,6 +402,22 @@ static_assert(
         type_list<int>> );
 
 /****************************************************************
+** select_last/last
+*****************************************************************/
+static_assert( is_same_v<select_last_t<int>, int> );
+static_assert( is_same_v<select_last_t<char, char>, char> );
+static_assert( is_same_v<select_last_t<std::string, char, int,
+                                       char, double>,
+                         double> );
+
+static_assert( is_same_v<last_t<type_list<int>>, int> );
+static_assert( is_same_v<last_t<type_list<char, char>>, char> );
+static_assert(
+    is_same_v<
+        last_t<type_list<std::string, char, int, char, double>>,
+        double> );
+
+/****************************************************************
 ** type_list_size
 *****************************************************************/
 static_assert( type_list_size_v<type_list<>> == 0 );

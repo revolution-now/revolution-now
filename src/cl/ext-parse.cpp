@@ -12,8 +12,9 @@
 
 // parz
 #include "parz/combinator.hpp"
+#include "parz/ext-base.hpp"
 #include "parz/ext-basic.hpp"
-#include "parz/ext-variant.hpp"
+#include "parz/ext-std.hpp"
 #include "parz/promise.hpp"
 
 // C++ standard library
@@ -26,24 +27,25 @@ using namespace parz;
 
 namespace cl {
 
+parser<string_val> parser_for( tag<string_val> ) {
+  return construct<string_val>( quoted_string() | identifier() );
+}
+
 parser<key_val> parser_for( tag<key_val> ) {
-  string k = co_await parse<string>();
-  co_await exact_char( ':' );
-  value v = co_await parse<value::base_type>();
-  co_return key_val{ k, make_unique<value>( std::move( v ) ) };
+  return construct<key_val>(
+      spaces() >> identifier(),
+      chr( ':' ) >> spaces() >> parse<value>() );
 }
 
 parser<table> parser_for( tag<table> ) {
-  co_await eat_spaces();
-  co_await exact_char( '{' );
-  auto kv_pairs = co_await repeated_parse<key_val>();
-  co_await eat_spaces();
-  co_await exact_char( '}' );
-  co_return table{ std::move( kv_pairs ) };
+  co_await( spaces() >> chr( '{' ) );
+  auto tbl = table{ co_await repeated_parse<key_val>() };
+  co_await( spaces() >> chr( '}' ) );
+  co_return tbl;
 }
 
 parser<doc> parser_for( tag<doc> ) {
-  co_return doc{ co_await repeated_parse<key_val>() };
+  return construct<doc>( exhaust( repeated_parse<key_val>() ) );
 }
 
 } // namespace cl

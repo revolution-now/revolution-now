@@ -34,7 +34,7 @@ template<typename T>
 struct promise_type;
 
 template<typename T = std::monostate>
-struct parser {
+struct [[nodiscard]] parser {
   using value_type  = T;
   using result_type = result_t<T>;
 
