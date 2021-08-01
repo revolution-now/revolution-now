@@ -11,6 +11,7 @@
 #include "io.hpp"
 
 // base
+#include "fmt.hpp"
 #include "scope-exit.hpp"
 
 // C++ standard library
@@ -20,6 +21,23 @@
 using namespace std;
 
 namespace base {
+
+string error_read_text_file_msg( string_view            filename,
+                                 e_error_read_text_file e ) {
+  switch( e ) {
+    case e_error_read_text_file::file_does_not_exist:
+      return fmt::format( "file {} does not exist", filename );
+    case e_error_read_text_file::alloc_failure:
+      return fmt::format(
+          "failed to allocate memory for buffer for file {}",
+          filename );
+    case e_error_read_text_file::open_file_failure:
+      return fmt::format( "failed to open file {}", filename );
+    case e_error_read_text_file::incomplete_read:
+      return fmt::format( "failed to read all bytes in file {}",
+                          filename );
+  }
+}
 
 expect<std::unique_ptr<char[]>, e_error_read_text_file>
 read_text_file( fs::path const& file, maybe<size_t&> o_size ) {

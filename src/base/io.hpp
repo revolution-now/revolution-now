@@ -30,6 +30,12 @@ enum class e_error_read_text_file {
   incomplete_read // failed to read all bytes in file.
 };
 
+// For convenience; take an error code and return a human read-
+// able message describing it. Supplying the filename that was
+// used helps to improve the messages.
+std::string error_read_text_file_msg( std::string_view filename,
+                                      e_error_read_text_file e );
+
 /****************************************************************
 ** Read ASCII text file to null-terminated C string.
 *****************************************************************/
