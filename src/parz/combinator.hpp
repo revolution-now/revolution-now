@@ -42,19 +42,37 @@ using repeated_result_container_t =
                        std::vector<T>>;
 
 /****************************************************************
-** Character Classes
+** Primitives
 *****************************************************************/
-// Consumes one space char or fails.
-parser<> space();
-
-// Consumes zero or more spaces.
-parser<> spaces();
-
 // Consumes a char that must be c, otherwise it fails.
 parser<> chr( char c );
 
 // Consumes any char, fails at eof.
 parser<char> any_chr();
+
+// Returns a parser that will always yield the given char. Would
+// be nice to make this inline, clang triggers UB.
+parser<char> ret( char c );
+
+/****************************************************************
+** Character Classes
+*****************************************************************/
+// Consumes one space (' ');
+parser<> space();
+// Either CR or LF.
+parser<> crlf();
+// '\t'
+parser<> tab();
+// One of any of the space/blank characters.
+parser<> blank();
+
+// Consumes one digit [0-9] char or fails.
+parser<char> digit();
+
+parser<char> lower();
+parser<char> upper();
+parser<char> alpha();
+parser<char> alphanum();
 
 // Consumes one char if it is one of the ones in sv.
 parser<char> one_of( std::string_view sv );
@@ -64,13 +82,6 @@ parser<char> not_of( std::string_view sv );
 parser<char> identifier_char();
 parser<char> leading_identifier_char();
 
-// Consumes one digit [0-9] char or fails.
-parser<char> digit();
-
-// Returns a parser that will always yield the given char. Would
-// be nice to make this inline, clang triggers UB.
-parser<char> ret( char c );
-
 /****************************************************************
 ** Strings
 *****************************************************************/
@@ -79,12 +90,15 @@ parser<> str( std::string_view sv );
 
 parser<std::string> identifier();
 
+// Consumes blank spaces.
+parser<> blanks();
+
 // Parses "..." or '...' and returns the stuff inside, which
 // cannot contain newlines.
-parser<std::string> double_quoted_string();
-parser<std::string> single_quoted_string();
+parser<std::string> double_quoted_str();
+parser<std::string> single_quoted_str();
 // Allows either double or single quotes.
-parser<std::string> quoted_string();
+parser<std::string> quoted_str();
 
 /****************************************************************
 ** Miscellaneous
@@ -190,19 +204,21 @@ struct Seq {
 inline constexpr Seq seq{};
 
 /****************************************************************
-** construct
+** apply
 *****************************************************************/
-// Calls the constructor of the given type with the results of
-// the parsers as arguments (which must all succeed).
+// Calls the given function with the results of the parsers as
+// arguments (which must all succeed).
 //
 // NOTE: the parsers are guaranteed to be run in the order they
 // appear in the parameter list, and that is one of the benefits
 // of using this helper.
-template<typename T>
-struct Construct {
-  template<size_t... Idx, typename... Parsers>
-  parser<T> run( std::index_sequence<Idx...>,
-                 Parsers... ps ) const {
+struct Apply {
+  // Take func by value for lifetime reasons.
+  template<size_t... Idx, typename Func, typename... Parsers>
+  parser<std::invoke_result_t<Func,
+                              typename Parsers::value_type...>>
+  run( std::index_sequence<Idx...>, Func func,
+       Parsers... ps ) const {
     // We can't simply do the following:
     //
     //   co_return T( co_await std::move( ps )... );
@@ -231,16 +247,31 @@ struct Construct {
           std::integral_constant<size_t, Idx>{} ),
       ... );
 
+    co_return std::apply( func, std::move( res_tpl ) );
+  }
+
+  template<typename Func, typename... Parsers>
+  auto operator()( Func&& func, Parsers... ps ) const {
+    return run( std::index_sequence_for<Parsers...>(),
+                FWD( func ), std::move( ps )... );
+  }
+};
+
+inline constexpr Apply apply{};
+
+/****************************************************************
+** construct
+*****************************************************************/
+// Calls the constructor of the given type with the results of
+// the parsers as arguments (which must all succeed).
+template<typename T>
+struct Construct {
+  template<typename... Parsers>
+  parser<T> operator()( Parsers... ps ) const {
     auto applier = [&]( auto&&... args ) {
       return T( FWD( args )... );
     };
-    co_return std::apply( applier, std::move( res_tpl ) );
-  }
-
-  template<typename... Parsers>
-  parser<T> operator()( Parsers... ps ) const {
-    return run( std::index_sequence_for<Parsers...>(),
-                std::move( ps )... );
+    return apply( applier, std::move( ps )... );
   }
 };
 

@@ -22,11 +22,15 @@ namespace {
 
 bool is_digit( char c ) { return ( c >= '0' && c <= '9' ); }
 
+bool is_lower( char c ) { return ( c >= 'a' && c <= 'z' ); }
+
+bool is_upper( char c ) { return ( c >= 'A' && c <= 'Z' ); }
+
 bool is_alpha( char c ) {
-  return ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' );
+  return is_lower( c ) || is_upper( c );
 }
 
-bool is_space( char c ) {
+bool is_blank( char c ) {
   return ( c == ' ' ) || ( c == '\n' ) || ( c == '\r' ) ||
          ( c == '\t' );
 }
@@ -52,9 +56,20 @@ parser<> chr( char c ) {
   co_await pred( [c]( char c_ ) { return c == c_; } );
 }
 
-parser<> space() { co_await pred( is_space ); }
+parser<char> lower() { return pred( is_lower ); }
 
-parser<> spaces() { co_await repeated( space ); }
+parser<char> upper() { return pred( is_upper ); }
+
+parser<char> alpha() { return pred( is_alpha ); }
+
+parser<char> alphanum() { return pred( is_alphanum ); }
+
+parser<> space() { co_await chr( ' ' ); }
+parser<> crlf() { co_await one_of( "\r\n" ); }
+parser<> tab() { co_await chr( '\t' ); }
+parser<> blank() { co_await pred( is_blank ); }
+
+parser<> blanks() { co_await repeated( blank ); }
 
 parser<char> identifier_char() {
   co_return co_await pred( is_identifier_char );
@@ -98,18 +113,18 @@ parser<> eof() {
         "failed to parse all characters in input stream" );
 }
 
-parser<char> ret( char c ) { co_return c; }
-
-parser<std::string> double_quoted_string() {
+parser<std::string> double_quoted_str() {
   return bracketed( '"', repeated( not_of, "\"\n\r" ), '"' );
 }
 
-parser<std::string> single_quoted_string() {
+parser<std::string> single_quoted_str() {
   return bracketed( '\'', repeated( not_of, "'\n\r" ), '\'' );
 }
 
-parser<std::string> quoted_string() {
-  return first( double_quoted_string(), single_quoted_string() );
+parser<std::string> quoted_str() {
+  return first( double_quoted_str(), single_quoted_str() );
 }
+
+parser<char> ret( char c ) { co_return c; }
 
 } // namespace parz

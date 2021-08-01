@@ -28,19 +28,19 @@ using namespace parz;
 namespace cl {
 
 parser<string_val> parser_for( tag<string_val> ) {
-  return construct<string_val>( quoted_string() | identifier() );
+  return construct<string_val>( quoted_str() | identifier() );
 }
 
 parser<key_val> parser_for( tag<key_val> ) {
   return construct<key_val>(
-      spaces() >> identifier(),
-      chr( ':' ) >> spaces() >> parse<value>() );
+      blanks() >> identifier(),
+      chr( ':' ) >> blanks() >> parse<value>() );
 }
 
 parser<table> parser_for( tag<table> ) {
-  co_await( spaces() >> chr( '{' ) );
+  co_await( blanks() >> chr( '{' ) );
   auto tbl = table{ co_await repeated_parse<key_val>() };
-  co_await( spaces() >> chr( '}' ) );
+  co_await( blanks() >> chr( '}' ) );
   co_return tbl;
 }
 
