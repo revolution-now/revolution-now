@@ -85,7 +85,7 @@ target_compile_definitions( fmt INTERFACE SPDLOG_FMT_EXTERNAL )
 
 # === custom targets ==============================================
 
-add_custom_target( run
+add_custom_target( cmake-run
                    COMMAND exe
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
                    USES_TERMINAL )
