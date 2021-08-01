@@ -11,6 +11,7 @@
 #pragma once
 
 // parz
+#include "combinator.hpp"
 #include "error.hpp"
 #include "ext.hpp"
 #include "parser.hpp"
@@ -39,7 +40,7 @@ struct ErrorPos {
 template<typename T>
 result_t<T> parse_from_string( std::string_view filename,
                                std::string_view in ) {
-  parz::parser<T> p = parz::parse<T>();
+  parz::parser<T> p = exhaust( parz::parse<T>() );
   p.resume( in );
   DCHECK( p.finished() );
   if( p.is_error() ) {

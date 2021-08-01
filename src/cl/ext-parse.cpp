@@ -45,7 +45,7 @@ parser<table> parser_for( tag<table> ) {
 }
 
 parser<doc> parser_for( tag<doc> ) {
-  return construct<doc>( exhaust( repeated_parse<key_val>() ) );
+  return construct<doc>( repeated_parse<key_val>() );
 }
 
 } // namespace cl
