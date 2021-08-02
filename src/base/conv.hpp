@@ -32,6 +32,7 @@ inline constexpr int default_base{ 10 }; // base 10 is decimal
 // string is not empty and that the parsing consumes the entire
 // string.
 maybe<int> stoi( std::string const& s, int base = default_base );
+maybe<double> stod( std::string const& s );
 
 // This is to replace std::from_chars -- it will enforce that the
 // input string is not empty and that the parsing consumes the
@@ -49,12 +50,14 @@ maybe<T> from_chars( std::string_view sv,
 
 template<std::floating_point T>
 maybe<T> from_chars( std::string_view sv ) {
-  maybe<T>               res{ T{ 0 } };
-  std::from_chars_result fc_res =
-      std::from_chars( sv.begin(), sv.end(), *res );
-  if( fc_res.ec != std::errc{} || fc_res.ptr != sv.end() )
-    res.reset();
-  return res;
+  // FIXME: uncomment this once libc++ supports it.
+  // maybe<T> res{ T{ 0 } };
+  // std::from_chars_result fc_res =
+  //     std::from_chars( sv.begin(), sv.end(), *res );
+  // if( fc_res.ec != std::errc{} || fc_res.ptr != sv.end() )
+  //   res.reset();
+  // return res;
+  return base::stod( std::string( sv ) );
 }
 
 } // namespace base

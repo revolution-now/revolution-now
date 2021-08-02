@@ -33,4 +33,16 @@ maybe<int> stoi( string const& s, int base ) {
   return res;
 }
 
+maybe<double> stod( string const& s ) {
+  maybe<double> res;
+  if( !s.empty() ) {
+    size_t written;
+    try {
+      auto d = ::std::stod( s, &written );
+      if( written == s.size() ) res = d;
+    } catch( std::exception const& ) {}
+  }
+  return res;
+}
+
 } // namespace base
