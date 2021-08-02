@@ -28,7 +28,7 @@ using namespace parz;
 namespace cl {
 
 parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
-  return construct<string_val>( quoted_str() | identifier() );
+  return construct<string_val>( identifier() | quoted_str() );
 }
 
 parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {

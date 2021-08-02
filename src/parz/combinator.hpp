@@ -79,27 +79,26 @@ parser<char> alphanum();
 parser<char> one_of( std::string_view sv );
 parser<char> not_of( std::string_view sv );
 
-// Consumes one identifier char or fails.
-parser<char> identifier_char();
-parser<char> leading_identifier_char();
-
 /****************************************************************
 ** Strings
 *****************************************************************/
 // Attempts to consume the exact string, and fails otherwise.
 parser<> str( std::string_view sv );
 
-parser<std::string> identifier();
+// Note this returns a string_view into the buffer because it is
+// implemented using a primitive.
+parser<std::string_view> identifier();
 
 // Consumes blank spaces.
 parser<> blanks();
 
 // Parses "..." or '...' and returns the stuff inside, which
-// cannot contain newlines.
-parser<std::string> double_quoted_str();
-parser<std::string> single_quoted_str();
+// cannot contain newlines. Note that these return string views
+// into the buffer because they are implemented using primitives.
+parser<std::string_view> double_quoted_str();
+parser<std::string_view> single_quoted_str();
 // Allows either double or single quotes.
-parser<std::string> quoted_str();
+parser<std::string_view> quoted_str();
 
 /****************************************************************
 ** Miscellaneous
@@ -117,7 +116,7 @@ struct Pred {
   // function suspends.
   template<typename Func>
   parser<char> operator()( Func f ) const {
-    char next = co_await next_char{};
+    char next = co_await builtin_next_char{};
     if( !f( next ) ) co_await fail();
     co_return next;
   }
@@ -286,11 +285,10 @@ inline constexpr Construct<T> construct{};
 // them succeed. Returns last result.
 struct SeqLast {
   template<typename... Parsers>
-  parser<
-      mp::last_t<mp::type_list<typename Parsers::value_type...>>>
-  operator()( Parsers... ps ) const {
-    using ret_t = mp::last_t<
-        mp::type_list<typename Parsers::value_type...>>;
+  mp::select_last_t<Parsers...> operator()(
+      Parsers... ps ) const {
+    using ret_t =
+        typename mp::select_last_t<Parsers...>::value_type;
     if constexpr( std::is_same_v<ret_t, std::monostate> )
       ( co_await std::move( ps ), ... );
     else
@@ -400,8 +398,8 @@ inline constexpr First first{};
 /****************************************************************
 ** Haskell-like sequencing operator
 *****************************************************************/
-template<typename T, typename U>
-parser<U> operator>>( parser<T> l, parser<U> r ) {
+template<Parser T, Parser U>
+U operator>>( T l, U r ) {
   return seq_last( std::move( l ), std::move( r ) );
 }
 

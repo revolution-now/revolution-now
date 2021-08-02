@@ -31,7 +31,7 @@ struct cl_lang {};
 struct table;
 
 struct string_val {
-  string_val( std::string s ) : val( std::move( s ) ) {}
+  string_val( std::string_view s ) : val( s ) {}
   std::string val;
 };
 
@@ -39,7 +39,7 @@ using value =
     base::variant<int, string_val, std::unique_ptr<table>>;
 
 struct key_val {
-  key_val( std::string k_, value v_ )
+  key_val( std::string_view k_, value v_ )
     : k( std::move( k_ ) ), v( std::move( v_ ) ) {}
   std::string k;
   value       v;

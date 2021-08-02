@@ -26,6 +26,14 @@
 #include <type_traits>
 
 /****************************************************************
+** Macros
+*****************************************************************/
+#define BUILTIN_PARSER( name, err )                            \
+  auto await_transform( builtin_##name const& o ) noexcept {   \
+    return builtin_awaitable{ this, o.try_parse( in_ ), err }; \
+  }
+
+/****************************************************************
 ** Parser Promise
 *****************************************************************/
 namespace parz {
@@ -203,18 +211,16 @@ struct promise_type
     return tryable_awaitable( this, std::move( t.p ) );
   }
 
-  auto await_transform( next_char ) noexcept {
-    struct next_char_awaitable {
+  auto await_transform( builtin_next_char ) noexcept {
+    struct awaitable {
       promise_type* p_;
 
       bool await_ready() noexcept {
-        bool ready = ( p_->buffer().size() > 0 );
-        if( !ready ) p_->o_.emplace( error( "EOF" ) );
-        return ready;
+        return ( p_->buffer().size() > 0 );
       }
 
       void await_suspend( coro::coroutine_handle<> ) noexcept {
-        // ran out of characters in input buffer.
+        p_->o_.emplace( error( "EOF" ) );
       }
 
       char await_resume() noexcept {
@@ -226,8 +232,37 @@ struct promise_type
         return res;
       }
     };
-    return next_char_awaitable{ this };
+    return awaitable{ this };
   }
+
+  struct builtin_awaitable {
+    promise_type*                   p_;
+    base::maybe<BuiltinParseResult> res_;
+    std::string_view                err_;
+
+    constexpr bool await_ready() noexcept {
+      if( !res_ ) return false;
+      std::string_view& buf      = p_->buffer();
+      int               consumed = res_->consumed;
+      DCHECK( consumed >= 0 );
+      buf.remove_prefix( consumed );
+      p_->consumed_ += consumed;
+      p_->farthest_ = p_->consumed_;
+      return true;
+    }
+
+    void await_suspend( coro::coroutine_handle<> ) noexcept {
+      p_->o_.emplace(
+          error( "expected " + std::string( err_ ) ) );
+    }
+
+    std::string_view await_resume() noexcept { return res_->sv; }
+  };
+
+  BUILTIN_PARSER( blanks, "blanks" );
+  BUILTIN_PARSER( identifier, "identifier" );
+  BUILTIN_PARSER( single_quoted, "single-quoted string" );
+  BUILTIN_PARSER( double_quoted, "double-quoted string" );
 };
 
 } // namespace parz

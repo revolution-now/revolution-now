@@ -40,17 +40,9 @@ bool is_alphanum( char c ) {
          ( c >= 'A' && c <= 'Z' );
 }
 
-bool is_identifier_char( char c ) {
-  return is_alphanum( c ) || ( c == '_' );
-}
-
-bool is_leading_identifier_char( char c ) {
-  return is_alpha( c ) || ( c == '_' );
-}
-
 } // namespace
 
-parser<char> chr() { co_return co_await next_char{}; }
+parser<char> chr() { co_return co_await builtin_next_char{}; }
 
 parser<> chr( char c ) {
   co_await pred( [c]( char c_ ) { return c == c_; } );
@@ -69,19 +61,10 @@ parser<> crlf() { co_await one_of( "\r\n" ); }
 parser<> tab() { co_await chr( '\t' ); }
 parser<> blank() { co_await pred( is_blank ); }
 
-parser<> blanks() { co_await many( blank ); }
+parser<> blanks() { co_await builtin_blanks{}; }
 
-parser<char> identifier_char() {
-  co_return co_await pred( is_identifier_char );
-}
-
-parser<char> leading_identifier_char() {
-  co_return co_await pred( is_leading_identifier_char );
-}
-
-parser<std::string> identifier() {
-  co_return( co_await leading_identifier_char() +
-             co_await many( identifier_char ) );
+parser<string_view> identifier() {
+  co_return co_await builtin_identifier{};
 }
 
 parser<char> digit() { return pred( is_digit ); }
@@ -113,15 +96,15 @@ parser<> eof() {
         "failed to parse all characters in input stream" );
 }
 
-parser<std::string> double_quoted_str() {
-  return bracketed( '"', many( not_of, "\"\n\r" ), '"' );
+parser<string_view> double_quoted_str() {
+  co_return co_await builtin_double_quoted{};
 }
 
-parser<std::string> single_quoted_str() {
-  return bracketed( '\'', many( not_of, "'\n\r" ), '\'' );
+parser<string_view> single_quoted_str() {
+  co_return co_await builtin_single_quoted{};
 }
 
-parser<std::string> quoted_str() {
+parser<string_view> quoted_str() {
   return first( double_quoted_str(), single_quoted_str() );
 }
 
