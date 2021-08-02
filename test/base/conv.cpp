@@ -43,5 +43,21 @@ TEST_CASE( "[conv] from string" ) {
   REQUIRE( !base::from_chars<int>( "1 a" ).has_value() );
 }
 
+TEST_CASE( "[conv] from_chars floating" ) {
+  REQUIRE( !base::from_chars<double>( "" ).has_value() );
+  REQUIRE( base::from_chars<double>( "0" ) == 0.0 );
+  REQUIRE( base::from_chars<double>( "0." ) == 0.0 );
+  REQUIRE( base::from_chars<double>( "1" ) == 1.0 );
+  REQUIRE( base::from_chars<double>( "1.0" ) == 1.0 );
+  REQUIRE( base::from_chars<double>( "22.2" ) == 22.2 );
+  REQUIRE( base::from_chars<double>( ".0" ) == 0.0 );
+  REQUIRE( base::from_chars<double>( ".10" ) == 0.1 );
+  REQUIRE( base::from_chars<double>( "-10" ) == -10.0 );
+  REQUIRE( base::from_chars<double>( "-10." ) == -10.0 );
+  REQUIRE( base::from_chars<double>( "-10.123" ) == -10.123 );
+  REQUIRE( base::from_chars<double>( "-0" ) == 0.0 );
+  REQUIRE( !base::from_chars<double>( "1 a" ).has_value() );
+}
+
 } // namespace
 } // namespace base

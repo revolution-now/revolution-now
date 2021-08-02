@@ -18,6 +18,7 @@
 
 // C++ standard library
 #include <charconv>
+#include <concepts>
 #include <string>
 
 namespace base {
@@ -32,15 +33,25 @@ inline constexpr int default_base{ 10 }; // base 10 is decimal
 // string.
 maybe<int> stoi( std::string const& s, int base = default_base );
 
-// This is to replace std::from_chars for integers -- it will en-
-// force that the input string is not empty and that the parsing
-// consumes the entire string.
-template<typename Integral>
-maybe<Integral> from_chars( std::string_view sv,
-                            int base = default_base ) {
-  maybe<Integral>        res{ Integral{ 0 } };
+// This is to replace std::from_chars -- it will enforce that the
+// input string is not empty and that the parsing consumes the
+// entire string.
+template<std::integral T>
+maybe<T> from_chars( std::string_view sv,
+                     int              base = default_base ) {
+  maybe<T>               res{ T{ 0 } };
   std::from_chars_result fc_res =
       std::from_chars( sv.begin(), sv.end(), *res, base );
+  if( fc_res.ec != std::errc{} || fc_res.ptr != sv.end() )
+    res.reset();
+  return res;
+}
+
+template<std::floating_point T>
+maybe<T> from_chars( std::string_view sv ) {
+  maybe<T>               res{ T{ 0 } };
+  std::from_chars_result fc_res =
+      std::from_chars( sv.begin(), sv.end(), *res );
   if( fc_res.ec != std::errc{} || fc_res.ptr != sv.end() )
     res.reset();
   return res;
