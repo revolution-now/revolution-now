@@ -112,10 +112,6 @@ namespace {
 table unflatten_table( table&& old );
 list  unflatten_list( list&& old );
 
-base::expect<table, std::string> dedupe_table( table&& old );
-base::expect<list, std::string>  dedupe_tables_in_list(
-     list&& old );
-
 struct unflatten_visitor {
   value operator()( boolean&& o ) const {
     return value{ std::move( o ) };
@@ -157,6 +153,25 @@ void unflatten_table_impl( table* tbl, string_view dotted,
   unflatten_table_impl( tbl, rest, std::move( v ) );
 }
 
+list unflatten_list( list&& old ) {
+  list l;
+  for( value& v : old.members )
+    l.members.push_back(
+        std::visit( unflatten_visitor{}, std::move( v ) ) );
+  return l;
+}
+
+table unflatten_table( table&& old ) {
+  table t;
+  for( key_val& kv : old.members )
+    unflatten_table_impl( &t, kv.k, std::move( kv.v ) );
+  return t;
+}
+
+base::expect<table, std::string> dedupe_table( table&& old );
+base::expect<list, std::string>  dedupe_tables_in_list(
+     list&& old );
+
 struct dedupe_visitor {
   expect<value, string> operator()( boolean&& o ) const {
     return value{ std::move( o ) };
@@ -179,21 +194,6 @@ struct dedupe_visitor {
     return value{ make_unique<list>( std::move( deduped ) ) };
   }
 };
-
-list unflatten_list( list&& old ) {
-  list l;
-  for( value& v : old.members )
-    l.members.push_back(
-        std::visit( unflatten_visitor{}, std::move( v ) ) );
-  return l;
-}
-
-table unflatten_table( table&& old ) {
-  table t;
-  for( key_val& kv : old.members )
-    unflatten_table_impl( &t, kv.k, std::move( kv.v ) );
-  return t;
-}
 
 expect<list, string> dedupe_tables_in_list( list&& old ) {
   list l;
