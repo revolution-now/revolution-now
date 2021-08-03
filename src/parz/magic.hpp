@@ -42,13 +42,20 @@ struct Try {
 };
 
 // This will immediately fail the parser.
-struct fail {
+struct [[nodiscard]] fail_wrapper {
   using value_type = std::monostate;
-  fail()           = default;
-  fail( std::string_view msg ) : err( msg ) {}
-  fail( error&& e ) : err( std::move( e ) ) {}
+  fail_wrapper()   = default;
+  fail_wrapper( std::string_view msg ) : err( msg ) {}
+  fail_wrapper( error&& e ) : err( std::move( e ) ) {}
   error err;
 };
+
+// This allows us to mark the fail_wrapper as [[nodiscard]] so
+// that the compiler will warn us when we don't co_await on it.
+template<typename... Ts>
+inline fail_wrapper fail( Ts&&... os ) {
+  return fail_wrapper( FWD( os )... );
+}
 
 /****************************************************************
 ** Builtin Parsers

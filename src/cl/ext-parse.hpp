@@ -34,6 +34,10 @@ parz::parser<list> parser_for( parz::lang<cl_lang>,
 parz::parser<string_val> parser_for( parz::lang<cl_lang>,
                                      parz::tag<string_val> );
 
+// boolean
+parz::parser<boolean> parser_for( parz::lang<cl_lang>,
+                                  parz::tag<boolean> );
+
 // number
 parz::parser<number> parser_for( parz::lang<cl_lang>,
                                  parz::tag<number> );

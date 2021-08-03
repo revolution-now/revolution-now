@@ -50,10 +50,14 @@ parser<char> chr( char c );
 // Consumes any char, fails at eof.
 parser<char> any_chr();
 
-// Returns a parser that will always yield the given char. Would
-// be nice to make this inline, clang triggers UB.
-parser<char>        ret( char c );
-parser<std::string> ret_str( std::string_view s );
+struct Ret {
+  template<typename T>
+  parser<T> operator()( T&& o ) const {
+    co_return FWD( o );
+  }
+};
+
+inline constexpr Ret ret{};
 
 /****************************************************************
 ** Character Classes
@@ -318,6 +322,57 @@ struct SeqFirst {
 inline constexpr SeqFirst seq_first{};
 
 /****************************************************************
+** on_error
+*****************************************************************/
+struct OnError {
+  template<Parser P>
+  P operator()( P p, std::string_view msg ) const {
+    auto res = co_await Try{ std::move( p ) };
+    if( res.has_value() ) co_return *res;
+    co_await fail( msg );
+    UNREACHABLE_LOCATION;
+  }
+};
+
+inline constexpr OnError on_error{};
+
+/****************************************************************
+** diagnose_with
+*****************************************************************/
+// This will run the first parser, and if it fails then this
+// parser fails. But if the first parser succeeds but does not
+// consume all of the input, then it will run the second parser
+// requiring that it succeeds (but discarding the result). Ide-
+// ally that second parser is chosen so as to fail in this situa-
+// tion and produce a good error message at the right location.
+// In other words, the second parser is the parser that is ex-
+// pected to succeed when there is more input to be parsed. We
+// need to supply this since the framework cannot guess what it
+// is. In the event that the second parser does succeed, this
+// parser will still fail in that case, but with a more generic
+// error message.
+struct DiagnoseWith {
+  template<Parser P1, Parser P2>
+  P1 operator()( P1 p1, P2 expected ) const {
+    auto res = co_await std::move( p1 );
+    // Parser has succeeded, now test EOF.
+    if( co_await Try{ eof() } )
+      // We have consumed all input, so we're good.
+      co_return res;
+    // Still input remaining.
+    (void)co_await std::move( expected );
+    // p2 succeeded but ideally shouldn't have, so we'll just
+    // fail it manually.
+    co_await fail(
+        "parsing partially succeeded but was not able to "
+        "consume all input." );
+    UNREACHABLE_LOCATION;
+  }
+};
+
+inline constexpr DiagnoseWith diagnose_with{};
+
+/****************************************************************
 ** exhaust
 *****************************************************************/
 // Runs the given parser and then checks that the input buffers
@@ -397,13 +452,13 @@ struct First {
     auto one = [&]<typename T>( parser<T> p ) -> parser<> {
       if( res.has_value() ) co_return;
       auto exp = co_await Try{ std::move( p ) };
-      if( !exp ) co_return;
+      if( !exp.has_value() ) co_return;
       res.emplace( std::move( *exp ) );
     };
     co_await one( std::move( fst ) );
     ( co_await one( std::move( rest ) ), ... );
 
-    if( !res ) co_await fail{};
+    if( !res.has_value() ) co_await fail();
     co_return std::move( *res );
   }
 };

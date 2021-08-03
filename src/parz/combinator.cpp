@@ -109,10 +109,4 @@ parser<string> quoted_str() {
                                     single_quoted_str() ) );
 }
 
-parser<char> ret( char c ) { co_return c; }
-
-parser<string> ret_str( string_view s ) {
-  co_return string( s );
-}
-
 } // namespace parz

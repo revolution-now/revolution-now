@@ -46,9 +46,18 @@ struct number {
   std::variant<int, double> val;
 };
 
+struct boolean {
+  boolean() = default;
+  boolean( bool b_ ) : b( b_ ) {}
+  bool b;
+};
+
+// The order of these in the variant matters, as parsing will be
+// attempted in order, and the first one that succeeds will be
+// chosen.
 using value =
-    base::variant<number, string_val, std::unique_ptr<table>,
-                  std::unique_ptr<list>>;
+    base::variant<number, string_val, boolean,
+                  std::unique_ptr<table>, std::unique_ptr<list>>;
 
 struct key_val {
   key_val() = default;

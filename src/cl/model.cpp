@@ -30,6 +30,10 @@ using ::base::valid_or;
 struct value_printer {
   string_view indent;
 
+  string operator()( boolean b ) {
+    return b.b ? "true" : "false";
+  }
+
   string operator()( number n ) {
     return fmt::to_string( n.val );
   }
@@ -113,6 +117,9 @@ base::expect<list, std::string>  dedupe_tables_in_list(
      list&& old );
 
 struct unflatten_visitor {
+  value operator()( boolean&& o ) const {
+    return value{ std::move( o ) };
+  }
   value operator()( number&& o ) const {
     return value{ std::move( o ) };
   }
@@ -151,6 +158,9 @@ void unflatten_table_impl( table* tbl, string_view dotted,
 }
 
 struct dedupe_visitor {
+  expect<value, string> operator()( boolean&& o ) const {
+    return value{ std::move( o ) };
+  }
   expect<value, string> operator()( number&& o ) const {
     return value{ std::move( o ) };
   }

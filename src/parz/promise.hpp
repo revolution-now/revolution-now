@@ -131,7 +131,7 @@ struct promise_type
     o_.emplace( T{} );
   }
 
-  auto await_transform( fail const& f ) noexcept {
+  auto await_transform( fail_wrapper const& f ) noexcept {
     o_ = f.err;
     return base::suspend_always{};
   }

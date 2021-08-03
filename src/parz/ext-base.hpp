@@ -38,7 +38,7 @@ struct VariantParser {
     };
     ( co_await one( (Args*)nullptr ), ... );
 
-    if( !res ) co_await fail{};
+    if( !res ) co_await fail();
     co_return std::move( *res );
   }
 };

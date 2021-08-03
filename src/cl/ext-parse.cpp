@@ -35,14 +35,22 @@ namespace cl {
 namespace {
 
 parser<string> unquoted_newline_delimited_str() {
-  char   c    = co_await not_of( ".[],{}\"'\n\r" );
-  string rest = co_await many( not_of, "[],{}\"'\n\r" );
-  co_return c + rest;
+  char   c      = co_await not_of( ".[],{}\"'\n\r" );
+  string rest   = co_await many( not_of, "[],{}\"'\n\r" );
+  string result = c + rest;
+  if( result == "true" || result == "false" )
+    co_await fail( "expected string but found boolean" );
+  co_return result;
 }
 
 parser<> assignment() {
-  co_await( ( blanks() >> chr( '=' ) ) |
-            ( blanks() >> chr( ':' ) ) | one_of( " \n\r\t" ) );
+  static constexpr string_view msg =
+      "expected key assignment, i.e. either ':', '=', space, or "
+      "tab.";
+  co_await on_error( ( blanks() >> chr( '=' ) ) |
+                         ( blanks() >> chr( ':' ) ) |
+                         one_of( " \t" ),
+                     msg );
 }
 
 parser<vector<key_val>> parse_kvs() {
@@ -80,6 +88,14 @@ parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
 }
 
 /****************************************************************
+** boolean
+*****************************************************************/
+parser<boolean> parser_for( lang<cl_lang>, tag<boolean> ) {
+  co_return co_await( ( str( "true" ) >> ret( true ) ) |
+                      ( str( "false" ) >> ret( false ) ) );
+}
+
+/****************************************************************
 ** number
 *****************************************************************/
 parser<number> parser_for( lang<cl_lang>, tag<number> ) {
@@ -100,7 +116,9 @@ parser<number> parser_for( lang<cl_lang>, tag<number> ) {
 parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {
   return construct<key_val>(
       blanks() >> dotted_identifier(),
-      assignment() >> blanks() >> parse<cl_lang, value>() );
+      assignment() >> blanks() >>
+          on_error( parse<cl_lang, value>(),
+                    "expected value" ) );
 }
 
 /****************************************************************
@@ -133,8 +151,11 @@ parser<list> parser_for( lang<cl_lang>, tag<list> ) {
 ** doc
 *****************************************************************/
 parser<doc> parser_for( lang<cl_lang>, tag<doc> ) {
-  co_return co_await unwrap( co_await parz::apply(
-      doc::create, seq_first( parse_kvs(), blanks() ) ) );
+  auto expected = parse<cl_lang, key_val>();
+  co_return co_await unwrap( co_await diagnose_with(
+      parz::apply( doc::create,
+                   seq_first( parse_kvs(), blanks() ) ),
+      move( expected ) ) );
 }
 
 } // namespace cl
