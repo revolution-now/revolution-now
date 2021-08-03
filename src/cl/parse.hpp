@@ -13,6 +13,9 @@
 // cl
 #include "model.hpp"
 
+// base
+#include "base/expect.hpp"
+
 // C++ standard library
 #include <string_view>
 
@@ -23,6 +26,7 @@ namespace cl {
 // spaces).
 void blankify_comments( std::string& text );
 
-doc parse_file( std::string_view filename );
+base::expect<doc, std::string> parse_file(
+    std::string_view filename );
 
 } // namespace cl

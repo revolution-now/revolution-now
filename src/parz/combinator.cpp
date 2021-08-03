@@ -44,8 +44,8 @@ bool is_alphanum( char c ) {
 
 parser<char> chr() { co_return co_await builtin_next_char{}; }
 
-parser<> chr( char c ) {
-  co_await pred( [c]( char c_ ) { return c == c_; } );
+parser<char> chr( char c ) {
+  co_return co_await pred( [c]( char c_ ) { return c == c_; } );
 }
 
 parser<char> lower() { return pred( is_lower ); }
@@ -63,8 +63,8 @@ parser<> blank() { co_await pred( is_blank ); }
 
 parser<> blanks() { co_await builtin_blanks{}; }
 
-parser<string_view> identifier() {
-  co_return co_await builtin_identifier{};
+parser<string> identifier() {
+  co_return string( co_await builtin_identifier{} );
 }
 
 parser<char> digit() { return pred( is_digit ); }
@@ -104,8 +104,9 @@ parser<string_view> single_quoted_str() {
   co_return co_await builtin_single_quoted{};
 }
 
-parser<string_view> quoted_str() {
-  return first( double_quoted_str(), single_quoted_str() );
+parser<string> quoted_str() {
+  co_return string( co_await first( double_quoted_str(),
+                                    single_quoted_str() ) );
 }
 
 parser<char> ret( char c ) { co_return c; }

@@ -26,9 +26,17 @@ parz::parser<doc> parser_for( parz::lang<cl_lang>,
 parz::parser<table> parser_for( parz::lang<cl_lang>,
                                 parz::tag<table> );
 
+// list
+parz::parser<list> parser_for( parz::lang<cl_lang>,
+                               parz::tag<list> );
+
 // string_val
 parz::parser<string_val> parser_for( parz::lang<cl_lang>,
                                      parz::tag<string_val> );
+
+// number
+parz::parser<number> parser_for( parz::lang<cl_lang>,
+                                 parz::tag<number> );
 
 // key_val
 parz::parser<key_val> parser_for( parz::lang<cl_lang>,

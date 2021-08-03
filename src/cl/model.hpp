@@ -11,7 +11,9 @@
 #pragma once
 
 // base
+#include "base/expect.hpp"
 #include "base/fmt.hpp"
+#include "base/maybe.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
@@ -29,17 +31,28 @@ namespace cl {
 struct cl_lang {};
 
 struct table;
+struct list;
 
 struct string_val {
-  string_val( std::string_view s ) : val( s ) {}
+  string_val() = default;
+  string_val( std::string s ) : val( std::move( s ) ) {}
   std::string val;
 };
 
+struct number {
+  number() = default;
+  number( int n ) : val( n ) {}
+  number( double d ) : val( d ) {}
+  std::variant<int, double> val;
+};
+
 using value =
-    base::variant<int, string_val, std::unique_ptr<table>>;
+    base::variant<number, string_val, std::unique_ptr<table>,
+                  std::unique_ptr<list>>;
 
 struct key_val {
-  key_val( std::string_view k_, value v_ )
+  key_val() = default;
+  key_val( std::string k_, value v_ )
     : k( std::move( k_ ) ), v( std::move( v_ ) ) {}
   std::string k;
   value       v;
@@ -50,24 +63,35 @@ struct table {
   table( std::vector<key_val>&& m )
     : members( std::move( m ) ) {}
 
-  table( table const& ) = delete;
-  table& operator=( table const& ) = delete;
-
-  table( table&& ) = default;
-  table& operator=( table&& ) = default;
-
   std::vector<key_val> members{};
+
+  base::maybe<value&>       operator[]( std::string_view key );
+  base::maybe<value const&> operator[](
+      std::string_view key ) const;
+
+  std::string pretty_print( std::string_view indent = "" ) const;
+};
+
+struct list {
+  list() = default;
+  list( std::vector<value>&& l ) : members( std::move( l ) ) {}
+  std::vector<value> members;
 
   std::string pretty_print( std::string_view indent = "" ) const;
 };
 
 struct doc {
-  doc( table t ) : tbl( std::move( t ) ) {}
+  static base::expect<doc, std::string> create( table tbl );
+
   table tbl;
+
+private:
+  doc( table tbl_ ) : tbl( std::move( tbl_ ) ) {}
 };
 
 } // namespace cl
 
 DEFINE_FORMAT( cl::table, "{}", o.pretty_print() );
+DEFINE_FORMAT( cl::list, "{}", o.pretty_print() );
 DEFINE_FORMAT( cl::string_val, "{}", o.val );
 DEFINE_FORMAT( cl::doc, "{}", o.tbl.pretty_print() );

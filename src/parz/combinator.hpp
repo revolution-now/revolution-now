@@ -45,7 +45,7 @@ using many_result_container_t =
 ** Primitives
 *****************************************************************/
 // Consumes a char that must be c, otherwise it fails.
-parser<> chr( char c );
+parser<char> chr( char c );
 
 // Consumes any char, fails at eof.
 parser<char> any_chr();
@@ -85,9 +85,7 @@ parser<char> not_of( std::string_view sv );
 // Attempts to consume the exact string, and fails otherwise.
 parser<> str( std::string_view sv );
 
-// Note this returns a string_view into the buffer because it is
-// implemented using a primitive.
-parser<std::string_view> identifier();
+parser<std::string> identifier();
 
 // Consumes blank spaces.
 parser<> blanks();
@@ -98,7 +96,7 @@ parser<> blanks();
 parser<std::string_view> double_quoted_str();
 parser<std::string_view> single_quoted_str();
 // Allows either double or single quotes.
-parser<std::string_view> quoted_str();
+parser<std::string> quoted_str();
 
 /****************************************************************
 ** Miscellaneous
@@ -370,6 +368,19 @@ struct Bracketed {
 inline constexpr Bracketed bracketed{};
 
 /****************************************************************
+** try_ignore
+*****************************************************************/
+// Runs the parser p between characters l and r.
+struct TryIgnore {
+  template<Parser P>
+  parser<> operator()( P p ) const {
+    (void)co_await Try{ std::move( p ) };
+  }
+};
+
+inline constexpr TryIgnore try_ignore{};
+
+/****************************************************************
 ** First
 *****************************************************************/
 // Runs the parsers in sequence until the first one succeeds,
@@ -407,8 +418,8 @@ U operator>>( T l, U r ) {
   return seq_last( std::move( l ), std::move( r ) );
 }
 
-template<typename T, typename U>
-parser<U> operator|( parser<T> l, parser<U> r ) {
+template<Parser T, Parser U>
+U operator|( T l, U r ) {
   return first( std::move( l ), std::move( r ) );
 }
 
