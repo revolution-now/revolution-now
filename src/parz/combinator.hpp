@@ -214,11 +214,15 @@ inline constexpr Seq seq{};
 // of using this helper.
 struct Apply {
   // Take func by value for lifetime reasons.
+  // clang-format off
   template<size_t... Idx, typename Func, typename... Parsers>
+  requires( std::is_default_constructible_v<
+                typename Parsers::value_type> && ... )
   parser<std::invoke_result_t<Func,
                               typename Parsers::value_type...>>
   run( std::index_sequence<Idx...>, Func func,
        Parsers... ps ) const {
+    // clang-format on
     // We can't simply do the following:
     //
     //   co_return T( co_await std::move( ps )... );
@@ -342,7 +346,7 @@ struct Unwrap {
   template<typename T>
   parser<std::remove_cvref_t<decltype( *std::declval<T>() )>>
   operator()( T&& o ) const {
-    if( !o ) fail();
+    if( !o ) co_await fail( fmt::format( "{}", o.error() ) );
     co_return *FWD( o );
   }
 };
@@ -350,7 +354,7 @@ struct Unwrap {
 inline constexpr Unwrap unwrap{};
 
 /****************************************************************
-** Bracketed
+** bracketed
 *****************************************************************/
 // Runs the parser p between characters l and r.
 struct Bracketed {
