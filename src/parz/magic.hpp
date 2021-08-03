@@ -35,9 +35,9 @@ namespace parz {
 // be<T> instead of a T and it will thus be allowed to fail
 // without failing the entire parsing operation.
 template<Parser P>
-struct Try {
+struct try_ {
   using value_type = base::maybe<typename P::value_type>;
-  Try( P&& p_ ) : p( std::move( p_ ) ) {}
+  try_( P&& p_ ) : p( std::move( p_ ) ) {}
   P p;
 };
 

@@ -99,7 +99,7 @@ parser<boolean> parser_for( lang<cl_lang>, tag<boolean> ) {
 ** number
 *****************************************************************/
 parser<number> parser_for( lang<cl_lang>, tag<number> ) {
-  bool   neg = bool( co_await Try{ chr( '-' ) } );
+  bool   neg = bool( co_await try_{ chr( '-' ) } );
   string num = co_await many1_L( digit() | chr( '.' ) );
   if( num.find_first_not_of( '.' ) == string::npos )
     co_await fail( "expected number" );

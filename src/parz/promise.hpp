@@ -187,7 +187,7 @@ struct promise_type
 
   // This parser is allowed to fail.
   template<typename P>
-  auto await_transform( Try<P> t ) noexcept {
+  auto await_transform( try_<P> t ) noexcept {
     using U = typename P::value_type;
     // Slight modification to awaitable to allow it to fail.
     struct tryable_awaitable : awaitable<U> {

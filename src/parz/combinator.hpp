@@ -142,7 +142,7 @@ struct Many {
         typename std::invoke_result_t<Func, Args...>::value_type;
     many_result_container_t<res_t> res;
     while( true ) {
-      auto m = co_await Try{ f( std::move( args )... ) };
+      auto m = co_await try_{ f( std::move( args )... ) };
       if( !m ) break;
       res.push_back( std::move( *m ) );
     }
@@ -327,7 +327,7 @@ inline constexpr SeqFirst seq_first{};
 struct OnError {
   template<Parser P>
   P operator()( P p, std::string_view msg ) const {
-    auto res = co_await Try{ std::move( p ) };
+    auto res = co_await try_{ std::move( p ) };
     if( res.has_value() ) co_return *res;
     co_await fail( msg );
     UNREACHABLE_LOCATION;
@@ -356,7 +356,7 @@ struct DiagnoseWith {
   P1 operator()( P1 p1, P2 expected ) const {
     auto res = co_await std::move( p1 );
     // Parser has succeeded, now test EOF.
-    if( co_await Try{ eof() } )
+    if( co_await try_{ eof() } )
       // We have consumed all input, so we're good.
       co_return res;
     // Still input remaining.
@@ -429,7 +429,7 @@ inline constexpr Bracketed bracketed{};
 struct TryIgnore {
   template<Parser P>
   parser<> operator()( P p ) const {
-    (void)co_await Try{ std::move( p ) };
+    (void)co_await try_{ std::move( p ) };
   }
 };
 
@@ -451,7 +451,7 @@ struct First {
 
     auto one = [&]<typename T>( parser<T> p ) -> parser<> {
       if( res.has_value() ) co_return;
-      auto exp = co_await Try{ std::move( p ) };
+      auto exp = co_await try_{ std::move( p ) };
       if( !exp.has_value() ) co_return;
       res.emplace( std::move( *exp ) );
     };

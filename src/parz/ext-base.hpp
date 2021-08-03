@@ -32,7 +32,7 @@ struct VariantParser {
 
     auto one = [&]<typename Alt>( Alt* ) -> parser<> {
       if( res.has_value() ) co_return;
-      auto exp = co_await Try{ parse<Lang, Alt>() };
+      auto exp = co_await try_{ parse<Lang, Alt>() };
       if( !exp ) co_return;
       res.emplace( std::move( *exp ) );
     };

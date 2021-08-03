@@ -86,7 +86,7 @@ parser<char> not_of( string_view sv ) {
 }
 
 parser<> eof() {
-  result_t<char> c = co_await Try{ chr() };
+  result_t<char> c = co_await try_{ chr() };
   if( c.has_value() )
     // If we're here that means that there is more input in the
     // buffer, and thus that the `eof` parser (which requires
