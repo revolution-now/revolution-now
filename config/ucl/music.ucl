@@ -31,7 +31,8 @@ tunes = [
       epoch:         standard
       purpose:       standard
     }
-  },{
+  },
+  {
     display_name:   "Bonny Morn"
     stem:           "bonny-morn"
     description:    "An old English folk tune"
@@ -46,10 +47,10 @@ tunes = [
       epoch:         standard
       purpose:       standard
     }
-  }
+  },
 ]
 
 special_event_tunes = [
-  { key: fountain_of_youth, val: "bonny-morn"      }
-  { key: founding_father,   val: "fife-and-drum-1" }
+  { key: fountain_of_youth, val: "bonny-morn"      },
+  { key: founding_father,   val: "fife-and-drum-1" },
 ]

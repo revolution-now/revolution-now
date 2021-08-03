@@ -4,17 +4,17 @@ small_font:   _6x6
 main_menu:    _7_12_serif_16pt
 
 paths = [
-  { key: _7_12_serif_16pt, val: "assets/fonts/7-12-serif/712_serif.ttf"  }
-  { key: _6x6,             val: "assets/fonts/six-by-six/six-by-six.ttf" }
-  { key: habbo_15,         val: "assets/fonts/habbo/habbo.ttf"           }
+  { key: _7_12_serif_16pt, val: "assets/fonts/7-12-serif/712_serif.ttf"  },
+  { key: _6x6,             val: "assets/fonts/six-by-six/six-by-six.ttf" },
+  { key: habbo_15,         val: "assets/fonts/habbo/habbo.ttf"           },
 ]
 
 # The fonts created in the BitFont font creator should have pt
 # size equal to the ascension+descension.
 sizes = [
-  { key: _7_12_serif_16pt, val: 16 }
-  { key: _6x6,             val: 9  }
-  { key: habbo_15,         val: 15 }
+  { key: _7_12_serif_16pt, val: 16 },
+  { key: _6x6,             val: 9  },
+  { key: habbo_15,         val: 15 },
 ]
 
 # This is kind of a hack to fix fonts that SDL_ttf does not
@@ -23,7 +23,7 @@ sizes = [
 # rendering, shift the rendered text down by the given number of
 # pixels (should work with negative values too).
 offsets = [
-  { key: _7_12_serif_16pt, val: 0 }
-  { key: _6x6,             val: 1 }
-  { key: habbo_15,         val: 0 }
+  { key: _7_12_serif_16pt, val: 0 },
+  { key: _6x6,             val: 1 },
+  { key: habbo_15,         val: 0 },
 ]
