@@ -253,6 +253,7 @@ expect<table, string> dedupe_table( table&& old ) {
   DCHECK( order.size() == m.size() );
   table t;
   for( string const& k : order )
+    // !! Don't move k here since we need it in both expressions.
     t.members.emplace_back( k, std::move( m[k] ) );
   return t;
 }

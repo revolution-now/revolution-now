@@ -291,8 +291,8 @@ inline constexpr Construct<T> construct{};
 // them succeed. Returns last result.
 struct SeqLast {
   template<typename... Parsers>
-  mp::select_last_t<Parsers...> operator()(
-      Parsers... ps ) const {
+  parser<typename mp::select_last_t<Parsers...>::value_type>
+  operator()( Parsers... ps ) const {
     using ret_t =
         typename mp::select_last_t<Parsers...>::value_type;
     if constexpr( std::is_same_v<ret_t, std::monostate> )
@@ -469,12 +469,12 @@ inline constexpr First first{};
 ** Haskell-like sequencing operator
 *****************************************************************/
 template<Parser T, Parser U>
-U operator>>( T l, U r ) {
+parser<typename U::value_type> operator>>( T l, U r ) {
   return seq_last( std::move( l ), std::move( r ) );
 }
 
 template<Parser T, Parser U>
-U operator|( T l, U r ) {
+parser<typename U::value_type> operator|( T l, U r ) {
   return first( std::move( l ), std::move( r ) );
 }
 
