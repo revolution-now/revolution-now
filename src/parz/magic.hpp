@@ -20,6 +20,13 @@
 // C++ standard library
 #include <string_view>
 
+#define PROMISE_BUILTIN( name )                \
+  struct builtin_##name {                      \
+    using value_type = std::string_view;       \
+    base::maybe<BuiltinParseResult> try_parse( \
+        std::string_view in ) const;           \
+  }
+
 /****************************************************************
 ** "Magic" Parser Awaitables
 *****************************************************************/
@@ -31,6 +38,9 @@
 // much faster than one implemented in terms of primitives).
 namespace parz {
 
+/****************************************************************
+** Builtin Wrappers
+*****************************************************************/
 // When a parser is wrapped in this object it will return a may-
 // be<T> instead of a T and it will thus be allowed to fail
 // without failing the entire parsing operation.
@@ -75,30 +85,10 @@ struct builtin_next_char {
   using value_type = char;
 };
 
-// Removes blanks.
-struct builtin_blanks {
-  using value_type = std::string_view;
-  base::maybe<BuiltinParseResult> try_parse(
-      std::string_view in ) const;
-};
-
-struct builtin_identifier {
-  using value_type = std::string_view;
-  base::maybe<BuiltinParseResult> try_parse(
-      std::string_view in ) const;
-};
-
-struct builtin_single_quoted {
-  using value_type = std::string_view;
-  base::maybe<BuiltinParseResult> try_parse(
-      std::string_view in ) const;
-};
-
-struct builtin_double_quoted {
-  using value_type = std::string_view;
-  base::maybe<BuiltinParseResult> try_parse(
-      std::string_view in ) const;
-};
+PROMISE_BUILTIN( blanks );
+PROMISE_BUILTIN( identifier );
+PROMISE_BUILTIN( single_quoted );
+PROMISE_BUILTIN( double_quoted );
 
 } // namespace parz
 
