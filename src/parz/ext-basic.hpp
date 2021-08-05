@@ -11,34 +11,24 @@
 #pragma once
 
 // parz
-#include "combinator.hpp"
 #include "ext.hpp"
-#include "promise.hpp"
-
-// base
-#include "base/conv.hpp"
-
-// C++ standard library
-#include <string>
-#include <vector>
 
 namespace parz {
 
-template<typename Lang>
-struct IntParser {
-  parser<int> operator()() const {
-    co_return co_await unwrap(
-        base::stoi( co_await many1( digit ) ) );
-  }
-};
-
-template<typename Lang>
-inline constexpr IntParser<Lang> int_parser{};
+namespace detail {
+parser<int>    parse_int_default();
+parser<double> parse_double_default();
+} // namespace detail
 
 // Assume that this will work the same way for any language.
 template<typename Lang>
 parser<int> parser_for( lang<Lang>, tag<int> ) {
-  return int_parser<Lang>();
+  return detail::parse_int_default();
+}
+
+template<typename Lang>
+parser<double> parser_for( lang<Lang>, tag<double> ) {
+  return detail::parse_double_default();
 }
 
 } // namespace parz
