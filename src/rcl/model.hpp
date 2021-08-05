@@ -28,7 +28,7 @@
 *****************************************************************/
 namespace rcl {
 
-struct rcl_lang {};
+struct Rcl {};
 
 struct table;
 struct list;

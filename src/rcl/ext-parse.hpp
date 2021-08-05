@@ -19,31 +19,31 @@
 namespace rcl {
 
 // doc
-parz::parser<rawdoc> parser_for( parz::lang<rcl_lang>,
+parz::parser<rawdoc> parser_for( parz::lang<Rcl>,
                                  parz::tag<rawdoc> );
 
 // table
-parz::parser<table> parser_for( parz::lang<rcl_lang>,
+parz::parser<table> parser_for( parz::lang<Rcl>,
                                 parz::tag<table> );
 
 // list
-parz::parser<list> parser_for( parz::lang<rcl_lang>,
+parz::parser<list> parser_for( parz::lang<Rcl>,
                                parz::tag<list> );
 
 // string_val
-parz::parser<string_val> parser_for( parz::lang<rcl_lang>,
+parz::parser<string_val> parser_for( parz::lang<Rcl>,
                                      parz::tag<string_val> );
 
 // boolean
-parz::parser<boolean> parser_for( parz::lang<rcl_lang>,
+parz::parser<boolean> parser_for( parz::lang<Rcl>,
                                   parz::tag<boolean> );
 
 // number
-parz::parser<number> parser_for( parz::lang<rcl_lang>,
+parz::parser<number> parser_for( parz::lang<Rcl>,
                                  parz::tag<number> );
 
 // key_val
-parz::parser<key_val> parser_for( parz::lang<rcl_lang>,
+parz::parser<key_val> parser_for( parz::lang<Rcl>,
                                   parz::tag<key_val> );
 
 } // namespace rcl
