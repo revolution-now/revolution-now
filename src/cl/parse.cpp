@@ -10,9 +10,8 @@
 *****************************************************************/
 #include "parse.hpp"
 
-// parz
-#include "cl/ext-parse.hpp"
-#include "parz/runner.hpp"
+// cl
+#include "parse-fast.hpp"
 
 // base
 #include "base/error.hpp"
@@ -76,8 +75,7 @@ base::expect<doc, std::string> parse_file(
     FATAL( "{}", base::error_read_text_file_msg(
                      filename, buffer.error() ) );
   blankify_comments( *buffer );
-  UNWRAP_RETURN( rdoc, parz::parse_from_string<cl_lang, rawdoc>(
-                           filename, *buffer ) );
+  UNWRAP_RETURN( rdoc, parse_fast( filename, *buffer ) );
   return doc::create( std::move( rdoc ) );
 }
 
