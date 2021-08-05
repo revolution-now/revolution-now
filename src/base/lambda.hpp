@@ -29,8 +29,8 @@
 #define L( a ) []( auto const& _ ) { return a; }
 #define L_( a ) []( auto const& _ ) { a; }
 
-#define L0( a ) [] { return a; }
-#define L0_( a ) [] { a; }
+#define L0( ... ) [] { return __VA_ARGS__; }
+#define L0_( ... ) [] { __VA_ARGS__; }
 
 #define L2( a ) \
   []( auto const& _1, auto const& _2 ) { return a; }
