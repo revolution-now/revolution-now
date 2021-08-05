@@ -109,8 +109,6 @@ parser<key_val> parser_for( lang<Rcl>, tag<key_val> ) {
       assignment() >> blanks() >> parse<Rcl, value>() );
 }
 
-parser<key_val> parse_kv() { return parse<Rcl, key_val>(); }
-
 /****************************************************************
 ** table
 *****************************************************************/
@@ -132,7 +130,7 @@ parser<rawdoc> parser_for( lang<Rcl>, tag<rawdoc> ) {
   // The blanks must be inside the diagnose.
   return diagnose( emplace<rawdoc>( parse_vec<key_val>() )
                        << blanks(),
-                   parse_kv() );
+                   parse<Rcl, key_val>() );
 }
 
 } // namespace rcl
