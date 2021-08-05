@@ -268,9 +268,9 @@ expect<table, string> post_process_table( table&& old ) {
 
 } // namespace
 
-base::expect<doc, std::string> doc::create( table tbl ) {
+base::expect<doc, std::string> doc::create( rawdoc rdoc ) {
   UNWRAP_RETURN( final_tbl,
-                 post_process_table( std::move( tbl ) ) );
+                 post_process_table( std::move( rdoc.tbl ) ) );
   return doc( std::move( final_tbl ) );
 }
 

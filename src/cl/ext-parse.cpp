@@ -19,6 +19,10 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/lambda.hpp"
+
+// Abseil
+#include "absl/strings/str_join.h"
 
 // C++ standard library
 #include <string>
@@ -34,47 +38,40 @@ namespace cl {
 
 namespace {
 
+auto joiner( string_view sv ) {
+  return [s = string( sv )]( vector<string> const& v ) {
+    return absl::StrJoin( v, s );
+  };
+}
+
 parser<string> unquoted_newline_delimited_str() {
-  char   c      = co_await not_of( ".[],{}\"'\n\r" );
-  string rest   = co_await many( not_of, "[],{}\"'\n\r" );
-  string result = c + rest;
-  if( result == "true" || result == "false" )
-    co_await fail( "expected string but found boolean" );
-  co_return result;
+  string res = co_await cat( not_of( "=:.[],{}\"'\n\r" ),
+                             many( not_of, "=:[],{}\"'\n\r" ) );
+  if( res == "true" || res == "false" ) co_await fail();
+  co_return res;
 }
 
 parser<> assignment() {
-  static constexpr string_view msg =
-      "expected key assignment, i.e. either ':', '=', space, or "
-      "tab.";
-  co_await on_error( ( blanks() >> chr( '=' ) ) |
-                         ( blanks() >> chr( ':' ) ) |
-                         one_of( " \t" ),
-                     msg );
-}
-
-parser<vector<key_val>> parse_kvs() {
-  auto kvs = co_await many( []() -> parser<key_val> {
-    co_await blanks();
-    key_val kv = co_await parse<cl_lang, key_val>();
-    co_await blanks();
-    co_await try_ignore( chr( ',' ) );
-    co_return kv;
-  } );
-  co_return kvs;
+  co_await( ( blanks() >> chr( '=' ) ) |
+            ( blanks() >> chr( ':' ) ) | one_of( " \t" ) );
 }
 
 parser<string> dotted_identifier() {
-  string         fst  = co_await identifier();
-  vector<string> rest = co_await many( []() -> parser<string> {
-    co_await chr( '.' );
-    co_return co_await identifier();
-  } );
-  for( auto const& elem : rest ) {
-    fst += '.';
-    fst += elem;
-  }
-  co_return fst;
+  return fmap( joiner( "." ),
+               interleave( identifier, L0( chr( '.' ) ) ) );
+}
+
+template<typename T>
+parser<vector<T>> parse_vec() {
+  return interleave_last( L0( blanks() >> parse<cl_lang, T>() ),
+                          L0( blanks() >> chr( ',' ) ),
+                          /*sep_required=*/false );
+}
+
+template<typename T>
+parser<vector<T>> bracketed_vec( char l, char r ) {
+  return bracketed( blanks() >> chr( l ), parse_vec<T>(),
+                    blanks() >> chr( r ) );
 }
 
 } // namespace
@@ -83,79 +80,59 @@ parser<string> dotted_identifier() {
 ** string_val
 *****************************************************************/
 parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
-  return construct<string_val>(
-      unquoted_newline_delimited_str() | quoted_str() );
+  return emplace<string_val>( unquoted_newline_delimited_str() |
+                              quoted_str() );
 }
 
 /****************************************************************
 ** boolean
 *****************************************************************/
 parser<boolean> parser_for( lang<cl_lang>, tag<boolean> ) {
-  co_return co_await( ( str( "true" ) >> ret( true ) ) |
-                      ( str( "false" ) >> ret( false ) ) );
+  return ( str( "true" ) >> ret( boolean{ true } ) ) |
+         ( str( "false" ) >> ret( boolean{ false } ) );
 }
 
 /****************************************************************
 ** number
 *****************************************************************/
 parser<number> parser_for( lang<cl_lang>, tag<number> ) {
-  bool   neg = bool( co_await try_{ chr( '-' ) } );
-  string num = co_await many1_L( digit() | chr( '.' ) );
-  if( num.find_first_not_of( '.' ) == string::npos )
-    co_await fail( "expected number" );
-  if( neg ) num = '-' + num;
-  if( num.find_first_of( '.' ) != string::npos )
-    co_return co_await unwrap( base::from_chars<double>( num ) );
-  co_return co_await unwrap(
-      base::from_chars<int>( num, /*base=*/10 ) );
+  return fmap( L( number{ _ } ), parse<cl_lang, double>() ) |
+         fmap( L( number{ _ } ), parse<cl_lang, int>() );
 }
 
 /****************************************************************
 ** key_val
 *****************************************************************/
 parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {
-  return construct<key_val>(
+  return emplace<key_val>(
       blanks() >> dotted_identifier(),
-      assignment() >> blanks() >>
-          on_error( parse<cl_lang, value>(),
-                    "expected value" ) );
+      assignment() >> blanks() >> parse<cl_lang, value>() );
 }
+
+parser<key_val> parse_kv() { return parse<cl_lang, key_val>(); }
 
 /****************************************************************
 ** table
 *****************************************************************/
 parser<table> parser_for( lang<cl_lang>, tag<table> ) {
-  co_await( blanks() >> chr( '{' ) );
-  auto tbl = co_await parse_kvs();
-  co_await( blanks() >> chr( '}' ) );
-  co_return tbl;
+  co_return co_await bracketed_vec<key_val>( '{', '}' );
 }
 
 /****************************************************************
 ** list
 *****************************************************************/
 parser<list> parser_for( lang<cl_lang>, tag<list> ) {
-  co_await( blanks() >> chr( '[' ) );
-  auto lst = co_await many( []() -> parser<value> {
-    co_await blanks();
-    value v = co_await parse<cl_lang, value>();
-    co_await blanks();
-    co_await chr( ',' );
-    co_return v;
-  } );
-  co_await( blanks() >> chr( ']' ) );
-  co_return lst;
+  co_return co_await bracketed_vec<value>( '[', ']' );
 }
 
 /****************************************************************
 ** doc
 *****************************************************************/
-parser<doc> parser_for( lang<cl_lang>, tag<doc> ) {
-  auto expected = parse<cl_lang, key_val>();
-  co_return co_await unwrap( co_await diagnose_with(
-      parz::apply( doc::create,
-                   seq_first( parse_kvs(), blanks() ) ),
-      move( expected ) ) );
+parser<rawdoc> parser_for( lang<cl_lang>, tag<rawdoc> ) {
+  // The blanks must be inside the diagnose.
+  return diagnose( emplace<rawdoc>( parse_vec<key_val>() )
+                       << blanks(),
+                   parse_kv() );
 }
 
 } // namespace cl

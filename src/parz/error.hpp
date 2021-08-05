@@ -42,6 +42,14 @@ private:
 template<typename T>
 using result_t = base::expect<T, error>;
 
+// Helper for translating character position in buffer to
+// line/col for error messages.
+struct ErrorPos {
+  static ErrorPos from_index( std::string_view in, int idx );
+  int             line;
+  int             col;
+};
+
 } // namespace parz
 
 DEFINE_FORMAT( parz::error, "{}", o.what() );

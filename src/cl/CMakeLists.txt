@@ -16,6 +16,7 @@ set_warning_options( rn-cl )
 target_link_libraries(
     rn-cl
     PUBLIC
+    absl::strings
     rn-base
     rn-parz
 )

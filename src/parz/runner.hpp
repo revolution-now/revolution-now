@@ -29,12 +29,6 @@
 *****************************************************************/
 namespace parz {
 
-struct ErrorPos {
-  static ErrorPos from_index( std::string_view in, int idx );
-  int             line;
-  int             col;
-};
-
 // `filename` is the original file name that the string came
 // from, in order to improve error messages.
 template<typename T>

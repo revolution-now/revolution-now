@@ -52,7 +52,12 @@ parser<char> any_chr();
 
 struct Ret {
   template<typename T>
-  parser<T> operator()( T&& o ) const {
+  // Take o by value for lifetime reasons. Specifically, this
+  // combinator will typically be used in a function where we may
+  // just want to do a `return' instead of co_await + co_return,
+  // and in that case if we were to take this argument by refer-
+  // ence it would go out of scope.
+  parser<T> operator()( T o ) const {
     co_return FWD( o );
   }
 };
@@ -153,6 +158,35 @@ struct Many {
 inline constexpr Many many{};
 
 /****************************************************************
+** many_exhuast
+*****************************************************************/
+// This runs a `many' combinator, but one that expects to consume
+// all of the input. The reason this is better than combining the
+// `many' combinator with the `exhaust' combinator is because the
+// `many_exhaust' combinator knows what it failed to parse if it
+// fails to parse the entire input and so can produce better
+// error messages.
+//
+// You should call this whenever you need to consume an entire
+// input (or remainder of input) with a single repeating parser.
+struct ManyExhaust {
+  template<typename Func, typename... Args>
+  auto operator()( Func f, Args... args ) const -> parser<
+      many_result_container_t<typename std::invoke_result_t<
+          Func, Args...>::value_type>> {
+    auto res = try_{ exaust( many( f, args... ) ) };
+    if( res.has_value() ) co_return std::move( *res );
+    // We've failed to consume the entire input, so now run the
+    // element parser once more (knowing that it will fail) so
+    // that it can give us the location of failure.
+    (void)co_await f( args... );
+    SHOULD_NOT_BE_HERE;
+  }
+};
+
+inline constexpr ManyExhaust many_exhaust{};
+
+/****************************************************************
 ** many_type
 *****************************************************************/
 // Parses zero or more of the given type.
@@ -206,7 +240,7 @@ struct Seq {
 inline constexpr Seq seq{};
 
 /****************************************************************
-** apply
+** invoke
 *****************************************************************/
 // Calls the given function with the results of the parsers as
 // arguments (which must all succeed).
@@ -214,7 +248,7 @@ inline constexpr Seq seq{};
 // NOTE: the parsers are guaranteed to be run in the order they
 // appear in the parameter list, and that is one of the benefits
 // of using this helper.
-struct Apply {
+struct Invoke {
   // Take func by value for lifetime reasons.
   // clang-format off
   template<size_t... Idx, typename Func, typename... Parsers>
@@ -263,26 +297,26 @@ struct Apply {
   }
 };
 
-inline constexpr Apply apply{};
+inline constexpr Invoke invoke{};
 
 /****************************************************************
-** construct
+** emplace
 *****************************************************************/
 // Calls the constructor of the given type with the results of
 // the parsers as arguments (which must all succeed).
 template<typename T>
-struct Construct {
+struct Emplace {
   template<typename... Parsers>
   parser<T> operator()( Parsers... ps ) const {
     auto applier = [&]( auto&&... args ) {
       return T( FWD( args )... );
     };
-    return apply( applier, std::move( ps )... );
+    return invoke( applier, std::move( ps )... );
   }
 };
 
 template<typename T>
-inline constexpr Construct<T> construct{};
+inline constexpr Emplace<T> emplace{};
 
 /****************************************************************
 ** seq_last
@@ -314,7 +348,7 @@ struct SeqFirst {
   parser<typename Parser::value_type> operator()(
       Parser fst, Parsers... ps ) const {
     auto res = co_await std::move( fst );
-    ( co_await std::move( ps ), ... );
+    ( (void)co_await std::move( ps ), ... );
     co_return res;
   }
 };
@@ -337,7 +371,7 @@ struct OnError {
 inline constexpr OnError on_error{};
 
 /****************************************************************
-** diagnose_with
+** diagnose
 *****************************************************************/
 // This will run the first parser, and if it fails then this
 // parser fails. But if the first parser succeeds but does not
@@ -351,7 +385,7 @@ inline constexpr OnError on_error{};
 // is. In the event that the second parser does succeed, this
 // parser will still fail in that case, but with a more generic
 // error message.
-struct DiagnoseWith {
+struct Diagnose {
   template<Parser P1, Parser P2>
   P1 operator()( P1 p1, P2 expected ) const {
     auto res = co_await std::move( p1 );
@@ -370,7 +404,7 @@ struct DiagnoseWith {
   }
 };
 
-inline constexpr DiagnoseWith diagnose_with{};
+inline constexpr Diagnose diagnose{};
 
 /****************************************************************
 ** exhaust
@@ -402,6 +436,12 @@ struct Unwrap {
     if( !o ) co_await fail( fmt::format( "{}", o.error() ) );
     co_return *FWD( o );
   }
+
+  template<typename T>
+  parser<std::remove_cvref_t<decltype( *std::declval<T>() )>>
+  operator()( parser<T> p ) const {
+    co_return co_await ( *this )( co_await std::move( p ) );
+  }
 };
 
 inline constexpr Unwrap unwrap{};
@@ -416,6 +456,15 @@ struct Bracketed {
     co_await chr( l );
     T res = co_await std::move( p );
     co_await chr( r );
+    co_return res;
+  }
+
+  template<typename L, typename R, typename T>
+  parser<T> operator()( parser<L> l, parser<T> p,
+                        parser<R> r ) const {
+    (void)co_await std::move( l );
+    T res = co_await std::move( p );
+    (void)co_await std::move( r );
     co_return res;
   }
 };
@@ -436,6 +485,23 @@ struct TryIgnore {
 inline constexpr TryIgnore try_ignore{};
 
 /****************************************************************
+** fmap
+*****************************************************************/
+// Runs the parser p between characters l and r.
+struct Fmap {
+  // clang-format off
+  template<Parser P, typename Func>
+    requires( std::is_invocable_v<Func, typename P::value_type> )
+  parser<std::invoke_result_t<Func, typename P::value_type>>
+  operator()( Func f, P p ) const {
+    // clang-format on
+    co_return f( co_await std::move( p ) );
+  }
+};
+
+inline constexpr Fmap fmap{};
+
+/****************************************************************
 ** First
 *****************************************************************/
 // Runs the parsers in sequence until the first one succeeds,
@@ -443,9 +509,13 @@ inline constexpr TryIgnore try_ignore{};
 // same result type). If none of them succeed then the parser
 // fails.
 struct First {
+  // clang-format off
   template<typename P, typename... Ps>
+  requires( std::is_same_v<typename P::value_type,
+                           typename Ps::value_type> && ...)
   parser<typename P::value_type> operator()( P fst,
                                              Ps... rest ) const {
+    // clang-format on
     using res_t = typename P::value_type;
     base::maybe<res_t> res;
 
@@ -466,11 +536,106 @@ struct First {
 inline constexpr First first{};
 
 /****************************************************************
+** interleave_first
+*****************************************************************/
+// Parses: g f g f g f
+// and returns the f's.
+struct InterleaveFirst {
+  template<typename F, typename G>
+  // Take functions by value for lifetime reasons.
+  auto operator()( F f, G g, bool sep_required = true ) const
+      -> parser<many_result_container_t<
+          typename std::invoke_result_t<F>::value_type>> {
+    if( sep_required )
+      co_return co_await many(
+          [&] { return seq_last( g(), f() ); } );
+    else
+      co_return co_await many(
+          [&] { return seq_first( try_{ g() }, f() ); } );
+  }
+};
+
+inline constexpr InterleaveFirst interleave_first{};
+
+/****************************************************************
+** interleave_last
+*****************************************************************/
+// Parses: f g f g f g
+// and returns the f's.
+struct InterleaveLast {
+  template<typename F, typename G>
+  // Take functions by value for lifetime reasons.
+  auto operator()( F f, G g, bool sep_required = true ) const
+      -> parser<many_result_container_t<
+          typename std::invoke_result_t<F>::value_type>> {
+    if( sep_required )
+      co_return co_await many(
+          [&] { return seq_first( f(), g() ); } );
+    else
+      co_return co_await many(
+          [&] { return seq_first( f(), try_{ g() } ); } );
+  }
+};
+
+inline constexpr InterleaveLast interleave_last{};
+
+/****************************************************************
+** interleave
+*****************************************************************/
+// Parses: f g f g f
+// and returns the f's.
+struct Interleave {
+  template<typename F, typename G>
+  // Take functions by value for lifetime reasons.
+  auto operator()( F f, G g, bool sep_required = true ) const
+      -> parser<many_result_container_t<
+          typename std::invoke_result_t<F>::value_type>> {
+    auto container =
+        co_await interleave_last( f, g, sep_required );
+    if( sep_required )
+      // If the separator was not required then the above call to
+      // interleave_last will have already picked up the last
+      // f(). If the separate is required then the above will
+      // have either parsed nothing or will have ended by parsing
+      // a separator, in which case we need to parse one more f.
+      container.push_back( co_await f() );
+    co_return container;
+  }
+};
+
+inline constexpr Interleave interleave{};
+
+/****************************************************************
+** cat
+*****************************************************************/
+// Runs multiple string-yielding parsers in sequence and concate-
+// nates the results into one string.
+struct Cat {
+  template<typename... Parsers>
+  parser<std::string> operator()( Parsers... ps ) const {
+    std::string res;
+    ( ( res += co_await std::move( ps ) ), ... );
+    co_return res;
+  }
+};
+
+inline constexpr Cat cat{};
+
+/****************************************************************
 ** Haskell-like sequencing operator
 *****************************************************************/
+// Run the parsers in sequence (all must succeed) and return the
+// result of the final one.
 template<Parser T, Parser U>
 parser<typename U::value_type> operator>>( T l, U r ) {
   return seq_last( std::move( l ), std::move( r ) );
+}
+
+// Run the parsers in sequence (all must succeed) and return the
+// result of the first one.
+template<Parser T, Parser U>
+parser<typename T::value_type> operator<<( T l, U r ) {
+  return seq_first( std::move( l ), std::move( r ) );
 }
 
 template<Parser T, Parser U>

@@ -76,9 +76,9 @@ base::expect<doc, std::string> parse_file(
     FATAL( "{}", base::error_read_text_file_msg(
                      filename, buffer.error() ) );
   blankify_comments( *buffer );
-  UNWRAP_RETURN( d, parz::parse_from_string<cl_lang, doc>(
-                        filename, *buffer ) );
-  return std::move( d );
+  UNWRAP_RETURN( rdoc, parz::parse_from_string<cl_lang, rawdoc>(
+                           filename, *buffer ) );
+  return doc::create( std::move( rdoc ) );
 }
 
 } // namespace cl

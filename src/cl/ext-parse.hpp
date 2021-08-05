@@ -19,8 +19,8 @@
 namespace cl {
 
 // doc
-parz::parser<doc> parser_for( parz::lang<cl_lang>,
-                              parz::tag<doc> );
+parz::parser<rawdoc> parser_for( parz::lang<cl_lang>,
+                                 parz::tag<rawdoc> );
 
 // table
 parz::parser<table> parser_for( parz::lang<cl_lang>,

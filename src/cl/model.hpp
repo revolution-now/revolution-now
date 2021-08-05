@@ -35,6 +35,7 @@ struct list;
 
 struct string_val {
   string_val() = default;
+  string_val( std::string_view s ) : val( s ) {}
   string_val( std::string s ) : val( std::move( s ) ) {}
   std::string val;
 };
@@ -89,8 +90,14 @@ struct list {
   std::string pretty_print( std::string_view indent = "" ) const;
 };
 
+struct rawdoc {
+  rawdoc() = default;
+  rawdoc( table&& tbl_ ) : tbl( std::move( tbl_ ) ) {}
+  table tbl;
+};
+
 struct doc {
-  static base::expect<doc, std::string> create( table tbl );
+  static base::expect<doc, std::string> create( rawdoc tbl );
 
   table tbl;
 
@@ -101,6 +108,8 @@ private:
 } // namespace cl
 
 DEFINE_FORMAT( cl::table, "{}", o.pretty_print() );
+DEFINE_FORMAT( cl::boolean, "{}", o.b );
+DEFINE_FORMAT( cl::number, "{}", o.val );
 DEFINE_FORMAT( cl::list, "{}", o.pretty_print() );
 DEFINE_FORMAT( cl::string_val, "{}", o.val );
 DEFINE_FORMAT( cl::doc, "{}", o.tbl.pretty_print() );
