@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "parse.hpp"
 
-// cl
+// rcl
 #include "parse-fast.hpp"
 
 // base
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cl {
+namespace rcl {
 
 void blankify_comments( std::string& text ) {
   bool in_comment     = false;
@@ -79,4 +79,4 @@ base::expect<doc, std::string> parse_file(
   return doc::create( std::move( rdoc ) );
 }
 
-} // namespace cl
+} // namespace rcl

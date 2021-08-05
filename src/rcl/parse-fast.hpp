@@ -5,19 +5,19 @@
 *
 * Created by dsicilia on 2021-08-04.
 *
-* Description: Fast parser for the cl config language.
+* Description: Fast parser for the rcl config language.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// cl
+// rcl
 #include "model.hpp"
 
-namespace cl {
+namespace rcl {
 
-// This is a parser for the cl language that is essentially
+// This is a parser for the rcl language that is essentially
 // written in C, and as a result it is super fast.
 //
 // WARNING: this function is NOT thread safe as it uses global
@@ -25,4 +25,4 @@ namespace cl {
 base::expect<rawdoc, std::string> parse_fast(
     std::string_view filename, std::string_view in );
 
-} // namespace cl
+} // namespace rcl

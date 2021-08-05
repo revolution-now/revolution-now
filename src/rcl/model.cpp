@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-07-30.
 *
-* Description: Document model for cl (config language) files.
+* Description: Document model for rcl (config language) files.
 *
 *****************************************************************/
 #include "model.hpp"
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cl {
+namespace rcl {
 
 using ::base::expect;
 using ::base::maybe;
@@ -274,4 +274,4 @@ base::expect<doc, std::string> doc::create( rawdoc rdoc ) {
   return doc( std::move( final_tbl ) );
 }
 
-} // namespace cl
+} // namespace rcl

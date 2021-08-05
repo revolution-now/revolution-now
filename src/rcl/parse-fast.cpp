@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-08-04.
 *
-* Description: Fast parser for the cl config language.
+* Description: Fast parser for the rcl config language.
 *
 *****************************************************************/
 #include "parse-fast.hpp"
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace cl {
+namespace rcl {
 
 namespace {
 
@@ -312,4 +312,4 @@ base::expect<rawdoc, string> parse_fast( string_view filename,
   return rawdoc( table( std::move( kvs ) ) );
 }
 
-} // namespace cl
+} // namespace rcl

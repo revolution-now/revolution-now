@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-07-30.
 *
-* Description: parz parser extension for cl model.
+* Description: parz parser extension for rcl model.
 *
 *****************************************************************/
 #include "ext-parse.hpp"
@@ -34,7 +34,7 @@ using namespace parz;
 
 using ::base::maybe;
 
-namespace cl {
+namespace rcl {
 
 namespace {
 
@@ -63,7 +63,7 @@ parser<string> dotted_identifier() {
 
 template<typename T>
 parser<vector<T>> parse_vec() {
-  return interleave_last( L0( blanks() >> parse<cl_lang, T>() ),
+  return interleave_last( L0( blanks() >> parse<rcl_lang, T>() ),
                           L0( blanks() >> chr( ',' ) ),
                           /*sep_required=*/false );
 }
@@ -79,7 +79,7 @@ parser<vector<T>> bracketed_vec( char l, char r ) {
 /****************************************************************
 ** string_val
 *****************************************************************/
-parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
+parser<string_val> parser_for( lang<rcl_lang>, tag<string_val> ) {
   return emplace<string_val>( unquoted_newline_delimited_str() |
                               quoted_str() );
 }
@@ -87,7 +87,7 @@ parser<string_val> parser_for( lang<cl_lang>, tag<string_val> ) {
 /****************************************************************
 ** boolean
 *****************************************************************/
-parser<boolean> parser_for( lang<cl_lang>, tag<boolean> ) {
+parser<boolean> parser_for( lang<rcl_lang>, tag<boolean> ) {
   return ( str( "true" ) >> ret( boolean{ true } ) ) |
          ( str( "false" ) >> ret( boolean{ false } ) );
 }
@@ -95,44 +95,44 @@ parser<boolean> parser_for( lang<cl_lang>, tag<boolean> ) {
 /****************************************************************
 ** number
 *****************************************************************/
-parser<number> parser_for( lang<cl_lang>, tag<number> ) {
-  return fmap( L( number{ _ } ), parse<cl_lang, double>() ) |
-         fmap( L( number{ _ } ), parse<cl_lang, int>() );
+parser<number> parser_for( lang<rcl_lang>, tag<number> ) {
+  return fmap( L( number{ _ } ), parse<rcl_lang, double>() ) |
+         fmap( L( number{ _ } ), parse<rcl_lang, int>() );
 }
 
 /****************************************************************
 ** key_val
 *****************************************************************/
-parser<key_val> parser_for( lang<cl_lang>, tag<key_val> ) {
+parser<key_val> parser_for( lang<rcl_lang>, tag<key_val> ) {
   return emplace<key_val>(
       blanks() >> dotted_identifier(),
-      assignment() >> blanks() >> parse<cl_lang, value>() );
+      assignment() >> blanks() >> parse<rcl_lang, value>() );
 }
 
-parser<key_val> parse_kv() { return parse<cl_lang, key_val>(); }
+parser<key_val> parse_kv() { return parse<rcl_lang, key_val>(); }
 
 /****************************************************************
 ** table
 *****************************************************************/
-parser<table> parser_for( lang<cl_lang>, tag<table> ) {
+parser<table> parser_for( lang<rcl_lang>, tag<table> ) {
   co_return co_await bracketed_vec<key_val>( '{', '}' );
 }
 
 /****************************************************************
 ** list
 *****************************************************************/
-parser<list> parser_for( lang<cl_lang>, tag<list> ) {
+parser<list> parser_for( lang<rcl_lang>, tag<list> ) {
   co_return co_await bracketed_vec<value>( '[', ']' );
 }
 
 /****************************************************************
 ** doc
 *****************************************************************/
-parser<rawdoc> parser_for( lang<cl_lang>, tag<rawdoc> ) {
+parser<rawdoc> parser_for( lang<rcl_lang>, tag<rawdoc> ) {
   // The blanks must be inside the diagnose.
   return diagnose( emplace<rawdoc>( parse_vec<key_val>() )
                        << blanks(),
                    parse_kv() );
 }
 
-} // namespace cl
+} // namespace rcl

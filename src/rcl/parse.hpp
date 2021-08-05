@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-// cl
+// rcl
 #include "model.hpp"
 
 // base
@@ -19,7 +19,7 @@
 // C++ standard library
 #include <string_view>
 
-namespace cl {
+namespace rcl {
 
 // This will keep the string the same length but will ovewrite
 // all comments (comment delimiters and comment contents) with
@@ -29,4 +29,4 @@ void blankify_comments( std::string& text );
 base::expect<doc, std::string> parse_file(
     std::string_view filename );
 
-} // namespace cl
+} // namespace rcl

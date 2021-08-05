@@ -1,7 +1,7 @@
 # === subdirectories ==============================================
 
 add_subdirectory( base )
-add_subdirectory( cl )
+add_subdirectory( rcl )
 add_subdirectory( fb )
 add_subdirectory( luapp )
 add_subdirectory( parz )
@@ -41,7 +41,7 @@ target_link_libraries(
     lua::lua
     midifile
     rn-base
-    rn-cl
+    rn-rcl
     rn-luapp
     rn-parz
     rtmidi

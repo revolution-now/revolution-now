@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-07-30.
 *
-* Description: Document model for cl (config language) files.
+* Description: Document model for rcl (config language) files.
 *
 *****************************************************************/
 #pragma once
@@ -26,9 +26,9 @@
 /****************************************************************
 ** Document Model
 *****************************************************************/
-namespace cl {
+namespace rcl {
 
-struct cl_lang {};
+struct rcl_lang {};
 
 struct table;
 struct list;
@@ -105,11 +105,11 @@ private:
   doc( table tbl_ ) : tbl( std::move( tbl_ ) ) {}
 };
 
-} // namespace cl
+} // namespace rcl
 
-DEFINE_FORMAT( cl::table, "{}", o.pretty_print() );
-DEFINE_FORMAT( cl::boolean, "{}", o.b );
-DEFINE_FORMAT( cl::number, "{}", o.val );
-DEFINE_FORMAT( cl::list, "{}", o.pretty_print() );
-DEFINE_FORMAT( cl::string_val, "{}", o.val );
-DEFINE_FORMAT( cl::doc, "{}", o.tbl.pretty_print() );
+DEFINE_FORMAT( rcl::table, "{}", o.pretty_print() );
+DEFINE_FORMAT( rcl::boolean, "{}", o.b );
+DEFINE_FORMAT( rcl::number, "{}", o.val );
+DEFINE_FORMAT( rcl::list, "{}", o.pretty_print() );
+DEFINE_FORMAT( rcl::string_val, "{}", o.val );
+DEFINE_FORMAT( rcl::doc, "{}", o.tbl.pretty_print() );

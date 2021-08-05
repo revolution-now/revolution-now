@@ -15,9 +15,10 @@ let s:stems = [
   \ 'parz/ext-std',
   \ 'parz/ext-base',
   \ 'parz/runner',
-  \ 'cl/model',
-  \ 'cl/ext-parse',
-  \ 'cl/parse',
+  \ 'rcl/model',
+  \ 'rcl/ext-parse',
+  \ 'rcl/parse-fast',
+  \ 'rcl/parse',
 \]
 
 let s:luas = [

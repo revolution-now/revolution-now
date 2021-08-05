@@ -4,17 +4,17 @@
 file( GLOB sources "[a-zA-Z]*.cpp" )
 
 add_library(
-  rn-cl
+  rn-rcl
   STATIC
   ${sources}
 )
 
-target_compile_features( rn-cl PUBLIC cxx_std_20 )
-set_target_properties( rn-cl PROPERTIES CXX_EXTENSIONS OFF )
-set_warning_options( rn-cl )
+target_compile_features( rn-rcl PUBLIC cxx_std_20 )
+set_target_properties( rn-rcl PROPERTIES CXX_EXTENSIONS OFF )
+set_warning_options( rn-rcl )
 
 target_link_libraries(
-    rn-cl
+    rn-rcl
     PUBLIC
     absl::strings
     rn-base
@@ -22,10 +22,10 @@ target_link_libraries(
 )
 
 target_include_directories(
-    rn-cl
+    rn-rcl
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
-clang_tidy( rn-cl )
+clang_tidy( rn-rcl )
