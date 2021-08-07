@@ -45,37 +45,15 @@ void build_index_table( cthread L ) {
     if( C.type_of( -1 ) != type::string ) return 0;
     // The key is a string.
 
-    /************************************************************
-    ** See if key is in metatable.
-    *************************************************************/
-    // FIXME: find a better way to handle these special members.
+    // Fetch metatable.
     C.pushvalue( upvalue_index( 1 ) ); // userdata metatable.
     // Stack:
     //   metatable
     //   key
     //   userdata
-    C.pushvalue( -2 );
-    // Stack:
-    //   key
-    //   metatable
-    //   key
-    //   userdata
-    C.gettable( -2 );
-    // Stack:
-    //   value
-    //   metatable
-    //   key
-    //   userdata
-    if( C.type_of( -1 ) != type::nil ) return 1;
-    // Stack:
-    //   nil
-    //   metatable
-    //   key
-    //   userdata
-    C.pop();
 
     /************************************************************
-    ** Key is not in metatable, check member_types.
+    ** First check member_types.
     *************************************************************/
     // Stack:
     //   metatable

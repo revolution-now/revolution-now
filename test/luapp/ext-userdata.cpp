@@ -150,9 +150,13 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 == &o );
 
-  REQUIRE( cast<bool>( st["x"]["is_owned_by_lua"] ) == false );
-  REQUIRE( C.dostring( "assert( not x.is_owned_by_lua )" ) ==
-           valid );
+  REQUIRE(
+      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      false );
+  REQUIRE(
+      C.dostring(
+          "assert( not getmetatable( x ).is_owned_by_lua )" ) ==
+      valid );
 
   st["foo"] = []( CppOwned const& o0, CppOwned& o1,
                   CppOwned o2 ) { return o0.n + o1.n + o2.n; };
@@ -218,9 +222,13 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 == &o );
 
-  REQUIRE( cast<bool>( st["x"]["is_owned_by_lua"] ) == false );
-  REQUIRE( C.dostring( "assert( not x.is_owned_by_lua )" ) ==
-           valid );
+  REQUIRE(
+      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      false );
+  REQUIRE(
+      C.dostring(
+          "assert( not getmetatable( x ).is_owned_by_lua )" ) ==
+      valid );
 
   st["foo"] = []( CppOwnedNonCopyable const& o0,
                   CppOwnedNonCopyable&       o1 ) {
@@ -287,8 +295,11 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 != &o );
 
-  REQUIRE( cast<bool>( st["x"]["is_owned_by_lua"] ) == true );
-  REQUIRE( C.dostring( "assert( x.is_owned_by_lua )" ) ==
+  REQUIRE(
+      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      true );
+  REQUIRE( C.dostring(
+               "assert( getmetatable( x ).is_owned_by_lua )" ) ==
            valid );
 
   st["foo"] = []( LuaOwned const& o0, LuaOwned& o1,
@@ -356,8 +367,11 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 != &o );
 
-  REQUIRE( cast<bool>( st["x"]["is_owned_by_lua"] ) == true );
-  REQUIRE( C.dostring( "assert( x.is_owned_by_lua )" ) ==
+  REQUIRE(
+      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      true );
+  REQUIRE( C.dostring(
+               "assert( getmetatable( x ).is_owned_by_lua )" ) ==
            valid );
 
   st["foo"] = []( LuaOwnedNonCopyable const& o0,

@@ -89,9 +89,8 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
 
   // check __index.
   rfunction m__index = cast<rfunction>( metatable1["__index"] );
-  REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
-           type::boolean );
-  REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == true );
+  // No checks yet.
+  (void)m__index;
 
   // check __newindex.
   rfunction m__newindex =
@@ -200,9 +199,8 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
 
   // check __index.
   rfunction m__index = cast<rfunction>( metatable1["__index"] );
-  REQUIRE( type_of( m__index( userdata1, "is_owned_by_lua" ) ) ==
-           type::boolean );
-  REQUIRE( m__index( userdata1, "is_owned_by_lua" ) == false );
+  // No checks yet.
+  (void)m__index;
 
   // check __newindex.
   rfunction m__newindex =
