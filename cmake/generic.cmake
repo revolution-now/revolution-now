@@ -105,9 +105,6 @@ set( SANITIZER_FLAGS
   -fsanitize=address
   # This enables all of the UBSan (undefined behavior) checks.
   -fsanitize=undefined
-  # FIXME: Re-enable this check when sol2 is fixed:
-  #   https://github.com/ThePhD/sol2/issues/1071.
-  -fno-sanitize=pointer-overflow
 )
 
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU" )
