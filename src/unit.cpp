@@ -150,6 +150,12 @@ LUA_STARTUP( lua::state& st ) {
   u["sentry"]        = &U::sentry;
   u["fortify"]       = &U::fortify;
   u["clear_orders"]  = &U::clear_orders;
+
+  u[lua::metatable_key]["__tostring"] = []( U const& u ) {
+    return fmt::format( "{} {} (id={})",
+                        u.nation_desc().adjective, u.desc().name,
+                        u.id() );
+  };
 };
 
 } // namespace
