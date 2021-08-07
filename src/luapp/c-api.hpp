@@ -215,6 +215,11 @@ struct c_api {
   // metamethod. Pops the value from the stack.
   void rawseti( int idx, int n ) noexcept;
 
+  // Pushes (idx)[-1], popping key from stack, but not table. Un-
+  // like lua_gettable, this will not consult the metatable.
+  // Pushes the resulting value and returns its type.
+  type rawget( int idx ) noexcept;
+
   /**************************************************************
   ** get/set globals
   ***************************************************************/

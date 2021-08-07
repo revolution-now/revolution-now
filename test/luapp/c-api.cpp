@@ -1057,6 +1057,33 @@ LUA_TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
   C.pop( 2 );
 }
 
+LUA_TEST_CASE( "[lua-c-api] rawget" ) {
+  C.openlibs();
+  st.script.run( R"(
+    hello = setmetatable( {}, {
+      __index=function( t, k )
+        return 5
+      end
+    } )
+  )" );
+
+  REQUIRE( C.stack_size() == 0 );
+  C.getglobal( "hello" );
+  REQUIRE( C.stack_size() == 1 );
+  C.push( "xyz" );
+  REQUIRE( C.stack_size() == 2 );
+  C.gettable( -2 );
+  REQUIRE( C.type_of( -1 ) == type::number );
+  REQUIRE( C.stack_size() == 2 );
+  C.pop();
+  C.push( "xyz" );
+  REQUIRE( C.stack_size() == 2 );
+  C.rawget( -2 );
+  REQUIRE( C.type_of( -1 ) == type::nil );
+  REQUIRE( C.stack_size() == 2 );
+  C.pop( 2 );
+}
+
 LUA_TEST_CASE(
     "[lua-c-api] ref/ref_registry/registry_get/unref" ) {
   C.push( 5 );

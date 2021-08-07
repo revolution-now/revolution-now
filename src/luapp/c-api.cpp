@@ -437,6 +437,11 @@ type c_api::gettable( int idx ) {
   return lua_type_to_enum( lua_gettable( L, idx ) );
 }
 
+type c_api::rawget( int idx ) noexcept {
+  validate_index( idx );
+  return lua_type_to_enum( lua_rawget( L, idx ) );
+}
+
 type c_api::rawgeti( int idx, int n ) noexcept {
   validate_index( idx );
   return lua_type_to_enum( lua_rawgeti( L, idx, n ) );
