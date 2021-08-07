@@ -80,7 +80,7 @@ bool parse_key( string_view* out ) {
     }
     ++g_cur;
   }
-  *out = string_view( start, g_cur );
+  *out = string_view( start, g_cur - start );
   return true;
 }
 
@@ -157,7 +157,7 @@ bool parse_number( number* out ) {
     if( is_leading_identifier_char( *g_cur ) )
       return FAIL_RESTORE;
   }
-  string_view sv( start, g_cur );
+  string_view sv( start, g_cur - start );
 
   if( sv.find_first_of( '.' ) != string_view::npos ) {
     // double.
@@ -184,7 +184,7 @@ bool parse_unquoted_string( string_view* out ) {
     ++g_cur;
   }
   if( start == g_cur ) return false;
-  *out = string_view( start, g_cur );
+  *out = string_view( start, g_cur - start );
   return true;
 }
 
@@ -197,7 +197,7 @@ bool parse_string( string_val* out ) {
     char const* start = g_cur;
     while( g_cur != g_end && *g_cur != '"' ) ++g_cur;
     if( g_cur == g_end ) return false;
-    *out = string_val( string_view( start, g_cur ) );
+    *out = string_val( string_view( start, g_cur - start ) );
     DCHECK( *g_cur == '"' );
     ++g_cur;
     return true;
@@ -209,7 +209,7 @@ bool parse_string( string_val* out ) {
     char const* start = g_cur;
     while( g_cur != g_end && *g_cur != '\'' ) ++g_cur;
     if( g_cur == g_end ) return false;
-    *out = string_val( string_view( start, g_cur ) );
+    *out = string_val( string_view( start, g_cur - start ) );
     DCHECK( *g_cur == '\'' );
     ++g_cur;
     return true;
@@ -224,7 +224,7 @@ bool parse_string( string_val* out ) {
 
 bool look_ahead_str( string_view sv ) {
   if( int( g_end - g_cur ) < int( sv.size() ) ) return false;
-  return string_view( g_cur, g_cur + sv.size() ) == sv;
+  return string_view( g_cur, sv.size() ) == sv;
 }
 
 bool parse_value( value* out ) {
