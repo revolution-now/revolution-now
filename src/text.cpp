@@ -138,7 +138,7 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
 ** Markup Parsing
 *****************************************************************/
 /*
- * // The below is a parz parser for this markup DSL if it will
+ * // The below is a parsco parser for this markup DSL if it will
  * // ever be of interest.
  *
  * struct markup_lang {};
@@ -162,18 +162,18 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
  *
  * parser<text> parser_for( lang<markup_lang>, tag<text> ) {
  *   auto at = [] { return str( "@@" ) >> ret( '@' ); };
- *   return construct<text>( some_L( not_of( "@" ) | at() ) );
+ *   return emplace<text>( many1_L( not_of( "@" ) | at() ) );
  * }
  *
  * parser<markup> parser_for( lang<markup_lang>, tag<markup> ) {
  *   return construct<markup>(
  *       chr( '@' ) >>
- *       bracketed( '[', repeated( one_of, "HS" ), ']' ) );
+ *       bracketed( '[', many( one_of, "HS" ), ']' ) );
  * }
  *
  * parser<doc> parser_for( lang<markup_lang>, tag<doc> ) {
  *   return construct<doc>(
- *       exhaust( repeated_parse<markup_lang, item>() ) );
+ *       exhaust( many_type<markup_lang, item>() ) );
  * }
  */
 

@@ -4,7 +4,6 @@ add_subdirectory( base )
 add_subdirectory( rcl )
 add_subdirectory( fb )
 add_subdirectory( luapp )
-add_subdirectory( parz )
 add_subdirectory( rds )
 
 # === this directory ==============================================
@@ -43,7 +42,6 @@ target_link_libraries(
     rn-base
     rn-rcl
     rn-luapp
-    rn-parz
     rtmidi
     spdlog::spdlog
     Threads::Threads

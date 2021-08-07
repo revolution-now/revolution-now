@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "parse-fast.hpp"
 
-// parz
-#include "parz/error.hpp"
-
 // base
 #include "base/conv.hpp"
 #include "base/error.hpp"
@@ -35,6 +32,21 @@ char const* g_end   = nullptr;
 /****************************************************************
 ** Helpers
 *****************************************************************/
+// Given a multiline string and a position in it, compute the
+// line and column numbers for error messages.
+pair<int, int> error_pos( string_view in, int idx ) {
+  assert( idx <= int( in.size() ) );
+  int line = 1, col = 1;
+  for( int i = 0; i < idx; ++i ) {
+    ++col;
+    if( in[i] == '\n' ) {
+      ++line;
+      col = 1;
+    }
+  }
+  return { line, col };
+}
+
 bool is_nonnewline_blank( char c ) {
   return ( c == ' ' ) || ( c == '\t' );
 }
@@ -304,10 +316,10 @@ base::expect<rawdoc, string> parse_fast( string_view filename,
   vector<key_val> kvs;
   while( parse_key_val( &kvs ) ) {}
 
-  auto ep = parz::ErrorPos::from_index( in, g_cur - g_start );
+  auto [line, col] = error_pos( in, g_cur - g_start );
   if( g_cur != g_end )
     return fmt::format( "{}:error:{}:{}: unexpected character\n",
-                        filename, ep.line, ep.col );
+                        filename, line, col );
 
   return rawdoc( table( std::move( kvs ) ) );
 }
