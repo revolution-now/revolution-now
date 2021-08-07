@@ -269,6 +269,16 @@ bool operator==( indexer<IndexT, Predecessor> const& idxr,
   return internal::indexer_eq( L );
 }
 
+/****************************************************************
+** any
+*****************************************************************/
+// This member function of the `any` class must be defined here
+// in order to avoid circular header dependencies.
+template<typename U>
+auto any::operator[]( U&& idx ) const noexcept {
+  return indexer<U, any>( std::forward<U>( idx ), *this );
+}
+
 } // namespace lua
 
 EVAL( DEFINE_FORMAT_T( ( I, P ), (::lua::indexer<I, P>), "{}",

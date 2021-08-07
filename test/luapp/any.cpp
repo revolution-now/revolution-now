@@ -163,5 +163,13 @@ LUA_TEST_CASE( "[any] any copy --> no collect" ) {
   verify_collect( true );
 }
 
+LUA_TEST_CASE( "[any] any indexing" ) {
+  st["x"]      = st.table.create();
+  st["x"]["y"] = 5;
+
+  any a = st["x"];
+  REQUIRE( a["y"] == 5 );
+}
+
 } // namespace
 } // namespace lua

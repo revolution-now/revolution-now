@@ -51,6 +51,11 @@ struct any : base::zero<any, int> {
   friend base::maybe<any> lua_get( cthread L, int idx,
                                    tag<any> );
 
+  // The body of this has to be defined in the indexer header in
+  // order to avoid circular header dependencies.
+  template<typename U>
+  auto operator[]( U&& idx ) const noexcept;
+
 private:
   using Base = base::zero<any, int>;
   friend Base;
