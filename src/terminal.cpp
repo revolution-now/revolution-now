@@ -206,20 +206,11 @@ vector<string> autocomplete( string_view fragment ) {
   vector<string> initial_segments(
       segments.begin(),
       segments.empty() ? segments.end() : segments.end() - 1 );
-  auto lua_type_string = []( lua::any      parent,
-                             string const& key ) {
-    // Userdata members always have type function, so we have to
-    // do this.
-    UNWRAP_CHECK( type,
-                  lua_global_state()["meta"]["type_of_child"]
-                      .pcall<lua::rstring>( parent, key ) );
-    return type.as_cpp();
-  };
 
   auto sep_for_parent_child = [&]( lua::any      parent,
                                    string const& key ) {
     if( lua::type_of( parent ) == lua::type::userdata &&
-        lua_type_string( parent, key ) == "function" ) {
+        lua::type_of( parent[key] ) == lua::type::function ) {
       return ':';
     }
     return '.';
@@ -263,14 +254,15 @@ vector<string> autocomplete( string_view fragment ) {
   };
 
   auto table_fn_members_non_meta = [&]( lua::table t ) {
-    return table_count_if( t, [&]( lua::any parent,
-                                   lua::any key_obj ) {
-      if( lua::type_of( key_obj ) != lua::type::string )
-        return false;
-      auto key = lua::cast<string>( key_obj );
-      if( util::starts_with( key, "__" ) ) return false;
-      return ( lua_type_string( parent, key ) == "function" );
-    } );
+    return table_count_if(
+        t, [&]( lua::any parent, lua::any key_obj ) {
+          if( lua::type_of( key_obj ) != lua::type::string )
+            return false;
+          auto key = lua::cast<string>( key_obj );
+          if( util::starts_with( key, "__" ) ) return false;
+          return ( lua::type_of( parent[key] ) ==
+                   lua::type::function );
+        } );
   };
 
   lua::table curr_table = lua_global_state().table.global();
@@ -368,7 +360,7 @@ vector<string> autocomplete( string_view fragment ) {
           res[0] += '.';
       }
     }
-    if( lua_type_string( curr_obj, last ) == "function" )
+    if( lua::type_of( curr_obj[last] ) == lua::type::function )
       res[0] += '(';
     lg.trace( "final res[0]: {}", res[0] );
   }

@@ -11,10 +11,6 @@
 --]] ------------------------------------------------------------
 local M = {}
 
-function M.type_of_child( parent, child_name )
-  return type( parent[child_name] )
-end
-
 -- Takes a table and just returns a new table with all the same
 -- key/value pairs that come from the pairs(...) iterator. This
 -- is useful if e.g. a table's pairs are produced by a __pairs
