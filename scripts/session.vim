@@ -5,7 +5,7 @@
   " \ 'unit-conv',
 let s:stems = [
   \ 'rcl/model',
-  \ 'rcl/parse-fast',
+  \ 'rcl/parse',
   \ 'rcl/parse',
 \]
 

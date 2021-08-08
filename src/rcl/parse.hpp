@@ -3,9 +3,9 @@
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2021-07-30.
+* Created by dsicilia on 2021-08-04.
 *
-* Description: Parser for config files.
+* Description: Parser for the rcl config language.
 *
 *****************************************************************/
 #pragma once
@@ -17,15 +17,24 @@
 #include "base/expect.hpp"
 
 // C++ standard library
+#include <string>
 #include <string_view>
 
 namespace rcl {
 
-// This will keep the string the same length but will ovewrite
-// all comments (comment delimiters and comment contents) with
-// spaces).
-void blankify_comments( std::string& text );
+// Rcl parser.
+//
+// WARNING: this function is NOT thread safe as it uses global
+//          state for speed and simplicity.
+//
+base::expect<doc, std::string> parse( std::string_view filename,
+                                      std::string_view in );
 
+// For convenience.
+//
+// WARNING: this function is NOT thread safe as it uses global
+//          state for speed and simplicity.
+//
 base::expect<doc, std::string> parse_file(
     std::string_view filename );
 
