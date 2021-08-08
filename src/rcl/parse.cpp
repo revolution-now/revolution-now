@@ -120,8 +120,18 @@ bool parse_table( table* out ) {
   ++g_cur;
 
   vector<table::key_val> kvs;
-  while( parse_key_val( &kvs ) )
-    ;
+  while( true ) {
+    eat_blanks();
+    char const* sav     = g_cur;
+    bool        success = parse_key_val( &kvs );
+    if( !success ) {
+      if( g_cur != sav )
+        // We failed but parsed some non-blank characters,
+        // meaning that there was a syntax error.
+        return false;
+      break;
+    }
+  }
 
   eat_blanks();
   if( g_cur == g_end || *g_cur != '}' ) return false;
@@ -245,11 +255,6 @@ bool parse_string( string* out ) {
   return true;
 }
 
-bool look_ahead_str( string_view sv ) {
-  if( int( g_end - g_cur ) < int( sv.size() ) ) return false;
-  return string_view( g_cur, sv.size() ) == sv;
-}
-
 bool parse_value( value* out ) {
   eat_blanks();
   if( g_cur == g_end ) return false;
@@ -289,7 +294,7 @@ bool parse_value( value* out ) {
   }
 
   // Intercept bool (false)
-  if( look_ahead_str( "false" ) ) {
+  if( s == "false" ) {
     *out = value{ false };
     return true;
   }
