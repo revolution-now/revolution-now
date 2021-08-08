@@ -197,6 +197,16 @@ bool parse_unquoted_string( string_view* out ) {
     ++g_cur;
   }
   if( start == g_cur ) return false;
+  // Eat trailing spaces. This is so that an unquoted string
+  // won't e.g. include the space between the end of a word and a
+  // closing brace of a table that is on the same line.
+  // +1 because We know that the first character is not a blank.
+  while( g_cur > start + 1 ) {
+    if( is_blank( *( g_cur - 1 ) ) )
+      --g_cur;
+    else
+      break;
+  }
   *out = string_view( start, g_cur - start );
   return true;
 }
@@ -268,23 +278,22 @@ bool parse_value( value* out ) {
     return true;
   }
 
-  // bool (true)
-  if( look_ahead_str( "true" ) ) {
-    g_cur += 4; // length of "true"
+  // Assume string.
+  string s;
+  if( !parse_string( &s ) ) return false;
+
+  // Intercept bool (true)
+  if( s == "true" ) {
     *out = value{ true };
     return true;
   }
 
-  // bool (false)
+  // Intercept bool (false)
   if( look_ahead_str( "false" ) ) {
-    g_cur += 5; // length of "false"
     *out = value{ false };
     return true;
   }
 
-  // assume string
-  string s;
-  if( !parse_string( &s ) ) return false;
   *out = value{ std::move( s ) };
   return true;
 }

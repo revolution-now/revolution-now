@@ -46,7 +46,11 @@
 //   foo.bar.baz: 6  # nest tables using dot notation.
 //   foo.baz = 6     # Can use '=' or ':' to assign values.
 //
-//   enabled: "true" # this is a string!
+//   message: This is an unquoted string.
+//   url: "http://domain.com/url" # some characters need quoting.
+//
+//   enabled:  "true" # this is a string!
+//   disabled:  true  # this is a bool!
 //
 //   one {           # can omit '=' or ':' for tables.
 //     two.three = [
