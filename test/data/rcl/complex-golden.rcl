@@ -1,0 +1,125 @@
+a {
+  c {
+    f: 5
+    g: true
+    h: "truedat"
+  }
+}
+
+b {
+  s: 5
+  t: 3.5
+}
+
+c {
+  d {
+    e {
+      f {
+        g {
+          h {
+            i: 9
+            j: 10
+          }
+          yes: "no"
+        }
+      }
+      unit: 1
+    }
+  }
+}
+
+file: "/this/is/a/file/path"
+
+url: "http://domain.com?x=y"
+
+tbl1 {
+  x: 1
+  y: 2
+  z: 3
+  hello: "world"
+  yes: "no"
+}
+
+tbl2 {
+  x: 1
+  y: 2
+  z: 3
+  hello: "world"
+  yes: "x"
+}
+
+one {
+  two: [
+    1,
+    2,
+    {
+      one {
+        two {
+          three: 3
+          four: 4
+          hello: 1
+          world: 2
+        }
+      }
+    },
+  ]
+}
+
+subtype {
+  some_section {
+    a: [
+      "abc",
+      5,
+      -0.03,
+      "table",
+      {
+        a {
+          b {
+            c: 1
+          }
+          d: 2
+        }
+      },
+    ]
+  }
+  x: 9
+}
+
+aaa {
+  b {
+    c {
+      a {
+        b {
+          c: [
+            {
+              a {
+                b {
+                  c {
+                    f {
+                      g {
+                        h {
+                          i: 5
+                          j: 6
+                          k: 5
+                          l: 6
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+          ]
+        }
+      }
+    }
+  }
+}
+
+list: [
+  "one",
+  "two",
+  3,
+  "false",
+  "four",
+]

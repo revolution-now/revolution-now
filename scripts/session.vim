@@ -6,7 +6,6 @@
 let s:stems = [
   \ 'rcl/model',
   \ 'rcl/parse',
-  \ 'rcl/parse',
 \]
 
 let s:luas = [

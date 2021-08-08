@@ -221,7 +221,8 @@ bool parse_unquoted_string( string_view* out ) {
   return true;
 }
 
-bool parse_string( string* out ) {
+bool parse_string( string* out, bool* unquoted ) {
+  *unquoted = false;
   if( g_cur == g_end ) return false;
 
   // double-quoted string.
@@ -249,6 +250,7 @@ bool parse_string( string* out ) {
   }
 
   // unquoted string. End at end of line.
+  *unquoted = true;
   string_view s;
   if( !parse_unquoted_string( &s ) ) return false;
   *out = string( s );
@@ -285,18 +287,21 @@ bool parse_value( value* out ) {
 
   // Assume string.
   string s;
-  if( !parse_string( &s ) ) return false;
+  bool   unquoted;
+  if( !parse_string( &s, &unquoted ) ) return false;
 
-  // Intercept bool (true)
-  if( s == "true" ) {
-    *out = value{ true };
-    return true;
-  }
+  if( unquoted ) {
+    // Intercept bool (true)
+    if( s == "true" ) {
+      *out = value{ true };
+      return true;
+    }
 
-  // Intercept bool (false)
-  if( s == "false" ) {
-    *out = value{ false };
-    return true;
+    // Intercept bool (false)
+    if( s == "false" ) {
+      *out = value{ false };
+      return true;
+    }
   }
 
   *out = value{ std::move( s ) };
@@ -386,7 +391,7 @@ base::expect<doc, string> parse( string_view filename,
 
   auto [line, col] = error_pos( in, g_cur - g_start );
   if( g_cur != g_end )
-    return fmt::format( "{}:error:{}:{}: unexpected character\n",
+    return fmt::format( "{}:error:{}:{}: unexpected character",
                         filename, line, col );
 
   return doc::create( table( std::move( kvs ) ) );
