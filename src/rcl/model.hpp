@@ -175,9 +175,12 @@ using value = base::variant<
 // plying the deduplication/merge logic.
 //
 // If one or both of the values are not tables then this function
-// returns an error. We don't check-fail in that case because
-// that situation can result from an invalid config file, and so
-// we want to allow that error to be handled elsewhere.
+// returns an error. We don't check-fail in that case (or try to
+// enforce it with types by making this function accept table pa-
+// rameters only) because that situation can result from an in-
+// valid config file supplied by the user, and so we need to be
+// able to receive that sort of invalid input and handle it by
+// producing a proper error message for the user.
 base::valid_or<std::string> merge_values( std::string_view key,
                                           value&  v_target,
                                           value&& v_source );
@@ -193,6 +196,12 @@ struct table {
     value       v;
   };
 
+  // The constructors will not do any post processing, and thus a
+  // table object is not necessarily fit to be used after con-
+  // struction. These constructors are used just to create inter-
+  // mediate tables during parsing. A table should only be used
+  // by way of a `doc` object, which will do post processing
+  // during creation.
   table() = default;
   table( std::vector<key_val>&& kvs )
     : members_( std::move( kvs ) ) {}
@@ -216,16 +225,32 @@ struct table {
   // Consumes the old table.
   static base::expect<table, std::string> dedupe( table&& old );
 
+  auto begin() const { return members_.begin(); }
+  auto end() const { return members_.begin(); }
+
 private:
   void unflatten_impl( std::string_view dotted, value&& v );
 
   friend base::valid_or<std::string> merge_values(
       std::string_view key, value& v_target, value&& v_source );
 
+  // This should be done after all other post processing has fin-
+  // ished; it will create the mapping in the map_ member (which
+  // is possible after keys are deduplicated) for fast access
+  // subsequently. We don't do this in the constructor because it
+  // would be wasteful to do it before post-processing, since it
+  // would then have to be done again.
+  friend void map_members( table* tbl );
+
   // Store this way because 1) when parsing, there can be dupli-
   // cate keys (though they will be merged during post process-
   // ing), and 2) keys are ordered, despite being strings.
-  std::vector<key_val>                         members_;
+  std::vector<key_val> members_;
+  // Note: the key/value of this map refers to values inside of
+  // members_. That said, this structure is still safe to std::-
+  // move because it is not self-referential, because the vector
+  // elements are on the heap. Also for this reason, the members_
+  // should NOT be modified after post-processing finishes.
   std::unordered_map<std::string_view, value*> map_;
 };
 
@@ -235,6 +260,12 @@ private:
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct list {
+  // The constructors will not do any post processing, and thus a
+  // list object is not necessarily fit to be used after con-
+  // struction. These constructors are used just to create inter-
+  // mediate lists during parsing. A list should only be used by
+  // way of a `doc` object, which will do post processing during
+  // creation.
   list() = default;
   list( std::vector<value>&& vs )
     : members_( std::move( vs ) ) {}
@@ -260,6 +291,9 @@ struct list {
   static base::expect<list, std::string> dedupe_tables(
       list&& old );
 
+  auto begin() const { return members_.begin(); }
+  auto end() const { return members_.begin(); }
+
 private:
   std::vector<value> members_;
 };
@@ -270,6 +304,8 @@ private:
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct doc {
+  // This will not only create the doc, it will also run a recur-
+  // sive post-processing over the table.
   static base::expect<doc, std::string> create( table&& tbl );
 
   std::string pretty_print( std::string_view indent = "" ) const;

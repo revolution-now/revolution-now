@@ -228,12 +228,11 @@ struct dedupe_visitor {
 // Note: target is an lvalue ref and the source is an rvalue ref.
 valid_or<string> merge_values( string_view key, value& v_target,
                                value&& v_source ) {
+  using T = unique_ptr<table>;
   // The two values can only be merged if they are both tables,
   // so make sure that they are and fail otherwise.
-  maybe<unique_ptr<table>&> target_tbl =
-      v_target.get_if<unique_ptr<table>>();
-  maybe<unique_ptr<table>&> source_tbl =
-      v_source.get_if<unique_ptr<table>>();
+  maybe<T&> target_tbl = v_target.get_if<T>();
+  maybe<T&> source_tbl = v_source.get_if<T>();
   if( !target_tbl || !source_tbl )
     return fmt::format(
         "key `{}' has a duplicate but not all of its values "
@@ -290,14 +289,28 @@ expect<table, string> table::dedupe( table&& old ) {
 }
 
 /****************************************************************
+** Table Key Mapping
+*****************************************************************/
+void map_members( table* tbl ) {
+  using T = unique_ptr<table>;
+  for( auto& [key, val] : tbl->members_ ) {
+    tbl->map_[key] = &val;
+    if( maybe<T&> table_val = val.get_if<T>(); table_val )
+      map_members( table_val->get() );
+  }
+}
+
+/****************************************************************
 ** Document Postprocessing
 *****************************************************************/
-base::expect<doc, std::string> doc::create( table&& tbl ) {
+expect<doc, std::string> doc::create( table&& v1 ) {
+  table v2 = table::unflatten( std::move( v1 ) );
   // Dedupe must happen after unflattening.
-  table flattened = table::unflatten( std::move( tbl ) );
-  UNWRAP_RETURN( deduped,
-                 table::dedupe( std::move( flattened ) ) );
-  return doc( std::move( deduped ) );
+  UNWRAP_RETURN( v3, table::dedupe( std::move( v2 ) ) );
+  // Mapping should be last.
+  map_members( &v3 );
+
+  return doc( std::move( v3 ) );
 }
 
 } // namespace rcl
