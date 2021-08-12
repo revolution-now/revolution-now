@@ -52,6 +52,10 @@ struct value_printer {
 /****************************************************************
 ** table
 *****************************************************************/
+bool table::has_key( std::string_view key ) const {
+  return map_.contains( key );
+}
+
 value const& table::operator[]( string_view key ) const {
   auto it = map_.find( key );
   CHECK( it != map_.end(), "table does not contain key {}",
@@ -64,7 +68,7 @@ value const& table::operator[]( string_view key ) const {
 value const& table::operator[]( int n ) const {
   CHECK( n >= 0 && n < int( members_.size() ),
          "invalid table index {}", n );
-  return members_[n].v;
+  return members_[n].second;
 }
 
 string table::pretty_print( string_view indent ) const {
@@ -140,13 +144,13 @@ struct unflatten_visitor {
   }
 
   value operator()( unique_ptr<table>&& o ) const {
-    return value{ make_unique<table>(
-        table::unflatten( std::move( *o ) ) ) };
+    return value{
+        make_unique<table>( std::move( *o ).unflatten() ) };
   }
 
   value operator()( unique_ptr<list>&& o ) const {
-    return value{ make_unique<list>(
-        list::unflatten( std::move( *o ) ) ) };
+    return value{
+        make_unique<list>( std::move( *o ).unflatten() ) };
   }
 };
 
@@ -155,9 +159,9 @@ struct unflatten_visitor {
 void table::unflatten_impl( string_view dotted, value&& v ) {
   int i = dotted.find_first_of( "." );
   if( i == int( string_view::npos ) ) {
-    members_.push_back( key_val{
+    members_.emplace_back(
         string( dotted ),
-        std::visit( unflatten_visitor{}, std::move( v ) ) } );
+        std::visit( unflatten_visitor{}, std::move( v ) ) );
     return;
   }
   DCHECK( i + 1 < int( dotted.size() ) );
@@ -165,23 +169,23 @@ void table::unflatten_impl( string_view dotted, value&& v ) {
   string rest = string( dotted.substr( i + 1 ) );
   // Add a new one even if there is already a key with the same
   // name in the table, because our tables allow duplicate keys.
-  key_val& new_kv = members_.emplace_back();
-  new_kv.k        = key;
-  new_kv.v        = value{ make_unique<table>() };
-  table* tbl      = new_kv.v.get<unique_ptr<table>>().get();
+  pair<string, value>& new_kv = members_.emplace_back();
+  new_kv.first                = key;
+  new_kv.second               = value{ make_unique<table>() };
+  table* tbl = new_kv.second.get<unique_ptr<table>>().get();
   tbl->unflatten_impl( rest, std::move( v ) );
 }
 
-table table::unflatten( table&& old ) {
+table table::unflatten() && {
   table t;
-  for( key_val& kv : old.members_ )
-    t.unflatten_impl( kv.k, std::move( kv.v ) );
+  for( auto& [k, v] : members_ )
+    t.unflatten_impl( k, std::move( v ) );
   return t;
 }
 
-list list::unflatten( list&& old ) {
+list list::unflatten() && {
   list l;
-  for( value& v : old.members_ )
+  for( value& v : members_ )
     l.members_.push_back(
         std::visit( unflatten_visitor{}, std::move( v ) ) );
   return l;
@@ -211,20 +215,33 @@ struct dedupe_visitor {
 
   expect<value, string> operator()(
       unique_ptr<table>&& o ) const {
-    UNWRAP_RETURN( deduped, table::dedupe( std::move( *o ) ) );
+    UNWRAP_RETURN( deduped, std::move( *o ).dedupe() );
     return value{ make_unique<table>( std::move( deduped ) ) };
   }
 
   expect<value, string> operator()(
       unique_ptr<list>&& o ) const {
-    UNWRAP_RETURN( deduped,
-                   list::dedupe_tables( std::move( *o ) ) );
+    UNWRAP_RETURN( deduped, std::move( *o ).dedupe_tables() );
     return value{ make_unique<list>( std::move( deduped ) ) };
   }
 };
 
 } // namespace
 
+// If the two values are both tables then they will be merged, in
+// the sense that all of the source table's keys (and values)
+// will be moved into the target table. Any duplicate keys that
+// result in the target table will be handled by recursively ap-
+// plying the deduplication/merge logic.
+//
+// If one or both of the values are not tables then this function
+// returns an error. We don't check-fail in that case (or try to
+// enforce it with types by making this function accept table pa-
+// rameters only) because that situation can result from an in-
+// valid config file supplied by the user, and so we need to be
+// able to receive that sort of invalid input and handle it by
+// producing a proper error message for the user.
+//
 // Note: target is an lvalue ref and the source is an rvalue ref.
 valid_or<string> merge_values( string_view key, value& v_target,
                                value&& v_source ) {
@@ -244,19 +261,19 @@ valid_or<string> merge_values( string_view key, value& v_target,
   // The two tables may have duplicate keys that need to be
   // merged, but we will just combine the tables anyway, then
   // dedupe.
-  for( table::key_val& kv_source : ( **source_tbl ).members_ )
+  for( pair<string, value>& kv_source :
+       ( **source_tbl ).members_ )
     ( **target_tbl )
         .members_.push_back( std::move( kv_source ) );
 
-  UNWRAP_RETURN( deduped,
-                 table::dedupe( std::move( **target_tbl ) ) );
+  UNWRAP_RETURN( deduped, std::move( **target_tbl ).dedupe() );
   v_target = make_unique<table>( std::move( deduped ) );
   return valid;
 }
 
-expect<list, string> list::dedupe_tables( list&& old ) {
+expect<list, string> list::dedupe_tables() && {
   list l;
-  for( value& v : old.members_ ) {
+  for( value& v : members_ ) {
     UNWRAP_RETURN( deduped, std::visit( dedupe_visitor{},
                                         std::move( v ) ) );
     l.members_.push_back( std::move( deduped ) );
@@ -264,21 +281,21 @@ expect<list, string> list::dedupe_tables( list&& old ) {
   return l;
 }
 
-expect<table, string> table::dedupe( table&& old ) {
+expect<table, string> table::dedupe() && {
   vector<string>               order;
   unordered_map<string, value> m;
-  for( table::key_val& kv : old.members_ ) {
+  for( auto& [k, v] : members_ ) {
     // First recursively dedupe the value.
     UNWRAP_RETURN( deduped_v, std::visit( dedupe_visitor{},
-                                          std::move( kv.v ) ) );
+                                          std::move( v ) ) );
     // !! Do not use kv.v from here on!
-    if( !m.contains( kv.k ) ) {
-      order.push_back( kv.k );
-      m.emplace( kv.k, std::move( deduped_v ) );
+    if( !m.contains( k ) ) {
+      order.push_back( k );
+      m.emplace( k, std::move( deduped_v ) );
       continue;
     }
     HAS_VALUE_OR_RET(
-        merge_values( kv.k, m[kv.k], std::move( deduped_v ) ) );
+        merge_values( k, m[k], std::move( deduped_v ) ) );
   }
   DCHECK( order.size() == m.size() );
   table t;
@@ -291,24 +308,48 @@ expect<table, string> table::dedupe( table&& old ) {
 /****************************************************************
 ** Table Key Mapping
 *****************************************************************/
-void map_members( table* tbl ) {
-  using T = unique_ptr<table>;
-  for( auto& [key, val] : tbl->members_ ) {
-    tbl->map_[key] = &val;
-    if( maybe<T&> table_val = val.get_if<T>(); table_val )
-      map_members( table_val->get() );
+namespace {
+
+struct mapping_visitor {
+  void operator()( bool ) const {}
+  void operator()( int ) const {}
+  void operator()( double ) const {}
+  void operator()( string& ) const {}
+
+  void operator()( unique_ptr<table>& o ) const {
+    DCHECK( o != nullptr );
+    o->map_members();
   }
+
+  void operator()( unique_ptr<list>& o ) const {
+    DCHECK( o != nullptr );
+    o->map_members();
+  }
+};
+
+} // namespace
+
+void table::map_members() & {
+  for( auto& [key, val] : members_ ) {
+    map_[key] = &val;
+    std::visit( mapping_visitor{}, val );
+  }
+}
+
+void list::map_members() & {
+  for( value& val : members_ )
+    std::visit( mapping_visitor{}, val );
 }
 
 /****************************************************************
 ** Document Postprocessing
 *****************************************************************/
 expect<doc, std::string> doc::create( table&& v1 ) {
-  table v2 = table::unflatten( std::move( v1 ) );
+  table v2 = std::move( v1 ).unflatten();
   // Dedupe must happen after unflattening.
-  UNWRAP_RETURN( v3, table::dedupe( std::move( v2 ) ) );
+  UNWRAP_RETURN( v3, std::move( v2 ).dedupe() );
   // Mapping should be last.
-  map_members( &v3 );
+  v3.map_members();
 
   return doc( std::move( v3 ) );
 }

@@ -44,7 +44,7 @@ value make_list_val( Vs&&... vs ) {
 
 template<typename... Kvs>
 table make_table( Kvs&&... kvs ) {
-  using KV = table::key_val;
+  using KV = table::value_type;
   vector<KV> v;
   ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
   return table( std::move( v ) );
@@ -58,7 +58,7 @@ value make_table_val( Kvs&&... kvs ) {
 
 template<typename... Kvs>
 expect<doc, string> make_doc( Kvs&&... kvs ) {
-  using KV = table::key_val;
+  using KV = table::value_type;
   vector<KV> v;
   ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
   return doc::create( table( std::move( v ) ) );
@@ -68,7 +68,7 @@ expect<doc, string> make_doc( Kvs&&... kvs ) {
 ** Tests
 *****************************************************************/
 TEST_CASE( "[model] complex doc" ) {
-  using KV = table::key_val;
+  using KV = table::value_type;
 
   /*
    * a.c.f = 5
@@ -212,6 +212,274 @@ TEST_CASE( "[model] complex doc" ) {
                 base::read_text_file_as_string( golden_file ) );
 
   REQUIRE( fmt::to_string( doc ) == golden );
+
+  auto& top = doc->top();
+
+  REQUIRE( top.size() == 11 );
+
+  REQUIRE( top.has_key( "file" ) );
+  REQUIRE( top["file"].holds<string>() );
+  REQUIRE( top["file"].as<string>() == "/this/is/a/file/path" );
+
+  REQUIRE( top.has_key( "one" ) );
+  REQUIRE( top["one"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_one =
+      top["one"].as<unique_ptr<table>>();
+  REQUIRE( u_one != nullptr );
+  table const& one = *u_one;
+  REQUIRE( one.size() == 1 );
+  REQUIRE( one.has_key( "two" ) );
+  REQUIRE( one["two"].holds<unique_ptr<list>>() );
+  unique_ptr<list> const& u_two =
+      one["two"].as<unique_ptr<list>>();
+  REQUIRE( u_two != nullptr );
+  list const& two = *u_two;
+
+  REQUIRE( two.size() == 3 );
+  REQUIRE( two[0].holds<int>() );
+  REQUIRE( two[0].as<int>() == 1 );
+  REQUIRE( two[1].holds<int>() );
+  REQUIRE( two[1].as<int>() == 2 );
+
+  REQUIRE( two[2].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_third =
+      two[2].as<unique_ptr<table>>();
+  REQUIRE( u_third != nullptr );
+  table const& third = *u_third;
+
+  REQUIRE( third.size() == 1 );
+  REQUIRE( third.has_key( "one" ) );
+  REQUIRE( third["one"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_third_one =
+      third["one"].as<unique_ptr<table>>();
+  REQUIRE( u_third_one != nullptr );
+  table const& third_one = *u_third_one;
+  REQUIRE( third_one.size() == 1 );
+  REQUIRE( third_one.has_key( "two" ) );
+  REQUIRE( third_one["two"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_third_two =
+      third_one["two"].as<unique_ptr<table>>();
+  REQUIRE( u_third_two != nullptr );
+  table const& third_two = *u_third_two;
+  REQUIRE( third_two.size() == 4 );
+
+  REQUIRE( third_two.has_key( "three" ) );
+  REQUIRE( third_two["three"].holds<int>() );
+  REQUIRE( third_two["three"].as<int>() == 3 );
+  REQUIRE( third_two.has_key( "four" ) );
+  REQUIRE( third_two["four"].holds<int>() );
+  REQUIRE( third_two["four"].as<int>() == 4 );
+  REQUIRE( third_two.has_key( "hello" ) );
+  REQUIRE( third_two["hello"].holds<int>() );
+  REQUIRE( third_two["hello"].as<int>() == 1 );
+  REQUIRE( third_two.has_key( "world" ) );
+  REQUIRE( third_two["world"].holds<int>() );
+  REQUIRE( third_two["world"].as<int>() == 2 );
+
+  REQUIRE( top.has_key( "list" ) );
+  REQUIRE( top["list"].holds<unique_ptr<list>>() );
+  unique_ptr<list> const& u_list =
+      top["list"].as<unique_ptr<list>>();
+  REQUIRE( u_list != nullptr );
+  list const& l = *u_list;
+  REQUIRE( l.size() == 5 );
+
+  REQUIRE( l[0].holds<string>() );
+  REQUIRE( l[1].holds<string>() );
+  REQUIRE( l[2].holds<int>() );
+  REQUIRE( l[3].holds<string>() );
+  REQUIRE( l[4].holds<string>() );
+
+  REQUIRE( l[0].as<string>() == "one" );
+  REQUIRE( l[1].as<string>() == "two" );
+  REQUIRE( l[2].as<int>() == 3 );
+  REQUIRE( l[3].as<string>() == "false" );
+  REQUIRE( l[4].as<string>() == "four" );
+
+  auto i = l.begin();
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<string>() );
+    REQUIRE( v.as<string>() == "one" );
+  }
+  ++i;
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<string>() );
+    REQUIRE( v.as<string>() == "two" );
+  }
+  ++i;
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<int>() );
+    REQUIRE( v.as<int>() == 3 );
+  }
+  ++i;
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<string>() );
+    REQUIRE( v.as<string>() == "false" );
+  }
+  ++i;
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<string>() );
+    REQUIRE( v.as<string>() == "four" );
+  }
+  ++i;
+  REQUIRE( i == l.end() );
+
+  REQUIRE( top.has_key( "a" ) );
+  REQUIRE( top["a"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_a =
+      top["a"].as<unique_ptr<table>>();
+  REQUIRE( u_a != nullptr );
+  table const& a = *u_a;
+  REQUIRE( a.size() == 1 );
+
+  // Make sure that the table we just got is the same table that
+  // we get from indexing top at its first (ordered) element.
+  {
+    REQUIRE( top[0].holds<unique_ptr<table>>() );
+    unique_ptr<table> const& u_a0 =
+        top[0].as<unique_ptr<table>>();
+    REQUIRE( u_a0 != nullptr );
+    table const& a0 = *u_a0;
+    REQUIRE( a0.size() == 1 );
+    REQUIRE( &a0 == &a );
+  }
+
+  REQUIRE( a.has_key( "c" ) );
+  REQUIRE( a["c"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_ac = a["c"].as<unique_ptr<table>>();
+  REQUIRE( u_ac != nullptr );
+  table const& ac = *u_ac;
+  REQUIRE( ac.size() == 3 );
+
+  REQUIRE( ac.has_key( "f" ) );
+  REQUIRE( ac.has_key( "g" ) );
+  REQUIRE( ac.has_key( "h" ) );
+
+  REQUIRE( ac["f"].holds<int>() );
+  REQUIRE( ac["g"].holds<bool>() );
+  REQUIRE( ac["h"].holds<string>() );
+
+  REQUIRE( ac["f"].as<int>() == 5 );
+  REQUIRE( ac["g"].as<bool>() == true );
+  REQUIRE( ac["h"].as<string>() == "truedat" );
+
+  REQUIRE( top.has_key( "b" ) );
+  REQUIRE( top["b"].holds<unique_ptr<table>>() );
+  unique_ptr<table> const& u_b =
+      top["b"].as<unique_ptr<table>>();
+  REQUIRE( u_b != nullptr );
+  table const& b = *u_b;
+  REQUIRE( b.size() == 2 );
+
+  REQUIRE( b.has_key( "s" ) );
+  REQUIRE( b.has_key( "t" ) );
+
+  REQUIRE( b["s"].holds<int>() );
+  REQUIRE( b["t"].holds<double>() );
+
+  REQUIRE( b["s"].as<int>() == 5 );
+  REQUIRE( b["t"].as<double>() == 3.5 );
+
+  auto it = top.begin();
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "a" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "b" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "c" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "file" );
+    REQUIRE( v.holds<string>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "url" );
+    REQUIRE( v.holds<string>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "tbl1" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "tbl2" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "one" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "subtype" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "aaa" );
+    REQUIRE( v.holds<unique_ptr<table>>() );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "list" );
+    REQUIRE( v.holds<unique_ptr<list>>() );
+  }
+
+  ++it;
+  REQUIRE( it == top.end() );
 }
 
 } // namespace

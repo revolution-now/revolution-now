@@ -172,42 +172,23 @@ using value = base::variant<
 >;
 // clang-format on
 
-// If the two values are both tables then they will be merged, in
-// the sense that all of the source table's keys (and values)
-// will be moved into the target table. Any duplicate keys that
-// result in the target table will be handled by recursively ap-
-// plying the deduplication/merge logic.
-//
-// If one or both of the values are not tables then this function
-// returns an error. We don't check-fail in that case (or try to
-// enforce it with types by making this function accept table pa-
-// rameters only) because that situation can result from an in-
-// valid config file supplied by the user, and so we need to be
-// able to receive that sort of invalid input and handle it by
-// producing a proper error message for the user.
-base::valid_or<std::string> merge_values( std::string_view key,
-                                          value&  v_target,
-                                          value&& v_source );
-
 /****************************************************************
 ** table
 *****************************************************************/
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct table {
-  struct key_val {
-    std::string k;
-    value       v;
-  };
+  using value_type = std::pair<std::string, value>;
 
-  // The constructors will not do any post processing, and thus a
-  // table object is not necessarily fit to be used after con-
-  // struction. These constructors are used just to create inter-
-  // mediate tables during parsing. A table should only be used
-  // by way of a `doc` object, which will do post processing
-  // during creation.
+  // These constructors are only for the convenience of the
+  // parsers; they will not maintain class invariants, so one
+  // should not use a table object after construction from these
+  // constructors. Only tables that are returned by the
+  // document's factory method should be used, as those will have
+  // their invariants satisfied due to the post processing that
+  // will be applied to them after construction.
   table() = default;
-  table( std::vector<key_val>&& kvs )
+  table( std::vector<value_type>&& kvs )
     : members_( std::move( kvs ) ) {}
 
   bool has_key( std::string_view key ) const;
@@ -218,25 +199,18 @@ struct table {
   int size() const { return members_.size(); }
 
   // Keys in table, although strings, are ordered. No range
-  // checks, element must exist or check-fail!
+  // checks, element must exist or check-fail! Note that if you
+  // just need the keys in order, you can iterate over them using
+  // begin/end since they will be delivered in that order.
   value const& operator[]( int n ) const;
 
   std::string pretty_print( std::string_view indent = "" ) const;
 
-  // Consumes the old table.
-  static table unflatten( table&& old );
+  // Consumes this table.
+  table unflatten() &&;
 
-  // Consumes the old table.
-  static base::expect<table, std::string> dedupe( table&& old );
-
-  auto begin() const { return members_.begin(); }
-  auto end() const { return members_.begin(); }
-
-private:
-  void unflatten_impl( std::string_view dotted, value&& v );
-
-  friend base::valid_or<std::string> merge_values(
-      std::string_view key, value& v_target, value&& v_source );
+  // Consumes this table.
+  base::expect<table, std::string> dedupe() &&;
 
   // This should be done after all other post processing has fin-
   // ished; it will create the mapping in the map_ member (which
@@ -244,12 +218,22 @@ private:
   // subsequently. We don't do this in the constructor because it
   // would be wasteful to do it before post-processing, since it
   // would then have to be done again.
-  friend void map_members( table* tbl );
+  void map_members() &;
+
+  auto begin() const { return members_.begin(); }
+  auto end() const { return members_.end(); }
+
+private:
+  void unflatten_impl( std::string_view dotted, value&& v );
+
+  friend base::valid_or<std::string> merge_values(
+      std::string_view key, value& v_target, value&& v_source );
 
   // Store this way because 1) when parsing, there can be dupli-
   // cate keys (though they will be merged during post process-
   // ing), and 2) keys are ordered, despite being strings.
-  std::vector<key_val> members_;
+  std::vector<value_type> members_;
+
   // Note: the key/value of this map refers to values inside of
   // members_. That said, this structure is still safe to std::-
   // move because it is not self-referential, because the vector
@@ -264,27 +248,26 @@ private:
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct list {
-  // The constructors will not do any post processing, and thus a
-  // list object is not necessarily fit to be used after con-
-  // struction. These constructors are used just to create inter-
-  // mediate lists during parsing. A list should only be used by
-  // way of a `doc` object, which will do post processing during
-  // creation.
+  // These constructors are only for the convenience of the
+  // parsers; they will not maintain class invariants, so one
+  // should not use a list object after construction from these
+  // constructors. Only list that are returned by the document's
+  // factory method should be used, as those will have their
+  // invariants satisfied due to the post processing that will be
+  // applied to them after construction.
   list() = default;
   list( std::vector<value>&& vs )
     : members_( std::move( vs ) ) {}
 
-  int          size() const { return members_.size(); }
+  int size() const { return members_.size(); }
+
+  // Will check-fail on invalid index!
   value const& operator[]( int n ) const;
 
   std::string pretty_print( std::string_view indent = "" ) const;
 
-  // Consumes the old list. Returns a new list with the same ele-
-  // ments except that any table elements will be unflattened.
-  // This is only called as part of post processing after pars-
-  // ing, you do not need to ever call this as a user of this
-  // class.
-  static list unflatten( list&& old );
+  // Consumes this list.
+  list unflatten() &&;
 
   // Will apply deduplication processing to any elements that are
   // tables. Returns a new list with the same elements except
@@ -292,11 +275,14 @@ struct list {
   // This is only called as part of post processing after pars-
   // ing, you do not need to ever call this as a user of this
   // class.
-  static base::expect<list, std::string> dedupe_tables(
-      list&& old );
+  base::expect<list, std::string> dedupe_tables() &&;
+
+  // Perform the member-mapping post-processing step on any
+  // elements that are tables.
+  void map_members() &;
 
   auto begin() const { return members_.begin(); }
-  auto end() const { return members_.begin(); }
+  auto end() const { return members_.end(); }
 
 private:
   std::vector<value> members_;

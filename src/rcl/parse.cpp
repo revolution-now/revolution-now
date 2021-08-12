@@ -112,14 +112,14 @@ bool parse_assignment() {
 }
 
 bool parse_value( value* out );
-bool parse_key_val( vector<table::key_val>* out );
+bool parse_key_val( vector<pair<string, value>>* out );
 
 bool parse_table( table* out ) {
   DCHECK( g_cur != g_end );
   DCHECK( *g_cur == '{' );
   ++g_cur;
 
-  vector<table::key_val> kvs;
+  vector<pair<string, value>> kvs;
   while( true ) {
     eat_blanks();
     char const* sav     = g_cur;
@@ -308,7 +308,7 @@ bool parse_value( value* out ) {
   return true;
 }
 
-bool parse_key_val( vector<table::key_val>* out ) {
+bool parse_key_val( vector<pair<string, value>>* out ) {
   eat_blanks();
   string_view key;
   if( !parse_key( &key ) ) return false;
@@ -386,7 +386,7 @@ base::expect<doc, string> parse( string_view filename,
   g_cur   = g_start;
   g_end   = in.end();
 
-  vector<table::key_val> kvs;
+  vector<pair<string, value>> kvs;
   while( parse_key_val( &kvs ) ) {}
 
   auto [line, col] = error_pos( in, g_cur - g_start );
