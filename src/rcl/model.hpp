@@ -161,6 +161,15 @@ struct list;
 /****************************************************************
 ** value
 *****************************************************************/
+enum class type {
+  boolean,
+  integral,
+  floating,
+  string,
+  table,
+  list
+};
+
 // clang-format off
 using value = base::variant<
   double,
@@ -171,6 +180,8 @@ using value = base::variant<
   std::unique_ptr<list>
 >;
 // clang-format on
+
+type type_of( value const& v );
 
 /****************************************************************
 ** table

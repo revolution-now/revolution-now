@@ -219,10 +219,12 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( top.has_key( "file" ) );
   REQUIRE( top["file"].holds<string>() );
+  REQUIRE( type_of( top["file"] ) == type::string );
   REQUIRE( top["file"].as<string>() == "/this/is/a/file/path" );
 
   REQUIRE( top.has_key( "one" ) );
   REQUIRE( top["one"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( top["one"] ) == type::table );
   unique_ptr<table> const& u_one =
       top["one"].as<unique_ptr<table>>();
   REQUIRE( u_one != nullptr );
@@ -230,6 +232,7 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( one.size() == 1 );
   REQUIRE( one.has_key( "two" ) );
   REQUIRE( one["two"].holds<unique_ptr<list>>() );
+  REQUIRE( type_of( one["two"] ) == type::list );
   unique_ptr<list> const& u_two =
       one["two"].as<unique_ptr<list>>();
   REQUIRE( u_two != nullptr );
@@ -237,11 +240,14 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( two.size() == 3 );
   REQUIRE( two[0].holds<int>() );
+  REQUIRE( type_of( two[0] ) == type::integral );
   REQUIRE( two[0].as<int>() == 1 );
   REQUIRE( two[1].holds<int>() );
+  REQUIRE( type_of( two[1] ) == type::integral );
   REQUIRE( two[1].as<int>() == 2 );
 
   REQUIRE( two[2].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( two[2] ) == type::table );
   unique_ptr<table> const& u_third =
       two[2].as<unique_ptr<table>>();
   REQUIRE( u_third != nullptr );
@@ -250,6 +256,7 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( third.size() == 1 );
   REQUIRE( third.has_key( "one" ) );
   REQUIRE( third["one"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( third["one"] ) == type::table );
   unique_ptr<table> const& u_third_one =
       third["one"].as<unique_ptr<table>>();
   REQUIRE( u_third_one != nullptr );
@@ -257,6 +264,7 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( third_one.size() == 1 );
   REQUIRE( third_one.has_key( "two" ) );
   REQUIRE( third_one["two"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( third_one["two"] ) == type::table );
   unique_ptr<table> const& u_third_two =
       third_one["two"].as<unique_ptr<table>>();
   REQUIRE( u_third_two != nullptr );
@@ -265,19 +273,24 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( third_two.has_key( "three" ) );
   REQUIRE( third_two["three"].holds<int>() );
+  REQUIRE( type_of( third_two["three"] ) == type::integral );
   REQUIRE( third_two["three"].as<int>() == 3 );
   REQUIRE( third_two.has_key( "four" ) );
   REQUIRE( third_two["four"].holds<int>() );
+  REQUIRE( type_of( third_two["four"] ) == type::integral );
   REQUIRE( third_two["four"].as<int>() == 4 );
   REQUIRE( third_two.has_key( "hello" ) );
   REQUIRE( third_two["hello"].holds<int>() );
+  REQUIRE( type_of( third_two["hello"] ) == type::integral );
   REQUIRE( third_two["hello"].as<int>() == 1 );
   REQUIRE( third_two.has_key( "world" ) );
   REQUIRE( third_two["world"].holds<int>() );
+  REQUIRE( type_of( third_two["world"] ) == type::integral );
   REQUIRE( third_two["world"].as<int>() == 2 );
 
   REQUIRE( top.has_key( "list" ) );
   REQUIRE( top["list"].holds<unique_ptr<list>>() );
+  REQUIRE( type_of( top["list"] ) == type::list );
   unique_ptr<list> const& u_list =
       top["list"].as<unique_ptr<list>>();
   REQUIRE( u_list != nullptr );
@@ -285,10 +298,15 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( l.size() == 5 );
 
   REQUIRE( l[0].holds<string>() );
+  REQUIRE( type_of( l[0] ) == type::string );
   REQUIRE( l[1].holds<string>() );
+  REQUIRE( type_of( l[1] ) == type::string );
   REQUIRE( l[2].holds<int>() );
+  REQUIRE( type_of( l[2] ) == type::integral );
   REQUIRE( l[3].holds<string>() );
+  REQUIRE( type_of( l[3] ) == type::string );
   REQUIRE( l[4].holds<string>() );
+  REQUIRE( type_of( l[4] ) == type::string );
 
   REQUIRE( l[0].as<string>() == "one" );
   REQUIRE( l[1].as<string>() == "two" );
@@ -301,6 +319,7 @@ TEST_CASE( "[model] complex doc" ) {
   {
     value const& v = *i;
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
     REQUIRE( v.as<string>() == "one" );
   }
   ++i;
@@ -308,6 +327,7 @@ TEST_CASE( "[model] complex doc" ) {
   {
     value const& v = *i;
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
     REQUIRE( v.as<string>() == "two" );
   }
   ++i;
@@ -315,6 +335,7 @@ TEST_CASE( "[model] complex doc" ) {
   {
     value const& v = *i;
     REQUIRE( v.holds<int>() );
+    REQUIRE( type_of( v ) == type::integral );
     REQUIRE( v.as<int>() == 3 );
   }
   ++i;
@@ -322,6 +343,7 @@ TEST_CASE( "[model] complex doc" ) {
   {
     value const& v = *i;
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
     REQUIRE( v.as<string>() == "false" );
   }
   ++i;
@@ -329,6 +351,7 @@ TEST_CASE( "[model] complex doc" ) {
   {
     value const& v = *i;
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
     REQUIRE( v.as<string>() == "four" );
   }
   ++i;
@@ -336,6 +359,7 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( top.has_key( "a" ) );
   REQUIRE( top["a"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( top["a"] ) == type::table );
   unique_ptr<table> const& u_a =
       top["a"].as<unique_ptr<table>>();
   REQUIRE( u_a != nullptr );
@@ -346,6 +370,7 @@ TEST_CASE( "[model] complex doc" ) {
   // we get from indexing top at its first (ordered) element.
   {
     REQUIRE( top[0].holds<unique_ptr<table>>() );
+    REQUIRE( type_of( top[0] ) == type::table );
     unique_ptr<table> const& u_a0 =
         top[0].as<unique_ptr<table>>();
     REQUIRE( u_a0 != nullptr );
@@ -356,6 +381,7 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( a.has_key( "c" ) );
   REQUIRE( a["c"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( a["c"] ) == type::table );
   unique_ptr<table> const& u_ac = a["c"].as<unique_ptr<table>>();
   REQUIRE( u_ac != nullptr );
   table const& ac = *u_ac;
@@ -366,8 +392,11 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( ac.has_key( "h" ) );
 
   REQUIRE( ac["f"].holds<int>() );
+  REQUIRE( type_of( ac["f"] ) == type::integral );
   REQUIRE( ac["g"].holds<bool>() );
+  REQUIRE( type_of( ac["g"] ) == type::boolean );
   REQUIRE( ac["h"].holds<string>() );
+  REQUIRE( type_of( ac["h"] ) == type::string );
 
   REQUIRE( ac["f"].as<int>() == 5 );
   REQUIRE( ac["g"].as<bool>() == true );
@@ -375,6 +404,7 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( top.has_key( "b" ) );
   REQUIRE( top["b"].holds<unique_ptr<table>>() );
+  REQUIRE( type_of( top["b"] ) == type::table );
   unique_ptr<table> const& u_b =
       top["b"].as<unique_ptr<table>>();
   REQUIRE( u_b != nullptr );
@@ -385,7 +415,9 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( b.has_key( "t" ) );
 
   REQUIRE( b["s"].holds<int>() );
+  REQUIRE( type_of( b["s"] ) == type::integral );
   REQUIRE( b["t"].holds<double>() );
+  REQUIRE( type_of( b["t"] ) == type::floating );
 
   REQUIRE( b["s"].as<int>() == 5 );
   REQUIRE( b["t"].as<double>() == 3.5 );
@@ -396,6 +428,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "a" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -404,6 +437,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "b" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -412,6 +446,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "c" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -420,6 +455,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "file" );
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
   }
 
   ++it;
@@ -428,6 +464,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "url" );
     REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
   }
 
   ++it;
@@ -436,6 +473,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "tbl1" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -444,6 +482,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "tbl2" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -452,6 +491,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "one" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -460,6 +500,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "subtype" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -468,6 +509,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "aaa" );
     REQUIRE( v.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( v ) == type::table );
   }
 
   ++it;
@@ -476,6 +518,7 @@ TEST_CASE( "[model] complex doc" ) {
     auto& [k, v] = *it;
     REQUIRE( k == "list" );
     REQUIRE( v.holds<unique_ptr<list>>() );
+    REQUIRE( type_of( v ) == type::list );
   }
 
   ++it;

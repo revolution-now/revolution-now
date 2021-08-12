@@ -27,6 +27,9 @@ using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
 
+/****************************************************************
+** Formatting
+*****************************************************************/
 struct value_printer {
   string_view indent;
 
@@ -48,6 +51,31 @@ struct value_printer {
     return lst->pretty_print( indent );
   }
 };
+
+/****************************************************************
+** value
+*****************************************************************/
+struct type_visitor {
+  type operator()( bool ) { return type::boolean; }
+
+  type operator()( int ) { return type::integral; }
+
+  type operator()( double ) { return type::floating; }
+
+  type operator()( string const& ) { return type::string; }
+
+  type operator()( std::unique_ptr<table> const& ) {
+    return type::table;
+  }
+
+  type operator()( std::unique_ptr<list> const& ) {
+    return type::list;
+  }
+};
+
+type type_of( value const& v ) {
+  return std::visit( type_visitor{}, v );
+}
 
 /****************************************************************
 ** table
