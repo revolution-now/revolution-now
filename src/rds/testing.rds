@@ -164,12 +164,6 @@ sumtype.OnOffEvent {
   turn_on  {}
 }
 
-enum.my_enum [
-  hello,
-  # hello
-  world
-]
-
 enum {
 
 # hello
