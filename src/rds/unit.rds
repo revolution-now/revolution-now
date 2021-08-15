@@ -16,4 +16,4 @@ enum.e_unit_orders [
   fortified
 ]
 
-}
+} # namespace rn

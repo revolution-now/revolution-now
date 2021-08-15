@@ -16,4 +16,4 @@ enum.e_direction [
   sw, s, se,
 ]
 
-}
+} # namespace rn

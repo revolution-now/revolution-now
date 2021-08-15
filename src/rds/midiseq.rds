@@ -48,7 +48,7 @@ sumtype.command {
   resume {}
   off    {}
   volume {
-    value: 'double'
+    value: double
   }
 
   _features: []

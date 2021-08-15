@@ -16,4 +16,4 @@ enum.e_font [
   habbo_15
 ]
 
-}
+} # namespace rn

@@ -22,24 +22,24 @@ namespace.rn {
 sumtype.LandViewState {
   none {}
   unit_input {
-    unit_id: 'UnitId'
+    unit_id: UnitId
   }
   unit_move {
-    unit_id: 'UnitId'
+    unit_id: UnitId
   }
   unit_attack {
-    attacker: 'UnitId'
-    defender: 'UnitId'
-    attacker_wins: 'bool'
+    attacker: UnitId
+    defender: UnitId
+    attacker_wins: bool
   }
 }
 
 sumtype.LandViewRawInput {
   orders {
-    orders: 'orders_t'
+    orders: orders_t
   }
   tile_click {
-    coord: 'Coord'
+    coord: Coord
   }
   center {} # Center on blinking unit, if any.
 }
@@ -49,18 +49,18 @@ sumtype.LandViewRawInput {
 # tion.
 sumtype.UnitAnimation {
   blink {
-    visible: 'bool'
+    visible: bool
   }
   slide {
-    target: 'Coord'
-    percent: 'double'
-    percent_vel: 'DissipativeVelocity'
+    target: Coord
+    percent: double
+    percent_vel: DissipativeVelocity
   }
   depixelate {
-    tx_depixelate_from: 'Texture'
+    tx_depixelate_from: Texture
     pixels: 'std::vector<Coord>'
     demoted_pixels: 'Matrix<Color>'
   }
 }
 
-}
+} # namespace rn

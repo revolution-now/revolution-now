@@ -12,7 +12,7 @@ include [
   coord.hpp
   id.hpp
 
-  #- Rds
+  # Rds
   rds/ustate.hpp
 
   # Flatbuffers
@@ -24,19 +24,19 @@ namespace.rn {
 sumtype.UnitState {
   free {}
   world {
-    coord: 'Coord'
+    coord: Coord
   }
   cargo {
-    holder: 'UnitId'
+    holder: UnitId
   }
   old_world {
-    st: 'UnitOldWorldViewState_t'
+    st: UnitOldWorldViewState_t
   }
   colony {
-    id: 'ColonyId'
+    id: ColonyId
   }
 
   _features: [formattable, serializable, equality]
 }
 
-}
+} # namespace rn

@@ -60,4 +60,4 @@ e_tune_purpose [
   special_event
 ]
 
-}
+} # namespace rn

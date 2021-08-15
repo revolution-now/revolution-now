@@ -21,7 +21,7 @@ enum.e_plane [
   menu      # the menus at the top of screen
   window    # the windows
   # -------------------------------------------------------------
-  omni       # Always present, invisible, and first.
+  omni      # Always present, invisible, and first.
 ]
 
-}
+} # namespace rn

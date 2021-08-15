@@ -27,12 +27,12 @@ sumtype.LandViewPlayerInput {
   # turn processor, it can handle that issue and we don't have
   # that problem.
   colony {
-    id: 'ColonyId'
+    id: ColonyId
   }
 
   # Player has given orders to a unit.
   give_orders {
-    orders: 'orders_t'
+    orders: orders_t
   }
 
   # Prioritize these units and make them ask for orders now, as-
@@ -45,4 +45,4 @@ sumtype.LandViewPlayerInput {
   }
 }
 
-}
+} # namespace rn

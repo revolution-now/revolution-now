@@ -36,9 +36,9 @@ sumtype.orders {
   fortify   {}
   sentry    {}
   disband   {}
-  move      { d: 'e_direction' }
+  move      { d: e_direction }
 
   _features: [formattable, equality, serializable]
 }
 
-}
+} # namespace rn

@@ -17,4 +17,4 @@ enum.e_nation [
   spanish
 ]
 
-}
+} # namespace rn

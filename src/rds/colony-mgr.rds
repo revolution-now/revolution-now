@@ -21,4 +21,4 @@ enum.e_new_colony_name_err [
   already_exists
 ]
 
-}
+} # namespace rn

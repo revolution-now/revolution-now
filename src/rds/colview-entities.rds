@@ -37,4 +37,4 @@ sumtype.ColViewObject {
   _features: [equality, formattable]
 }
 
-}
+} # namespace rn

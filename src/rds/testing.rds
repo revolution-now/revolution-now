@@ -26,18 +26,21 @@ namespace.rdstest {
 sumtype.Maybe._template [T]
 sumtype.Maybe {
   nothing {}
-  just { val: 'T' }
+  just { val: T }
 }
 
 sumtype.MyVariant0 {}
 
 # Descriptive comment.
 sumtype.MyVariant1 {
+  # hello
   happy {
+    # hello
     p: 'std::pair<char, int>'
   }
   sad {
-    hello: 'bool'
+    hello: bool
+    # hello
     ptr:   'bool*'
   }
   excited {}
@@ -47,14 +50,14 @@ sumtype.MyVariant1._features: [equality]
 sumtype.MyVariant2 {
   first {
     name: 'std::string'
-    b: 'bool'
+    b: bool
   }
   second {
-    flag1: 'bool'
-    flag2: 'bool'
+    flag1: bool
+    flag2: bool
   }
   third {
-    cost: 'int'
+    cost: int
   }
 }
 sumtype.MyVariant2._features: [formattable, serializable]
@@ -63,14 +66,14 @@ namespace.inner {
 
 sumtype.MyVariant3 {
   a1 {
-    var0: 'MyVariant0_t'
+    var0: MyVariant0_t
   }
   a2 {
-    var1: 'MyVariant0_t'
-    var2: 'MyVariant2_t'
+    var1: MyVariant0_t
+    var2: MyVariant2_t
   }
   a3 {
-    c: 'char'
+    c: char
   }
 }
 
@@ -78,15 +81,15 @@ sumtype.MyVariant3 {
 sumtype.MyVariant4 {
   # Alternatives.
   first {
-    i:  'int'
-    c:  'char'
-    b:  'bool'
+    i:  int
+    c:  char
+    b:  bool
     op: 'rn::maybe<uint32_t>'
   }
   _2nd {}
   third {
     s:    'std::string'
-    var3: 'MyVariant3_t'
+    var3: MyVariant3_t
   }
 }
 
@@ -95,13 +98,13 @@ sumtype.TemplateTwoParams._template: [T, U]
 sumtype.TemplateTwoParams {
   # Alternatives.
   first_alternative {
-    t: 'T'
-    c: 'char'
+    t: T
+    c: char
   }
   second_alternative {}
   third_alternative {
     hello: 'Maybe_t<T>'
-    u: 'U'
+    u: U
   }
 }
 
@@ -124,10 +127,10 @@ sumtype.MySumtype {
   none {}
   some {
     s: 'std::string'
-    y: 'int'
+    y: int
   }
   more {
-    d: 'double'
+    d: double
   }
 
   _features: [
@@ -143,10 +146,10 @@ sumtype.OnOffState {
     user: 'std::string'
   }
   switching_on {
-    percent: 'double'
+    percent: double
   }
   switching_off {
-    percent: 'double'
+    percent: double
   }
 
   _features: [
@@ -161,8 +164,15 @@ sumtype.OnOffEvent {
   turn_on  {}
 }
 
+enum.my_enum [
+  hello,
+  # hello
+  world
+]
+
 enum {
 
+# hello
 e_empty  []
 e_single [hello]
 e_two    [hello, world]

@@ -110,4 +110,4 @@ enum.e_tile [
   checkers_inv
 ]
 
-}
+} # namespace rn

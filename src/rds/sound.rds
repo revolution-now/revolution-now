@@ -16,4 +16,4 @@ enum.e_sfx [
   attacker_won
 ]
 
-}
+} # namespace rn

@@ -23,14 +23,14 @@ namespace.rn {
 # create the appearance that the mouse is dragging it.
 sumtype.OldWorldDraggableObject {
   unit {
-    id: 'UnitId'
+    id: UnitId
   }
   market_commodity {
-    type: 'e_commodity'
+    type: e_commodity
   }
   cargo_commodity {
-    comm: 'Commodity'
-    slot: 'CargoSlotIndex'
+    comm: Commodity
+    slot: CargoSlotIndex
   }
 
   _features: [formattable, equality]
@@ -38,39 +38,39 @@ sumtype.OldWorldDraggableObject {
 
 sumtype.OldWorldDragSrc {
   dock {
-    id: 'UnitId'
+    id: UnitId
   }
   cargo {
-    slot: 'CargoSlotIndex'
+    slot: CargoSlotIndex
     quantity: 'maybe<int>'
   }
   outbound {
-    id: 'UnitId'
+    id: UnitId
   }
   inbound {
-    id: 'UnitId'
+    id: UnitId
   }
   inport {
-    id: 'UnitId'
+    id: UnitId
   }
   market {
-    type: 'e_commodity'
+    type: e_commodity
     quantity: 'maybe<int>'
   }
 }
 
 sumtype.OldWorldDragDst {
   cargo {
-    slot: 'CargoSlotIndex'
+    slot: CargoSlotIndex
   }
   dock {}
   outbound {}
   inbound {}
   inport {}
   inport_ship {
-    id: 'UnitId'
+    id: UnitId
   }
   market {}
 }
 
-}
+} # namespace rn

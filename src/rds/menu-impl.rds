@@ -18,9 +18,9 @@ namespace.rn {
 sumtype.MenuItem {
   menu_divider {}
   menu_clickable {
-    item: 'e_menu_item'
+    item: e_menu_item
     name: 'std::string'
-    callbacks: 'MenuCallbacks'
+    callbacks: MenuCallbacks
   }
 
   _features: []
@@ -32,29 +32,29 @@ sumtype.MenuState {
     hover: 'maybe<e_menu>'
   }
   menu_open {
-    menu: 'e_menu'
+    menu: e_menu
     hover: 'maybe<e_menu_item>'
   }
   item_click {
-    item: 'e_menu_item'
-    start: 'Time_t'
+    item: e_menu_item
+    start: Time_t
   }
 }
 
 sumtype.MouseOver {
   header {
-    menu: 'e_menu'
+    menu: e_menu
   }
   item {
-    item: 'e_menu_item'
+    item: e_menu_item
   }
   divider {
-    menu: 'e_menu'
+    menu: e_menu
   }
   border {
-    menu: 'e_menu'
+    menu: e_menu
   }
   bar {}
 }
 
-}
+} # namespace rn

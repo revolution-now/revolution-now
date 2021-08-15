@@ -13,6 +13,7 @@ include [
   commodity.hpp
   coord.hpp
 
+  # Flatbuffers
   fb/colony_generated.h
 ]
 
@@ -21,14 +22,14 @@ namespace.rn {
 
 sumtype.ColonyJob {
   land {
-    d: 'e_direction'
-    producing: 'e_commodity'
+    d: e_direction
+    producing: e_commodity
   }
   mfg {
-    mfg_job: 'e_mfg_job'
+    mfg_job: e_mfg_job
   }
 
   _features: [serializable, equality]
 }
 
-}
+} # namespace rn

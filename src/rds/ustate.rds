@@ -23,7 +23,7 @@ sumtype.UnitOldWorldViewState {
   # should never actually assume a value of 1.0, because as soon
   # as it does, the state is transitioned to in_port.
   outbound {
-    percent: 'double'
+    percent: double
   }
 
   # For ships that are traveling from europe to the new world.
@@ -32,7 +32,7 @@ sumtype.UnitOldWorldViewState {
   # 1.0, because as soon as it does, the state is transitioned to
   # the map.
   inbound {
-    percent: 'double'
+    percent: double
   }
 
   # If a ship is in this state then it is in port (shown in the
@@ -47,4 +47,4 @@ sumtype.UnitOldWorldViewState {
   ]
 }
 
-}
+} # namespace rn

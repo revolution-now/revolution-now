@@ -14,4 +14,4 @@ enum.e_ok_cancel [ok, cancel]
 
 enum.e_confirm [yes, no]
 
-}
+} # namespace rn.ui

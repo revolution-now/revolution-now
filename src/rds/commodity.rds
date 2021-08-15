@@ -35,12 +35,12 @@ enum.e_commodity [
 sumtype.CommodityLabel {
   none {}
   quantity {
-    value: 'int'
+    value: int
   }
   buy_sell={
-    sell: 'int'
-    buy: 'int'
+    sell: int
+    buy: int
   }
 }
 
-}
+} # namespace rn

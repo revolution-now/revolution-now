@@ -18,4 +18,4 @@ enum.e_main_menu_item [
   quit
 ]
 
-}
+} # namespace rn

@@ -14,4 +14,4 @@ enum.e_image [
   europe
 ]
 
-}
+} # namespace rn

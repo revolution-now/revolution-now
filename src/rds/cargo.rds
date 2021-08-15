@@ -36,10 +36,10 @@ sumtype.CargoSlot {
   empty {}
   overflow {}
   cargo {
-    contents: 'Cargo'
+    contents: Cargo
   }
 
   _features: [formattable, equality, serializable]
 }
 
-}
+} # namespace rn

@@ -31,11 +31,11 @@ namespace.rn.namespace.input {
 sumtype.drag_phase {
   none {}
   maybe {
-    origin: 'Coord'
+    origin: Coord
   }
   dragging {
-    origin: 'Coord'
-    phase:  'e_drag_phase'
+    origin: Coord
+    phase:  e_drag_phase
   }
 }
 
