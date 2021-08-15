@@ -13,12 +13,11 @@
 // rdsc
 #include "expr.hpp"
 
-// base
-#include "base/maybe.hpp"
+// C++ standard library
+#include <string_view>
 
 namespace rds {
 
-base::maybe<expr::Rds> parse( std::string_view preamble_filename,
-                              std::string_view rds_filename );
+expr::Rds parse( std::string_view rds_filename );
 
 }

@@ -158,10 +158,16 @@ namespace rcl {
 struct table;
 struct list;
 
+struct null_t {
+  bool operator==( null_t const& ) const = default;
+};
+inline constexpr null_t null;
+
 /****************************************************************
 ** value
 *****************************************************************/
 enum class type {
+  null,
   boolean,
   integral,
   floating,
@@ -172,6 +178,7 @@ enum class type {
 
 // clang-format off
 using value = base::variant<
+  null_t,
   double,
   int,
   bool,
@@ -213,7 +220,7 @@ struct table {
   // checks, element must exist or check-fail! Note that if you
   // just need the keys in order, you can iterate over them using
   // begin/end since they will be delivered in that order.
-  value const& operator[]( int n ) const;
+  value_type const& operator[]( int n ) const;
 
   std::string pretty_print( std::string_view indent = "" ) const;
 

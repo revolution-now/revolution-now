@@ -1,57 +1,60 @@
---[[ ------------------------------------------------------------
-|
-| menu-impl.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2020-11-16.
-|
-| Description: Private RDS definitions for the menu module.
-|
---]] ------------------------------------------------------------
-include 'time.hpp'
-include 'maybe.hpp'
+# ===============================================================
+# menu-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-16.
+#
+# Description: Private RDS definitions for the menu module.
+#
+# ===============================================================
+include [
+  time.hpp
+  maybe.hpp
+]
 
-namespace 'rn'
+namespace.rn {
 
-MenuItem = sumtype{
-  {menu_divider={}},
-  {menu_clickable={
-    {item='e_menu_item'},
-    {name='std::string'},
-    {callbacks='MenuCallbacks'},
-  }},
+sumtype.MenuItem {
+  menu_divider {}
+  menu_clickable {
+    item: 'e_menu_item'
+    name: 'std::string'
+    callbacks: 'MenuCallbacks'
+  }
 
-  [features_key]={}
+  _features: []
 }
 
-MenuState = sumtype{
-  {menus_hidden={}},
-  {menus_closed={
-    {hover='maybe<e_menu>'},
-  }},
-  {menu_open={
-    {menu='e_menu'},
-    {hover='maybe<e_menu_item>'},
-  }},
-  {item_click={
-    {item='e_menu_item'},
-    {start='Time_t'},
-  }},
+sumtype.MenuState {
+  menus_hidden {}
+  menus_closed {
+    hover: 'maybe<e_menu>'
+  }
+  menu_open {
+    menu: 'e_menu'
+    hover: 'maybe<e_menu_item>'
+  }
+  item_click {
+    item: 'e_menu_item'
+    start: 'Time_t'
+  }
 }
 
-MouseOver = sumtype{
-  {header={
-    {menu='e_menu'},
-  }},
-  {item={
-    {item='e_menu_item'},
-  }},
-  {divider={
-    {menu='e_menu'},
-  }},
-  {border={
-    {menu='e_menu'},
-  }},
-  {bar={} }
+sumtype.MouseOver {
+  header {
+    menu: 'e_menu'
+  }
+  item {
+    item: 'e_menu_item'
+  }
+  divider {
+    menu: 'e_menu'
+  }
+  border {
+    menu: 'e_menu'
+  }
+  bar {}
+}
+
 }

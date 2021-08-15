@@ -33,21 +33,29 @@ using ::base::valid_or;
 struct value_printer {
   string_view indent;
 
-  string operator()( bool b ) { return b ? "true" : "false"; }
+  string operator()( null_t ) const { return "null"; }
 
-  string operator()( int n ) { return fmt::to_string( n ); }
+  string operator()( bool b ) const {
+    return b ? "true" : "false";
+  }
 
-  string operator()( double d ) { return fmt::to_string( d ); }
+  string operator()( int n ) const {
+    return fmt::to_string( n );
+  }
 
-  string operator()( string const& s ) {
+  string operator()( double d ) const {
+    return fmt::to_string( d );
+  }
+
+  string operator()( string const& s ) const {
     return fmt::format( "\"{}\"", s );
   }
 
-  string operator()( std::unique_ptr<table> const& tbl ) {
+  string operator()( std::unique_ptr<table> const& tbl ) const {
     return tbl->pretty_print( indent );
   }
 
-  string operator()( std::unique_ptr<list> const& lst ) {
+  string operator()( std::unique_ptr<list> const& lst ) const {
     return lst->pretty_print( indent );
   }
 };
@@ -56,19 +64,21 @@ struct value_printer {
 ** value
 *****************************************************************/
 struct type_visitor {
-  type operator()( bool ) { return type::boolean; }
+  type operator()( null_t ) const { return type::null; }
 
-  type operator()( int ) { return type::integral; }
+  type operator()( bool ) const { return type::boolean; }
 
-  type operator()( double ) { return type::floating; }
+  type operator()( int ) const { return type::integral; }
 
-  type operator()( string const& ) { return type::string; }
+  type operator()( double ) const { return type::floating; }
 
-  type operator()( std::unique_ptr<table> const& ) {
+  type operator()( string const& ) const { return type::string; }
+
+  type operator()( std::unique_ptr<table> const& ) const {
     return type::table;
   }
 
-  type operator()( std::unique_ptr<list> const& ) {
+  type operator()( std::unique_ptr<list> const& ) const {
     return type::list;
   }
 };
@@ -93,10 +103,10 @@ value const& table::operator[]( string_view key ) const {
   return *p;
 }
 
-value const& table::operator[]( int n ) const {
+table::value_type const& table::operator[]( int n ) const {
   CHECK( n >= 0 && n < int( members_.size() ),
          "invalid table index {}", n );
-  return members_[n].second;
+  return members_[n];
 }
 
 string table::pretty_print( string_view indent ) const {
@@ -161,6 +171,8 @@ string doc::pretty_print( string_view indent ) const {
 namespace {
 
 struct unflatten_visitor {
+  value operator()( null_t ) const { return value{ null }; }
+
   value operator()( bool o ) const { return value{ o }; }
 
   value operator()( int n ) const { return value{ n }; }
@@ -225,6 +237,10 @@ list list::unflatten() && {
 namespace {
 
 struct dedupe_visitor {
+  expect<value, string> operator()( null_t ) const {
+    return value{ null };
+  }
+
   expect<value, string> operator()( bool b ) const {
     return value{ b };
   }
@@ -339,6 +355,7 @@ expect<table, string> table::dedupe() && {
 namespace {
 
 struct mapping_visitor {
+  void operator()( null_t ) const {}
   void operator()( bool ) const {}
   void operator()( int ) const {}
   void operator()( double ) const {}

@@ -1,18 +1,19 @@
---[[ ------------------------------------------------------------
-|
-| coord.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the coord module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# coord.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the coord module.
+#
+# ===============================================================
+namespace.rn {
 
-e_direction = enum{
-  'nw', 'n', 'ne',
-   'w', 'c',  'e',
-  'sw', 's', 'se',
+enum.e_direction [
+  nw, n, ne,
+   w, c,  e,
+  sw, s, se,
+]
+
 }

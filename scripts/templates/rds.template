@@ -1,53 +1,57 @@
---[[ ------------------------------------------------------------
-|
-| {{FILEE}}
-|
-| Project: Revolution Now
-|
-| Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
-|
-| Description: RDS definitions for the {{FILE}} module.
-|
---]] ------------------------------------------------------------
--- Revolution Now
-include 'some-header.hpp'
+# ===============================================================
+# {{FILEE}}
+#
+# Project: Revolution Now
+#
+# Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+#
+# Description: RDS definitions for the {{FILE}} module.
+#
+# ===============================================================
+include [
+  # Revolution Now
+  some-header.hpp
 
--- Rds
-include 'rds/orders.hpp'
+  # Rds
+  rds/orders.hpp
 
--- C++ standard library
-include '<string>'
+  # C++ standard library
+  <string>
+]
 
-namespace 'rn'
+namespace.rn {
 
-MyVariant = sumtype{
-  {first={
-    {i='int'},
-    {c='char'},
-  }},
-  {second={}},
-  {third={
-    {s='std::string'},
-  }},
-  -- No features listed defaults to 'formattable' and 'equality'.
+sumtype.MyVariant {
+  first {
+    i: 'int'
+    c: 'char'
+  }
+  second {}
+  third {
+    s: 'std::string'
+  }
+  # No features listed defaults to 'formattable' and 'equality'.
 }
 
-MyTemplateVariant = template{ 'T', 'U' }.sumtype{
-  {first={
-    {t='T'},
-    {c='char'},
-  }},
-  {second={}},
-  {third={
-    {u='U'},
-  }},
+sumtype.MyTemplateVariant._template: [T, U]
+sumtype.MyTemplateVariant {
+  first {
+    t: 'T'
+    c: 'char'
+  }
+  second {}
+  third {
+    u: 'U'
+  }
 
-  [features_key]={ 'serializable', 'equality', 'formattable' }
+  _features: [serializable, equality, formattable]
 }
 
-e_menu = enum{
-  'hello',
-  'world',
-  'test',
-  'value',
+enum.e_menu {
+  hello
+  world
+  test
+  value
+}
+
 }

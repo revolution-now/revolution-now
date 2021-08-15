@@ -1,59 +1,62 @@
---[[ ------------------------------------------------------------
-|
-| conductor.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the conductor module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# conductor.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the conductor module.
+#
+# ===============================================================
+namespace.rn {
 
--- NOTE: The ordering of these determines priority in the event
--- that the first and second choices (set in the config files)
--- are not available.
-e_music_player = enum{
-  'midiseq',
-  'ogg',
-  'silent',
-}
+# NOTE: The ordering of these determines priority in the event
+# that the first and second choices (set in the config files) are
+# not available.
+enum.e_music_player [
+  midiseq
+  ogg
+  silent
+]
 
-e_special_music_event = enum{
-  'fountain_of_youth',
-  'founding_father',
-}
+enum.e_special_music_event [
+  fountain_of_youth
+  founding_father
+]
 
-namespace 'rn.conductor'
+namespace.conductor {
 
--- Tune Selection. Each of these methods will search through
--- available tunes and select one that meets the criteria and
--- then play it if requested. If the tune is played then the con-
--- ductor will return to autoplay when it is finished, if auto-
--- play is enabled.
-e_request = enum{
-  'won_battle_europeans',
-  'won_battle_natives',
-  'lost_battle_europeans',
-  'lost_battle_natives',
-  'slow_sad',
-  'happy_fast',
-  'orchestrated',
-  'fiddle_tune',
-  'fife_drum_sad',
-  'fife_drum_slow',
-  'fife_drum_fast',
-  'fife_drum_happy',
-  'native_sad',
-  'native_happy',
-  'king_happy',
-  'king_sad',
-  'king_war',
-}
+# Tune Selection. Each of these methods will search through
+# available tunes and select one that meets the criteria and then
+# play it if requested. If the tune is played then the con-
+# ductor will return to autoplay when it is finished, if auto-
+# play is enabled.
+enum.e_request [
+  won_battle_europeans
+  won_battle_natives
+  lost_battle_europeans
+  lost_battle_natives
+  slow_sad
+  happy_fast
+  orchestrated
+  fiddle_tune
+  fife_drum_sad
+  fife_drum_slow
+  fife_drum_fast
+  fife_drum_happy
+  native_sad
+  native_happy
+  king_happy
+  king_sad
+  king_war
+]
 
-e_music_state = enum{
-  'playing',
-  'stopped',
-  'paused',
-}
+enum.e_music_state [
+  playing
+  stopped
+  paused
+]
+
+} # namespace conductor
+
+} # namespace rn

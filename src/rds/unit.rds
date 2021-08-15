@@ -1,18 +1,19 @@
---[[ ------------------------------------------------------------
-|
-| unit.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the unit module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# unit.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the unit module.
+#
+# ===============================================================
+namespace.rn {
 
-e_unit_orders = enum{
-  'none',
-  'sentry',
-  'fortified',
+enum.e_unit_orders [
+  none
+  sentry
+  fortified
+]
+
 }

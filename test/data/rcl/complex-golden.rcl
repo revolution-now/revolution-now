@@ -122,4 +122,9 @@ list: [
   3,
   "false",
   "four",
+  null,
 ]
+
+null_val: null
+
+nonnull_val: "null"

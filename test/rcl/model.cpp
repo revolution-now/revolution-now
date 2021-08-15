@@ -141,8 +141,12 @@ TEST_CASE( "[model] complex doc" ) {
    *   two
    *   3
    *   "false"
-   *   four
+   *   four,
+   *   null
    * ]
+   *
+   * null_val:    null
+   * nonnull_val: "null"
    */
   // This should construct the above document.
   auto doc = make_doc(
@@ -202,8 +206,9 @@ TEST_CASE( "[model] complex doc" ) {
                               KV{ "f.g.h.k", 5 },
                               KV{ "f.g.h.l", 6 } ) } ) ) } ) },
 
-      KV{ "list",
-          make_list_val( "one", "two", 3, "false", "four" ) } );
+      KV{ "list", make_list_val( "one", "two", 3, "false",
+                                 "four", null ) },
+      KV{ "null_val", null }, KV{ "nonnull_val", "null" } );
 
   REQUIRE( doc );
 
@@ -215,7 +220,7 @@ TEST_CASE( "[model] complex doc" ) {
 
   auto& top = doc->top();
 
-  REQUIRE( top.size() == 11 );
+  REQUIRE( top.size() == 13 );
 
   REQUIRE( top.has_key( "file" ) );
   REQUIRE( top["file"].holds<string>() );
@@ -295,7 +300,7 @@ TEST_CASE( "[model] complex doc" ) {
       top["list"].as<unique_ptr<list>>();
   REQUIRE( u_list != nullptr );
   list const& l = *u_list;
-  REQUIRE( l.size() == 5 );
+  REQUIRE( l.size() == 6 );
 
   REQUIRE( l[0].holds<string>() );
   REQUIRE( type_of( l[0] ) == type::string );
@@ -307,12 +312,15 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( type_of( l[3] ) == type::string );
   REQUIRE( l[4].holds<string>() );
   REQUIRE( type_of( l[4] ) == type::string );
+  REQUIRE( l[5].holds<null_t>() );
+  REQUIRE( type_of( l[5] ) == type::null );
 
   REQUIRE( l[0].as<string>() == "one" );
   REQUIRE( l[1].as<string>() == "two" );
   REQUIRE( l[2].as<int>() == 3 );
   REQUIRE( l[3].as<string>() == "false" );
   REQUIRE( l[4].as<string>() == "four" );
+  REQUIRE( l[5].as<null_t>() == null );
 
   auto i = l.begin();
   REQUIRE( i != l.end() );
@@ -355,7 +363,24 @@ TEST_CASE( "[model] complex doc" ) {
     REQUIRE( v.as<string>() == "four" );
   }
   ++i;
+  REQUIRE( i != l.end() );
+  {
+    value const& v = *i;
+    REQUIRE( v.holds<null_t>() );
+    REQUIRE( type_of( v ) == type::null );
+    REQUIRE( v.as<null_t>() == null );
+  }
+  ++i;
   REQUIRE( i == l.end() );
+
+  REQUIRE( top.has_key( "null_val" ) );
+  REQUIRE( top["null_val"].holds<null_t>() );
+  REQUIRE( top["null_val"].as<null_t>() == null );
+  REQUIRE( type_of( top["null_val"] ) == type::null );
+  REQUIRE( top.has_key( "nonnull_val" ) );
+  REQUIRE( top["nonnull_val"].holds<string>() );
+  REQUIRE( top["nonnull_val"].as<string>() == "null" );
+  REQUIRE( type_of( top["nonnull_val"] ) == type::string );
 
   REQUIRE( top.has_key( "a" ) );
   REQUIRE( top["a"].holds<unique_ptr<table>>() );
@@ -369,10 +394,10 @@ TEST_CASE( "[model] complex doc" ) {
   // Make sure that the table we just got is the same table that
   // we get from indexing top at its first (ordered) element.
   {
-    REQUIRE( top[0].holds<unique_ptr<table>>() );
-    REQUIRE( type_of( top[0] ) == type::table );
+    REQUIRE( top[0].second.holds<unique_ptr<table>>() );
+    REQUIRE( type_of( top[0].second ) == type::table );
     unique_ptr<table> const& u_a0 =
-        top[0].as<unique_ptr<table>>();
+        top[0].second.as<unique_ptr<table>>();
     REQUIRE( u_a0 != nullptr );
     table const& a0 = *u_a0;
     REQUIRE( a0.size() == 1 );
@@ -519,6 +544,24 @@ TEST_CASE( "[model] complex doc" ) {
     REQUIRE( k == "list" );
     REQUIRE( v.holds<unique_ptr<list>>() );
     REQUIRE( type_of( v ) == type::list );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "null_val" );
+    REQUIRE( v.holds<null_t>() );
+    REQUIRE( type_of( v ) == type::null );
+  }
+
+  ++it;
+  REQUIRE( it != top.end() );
+  {
+    auto& [k, v] = *it;
+    REQUIRE( k == "nonnull_val" );
+    REQUIRE( v.holds<string>() );
+    REQUIRE( type_of( v ) == type::string );
   }
 
   ++it;

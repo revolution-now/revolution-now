@@ -1,16 +1,17 @@
---[[ ------------------------------------------------------------
-|
-| image.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the image module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# image.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the image module.
+#
+# ===============================================================
+namespace.rn {
 
-e_image = enum{
-  'europe',
+enum.e_image [
+  europe
+]
+
 }

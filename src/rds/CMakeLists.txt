@@ -9,8 +9,6 @@ file( GLOB rdss "[a-z][a-z0-9-]*.rds" )
 # Generate the include files parameters.
 set( generated_files "" )
 
-set( rds_preamble "${CMAKE_CURRENT_SOURCE_DIR}/rdsc/preamble.lua" )
-
 # RDS files currently do not include other RDS files, and so
 # there is no need to track dependencies among them during incre-
 # mental building, unlike C++ header files, so the below should
@@ -25,7 +23,6 @@ foreach( rds ${rdss} )
     COMMAND rdsc
       ${rds}
       ${generated_include}
-      ${rds_preamble}
     DEPENDS rdsc ${rds}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )

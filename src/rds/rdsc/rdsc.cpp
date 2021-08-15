@@ -40,7 +40,7 @@ void abort_with_backtrace_here( SourceLoc /*loc*/ ) { abort(); }
 } // namespace base
 
 int main( int argc, char** argv ) {
-  if( argc != 4 )
+  if( argc != 3 )
     rds::error_msg( "usage: rdsc <rds-file> <out-file>" );
 
   string_view filename = argv[1];
@@ -53,16 +53,9 @@ int main( int argc, char** argv ) {
   if( !output_file.ends_with( ".hpp" ) )
     rds::error_msg( "output file must end with '.hpp'." );
 
-  string_view rds_preamble_filename = argv[3];
-  if( !rds_preamble_filename.ends_with( ".lua" ) )
-    rds::error_msg( "preamble file must end with '.lua'." );
+  rds::expr::Rds rds = rds::parse( filename );
 
-  maybe<rds::expr::Rds> maybe_rds =
-      rds::parse( rds_preamble_filename, filename );
-  if( !maybe_rds.has_value() )
-    rds::error_msg( "failed to parse RDS file '{}'.", filename );
-
-  vector<string> validation_errors = rds::validate( *maybe_rds );
+  vector<string> validation_errors = rds::validate( rds );
   if( !validation_errors.empty() ) {
     for( string const& error : validation_errors )
       rds::error_no_exit_msg( "{}", error );
@@ -70,9 +63,9 @@ int main( int argc, char** argv ) {
   }
 
   // Performs various transformations.
-  rds::post_process( *maybe_rds );
+  rds::post_process( rds );
 
-  maybe<string> cpp_code = rds::generate_code( *maybe_rds );
+  maybe<string> cpp_code = rds::generate_code( rds );
   if( !cpp_code.has_value() )
     rds::error_msg(
         "failed to generate C++ code for RDS file '{}'.",

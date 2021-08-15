@@ -1,62 +1,63 @@
---[[ ------------------------------------------------------------
-|
-| tune.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the tune module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# tune.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the tune module.
+#
+# ===============================================================
+namespace.rn.enum {
 
-e_tune_tempo = enum{
-  'fast',
-  'medium',
-  'slow',
-}
+e_tune_tempo [
+  fast
+  medium
+  slow
+]
 
-e_tune_genre = enum{
-  'trad',
-  'classical',
-}
+e_tune_genre [
+  trad
+  classical
+]
 
-e_tune_culture = enum{
-  'native',
-  'new_world',
-  'old_world',
-}
+e_tune_culture [
+  native
+  new_world
+  old_world
+]
 
-e_tune_inst = enum{
-  'fife_and_drum',
-  'fiddle',
-  'percussive',
-  'orchestrated',
-}
+e_tune_inst [
+  fife_and_drum
+  fiddle
+  percussive
+  orchestrated
+]
 
-e_tune_sentiment = enum{
-  'happy',
-  'sad',
-  'war_triumph',
-  'war_lost',
-}
+e_tune_sentiment [
+  happy
+  sad
+  war_triumph
+  war_lost
+]
 
-e_tune_key = enum{
-  'a', 'bb', 'b', 'c', 'cs', 'd', 'eb', 'e', 'f', 'fs', 'g', 'ab'
-}
+e_tune_key [
+  a, bb, b, c, cs, d, eb, e, f, fs, g, ab
+]
 
-e_tune_tonality = enum{
-  'major',
-  'minor',
-}
+e_tune_tonality [
+  major
+  minor
+]
 
-e_tune_epoch = enum{
-  'standard',
-  'post_revolution',
-}
+e_tune_epoch [
+  standard
+  post_revolution
+]
 
-e_tune_purpose = enum{
-  'standard',
-  'special_event',
+e_tune_purpose [
+  standard
+  special_event
+]
+
 }

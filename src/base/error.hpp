@@ -170,6 +170,16 @@
   }                                                            \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
+#define UNWRAP_CHECK_MSG( a, e, ... )                  \
+  auto&& STRING_JOIN( __e, __LINE__ ) = e;             \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {    \
+    ::base::abort_with_msg( fmt::format(               \
+        "bad unwrap, original error: {}, message: {}", \
+        STRING_JOIN( __e, __LINE__ ).error(),          \
+        FMT_SAFE( __VA_ARGS__ ) ) );                   \
+  }                                                    \
+  auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
+
 #define UNWRAP_RETURN( var, ... )                             \
   auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;          \
   if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \

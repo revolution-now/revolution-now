@@ -1,21 +1,24 @@
---[[ ------------------------------------------------------------
-|
-| compositor.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-03-02.
-|
-| Description: RDS definitions for the compositor module.
-|
---]] ------------------------------------------------------------
-namespace 'rn.compositor'
+# ===============================================================
+# compositor.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-03-02.
+#
+# Description: RDS definitions for the compositor module.
+#
+# ===============================================================
+namespace.rn {
+namespace.compositor {
 
--- In general, these sections may overlap.
-e_section = enum{
-  'menu_bar',
-  -- All parts of the screen except for the menu bar.
-  'non_menu_bar',
-  'viewport',
-  'panel',
-}
+# In general, these sections may overlap.
+enum.e_section [
+  menu_bar
+  # All parts of the screen except for the menu bar.
+  non_menu_bar
+  viewport
+  panel
+]
+
+} # namespace compositor
+} # namespace rn

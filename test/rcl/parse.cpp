@@ -98,8 +98,13 @@ TEST_CASE( "[parse] complex doc" ) {
       two
       3
       "false"
-      four
+      four,
+      null
     ]
+
+    null_val: null
+
+    nonnull_val: "null"
   )";
 
   auto doc = parse( "fake-file", input );

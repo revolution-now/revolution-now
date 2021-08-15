@@ -1,45 +1,48 @@
---[[ ------------------------------------------------------------
-|
-| land-view.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-07-21.
-|
-| Description: Public RDS definitions for the land-view module.
-|
---]] ------------------------------------------------------------
-include 'id.hpp'
+# ===============================================================
+# land-view.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-07-21.
+#
+# Description: Public RDS definitions for the land-view module.
+#
+# ===============================================================
+include [
+  id.hpp
+  rds/orders.hpp
+]
 
--- Rds
-include 'rds/orders.hpp'
+namespace.rn {
 
-namespace 'rn'
+sumtype.LandViewPlayerInput {
+  # Player clicked on a colony. It is important that this be a
+  # command sent back to the caller of the land-view module (as
+  # opposed to the land-view input processor coroutine just
+  # showing the colony window itself) because it is possible that
+  # a user might change the orders of a unit in the colony view,
+  # e.g. they could fortify the unit that is currently asking for
+  # orders, then upon closing the colony view we'd be a bad state
+  # (a fortified unit asking for orders). But by this back to the
+  # turn processor, it can handle that issue and we don't have
+  # that problem.
+  colony {
+    id: 'ColonyId'
+  }
 
-LandViewPlayerInput = sumtype{
-  -- Player clicked on a colony. It is important that this be a
-  -- command sent back to the caller of the land-view module (as
-  -- opposed to the land-view input processor coroutine just
-  -- showing the colony window itself) because it is possible
-  -- that a user might change the orders of a unit in the colony
-  -- view, e.g. they could fortify the unit that is currently
-  -- asking for orders, then upon closing the colony view we'd be
-  -- a bad state (a fortified unit asking for orders). But by
-  -- this back to the turn processor, it can handle that issue
-  -- and we don't have that problem.
-  {colony={
-    {id='ColonyId'},
-  }},
-  -- Player has given orders to a unit.
-  {give_orders={
-    {orders='orders_t'},
-  }},
-  -- Prioritize these units and make them ask for orders now, as-
-  -- suming that they have not used their turn. This needs to be
-  -- a vector so that if there are multiple, then they can all be
-  -- prioritized before the first of them starts asking for or-
-  -- ders.
-  {prioritize={
-    {units='std::vector<UnitId>'},
-  }},
+  # Player has given orders to a unit.
+  give_orders {
+    orders: 'orders_t'
+  }
+
+  # Prioritize these units and make them ask for orders now, as-
+  # suming that they have not used their turn. This needs to be a
+  # vector so that if there are multiple, then they can all be
+  # prioritized before the first of them starts asking for or-
+  # ders.
+  prioritize {
+    units:  'std::vector<UnitId>'
+  }
+}
+
 }

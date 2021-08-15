@@ -1,65 +1,68 @@
---[[ ------------------------------------------------------------
-|
-| menu.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2020-11-13.
-|
-| Description: RDS definitions for the menu module.
-|
---]] ------------------------------------------------------------
-include 'menu.hpp'
+# ===============================================================
+# menu.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the menu module.
+#
+# ===============================================================
+include [
+  menu.hpp
+]
 
-namespace 'rn'
+namespace.rn.enum {
 
-e_menu = enum{
-  'game',
-  'view',
-  'orders',
-  'old_world',
-  'advisors',
-  'music',
-  'window',
-  'debug',
-  'pedia',
-}
+e_menu [
+  game
+  view
+  orders
+  old_world
+  advisors
+  music
+  window
+  debug
+  pedia
+]
 
-e_menu_item = enum{
-  'about',
-  'save',
-  'load',
-  'revolution',
-  'retire',
-  'exit',
-  'zoom_in',
-  'zoom_out',
-  'restore_zoom',
-  'music_play',
-  'music_stop',
-  'music_pause',
-  'music_resume',
-  'music_next',
-  'music_prev',
-  'music_vol_up',
-  'music_vol_down',
-  'music_set_player',
-  'toggle_fullscreen',
-  'restore_window',
-  'scale_up',
-  'scale_down',
-  'scale_optimal',
-  'sentry',
-  'fortify',
-  'military_advisor',
-  'economics_advisor',
-  'european_advisor',
-  'units_help',
-  'terrain_help',
-  'founding_father_help',
-  'toggle_console',
-  'old_world_view',
-  'old_world_close',
-  'find_blinking_unit',
-  'next_turn',
+e_menu_item [
+  about
+  save
+  load
+  revolution
+  retire
+  exit
+  zoom_in
+  zoom_out
+  restore_zoom
+  music_play
+  music_stop
+  music_pause
+  music_resume
+  music_next
+  music_prev
+  music_vol_up
+  music_vol_down
+  music_set_player
+  toggle_fullscreen
+  restore_window
+  scale_up
+  scale_down
+  scale_optimal
+  sentry
+  fortify
+  military_advisor
+  economics_advisor
+  european_advisor
+  units_help
+  terrain_help
+  founding_father_help
+  toggle_console
+  old_world_view
+  old_world_close
+  find_blinking_unit
+  next_turn
+]
+
 }

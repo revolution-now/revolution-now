@@ -1,26 +1,27 @@
---[[ ------------------------------------------------------------
-|
-| plane.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the plane module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# plane.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the plane module.
+#
+# ===============================================================
+namespace.rn {
 
-e_plane = enum{
-  'land_view', -- land, units, colonies, etc.
-  'panel',     -- the info panel on the right
-  'image',     -- any of the fullscreen pics displayed
-  'colony',    -- colony view
-  'old_world', -- the old world
-  'main_menu', -- main menu.
-  'console',   -- the developer console
-  'menu',      -- the menus at the top of screen
-  'window',    -- the windows
-  ------------------------------------------------------
-  'omni'       -- Always present, invisible, and first.
+enum.e_plane [
+  land_view # land, units, colonies, etc.
+  panel     # the info panel on the right
+  image     # any of the fullscreen pics displayed
+  colony    # colony view
+  old_world # the old world
+  main_menu # main menu.
+  console   # the developer console
+  menu      # the menus at the top of screen
+  window    # the windows
+  # -------------------------------------------------------------
+  omni       # Always present, invisible, and first.
+]
+
 }

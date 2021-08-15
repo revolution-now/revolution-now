@@ -14,7 +14,7 @@ target_link_libraries(
     base-util
     fmt::fmt
     rn-base
-    rn-luapp
+    rn-rcl
 )
 
 target_include_directories(

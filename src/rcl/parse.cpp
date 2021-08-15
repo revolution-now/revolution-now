@@ -291,6 +291,12 @@ bool parse_value( value* out ) {
   if( !parse_string( &s, &unquoted ) ) return false;
 
   if( unquoted ) {
+    // Intercept null
+    if( s == "null" ) {
+      *out = value{ null };
+      return true;
+    }
+
     // Intercept bool (true)
     if( s == "true" ) {
       *out = value{ true };

@@ -1,18 +1,19 @@
---[[ ------------------------------------------------------------
-|
-| sound.rds
-|
-| Project: Revolution Now
-|
-| Created by dsicilia on 2021-02-28.
-|
-| Description: RDS definitions for the sound module.
-|
---]] ------------------------------------------------------------
-namespace 'rn'
+# ===============================================================
+# sound.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the sound module.
+#
+# ===============================================================
+namespace.rn {
 
-e_sfx = enum{
-  'move',
-  'attacker_lost',
-  'attacker_won',
+enum.e_sfx [
+  move
+  attacker_lost
+  attacker_won
+]
+
 }

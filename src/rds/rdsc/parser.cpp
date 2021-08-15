@@ -10,10 +10,12 @@
 *****************************************************************/
 #include "parser.hpp"
 
-// luapp
-#include "luapp/state.hpp"
+// rcl
+#include "rcl/model.hpp"
+#include "rcl/parse.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/fs.hpp"
 #include "base/maybe.hpp"
 
@@ -28,48 +30,91 @@ namespace {
 
 using ::base::maybe;
 
-constexpr string_view meta_key     = "__meta";
-constexpr string_view features_key = "__features";
+constexpr string_view kTemplateKey  = "_template";
+constexpr string_view kFeaturesKey  = "_features";
+constexpr string_view kSumtypeKey   = "sumtype";
+constexpr string_view kEnumKey      = "enum";
+constexpr string_view kNamespaceKey = "namespace";
+constexpr string_view kIncludeKey   = "include";
 
-void add_enum( string_view name, lua::table tbl,
-               expr::Rds& rds ) {
+bool reserved_name( string_view sv ) {
+  return false                  //
+         || sv == kTemplateKey  //
+         || sv == kFeaturesKey  //
+         || sv == kSumtypeKey   //
+         || sv == kEnumKey      //
+         || sv == kNamespaceKey //
+         || sv == kIncludeKey;  //
+}
+
+void parse_enum( vector<string> const& parent_namespaces,
+                 string_view name, rcl::list const& enum_names,
+                 expr::Rds& rds ) {
   expr::Item item;
-  item.ns = lua::cast<string>( tbl[meta_key]["namespace"] );
+  item.ns =
+      fmt::format( "{}", fmt::join( parent_namespaces, "." ) );
 
   expr::Enum enum_;
   enum_.name = name;
-  for( int i = 1; tbl[i] != lua::nil; ++i )
-    enum_.values.push_back( lua::cast<string>( tbl[i] ) );
+  for( rcl::value const& v : enum_names ) {
+    UNWRAP_CHECK_MSG( e, v.get_if<string>(),
+                      "enum values must be strings." );
+    enum_.values.push_back( e );
+  }
 
   item.constructs.push_back( enum_ );
 
   rds.items.push_back( item );
 }
 
-void add_sumtype( lua::state& st, string_view name,
-                  lua::table tbl, expr::Rds& rds ) {
+void parse_enums( vector<string> const& parent_namespaces,
+                  rcl::table const& tbl, expr::Rds& rds ) {
+  for( auto& [k, v] : tbl ) {
+    CHECK( !reserved_name( k ),
+           "expected enum type name but instead found reserved "
+           "word {}.",
+           k );
+    UNWRAP_CHECK_MSG( l, v.get_if<unique_ptr<rcl::list>>(),
+                      "value of enum key {} must be a list.",
+                      k );
+    parse_enum( parent_namespaces, k, *l, rds );
+  }
+}
+
+void parse_sumtype( vector<string> const& parent_namespaces,
+                    string_view name, rcl::table const& tbl,
+                    expr::Rds& rds ) {
   expr::Item item;
-  item.ns = lua::cast<string>( tbl[meta_key]["namespace"] );
+  item.ns =
+      fmt::format( "{}", fmt::join( parent_namespaces, "." ) );
 
   expr::Sumtype sumtype;
   sumtype.name = name;
 
-  if( tbl[meta_key]["template"] != lua::nil ) {
-    lua::table tmpl =
-        lua::cast<lua::table>( tbl[meta_key]["template"] );
-    for( int i = 1; tmpl[i] != lua::nil; ++i ) {
+  if( tbl.has_key( kTemplateKey ) ) {
+    UNWRAP_CHECK_MSG(
+        tmpl, tbl[kTemplateKey].get_if<unique_ptr<rcl::list>>(),
+        "value of {} must be a list.", kTemplateKey );
+    for( rcl::value const& v : *tmpl ) {
+      UNWRAP_CHECK_MSG(
+          t_arg, v.get_if<string>(),
+          "template argument list must consist of strings." );
       expr::TemplateParam tmpl_param;
-      tmpl_param.param = lua::cast<string>( tmpl[i] );
+      tmpl_param.param = t_arg;
       sumtype.tmpl_params.push_back( tmpl_param );
     }
   }
 
-  if( tbl[features_key] != lua::nil ) {
+  if( tbl.has_key( kFeaturesKey ) ) {
     sumtype.features.emplace();
-    lua::table features =
-        lua::cast<lua::table>( tbl[features_key] );
-    for( int i = 1; features[i] != lua::nil; ++i ) {
-      string feature_name = lua::cast<string>( features[i] );
+    UNWRAP_CHECK_MSG(
+        features,
+        tbl[kFeaturesKey].get_if<unique_ptr<rcl::list>>(),
+        "value of {} must be a list.", kFeaturesKey );
+    for( rcl::value const& v : *features ) {
+      UNWRAP_CHECK_MSG(
+          feature_name, v.get_if<string>(),
+          "features list must consist of strings." );
       maybe<expr::e_sumtype_feature> feat =
           expr::feature_from_str( feature_name );
       CHECK( feat, "unknown feature name: {}", feature_name );
@@ -77,24 +122,19 @@ void add_sumtype( lua::state& st, string_view name,
     }
   }
 
-  for( int i = 1; tbl[i] != lua::nil; ++i ) {
-    lua::table alt_tbl =
-        lua::cast<lua::table>( st["alt"]( tbl[i] ) );
-    lua::any k        = alt_tbl["alt_name"];
-    lua::any v        = alt_tbl["alt_vars"];
-    string   alt_name = lua::cast<string>( k );
-    if( alt_name.starts_with( "__" ) ) continue;
+  for( auto& [k, v] : tbl ) {
+    if( k == kFeaturesKey || k == kTemplateKey ) continue;
+    string            alt_name = k;
     expr::Alternative alt;
     alt.name = alt_name;
 
-    CHECK( lua::type_of( v ) == lua::type::table,
-           "type of alternative {} is not table.", alt_name );
-    lua::table alt_members = lua::cast<lua::table>( v );
-    for( int j = 1; alt_members[j] != lua::nil; ++j ) {
-      lua::table var_tbl =
-          lua::cast<lua::table>( st["var"]( alt_members[j] ) );
-      string var_name = lua::cast<string>( var_tbl["var_name"] );
-      string var_type = lua::cast<string>( var_tbl["var_type"] );
+    UNWRAP_CHECK_MSG(
+        alt_members, v.get_if<unique_ptr<rcl::table>>(),
+        "value of sumtype alternative {} must be a table.", k );
+    for( auto& [var_name, var_v] : *alt_members ) {
+      UNWRAP_CHECK_MSG( var_type, var_v.get_if<string>(),
+                        "type of variable {} must be a string.",
+                        var_name );
       expr::AlternativeMember alt_member{ .type = var_type,
                                           .var  = var_name };
       alt.members.push_back( alt_member );
@@ -106,49 +146,119 @@ void add_sumtype( lua::state& st, string_view name,
   rds.items.push_back( item );
 }
 
-} // namespace
+void parse_sumtypes( vector<string> const& parent_namespaces,
+                     rcl::table const& tbl, expr::Rds& rds ) {
+  for( auto& [k, v] : tbl ) {
+    CHECK( !reserved_name( k ),
+           "expected sumtype name but instead found reserved "
+           "word {}.",
+           k );
+    UNWRAP_CHECK_MSG( t, v.get_if<unique_ptr<rcl::table>>(),
+                      "value of sumtype key {} must be a table.",
+                      k );
+    parse_sumtype( parent_namespaces, k, *t, rds );
+  }
+}
 
-maybe<expr::Rds> parse( string_view preamble_filename,
-                        string_view filename ) {
-  lua::state st;
-  st.lib.open_all();
-  st.script.run_file( preamble_filename );
-  st.script.run_file( filename );
+void parse_namespaces( vector<string> const& parent_namespaces,
+                       rcl::table const& tbl, expr::Rds& rds );
 
-  expr::Rds rds;
+void parse_namespace( vector<string> const& parent_namespaces,
+                      string_view           ns_name,
+                      rcl::table const&     ns_tbl,
+                      expr::Rds&            rds ) {
+  vector<string> namespaces = parent_namespaces;
+  namespaces.push_back( string( ns_name ) );
 
-  lua::table entities = st["rds"]["entities"].cast<lua::table>();
-  for( int i = 1; entities[i] != lua::nil; ++i ) {
-    lua::any v = entities[i];
-    CHECK( lua::type_of( v ) == lua::type::table,
-           "type of entity is not table." );
-    lua::table tbl = lua::cast<lua::table>( v );
-    if( lua::type_of( tbl[meta_key] ) != lua::type::table )
-      continue;
-    string name = lua::cast<string>( tbl[meta_key]["name"] );
-    string type = lua::cast<string>( tbl[meta_key]["type"] );
-    // fmt::print( "name: {}, type: {}\n", name, type );
-    if( type == "enum" )
-      add_enum( name, tbl, rds );
-    else if( type == "sumtype" )
-      add_sumtype( st, name, tbl, rds );
-    else {
-      FATAL( "unknown type: {}", type );
-    }
+  // Make sure we only have keywords.
+  for( auto& [k, v] : ns_tbl ) {
+    bool valid = ( k == kEnumKey ) || ( k == kSumtypeKey ) ||
+                 ( k == kNamespaceKey );
+    CHECK( valid, "invalid/unexpected keyword {}.", k );
   }
 
-  lua::table includes = st["rds"]["includes"].cast<lua::table>();
-  for( int i = 1; includes[i] != lua::nil; ++i ) {
-    string name = lua::cast<string>( includes[i] );
+  // 1. Enums.
+  if( ns_tbl.has_key( kEnumKey ) ) {
+    UNWRAP_CHECK_MSG(
+        t, ns_tbl[kEnumKey].get_if<unique_ptr<rcl::table>>(),
+        "value of key {} must be a table.", kEnumKey );
+    parse_enums( namespaces, *t, rds );
+  }
+
+  // 2. Sumtypes.
+  if( ns_tbl.has_key( kSumtypeKey ) ) {
+    UNWRAP_CHECK_MSG(
+        t, ns_tbl[kSumtypeKey].get_if<unique_ptr<rcl::table>>(),
+        "value of key {} must be a table.", kSumtypeKey );
+    parse_sumtypes( namespaces, *t, rds );
+  }
+
+  // 3. Sub-namespaces.
+  if( ns_tbl.has_key( kNamespaceKey ) ) {
+    UNWRAP_CHECK_MSG(
+        t,
+        ns_tbl[kNamespaceKey].get_if<unique_ptr<rcl::table>>(),
+        "value of key {} must be a table.", kNamespaceKey );
+    parse_namespaces( namespaces, *t, rds );
+  }
+}
+
+void parse_namespaces( vector<string> const& parent_namespaces,
+                       rcl::table const& tbl, expr::Rds& rds ) {
+  for( auto& [ns_name, ns_val] : tbl ) {
+    CHECK( !reserved_name( ns_name ),
+           "expected namespace name but found reserved name {}.",
+           ns_name );
+    CHECK( ns_val.holds<unique_ptr<rcl::table>>(),
+           "namespace name {} expected to have table value.",
+           ns_name );
+    rcl::table const& ns_tbl =
+        *ns_val.as<unique_ptr<rcl::table>>();
+    parse_namespace( parent_namespaces, ns_name, ns_tbl, rds );
+  }
+}
+
+void parse_includes( rcl::list const& includes,
+                     expr::Rds&       rds ) {
+  for( rcl::value const& v : includes ) {
+    UNWRAP_CHECK_MSG( name, v.get_if<string>(),
+                      "elements of `{}` must be strings.",
+                      kIncludeKey );
     if( name.ends_with( ">" ) )
       rds.includes.push_back( name );
     else
       rds.includes.push_back( fmt::format( "\"{}\"", name ) );
   }
+}
+
+} // namespace
+
+expr::Rds parse( string_view filename ) {
+  UNWRAP_CHECK( doc, rcl::parse_file( filename ) );
+  expr::Rds rds;
 
   rds.meta = expr::Metadata{
       .module_name = fs::path( filename ).filename().stem(),
   };
+
+  rcl::table const& top = doc.top();
+  if( top.size() == 0 ) return rds;
+
+  for( auto& [k, v] : top ) {
+    if( k == kIncludeKey ) {
+      UNWRAP_CHECK_MSG(
+          l, top[kIncludeKey].get_if<unique_ptr<rcl::list>>(),
+          "`{}` must be a list.", kIncludeKey );
+      parse_includes( *l, rds );
+    } else if( k == kNamespaceKey ) {
+      UNWRAP_CHECK_MSG( ns, v.get_if<unique_ptr<rcl::table>>(),
+                        "the `{}` item must be a table.",
+                        kNamespaceKey );
+      parse_namespaces( /*parent_namespaces=*/{}, *ns, rds );
+    } else {
+      FATAL( "unrecognized/misplaced top-level keyword {}.", k );
+    }
+  }
 
   return rds;
 }
