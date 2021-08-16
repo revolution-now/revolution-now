@@ -21,13 +21,13 @@ namespace.rn.namespace.input {
 # in the `maybe` state until the mouse moves a certain number of
 # pixels away from the origin (buffer) to allow for a bit of
 # noise in mouse motion during normal clicks. When it leaves this
-# buffer region (just a few pixels wide) then it will be
-# converted to a `dragging` event and will be sent out as such
-# with origin equal to the original origin of the `maybe` state.
-# This aims to make clicking easier by preventing flaky behavior
-# where the user inadvertantly triggers a drag event by acciden-
-# tally moving the mouse a bit during a click (that would be bad
-# because it would not be sent as a click event).
+# buffer region (just a few pixels wide) then it will be con-
+# verted to a `dragging` event and will be sent out as such with
+# origin equal to the original origin of the `maybe` state. This
+# aims to make clicking easier by preventing flaky behavior where
+# the user inadvertantly triggers a drag event by accidentally
+# moving the mouse a bit during a click (that would be bad be-
+# cause it would not be sent as a click event).
 sumtype.drag_phase {
   none {}
   maybe {

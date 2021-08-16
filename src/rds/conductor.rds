@@ -28,9 +28,9 @@ namespace.conductor {
 
 # Tune Selection. Each of these methods will search through
 # available tunes and select one that meets the criteria and then
-# play it if requested. If the tune is played then the con-
-# ductor will return to autoplay when it is finished, if auto-
-# play is enabled.
+# play it if requested. If the tune is played then the conductor
+# will return to autoplay when it is finished, if autoplay is en-
+# abled.
 enum.e_request [
   won_battle_europeans
   won_battle_natives

@@ -15,9 +15,9 @@ include [
 
 namespace.rn.namespace.midiseq {
 
-# The possible commands that can be sent to the midi thread.
-# Generally, after receiving one of these commands the midi
-# thread will update its state.
+# The possible commands that can be sent to the midi thread. Gen-
+# erally, after receiving one of these commands the midi thread
+# will update its state.
 #
 #   play:   Start playing the given tune from the beginning,
 #           even if the player was paused.

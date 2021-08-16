@@ -73,7 +73,7 @@
 //   before: 9
 //   after:  8
 //
-// The "top level" of the config is always a table.  The above
+// The "top level" of the config is always a table. The above
 // will be parsed, and then post processed.
 //
 // Post Processing
@@ -201,8 +201,8 @@ struct table {
   // These constructors are only for the convenience of the
   // parsers; they will not maintain class invariants, so one
   // should not use a table object after construction from these
-  // constructors. Only tables that are returned by the
-  // document's factory method should be used, as those will have
+  // constructors. Only tables that are returned by the docu-
+  // ment's factory method should be used, as those will have
   // their invariants satisfied due to the post processing that
   // will be applied to them after construction.
   table() = default;
@@ -270,8 +270,8 @@ struct list {
   // parsers; they will not maintain class invariants, so one
   // should not use a list object after construction from these
   // constructors. Only list that are returned by the document's
-  // factory method should be used, as those will have their
-  // invariants satisfied due to the post processing that will be
+  // factory method should be used, as those will have their in-
+  // variants satisfied due to the post processing that will be
   // applied to them after construction.
   list() = default;
   list( std::vector<value>&& vs )
@@ -295,8 +295,8 @@ struct list {
   // class.
   base::expect<list, std::string> dedupe_tables() &&;
 
-  // Perform the member-mapping post-processing step on any
-  // elements that are tables.
+  // Perform the member-mapping post-processing step on any ele-
+  // ments that are tables.
   void map_members() &;
 
   auto begin() const { return members_.begin(); }

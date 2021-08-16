@@ -209,8 +209,8 @@ bool parse_unquoted_string( string_view* out ) {
   if( start == g_cur ) return false;
   // Eat trailing spaces. This is so that an unquoted string
   // won't e.g. include the space between the end of a word and a
-  // closing brace of a table that is on the same line.
-  // +1 because We know that the first character is not a blank.
+  // closing brace of a table that is on the same line. +1 be-
+  // cause We know that the first character is not a blank.
   while( g_cur > start + 1 ) {
     if( is_blank( *( g_cur - 1 ) ) )
       --g_cur;
