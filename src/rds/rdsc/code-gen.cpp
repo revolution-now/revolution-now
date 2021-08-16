@@ -289,8 +289,6 @@ struct CodeGenerator {
 
   void section( string_view section ) {
     const int line_width = 65;
-    char      c          = '-';
-    string    bar( line_width - 3, c );
     line( "/{}", string( line_width - 1, '*' ) );
     line( "*{: ^{}}", section, line_width - 2 );
     line( "{}/", string( line_width, '*' ) );
