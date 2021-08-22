@@ -21,6 +21,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// C++ standard library
+#include <unordered_map>
+
 namespace base {
 
 using namespace std;
@@ -877,6 +880,108 @@ TEST_CASE( "[range-lite] enumerate" ) {
   REQUIRE( vec[6].second == "one" );
   REQUIRE( vec[7].first == 7 );
   REQUIRE( vec[7].second == "two" );
+}
+
+string str_tolower( string const& s ) {
+  return rl::all( s ).map_L( tolower( _ ) ).to_string();
+};
+
+constexpr string_view knuth_mcelrow_text = R"(
+  statement AS in form MERCHANTABILITY solely the AND WARRANTIES
+  of following the accompanying and this CONTRACT in OF IN NO OF
+  WITHOUT software to SOFTWARE HOLDERS of THE EXPRESS Software
+  third including OR restriction IS so to IMPLIED works works the
+  copy and BUT The part derivative this the PARTICULAR processor
+  permit ANY THE to distribute OTHER the this WHETHER copyright
+  SOFTWARE THE and a BE code of or granted covered TITLE such NOT
+  OR to unless do must and DISTRIBUTING OR OUT PROVIDED ANY
+  CONNECTION IN of following copies in NON is use Software works
+  above FOR are the disclaimer LIABLE license INCLUDING the
+  entire any IN hereby free license is DEALINGS to WITH the OR
+  generated or LIMITED TORT furnished COPYRIGHT charge USE
+  transmit whole ANYONE FITNESS grant copies all documentation
+  SOFTWARE Software ARISING and to OR FROM OR THE TO EVENT
+  Permission all the parties machine derivative included OTHER be
+  of source of by PURPOSE organization subject the LIABILITY IN
+  WARRANTY prepare reproduce IS derivative Software Software and
+  SHALL language Software object DAMAGES THE execute SOFTWARE a A
+  by THE the OTHERWISE or all and notices in display the person
+  Software INFRINGEMENT OR THE OF in to FOR KIND executable
+  obtaining whom
+)";
+
+// Compute top 7 most frequent words.
+TEST_CASE( "[range-lite] knuth-mcelroy with sort" ) {
+  vector<string> words =
+      rl::all( knuth_mcelrow_text )
+          .group_on_L( isalnum( _ ) )
+          .map_L( str_tolower( _.to_string() ) )
+          .remove_if_L( !isalnum( _[0] ) )
+          .to_vector();
+
+  sort( words.begin(), words.end() );
+
+  auto freqs = rl::all( words )
+                   .group()
+                   .map_L( pair{ *_.begin(), _.distance() } )
+                   .to_vector();
+
+  sort( freqs.begin(), freqs.end(), []( auto& l, auto& r ) {
+    // Use > because we will subsequently use the result of this
+    // sort in reverse because of rl::rall. That will have the
+    // effect of ranking the words in order of decreasing count,
+    // but sorting words with equal count in ascending order.
+    if( l.second == r.second ) return l.first > r.first;
+    return l.second < r.second;
+  } );
+
+  auto res = rl::rall( freqs ).take( 7 ).to_vector();
+
+  REQUIRE_THAT(
+      res, Equals( vector<pair<string, int>>{ { "the", 20 },
+                                              { "software", 12 },
+                                              { "or", 10 },
+                                              { "in", 9 },
+                                              { "of", 9 },
+                                              { "and", 8 },
+                                              { "to", 8 } } ) );
+  REQUIRE( rl::all( freqs ).distance() == 111 );
+}
+
+TEST_CASE( "[range-lite] knuth-mcelroy with map" ) {
+  using M    = unordered_map<string, int>;
+  auto freqs = rl::all( knuth_mcelrow_text )
+                   .group_on_L( isalnum( _ ) )
+                   .map_L( str_tolower( _.to_string() ) )
+                   .remove_if_L( !isalnum( _[0] ) )
+                   .accumulate(
+                       []( M& m, string const& s ) {
+                         m[s]++;
+                         return std::move( m );
+                       },
+                       M{} );
+
+  vector<pair<string, int>> v( freqs.begin(), freqs.end() );
+  sort( v.begin(), v.end(), []( auto& l, auto& r ) {
+    // Use > because we will subsequently use the result of this
+    // sort in reverse because of rl::rall. That will have the
+    // effect of ranking the words in order of decreasing count,
+    // but sorting words with equal count in ascending order.
+    if( l.second == r.second ) return l.first > r.first;
+    return l.second < r.second;
+  } );
+
+  auto res = rl::rall( v ).take( 7 ).to_vector();
+
+  REQUIRE_THAT(
+      res, Equals( vector<pair<string, int>>{ { "the", 20 },
+                                              { "software", 12 },
+                                              { "or", 10 },
+                                              { "in", 9 },
+                                              { "of", 9 },
+                                              { "and", 8 },
+                                              { "to", 8 } } ) );
+  REQUIRE( rl::all( freqs ).distance() == 111 );
 }
 
 TEST_CASE( "[range-lite] free-standing zip" ) {

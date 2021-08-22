@@ -1544,6 +1544,16 @@ public:
   }
 
   /**************************************************************
+  ** Group (group on equality)
+  ***************************************************************/
+  auto group() && {
+    return std::move( *this ).group_by(
+        []<typename L, typename R>( L&& l, R&& r ) {
+          return l == r;
+        } );
+  }
+
+  /**************************************************************
   ** Enumerate
   ***************************************************************/
   // FIXME: make this more efficient with a specialized Cursor.
