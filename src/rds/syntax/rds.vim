@@ -90,7 +90,7 @@ syn match    rdsSumtypeNameDot '\.' contained nextgroup=rdsSumtypeFeatures,rdsSu
 
 hi def link  rdsSumtypeKeyword Keyword
 " hi def link  rdsSumtypeName Type
-hi def link  rdsSumtypeAlternative Structure
+hi def link  rdsSumtypeAlternative Identifier
 hi def link  rdsSumtypeAlternativeVarTypeQuoted Comment
 hi def link  rdsSumtypeAlternativeVarTypeQuotedContents String
 hi def link  rdsSumtypeAlternativeVarTypeUnquoted String
