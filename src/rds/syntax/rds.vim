@@ -49,7 +49,8 @@ syn match    rdsEnumItem '[a-zA-Z_][a-zA-Z0-9_]*' contained skipwhite skipempty
 syn region   rdsEnumTableBlock start='{' end='}' contained fold contains=rdsEnumName,rdsLineComment skipwhite skipempty
 
 hi def link  rdsEnumKeyword Keyword
-hi def link  rdsEnumName Type
+" hi def link  rdsEnumName Type
+hi def link  rdsEnumItem Identifier
 hi def link  rdsEnumListBlockErr Error
 
 " ===============================================================
@@ -88,7 +89,7 @@ syn match    rdsSumtypeFeaturesListItem '\(equality\|formattable\|serializable\)
 syn match    rdsSumtypeNameDot '\.' contained nextgroup=rdsSumtypeFeatures,rdsSumtypeTemplate
 
 hi def link  rdsSumtypeKeyword Keyword
-hi def link  rdsSumtypeName Type
+" hi def link  rdsSumtypeName Type
 hi def link  rdsSumtypeAlternative Structure
 hi def link  rdsSumtypeAlternativeVarTypeQuoted Comment
 hi def link  rdsSumtypeAlternativeVarTypeQuotedContents String
