@@ -311,11 +311,11 @@ waitable<> process_inputs() {
     // the effect of disabling further input on them (e.g., dis-
     // abling menu items), which is what we want for a good user
     // experience.
-    UserInput command =
-        co_await co::first( wait_for_menu_selection(),     //
-                            landview_eot_get_next_input(), //
-                            move( wait_for_button )        //
-        );
+    UserInput command = co_await co::first( //
+        wait_for_menu_selection(),          //
+        landview_eot_get_next_input(),      //
+        std::move( wait_for_button )        //
+    );
     co_await rn::visit( command,
                         L( process_player_input( _ ) ) );
     if( command.holds<button_click_t>() ) co_return;
@@ -447,10 +447,9 @@ waitable<LandViewPlayerInput_t> landview_player_input(
 waitable<> query_unit_input( UnitId id ) {
   auto command = co_await co::first(
       wait_for_menu_selection(), landview_player_input( id ) );
-  co_await overload_visit(
-      command, [&]( auto const& action ) -> waitable<> {
-        return process_player_input( id, action );
-      } );
+  co_await overload_visit( command, [&]( auto const& action ) {
+    return process_player_input( id, action );
+  } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
   // might affect the status of the unit asking for orders, and
