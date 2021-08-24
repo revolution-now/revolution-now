@@ -102,8 +102,8 @@ maybe<Coord> coord_for_unit( UnitId id );
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
-ND Coord coord_for_unit_indirect( UnitId id );
-ND maybe<Coord> coord_for_unit_indirect_safe( UnitId id );
+ND Coord coord_for_unit_indirect_or_die( UnitId id );
+ND maybe<Coord> coord_for_unit_indirect( UnitId id );
 
 // This will return true for a unit if it is owned by the map or
 // if its owner is on the map.

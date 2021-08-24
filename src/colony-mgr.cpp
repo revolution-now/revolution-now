@@ -141,7 +141,7 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
 
-  auto maybe_coord = coord_for_unit_indirect_safe( founder );
+  auto maybe_coord = coord_for_unit_indirect( founder );
   if( !maybe_coord.has_value() )
     return invalid( Res_t::colonist_not_on_map );
 
@@ -167,7 +167,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
            enum_name( res.error() ) );
 
   auto nation = unit_from_id( founder ).nation();
-  UNWRAP_CHECK( where, coord_for_unit_indirect_safe( founder ) );
+  UNWRAP_CHECK( where, coord_for_unit_indirect( founder ) );
 
   // 1. Create colony object.
   UNWRAP_CHECK( col_id,

@@ -182,7 +182,8 @@ struct TravelHandler : public OrdersHandler {
     CHECK( move_src != move_dst );
     CHECK( find( prioritize.begin(), prioritize.end(),
                  unit_id ) == prioritize.end() );
-    CHECK( move_src == coord_for_unit_indirect( unit_id ) );
+    CHECK( move_src ==
+           coord_for_unit_indirect_or_die( unit_id ) );
     CHECK( move_src.is_adjacent_to( move_dst ) );
     CHECK( target_unit != unit_id );
 
@@ -298,7 +299,7 @@ confirm_sail_high_seas() {
 waitable<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
   UnitId id = unit_id;
-  move_src  = coord_for_unit_indirect( id );
+  move_src  = coord_for_unit_indirect_or_die( id );
   move_dst  = move_src.moved( direction );
 
   if( !move_dst.is_inside( world_rect_tiles() ) )
@@ -492,7 +493,7 @@ waitable<> TravelHandler::perform() {
 
   // This will throw if the unit has no coords, but I think it
   // should always be ok at this point if we're moving it.
-  auto old_coord = coord_for_unit_indirect( id );
+  auto old_coord = coord_for_unit_indirect_or_die( id );
 
   switch( verdict ) {
     case e_travel_verdict::cancelled:
@@ -572,7 +573,7 @@ waitable<> TravelHandler::perform() {
   // a case where the unit is no longer on the map at this point
   // would be a ship that was sent to sail the high seas.
   if( is_unit_on_map_indirect( id ) ) {
-    auto new_coord = coord_for_unit_indirect( id );
+    auto new_coord = coord_for_unit_indirect_or_die( id );
     CHECK( unit_would_move == ( new_coord == move_dst ) );
   }
   co_return; //
@@ -626,7 +627,8 @@ struct AttackHandler : public OrdersHandler {
     }
 
     CHECK( attack_src != attack_dst );
-    CHECK( attack_src == coord_for_unit_indirect( unit_id ) );
+    CHECK( attack_src ==
+           coord_for_unit_indirect_or_die( unit_id ) );
     CHECK( attack_src.is_adjacent_to( attack_dst ) );
     CHECK( target_unit != unit_id );
     CHECK( target_unit.has_value() );
@@ -713,7 +715,7 @@ struct AttackHandler : public OrdersHandler {
 waitable<AttackHandler::e_attack_verdict>
 AttackHandler::confirm_attack_impl() {
   auto id    = unit_id;
-  attack_src = coord_for_unit_indirect( id );
+  attack_src = coord_for_unit_indirect_or_die( id );
   attack_dst = attack_src.moved( direction );
 
   auto& unit = unit_from_id( id );
@@ -963,7 +965,8 @@ waitable<> AttackHandler::perform() {
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
-            loser.id(), coord_for_unit_indirect( winner.id() ) );
+            loser.id(),
+            coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.
         loser.forfeight_mv_points();
@@ -994,7 +997,8 @@ waitable<> AttackHandler::perform() {
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
-            loser.id(), coord_for_unit_indirect( winner.id() ) );
+            loser.id(),
+            coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.
         loser.forfeight_mv_points();
@@ -1009,7 +1013,7 @@ waitable<> AttackHandler::perform() {
 ** Dispatch
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
-  Coord dst  = coord_for_unit_indirect( id ).moved( d );
+  Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
   if( !dst.is_inside( world_rect_tiles() ) )

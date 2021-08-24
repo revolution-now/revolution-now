@@ -182,8 +182,9 @@ void render_units_default( Rect const& covered ) {
 
 void render_units_blink( Rect const& covered, UnitId id,
                          bool visible ) {
-  UnitId blinker_id  = id;
-  Coord  blink_coord = coord_for_unit_indirect( blinker_id );
+  UnitId blinker_id = id;
+  Coord  blink_coord =
+      coord_for_unit_indirect_or_die( blinker_id );
   for( auto coord : covered ) {
     if( coord == blink_coord ) continue;
     if( colony_from_coord( coord ).has_value() ) continue;
@@ -199,8 +200,8 @@ void render_units_blink( Rect const& covered, UnitId id,
 void render_units_during_slide(
     Rect const& covered, UnitId id, maybe<UnitId> target_unit,
     UnitAnimation::slide const& slide ) {
-  UnitId       mover_id    = id;
-  Coord        mover_coord = coord_for_unit_indirect( mover_id );
+  UnitId mover_id   = id;
+  Coord mover_coord = coord_for_unit_indirect_or_die( mover_id );
   maybe<Coord> target_unit_coord =
       target_unit.bind( coord_for_unit_multi_ownership );
   // First render all units other than the sliding unit and
@@ -467,7 +468,7 @@ waitable<> animate_blink( UnitId id ) {
 
 waitable<> animate_slide( UnitId id, e_direction d ) {
   CHECK( !SG().unit_animations.contains( id ) );
-  Coord                 target = coord_for_unit_indirect( id );
+  Coord target = coord_for_unit_indirect_or_die( id );
   UnitAnimation::slide& mv =
       SG().unit_animations[id].emplace<UnitAnimation::slide>();
   SCOPE_EXIT( {
@@ -999,7 +1000,7 @@ waitable<LandViewPlayerInput_t> landview_eot_get_next_input() {
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction ) {
   // Ensure that both src and dst squares are visible.
-  Coord src = coord_for_unit_indirect( id );
+  Coord src = coord_for_unit_indirect_or_die( id );
   Coord dst = src.moved( direction );
   co_await landview_ensure_visible( src );
   co_await landview_ensure_visible( dst );

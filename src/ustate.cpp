@@ -318,14 +318,14 @@ maybe<Coord> coord_for_unit( UnitId id ) {
   };
 }
 
-Coord coord_for_unit_indirect( UnitId id ) {
-  UNWRAP_CHECK( res, coord_for_unit_indirect_safe( id ) );
+Coord coord_for_unit_indirect_or_die( UnitId id ) {
+  UNWRAP_CHECK( res, coord_for_unit_indirect( id ) );
   return res;
 }
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-maybe<Coord> coord_for_unit_indirect_safe( UnitId id ) {
+maybe<Coord> coord_for_unit_indirect( UnitId id ) {
   CHECK( unit_exists( id ) );
   switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: {
@@ -337,7 +337,7 @@ maybe<Coord> coord_for_unit_indirect_safe( UnitId id ) {
     }
     case UnitState::e::cargo: {
       auto& [holder] = v.get<UnitState::cargo>();
-      return coord_for_unit_indirect_safe( holder );
+      return coord_for_unit_indirect( holder );
     }
     case UnitState::e::old_world:
     case UnitState::e::colony: //
@@ -346,7 +346,7 @@ maybe<Coord> coord_for_unit_indirect_safe( UnitId id ) {
 }
 
 bool is_unit_on_map_indirect( UnitId id ) {
-  return coord_for_unit_indirect_safe( id ).has_value();
+  return coord_for_unit_indirect( id ).has_value();
 }
 
 bool is_unit_on_map( UnitId id ) {
@@ -437,8 +437,7 @@ vector<UnitId> units_in_old_world_view() {
 ** Multi
 *****************************************************************/
 maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
-  if( auto maybe_map = coord_for_unit_indirect_safe( id );
-      maybe_map )
+  if( auto maybe_map = coord_for_unit_indirect( id ); maybe_map )
     return maybe_map;
   if( auto maybe_colony = colony_for_unit_who_is_worker( id ) )
     return colony_from_id( *maybe_colony ).location();
