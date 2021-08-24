@@ -204,6 +204,12 @@ void map_units( function_ref<void( Unit& )> func ) {
   for( auto& p : SG().units ) func( p.second );
 }
 
+void map_units( e_nation                    nation,
+                function_ref<void( Unit& )> func ) {
+  for( auto& p : SG().units )
+    if( p.second.nation() == nation ) func( p.second );
+}
+
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
@@ -282,6 +288,16 @@ vector<UnitId> units_in_rect( Rect const& rect ) {
     for( X j = rect.x; j < rect.x + rect.w; ++j )
       for( auto id : units_from_coord( Coord{ i, j } ) )
         res.push_back( id );
+  return res;
+}
+
+vector<UnitId> surrounding_units( Coord const& coord ) {
+  vector<UnitId> res;
+  for( e_direction d : enum_traits<e_direction>::values ) {
+    if( d == e_direction::c ) continue;
+    for( auto id : units_from_coord( coord.moved( d ) ) )
+      res.push_back( id );
+  }
   return res;
 }
 

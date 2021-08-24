@@ -42,6 +42,8 @@ std::vector<UnitId> units_all( maybe<e_nation> n = nothing );
 // units. NOTE: here, the word "map" is meant in the functional
 // programming sense, and not in the sense of the game world map.
 void map_units( function_ref<void( Unit& )> func );
+void map_units( e_nation                    nation,
+                function_ref<void( Unit& )> func );
 
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );
@@ -86,7 +88,10 @@ std::vector<UnitId> units_from_coord_recursive( Coord coord );
 // combat.  Unit must be owned by the map for this!
 void move_unit_from_map_to_map( UnitId id, Coord dest );
 
-ND std::vector<UnitId> units_in_rect( Rect const& rect );
+std::vector<UnitId> units_in_rect( Rect const& rect );
+
+// Get all units in the eight squares that surround coord.
+std::vector<UnitId> surrounding_units( Coord const& coord );
 
 // Returns the map coordinates for the unit if it is on the map
 // (which does NOT include being cargo of a unit on the map; for
