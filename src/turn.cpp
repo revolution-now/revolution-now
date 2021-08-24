@@ -271,6 +271,35 @@ bool should_remove_unit_from_queue( UnitId id ) {
   return false;
 }
 
+// See if `unit` needs to be unsentry'd due to surrounding for-
+// eign units.
+void try_unsentry_unit( Unit& unit ) {
+  if( unit.orders() != e_unit_orders::sentry ) return;
+  // Don't use the "indirect" version here because we don't want
+  // to e.g. wake up units that are sentry'd on ships.
+  maybe<Coord> loc = coord_for_unit( unit.id() );
+  if( !loc.has_value() ) return;
+  for( UnitId id : surrounding_units( *loc ) ) {
+    if( unit_from_id( id ).nation() != unit.nation() ) {
+      unit.clear_orders();
+      return;
+    }
+  }
+}
+
+// See if any foreign units in the vicinity of src_id need to be
+// unsentry'd.
+void unsentry_surroundings( UnitId src_id ) {
+  Unit& src_unit = unit_from_id( src_id );
+  Coord src_loc  = coord_for_unit_indirect_or_die( src_id );
+  for( UnitId id : surrounding_units( src_loc ) ) {
+    Unit& unit = unit_from_id( id );
+    if( unit.orders() != e_unit_orders::sentry ) continue;
+    if( unit.nation() == src_unit.nation() ) continue;
+    unit.clear_orders();
+  }
+}
+
 /****************************************************************
 ** Processing Player Input (End of Turn).
 *****************************************************************/
@@ -387,7 +416,8 @@ waitable<> process_player_input(
       unique_ptr<OrdersHandler> handler =
           orders_handler( id, orders );
       CHECK( handler );
-      auto run_result = co_await handler->run();
+      Coord old_loc    = coord_for_unit_indirect_or_die( id );
+      auto  run_result = co_await handler->run();
 
       // If we suspended at some point during the above process
       // (apart from animations), then that probably means that
@@ -402,6 +432,15 @@ waitable<> process_player_input(
       // !! The unit may no longer exist at this point, e.g. if
       // they were disbanded or if they lost a battle to the na-
       // tives.
+
+      // If the unit still exists, check if it has moved squares
+      // in any fashion, and if so then wake up any foreign sen-
+      // try'd neighbors.
+      if( unit_exists( id ) ) {
+        maybe<Coord> new_loc = coord_for_unit_indirect( id );
+        if( new_loc && *new_loc != old_loc )
+          unsentry_surroundings( id );
+      }
 
       for( auto id : handler->units_to_prioritize() )
         prioritize_unit( q, id );
@@ -491,6 +530,7 @@ waitable<bool> advance_unit( UnitId id ) {
         finish_turn( id );
         co_return false; // do not ask for orders.
       case e_high_seas_result::arrived_in_new_world:
+        unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
       case e_high_seas_result::arrived_in_old_world: {
         finish_turn( id );
@@ -556,6 +596,10 @@ waitable<> units_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   auto& q  = st.units;
+
+  // Unsentry any units that are sentried but have foreign units
+  // in an adjacent square.
+  map_units( st.nation, try_unsentry_unit );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure

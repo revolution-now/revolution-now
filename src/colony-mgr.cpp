@@ -203,6 +203,10 @@ waitable<> evolve_colony_one_turn( ColonyId id ) {
       rng::between( 3, 7, rng::e_interval::closed );
   if( commodities[e_commodity::food] >= 200 ) {
     commodities[e_commodity::food] -= 200;
+    // FIXME: When creating a new unit on the map, decide whether
+    // we need to unsentry surrounding units and, if so, find a
+    // good place to put that such that it can be reused anytime
+    // a unit is created on the map.
     auto unit_id = create_unit( colony.nation(),
                                 e_unit_type::free_colonist );
     ustate_change_to_map( unit_id, colony.location() );
