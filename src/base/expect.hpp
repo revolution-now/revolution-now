@@ -22,6 +22,7 @@
 #include "fmt/format.h"
 
 // C++ standard library
+#include <concepts>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -1658,7 +1659,7 @@ template<typename T, typename E, typename U>
 }
 
 /* clang-format off */
-template<typename T, typename E>
+template<typename T, std::equality_comparable E>
 [[nodiscard]] constexpr bool operator==( expect<T, E> const& opt,
                                          E const&            err )
     noexcept( noexcept( opt.error() == err ) ) {
@@ -1679,7 +1680,7 @@ template<typename T, typename E, typename U>
 }
 
 /* clang-format off */
-template<typename T, typename E>
+template<typename T, std::equality_comparable E>
 [[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
                                          E const&            err )
     noexcept( noexcept( opt == err ) ) {
