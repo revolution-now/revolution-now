@@ -1,4 +1,20 @@
 # ===============================================================
+# TODO
+# ===============================================================
+
+  1. Implement proper unit type handling mechanism.
+  2. Allow transitioning units between types, e.g. giving a free
+     colonist muskets and turning them into a soldier.
+  3. OpenGL
+
+# ===============================================================
+# Serialization
+# ===============================================================
+
+  1. Move all global save-game data into one giant data structure
+     and get all the SG stuff out of the individual modules.
+
+# ===============================================================
 # Compile times
 # ===============================================================
 
@@ -16,13 +32,6 @@
      write game save files.
   3. Add some other standard containers like vector,
      unordered_map, etc.
-
-# ===============================================================
-# TODO
-# ===============================================================
-
-  1. Move all global save-game data into one giant data structure
-     and get all the SG stuff out of the individual modules.
 
 # ===============================================================
 # Bugs

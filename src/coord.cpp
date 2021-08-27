@@ -527,6 +527,55 @@ Scale operator/( Scale const& lhs, Scale const& rhs ) {
 }
 
 /****************************************************************
+** Rcl
+*****************************************************************/
+rcl::convert_err<Delta> convert_to( rcl::value const& v,
+                                    rcl::tag<Delta> ) {
+  constexpr string_view kTypeName          = "Delta";
+  constexpr int         kNumFieldsExpected = 2;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error(
+        fmt::format( "cannot produce a Delta from type {}.",
+                     rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  if( !tbl.has_key( "w" ) || !tbl.has_key( "h" ) ||
+      tbl.size() != kNumFieldsExpected )
+    return rcl::error(
+        fmt::format( "table must have a 'w' and 'h' field for "
+                     "conversion to {}.",
+                     kTypeName ) );
+  UNWRAP_RETURN( w, rcl::convert_to<W>( tbl["w"] ) );
+  UNWRAP_RETURN( h, rcl::convert_to<H>( tbl["h"] ) );
+  return Delta{ w, h };
+}
+
+rcl::convert_err<Coord> convert_to( rcl::value const& v,
+                                    rcl::tag<Coord> ) {
+  constexpr string_view kTypeName          = "Coord";
+  constexpr int         kNumFieldsExpected = 2;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error(
+        fmt::format( "cannot produce a Coord from type {}.",
+                     rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  if( !tbl.has_key( "x" ) || !tbl.has_key( "y" ) ||
+      tbl.size() != kNumFieldsExpected )
+    return rcl::error(
+        fmt::format( "table must have a 'x' and 'y' field for "
+                     "conversion to {}.",
+                     kTypeName ) );
+  UNWRAP_RETURN( x, rcl::convert_to<X>( tbl["x"] ) );
+  UNWRAP_RETURN( y, rcl::convert_to<Y>( tbl["y"] ) );
+  return Coord{ x, y };
+}
+
+/****************************************************************
 ** Lua
 *****************************************************************/
 maybe<Coord> lua_get( lua::cthread L, int idx,

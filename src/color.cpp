@@ -43,7 +43,8 @@
 
 using namespace std;
 
-using fmt::format;
+using ::base::maybe;
+using ::fmt::format;
 
 namespace rn {
 
@@ -584,41 +585,41 @@ ColorBuckets hsl_bucket( vector<Color> const& colors ) {
 
 void dump_palette( ColorBuckets const& bucketed,
                    fs::path const&     schema,
-                   fs::path const&     ucl ) {
-  ofstream ucl_out( ucl.string() );
-  CHECK( ucl_out.good() );
+                   fs::path const&     rcl ) {
+  ofstream rcl_out( rcl.string() );
+  CHECK( rcl_out.good() );
   ofstream inl_out( schema.string() );
   CHECK( inl_out.good() );
   inl_out << "// Auto-Generated: DO NOT EDIT\n\n";
-  ucl_out << "# Auto-Generated: DO NOT EDIT\n\n";
+  rcl_out << "# Auto-Generated: DO NOT EDIT\n\n";
   inl_out << "CFG( palette,\n";
   for( int hue = 0; hue < hue_buckets; ++hue ) {
     if( hue != 0 ) {
-      ucl_out << "\n";
+      rcl_out << "\n";
       inl_out << "\n";
     }
-    ucl_out << hue_names[hue] << " {\n";
+    rcl_out << hue_names[hue] << " {\n";
     inl_out << "  OBJ( " << hue_names[hue] << ",\n";
     for( int sat = 0; sat < saturation_buckets; ++sat ) {
-      ucl_out << "  sat" << sat << " {\n";
+      rcl_out << "  sat" << sat << " {\n";
       inl_out << "    OBJ( sat" << sat << ",\n";
       for( int lum = 0; lum < luminosity_buckets; ++lum ) {
         if( auto c = bucketed[hue][sat][lum]; c.has_value() ) {
           auto line = format( "    lum{}: \"{}\"\n", lum,
                               c.value().to_string( false ) );
-          ucl_out << line;
+          rcl_out << line;
           inl_out << "      FLD( Color, lum" << lum << " )\n";
         }
       }
-      ucl_out << "  }\n";
+      rcl_out << "  }\n";
       inl_out << "    )\n";
     }
-    ucl_out << "}\n";
+    rcl_out << "}\n";
     inl_out << "  )\n";
   }
   // Now do the greys.
-  ucl_out << "\n";
-  ucl_out << "grey {\n";
+  rcl_out << "\n";
+  rcl_out << "grey {\n";
   inl_out << "  OBJ( grey,\n";
   uint8_t jump = 256 / grey_scale_colors;
   for( uint8_t n = 0; n < grey_scale_colors; ++n ) {
@@ -626,11 +627,11 @@ void dump_palette( ColorBuckets const& bucketed,
     auto line =
         format( "  n{:02X}: \"{}\"\n", v,
                 Color( v, v, v, 255 ).to_string( false ) );
-    ucl_out << line;
+    rcl_out << line;
     auto fld = format( "    FLD( Color, n{:02X} )\n", v );
     inl_out << fld;
   }
-  ucl_out << "}\n";
+  rcl_out << "}\n";
   inl_out << "  )\n";
 
   inl_out << ")\n";
@@ -732,11 +733,11 @@ void update_palette( fs::path const& where ) {
   lg.info( "total bucketed colors: {}", size );
 
   fs::path const inl_file{ "config/palette.inl" };
-  fs::path const ucl_file{ "config/palette.ucl" };
+  fs::path const rcl_file{ "config/palette.ucl" };
   fs::path const pal_file{ "assets/art/palette.png" };
   lg.info( "writing to {} and {}", inl_file.string(),
-           ucl_file.string() );
-  dump_palette( bucketed, inl_file, ucl_file );
+           rcl_file.string() );
+  dump_palette( bucketed, inl_file, rcl_file );
   lg.info( "writing palette png image to {}",
            pal_file.string() );
   write_palette_png( pal_file );
@@ -755,6 +756,32 @@ string bucket_path( Color c ) {
       to_bucket( c.luminosity(), luminosity_buckets );
   return format( "{}.sat{}.lum{}", hue_names[hue_bucket],
                  sat_bucket, lum_bucket );
+}
+
+/****************************************************************
+** Rcl
+*****************************************************************/
+rcl::convert_err<Color> convert_to( rcl::value const& v,
+                                    rcl::tag<Color> ) {
+  maybe<string const&> s = v.get_if<string>();
+  if( !s )
+    return rcl::error( fmt::format(
+        "cannot produce a Color from type {}. String required.",
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  if( s->size() != 7 && s->size() != 9 )
+    return rcl::error(
+        "Color objects must be of the form `#NNNNNN[NN]` with N "
+        "in 0-f." );
+  string const& hex = *s;
+  if( hex[0] != '#' )
+    return rcl::error( "Color objects must start with a '#'." );
+  string_view digits( &hex[1], hex.length() - 1 );
+
+  maybe<Color> parsed = Color::parse_from_hex( digits );
+  if( !parsed.has_value() )
+    return rcl::error(
+        fmt::format( "failed to parse color: `{}'.", digits ) );
+  return *parsed;
 }
 
 } // namespace rn

@@ -87,6 +87,18 @@ type type_of( value const& v ) {
   return std::visit( type_visitor{}, v );
 }
 
+string_view name_of( type t ) {
+  switch( t ) {
+    case type::null: return "null";
+    case type::boolean: return "bool";
+    case type::integral: return "int";
+    case type::floating: return "double";
+    case type::string: return "string";
+    case type::table: return "table";
+    case type::list: return "list";
+  }
+}
+
 /****************************************************************
 ** table
 *****************************************************************/
@@ -162,7 +174,7 @@ string list::pretty_print( string_view indent ) const {
 ** doc
 *****************************************************************/
 string doc::pretty_print( string_view indent ) const {
-  return tbl_.pretty_print( indent );
+  return tbl_->pretty_print( indent );
 }
 
 /****************************************************************
@@ -387,16 +399,33 @@ void list::map_members() & {
 }
 
 /****************************************************************
-** Document Postprocessing
+** Post-processing Routine
 *****************************************************************/
-expect<doc, std::string> doc::create( table&& v1 ) {
+base::expect<table, string> run_postprocessing( table&& v1 ) {
   table v2 = std::move( v1 ).unflatten();
   // Dedupe must happen after unflattening.
   UNWRAP_RETURN( v3, std::move( v2 ).dedupe() );
   // Mapping should be last.
   v3.map_members();
+  return std::move( v3 );
+}
 
-  return doc( std::move( v3 ) );
+base::expect<list, string> run_postprocessing( list&& v1 ) {
+  list v2 = std::move( v1 ).unflatten();
+  // Dedupe must happen after unflattening.
+  UNWRAP_RETURN( v3, std::move( v2 ).dedupe_tables() );
+  // Mapping should be last.
+  v3.map_members();
+  return std::move( v3 );
+}
+
+/****************************************************************
+** Document
+*****************************************************************/
+expect<doc, std::string> doc::create( table&& tbl ) {
+  UNWRAP_RETURN( postprocessed,
+                 run_postprocessing( std::move( tbl ) ) );
+  return doc( std::move( postprocessed ) );
 }
 
 } // namespace rcl

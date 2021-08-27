@@ -20,6 +20,13 @@
 // Rds
 #include "rds/tune.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
+// base
+#include "base/fmt.hpp"
+#include "base/to-str.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 
@@ -56,6 +63,15 @@ NOTHROW_MOVE( TuneOptDimensions );
 struct TuneDimensions {
   EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
   TuneOptDimensions to_opt_dims() const;
+  auto operator<=>( TuneDimensions const& ) const = default;
+
+  // Allows deserializing from an Rcl config file.
+  friend rcl::convert_err<TuneDimensions> convert_to(
+      rcl::value const& v, rcl::tag<TuneDimensions> );
+
+  // ADL stringifier.
+  friend void to_str( TuneDimensions const& o,
+                      std::string&          out );
 };
 NOTHROW_MOVE( TuneDimensions );
 
@@ -81,6 +97,15 @@ struct Tune {
 
   // Classification.
   TuneDimensions dimensions;
+
+  auto operator<=>( Tune const& ) const = default;
+
+  // Allows deserializing from an Rcl config file.
+  friend rcl::convert_err<Tune> convert_to( rcl::value const& v,
+                                            rcl::tag<Tune> );
+
+  // ADL stringifier.
+  friend void to_str( Tune const& o, std::string& out );
 };
 NOTHROW_MOVE( Tune );
 
@@ -175,3 +200,6 @@ namespace std {
 DEFINE_HASH_FOR_TYPED_INT( ::rn::TuneId )
 
 } // namespace std
+
+TOSTR_TO_FMT( ::rn::Tune );
+TOSTR_TO_FMT( ::rn::TuneDimensions );

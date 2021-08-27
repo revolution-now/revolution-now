@@ -23,4 +23,9 @@ LUA_TYPED_INT_IMPL( ::rn::Y );
 LUA_TYPED_INT_IMPL( ::rn::W );
 LUA_TYPED_INT_IMPL( ::rn::H );
 
+RCL_TYPED_INT_IMPL( ::rn::X );
+RCL_TYPED_INT_IMPL( ::rn::Y );
+RCL_TYPED_INT_IMPL( ::rn::W );
+RCL_TYPED_INT_IMPL( ::rn::H );
+
 } // namespace rn

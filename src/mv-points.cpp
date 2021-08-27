@@ -78,4 +78,17 @@ void lua_push( lua::cthread L, MovementPoints mv_pts ) {
   lua::push( L, t );
 }
 
+/****************************************************************
+** Rcl
+*****************************************************************/
+rcl::convert_err<MovementPoints> convert_to(
+    rcl::value const& v, rcl::tag<MovementPoints> ) {
+  base::maybe<int const&> i = v.get_if<int>();
+  if( !i.has_value() )
+    return rcl::error( fmt::format(
+        "cannot convert value of type {} to MovementPoints.",
+        name_of( type_of( v ) ) ) );
+  return MovementPoints( *i );
+}
+
 } // namespace rn

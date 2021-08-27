@@ -20,6 +20,9 @@
 // base
 #include "base/fs.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
 // Flatbuffers
 #include "fb/color_generated.h"
 
@@ -98,6 +101,10 @@ struct Color {
     return !( *this == rhs );
   }
 
+  // This is for deserializing from Rcl config files.
+  friend rcl::convert_err<Color> convert_to( rcl::value const& v,
+                                             rcl::tag<Color> );
+
   static Color red() { return { 255, 0, 0, 255 }; }
   static Color yellow() { return { 255, 255, 0, 255 }; }
   static Color green() { return { 0, 255, 0, 255 }; }
@@ -168,29 +175,29 @@ std::vector<Color> coursen( std::vector<Color> const& colors,
 // Will look in the `where` folder and will load all files
 // (assuming they are image files) and will load/scan each one of
 // them for their colors and will generate a ~256 color palette
-// and will update the schema and ucl palette definition file.
+// and will update the schema and rcl palette definition file.
 // Note that running this could in general break your build
 // because the game might be using colors (e.g.
 // config_palette.red.sat0.lum1) that no longer appear after the
 // update.
 void update_palette( fs::path const& where );
 
-// Will load/parse the ucl config palette file and will
+// Will load/parse the rcl config palette file and will
 // sort/bucket the colors and display them on the screen. NOTE:
 // SDL graphics must have been initialized before calling this
 // function.
 void show_config_palette();
 
-// Will load the ucl config palette and render it to a png
+// Will load the rcl config palette and render it to a png
 // file divided into hue/saturation buckets.
 void write_palette_png( fs::path const& png_file );
 
-// Generate the config schema and ucl data file with all the
+// Generate the config schema and rcl data file with all the
 // colors so that the game can reference them with e.g.
 // config_palette.red.sat0.lum1. Note that this updates the
 // schema file and hence requires recompilation to take effect.
 void dump_palette( ColorBuckets const& colors,
-                   fs::path const& schema, fs::path const& ucl );
+                   fs::path const& schema, fs::path const& rcl );
 
 // Display an array of colors.
 void show_palette( std::vector<Color> const& colors );

@@ -188,7 +188,8 @@ using value = base::variant<
 >;
 // clang-format on
 
-type type_of( value const& v );
+type             type_of( value const& v );
+std::string_view name_of( type t );
 
 /****************************************************************
 ** table
@@ -307,6 +308,18 @@ private:
 };
 
 /****************************************************************
+** Post-processing Routine
+*****************************************************************/
+// This should only be run on the top-level table, since it will
+// be applied recursively. In practice, this is only really
+// useful for unit tests, since otherwise the top-level table is
+// placed into a doc, and the doc will run this post-processing.
+base::expect<table, std::string> run_postprocessing(
+    table&& tbl );
+
+base::expect<list, std::string> run_postprocessing( list&& lst );
+
+/****************************************************************
 ** doc
 *****************************************************************/
 // This structure cannot be mutable after creation because it re-
@@ -318,13 +331,56 @@ struct doc {
 
   std::string pretty_print( std::string_view indent = "" ) const;
 
-  table const& top() const { return tbl_; }
+  table const& top_tbl() const { return *tbl_; }
+  value const& top_val() const { return val_; }
 
 private:
-  doc( table&& tbl ) : tbl_( std::move( tbl ) ) {}
+  doc( table&& tbl )
+    : val_( std::make_unique<table>( std::move( tbl ) ) ) {
+    tbl_ = val_.get_if<std::unique_ptr<table>>()->get();
+  }
 
-  table tbl_;
+  value        val_;
+  table const* tbl_ = nullptr;
 };
+
+/****************************************************************
+** Helpers for Testing
+*****************************************************************/
+template<typename... Vs>
+list make_list( Vs&&... vs ) {
+  std::vector<value> v;
+  ( v.push_back( std::forward<Vs>( vs ) ), ... );
+  return list( std::move( v ) );
+}
+
+template<typename... Vs>
+value make_list_val( Vs&&... vs ) {
+  return value{
+      std::make_unique<list>( make_list( FWD( vs )... ) ) };
+}
+
+template<typename... Kvs>
+table make_table( Kvs&&... kvs ) {
+  using KV = table::value_type;
+  std::vector<KV> v;
+  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
+  return table( std::move( v ) );
+}
+
+template<typename... Kvs>
+value make_table_val( Kvs&&... kvs ) {
+  return value{
+      std::make_unique<table>( make_table( FWD( kvs )... ) ) };
+}
+
+template<typename... Kvs>
+base::expect<doc, std::string> make_doc( Kvs&&... kvs ) {
+  using KV = table::value_type;
+  std::vector<KV> v;
+  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
+  return doc::create( table( std::move( v ) ) );
+}
 
 } // namespace rcl
 

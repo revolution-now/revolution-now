@@ -10,9 +10,6 @@
 [submodule "extern/spdlog"]
 	path = extern/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "extern/libucl"]
-	path = extern/libucl
-	url = ../../dpacbach/libucl.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
 	url = ../../dpacbach/backward-cpp.git

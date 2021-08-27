@@ -16,16 +16,24 @@
 #include "coord.hpp"
 #include "error.hpp"
 #include "font.hpp"
+#include "init.hpp"
+#include "logging.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tune.hpp"
 #include "typed-int.hpp"
 #include "utype.hpp"
 
-#include "init.hpp"
-#include "logging.hpp"
-#include "util.hpp"
-#include "utype.hpp"
+// Rcl
+#include "rcl/ext-base.hpp"
+#include "rcl/ext-builtin.hpp"
+#include "rcl/ext-std.hpp"
+#include "rcl/ext.hpp"
+#include "rcl/model.hpp"
+#include "rcl/parse.hpp"
+
+// Rds
+#include "rds/helper/rcl.hpp"
 
 // Revolution Now (config inl files)
 #include "../config/all-ucl.inl"
@@ -33,9 +41,6 @@
 // base-util
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
-
-// libucl: only include this in this cpp module.
-#include "ucl++.h"
 
 // c++ standard library
 #include <string>
@@ -49,20 +54,26 @@ using namespace std::chrono;
 #undef FLD
 #undef LNK
 
-#define FLD( __type, __name )                                 \
-  static void __populate_##__name() {                         \
-    auto path = this_path();                                  \
-    path.push_back( #__name );                                \
-    auto dotted = util::join( path, "." );                    \
-    auto obj    = ucl_from_path( cfg_name(), dotted );        \
-    used_field_paths.insert( this_file() + "." + dotted );    \
-    populate_config_field(                                    \
-        obj, const_cast<__type&>( dest_ptr()->__name ), path, \
-        cfg_name(), this_file() );                            \
-  }                                                           \
-  static inline bool const __register_##__name = [] {         \
-    populate_functions().push_back( __populate_##__name );    \
-    return true;                                              \
+#define FLD( __type, __name )                              \
+  static void __populate_##__name() {                      \
+    auto path = this_path();                               \
+    path.push_back( #__name );                             \
+    auto dotted = util::join( path, "." );                 \
+    used_field_paths.insert( this_file() + "." + dotted ); \
+    rcl::value const& v =                                  \
+        value_from_path( cfg_name(), dotted );             \
+    rcl::convert_err<__type> res =                         \
+        rcl::convert_to<__type>( v );                      \
+    CHECK( res.has_value(),                                \
+           "failed to convert type {} from {}.{}: {}",     \
+           TO_STRING( __type ), cfg_name(), dotted,        \
+           res.error() );                                  \
+    const_cast<__type&>( dest_ptr()->__name ) =            \
+        std::move( *res );                                 \
+  }                                                        \
+  static inline bool const __register_##__name = [] {      \
+    populate_functions().push_back( __populate_##__name ); \
+    return true;                                           \
   }();
 
 template<typename T>
@@ -111,7 +122,17 @@ void assign_link( T const* const& from, T const& to ) {
     }                                                       \
                                                             \
     __body                                                  \
-  };
+  };                                                        \
+  static void __populate_##__name() {                       \
+    auto path = this_path();                                \
+    path.push_back( #__name );                              \
+    auto dotted = util::join( path, "." );                  \
+    used_object_paths.insert( this_file() + "." + dotted ); \
+  }                                                         \
+  static inline bool const __register_##__name = [] {       \
+    populate_functions().push_back( __populate_##__name );  \
+    return true;                                            \
+  }();
 
 #define CFG( __name, __body )                                \
   config_##__name##_t const config_##__name{};               \
@@ -142,41 +163,38 @@ void assign_link( T const* const& from, T const& to ) {
     }();                                                     \
   };
 
-#define UCL_TYPE( input, ucl_enum, ucl_getter )               \
-  template<>                                                  \
-  struct ucl_type_of_t<input> {                               \
-    static constexpr UclType_t value = ucl_enum;              \
-  };                                                          \
-  template<>                                                  \
-  struct ucl_type_name_of_t<input> {                          \
-    static constexpr char const* value = #ucl_enum;           \
-  };                                                          \
-  template<>                                                  \
-  struct ucl_getter_for_type_t<input> {                       \
-    using getter_t = decltype( &ucl::Ucl::ucl_getter );       \
-    static constexpr getter_t getter = &ucl::Ucl::ucl_getter; \
-  };
-
 namespace rn {
 
 namespace {
 
+unordered_map<string, rcl::doc> rcl_configs;
+
 // List of field paths from the config that were found in the
-// schema. This is used to warn the user of config variables
-// on the config file but not in the schema.
+// schema. This is used to warn the user of config variables on
+// the config file but not in the schema.
 unordered_set<string> used_field_paths;
+unordered_set<string> used_object_paths;
 
-unordered_map<string, ucl::Ucl> ucl_configs;
-
-ucl::Ucl ucl_from_path( string const& name,
-                        string const& dotted ) {
+rcl::value const& value_from_path( string const& name,
+                                   string const& dotted ) {
+  auto it = rcl_configs.find( name );
+  CHECK( it != rcl_configs.end() );
   // This must be by value since we reassign it.
-  ucl::Ucl obj = ucl_configs[name];
+  rcl::value const* val = &it->second.top_val();
   for( auto const& s : util::split( dotted, '.' ) ) {
-    obj = obj[string( s )];
-    if( !obj ) break;
+    auto maybe_tbl = val->get_if<unique_ptr<rcl::table>>();
+    CHECK(
+        maybe_tbl.has_value(),
+        "config field path {}.{} does not exist or is invalid.",
+        name, dotted );
+    DCHECK( *maybe_tbl );
+    auto& tbl = **maybe_tbl;
+    CHECK( tbl.has_key( s ),
+           "config field path {}.{} does not exist.", name,
+           dotted );
+    val = &tbl[s];
   }
-  return obj; // return it whether valid or not
+  return *val;
 }
 
 vector<pair<string, string>>& config_files() {
@@ -200,486 +218,60 @@ string config_file_for_name( string const& name ) {
   return "config/ucl/" + name + ".ucl";
 }
 
-// The type of UCL's enum representing types.
-using UclType_t = decltype( ::UCL_INT );
-
-template<typename T>
-struct ucl_getter_for_type_t;
-
-template<typename T>
-struct ucl_type_of_t;
-
-template<typename T>
-struct ucl_type_name_of_t;
-
-// clang-format off
-// ============================================================
-//
-//        C++ type        UCL type       Getter
-//        ----------------------------------------------
-UCL_TYPE( int,            UCL_INT,       int_value      )
-UCL_TYPE( bool,           UCL_BOOLEAN,   bool_value     )
-UCL_TYPE( double,         UCL_FLOAT,     number_value   )
-UCL_TYPE( string,         UCL_STRING,    string_value   )
-UCL_TYPE( Coord,          UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( Delta,          UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( Color,          UCL_STRING,    string_value   )
-UCL_TYPE( MvPoints,       UCL_INT,       int_value      )
-//UCL_TYPE( X,              UCL_INT,       int_value      )
-UCL_TYPE( W,              UCL_INT,       int_value      )
-UCL_TYPE( fs::path,       UCL_STRING,    string_value   )
-UCL_TYPE( Tune,           UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( TuneDimensions, UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( seconds,        UCL_INT,       int_value      )
-UCL_TYPE( Y,              UCL_INT,       int_value      )
-UCL_TYPE( H,              UCL_INT,       int_value      )
-
-// clang-format on
-
-template<typename T>
-auto ucl_getter_for_type_v = ucl_getter_for_type_t<T>::getter;
-
-template<typename T>
-UclType_t ucl_type_of_v = ucl_type_of_t<T>::value;
-
-template<typename T>
-char const* ucl_type_name_of_v = ucl_type_name_of_t<T>::value;
-
-void check_field_exists( ucl::Ucl obj, string const& dotted,
-                         string const& file ) {
-  CHECK( obj.type() != ::UCL_NULL,
-         "UCL Config field `{}` was not found in file {}.",
-         dotted, file );
-}
-
-void check_field_type( ucl::Ucl obj, UclType_t type,
-                       string const& dotted,
-                       string const& config_name,
-                       string const& desc ) {
-  CHECK( obj.type() == type,
-         "expected `{}.{}` to contain {}; instead contains type "
-         "`{}`.",
-         config_name, dotted, desc,
-         static_cast<int>( obj.type() ) );
-}
-
-#define COLLECT_NESTED_FIELD( dest, type_, name_ )              \
-  {                                                             \
-    string name =                                               \
-        TO_STRING( name_ ); /* need this for macro expansion */ \
-    check_field_type(                                           \
-        obj[name], ucl_type_of_v<type_>, dotted, config_name,   \
-        "a object of type `"s + ucl_type_name_of_v<type_> +     \
-            "` named `" + name + "`" );                         \
-    path_field.push_back( name );                               \
-    populate_config_field( obj[name], dest, path_field,         \
-                           config_name, file );                 \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." +        \
-                             name );                            \
-  }
-
-#define COLLECT_NESTED_OBJ_FIELD( type_, name_ )                \
-  {                                                             \
-    string name =                                               \
-        TO_STRING( name_ ); /* need this for macro expansion */ \
-    check_field_type( obj[name], UCL_OBJECT, dotted,            \
-                      config_name,                              \
-                      "a object of type `"s + #type_ +          \
-                          "` named `" + name + "`" );           \
-    path_field.push_back( name );                               \
-    type_ obj_read{};                                           \
-    populate_config_field( obj[name], obj_read, path_field,     \
-                           config_name, file );                 \
-    dest.name_ = obj_read;                                      \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." +        \
-                             name );                            \
-  }
-
-#define COLLECT_NESTED_STR_FIELD( name_ )                       \
-  {                                                             \
-    string name =                                               \
-        TO_STRING( name_ ); /* need this for macro expansion */ \
-    check_field_type( obj[name], UCL_STRING, dotted,            \
-                      config_name,                              \
-                      "a string field named `"s + name + "`" ); \
-    path_field.push_back( name );                               \
-    dest.name_ = obj[name].string_value();                      \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." +        \
-                             name );                            \
-  }
-
-#define COLLECT_NESTED_ENUM_FIELD( type, name )                 \
-  {                                                             \
-    check_field_type( obj[#name], UCL_STRING, dotted,           \
-                      config_name,                              \
-                      "an enum field named `"s + #name +        \
-                          "` of type `" #type "`" );            \
-    path_field.push_back( #name );                              \
-    type name{};                                                \
-    populate_config_field( obj[#name], name, path_field,        \
-                           config_name, file );                 \
-    dest.name = name;                                           \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." #name ); \
-  }
-
-#define DECLARE_POPULATE( type )                            \
-  template<typename T>                                      \
-  void populate_config_field(                               \
-      ucl::Ucl obj, type& dest, vector<string> const& path, \
-      string const& config_name, string const& file );
-
-// Forward declare so that e.g. vector and maybe variants
-// can access each other if we have a nested type and are not
-// always able to declare the containing type after the
-// contained type.
-DECLARE_POPULATE( vector<T> )
-DECLARE_POPULATE( maybe<T> )
-
-// T (catch-all)
-template<typename T>
-void populate_config_field( ucl::Ucl obj, T& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type(
-      obj, ucl_type_of_v<T>, dotted, config_name,
-      string( "item(s) of type " ) + ucl_type_name_of_v<T> );
-  dest = static_cast<T>( (obj.*ucl_getter_for_type_v<T>)( {} ) );
-}
-
-// fs::path
-template<>
-void populate_config_field( ucl::Ucl obj, fs::path& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  (void)ucl_type_name_of_v<fs::path>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, ucl_type_of_v<fs::path>, dotted,
-                    config_name, "a file system path" );
-  fs::path file_path(
-      (obj.*ucl_getter_for_type_v<fs::path>)( {} ) );
-  CHECK( fs::exists( file_path ),
-         "file path `{}` does not exist", file_path.string() );
-  dest = move( file_path );
-}
-
-// This is for reflected enums.
-template<typename Enum>
-void populate_config_field_enum( ucl::Ucl obj, Enum& dest,
-                                 vector<string> const& path,
-                                 string const& config_name,
-                                 string const& file,
-                                 string const& type_name ) {
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, ::UCL_STRING, dotted, config_name,
-                    string( "item(s) of type " ) + type_name );
-  auto str_val = obj.string_value();
-  auto result =
-      enum_traits<Enum>::from_string( str_val.c_str() );
-  CHECK( result,
-         "enum value `{}` is not a known value of the enum {}",
-         str_val, type_name );
-  dest = *result;
-}
-
-#define SUPPORT_ENUM( EnumType )                                \
-  template<>                                                    \
-  void populate_config_field(                                   \
-      ucl::Ucl obj, EnumType& dest, vector<string> const& path, \
-      string const& config_name, string const& file ) {         \
-    populate_config_field_enum( obj, dest, path, config_name,   \
-                                file, TO_STRING( EnumType ) );  \
-  }                                                             \
-  template<>                                                    \
-  struct ucl_type_of_t<EnumType> {                              \
-    static constexpr UclType_t value = UCL_STRING;              \
-    /* Need to use `value` to avoid unused var warning. */      \
-    ucl_type_of_t() { (void)value; }                            \
-  };                                                            \
-  template<>                                                    \
-  struct ucl_type_name_of_t<EnumType> {                         \
-    static constexpr char const* value = "UCL_STRING";          \
-    ucl_type_name_of_t() { (void)value; }                       \
-  };
-
-SUPPORT_ENUM( e_nation )
-SUPPORT_ENUM( e_direction )
-SUPPORT_ENUM( e_unit_type )
-SUPPORT_ENUM( e_unit_death )
-SUPPORT_ENUM( e_music_player )
-SUPPORT_ENUM( e_special_music_event )
-SUPPORT_ENUM( e_font )
-
-#define TUNE_DIMENSION_SUPPORT_ENUM( dim ) \
-  SUPPORT_ENUM( PP_JOIN( e_tune_, dim ) )
-
-EVAL( PP_MAP( TUNE_DIMENSION_SUPPORT_ENUM,
-              TUNE_DIMENSION_LIST ) )
-
-// std::pair
-template<typename K, typename V>
-void populate_config_field( ucl::Ucl obj, pair<K, V>& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_OBJECT, dotted, config_name,
-                    "a pair object" );
-
-  auto path_field = path;
-
-  COLLECT_NESTED_FIELD( dest.first, K, key );
-  COLLECT_NESTED_FIELD( dest.second, V, val );
-}
-
-// unordered_map. For this we make the user input a list of
-// pairs, each of which has it's elements referenced by "key" and
-// "val". We don't use a native UCL dictionary (object) because
-// they can only have strings as keys.
-template<typename K, typename V>
-void populate_config_field( ucl::Ucl              obj,
-                            unordered_map<K, V>&  dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  vector<pair<K, V>> assoc_list;
-
-  populate_config_field( obj, assoc_list, path, config_name,
-                         file );
-
-  dest.clear();
-  dest.insert( assoc_list.begin(), assoc_list.end() );
-}
-
-// Coord
-template<>
-void populate_config_field( ucl::Ucl obj, Coord& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  // Silence unused-variable warnings.
-  (void)ucl_type_of_v<Coord>;
-  (void)ucl_type_name_of_v<Coord>;
-  (void)ucl_getter_for_type_v<Coord>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_OBJECT, dotted, config_name,
-                    "a coordinate pair object" );
-  check_field_type(
-      obj["x"], UCL_INT, dotted, config_name,
-      "a coordinate pair with UCL_INT fields `x` and `y`" );
-  check_field_type(
-      obj["y"], UCL_INT, dotted, config_name,
-      "a coordinate pair with UCL_INT fields `x` and `y`" );
-  dest.x = obj["x"].int_value();
-  dest.y = obj["y"].int_value();
-  used_field_paths.insert( file + "." + dotted + ".x" );
-  used_field_paths.insert( file + "." + dotted + ".y" );
-}
-
-// Delta
-template<>
-void populate_config_field( ucl::Ucl obj, Delta& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  // Silence unused-variable warnings.
-  (void)ucl_type_of_v<Delta>;
-  (void)ucl_type_name_of_v<Delta>;
-  (void)ucl_getter_for_type_v<Delta>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_OBJECT, dotted, config_name,
-                    "a width/height pair object" );
-  check_field_type(
-      obj["w"], UCL_INT, dotted, config_name,
-      "a width/height pair with UCL_INT fields `w` and `h`" );
-  check_field_type(
-      obj["h"], UCL_INT, dotted, config_name,
-      "a width/height pair with UCL_INT fields `w` and `h`" );
-  dest.w = obj["w"].int_value();
-  dest.h = obj["h"].int_value();
-  used_field_paths.insert( file + "." + dotted + ".w" );
-  used_field_paths.insert( file + "." + dotted + ".h" );
-}
-
-#define TUNE_DIMENSION_TO_ENUM_PAIR( dim ) ( e_tune_##dim, dim )
-
-// TuneDimensions
-template<>
-void populate_config_field( ucl::Ucl obj, TuneDimensions& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  // Silence unused-variable warnings.
-  (void)ucl_type_of_v<TuneDimensions>;
-  (void)ucl_type_name_of_v<TuneDimensions>;
-  (void)ucl_getter_for_type_v<TuneDimensions>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_OBJECT, dotted, config_name,
-                    "a TuneDimensions object" );
-
-  auto path_field = path;
-
-  EVAL( PP_MAP_TUPLE(
-      COLLECT_NESTED_ENUM_FIELD,
-      PP_MAP_COMMAS( TUNE_DIMENSION_TO_ENUM_PAIR,
-                     EVAL( TUNE_DIMENSION_LIST ) ) ) )
-}
-
-// Tune
-template<>
-void populate_config_field( ucl::Ucl obj, Tune& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  // Silence unused-variable warnings.
-  (void)ucl_type_of_v<Tune>;
-  (void)ucl_type_name_of_v<Tune>;
-  (void)ucl_getter_for_type_v<Tune>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_OBJECT, dotted, config_name,
-                    "a Tune object" );
-
-  auto path_field = path;
-
-  EVAL( PP_MAP(                 //
-      COLLECT_NESTED_STR_FIELD, //
-      display_name,             //
-      stem,                     //
-      description               //
-      ) );
-
-  COLLECT_NESTED_OBJ_FIELD( TuneDimensions, dimensions );
-}
-
-// Color
-template<>
-void populate_config_field( ucl::Ucl obj, Color& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  // Silence unused-variable warnings.
-  (void)ucl_type_of_v<Color>;
-  (void)ucl_type_name_of_v<Color>;
-  (void)ucl_getter_for_type_v<Color>;
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_STRING, dotted, config_name,
-                    "a color in RGB hex form: #NNNNNN[NN]" );
-  string hex = obj.string_value();
-  CHECK(
-      hex.size() == 7 || hex.size() == 9,
-      "Colors must be of the form `#NNNNNN[NN]` with N in 0-f" );
-  CHECK( hex[0] == '#', "Colors must start with #" );
-  string_view digits( &hex[1], hex.length() - 1 );
-
-  auto parsed = Color::parse_from_hex( digits );
-  CHECK( parsed.has_value(), "failed to parse color: `{}`",
-         digits );
-  dest = *parsed;
-}
-
-// maybe<T>
-template<typename T>
-void populate_config_field( ucl::Ucl obj, maybe<T>& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  if( obj.type() != ::UCL_NULL ) {
-    dest = T{}; // must do this before calling .value()
-    populate_config_field( obj, dest.value(), path, config_name,
-                           file );
-  } else {
-    dest = nothing;
+void get_all_unused_fields_impl( string const&     parent_path,
+                                 rcl::value const& v,
+                                 vector<string>&   res ) {
+  base::maybe<unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<unique_ptr<rcl::table>>();
+  if( !mtbl ) return;
+  rcl::table const& tbl = **mtbl;
+  for( auto& [k, child_v] : tbl ) {
+    string path = parent_path + "." + k;
+    if( used_field_paths.contains( path ) )
+      // If a field path is used by something declared as a
+      // "field" in the config file, then skip it as well as any
+      // child fields that it contains (if its value is a table)
+      // since those child fields will be checked when deserial-
+      // izing the object.
+      continue;
+    if( !used_object_paths.contains( path ) )
+      res.push_back( path );
+    get_all_unused_fields_impl( parent_path + "." + k, child_v,
+                                res );
   }
 }
 
-// vector<T>
-template<typename T>
-void populate_config_field( ucl::Ucl obj, vector<T>& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, UCL_ARRAY, dotted, config_name,
-                    "an array" );
-  dest.resize( obj.size() );
-  size_t idx       = 0;
-  auto   last_elem = path.back();
-  auto   elem_path = path;
-  for( auto elem : obj ) {
-    elem_path.back() =
-        last_elem + "[" + std::to_string( idx ) + "]";
-    populate_config_field( elem, dest[idx++], elem_path,
-                           config_name, file );
-  }
-  CHECK( dest.size() == obj.size() );
-}
-
-// This will traverse the object recursively and return a list
-// of fully-qualified paths to all fields, e.g.:
-//
-//   object1.field1
-//   object1.field2
-//   object1.object2.field1
-//   object1.object2.field2
-//   ...
-//
-// Objects with no fields are ignored.
-vector<string> get_all_fields( ucl::Ucl const& obj ) {
+vector<string> get_all_unused_fields( string const&     file,
+                                      rcl::value const& v ) {
   vector<string> res;
-  for( auto f : obj ) {
-    if( f.type() == ::UCL_OBJECT ) {
-      auto children = get_all_fields( f );
-      for( auto const& s : children )
-        res.push_back( f.key() + "." + s );
-    } else {
-      res.push_back( f.key() );
-    }
-  }
+  get_all_unused_fields_impl( file, v, res );
   return res;
 }
 
 void init_configs() {
   lg.info( "reading config files." );
   for( auto const& f : load_functions() ) f();
-  for( auto [ucl_name, file] : config_files() ) {
-    // cout << "Loading file " << file << "\n";
-    auto&  ucl_obj = ucl_configs[ucl_name];
-    string errors;
+  for( auto [rcl_name, file] : config_files() ) {
     replace( file.begin(), file.end(), '_', '-' );
-    ucl_obj = ucl::Ucl::parse_from_file( file, errors );
-    CHECK( ucl_obj, "failed to load {}: {}", file, errors );
+    base::expect<rcl::doc, std::string> doc =
+        rcl::parse_file( file );
+    CHECK( doc, "failed to load {}: {}", file, doc.error() );
+    rcl_configs.emplace( rcl_name, std::move( *doc ) );
   }
   for( auto const& populate : populate_functions() ) populate();
-  // This loop tests that there are no fields in the config
-  // files that are not in the schema.  The program can still
-  // run in this case, but we emit a warning since it could
-  // be a sign of a problem.
-  for( auto const& [ucl_name, file] : config_files() ) {
-    auto fields = get_all_fields( ucl_configs[ucl_name] );
-    for( auto const& f : fields ) {
-      auto full_name = file + "." + f;
-      if( !used_field_paths.contains( full_name ) ) {
-        lg.warn( "config field `{}' unused", full_name );
-      } else {
-        LOG_TRACE( "field loaded: {}", full_name );
-      }
-    }
+  // This loop tests that there are no fields in the config files
+  // that are not in the schema. The program can still run in
+  // this case, but we emit a warning since it could be a sign of
+  // a problem. Fields that are nested inside other fields (but
+  // not nested inside rcl objects) will be tested during conver-
+  // sion to objects and so they are not included here.
+  for( auto const& [rcl_name, file] : config_files() ) {
+    auto it = rcl_configs.find( rcl_name );
+    CHECK( it != rcl_configs.end() );
+    auto unused_fields =
+        get_all_unused_fields( file, it->second.top_val() );
+    for( auto const& f : unused_fields )
+      lg.warn( "config field `{}' unused", f );
   }
   // Make sure this can load.
   (void)g_palette();
@@ -703,24 +295,21 @@ vector<Color> const& g_palette() {
     vector<Color> res;
     string        file = "config/ucl/palette.ucl";
 
-    string errors;
-    auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );
-    CHECK( ucl_obj, "failed to load {}: {}", file, errors );
+    base::expect<rcl::doc, std::string> doc =
+        rcl::parse_file( file );
+    CHECK( doc, "failed to load {}: {}", file, doc.error() );
 
-    for( auto hue : ucl_obj ) {
-      if( hue.key() == "grey" ) continue;
-      for( auto sat : hue ) {
-        for( auto lum : sat ) {
-          CHECK( lum.type() == ::UCL_STRING );
-          auto lum_str = lum.string_value();
-          CHECK( lum_str.size() == 7 );
-          string_view digits( &lum_str[1],
-                              lum_str.length() - 1 );
-
-          auto parsed = Color::parse_from_hex( digits );
-          CHECK( parsed, "failed to parse {}",
-                 lum.string_value() );
-          res.push_back( *parsed );
+    for( auto& [hue_key, hue_val] : doc->top_tbl() ) {
+      if( hue_key == "grey" ) continue;
+      UNWRAP_CHECK( hue_val_tbl,
+                    hue_val.get_if<unique_ptr<rcl::table>>() );
+      for( auto& [sat_key, sat_val] : *hue_val_tbl ) {
+        UNWRAP_CHECK( sat_val_tbl,
+                      sat_val.get_if<unique_ptr<rcl::table>>() );
+        for( auto& [lum_key, lum_val] : *sat_val_tbl ) {
+          UNWRAP_CHECK( parsed,
+                        rcl::convert_to<Color>( lum_val ) );
+          res.push_back( parsed );
         }
       }
     }

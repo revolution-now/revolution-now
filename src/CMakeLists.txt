@@ -45,7 +45,6 @@ target_link_libraries(
     rtmidi
     spdlog::spdlog
     Threads::Threads
-    ucl
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}

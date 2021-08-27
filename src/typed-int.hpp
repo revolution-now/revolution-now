@@ -16,6 +16,9 @@
 // Revolution Now
 #include "fmt-helper.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
 // luapp
 #include "luapp/ext.hpp"
 
@@ -739,11 +742,31 @@ DEFINE_HASH_FOR_TYPED_INT( ::rn::H );
     lua::push( L, o._ );                              \
   }
 
+#define RCL_TYPED_INT_DECL( name )                        \
+  rcl::convert_err<name> convert_to( rcl::value const& v, \
+                                     rcl::tag<name> );
+
+#define RCL_TYPED_INT_IMPL( name )                        \
+  rcl::convert_err<name> convert_to( rcl::value const& v, \
+                                     rcl::tag<name> ) {   \
+    base::maybe<int const&> i = v.get_if<int>();          \
+    if( !i )                                              \
+      return rcl::error( fmt::format(                     \
+          "cannot produce a {} from type {}.", #name,     \
+          rcl::name_of( rcl::type_of( v ) ) ) );          \
+    return name{ *i };                                    \
+  }
+
 namespace rn {
 
 LUA_TYPED_INT_DECL( ::rn::X );
 LUA_TYPED_INT_DECL( ::rn::Y );
 LUA_TYPED_INT_DECL( ::rn::W );
 LUA_TYPED_INT_DECL( ::rn::H );
+
+RCL_TYPED_INT_DECL( ::rn::X );
+RCL_TYPED_INT_DECL( ::rn::Y );
+RCL_TYPED_INT_DECL( ::rn::W );
+RCL_TYPED_INT_DECL( ::rn::H );
 
 } // namespace rn

@@ -317,8 +317,7 @@ struct formatter<std::chrono::duration<Rep, Period>>
   }
 };
 
-// Specialization for standard enums (they must be reflected).
-template<typename T>
+template<rn::ReflectedEnum T>
 struct formatter<
     T, char, std::void_t<typename ::rn::enum_traits<T>::type>>
   : base::formatter_base {

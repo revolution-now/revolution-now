@@ -241,7 +241,7 @@ expr::Rds parse( string_view filename ) {
       .module_name = fs::path( filename ).filename().stem(),
   };
 
-  rcl::table const& top = doc.top();
+  rcl::table const& top = doc.top_tbl();
   if( top.size() == 0 ) return rds;
 
   for( auto& [k, v] : top ) {

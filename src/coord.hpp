@@ -20,6 +20,9 @@
 #include "maybe.hpp"
 #include "typed-int.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
 // Rds
 #include "rds/coord.hpp"
 
@@ -159,6 +162,10 @@ struct ND Delta {
   Delta clamp( Delta const& delta ) const;
 
   int area() const { return w._ * h._; }
+
+  // This is for deserializing from Rcl config files.
+  friend rcl::convert_err<Delta> convert_to( rcl::value const& v,
+                                             rcl::tag<Delta> );
 };
 NOTHROW_MOVE( Delta );
 
@@ -241,6 +248,10 @@ public:
   friend maybe<Coord> lua_get( lua::cthread L, int idx,
                                lua::tag<Coord> );
   friend void lua_push( lua::cthread L, Coord const& coord );
+
+  // This is for deserializing from Rcl config files.
+  friend rcl::convert_err<Coord> convert_to( rcl::value const& v,
+                                             rcl::tag<Coord> );
 };
 NOTHROW_MOVE( Coord );
 

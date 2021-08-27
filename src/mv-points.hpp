@@ -17,6 +17,9 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
 // luapp
 #include "luapp/ext.hpp"
 
@@ -125,6 +128,10 @@ public:
   friend maybe<MovementPoints> lua_get(
       lua::cthread L, int idx, lua::tag<MovementPoints> );
   friend void lua_push( lua::cthread L, MovementPoints mv_pts );
+
+  // This is for deserializing from Rcl config files.
+  friend rcl::convert_err<MovementPoints> convert_to(
+      rcl::value const& v, rcl::tag<MovementPoints> );
 
 private:
   // atoms can be > 2

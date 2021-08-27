@@ -1,6 +1,6 @@
 merchantman {
   name:                  Merchantman
-  ship:                  yes
+  ship:                  true
   nat_icon_front:        false
   nat_icon_position:     nw
   visibility:            1
@@ -15,7 +15,7 @@ merchantman {
 
 privateer {
   name:                  Privateer
-  ship:                  yes
+  ship:                  true
   nat_icon_front:        false
   nat_icon_position:     nw
   visibility:            1
@@ -30,7 +30,7 @@ privateer {
 
 free_colonist {
   name:                  Free Colonist
-  ship:                  no
+  ship:                  false
   nat_icon_front:        false
   nat_icon_position:     sw
   visibility:            1
@@ -45,7 +45,7 @@ free_colonist {
 
 soldier {
   name:                  Soldier
-  ship:                  no
+  ship:                  false
   nat_icon_front:        false
   nat_icon_position:     sw
   visibility:            1
@@ -60,7 +60,7 @@ soldier {
 
 dragoon {
   name:                  Dragoon
-  ship:                  no
+  ship:                  false
   nat_icon_front:        false
   nat_icon_position:     sw
   visibility:            1
@@ -75,7 +75,7 @@ dragoon {
 
 large_treasure {
   name:                  Large Treasure
-  ship:                  no
+  ship:                  false
   nat_icon_front:        false
   nat_icon_position:     nw
   visibility:            1
@@ -90,7 +90,7 @@ large_treasure {
 
 small_treasure {
   name:                  Small Treasure
-  ship:                  no
+  ship:                  false
   nat_icon_front:        false
   nat_icon_position:     nw
   visibility:            1

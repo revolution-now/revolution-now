@@ -28,43 +28,6 @@ using ::base::expect;
 using ::rn::testing::data_dir;
 
 /****************************************************************
-** Helpers
-*****************************************************************/
-template<typename... Vs>
-list make_list( Vs&&... vs ) {
-  vector<value> v;
-  ( v.push_back( std::forward<Vs>( vs ) ), ... );
-  return list( std::move( v ) );
-}
-
-template<typename... Vs>
-value make_list_val( Vs&&... vs ) {
-  return value{ make_unique<list>( make_list( FWD( vs )... ) ) };
-}
-
-template<typename... Kvs>
-table make_table( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return table( std::move( v ) );
-}
-
-template<typename... Kvs>
-value make_table_val( Kvs&&... kvs ) {
-  return value{
-      make_unique<table>( make_table( FWD( kvs )... ) ) };
-}
-
-template<typename... Kvs>
-expect<doc, string> make_doc( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return doc::create( table( std::move( v ) ) );
-}
-
-/****************************************************************
 ** Tests
 *****************************************************************/
 TEST_CASE( "[model] complex doc" ) {
@@ -218,7 +181,7 @@ TEST_CASE( "[model] complex doc" ) {
 
   REQUIRE( fmt::to_string( doc ) == golden );
 
-  auto& top = doc->top();
+  auto& top = doc->top_tbl();
 
   REQUIRE( top.size() == 13 );
 
