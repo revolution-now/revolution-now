@@ -1,11 +1,9 @@
 " =========================== Config ============================
-  " \ 'colony-view',
-  " \ 'colview-entities',
-  " \ 'utype',
-  " \ 'unit-conv',
 let s:stems = [
-  \ 'rcl/model',
-  \ 'rcl/parse',
+  \ 'colony-view',
+  \ 'colview-entities',
+  \ 'utype',
+  \ 'unit-conv',
 \]
 
 let s:luas = [
