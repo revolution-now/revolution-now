@@ -23,7 +23,7 @@ au BufNewFile,BufRead *design.txt set syntax=cpp11
 " jsav files are not yaml, but it seems to work nicely.
 au BufNewFile,BufRead *.jsav set syntax=yaml
 au BufNewFile,BufRead *.rds set filetype=rds
-au BufNewFile,BufRead *.rcl set filetype=rcl
+au BufNewFile,BufRead *.rcl set syntax=yaml
 
 "function! CloseTerminal()
 "		let s:term_buf_name = bufname( "*bin/fish*" )
