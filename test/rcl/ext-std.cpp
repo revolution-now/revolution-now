@@ -155,8 +155,7 @@ TEST_CASE( "[ext-builtin] std::pair" ) {
 }
 
 TEST_CASE( "[ext-builtin] std::vector" ) {
-  using KV = table::value_type;
-  list  l  = make_list( "hello", "world", "test" );
+  list  l = make_list( "hello", "world", "test" );
   value v{ std::make_unique<list>( std::move( l ) ) };
 
   // Test.
@@ -165,8 +164,7 @@ TEST_CASE( "[ext-builtin] std::vector" ) {
 }
 
 TEST_CASE( "[ext-builtin] std::vector with error" ) {
-  using KV = table::value_type;
-  list  l  = make_list( "hello", 5, "test" );
+  list  l = make_list( "hello", 5, "test" );
   value v{ std::make_unique<list>( std::move( l ) ) };
 
   // Test.

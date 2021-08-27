@@ -31,7 +31,6 @@ using namespace std;
 using Catch::Contains;
 
 TEST_CASE( "[ext-base] maybe<T> with null" ) {
-  using KV = table::value_type;
   value v{ null };
 
   // Test.
@@ -39,7 +38,6 @@ TEST_CASE( "[ext-base] maybe<T> with null" ) {
 }
 
 TEST_CASE( "[ext-base] maybe<T> with value" ) {
-  using KV = table::value_type;
   value v{ string( "hello" ) };
 
   // Test.
@@ -47,7 +45,6 @@ TEST_CASE( "[ext-base] maybe<T> with value" ) {
 }
 
 TEST_CASE( "[ext-base] maybe<T> with type error" ) {
-  using KV = table::value_type;
   value v{ 5.5 };
 
   // Test.
