@@ -43,6 +43,9 @@
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
+// C++ standard library
+#include <mutex>
+
 using namespace std;
 
 namespace rn::term {
@@ -57,12 +60,19 @@ using ::lua::lua_valid;
 ** Global State
 *****************************************************************/
 size_t constexpr max_scrollback_lines = 10000;
-vector<string> g_buffer;
 vector<string> g_history;
+
+// The g_buffer MUST ONLY be accessed while holding the below
+// mutex because it can be modified by multiple threads by way of
+// the logging framework.
+mutex          g_buffer_mutex;
+vector<string> g_buffer;
 
 /****************************************************************
 ** Terminal Log
 *****************************************************************/
+// NOTE: this function should only be called while holding the
+// g_muffer_mutex.
 void trim() {
   if( g_buffer.size() > max_scrollback_lines )
     g_buffer = vector<string>(
@@ -149,15 +159,14 @@ lua_valid run_cmd_impl( string const& cmd ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-void clear() { g_buffer.clear(); }
-
-void log( std::string const& msg ) {
-  g_buffer.push_back( msg );
-  trim();
+void clear() {
+  lock_guard<mutex> lock( g_buffer_mutex );
+  g_buffer.clear();
 }
 
-void log( std::string&& msg ) {
-  g_buffer.emplace_back( msg );
+void log( std::string_view msg ) {
+  lock_guard<mutex> lock( g_buffer_mutex );
+  g_buffer.push_back( string( msg ) );
   trim();
 }
 
@@ -167,6 +176,7 @@ lua_valid run_cmd( string const& cmd ) {
 }
 
 maybe<string const&> line( int idx ) {
+  lock_guard<mutex> lock( g_buffer_mutex );
   if( idx < int( g_buffer.size() ) )
     return g_buffer[g_buffer.size() - 1 - idx];
   return nothing;

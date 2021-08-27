@@ -15,14 +15,6 @@
      and get all the SG stuff out of the individual modules.
 
 # ===============================================================
-# Compile times
-# ===============================================================
-
-  1. spdlog may be very slow to include, see:
-     https://github.com/s9w/cpp-lit
-     Need to get rid of this library.
-
-# ===============================================================
 # Lua
 # ===============================================================
 

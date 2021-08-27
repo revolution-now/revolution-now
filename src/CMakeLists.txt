@@ -43,7 +43,6 @@ target_link_libraries(
     rn-rcl
     rn-luapp
     rtmidi
-    spdlog::spdlog
     Threads::Threads
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}

@@ -11,7 +11,6 @@
 #include "logging.hpp"
 
 // Revolution Now
-#include "ansi.hpp"
 #include "console.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
@@ -19,178 +18,165 @@
 #include "terminal.hpp"
 #include "util.hpp"
 
+// base
+#include "base/ansi.hpp"
+
 // C++ standard library
 #include <mutex>
 
 using namespace std;
-using namespace spdlog;
 
 namespace rn {
 
+/****************************************************************
+** Log Level
+*****************************************************************/
 namespace {
 
-// This single mutex guards all in-game console logging actions
-// for all loggers in all translation units. This is needed be-
-// cause the code in the sink may not be thread safe and, in par-
-// ticular, the code in the `console` module is definitely not
-// thread safe.
-mutex g_dbg_console_impl_mutex;
+// The log level must only be accessed while holding the
+// level_mutex.
+e_log_level g_level = e_log_level::off;
+
+mutex& level_mutex() {
+  static mutex m;
+  return m;
+}
+
+string const& to_colored_level_name( e_log_level level ) {
+  using namespace base::ansi;
+  CHECK( level != e_log_level::off );
+  static unordered_map<e_log_level, string> const colored{
+      { e_log_level::trace,
+        fmt::format( "{}TRCE{}", magenta, reset ) },
+      { e_log_level::debug,
+        fmt::format( "{}DEBG{}", cyan, reset ) },
+      { e_log_level::info,
+        fmt::format( "{}INFO{}", green, reset ) },
+      { e_log_level::warn,
+        fmt::format( "{}{}WARN{}", yellow, bold, reset ) },
+      { e_log_level::error,
+        fmt::format( "{}{}ERRO{}", red, bold, reset ) },
+      { e_log_level::critical,
+        fmt::format( "{}{}{}CRIT{}", white, on_red, bold,
+                     reset ) },
+      // Should not be used.
+      { e_log_level::off, fmt::format( "OFF" ) },
+  };
+  return colored.find( level )->second;
+}
 
 } // namespace
 
-spdlog::level::level_enum to_spdlog_level( e_log_level level ) {
-  switch( level ) {
-    case e_log_level::trace: return spdlog::level::trace;
-    case e_log_level::debug: return spdlog::level::debug;
-    case e_log_level::info: return spdlog::level::info;
-    case e_log_level::warn: return spdlog::level::warn;
-    case e_log_level::error: return spdlog::level::err;
-    case e_log_level::critical: return spdlog::level::critical;
-    case e_log_level::off: return spdlog::level::off;
-  }
+e_log_level global_log_level() {
+  lock_guard<mutex> lock( level_mutex() );
+  return g_level;
 }
 
-// A "sink" that goes to the in-game console in a thread-safe
-// way.
-class debug_console_sink final : public spdlog::sinks::sink {
-public:
-  debug_console_sink()           = default;
-  ~debug_console_sink() override = default;
+void set_global_log_level( e_log_level level ) {
+  lock_guard<mutex> lock( level_mutex() );
+  g_level = level;
+}
 
-  debug_console_sink( debug_console_sink const& ) = delete;
-  debug_console_sink& operator                    =(
-      debug_console_sink const& other ) = delete;
-
-  void log( spdlog::details::log_msg const& msg ) override {
-    lock_guard<mutex> lock( g_dbg_console_impl_mutex );
-    // FIXME: reconfigure formatting to add module name back in
-    //        (but not timestamp) and then renable this code.
-    // fmt::memory_buffer formatted;
-    // formatter_->format( msg, formatted );
-    // string res( formatted.data(), formatted.size() );
-    string res( msg.payload.data(), msg.payload.size() );
-    term::log( std::move( res ) );
-  }
-
-  void flush() final {
-    lock_guard<mutex> lock( g_dbg_console_impl_mutex );
-    // ...
-  }
-
-  void set_pattern( const string& pattern ) final {
-    lock_guard<mutex> lock( g_dbg_console_impl_mutex );
-    formatter_ = unique_ptr<spdlog::formatter>(
-        new spdlog::pattern_formatter( pattern ) );
-  }
-
-  void set_formatter(
-      unique_ptr<spdlog::formatter> sink_formatter ) override {
-    lock_guard<mutex> lock( g_dbg_console_impl_mutex );
-    formatter_ = std::move( sink_formatter );
+/****************************************************************
+** Console Logger
+*****************************************************************/
+struct ConsoleLogger final : public ILogger {
+  void log( e_log_level target, std::string_view what,
+            base::SourceLoc const& ) override {
+    if( target < global_log_level() ) return;
+    // Note that the console has its own mutex, so we don't need
+    // to guard this.
+    term::log( what );
   }
 };
 
-namespace {
-
-// %n = module name
-// %^ = start color (color used is determined by the sink)
-// %l = log level (defined in logging.hpp, our header file)
-// %$ = end color
-// %v = message
-string const pattern() { return "%M:%S.%e %^%l%$ %v"; }
-
-spdlog::sink_ptr default_dbg_console_sink() {
-  static spdlog::sink_ptr p = [] {
-    auto p = make_shared<debug_console_sink>();
-    p->set_pattern( pattern() );
-    return p;
-  }();
-  return p;
+ILogger& console_logger() {
+  static ConsoleLogger l;
+  return l;
 }
 
-spdlog::sink_ptr default_terminal_sink() {
-  static spdlog::sink_ptr p = [] {
-    auto p =
-        make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
-    p->set_pattern( pattern() );
-    return p;
-  }();
-  return p;
+/****************************************************************
+** Terminal Logger
+*****************************************************************/
+namespace {
+
+// The console has its own mutex and so does not need one here.
+// We only need the mutex for the terminal logger.
+mutex& terminal_mutex() {
+  static mutex m;
+  return m;
 }
 
 } // namespace
 
-void init_logging( maybe<level::level_enum> level ) {
-  if( !level.has_value() ) {
-#ifdef RN_TRACE
-    level = level::trace;
-#else
-    level = DEBUG_RELEASE( level::debug, level::info );
-#endif
+struct TerminalLogger final : public ILogger {
+  void log( e_log_level target, std::string_view what,
+            base::SourceLoc const& ) override {
+    if( target < global_log_level() ) return;
+    // Unused for now.
+    // auto module_name =
+    //     fs::path( loc.file_name() ).stem().string();
+
+    auto now = chrono::system_clock::now();
+    auto d   = now.time_since_epoch();
+    auto millis =
+        chrono::duration_cast<chrono::milliseconds>( d );
+    auto secs = chrono::duration_cast<chrono::seconds>( d );
+    millis -= secs; // isolate milliseconds.
+
+    auto now_c = std::chrono::system_clock::to_time_t( now );
+    ostringstream ss;
+    ss << put_time( localtime( &now_c ), "%H:%M:%S" );
+    ss << fmt::format( ".{:03} {} {}", millis.count(),
+                       to_colored_level_name( target ), what );
+
+    lock_guard<mutex> lock( terminal_mutex() );
+    cout << ss.str() << '\n';
   }
-  spdlog::set_level( *level );
+};
+
+ILogger& terminal_logger() {
+  static TerminalLogger l;
+  return l;
 }
 
-namespace detail {
+/****************************************************************
+** Hybrid Logger
+*****************************************************************/
+struct HybridLogger final : public ILogger {
+  void log( e_log_level target, std::string_view what,
+            base::SourceLoc const& loc ) override {
+    terminal_logger().log( target, what, loc );
+    console_logger().log( target, what, loc );
+  }
+};
 
-// In the following functions we create loggers with a new in-
-// stance of their respective sinks, then we replace that sync
-// with our global instance of the sink. We want a global in-
-// stance because we want all loggers of a particular type to use
-// the same sink object so that thread safety can be maintained.
-// However, there doesn't appear to be a spdlog api for creating
-// a logger by specifying a sink object (only sink type).
-
-shared_ptr<spdlog::logger> create_dbg_console_logger(
-    string const& logger_name ) {
-  auto lager = spdlog::default_factory::template create<
-      debug_console_sink>(
-      fmt::format( "{: <13}", "~" + logger_name + "~" ) );
-  CHECK( lager->sinks().size() == 1 );
-  // Replace sink with global.
-  lager->sinks()[0] = default_dbg_console_sink();
-  return lager;
+ILogger& hybrid_logger() {
+  static HybridLogger l;
+  return l;
 }
 
-shared_ptr<spdlog::logger> create_terminal_logger(
-    string const& logger_name ) {
-  auto lager = spdlog::stdout_color_mt(
-      fmt::format( "{: <13}", "." + logger_name + "." ) );
-  CHECK( lager->sinks().size() == 1 );
-  // Replace sink with global.
-  lager->sinks()[0] = default_terminal_sink();
-  return lager;
+/****************************************************************
+** Initialization
+*****************************************************************/
+void init_logging() {
+  e_log_level
+#ifdef RN_TRACE
+      level = level::trace;
+#else
+      level =
+          DEBUG_RELEASE( e_log_level::debug, e_log_level::info );
+#endif
+  set_global_log_level( level );
 }
 
-shared_ptr<spdlog::logger> create_hybrid_logger(
-    string const& logger_name, shared_ptr<spdlog::logger> trm,
-    shared_ptr<spdlog::logger> dbg ) {
-  auto lgr = spdlog::stdout_color_mt(
-      fmt::format( "{: <13}", logger_name ) );
-
-  // NOTE: if these checks fail the may cause a "core dump" be-
-  // cause this code runs at global variable initialization time.
-
-  CHECK( dbg->sinks().size() == 1 );
-  CHECK( trm->sinks().size() == 1 );
-  CHECK( lgr->sinks().size() == 1 );
-
-  // For this logger we want two sinks: first, get rid of the new
-  // terminal sink and replace it with the existing one from this
-  // module (for the sake of tidiness) and then add in the
-  // in-game console sink.
-  lgr->sinks()[0] = trm->sinks()[0];
-  lgr->sinks().push_back( dbg->sinks()[0] );
-
-  CHECK( dbg->sinks().size() == 1 );
-  CHECK( trm->sinks().size() == 1 );
-  CHECK( lgr->sinks().size() == 2 );
-
-  return lgr;
+void init_logging( e_log_level level ) {
+  set_global_log_level( level );
 }
 
-} // namespace detail
-
+/****************************************************************
+** Printing Helpers
+*****************************************************************/
 string fmt_bar( char c, string_view msg ) {
   auto maybe_cols = os_terminal_columns();
   // If we're printing the width of the terminal then don't print

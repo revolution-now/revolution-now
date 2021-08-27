@@ -7,9 +7,6 @@
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "extern/spdlog"]
-	path = extern/spdlog
-	url = https://github.com/gabime/spdlog.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
 	url = ../../dpacbach/backward-cpp.git

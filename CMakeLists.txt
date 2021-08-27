@@ -63,7 +63,6 @@ set( FLATBUFFERS_LIBCXX_WITH_CLANG OFF CACHE BOOL "" )
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
-add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
@@ -74,13 +73,6 @@ add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 
 set( BUILD_TESTING ON ) # Catch2 will actually do this as well.
 add_subdirectory( extern/Catch2        EXCLUDE_FROM_ALL )
-
-# === global settings =============================================
-
-# This tells fmt headers to include an external version of fmt
-# instead of one that comes bundled inside of it.  In particular,
-# the external version used will be the one in our extern folder.
-target_compile_definitions( fmt INTERFACE SPDLOG_FMT_EXTERNAL )
 
 # === custom targets ==============================================
 

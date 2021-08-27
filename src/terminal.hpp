@@ -16,16 +16,21 @@
 #include "expect.hpp"
 #include "maybe.hpp"
 
+// C++ standard library
+#include <string>
+#include <string_view>
+
 namespace rn::term {
 
-void log( std::string const& msg );
-void log( std::string&& msg );
+// This function is thread safe.
+void log( std::string_view msg );
 
 valid_or<std::string> run_cmd( std::string const& cmd );
 
+// This function is thread safe.
 void clear();
 
-// idx zero is most recent.
+// idx zero is most recent. This function is thread safe.
 maybe<std::string const&> line( int idx );
 
 // idx zero is most recent.

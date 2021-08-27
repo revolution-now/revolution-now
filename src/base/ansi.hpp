@@ -10,14 +10,12 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+#include "config.hpp"
 
 // C++ standard library
 #include <string_view>
 
-namespace rn {
-
-namespace ansi {
+namespace base::ansi {
 
 /// Formatting codes
 inline constexpr std::string_view reset      = "\033[m";
@@ -49,6 +47,4 @@ inline constexpr std::string_view on_magenta = "\033[45m";
 inline constexpr std::string_view on_cyan    = "\033[46m";
 inline constexpr std::string_view on_white   = "\033[47m";
 
-} // namespace ansi
-
-} // namespace rn
+} // namespace base::ansi

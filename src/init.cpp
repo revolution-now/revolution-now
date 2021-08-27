@@ -192,7 +192,10 @@ void run_all_init_routines(
     std::initializer_list<e_init_routine> top_level ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
-  init_logging( level.fmap( to_spdlog_level ) );
+  if( level )
+    init_logging( *level );
+  else
+    init_logging();
   lg.debug( "initializing: logging" );
 
   // A list of init routines that are unregistered.
