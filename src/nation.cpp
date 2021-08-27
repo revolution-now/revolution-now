@@ -17,7 +17,7 @@
 #include "ustate.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/nation.inl"
+#include "../config/rcl/nation.inl"
 
 // luapp
 #include "luapp/rtable.hpp"

@@ -24,7 +24,7 @@
 #include "window.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/music.inl"
+#include "../config/rcl/music.inl"
 
 // base
 #include "base/keyval.hpp"

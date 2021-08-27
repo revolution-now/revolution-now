@@ -28,7 +28,7 @@
 #include "variant.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/rn.inl"
+#include "../config/rcl/rn.inl"
 
 // luapp
 #include "luapp/state.hpp"

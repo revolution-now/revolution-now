@@ -17,7 +17,7 @@
 #include "matrix.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/ui.inl"
+#include "../config/rcl/ui.inl"
 
 using namespace std;
 

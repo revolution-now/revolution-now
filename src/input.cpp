@@ -26,7 +26,7 @@
 #include "rds/input.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/input.inl"
+#include "../config/rcl/input.inl"
 
 // C++ standard library
 #include <algorithm>

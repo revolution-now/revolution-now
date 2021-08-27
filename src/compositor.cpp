@@ -18,7 +18,7 @@
 #include "screen.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/ui.inl"
+#include "../config/rcl/ui.inl"
 
 namespace rn::compositor {
 

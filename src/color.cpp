@@ -733,7 +733,7 @@ void update_palette( fs::path const& where ) {
   lg.info( "total bucketed colors: {}", size );
 
   fs::path const inl_file{ "config/palette.inl" };
-  fs::path const rcl_file{ "config/palette.ucl" };
+  fs::path const rcl_file{ "config/palette.rcl" };
   fs::path const pal_file{ "assets/art/palette.png" };
   lg.info( "writing to {} and {}", inl_file.string(),
            rcl_file.string() );

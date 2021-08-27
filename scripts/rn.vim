@@ -83,8 +83,8 @@ function! MyTabLabel( n )
       let rm_prefix = fnamemodify( rm_prefix, ':s|^exe/||' )
       return fnamemodify( rm_prefix, ':r' )
     endif
-    if ext == 'ucl'
-      return fnamemodify( 'ucl', ':t:r' )
+    if ext == 'rcl'
+      return fnamemodify( 'rcl', ':t:r' )
     endif
     if ext == 'txt'
       return fnamemodify( 'docs', ':t:r' )

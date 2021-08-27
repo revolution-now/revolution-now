@@ -16,7 +16,7 @@
 #include "logging.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/music.inl"
+#include "../config/rcl/music.inl"
 
 // SDL
 #include "SDL.h"

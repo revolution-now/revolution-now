@@ -18,7 +18,7 @@
 #include "tiles.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/rn.inl"
+#include "../config/rcl/rn.inl"
 
 using namespace std;
 

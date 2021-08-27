@@ -20,8 +20,8 @@
 #include "sdl-util.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/font.inl"
-#include "../config/ucl/palette.inl"
+#include "../config/rcl/font.inl"
+#include "../config/rcl/palette.inl"
 
 // base
 #include "base/keyval.hpp"

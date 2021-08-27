@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/font.inl"
+#include "../config/rcl/font.inl"
 
 using namespace std;
 

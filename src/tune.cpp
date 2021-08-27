@@ -19,7 +19,7 @@
 #include "time.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/music.inl"
+#include "../config/rcl/music.inl"
 
 // Rcl
 #include "rcl/ext-std.hpp"

@@ -17,7 +17,7 @@
 #include "lua.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/art.inl"
+#include "../config/rcl/art.inl"
 
 // luapp
 #include "luapp/rtable.hpp"

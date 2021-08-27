@@ -36,7 +36,7 @@
 #include "rds/helper/rcl.hpp"
 
 // Revolution Now (config inl files)
-#include "../config/all-ucl.inl"
+#include "../config/all-rcl.inl"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -215,7 +215,7 @@ vector<function<void( void )>>& load_functions() {
 }
 
 string config_file_for_name( string const& name ) {
-  return "config/ucl/" + name + ".ucl";
+  return "config/rcl/" + name + ".rcl";
 }
 
 void get_all_unused_fields_impl( string const&     parent_path,
@@ -286,14 +286,14 @@ REGISTER_INIT_ROUTINE( configs );
 } // namespace rn
 
 // Revolution Now (config inl files)
-#include "../config/all-ucl.inl"
+#include "../config/all-rcl.inl"
 
 namespace rn {
 
 vector<Color> const& g_palette() {
   static vector<Color> colors = [] {
     vector<Color> res;
-    string        file = "config/ucl/palette.ucl";
+    string        file = "config/rcl/palette.rcl";
 
     base::expect<rcl::doc, std::string> doc =
         rcl::parse_file( file );

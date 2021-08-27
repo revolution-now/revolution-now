@@ -28,8 +28,8 @@
 #include "variant.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/palette.inl"
-#include "../config/ucl/ui.inl"
+#include "../config/rcl/palette.inl"
+#include "../config/rcl/ui.inl"
 
 // base
 #include "base/lambda.hpp"

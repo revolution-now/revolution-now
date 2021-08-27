@@ -24,7 +24,7 @@
 #include "base/keyval.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/units.inl"
+#include "../config/rcl/units.inl"
 
 // C++ standard library
 #include <unordered_map>

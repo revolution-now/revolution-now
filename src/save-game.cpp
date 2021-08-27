@@ -23,7 +23,7 @@
 #include "base/meta.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/savegame.inl"
+#include "../config/rcl/savegame.inl"
 
 // Flatbuffers
 #include "fb/save-game_generated.h"

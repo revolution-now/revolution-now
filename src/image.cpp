@@ -21,7 +21,7 @@
 #include "screen.hpp"
 
 // Revolution Now (config)
-#include "../config/ucl/art.inl"
+#include "../config/rcl/art.inl"
 
 // base
 #include "base/keyval.hpp"
