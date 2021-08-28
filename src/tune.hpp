@@ -63,7 +63,7 @@ NOTHROW_MOVE( TuneOptDimensions );
 struct TuneDimensions {
   EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
   TuneOptDimensions to_opt_dims() const;
-  auto operator<=>( TuneDimensions const& ) const = default;
+  bool operator==( TuneDimensions const& ) const = default;
 
   // Allows deserializing from an Rcl config file.
   friend rcl::convert_err<TuneDimensions> convert_to(
@@ -98,7 +98,7 @@ struct Tune {
   // Classification.
   TuneDimensions dimensions;
 
-  auto operator<=>( Tune const& ) const = default;
+  bool operator==( Tune const& ) const = default;
 
   // Allows deserializing from an Rcl config file.
   friend rcl::convert_err<Tune> convert_to( rcl::value const& v,

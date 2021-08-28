@@ -23,6 +23,7 @@
 
 // C++ standard library
 #include <mutex>
+#include <unordered_map>
 
 using namespace std;
 

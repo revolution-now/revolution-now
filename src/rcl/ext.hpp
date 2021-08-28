@@ -32,7 +32,7 @@ struct tag {};
 struct error {
   explicit error( std::string_view sv )
     : what( std::string( sv ) ) {}
-  auto operator<=>( error const& ) const = default;
+  bool operator==( error const& ) const = default;
 
   friend void to_str( error const& o, std::string& out ) {
     out += o.what;
