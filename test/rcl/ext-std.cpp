@@ -28,118 +28,102 @@ using Catch::Contains;
 using Catch::Equals;
 
 TEST_CASE( "[ext-std] string" ) {
-  REQUIRE(
-      convert_to<string>( value{ null } ) ==
-      error( "cannot convert value of type null to string."s ) );
-  REQUIRE(
-      convert_to<string>( value{ 5 } ) ==
-      error( "cannot convert value of type int to string."s ) );
-  REQUIRE(
-      convert_to<string>( value{ true } ) ==
-      error( "cannot convert value of type bool to string."s ) );
-  REQUIRE(
-      convert_to<string>( value{ 5.5 } ) ==
-      error(
-          "cannot convert value of type double to string."s ) );
+  REQUIRE( convert_to<string>( value{ null } ) ==
+           error( "cannot produce std::string from value of "
+                  "type null." ) );
+  REQUIRE( convert_to<string>( value{ 5 } ) ==
+           error( "cannot produce std::string from value of "
+                  "type int." ) );
+  REQUIRE( convert_to<string>( value{ true } ) ==
+           error( "cannot produce std::string from value of "
+                  "type bool." ) );
+  REQUIRE( convert_to<string>( value{ 5.5 } ) ==
+           error( "cannot produce std::string from value of "
+                  "type double." ) );
   REQUIRE( convert_to<string>( value{ string( "hello" ) } ) ==
            "hello" );
-  REQUIRE(
-      convert_to<string>( value{ make_unique<table>() } ) ==
-      error(
-          "cannot convert value of type table to string."s ) );
-  REQUIRE(
-      convert_to<string>( value{ make_unique<list>() } ) ==
-      error( "cannot convert value of type list to string."s ) );
+  REQUIRE( convert_to<string>( value{ make_unique<table>() } ) ==
+           error( "cannot produce std::string from value of "
+                  "type table." ) );
+  REQUIRE( convert_to<string>( value{ make_unique<list>() } ) ==
+           error( "cannot produce std::string from value of "
+                  "type list." ) );
 }
 
 TEST_CASE( "[ext-std] string_view" ) {
-  REQUIRE(
-      convert_to<string_view>( value{ null } ) ==
-      error(
-          "cannot convert value of type null to string_view."s ) );
-  REQUIRE(
-      convert_to<string_view>( value{ 5 } ) ==
-      error(
-          "cannot convert value of type int to string_view."s ) );
-  REQUIRE(
-      convert_to<string_view>( value{ true } ) ==
-      error(
-          "cannot convert value of type bool to string_view."s ) );
-  REQUIRE(
-      convert_to<string_view>( value{ 5.5 } ) ==
-      error(
-          "cannot convert value of type double to string_view."s ) );
+  REQUIRE( convert_to<string_view>( value{ null } ) ==
+           error( "cannot produce std::string_view from value "
+                  "of type null." ) );
+  REQUIRE( convert_to<string_view>( value{ 5 } ) ==
+           error( "cannot produce std::string_view from value "
+                  "of type int." ) );
+  REQUIRE( convert_to<string_view>( value{ true } ) ==
+           error( "cannot produce std::string_view from value "
+                  "of type bool." ) );
+  REQUIRE( convert_to<string_view>( value{ 5.5 } ) ==
+           error( "cannot produce std::string_view from value "
+                  "of type double." ) );
   REQUIRE( convert_to<string_view>(
                value{ string( "hello" ) } ) == "hello" );
   REQUIRE(
       convert_to<string_view>( value{ make_unique<table>() } ) ==
-      error(
-          "cannot convert value of type table to string_view."s ) );
+      error( "cannot produce std::string_view from value of "
+             "type table." ) );
   REQUIRE(
       convert_to<string_view>( value{ make_unique<list>() } ) ==
-      error(
-          "cannot convert value of type list to string_view."s ) );
+      error( "cannot produce std::string_view from value of "
+             "type list." ) );
 }
 
 TEST_CASE( "[ext-std] fs::path" ) {
-  REQUIRE(
-      convert_to<fs::path>( value{ null } ) ==
-      error(
-          "cannot convert value of type null to file path."s ) );
-  REQUIRE(
-      convert_to<fs::path>( value{ 5 } ) ==
-      error(
-          "cannot convert value of type int to file path."s ) );
-  REQUIRE(
-      convert_to<fs::path>( value{ true } ) ==
-      error(
-          "cannot convert value of type bool to file path."s ) );
-  REQUIRE(
-      convert_to<fs::path>( value{ 5.5 } ) ==
-      error(
-          "cannot convert value of type double to file path."s ) );
+  REQUIRE( convert_to<fs::path>( value{ null } ) ==
+           error( "cannot produce std::filesystem::path from "
+                  "value of type null." ) );
+  REQUIRE( convert_to<fs::path>( value{ 5 } ) ==
+           error( "cannot produce std::filesystem::path from "
+                  "value of type int." ) );
+  REQUIRE( convert_to<fs::path>( value{ true } ) ==
+           error( "cannot produce std::filesystem::path from "
+                  "value of type bool." ) );
+  REQUIRE( convert_to<fs::path>( value{ 5.5 } ) ==
+           error( "cannot produce std::filesystem::path from "
+                  "value of type double." ) );
   REQUIRE( convert_to<fs::path>( value{ string( "a/b/c" ) } ) ==
            fs::path( "a/b/c" ) );
   REQUIRE(
       convert_to<fs::path>( value{ make_unique<table>() } ) ==
-      error(
-          "cannot convert value of type table to file path."s ) );
+      error( "cannot produce std::filesystem::path from value "
+             "of type table." ) );
   REQUIRE(
       convert_to<fs::path>( value{ make_unique<list>() } ) ==
-      error(
-          "cannot convert value of type list to file path."s ) );
+      error( "cannot produce std::filesystem::path from value "
+             "of type list." ) );
 }
 
 TEST_CASE( "[ext-builtin] chrono::seconds" ) {
-  REQUIRE(
-      convert_to<chrono::seconds>( value{ null } ) ==
-      error(
-          "cannot convert value of type null to chrono::seconds."s ) );
+  REQUIRE( convert_to<chrono::seconds>( value{ null } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type null." ) );
   REQUIRE( convert_to<chrono::seconds>( value{ 5 } ) ==
            chrono::seconds{ 5 } );
-  REQUIRE(
-      convert_to<chrono::seconds>( value{ true } ) ==
-      error(
-          "cannot convert value of type bool to chrono::seconds."s ) );
-  REQUIRE(
-      convert_to<chrono::seconds>( value{ 5.5 } ) ==
-      error(
-          "cannot convert value of type double to chrono::seconds."s ) );
-  REQUIRE(
-      convert_to<chrono::seconds>(
-          value{ string( "hello" ) } ) ==
-      error(
-          "cannot convert value of type string to chrono::seconds."s ) );
-  REQUIRE(
-      convert_to<chrono::seconds>(
-          value{ make_unique<table>() } ) ==
-      error(
-          "cannot convert value of type table to chrono::seconds."s ) );
-  REQUIRE(
-      convert_to<chrono::seconds>(
-          value{ make_unique<list>() } ) ==
-      error(
-          "cannot convert value of type list to chrono::seconds."s ) );
+  REQUIRE( convert_to<chrono::seconds>( value{ true } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type bool." ) );
+  REQUIRE( convert_to<chrono::seconds>( value{ 5.5 } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type double." ) );
+  REQUIRE( convert_to<chrono::seconds>(
+               value{ string( "hello" ) } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type string." ) );
+  REQUIRE( convert_to<chrono::seconds>(
+               value{ make_unique<table>() } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type table." ) );
+  REQUIRE( convert_to<chrono::seconds>(
+               value{ make_unique<list>() } ) ==
+           error( "cannot produce std::chrono::seconds from "
+                  "value of type list." ) );
 }
 
 TEST_CASE( "[ext-builtin] std::pair" ) {
@@ -168,9 +152,9 @@ TEST_CASE( "[ext-builtin] std::vector with error" ) {
   value v{ std::make_unique<list>( std::move( l ) ) };
 
   // Test.
-  REQUIRE(
-      convert_to<vector<string>>( v ) ==
-      error( "cannot convert value of type int to string." ) );
+  REQUIRE( convert_to<vector<string>>( v ) ==
+           error( "cannot produce std::string from value of "
+                  "type int." ) );
 }
 
 TEST_CASE( "[ext-builtin] std::vector<std::pair<...>>" ) {

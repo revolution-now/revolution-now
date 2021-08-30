@@ -21,7 +21,7 @@ convert_err<int> convert_to( value const& v, tag<int> ) {
   base::maybe<int const&> i = v.get_if<int>();
   if( !i.has_value() )
     return error(
-        fmt::format( "cannot convert value of type {} to int.",
+        fmt::format( "cannot produce int from value of type {}.",
                      name_of( type_of( v ) ) ) );
   return *i;
 }
@@ -29,9 +29,9 @@ convert_err<int> convert_to( value const& v, tag<int> ) {
 convert_err<bool> convert_to( value const& v, tag<bool> ) {
   base::maybe<bool const&> b = v.get_if<bool>();
   if( !b.has_value() )
-    return error(
-        fmt::format( "cannot convert value of type {} to bool.",
-                     name_of( type_of( v ) ) ) );
+    return error( fmt::format(
+        "cannot produce bool from value of type {}.",
+        name_of( type_of( v ) ) ) );
   return *b;
 }
 
@@ -40,9 +40,9 @@ convert_err<double> convert_to( value const& v, tag<double> ) {
   if( d.has_value() ) return *d;
   base::maybe<int const&> i = v.get_if<int>();
   if( i.has_value() ) return *i;
-  return error(
-      fmt::format( "cannot convert value of type {} to double.",
-                   name_of( type_of( v ) ) ) );
+  return error( fmt::format(
+      "cannot produce double from value of type {}.",
+      name_of( type_of( v ) ) ) );
 }
 
 } // namespace rcl

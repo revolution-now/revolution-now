@@ -48,10 +48,9 @@ TEST_CASE( "[ext-base] maybe<T> with type error" ) {
   value v{ 5.5 };
 
   // Test.
-  REQUIRE(
-      convert_to<maybe<string>>( v ) ==
-      error(
-          "cannot convert value of type double to string." ) );
+  REQUIRE( convert_to<maybe<string>>( v ) ==
+           error( "cannot produce std::string from value of "
+                  "type double." ) );
 }
 
 } // namespace

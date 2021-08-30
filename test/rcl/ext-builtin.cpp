@@ -28,68 +28,76 @@ using Catch::Contains;
 TEST_CASE( "[ext-builtin] int" ) {
   REQUIRE(
       convert_to<int>( value{ null } ) ==
-      error( "cannot convert value of type null to int."s ) );
+      error( "cannot produce int from value of type null."s ) );
   REQUIRE( convert_to<int>( value{ 5 } ) == 5 );
   REQUIRE(
       convert_to<int>( value{ true } ) ==
-      error( "cannot convert value of type bool to int."s ) );
+      error( "cannot produce int from value of type bool."s ) );
   REQUIRE(
       convert_to<int>( value{ 5.5 } ) ==
-      error( "cannot convert value of type double to int."s ) );
+      error(
+          "cannot produce int from value of type double."s ) );
   REQUIRE(
       convert_to<int>( value{ string( "hello" ) } ) ==
-      error( "cannot convert value of type string to int."s ) );
+      error(
+          "cannot produce int from value of type string."s ) );
   REQUIRE(
       convert_to<int>( value{ make_unique<table>() } ) ==
-      error( "cannot convert value of type table to int."s ) );
+      error( "cannot produce int from value of type table."s ) );
   REQUIRE(
       convert_to<int>( value{ make_unique<list>() } ) ==
-      error( "cannot convert value of type list to int."s ) );
+      error( "cannot produce int from value of type list."s ) );
 }
 
 TEST_CASE( "[ext-builtin] double" ) {
   REQUIRE(
       convert_to<double>( value{ null } ) ==
-      error( "cannot convert value of type null to double."s ) );
+      error(
+          "cannot produce double from value of type null."s ) );
   REQUIRE( convert_to<double>( value{ 5 } ) == 5.0 );
   REQUIRE(
       convert_to<double>( value{ true } ) ==
-      error( "cannot convert value of type bool to double."s ) );
+      error(
+          "cannot produce double from value of type bool."s ) );
   REQUIRE( convert_to<double>( value{ 5.5 } ) == 5.5 );
   REQUIRE(
       convert_to<double>( value{ string( "hello" ) } ) ==
       error(
-          "cannot convert value of type string to double."s ) );
+          "cannot produce double from value of type string."s ) );
   REQUIRE(
       convert_to<double>( value{ make_unique<table>() } ) ==
       error(
-          "cannot convert value of type table to double."s ) );
+          "cannot produce double from value of type table."s ) );
   REQUIRE(
       convert_to<double>( value{ make_unique<list>() } ) ==
-      error( "cannot convert value of type list to double."s ) );
+      error(
+          "cannot produce double from value of type list."s ) );
 }
 
 TEST_CASE( "[ext-builtin] bool" ) {
   REQUIRE(
       convert_to<bool>( value{ null } ) ==
-      error( "cannot convert value of type null to bool."s ) );
+      error( "cannot produce bool from value of type null."s ) );
   REQUIRE(
       convert_to<bool>( value{ 5 } ) ==
-      error( "cannot convert value of type int to bool."s ) );
+      error( "cannot produce bool from value of type int."s ) );
   REQUIRE( convert_to<bool>( value{ true } ) == true );
   REQUIRE( convert_to<bool>( value{ false } ) == false );
   REQUIRE(
       convert_to<bool>( value{ 5.5 } ) ==
-      error( "cannot convert value of type double to bool."s ) );
+      error(
+          "cannot produce bool from value of type double."s ) );
   REQUIRE(
       convert_to<bool>( value{ string( "hello" ) } ) ==
-      error( "cannot convert value of type string to bool."s ) );
+      error(
+          "cannot produce bool from value of type string."s ) );
   REQUIRE(
       convert_to<bool>( value{ make_unique<table>() } ) ==
-      error( "cannot convert value of type table to bool."s ) );
+      error(
+          "cannot produce bool from value of type table."s ) );
   REQUIRE(
       convert_to<bool>( value{ make_unique<list>() } ) ==
-      error( "cannot convert value of type list to bool."s ) );
+      error( "cannot produce bool from value of type list."s ) );
 }
 
 } // namespace

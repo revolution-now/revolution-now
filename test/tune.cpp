@@ -138,9 +138,9 @@ TEST_CASE( "[tune] rcl (Tune)" ) {
     value v{ std::make_unique<table>( std::move( tbl ) ) };
 
     // Test.
-    REQUIRE(
-        convert_to<Tune>( v ) ==
-        error( "cannot convert value of type int to string." ) );
+    REQUIRE( convert_to<Tune>( v ) ==
+             error( "cannot produce std::string from value of "
+                    "type int." ) );
   }
 }
 

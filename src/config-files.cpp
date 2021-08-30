@@ -65,7 +65,7 @@ using namespace std::chrono;
     rcl::convert_err<__type> res =                         \
         rcl::convert_to<__type>( v );                      \
     CHECK( res.has_value(),                                \
-           "failed to convert type {} from {}.{}: {}",     \
+           "failed to produce type {} from {}.{}: {}",     \
            TO_STRING( __type ), cfg_name(), dotted,        \
            res.error() );                                  \
     const_cast<__type&>( dest_ptr()->__name ) =            \

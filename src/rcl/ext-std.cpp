@@ -21,7 +21,7 @@ convert_err<string> convert_to( value const& v, tag<string> ) {
   base::maybe<string const&> s = v.get_if<string>();
   if( !s.has_value() )
     return error( fmt::format(
-        "cannot convert value of type {} to string.",
+        "cannot produce std::string from value of type {}.",
         name_of( type_of( v ) ) ) );
   return *s;
 }
@@ -31,7 +31,7 @@ convert_err<string_view> convert_to(
   base::maybe<string const&> s = v.get_if<string>();
   if( !s.has_value() )
     return error( fmt::format(
-        "cannot convert value of type {} to string_view.",
+        "cannot produce std::string_view from value of type {}.",
         name_of( type_of( v ) ) ) );
   return string_view( *s );
 }
@@ -40,9 +40,10 @@ convert_err<fs::path> convert_to( value const& v,
                                   tag<fs::path> ) {
   base::maybe<string const&> s = v.get_if<string>();
   if( !s.has_value() )
-    return error( fmt::format(
-        "cannot convert value of type {} to file path.",
-        name_of( type_of( v ) ) ) );
+    return error(
+        fmt::format( "cannot produce std::filesystem::path from "
+                     "value of type {}.",
+                     name_of( type_of( v ) ) ) );
   return fs::path( *s );
 }
 
@@ -50,9 +51,10 @@ convert_err<chrono::seconds> convert_to( value const& v,
                                          tag<chrono::seconds> ) {
   base::maybe<int const&> i = v.get_if<int>();
   if( !i.has_value() )
-    return error( fmt::format(
-        "cannot convert value of type {} to chrono::seconds.",
-        name_of( type_of( v ) ) ) );
+    return error(
+        fmt::format( "cannot produce std::chrono::seconds from "
+                     "value of type {}.",
+                     name_of( type_of( v ) ) ) );
   return chrono::seconds{ *i };
 }
 
