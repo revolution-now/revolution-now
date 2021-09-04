@@ -189,6 +189,7 @@ string fmt_bar( char c, string_view msg ) {
 }
 
 void print_bar( char c, string_view msg ) {
+  lock_guard<mutex> lock( terminal_mutex() );
   fmt::print( "{}", fmt_bar( c, msg ) );
 }
 
