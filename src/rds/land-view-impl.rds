@@ -11,7 +11,9 @@
 include [
   coord.hpp
   id.hpp
+  matrix.hpp
   physics.hpp
+  tx.hpp
 
   # Rds
   rds/orders.hpp
