@@ -63,6 +63,8 @@ sumtype.UnitAnimation {
     pixels: 'std::vector<Coord>'
     demoted_pixels: 'Matrix<Color>'
   }
+
+  _features: [equality]
 }
 
 } # namespace rn
