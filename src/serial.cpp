@@ -13,7 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "fmt-helper.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 
 // base
 #include "base/io.hpp"

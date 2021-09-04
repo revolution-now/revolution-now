@@ -17,7 +17,7 @@
 #include "error.hpp"
 #include "frame.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "macros.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"

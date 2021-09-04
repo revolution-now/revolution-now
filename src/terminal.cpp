@@ -18,7 +18,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "fmt-helper.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 
 // luapp

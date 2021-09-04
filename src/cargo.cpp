@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
 #include "util.hpp"

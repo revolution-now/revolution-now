@@ -16,7 +16,7 @@
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua-waitable.hpp"
 #include "lua.hpp"
 #include "macros.hpp"

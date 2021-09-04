@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "gfx.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "render.hpp"
 #include "text.hpp"
 #include "util.hpp"

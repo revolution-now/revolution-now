@@ -15,7 +15,7 @@
 #include "fb.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "matrix.hpp"

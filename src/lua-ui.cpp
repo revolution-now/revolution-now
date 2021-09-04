@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-lua.hpp"
 #include "co-waitable.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua-waitable.hpp"
 #include "lua.hpp"
 #include "plane-ctrl.hpp"

@@ -18,7 +18,7 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "dragdrop.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"

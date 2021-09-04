@@ -11,7 +11,7 @@
 #include "fight.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
 
@@ -31,7 +31,7 @@ FightStatistics fight_statistics( UnitId attacker_id,
   CHECK( attack_points > 0 );
   CHECK( winning_probability <= 1.0 );
   lg.info( "winning probability: {}", winning_probability );
-  return {rng::flip_coin( winning_probability )};
+  return { rng::flip_coin( winning_probability ) };
 }
 
 } // namespace rn

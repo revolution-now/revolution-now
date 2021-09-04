@@ -1,11 +1,11 @@
 /****************************************************************
-**logging.hpp
+**logger.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-12-07.
 *
-* Description: Interface to logging.
+* Description: Interface to logger.
 *
 *****************************************************************/
 #pragma once
@@ -102,8 +102,8 @@ inline ILogger& lg = hybrid_logger();
 *****************************************************************/
 // This will initialize the log level.  If a level is not
 // specified then one will be chosen according to the build type.
-void init_logging();
-void init_logging( e_log_level level );
+void init_logger();
+void init_logger( e_log_level level );
 
 /****************************************************************
 ** Printing Helpers

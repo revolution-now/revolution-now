@@ -17,7 +17,7 @@
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"

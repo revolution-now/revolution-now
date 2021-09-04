@@ -19,7 +19,7 @@
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "macros.hpp"
 #include "plane.hpp"
 #include "screen.hpp"

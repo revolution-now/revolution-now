@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 
 // C++ standard library
 #include <type_traits>

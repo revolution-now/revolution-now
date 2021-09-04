@@ -16,7 +16,7 @@
 #include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 

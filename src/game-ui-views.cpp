@@ -11,7 +11,7 @@
 #include "game-ui-views.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 

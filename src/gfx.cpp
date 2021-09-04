@@ -11,7 +11,7 @@
 #include "gfx.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
 #include "time.hpp"

@@ -15,7 +15,7 @@
 #include "cstate.hpp"
 #include "error.hpp"
 #include "gfx.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
@@ -239,7 +239,7 @@ void render_colony( Texture& tx, ColonyId id,
                     Coord pixel_coord ) {
   auto const& colony = colony_from_id( id );
   auto        tile   = colony_from_id( id ).buildings().contains(
-                  e_colony_building::stockade )
+                           e_colony_building::stockade )
                            ? e_tile::colony_stockade
                            : e_tile::colony_basic;
   render_sprite( tx, tile, pixel_coord, 0, 0 );

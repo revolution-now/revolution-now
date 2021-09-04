@@ -15,7 +15,7 @@
 #include "expect.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"

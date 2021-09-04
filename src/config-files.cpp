@@ -17,7 +17,7 @@
 #include "error.hpp"
 #include "font.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tune.hpp"

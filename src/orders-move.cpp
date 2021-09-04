@@ -19,7 +19,7 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "land-view.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"

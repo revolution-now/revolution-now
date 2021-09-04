@@ -11,7 +11,7 @@
 #include "cache.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 
 namespace rn {
 

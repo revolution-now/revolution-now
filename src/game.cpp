@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "conductor.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "save-game.hpp"
 #include "turn.hpp"

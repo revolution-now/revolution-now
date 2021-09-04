@@ -15,7 +15,7 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "gfx.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "menu.hpp"
 #include "plane.hpp"

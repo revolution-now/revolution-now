@@ -18,7 +18,7 @@
 #include "cstate.hpp"
 #include "fb.hpp"
 #include "land-view.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "fmt-helper.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "sg-macros.hpp"
 #include "util.hpp"

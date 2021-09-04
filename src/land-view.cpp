@@ -21,7 +21,7 @@
 #include "fb.hpp"
 #include "gfx.hpp"
 #include "id.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "matrix.hpp"
 #include "orders.hpp"

@@ -1,14 +1,14 @@
 /****************************************************************
-**logging.cpp
+**logger.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-12-07.
 *
-* Description: Interface to logging
+* Description: Interface to logger
 *
 *****************************************************************/
-#include "logging.hpp"
+#include "logger.hpp"
 
 // Revolution Now
 #include "console.hpp"
@@ -160,7 +160,7 @@ ILogger& hybrid_logger() {
 /****************************************************************
 ** Initialization
 *****************************************************************/
-void init_logging() {
+void init_logger() {
   e_log_level
 #ifdef RN_TRACE
       level = level::trace;
@@ -171,7 +171,7 @@ void init_logging() {
   set_global_log_level( level );
 }
 
-void init_logging( e_log_level level ) {
+void init_logger( e_log_level level ) {
   set_global_log_level( level );
 }
 

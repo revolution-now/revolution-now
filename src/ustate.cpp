@@ -16,7 +16,7 @@
 #include "cstate.hpp"
 #include "error.hpp"
 #include "fb.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "sg-macros.hpp"

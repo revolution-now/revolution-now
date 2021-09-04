@@ -14,7 +14,7 @@
 #include "co-combinator.hpp"
 #include "conductor.hpp"
 #include "game.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "main-menu.hpp"
 #include "plane-ctrl.hpp"
 #include "turn.hpp"

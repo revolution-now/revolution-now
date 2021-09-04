@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 

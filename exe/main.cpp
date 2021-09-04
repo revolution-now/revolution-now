@@ -3,7 +3,7 @@
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua-ui.hpp"
 #include "lua.hpp"
 #include "open-gl.hpp"

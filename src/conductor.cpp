@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 #include "frame.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "menu.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"

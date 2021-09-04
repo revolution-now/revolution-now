@@ -18,7 +18,7 @@
 #include "image.hpp"
 #include "init.hpp"
 #include "land-view.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "main-menu.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"

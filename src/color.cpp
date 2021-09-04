@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "gfx.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "maybe.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "stacktrace.hpp"
 
 // base

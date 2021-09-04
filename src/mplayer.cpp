@@ -11,7 +11,7 @@
 #include "mplayer.hpp"
 
 // Revolution Now
-#include "logging.hpp"
+#include "logger.hpp"
 #include "time.hpp"
 
 using namespace std;

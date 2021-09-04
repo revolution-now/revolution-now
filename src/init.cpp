@@ -14,7 +14,7 @@
 #include "co-scheduler.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "maybe.hpp"
 
 // base
@@ -190,13 +190,13 @@ void register_init_routine( e_init_routine      routine,
 void run_all_init_routines(
     maybe<e_log_level>                    level,
     std::initializer_list<e_init_routine> top_level ) {
-  // Logging must be initialized first, since we actually need it
+  // Logger must be initialized first, since we actually need it
   // in this function itself.
   if( level )
-    init_logging( *level );
+    init_logger( *level );
   else
-    init_logging();
-  lg.debug( "initializing: logging" );
+    init_logger();
+  lg.debug( "initializing: logger" );
 
   // A list of init routines that are unregistered.
   vector<e_init_routine> unregistered_init, unregistered_cleanup;

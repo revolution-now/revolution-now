@@ -18,7 +18,7 @@
 #include "enum.hpp"
 #include "fmt-helper.hpp"
 #include "land-view.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
 #include "terrain.hpp"

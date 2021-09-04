@@ -14,7 +14,7 @@
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "rand.hpp"
 #include "ranges-fwd.hpp"
 #include "time.hpp"

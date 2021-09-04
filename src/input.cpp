@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 #include "variant.hpp"

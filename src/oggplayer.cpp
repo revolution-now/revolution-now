@@ -13,7 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/music.inl"

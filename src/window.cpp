@@ -18,7 +18,7 @@
 #include "game-ui-views.hpp"
 #include "gfx.hpp"
 #include "input.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"

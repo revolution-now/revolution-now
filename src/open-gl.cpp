@@ -13,7 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "input.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "screen.hpp"
 #include "tx.hpp"
 

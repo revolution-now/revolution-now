@@ -13,7 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "fb.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "macros.hpp"
 #include "serial.hpp"
 

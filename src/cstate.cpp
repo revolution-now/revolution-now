@@ -15,7 +15,7 @@
 #include "error.hpp"
 #include "fb.hpp"
 #include "id.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "sg-macros.hpp"
 

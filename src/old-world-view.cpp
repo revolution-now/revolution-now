@@ -24,7 +24,7 @@
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "macros.hpp"
 #include "old-world.hpp"
 #include "plane-ctrl.hpp"

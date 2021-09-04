@@ -13,7 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "fb.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "matrix.hpp"
 #include "serial.hpp"
 #include "unit.hpp"

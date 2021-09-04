@@ -15,7 +15,7 @@
 #include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "ttf.hpp"
 
 // base
