@@ -245,18 +245,14 @@ namespace {
 // from Lua at startup, where it works fine. The safer way to do
 // that would be to have a single function that both creates a
 // unit and the colony together.
-LUA_FN( found_colony, maybe<ColonyId>, UnitId founder,
+LUA_FN( found_colony, ColonyId, UnitId founder,
         std::string const& name ) {
-  if( auto res = is_valid_new_colony_name( name ); !res ) {
+  if( auto res = is_valid_new_colony_name( name ); !res )
     // FIXME: improve error message generation.
-    lg.error( "cannot found colony here: {}.",
+    st.error( "cannot found colony here: {}.",
               enum_to_display_name( res.error() ) );
-    return nothing;
-  }
-  if( auto res = unit_can_found_colony( founder ); !res ) {
-    lg.error( "cannot found colony here." );
-    return nothing;
-  }
+  if( auto res = unit_can_found_colony( founder ); !res )
+    st.error( "cannot found colony here." );
   return found_colony_unsafe( founder, name );
 }
 

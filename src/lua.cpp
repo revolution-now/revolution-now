@@ -168,7 +168,9 @@ void load_lua_modules() {
     require( path.stem() );
 }
 
-void run_lua_startup_main() { g_lua["startup"]["main"](); }
+void run_lua_startup_main() {
+  CHECK_HAS_VALUE( g_lua["startup"]["main"].pcall() );
+}
 
 void lua_reload() {
   reset_sol_state();
