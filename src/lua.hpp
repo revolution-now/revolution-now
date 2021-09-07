@@ -103,21 +103,23 @@ void register_lua_fn( LuaRegistrationFnSig* const* fn );
 #define LUA_FN_STARTUP( name )                                \
   LUA_STARTUP( lua::state& st ) {                             \
     ::lua::table::create_or_get( st[rn::lua_module_name__] ); \
-    st[rn::lua_module_name__][#name] = lua_fn_##name{};       \
+    st[rn::lua_module_name__][#name] = lua_fn_##name{ st };   \
   };
 
 #define LUA_FN_SINGLE( name, ret_type ) \
   struct lua_fn_##name {                \
-    ret_type operator()() const;        \
+    ::lua::state& st;                   \
+    ret_type      operator()() const;   \
   };                                    \
   LUA_FN_STARTUP( name )                \
   ret_type lua_fn_##name::operator()() const
 
-#define LUA_FN_MULTI( name, ret_type, ... )   \
-  struct lua_fn_##name {                      \
-    ret_type operator()( __VA_ARGS__ ) const; \
-  };                                          \
-  LUA_FN_STARTUP( name )                      \
+#define LUA_FN_MULTI( name, ret_type, ... )        \
+  struct lua_fn_##name {                           \
+    ::lua::state& st;                              \
+    ret_type      operator()( __VA_ARGS__ ) const; \
+  };                                               \
+  LUA_FN_STARTUP( name )                           \
   ret_type lua_fn_##name::operator()( __VA_ARGS__ ) const
 
 /****************************************************************
