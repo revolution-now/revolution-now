@@ -112,6 +112,18 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "GNU" )
   set( SANITIZER_FLAGS "${SANITIZER_FLAGS} -static-libasan" )
 endif()
 
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  # This is to fix a clang linker error that happens sometimes
+  # when enabling -fsanitize=undefined. See this bug:
+  #
+  #   https://bugs.llvm.org/show_bug.cgi?id=16404
+  #
+  # If some day that gets fixed then we can remove these.
+  set( SANITIZER_FLAGS "${SANITIZER_FLAGS} -rtlib=compiler-rt" )
+  set( SANITIZER_FLAGS "${SANITIZER_FLAGS} -lgcc_s" )
+  set( SANITIZER_FLAGS "${SANITIZER_FLAGS} -Wno-unused-command-line-argument" )
+endif()
+
 function( enable_sanitizers )
   message( STATUS "Enabling Sanitizers." )
   string( JOIN " " SANITIZER_FLAGS_STRING ${SANITIZER_FLAGS} )
