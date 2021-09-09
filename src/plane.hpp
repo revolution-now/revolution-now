@@ -122,7 +122,7 @@ struct Plane {
   // be error-prone in that it may end up receiving a request to
   // handle an item that it does not actually handle, which would
   // then require a check failure, which we want to avoid.
-  using MenuClickHandler = function_ref<void()>;
+  using MenuClickHandler = base::function_ref<void()>;
 
   // Asks the plane if it can handler a particular menu item. If
   // it returns nothing that means "no." Otherwise it means

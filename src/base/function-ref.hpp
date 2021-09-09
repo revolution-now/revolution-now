@@ -21,10 +21,3 @@ template<typename T>
 using function_ref = absl::FunctionRef<T>;
 
 } // namespace base
-
-namespace rn {
-
-template<typename T>
-using function_ref = absl::FunctionRef<T>;
-
-} // namespace rn

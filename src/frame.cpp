@@ -113,9 +113,9 @@ void notify_subscribers() {
   } );
 }
 
-using InputReceivedFunc = function_ref<void()>;
+using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc =
-    function_ref<void( InputReceivedFunc )>;
+    base::function_ref<void( InputReceivedFunc )>;
 
 void frame_loop_scheduler( waitable<> const& what,
                            FrameLoopBodyFunc body ) {

@@ -22,8 +22,8 @@ using std::chrono::seconds;
 
 constexpr int kNumBuckets = 25;
 
-MovingAverage::MovingAverage( seconds window_size,
-                              function_ref<QueryTimeFunc> now )
+MovingAverage::MovingAverage(
+    seconds window_size, base::function_ref<QueryTimeFunc> now )
   : kWindowSize( window_size ),
     kBucketSize( nanoseconds{ window_size } / kNumBuckets ),
     buckets_( kNumBuckets ),

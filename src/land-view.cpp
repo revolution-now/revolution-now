@@ -156,7 +156,7 @@ Coord to_pixel_coord( Rect const& covered, Coord tile_coord ) {
 
 void render_units_on_square(
     Rect const& covered, Coord coord,
-    function_ref<bool( UnitId )> skip ) {
+    base::function_ref<bool( UnitId )> skip ) {
   Coord pixel_coord = to_pixel_coord( covered, coord );
   // TODO: When there are multiple units on a square, just
   // render one (which one?) and then render multiple flags (s-

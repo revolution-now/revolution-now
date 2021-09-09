@@ -55,6 +55,7 @@ namespace rl = ::base::rl;
 
 namespace {
 
+using ::base::function_ref;
 using ::lua::lua_valid;
 
 /****************************************************************

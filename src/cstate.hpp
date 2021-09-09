@@ -29,7 +29,7 @@ Colony&               colony_from_id( ColonyId id );
 std::vector<ColonyId> colonies_all( maybe<e_nation> n = {} );
 
 // Apply a function to all colonies.
-void map_colonies( function_ref<void( Colony& )> func );
+void map_colonies( base::function_ref<void( Colony& )> func );
 
 // DO NOT call this directly as it will return a Colony that is
 // not yet fully valid, e.g., it will have no units or buildings

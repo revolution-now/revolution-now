@@ -145,7 +145,7 @@ vector<ColonyId> colonies_all( maybe<e_nation> n ) {
 }
 
 // Apply a function to all colonies.
-void map_colonies( function_ref<void( Colony& )> func ) {
+void map_colonies( base::function_ref<void( Colony& )> func ) {
   for( auto& p : SG().colonies ) func( p.second );
 }
 

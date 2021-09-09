@@ -46,8 +46,8 @@ public:
   using QueryTimeFunc = std::chrono::system_clock::time_point();
 
   MovingAverage( std::chrono::seconds window_size );
-  MovingAverage( std::chrono::seconds        window_size,
-                 function_ref<QueryTimeFunc> now );
+  MovingAverage( std::chrono::seconds              window_size,
+                 base::function_ref<QueryTimeFunc> now );
 
   // Add a count (to the count that is being time-averaged).
   void tick( int ticks = 1 );
@@ -77,12 +77,12 @@ private:
   seconds const     kWindowSize;
   nanoseconds const kBucketSize;
 
-  std::vector<uint64_t> buckets_;
-  uint64_t              ticks_     = 0;
-  Time_t                last_tick_ = {};
-  nanoseconds           clock_{ 0 };
-  double                average_ = 0.0;
-  function_ref<std::chrono::system_clock::time_point()> now_;
+  std::vector<uint64_t>                     buckets_;
+  uint64_t                                  ticks_     = 0;
+  Time_t                                    last_tick_ = {};
+  nanoseconds                               clock_{ 0 };
+  double                                    average_ = 0.0;
+  base::function_ref<Clock_t::time_point()> now_;
 
   // This is an index into bucket_ that marks the start of the
   // window. The window starts there and goes til the end of
@@ -100,7 +100,7 @@ template<int Seconds>
 struct MovingAverageTyped : public MovingAverage {
   MovingAverageTyped()
     : MovingAverage( std::chrono::seconds( Seconds ) ) {}
-  MovingAverageTyped( function_ref<QueryTimeFunc> now )
+  MovingAverageTyped( base::function_ref<QueryTimeFunc> now )
     : MovingAverage( std::chrono::seconds( Seconds ), now ) {}
 };
 

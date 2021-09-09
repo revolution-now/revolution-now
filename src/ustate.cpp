@@ -50,6 +50,8 @@ DECLARE_SAVEGAME_SERIALIZERS( Unit );
 
 namespace {
 
+using ::base::function_ref;
+
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
