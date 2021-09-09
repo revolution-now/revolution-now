@@ -47,11 +47,11 @@ sumtype.MyTemplateVariant {
   _features: [serializable, equality, formattable]
 }
 
-enum.e_menu {
+enum.e_menu [
   hello
   world
   test
   value
-}
+]
 
 }
