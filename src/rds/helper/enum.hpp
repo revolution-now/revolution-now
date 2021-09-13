@@ -26,12 +26,9 @@ concept ReflectedEnum =
     // These checks are not exhaustive but should be sufficient.
     std::is_enum_v<Enum> &&
     std::is_same_v<typename enum_traits<Enum>::type, Enum> &&
-    requires {
-  // clang-format off
-  { enum_traits<Enum>::type_name }
-      -> std::same_as<std::string_view const&>;
-  // clang-format on
-};
+    std::is_same_v<std::remove_cvref_t<
+                       decltype( enum_traits<Enum>::type_name )>,
+                   std::string_view>;
 
 template<ReflectedEnum Enum>
 constexpr std::string_view enum_name( Enum val ) {
