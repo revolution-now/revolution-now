@@ -72,6 +72,8 @@ struct Commodity {
     return !( *this == rhs );
   }
 
+  Commodity with_quantity( int new_quantity ) const;
+
   valid_deserial_t check_invariants_safe() const;
 
   // clang-format off

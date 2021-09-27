@@ -447,4 +447,16 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[commodity] with_quantity" ) {
+  Commodity comm{ .type = e_commodity::cloth, .quantity = 50 };
+  REQUIRE( comm.quantity == 50 );
+  REQUIRE( comm.type == e_commodity::cloth );
+
+  Commodity new_comm = comm.with_quantity( 49 );
+  REQUIRE( comm.quantity == 50 );
+  REQUIRE( comm.type == e_commodity::cloth );
+  REQUIRE( new_comm.quantity == 49 );
+  REQUIRE( new_comm.type == e_commodity::cloth );
+}
+
 } // namespace

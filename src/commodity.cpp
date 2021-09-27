@@ -113,6 +113,12 @@ valid_deserial_t Commodity::check_invariants_safe() const {
   return valid;
 }
 
+Commodity Commodity::with_quantity( int new_quantity ) const {
+  Commodity res = *this;
+  res.quantity  = new_quantity;
+  return res;
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
