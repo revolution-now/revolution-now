@@ -188,6 +188,22 @@ using value = base::variant<
 >;
 // clang-format on
 
+struct type_visitor {
+  type operator()( null_t ) const { return type::null; }
+  type operator()( bool ) const { return type::boolean; }
+  type operator()( int ) const { return type::integral; }
+  type operator()( double ) const { return type::floating; }
+  type operator()( std::string const& ) const {
+    return type::string;
+  }
+  type operator()( std::unique_ptr<table> const& ) const {
+    return type::table;
+  }
+  type operator()( std::unique_ptr<list> const& ) const {
+    return type::list;
+  }
+};
+
 type             type_of( value const& v );
 std::string_view name_of( type t );
 

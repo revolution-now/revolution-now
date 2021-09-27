@@ -531,5 +531,36 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( it == top.end() );
 }
 
+TEST_CASE( "[model] type_visitor" ) {
+  SECTION( "null" ) {
+    value v = null;
+    REQUIRE( std::visit( type_visitor{}, v ) == type::null );
+  }
+  SECTION( "bool" ) {
+    value v = true;
+    REQUIRE( std::visit( type_visitor{}, v ) == type::boolean );
+  }
+  SECTION( "int" ) {
+    value v = 5;
+    REQUIRE( std::visit( type_visitor{}, v ) == type::integral );
+  }
+  SECTION( "double" ) {
+    value v = 5.5;
+    REQUIRE( std::visit( type_visitor{}, v ) == type::floating );
+  }
+  SECTION( "string" ) {
+    value v = "hello";
+    REQUIRE( std::visit( type_visitor{}, v ) == type::string );
+  }
+  SECTION( "table" ) {
+    value v = make_unique<table>();
+    REQUIRE( std::visit( type_visitor{}, v ) == type::table );
+  }
+  SECTION( "list" ) {
+    value v = make_unique<list>();
+    REQUIRE( std::visit( type_visitor{}, v ) == type::list );
+  }
+}
+
 } // namespace
 } // namespace rcl
