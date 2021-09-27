@@ -32,6 +32,12 @@ struct tag {};
 struct error {
   explicit error( std::string_view sv )
     : what( std::string( sv ) ) {}
+
+  template<typename... Args>
+  error( std::string_view fmt_str, Args&&... args )
+    : error( fmt::format( fmt_str,
+                          std::forward<Args>( args )... ) ) {}
+
   bool operator==( error const& ) const = default;
 
   friend void to_str( error const& o, std::string& out ) {
