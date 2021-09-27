@@ -1,3 +1,150 @@
+Unit Type Representation and Conversion
+=======================================
+
+Types of unit conversion:
+
+  - Soldier (petty criminal) to Soldier (iservant).
+  - Soldier (iservant)       to Soldier (free col.).
+  - Soldier (free col.)      to Veteran Soldier.
+  - Dragoon to Veteran Dragoon.
+
+  - Dragoon to soldier.
+  - Veteran Dragoon to veteran soldier.
+  - Soldier to colonist of some kind.
+  - Veteran Soldier to veteran colonist.
+
+  - Veteran Soldier to Continental Soldier.
+  - Veteran Dragoon to Continental Dragoon.
+  - Continental cavalry to continental soldier.
+  - Continental soldier to veteran colonist.
+
+  - Colonist to scout.
+  - Scout (petty criminal) to Scout (iservant).
+  - Scout (iservant)       to Scout (free col.).
+  - Scout (free col.)      to Seasoned Scout.
+  - Scout to colonist.
+  - Scout to dragoon.
+  - Seasoned Scout to dragoon.
+  - Dragoon to scout (seasoned or regular).
+
+  - Colonist to missionary.
+  - Missionary (p.criminal) to Missionary (i.servant).
+  - Missionary (i.servant)  to Missionary (free col.).
+  - Missionary (free col.)  to Jesuit Missionary.
+  - Missionary to colonist.
+
+  - Petty Criminal to Indentured Servant.
+  - Indentured Servant to Free Colonist.
+  - Free Colonist to expert colonist.
+      - Only certain types can get this through
+        experience, the others must be purchased
+        in europe or trained in a university.
+
+  - Artillery to damaged artillery.
+
+  - Colonist to pioneer.
+  - Pioneer (petty criminal) to Pioneer (iservant).
+  - Pioneer (iservant)       to Pioneer (free col.).
+  - Pioneer (free col.)      to Hardy Pioneer.
+  - Hardy Pioneer losing tools.
+  - Hardy Pioneer to hardy colonist.
+  - Pioneer losing tools.
+  - Pioneer to colonist of some kind.
+  - Pioneer to scout (loses tools and gains horses).
+
+  - Braves/Armed Braves/Mounted Braves/Armed Warriors just die.
+  - Braves gain muskets when winning against soldier.
+  - Braves gain horses when winning against dragoon.
+  - Mounted braves gain muskets when when winning
+    against soldier.
+
+  - Expert colonist to colonist (clearing specialty).
+
+Sample paths:
+
+  #1
+    Indentured Servant
+ -> Scout                    [equip with horses]
+ -> Dragoon                  [equip with muskets]
+ -> Dragoon (free colonist)  [equip with experience]
+ -> Dragoon (veteran)        [equip with experience]
+ -> Continental Dragoon      [equip with independence]
+ -> Continental Soldier      [lose horses]
+ -> Veteran colonist         [lost muskets, independence]
+ -> Pioneer                  [gain tools]
+ -> Pioneer (partial)        [lost some tools]
+ -> Veteran colonist         [lost all tools]
+
+  #2
+    Artillery
+ -> Damaged Artillery        [lose health]
+ -> Destroyed                [lose health]
+
+  #3
+    Free Colonist
+ -> Pioneer                  [equip with tools]
+ -> Hardy Pioneer            [equip with experience]
+ -> Hardy colonist           [lost tools]
+
+The unit must somehow keep the following state:
+
+  1. What unit is it originally (base type).
+  2. What inventory does it have (including quantity):
+      1. gold
+      2. blessing
+      3. horses
+      4. muskets
+      5. tools
+      6. independence
+  3. Cached derived type (eagerly evaluated).
+
+Types of expertise that can be gained:
+  1.  expert farmer
+  2.  expert fisherman
+  3.  expert sugar planter
+  4.  expert tobacco planter
+  5.  expert cotton planter
+  6.  expert fur trapper
+  7.  expert lumberjack
+  8.  master carpenter
+  9.  expert ore miner
+  10. expert silver miner
+  11. master rum distiller
+  12. master tobacconist
+  13. master weaver
+  14. master fur trader
+  15. master blacksmith
+  16. master gunsmith
+  17. veteran soldier
+  18. hardy pioneer
+  19. seasoned scout
+  20. elder statesman
+  21. jesuit missionary
+  22. firebrand preacher
+
+
+
+                 Action        Base Type                Equipment
+-----------------------------------------------------------------
+petty criminal                 petty-criminal
+iservant         ExpCotton     iservant
+scout            GainHorses    iservant                 [50-horses]
+dragoon          GainMuskets   iservant                 [50-horses,50-muskets]
+dragoon          GainVet       free-colonist            [50-horses,50-muskets]
+dragoon          GainVet       veteran                  [50-horses,50-muskets]
+cont. dragoon    GainIndep     veteran                  [50-horses,50-muskets,1-indep]
+cont. soldier    LoseBattle    veteran                  [50-muskets,1-indep]
+vet. colonist    LoseBattle    veteran                  []
+pioneer          GainTools     veteran                  [100-tools]
+pioneer          LoseTools     veteran                  [40-tools]
+vet. colonist    LoseTools     veteran                  []
+pioneer          GainTools     veteran                  [20-tools]
+pioneer          ClearSp       free-colonist            [20-tools]
+hardy pioneer    GainHardy     hardy-pioneer            [20-tools]
+hardy pioneer    GainTools     hardy-pioneer            [40-tools]
+hardy colonist   LoseTools     hardy-colonist           []
+missionary       GainBlessing  hardy-colonist           [1-blessing]
+
 Uservalue Ownership Semantics
 =============================
 

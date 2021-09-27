@@ -15,6 +15,16 @@
      and get all the SG stuff out of the individual modules.
 
 # ===============================================================
+# Type Safety
+# ===============================================================
+
+  1. Consider making `Commodity` move-only in order to enforce
+     via the type system that commodities don't accidentally get
+     created or destroyed except by sanctioned means. If a com-
+     modity needs to be split, there can be a new method added
+     onto it to break it up.
+
+# ===============================================================
 # Lua
 # ===============================================================
 

@@ -19,6 +19,12 @@ include "sg-unit.fbs";
 
 namespace fb;
 
+// TODO: add a version here which will only be incremented when
+//       when the schema gets breaking changes, which hopefully
+//       will not happen often, but when it does it will prevent
+//       someone from trying to open it, which would otherwise
+//       not be detected by Flatbuffers and would lead to a cor-
+//       rupted game.
 table SaveGame {
   id_state        : SG_Id;
   unit_state      : SG_Unit;

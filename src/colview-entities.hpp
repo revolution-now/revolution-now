@@ -124,9 +124,8 @@ struct IColViewDragSink {
 
   maybe<IColViewDragSinkConfirm const&> drag_confirm() const;
 
-  // Coordinates are relative to view's upper left corner. Re-
-  // turns true if the drop succeeded. If the drop succeeds then
-  // source.take_object() MUST be called on the source.
+  // Coordinates are relative to view's upper left corner. The
+  // sink MUST accept the object as-is.
   virtual void drop( ColViewObject_t const& o,
                      Coord const&           where ) = 0;
 };
