@@ -24,6 +24,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -91,20 +92,34 @@ convert_err<std::vector<T>> convert_to( value const& v,
   return res;
 }
 
-template<Convertible K, Convertible V>
-convert_err<std::unordered_map<K, V>> convert_to(
-    value const& v, tag<std::unordered_map<K, V>> ) {
-  // We could just delegate to the converter for vector<-
-  // pair<K,V>>, but doing it manually will produce better error
-  // messages.
+template<Convertible T>
+convert_err<std::unordered_set<T>> convert_to(
+    value const& v, tag<std::unordered_set<T>> ) {
   base::maybe<std::unique_ptr<list> const&> mlst =
       v.get_if<std::unique_ptr<list>>();
   if( !mlst )
     return error( fmt::format(
-        "cannot produce a std::unordered_map from type {}.",
+        "cannot produce a std::unordered_set from type {}.",
         name_of( type_of( v ) ) ) );
   DCHECK( *mlst != nullptr );
-  list const&              lst = **mlst;
+  list const&           lst = **mlst;
+  std::unordered_set<T> res;
+  res.reserve( lst.size() );
+  for( value const& v : lst ) {
+    UNWRAP_RETURN( elem, convert_to<T>( v ) );
+    res.insert( std::move( elem ) );
+  }
+  return res;
+}
+
+namespace detail {
+
+template<Convertible K, Convertible V>
+convert_err<std::unordered_map<K, V>> unordered_map_from_list(
+    list const& lst ) {
+  // We could just delegate to the converter for vector<-
+  // pair<K,V>>, but doing it manually will produce better error
+  // messages.
   std::unordered_map<K, V> res;
   res.reserve( lst.size() );
   for( value const& v : lst ) {
@@ -116,6 +131,49 @@ convert_err<std::unordered_map<K, V>> convert_to(
     res[std::move( key )] = std::move( val );
   }
   return res;
+}
+
+template<Convertible K, Convertible V>
+convert_err<std::unordered_map<K, V>> unordered_map_from_table(
+    table const& tbl ) {
+  std::unordered_map<K, V> res;
+  res.reserve( tbl.size() );
+  for( auto& [key, val] : tbl ) {
+    UNWRAP_RETURN( key_conv, convert_to<K>( key ) );
+    UNWRAP_RETURN( val_conv, convert_to<V>( val ) );
+    // We don't need to check for duplicates here because that
+    // will already have been done by the rcl parsing.
+    res[std::move( key_conv )] = std::move( val_conv );
+  }
+  return res;
+}
+
+template<Convertible K, Convertible V>
+struct UnorderedMapVisitor {
+  convert_err<std::unordered_map<K, V>> operator()(
+      std::unique_ptr<table> const& tbl ) const {
+    CHECK( tbl );
+    return detail::unordered_map_from_table<K, V>( *tbl );
+  }
+  convert_err<std::unordered_map<K, V>> operator()(
+      std::unique_ptr<list> const& lst ) const {
+    CHECK( lst );
+    return detail::unordered_map_from_list<K, V>( *lst );
+  }
+  convert_err<std::unordered_map<K, V>> operator()(
+      auto const& o ) const {
+    return error( fmt::format(
+        "cannot produce a std::unordered_map from type {}.",
+        name_of( type_visitor{}( o ) ) ) );
+  }
+};
+
+} // namespace detail
+
+template<Convertible K, Convertible V>
+convert_err<std::unordered_map<K, V>> convert_to(
+    value const& v, tag<std::unordered_map<K, V>> ) {
+  return std::visit( detail::UnorderedMapVisitor<K, V>{}, v );
 }
 
 } // namespace rcl

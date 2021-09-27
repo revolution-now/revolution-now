@@ -172,7 +172,7 @@ TEST_CASE( "[ext-builtin] std::vector<std::pair<...>>" ) {
            expected );
 }
 
-TEST_CASE( "[ext-builtin] std::unordered_map" ) {
+TEST_CASE( "[ext-builtin] std::unordered_map (list)" ) {
   using KV = table::value_type;
   list l   = make_list(
         make_table_val( KV{ "key", "one" }, KV{ "val", 1 } ),
@@ -187,7 +187,7 @@ TEST_CASE( "[ext-builtin] std::unordered_map" ) {
            expected );
 }
 
-TEST_CASE( "[ext-builtin] std::unordered_map dupe key" ) {
+TEST_CASE( "[ext-builtin] std::unordered_map (list) dupe key" ) {
   using KV = table::value_type;
   list l   = make_list(
         make_table_val( KV{ "key", "one" }, KV{ "val", 1 } ),
@@ -199,6 +199,59 @@ TEST_CASE( "[ext-builtin] std::unordered_map dupe key" ) {
   // Test.
   REQUIRE( convert_to<unordered_map<string, int>>( v ) ==
            error( "dictionary contains duplicate key `two'." ) );
+}
+
+TEST_CASE( "[ext-builtin] std::unordered_map (table)" ) {
+  using KV = table::value_type;
+  table t  = make_table( KV{ "one", 1 }, KV{ "two", 2 } );
+  UNWRAP_CHECK( ppt, run_postprocessing( std::move( t ) ) );
+  value v{ std::make_unique<table>( std::move( ppt ) ) };
+
+  // Test.
+  unordered_map<string, int> expected{ { "one", 1 },
+                                       { "two", 2 } };
+  REQUIRE( convert_to<unordered_map<string, int>>( v ) ==
+           expected );
+}
+
+TEST_CASE( "[ext-builtin] std::unordered_map (table) empty" ) {
+  using KV = table::value_type;
+  table t  = make_table();
+  UNWRAP_CHECK( ppt, run_postprocessing( std::move( t ) ) );
+  value v{ std::make_unique<table>( std::move( ppt ) ) };
+
+  // Test.
+  unordered_map<string, int> expected{};
+  REQUIRE( convert_to<unordered_map<string, int>>( v ) ==
+           expected );
+}
+
+TEST_CASE( "[ext-builtin] std::unordered_set" ) {
+  list  l = make_list( "hello", "world", "test" );
+  value v{ std::make_unique<list>( std::move( l ) ) };
+
+  // Test.
+  unordered_set<string> expected{ "hello", "world", "test" };
+  REQUIRE( convert_to<unordered_set<string>>( v ) == expected );
+}
+
+TEST_CASE( "[ext-builtin] std::unordered_set dupe item" ) {
+  list  l = make_list( "hello", "world", "test", "hello" );
+  value v{ std::make_unique<list>( std::move( l ) ) };
+
+  // Test.
+  unordered_set<string> expected{ "hello", "world", "test" };
+  REQUIRE( convert_to<unordered_set<string>>( v ) == expected );
+}
+
+TEST_CASE( "[ext-builtin] std::unordered_set with error" ) {
+  list  l = make_list( "hello", 5, "test" );
+  value v{ std::make_unique<list>( std::move( l ) ) };
+
+  // Test.
+  REQUIRE( convert_to<unordered_set<string>>( v ) ==
+           error( "cannot produce std::string from value of "
+                  "type int." ) );
 }
 
 } // namespace
