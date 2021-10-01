@@ -243,7 +243,7 @@ e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
 namespace {
 
 LUA_FN( create_unit_in_port, UnitId, e_nation nation,
-        e_unit_type type ) {
+        UnitType type ) {
   auto id = create_unit( nation, type );
   ustate_change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );

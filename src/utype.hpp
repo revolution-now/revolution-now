@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "commodity.hpp"
 #include "coord.hpp"
 #include "fb.hpp"
 #include "lua-enum.hpp"
@@ -25,26 +26,38 @@
 // Rds
 #include "rds/utype.hpp"
 
+// Rcl
+#include "rcl/ext.hpp"
+
+// base
+#include "base/fmt.hpp"
+
 // Flatbuffers
 #include "fb/utype_generated.h"
 
 namespace rn {
 
-// We need this for some weird reason -- if we dont' have it and
-// we put the MOVABLE_ONLY in the UnitDescriptor class then we
-// lose the aggregate constructor that we need in the cpp file.
-// This allows us to be movable only but retain the aggregate
-// constructor.  FIXME: this may be fixed with C++20.
-struct UnitDescriptorBase {
-  UnitDescriptorBase() = default;
-  MOVABLE_ONLY( UnitDescriptorBase );
-};
+/****************************************************************
+** e_unit_type
+*****************************************************************/
+LUA_ENUM_DECL( unit_type );
 
-// Static information describing classes of units. There will be
-// one of these for each type of unit.
-struct ND UnitDescriptor : public UnitDescriptorBase {
+/****************************************************************
+** e_unit_type_modifier
+*****************************************************************/
+LUA_ENUM_DECL( unit_type_modifier );
+
+/****************************************************************
+** e_unit_activity
+*****************************************************************/
+LUA_ENUM_DECL( unit_activity );
+
+/****************************************************************
+** UnitTypeAttributes
+*****************************************************************/
+// Describes a unit type without regard
+struct UnitTypeAttributes {
   std::string name{};
-  e_unit_type type{};
 
   // Rendering
   e_tile      tile{};
@@ -57,39 +70,200 @@ struct ND UnitDescriptor : public UnitDescriptorBase {
   MvPoints movement_points{};
 
   // Combat
-  int  attack_points{};
-  int  defense_points{};
-  bool can_attack() const { return attack_points > 0; }
-  bool is_military_unit() const { return can_attack(); }
-
-  // FIXME: ideally these should be represented as an algebraic
-  // data type in the config (and it should support loading
-  // those). That way we would not have to do a runtime check
-  // that `demoted` is set only if `on_death` has certain values.
-  // When the unit loses a battle, what should happen?
-  e_unit_death on_death{};
-  // If the unit is to be demoted, what unit should it become?
-  maybe<e_unit_type> demoted;
+  int attack_points{};
+  int defense_points{};
 
   // Cargo
   int cargo_slots{};
   // Slots occupied by this unit.
   maybe<int> cargo_slots_occupies{};
 
-  void check_invariants() const;
+  UnitDeathAction_t on_death{};
+
+  // If this is a derived unit type then it must specify a canon-
+  // ical base type that will be used to construct it when none
+  // is specified. In some cases there is only one allowed base
+  // type (e.g. a veteran dragoon must have a veteran colonist as
+  // its base type) in which case it must hold that value.
+  maybe<e_unit_type> canonical_base{};
+
+  // If this unit type has an expertise. This is only for some
+  // base types.
+  maybe<e_unit_activity> expertise{};
+
+  // Determines how the unit gets promoted or how the unit influ-
+  // ences promotion of a base type. See sumtype comments to ex-
+  // planation of the meaning of the variant alternatives.
+  maybe<UnitPromotion_t> promotion{};
+
+  // Tells us how to convert a base unit type into another in re-
+  // sponse to the gain of some modifiers, e.g. when a
+  // free_colonist is given horses, what unit type does it be-
+  // come?  Only base unit types can have this.
+  std::unordered_map<e_unit_type,
+                     std::unordered_set<e_unit_type_modifier>>
+      modifiers{};
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Derived fields.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  e_unit_type type{};
+
+  // Can this unit type be obtained from a base type
+  // plus some modifiers?
+  bool is_derived{};
+
+  bool can_attack() const { return attack_points > 0; }
+  bool is_military_unit() const { return can_attack(); }
 };
-NOTHROW_MOVE( UnitDescriptor );
+NOTHROW_MOVE( UnitTypeAttributes );
 
-UnitDescriptor const& unit_desc( e_unit_type type );
-
-LUA_ENUM_DECL( unit_type );
-LUA_ENUM_DECL( unit_death );
+UnitTypeAttributes const& unit_desc( e_unit_type type );
 
 } // namespace rn
 
-/****************************************************************
-** Lua
-*****************************************************************/
 namespace lua {
-LUA_USERDATA_TRAITS( ::rn::UnitDescriptor, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::UnitTypeAttributes, owned_by_cpp ){};
 }
+
+namespace rn {
+
+/****************************************************************
+** UnitAttributesMap
+*****************************************************************/
+// The purpose of this is to have a container in which to hold
+// all of the unit type structures so that we can perform some
+// validation and initialization of the individual structures be-
+// yond what is able to be done while deserializing each one in
+// isolation.
+struct UnitAttributesMap {
+  using Map =
+      std::unordered_map<e_unit_type, UnitTypeAttributes>;
+  Map map;
+};
+
+// This is for deserializing from Rcl config files.
+rcl::convert_err<UnitAttributesMap> convert_to(
+    rcl::value const& v, rcl::tag<UnitAttributesMap> );
+
+/****************************************************************
+** Unit Type Modifier Inspection / Updating.
+*****************************************************************/
+bool is_base_unit_type( e_unit_type type );
+bool is_derived_unit_type( e_unit_type type );
+
+maybe<std::unordered_set<e_unit_type_modifier> const&>
+unit_type_modifiers_for_path( e_unit_type base_type,
+                              e_unit_type type );
+
+bool unit_type_modifier_path_exists( e_unit_type base_type,
+                                     e_unit_type type );
+
+/****************************************************************
+** Commodity to Modifier Conversion
+*****************************************************************/
+struct UnitTypeModifierFromCommodity {
+  e_unit_type_modifier modifier;
+  int                  comm_quantity_used;
+};
+
+maybe<UnitTypeModifierFromCommodity>
+convert_commodity_to_modifier( Commodity const& comm );
+
+// maybe<Commodity> commodities_in_modifier(
+//     e_unit_type_modifier modifier );
+
+/****************************************************************
+** UnitType
+*****************************************************************/
+// The purpose of this struct is to maintain an invariant, namely
+// that the derived unit type (`type`) can be reached starting
+// from the base type (`base_type`) via some set of modifiers.
+//
+// The reason that it must store the base type and not just the
+// final type is because the game rules allow units to lose modi-
+// fiers in various ways, in which case a unit must "remember"
+// what it's base type was. For example, when an indentured ser-
+// vant (the base type) is made into a soldier (the final type)
+// and that soldier loses a battle then the unit must be demoted
+// back to an indentured servant (and not e.g. a free colonist)
+// and so therefore when we store the type of a unit we must in-
+// clude this base type.
+struct UnitType {
+  static maybe<UnitType> create( e_unit_type type,
+                                 e_unit_type base_type );
+
+  // If type is a derived type then it will use its canonical
+  // base for the base type.
+  static UnitType create( e_unit_type type );
+
+  e_unit_type base_type() const { return base_type_; }
+
+  e_unit_type type() const { return type_; }
+
+  bool operator==( UnitType const& ) const = default;
+
+  UnitType();
+
+  // If the base type and derived type are different then there
+  // is always guaranteed to be a set of (non-empty) modifiers
+  // that express that path, since that invariant is upheld by
+  // this class. The returned set is empty if and only if the
+  // base type and derived type are the same.
+  std::unordered_set<e_unit_type_modifier> const&
+  unit_type_modifiers();
+
+  valid_deserial_t check_invariants_safe() const;
+
+private:
+  UnitType( e_unit_type base_type, e_unit_type type );
+
+  // Check-fails when invariants are broken.
+  void check_invariants_or_die() const;
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, UnitType,
+  ( e_unit_type, base_type_ ),
+  ( e_unit_type, type_      ));
+  // clang-format on
+};
+
+// This type is intended to be light-weight and to be passed
+// around by value and copied. It is also immutable.
+static_assert( sizeof( UnitType ) <=
+               2 * std::alignment_of_v<e_unit_type> );
+static_assert( std::is_trivially_copyable_v<UnitType> );
+static_assert( std::is_trivially_destructible_v<UnitType> );
+
+// This will return nothing if the unit does not have an
+// on_death.demoted property, otherwise it will return the new
+// UnitType representing the demoted unit, which is guaranteed by
+// the game rules (and validation performed during deserializa-
+// tion of the unit descriptor configs) to exist regardless of
+// base type.
+maybe<UnitType> on_death_demoted_type( UnitType ut );
+
+maybe<UnitType> find_unit_type_modifiers(
+    e_unit_type                                     base_type,
+    std::unordered_set<e_unit_type_modifier> const& modifiers );
+
+maybe<UnitType> add_unit_type_modifiers(
+    UnitType                                    ut,
+    std::initializer_list<e_unit_type_modifier> modifiers );
+
+UnitTypeAttributes const& unit_desc( UnitType type );
+
+} // namespace rn
+
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::UnitType, owned_by_lua ){};
+}
+
+namespace rn {
+
+//
+
+} // namespace rn
+
+DEFINE_FORMAT( ::rn::UnitType, "UnitType{{base={},derived={}}}",
+               o.base_type(), o.type() );

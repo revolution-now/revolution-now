@@ -39,18 +39,21 @@ void init_game_world_for_test() {
 }
 
 UnitId create_colonist( Coord where ) {
-  return create_unit_on_map( e_nation::english,
-                             e_unit_type::free_colonist, where );
+  return create_unit_on_map(
+      e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ), where );
 }
 
 UnitId create_colonist() {
-  return create_unit( e_nation::english,
-                      e_unit_type::free_colonist );
+  return create_unit(
+      e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ) );
 }
 
 UnitId create_ship( Coord where ) {
-  return create_unit_on_map( e_nation::english,
-                             e_unit_type::merchantman, where );
+  return create_unit_on_map(
+      e_nation::english,
+      UnitType::create( e_unit_type::merchantman ), where );
 }
 
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {
@@ -127,9 +130,11 @@ TEST_CASE( "[colony-mgr] lua" ) {
   init_game_world_for_test();
   auto script = R"(
     local coord = Coord{y=2, x=2}
+    local unit_type =
+        utype.UnitType.create( e.unit_type.free_colonist )
     unit_ = ustate.create_unit_on_map(
              e.nation.english,
-             e.unit_type.free_colonist,
+             unit_type,
              coord )
     col_id = colony_mgr.found_colony(
                unit_:id(), "New York" )

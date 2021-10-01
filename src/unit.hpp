@@ -48,12 +48,12 @@ public:
 
   /************************* Getters ***************************/
 
-  UnitId                id() const { return id_; }
-  UnitDescriptor const& desc() const;
+  UnitId                    id() const { return id_; }
+  UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
-  UnitDescriptor&  desc_non_const() const;
-  e_unit_orders    orders() const { return orders_; }
-  CargoHold const& cargo() const { return cargo_; }
+  UnitTypeAttributes& desc_non_const() const;
+  e_unit_orders       orders() const { return orders_; }
+  CargoHold const&    cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
@@ -64,17 +64,15 @@ public:
   }
   maybe<int>     worth() const { return worth_; }
   MovementPoints movement_points() const { return mv_pts_; }
+  e_unit_type    base_type() const { return type_.base_type(); }
 
   /************************* Setters ***************************/
+
   // This would be used when e.g. a colonist is captured and
   // changes nations.
   void change_nation( e_nation nation );
 
-  // This would be used when e.g. a unit gets demoted in combat
-  // or promoted.
-  void change_type( e_unit_type type );
-
-  /************************ Functions **************************/
+  /************************** Cargo ****************************/
 
   // Returns nothing if this unit cannot hold cargo. If it can
   // hold cargo then returns the list of units it holds, which
@@ -82,13 +80,12 @@ public:
   // when this unit is unable to hold cargo.
   maybe<std::vector<UnitId>> units_in_cargo() const;
 
-  // Movement Points
-  // ------------------------------------------------------------
-  //
+  /********************* Movement Points ***********************/
+
   // Movement points indicate whether a unit has physically moved
   // this turn and cannot move any further, but are also used to
   // indicate (e.g. for units that are not on the map or for
-  // units that are perofmring a job such as building a road)
+  // units that are performing a job such as building a road)
   // that the unit has already been evolved this turn. Using
   // movement points to represent the latter is done for two rea-
   // sons:
@@ -119,6 +116,8 @@ public:
   // their turn.
   void consume_mv_points( MovementPoints points );
 
+  /************************* Orders ****************************/
+
   // Returns true if the unit's orders are other than `none`.
   bool has_orders() const;
   // Marks unit as not having moved this turn.
@@ -132,17 +131,35 @@ public:
 
   valid_deserial_t check_invariants_safe() const;
 
-private:
-  friend UnitId create_unit( e_nation nation, e_unit_type type );
+  /********************** Type Changing ************************/
 
-  Unit( e_nation nation, e_unit_type type );
+  // Will check-fail if the unit cannot be demoted.
+  void demote_from_lost_battle();
+
+  maybe<e_unit_type> demoted_type() const;
+
+  maybe<UnitType> can_receive_modifiers(
+      std::initializer_list<e_unit_type_modifier> modifiers )
+      const;
+
+  void receive_modifiers(
+      std::initializer_list<e_unit_type_modifier> modifiers );
+
+  // This should not be called by normal game code; it should
+  // only be used for testing/modding. Take by const ref for Lua.
+  void change_type( UnitType const& type );
+
+private:
+  friend UnitId create_unit( e_nation nation, UnitType type );
+
+  Unit( e_nation nation, UnitType type );
 
   void check_invariants() const;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, Unit,
   ( UnitId,           id_            ),
-  ( e_unit_type,      type_          ),
+  ( UnitType,         type_          ),
   ( e_unit_orders,    orders_        ),
   ( CargoHold,        cargo_         ),
   ( e_nation,         nation_        ),

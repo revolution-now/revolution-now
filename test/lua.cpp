@@ -151,9 +151,11 @@ TEST_CASE( "[lua] C++ function binding" ) {
   lua::state& st = lua_global_state();
   lua_reload();
   auto script = R"(
-    local id1 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    local id2 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    local id3 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local soldier_type =
+        utype.UnitType.create( e.unit_type.soldier )
+    local id1 = old_world.create_unit_in_port( e.nation.dutch, soldier_type )
+    local id2 = old_world.create_unit_in_port( e.nation.dutch, soldier_type )
+    local id3 = old_world.create_unit_in_port( e.nation.dutch, soldier_type )
     return id3-id1
   )";
 

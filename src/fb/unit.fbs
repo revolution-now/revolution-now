@@ -38,7 +38,7 @@ enum e_unit_orders : byte {
 
 table Unit {
   id_            : int;
-  type_          : e_unit_type;
+  type_          : UnitType;
   orders_        : e_unit_orders;
   cargo_         : CargoHold;
   nation_        : e_nation;

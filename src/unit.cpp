@@ -27,18 +27,18 @@ namespace rn {
 
 namespace {} // namespace
 
-Unit::Unit( e_nation nation, e_unit_type type )
+Unit::Unit( e_nation nation, UnitType type )
   : id_( next_unit_id() ),
     type_( type ),
     orders_( e_unit_orders::none ),
-    cargo_( unit_desc( type ).cargo_slots ),
+    cargo_( unit_desc( type.type() ).cargo_slots ),
     nation_( nation ),
     worth_( nothing ),
-    mv_pts_( unit_desc( type ).movement_points ) {}
+    mv_pts_( unit_desc( type.type() ).movement_points ) {}
 
 valid_deserial_t Unit::check_invariants_safe() const {
   // Check that only treasure units can have a worth.
-  switch( type_ ) {
+  switch( type_.type() ) {
     case e_unit_type::large_treasure:
     case e_unit_type::small_treasure:
       VERIFY_DESERIAL( worth_.has_value(),
@@ -55,13 +55,14 @@ valid_deserial_t Unit::check_invariants_safe() const {
   return valid;
 }
 
-UnitDescriptor const& Unit::desc() const {
-  return unit_desc( type_ );
+UnitTypeAttributes const& Unit::desc() const {
+  return unit_desc( type_.type() );
 }
 
 // FIXME: luapp can only take this as non-const....
-UnitDescriptor& Unit::desc_non_const() const {
-  return const_cast<UnitDescriptor&>( unit_desc( type_ ) );
+UnitTypeAttributes& Unit::desc_non_const() const {
+  return const_cast<UnitTypeAttributes&>(
+      unit_desc( type_.type() ) );
 }
 
 // Mark unit as having moved.
@@ -106,21 +107,65 @@ void Unit::change_nation( e_nation nation ) {
   nation_ = nation;
 }
 
-void Unit::change_type( e_unit_type type ) {
+void Unit::change_type( UnitType const& new_type ) {
   CHECK( cargo_.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
+  CHECK( unit_desc( type_.type() ).ship ==
+             unit_desc( new_type.type() ).ship,
+         "cannot change a ship to a non-ship or vice versa." );
   // Most attributes remain the same, save for a few.
-  type_  = type;
-  cargo_ = CargoHold( desc().cargo_slots );
+  UnitTypeAttributes const& new_desc = unit_desc( new_type );
+  UnitTypeAttributes const& old_desc = desc();
   // FIXME: worth?
-  mv_pts_ = std::clamp( mv_pts_, MovementPoints{ 0 },
-                        desc().movement_points );
+  cargo_ = CargoHold( new_desc.cargo_slots );
+
+  // For movement points, just subtract the number of movement
+  // points that they have already used from the new unit types
+  // quota. If the result is less than zero then the unit will
+  // effectively just end its turn. This way, if a unit has not
+  // moved at all, it will get all of the new units movement
+  // points. At the same time, it will prevent a kind of
+  // "perpetual-motion" cheating, an example of which would be
+  // that you move a scout into a colony, then remove its horses,
+  // then give it horses again, hoping that it will then have a
+  // full four movement points. This will cause those used move-
+  // ment points to persist across type changes.
+  MovementPoints used = old_desc.movement_points - mv_pts_;
+
+  mv_pts_ = std::max( MovementPoints{ 0 },
+                      new_desc.movement_points - used );
+
+  // This should be done last.
+  type_ = new_type;
 }
 
 string debug_string( Unit const& unit ) {
   return fmt::format( "unit{{id: {}, nation: {}, type: \"{}\"}}",
                       unit.id(), unit.nation(),
                       unit.desc().name );
+}
+
+void Unit::demote_from_lost_battle() {
+  UNWRAP_CHECK( new_type, on_death_demoted_type( type_ ) );
+  change_type( new_type );
+}
+
+maybe<e_unit_type> Unit::demoted_type() const {
+  UNWRAP_RETURN( demoted, on_death_demoted_type( type_ ) );
+  return demoted.type();
+}
+
+maybe<UnitType> Unit::can_receive_modifiers(
+    std::initializer_list<e_unit_type_modifier> modifiers )
+    const {
+  return add_unit_type_modifiers( type_, modifiers );
+}
+
+void Unit::receive_modifiers(
+    std::initializer_list<e_unit_type_modifier> modifiers ) {
+  UNWRAP_CHECK( new_unit_type,
+                can_receive_modifiers( modifiers ) );
+  change_type( new_unit_type );
 }
 
 /****************************************************************

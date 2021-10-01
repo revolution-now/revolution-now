@@ -8,25 +8,178 @@
 # Description: RDS definitions for the utype module.
 #
 # ===============================================================
-namespace.rn.enum {
+include [
+  # C++ standard library.
+  <unordered_set>
+]
 
-e_unit_type [
+namespace.rn {
+
+enum.e_unit_type [
+  # Basic colonists.
+  petty_criminal
+  indentured_servant
   free_colonist
+
+  # Non-expert colonist with modifiers.
   soldier
-  merchantman
-  privateer
-  large_treasure
-  small_treasure
   dragoon
+  pioneer
+  missionary
+  scout
+
+  # Expert colonists.
+  expert_farmer
+  expert_fisherman
+  expert_sugar_planter
+  expert_tobacco_planter
+  expert_cotton_planter
+  expert_fur_trapper
+  expert_lumberjack
+  expert_ore_miner
+  expert_silver_miner
+  master_carpenter
+  master_rum_distiller
+  master_tobacconist
+  master_weaver
+  master_fur_trader
+  master_blacksmith
+  master_gunsmith
+  elder_statesman
+  firebrand_preacher
+  hardy_colonist
+  jesuit_colonist
+  seasoned_colonist
+  veteran_colonist
+
+  # Expert colonist with modifier.
+  veteran_soldier
+  veteran_dragoon
+  continental_army
+  continental_cavalry
+  regular
+  cavalry
+  hardy_pioneer
+  jesuit_missionary
+  seasoned_scout
+
+  # Non-human combat units.
+  artillery
+  damaged_artillery
+
+  # Ships.
+  caravel
+  merchantman
+  galleon
+  privateer
+  frigate
+  man_o_war
+
+  # Land transport.
+  wagon_train
+
+  # Treasure.
+  small_treasure
+  large_treasure
 ]
 
-e_unit_death [
-  destroy
-  naval
-  capture
-  demote
-  maybe_demote
-  demote_and_capture
+enum.e_unit_type_modifier [
+  blessing
+  horses
+  muskets
+  tools
+  independence
+  strength
 ]
+
+# This is used to represent two different things:
+#
+#   1. The activity that a unit is currently engaged in, regard-
+#      less of its type.
+#   2. The expertise that a unit has.
+#
+enum.e_unit_activity [
+  # Raw commodities.
+  farming
+  fishing
+  sugar_planting
+  tobacco_planting
+  cotton_planting
+  fur_trapping
+  lumberjacking
+  ore_mining
+  silver_mining
+
+  # Production.
+  carpentry
+  rum_distilling
+  tobacconistry
+  weaving
+  fur_trading
+  blacksmithing
+  gunsmithing
+
+  # External to colony.
+  fighting
+  pioneering
+  scouting
+  missioning
+
+  # Misc.
+  bell_ringing
+  preaching
+]
+
+sumtype.UnitDeathAction {
+  destroy {}
+  capture {}
+  naval {}
+  demote {
+    lose: 'std::unordered_set<e_unit_type_modifier>'
+  }
+}
+
+# Upon promotion. Only base types can be promoted, but the de-
+# rived type can sometimes inform how that happens. So both base
+# types and derived types can have this attribute, but they will
+# have different alternatives.
+sumtype.UnitPromotion {
+  # For base types. The unit type always changes to a fixed type.
+  fixed {
+    type: e_unit_type
+  }
+  # For base types. The unit gains some expertise dictated by the
+  # occupation that it is currently assuming. For example, if a
+  # free colonist is planting cotton then it will be promoted to
+  # an expert cotton planter. If a free colonist becomes a scout
+  # and wins a battle then it will be promoted to seasoned scout
+  # (not veteran soldier). So when a unit is assuming a derived
+  # type, the "occupation" is determined by the type of occupa-
+  # tion of the derived type and not what the unit is immediately
+  # engaged in. Another example: if a free colonist set as a pio-
+  # neer wins a battle, it will become a hardy pioneer.
+  occupation {}
+  # For derived types. The unit type provides expertise that will
+  # be given to a base type if it has the `occupation` promotion
+  # flag. If the base type has the `fixed` promotion flag then
+  # that will be respected. If the base type has no promotion
+  # flag then no promotion will happen. An example of the latter
+  # is if an expert farmer is made into a scout and then experi-
+  # ences a promotion event; in that case nothing will happen.
+  expertise {
+    kind: e_unit_activity
+  }
+  # This one is allowed for either base types or derived types,
+  # but in practice it is only used for derived types in the de-
+  # fault game rules. A unit type with the `modifier` promotion
+  # flag will gain the modifier upon promotion. For example, a
+  # veteran dragoon that wins a battle after independence is de-
+  # clared might be promoted to a continental cavalry. If the
+  # base type cannot accept the modifier then no promotion hap-
+  # pens.
+  modifier {
+    kind: e_unit_type_modifier
+  }
+}
 
 } # namespace rn

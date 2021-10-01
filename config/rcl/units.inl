@@ -4,32 +4,12 @@
 #ifndef UNITS_INL
 #define UNITS_INL
 
+#include "../../src/utype.hpp"
+
 namespace rn {
 
-#define UNIT_SCHEMA( __unit )                         \
-  OBJ( __unit,                                        \
-    FLD( std::string,        name                   ) \
-    FLD( bool,               ship                   ) \
-    FLD( bool,               nat_icon_front         ) \
-    FLD( e_direction,        nat_icon_position      ) \
-    FLD( int,                visibility             ) \
-    FLD( MvPoints,           movement_points        ) \
-    FLD( int,                attack_points          ) \
-    FLD( int,                defense_points         ) \
-    FLD( e_unit_death,       on_death               ) \
-    FLD( maybe<e_unit_type>, demoted                ) \
-    FLD( int,                cargo_slots            ) \
-    FLD( maybe<int>,         cargo_slots_occupies   ) \
-                                                  )
-
 CFG( units,
-  UNIT_SCHEMA( merchantman    )
-  UNIT_SCHEMA( privateer      )
-  UNIT_SCHEMA( free_colonist  )
-  UNIT_SCHEMA( soldier        )
-  UNIT_SCHEMA( dragoon        )
-  UNIT_SCHEMA( large_treasure )
-  UNIT_SCHEMA( small_treasure )
+  FLD( UnitAttributesMap, unit_types )
 )
 
 }

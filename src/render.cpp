@@ -162,10 +162,10 @@ Texture const& render_nationality_icon( e_nation nation,
   return nat_icon_cache[desc];
 }
 
-void render_nationality_icon( Texture&              dest,
-                              UnitDescriptor const& desc,
-                              e_nation              nation,
-                              e_unit_orders         orders,
+void render_nationality_icon( Texture&                  dest,
+                              UnitTypeAttributes const& desc,
+                              e_nation                  nation,
+                              e_unit_orders             orders,
                               Coord pixel_coord ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.

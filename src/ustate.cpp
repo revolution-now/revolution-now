@@ -244,7 +244,7 @@ void destroy_unit( UnitId id ) {
   SG().deleted.insert( id );
 }
 
-UnitId create_unit( e_nation nation, e_unit_type type ) {
+UnitId create_unit( e_nation nation, UnitType type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
   CHECK( !SG().units.contains( id ) );
@@ -449,7 +449,7 @@ maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
 /****************************************************************
 ** For Testing / Development Only
 *****************************************************************/
-UnitId create_unit_on_map( e_nation nation, e_unit_type type,
+UnitId create_unit_on_map( e_nation nation, UnitType type,
                            Coord coord ) {
   Unit& unit = unit_from_id( create_unit( nation, type ) );
   ustate_change_to_map( unit.id(), coord );
@@ -589,7 +589,7 @@ void ustate_disown_unit( UnitId id ) {
 namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
-        e_unit_type type, Coord const& coord ) {
+        UnitType type, Coord const& coord ) {
   auto id = create_unit_on_map( nation, type, coord );
   lg.info( "created a {} on square {}.", unit_desc( type ).name,
            coord );

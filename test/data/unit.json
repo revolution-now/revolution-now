@@ -1,6 +1,9 @@
 {
   "id_": 1,
-  "type_": "merchantman",
+  "type_": {
+    "base_type_": "merchantman",
+    "type_": "merchantman"
+  },
   "cargo_": {
     "slots_": [
       {

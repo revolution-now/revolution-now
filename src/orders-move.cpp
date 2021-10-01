@@ -62,7 +62,7 @@ namespace {
   template<>                                                  \
   [[maybe_unused]] to_behaviors_t<BEHAVIOR_VALUES( c, r, e )> \
   behavior<BEHAVIOR_VALUES( c, r, e )>(                       \
-      UnitDescriptor const& desc )
+      UnitTypeAttributes const& desc )
 
 enum class e_unit_relationship { neutral, friendly, foreign };
 enum class e_entity_category { empty, unit, colony, village };
@@ -81,7 +81,7 @@ using to_behaviors_t =
 
 TEMPLATE_BEHAVIOR
 to_behaviors_t<target, relationship, entity> behavior(
-    UnitDescriptor const& desc );
+    UnitTypeAttributes const& desc );
 
 /****************************************************************/
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
@@ -655,10 +655,14 @@ struct AttackHandler : public OrdersHandler {
 
     e_depixelate_anim dp_anim =
         stats.attacker_wins
-            ? ( defender_unit.desc().demoted.has_value()
+            ? ( defender_unit.desc()
+                        .on_death
+                        .holds<UnitDeathAction::demote>()
                     ? e_depixelate_anim::demote
                     : e_depixelate_anim::death )
-            : ( attacker_unit.desc().demoted.has_value()
+            : ( attacker_unit.desc()
+                        .on_death
+                        .holds<UnitDeathAction::demote>()
                     ? e_depixelate_anim::demote
                     : e_depixelate_anim::death );
     return landview_animate_attack(
@@ -932,11 +936,12 @@ waitable<> AttackHandler::perform() {
       break;
   }
 
-  switch( loser.desc().on_death ) {
-    case e_unit_death::destroy: //
+  switch( loser.desc().on_death.to_enum() ) {
+    using namespace UnitDeathAction;
+    case e::destroy: //
       destroy_unit( loser.id() );
       break;
-    case e_unit_death::naval: {
+    case e::naval: {
       auto num_units_lost =
           loser.cargo().items_of_type<UnitId>().size();
       lg.info( "ship sunk: {} units onboard lost.",
@@ -960,7 +965,7 @@ waitable<> AttackHandler::perform() {
       co_await ui::message_box( msg );
       break;
     }
-    case e_unit_death::capture:
+    case e::capture:
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
@@ -979,31 +984,10 @@ waitable<> AttackHandler::perform() {
         SHOULD_NOT_BE_HERE;
       }
       break;
-    case e_unit_death::demote:
-      CHECK( loser.desc().demoted.has_value() );
-      loser.change_type( loser.desc().demoted.value() );
+    case e::demote:
+      loser.demote_from_lost_battle();
       // TODO: if a unit loses, should it lose all of its move-
       // ment points? Check the original game.
-      break;
-    case e_unit_death::maybe_demote:
-      // This would be for units that only demote probabilisti-
-      // cally.
-      NOT_IMPLEMENTED;
-      break;
-    case e_unit_death::demote_and_capture:
-      CHECK( loser.desc().demoted.has_value() );
-      loser.change_type( loser.desc().demoted.value() );
-      // Capture only happens to defenders.
-      if( loser.id() == defender.id() ) {
-        loser.change_nation( winner.nation() );
-        move_unit_from_map_to_map(
-            loser.id(),
-            coord_for_unit_indirect_or_die( winner.id() ) );
-        // This is so that the captured unit won't ask for orders
-        // in the same turn that it is captured.
-        loser.forfeight_mv_points();
-        loser.clear_orders();
-      }
       break;
   }
   co_return;

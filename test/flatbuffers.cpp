@@ -635,11 +635,14 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 TEST_CASE( "deserialize json" ) {
   default_construct_all_game_state();
 
+  (void)create_unit(
+      e_nation::english,
+      UnitType::create( e_unit_type::merchantman ) );
+  (void)create_unit(
+      e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ) );
   (void)create_unit( e_nation::english,
-                     e_unit_type::merchantman );
-  (void)create_unit( e_nation::english,
-                     e_unit_type::free_colonist );
-  (void)create_unit( e_nation::english, e_unit_type::soldier );
+                     UnitType::create( e_unit_type::soldier ) );
 
   UNWRAP_CHECK( json, base::read_text_file_as_string(
                           data_dir() / "unit.json" ) );
@@ -675,12 +678,15 @@ TEST_CASE( "deserialize json" ) {
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
   default_construct_all_game_state();
 
-  auto ship =
-      create_unit( e_nation::english, e_unit_type::merchantman );
-  auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist );
+  auto ship = create_unit(
+      e_nation::english,
+      UnitType::create( e_unit_type::merchantman ) );
+  auto unit_id2 = create_unit(
+      e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id3 =
-      create_unit( e_nation::english, e_unit_type::soldier );
+      create_unit( e_nation::english,
+                   UnitType::create( e_unit_type::soldier ) );
   auto comm1 = Commodity{ /*type=*/e_commodity::food,
                           /*quantity=*/100 };
 
@@ -690,7 +696,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   rn::ustate_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 228;
+  constexpr uint64_t kExpectedBlobSize = 248;
   auto               json_file = data_dir() / "unit.json";
 
   SECTION( "create/serialize" ) {
@@ -722,7 +728,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto const& ship_unit = rn::unit_from_id( ship );
 
     REQUIRE( unit.id_() == ship._ );
-    REQUIRE( static_cast<int>( unit.type_() ) ==
+    REQUIRE( static_cast<int>( unit.type_()->type_() ) ==
              static_cast<int>( ship_unit.desc().type ) );
     REQUIRE( static_cast<int>( unit.orders_() ) ==
              static_cast<int>( ship_unit.orders() ) );

@@ -2,6 +2,7 @@
 let s:stems = [
   \ 'colony-view',
   \ 'colview-entities',
+  \ 'unit',
   \ 'utype',
   \ 'unit-conv',
 \]

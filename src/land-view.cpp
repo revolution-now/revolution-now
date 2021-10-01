@@ -392,7 +392,7 @@ waitable<> animate_depixelation( UnitId            id,
   // that process up.
   if( dp_anim == e_depixelate_anim::demote ) {
     UNWRAP_CHECK( demoted_type,
-                  unit_from_id( id ).desc().demoted );
+                  unit_from_id( id ).demoted_type() );
     auto tx = Texture::create( g_tile_delta );
     clear_texture_transparent( tx );
     auto& from_unit = unit_from_id( id );
