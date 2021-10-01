@@ -27,28 +27,32 @@ namespace {
 
 using namespace std;
 
-using Catch::Contains;
+// using Catch::Contains;
 
 TEST_CASE( "[{{FILE}}] some test" ) {
   int x = 4;
   REQUIRE( x == 4 );
 
-  SECTION( "even" ) { REQUIRE( x % 2 == 0 ); }
+  SECTION( "even" ) {
+    REQUIRE( x % 2 == 0 );
+  }
 
-  SECTION( "non negative" ) { REQUIRE( x >= 0 ); }
+  SECTION( "non negative" ) {
+    REQUIRE( x >= 0 );
+  }
 }
 
 TEST_CASE( "[{{FILE}}] lua bindings" ) {
   lua::state& st = lua_global_state();
+
   auto script = R"(
     local x = 5+6
   )";
-  REQUIRE( st.script.run_safe( script ).valid() );
+  REQUIRE( st.script.run_safe( script ) == valid );
 
   script = R"(
     local x =
   )";
-
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
