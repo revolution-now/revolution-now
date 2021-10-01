@@ -1400,7 +1400,7 @@ template<typename T>
 *****************************************************************/
 template<typename T, typename U> /* clang-format off */
 [[nodiscard]] constexpr bool operator==( maybe<T> const& opt,
-                           U const&        val )
+                                         U const&        val )
     noexcept( noexcept( *opt == val ) ) { /* clang-format on */
   if( !opt.has_value() ) return false;
   return ( *opt == val );
@@ -1408,7 +1408,7 @@ template<typename T, typename U> /* clang-format off */
 
 template<typename T, typename U> /* clang-format off */
 [[nodiscard]] constexpr bool operator==( U const&        val,
-                           maybe<T> const& opt )
+                                         maybe<T> const& opt )
     noexcept( noexcept( val == *opt ) ) { /* clang-format on */
   if( !opt.has_value() ) return false;
   return ( val == *opt );
@@ -1416,14 +1416,14 @@ template<typename T, typename U> /* clang-format off */
 
 template<typename T, typename U> /* clang-format off */
 [[nodiscard]] constexpr bool operator!=( maybe<T> const& opt,
-                           U const&        val )
+                                         U const&        val )
     noexcept( noexcept( opt == val ) ) { /* clang-format on */
   return !( opt == val );
 }
 
 template<typename T, typename U> /* clang-format off */
 [[nodiscard]] constexpr bool operator!=( U const&        val,
-                           maybe<T> const& opt )
+                                         maybe<T> const& opt )
     noexcept( noexcept( val == opt ) ) { /* clang-format on */
   return !( val == opt );
 }
