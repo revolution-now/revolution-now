@@ -591,7 +591,7 @@ namespace {
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitType type, Coord const& coord ) {
   auto id = create_unit_on_map( nation, type, coord );
-  lg.info( "created a {} on square {}.", unit_desc( type ).name,
+  lg.info( "created a {} on square {}.", unit_attr( type ).name,
            coord );
   return unit_from_id( id );
 }

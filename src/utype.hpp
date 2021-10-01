@@ -118,7 +118,7 @@ struct UnitTypeAttributes {
 };
 NOTHROW_MOVE( UnitTypeAttributes );
 
-UnitTypeAttributes const& unit_desc( e_unit_type type );
+UnitTypeAttributes const& unit_attr( e_unit_type type );
 
 } // namespace rn
 
@@ -147,24 +147,14 @@ rcl::convert_err<UnitAttributesMap> convert_to(
     rcl::value const& v, rcl::tag<UnitAttributesMap> );
 
 /****************************************************************
-** Unit Type Modifier Inspection / Updating.
-*****************************************************************/
-bool is_base_unit_type( e_unit_type type );
-bool is_derived_unit_type( e_unit_type type );
-
-maybe<std::unordered_set<e_unit_type_modifier> const&>
-unit_type_modifiers_for_path( e_unit_type base_type,
-                              e_unit_type type );
-
-bool unit_type_modifier_path_exists( e_unit_type base_type,
-                                     e_unit_type type );
-
-/****************************************************************
 ** Commodity to Modifier Conversion
 *****************************************************************/
 struct UnitTypeModifierFromCommodity {
   e_unit_type_modifier modifier;
   int                  comm_quantity_used;
+
+  bool operator==( UnitTypeModifierFromCommodity const& ) const =
+      default;
 };
 
 maybe<UnitTypeModifierFromCommodity>
@@ -243,15 +233,13 @@ static_assert( std::is_trivially_destructible_v<UnitType> );
 // base type.
 maybe<UnitType> on_death_demoted_type( UnitType ut );
 
-maybe<UnitType> find_unit_type_modifiers(
-    e_unit_type                                     base_type,
-    std::unordered_set<e_unit_type_modifier> const& modifiers );
-
+// Try to add the modifiers to the type and return the resulting
+// type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
     UnitType                                    ut,
     std::initializer_list<e_unit_type_modifier> modifiers );
 
-UnitTypeAttributes const& unit_desc( UnitType type );
+UnitTypeAttributes const& unit_attr( UnitType type );
 
 } // namespace rn
 

@@ -39,17 +39,6 @@
 
 using namespace std;
 
-#define RCL_CONVERT_FIELD( name )                             \
-  if( !tbl.has_key( TO_STRING( name ) ) )                     \
-    return rcl::error( fmt::format(                           \
-        "table must have a '{}' field for conversion to {}.", \
-        TO_STRING( name ), kTypeName ) );                     \
-  {                                                           \
-    UNWRAP_RETURN( o, rcl::convert_to<decltype( res.name )>(  \
-                          tbl[TO_STRING( name )] ) );         \
-    res.name = std::move( o );                                \
-  }
-
 namespace rn {
 
 /****************************************************************
@@ -209,7 +198,7 @@ rcl::convert_err<UnitPromotion_t> convert_to(
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
-UnitTypeAttributes const& unit_desc( e_unit_type type ) {
+UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   UNWRAP_CHECK_MSG(
       desc, base::lookup( config_units.unit_types.map, type ),
       "internal error: unit type {} does not have a type "
@@ -218,7 +207,7 @@ UnitTypeAttributes const& unit_desc( e_unit_type type ) {
   return desc;
 }
 
-// [-----------------------===[ Rcl ]===------------------------]
+// Rcl
 rcl::convert_err<UnitTypeAttributes> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
   (void)rcl::convert_to<UnitDeathAction_t>( v );
@@ -266,38 +255,36 @@ rcl::convert_err<UnitTypeAttributes> convert_to(
 // Lua
 namespace {
 
-#define RO_FIELD( n ) utype_attr[#n] = &rn::UnitTypeAttributes::n
-
 LUA_STARTUP( lua::state& st ) {
   using UD = ::rn::UnitTypeAttributes;
 
-  auto utype_attr = st.usertype.create<UD>();
+  auto ut = st.usertype.create<UD>();
 
-  // FIXME: these are writable to lua. Find an equivalent of
-  // sol::readonly to make them appear constant to luapp.
+  // FIXME(maybe): these are writable to lua. Find an equivalent
+  // of sol::readonly to make them appear constant to luapp.
+
+  LUA_ADD_MEMBER( name );
+  LUA_ADD_MEMBER( tile );
+  LUA_ADD_MEMBER( nat_icon_front );
+  LUA_ADD_MEMBER( nat_icon_position );
+  LUA_ADD_MEMBER( ship );
+  LUA_ADD_MEMBER( visibility );
+  LUA_ADD_MEMBER( movement_points );
+  LUA_ADD_MEMBER( attack_points );
+  LUA_ADD_MEMBER( defense_points );
+  LUA_ADD_MEMBER( cargo_slots );
+  LUA_ADD_MEMBER( cargo_slots_occupies );
+  LUA_ADD_MEMBER( canonical_base );
+  LUA_ADD_MEMBER( expertise );
+  LUA_ADD_MEMBER( type );
+  LUA_ADD_MEMBER( is_derived );
+  LUA_ADD_MEMBER( can_attack );
+  LUA_ADD_MEMBER( is_military_unit );
 
   // FIXME: Figure out how to deal with C++ variants in Lua.
-
-  RO_FIELD( name );
-  RO_FIELD( tile );
-  RO_FIELD( nat_icon_front );
-  RO_FIELD( nat_icon_position );
-  RO_FIELD( ship );
-  RO_FIELD( visibility );
-  RO_FIELD( movement_points );
-  RO_FIELD( attack_points );
-  RO_FIELD( defense_points );
-  RO_FIELD( cargo_slots );
-  RO_FIELD( cargo_slots_occupies );
-  // RO_FIELD( on_death );
-  RO_FIELD( canonical_base );
-  RO_FIELD( expertise );
-  // RO_FIELD( promotion );
-  // RO_FIELD( modifiers );
-  RO_FIELD( type );
-  RO_FIELD( is_derived );
-  RO_FIELD( can_attack );
-  RO_FIELD( is_military_unit );
+  // LUA_ADD_MEMBER( on_death );
+  // LUA_ADD_MEMBER( promotion );
+  // LUA_ADD_MEMBER( modifiers );
 };
 
 } // namespace
@@ -347,7 +334,7 @@ rcl::convert_err<UnitAttributesMap> convert_to(
     }
   }
 
-  // NOTE: do not use unit_desc() here to access unit properties
+  // NOTE: do not use unit_attr() here to access unit properties
   // since it queries a structure that will not yet exist at this
   // point. Instead, us `m` as is done below.
 
@@ -497,12 +484,10 @@ rcl::convert_err<UnitAttributesMap> convert_to(
 /****************************************************************
 ** Unit Type Modifier Inspection / Updating.
 *****************************************************************/
-bool is_base_unit_type( e_unit_type type ) {
-  return !unit_desc( type ).is_derived;
-}
+namespace {
 
-bool is_derived_unit_type( e_unit_type type ) {
-  return !is_base_unit_type( type );
+bool is_base_unit_type( e_unit_type type ) {
+  return !unit_attr( type ).is_derived;
 }
 
 maybe<std::unordered_set<e_unit_type_modifier> const&>
@@ -512,7 +497,7 @@ unit_type_modifiers_for_path( e_unit_type base_type,
   static std::unordered_set<e_unit_type_modifier> const empty;
   if( type == base_type ) return empty;
   if( auto const& modifiers =
-          base::lookup( unit_desc( base_type ).modifiers, type );
+          base::lookup( unit_attr( base_type ).modifiers, type );
       modifiers )
     return modifiers;
   return nothing;
@@ -523,6 +508,8 @@ bool unit_type_modifier_path_exists( e_unit_type base_type,
   return unit_type_modifiers_for_path( base_type, type )
       .has_value();
 }
+
+} // namespace
 
 /****************************************************************
 ** Commodity to Modifier Conversion
@@ -549,14 +536,17 @@ convert_commodity_to_modifier( Commodity const& comm ) {
       return nothing;
     }
     case e_commodity::tools: {
-      constexpr int min_needed = 20;
-      if( comm.quantity >= min_needed ) {
-        int residual = comm.quantity % min_needed;
-        return UnitTypeModifierFromCommodity{
-            .modifier           = e_unit_type_modifier::tools,
-            .comm_quantity_used = comm.quantity - residual,
-        };
-      }
+      constexpr int multiple     = 20;
+      constexpr int max_possible = 100;
+      static_assert( max_possible % multiple == 0 );
+      if( comm.quantity < multiple ) return nothing;
+      int adjusted_quantity =
+          std::min( comm.quantity, max_possible );
+      int residual = adjusted_quantity % multiple;
+      return UnitTypeModifierFromCommodity{
+          .modifier           = e_unit_type_modifier::tools,
+          .comm_quantity_used = adjusted_quantity - residual,
+      };
       return nothing;
     }
     default: return nothing;
@@ -575,7 +565,7 @@ maybe<UnitType> UnitType::create( e_unit_type type,
 }
 
 UnitType UnitType::create( e_unit_type type ) {
-  UnitTypeAttributes const& desc = unit_desc( type );
+  UnitTypeAttributes const& desc = unit_attr( type );
   if( desc.is_derived ) {
     UNWRAP_CHECK( base_type, desc.canonical_base );
     UNWRAP_CHECK( res, create( type, base_type ) );
@@ -610,15 +600,33 @@ UnitType::UnitType()
   check_invariants_or_die();
 }
 
-UnitTypeAttributes const& unit_desc( UnitType type ) {
-  return unit_desc( type.type() );
+UnitTypeAttributes const& unit_attr( UnitType type ) {
+  return unit_attr( type.type() );
 }
+
+namespace {
+
+maybe<UnitType> find_unit_type_modifiers(
+    e_unit_type                                base_type,
+    unordered_set<e_unit_type_modifier> const& modifiers ) {
+  if( modifiers.empty() ) return UnitType::create( base_type );
+  auto& base_modifiers = unit_attr( base_type ).modifiers;
+  for( auto& [mtype, base_mod_set] : base_modifiers )
+    if( base_mod_set == modifiers )
+      // It's ok to take the first one we find, since validation
+      // should have ensured that this set of modifiers is
+      // unique.
+      return UnitType::create( mtype, base_type );
+  return nothing;
+}
+
+} // namespace
 
 maybe<UnitType> on_death_demoted_type( UnitType ut ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =
       ut.unit_type_modifiers();
   UNWRAP_RETURN(
-      demote, unit_desc( ut.type() )
+      demote, unit_attr( ut.type() )
                   .on_death.get_if<UnitDeathAction::demote>() );
   unordered_set<e_unit_type_modifier> target_modifiers =
       current_modifiers;
@@ -641,20 +649,6 @@ UnitType::unit_type_modifiers() {
   return res;
 }
 
-maybe<UnitType> find_unit_type_modifiers(
-    e_unit_type                                base_type,
-    unordered_set<e_unit_type_modifier> const& modifiers ) {
-  if( modifiers.empty() ) return UnitType::create( base_type );
-  auto& base_modifiers = unit_desc( base_type ).modifiers;
-  for( auto& [mtype, base_mod_set] : base_modifiers )
-    if( base_mod_set == modifiers )
-      // It's ok to take the first one we find, since validation
-      // should have ensured that this set of modifiers is
-      // unique.
-      return UnitType::create( mtype, base_type );
-  return nothing;
-}
-
 maybe<UnitType> add_unit_type_modifiers(
     UnitType                                    ut,
     std::initializer_list<e_unit_type_modifier> modifiers ) {
@@ -673,7 +667,7 @@ maybe<UnitType> add_unit_type_modifiers(
                                    target_modifiers );
 }
 
-// [-----------------------===[ Lua ]===------------------------]
+// Lua
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
@@ -688,7 +682,7 @@ LUA_STARTUP( lua::state& st ) {
   lua::table tbl_UnitType =
       lua::table::create_or_get( utype_tbl["UnitType"] );
 
-  tbl_UnitType["create_with_base_type"] =
+  tbl_UnitType["create_with_base"] =
       [&]( e_unit_type type,
            e_unit_type base_type ) -> UnitType {
     maybe<UnitType> ut = UnitType::create( type, base_type );

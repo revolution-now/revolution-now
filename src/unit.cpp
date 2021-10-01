@@ -31,10 +31,10 @@ Unit::Unit( e_nation nation, UnitType type )
   : id_( next_unit_id() ),
     type_( type ),
     orders_( e_unit_orders::none ),
-    cargo_( unit_desc( type.type() ).cargo_slots ),
+    cargo_( unit_attr( type.type() ).cargo_slots ),
     nation_( nation ),
     worth_( nothing ),
-    mv_pts_( unit_desc( type.type() ).movement_points ) {}
+    mv_pts_( unit_attr( type.type() ).movement_points ) {}
 
 valid_deserial_t Unit::check_invariants_safe() const {
   // Check that only treasure units can have a worth.
@@ -56,13 +56,13 @@ valid_deserial_t Unit::check_invariants_safe() const {
 }
 
 UnitTypeAttributes const& Unit::desc() const {
-  return unit_desc( type_.type() );
+  return unit_attr( type_.type() );
 }
 
 // FIXME: luapp can only take this as non-const....
 UnitTypeAttributes& Unit::desc_non_const() const {
   return const_cast<UnitTypeAttributes&>(
-      unit_desc( type_.type() ) );
+      unit_attr( type_.type() ) );
 }
 
 // Mark unit as having moved.
@@ -110,11 +110,11 @@ void Unit::change_nation( e_nation nation ) {
 void Unit::change_type( UnitType const& new_type ) {
   CHECK( cargo_.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
-  CHECK( unit_desc( type_.type() ).ship ==
-             unit_desc( new_type.type() ).ship,
+  CHECK( unit_attr( type_.type() ).ship ==
+             unit_attr( new_type.type() ).ship,
          "cannot change a ship to a non-ship or vice versa." );
   // Most attributes remain the same, save for a few.
-  UnitTypeAttributes const& new_desc = unit_desc( new_type );
+  UnitTypeAttributes const& new_desc = unit_attr( new_type );
   UnitTypeAttributes const& old_desc = desc();
   // FIXME: worth?
   cargo_ = CargoHold( new_desc.cargo_slots );

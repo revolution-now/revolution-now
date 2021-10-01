@@ -40,7 +40,7 @@ constexpr Delta nationality_icon_size( 13_h, 13_w );
 // Unit only, no nationality icon.
 void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
                           Coord pixel_coord ) {
-  auto const& desc = unit_desc( unit_type );
+  auto const& desc = unit_attr( unit_type );
   render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
 }
 
@@ -202,7 +202,7 @@ void render_nationality_icon( Texture& dest, e_unit_type type,
                               e_nation      nation,
                               e_unit_orders orders,
                               Coord         pixel_coord ) {
-  render_nationality_icon( dest, unit_desc( type ), nation,
+  render_nationality_icon( dest, unit_attr( type ), nation,
                            orders, pixel_coord );
 }
 

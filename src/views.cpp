@@ -850,7 +850,7 @@ string const& OptionSelectView::get_selected() const {
 FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
                             e_unit_orders orders )
   : CompositeSingleView(
-        make_unique<SpriteView>( unit_desc( type ).tile ),
+        make_unique<SpriteView>( unit_attr( type ).tile ),
         Coord{} ),
     type_( type ),
     nation_( nation ),

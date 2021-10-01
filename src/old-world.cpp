@@ -248,7 +248,7 @@ LUA_FN( create_unit_in_port, UnitId, e_nation nation,
   ustate_change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   lg.info( "created a {} in {} port/dock.",
-           unit_desc( type ).name,
+           unit_attr( type ).name,
            nation_obj( nation ).adjective );
   return id;
 }

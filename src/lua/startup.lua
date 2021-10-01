@@ -15,8 +15,7 @@ local function unit_type( type, base_type )
   if base_type == nil then
     return utype.UnitType.create( type )
   else
-    return utype.UnitType
-               .create_with_base_type( type, base_type )
+    return utype.UnitType.create_with_base( type, base_type )
   end
 end
 

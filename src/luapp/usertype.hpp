@@ -17,6 +17,8 @@
 #include "metatable-key.hpp"
 #include "rtable.hpp"
 
+#define LUA_ADD_MEMBER( name ) ut[#name] = &UD::name
+
 namespace lua {
 
 namespace detail {

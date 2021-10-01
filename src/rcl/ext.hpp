@@ -22,6 +22,22 @@
 #include <string_view>
 
 /****************************************************************
+** Macros
+*****************************************************************/
+#define RCL_CONVERT_FIELD( name )                               \
+  {                                                             \
+    if( !tbl.has_key( TO_STRING( name ) ) )                     \
+      return rcl::error( fmt::format(                           \
+          "table must have a '{}' field for conversion to {}.", \
+          TO_STRING( name ), kTypeName ) );                     \
+    {                                                           \
+      UNWRAP_RETURN( o, rcl::convert_to<decltype( res.name )>(  \
+                            tbl[TO_STRING( name )] ) );         \
+      res.name = std::move( o );                                \
+    }                                                           \
+  }
+
+/****************************************************************
 ** Extension point.
 *****************************************************************/
 namespace rcl {
