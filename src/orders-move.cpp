@@ -899,7 +899,9 @@ waitable<> AttackHandler::perform() {
       fight_stats->attacker_wins ? attacker : defender;
   auto& loser = fight_stats->attacker_wins ? defender : attacker;
 
-  attacker.consume_mv_points( MvPoints( 1 ) );
+  // The original game seems to consume all movement points of a
+  // unit when attacking.
+  attacker.forfeight_mv_points();
 
   switch( verdict ) {
     // Non-allowed (errors)
