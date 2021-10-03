@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "game-state.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
 
@@ -158,7 +159,9 @@ maybe<e_unit_type> Unit::demoted_type() const {
 maybe<UnitType> Unit::can_receive_modifiers(
     std::initializer_list<e_unit_type_modifier> modifiers )
     const {
-  return add_unit_type_modifiers( type_, modifiers );
+  return add_unit_type_modifiers(
+      type_, modifiers,
+      /*allow_independence=*/post_independence() );
 }
 
 void Unit::receive_modifiers(

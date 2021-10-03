@@ -139,25 +139,33 @@ sumtype.UnitDeathAction {
   }
 }
 
-# Upon promotion. Only base types can be promoted, but the de-
+# Unit promotion. Only base types can be promoted, but the de-
 # rived type can sometimes inform how that happens. So both base
-# types and derived types can have this attribute, but they will
-# have different alternatives.
+# types and derived types can have this attribute, but some al-
+# ternatives are only allowed for one or the other.
 sumtype.UnitPromotion {
   # For base types. The unit type always changes to a fixed type.
   fixed {
     type: e_unit_type
   }
   # For base types. The unit gains some expertise dictated by the
-  # occupation that it is currently assuming. For example, if a
-  # free colonist is planting cotton then it will be promoted to
-  # an expert cotton planter. If a free colonist becomes a scout
-  # and wins a battle then it will be promoted to seasoned scout
-  # (not veteran soldier). So when a unit is assuming a derived
-  # type, the "occupation" is determined by the type of occupa-
-  # tion of the derived type and not what the unit is immediately
-  # engaged in. Another example: if a free colonist set as a pio-
-  # neer wins a battle, it will become a hardy pioneer.
+  # occupation that it is currently assuming.
+  #
+  # Examples:
+  #
+  #   * If a free colonist is planting cotton then it will be
+  #     promoted to an expert cotton planter.
+  #   * If a free colonist is studying carpentry then it will be-
+  #     come a carpenter.
+  #   * If a free colonist becomes a scout and wins a battle then
+  #     it will be promoted to seasoned scout (not veteran sol-
+  #     dier). So when a unit is assuming a derived type, the
+  #     "occupation" is determined by the type of occupation of
+  #     the derived type and not what the unit is immediately en-
+  #     gaged in.
+  #   * If a free colonist set as a pioneer wins a battle, it
+  #     will become a hardy pioneer.
+  #
   occupation {}
   # For derived types. The unit type provides expertise that will
   # be given to a base type if it has the `occupation` promotion

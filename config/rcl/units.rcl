@@ -6,6 +6,7 @@ unit_types {
     name:                  Petty Criminal
     tile:                  petty_criminal
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -31,6 +32,7 @@ unit_types {
     name:                  Indentured Servant
     tile:                  indentured_servant
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -56,6 +58,7 @@ unit_types {
     name:                  Free Colonist
     tile:                  free_colonist
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -84,6 +87,7 @@ unit_types {
     name:                  Pioneer
     tile:                  pioneer
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -103,6 +107,7 @@ unit_types {
     name:                  Missionary
     tile:                  missionary
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -122,6 +127,7 @@ unit_types {
     name:                  Scout
     tile:                  scout
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -143,6 +149,7 @@ unit_types {
     name:                  Soldier
     tile:                  soldier
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -162,6 +169,7 @@ unit_types {
     name:                  Dragoon
     tile:                  dragoon
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -184,6 +192,7 @@ unit_types {
     name:                  Expert Farmer
     tile:                  expert_farmer
     expertise:             farming
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -209,6 +218,7 @@ unit_types {
     name:                  Expert Fisherman
     tile:                  expert_fisherman
     expertise:             fishing
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -234,6 +244,7 @@ unit_types {
     name:                  Expert Sugar Planter
     tile:                  expert_sugar_planter
     expertise:             sugar_planting
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -259,6 +270,7 @@ unit_types {
     name:                  Expert Tobacco Planter
     tile:                  expert_tobacco_planter
     expertise:             tobacco_planting
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -284,6 +296,7 @@ unit_types {
     name:                  Expert Cotton Planter
     tile:                  expert_cotton_planter
     expertise:             cotton_planting
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -309,6 +322,7 @@ unit_types {
     name:                  Expert Fur Trapper
     tile:                  expert_fur_trapper
     expertise:             fur_trapping
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -334,6 +348,7 @@ unit_types {
     name:                  Expert Lumberjack
     tile:                  expert_lumberjack
     expertise:             lumberjacking
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -359,6 +374,7 @@ unit_types {
     name:                  Expert Ore Miner
     tile:                  expert_ore_miner
     expertise:             ore_mining
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -384,6 +400,7 @@ unit_types {
     name:                  Expert Silver Miner
     tile:                  expert_silver_miner
     expertise:             silver_mining
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -409,6 +426,7 @@ unit_types {
     name:                  Master Carpenter
     tile:                  master_carpenter
     expertise:             carpentry
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -434,6 +452,7 @@ unit_types {
     name:                  Master Rum Distiller
     tile:                  master_rum_distiller
     expertise:             rum_distilling
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -459,6 +478,7 @@ unit_types {
     name:                  Master Tobacconist
     tile:                  master_tobacconist
     expertise:             tobacconistry
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -484,6 +504,7 @@ unit_types {
     name:                  Master Weaver
     tile:                  master_weaver
     expertise:             weaving
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -509,6 +530,7 @@ unit_types {
     name:                  Master Fur Trader
     tile:                  master_fur_trader
     expertise:             fur_trading
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -534,6 +556,7 @@ unit_types {
     name:                  Master Blacksmith
     tile:                  master_blacksmith
     expertise:             blacksmithing
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -559,6 +582,7 @@ unit_types {
     name:                  Master Gunsmith
     tile:                  master_gunsmith
     expertise:             gunsmithing
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -584,6 +608,7 @@ unit_types {
     name:                  Elder Statesman
     tile:                  elder_statesman
     expertise:             bell_ringing
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -609,6 +634,7 @@ unit_types {
     name:                  Firebrand Preacher
     tile:                  firebrand_preacher
     expertise:             preaching
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -634,6 +660,7 @@ unit_types {
     name:                  Hardy Colonist
     tile:                  hardy_colonist
     expertise:             pioneering
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -659,6 +686,7 @@ unit_types {
     name:                  Jesuit Colonist
     tile:                  jesuit_colonist
     expertise:             missioning
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -684,6 +712,7 @@ unit_types {
     name:                  Seasoned Colonist
     tile:                  seasoned_colonist
     expertise:             scouting
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -709,6 +738,7 @@ unit_types {
     name:                  Veteran Colonist
     tile:                  veteran_colonist
     expertise:             fighting
+    cleared_expertise:     free_colonist
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -739,6 +769,7 @@ unit_types {
     name:                  Veteran Soldier
     tile:                  veteran_soldier
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -758,6 +789,7 @@ unit_types {
     name:                  Veteran Dragoon
     tile:                  veteran_dragoon
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -777,6 +809,7 @@ unit_types {
     name:                  Continental Army
     tile:                  continental_army
     expertise:             null
+    cleared_expertise:     soldier
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -796,6 +829,7 @@ unit_types {
     name:                  Continental Cavalry
     tile:                  continental_cavalry
     expertise:             null
+    cleared_expertise:     dragoon
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -815,6 +849,7 @@ unit_types {
     name:                  Regular
     tile:                  regular
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -834,6 +869,7 @@ unit_types {
     name:                  Cavalry
     tile:                  cavalry
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -853,6 +889,7 @@ unit_types {
     name:                  Hardy Pioneer
     tile:                  hardy_pioneer
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -872,6 +909,7 @@ unit_types {
     name:                  Jesuit Missionary
     tile:                  jesuit_missionary
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -891,6 +929,7 @@ unit_types {
     name:                  Seasoned Scout
     tile:                  seasoned_scout
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     sw
@@ -915,6 +954,7 @@ unit_types {
     name:                  Damaged Artillery
     tile:                  damaged_artillery
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     n
@@ -936,6 +976,7 @@ unit_types {
     name:                  Artillery
     tile:                  artillery
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     n
@@ -958,6 +999,7 @@ unit_types {
     name:                  Caravel
     tile:                  caravel
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -977,6 +1019,7 @@ unit_types {
     name:                  Merchantman
     tile:                  merchantman
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -996,6 +1039,7 @@ unit_types {
     name:                  Galleon
     tile:                  galleon
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -1015,6 +1059,7 @@ unit_types {
     name:                  Privateer
     tile:                  privateer
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -1034,6 +1079,7 @@ unit_types {
     name:                  Frigate
     tile:                  frigate
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -1053,6 +1099,7 @@ unit_types {
     name:                  Man-O-War
     tile:                  man_o_war
     expertise:             null
+    cleared_expertise:     null
     ship:                  true
     nat_icon_front:        false
     nat_icon_position:     nw
@@ -1075,6 +1122,7 @@ unit_types {
     name:                  Wagon Train
     tile:                  wagon_train
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     n
@@ -1098,6 +1146,7 @@ unit_types {
     name:                  Small Treasure
     tile:                  small_treasure
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     n
@@ -1117,6 +1166,7 @@ unit_types {
     name:                  Large Treasure
     tile:                  large_treasure
     expertise:             null
+    cleared_expertise:     null
     ship:                  false
     nat_icon_front:        false
     nat_icon_position:     n

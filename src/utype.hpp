@@ -91,6 +91,14 @@ struct UnitTypeAttributes {
   // base types.
   maybe<e_unit_activity> expertise{};
 
+  // Describes how this unit (can be either base or derived) han-
+  // dles the clearing of its specialty. If it is a base type
+  // then this can be either null (cannot clear) or a unit type.
+  // For derived types, this can be either null (meaning consult
+  // the base type) or a unit type. See the `cleared_expertise`
+  // function below for more info on the precise logic used.
+  maybe<e_unit_type> cleared_expertise{};
+
   // Determines how the unit gets promoted or how the unit influ-
   // ences promotion of a base type. See sumtype comments to ex-
   // planation of the meaning of the variant alternatives.
@@ -236,10 +244,43 @@ maybe<UnitType> on_death_demoted_type( UnitType ut );
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
-    UnitType                                    ut,
-    std::initializer_list<e_unit_type_modifier> modifiers );
+    UnitType                                        ut,
+    std::unordered_set<e_unit_type_modifier> const& modifiers,
+    bool allow_independence );
+
+// Try to remove the modifiers from the type and return the re-
+// sulting type if it works out. The unit must have all of the
+// modifiers in order for this to be successful.
+maybe<UnitType> rm_unit_type_modifiers(
+    UnitType                                        ut,
+    std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 UnitTypeAttributes const& unit_attr( UnitType type );
+
+// This promotes a unit. If the promotion is possible then either
+// the base type or derived type (or both) may change. The `ac-
+// tivity` parameter may or may not be used depending on the unit
+// type. The logic behind this function is a bit complicated; see
+// the comments in the Rds definition for UnitPromotion as well
+// as the function implementation for more info.
+//
+// This may be a bit expensive to call; it should not be called
+// on every frame or on every unit in a given turn. It should
+// only be called when we know that we want to try to promote a
+// unit, which should not happen that often. It is ok to call it
+// on the order of once per battle, although that probably won't
+// happen since the probability of promotion in a battle is not
+// large.
+maybe<UnitType> promoted_unit_type( UnitType        ut,
+                                    e_unit_activity activity,
+                                    bool allow_independence );
+
+// Will attempt to clear the expertise (if any) of the base type
+// while holding any modifiers constant. Though if the derived
+// type specifies a cleared_expertise target then that will be
+// respected without regard for the base type: that target will
+// be created with its default base type and returned.
+maybe<UnitType> cleared_expertise( UnitType ut );
 
 } // namespace rn
 
@@ -253,5 +294,5 @@ namespace rn {
 
 } // namespace rn
 
-DEFINE_FORMAT( ::rn::UnitType, "UnitType{{base={},derived={}}}",
-               o.base_type(), o.type() );
+DEFINE_FORMAT( ::rn::UnitType, "UnitType{{type={},base={}}}",
+               o.type(), o.base_type() );
