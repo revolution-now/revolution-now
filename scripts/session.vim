@@ -2,9 +2,10 @@
 let s:stems = [
   \ 'colony-view',
   \ 'colview-entities',
+  \ 'game-state',
   \ 'unit',
   \ 'utype',
-  \ 'unit-conv',
+  \ 'unit-composer',
 \]
 
 let s:luas = [

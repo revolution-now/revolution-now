@@ -14,6 +14,17 @@
   1. Move all global save-game data into one giant data structure
      and get all the SG stuff out of the individual modules.
 
+  2. Add struct w/ reflection to Rds and redo flatbuffers struct
+     and table serialization to make use of it. This will also
+     allow serializing game data to other formats. Add an Rcl de-
+     serializer for structs using this also.
+
+  3. Add sumtype reflection to Rds (which will also require that
+     the structs comprising the alternatives be reflected using
+     the mechanism from \#2 above). Then write an Rcl deserial-
+     izer for sumtypes and use it to remove the manual implemen-
+     tations in the utype module.
+
 # ===============================================================
 # Type Safety
 # ===============================================================
