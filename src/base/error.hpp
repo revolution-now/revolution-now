@@ -152,6 +152,17 @@
     }                                               \
   }
 
+#define CHECK_HAS_VALUE_MSG( e, ... )                    \
+  {                                                      \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;        \
+    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {        \
+      ::base::abort_with_msg( fmt::format(               \
+          "bad unwrap, original error: {}, message: {}", \
+          STRING_JOIN( __e, __LINE__ ).error(),          \
+          FMT_SAFE( __VA_ARGS__ ) ) );                   \
+    }                                                    \
+  }
+
 #define HAS_VALUE_OR_RET( ... )                  \
   {                                              \
     if( auto xp__ = __VA_ARGS__; !bool( xp__ ) ) \
