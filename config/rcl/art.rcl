@@ -48,7 +48,7 @@ tiles {
       free_colonist:          { y: 1, x: 0 }
       soldier:                { y: 1, x: 1 }
       dragoon:                { y: 1, x: 2 }
-      pioneer:                { y: 0, x: 0 }
+      pioneer:                { y: 1, x: 4 }
       missionary:             { y: 0, x: 0 }
       scout:                  { y: 1, x: 3 }
       expert_farmer:          { y: 0, x: 0 }
