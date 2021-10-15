@@ -75,5 +75,6 @@ FMT_TO_CATCH_T( ( T ), ::std::optional );
 FMT_TO_CATCH_T( ( T ), ::base::maybe );
 FMT_TO_CATCH_T( ( T, E ), ::base::expect );
 FMT_TO_CATCH_T( ( E ), ::base::valid_or );
+FMT_TO_CATCH_T( ( T ), ::rn::FmtVerticalJsonList );
 FMT_TO_CATCH( ::base::valid_t );
 FMT_TO_CATCH( ::base::nothing_t );
