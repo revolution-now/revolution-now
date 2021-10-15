@@ -35,4 +35,9 @@ constexpr std::string_view enum_name( Enum val ) {
   return enum_traits<Enum>::value_name( val );
 }
 
+template<ReflectedEnum Enum>
+constexpr auto enum_values() {
+  return enum_traits<Enum>::values;
+}
+
 } // namespace rn
