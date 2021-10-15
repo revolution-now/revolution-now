@@ -18,19 +18,32 @@
 #include "unit.hpp"
 #include "views.hpp"
 
+// base
+#include "base/fmt.hpp"
+#include "base/to-str.hpp"
+
 // C++ standard library
 #include <unordered_map>
 
 namespace rn::ui {
 
+/****************************************************************
+** UnitActivationInfo
+*****************************************************************/
 // Holds the state of each unit in the window as the player is
 // selecting them and cycling them through the states.
 struct UnitActivationInfo {
   e_unit_orders original_orders;
   e_unit_orders current_orders;
   bool          is_activated;
+
+  friend void to_str( UnitActivationInfo const& o,
+                      std::string&              out );
 };
 
+/****************************************************************
+** UnitActivationView
+*****************************************************************/
 class UnitActivationView final : public CompositeSingleView {
 public:
   using map_t = std::unordered_map<UnitId, UnitActivationInfo>;
@@ -54,3 +67,5 @@ private:
 };
 
 } // namespace rn::ui
+
+TOSTR_TO_FMT( ::rn::ui::UnitActivationInfo );
