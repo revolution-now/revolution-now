@@ -14,7 +14,9 @@
 #include "co-waitable.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
+#include "config-files.hpp"
 #include "cstate.hpp"
+#include "game-state.hpp"
 #include "gfx.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -23,6 +25,9 @@
 #include "ustate.hpp"
 #include "views.hpp"
 #include "window.hpp"
+
+// Revolution Now (config)
+#include "../config/rcl/units.inl"
 
 // base
 #include "base/maybe-util.hpp"
@@ -747,19 +752,17 @@ public:
     return ColViewObject::unit{ .id = dragged };
   }
 
-  maybe<ColViewObject_t> can_receive_commodity(
+  maybe<ColViewObject_t> can_cargo_unit_receive_commodity(
       Commodity const& comm, e_colview_entity from,
-      Coord const& where ) const {
-    maybe<UnitId> over_unit_id = contains_unit( where );
-    if( !over_unit_id ) return nothing;
-    Unit const& target_unit = unit_from_id( *over_unit_id );
-    if( target_unit.desc().cargo_slots == 0 ) return nothing;
+      UnitId cargo_unit_id ) const {
+    Unit const& target_unit = unit_from_id( cargo_unit_id );
+    CHECK( target_unit.desc().cargo_slots != 0 );
     // Check if the target_unit is already holding the dragged
     // commodity.
     if( from == e_colview_entity::cargo ) {
       CHECK( selected_.has_value() );
       CHECK( unit_from_id( *selected_ ).desc().cargo_slots > 0 );
-      if( *over_unit_id == *selected_ )
+      if( cargo_unit_id == *selected_ )
         // The commodity is already in the cargo of the unit
         // under the mouse.
         return nothing;
@@ -776,6 +779,53 @@ public:
     new_comm.quantity  = std::min( new_comm.quantity, max_q );
     CHECK( new_comm.quantity > 0 );
     return ColViewObject::commodity{ .comm = new_comm };
+  }
+
+  static maybe<UnitTransformationFromCommodityResult>
+  transformed_unit_composition_from_commodity(
+      Unit const& unit, Commodity const& comm ) {
+    vector<UnitTransformationFromCommodityResult> possibilities =
+        unit.with_commodity_added( comm );
+    adjust_for_independence_status( possibilities,
+                                    is_independence_declared() );
+
+    erase_if( possibilities, []( auto const& xform_res ) {
+      for( auto [mod, _] : xform_res.modifier_deltas )
+        if( !config_units.modifier_traits[mod].player_can_grant )
+          return true;
+      return false; // don't erase.
+    } );
+
+    maybe<UnitTransformationFromCommodityResult> res;
+    if( possibilities.size() == 1 ) res = possibilities[0];
+    return res;
+  }
+
+  maybe<ColViewObject_t> can_unit_receive_commodity(
+      Commodity const& comm, e_colview_entity /*from*/,
+      UnitId           id ) const {
+    // We are dragging a commodity over a unit that does not have
+    // a cargo hold. This could be valid if we are e.g. giving
+    // muskets to a colonist.
+    UNWRAP_RETURN( xform_res,
+                   transformed_unit_composition_from_commodity(
+                       unit_from_id( id ), comm ) );
+    return ColViewObject::commodity{
+        .comm = comm.with_quantity( xform_res.quantity_used ) };
+  }
+
+  maybe<ColViewObject_t> can_receive_commodity(
+      Commodity const& comm, e_colview_entity from,
+      Coord const& where ) const {
+    maybe<UnitId> over_unit_id = contains_unit( where );
+    if( !over_unit_id ) return nothing;
+    Unit const& target_unit = unit_from_id( *over_unit_id );
+    if( target_unit.desc().cargo_slots != 0 )
+      return can_cargo_unit_receive_commodity( comm, from,
+                                               *over_unit_id );
+    else
+      return can_unit_receive_commodity( comm, from,
+                                         *over_unit_id );
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -796,12 +846,13 @@ public:
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override {
     maybe<UnitId> target_unit = contains_unit( where );
-    return overload_visit(
+    overload_visit(
         o, //
         [&]( ColViewObject::unit const& unit ) {
           if( target_unit ) {
-            ustate_change_to_cargo_somewhere( *target_unit,
-                                              unit.id );
+            ustate_change_to_cargo_somewhere(
+                /*new_holder=*/*target_unit,
+                /*held=*/unit.id );
           } else {
             ustate_change_to_map( unit.id, colony().location() );
             // This is not strictly necessary, but as a conve-
@@ -813,9 +864,24 @@ public:
         },
         [&]( ColViewObject::commodity const& comm ) {
           CHECK( target_unit );
-          add_commodity_to_cargo( comm.comm, *target_unit,
-                                  /*slot=*/0,
-                                  /*try_other_slots=*/true );
+          Unit& unit = unit_from_id( *target_unit );
+          if( unit.desc().cargo_slots > 0 ) {
+            add_commodity_to_cargo( comm.comm, *target_unit,
+                                    /*slot=*/0,
+                                    /*try_other_slots=*/true );
+          } else {
+            // We are dragging a commodity over a unit that does
+            // not have a cargo hold. This could be valid if we
+            // are e.g. giving muskets to a colonist.
+            Commodity const& dropping_comm = comm.comm;
+            UNWRAP_CHECK(
+                xform_res,
+                transformed_unit_composition_from_commodity(
+                    unit, dropping_comm ) );
+            CHECK( xform_res.quantity_used ==
+                   dropping_comm.quantity );
+            unit.change_type( xform_res.new_comp );
+          }
         } );
   }
 
