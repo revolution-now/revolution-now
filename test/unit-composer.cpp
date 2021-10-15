@@ -2193,5 +2193,266 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 }
 
+TEST_CASE( "[unit-composer] adjust_for_independence_status" ) {
+  SECTION( "general" ) {
+    vector<UnitTransformationResult> input;
+    vector<UnitTransformationResult> expected;
+
+    // Add independence after independence is declared.
+    input = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } } },
+    };
+    expected = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } } },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/true );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+
+    // Add independence before independence is declared.
+    input = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } },
+        },
+    };
+    expected = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/false );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+
+    // Remove independence before independence is declared.
+    input = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::del } },
+        },
+    };
+    expected = {
+        UnitTransformationResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::del } },
+        },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/false );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+  }
+  SECTION( "commodity" ) {
+    vector<UnitTransformationFromCommodityResult> input;
+    vector<UnitTransformationFromCommodityResult> expected;
+
+    // Add independence after independence is declared.
+    input = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } },
+        },
+    };
+    expected = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } },
+        },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/true );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+
+    // Add independence before independence is declared.
+    input = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::continental_army,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::add } },
+        },
+    };
+    expected = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+        },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/false );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+
+    // Remove independence before independence is declared.
+    input = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::del } },
+        },
+    };
+    expected = {
+        UnitTransformationFromCommodityResult{
+            .new_comp = UnitComposition::create(
+                            /*type=*/UnitType::create(
+                                e_unit_type::veteran_soldier,
+                                e_unit_type::veteran_colonist )
+                                .value(),
+                            /*inventory=*/{} )
+                            .value(),
+            .modifier_deltas =
+                { { e_unit_type_modifier::independence,
+                    e_unit_type_modifier_delta::del } },
+        },
+    };
+    adjust_for_independence_status(
+        input, /*independence_declared=*/false );
+    REQUIRE( FmtVerticalJsonList{ input } ==
+             FmtVerticalJsonList{ expected } );
+  }
+}
+
 } // namespace
 } // namespace rn

@@ -431,14 +431,14 @@ bool requires_independence( T const& utr ) {
 void adjust_for_independence_status(
     vector<UnitTransformationResult>& input,
     bool                              independence_declared ) {
-  if( !independence_declared ) return;
+  if( independence_declared ) return;
   erase_if( input, L( requires_independence( _ ) ) );
 }
 
 void adjust_for_independence_status(
     vector<UnitTransformationFromCommodityResult>& input,
     bool independence_declared ) {
-  if( !independence_declared ) return;
+  if( independence_declared ) return;
   erase_if( input, L( requires_independence( _ ) ) );
 }
 
