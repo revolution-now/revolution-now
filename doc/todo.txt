@@ -17,7 +17,10 @@
   2. Add struct w/ reflection to Rds and redo flatbuffers struct
      and table serialization to make use of it. This will also
      allow serializing game data to other formats. Add an Rcl de-
-     serializer for structs using this also.
+     serializer for structs using this also. One challenge here
+     will be how to make a struct reflected but also have methods
+     that can be used to maintain invariants. Also, such classes
+     can be nested.
 
   3. Add sumtype reflection to Rds (which will also require that
      the structs comprising the alternatives be reflected using

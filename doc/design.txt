@@ -1,3 +1,14 @@
+Unit Composition
+=======================================
+
+Types of requests that will need to be made:
+
+  1. Given some set of commodities, what derived/base units can
+     this unit become, along with the delta of commodities and
+     modifiers required for each one.
+  2. Can unit receive commodity, and if so how many and what unit
+     type will it become?
+
 Unit Type Representation and Conversion
 =======================================
 
