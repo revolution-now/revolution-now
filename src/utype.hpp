@@ -15,6 +15,7 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "coord.hpp"
+#include "enum-map.hpp"
 #include "fb.hpp"
 #include "lua-enum.hpp"
 #include "mv-points.hpp"
@@ -47,10 +48,33 @@ LUA_ENUM_DECL( unit_type );
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
 
+struct UnitTypeModifierTraits {
+  bool                           player_can_grant;
+  ModifierCommodityAssociation_t commodity_association;
+
+};
+
+// This is for deserializing from Rcl config files.
+rcl::convert_err<UnitTypeModifierTraits> convert_to(
+    rcl::value const& v, rcl::tag<UnitTypeModifierTraits> );
+
 /****************************************************************
 ** e_unit_activity
 *****************************************************************/
 LUA_ENUM_DECL( unit_activity );
+
+/****************************************************************
+** Unit Inventory
+*****************************************************************/
+maybe<std::pair<e_unit_type_modifier,
+                ModifierCommodityAssociation::inventory const&>>
+inventory_to_modifier( e_unit_inventory inv );
+
+maybe<e_unit_inventory> commodity_to_inventory(
+    e_commodity comm );
+
+maybe<e_commodity> inventory_to_commodity(
+    e_unit_inventory inv_type );
 
 /****************************************************************
 ** UnitTypeAttributes
@@ -145,31 +169,13 @@ namespace rn {
 // yond what is able to be done while deserializing each one in
 // isolation.
 struct UnitAttributesMap {
-  using Map =
-      std::unordered_map<e_unit_type, UnitTypeAttributes>;
+  using Map = ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>;
   Map map;
 };
 
 // This is for deserializing from Rcl config files.
 rcl::convert_err<UnitAttributesMap> convert_to(
     rcl::value const& v, rcl::tag<UnitAttributesMap> );
-
-/****************************************************************
-** Commodity to Modifier Conversion
-*****************************************************************/
-struct UnitTypeModifierFromCommodity {
-  e_unit_type_modifier modifier;
-  int                  comm_quantity_used;
-
-  bool operator==( UnitTypeModifierFromCommodity const& ) const =
-      default;
-};
-
-maybe<UnitTypeModifierFromCommodity>
-convert_commodity_to_modifier( Commodity const& comm );
-
-// maybe<Commodity> commodities_in_modifier(
-//     e_unit_type_modifier modifier );
 
 /****************************************************************
 ** UnitType

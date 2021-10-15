@@ -92,6 +92,31 @@ enum.e_unit_type_modifier [
   strength
 ]
 
+enum.e_unit_inventory [
+  gold
+  tools
+]
+
+sumtype.ModifierCommodityAssociation {
+  # There is no association between the modifier and any commod-
+  # ity.
+  none {}
+  # Granting the modifier to a unit will consume a fixed amount
+  # of a given commodity.
+  consume {
+    type: e_commodity
+    quantity: int
+  }
+  # Granting the modifier to a unit will require a certain amount
+  # of the given commodity in the inventory.
+  inventory {
+    type: e_commodity
+    min_quantity: int
+    max_quantity: int
+    multiple: int
+  }
+}
+
 # This is used to represent two different things:
 #
 #   1. The activity that a unit is currently engaged in, regard-

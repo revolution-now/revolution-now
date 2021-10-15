@@ -14,6 +14,9 @@
 #include "config-files.hpp"
 #include "lua.hpp"
 
+// Revolution Now (config)
+#include "../config/rcl/units.inl"
+
 // luapp
 #include "luapp/ext-base.hpp"
 #include "luapp/rtable.hpp"
@@ -31,9 +34,6 @@
 // base
 #include "base/keyval.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/units.inl"
-
 // C++ standard library
 #include <unordered_set>
 
@@ -47,14 +47,227 @@ namespace rn {
 LUA_ENUM( unit_type );
 
 /****************************************************************
+** ModifierCommodityAssociation
+*****************************************************************/
+namespace ModifierCommodityAssociation {
+
+// FIXME: Have RDS implement this automatically. It requires
+// first giving RDS support for reflected structs, then for re-
+// flected variants, then write generic convert_to implementa-
+// tions for the reflected structs and reflected variants.
+rcl::convert_err<ModifierCommodityAssociation_t> convert_to(
+    rcl::value const& v,
+    rcl::tag<ModifierCommodityAssociation_t> ) {
+  constexpr string_view kTypeName =
+      "ModifierCommodityAssociation_t";
+  constexpr int kNumFieldsExpected = 1;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error( fmt::format(
+        "cannot produce a {} from type {}.", kTypeName,
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  if( tbl.size() != kNumFieldsExpected )
+    return rcl::error(
+        fmt::format( "table must have precisely {} field for "
+                     "conversion to {}.",
+                     kNumFieldsExpected, kTypeName ) );
+  auto& [key, val] = *tbl.begin();
+  if( rcl::type_of( val ) != rcl::type::table )
+    return rcl::error( fmt::format(
+        "variant alternative field must have type table." ) );
+  UNWRAP_CHECK( uptr_alternative,
+                val.get_if<unique_ptr<rcl::table>>() );
+  CHECK( uptr_alternative );
+  rcl::table const& alternative = *uptr_alternative;
+  if( key == "none" )
+    return ModifierCommodityAssociation::none{};
+  if( key == "consume" ) {
+    if( alternative.size() != 2 )
+      return rcl::error(
+          fmt::format( "{} variant alternative {} must have "
+                       "precisely {} fields.",
+                       kTypeName, "inventory", 2 ) );
+    // type
+    if( !alternative.has_key( "type" ) )
+      return rcl::error(
+          fmt::format( "{} variant alternative {} must have a "
+                       "field named {}.",
+                       kTypeName, "inventory", "type" ) );
+    UNWRAP_RETURN( type, rcl::convert_to<e_commodity>(
+                             alternative["type"] ) );
+    // quantity
+    if( !alternative.has_key( "quantity" ) )
+      return rcl::error( fmt::format(
+          "{} variant alternative {} must have a field named "
+          "{}.",
+          kTypeName, "inventory", "quantity" ) );
+    UNWRAP_RETURN( quantity, rcl::convert_to<int>(
+                                 alternative["quantity"] ) );
+    return ModifierCommodityAssociation::consume{
+        .type     = std::move( type ),
+        .quantity = std::move( quantity ),
+    };
+  }
+  if( key == "inventory" ) {
+    if( alternative.size() != 4 )
+      return rcl::error(
+          fmt::format( "{} variant alternative {} must have "
+                       "precisely {} fields.",
+                       kTypeName, "inventory", 4 ) );
+    // type
+    if( !alternative.has_key( "type" ) )
+      return rcl::error(
+          fmt::format( "{} variant alternative {} must have a "
+                       "field named {}.",
+                       kTypeName, "inventory", "type" ) );
+    UNWRAP_RETURN( type, rcl::convert_to<e_commodity>(
+                             alternative["type"] ) );
+    // min_quantity
+    if( !alternative.has_key( "min_quantity" ) )
+      return rcl::error( fmt::format(
+          "{} variant alternative {} must have a field named "
+          "{}.",
+          kTypeName, "inventory", "min_quantity" ) );
+    UNWRAP_RETURN(
+        min_quantity,
+        rcl::convert_to<int>( alternative["min_quantity"] ) );
+    // max_quantity
+    if( !alternative.has_key( "max_quantity" ) )
+      return rcl::error( fmt::format(
+          "{} variant alternative {} must have a field named "
+          "{}.",
+          kTypeName, "inventory", "max_quantity" ) );
+    UNWRAP_RETURN(
+        max_quantity,
+        rcl::convert_to<int>( alternative["max_quantity"] ) );
+    // multiple
+    if( !alternative.has_key( "multiple" ) )
+      return rcl::error(
+          fmt::format( "{} variant alternative {} must have a "
+                       "field named {}.",
+                       kTypeName, "inventory", "multiple" ) );
+    UNWRAP_RETURN( multiple, rcl::convert_to<int>(
+                                 alternative["multiple"] ) );
+    return ModifierCommodityAssociation::inventory{
+        .type         = std::move( type ),
+        .min_quantity = std::move( min_quantity ),
+        .max_quantity = std::move( max_quantity ),
+        .multiple     = std::move( multiple ),
+    };
+  }
+  return rcl::error(
+      fmt::format( "config field of type {} has invalid variant "
+                   "alternative type name: {}.",
+                   kTypeName, key ) );
+}
+
+} // namespace ModifierCommodityAssociation
+
+/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM( unit_type_modifier );
+
+// Rcl
+rcl::convert_err<UnitTypeModifierTraits> convert_to(
+    rcl::value const& v, rcl::tag<UnitTypeModifierTraits> ) {
+  constexpr string_view kTypeName = "UnitTypeModifierTraits";
+  constexpr int         kNumFieldsExpected = 2;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error( fmt::format(
+        "cannot produce a {} from type {}.", kTypeName,
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  if( tbl.size() != kNumFieldsExpected )
+    return rcl::error(
+        fmt::format( "table must have precisely {} fields for "
+                     "conversion to {}.",
+                     kNumFieldsExpected, kTypeName ) );
+  UnitTypeModifierTraits res;
+
+  // clang-format off
+  EVAL( PP_MAP_SEMI( RCL_CONVERT_FIELD,
+    player_can_grant,
+    commodity_association
+  ) );
+  // clang-format on
+
+  return res;
+}
 
 /****************************************************************
 ** e_unit_activity
 *****************************************************************/
 LUA_ENUM( unit_activity );
+
+/****************************************************************
+** Unit Inventory
+*****************************************************************/
+maybe<std::pair<e_unit_type_modifier,
+                ModifierCommodityAssociation::inventory const&>>
+inventory_to_modifier( e_unit_inventory inv ) {
+  static auto const m = [] {
+    DCHECK( configs_loaded() );
+    unordered_map<
+        e_unit_inventory,
+        pair<e_unit_type_modifier,
+             ModifierCommodityAssociation::inventory const&>>
+        res;
+    for( auto const& [mod, val] :
+         config_units.modifier_traits ) {
+      string_view             mod_name = enum_name( mod );
+      maybe<e_unit_inventory> inv =
+          enum_traits<e_unit_inventory>::from_string( mod_name );
+      auto inventory =
+          val.commodity_association
+              .get_if<ModifierCommodityAssociation::inventory>();
+      if( !inventory ) {
+        CHECK( !inv.has_value(),
+               "the inventory item `{}` does not have a "
+               "corresponding modifier with inventory commodity "
+               "association.",
+               *inv );
+        continue;
+      }
+      CHECK_HAS_VALUE_MSG(
+          inv,
+          "the modifier `{}` is associated with an inventory "
+          "commodity, but there is no e_unit_inventory type "
+          "with the name '{}'.",
+          mod, mod_name );
+      // This is validation of the config.
+      CHECK( enum_traits<e_commodity>::from_string( mod_name ),
+             "the modifier `{}` is associated with an inventory "
+             "commodity, but there is no e_commodity type with "
+             "the name '{}'.",
+             mod, mod_name );
+      bool was_inserted =
+          res.try_emplace( *inv, mod, *inventory ).second;
+      DCHECK( was_inserted );
+    }
+    return res;
+  }();
+  DCHECK( !m.empty() );
+  return base::lookup( m, inv );
+}
+
+maybe<e_unit_inventory> commodity_to_inventory(
+    e_commodity comm ) {
+  return enum_traits<e_unit_inventory>::from_string(
+      enum_name( comm ) );
+}
+
+maybe<e_commodity> inventory_to_commodity(
+    e_unit_inventory inv_type ) {
+  UNWRAP_RETURN( mod, inventory_to_modifier( inv_type ) );
+  return mod.second.type;
+}
 
 /****************************************************************
 ** UnitDeathAction
@@ -210,7 +423,6 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
 // Rcl
 rcl::convert_err<UnitTypeAttributes> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
-  (void)rcl::convert_to<UnitDeathAction_t>( v );
   constexpr string_view kTypeName = "UnitTypeAttributes";
   constexpr int         kNumFieldsExpected = 17;
   base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
@@ -530,48 +742,6 @@ bool unit_type_modifier_path_exists( e_unit_type base_type,
 }
 
 } // namespace
-
-/****************************************************************
-** Commodity to Modifier Conversion
-*****************************************************************/
-maybe<UnitTypeModifierFromCommodity>
-convert_commodity_to_modifier( Commodity const& comm ) {
-  switch( comm.type ) {
-    case e_commodity::horses: {
-      constexpr int needed = 50;
-      if( comm.quantity >= needed )
-        return UnitTypeModifierFromCommodity{
-            .modifier           = e_unit_type_modifier::horses,
-            .comm_quantity_used = needed,
-        };
-      return nothing;
-    }
-    case e_commodity::muskets: {
-      constexpr int needed = 50;
-      if( comm.quantity >= needed )
-        return UnitTypeModifierFromCommodity{
-            .modifier           = e_unit_type_modifier::muskets,
-            .comm_quantity_used = needed,
-        };
-      return nothing;
-    }
-    case e_commodity::tools: {
-      constexpr int multiple     = 20;
-      constexpr int max_possible = 100;
-      static_assert( max_possible % multiple == 0 );
-      if( comm.quantity < multiple ) return nothing;
-      int adjusted_quantity =
-          std::min( comm.quantity, max_possible );
-      int residual = adjusted_quantity % multiple;
-      return UnitTypeModifierFromCommodity{
-          .modifier           = e_unit_type_modifier::tools,
-          .comm_quantity_used = adjusted_quantity - residual,
-      };
-      return nothing;
-    }
-    default: return nothing;
-  }
-}
 
 /****************************************************************
 ** UnitType

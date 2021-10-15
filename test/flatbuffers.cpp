@@ -652,10 +652,11 @@ TEST_CASE( "deserialize json" ) {
       /*json=*/json, /*out=*/&unit ) );
 
   REQUIRE( unit.id() == UnitId{ 1 } );
-  REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
+  REQUIRE(
+      unit.composition() ==
+      UnitComposition::create( rn::e_unit_type::merchantman ) );
   REQUIRE( unit.orders() == rn::e_unit_orders::none );
   REQUIRE( unit.nation() == rn::e_nation::english );
-  REQUIRE( unit.worth() == nothing );
   REQUIRE( unit.movement_points() == rn::MovementPoints( 5 ) );
 
   auto& cargo = unit.cargo();
@@ -696,7 +697,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   rn::ustate_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 248;
+  constexpr uint64_t kExpectedBlobSize = 268;
   auto               json_file = data_dir() / "unit.json";
 
   SECTION( "create/serialize" ) {
@@ -728,13 +729,20 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto const& ship_unit = rn::unit_from_id( ship );
 
     REQUIRE( unit.id_() == ship._ );
-    REQUIRE( static_cast<int>( unit.type_()->type_() ) ==
-             static_cast<int>( ship_unit.desc().type ) );
+    REQUIRE(
+        static_cast<int>(
+            unit.composition_()->type_()->base_type_() ) ==
+        static_cast<int>(
+            ship_unit.composition().type_obj().base_type() ) );
+    REQUIRE( static_cast<int>(
+                 unit.composition_()->type_()->type_() ) ==
+             static_cast<int>(
+                 ship_unit.composition().type_obj().type() ) );
+    REQUIRE( unit.composition_()->inventory_()->size() == 0 );
     REQUIRE( static_cast<int>( unit.orders_() ) ==
              static_cast<int>( ship_unit.orders() ) );
     REQUIRE( static_cast<int>( unit.nation_() ) ==
              static_cast<int>( ship_unit.nation() ) );
-    REQUIRE( unit.worth_() == nullptr );
 
     REQUIRE( unit.cargo_() != nullptr );
     auto cargo = unit.cargo_();
@@ -810,10 +818,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto const& orig = rn::unit_from_id( ship );
 
     REQUIRE( unit.id() == orig.id() );
-    REQUIRE( unit.desc().type == orig.desc().type );
+    REQUIRE( unit.composition() == orig.composition() );
     REQUIRE( unit.orders() == orig.orders() );
     REQUIRE( unit.nation() == orig.nation() );
-    REQUIRE( unit.worth() == orig.worth() );
     REQUIRE( unit.movement_points() == orig.movement_points() );
 
     REQUIRE( unit.units_in_cargo().has_value() );

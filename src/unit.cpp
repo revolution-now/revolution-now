@@ -28,42 +28,28 @@ namespace rn {
 
 namespace {} // namespace
 
-Unit::Unit( e_nation nation, UnitType type )
+Unit::Unit( e_nation nation, UnitComposition comp )
   : id_( next_unit_id() ),
-    type_( type ),
+    composition_( std::move( comp ) ),
     orders_( e_unit_orders::none ),
-    cargo_( unit_attr( type.type() ).cargo_slots ),
+    cargo_( unit_attr( composition_.type() ).cargo_slots ),
     nation_( nation ),
-    worth_( nothing ),
-    mv_pts_( unit_attr( type.type() ).movement_points ) {}
+    mv_pts_( unit_attr( composition_.type() ).movement_points ) {
+}
 
 valid_deserial_t Unit::check_invariants_safe() const {
-  // Check that only treasure units can have a worth.
-  switch( type_.type() ) {
-    case e_unit_type::large_treasure:
-    case e_unit_type::small_treasure:
-      VERIFY_DESERIAL( worth_.has_value(),
-                       "Treasure trains must have a `worth`." );
-      break;
-    default: //
-      VERIFY_DESERIAL(
-          !worth_.has_value(),
-          "Non-treasure trains must not have a `worth`." );
-      break;
-  };
   VERIFY_DESERIAL( cargo().slots_total() == desc().cargo_slots,
                    "inconsistent number of cargo slots" );
   return valid;
 }
 
 UnitTypeAttributes const& Unit::desc() const {
-  return unit_attr( type_.type() );
+  return unit_attr( type() );
 }
 
 // FIXME: luapp can only take this as non-const....
 UnitTypeAttributes& Unit::desc_non_const() const {
-  return const_cast<UnitTypeAttributes&>(
-      unit_attr( type_.type() ) );
+  return const_cast<UnitTypeAttributes&>( unit_attr( type() ) );
 }
 
 // Mark unit as having moved.
@@ -108,16 +94,16 @@ void Unit::change_nation( e_nation nation ) {
   nation_ = nation;
 }
 
-void Unit::change_type( UnitType const& new_type ) {
+void Unit::change_type( UnitComposition new_comp ) {
+  UnitType const& new_type = new_comp.type_obj();
   CHECK( cargo_.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
-  CHECK( unit_attr( type_.type() ).ship ==
+  CHECK( unit_attr( type() ).ship ==
              unit_attr( new_type.type() ).ship,
          "cannot change a ship to a non-ship or vice versa." );
   // Most attributes remain the same, save for a few.
   UnitTypeAttributes const& new_desc = unit_attr( new_type );
   UnitTypeAttributes const& old_desc = desc();
-  // FIXME: worth?
   cargo_ = CargoHold( new_desc.cargo_slots );
 
   // For movement points, just subtract the number of movement
@@ -137,7 +123,7 @@ void Unit::change_type( UnitType const& new_type ) {
                       new_desc.movement_points - used );
 
   // This should be done last.
-  type_ = new_type;
+  composition_ = std::move( new_comp );
 }
 
 string debug_string( Unit const& unit ) {
@@ -147,28 +133,20 @@ string debug_string( Unit const& unit ) {
 }
 
 void Unit::demote_from_lost_battle() {
-  UNWRAP_CHECK( new_type, on_death_demoted_type( type_ ) );
-  change_type( new_type );
+  UNWRAP_CHECK( new_type, on_death_demoted_type( type_obj() ) );
+  UNWRAP_CHECK( new_comp,
+                composition_.with_new_type( new_type ) );
+  change_type( new_comp );
 }
 
 maybe<e_unit_type> Unit::demoted_type() const {
-  UNWRAP_RETURN( demoted, on_death_demoted_type( type_ ) );
+  UNWRAP_RETURN( demoted, on_death_demoted_type( type_obj() ) );
   return demoted.type();
 }
 
-maybe<UnitType> Unit::can_receive_modifiers(
-    std::initializer_list<e_unit_type_modifier> modifiers )
-    const {
-  return add_unit_type_modifiers(
-      type_, modifiers,
-      /*allow_independence=*/post_independence() );
-}
-
-void Unit::receive_modifiers(
-    std::initializer_list<e_unit_type_modifier> modifiers ) {
-  UNWRAP_CHECK( new_unit_type,
-                can_receive_modifiers( modifiers ) );
-  change_type( new_unit_type );
+vector<UnitTransformationFromCommodityResult>
+Unit::with_commodity_added( Commodity const& commodity ) const {
+  return unit_receive_commodity( composition_, commodity );
 }
 
 /****************************************************************
@@ -187,17 +165,17 @@ LUA_STARTUP( lua::state& st ) {
   u["id"] = &U::id;
   // FIXME: luapp can only take this as non-const...
   u["desc"]            = &U::desc_non_const;
+  u["type_obj"]        = &U::type_obj;
   u["orders"]          = &U::orders;
   u["nation"]          = &U::nation;
-  u["worth"]           = &U::worth;
   u["movement_points"] = &U::movement_points;
 
   // Actions.
   u["change_nation"] = &U::change_nation;
-  u["change_type"]   = &U::change_type;
-  u["sentry"]        = &U::sentry;
-  u["fortify"]       = &U::fortify;
-  u["clear_orders"]  = &U::clear_orders;
+  // u["change_type"]   = &U::change_type;
+  u["sentry"]       = &U::sentry;
+  u["fortify"]      = &U::fortify;
+  u["clear_orders"] = &U::clear_orders;
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
     return fmt::format( "{} {} (id={})",

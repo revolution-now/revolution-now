@@ -83,6 +83,16 @@ table Opt_e_unit_type {
   value     : e_unit_type;
 }
 
+enum e_unit_inventory : byte {
+  gold,
+  tools,
+}
+
+table Pair_e_unit_inventory_int {
+  fst : e_unit_inventory;
+  snd : int;
+}
+
 table UnitType {
   base_type_ : e_unit_type;
   type_      : e_unit_type;

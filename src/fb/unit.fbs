@@ -11,7 +11,7 @@
 include "cargo.fbs";
 include "mv-points.fbs";
 include "nation.fbs";
-include "utype.fbs";
+include "unit-composer.fbs";
 include "vocab.fbs";
 
 namespace fb.UnitOldWorldViewState;
@@ -38,10 +38,9 @@ enum e_unit_orders : byte {
 
 table Unit {
   id_            : int;
-  type_          : UnitType;
+  composition_   : UnitComposition;
   orders_        : e_unit_orders;
   cargo_         : CargoHold;
   nation_        : e_nation;
-  worth_         : Opt_int;
   mv_pts_        : MovementPoints;
 }

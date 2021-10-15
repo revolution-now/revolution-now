@@ -1,0 +1,18 @@
+# ===============================================================
+# unit-composer.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-10-05.
+#
+# Description: RDS definitions for the unit-composer module.
+#
+# ===============================================================
+namespace.rn {
+
+enum.e_unit_type_modifier_delta [
+  add # added
+  del # removed
+]
+
+} # namespace rn

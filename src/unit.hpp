@@ -19,6 +19,7 @@
 #include "lua-enum.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
+#include "unit-composer.hpp"
 #include "util.hpp"
 #include "utype.hpp"
 
@@ -62,9 +63,15 @@ public:
   NationDesc nation_desc() const {
     return nation_obj( nation_ );
   }
-  maybe<int>     worth() const { return worth_; }
   MovementPoints movement_points() const { return mv_pts_; }
-  e_unit_type    base_type() const { return type_.base_type(); }
+  e_unit_type    base_type() const {
+    return composition_.base_type();
+  }
+  e_unit_type type() const { return composition_.type(); }
+  UnitType type_obj() const { return composition_.type_obj(); }
+  UnitComposition const& composition() const {
+    return composition_;
+  }
 
   /************************* Setters ***************************/
 
@@ -133,37 +140,38 @@ public:
 
   /********************** Type Changing ************************/
 
+  // Take by value because we will move it out.
+  void change_type( UnitComposition new_comp );
+
   // Will check-fail if the unit cannot be demoted.
   void demote_from_lost_battle();
 
   maybe<e_unit_type> demoted_type() const;
 
-  maybe<UnitType> can_receive_modifiers(
-      std::initializer_list<e_unit_type_modifier> modifiers )
-      const;
-
-  void receive_modifiers(
-      std::initializer_list<e_unit_type_modifier> modifiers );
-
-  // This should not be called by normal game code; it should
-  // only be used for testing/modding. Take by const ref for Lua.
-  void change_type( UnitType const& type );
+  // Can unit receive commodity, and if so how many and what unit
+  // type will it become? This will not mutate the unit in any
+  // way. If you want to affect the change, then you have to look
+  // at the results, pick one that you want, and then call
+  // change_type with the UnitComposition that it contains.
+  std::vector<UnitTransformationFromCommodityResult>
+  with_commodity_added( Commodity const& commodity ) const;
 
 private:
+  friend UnitId create_unit( e_nation        nation,
+                             UnitComposition type );
   friend UnitId create_unit( e_nation nation, UnitType type );
 
-  Unit( e_nation nation, UnitType type );
+  Unit( e_nation nation, UnitComposition type );
 
   void check_invariants() const;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, Unit,
   ( UnitId,           id_            ),
-  ( UnitType,         type_          ),
+  ( UnitComposition,  composition_   ),
   ( e_unit_orders,    orders_        ),
   ( CargoHold,        cargo_         ),
   ( e_nation,         nation_        ),
-  ( maybe<int>,       worth_         ),
   ( MovementPoints,   mv_pts_        ));
   // clang-format on
 };

@@ -17,6 +17,6 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
-bool post_independence() { return false; }
+bool is_independence_declared() { return false; }
 
 } // namespace rn

@@ -18,6 +18,6 @@
 
 namespace rn {
 
-bool post_independence();
+bool is_independence_declared();
 
 } // namespace rn

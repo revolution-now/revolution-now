@@ -158,6 +158,7 @@ std::vector<UnitId> units_in_old_world_view();
 ** Creation
 *****************************************************************/
 // Creates a unit with no ownership.
+UnitId create_unit( e_nation nation, UnitComposition comp );
 UnitId create_unit( e_nation nation, UnitType type );
 
 /****************************************************************
@@ -200,7 +201,7 @@ void ustate_change_to_colony( UnitId id, ColonyId col_id,
 ** For Testing / Development Only
 *****************************************************************/
 // Do not call these in normal game code.
-UnitId create_unit_on_map( e_nation nation, UnitType type,
+UnitId create_unit_on_map( e_nation nation, UnitComposition comp,
                            Coord coord );
 
 /****************************************************************

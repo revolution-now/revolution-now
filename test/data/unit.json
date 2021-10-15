@@ -1,8 +1,13 @@
 {
   "id_": 1,
-  "type_": {
-    "base_type_": "merchantman",
-    "type_": "merchantman"
+  "composition_": {
+    "type_": {
+      "base_type_": "merchantman",
+      "type_": "merchantman"
+    },
+    "inventory_": [
+      
+    ]
   },
   "cargo_": {
     "slots_": [

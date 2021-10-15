@@ -41,7 +41,8 @@ void init_game_world_for_test() {
 UnitId create_colonist( Coord where ) {
   return create_unit_on_map(
       e_nation::english,
-      UnitType::create( e_unit_type::free_colonist ), where );
+      UnitComposition::create( e_unit_type::free_colonist ),
+      where );
 }
 
 UnitId create_colonist() {
@@ -53,7 +54,8 @@ UnitId create_colonist() {
 UnitId create_ship( Coord where ) {
   return create_unit_on_map(
       e_nation::english,
-      UnitType::create( e_unit_type::merchantman ), where );
+      UnitComposition::create( e_unit_type::merchantman ),
+      where );
 }
 
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {

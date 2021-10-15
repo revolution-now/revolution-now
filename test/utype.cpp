@@ -31,6 +31,54 @@ using namespace std;
 
 using Catch::Contains;
 
+TEST_CASE( "[utype] inventory_to_modifier" ) {
+  SECTION( "gold" ) {
+    auto mod_info =
+        inventory_to_modifier( e_unit_inventory::gold );
+    REQUIRE( !mod_info.has_value() );
+  }
+  SECTION( "tools" ) {
+    auto mod_info =
+        inventory_to_modifier( e_unit_inventory::tools );
+    REQUIRE( mod_info.has_value() );
+    pair<e_unit_type_modifier,
+         ModifierCommodityAssociation::inventory const&> const&
+        p                        = *mod_info;
+    auto const& [mod, inventory] = p;
+    REQUIRE( mod == e_unit_type_modifier::tools );
+    REQUIRE( inventory.type == e_commodity::tools );
+    REQUIRE( inventory.min_quantity == 20 );
+    REQUIRE( inventory.max_quantity == 100 );
+    REQUIRE( inventory.multiple == 20 );
+  }
+}
+
+TEST_CASE( "[utype] commodity_to_inventory" ) {
+  auto f = commodity_to_inventory;
+  REQUIRE( f( e_commodity::cigars ) == nothing );
+  REQUIRE( f( e_commodity::cloth ) == nothing );
+  REQUIRE( f( e_commodity::coats ) == nothing );
+  REQUIRE( f( e_commodity::cotton ) == nothing );
+  REQUIRE( f( e_commodity::food ) == nothing );
+  REQUIRE( f( e_commodity::fur ) == nothing );
+  REQUIRE( f( e_commodity::horses ) == nothing );
+  REQUIRE( f( e_commodity::lumber ) == nothing );
+  REQUIRE( f( e_commodity::muskets ) == nothing );
+  REQUIRE( f( e_commodity::ore ) == nothing );
+  REQUIRE( f( e_commodity::rum ) == nothing );
+  REQUIRE( f( e_commodity::silver ) == nothing );
+  REQUIRE( f( e_commodity::sugar ) == nothing );
+  REQUIRE( f( e_commodity::tobacco ) == nothing );
+  REQUIRE( f( e_commodity::tools ) == e_unit_inventory::tools );
+  REQUIRE( f( e_commodity::trade_goods ) == nothing );
+}
+
+TEST_CASE( "[utype] inventory_to_commodity" ) {
+  auto f = inventory_to_commodity;
+  REQUIRE( f( e_unit_inventory::gold ) == nothing );
+  REQUIRE( f( e_unit_inventory::tools ) == e_commodity::tools );
+}
+
 TEST_CASE( "[utype] unit type attributes deserialization" ) {
   SECTION( "expert_cotton_planter" ) {
     UnitTypeAttributes const& desc =
@@ -221,179 +269,6 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.can_attack() == true );
     REQUIRE( desc.is_military_unit() == true );
   }
-}
-
-TEST_CASE( "[utype] convert_commodity_to_modifier" ) {
-  auto*     f = convert_commodity_to_modifier;
-  Commodity c{ .type = e_commodity::food, .quantity = 0 };
-
-  // Zero.
-  c.quantity = 0;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == nothing );
-
-  // One.
-  c.quantity = 1;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == nothing );
-
-  // 19.
-  c.quantity = 19;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == nothing );
-
-  // 20.
-  c.quantity = 20;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 20 } );
-
-  // 39.
-  c.quantity = 39;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 20 } );
-
-  // 49.
-  c.quantity = 49;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 40 } );
-
-  // 50.
-  c.quantity = 50;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::horses,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::muskets,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 40 } );
-
-  // 99.
-  c.quantity = 99;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::horses,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::muskets,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 80 } );
-
-  // 100.
-  c.quantity = 100;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::horses,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::muskets,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 100 } );
-
-  // 150.
-  c.quantity = 150;
-  c.type     = e_commodity::food;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::trade_goods;
-  REQUIRE( f( c ) == nothing );
-  c.type = e_commodity::horses;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::horses,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::muskets;
-  REQUIRE( f( c ) ==
-           UnitTypeModifierFromCommodity{
-               .modifier = e_unit_type_modifier::muskets,
-               .comm_quantity_used = 50 } );
-  c.type = e_commodity::tools;
-  REQUIRE( f( c ) == UnitTypeModifierFromCommodity{
-                         .modifier = e_unit_type_modifier::tools,
-                         .comm_quantity_used = 100 } );
 }
 
 // This test case contains a random selection of cases.
