@@ -33,6 +33,8 @@
 #include <deque>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 /****************************************************************
@@ -100,6 +102,35 @@ struct FmtJsonStyleList {
 // Deduction guide.
 template<typename T>
 FmtJsonStyleList( std::vector<T> const& ) -> FmtJsonStyleList<T>;
+
+template<typename T>
+struct FmtVerticalJsonList {
+  std::vector<T> const& vec;
+
+  bool operator==( FmtVerticalJsonList const& rhs ) const {
+    return vec == rhs.vec;
+  }
+};
+
+template<typename T>
+FmtVerticalJsonList( std::vector<T> const& )
+    -> FmtVerticalJsonList<T>;
+
+template<template<typename K, typename V, typename...>
+         typename M,
+         typename K, typename V>
+struct FmtVerticalMap {
+  M<K, V> const& m;
+
+  bool operator==( M<K, V> const& rhs ) const {
+    return m == rhs.m;
+  }
+};
+
+template<template<typename K, typename V, typename...>
+         typename M,
+         typename K, typename V>
+FmtVerticalMap( M<K, V> const& ) -> FmtVerticalMap<M, K, V>;
 
 } // namespace rn
 
@@ -177,6 +208,75 @@ struct formatter<::rn::FmtJsonStyleList<T>>
   }
 };
 
+// {fmt} formatter for vectors whose contained type is format-
+// table, in a vertical pretty-printed JSON-style list with com-
+// mas.  This is a bit expensive.
+template<typename T>
+struct formatter<::rn::FmtVerticalJsonList<T>>
+  : base::formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtVerticalJsonList<T> const& o,
+               FormatContext&                      ctx ) {
+    std::string res = "[";
+    if( !o.vec.empty() ) {
+      res += '\n';
+      for( int i = 0; i < int( o.vec.size() ); ++i ) {
+        std::string formatted = fmt::to_string( o.vec[i] );
+        auto        lines     = util::split( formatted, '\n' );
+        for( std::string_view line : lines )
+          res += fmt::format( "  {}\n", line );
+        if( i != int( o.vec.size() ) - 1 ) {
+          res.resize( res.size() - 1 ); // remove newline.
+          res += ',';
+        }
+        res += '\n';
+      }
+      res.resize( res.size() - 1 ); // remove newline.
+    }
+    res += "]";
+    return base::formatter_base::format( res, ctx );
+  }
+};
+
+// {fmt} formatter for maps in a vertical pretty-printed style.
+// This is a bit expensive.
+template<template<typename K, typename V, typename...>
+         typename M,
+         typename K, typename V>
+struct formatter<::rn::FmtVerticalMap<M, K, V>>
+  : base::formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtVerticalMap<M, K, V> const& o,
+               FormatContext&                       ctx ) {
+    std::string res = "{";
+    if( !o.m.empty() ) {
+      res += '\n';
+      int i = 0;
+      for( auto const& [k, v] : o.m ) {
+        std::string formatted_k = fmt::to_string( k );
+        res += "  ";
+        res += formatted_k;
+        res += '=';
+        std::string formatted_v = fmt::to_string( v );
+        auto        lines = util::split( formatted_v, '\n' );
+        for( int j = 0; j < int( lines.size() ); ++j ) {
+          if( j != 0 ) res += "  ";
+          res += lines[j];
+          res += '\n';
+        }
+        if( i != int( o.m.size() ) - 1 ) {
+          res.resize( res.size() - 1 ); // remove newline.
+          res += ',';
+          res += '\n';
+        }
+        ++i;
+      }
+    }
+    res += "}";
+    return base::formatter_base::format( res, ctx );
+  }
+};
+
 } // namespace fmt
 
 /****************************************************************
@@ -231,6 +331,43 @@ struct formatter<std::vector<T>> : base::formatter_base {
   auto format( std::vector<T> const& o, FormatContext& ctx ) {
     return base::formatter_base::format(
         fmt::format( "{}", ::rn::FmtJsonStyleList{ o } ), ctx );
+  }
+};
+
+// {fmt} formatter for formatting unordered_maps whose contained
+// types are formattable.
+template<typename K, typename V>
+struct formatter<std::unordered_map<K, V>>
+  : base::formatter_base {
+  template<typename FormatContext>
+  auto format( std::unordered_map<K, V> const& o,
+               FormatContext&                  ctx ) {
+    std::string res = "[";
+    for( auto const& [k, v] : o )
+      res += fmt::format( "({},{}),", k, v );
+    if( res.size() > 1 )
+      // Remove trailing comma.
+      res.resize( res.size() - 1 );
+    res += "]";
+    return base::formatter_base::format( res, ctx );
+  }
+};
+
+// {fmt} formatter for formatting unordered_sets whose contained
+// types are formattable.
+template<typename T>
+struct formatter<std::unordered_set<T>> : base::formatter_base {
+  template<typename FormatContext>
+  auto format( std::unordered_set<T> const& o,
+               FormatContext&               ctx ) {
+    std::string res = "[";
+    for( auto const& elem : o )
+      res += fmt::format( "{},", elem );
+    if( res.size() > 1 )
+      // Remove trailing comma.
+      res.resize( res.size() - 1 );
+    res += "]";
+    return base::formatter_base::format( res, ctx );
   }
 };
 
