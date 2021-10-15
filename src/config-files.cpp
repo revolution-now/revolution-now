@@ -167,6 +167,8 @@ namespace rn {
 
 namespace {
 
+bool g_configs_loaded = false;
+
 unordered_map<string, rcl::doc> rcl_configs;
 
 // List of field paths from the config that were found in the
@@ -275,6 +277,8 @@ void init_configs() {
   }
   // Make sure this can load.
   (void)g_palette();
+  // Should be last.
+  g_configs_loaded = true;
 }
 
 void cleanup_configs() {}
@@ -289,6 +293,8 @@ REGISTER_INIT_ROUTINE( configs );
 #include "../config/all-rcl.inl"
 
 namespace rn {
+
+bool configs_loaded() { return g_configs_loaded; }
 
 vector<Color> const& g_palette() {
   static vector<Color> colors = [] {

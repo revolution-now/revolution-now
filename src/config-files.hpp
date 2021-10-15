@@ -51,6 +51,12 @@
 
 namespace rn {
 
+// This tells us if all of the configs have been fully loaded.
+// This is useful for preventing bugs that would result from
+// using the config data (global variables) before they are
+// loaded from the contents of config files.
+bool configs_loaded();
+
 // The main global palette sorted using bucketed hue-sat-lum.
 // Colors should normally be accessed using the config_palette
 // global config structure, e.g. config_palette.red.sat0.lum1.
