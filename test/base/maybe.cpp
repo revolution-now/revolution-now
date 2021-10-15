@@ -2661,5 +2661,22 @@ TEST_CASE( "[maybe-ref] binding to rvalues" ) {
   // auto m2 = maybe<int&>( short{ 5 } );
 }
 
+TEST_CASE( "[maybe-ref] to_value" ) {
+  int               n = 4;
+  maybe<int const&> i = n;
+  ASSERT_VAR_TYPE( i.to_value(), maybe<int> );
+  REQUIRE( i.to_value() == 4 );
+}
+
+TEST_CASE( "[maybe-ref] value_or" ) {
+  int               n  = 4;
+  maybe<int const&> i  = n;
+  maybe<int&>       i2 = n;
+  ASSERT_VAR_TYPE( i.value_or( 5 ), int );
+  ASSERT_VAR_TYPE( i.value_or( n ), int const& );
+  ASSERT_VAR_TYPE( i2.value_or( 5 ), int );
+  ASSERT_VAR_TYPE( i2.value_or( n ), int& );
+}
+
 } // namespace
 } // namespace base

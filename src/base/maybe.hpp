@@ -1103,6 +1103,16 @@ public:
     return has_value() ? **this : static_cast<T&>( def );
   }
 
+  template<typename U>
+  // clang-format off
+  [[nodiscard]] constexpr T value_or( U&& def ) const noexcept
+    requires( std::is_convertible_v<U&, T&> &&
+             !std::is_lvalue_reference_v<
+                 decltype( std::forward<U>(def) )> ) {
+    // clang-format on
+    return has_value() ? **this : static_cast<T&>( def );
+  }
+
   /**************************************************************
   ** has_value/bool
   ***************************************************************/
@@ -1127,6 +1137,13 @@ public:
   constexpr T& operator*() const noexcept { return *p_; }
 
   constexpr T* operator->() const noexcept { return &**this; }
+
+  /**************************************************************
+  ** Conversion to Value
+  ***************************************************************/
+  maybe<std::remove_const_t<T>> to_value() const {
+    return *this;
+  }
 
   /**************************************************************
   ** Mapping to Bool
