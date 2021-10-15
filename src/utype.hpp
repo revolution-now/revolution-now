@@ -251,8 +251,7 @@ maybe<UnitType> on_death_demoted_type( UnitType ut );
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
     UnitType                                        ut,
-    std::unordered_set<e_unit_type_modifier> const& modifiers,
-    bool allow_independence );
+    std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 // Try to remove the modifiers from the type and return the re-
 // sulting type if it works out. The unit must have all of the
@@ -278,8 +277,7 @@ UnitTypeAttributes const& unit_attr( UnitType type );
 // happen since the probability of promotion in a battle is not
 // large.
 maybe<UnitType> promoted_unit_type( UnitType        ut,
-                                    e_unit_activity activity,
-                                    bool allow_independence );
+                                    e_unit_activity activity );
 
 // Will attempt to clear the expertise (if any) of the base type
 // while holding any modifiers constant. Though if the derived

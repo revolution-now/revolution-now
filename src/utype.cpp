@@ -841,16 +841,7 @@ UnitType::unit_type_modifiers() {
 
 maybe<UnitType> add_unit_type_modifiers(
     UnitType                                   ut,
-    unordered_set<e_unit_type_modifier> const& modifiers,
-    bool allow_independence ) {
-  if( !allow_independence ) {
-    // Reject any request involving the `independence` modifier
-    // since that is only allowed poast-independence.
-    if( find( modifiers.begin(), modifiers.end(),
-              e_unit_type_modifier::independence ) !=
-        modifiers.end() )
-      return nothing;
-  }
+    unordered_set<e_unit_type_modifier> const& modifiers ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =
       ut.unit_type_modifiers();
   for( e_unit_type_modifier mod : modifiers )
@@ -903,15 +894,13 @@ maybe<UnitType> change_base_with_constant_modifiers(
   // tion is just keeping the modifiers constant, so if that mod-
   // ifier was already there then it is allowed.
   return add_unit_type_modifiers(
-      UnitType::create( new_base_type ), existing_modifiers,
-      /*allow_independence=*/true );
+      UnitType::create( new_base_type ), existing_modifiers );
 }
 
 } // namespace
 
 maybe<UnitType> promoted_unit_type( UnitType        ut,
-                                    e_unit_activity activity,
-                                    bool allow_independence ) {
+                                    e_unit_activity activity ) {
   if( ut.type() == ut.base_type() ) {
     UNWRAP_RETURN( promo,
                    unit_attr( ut.base_type() ).promotion );
@@ -977,8 +966,7 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
         // to a continental cavalry.
         auto const&          o = eff_type_promo->get<modifier>();
         e_unit_type_modifier modifier = o.kind;
-        return add_unit_type_modifiers( ut, { modifier },
-                                        allow_independence );
+        return add_unit_type_modifiers( ut, { modifier } );
       }
     }
   }
@@ -1054,8 +1042,7 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
       // just attempt it and if it fails, do nothing. In this
       // scenario we just ignore what the base type wants.
       e_unit_type_modifier modifier = o_derived.kind;
-      return add_unit_type_modifiers( ut, { modifier },
-                                      allow_independence );
+      return add_unit_type_modifiers( ut, { modifier } );
     }
   }
 }
