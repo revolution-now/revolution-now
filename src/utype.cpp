@@ -250,6 +250,7 @@ inventory_to_modifier( e_unit_inventory inv ) {
       bool was_inserted =
           res.try_emplace( *inv, mod, *inventory ).second;
       DCHECK( was_inserted );
+      (void)was_inserted;
     }
     return res;
   }();
