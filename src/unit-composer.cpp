@@ -133,12 +133,8 @@ maybe<UnitComposition> UnitComposition::with_new_type(
 }
 
 void to_str( UnitComposition const& o, string& out ) {
-  out += fmt::format(
-      "UnitComposition{{\n"
-      "  type={},\n"
-      "  inventory={}\n"
-      "}}",
-      o.type_, FmtVerticalMap{ o.inventory_ } );
+  out += fmt::format( "UnitComposition{{type={},inventory={}}}",
+                      o.type_, o.inventory_ );
   // out += "UnitComposition";
   // out += fmt::format(
   //     "{}",
