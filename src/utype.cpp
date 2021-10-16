@@ -164,6 +164,42 @@ rcl::convert_err<ModifierCommodityAssociation_t> convert_to(
                    kTypeName, key ) );
 }
 
+rcl::convert_valid rcl_validate(
+    ModifierCommodityAssociation_t const& o ) {
+  switch( o.to_enum() ) {
+    using namespace ModifierCommodityAssociation;
+    case e::none: {
+      break;
+    }
+    case e::consume: {
+      auto& v = o.get<consume>();
+      RCL_CHECK( v.quantity > 0,
+                 "unit type modifier commodity quantities "
+                 "consumed must be > 0." );
+      break;
+    }
+    case e::inventory: {
+      auto& v = o.get<inventory>();
+      RCL_CHECK(
+          v.min_quantity >= 0,
+          "modifier inventory min quantity must be > 0." );
+      RCL_CHECK( v.min_quantity <= v.max_quantity,
+                 "modifier inventory min quantity must be <= "
+                 "than max quantity." );
+      RCL_CHECK( v.multiple > 0,
+                 "modifier inventory multiple must be > 0." );
+      RCL_CHECK( v.min_quantity % v.multiple == 0,
+                 "modifier inventory multiple must divide "
+                 "evenly into the min quantity." );
+      RCL_CHECK( v.max_quantity % v.multiple == 0,
+                 "modifier inventory multiple must divide "
+                 "evenly into the max quantity." );
+      break;
+    }
+  }
+  return base::valid;
+}
+
 } // namespace ModifierCommodityAssociation
 
 /****************************************************************
@@ -414,7 +450,7 @@ rcl::convert_err<UnitPromotion_t> convert_to(
 *****************************************************************/
 UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   UNWRAP_CHECK_MSG(
-      desc, base::lookup( config_units.unit_types.map, type ),
+      desc, base::lookup( config_units.unit_types, type ),
       "internal error: unit type {} does not have a type "
       "descriptor.",
       type );
@@ -507,10 +543,7 @@ LUA_STARTUP( lua::state& st ) {
 /****************************************************************
 ** UnitAttributesMap
 *****************************************************************/
-rcl::convert_err<UnitAttributesMap> convert_to(
-    rcl::value const& v, rcl::tag<UnitAttributesMap> ) {
-  UNWRAP_RETURN( m,
-                 rcl::convert_to<UnitAttributesMap::Map>( v ) );
+rcl::convert_valid rcl_validate( UnitAttributesMap const& m ) {
   // Populate derived fields.
   unordered_set<e_unit_type> derived_types;
   for( auto& [type, type_struct] : m ) {
@@ -710,8 +743,7 @@ rcl::convert_err<UnitAttributesMap> convert_to(
       }
     }
   }
-
-  return UnitAttributesMap{ .map = std::move( m ) };
+  return base::valid;
 }
 
 /****************************************************************
@@ -879,7 +911,7 @@ namespace {
 e_unit_type expert_for_activity( e_unit_activity activity ) {
   // During config deserialization it should have been verified
   // that there is precisely one expert for each activity.
-  for( auto& [type, attr] : config_units.unit_types.map )
+  for( auto& [type, attr] : config_units.unit_types )
     if( attr.expertise == activity ) return type;
   SHOULD_NOT_BE_HERE;
 }

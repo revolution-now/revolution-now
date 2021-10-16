@@ -44,6 +44,12 @@ namespace rn {
 LUA_ENUM_DECL( unit_type );
 
 /****************************************************************
+** ModifierCommodityAssociation
+*****************************************************************/
+rcl::convert_valid rcl_validate(
+    ModifierCommodityAssociation_t const& o );
+
+/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
@@ -51,7 +57,6 @@ LUA_ENUM_DECL( unit_type_modifier );
 struct UnitTypeModifierTraits {
   bool                           player_can_grant;
   ModifierCommodityAssociation_t commodity_association;
-
 };
 
 // This is for deserializing from Rcl config files.
@@ -150,6 +155,9 @@ struct UnitTypeAttributes {
 };
 NOTHROW_MOVE( UnitTypeAttributes );
 
+rcl::convert_err<UnitTypeAttributes> convert_to(
+    rcl::value const& v, rcl::tag<UnitTypeAttributes> );
+
 UnitTypeAttributes const& unit_attr( e_unit_type type );
 
 } // namespace rn
@@ -163,19 +171,15 @@ namespace rn {
 /****************************************************************
 ** UnitAttributesMap
 *****************************************************************/
-// The purpose of this is to have a container in which to hold
-// all of the unit type structures so that we can perform some
-// validation and initialization of the individual structures be-
-// yond what is able to be done while deserializing each one in
-// isolation.
-struct UnitAttributesMap {
-  using Map = ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>;
-  Map map;
-};
+using UnitAttributesMap =
+    ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>;
 
 // This is for deserializing from Rcl config files.
 rcl::convert_err<UnitAttributesMap> convert_to(
     rcl::value const& v, rcl::tag<UnitAttributesMap> );
+
+// Post-deserialization validator found through ADL.
+rcl::convert_valid rcl_validate( UnitAttributesMap const& m );
 
 /****************************************************************
 ** UnitType
