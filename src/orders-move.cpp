@@ -539,6 +539,13 @@ waitable<> TravelHandler::perform() {
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       UNWRAP_CHECK( colony_id, colony_from_coord( move_dst ) );
+      // TODO: by default we should not open the colony view when
+      // a ship moves into port. But it would be convenient to
+      // allow the user to specify that they want to open it by
+      // holding SHIFT while moving the unit.
+      //
+      // TODO: consider prioritizing units that are brought in by
+      // the ship.
       co_await show_colony_view( colony_id );
       break;
     }
