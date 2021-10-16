@@ -164,8 +164,11 @@ LUA_STARTUP( lua::state& st ) {
   // Getters.
   u["id"] = &U::id;
   // FIXME: luapp can only take this as non-const...
-  u["desc"]            = &U::desc_non_const;
-  u["type_obj"]        = &U::type_obj;
+  u["desc"]        = &U::desc_non_const;
+  u["type_obj"]    = &U::type_obj;
+  u["composition"] = []( Unit& unit ) {
+    return unit.composition();
+  };
   u["orders"]          = &U::orders;
   u["nation"]          = &U::nation;
   u["movement_points"] = &U::movement_points;
