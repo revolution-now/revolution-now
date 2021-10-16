@@ -22,6 +22,10 @@
 FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
+
+struct MyLuaOwned {};
+LUA_USERDATA_TRAITS( MyLuaOwned, owned_by_lua ){};
+
 namespace {
 
 using namespace std;
@@ -48,6 +52,27 @@ struct Reffable {
     return *p_r;
   }
 };
+
+LUA_TEST_CASE( "[ext-base] lua-owned" ) {
+  maybe<MyLuaOwned> m;
+
+  SECTION( "nothing" ) {
+    m.reset();
+    push( L, std::move( m ) );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.type_of( -1 ) == type::nil );
+    C.pop();
+  }
+
+  SECTION( "something" ) {
+    m.reset();
+    m.emplace();
+    push( L, std::move( m ) );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
+    C.pop();
+  }
+}
 
 LUA_TEST_CASE( "[ext-base] maybe push" ) {
   maybe<int> m;

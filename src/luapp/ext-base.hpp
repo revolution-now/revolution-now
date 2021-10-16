@@ -28,12 +28,15 @@ struct type_traits<base::maybe<T>> {
 
   static constexpr int nvalues = nvalues_for<T>();
 
-  // clang-format off
-  static void push( cthread L, M const& m )
-    requires Pushable<T> {
+  // Need an extra template parameter here so that this will work
+  // with both cpp-owned and lua-owned T.
+  template<typename U> // clang-format off
+  static void push( cthread L, U&& m )
+    requires Pushable<decltype(*std::forward<U>( m ))> &&
+             base::is_maybe_v<std::remove_cvref_t<U>> {
     // clang-format on
     if( m.has_value() )
-      lua::push( L, *m );
+      lua::push( L, *std::forward<U>( m ) );
     else {
       for( int i = 0; i < nvalues; ++i ) //
         lua::push( L, nil );
