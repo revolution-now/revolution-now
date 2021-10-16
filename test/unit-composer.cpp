@@ -13,6 +13,10 @@
 // Under test.
 #include "src/unit-composer.hpp"
 
+// Revolution Now
+#include "src/lua.hpp"
+#include "src/luapp/state.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -2452,6 +2456,40 @@ TEST_CASE( "[unit-composer] adjust_for_independence_status" ) {
     REQUIRE( FmtVerticalJsonList{ input } ==
              FmtVerticalJsonList{ expected } );
   }
+}
+
+TEST_CASE( "[unit-composer] lua bindings" ) {
+  lua::state& st = lua_global_state();
+
+  auto script = R"(
+    local uc
+    local UC = unit_composer.UnitComposition
+    -- free_colonist
+    uc = UC.create_with_type( e.unit_type.free_colonist )
+    assert( uc )
+    assert( uc:type() == e.unit_type.free_colonist )
+    assert( uc:base_type() == e.unit_type.free_colonist )
+    assert( uc:type_obj():base_type() ==
+            e.unit_type.free_colonist )
+    -- dragoon
+    uc = UC.create_with_type( e.unit_type.dragoon )
+    assert( uc )
+    assert( uc:type() == e.unit_type.dragoon )
+    assert( uc:base_type() == e.unit_type.free_colonist )
+    -- veteran_soldier
+    uc = UC.create_with_type( e.unit_type.veteran_soldier )
+    assert( uc )
+    assert( uc:type() == e.unit_type.veteran_soldier )
+    assert( uc:base_type() == e.unit_type.veteran_colonist )
+    -- pioneer
+    local ut_obj = utype.UnitType.create_with_base(
+        e.unit_type.pioneer, e.unit_type.expert_farmer )
+    uc = UC.create_with_type_obj( ut_obj )
+    assert( uc )
+    assert( uc:type() == e.unit_type.pioneer )
+    assert( uc:base_type() == e.unit_type.expert_farmer )
+  )";
+  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 } // namespace

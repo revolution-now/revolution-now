@@ -14,9 +14,16 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "lua.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/units.inl"
+
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/rtable.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -441,5 +448,39 @@ void adjust_for_independence_status(
   if( independence_declared ) return;
   erase_if( input, L( requires_independence( _ ) ) );
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = UnitComposition;
+
+  auto u = st.usertype.create<UnitComposition>();
+
+  u["base_type"]     = &U::base_type;
+  u["type"]          = &U::type;
+  u["type_obj"]      = &U::type_obj;
+  u["with_new_type"] = &U::with_new_type;
+
+  lua::table ucomp_tbl =
+      lua::table::create_or_get( st["unit_composer"] );
+
+  lua::table tbl_UnitComposition =
+      lua::table::create_or_get( ucomp_tbl["UnitComposition"] );
+
+  tbl_UnitComposition["create_with_type"] =
+      [&]( e_unit_type type ) -> UnitComposition {
+    return UnitComposition::create( type );
+  };
+
+  tbl_UnitComposition["create_with_type_obj"] =
+      [&]( UnitType type ) -> UnitComposition {
+    return UnitComposition::create( type );
+  };
+};
+
+} // namespace
 
 } // namespace rn
