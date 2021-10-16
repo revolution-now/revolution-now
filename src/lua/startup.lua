@@ -13,9 +13,11 @@ local M = {}
 
 local function unit_type( type, base_type )
   if base_type == nil then
-    return utype.UnitType.create( type )
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create( type ) )
   else
-    return utype.UnitType.create_with_base( type, base_type )
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create_with_base( type, base_type ) )
   end
 end
 

@@ -42,11 +42,16 @@
 # Lua
 # ===============================================================
 
-  1. Create proper Lua API design in order to avoid coupling with
+  1. Add support for equality of userdata types in Lua. By de-
+     fault a usertype should get an __equal metamethod that
+     throws a Lua error when attempting to compare with anything,
+     unless the cpp type is equality comparable, in which case it
+     should get a proper comparison method.
+  2. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  2. Generate Flatbuffers Lua modules so that Lua can read and
+  3. Generate Flatbuffers Lua modules so that Lua can read and
      write game save files.
-  3. Add some other standard containers like vector,
+  4. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================

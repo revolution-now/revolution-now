@@ -172,10 +172,10 @@ LUA_STARTUP( lua::state& st ) {
 
   // Actions.
   u["change_nation"] = &U::change_nation;
-  // u["change_type"]   = &U::change_type;
-  u["sentry"]       = &U::sentry;
-  u["fortify"]      = &U::fortify;
-  u["clear_orders"] = &U::clear_orders;
+  u["change_type"]   = &U::change_type;
+  u["sentry"]        = &U::sentry;
+  u["fortify"]       = &U::fortify;
+  u["clear_orders"]  = &U::clear_orders;
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
     return fmt::format( "{} {} (id={})",

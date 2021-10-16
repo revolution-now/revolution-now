@@ -594,16 +594,10 @@ void ustate_disown_unit( UnitId id ) {
 namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
-        UnitType const& type, Coord const& coord ) {
-  maybe<UnitComposition> comp =
-      UnitComposition::create( type, /*inventory=*/{} );
-  LUA_CHECK( st, comp.has_value(),
-             "failed to create UnitComposition with type={} and "
-             "no inventory.",
-             type );
-  auto id = create_unit_on_map( nation, *comp, coord );
-  lg.info( "created a {} on square {}.", unit_attr( type ).name,
-           coord );
+        UnitComposition& comp, Coord const& coord ) {
+  auto id = create_unit_on_map( nation, comp, coord );
+  lg.info( "created a {} on square {}.",
+           unit_attr( comp.type() ).name, coord );
   return unit_from_id( id );
 }
 

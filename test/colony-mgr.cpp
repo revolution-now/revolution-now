@@ -134,9 +134,12 @@ TEST_CASE( "[colony-mgr] lua" ) {
     local coord = Coord{y=2, x=2}
     local unit_type =
         utype.UnitType.create( e.unit_type.free_colonist )
+    local unit_comp = unit_composer
+                     .UnitComposition
+                     .create_with_type_obj( unit_type )
     unit_ = ustate.create_unit_on_map(
              e.nation.english,
-             unit_type,
+             unit_comp,
              coord )
     col_id = colony_mgr.found_colony(
                unit_:id(), "New York" )

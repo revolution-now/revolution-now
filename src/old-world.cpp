@@ -243,12 +243,12 @@ e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
 namespace {
 
 LUA_FN( create_unit_in_port, UnitId, e_nation nation,
-        UnitType type ) {
-  auto id = create_unit( nation, type );
+        UnitComposition comp ) {
+  auto id = create_unit( nation, std::move( comp ) );
   ustate_change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   lg.info( "created a {} in {} port/dock.",
-           unit_attr( type ).name,
+           unit_attr( comp.type() ).name,
            nation_obj( nation ).adjective );
   return id;
 }

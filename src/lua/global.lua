@@ -22,7 +22,10 @@ function soldier()
   local unit = ustate.unit_from_id( blinker )
   assert( not unit:desc().ship,
           'Cannot convert a naval unit to a soldier.' )
-  unit:change_type( e.unit_type.soldier )
+  unit:change_type( unit_composer.UnitComposition
+                        .create_with_type_obj(
+                        utype.UnitType.create(
+                            e.unit_type.soldier ) ) )
 end
 
 -- Convert all land units that are directly on land in the upper
@@ -39,7 +42,10 @@ function convert_units( unit_type, nation )
         if not unit:desc().ship and unit:desc().type ~= unit_type and
             correct_nation then
           log.debug( 'changing unit ' .. id .. '.' )
-          unit:change_type( unit_type )
+          unit:change_type( unit_composer.UnitComposition
+                                .create_with_type_obj(
+                                utype.UnitType
+                                    .create( unit_type ) ) )
         end
       end
     end
