@@ -121,7 +121,7 @@ maybe<UnitComposition> UnitComposition::create(
 }
 
 maybe<UnitComposition> UnitComposition::with_new_type(
-    UnitType type ) {
+    UnitType type ) const {
   return create( type, inventory_ );
 }
 

@@ -48,7 +48,7 @@ public:
   static maybe<UnitComposition> create(
       UnitType type, UnitInventoryMap const& inventory );
 
-  maybe<UnitComposition> with_new_type( UnitType type );
+  maybe<UnitComposition> with_new_type( UnitType type ) const;
 
   bool operator==( UnitComposition const& ) const = default;
 
