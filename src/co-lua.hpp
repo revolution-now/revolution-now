@@ -52,6 +52,17 @@ concept GettableOrMonostate =
 // somehow doesn't like function templates that are coroutines.
 template<GettableOrMonostate R>
 struct LuaWaitable {
+  // Although the arguments to this function may be taken by ref-
+  // erence, it should always be safe to use, even for producing
+  // waitables that are not immediately awaited on. That is be-
+  // cause of two things: 1) all of the arguments (`o` and
+  // `args`) are pushed onto the Lua stack before this function
+  // returns (deeper into the call stack), and 2) any C++ type
+  // will cause a compile error unless it has the right value
+  // category for pushing onto the Lua stack given its ownership
+  // semantics (cpp-owned or lua-owned). So therefore, any usage
+  // of this function that would cause a dangling reference
+  // should trigger a compile error.
   template<LuaAwaitable T, lua::Pushable... Args>
   waitable<R> operator()( T&& o, Args&&... args ) const {
     lua::rthread coro =

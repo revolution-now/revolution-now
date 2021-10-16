@@ -843,7 +843,7 @@ struct MyType {};
 
 namespace lua {
 LUA_USERDATA_TRAITS( rn::MyType, owned_by_lua ){};
-}
+} // namespace lua
 
 namespace rn {
 namespace {
