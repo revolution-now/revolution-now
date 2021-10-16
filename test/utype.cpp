@@ -14,8 +14,8 @@
 #include "src/utype.hpp"
 
 // Revolution Now
-#include "src/lua.hpp"         // FIXME: remove if not needed.
-#include "src/luapp/state.hpp" // FIXME: remove if not needed.
+#include "src/lua.hpp"
+#include "src/luapp/state.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
