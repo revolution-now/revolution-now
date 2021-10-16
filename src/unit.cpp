@@ -136,7 +136,7 @@ void Unit::demote_from_lost_battle() {
   UNWRAP_CHECK( new_type, on_death_demoted_type( type_obj() ) );
   UNWRAP_CHECK( new_comp,
                 composition_.with_new_type( new_type ) );
-  change_type( new_comp );
+  change_type( std::move( new_comp ) );
 }
 
 maybe<e_unit_type> Unit::demoted_type() const {
