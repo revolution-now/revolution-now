@@ -162,7 +162,7 @@ private:
   template<typename O, typename Func, typename... Args>
   static auto make_flattened_member_function(
       Func&& func, mp::type_list<Args...>* ) {
-    return [func]( O& o, Args&&... args ) -> decltype( auto ) {
+    return [func]( O& o, Args... args ) -> decltype( auto ) {
       return ( o.*func )( std::forward<Args>( args )... );
     };
   }

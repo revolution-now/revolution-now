@@ -67,6 +67,30 @@ struct LuaOwnedType {
 LUA_USERDATA_TRAITS( LuaOwnedType, owned_by_lua ){};
 static_assert( HasUserdataOwnershipModel<LuaOwnedType> );
 
+struct HasMemberFunctionsWithCppTypesAsArgs {
+  // For parameters, we can do anything except pass rvalue refer-
+  // ences.
+  void lua_owned( LuaOwnedType ) const {}
+  void cpp_owned( CppOwnedType ) const {}
+  void lua_owned_ref( LuaOwnedType& ) const {}
+  void cpp_owned_ref( CppOwnedType& ) const {}
+  void lua_owned_const_ref( LuaOwnedType const& ) const {}
+  void cpp_owned_const_ref( CppOwnedType const& ) const {}
+
+  // For return values, these are the only two that will work
+  // with return values.
+  LuaOwnedType  lua_owned_r() const { return {}; }
+  CppOwnedType& cpp_owned_ref_r() const {
+    static CppOwnedType o;
+    return o;
+  }
+};
+
+LUA_USERDATA_TRAITS( HasMemberFunctionsWithCppTypesAsArgs,
+                     owned_by_cpp ){};
+static_assert( HasUserdataOwnershipModel<
+               HasMemberFunctionsWithCppTypesAsArgs> );
+
 struct NotValid {};
 
 } // namespace lua
@@ -422,6 +446,24 @@ LUA_TEST_CASE( "[usertype] lua owned constructor" ) {
 
   REQUIRE( lo.d == 11.0 );
   REQUIRE( lo.n == 21 );
+}
+
+LUA_TEST_CASE(
+    "[usertype] pass cpp type by value in member functions" ) {
+  C.openlibs();
+  using U = HasMemberFunctionsWithCppTypesAsArgs;
+  usertype<U> ut( L );
+  REQUIRE( C.stack_size() == 0 );
+
+  ut["lua_owned"]           = &U::lua_owned;
+  ut["cpp_owned"]           = &U::cpp_owned;
+  ut["lua_owned_ref"]       = &U::lua_owned_ref;
+  ut["cpp_owned_ref"]       = &U::cpp_owned_ref;
+  ut["lua_owned_const_ref"] = &U::lua_owned_const_ref;
+  ut["cpp_owned_const_ref"] = &U::cpp_owned_const_ref;
+
+  ut["lua_owned_r"]     = &U::lua_owned_r;
+  ut["cpp_owned_ref_r"] = &U::cpp_owned_ref_r;
 }
 
 } // namespace
