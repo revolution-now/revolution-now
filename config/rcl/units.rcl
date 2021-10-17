@@ -1,43 +1,60 @@
+inventory_traits {
+  gold {
+    commodity:    null
+    min_quantity: 0
+    max_quantity: 1000000
+    multiple:     100
+  }
+
+  tools {
+    commodity:    tools
+    min_quantity: 20
+    max_quantity: 100
+    multiple:     20
+  }
+}
+
 modifier_traits {
   blessing {
     player_can_grant: true
-    commodity_association.none {}
+    association.none {}
   }
 
   horses {
     player_can_grant: true
-    commodity_association.consume {
-      type:     horses
-      quantity: 50
+    association.commodity {
+      commodity {
+        type:     horses
+        quantity: 50
+      }
     }
   }
 
   muskets {
     player_can_grant: true
-    commodity_association.consume {
-      type:     muskets
-      quantity: 50
+    association.commodity {
+      commodity {
+        type:     muskets
+        quantity: 50
+      }
     }
   }
 
   tools {
     player_can_grant: true
-    commodity_association.inventory {
-      type:           tools
-      min_quantity:   20
-      max_quantity:   100
-      multiple:       20
+    association.inventory {
+      type: tools
     }
   }
 
   independence {
     player_can_grant: false
-    commodity_association.none: {}
+    association.none: {}
   }
 
   strength {
     player_can_grant: false
-    commodity_association.none: {}
+    association.none: {}
   }
 }
 

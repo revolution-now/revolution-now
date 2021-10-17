@@ -14,8 +14,12 @@
 #include "src/utype.hpp"
 
 // Revolution Now
+#include "src/config-files.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
+
+// Revolution Now (config)
+#include "../config/rcl/units.inl"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -31,6 +35,15 @@ using namespace std;
 
 using Catch::Contains;
 
+TEST_CASE( "[utype] inventory_traits" ) {
+  auto& traits =
+      config_units.inventory_traits[e_unit_inventory::tools];
+  REQUIRE( traits.commodity == e_commodity::tools );
+  REQUIRE( traits.min_quantity == 20 );
+  REQUIRE( traits.max_quantity == 100 );
+  REQUIRE( traits.multiple == 20 );
+}
+
 TEST_CASE( "[utype] inventory_to_modifier" ) {
   SECTION( "gold" ) {
     auto mod_info =
@@ -42,14 +55,11 @@ TEST_CASE( "[utype] inventory_to_modifier" ) {
         inventory_to_modifier( e_unit_inventory::tools );
     REQUIRE( mod_info.has_value() );
     pair<e_unit_type_modifier,
-         ModifierCommodityAssociation::inventory const&> const&
-        p                        = *mod_info;
+         ModifierAssociation::inventory const&> const& p =
+        *mod_info;
     auto const& [mod, inventory] = p;
     REQUIRE( mod == e_unit_type_modifier::tools );
-    REQUIRE( inventory.type == e_commodity::tools );
-    REQUIRE( inventory.min_quantity == 20 );
-    REQUIRE( inventory.max_quantity == 100 );
-    REQUIRE( inventory.multiple == 20 );
+    REQUIRE( inventory.type == e_unit_inventory::tools );
   }
 }
 

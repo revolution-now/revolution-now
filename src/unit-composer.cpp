@@ -48,76 +48,36 @@ valid_deserial_t UnitComposition::check_invariants_safe() const {
     maybe<int const&> quantity =
         base::lookup( inventory_, type );
     if( !quantity.has_value() ) continue;
-    VERIFY_DESERIAL( *quantity > 0,
-                     "inventory quantities must be greater than "
-                     "zero if present." );
-    auto mod_info = inventory_to_modifier( type );
-    if( !mod_info ) continue;
-    auto [mod, inventory] = *mod_info;
-    // Inventory type corresponds to a commodity. Now make sure
-    // that it is in range.
+    UnitInventoryTraits const& traits =
+        config_units.inventory_traits[type];
     VERIFY_DESERIAL(
-        *quantity >= inventory.min_quantity,
+        *quantity >= traits.min_quantity,
         fmt::format( "{} inventory must have at least {} items.",
-                     type, inventory.min_quantity ) );
+                     type, traits.min_quantity ) );
     VERIFY_DESERIAL(
-        *quantity <= inventory.max_quantity,
+        *quantity <= traits.max_quantity,
         fmt::format( "{} inventory must have at most {} items.",
-                     type, inventory.max_quantity ) );
+                     type, traits.max_quantity ) );
     VERIFY_DESERIAL(
-        *quantity % inventory.multiple == 0,
+        *quantity % traits.multiple == 0,
         fmt::format(
             "{} inventory must come in multiples of {} items.",
-            type, inventory.multiple ) );
+            type, traits.multiple ) );
   }
 
-  // Validation: Check that only treasure units can have gold.
-  bool has_gold =
-      base::lookup( inventory_, e_unit_inventory::gold )
-          .has_value();
-  switch( type_.type() ) {
-    case e_unit_type::large_treasure:
-    case e_unit_type::small_treasure:
-      VERIFY_DESERIAL( has_gold,
-                       "Treasure trains must have gold." );
-      break;
-    default: //
-      VERIFY_DESERIAL( !has_gold,
-                       "Non-treasure trains must not have gold "
-                       "in their inventory." );
-      break;
-  };
-
-  // Check that only pioneer types can have tools and that
-  // they are multiples of 20.
-  maybe<int const&> tools_quantity =
-      base::lookup( inventory_, e_unit_inventory::tools );
-  switch( type_.type() ) {
-    case e_unit_type::pioneer:
-    case e_unit_type::hardy_pioneer:
-      VERIFY_DESERIAL(
-          tools_quantity.has_value(),
-          "Pioneer types must have tools in their inventory." );
-      VERIFY_DESERIAL( *tools_quantity % 20 == 0,
-                       "Quantity of tools in a unit's inventory "
-                       "must be a multiple of 20." );
-      break;
-    default: //
-      VERIFY_DESERIAL( !tools_quantity.has_value(),
-                       "Non-pioneer units must not have tools "
-                       "in their inventory." );
-      break;
-  };
-
-  return valid;
+  // FIXME
+  return base::valid;
 }
 
 UnitComposition UnitComposition::create( UnitType type ) {
-  return UnitComposition( type, {} );
+  // TODO: need to add default inventory for unit type...
+  UNWRAP_CHECK(
+      res, UnitComposition::create( type, /*inventory=*/{} ) );
+  return res;
 }
 
 UnitComposition UnitComposition::create( e_unit_type type ) {
-  return UnitComposition( UnitType::create( type ), {} );
+  return UnitComposition::create( UnitType::create( type ) );
 }
 
 maybe<UnitComposition> UnitComposition::create(
@@ -151,43 +111,26 @@ void to_str( UnitComposition const& o, string& out ) {
 *****************************************************************/
 namespace {
 
-maybe<Commodity> fixed_commodity_from_modifier(
-    e_unit_type_modifier mod ) {
-  UnitTypeModifierTraits const& traits =
-      config_units.modifier_traits[mod];
-  switch( traits.commodity_association.to_enum() ) {
-    using namespace ModifierCommodityAssociation;
-    case e::none: return nothing;
-    case e::inventory: return nothing;
-    case e::consume: {
-      auto const& o =
-          traits.commodity_association.get<consume>();
-      return Commodity{ .type = o.type, .quantity = o.quantity };
-    }
-  }
-}
-
 maybe<Commodity> commodity_from_modifier(
     UnitComposition const& comp, e_unit_type_modifier mod ) {
   UnitTypeModifierTraits const& traits =
       config_units.modifier_traits[mod];
-  switch( traits.commodity_association.to_enum() ) {
-    using namespace ModifierCommodityAssociation;
+  switch( traits.association.to_enum() ) {
+    using namespace ModifierAssociation;
     case e::none: return nothing;
-    case e::consume: {
-      auto const& o =
-          traits.commodity_association.get<consume>();
-      return Commodity{ .type = o.type, .quantity = o.quantity };
+    case e::commodity: {
+      auto const& o = traits.association.get<commodity>();
+      return o.commodity;
     }
     case e::inventory: {
-      auto const& o =
-          traits.commodity_association.get<inventory>();
-      UNWRAP_CHECK( inventory_type,
-                    commodity_to_inventory( o.type ) );
-      UNWRAP_RETURN( quantity, base::lookup( comp.inventory(),
-                                             inventory_type ) );
-      DCHECK( quantity >= 0 );
-      return Commodity{ .type = o.type, .quantity = quantity };
+      auto const& o = traits.association.get<inventory>();
+      UNWRAP_RETURN( quantity,
+                     base::lookup( comp.inventory(), o.type ) );
+      UnitInventoryTraits const& inv_traits =
+          config_units.inventory_traits[o.type];
+      UNWRAP_RETURN( comm_type, inv_traits.commodity );
+      return Commodity{ .type     = comm_type,
+                        .quantity = quantity };
     }
   }
 }
@@ -210,12 +153,14 @@ unordered_map<e_commodity, int> commodities_in_unit(
 }
 
 maybe<int> max_valid_inventory_quantity(
-    ModifierCommodityAssociation::inventory const& inventory,
-    int max_available ) {
+    ModifierAssociation::inventory const& inventory,
+    int                                   max_available ) {
+  UnitInventoryTraits const& inv_traits =
+      config_units.inventory_traits[inventory.type];
   int adjusted_max =
-      std::min( max_available, inventory.max_quantity );
-  adjusted_max -= adjusted_max % inventory.multiple;
-  if( adjusted_max < inventory.min_quantity ) return nothing;
+      std::min( max_available, inv_traits.max_quantity );
+  adjusted_max -= adjusted_max % inv_traits.multiple;
+  if( adjusted_max < inv_traits.min_quantity ) return nothing;
   return adjusted_max;
 }
 
@@ -298,7 +243,11 @@ vector<UnitTransformationResult> possible_unit_transformations(
     // quire a fixed number of commodities.
     for( e_unit_type_modifier mod : mods ) {
       maybe<Commodity> comm =
-          fixed_commodity_from_modifier( mod );
+          config_units.modifier_traits[mod]
+              .association
+              .get_if<ModifierAssociation::commodity>()
+              .member(
+                  &ModifierAssociation::commodity::commodity );
       if( !comm.has_value() ) continue;
       DCHECK( comm->quantity > 0 );
       commodities[comm->type] -= comm->quantity;
@@ -312,23 +261,25 @@ vector<UnitTransformationResult> possible_unit_transformations(
     for( e_unit_type_modifier mod : mods ) {
       auto inventory =
           config_units.modifier_traits[mod]
-              .commodity_association
-              .get_if<ModifierCommodityAssociation::inventory>();
+              .association
+              .get_if<ModifierAssociation::inventory>();
       if( !inventory.has_value() )
         // Does not require any inventory commodities.
         continue;
+      maybe<e_commodity> comm =
+          config_units.inventory_traits[inventory->type]
+              .commodity;
+      if( !comm.has_value() ) continue;
       maybe<int> quantity_to_use = max_valid_inventory_quantity(
           *inventory,
-          /*max_available=*/commodities[inventory->type] );
+          /*max_available=*/commodities[*comm] );
       if( !quantity_to_use.has_value() )
         // A modifier that requires inventory commodities cannot
         // be satisfied due to not enough of that commodity in
         // supply, so we skip to the next unit type.
         goto next_unit_type;
-      commodities[inventory->type] -= *quantity_to_use;
-      UNWRAP_CHECK( inventory_type,
-                    commodity_to_inventory( inventory->type ) );
-      new_inventory[inventory_type] += *quantity_to_use;
+      commodities[*comm] -= *quantity_to_use;
+      new_inventory[inventory->type] += *quantity_to_use;
     }
     // Finally check if we haven't run out of commodities.
     for( auto [type, q] : commodities ) {

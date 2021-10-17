@@ -97,23 +97,22 @@ enum.e_unit_inventory [
   tools
 ]
 
-sumtype.ModifierCommodityAssociation {
-  # There is no association between the modifier and any commod-
-  # ity.
+sumtype.ModifierAssociation {
+  # There is no association between the modifier and any com-
+  # modity or inventory item.
   none {}
   # Granting the modifier to a unit will consume a fixed amount
   # of a given commodity.
-  consume {
-    type: e_commodity
-    quantity: int
+  commodity {
+    commodity: Commodity
   }
   # Granting the modifier to a unit will require a certain amount
-  # of the given commodity in the inventory.
+  # of the given commodity in the inventory. That inventory item
+  # may or may not be associated with a commodity. Either way,
+  # the inventory traits will give constraints on the allowed
+  # quantities of this inventory type.
   inventory {
-    type: e_commodity
-    min_quantity: int
-    max_quantity: int
-    multiple: int
+    type: e_unit_inventory
   }
 }
 

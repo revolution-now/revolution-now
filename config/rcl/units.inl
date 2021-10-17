@@ -13,7 +13,13 @@ using UnitTypeModifierTraitsMap = ExhaustiveEnumMap<
   UnitTypeModifierTraits
 >;
 
+using UnitInventoryTraitsMap = ExhaustiveEnumMap<
+  e_unit_inventory,
+  UnitInventoryTraits
+>;
+
 CFG( units,
+  FLD( UnitInventoryTraitsMap, inventory_traits )
   FLD( UnitTypeModifierTraitsMap, modifier_traits )
   FLD( UnitAttributesMap, unit_types )
 )

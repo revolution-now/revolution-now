@@ -44,19 +44,13 @@ namespace rn {
 LUA_ENUM_DECL( unit_type );
 
 /****************************************************************
-** ModifierCommodityAssociation
-*****************************************************************/
-rcl::convert_valid rcl_validate(
-    ModifierCommodityAssociation_t const& o );
-
-/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
 
 struct UnitTypeModifierTraits {
-  bool                           player_can_grant;
-  ModifierCommodityAssociation_t commodity_association;
+  bool                  player_can_grant;
+  ModifierAssociation_t association;
 };
 
 // This is for deserializing from Rcl config files.
@@ -72,7 +66,7 @@ LUA_ENUM_DECL( unit_activity );
 ** Unit Inventory
 *****************************************************************/
 maybe<std::pair<e_unit_type_modifier,
-                ModifierCommodityAssociation::inventory const&>>
+                ModifierAssociation::inventory const&>>
 inventory_to_modifier( e_unit_inventory inv );
 
 maybe<e_unit_inventory> commodity_to_inventory(
@@ -80,6 +74,19 @@ maybe<e_unit_inventory> commodity_to_inventory(
 
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type );
+
+// TODO: Move this to Rds once we have reflected structures.
+struct UnitInventoryTraits {
+  maybe<e_commodity> commodity;
+  int                min_quantity = 0;
+  int                max_quantity = 0;
+  int                multiple     = 0;
+};
+
+rcl::convert_err<UnitInventoryTraits> convert_to(
+    rcl::value const& v, rcl::tag<UnitInventoryTraits> );
+
+rcl::convert_valid rcl_validate( UnitInventoryTraits const& o );
 
 /****************************************************************
 ** UnitTypeAttributes

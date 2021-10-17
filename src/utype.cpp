@@ -47,20 +47,18 @@ namespace rn {
 LUA_ENUM( unit_type );
 
 /****************************************************************
-** ModifierCommodityAssociation
+** ModifierAssociation
 *****************************************************************/
-namespace ModifierCommodityAssociation {
+namespace ModifierAssociation {
 
 // FIXME: Have RDS implement this automatically. It requires
 // first giving RDS support for reflected structs, then for re-
 // flected variants, then write generic convert_to implementa-
 // tions for the reflected structs and reflected variants.
-rcl::convert_err<ModifierCommodityAssociation_t> convert_to(
-    rcl::value const& v,
-    rcl::tag<ModifierCommodityAssociation_t> ) {
-  constexpr string_view kTypeName =
-      "ModifierCommodityAssociation_t";
-  constexpr int kNumFieldsExpected = 1;
+rcl::convert_err<ModifierAssociation_t> convert_to(
+    rcl::value const& v, rcl::tag<ModifierAssociation_t> ) {
+  constexpr string_view kTypeName = "ModifierAssociation_t";
+  constexpr int         kNumFieldsExpected = 1;
   base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
       v.get_if<std::unique_ptr<rcl::table>>();
   if( !mtbl )
@@ -82,81 +80,40 @@ rcl::convert_err<ModifierCommodityAssociation_t> convert_to(
                 val.get_if<unique_ptr<rcl::table>>() );
   CHECK( uptr_alternative );
   rcl::table const& alternative = *uptr_alternative;
-  if( key == "none" )
-    return ModifierCommodityAssociation::none{};
-  if( key == "consume" ) {
-    if( alternative.size() != 2 )
+  if( key == "none" ) return ModifierAssociation::none{};
+  if( key == "commodity" ) {
+    if( alternative.size() != 1 )
       return rcl::error(
           fmt::format( "{} variant alternative {} must have "
-                       "precisely {} fields.",
-                       kTypeName, "inventory", 2 ) );
-    // type
-    if( !alternative.has_key( "type" ) )
+                       "precisely {} field(s).",
+                       kTypeName, "commodity", 1 ) );
+    // commodity
+    if( !alternative.has_key( "commodity" ) )
       return rcl::error(
           fmt::format( "{} variant alternative {} must have a "
                        "field named {}.",
-                       kTypeName, "inventory", "type" ) );
-    UNWRAP_RETURN( type, rcl::convert_to<e_commodity>(
-                             alternative["type"] ) );
-    // quantity
-    if( !alternative.has_key( "quantity" ) )
-      return rcl::error( fmt::format(
-          "{} variant alternative {} must have a field named "
-          "{}.",
-          kTypeName, "inventory", "quantity" ) );
-    UNWRAP_RETURN( quantity, rcl::convert_to<int>(
-                                 alternative["quantity"] ) );
-    return ModifierCommodityAssociation::consume{
-        .type     = std::move( type ),
-        .quantity = std::move( quantity ),
-    };
+                       kTypeName, "commodity", "commodity" ) );
+    UNWRAP_RETURN( commodity, rcl::convert_to<Commodity>(
+                                  alternative["commodity"] ) );
+    return ModifierAssociation::commodity{
+        .commodity = std::move( commodity ) };
   }
   if( key == "inventory" ) {
-    if( alternative.size() != 4 )
+    if( alternative.size() != 1 )
       return rcl::error(
           fmt::format( "{} variant alternative {} must have "
                        "precisely {} fields.",
-                       kTypeName, "inventory", 4 ) );
+                       kTypeName, "inventory", 1 ) );
     // type
     if( !alternative.has_key( "type" ) )
       return rcl::error(
           fmt::format( "{} variant alternative {} must have a "
                        "field named {}.",
                        kTypeName, "inventory", "type" ) );
-    UNWRAP_RETURN( type, rcl::convert_to<e_commodity>(
+    UNWRAP_RETURN( type, rcl::convert_to<e_unit_inventory>(
                              alternative["type"] ) );
-    // min_quantity
-    if( !alternative.has_key( "min_quantity" ) )
-      return rcl::error( fmt::format(
-          "{} variant alternative {} must have a field named "
-          "{}.",
-          kTypeName, "inventory", "min_quantity" ) );
-    UNWRAP_RETURN(
-        min_quantity,
-        rcl::convert_to<int>( alternative["min_quantity"] ) );
-    // max_quantity
-    if( !alternative.has_key( "max_quantity" ) )
-      return rcl::error( fmt::format(
-          "{} variant alternative {} must have a field named "
-          "{}.",
-          kTypeName, "inventory", "max_quantity" ) );
-    UNWRAP_RETURN(
-        max_quantity,
-        rcl::convert_to<int>( alternative["max_quantity"] ) );
-    // multiple
-    if( !alternative.has_key( "multiple" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative {} must have a "
-                       "field named {}.",
-                       kTypeName, "inventory", "multiple" ) );
-    UNWRAP_RETURN( multiple, rcl::convert_to<int>(
-                                 alternative["multiple"] ) );
-    return ModifierCommodityAssociation::inventory{
-        .type         = std::move( type ),
-        .min_quantity = std::move( min_quantity ),
-        .max_quantity = std::move( max_quantity ),
-        .multiple     = std::move( multiple ),
-    };
+    return ModifierAssociation::inventory{
+        .type = std::move( type ) };
   }
   return rcl::error(
       fmt::format( "config field of type {} has invalid variant "
@@ -164,43 +121,7 @@ rcl::convert_err<ModifierCommodityAssociation_t> convert_to(
                    kTypeName, key ) );
 }
 
-rcl::convert_valid rcl_validate(
-    ModifierCommodityAssociation_t const& o ) {
-  switch( o.to_enum() ) {
-    using namespace ModifierCommodityAssociation;
-    case e::none: {
-      break;
-    }
-    case e::consume: {
-      auto& v = o.get<consume>();
-      RCL_CHECK( v.quantity > 0,
-                 "unit type modifier commodity quantities "
-                 "consumed must be > 0." );
-      break;
-    }
-    case e::inventory: {
-      auto& v = o.get<inventory>();
-      RCL_CHECK(
-          v.min_quantity >= 0,
-          "modifier inventory min quantity must be > 0." );
-      RCL_CHECK( v.min_quantity <= v.max_quantity,
-                 "modifier inventory min quantity must be <= "
-                 "than max quantity." );
-      RCL_CHECK( v.multiple > 0,
-                 "modifier inventory multiple must be > 0." );
-      RCL_CHECK( v.min_quantity % v.multiple == 0,
-                 "modifier inventory multiple must divide "
-                 "evenly into the min quantity." );
-      RCL_CHECK( v.max_quantity % v.multiple == 0,
-                 "modifier inventory multiple must divide "
-                 "evenly into the max quantity." );
-      break;
-    }
-  }
-  return base::valid;
-}
-
-} // namespace ModifierCommodityAssociation
+} // namespace ModifierAssociation
 
 /****************************************************************
 ** e_unit_type_modifier
@@ -230,7 +151,7 @@ rcl::convert_err<UnitTypeModifierTraits> convert_to(
   // clang-format off
   EVAL( PP_MAP_SEMI( RCL_CONVERT_FIELD,
     player_can_grant,
-    commodity_association
+    association
   ) );
   // clang-format on
 
@@ -246,14 +167,13 @@ LUA_ENUM( unit_activity );
 ** Unit Inventory
 *****************************************************************/
 maybe<std::pair<e_unit_type_modifier,
-                ModifierCommodityAssociation::inventory const&>>
+                ModifierAssociation::inventory const&>>
 inventory_to_modifier( e_unit_inventory inv ) {
   static auto const m = [] {
     DCHECK( configs_loaded() );
-    unordered_map<
-        e_unit_inventory,
-        pair<e_unit_type_modifier,
-             ModifierCommodityAssociation::inventory const&>>
+    unordered_map<e_unit_inventory,
+                  pair<e_unit_type_modifier,
+                       ModifierAssociation::inventory const&>>
         res;
     for( auto const& [mod, val] :
          config_units.modifier_traits ) {
@@ -261,8 +181,8 @@ inventory_to_modifier( e_unit_inventory inv ) {
       maybe<e_unit_inventory> inv =
           enum_traits<e_unit_inventory>::from_string( mod_name );
       auto inventory =
-          val.commodity_association
-              .get_if<ModifierCommodityAssociation::inventory>();
+          val.association
+              .get_if<ModifierAssociation::inventory>();
       if( !inventory ) {
         CHECK( !inv.has_value(),
                "the inventory item `{}` does not have a "
@@ -302,8 +222,48 @@ maybe<e_unit_inventory> commodity_to_inventory(
 
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type ) {
-  UNWRAP_RETURN( mod, inventory_to_modifier( inv_type ) );
-  return mod.second.type;
+  return config_units.inventory_traits[inv_type].commodity;
+}
+
+rcl::convert_err<UnitInventoryTraits> convert_to(
+    rcl::value const& v, rcl::tag<UnitInventoryTraits> ) {
+  constexpr string_view kTypeName = "UnitInventoryTraits";
+  constexpr int         kNumFieldsExpected = 4;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error( fmt::format(
+        "cannot produce a {} from type {}.", kTypeName,
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  RCL_CHECK( tbl.size() == kNumFieldsExpected,
+             "table must have precisely {} field(s) for "
+             "conversion to {}.",
+             kNumFieldsExpected, kTypeName );
+  UnitInventoryTraits res;
+  RCL_CONVERT_FIELD( commodity );
+  RCL_CONVERT_FIELD( min_quantity );
+  RCL_CONVERT_FIELD( max_quantity );
+  RCL_CONVERT_FIELD( multiple );
+  return res;
+}
+
+rcl::convert_valid rcl_validate( UnitInventoryTraits const& o ) {
+  RCL_CHECK( o.min_quantity >= 0,
+             "inventory traits min quantity must be > 0." );
+  RCL_CHECK( o.min_quantity <= o.max_quantity,
+             "inventory traits min quantity must be <= than max "
+             "quantity." );
+  RCL_CHECK( o.multiple > 0,
+             "inventory traits multiple must be > 0." );
+  RCL_CHECK( o.min_quantity % o.multiple == 0,
+             "inventory traits multiple must divide evenly into "
+             "the min quantity." );
+  RCL_CHECK( o.max_quantity % o.multiple == 0,
+             "inventory traits multiple must divide evenly into "
+             "the max quantity." );
+  return base::valid;
 }
 
 /****************************************************************
