@@ -311,6 +311,12 @@ waitable<> drag_drop_routine(
     if( *sink_edited != source_object )
       lg.debug( "drag sink responded with object {}.",
                 *sink_edited );
+    // Ideally here we would check that the new object does not
+    // have a larger quantity than the dragged object, if/where
+    // that makes sense. In other words, if the user is dragging
+    // 50 of a commodity, the drag sink cannot request more,
+    // though it can request less. Not sure how to do that in a
+    // generic way though.
     source_object = *sink_edited;
 
     // Since the sink may have edited the object, lets make sure
