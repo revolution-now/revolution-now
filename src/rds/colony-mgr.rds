@@ -15,6 +15,7 @@ enum.e_found_colony_err [
   no_water_colony
   colonist_not_on_map
   ship_cannot_found_colony
+  non_human_cannot_found_colony
 ]
 
 enum.e_new_colony_name_err [

@@ -54,6 +54,10 @@ struct BuildHandler : public OrdersHandler {
           co_await ui::message_box(
               "Cannot found a colony on water." );
           co_return false;
+        case e_found_colony_err::non_human_cannot_found_colony:
+          co_await ui::message_box(
+              "Only human units can found colonies." );
+          co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
           // No message box here since this should be obvious to
           // the player.

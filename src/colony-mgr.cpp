@@ -141,6 +141,9 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
 
+  if( !unit.is_human() )
+    return invalid( Res_t::non_human_cannot_found_colony );
+
   auto maybe_coord = coord_for_unit_indirect( founder );
   if( !maybe_coord.has_value() )
     return invalid( Res_t::colonist_not_on_map );

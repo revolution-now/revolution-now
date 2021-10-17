@@ -58,6 +58,13 @@ UnitId create_ship( Coord where ) {
       where );
 }
 
+UnitId create_wagon( Coord where ) {
+  return create_unit_on_map(
+      e_nation::english,
+      UnitComposition::create( e_unit_type::wagon_train ),
+      where );
+}
+
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   init_game_world_for_test();
 
@@ -125,6 +132,17 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
   REQUIRE(
       unit_can_found_colony( id ) ==
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
+}
+
+TEST_CASE( "[colony-mgr] found colony by non-human fails" ) {
+  init_game_world_for_test();
+
+  Coord coord = { 1_x, 1_y };
+  auto  id    = create_wagon( coord );
+  REQUIRE(
+      unit_can_found_colony( id ) ==
+      invalid(
+          e_found_colony_err::non_human_cannot_found_colony ) );
 }
 
 TEST_CASE( "[colony-mgr] lua" ) {
