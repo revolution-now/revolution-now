@@ -2501,5 +2501,110 @@ TEST_CASE( "[unit-composer] lua bindings" ) {
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 
+TEST_CASE( "[unit-composer] strip_to_base_type " ) {
+  UnitComposition          comp{};
+  UnitTransformationResult res;
+  UnitTransformationResult expected;
+
+  comp = UnitComposition::create( e_unit_type::free_colonist );
+  res  = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::free_colonist ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+  };
+  REQUIRE( res == expected );
+
+  comp = UnitComposition::create( e_unit_type::expert_farmer );
+  res  = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::expert_farmer ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+  };
+  REQUIRE( res == expected );
+
+  comp = UnitComposition::create(
+      UnitType::create( e_unit_type::dragoon,
+                        e_unit_type::indentured_servant )
+          .value() );
+  res      = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::indentured_servant ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                             e_unit_type_modifier_delta::del },
+                           { e_unit_type_modifier::muskets,
+                             e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+  };
+  REQUIRE( res == expected );
+
+  comp = UnitComposition::create( e_unit_type::veteran_dragoon );
+  res  = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_colonist ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                             e_unit_type_modifier_delta::del },
+                           { e_unit_type_modifier::muskets,
+                             e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+  };
+  REQUIRE( res == expected );
+
+  comp = UnitComposition::create(
+             UnitType::create( e_unit_type::pioneer,
+                               e_unit_type::free_colonist )
+                 .value(),
+             /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+             .value();
+  res      = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::free_colonist ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                             e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+  };
+  REQUIRE( res == expected );
+
+  comp = UnitComposition::create(
+             UnitType::create( e_unit_type::hardy_pioneer ),
+             /*inventory=*/{ { e_unit_inventory::tools, 100 } } )
+             .value();
+  res      = strip_to_base_type( comp );
+  expected = UnitTransformationResult{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_colonist ),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                             e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+  };
+  REQUIRE( res == expected );
+}
+
 } // namespace
 } // namespace rn

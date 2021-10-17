@@ -38,7 +38,7 @@ void init_game_world_for_test() {
   generate_unittest_terrain();
 }
 
-UnitId create_colonist( Coord where ) {
+UnitId create_colonist_on_map( Coord where ) {
   return create_unit_on_map(
       e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ),
@@ -49,6 +49,23 @@ UnitId create_colonist() {
   return create_unit(
       e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
+}
+
+UnitId create_dragoon_on_map( Coord where ) {
+  return create_unit_on_map(
+      e_nation::english,
+      UnitComposition::create(
+          UnitType::create( e_unit_type::dragoon,
+                            e_unit_type::petty_criminal )
+              .value() ),
+      where );
+}
+
+UnitId create_hardy_pioneer_on_map( Coord where ) {
+  return create_unit_on_map(
+      e_nation::english,
+      UnitComposition::create( e_unit_type::hardy_pioneer ),
+      where );
 }
 
 UnitId create_ship( Coord where ) {
@@ -69,9 +86,59 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   init_game_world_for_test();
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist( coord );
+  auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
+  ColonyId col_id = found_colony_unsafe( id, "colony" );
+  Colony&  col    = colony_from_id( col_id );
+  for( auto [type, q] : col.commodities() ) {
+    INFO( fmt::format( "type: {}, q: {}", type, q ) );
+    REQUIRE( q == 0 );
+  }
+}
+
+TEST_CASE( "[colony-mgr] create colony strips unit" ) {
+  init_game_world_for_test();
+
+  SECTION( "dragoon" ) {
+    Coord  coord   = { 2_x, 2_y };
+    UnitId id      = create_dragoon_on_map( coord );
+    Unit&  founder = unit_from_id( id );
+    REQUIRE( founder.type() == e_unit_type::dragoon );
+    REQUIRE( unit_can_found_colony( id ).valid() );
+    ColonyId col_id = found_colony_unsafe( id, "colony" );
+    REQUIRE( founder.type() == e_unit_type::petty_criminal );
+    Colony& col = colony_from_id( col_id );
+    // Make sure that the founding unit has shed all of its com-
+    // modities into the colony commodity store.
+    for( auto [type, q] : col.commodities() ) {
+      INFO( fmt::format( "type: {}, q: {}", type, q ) );
+      switch( type ) {
+        case e_commodity::horses: REQUIRE( q == 50 ); break;
+        case e_commodity::muskets: REQUIRE( q == 50 ); break;
+        default: REQUIRE( q == 0 ); break;
+      }
+    }
+  }
+
+  SECTION( "hardy_pioneer" ) {
+    Coord  coord   = { 2_x, 2_y };
+    UnitId id      = create_hardy_pioneer_on_map( coord );
+    Unit&  founder = unit_from_id( id );
+    REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
+    REQUIRE( unit_can_found_colony( id ).valid() );
+    ColonyId col_id = found_colony_unsafe( id, "colony" );
+    REQUIRE( founder.type() == e_unit_type::hardy_colonist );
+    Colony& col = colony_from_id( col_id );
+    // Make sure that the founding unit has shed all of its com-
+    // modities into the colony commodity store.
+    for( auto [type, q] : col.commodities() ) {
+      INFO( fmt::format( "type: {}, q: {}", type, q ) );
+      switch( type ) {
+        case e_commodity::tools: REQUIRE( q == 100 ); break;
+        default: REQUIRE( q == 0 ); break;
+      }
+    }
+  }
 }
 
 TEST_CASE(
@@ -79,11 +146,16 @@ TEST_CASE(
   init_game_world_for_test();
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist( coord );
+  auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony 1" ) );
+  ColonyId col_id = found_colony_unsafe( id, "colony 1" );
+  Colony&  col    = colony_from_id( col_id );
+  for( auto [type, q] : col.commodities() ) {
+    INFO( fmt::format( "type: {}, q: {}", type, q ) );
+    REQUIRE( q == 0 );
+  }
 
-  id = create_colonist( coord );
+  id = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colony_exists_here ) );
 }
@@ -93,12 +165,17 @@ TEST_CASE(
   init_game_world_for_test();
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist( coord );
+  auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
+  ColonyId col_id = found_colony_unsafe( id, "colony" );
+  Colony&  col    = colony_from_id( col_id );
+  for( auto [type, q] : col.commodities() ) {
+    INFO( fmt::format( "type: {}, q: {}", type, q ) );
+    REQUIRE( q == 0 );
+  }
 
   coord += 1_w;
-  id = create_colonist( coord );
+  id = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
 }
 

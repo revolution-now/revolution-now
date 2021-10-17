@@ -143,6 +143,13 @@ void Unit::demote_from_lost_battle() {
   change_type( std::move( new_comp ) );
 }
 
+UnitTransformationResult Unit::strip_to_base_type() {
+  UnitTransformationResult res =
+      rn::strip_to_base_type( composition_ );
+  change_type( res.new_comp );
+  return res;
+}
+
 maybe<e_unit_type> Unit::demoted_type() const {
   UNWRAP_RETURN( demoted, on_death_demoted_type( type_obj() ) );
   return demoted.type();

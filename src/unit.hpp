@@ -147,6 +147,13 @@ public:
   // Will check-fail if the unit cannot be demoted.
   void demote_from_lost_battle();
 
+  // This is used to transform the unit when e.g. founding a
+  // colony. In that situation, the unit needs to be stripped to
+  // its base type and all of the commodities that it has should
+  // be added into the colony's commodity store. All modifiers
+  // will be stripped from the unit as well.
+  UnitTransformationResult strip_to_base_type();
+
   maybe<e_unit_type> demoted_type() const;
 
   // Can unit receive commodity, and if so how many and what unit

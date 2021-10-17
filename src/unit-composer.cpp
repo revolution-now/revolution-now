@@ -368,6 +368,26 @@ vector<UnitTransformationResult> possible_unit_transformations(
   return res;
 }
 
+UnitTransformationResult strip_to_base_type(
+    UnitComposition const& comp ) {
+  vector<UnitTransformationResult> general_results =
+      possible_unit_transformations( comp,
+                                     /*commodity_store=*/{} );
+  erase_if( general_results,
+            L( _.new_comp.type() != _.new_comp.base_type() ) );
+  CHECK( general_results.size() == 1,
+         "unit {} does not have a unique base type: {}", comp,
+         general_results );
+  auto& res = general_results[0];
+  for( auto [comm_type, q] : res.commodity_deltas ) {
+    CHECK( q > 0,
+           "while stripping unit of commodities, a negative "
+           "commodity was returned ({}, {}).",
+           comm_type, q );
+  }
+  return std::move( general_results[0] );
+}
+
 vector<UnitTransformationFromCommodityResult>
 unit_receive_commodity( UnitComposition const& comp,
                         Commodity const&       commodity ) {

@@ -122,6 +122,13 @@ possible_unit_transformations(
     std::unordered_map<e_commodity, int> const&
         commodity_store );
 
+// Strip a unit of all commodities and modifiers and return the
+// single base type along with the commodity and modifier deltas
+// that it took to get there. The commodity deltas will always be
+// positive, meaning that the unit is shedding commodities.
+UnitTransformationResult strip_to_base_type(
+    UnitComposition const& comp );
+
 struct UnitTransformationFromCommodityResult {
   UnitComposition new_comp;
   std::unordered_map<e_unit_type_modifier,

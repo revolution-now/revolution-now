@@ -169,12 +169,23 @@ ColonyId found_colony_unsafe( UnitId           founder,
     FATAL( "Cannot found colony, error code: {}.",
            enum_name( res.error() ) );
 
-  auto nation = unit_from_id( founder ).nation();
+  Unit& unit   = unit_from_id( founder );
+  auto  nation = unit.nation();
   UNWRAP_CHECK( where, coord_for_unit_indirect( founder ) );
 
   // 1. Create colony object.
   UNWRAP_CHECK( col_id,
                 cstate_create_colony( nation, where, name ) );
+  Colony& col = colony_from_id( col_id );
+
+  // Strip unit of commodities and modifiers and put the commodi-
+  // ties into the colony.
+  UnitTransformationResult tranform_res =
+      unit.strip_to_base_type();
+  for( auto [type, q] : tranform_res.commodity_deltas ) {
+    CHECK( q > 0 );
+    col.commodities()[type] += q;
+  }
 
   // 2. Find initial job for founder. (TODO)
   ColonyJob_t job =
