@@ -49,7 +49,7 @@ valid_deserial_t UnitComposition::check_invariants_safe() const {
         base::lookup( inventory_, type );
     if( !quantity.has_value() ) continue;
     UnitInventoryTraits const& traits =
-        config_units.inventory_traits[type];
+        config_units.composition.inventory_traits[type];
     VERIFY_DESERIAL(
         *quantity >= traits.min_quantity,
         fmt::format( "{} inventory must have at least {} items.",
@@ -114,7 +114,7 @@ namespace {
 maybe<Commodity> commodity_from_modifier(
     UnitComposition const& comp, e_unit_type_modifier mod ) {
   UnitTypeModifierTraits const& traits =
-      config_units.modifier_traits[mod];
+      config_units.composition.modifier_traits[mod];
   switch( traits.association.to_enum() ) {
     using namespace ModifierAssociation;
     case e::none: return nothing;
@@ -127,7 +127,7 @@ maybe<Commodity> commodity_from_modifier(
       UNWRAP_RETURN( quantity,
                      base::lookup( comp.inventory(), o.type ) );
       UnitInventoryTraits const& inv_traits =
-          config_units.inventory_traits[o.type];
+          config_units.composition.inventory_traits[o.type];
       UNWRAP_RETURN( comm_type, inv_traits.commodity );
       return Commodity{ .type     = comm_type,
                         .quantity = quantity };
@@ -156,7 +156,7 @@ maybe<int> max_valid_inventory_quantity(
     ModifierAssociation::inventory const& inventory,
     int                                   max_available ) {
   UnitInventoryTraits const& inv_traits =
-      config_units.inventory_traits[inventory.type];
+      config_units.composition.inventory_traits[inventory.type];
   int adjusted_max =
       std::min( max_available, inv_traits.max_quantity );
   adjusted_max -= adjusted_max % inv_traits.multiple;
@@ -243,7 +243,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
     // quire a fixed number of commodities.
     for( e_unit_type_modifier mod : mods ) {
       maybe<Commodity> comm =
-          config_units.modifier_traits[mod]
+          config_units.composition.modifier_traits[mod]
               .association
               .get_if<ModifierAssociation::commodity>()
               .member(
@@ -260,14 +260,15 @@ vector<UnitTransformationResult> possible_unit_transformations(
     remove_commodities_from_inventory( new_inventory );
     for( e_unit_type_modifier mod : mods ) {
       auto inventory =
-          config_units.modifier_traits[mod]
+          config_units.composition.modifier_traits[mod]
               .association
               .get_if<ModifierAssociation::inventory>();
       if( !inventory.has_value() )
         // Does not require any inventory commodities.
         continue;
       maybe<e_commodity> comm =
-          config_units.inventory_traits[inventory->type]
+          config_units.composition
+              .inventory_traits[inventory->type]
               .commodity;
       if( !comm.has_value() ) continue;
       maybe<int> quantity_to_use = max_valid_inventory_quantity(

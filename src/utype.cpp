@@ -171,49 +171,31 @@ LUA_ENUM( unit_activity );
 /****************************************************************
 ** Unit Inventory
 *****************************************************************/
-maybe<std::pair<e_unit_type_modifier,
-                ModifierAssociation::inventory const&>>
-inventory_to_modifier( e_unit_inventory inv ) {
+namespace {
+
+unordered_map<e_unit_inventory, e_unit_type_modifier>
+create_inventory_to_modifier_map(
+    UnitTypeModifierTraitsMap const& modifier_traits ) {
+  unordered_map<e_unit_inventory, e_unit_type_modifier> res;
+  for( auto const& [mod, val] : modifier_traits ) {
+    auto inventory =
+        val.association.get_if<ModifierAssociation::inventory>();
+    if( !inventory ) continue;
+    bool was_inserted =
+        res.try_emplace( inventory->type, mod ).second;
+    CHECK( was_inserted );
+  }
+  return res;
+}
+
+} // namespace
+
+maybe<e_unit_type_modifier> inventory_to_modifier(
+    e_unit_inventory inv ) {
   static auto const m = [] {
     DCHECK( configs_loaded() );
-    unordered_map<e_unit_inventory,
-                  pair<e_unit_type_modifier,
-                       ModifierAssociation::inventory const&>>
-        res;
-    for( auto const& [mod, val] :
-         config_units.modifier_traits ) {
-      string_view             mod_name = enum_name( mod );
-      maybe<e_unit_inventory> inv =
-          enum_traits<e_unit_inventory>::from_string( mod_name );
-      auto inventory =
-          val.association
-              .get_if<ModifierAssociation::inventory>();
-      if( !inventory ) {
-        CHECK( !inv.has_value(),
-               "the inventory item `{}` does not have a "
-               "corresponding modifier with inventory commodity "
-               "association.",
-               *inv );
-        continue;
-      }
-      CHECK_HAS_VALUE_MSG(
-          inv,
-          "the modifier `{}` is associated with an inventory "
-          "commodity, but there is no e_unit_inventory type "
-          "with the name '{}'.",
-          mod, mod_name );
-      // This is validation of the config.
-      CHECK( enum_traits<e_commodity>::from_string( mod_name ),
-             "the modifier `{}` is associated with an inventory "
-             "commodity, but there is no e_commodity type with "
-             "the name '{}'.",
-             mod, mod_name );
-      bool was_inserted =
-          res.try_emplace( *inv, mod, *inventory ).second;
-      DCHECK( was_inserted );
-      (void)was_inserted;
-    }
-    return res;
+    return create_inventory_to_modifier_map(
+        config_units.composition.modifier_traits );
   }();
   DCHECK( !m.empty() );
   return base::lookup( m, inv );
@@ -227,7 +209,8 @@ maybe<e_unit_inventory> commodity_to_inventory(
 
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type ) {
-  return config_units.inventory_traits[inv_type].commodity;
+  return config_units.composition.inventory_traits[inv_type]
+      .commodity;
 }
 
 rcl::convert_err<UnitInventoryTraits> convert_to(
@@ -415,7 +398,8 @@ rcl::convert_err<UnitPromotion_t> convert_to(
 *****************************************************************/
 UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   UNWRAP_CHECK_MSG(
-      desc, base::lookup( config_units.unit_types, type ),
+      desc,
+      base::lookup( config_units.composition.unit_types, type ),
       "internal error: unit type {} does not have a type "
       "descriptor.",
       type );
@@ -426,7 +410,7 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
 rcl::convert_err<UnitTypeAttributes> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
   constexpr string_view kTypeName = "UnitTypeAttributes";
-  constexpr int         kNumFieldsExpected = 18;
+  constexpr int         kNumFieldsExpected = 19;
   base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
       v.get_if<std::unique_ptr<rcl::table>>();
   if( !mtbl )
@@ -461,7 +445,8 @@ rcl::convert_err<UnitTypeAttributes> convert_to(
     expertise,
     cleared_expertise,
     promotion,
-    modifiers
+    modifiers,
+    inventory_types
   ) );
   // clang-format on
 
@@ -506,229 +491,6 @@ LUA_STARTUP( lua::state& st ) {
 };
 
 } // namespace
-
-/****************************************************************
-** UnitAttributesMap
-*****************************************************************/
-rcl::convert_valid rcl_validate( UnitAttributesMap const& m ) {
-  // Populate derived fields.
-  unordered_set<e_unit_type> derived_types;
-  for( auto& [type, type_struct] : m ) {
-    type_struct.type = type;
-    // Any type that can be obtained by modifying this one is a
-    // derived type.
-    for( auto& modifier : type_struct.modifiers )
-      derived_types.insert( modifier.first );
-  }
-  for( auto& [type, type_struct] : m )
-    type_struct.is_derived = derived_types.contains( type );
-
-  // Validation: any unit type that is derived must not itself
-  // have modifiers.
-  for( auto& [type, type_struct] : m )
-    if( type_struct.is_derived &&
-        !type_struct.modifiers.empty() )
-      return rcl::error(
-          "derived type {} cannot have modifiers.", type );
-
-  // Validation: For each unit type, make sure that each modifier
-  // has a unique set of modifiers.
-  for( auto& [type, type_struct] : m ) {
-    // Unfortunately it seems that unordered_set does not support
-    // nesting like this.
-    set<set<e_unit_type_modifier>> seen;
-    for( auto& [mtype, mod_set] : type_struct.modifiers ) {
-      set<e_unit_type_modifier> uset( mod_set.begin(),
-                                      mod_set.end() );
-      if( seen.contains( uset ) )
-        return rcl::error(
-            "unit type {} contains a duplicate set of "
-            "modifiers.",
-            type );
-      seen.insert( uset );
-    }
-  }
-
-  // NOTE: do not use unit_attr() here to access unit properties
-  // since it queries a structure that will not yet exist at this
-  // point. Instead, us `m` as is done below.
-
-  // Validation (should be done after populating all derived
-  // fields). This verifies that any unit that has an
-  // on_death.demote field can be demoted regardless of its base
-  // type. In other words, any base type that can be modified to
-  // another unit X must also provide a valid modifier for when X
-  // loses its on-death-lost modifiers.
-  for( auto& [type, type_struct] : m ) {
-    UNWRAP_CHECK( type_desc, base::lookup( m, type ) );
-    for( auto& [mtype, mod_list] : type_struct.modifiers ) {
-      UNWRAP_CHECK( mtype_desc, base::lookup( m, mtype ) );
-      auto demote =
-          mtype_desc.on_death.get_if<UnitDeathAction::demote>();
-      if( !demote ) continue;
-      // Sanity check: make sure that the modifiers that the
-      // derived type is supposed to be losing (to affect
-      // demotion) are present in the current modifiers list.
-      for( e_unit_type_modifier mod : demote->lose ) {
-        if( !mod_list.contains( mod ) )
-          return rcl::error(
-              "unit type {} is supposed to lose modifier {} "
-              "upon demotion, but its base type ({}) modifier "
-              "list does not contain that modifier.",
-              type, mod, mtype );
-      }
-      unordered_set<e_unit_type_modifier> target_modifiers =
-          mod_list;
-      for( e_unit_type_modifier mod : demote->lose )
-        target_modifiers.erase( mod );
-      if( target_modifiers.empty() )
-        // In this case we've lost all modifiers, so we would
-        // just become the base type, which is always allowed.
-        continue;
-      auto& base_modifiers = type_desc.modifiers;
-      bool  found          = false;
-      for( auto& [mtype, base_mod_set] : base_modifiers )
-        if( base_mod_set == target_modifiers ) found = true;
-      // Any type that has an on_death.demoted field should
-      // always be demotable regardless of base type (that is a
-      // requirement of the game rules).
-      if( !found )
-        return rcl::error(
-            "cannot find a new type to which to demote the type "
-            "{} (with base type {}).",
-            mtype, type );
-    }
-  }
-
-  // Validate that canonical_base is populated iff the type is a
-  // derived type, and that the base type that it refers to has a
-  // path to the derived type.
-  for( auto& [type, type_struct] : m ) {
-    if( type_struct.is_derived ) {
-      if( !type_struct.canonical_base.has_value() )
-        return rcl::error(
-            "derived type {} must have a value for its "
-            "`canonical_base` field.",
-            type );
-      e_unit_type base_type = *type_struct.canonical_base;
-      UNWRAP_CHECK( base_desc, base::lookup( m, base_type ) );
-      auto& modifiers = base_desc.modifiers;
-      if( !modifiers.contains( type ) )
-        return rcl::error(
-            "derived type {} lists the {} type as its canonical "
-            "base type, but that base type does not have a path "
-            "to the type {}.",
-            type, base_type, type );
-      // We're good.
-    } else {
-      // Not derived type.
-      if( type_struct.canonical_base.has_value() )
-        return rcl::error(
-            "base type {} must have `null` for its "
-            "`canonical_base` field.",
-            type );
-    }
-  }
-
-  // Validate that only base types have human == yes/no and
-  // derived types have human == from_base.
-  for( auto& [type, type_struct] : m ) {
-    if( type_struct.is_derived ) {
-      RCL_CHECK( type_struct.human == e_unit_human::from_base,
-                 "derived type {} must have `from_base` for its "
-                 "`human` field.",
-                 type );
-    } else {
-      // Not derived type.
-      RCL_CHECK( type_struct.human != e_unit_human::from_base,
-                 "base type {} must not have `from_base` for "
-                 "its `human` field.",
-                 type );
-    }
-  }
-
-  // Validate that the `expertise` field is only set for base
-  // types.
-  for( auto& [type, type_struct] : m )
-    if( type_struct.is_derived )
-      if( type_struct.expertise.has_value() )
-        return rcl::error(
-            "derived type {} has the`expertise` field set, but "
-            "that is only for base types.",
-            type );
-
-  // Validation that there is precisely one unit that has
-  // expertise in each activity.
-  unordered_set<e_unit_activity> expertises;
-  for( auto& [type, type_struct] : m ) {
-    if( !type_struct.expertise.has_value() ) continue;
-    e_unit_activity activity = *type_struct.expertise;
-    CHECK(
-        !expertises.contains( activity ),
-        "there are multiple unit types which have expertise {}.",
-        activity );
-    expertises.insert( activity );
-  }
-  for( auto activity : enum_traits<e_unit_activity>::values ) {
-    CHECK( expertises.contains( activity ),
-           "there is no unit type that has expertise {}.",
-           activity );
-  }
-
-  // Validation of promotion fields.
-  for( auto& [type, type_struct] : m ) {
-    if( !type_struct.promotion.has_value() ) continue;
-    switch( type_struct.promotion->to_enum() ) {
-      using namespace UnitPromotion;
-      case e::fixed: {
-        // Validation: this must be a base type and the target
-        // type of the promotion must be a base type.
-        auto const& o = type_struct.promotion->get<fixed>();
-        if( type_struct.is_derived )
-          return rcl::error(
-              "derived type {} cannot have value `fixed` for "
-              "its promotion field.",
-              type );
-        UNWRAP_CHECK( new_type_desc, base::lookup( m, o.type ) );
-        if( new_type_desc.is_derived )
-          return rcl::error(
-              "type {} has type {} as its fixed promotion "
-              "target, but the {} type cannot be a fixed "
-              "promotion target because it is not a base "
-              "type.",
-              type, o.type, o.type );
-        break;
-      }
-      case e::occupation: {
-        // Validation: this must be a base type.
-        if( type_struct.is_derived )
-          return rcl::error(
-              "derived type {} cannot have value `occupation` "
-              "for its promotion field.",
-              type );
-        break;
-      }
-      case e::expertise: {
-        // Validation: this must be a derived type.
-        if( !type_struct.is_derived )
-          return rcl::error(
-              "base type {} cannot have value `occupation` for "
-              "its promotion field.",
-              type );
-        break;
-      }
-      case e::modifier: {
-        // This is allowed for either base types or derived types
-        // and moreover it is not required that the base type be
-        // able to accept the modifier (in that case no promotion
-        // happens), so there isn't really any validation that we
-        // need to do here.
-        break;
-      }
-    }
-  }
-  return base::valid;
-}
 
 /****************************************************************
 ** Unit Type Modifier Inspection / Updating.
@@ -830,12 +592,14 @@ maybe<UnitType> find_unit_type_modifiers(
 } // namespace
 
 bool is_unit_human( UnitType ut ) {
-  e_unit_human res = config_units.unit_types[ut.type()].human;
+  e_unit_human res =
+      config_units.composition.unit_types[ut.type()].human;
   switch( res ) {
     case e_unit_human::no: return false;
     case e_unit_human::yes: return true;
     case e_unit_human::from_base: {
-      res = config_units.unit_types[ut.base_type()].human;
+      res = config_units.composition.unit_types[ut.base_type()]
+                .human;
       switch( res ) {
         case e_unit_human::no: return false;
         case e_unit_human::yes: return true;
@@ -913,7 +677,7 @@ namespace {
 e_unit_type expert_for_activity( e_unit_activity activity ) {
   // During config deserialization it should have been verified
   // that there is precisely one expert for each activity.
-  for( auto& [type, attr] : config_units.unit_types )
+  for( auto& [type, attr] : config_units.composition.unit_types )
     if( attr.expertise == activity ) return type;
   SHOULD_NOT_BE_HERE;
 }
@@ -1134,5 +898,314 @@ LUA_STARTUP( lua::state& st ) {
 };
 
 } // namespace
+
+/****************************************************************
+** UnitCompositionConfig
+*****************************************************************/
+rcl::convert_err<UnitCompositionConfig> convert_to(
+    rcl::value const& v, rcl::tag<UnitCompositionConfig> ) {
+  constexpr string_view kTypeName = "UnitCompositionConfig";
+  constexpr int         kNumFieldsExpected = 3;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error( fmt::format(
+        "cannot produce a {} from type {}.", kTypeName,
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  RCL_CHECK( tbl.size() == kNumFieldsExpected,
+             "table must have precisely {} field(s) for "
+             "conversion to {}.",
+             kNumFieldsExpected, kTypeName );
+  UnitCompositionConfig res;
+  RCL_CONVERT_FIELD( inventory_traits );
+  RCL_CONVERT_FIELD( modifier_traits );
+  RCL_CONVERT_FIELD( unit_types );
+
+  // Populate derived fields.
+  unordered_set<e_unit_type> derived_types;
+  for( auto& [type, type_struct] : res.unit_types ) {
+    type_struct.type = type;
+    // Any type that can be obtained by modifying this one is a
+    // derived type.
+    for( auto& modifier : type_struct.modifiers )
+      derived_types.insert( modifier.first );
+  }
+  for( auto& [type, type_struct] : res.unit_types )
+    type_struct.is_derived = derived_types.contains( type );
+
+  return res;
+}
+
+rcl::convert_valid rcl_validate(
+    UnitCompositionConfig const& o ) {
+  auto& m = o.unit_types;
+  // Validation: any unit type that is derived must not itself
+  // have modifiers.
+  for( auto& [type, type_struct] : m )
+    if( type_struct.is_derived &&
+        !type_struct.modifiers.empty() )
+      return rcl::error(
+          "derived type {} cannot have modifiers.", type );
+
+  // Validation: For each unit type, make sure that each modifier
+  // has a non-empty set of modifiers.
+  for( auto& [type, type_struct] : m )
+    for( auto& [mtype, mod_set] : type_struct.modifiers )
+      RCL_CHECK( !mod_set.empty(),
+                 "type `{}' has an empty list of modifiers for "
+                 "the modified type `{}'.",
+                 type, mtype );
+
+  // Validation: For each unit type, make sure that each modifier
+  // has a unique set of modifiers.
+  for( auto& [type, type_struct] : m ) {
+    // Unfortunately it seems that unordered_set does not support
+    // nesting like this.
+    set<set<e_unit_type_modifier>> seen;
+    for( auto& [mtype, mod_set] : type_struct.modifiers ) {
+      set<e_unit_type_modifier> uset( mod_set.begin(),
+                                      mod_set.end() );
+      if( seen.contains( uset ) )
+        return rcl::error(
+            "unit type {} contains a duplicate set of "
+            "modifiers.",
+            type );
+      seen.insert( uset );
+    }
+  }
+
+  // NOTE: do not use unit_attr() here to access unit properties
+  // since it queries a structure that will not yet exist at this
+  // point. Instead, us `m` as is done below.
+
+  // Validation (should be done after populating all derived
+  // fields). This verifies that any unit that has an
+  // on_death.demote field can be demoted regardless of its base
+  // type. In other words, any base type that can be modified to
+  // another unit X must also provide a valid modifier for when X
+  // loses its on-death-lost modifiers.
+  for( auto& [type, type_struct] : m ) {
+    for( auto& [mtype, mod_list] : type_struct.modifiers ) {
+      UNWRAP_CHECK( mtype_desc, base::lookup( m, mtype ) );
+      auto demote =
+          mtype_desc.on_death.get_if<UnitDeathAction::demote>();
+      if( !demote ) continue;
+      // Sanity check: make sure that the modifiers that the
+      // derived type is supposed to be losing (to affect
+      // demotion) are present in the current modifiers list.
+      for( e_unit_type_modifier mod : demote->lose ) {
+        if( !mod_list.contains( mod ) )
+          return rcl::error(
+              "unit type {} is supposed to lose modifier {} "
+              "upon demotion, but its base type ({}) modifier "
+              "list does not contain that modifier.",
+              type, mod, mtype );
+      }
+      unordered_set<e_unit_type_modifier> target_modifiers =
+          mod_list;
+      for( e_unit_type_modifier mod : demote->lose )
+        target_modifiers.erase( mod );
+      if( target_modifiers.empty() )
+        // In this case we've lost all modifiers, so we would
+        // just become the base type, which is always allowed.
+        continue;
+      auto& base_modifiers = type_struct.modifiers;
+      bool  found          = false;
+      for( auto& [mtype, base_mod_set] : base_modifiers )
+        if( base_mod_set == target_modifiers ) found = true;
+      // Any type that has an on_death.demoted field should
+      // always be demotable regardless of base type (that is a
+      // requirement of the game rules).
+      if( !found )
+        return rcl::error(
+            "cannot find a new type to which to demote the type "
+            "{} (with base type {}).",
+            mtype, type );
+    }
+  }
+
+  // Validate that canonical_base is populated iff the type is a
+  // derived type, and that the base type that it refers to has a
+  // path to the derived type.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.is_derived ) {
+      if( !type_struct.canonical_base.has_value() )
+        return rcl::error(
+            "derived type {} must have a value for its "
+            "`canonical_base` field.",
+            type );
+      e_unit_type base_type = *type_struct.canonical_base;
+      UNWRAP_CHECK( base_desc, base::lookup( m, base_type ) );
+      auto& modifiers = base_desc.modifiers;
+      if( !modifiers.contains( type ) )
+        return rcl::error(
+            "derived type {} lists the {} type as its canonical "
+            "base type, but that base type does not have a path "
+            "to the type {}.",
+            type, base_type, type );
+      // We're good.
+    } else {
+      // Not derived type.
+      if( type_struct.canonical_base.has_value() )
+        return rcl::error(
+            "base type {} must have `null` for its "
+            "`canonical_base` field.",
+            type );
+    }
+  }
+
+  // Validate that only base types have human == yes/no and
+  // derived types have human == from_base.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.is_derived ) {
+      RCL_CHECK( type_struct.human == e_unit_human::from_base,
+                 "derived type {} must have `from_base` for its "
+                 "`human` field.",
+                 type );
+    } else {
+      // Not derived type.
+      RCL_CHECK( type_struct.human != e_unit_human::from_base,
+                 "base type {} must not have `from_base` for "
+                 "its `human` field.",
+                 type );
+    }
+  }
+
+  // Validate that the `expertise` field is only set for base
+  // types.
+  for( auto& [type, type_struct] : m )
+    if( type_struct.is_derived )
+      if( type_struct.expertise.has_value() )
+        return rcl::error(
+            "derived type {} has the`expertise` field set, but "
+            "that is only for base types.",
+            type );
+
+  // Validation that there is precisely one unit that has
+  // expertise in each activity.
+  unordered_set<e_unit_activity> expertises;
+  for( auto& [type, type_struct] : m ) {
+    if( !type_struct.expertise.has_value() ) continue;
+    e_unit_activity activity = *type_struct.expertise;
+    CHECK(
+        !expertises.contains( activity ),
+        "there are multiple unit types which have expertise {}.",
+        activity );
+    expertises.insert( activity );
+  }
+  for( auto activity : enum_traits<e_unit_activity>::values ) {
+    CHECK( expertises.contains( activity ),
+           "there is no unit type that has expertise {}.",
+           activity );
+  }
+
+  // Validation of promotion fields.
+  for( auto& [type, type_struct] : m ) {
+    if( !type_struct.promotion.has_value() ) continue;
+    switch( type_struct.promotion->to_enum() ) {
+      using namespace UnitPromotion;
+      case e::fixed: {
+        // Validation: this must be a base type and the target
+        // type of the promotion must be a base type.
+        auto const& o = type_struct.promotion->get<fixed>();
+        if( type_struct.is_derived )
+          return rcl::error(
+              "derived type {} cannot have value `fixed` for "
+              "its promotion field.",
+              type );
+        UNWRAP_CHECK( new_type_desc, base::lookup( m, o.type ) );
+        if( new_type_desc.is_derived )
+          return rcl::error(
+              "type {} has type {} as its fixed promotion "
+              "target, but the {} type cannot be a fixed "
+              "promotion target because it is not a base "
+              "type.",
+              type, o.type, o.type );
+        break;
+      }
+      case e::occupation: {
+        // Validation: this must be a base type.
+        if( type_struct.is_derived )
+          return rcl::error(
+              "derived type {} cannot have value `occupation` "
+              "for its promotion field.",
+              type );
+        break;
+      }
+      case e::expertise: {
+        // Validation: this must be a derived type.
+        if( !type_struct.is_derived )
+          return rcl::error(
+              "base type {} cannot have value `occupation` for "
+              "its promotion field.",
+              type );
+        break;
+      }
+      case e::modifier: {
+        // This is allowed for either base types or derived types
+        // and moreover it is not required that the base type be
+        // able to accept the modifier (in that case no promotion
+        // happens), so there isn't really any validation that we
+        // need to do here.
+        break;
+      }
+    }
+  }
+
+  // Get the inventory-to-modifier traits this way because we
+  // cannot use config_units.composition.modifier_traits because
+  // that structure has not yet been populated at this stage.
+  unordered_map<e_unit_inventory, e_unit_type_modifier> const
+      inv_to_mod =
+          create_inventory_to_modifier_map( o.modifier_traits );
+
+  // Validate that no base types have inventory_types that in-
+  // clude any inventory type that has a modifier association.
+  for( auto& [type, type_struct] : m ) {
+    if( !type_struct.is_derived ) {
+      for( e_unit_inventory inv : type_struct.inventory_types ) {
+        maybe<e_unit_type_modifier> mod =
+            base::lookup( inv_to_mod, inv );
+        RCL_CHECK(
+            !mod.has_value(),
+            "base type `{}' cannot have inventory type `{}' "
+            "because it has the modifier assocation `{}'.",
+            type, inv, *mod );
+      }
+    }
+  }
+
+  // Validate that, for each base type, the list of modifiers re-
+  // quired for each modified type includes the
+  // inventory-associated modifier if the modified type includes
+  // the modifier-associated inventory type.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.is_derived ) continue;
+    for( auto& [mtype, mod_list] : type_struct.modifiers ) {
+      UNWRAP_CHECK( mtype_desc, base::lookup( m, mtype ) );
+      unordered_set<e_unit_inventory>
+          modifier_associated_inventory_types;
+      for( e_unit_inventory inv_type :
+           mtype_desc.inventory_types ) {
+        maybe<e_unit_type_modifier> mod =
+            base::lookup( inv_to_mod, inv_type );
+        if( !mod.has_value() ) continue;
+        // This is a modifier-associated inventory type, so make
+        // sure that the modifier is in the list.
+        RCL_CHECK( mod_list.contains( *mod ),
+                   "base type `{}' has a modifier conversion "
+                   "to derived type `{}' which in turn has a "
+                   "modifier-associated inventory type `{}', "
+                   "but the associated modifier does not "
+                   "appear in the list in the base type.",
+                   type, mtype, inv_type );
+      }
+    }
+  }
+
+  return base::valid;
+}
 
 } // namespace rn

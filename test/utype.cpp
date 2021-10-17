@@ -26,6 +26,7 @@
 
 FMT_TO_CATCH( ::rn::UnitPromotion_t );
 FMT_TO_CATCH( ::rn::e_unit_type_modifier );
+FMT_TO_CATCH( ::rn::e_unit_inventory );
 FMT_TO_CATCH( ::rn::UnitType );
 
 namespace rn {
@@ -36,8 +37,8 @@ using namespace std;
 using Catch::Contains;
 
 TEST_CASE( "[utype] inventory_traits" ) {
-  auto& traits =
-      config_units.inventory_traits[e_unit_inventory::tools];
+  auto& traits = config_units.composition
+                     .inventory_traits[e_unit_inventory::tools];
   REQUIRE( traits.commodity == e_commodity::tools );
   REQUIRE( traits.min_quantity == 20 );
   REQUIRE( traits.max_quantity == 100 );
@@ -51,15 +52,9 @@ TEST_CASE( "[utype] inventory_to_modifier" ) {
     REQUIRE( !mod_info.has_value() );
   }
   SECTION( "tools" ) {
-    auto mod_info =
-        inventory_to_modifier( e_unit_inventory::tools );
-    REQUIRE( mod_info.has_value() );
-    pair<e_unit_type_modifier,
-         ModifierAssociation::inventory const&> const& p =
-        *mod_info;
-    auto const& [mod, inventory] = p;
+    auto mod = inventory_to_modifier( e_unit_inventory::tools );
+    REQUIRE( mod.has_value() );
     REQUIRE( mod == e_unit_type_modifier::tools );
-    REQUIRE( inventory.type == e_unit_inventory::tools );
   }
 }
 
@@ -126,6 +121,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
                 e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::expert_cotton_planter );
     REQUIRE( desc.is_derived == false );
@@ -169,6 +166,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
                 e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::petty_criminal );
     REQUIRE( desc.is_derived == false );
@@ -211,6 +210,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
                 e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::free_colonist );
     REQUIRE( desc.is_derived == false );
@@ -246,6 +247,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
     REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::veteran_dragoon );
     REQUIRE( desc.is_derived == true );
@@ -278,11 +281,81 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
     REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::scout );
     REQUIRE( desc.is_derived == true );
     REQUIRE( desc.can_attack() == true );
     REQUIRE( desc.is_military_unit() == true );
+  }
+  SECTION( "pioneer" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::pioneer );
+    REQUIRE( desc.name == "Pioneer" );
+    REQUIRE( desc.tile == e_tile::pioneer );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.attack_points == 0 );
+    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.cargo_slots == 0 );
+    REQUIRE( desc.cargo_slots_occupies == 1 );
+    REQUIRE( desc.on_death ==
+             UnitDeathAction_t{ UnitDeathAction::capture{} } );
+    REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
+    REQUIRE( desc.expertise == nothing );
+    REQUIRE( desc.promotion ==
+             UnitPromotion_t{ UnitPromotion::expertise{
+                 .kind = e_unit_activity::pioneering } } );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{};
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{
+                 e_unit_inventory::tools } );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::pioneer );
+    REQUIRE( desc.is_derived == true );
+    REQUIRE( desc.can_attack() == false );
+    REQUIRE( desc.is_military_unit() == false );
+  }
+  SECTION( "large_treasure" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::large_treasure );
+    REQUIRE( desc.name == "Large Treasure" );
+    REQUIRE( desc.tile == e_tile::large_treasure );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::n );
+    REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::no );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.attack_points == 0 );
+    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.cargo_slots == 0 );
+    REQUIRE( desc.cargo_slots_occupies == 6 );
+    REQUIRE( desc.on_death ==
+             UnitDeathAction_t{ UnitDeathAction::capture{} } );
+    REQUIRE( desc.canonical_base == nothing );
+    REQUIRE( desc.expertise == nothing );
+    REQUIRE( desc.promotion == nothing );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{};
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{
+                 e_unit_inventory::gold } );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::large_treasure );
+    REQUIRE( desc.is_derived == false );
+    REQUIRE( desc.can_attack() == false );
+    REQUIRE( desc.is_military_unit() == false );
   }
 }
 

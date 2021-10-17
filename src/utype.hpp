@@ -70,9 +70,8 @@ LUA_ENUM_DECL( unit_activity );
 /****************************************************************
 ** Unit Inventory
 *****************************************************************/
-maybe<std::pair<e_unit_type_modifier,
-                ModifierAssociation::inventory const&>>
-inventory_to_modifier( e_unit_inventory inv );
+maybe<e_unit_type_modifier> inventory_to_modifier(
+    e_unit_inventory inv );
 
 maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm );
@@ -164,6 +163,16 @@ struct UnitTypeAttributes {
                      std::unordered_set<e_unit_type_modifier>>
       modifiers{};
 
+  // This gives a list of all of the inventory types that the
+  // unit is required to have. Moreover, the unit cannot hold any
+  // inventory types that are not in this list. For consistency,
+  // if a certain inventory type has a modifier association then:
+  // 1) no base type can have that inventory type, and 2) derived
+  // types that have that inventory type must have the associated
+  // modifier along all possible paths to the derived unit (from
+  // all relevant base types).
+  std::unordered_set<e_unit_inventory> inventory_types{};
+
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Derived fields.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,13 +205,6 @@ namespace rn {
 *****************************************************************/
 using UnitAttributesMap =
     ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>;
-
-// This is for deserializing from Rcl config files.
-rcl::convert_err<UnitAttributesMap> convert_to(
-    rcl::value const& v, rcl::tag<UnitAttributesMap> );
-
-// Post-deserialization validator found through ADL.
-rcl::convert_valid rcl_validate( UnitAttributesMap const& m );
 
 /****************************************************************
 ** UnitType
@@ -321,11 +323,32 @@ namespace lua {
 LUA_USERDATA_TRAITS( ::rn::UnitType, owned_by_lua ){};
 }
 
-namespace rn {
-
-//
-
-} // namespace rn
-
 DEFINE_FORMAT( ::rn::UnitType, "UnitType{{type={},base={}}}",
                o.type(), o.base_type() );
+
+namespace rn {
+
+/****************************************************************
+** UnitCompositionConfig
+*****************************************************************/
+using UnitTypeModifierTraitsMap =
+    ExhaustiveEnumMap<e_unit_type_modifier,
+                      UnitTypeModifierTraits>;
+
+using UnitInventoryTraitsMap =
+    ExhaustiveEnumMap<e_unit_inventory, UnitInventoryTraits>;
+
+// The constituents of this struct need to be validated together.
+struct UnitCompositionConfig {
+  UnitInventoryTraitsMap    inventory_traits;
+  UnitTypeModifierTraitsMap modifier_traits;
+  UnitAttributesMap         unit_types;
+};
+
+rcl::convert_err<UnitCompositionConfig> convert_to(
+    rcl::value const& v, rcl::tag<UnitCompositionConfig> );
+
+rcl::convert_valid rcl_validate(
+    UnitCompositionConfig const& o );
+
+} // namespace rn

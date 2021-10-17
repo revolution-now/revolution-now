@@ -8,20 +8,10 @@
 
 namespace rn {
 
-using UnitTypeModifierTraitsMap = ExhaustiveEnumMap<
-  e_unit_type_modifier,
-  UnitTypeModifierTraits
->;
-
-using UnitInventoryTraitsMap = ExhaustiveEnumMap<
-  e_unit_inventory,
-  UnitInventoryTraits
->;
-
 CFG( units,
-  FLD( UnitInventoryTraitsMap, inventory_traits )
-  FLD( UnitTypeModifierTraitsMap, modifier_traits )
-  FLD( UnitAttributesMap, unit_types )
+  // This includes a bunch of different fields, but they are
+  // grouped here because they need to be validated together.
+  FLD( UnitCompositionConfig, composition )
 )
 
 }

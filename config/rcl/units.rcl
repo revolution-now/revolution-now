@@ -1,1295 +1,1349 @@
-inventory_traits {
-  gold {
-    commodity:    null
-    min_quantity: 0
-    max_quantity: 1000000
-    multiple:     100
+composition {
+
+  inventory_traits {
+    gold {
+      commodity:    null
+      min_quantity: 0
+      max_quantity: 1000000
+      multiple:     100
+    }
+
+    tools {
+      commodity:    tools
+      min_quantity: 20
+      max_quantity: 100
+      multiple:     20
+    }
   }
 
-  tools {
-    commodity:    tools
-    min_quantity: 20
-    max_quantity: 100
-    multiple:     20
-  }
-}
+  modifier_traits {
+    blessing {
+      player_can_grant: true
+      association.none {}
+    }
 
-modifier_traits {
-  blessing {
-    player_can_grant: true
-    association.none {}
-  }
-
-  horses {
-    player_can_grant: true
-    association.commodity {
-      commodity {
-        type:     horses
-        quantity: 50
+    horses {
+      player_can_grant: true
+      association.commodity {
+        commodity {
+          type:     horses
+          quantity: 50
+        }
       }
     }
-  }
 
-  muskets {
-    player_can_grant: true
-    association.commodity {
-      commodity {
-        type:     muskets
-        quantity: 50
+    muskets {
+      player_can_grant: true
+      association.commodity {
+        commodity {
+          type:     muskets
+          quantity: 50
+        }
       }
     }
-  }
 
-  tools {
-    player_can_grant: true
-    association.inventory {
-      type: tools
+    tools {
+      player_can_grant: true
+      association.inventory {
+        type: tools
+      }
+    }
+
+    independence {
+      player_can_grant: false
+      association.none: {}
+    }
+
+    strength {
+      player_can_grant: false
+      association.none: {}
     }
   }
 
-  independence {
-    player_can_grant: false
-    association.none: {}
-  }
-
-  strength {
-    player_can_grant: false
-    association.none: {}
-  }
-}
-
-unit_types {
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Basic Colonists
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  petty_criminal {
-    name:                  Petty Criminal
-    tile:                  petty_criminal
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.fixed:       { type=indentured_servant }
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+  unit_types {
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Basic Colonists
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    petty_criminal {
+      name:                  Petty Criminal
+      tile:                  petty_criminal
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.fixed:       { type=indentured_servant }
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  indentured_servant {
-    name:                  Indentured Servant
-    tile:                  indentured_servant
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.fixed:       { type=free_colonist }
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    indentured_servant {
+      name:                  Indentured Servant
+      tile:                  indentured_servant
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.fixed:       { type=free_colonist }
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  free_colonist {
-    name:                  Free Colonist
-    tile:                  free_colonist
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.occupation:  {}
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    free_colonist {
+      name:                  Free Colonist
+      tile:                  free_colonist
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.occupation:  {}
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Non-expert modified colonists.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  pioneer {
-    name:                  Pioneer
-    tile:                  pioneer
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        free_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.expertise:   { kind: pioneering }
-    modifiers:             {}
-  }
-
-  missionary {
-    name:                  Missionary
-    tile:                  missionary
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        free_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.expertise:   { kind: missioning }
-    modifiers:             {}
-  }
-
-  scout {
-    name:                  Scout
-    tile:                  scout
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            2
-    movement_points:       4
-    attack_points:         1
-    defense_points:        1
-    # Does not simply lose horses; the game rules say that scout
-    # units are completely destroyed upon defeat.
-    on_death.destroy:      {}
-    canonical_base:        free_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.expertise:   { kind: scouting }
-    modifiers:             {}
-  }
-
-  soldier {
-    name:                  Soldier
-    tile:                  soldier
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         2
-    defense_points:        2
-    on_death.demote:       { lose=[muskets] }
-    canonical_base:        free_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.expertise:   { kind: fighting }
-    modifiers:             {}
-  }
-
-  dragoon {
-    name:                  Dragoon
-    tile:                  dragoon
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       4
-    attack_points:         3
-    defense_points:        3
-    on_death.demote:       { lose=[horses] }
-    canonical_base:        free_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.expertise:   { kind: fighting }
-    modifiers:             {}
-  }
-
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Expert colonists.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  expert_farmer {
-    name:                  Expert Farmer
-    tile:                  expert_farmer
-    expertise:             farming
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Non-expert modified colonists.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    pioneer {
+      name:                  Pioneer
+      tile:                  pioneer
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        free_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       [tools]
+      promotion.expertise:   { kind: pioneering }
+      modifiers:             {}
     }
-  }
 
-  expert_fisherman {
-    name:                  Expert Fisherman
-    tile:                  expert_fisherman
-    expertise:             fishing
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    missionary {
+      name:                  Missionary
+      tile:                  missionary
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        free_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.expertise:   { kind: missioning }
+      modifiers:             {}
     }
-  }
 
-  expert_sugar_planter {
-    name:                  Expert Sugar Planter
-    tile:                  expert_sugar_planter
-    expertise:             sugar_planting
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    scout {
+      name:                  Scout
+      tile:                  scout
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            2
+      movement_points:       4
+      attack_points:         1
+      defense_points:        1
+      # Does not simply lose horses; the game rules say that scout
+      # units are completely destroyed upon defeat.
+      on_death.destroy:      {}
+      canonical_base:        free_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.expertise:   { kind: scouting }
+      modifiers:             {}
     }
-  }
 
-  expert_tobacco_planter {
-    name:                  Expert Tobacco Planter
-    tile:                  expert_tobacco_planter
-    expertise:             tobacco_planting
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    soldier {
+      name:                  Soldier
+      tile:                  soldier
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         2
+      defense_points:        2
+      on_death.demote:       { lose=[muskets] }
+      canonical_base:        free_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.expertise:   { kind: fighting }
+      modifiers:             {}
     }
-  }
 
-  expert_cotton_planter {
-    name:                  Expert Cotton Planter
-    tile:                  expert_cotton_planter
-    expertise:             cotton_planting
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    dragoon {
+      name:                  Dragoon
+      tile:                  dragoon
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       4
+      attack_points:         3
+      defense_points:        3
+      on_death.demote:       { lose=[horses] }
+      canonical_base:        free_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.expertise:   { kind: fighting }
+      modifiers:             {}
     }
-  }
 
-  expert_fur_trapper {
-    name:                  Expert Fur Trapper
-    tile:                  expert_fur_trapper
-    expertise:             fur_trapping
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Expert colonists.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    expert_farmer {
+      name:                  Expert Farmer
+      tile:                  expert_farmer
+      expertise:             farming
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  expert_lumberjack {
-    name:                  Expert Lumberjack
-    tile:                  expert_lumberjack
-    expertise:             lumberjacking
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_fisherman {
+      name:                  Expert Fisherman
+      tile:                  expert_fisherman
+      expertise:             fishing
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  expert_ore_miner {
-    name:                  Expert Ore Miner
-    tile:                  expert_ore_miner
-    expertise:             ore_mining
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_sugar_planter {
+      name:                  Expert Sugar Planter
+      tile:                  expert_sugar_planter
+      expertise:             sugar_planting
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  expert_silver_miner {
-    name:                  Expert Silver Miner
-    tile:                  expert_silver_miner
-    expertise:             silver_mining
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_tobacco_planter {
+      name:                  Expert Tobacco Planter
+      tile:                  expert_tobacco_planter
+      expertise:             tobacco_planting
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_carpenter {
-    name:                  Master Carpenter
-    tile:                  master_carpenter
-    expertise:             carpentry
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_cotton_planter {
+      name:                  Expert Cotton Planter
+      tile:                  expert_cotton_planter
+      expertise:             cotton_planting
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_rum_distiller {
-    name:                  Master Rum Distiller
-    tile:                  master_rum_distiller
-    expertise:             rum_distilling
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_fur_trapper {
+      name:                  Expert Fur Trapper
+      tile:                  expert_fur_trapper
+      expertise:             fur_trapping
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_tobacconist {
-    name:                  Master Tobacconist
-    tile:                  master_tobacconist
-    expertise:             tobacconistry
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_lumberjack {
+      name:                  Expert Lumberjack
+      tile:                  expert_lumberjack
+      expertise:             lumberjacking
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_weaver {
-    name:                  Master Weaver
-    tile:                  master_weaver
-    expertise:             weaving
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_ore_miner {
+      name:                  Expert Ore Miner
+      tile:                  expert_ore_miner
+      expertise:             ore_mining
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_fur_trader {
-    name:                  Master Fur Trader
-    tile:                  master_fur_trader
-    expertise:             fur_trading
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    expert_silver_miner {
+      name:                  Expert Silver Miner
+      tile:                  expert_silver_miner
+      expertise:             silver_mining
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_blacksmith {
-    name:                  Master Blacksmith
-    tile:                  master_blacksmith
-    expertise:             blacksmithing
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    master_carpenter {
+      name:                  Master Carpenter
+      tile:                  master_carpenter
+      expertise:             carpentry
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  master_gunsmith {
-    name:                  Master Gunsmith
-    tile:                  master_gunsmith
-    expertise:             gunsmithing
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    master_rum_distiller {
+      name:                  Master Rum Distiller
+      tile:                  master_rum_distiller
+      expertise:             rum_distilling
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  elder_statesman {
-    name:                  Elder Statesman
-    tile:                  elder_statesman
-    expertise:             bell_ringing
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    master_tobacconist {
+      name:                  Master Tobacconist
+      tile:                  master_tobacconist
+      expertise:             tobacconistry
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  firebrand_preacher {
-    name:                  Firebrand Preacher
-    tile:                  firebrand_preacher
-    expertise:             preaching
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary: [blessing]
-      scout:      [horses]
-      pioneer:    [tools]
-      soldier:    [muskets]
-      dragoon:    [horses, muskets]
+    master_weaver {
+      name:                  Master Weaver
+      tile:                  master_weaver
+      expertise:             weaving
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  hardy_colonist {
-    name:                  Hardy Colonist
-    tile:                  hardy_colonist
-    expertise:             pioneering
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary:    [blessing]
-      scout:         [horses]
-      hardy_pioneer: [tools]
-      soldier:       [muskets]
-      dragoon:       [horses, muskets]
+    master_fur_trader {
+      name:                  Master Fur Trader
+      tile:                  master_fur_trader
+      expertise:             fur_trading
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  jesuit_colonist {
-    name:                  Jesuit Colonist
-    tile:                  jesuit_colonist
-    expertise:             missioning
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      jesuit_missionary: [blessing]
-      scout:             [horses]
-      pioneer:           [tools]
-      soldier:           [muskets]
-      dragoon:           [horses, muskets]
+    master_blacksmith {
+      name:                  Master Blacksmith
+      tile:                  master_blacksmith
+      expertise:             blacksmithing
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  seasoned_colonist {
-    name:                  Seasoned Colonist
-    tile:                  seasoned_colonist
-    expertise:             scouting
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary:     [blessing]
-      seasoned_scout: [horses]
-      pioneer:        [tools]
-      soldier:        [muskets]
-      dragoon:        [horses, muskets]
+    master_gunsmith {
+      name:                  Master Gunsmith
+      tile:                  master_gunsmith
+      expertise:             gunsmithing
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  veteran_colonist {
-    name:                  Veteran Colonist
-    tile:                  veteran_colonist
-    expertise:             fighting
-    cleared_expertise:     free_colonist
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      missionary:          [blessing]
-      scout:               [horses]
-      pioneer:             [tools]
-      veteran_soldier:     [muskets]
-      veteran_dragoon:     [horses, muskets]
-      continental_army:    [muskets, independence]
-      continental_cavalry: [muskets, horses, independence]
+    elder_statesman {
+      name:                  Elder Statesman
+      tile:                  elder_statesman
+      expertise:             bell_ringing
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Expert modified colonists.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  veteran_soldier {
-    name:                  Veteran Soldier
-    tile:                  veteran_soldier
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         3
-    defense_points:        3
-    on_death.demote:       { lose=[muskets] }
-    canonical_base:        veteran_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.modifier:    { kind=independence }
-    modifiers:             {}
-  }
-
-  veteran_dragoon {
-    name:                  Veteran Dragoon
-    tile:                  veteran_dragoon
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       4
-    attack_points:         4
-    defense_points:        4
-    on_death.demote:       { lose=[horses] }
-    canonical_base:        veteran_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion.modifier:    { kind=independence }
-    modifiers:             {}
-  }
-
-  continental_army {
-    name:                  Continental Army
-    tile:                  continental_army
-    expertise:             null
-    cleared_expertise:     soldier
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         4
-    defense_points:        4
-    on_death.demote:       { lose=[muskets, independence] }
-    canonical_base:        veteran_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  continental_cavalry {
-    name:                  Continental Cavalry
-    tile:                  continental_cavalry
-    expertise:             null
-    cleared_expertise:     dragoon
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       4
-    attack_points:         5
-    defense_points:        5
-    on_death.demote:       { lose=[horses] }
-    canonical_base:        veteran_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  regular {
-    name:                  Regular
-    tile:                  regular
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         5
-    defense_points:        5
-    on_death.destroy:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  cavalry {
-    name:                  Cavalry
-    tile:                  cavalry
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 yes
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       4
-    attack_points:         6
-    defense_points:        6
-    on_death.destroy:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  hardy_pioneer {
-    name:                  Hardy Pioneer
-    tile:                  hardy_pioneer
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        hardy_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  jesuit_missionary {
-    name:                  Jesuit Missionary
-    tile:                  jesuit_missionary
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        jesuit_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  seasoned_scout {
-    name:                  Seasoned Scout
-    tile:                  seasoned_scout
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     sw
-    visibility:            2
-    movement_points:       4
-    attack_points:         1
-    defense_points:        1
-    # Does not simply lose horses; the game rules say that scout
-    # units are completely destroyed upon defeat.
-    on_death.destroy:      {}
-    canonical_base:        seasoned_colonist
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
-
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Non-human combat units.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  damaged_artillery {
-    name:                  Damaged Artillery
-    tile:                  damaged_artillery
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     n
-    visibility:            1
-    movement_points:       1
-    attack_points:         5
-    defense_points:        3
-    on_death.destroy:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers {
-      artillery: [strength]
+    firebrand_preacher {
+      name:                  Firebrand Preacher
+      tile:                  firebrand_preacher
+      expertise:             preaching
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
     }
-  }
 
-  artillery {
-    name:                  Artillery
-    tile:                  artillery
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 from_base
-    nat_icon_front:        false
-    nat_icon_position:     n
-    visibility:            1
-    movement_points:       1
-    attack_points:         7
-    defense_points:        5
-    on_death.demote:       { lose=[strength] }
-    canonical_base:        damaged_artillery
-    cargo_slots:           0
-    cargo_slots_occupies:  1
-    promotion:             null
-    modifiers:             {}
-  }
+    hardy_colonist {
+      name:                  Hardy Colonist
+      tile:                  hardy_colonist
+      expertise:             pioneering
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary:    [blessing]
+        scout:         [horses]
+        hardy_pioneer: [tools]
+        soldier:       [muskets]
+        dragoon:       [horses, muskets]
+      }
+    }
 
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Ships.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  caravel {
-    name:                  Caravel
-    tile:                  caravel
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       4
-    attack_points:         2
-    defense_points:        2
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           2
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    jesuit_colonist {
+      name:                  Jesuit Colonist
+      tile:                  jesuit_colonist
+      expertise:             missioning
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        jesuit_missionary: [blessing]
+        scout:             [horses]
+        pioneer:           [tools]
+        soldier:           [muskets]
+        dragoon:           [horses, muskets]
+      }
+    }
 
-  merchantman {
-    name:                  Merchantman
-    tile:                  merchantman
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       5
-    attack_points:         0
-    defense_points:        5
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           4
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    seasoned_colonist {
+      name:                  Seasoned Colonist
+      tile:                  seasoned_colonist
+      expertise:             scouting
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary:     [blessing]
+        seasoned_scout: [horses]
+        pioneer:        [tools]
+        soldier:        [muskets]
+        dragoon:        [horses, muskets]
+      }
+    }
 
-  galleon {
-    name:                  Galleon
-    tile:                  galleon
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       6
-    attack_points:         0
-    defense_points:        10
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           6
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    veteran_colonist {
+      name:                  Veteran Colonist
+      tile:                  veteran_colonist
+      expertise:             fighting
+      cleared_expertise:     free_colonist
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        missionary:          [blessing]
+        scout:               [horses]
+        pioneer:             [tools]
+        veteran_soldier:     [muskets]
+        veteran_dragoon:     [horses, muskets]
+        continental_army:    [muskets, independence]
+        continental_cavalry: [muskets, horses, independence]
+      }
+    }
 
-  privateer {
-    name:                  Privateer
-    tile:                  privateer
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       8
-    attack_points:         8
-    defense_points:        8
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           2
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Expert modified colonists.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    veteran_soldier {
+      name:                  Veteran Soldier
+      tile:                  veteran_soldier
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         3
+      defense_points:        3
+      on_death.demote:       { lose=[muskets] }
+      canonical_base:        veteran_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.modifier:    { kind=independence }
+      modifiers:             {}
+    }
 
-  frigate {
-    name:                  Frigate
-    tile:                  frigate
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       6
-    attack_points:         16
-    defense_points:        16
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           4
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    veteran_dragoon {
+      name:                  Veteran Dragoon
+      tile:                  veteran_dragoon
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       4
+      attack_points:         4
+      defense_points:        4
+      on_death.demote:       { lose=[horses] }
+      canonical_base:        veteran_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion.modifier:    { kind=independence }
+      modifiers:             {}
+    }
 
-  man_o_war {
-    name:                  Man-O-War
-    tile:                  man_o_war
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  true
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     nw
-    visibility:            1
-    movement_points:       5
-    attack_points:         24
-    defense_points:        24
-    on_death.naval:        {}
-    canonical_base:        null
-    cargo_slots:           6
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-  }
+    continental_army {
+      name:                  Continental Army
+      tile:                  continental_army
+      expertise:             null
+      cleared_expertise:     soldier
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         4
+      defense_points:        4
+      on_death.demote:       { lose=[muskets, independence] }
+      canonical_base:        veteran_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
 
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Land transport.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  wagon_train {
-    name:                  Wagon Train
-    tile:                  wagon_train
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     n
-    visibility:            1
-    movement_points:       2
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           2
-    cargo_slots_occupies:  null
-    promotion:             null
-    modifiers:             {}
-    # TODO: requires capenter's shop to build.
-  }
+    continental_cavalry {
+      name:                  Continental Cavalry
+      tile:                  continental_cavalry
+      expertise:             null
+      cleared_expertise:     dragoon
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       4
+      attack_points:         5
+      defense_points:        5
+      on_death.demote:       { lose=[horses] }
+      canonical_base:        veteran_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
 
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  # Treasure.
-  #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-  small_treasure {
-    name:                  Small Treasure
-    tile:                  small_treasure
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     n
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  4
-    promotion:             null
-    modifiers:             {}
-  }
+    regular {
+      name:                  Regular
+      tile:                  regular
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         5
+      defense_points:        5
+      on_death.destroy:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
 
-  large_treasure {
-    name:                  Large Treasure
-    tile:                  large_treasure
-    expertise:             null
-    cleared_expertise:     null
-    ship:                  false
-    human:                 no
-    nat_icon_front:        false
-    nat_icon_position:     n
-    visibility:            1
-    movement_points:       1
-    attack_points:         0
-    defense_points:        1
-    on_death.capture:      {}
-    canonical_base:        null
-    cargo_slots:           0
-    cargo_slots_occupies:  6
-    promotion:             null
-    modifiers:             {}
-  }
+    cavalry {
+      name:                  Cavalry
+      tile:                  cavalry
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       4
+      attack_points:         6
+      defense_points:        6
+      on_death.destroy:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
 
-} # unit_types
+    hardy_pioneer {
+      name:                  Hardy Pioneer
+      tile:                  hardy_pioneer
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        hardy_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       [tools]
+      promotion:             null
+      modifiers:             {}
+    }
+
+    jesuit_missionary {
+      name:                  Jesuit Missionary
+      tile:                  jesuit_missionary
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        jesuit_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    seasoned_scout {
+      name:                  Seasoned Scout
+      tile:                  seasoned_scout
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            2
+      movement_points:       4
+      attack_points:         1
+      defense_points:        1
+      # Does not simply lose horses; the game rules say that scout
+      # units are completely destroyed upon defeat.
+      on_death.destroy:      {}
+      canonical_base:        seasoned_colonist
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Non-human combat units.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    damaged_artillery {
+      name:                  Damaged Artillery
+      tile:                  damaged_artillery
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     n
+      visibility:            1
+      movement_points:       1
+      attack_points:         5
+      defense_points:        3
+      on_death.destroy:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers {
+        artillery: [strength]
+      }
+    }
+
+    artillery {
+      name:                  Artillery
+      tile:                  artillery
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 from_base
+      nat_icon_front:        false
+      nat_icon_position:     n
+      visibility:            1
+      movement_points:       1
+      attack_points:         7
+      defense_points:        5
+      on_death.demote:       { lose=[strength] }
+      canonical_base:        damaged_artillery
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Ships.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    caravel {
+      name:                  Caravel
+      tile:                  caravel
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       4
+      attack_points:         2
+      defense_points:        2
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           2
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    merchantman {
+      name:                  Merchantman
+      tile:                  merchantman
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       5
+      attack_points:         0
+      defense_points:        5
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           4
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    galleon {
+      name:                  Galleon
+      tile:                  galleon
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       6
+      attack_points:         0
+      defense_points:        10
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           6
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    privateer {
+      name:                  Privateer
+      tile:                  privateer
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       8
+      attack_points:         8
+      defense_points:        8
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           2
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    frigate {
+      name:                  Frigate
+      tile:                  frigate
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       6
+      attack_points:         16
+      defense_points:        16
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           4
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    man_o_war {
+      name:                  Man-O-War
+      tile:                  man_o_war
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  true
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     nw
+      visibility:            1
+      movement_points:       5
+      attack_points:         24
+      defense_points:        24
+      on_death.naval:        {}
+      canonical_base:        null
+      cargo_slots:           6
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+    }
+
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Land transport.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    wagon_train {
+      name:                  Wagon Train
+      tile:                  wagon_train
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     n
+      visibility:            1
+      movement_points:       2
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           2
+      cargo_slots_occupies:  null
+      inventory_types:       []
+      promotion:             null
+      modifiers:             {}
+      # TODO: requires capenter's shop to build.
+    }
+
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    # Treasure.
+    #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+    small_treasure {
+      name:                  Small Treasure
+      tile:                  small_treasure
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     n
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  4
+      inventory_types:       [gold]
+      promotion:             null
+      modifiers:             {}
+    }
+
+    large_treasure {
+      name:                  Large Treasure
+      tile:                  large_treasure
+      expertise:             null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 no
+      nat_icon_front:        false
+      nat_icon_position:     n
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death.capture:      {}
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  6
+      inventory_types:       [gold]
+      promotion:             null
+      modifiers:             {}
+    }
+
+  } # unit_types
+
+} # composition
