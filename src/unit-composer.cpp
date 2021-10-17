@@ -168,13 +168,20 @@ unordered_map<e_commodity, int> commodities_in_unit(
   unordered_set<e_unit_type_modifier> const& mods =
       comp.type_obj().unit_type_modifiers();
   for( e_unit_type_modifier mod : mods ) {
-    // This includes inventory as well, since we assume that any
-    // inventory item that represents a commodity must have an
-    // associated modifier.
     maybe<Commodity> comm = commodity_from_modifier( comp, mod );
     if( !comm.has_value() ) continue;
     DCHECK( comm->quantity > 0 );
     res[comm->type] += comm->quantity;
+  }
+  // Now do inventory types that are not associated with a modi-
+  // fier.
+  for( auto [inv, q] : comp.inventory() ) {
+    if( inventory_to_modifier( inv ).has_value() ) continue;
+    // Inventory type has no associated modifier.
+    maybe<e_commodity> comm = inventory_to_commodity( inv );
+    if( !comm.has_value() ) continue;
+    // Inventory type is associated with a commodity.
+    res[*comm] += q;
   }
   return res;
 }
