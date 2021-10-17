@@ -46,7 +46,16 @@ void sort_by_new_type(
 
 TEST_CASE( "[unit-composer] pioneer tool count" ) {
   auto ut = UnitType::create( e_unit_type::pioneer );
-  auto uc = UnitComposition::create(
+  auto uc = UnitComposition::create( ut, /*inventory=*/{} );
+  REQUIRE( !uc.has_value() );
+  uc = UnitComposition::create(
+      ut, /*inventory=*/{ { e_unit_inventory::gold, 1000 } } );
+  REQUIRE( !uc.has_value() );
+  uc = UnitComposition::create(
+      ut, /*inventory=*/{ { e_unit_inventory::tools, 100 },
+                          { e_unit_inventory::gold, 1000 } } );
+  REQUIRE( !uc.has_value() );
+  uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 120 } } );
   REQUIRE( !uc.has_value() );
   ut = UnitType::create( e_unit_type::hardy_pioneer );

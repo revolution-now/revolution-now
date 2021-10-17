@@ -48,6 +48,8 @@ local function create_some_units_on_land( nation2 )
   local dragoon = unit_type( e.unit_type.dragoon,
                              e.unit_type.petty_criminal )
   local soldier = unit_type( e.unit_type.soldier )
+  local pioneer = unit_type( e.unit_type.pioneer )
+  local treasure = unit_type( e.unit_type.large_treasure )
   local unit =
       ustate.create_unit_on_map( nation, dragoon, coord )
   unit:fortify();
@@ -65,6 +67,12 @@ local function create_some_units_on_land( nation2 )
   ustate.create_unit_on_map( nation, unit_type(
                                  e.unit_type.free_colonist ),
                              coord )
+
+  coord = Coord{ y=6, x=4 }
+  ustate.create_unit_on_map( nation, pioneer, coord )
+
+  coord = Coord{ y=7, x=4 }
+  ustate.create_unit_on_map( nation, treasure, coord )
 
   -- French -----------------------------------------------------
   local nation = e.nation.french

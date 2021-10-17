@@ -82,9 +82,10 @@ maybe<e_commodity> inventory_to_commodity(
 // TODO: Move this to Rds once we have reflected structures.
 struct UnitInventoryTraits {
   maybe<e_commodity> commodity;
-  int                min_quantity = 0;
-  int                max_quantity = 0;
-  int                multiple     = 0;
+  int                min_quantity     = 0;
+  int                max_quantity     = 0;
+  int                multiple         = 0;
+  int                default_quantity = 0;
 };
 
 rcl::convert_err<UnitInventoryTraits> convert_to(

@@ -2,17 +2,19 @@ composition {
 
   inventory_traits {
     gold {
-      commodity:    null
-      min_quantity: 0
-      max_quantity: 1000000
-      multiple:     100
+      commodity:        null
+      min_quantity:     0
+      max_quantity:     1000000
+      multiple:         100
+      default_quantity: 1000
     }
 
     tools {
-      commodity:    tools
-      min_quantity: 20
-      max_quantity: 100
-      multiple:     20
+      commodity:        tools
+      min_quantity:     20
+      max_quantity:     100
+      multiple:         20
+      default_quantity: 100
     }
   }
 

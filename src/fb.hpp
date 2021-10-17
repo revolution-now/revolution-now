@@ -57,9 +57,12 @@ inline valid_deserial_t invalid_deserial(
   return ::base::GenericError::create( msg, loc );
 }
 
-#define VERIFY_DESERIAL( cond, msg ) \
-  if( !( cond ) )                    \
-    return invalid_deserial( msg, base::SourceLoc::current() );
+#define VERIFY_DESERIAL( cond, msg )                         \
+  {                                                          \
+    if( !( cond ) )                                          \
+      return invalid_deserial( msg,                          \
+                               base::SourceLoc::current() ); \
+  }
 
 } // namespace rn
 

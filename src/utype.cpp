@@ -216,7 +216,7 @@ maybe<e_commodity> inventory_to_commodity(
 rcl::convert_err<UnitInventoryTraits> convert_to(
     rcl::value const& v, rcl::tag<UnitInventoryTraits> ) {
   constexpr string_view kTypeName = "UnitInventoryTraits";
-  constexpr int         kNumFieldsExpected = 4;
+  constexpr int         kNumFieldsExpected = 5;
   base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
       v.get_if<std::unique_ptr<rcl::table>>();
   if( !mtbl )
@@ -234,6 +234,7 @@ rcl::convert_err<UnitInventoryTraits> convert_to(
   RCL_CONVERT_FIELD( min_quantity );
   RCL_CONVERT_FIELD( max_quantity );
   RCL_CONVERT_FIELD( multiple );
+  RCL_CONVERT_FIELD( default_quantity );
   return res;
 }
 
@@ -243,6 +244,12 @@ rcl::convert_valid rcl_validate( UnitInventoryTraits const& o ) {
   RCL_CHECK( o.min_quantity <= o.max_quantity,
              "inventory traits min quantity must be <= than max "
              "quantity." );
+  RCL_CHECK( o.min_quantity <= o.default_quantity,
+             "inventory traits min quantity must be <= than "
+             "default quantity." );
+  RCL_CHECK( o.default_quantity <= o.max_quantity,
+             "inventory traits default quantity must be <= than "
+             "max quantity." );
   RCL_CHECK( o.multiple > 0,
              "inventory traits multiple must be > 0." );
   RCL_CHECK( o.min_quantity % o.multiple == 0,
@@ -251,6 +258,9 @@ rcl::convert_valid rcl_validate( UnitInventoryTraits const& o ) {
   RCL_CHECK( o.max_quantity % o.multiple == 0,
              "inventory traits multiple must divide evenly into "
              "the max quantity." );
+  RCL_CHECK( o.default_quantity % o.multiple == 0,
+             "inventory traits multiple must divide evenly into "
+             "the default quantity." );
   return base::valid;
 }
 

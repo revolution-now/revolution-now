@@ -49,7 +49,7 @@ public:
   static UnitComposition create( e_unit_type type );
 
   static maybe<UnitComposition> create(
-      UnitType type, UnitInventoryMap const& inventory );
+      UnitType type, UnitInventoryMap inventory );
 
   maybe<UnitComposition> with_new_type( UnitType type ) const;
 

@@ -65,14 +65,41 @@ valid_deserial_t UnitComposition::check_invariants_safe() const {
             type, traits.multiple ) );
   }
 
-  // FIXME
+  // Validation: make sure that the unit has all of the inventory
+  // types that it is supposed to have.
+  for( e_unit_inventory inv :
+       config_units.composition.unit_types[type()]
+           .inventory_types )
+    VERIFY_DESERIAL(
+        inventory_.contains( inv ),
+        fmt::format( "unit requires inventory type `{}' but it "
+                     "was not provided.",
+                     inv ) );
+
+  // Validation: make sure that the unit has no more inventory
+  // types than it is supposed to.
+  for( auto [inv, q] : inventory_ )
+    VERIFY_DESERIAL(
+        config_units.composition.unit_types[type()]
+            .inventory_types.contains( inv ),
+        fmt::format( "unit has inventory type `{}' but it is "
+                     "not in the list of allowed inventory "
+                     "types for that unit type.",
+                     inv ) );
+
   return base::valid;
 }
 
 UnitComposition UnitComposition::create( UnitType type ) {
-  // TODO: need to add default inventory for unit type...
-  UNWRAP_CHECK(
-      res, UnitComposition::create( type, /*inventory=*/{} ) );
+  UnitComposition::UnitInventoryMap inventory;
+  for( e_unit_inventory inv :
+       config_units.composition.unit_types[type.type()]
+           .inventory_types )
+    inventory[inv] =
+        config_units.composition.inventory_traits[inv]
+            .default_quantity;
+  UNWRAP_CHECK( res, UnitComposition::create(
+                         type, std::move( inventory ) ) );
   return res;
 }
 
@@ -81,8 +108,8 @@ UnitComposition UnitComposition::create( e_unit_type type ) {
 }
 
 maybe<UnitComposition> UnitComposition::create(
-    UnitType type, UnitInventoryMap const& inventory ) {
-  auto res = UnitComposition( type, inventory );
+    UnitType type, UnitInventoryMap inventory ) {
+  auto res = UnitComposition( type, std::move( inventory ) );
   if( !res.check_invariants_safe() ) return nothing;
   return res;
 }
