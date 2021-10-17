@@ -12,7 +12,10 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
+#include "unit-composer.hpp"
+#include "ustate.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -79,6 +82,21 @@ bool Colony::has_unit( UnitId id ) const {
 
 void Colony::set_nation( e_nation new_nation ) {
   nation_ = new_nation;
+}
+
+void Colony::strip_unit_commodities( UnitId unit_id ) {
+  UNWRAP_CHECK_MSG(
+      coord, coord_for_unit( unit_id ),
+      "unit must be on map to shed its commodities." );
+  CHECK( coord == location(),
+         "unit must be in colony to shed its commodities." );
+  UnitTransformationResult tranform_res =
+      unit_from_id( unit_id ).strip_to_base_type();
+  for( auto [type, q] : tranform_res.commodity_deltas ) {
+    CHECK( q > 0 );
+    lg.debug( "adding {} {} to colony {}.", q, type, name() );
+    commodities_[type] += q;
+  }
 }
 
 } // namespace rn

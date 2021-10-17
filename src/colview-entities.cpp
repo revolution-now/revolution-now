@@ -18,6 +18,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gfx.hpp"
+#include "logger.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "terrain.hpp"
@@ -910,6 +911,7 @@ private:
   }
 
   waitable<> click_on_unit( UnitId id ) {
+    lg.info( "clicked on unit {}.", debug_string( id ) );
     auto& unit = unit_from_id( id );
     if( selected_ != id ) {
       set_selected_unit( id );
@@ -920,23 +922,32 @@ private:
       // orders menu.
       co_return;
     }
-    vector<e_unit_orders> possible_orders;
-    if( unit.desc().ship )
-      possible_orders = { e_unit_orders::none,
-                          e_unit_orders::sentry };
-    else
-      possible_orders = { e_unit_orders::none,
-                          e_unit_orders::sentry,
-                          e_unit_orders::fortified };
-    e_unit_orders new_orders =
-        co_await ui::select_box_enum<e_unit_orders>(
-            "Change unit orders to:", possible_orders );
-    CHECK( new_orders != e_unit_orders::fortified ||
-           !unit.desc().ship );
-    switch( new_orders ) {
-      case e_unit_orders::none: unit.clear_orders(); break;
-      case e_unit_orders::sentry: unit.sentry(); break;
-      case e_unit_orders::fortified: unit.fortify(); break;
+    static string kChangeOrders = "Change Orders";
+    static string kStripUnit    = "Strip Unit";
+    string        mode =
+        co_await ui::select_box( "What would you like to do?",
+                                 { kChangeOrders, kStripUnit } );
+    if( mode == kChangeOrders ) {
+      vector<e_unit_orders> possible_orders;
+      if( unit.desc().ship )
+        possible_orders = { e_unit_orders::none,
+                            e_unit_orders::sentry };
+      else
+        possible_orders = { e_unit_orders::none,
+                            e_unit_orders::sentry,
+                            e_unit_orders::fortified };
+      e_unit_orders new_orders =
+          co_await ui::select_box_enum<e_unit_orders>(
+              "Change unit orders to:", possible_orders );
+      CHECK( new_orders != e_unit_orders::fortified ||
+             !unit.desc().ship );
+      switch( new_orders ) {
+        case e_unit_orders::none: unit.clear_orders(); break;
+        case e_unit_orders::sentry: unit.sentry(); break;
+        case e_unit_orders::fortified: unit.fortify(); break;
+      }
+    } else if( mode == kStripUnit ) {
+      colony().strip_unit_commodities( id );
     }
   }
 

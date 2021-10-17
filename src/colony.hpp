@@ -83,6 +83,12 @@ public:
     return commodities_;
   }
 
+  // Will strip the unit of any commodities (including inventory
+  // and modifiers) and deposit them commodities into the colony.
+  // The unit must be on the colony square otherwise this will
+  // check fail.
+  void strip_unit_commodities( UnitId unit_id );
+
   /************************ Functions **************************/
   // NOTE: these modifiers do not enforce invariants!
   int  population() const;

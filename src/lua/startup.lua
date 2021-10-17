@@ -64,8 +64,8 @@ local function create_some_units_on_land( nation2 )
                              coord )
 
   coord = Coord{ y=2, x=4 }
-  ustate.create_unit_on_map( nation, unit_type(
-                                 e.unit_type.free_colonist ),
+  ustate.create_unit_on_map( nation,
+                             unit_type( e.unit_type.dragoon ),
                              coord )
 
   coord = Coord{ y=6, x=4 }

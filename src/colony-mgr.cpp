@@ -180,12 +180,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
-  UnitTransformationResult tranform_res =
-      unit.strip_to_base_type();
-  for( auto [type, q] : tranform_res.commodity_deltas ) {
-    CHECK( q > 0 );
-    col.commodities()[type] += q;
-  }
+  col.strip_unit_commodities( founder );
 
   // 2. Find initial job for founder. (TODO)
   ColonyJob_t job =
