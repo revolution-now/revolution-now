@@ -21,6 +21,12 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// Rds
+#include "rds/helper/rcl.hpp"
+
+// Rcl
+#include "rcl/ext-builtin.hpp"
+
 // base
 #include "base/variant.hpp"
 
@@ -104,7 +110,7 @@ string commodity_number_to_markup( int value ) {
 } // namespace
 
 /****************************************************************
-** Commodity Cargo
+** Commodity
 *****************************************************************/
 valid_deserial_t Commodity::check_invariants_safe() const {
   if( quantity <= 0 )
@@ -117,6 +123,33 @@ Commodity Commodity::with_quantity( int new_quantity ) const {
   Commodity res = *this;
   res.quantity  = new_quantity;
   return res;
+}
+
+rcl::convert_err<Commodity> convert_to( rcl::value const& v,
+                                        rcl::tag<Commodity> ) {
+  constexpr string_view kTypeName          = "Commodity";
+  constexpr int         kNumFieldsExpected = 2;
+  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
+      v.get_if<std::unique_ptr<rcl::table>>();
+  if( !mtbl )
+    return rcl::error( fmt::format(
+        "cannot produce a {} from type {}.", kTypeName,
+        rcl::name_of( rcl::type_of( v ) ) ) );
+  DCHECK( *mtbl != nullptr );
+  rcl::table const& tbl = **mtbl;
+  RCL_CHECK( tbl.size() == kNumFieldsExpected,
+             "table must have precisely {} field(s) for "
+             "conversion to {}.",
+             kNumFieldsExpected, kTypeName );
+  Commodity res;
+  RCL_CONVERT_FIELD( type );
+  RCL_CONVERT_FIELD( quantity );
+  return res;
+}
+
+rcl::convert_valid rcl_validate( Commodity const& o ) {
+  RCL_CHECK( o.quantity >= 0 );
+  return base::valid;
 }
 
 /****************************************************************
