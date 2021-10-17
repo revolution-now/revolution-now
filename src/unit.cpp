@@ -52,6 +52,10 @@ UnitTypeAttributes& Unit::desc_non_const() const {
   return const_cast<UnitTypeAttributes&>( unit_attr( type() ) );
 }
 
+bool Unit::is_human() const {
+  return is_unit_human( composition_.type_obj() );
+}
+
 // Mark unit as having moved.
 void Unit::forfeight_mv_points() {
   mv_pts_ = 0;

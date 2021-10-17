@@ -44,6 +44,11 @@ namespace rn {
 LUA_ENUM_DECL( unit_type );
 
 /****************************************************************
+** e_unit_human
+*****************************************************************/
+LUA_ENUM_DECL( unit_human );
+
+/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
@@ -115,6 +120,17 @@ struct UnitTypeAttributes {
   maybe<int> cargo_slots_occupies{};
 
   UnitDeathAction_t on_death{};
+
+  // Describes if/how this unit is a human. This is important to
+  // know so that we can e.g. ensure that only human units can
+  // found colonies. Derived types must always have "from_base"
+  // for this field, meaning that the human status will be in-
+  // ferred from the base type, which it kind of has to be be-
+  // cause in theory there could be multiple pathways to derive a
+  // single unit and so there (again, theoretically) wouldn't be
+  // a well-defined value for this field for a derived type. For
+  // a base type, it can be either "yes" or "no".
+  e_unit_human human{};
 
   // If this is a derived unit type then it must specify a canon-
   // ical base type that will be used to construct it when none
@@ -249,6 +265,8 @@ static_assert( sizeof( UnitType ) <=
                2 * std::alignment_of_v<e_unit_type> );
 static_assert( std::is_trivially_copyable_v<UnitType> );
 static_assert( std::is_trivially_destructible_v<UnitType> );
+
+bool is_unit_human( UnitType ut );
 
 // This will return nothing if the unit does not have an
 // on_death.demoted property, otherwise it will return the new

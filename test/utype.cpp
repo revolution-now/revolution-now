@@ -98,6 +98,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -139,6 +140,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -181,6 +183,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -222,6 +225,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 4 );
     REQUIRE( desc.attack_points == 4 );
@@ -256,6 +260,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::from_base );
     REQUIRE( desc.visibility == 2 );
     REQUIRE( desc.movement_points == 4 );
     REQUIRE( desc.attack_points == 1 );
@@ -1092,6 +1097,42 @@ TEST_CASE( "[utype] lua bindings" ) {
       Contains(
           "failed to create UnitType with type=hardy_pioneer "
           "and base_type=expert_farmer." ) );
+}
+
+TEST_CASE( "[utype] unit human status" ) {
+  bool     res;
+  bool     expected;
+  UnitType ut;
+
+  ut       = UnitType::create( e_unit_type::free_colonist );
+  res      = is_unit_human( ut );
+  expected = true;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::dragoon );
+  res      = is_unit_human( ut );
+  expected = true;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::veteran_colonist );
+  res      = is_unit_human( ut );
+  expected = true;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::hardy_pioneer );
+  res      = is_unit_human( ut );
+  expected = true;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::wagon_train );
+  res      = is_unit_human( ut );
+  expected = false;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::small_treasure );
+  res      = is_unit_human( ut );
+  expected = false;
+  REQUIRE( is_unit_human( ut ) == expected );
 }
 
 } // namespace

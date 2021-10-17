@@ -53,6 +53,7 @@ public:
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
   UnitTypeAttributes& desc_non_const() const;
+  bool                is_human() const;
   e_unit_orders       orders() const { return orders_; }
   CargoHold const&    cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class

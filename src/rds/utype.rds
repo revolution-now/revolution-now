@@ -83,6 +83,12 @@ enum.e_unit_type [
   large_treasure
 ]
 
+enum.e_unit_human [
+  no
+  yes
+  from_base
+]
+
 enum.e_unit_type_modifier [
   blessing
   horses

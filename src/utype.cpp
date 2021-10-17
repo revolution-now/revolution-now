@@ -47,6 +47,11 @@ namespace rn {
 LUA_ENUM( unit_type );
 
 /****************************************************************
+** e_unit_human
+*****************************************************************/
+LUA_ENUM( unit_human );
+
+/****************************************************************
 ** ModifierAssociation
 *****************************************************************/
 namespace ModifierAssociation {
@@ -421,7 +426,7 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
 rcl::convert_err<UnitTypeAttributes> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
   constexpr string_view kTypeName = "UnitTypeAttributes";
-  constexpr int         kNumFieldsExpected = 17;
+  constexpr int         kNumFieldsExpected = 18;
   base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
       v.get_if<std::unique_ptr<rcl::table>>();
   if( !mtbl )
@@ -444,6 +449,7 @@ rcl::convert_err<UnitTypeAttributes> convert_to(
     nat_icon_front,
     nat_icon_position,
     ship,
+    human,
     visibility,
     movement_points,
     attack_points,
@@ -478,6 +484,7 @@ LUA_STARTUP( lua::state& st ) {
   LUA_ADD_MEMBER( nat_icon_front );
   LUA_ADD_MEMBER( nat_icon_position );
   LUA_ADD_MEMBER( ship );
+  LUA_ADD_MEMBER( human );
   LUA_ADD_MEMBER( visibility );
   LUA_ADD_MEMBER( movement_points );
   LUA_ADD_MEMBER( attack_points );
@@ -620,6 +627,23 @@ rcl::convert_valid rcl_validate( UnitAttributesMap const& m ) {
             "base type {} must have `null` for its "
             "`canonical_base` field.",
             type );
+    }
+  }
+
+  // Validate that only base types have human == yes/no and
+  // derived types have human == from_base.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.is_derived ) {
+      RCL_CHECK( type_struct.human == e_unit_human::from_base,
+                 "derived type {} must have `from_base` for its "
+                 "`human` field.",
+                 type );
+    } else {
+      // Not derived type.
+      RCL_CHECK( type_struct.human != e_unit_human::from_base,
+                 "base type {} must not have `from_base` for "
+                 "its `human` field.",
+                 type );
     }
   }
 
@@ -804,6 +828,24 @@ maybe<UnitType> find_unit_type_modifiers(
 }
 
 } // namespace
+
+bool is_unit_human( UnitType ut ) {
+  e_unit_human res = config_units.unit_types[ut.type()].human;
+  switch( res ) {
+    case e_unit_human::no: return false;
+    case e_unit_human::yes: return true;
+    case e_unit_human::from_base: {
+      res = config_units.unit_types[ut.base_type()].human;
+      switch( res ) {
+        case e_unit_human::no: return false;
+        case e_unit_human::yes: return true;
+        case e_unit_human::from_base: {
+          SHOULD_NOT_BE_HERE;
+        }
+      }
+    }
+  }
+}
 
 maybe<UnitType> on_death_demoted_type( UnitType ut ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =

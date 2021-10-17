@@ -68,6 +68,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -94,6 +95,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -120,6 +122,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -149,6 +152,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -169,6 +173,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -189,6 +194,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            2
@@ -211,6 +217,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -231,6 +238,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -254,6 +262,7 @@ unit_types {
     expertise:             farming
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -280,6 +289,7 @@ unit_types {
     expertise:             fishing
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -306,6 +316,7 @@ unit_types {
     expertise:             sugar_planting
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -332,6 +343,7 @@ unit_types {
     expertise:             tobacco_planting
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -358,6 +370,7 @@ unit_types {
     expertise:             cotton_planting
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -384,6 +397,7 @@ unit_types {
     expertise:             fur_trapping
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -410,6 +424,7 @@ unit_types {
     expertise:             lumberjacking
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -436,6 +451,7 @@ unit_types {
     expertise:             ore_mining
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -462,6 +478,7 @@ unit_types {
     expertise:             silver_mining
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -488,6 +505,7 @@ unit_types {
     expertise:             carpentry
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -514,6 +532,7 @@ unit_types {
     expertise:             rum_distilling
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -540,6 +559,7 @@ unit_types {
     expertise:             tobacconistry
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -566,6 +586,7 @@ unit_types {
     expertise:             weaving
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -592,6 +613,7 @@ unit_types {
     expertise:             fur_trading
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -618,6 +640,7 @@ unit_types {
     expertise:             blacksmithing
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -644,6 +667,7 @@ unit_types {
     expertise:             gunsmithing
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -670,6 +694,7 @@ unit_types {
     expertise:             bell_ringing
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -696,6 +721,7 @@ unit_types {
     expertise:             preaching
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -722,6 +748,7 @@ unit_types {
     expertise:             pioneering
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -748,6 +775,7 @@ unit_types {
     expertise:             missioning
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -774,6 +802,7 @@ unit_types {
     expertise:             scouting
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -800,6 +829,7 @@ unit_types {
     expertise:             fighting
     cleared_expertise:     free_colonist
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -831,6 +861,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -851,6 +882,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -871,6 +903,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     soldier
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -891,6 +924,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     dragoon
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -911,6 +945,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -931,6 +966,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 yes
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -951,6 +987,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -971,6 +1008,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            1
@@ -991,6 +1029,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     sw
     visibility:            2
@@ -1016,6 +1055,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     n
     visibility:            1
@@ -1038,6 +1078,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 from_base
     nat_icon_front:        false
     nat_icon_position:     n
     visibility:            1
@@ -1061,6 +1102,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1081,6 +1123,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1101,6 +1144,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1121,6 +1165,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1141,6 +1186,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1161,6 +1207,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  true
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     nw
     visibility:            1
@@ -1184,6 +1231,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     n
     visibility:            1
@@ -1208,6 +1256,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     n
     visibility:            1
@@ -1228,6 +1277,7 @@ unit_types {
     expertise:             null
     cleared_expertise:     null
     ship:                  false
+    human:                 no
     nat_icon_front:        false
     nat_icon_position:     n
     visibility:            1
