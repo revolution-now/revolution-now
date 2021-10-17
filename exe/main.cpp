@@ -52,7 +52,7 @@ int main( int /*unused*/, char** /*unused*/ ) {
   linker_dont_discard_me();
   print_bar( '=', "[ Revolution | Now ]" );
   try {
-    run( e_mode::game );
+    run( e_mode::gl_test );
   } catch( exception_exit const& ) {}
   hide_window();
   print_bar( '-', "[ Shutting Down ]" );

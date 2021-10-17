@@ -187,9 +187,6 @@ ColonyId found_colony_unsafe( UnitId           founder,
       ColonyJob::mfg{ .mfg_job = e_mfg_job::bells };
 
   // 3. Move unit into it.
-  //
-  // TODO: if unit is carrying horses, tools, or muskets, those
-  // need to be stripped and added into the colony's commodities.
   ustate_change_to_colony( founder, col_id, job );
 
   // 4. Check colony invariants. Need to abort here if the in-

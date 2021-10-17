@@ -1,11 +1,7 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'colony-view',
-  \ 'colview-entities',
-  \ 'game-state',
-  \ 'unit',
-  \ 'utype',
-  \ 'unit-composer',
+  \ 'gfx-api',
+  \ 'open-gl',
 \]
 
 let s:luas = [
