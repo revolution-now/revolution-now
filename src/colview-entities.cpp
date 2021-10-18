@@ -924,9 +924,12 @@ private:
     }
     static string kChangeOrders = "Change Orders";
     static string kStripUnit    = "Strip Unit";
-    string        mode =
-        co_await ui::select_box( "What would you like to do?",
-                                 { kChangeOrders, kStripUnit } );
+    // Put co_await in separate statement to remove weird gcc
+    // ICE, which hopefully will go away in a future version.
+    waitable<string> waitable_mode =
+        ui::select_box( "What would you like to do?",
+                        { kChangeOrders, kStripUnit } );
+    string mode = co_await waitable_mode;
     if( mode == kChangeOrders ) {
       vector<e_unit_orders> possible_orders;
       if( unit.desc().ship )
