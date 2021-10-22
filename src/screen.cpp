@@ -96,13 +96,16 @@ double monitor_diagonal_length( float ddpi, DisplayMode dm ) {
 // Get diagonal DPI of monitor. This seems to basically be the
 // same as the horizontal and vertical DPIs.
 double monitor_ddpi() {
-  float ddpi = 0.0; // diagonal DPI.
-  bool  success =
-      !::SDL_GetDisplayDPI( 0, &ddpi, nullptr, nullptr );
-  if( !success ) {
-    lg.error( "could not get display dpi." );
-    return 145.0;
-  }
+  static float ddpi = [] {
+    float res = 0.0; // diagonal DPI.
+    bool  success =
+        !::SDL_GetDisplayDPI( 0, &res, nullptr, nullptr );
+    if( !success ) {
+      lg.error( "could not get display dpi." );
+      res = 145.0;
+    }
+    return res;
+  }();
   return ddpi;
 }
 
