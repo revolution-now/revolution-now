@@ -93,6 +93,10 @@ function! MyTabLabel( n )
       let path = fnamemodify( path, ':t:r' )
       return 'lua/' . path
     endif
+    if ext == 'vert' || ext == 'frag'
+      let path = fnamemodify( path, ':t:r' )
+      return 'shaders/' . path
+    endif
   endfor
   let winnr = tabpagewinnr( a:n )
   return bufname( buflist[winnr - 1] )

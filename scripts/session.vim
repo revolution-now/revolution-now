@@ -2,7 +2,9 @@
 let s:stems = [
   \ 'gfx-api',
   \ 'open-gl',
+  \ 'shaders/experimental',
   \ 'open-gl-perf-test',
+  \ 'shaders/perf-test',
 \]
 
 let s:luas = [
@@ -58,14 +60,30 @@ function s:Open3( stem )
   endif
 endfunction
 
-function! OpenModule()
+" `stem` is expected to be e.g. 'shaders/xxx' here.
+function s:OpenShaderPair( stem )
+  echo '  - ' . a:stem
+  exe 'silent tabnew src/' . a:stem . '.vert'
+  exe 'silent vsplit src/' . a:stem . '.frag'
+  wincmd h
+endfunction
+
+function! s:OpenModule( name )
+  if a:name =~ '^shaders/.*'
+    call s:OpenShaderPair( a:name )
+    return
+  endif
+  call s:Open3( a:name )
+endfunction
+
+function! OpenModuleWithInput()
   let curline = getline('.')
   call inputsave()
   let name = input('Enter name: ')
   call inputrestore()
-  call s:Open3( name )
+  call s:OpenModule( name )
 endfunction
-nnoremap <C-p> :call OpenModule()<CR>
+nnoremap <C-p> :call OpenModuleWithInput()<CR>
 
 function s:OpenQuad( upper_left, upper_right, lower_right, lower_left )
   exe 'silent tabnew ' . a:upper_left
@@ -114,7 +132,7 @@ echo 'opening luas...'
 
 echo 'opening cpps...'
 for s in s:stems
-  call s:Open3( s )
+  call s:OpenModule( s )
 endfor
 
 echo 'opening docs...'
