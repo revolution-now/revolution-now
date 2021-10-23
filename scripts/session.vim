@@ -2,6 +2,7 @@
 let s:stems = [
   \ 'gfx-api',
   \ 'open-gl',
+  \ 'open-gl-perf-test',
 \]
 
 let s:luas = [
