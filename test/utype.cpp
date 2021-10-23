@@ -1173,37 +1173,30 @@ TEST_CASE( "[utype] lua bindings" ) {
 }
 
 TEST_CASE( "[utype] unit human status" ) {
-  bool     res;
   bool     expected;
   UnitType ut;
 
   ut       = UnitType::create( e_unit_type::free_colonist );
-  res      = is_unit_human( ut );
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
   ut       = UnitType::create( e_unit_type::dragoon );
-  res      = is_unit_human( ut );
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
   ut       = UnitType::create( e_unit_type::veteran_colonist );
-  res      = is_unit_human( ut );
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
   ut       = UnitType::create( e_unit_type::hardy_pioneer );
-  res      = is_unit_human( ut );
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
   ut       = UnitType::create( e_unit_type::wagon_train );
-  res      = is_unit_human( ut );
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 
   ut       = UnitType::create( e_unit_type::small_treasure );
-  res      = is_unit_human( ut );
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 }
