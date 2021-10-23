@@ -1,0 +1,18 @@
+Land View Rendering Performance Analysis
+========================================
+
+2021-10-22
+----------
+
+Did some tests on Leopard with rendering 32k sprites in a grid
+(from the same texture) in various ways and measured max frame
+rate:
+
+  * Framerate when reconstructing vertex buffer from scratch each
+    frame was:                                                     16
+  * Framerate when reusing vertex buffer but uploading it every
+    frame (using glBufferSubData) was:                             880
+  * Framerate when reusing vertex buffer but uploading it every
+    frame (using glBufferData) was:                                900
+  * Framerate when reusing vertex buffer and not uploading it
+    every frame was:                                               2315

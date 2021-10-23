@@ -6,6 +6,7 @@
 #include "logger.hpp"
 #include "lua-ui.hpp"
 #include "lua.hpp"
+#include "open-gl-perf-test.hpp"
 #include "open-gl.hpp"
 #include "screen.hpp"
 #include "util.hpp"
@@ -13,7 +14,13 @@
 using namespace rn;
 using namespace std;
 
-enum class e_mode { game, ui_test, lua_ui_test, gl_test };
+enum class e_mode {
+  game,
+  ui_test,
+  lua_ui_test,
+  gl_test,
+  gl_perf
+};
 
 waitable<> ui_test() { return make_waitable<>(); }
 waitable<> lua_ui_test() { return rn::lua_ui_test(); }
@@ -45,6 +52,12 @@ void run( e_mode mode ) {
           { e_init_routine::screen, e_init_routine::lua } );
       test_open_gl();
       break;
+    case e_mode::gl_perf:
+      run_all_init_routines(
+          e_log_level::debug,
+          { e_init_routine::screen, e_init_routine::lua } );
+      open_gl_perf_test();
+      break;
   }
 }
 
@@ -52,7 +65,7 @@ int main( int /*unused*/, char** /*unused*/ ) {
   linker_dont_discard_me();
   print_bar( '=', "[ Revolution | Now ]" );
   try {
-    run( e_mode::gl_test );
+    run( e_mode::gl_perf );
   } catch( exception_exit const& ) {}
   hide_window();
   print_bar( '-', "[ Shutting Down ]" );
