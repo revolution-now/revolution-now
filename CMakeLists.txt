@@ -45,6 +45,10 @@ add_subdirectory( test )
 
 # === external dependencies =======================================
 
+# Some libraries will build as shared objects if we don't explic-
+# itly turn this off (e.g. {fmt}, Abseil).
+set( BUILD_SHARED_LIBS NO )
+
 # These should not be necessary, but some subdirectories' cmake
 # files are not playing nicely and just setting
 # CMAKE_CXX_STANDARD, so we have to set it here.
