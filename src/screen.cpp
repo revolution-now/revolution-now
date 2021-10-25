@@ -213,10 +213,15 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
+#if 0
+  ScaleInfo optimal = scale_info( min_scale_factor );
+  (void)&scale_score;
+#else
   UNWRAP_CHECK(
       optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
                    .map( scale_info )
                    .min_by( scale_score ) );
+#endif
 
   ///////////////////////////////////////////////////////////////
 #if 0

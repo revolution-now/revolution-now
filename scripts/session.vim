@@ -1,5 +1,6 @@
 " =========================== Config ============================
 let s:stems = [
+  \ 'screen',
   \ 'gfx-api',
   \ 'open-gl',
   \ 'shaders/experimental',

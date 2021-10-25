@@ -30,6 +30,11 @@ namespace rn {
 
 namespace {
 
+constexpr int  kSpriteScale      = 8;
+constexpr long kVertexSizeFloats = 5;
+constexpr long kVertexSizeBytes =
+    sizeof( float ) * kVertexSizeFloats;
+
 void check_gl_errors() {
   GLenum err_code;
   bool   error_found = false;
@@ -76,8 +81,8 @@ GLuint load_texture( fs::path const& p ) {
 GLuint load_shader_pgrm( fs::path const& vert,
                          fs::path const& frag ) {
   int              success;
-  constexpr size_t error_length = 512;
-  char             errors[error_length];
+  constexpr size_t kErrorLength = 512;
+  char             errors[kErrorLength];
 
   // == Vertex Shader ===========================================
 
@@ -92,7 +97,7 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // Check for compiler errors.
   glGetShaderiv( vertex_shader, GL_COMPILE_STATUS, &success );
   if( !success ) {
-    glGetShaderInfoLog( vertex_shader, error_length, NULL,
+    glGetShaderInfoLog( vertex_shader, kErrorLength, NULL,
                         errors );
     FATAL( "Vertex shader compilation failed: {}", errors );
   }
@@ -110,7 +115,7 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // Check for compiler errors.
   glGetShaderiv( fragment_shader, GL_COMPILE_STATUS, &success );
   if( !success ) {
-    glGetShaderInfoLog( fragment_shader, error_length, NULL,
+    glGetShaderInfoLog( fragment_shader, kErrorLength, NULL,
                         errors );
     FATAL( "Fragment shader compilation failed: {}", errors );
   }
@@ -125,10 +130,26 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // Check for linking errors.
   glGetProgramiv( shader_program, GL_LINK_STATUS, &success );
   if( !success ) {
-    glGetProgramInfoLog( shader_program, error_length, NULL,
+    glGetProgramInfoLog( shader_program, kErrorLength, NULL,
                          errors );
     FATAL( "Shader program linking failed: {}", errors );
   }
+
+  glValidateProgram( shader_program );
+  GLint validation_successful;
+  glGetProgramiv( shader_program, GL_VALIDATE_STATUS,
+                  &validation_successful );
+  GLint out_size;
+  glGetProgramInfoLog( shader_program,
+                       /*maxlength=*/kErrorLength, &out_size,
+                       errors );
+  string_view info_log( errors, out_size );
+  lg.debug( "shader progrma info log: {}\n", info_log );
+  CHECK( validation_successful == GL_TRUE,
+         "shader program failed validation: check above info "
+         "log." );
+
+  // TODO: Consider calling glDetachShader here.
 
   glDeleteShader( vertex_shader );
   glDeleteShader( fragment_shader );
@@ -146,21 +167,48 @@ struct OpenGLObjects {
   GLuint opengl_texture;
 };
 
-void draw_vertices( OpenGLObjects*, Delta const&,
+void draw_vertices( OpenGLObjects* gl_objects, Delta const&,
                     float* vertices, int array_size,
                     int num_vertices ) {
+  // auto mode = GL_DYNAMIC_DRAW;
+  auto        mode  = GL_STATIC_DRAW;
   static bool first = true;
   if( first ) {
-    lg.info( "initializing buffer." );
-    glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * array_size,
-                  vertices, GL_STATIC_DRAW );
+    {
+      // We must rebind this buffer before setting data, since
+      // merely rebinding the vertex array object (although it
+      // remembers the buffer ID) does not actually rebind the
+      // buffer.
+      glBindBuffer( GL_ARRAY_BUFFER,
+                    gl_objects->vertex_buffer_object );
+      glBufferData( GL_ARRAY_BUFFER,
+                    sizeof( float ) * array_size, vertices,
+                    mode );
+      glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    }
+    check_gl_errors();
+    first = false;
+  } else {
+    // glBindBuffer( GL_ARRAY_BUFFER,
+    //               gl_objects->vertex_buffer_object );
+    // glBufferSubData( GL_ARRAY_BUFFER, (GLintptr)0,
+    //                  sizeof( float ) * array_size, vertices );
+    // glBindBuffer( GL_ARRAY_BUFFER, 0 );
   }
-  first = false;
-  // glBufferSubData( GL_ARRAY_BUFFER, (GLintptr)0,
-  //                  sizeof( float ) * array_size, vertices );
+
+  // for( int i = 0; i < 10; ++i ) {
+  //   long offset_bytes  = i * kVertexSizeBytes;
+  //   long offset_floats = i * kVertexSizeFloats;
+  //   long num_vertices  = 10000;
+  //   glBufferSubData( GL_ARRAY_BUFFER, offset_bytes,
+  //                    kVertexSizeBytes * num_vertices,
+  //                    vertices + offset_floats );
+  // }
+
   // glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * array_size,
   //               vertices, GL_STATIC_DRAW );
   glDrawArrays( GL_TRIANGLES, 0, num_vertices );
+  check_gl_errors();
 }
 
 #if 0
@@ -191,7 +239,7 @@ void draw_sprite( OpenGLObjects* gl_objects,
   };
   // clang-format on
 
-  constexpr size_t num_columns = 5;
+  constexpr size_t num_columns = kVertexSizeFloats;
   constexpr size_t num_rows    = 6;
 
   draw_vertices( gl_objects, screen_delta, vertices,
@@ -213,15 +261,15 @@ void draw_sprites_separate( OpenGLObjects* gl_objects,
   glUniform2f( gl_objects->tick_location, 0, 0 );
 
   auto rect  = Rect::from( {}, screen_delta );
-  int  scale = 4;
+  int  scale = kSpriteScale;
   for( auto coord : rect.to_grid_noalign( Scale{ scale } ) )
     draw_sprite( gl_objects, screen_delta, scale, coord );
 }
 #endif
 
-void draw_sprites_batched( OpenGLObjects* gl_objects,
-                           Delta const&   screen_delta ) {
-  int scale = 16;
+int draw_sprites_batched( OpenGLObjects* gl_objects,
+                          Delta const&   screen_delta ) {
+  int scale = kSpriteScale;
 
   float sheet_w = 256.0;
   float sheet_h = 192.0;
@@ -231,7 +279,7 @@ void draw_sprites_batched( OpenGLObjects* gl_objects,
   float tx_dx = 32.0 / sheet_w;
   float tx_dy = 32.0 / sheet_h;
 
-  constexpr size_t num_columns = 5;
+  constexpr size_t num_columns = kVertexSizeFloats;
   static size_t    num_rows    = 0;
 
   // Important: should only allocate this once, since allocating
@@ -273,6 +321,8 @@ void draw_sprites_batched( OpenGLObjects* gl_objects,
 
   draw_vertices( gl_objects, screen_delta, s_vertices.data(),
                  num_columns * num_rows, num_rows );
+  return s_vertices.size() *
+         sizeof( decltype( s_vertices )::value_type );
 }
 
 OpenGLObjects init_opengl() {
@@ -296,30 +346,36 @@ OpenGLObjects init_opengl() {
   glGenVertexArrays( 1, &gl_objects.vertex_array_object );
   glGenBuffers( 1, &gl_objects.vertex_buffer_object );
 
-  glBindVertexArray( gl_objects.vertex_array_object );
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects.vertex_buffer_object );
+  {
+    glBindVertexArray( gl_objects.vertex_array_object );
 
-  // Describe to OpenGL how to interpret the bytes in our ver-
-  // tices array for feeding into the vertex shader.
-  glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                         5 * sizeof( float ), (void*)0 );
-  glEnableVertexAttribArray( 0 );
-  glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE,
-                         5 * sizeof( float ),
-                         (void*)( sizeof( float ) * 3 ) );
-  glEnableVertexAttribArray( 1 );
+    glBindBuffer( GL_ARRAY_BUFFER,
+                  gl_objects.vertex_buffer_object );
+
+    // Describe to OpenGL how to interpret the bytes in our ver-
+    // tices array for feeding into the vertex shader.
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
+                           kVertexSizeBytes, (void*)0 );
+    glEnableVertexAttribArray( 0 );
+
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE,
+                           kVertexSizeBytes,
+                           (void*)( sizeof( float ) * 3 ) );
+    glEnableVertexAttribArray( 1 );
+
+    // You can unbind the VAO afterwards so other VAO calls won't
+    // accidentally modify this VAO, but this rarely happens.
+    // Modifying other VAOs requires a call to glBindVertexArray
+    // anyways so we generally don't unbind VAOs (nor VBOs) when
+    // it's not directly necessary.
+    glBindVertexArray( 0 );
+  }
 
   // Unbind. The call to glVertexAttribPointer registered VBO as
   // the vertex attribute's bound vertex buffer object so after-
   // wards we can safely unbind.
   glBindBuffer( GL_ARRAY_BUFFER, 0 );
-  // You can unbind the VAO afterwards so other VAO calls won't
-  // accidentally modify this VAO, but this rarely happens. Modi-
-  // fying other VAOs requires a call to glBindVertexArray any-
-  // ways so we generally don't unbind VAOs (nor VBOs) when it's
-  // not directly necessary.
-  glBindVertexArray( 0 );
+
   return gl_objects;
 }
 
@@ -417,57 +473,67 @@ void open_gl_perf_test() {
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-  int scale{ 16 };
+  int scale       = kSpriteScale;
   int num_sprites = ( screen_delta.w._ + scale ) / scale *
                     ( screen_delta.h._ + scale ) / scale;
 
-  auto f_test = draw_sprites_batched;
-  // auto f_test = draw_sprites_separate;
+  auto draw_func = draw_sprites_batched;
+  // auto draw_func = draw_sprites_separate;
 
-  glBindVertexArray( gl_objects.vertex_array_object );
-
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects.vertex_buffer_object );
-  glUseProgram( gl_objects.shader_program );
   glBindTexture( GL_TEXTURE_2D, gl_objects.opengl_texture );
 
+  glUseProgram( gl_objects.shader_program );
   glUniform2f( gl_objects.screen_size_location,
                float( screen_delta.w._ ),
                float( screen_delta.h._ ) );
   glUniform2f( gl_objects.tick_location, 0, 0 );
   glUniform1i( gl_objects.tx_location, 0 );
 
+  glBindVertexArray( gl_objects.vertex_array_object );
+  int buf_size = draw_func( &gl_objects, screen_delta );
+  check_gl_errors();
+  ::SDL_GL_SwapWindow( window );
+
+  auto start_time = chrono::system_clock::now();
+  long frames     = 0;
+
+  glBindVertexArray( 0 );
+
+  // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+  while( !input::is_q_down() ) {
+    // Clear screen.
+    glClearColor( 0, 0, 0, 1.0 );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    // Set program and uniforms.
+    glUseProgram( gl_objects.shader_program );
+    glUniform2f( gl_objects.tick_location, frames, frames );
+    check_gl_errors();
+
+    // Bind the VAO and draw.
+    glBindVertexArray( gl_objects.vertex_array_object );
+    draw_func( &gl_objects, screen_delta );
+    check_gl_errors();
+    ::SDL_GL_SwapWindow( window );
+
+    ++frames;
+  }
+
+  auto end_time   = chrono::system_clock::now();
+  auto delta_time = end_time - start_time;
+  auto millis =
+      chrono::duration_cast<chrono::milliseconds>( delta_time );
+  double max_fpms = frames / double( millis.count() );
+  double max_fps  = max_fpms * 1000.0;
   lg.info( "=================================================" );
   lg.info( "OpenGL Performance Test" );
   lg.info( "=================================================" );
-  lg.info( "running..." );
-  f_test( &gl_objects, screen_delta );
-  ::SDL_GL_SwapWindow( window );
-  check_gl_errors();
-  auto start_time = chrono::system_clock::now();
-
-  long frames = 0;
-
-  while( !input::is_q_down() ) {
-    glClearColor( 0, 0, 0, 1.0 );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glUniform2f( gl_objects.tick_location, frames, frames );
-    check_gl_errors();
-    ++frames;
-    f_test( &gl_objects, screen_delta );
-    ::SDL_GL_SwapWindow( window );
-  }
-  lg.info( "=================================================" );
-  auto end_time   = chrono::system_clock::now();
-  auto delta_time = end_time - start_time;
-  lg.info( "Total time: {}.", delta_time );
-  auto secs =
-      chrono::duration_cast<chrono::seconds>( delta_time );
-  double max_fps = frames / double( secs.count() );
-  lg.info( "Max frame rate: {}.", max_fps );
-  lg.info( "Allowed draw calls per 60Hz frame: {:.2f}.",
-           max_fps / 60.0 );
-  lg.info( "Sprite count: {}", num_sprites );
+  lg.info( "Total time:     {}.", delta_time );
+  lg.info( "Avg frame rate: {}.", max_fps );
+  lg.info( "Buffer Size:    {:.2}MB",
+           double( buf_size ) / ( 1024 * 1024 ) );
+  lg.info( "Sprite count:   {}k", num_sprites / 1000 );
   lg.info( "=================================================" );
 
   // == Cleanup =================================================

@@ -29,8 +29,9 @@ vec3 to_ndc( in vec3 screen_pos ) {
 }
 
 void main() {
-  float vtick = floor( 100*sin( tick.x/600 ) );
-  vec3 new_pos = in_pos + vec3( vec2( vtick ),0 );
+  vec3 shifted_in_pos = in_pos - vec3( vec2( 0, 0 ), 0 );
+  float vtick = floor( 100*sin( tick.x/200 ) );
+  vec3 new_pos = shifted_in_pos + vec3( vec2( vtick ),0 );
   gl_Position = vec4( to_ndc( new_pos ), 1.0 );
   tx_coord = in_tx_coord;
 }
