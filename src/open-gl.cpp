@@ -78,8 +78,8 @@ GLuint load_texture( fs::path const& p ) {
 GLuint load_shader_pgrm( fs::path const& vert,
                          fs::path const& frag ) {
   int              success;
-  constexpr size_t error_length = 512;
-  char             errors[error_length];
+  constexpr size_t kErrorLength = 512;
+  char             errors[kErrorLength];
 
   // == Vertex Shader ===========================================
 
@@ -93,8 +93,8 @@ GLuint load_shader_pgrm( fs::path const& vert,
   glCompileShader( vertex_shader ); // check errors?
   // Check for compiler errors.
   glGetShaderiv( vertex_shader, GL_COMPILE_STATUS, &success );
-  if( !success ) {
-    glGetShaderInfoLog( vertex_shader, error_length, NULL,
+  if( success == GL_FALSE ) {
+    glGetShaderInfoLog( vertex_shader, kErrorLength, NULL,
                         errors );
     FATAL( "Vertex shader compilation failed: {}", errors );
   }
@@ -111,8 +111,8 @@ GLuint load_shader_pgrm( fs::path const& vert,
   glCompileShader( fragment_shader ); // check errors?
   // Check for compiler errors.
   glGetShaderiv( fragment_shader, GL_COMPILE_STATUS, &success );
-  if( !success ) {
-    glGetShaderInfoLog( fragment_shader, error_length, NULL,
+  if( success == GL_FALSE ) {
+    glGetShaderInfoLog( fragment_shader, kErrorLength, NULL,
                         errors );
     FATAL( "Fragment shader compilation failed: {}", errors );
   }
@@ -126,25 +126,33 @@ GLuint load_shader_pgrm( fs::path const& vert,
   glLinkProgram( shader_program );
   // Check for linking errors.
   glGetProgramiv( shader_program, GL_LINK_STATUS, &success );
-  if( !success ) {
-    glGetProgramInfoLog( shader_program, error_length, NULL,
+  if( success == GL_FALSE ) {
+    glGetProgramInfoLog( shader_program, kErrorLength, NULL,
                          errors );
     FATAL( "Shader program linking failed: {}", errors );
   }
+
+  glValidateProgram( shader_program );
+  GLint validation_successful;
+  glGetProgramiv( shader_program, GL_VALIDATE_STATUS,
+                  &validation_successful );
+  GLint out_size;
+  glGetProgramInfoLog( shader_program,
+                       /*maxlength=*/kErrorLength, &out_size,
+                       errors );
+  string_view info_log( errors, out_size );
+  lg.debug( "shader progrma info log: {}\n", info_log );
+  CHECK( validation_successful == GL_TRUE,
+         "shader program failed validation: check above info "
+         "log." );
+
+  // TODO: Consider calling glDetachShader here.
 
   glDeleteShader( vertex_shader );
   glDeleteShader( fragment_shader );
 
   return shader_program;
 }
-
-struct OpenGLObjects {
-  GLuint shader_program;
-  GLuint screen_size_location;
-  GLuint vertex_array_object;
-  GLuint vertex_buffer_object;
-  GLuint opengl_texture;
-};
 
 struct VertexData {
   float x = 0.0f;
@@ -160,58 +168,77 @@ struct VertexData {
   float b = 0.0f;
   float a = 0.0f; // -1 means texture.
 };
+
 // Need to ensure this for proper data packing in array.
 static_assert( sizeof( VertexData ) == sizeof( float ) * 6 );
 // Seems sensible.
 static_assert( sizeof( VertexData ) % 8 == 0 );
 
-void draw_square_line( vector<VertexData>* vertices, Coord start,
-                       Coord end, Color c ) {
-  if( start.x > end.x ) std::swap( start.x, end.x );
-  if( start.y > end.y ) std::swap( start.y, end.y );
-
-  Delta d;
-  if( start.y == end.y )
-    d = Delta{ 0_w, 1_h };
-  else if( start.x == end.x )
-    d = Delta{ 1_w, 0_h };
-  else {
-    FATAL(
-        "Only horizontal and vertical lines supported "
-        "(start={}, "
-        "end={}).",
-        start, end );
+void draw_horizontal_line( vector<VertexData>* vertices,
+                           Coord start, W w, Color c ) {
+  if( w < 0_w ) {
+    start += w;
+    w = -w;
   }
 
-  auto push_coord = [&]( Coord const& coord ) {
+  auto push_coord = [&]( float x, float y ) {
     vertices->push_back( {
-        .x = float( coord.x._ ), //
-        .y = float( coord.y._ ), //
-        .r = float( c.r ),       //
-        .g = float( c.g ),       //
-        .b = float( c.b ),       //
-        .a = float( c.a ),       //
+        .x = x,            //
+        .y = y,            //
+        .r = float( c.r ), //
+        .g = float( c.g ), //
+        .b = float( c.b ), //
+        .a = float( c.a ), //
     } );
   };
-  push_coord( start );
-  push_coord( end );
-  push_coord( end + d );
-  push_coord( start );
-  push_coord( start + d );
-  push_coord( end + d );
+
+  push_coord( start.x._, start.y._ );
+  push_coord( float( ( start.x + w + 1_w )._ ), start.y._ );
+  push_coord( float( ( start.x + w + 1_w )._ ),
+              float( ( start.y + 1_h )._ ) );
+  push_coord( start.x._, start.y._ );
+  push_coord( start.x._, float( ( start.y + 1_h )._ ) );
+  push_coord( float( ( start.x + w + 1_w )._ ),
+              float( ( start.y + 1_h )._ ) );
+}
+
+void draw_vertical_line( vector<VertexData>* vertices,
+                         Coord start, H h, Color c ) {
+  if( h < 0_h ) {
+    start += h;
+    h = -h;
+  }
+
+  auto push_coord = [&]( float x, float y ) {
+    vertices->push_back( {
+        .x = x,            //
+        .y = y,            //
+        .r = float( c.r ), //
+        .g = float( c.g ), //
+        .b = float( c.b ), //
+        .a = float( c.a ), //
+    } );
+  };
+
+  push_coord( start.x._, start.y._ );
+  push_coord( float( ( start.x + 1_w )._ ), start.y._ );
+  push_coord( float( ( start.x + 1_w )._ ),
+              float( ( start.y + h )._ ) );
+  push_coord( start.x._, start.y._ );
+  push_coord( start.x._, float( ( start.y + h )._ ) );
+  push_coord( float( ( start.x + 1_w )._ ),
+              float( ( start.y + h )._ ) );
 }
 
 void draw_box( vector<VertexData>* vertices, Coord corner,
                Coord opposite_corner, Color c ) {
   auto rect = Rect::from( corner, opposite_corner );
-  draw_square_line( vertices, rect.upper_left(),
-                    rect.upper_right(), c );
-  draw_square_line( vertices, rect.upper_right(),
-                    rect.lower_right() + 1_h, c );
-  draw_square_line( vertices, rect.lower_left(),
-                    rect.lower_right() + 1_w, c );
-  draw_square_line( vertices, rect.upper_left(),
-                    rect.lower_left(), c );
+  draw_horizontal_line( vertices, rect.upper_left(), rect.w, c );
+  draw_vertical_line( vertices, rect.upper_right(), rect.h + 1_h,
+                      c );
+  draw_horizontal_line( vertices, rect.lower_left(), rect.w, c );
+  draw_vertical_line( vertices, rect.upper_left(), rect.h + 1_h,
+                      c );
 }
 
 void draw_box_inside( vector<VertexData>* vertices,
@@ -234,6 +261,14 @@ void draw_box_outside( vector<VertexData>* vertices,
   //  lower_right += 1_h;
   draw_box( vertices, upper_left, lower_right, c );
 }
+
+struct OpenGLObjects {
+  GLuint shader_program;
+  GLuint screen_size_location;
+  GLuint vertex_array_object;
+  GLuint vertex_buffer_object;
+  GLuint opengl_texture;
+};
 
 void draw_lines( OpenGLObjects* gl_objects,
                  Delta const&   screen_delta ) {
@@ -281,9 +316,17 @@ void draw_lines( OpenGLObjects* gl_objects,
   draw_box_inside( &vertices, { 200_x, 100_y, 50_w, 50_h },
                    Color::white() );
 
-  glBufferData( GL_ARRAY_BUFFER,
-                sizeof( VertexData ) * vertices.size(),
+  int data_size_in_bytes =
+      sizeof( VertexData ) * vertices.size();
+  glBufferData( GL_ARRAY_BUFFER, data_size_in_bytes,
                 vertices.data(), GL_STATIC_DRAW );
+  GLint actual_size = 0;
+  glGetBufferParameteriv( GL_ARRAY_BUFFER, GL_BUFFER_SIZE,
+                          &actual_size );
+  CHECK( data_size_in_bytes == actual_size,
+         "{} != {}: failed to load buffer data.", actual_size,
+         data_size_in_bytes );
+
   glDrawArrays( GL_TRIANGLES, 0, vertices.size() );
 }
 
@@ -297,7 +340,7 @@ OpenGLObjects init_opengl() {
                         shaders / "experimental.frag" );
 
   gl_objects.screen_size_location = glGetUniformLocation(
-      gl_objects.shader_program, "screen_size" );
+      gl_objects.shader_program, "u_screen_size" );
 
   gl_objects.opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
@@ -356,10 +399,8 @@ void test_open_gl() {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
-  // Doing this any earlier in the process doesn't seem to work.
-  CHECK( gladLoadGLLoader(
-             ( GLADloadproc )::SDL_GL_GetProcAddress ),
-         "Failed to initialize GLAD." );
+  // Must be done after creating OpenGL context.
+  CHECK( gladLoadGL(), "Failed to initialize GLAD." );
 
   check_gl_errors();
 
@@ -402,8 +443,8 @@ void test_open_gl() {
 
   bool wait_for_vsync = true;
 
-  CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
-         "setting swap interval is not supported." );
+  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) )
+    lg.warn( "setting swap interval is not supported." );
 
   // == Initialization ==========================================
 

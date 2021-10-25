@@ -1,9 +1,6 @@
 Land View Rendering Performance Analysis
 ========================================
 
-2021-10-22
-----------
-
 Did some tests on Leopard with rendering 32k sprites in a grid
 (from the same texture) in various ways and measured max frame
 rate:
@@ -16,3 +13,37 @@ rate:
     frame (using glBufferData) was:                                900
   * Framerate when reusing vertex buffer and not uploading it
     every frame was:                                               2315
+
+Did some tests on the Darter Pro:
+
+  * glBufferSubData can be called around ~100 times per frame be-
+    fore it starts impacting performance noticeably. Ideally it
+    probably shouldn't be called more than ~10 times per frame,
+    as even that has a small (~5%) impact on performance.
+
+  * Latency of calls to transfer data seem to matter much more
+    than total data transferred. So we need to minimize the
+    number of calls to update vertex data.
+
+  * GL_STATIC_DRAW vs GL_DYNAMIC_DRAW doesn't seem to make much
+    of a difference.
+
+  * If the entire vertex buffer is re-uploaded each frame, there
+    does not seem to be a performance improvement by using
+    glBufferSubData (with GL_DYNAMIC_DRAW); in fact that call
+    slightly diminished performance relative to glBufferData
+    (with GL_STATIC_DRAW).
+
+  * Performance of updating many distinct uniforms seems to be
+    about the same as the glBufferSubData calls, namely that we
+    can do ~10 without affecting performance. ~100 has a small
+    but noticeable affect on performance (still doable). ~1000
+    lowers performance too much. These results (and associated
+    framerates) were identical between debug and release. This
+    suggests that the main bottleneck is the latency of each
+    CPU->GPU transfer request (as opposed to the quantity of data
+    transferred in bytes).
+
+    As an optimization, it seems good to only update uniforms
+    when they change, as opposed to updating them on every frame
+    blindly.

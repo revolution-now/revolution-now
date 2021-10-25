@@ -10,13 +10,13 @@
 *****************************************************************/
 #version 330 core
 
-//in vec2 tx_coord;
-in vec4 color;
+//in vec2 io_tx_coord;
+in vec4 io_color;
 
-//uniform sampler2D tx;
+//uniform sampler2D u_tx;
 
-out vec4 frag_color;
+out vec4 out_color;
 
 void main() {
-  frag_color = color; //texture( tx, tx_coord );
+  out_color = io_color; //texture( u_tx, io_tx_coord );
 }

@@ -140,6 +140,7 @@ struct OpenGLObjects {
   GLuint shader_program;
   GLuint screen_size_location;
   GLuint tick_location;
+  GLuint tx_location;
   GLuint vertex_array_object;
   GLuint vertex_buffer_object;
   GLuint opengl_texture;
@@ -286,6 +287,8 @@ OpenGLObjects init_opengl() {
       gl_objects.shader_program, "screen_size" );
   gl_objects.tick_location =
       glGetUniformLocation( gl_objects.shader_program, "tick" );
+  gl_objects.tx_location =
+      glGetUniformLocation( gl_objects.shader_program, "tx" );
 
   gl_objects.opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
@@ -432,6 +435,7 @@ void open_gl_perf_test() {
                float( screen_delta.w._ ),
                float( screen_delta.h._ ) );
   glUniform2f( gl_objects.tick_location, 0, 0 );
+  glUniform1i( gl_objects.tx_location, 0 );
 
   lg.info( "=================================================" );
   lg.info( "OpenGL Performance Test" );
