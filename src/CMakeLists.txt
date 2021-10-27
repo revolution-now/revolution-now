@@ -5,6 +5,7 @@ add_subdirectory( rcl )
 add_subdirectory( fb )
 add_subdirectory( luapp )
 add_subdirectory( rds )
+add_subdirectory( gl )
 
 # === this directory ==============================================
 
@@ -36,10 +37,11 @@ target_link_libraries(
     absl::strings
     base-util
     flatbuffers
-    glad::glad
+    glad::glad # TODO: remove/isolate this.
     lua::lua
     midifile
     rn-base
+    rn-gl
     rn-rcl
     rn-luapp
     rtmidi

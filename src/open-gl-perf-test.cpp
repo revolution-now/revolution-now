@@ -18,6 +18,10 @@
 #include "screen.hpp"
 #include "tx.hpp"
 
+// gl
+#include "gl/error.hpp"
+#include "gl/vertex-buffer.hpp"
+
 // SDL
 #include "SDL.h"
 
@@ -30,26 +34,7 @@ namespace rn {
 
 namespace {
 
-constexpr int  kSpriteScale      = 8;
-constexpr long kVertexSizeFloats = 5;
-constexpr long kVertexSizeBytes =
-    sizeof( float ) * kVertexSizeFloats;
-
-void check_gl_errors() {
-  GLenum err_code;
-  bool   error_found = false;
-  while( true ) {
-    err_code = glGetError();
-    if( err_code == GL_NO_ERROR ) break;
-    lg.error( "OpenGL error: {}", err_code );
-    error_found = true;
-  }
-  if( error_found ) {
-    FATAL(
-        "Terminating after one or more OpenGL errors "
-        "occurred." );
-  }
-}
+constexpr int kSpriteScale = 8;
 
 GLuint load_texture( fs::path const& p ) {
   auto           img = Surface::load_image( p.string().c_str() );
@@ -58,23 +43,23 @@ GLuint load_texture( fs::path const& p ) {
   CHECK( surface->format->BytesPerPixel == 4 );
 
   GLuint opengl_texture = 0;
-  glGenTextures( 1, &opengl_texture );
-  glBindTexture( GL_TEXTURE_2D, opengl_texture );
+  GL_CHECK( glGenTextures( 1, &opengl_texture ) );
+  GL_CHECK( glBindTexture( GL_TEXTURE_2D, opengl_texture ) );
 
   // Configure how OpenGL maps coordinate to texture pixel.
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                   GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                   GL_NEAREST );
+  GL_CHECK( glTexParameteri(
+      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) );
+  GL_CHECK( glTexParameteri(
+      GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ) );
 
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                   GL_CLAMP_TO_EDGE );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                   GL_CLAMP_TO_EDGE );
+  GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                             GL_CLAMP_TO_EDGE ) );
+  GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                             GL_CLAMP_TO_EDGE ) );
 
-  glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
-                surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                surface->pixels );
+  GL_CHECK( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
+                          surface->h, 0, GL_RGBA,
+                          GL_UNSIGNED_BYTE, surface->pixels ) );
   return opengl_texture;
 }
 
@@ -86,73 +71,79 @@ GLuint load_shader_pgrm( fs::path const& vert,
 
   // == Vertex Shader ===========================================
 
-  GLuint vertex_shader = glCreateShader( GL_VERTEX_SHADER );
+  GLuint vertex_shader =
+      GL_CHECK( glCreateShader( GL_VERTEX_SHADER ) );
   UNWRAP_CHECK( vertex_shader_source,
                 base::read_text_file_as_string( vert ) );
   char const* p_vertex_shader_source =
       vertex_shader_source.c_str();
-  glShaderSource( vertex_shader, 1, &p_vertex_shader_source,
-                  nullptr );
-  glCompileShader( vertex_shader ); // check errors?
+  GL_CHECK( glShaderSource( vertex_shader, 1,
+                            &p_vertex_shader_source, nullptr ) );
+  GL_CHECK( glCompileShader( vertex_shader ) ); // check errors?
   // Check for compiler errors.
-  glGetShaderiv( vertex_shader, GL_COMPILE_STATUS, &success );
+  GL_CHECK( glGetShaderiv( vertex_shader, GL_COMPILE_STATUS,
+                           &success ) );
   if( !success ) {
-    glGetShaderInfoLog( vertex_shader, kErrorLength, NULL,
-                        errors );
+    GL_CHECK( glGetShaderInfoLog( vertex_shader, kErrorLength,
+                                  NULL, errors ) );
     FATAL( "Vertex shader compilation failed: {}", errors );
   }
 
   // == Fragment Shader =========================================
 
-  GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
+  GLuint fragment_shader =
+      GL_CHECK( glCreateShader( GL_FRAGMENT_SHADER ) );
   UNWRAP_CHECK( fragment_shader_source,
                 base::read_text_file_as_string( frag ) );
   char const* p_fragment_shader_source =
       fragment_shader_source.c_str();
-  glShaderSource( fragment_shader, 1, &p_fragment_shader_source,
-                  nullptr );
-  glCompileShader( fragment_shader ); // check errors?
+  GL_CHECK( glShaderSource(
+      fragment_shader, 1, &p_fragment_shader_source, nullptr ) );
+  GL_CHECK(
+      glCompileShader( fragment_shader ) ); // check errors?
   // Check for compiler errors.
-  glGetShaderiv( fragment_shader, GL_COMPILE_STATUS, &success );
+  GL_CHECK( glGetShaderiv( fragment_shader, GL_COMPILE_STATUS,
+                           &success ) );
   if( !success ) {
-    glGetShaderInfoLog( fragment_shader, kErrorLength, NULL,
-                        errors );
+    GL_CHECK( glGetShaderInfoLog( fragment_shader, kErrorLength,
+                                  NULL, errors ) );
     FATAL( "Fragment shader compilation failed: {}", errors );
   }
 
   // == Shader Program ==========================================
 
-  GLuint shader_program = glCreateProgram();
+  GLuint shader_program = GL_CHECK( glCreateProgram() );
 
-  glAttachShader( shader_program, vertex_shader );
-  glAttachShader( shader_program, fragment_shader );
-  glLinkProgram( shader_program );
+  GL_CHECK( glAttachShader( shader_program, vertex_shader ) );
+  GL_CHECK( glAttachShader( shader_program, fragment_shader ) );
+  GL_CHECK( glLinkProgram( shader_program ) );
   // Check for linking errors.
-  glGetProgramiv( shader_program, GL_LINK_STATUS, &success );
+  GL_CHECK( glGetProgramiv( shader_program, GL_LINK_STATUS,
+                            &success ) );
   if( !success ) {
-    glGetProgramInfoLog( shader_program, kErrorLength, NULL,
-                         errors );
+    GL_CHECK( glGetProgramInfoLog( shader_program, kErrorLength,
+                                   NULL, errors ) );
     FATAL( "Shader program linking failed: {}", errors );
   }
 
-  glValidateProgram( shader_program );
+  GL_CHECK( glValidateProgram( shader_program ) );
   GLint validation_successful;
-  glGetProgramiv( shader_program, GL_VALIDATE_STATUS,
-                  &validation_successful );
+  GL_CHECK( glGetProgramiv( shader_program, GL_VALIDATE_STATUS,
+                            &validation_successful ) );
   GLint out_size;
-  glGetProgramInfoLog( shader_program,
-                       /*maxlength=*/kErrorLength, &out_size,
-                       errors );
+  GL_CHECK( glGetProgramInfoLog( shader_program,
+                                 /*maxlength=*/kErrorLength,
+                                 &out_size, errors ) );
   string_view info_log( errors, out_size );
-  lg.debug( "shader progrma info log: {}\n", info_log );
   CHECK( validation_successful == GL_TRUE,
-         "shader program failed validation: check above info "
-         "log." );
+         "shader program failed validation: info "
+         "log: {}",
+         info_log );
 
   // TODO: Consider calling glDetachShader here.
 
-  glDeleteShader( vertex_shader );
-  glDeleteShader( fragment_shader );
+  GL_CHECK( glDeleteShader( vertex_shader ) );
+  GL_CHECK( glDeleteShader( fragment_shader ) );
 
   return shader_program;
 }
@@ -162,53 +153,36 @@ struct OpenGLObjects {
   GLuint screen_size_location;
   GLuint tick_location;
   GLuint tx_location;
-  GLuint vertex_array_object;
-  GLuint vertex_buffer_object;
-  GLuint opengl_texture;
+  // The order of these matters.
+  gl::VertexBuffer vertex_buffer;
+  GLuint           vertex_array_object;
+  GLuint           opengl_texture;
 };
 
+struct Vertex {
+  float x;
+  float y;
+  float tx_x;
+  float tx_y;
+};
+constexpr long kVertexSizeBytes = sizeof( Vertex );
+
 void draw_vertices( OpenGLObjects* gl_objects, Delta const&,
-                    float* vertices, int array_size,
-                    int num_vertices ) {
-  // auto mode = GL_DYNAMIC_DRAW;
-  auto        mode  = GL_STATIC_DRAW;
-  static bool first = true;
-  if( first ) {
-    {
-      // We must rebind this buffer before setting data, since
-      // merely rebinding the vertex array object (although it
-      // remembers the buffer ID) does not actually rebind the
-      // buffer.
-      glBindBuffer( GL_ARRAY_BUFFER,
-                    gl_objects->vertex_buffer_object );
-      glBufferData( GL_ARRAY_BUFFER,
-                    sizeof( float ) * array_size, vertices,
-                    mode );
-      glBindBuffer( GL_ARRAY_BUFFER, 0 );
-    }
-    check_gl_errors();
-    first = false;
-  } else {
-    // glBindBuffer( GL_ARRAY_BUFFER,
-    //               gl_objects->vertex_buffer_object );
-    // glBufferSubData( GL_ARRAY_BUFFER, (GLintptr)0,
-    //                  sizeof( float ) * array_size, vertices );
-    // glBindBuffer( GL_ARRAY_BUFFER, 0 );
-  }
+                    span<Vertex>   vertices ) {
+  static monostate once = [&] {
+    gl_objects->vertex_buffer.upload_data_replace(
+        vertices, gl::e_draw_mode::stat1c );
+    (void)&once;
+    return monostate{};
+  }();
 
-  // for( int i = 0; i < 10; ++i ) {
-  //   long offset_bytes  = i * kVertexSizeBytes;
-  //   long offset_floats = i * kVertexSizeFloats;
-  //   long num_vertices  = 10000;
-  //   glBufferSubData( GL_ARRAY_BUFFER, offset_bytes,
-  //                    kVertexSizeBytes * num_vertices,
-  //                    vertices + offset_floats );
-  // }
+  gl_objects->vertex_buffer.upload_data_modify( vertices, 0 );
 
-  // glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * array_size,
-  //               vertices, GL_STATIC_DRAW );
-  glDrawArrays( GL_TRIANGLES, 0, num_vertices );
-  check_gl_errors();
+  for( int i = 0; i < 10; ++i )
+    gl_objects->vertex_buffer.upload_data_modify(
+        vertices.subspan( i, 1 ), i );
+
+  GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, vertices.size() ) );
 }
 
 #if 0
@@ -248,17 +222,17 @@ void draw_sprite( OpenGLObjects* gl_objects,
 
 void draw_sprites_separate( OpenGLObjects* gl_objects,
                             Delta const&   screen_delta ) {
-  glBindVertexArray( gl_objects->vertex_array_object );
+  GL_CHECK(glBindVertexArray( gl_objects->vertex_array_object ));
 
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects->vertex_buffer_object );
-  glUseProgram( gl_objects->shader_program );
-  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+  GL_CHECK(glBindBuffer( GL_ARRAY_BUFFER,
+                gl_objects->vertex_buffer_object ));
+  GL_CHECK(glUseProgram( gl_objects->shader_program ));
+  GL_CHECK(glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture ));
 
-  glUniform2f( gl_objects->screen_size_location,
+  GL_CHECK(glUniform2f( gl_objects->screen_size_location,
                float( screen_delta.w._ ),
-               float( screen_delta.h._ ) );
-  glUniform2f( gl_objects->tick_location, 0, 0 );
+               float( screen_delta.h._ ) ));
+  GL_CHECK(glUniform2f( gl_objects->tick_location, 0, 0 ));
 
   auto rect  = Rect::from( {}, screen_delta );
   int  scale = kSpriteScale;
@@ -279,18 +253,16 @@ int draw_sprites_batched( OpenGLObjects* gl_objects,
   float tx_dx = 32.0 / sheet_w;
   float tx_dy = 32.0 / sheet_h;
 
-  constexpr size_t num_columns = kVertexSizeFloats;
-  static size_t    num_rows    = 0;
+  static size_t num_rows = 0;
 
   // Important: should only allocate this once, since allocating
   // a large buffer is apparently expensive.
-  static vector<float> s_vertices = [&] {
-    vector<float> res;
+  static vector<Vertex> s_vertices = [&] {
+    vector<Vertex> res;
     int num_sprites = ( screen_delta.w._ + scale ) / scale *
                       ( screen_delta.h._ + scale ) / scale;
-    int num_floats = num_sprites * 6 * num_columns;
-    if( int( res.size() ) < num_floats )
-      res.resize( num_floats );
+    int num_vertices = num_sprites * 6;
+    res.resize( num_vertices );
 
     auto rect = Rect::from( {}, screen_delta );
     int  i    = 0;
@@ -300,13 +272,12 @@ int draw_sprites_batched( OpenGLObjects* gl_objects,
       auto add_vertex = [&]( Coord const& c, float tx_x,
                              float tx_y ) {
         ++num_rows;
-        // Coords
-        res[i++] = float( c.x._ );
-        res[i++] = float( c.y._ );
-        res[i++] = 1.0f; // z
-        // Texture coords
-        res[i++] = tx_x;
-        res[i++] = tx_y;
+        res[i++] = { // Coords
+                     .x = float( c.x._ ),
+                     .y = float( c.y._ ),
+                     // Texture coords
+                     .tx_x = tx_x,
+                     .tx_y = tx_y };
       };
 
       add_vertex( coord, tx_ox, tx_oy );
@@ -319,8 +290,7 @@ int draw_sprites_batched( OpenGLObjects* gl_objects,
     return res;
   }();
 
-  draw_vertices( gl_objects, screen_delta, s_vertices.data(),
-                 num_columns * num_rows, num_rows );
+  draw_vertices( gl_objects, screen_delta, s_vertices );
   return s_vertices.size() *
          sizeof( decltype( s_vertices )::value_type );
 }
@@ -333,48 +303,44 @@ OpenGLObjects init_opengl() {
   gl_objects.shader_program = load_shader_pgrm(
       shaders / "perf-test.vert", shaders / "perf-test.frag" );
 
-  gl_objects.screen_size_location = glGetUniformLocation(
-      gl_objects.shader_program, "screen_size" );
-  gl_objects.tick_location =
-      glGetUniformLocation( gl_objects.shader_program, "tick" );
-  gl_objects.tx_location =
-      glGetUniformLocation( gl_objects.shader_program, "tx" );
+  gl_objects.screen_size_location =
+      GL_CHECK( glGetUniformLocation( gl_objects.shader_program,
+                                      "screen_size" ) );
+  gl_objects.tick_location = GL_CHECK( glGetUniformLocation(
+      gl_objects.shader_program, "tick" ) );
+  gl_objects.tx_location   = GL_CHECK(
+        glGetUniformLocation( gl_objects.shader_program, "tx" ) );
 
   gl_objects.opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
 
-  glGenVertexArrays( 1, &gl_objects.vertex_array_object );
-  glGenBuffers( 1, &gl_objects.vertex_buffer_object );
+  GL_CHECK(
+      glGenVertexArrays( 1, &gl_objects.vertex_array_object ) );
 
   {
-    glBindVertexArray( gl_objects.vertex_array_object );
+    GL_CHECK(
+        glBindVertexArray( gl_objects.vertex_array_object ) );
 
-    glBindBuffer( GL_ARRAY_BUFFER,
-                  gl_objects.vertex_buffer_object );
+    auto vbo_binder = gl_objects.vertex_buffer.bind();
 
     // Describe to OpenGL how to interpret the bytes in our ver-
     // tices array for feeding into the vertex shader.
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                           kVertexSizeBytes, (void*)0 );
-    glEnableVertexAttribArray( 0 );
+    GL_CHECK( glVertexAttribPointer(
+        0, 2, GL_FLOAT, GL_FALSE, kVertexSizeBytes, (void*)0 ) );
+    GL_CHECK( glEnableVertexAttribArray( 0 ) );
 
-    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE,
-                           kVertexSizeBytes,
-                           (void*)( sizeof( float ) * 3 ) );
-    glEnableVertexAttribArray( 1 );
+    GL_CHECK( glVertexAttribPointer(
+        1, 2, GL_FLOAT, GL_FALSE, kVertexSizeBytes,
+        (void*)( sizeof( float ) * 2 ) ) );
+    GL_CHECK( glEnableVertexAttribArray( 1 ) );
 
     // You can unbind the VAO afterwards so other VAO calls won't
     // accidentally modify this VAO, but this rarely happens.
     // Modifying other VAOs requires a call to glBindVertexArray
     // anyways so we generally don't unbind VAOs (nor VBOs) when
     // it's not directly necessary.
-    glBindVertexArray( 0 );
+    GL_CHECK( glBindVertexArray( 0 ) );
   }
-
-  // Unbind. The call to glVertexAttribPointer registered VBO as
-  // the vertex attribute's bound vertex buffer object so after-
-  // wards we can safely unbind.
-  glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
   return gl_objects;
 }
@@ -417,8 +383,6 @@ void open_gl_perf_test() {
              ( GLADloadproc )::SDL_GL_GetProcAddress ),
          "Failed to initialize GLAD." );
 
-  check_gl_errors();
-
   // These next lines are needed on macOS to get the window to
   // appear (???).
   ::SDL_PumpEvents();
@@ -427,21 +391,26 @@ void open_gl_perf_test() {
   ::SDL_SetWindowDisplayMode( window, &display_mode );
 
   int max_texture_size = 0;
-  glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size );
+  GL_CHECK(
+      glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size ) );
 
   lg.info( "OpenGL loaded:" );
-  lg.info( "  * Vendor:      {}.", glGetString( GL_VENDOR ) );
-  lg.info( "  * Renderer:    {}.", glGetString( GL_RENDERER ) );
-  lg.info( "  * Version:     {}.", glGetString( GL_VERSION ) );
+  lg.info( "  * Vendor:      {}.",
+           GL_CHECK( glGetString( GL_VENDOR ) ) );
+  lg.info( "  * Renderer:    {}.",
+           GL_CHECK( glGetString( GL_RENDERER ) ) );
+  lg.info( "  * Version:     {}.",
+           GL_CHECK( glGetString( GL_VERSION ) ) );
   lg.info( "  * Max Tx Size: {}x{}.", max_texture_size,
            max_texture_size );
 
-  // glEnable( GL_DEPTH_TEST );
-  // glDepthFunc( GL_LEQUAL );
+  // GL_CHECK(glEnable( GL_DEPTH_TEST ));
+  // GL_CHECK(glDepthFunc( GL_LEQUAL ));
 
   // Without this, alpha blending won't happen.
-  glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-  glEnable( GL_BLEND );
+  GL_CHECK(
+      glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ) );
+  GL_CHECK( glEnable( GL_BLEND ) );
 
   int viewport_scale = 1;
 
@@ -453,8 +422,8 @@ void open_gl_perf_test() {
 
   // (0,0) is the lower-left of the rendering region. NOTE: This
   // needs to be re-called when window is resized.
-  glViewport( 0, 0, win_size.w._ * viewport_scale,
-              win_size.h._ * viewport_scale );
+  GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
+                        win_size.h._ * viewport_scale ) );
 
   bool wait_for_vsync = false;
 
@@ -464,14 +433,14 @@ void open_gl_perf_test() {
   // == Initialization ==========================================
 
   OpenGLObjects gl_objects = init_opengl();
-  check_gl_errors();
 
   // == Render ==================================================
 
   auto screen_delta = main_window_logical_size();
 
-  glClearColor( 0.2, 0.3, 0.3, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
+  GL_CHECK(
+      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
   int scale       = kSpriteScale;
   int num_sprites = ( screen_delta.w._ + scale ) / scale *
@@ -480,41 +449,43 @@ void open_gl_perf_test() {
   auto draw_func = draw_sprites_batched;
   // auto draw_func = draw_sprites_separate;
 
-  glBindTexture( GL_TEXTURE_2D, gl_objects.opengl_texture );
+  GL_CHECK( glBindTexture( GL_TEXTURE_2D,
+                           gl_objects.opengl_texture ) );
 
-  glUseProgram( gl_objects.shader_program );
-  glUniform2f( gl_objects.screen_size_location,
-               float( screen_delta.w._ ),
-               float( screen_delta.h._ ) );
-  glUniform2f( gl_objects.tick_location, 0, 0 );
-  glUniform1i( gl_objects.tx_location, 0 );
+  GL_CHECK( glUseProgram( gl_objects.shader_program ) );
+  GL_CHECK( glUniform2f( gl_objects.screen_size_location,
+                         float( screen_delta.w._ ),
+                         float( screen_delta.h._ ) ) );
+  GL_CHECK( glUniform2f( gl_objects.tick_location, 0, 0 ) );
+  GL_CHECK( glUniform1i( gl_objects.tx_location, 0 ) );
 
-  glBindVertexArray( gl_objects.vertex_array_object );
+  GL_CHECK(
+      glBindVertexArray( gl_objects.vertex_array_object ) );
   int buf_size = draw_func( &gl_objects, screen_delta );
-  check_gl_errors();
   ::SDL_GL_SwapWindow( window );
 
   auto start_time = chrono::system_clock::now();
   long frames     = 0;
 
-  glBindVertexArray( 0 );
+  GL_CHECK( glBindVertexArray( 0 ) );
 
-  // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+  // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
 
   while( !input::is_q_down() ) {
     // Clear screen.
-    glClearColor( 0, 0, 0, 1.0 );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
+    GL_CHECK(
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
     // Set program and uniforms.
-    glUseProgram( gl_objects.shader_program );
-    glUniform2f( gl_objects.tick_location, frames, frames );
-    check_gl_errors();
+    GL_CHECK( glUseProgram( gl_objects.shader_program ) );
+    GL_CHECK( glUniform2f( gl_objects.tick_location, frames,
+                           frames ) );
 
     // Bind the VAO and draw.
-    glBindVertexArray( gl_objects.vertex_array_object );
+    GL_CHECK(
+        glBindVertexArray( gl_objects.vertex_array_object ) );
     draw_func( &gl_objects, screen_delta );
-    check_gl_errors();
     ::SDL_GL_SwapWindow( window );
 
     ++frames;
@@ -538,10 +509,10 @@ void open_gl_perf_test() {
 
   // == Cleanup =================================================
 
-  glDeleteTextures( 1, &gl_objects.opengl_texture );
-  glDeleteVertexArrays( 1, &gl_objects.vertex_array_object );
-  glDeleteBuffers( 1, &gl_objects.vertex_buffer_object );
-  glDeleteProgram( gl_objects.shader_program );
+  GL_CHECK( glDeleteTextures( 1, &gl_objects.opengl_texture ) );
+  GL_CHECK( glDeleteVertexArrays(
+      1, &gl_objects.vertex_array_object ) );
+  GL_CHECK( glDeleteProgram( gl_objects.shader_program ) );
 
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_GL_UnloadLibrary();

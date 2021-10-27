@@ -10,7 +10,7 @@
 *****************************************************************/
 #version 330 core
 
-layout (location = 0) in vec3 in_pos;
+layout (location = 0) in vec2 in_pos;
 layout (location = 1) in vec2 in_tx_coord;
 
 uniform vec2 screen_size;
@@ -29,9 +29,9 @@ vec3 to_ndc( in vec3 screen_pos ) {
 }
 
 void main() {
-  vec3 shifted_in_pos = in_pos - vec3( vec2( 0, 0 ), 0 );
+  vec2 shifted_in_pos = in_pos - vec2( 0, 0 );
   float vtick = floor( 100*sin( tick.x/200 ) );
-  vec3 new_pos = shifted_in_pos + vec3( vec2( vtick ),0 );
-  gl_Position = vec4( to_ndc( new_pos ), 1.0 );
+  vec2 new_pos = shifted_in_pos + vec2( vtick );
+  gl_Position = vec4( to_ndc( vec3( new_pos, 1.0 ) ), 1.0 );
   tx_coord = in_tx_coord;
 }
