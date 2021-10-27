@@ -59,9 +59,6 @@ private:
   // Implement base::zero.
   void free_resource();
 
-  // Implement base::zero.
-  int copy_resource() const;
-
 public:
   /**************************************************************
   ** Threads

@@ -25,17 +25,20 @@ namespace base {
 // least the following;
 //
 //  using resource_type = ...;
-//  void free_resource( resource_type const& r );
+//  void free_resource();
 //
 // and optionally the following if copyability is to be sup-
 // ported;
 //
-//  resource_type copy_resource( resource_type const& r );
+//  resource_type copy_resource();
 //
 // The copy_resource method MUST ALWAYS return something that is
 // owned, on which free_resource can be called. copy_resource
 // will not be called when there is either no value to be copied
 // or if the resource is not owned.
+//
+// From either of the above two functions, call resource() to get
+// access to the resource.
 //
 template<typename Derived, typename Resource> // CRTP
 struct zero {
