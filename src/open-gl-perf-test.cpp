@@ -19,7 +19,9 @@
 #include "tx.hpp"
 
 // gl
+#include "gl/attribs.hpp"
 #include "gl/error.hpp"
+#include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 
 // SDL
@@ -148,98 +150,43 @@ GLuint load_shader_pgrm( fs::path const& vert,
   return shader_program;
 }
 
+struct Vertex {
+  gl::vec2 pos;
+  gl::vec2 tx_pos;
+
+  static consteval auto attributes() {
+    return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, pos ),
+                  VERTEX_ATTRIB_HOLDER( Vertex, tx_pos ) };
+  }
+};
+
 struct OpenGLObjects {
   GLuint shader_program;
   GLuint screen_size_location;
   GLuint tick_location;
   GLuint tx_location;
   // The order of these matters.
-  gl::VertexBuffer vertex_buffer;
-  GLuint           vertex_array_object;
-  GLuint           opengl_texture;
+  gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
+  GLuint                                    opengl_texture;
 };
 
-struct Vertex {
-  float x;
-  float y;
-  float tx_x;
-  float tx_y;
-};
-constexpr long kVertexSizeBytes = sizeof( Vertex );
-
-void draw_vertices( OpenGLObjects* gl_objects, Delta const&,
-                    span<Vertex>   vertices ) {
-  static monostate once = [&] {
-    gl_objects->vertex_buffer.upload_data_replace(
+void draw_vertices( OpenGLObjects*     gl_objects, Delta const&,
+                    span<Vertex const> vertices ) {
+  static auto once [[maybe_unused]] = [&] {
+    gl_objects->vertex_array.buffer<0>().upload_data_replace(
         vertices, gl::e_draw_mode::stat1c );
-    (void)&once;
     return monostate{};
   }();
 
-  gl_objects->vertex_buffer.upload_data_modify( vertices, 0 );
+  gl_objects->vertex_array.buffer<0>().upload_data_modify(
+      vertices, 0 );
 
   for( int i = 0; i < 10; ++i )
-    gl_objects->vertex_buffer.upload_data_modify(
+    gl_objects->vertex_array.buffer<0>().upload_data_modify(
         vertices.subspan( i, 1 ), i );
 
   GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, vertices.size() ) );
 }
-
-#if 0
-void draw_sprite( OpenGLObjects* gl_objects,
-                  Delta const& screen_delta, int scale,
-                  Coord const& coord ) {
-  float sheet_w = 256.0;
-  float sheet_h = 192.0;
-
-  float tx_ox = 0.0 / sheet_w;
-  float tx_oy = 32.0 * 4 / sheet_h;
-  float tx_dx = 32.0 / sheet_w;
-  float tx_dy = 32.0 / sheet_h;
-
-  float z  = 0.0;
-  float sf = float( scale );
-
-  // clang-format off
-  float vertices[] = {
-    // Coord                                             Tx Coords
-    float(coord.x._),    float(coord.y._),    z,   tx_ox,       tx_oy,
-    float(coord.x._)+sf, float(coord.y._),    z,   tx_ox+tx_dx, tx_oy,
-    float(coord.x._),    float(coord.y._)+sf, z,   tx_ox,       tx_oy+tx_dy,
-
-    float(coord.x._)+sf, float(coord.y._),    z,   tx_ox+tx_dx, tx_oy,
-    float(coord.x._)+sf, float(coord.y._)+sf, z,   tx_ox+tx_dx, tx_oy+tx_dy,
-    float(coord.x._),    float(coord.y._)+sf, z,   tx_ox,       tx_oy+tx_dy,
-  };
-  // clang-format on
-
-  constexpr size_t num_columns = kVertexSizeFloats;
-  constexpr size_t num_rows    = 6;
-
-  draw_vertices( gl_objects, screen_delta, vertices,
-                 num_columns * num_rows, num_rows );
-}
-
-void draw_sprites_separate( OpenGLObjects* gl_objects,
-                            Delta const&   screen_delta ) {
-  GL_CHECK(glBindVertexArray( gl_objects->vertex_array_object ));
-
-  GL_CHECK(glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects->vertex_buffer_object ));
-  GL_CHECK(glUseProgram( gl_objects->shader_program ));
-  GL_CHECK(glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture ));
-
-  GL_CHECK(glUniform2f( gl_objects->screen_size_location,
-               float( screen_delta.w._ ),
-               float( screen_delta.h._ ) ));
-  GL_CHECK(glUniform2f( gl_objects->tick_location, 0, 0 ));
-
-  auto rect  = Rect::from( {}, screen_delta );
-  int  scale = kSpriteScale;
-  for( auto coord : rect.to_grid_noalign( Scale{ scale } ) )
-    draw_sprite( gl_objects, screen_delta, scale, coord );
-}
-#endif
 
 int draw_sprites_batched( OpenGLObjects* gl_objects,
                           Delta const&   screen_delta ) {
@@ -272,12 +219,11 @@ int draw_sprites_batched( OpenGLObjects* gl_objects,
       auto add_vertex = [&]( Coord const& c, float tx_x,
                              float tx_y ) {
         ++num_rows;
-        res[i++] = { // Coords
-                     .x = float( c.x._ ),
-                     .y = float( c.y._ ),
-                     // Texture coords
-                     .tx_x = tx_x,
-                     .tx_y = tx_y };
+        res[i++] = {
+            // Coords
+            { .x = float( c.x._ ), .y = float( c.y._ ) },
+            // Texture coords
+            { .x = tx_x, .y = tx_y } };
       };
 
       add_vertex( coord, tx_ox, tx_oy );
@@ -313,34 +259,6 @@ OpenGLObjects init_opengl() {
 
   gl_objects.opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
-
-  GL_CHECK(
-      glGenVertexArrays( 1, &gl_objects.vertex_array_object ) );
-
-  {
-    GL_CHECK(
-        glBindVertexArray( gl_objects.vertex_array_object ) );
-
-    auto vbo_binder = gl_objects.vertex_buffer.bind();
-
-    // Describe to OpenGL how to interpret the bytes in our ver-
-    // tices array for feeding into the vertex shader.
-    GL_CHECK( glVertexAttribPointer(
-        0, 2, GL_FLOAT, GL_FALSE, kVertexSizeBytes, (void*)0 ) );
-    GL_CHECK( glEnableVertexAttribArray( 0 ) );
-
-    GL_CHECK( glVertexAttribPointer(
-        1, 2, GL_FLOAT, GL_FALSE, kVertexSizeBytes,
-        (void*)( sizeof( float ) * 2 ) ) );
-    GL_CHECK( glEnableVertexAttribArray( 1 ) );
-
-    // You can unbind the VAO afterwards so other VAO calls won't
-    // accidentally modify this VAO, but this rarely happens.
-    // Modifying other VAOs requires a call to glBindVertexArray
-    // anyways so we generally don't unbind VAOs (nor VBOs) when
-    // it's not directly necessary.
-    GL_CHECK( glBindVertexArray( 0 ) );
-  }
 
   return gl_objects;
 }
@@ -425,7 +343,7 @@ void open_gl_perf_test() {
   GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
                         win_size.h._ * viewport_scale ) );
 
-  bool wait_for_vsync = false;
+  bool wait_for_vsync = true;
 
   CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
          "setting swap interval is not supported." );
@@ -459,15 +377,15 @@ void open_gl_perf_test() {
   GL_CHECK( glUniform2f( gl_objects.tick_location, 0, 0 ) );
   GL_CHECK( glUniform1i( gl_objects.tx_location, 0 ) );
 
-  GL_CHECK(
-      glBindVertexArray( gl_objects.vertex_array_object ) );
-  int buf_size = draw_func( &gl_objects, screen_delta );
-  ::SDL_GL_SwapWindow( window );
+  int buf_size = 0;
+  {
+    auto binder = gl_objects.vertex_array.bind();
+    buf_size    = draw_func( &gl_objects, screen_delta );
+    ::SDL_GL_SwapWindow( window );
+  }
 
   auto start_time = chrono::system_clock::now();
   long frames     = 0;
-
-  GL_CHECK( glBindVertexArray( 0 ) );
 
   // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
 
@@ -483,10 +401,11 @@ void open_gl_perf_test() {
                            frames ) );
 
     // Bind the VAO and draw.
-    GL_CHECK(
-        glBindVertexArray( gl_objects.vertex_array_object ) );
-    draw_func( &gl_objects, screen_delta );
-    ::SDL_GL_SwapWindow( window );
+    {
+      auto binder = gl_objects.vertex_array.bind();
+      draw_func( &gl_objects, screen_delta );
+      ::SDL_GL_SwapWindow( window );
+    }
 
     ++frames;
   }
@@ -510,8 +429,6 @@ void open_gl_perf_test() {
   // == Cleanup =================================================
 
   GL_CHECK( glDeleteTextures( 1, &gl_objects.opengl_texture ) );
-  GL_CHECK( glDeleteVertexArrays(
-      1, &gl_objects.vertex_array_object ) );
   GL_CHECK( glDeleteProgram( gl_objects.shader_program ) );
 
   ::SDL_GL_DeleteContext( opengl_context );

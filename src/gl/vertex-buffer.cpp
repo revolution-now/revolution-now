@@ -31,45 +31,46 @@ auto to_gl_draw_mode( e_draw_mode mode ) {
 }
 
 /****************************************************************
-** VertexBuffer
+** VertexBufferNonTyped
 *****************************************************************/
-VertexBuffer::VertexBuffer() {
+VertexBufferNonTyped::VertexBufferNonTyped() {
   ObjId vbo_id = 0;
   GL_CHECK( glGenBuffers( 1, &vbo_id ) );
-  *this = VertexBuffer( vbo_id );
+  *this = VertexBufferNonTyped( vbo_id );
 }
 
-VertexBuffer::VertexBuffer( ObjId vbo_id )
-  : base::zero<VertexBuffer, ObjId>( vbo_id ),
-    bindable<VertexBuffer>() {}
+VertexBufferNonTyped::VertexBufferNonTyped( ObjId vbo_id )
+  : base::zero<VertexBufferNonTyped, ObjId>( vbo_id ),
+    bindable<VertexBufferNonTyped>() {}
 
-void VertexBuffer::upload_data_replace_impl(
-    void* data, size_t size, e_draw_mode mode ) const {
+void VertexBufferNonTyped::upload_data_replace_impl(
+    void const* data, size_t size, e_draw_mode mode ) const {
   auto binder = bind();
   GL_CHECK( glBufferData( GL_ARRAY_BUFFER, size, data,
                           to_gl_draw_mode( mode ) ) );
 }
 
-void VertexBuffer::upload_data_modify_impl(
-    void* data, size_t size, size_t start_offset_bytes ) const {
+void VertexBufferNonTyped::upload_data_modify_impl(
+    void const* data, size_t size,
+    size_t start_offset_bytes ) const {
   auto binder = bind();
   GL_CHECK( glBufferSubData( GL_ARRAY_BUFFER, start_offset_bytes,
                              size, data ) );
 }
 
-void VertexBuffer::free_resource() {
+void VertexBufferNonTyped::free_resource() {
   ObjId vbo_id = resource();
   DCHECK( vbo_id != 0 );
   GL_CHECK( glDeleteBuffers( 1, &vbo_id ) );
 }
 
-ObjId VertexBuffer::current_bound() {
+ObjId VertexBufferNonTyped::current_bound() {
   GLint id;
   GL_CHECK( glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &id ) );
   return (ObjId)id;
 }
 
-void VertexBuffer::bind_obj_id( ObjId new_id ) {
+void VertexBufferNonTyped::bind_obj_id( ObjId new_id ) {
   GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, new_id ) );
 }
 

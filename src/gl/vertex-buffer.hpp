@@ -25,52 +25,61 @@ namespace gl {
 enum class e_draw_mode { stat1c, dynamic };
 
 /****************************************************************
-** VertexBuffer
+** VertexBufferNonTyped
 *****************************************************************/
-struct VertexBuffer : base::zero<VertexBuffer, ObjId>,
-                      bindable<VertexBuffer> {
-  VertexBuffer();
+struct VertexBufferNonTyped
+  : base::zero<VertexBufferNonTyped, ObjId>,
+    bindable<VertexBufferNonTyped> {
+  VertexBufferNonTyped();
 
   ObjId id() const { return bindable_obj_id(); }
 
-  template<typename T>
-  void upload_data_replace( std::span<T> data,
-                            e_draw_mode  mode ) const {
-    upload_data_replace_impl( data.data(),
-                              data.size() * sizeof( T ), mode );
-  }
-
-  template<typename T>
-  void upload_data_modify( std::span<T> data,
-                           int          start_idx ) const {
-    upload_data_modify_impl( data.data(),
-                             data.size() * sizeof( T ),
-                             start_idx * sizeof( T ) );
-  }
-
-private:
-  VertexBuffer( ObjId vbo_id );
-
-  void upload_data_replace_impl( void* data, size_t size,
+protected:
+  void upload_data_replace_impl( void const* data, size_t size,
                                  e_draw_mode mode ) const;
   void upload_data_modify_impl(
-      void* data, size_t size, size_t start_offset_bytes ) const;
+      void const* data, size_t size,
+      size_t start_offset_bytes ) const;
+
+private:
+  VertexBufferNonTyped( ObjId vbo_id );
 
 private:
   // Implement base::zero.
-  friend base::zero<VertexBuffer, ObjId>;
+  friend base::zero<VertexBufferNonTyped, ObjId>;
 
   void free_resource();
 
 private:
   // Implement bindable.
-  friend bindable<VertexBuffer>;
+  friend bindable<VertexBufferNonTyped>;
 
   ObjId bindable_obj_id() const { return resource(); }
 
   static ObjId current_bound();
 
   static void bind_obj_id( ObjId id );
+};
+
+/****************************************************************
+** VertexBuffer
+*****************************************************************/
+template<typename VertexType>
+struct VertexBuffer : VertexBufferNonTyped {
+  using vertex_type = VertexType;
+
+  void upload_data_replace( std::span<VertexType const> data,
+                            e_draw_mode mode ) const {
+    upload_data_replace_impl(
+        data.data(), data.size() * sizeof( VertexType ), mode );
+  }
+
+  void upload_data_modify( std::span<VertexType const> data,
+                           int start_idx ) const {
+    upload_data_modify_impl( data.data(),
+                             data.size() * sizeof( VertexType ),
+                             start_idx * sizeof( VertexType ) );
+  }
 };
 
 } // namespace gl
