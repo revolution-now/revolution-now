@@ -102,13 +102,18 @@ private:
   template<size_t... Idxs>
   void register_attribs_for_all_buffers(
       std::index_sequence<Idxs...> ) const {
-    auto binder = bind();
-    ( register_attribs_for_single_buffer<Idxs>(), ... );
+    auto binder           = bind();
+    int  attrib_idx_start = 0;
+    ( ( attrib_idx_start +=
+        register_attribs_for_single_buffer<Idxs>(
+            attrib_idx_start ) ),
+      ... );
   }
 
   // One buffer has multiple attributes.
   template<size_t BufferIdx>
-  void register_attribs_for_single_buffer() const {
+  int register_attribs_for_single_buffer(
+      int const attrib_idx_start ) const {
     auto const& buffer        = std::get<BufferIdx>( buffers_ );
     auto        buffer_binder = buffer.bind();
 
@@ -126,7 +131,7 @@ private:
               decltype( std::get<AttribIdx>(
                   attribs ) )>::field_type;
           this->register_attrib(
-              AttribIdx,
+              attrib_idx_start + AttribIdx,
               // FIXME
               /*attrib_field_count=*/2,
               // FIXME
@@ -135,6 +140,7 @@ private:
               /*stride=*/sizeof( VertexType ),
               /*offset=*/attrib.offset_bytes );
         } );
+    return kNumAttribs;
   }
 
   std::tuple<VertexBuffer<VertexTypes>...> buffers_;

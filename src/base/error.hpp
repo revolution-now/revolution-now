@@ -115,29 +115,53 @@
 /****************************************************************
 ** Equality/Inequality checks
 *****************************************************************/
-#define CHECK_GE( a, b )                                       \
-  auto const& STRING_JOIN( __a, __LINE__ ) = a;                \
-  auto const& STRING_JOIN( __b, __LINE__ ) = b;                \
-  CHECK( STRING_JOIN( __a, __LINE__ ) >=                       \
-             STRING_JOIN( __b, __LINE__ ),                     \
-         "{} is not >= than {}", STRING_JOIN( __a, __LINE__ ), \
-         STRING_JOIN( __b, __LINE__ ) );
+// Greater or equal
+#define CHECK_GE( a, b )                          \
+  {                                               \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a; \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b; \
+    CHECK( STRING_JOIN( __a, __LINE__ ) >=        \
+               STRING_JOIN( __b, __LINE__ ),      \
+           "{} is not >= than {}",                \
+           STRING_JOIN( __a, __LINE__ ),          \
+           STRING_JOIN( __b, __LINE__ ) );        \
+  }
 
-#define CHECK_LT( a, b )                                      \
-  auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
-  auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
-  CHECK( STRING_JOIN( __a, __LINE__ ) <                       \
-             STRING_JOIN( __b, __LINE__ ),                    \
-         "{} is not < than {}", STRING_JOIN( __a, __LINE__ ), \
-         STRING_JOIN( __b, __LINE__ ) );
+// Less or equal
+#define CHECK_LE( a, b )                          \
+  {                                               \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a; \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b; \
+    CHECK( STRING_JOIN( __a, __LINE__ ) <=        \
+               STRING_JOIN( __b, __LINE__ ),      \
+           "{} is not <= than {}",                \
+           STRING_JOIN( __a, __LINE__ ),          \
+           STRING_JOIN( __b, __LINE__ ) );        \
+  }
 
-#define CHECK_LE( a, b )                                       \
-  auto const& STRING_JOIN( __a, __LINE__ ) = a;                \
-  auto const& STRING_JOIN( __b, __LINE__ ) = b;                \
-  CHECK( STRING_JOIN( __a, __LINE__ ) <=                       \
-             STRING_JOIN( __b, __LINE__ ),                     \
-         "{} is not <= than {}", STRING_JOIN( __a, __LINE__ ), \
-         STRING_JOIN( __b, __LINE__ ) );
+// Less than
+#define CHECK_LT( ... ) \
+  PP_N_OR_MORE_ARGS_2( CHECK_LT, __VA_ARGS__ )
+
+#define CHECK_LT_SINGLE( a, b )                                 \
+  {                                                             \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
+    CHECK( STRING_JOIN( __a, __LINE__ ) <                       \
+               STRING_JOIN( __b, __LINE__ ),                    \
+           "{} is not < than {}", STRING_JOIN( __a, __LINE__ ), \
+           STRING_JOIN( __b, __LINE__ ) );                      \
+  }
+
+#define CHECK_LT_MULTI( a, b, ... )                             \
+  {                                                             \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
+    CHECK( STRING_JOIN( __a, __LINE__ ) <                       \
+               STRING_JOIN( __b, __LINE__ ),                    \
+           "{} is not < than {}", STRING_JOIN( __a, __LINE__ ), \
+           STRING_JOIN( __b, __LINE__ ), __VA_ARGS__ );         \
+  }
 
 /****************************************************************
 ** Check that a wrapped type has a value.
