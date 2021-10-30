@@ -21,6 +21,7 @@
 // gl
 #include "gl/attribs.hpp"
 #include "gl/error.hpp"
+#include "gl/shader.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 
@@ -65,91 +66,6 @@ GLuint load_texture( fs::path const& p ) {
   return opengl_texture;
 }
 
-GLuint load_shader_pgrm( fs::path const& vert,
-                         fs::path const& frag ) {
-  int              success;
-  constexpr size_t kErrorLength = 512;
-  char             errors[kErrorLength];
-
-  // == Vertex Shader ===========================================
-
-  GLuint vertex_shader =
-      GL_CHECK( glCreateShader( GL_VERTEX_SHADER ) );
-  UNWRAP_CHECK( vertex_shader_source,
-                base::read_text_file_as_string( vert ) );
-  char const* p_vertex_shader_source =
-      vertex_shader_source.c_str();
-  GL_CHECK( glShaderSource( vertex_shader, 1,
-                            &p_vertex_shader_source, nullptr ) );
-  GL_CHECK( glCompileShader( vertex_shader ) ); // check errors?
-  // Check for compiler errors.
-  GL_CHECK( glGetShaderiv( vertex_shader, GL_COMPILE_STATUS,
-                           &success ) );
-  if( !success ) {
-    GL_CHECK( glGetShaderInfoLog( vertex_shader, kErrorLength,
-                                  NULL, errors ) );
-    FATAL( "Vertex shader compilation failed: {}", errors );
-  }
-
-  // == Fragment Shader =========================================
-
-  GLuint fragment_shader =
-      GL_CHECK( glCreateShader( GL_FRAGMENT_SHADER ) );
-  UNWRAP_CHECK( fragment_shader_source,
-                base::read_text_file_as_string( frag ) );
-  char const* p_fragment_shader_source =
-      fragment_shader_source.c_str();
-  GL_CHECK( glShaderSource(
-      fragment_shader, 1, &p_fragment_shader_source, nullptr ) );
-  GL_CHECK(
-      glCompileShader( fragment_shader ) ); // check errors?
-  // Check for compiler errors.
-  GL_CHECK( glGetShaderiv( fragment_shader, GL_COMPILE_STATUS,
-                           &success ) );
-  if( !success ) {
-    GL_CHECK( glGetShaderInfoLog( fragment_shader, kErrorLength,
-                                  NULL, errors ) );
-    FATAL( "Fragment shader compilation failed: {}", errors );
-  }
-
-  // == Shader Program ==========================================
-
-  GLuint shader_program = GL_CHECK( glCreateProgram() );
-
-  GL_CHECK( glAttachShader( shader_program, vertex_shader ) );
-  GL_CHECK( glAttachShader( shader_program, fragment_shader ) );
-  GL_CHECK( glLinkProgram( shader_program ) );
-  // Check for linking errors.
-  GL_CHECK( glGetProgramiv( shader_program, GL_LINK_STATUS,
-                            &success ) );
-  if( !success ) {
-    GL_CHECK( glGetProgramInfoLog( shader_program, kErrorLength,
-                                   NULL, errors ) );
-    FATAL( "Shader program linking failed: {}", errors );
-  }
-
-  GL_CHECK( glValidateProgram( shader_program ) );
-  GLint validation_successful;
-  GL_CHECK( glGetProgramiv( shader_program, GL_VALIDATE_STATUS,
-                            &validation_successful ) );
-  GLint out_size;
-  GL_CHECK( glGetProgramInfoLog( shader_program,
-                                 /*maxlength=*/kErrorLength,
-                                 &out_size, errors ) );
-  string_view info_log( errors, out_size );
-  CHECK( validation_successful == GL_TRUE,
-         "shader program failed validation: info "
-         "log: {}",
-         info_log );
-
-  // TODO: Consider calling glDetachShader here.
-
-  GL_CHECK( glDeleteShader( vertex_shader ) );
-  GL_CHECK( glDeleteShader( fragment_shader ) );
-
-  return shader_program;
-}
-
 struct Vertex {
   gl::vec2 pos;
   gl::vec2 tx_pos;
@@ -161,35 +77,17 @@ struct Vertex {
 };
 
 struct OpenGLObjects {
-  GLuint shader_program;
-  GLuint screen_size_location;
-  GLuint tick_location;
-  GLuint tx_location;
+  gl::Program program;
+  GLuint      screen_size_location;
+  GLuint      tick_location;
+  GLuint      tx_location;
   // The order of these matters.
   gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
   GLuint                                    opengl_texture;
 };
 
-void draw_vertices( OpenGLObjects*     gl_objects, Delta const&,
-                    span<Vertex const> vertices ) {
-  static auto once [[maybe_unused]] = [&] {
-    gl_objects->vertex_array.buffer<0>().upload_data_replace(
-        vertices, gl::e_draw_mode::stat1c );
-    return monostate{};
-  }();
-
-  gl_objects->vertex_array.buffer<0>().upload_data_modify(
-      vertices, 0 );
-
-  for( int i = 0; i < 10; ++i )
-    gl_objects->vertex_array.buffer<0>().upload_data_modify(
-        vertices.subspan( i, 1 ), i );
-
-  GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, vertices.size() ) );
-}
-
-int draw_sprites_batched( OpenGLObjects* gl_objects,
-                          Delta const&   screen_delta ) {
+int upload_sprites_buffer( OpenGLObjects* gl_objects,
+                           Delta const&   screen_delta ) {
   int scale = kSpriteScale;
 
   float sheet_w = 256.0;
@@ -236,42 +134,144 @@ int draw_sprites_batched( OpenGLObjects* gl_objects,
     return res;
   }();
 
-  draw_vertices( gl_objects, screen_delta, s_vertices );
-  return s_vertices.size() *
-         sizeof( decltype( s_vertices )::value_type );
+  static auto once [[maybe_unused]] = [&] {
+    gl_objects->vertex_array.buffer<0>().upload_data_replace(
+        s_vertices, gl::e_draw_mode::stat1c );
+    return monostate{};
+  }();
+
+  gl_objects->vertex_array.buffer<0>().upload_data_modify(
+      s_vertices, 0 );
+
+  for( int i = 0; i < 10; ++i )
+    gl_objects->vertex_array.buffer<0>().upload_data_modify(
+        span<Vertex const>{ s_vertices }.subspan( i, 1 ), i );
+
+  return s_vertices.size();
 }
 
 OpenGLObjects init_opengl() {
   fs::path shaders = "src/shaders";
 
-  OpenGLObjects gl_objects;
+  UNWRAP_CHECK( vertex_shader_source,
+                base::read_text_file_as_string(
+                    shaders / "perf-test.vert" ) );
+  UNWRAP_CHECK( fragment_shader_source,
+                base::read_text_file_as_string(
+                    shaders / "perf-test.frag" ) );
+  UNWRAP_CHECK( vert_shader,
+                gl::Shader::create( gl::e_shader_type::vertex,
+                                    vertex_shader_source ) );
+  UNWRAP_CHECK( frag_shader,
+                gl::Shader::create( gl::e_shader_type::fragment,
+                                    fragment_shader_source ) );
+  UNWRAP_CHECK(
+      pgrm, gl::Program::create( vert_shader, frag_shader ) );
 
-  gl_objects.shader_program = load_shader_pgrm(
-      shaders / "perf-test.vert", shaders / "perf-test.frag" );
+  GLuint screen_size_location = GL_CHECK(
+      glGetUniformLocation( pgrm.id(), "screen_size" ) );
+  GLuint tick_location =
+      GL_CHECK( glGetUniformLocation( pgrm.id(), "tick" ) );
+  GLuint tx_location =
+      GL_CHECK( glGetUniformLocation( pgrm.id(), "tx" ) );
 
-  gl_objects.screen_size_location =
-      GL_CHECK( glGetUniformLocation( gl_objects.shader_program,
-                                      "screen_size" ) );
-  gl_objects.tick_location = GL_CHECK( glGetUniformLocation(
-      gl_objects.shader_program, "tick" ) );
-  gl_objects.tx_location   = GL_CHECK(
-        glGetUniformLocation( gl_objects.shader_program, "tx" ) );
-
-  gl_objects.opengl_texture =
+  GLuint opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
 
-  return gl_objects;
+  return OpenGLObjects{
+      .program              = std::move( pgrm ),
+      .screen_size_location = screen_size_location,
+      .tick_location        = tick_location,
+      .tx_location          = tx_location,
+      .vertex_array         = {},
+      .opengl_texture       = opengl_texture };
 }
 
 } // namespace
 
 /****************************************************************
-** Public API
-*****************************************************************/
-
-/****************************************************************
 ** Testing
 *****************************************************************/
+void render_loop( ::SDL_Window* window ) {
+  // == Initialization ==========================================
+
+  OpenGLObjects gl_objects = init_opengl();
+
+  // == Render ==================================================
+
+  auto screen_delta = main_window_logical_size();
+
+  GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
+  GL_CHECK(
+      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+
+  int scale       = kSpriteScale;
+  int num_sprites = ( screen_delta.w._ + scale ) / scale *
+                    ( screen_delta.h._ + scale ) / scale;
+
+  GL_CHECK( glBindTexture( GL_TEXTURE_2D,
+                           gl_objects.opengl_texture ) );
+
+  gl_objects.program.use();
+  GL_CHECK( glUniform2f( gl_objects.screen_size_location,
+                         float( screen_delta.w._ ),
+                         float( screen_delta.h._ ) ) );
+  GL_CHECK( glUniform2f( gl_objects.tick_location, 0, 0 ) );
+  GL_CHECK( glUniform1i( gl_objects.tx_location, 0 ) );
+
+  int num_vertices =
+      upload_sprites_buffer( &gl_objects, screen_delta );
+  gl_objects.program.run( gl_objects.vertex_array,
+                          num_vertices );
+  ::SDL_GL_SwapWindow( window );
+
+  auto start_time = chrono::system_clock::now();
+  long frames     = 0;
+
+  // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
+
+  while( !input::is_q_down() ) {
+    // Clear screen.
+    GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
+    GL_CHECK(
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+
+    // Set program and uniforms.
+    gl_objects.program.use();
+    GL_CHECK( glUniform2f( gl_objects.tick_location, frames,
+                           frames ) );
+
+    int num_vertices =
+        upload_sprites_buffer( &gl_objects, screen_delta );
+    gl_objects.program.run( gl_objects.vertex_array,
+                            num_vertices );
+    ::SDL_GL_SwapWindow( window );
+
+    ++frames;
+  }
+
+  auto end_time   = chrono::system_clock::now();
+  auto delta_time = end_time - start_time;
+  auto millis =
+      chrono::duration_cast<chrono::milliseconds>( delta_time );
+  double max_fpms = frames / double( millis.count() );
+  double max_fps  = max_fpms * 1000.0;
+  lg.info( "=================================================" );
+  lg.info( "OpenGL Performance Test" );
+  lg.info( "=================================================" );
+  lg.info( "Total time:     {}.", delta_time );
+  lg.info( "Avg frame rate: {}.", max_fps );
+  lg.info( "Buffer Size:    {:.2}MB", double( num_vertices ) *
+                                          sizeof( Vertex ) /
+                                          ( 1024 * 1024 ) );
+  lg.info( "Sprite count:   {}k", num_sprites / 1000 );
+  lg.info( "=================================================" );
+
+  // == Cleanup =================================================
+
+  GL_CHECK( glDeleteTextures( 1, &gl_objects.opengl_texture ) );
+}
+
 void open_gl_perf_test() {
   CHECK( ::SDL_GL_LoadLibrary( nullptr ) == 0,
          "Failed to load OpenGL library." );
@@ -343,93 +343,12 @@ void open_gl_perf_test() {
   GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
                         win_size.h._ * viewport_scale ) );
 
-  bool wait_for_vsync = true;
+  bool wait_for_vsync = false;
 
   CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
          "setting swap interval is not supported." );
 
-  // == Initialization ==========================================
-
-  OpenGLObjects gl_objects = init_opengl();
-
-  // == Render ==================================================
-
-  auto screen_delta = main_window_logical_size();
-
-  GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
-  GL_CHECK(
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
-
-  int scale       = kSpriteScale;
-  int num_sprites = ( screen_delta.w._ + scale ) / scale *
-                    ( screen_delta.h._ + scale ) / scale;
-
-  auto draw_func = draw_sprites_batched;
-  // auto draw_func = draw_sprites_separate;
-
-  GL_CHECK( glBindTexture( GL_TEXTURE_2D,
-                           gl_objects.opengl_texture ) );
-
-  GL_CHECK( glUseProgram( gl_objects.shader_program ) );
-  GL_CHECK( glUniform2f( gl_objects.screen_size_location,
-                         float( screen_delta.w._ ),
-                         float( screen_delta.h._ ) ) );
-  GL_CHECK( glUniform2f( gl_objects.tick_location, 0, 0 ) );
-  GL_CHECK( glUniform1i( gl_objects.tx_location, 0 ) );
-
-  int buf_size = 0;
-  {
-    auto binder = gl_objects.vertex_array.bind();
-    buf_size    = draw_func( &gl_objects, screen_delta );
-    ::SDL_GL_SwapWindow( window );
-  }
-
-  auto start_time = chrono::system_clock::now();
-  long frames     = 0;
-
-  // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
-
-  while( !input::is_q_down() ) {
-    // Clear screen.
-    GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
-    GL_CHECK(
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
-
-    // Set program and uniforms.
-    GL_CHECK( glUseProgram( gl_objects.shader_program ) );
-    GL_CHECK( glUniform2f( gl_objects.tick_location, frames,
-                           frames ) );
-
-    // Bind the VAO and draw.
-    {
-      auto binder = gl_objects.vertex_array.bind();
-      draw_func( &gl_objects, screen_delta );
-      ::SDL_GL_SwapWindow( window );
-    }
-
-    ++frames;
-  }
-
-  auto end_time   = chrono::system_clock::now();
-  auto delta_time = end_time - start_time;
-  auto millis =
-      chrono::duration_cast<chrono::milliseconds>( delta_time );
-  double max_fpms = frames / double( millis.count() );
-  double max_fps  = max_fpms * 1000.0;
-  lg.info( "=================================================" );
-  lg.info( "OpenGL Performance Test" );
-  lg.info( "=================================================" );
-  lg.info( "Total time:     {}.", delta_time );
-  lg.info( "Avg frame rate: {}.", max_fps );
-  lg.info( "Buffer Size:    {:.2}MB",
-           double( buf_size ) / ( 1024 * 1024 ) );
-  lg.info( "Sprite count:   {}k", num_sprites / 1000 );
-  lg.info( "=================================================" );
-
-  // == Cleanup =================================================
-
-  GL_CHECK( glDeleteTextures( 1, &gl_objects.opengl_texture ) );
-  GL_CHECK( glDeleteProgram( gl_objects.shader_program ) );
+  render_loop( window );
 
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_GL_UnloadLibrary();
