@@ -49,6 +49,8 @@ private:
 public:
   binder bind() const { return binder( derived() ); }
 
+  ObjId id() const { return derived().bindable_obj_id(); }
+
 protected:
   bindable() = default;
 

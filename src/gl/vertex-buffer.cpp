@@ -13,9 +13,6 @@
 // gl
 #include "error.hpp"
 
-// base
-#include "base/error.hpp"
-
 // Glad
 #include "glad/glad.h"
 

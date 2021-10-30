@@ -32,8 +32,6 @@ struct VertexBufferNonTyped
     bindable<VertexBufferNonTyped> {
   VertexBufferNonTyped();
 
-  ObjId id() const { return bindable_obj_id(); }
-
 protected:
   void upload_data_replace_impl( void const* data, size_t size,
                                  e_draw_mode mode ) const;
