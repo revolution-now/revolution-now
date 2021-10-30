@@ -103,12 +103,12 @@ struct zero {
 
   // These can go BOOM! Must check alive() first.
   Resource& resource() {
-    assert( r_.has_value() );
+    DCHECK( r_.has_value() );
     return *r_;
   }
 
   Resource const& resource() const {
-    assert( r_.has_value() );
+    DCHECK( r_.has_value() );
     return *r_;
   }
 
