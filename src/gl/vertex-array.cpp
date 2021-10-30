@@ -54,9 +54,8 @@ void VertexArrayNonTyped::bind_obj_id( ObjId new_id ) {
 }
 
 void VertexArrayNonTyped::register_attrib(
-    int idx, size_t attrib_field_count,
-    e_vertex_attrib_type type, bool normalized, size_t stride,
-    size_t offset ) const {
+    int idx, size_t attrib_field_count, e_attrib_type type,
+    bool normalized, size_t stride, size_t offset ) const {
   static int kMaxAttributesAllowed = [] {
     int n;
     glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &n );
@@ -67,12 +66,8 @@ void VertexArrayNonTyped::register_attrib(
             "attributes.",
             kMaxAttributesAllowed );
   GLboolean gl_normalized = normalized ? GL_TRUE : GL_FALSE;
-  GLenum    gl_type       = 0;
-  switch( type ) {
-    case e_vertex_attrib_type::float_: gl_type = GL_FLOAT; break;
-  }
   GL_CHECK( glVertexAttribPointer( idx, attrib_field_count,
-                                   gl_type, gl_normalized,
+                                   to_GL( type ), gl_normalized,
                                    stride, (void*)offset ) );
   GL_CHECK( glEnableVertexAttribArray( idx ) );
 }

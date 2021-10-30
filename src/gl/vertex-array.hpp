@@ -11,6 +11,7 @@
 #pragma once
 
 // gl
+#include "attribs.hpp"
 #include "bindable.hpp"
 #include "types.hpp"
 #include "vertex-buffer.hpp"
@@ -23,8 +24,6 @@
 #include <cstddef>
 
 namespace gl {
-
-enum class e_vertex_attrib_type { float_ };
 
 /****************************************************************
 ** VertexArrayNonTyped
@@ -40,9 +39,8 @@ protected:
   // Vertex Array and Vertex Buffer must be bound before calling
   // this.
   void register_attrib( int idx, size_t attrib_field_count,
-                        e_vertex_attrib_type type,
-                        bool normalized, size_t stride,
-                        size_t offset ) const;
+                        e_attrib_type type, bool normalized,
+                        size_t stride, size_t offset ) const;
 
 private:
   VertexArrayNonTyped( ObjId vbo_id );
@@ -132,10 +130,9 @@ private:
                   attribs ) )>::field_type;
           this->register_attrib(
               attrib_idx_start + AttribIdx,
-              // FIXME
-              /*attrib_field_count=*/2,
-              // FIXME
-              /*type=*/e_vertex_attrib_type::float_,
+              /*attrib_field_count=*/
+              attrib_traits<AttribType>::count,
+              /*type=*/attrib_traits<AttribType>::type,
               /*normalized=*/false,
               /*stride=*/sizeof( VertexType ),
               /*offset=*/attrib.offset_bytes );

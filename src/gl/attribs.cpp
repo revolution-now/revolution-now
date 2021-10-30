@@ -1,5 +1,5 @@
 /****************************************************************
-**attribs.hpp
+**attribs.cpp
 *
 * Project: Revolution Now
 *
@@ -8,40 +8,36 @@
 * Description: C++ types corresponding to GL types.
 *
 *****************************************************************/
-#pragma once
+#include "attribs.hpp"
 
-// C++ standard library
-#include <string_view>
+// Glad
+#include "glad/glad.h"
+
+using namespace std;
 
 namespace gl {
 
 /****************************************************************
 ** Attribute Type
 *****************************************************************/
-enum class e_attrib_type { float_ };
+int to_GL( e_attrib_type type ) {
+  decltype( GL_FLOAT ) res = 0;
+  switch( type ) {
+    case e_attrib_type::float_: res = GL_FLOAT; break;
+  }
+  return static_cast<int>( res );
+}
 
-int to_GL( e_attrib_type type );
-
-std::string_view to_GL_str( e_attrib_type type );
-
-/****************************************************************
-** Attribute Type Traits
-*****************************************************************/
-template<typename T>
-struct attrib_traits;
+string_view to_GL_str( e_attrib_type type ) {
+  switch( type ) {
+    case e_attrib_type::float_: return "GL_FLOAT"; break;
+  }
+}
 
 /****************************************************************
 ** vec2
 *****************************************************************/
-struct vec2 {
-  float x;
-  float y;
-};
-
-template<>
-struct attrib_traits<vec2> {
-  static e_attrib_type type;
-  static int           count;
-};
+e_attrib_type attrib_traits<vec2>::type  = e_attrib_type::float_;
+int           attrib_traits<vec2>::count = 2;
 
 } // namespace gl
