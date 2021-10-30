@@ -86,7 +86,7 @@ FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
 }
 
 template<typename... Args>
-auto creation_tuple( FBBuilder& fbb, mp::type_list<Args...>* ) {
+auto creation_tuple( FBBuilder& fbb, mp::list<Args...>* ) {
   return tuple{
       serialize_to_offset<serial::remove_fb_offset_t<Args>>(
           fbb )... };

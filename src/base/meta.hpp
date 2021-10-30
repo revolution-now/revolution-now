@@ -23,7 +23,7 @@ template<int N>
 struct disambiguate;
 
 template<typename...>
-struct type_list;
+struct list;
 
 // This is used to represent `auto` for meta functions that are
 // to return the type of function arguments; it is used when a
@@ -87,7 +87,7 @@ struct member_var_callable_traits_impl;
 // Function.
 template<typename R, typename... Arg>
 struct callable_traits_impl<R( Arg... )> {
-  using arg_types     = type_list<Arg...>;
+  using arg_types     = list<Arg...>;
   using ret_type      = R;
   using func_type     = R( Arg... );
   using func_ptr_type = R ( * )( Arg... );
@@ -98,7 +98,7 @@ struct callable_traits_impl<R( Arg... )> {
 // Function const (abominable function type).
 template<typename R, typename... Arg>
 struct callable_traits_impl<R( Arg... ) const> {
-  using arg_types = type_list<Arg...>;
+  using arg_types = list<Arg...>;
   using ret_type  = R;
   using func_type = R( Arg... ) const;
   // Cannot have const.
@@ -110,7 +110,7 @@ struct callable_traits_impl<R( Arg... ) const> {
 // Member Function.
 template<typename R, typename O, typename... Arg>
 struct member_fn_callable_traits_impl<R( O*, Arg... )> {
-  using arg_types                  = type_list<Arg...>;
+  using arg_types                  = list<Arg...>;
   using ret_type                   = R;
   using func_type                  = R( Arg... );
   using func_ptr_type              = R ( * )( Arg... );
@@ -124,7 +124,7 @@ struct member_fn_callable_traits_impl<R( O*, Arg... )> {
 // Member Function (const abominable).
 template<typename R, typename O, typename... Arg>
 struct member_fn_const_callable_traits_impl<R( O*, Arg... )> {
-  using arg_types = type_list<Arg...>;
+  using arg_types = list<Arg...>;
   using ret_type  = R;
   using func_type = R( Arg... ) const;
   // Cannot have const.
@@ -140,7 +140,7 @@ struct member_fn_const_callable_traits_impl<R( O*, Arg... )> {
 // Member variable.
 template<typename R, typename O>
 struct member_var_callable_traits_impl<R( O* )> {
-  using arg_types                  = type_list<>;
+  using arg_types                  = list<>;
   using ret_type                   = R;
   using func_type                  = R();
   using func_ptr_type              = R ( * )();
@@ -264,7 +264,7 @@ requires(
     !std::is_member_function_pointer_v<std::remove_cvref_t<O>> )
 struct callable_traits<O> {
   // clang-format on
-  using arg_types = type_list<Auto>;
+  using arg_types = list<Auto>;
   /* no ret_type since we cannot know it. */
 };
 
@@ -293,7 +293,7 @@ using callable_member_func_flattened_type_t =
     typename callable_traits<F>::member_func_flattened_type;
 
 /****************************************************************
-** Make function type from type_list of args.
+** Make function type from list of args.
 *****************************************************************/
 namespace detail {
 
@@ -301,7 +301,7 @@ template<typename Ret, typename... Args>
 struct func_type_from_typelist;
 
 template<typename Ret, typename... Args>
-struct func_type_from_typelist<Ret, type_list<Args...>> {
+struct func_type_from_typelist<Ret, list<Args...>> {
   using type = Ret( Args... );
 };
 
@@ -321,15 +321,15 @@ template<typename...>
 struct list_contains_impl;
 
 template<typename T>
-struct list_contains_impl<mp::type_list<>, T> {
+struct list_contains_impl<mp::list<>, T> {
   static constexpr bool value = false;
 };
 
 template<typename T, typename Arg1, typename... Args>
-struct list_contains_impl<mp::type_list<Arg1, Args...>, T> {
+struct list_contains_impl<mp::list<Arg1, Args...>, T> {
   static constexpr bool value =
       std::is_same_v<T, Arg1> ||
-      list_contains_impl<mp::type_list<Args...>, T>::value;
+      list_contains_impl<mp::list<Args...>, T>::value;
 };
 
 } // namespace detail
@@ -339,25 +339,25 @@ inline constexpr bool list_contains_v =
     detail::list_contains_impl<List, T>::value;
 
 /****************************************************************
-** type_list to tuple
+** list to tuple
 *****************************************************************/
 template<typename... Args>
-auto type_list_to_tuple_impl( type_list<Args...> const& )
+auto list_to_tuple_impl( list<Args...> const& )
     -> std::tuple<Args...>;
 
 template<typename List>
-using to_tuple_t = decltype( type_list_to_tuple_impl(
+using to_tuple_t = decltype( list_to_tuple_impl(
     std::declval<List const&>() ) );
 
 /****************************************************************
-** tuple to type_list
+** tuple to list
 *****************************************************************/
 template<typename... Args>
-auto tuple_to_type_list_impl( std::tuple<Args...> const& )
-    -> type_list<Args...>;
+auto tuple_to_list_impl( std::tuple<Args...> const& )
+    -> list<Args...>;
 
 template<typename Tuple>
-using to_type_list_t = decltype( tuple_to_type_list_impl(
+using to_list_t = decltype( tuple_to_list_impl(
     std::declval<Tuple const&>() ) );
 
 /****************************************************************
@@ -367,8 +367,8 @@ template<typename...>
 struct tail;
 
 template<typename Arg1, typename... Args>
-struct tail<type_list<Arg1, Args...>> {
-  using type = type_list<Args...>;
+struct tail<list<Arg1, Args...>> {
+  using type = list<Args...>;
 };
 
 template<typename List>
@@ -381,7 +381,7 @@ template<typename...>
 struct head;
 
 template<typename Arg1, typename... Args>
-struct head<type_list<Arg1, Args...>> {
+struct head<list<Arg1, Args...>> {
   using type = Arg1;
 };
 
@@ -408,7 +408,7 @@ template<typename...>
 struct last;
 
 template<typename... Ts>
-struct last<type_list<Ts...>> {
+struct last<list<Ts...>> {
   using type = select_last_t<Ts...>;
 };
 
@@ -416,19 +416,18 @@ template<typename List>
 using last_t = typename last<List>::type;
 
 /****************************************************************
-** type_list_size
+** list_size
 *****************************************************************/
 template<typename...>
-struct type_list_size;
+struct list_size;
 
 template<typename... Args>
-struct type_list_size<type_list<Args...>> {
+struct list_size<list<Args...>> {
   static constexpr std::size_t size = sizeof...( Args );
 };
 
 template<typename List>
-inline constexpr auto type_list_size_v =
-    type_list_size<List>::size;
+inline constexpr auto list_size_v = list_size<List>::size;
 
 /****************************************************************
 ** and
@@ -593,7 +592,7 @@ struct ForIndexRunner {
 template<typename... Ts>
 constexpr auto tuple_tail( std::tuple<Ts...> const input ) {
   using tuple_tail_t =
-      to_tuple_t<tail_t<to_type_list_t<std::tuple<Ts...>>>>;
+      to_tuple_t<tail_t<to_list_t<std::tuple<Ts...>>>>;
   tuple_tail_t smaller_tuple;
   for_index_seq<std::tuple_size_v<tuple_tail_t>>(
       [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {

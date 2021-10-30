@@ -26,25 +26,24 @@ using namespace std;
 using namespace mp;
 
 /****************************************************************
-** type_list to tuple
+** list to tuple
 *****************************************************************/
-using tl0 = type_list<>;
-using tl1 = type_list<int>;
-using tl2 = type_list<int, char>;
+using tl0 = list<>;
+using tl1 = list<int>;
+using tl2 = list<int, char>;
 static_assert( is_same_v<to_tuple_t<tl0>, tuple<>> );
 static_assert( is_same_v<to_tuple_t<tl1>, tuple<int>> );
 static_assert( is_same_v<to_tuple_t<tl2>, tuple<int, char>> );
 
 /****************************************************************
-** tuple to type_list
+** tuple to list
 *****************************************************************/
 using tu0 = std::tuple<>;
 using tu1 = std::tuple<int>;
 using tu2 = std::tuple<int, char>;
-static_assert( is_same_v<to_type_list_t<tu0>, type_list<>> );
-static_assert( is_same_v<to_type_list_t<tu1>, type_list<int>> );
-static_assert(
-    is_same_v<to_type_list_t<tu2>, type_list<int, char>> );
+static_assert( is_same_v<to_list_t<tu0>, list<>> );
+static_assert( is_same_v<to_list_t<tu1>, list<int>> );
+static_assert( is_same_v<to_list_t<tu2>, list<int, char>> );
 
 /****************************************************************
 ** Is Callable Overloaded
@@ -296,31 +295,22 @@ static_assert( is_same_v<A, callable_ret_type_t<F11>> );
 static_assert(
     is_same_v<int, callable_ret_type_t<decltype( F13 )>> );
 
+static_assert( is_same_v<list<>, callable_arg_types_t<F1>> );
+static_assert( is_same_v<list<A>, callable_arg_types_t<F2>> );
+static_assert( is_same_v<list<B>, callable_arg_types_t<F3>> );
+static_assert( is_same_v<list<B, C>, callable_arg_types_t<F4>> );
+static_assert( is_same_v<list<B>, callable_arg_types_t<F5>> );
+static_assert( is_same_v<list<B, C>, callable_arg_types_t<F6>> );
+static_assert( is_same_v<list<B>, callable_arg_types_t<F7>> );
 static_assert(
-    is_same_v<type_list<>, callable_arg_types_t<F1>> );
+    is_same_v<list<C const&>, callable_arg_types_t<F8>> );
 static_assert(
-    is_same_v<type_list<A>, callable_arg_types_t<F2>> );
+    is_same_v<list<mp::Auto>, callable_arg_types_t<F9>> );
 static_assert(
-    is_same_v<type_list<B>, callable_arg_types_t<F3>> );
+    is_same_v<list<mp::Auto>, callable_arg_types_t<F10>> );
+static_assert( is_same_v<list<B>, callable_arg_types_t<F11>> );
 static_assert(
-    is_same_v<type_list<B, C>, callable_arg_types_t<F4>> );
-static_assert(
-    is_same_v<type_list<B>, callable_arg_types_t<F5>> );
-static_assert(
-    is_same_v<type_list<B, C>, callable_arg_types_t<F6>> );
-static_assert(
-    is_same_v<type_list<B>, callable_arg_types_t<F7>> );
-static_assert(
-    is_same_v<type_list<C const&>, callable_arg_types_t<F8>> );
-static_assert(
-    is_same_v<type_list<mp::Auto>, callable_arg_types_t<F9>> );
-static_assert(
-    is_same_v<type_list<mp::Auto>, callable_arg_types_t<F10>> );
-static_assert(
-    is_same_v<type_list<B>, callable_arg_types_t<F11>> );
-static_assert(
-    is_same_v<type_list<A*>,
-              callable_arg_types_t<decltype( F13 )>> );
+    is_same_v<list<A*>, callable_arg_types_t<decltype( F13 )>> );
 
 // Abominable types.
 static_assert(
@@ -346,60 +336,56 @@ static_assert(
 } // namespace callable_traits_test
 
 /****************************************************************
-** Make function type from type_list of args.
+** Make function type from list of args.
 *****************************************************************/
 static_assert(
-    is_same_v<function_type_from_typelist_t<void, type_list<>>,
+    is_same_v<function_type_from_typelist_t<void, list<>>,
               void()> );
 static_assert(
-    is_same_v<function_type_from_typelist_t<int, type_list<>>,
+    is_same_v<function_type_from_typelist_t<int, list<>>,
               int()> );
 static_assert(
+    is_same_v<function_type_from_typelist_t<void, list<char>>,
+              void( char )> );
+static_assert(
     is_same_v<
-        function_type_from_typelist_t<void, type_list<char>>,
-        void( char )> );
-static_assert( is_same_v<function_type_from_typelist_t<
-                             void, type_list<int, float>>,
-                         void( int, float )> );
-static_assert( is_same_v<function_type_from_typelist_t<
-                             double, type_list<int const&>>,
-                         double( int const& )> );
+        function_type_from_typelist_t<void, list<int, float>>,
+        void( int, float )> );
+static_assert(
+    is_same_v<
+        function_type_from_typelist_t<double, list<int const&>>,
+        double( int const& )> );
 
 /****************************************************************
 ** List contains element
 *****************************************************************/
-static_assert( list_contains_v<type_list<>, int> == false );
-static_assert( list_contains_v<type_list<void>, int> == false );
-static_assert( list_contains_v<type_list<int>, int> == true );
-static_assert( list_contains_v<type_list<char, int>, int> ==
+static_assert( list_contains_v<list<>, int> == false );
+static_assert( list_contains_v<list<void>, int> == false );
+static_assert( list_contains_v<list<int>, int> == true );
+static_assert( list_contains_v<list<char, int>, int> == true );
+static_assert( list_contains_v<list<char, char>, int> == false );
+static_assert( list_contains_v<list<char, char, int>, int> ==
                true );
-static_assert( list_contains_v<type_list<char, char>, int> ==
+static_assert( list_contains_v<list<char, char, void>, int> ==
                false );
-static_assert(
-    list_contains_v<type_list<char, char, int>, int> == true );
-static_assert(
-    list_contains_v<type_list<char, char, void>, int> == false );
 
 /****************************************************************
 ** tail
 *****************************************************************/
-static_assert( is_same_v<tail_t<type_list<int>>, type_list<>> );
+static_assert( is_same_v<tail_t<list<int>>, list<>> );
+static_assert( is_same_v<tail_t<list<char, char>>, list<char>> );
 static_assert(
-    is_same_v<tail_t<type_list<char, char>>, type_list<char>> );
-static_assert(
-    is_same_v<
-        tail_t<type_list<type_list<int>, char, int, char, int>>,
-        type_list<char, int, char, int>> );
+    is_same_v<tail_t<list<list<int>, char, int, char, int>>,
+              list<char, int, char, int>> );
 
 /****************************************************************
 ** head
 *****************************************************************/
-static_assert( is_same_v<head_t<type_list<int>>, int> );
-static_assert( is_same_v<head_t<type_list<char, char>>, char> );
+static_assert( is_same_v<head_t<list<int>>, int> );
+static_assert( is_same_v<head_t<list<char, char>>, char> );
 static_assert(
-    is_same_v<
-        head_t<type_list<type_list<int>, char, int, char, int>>,
-        type_list<int>> );
+    is_same_v<head_t<list<list<int>, char, int, char, int>>,
+              list<int>> );
 
 /****************************************************************
 ** select_last/last
@@ -410,22 +396,20 @@ static_assert( is_same_v<select_last_t<std::string, char, int,
                                        char, double>,
                          double> );
 
-static_assert( is_same_v<last_t<type_list<int>>, int> );
-static_assert( is_same_v<last_t<type_list<char, char>>, char> );
+static_assert( is_same_v<last_t<list<int>>, int> );
+static_assert( is_same_v<last_t<list<char, char>>, char> );
 static_assert(
-    is_same_v<
-        last_t<type_list<std::string, char, int, char, double>>,
-        double> );
+    is_same_v<last_t<list<std::string, char, int, char, double>>,
+              double> );
 
 /****************************************************************
-** type_list_size
+** list_size
 *****************************************************************/
-static_assert( type_list_size_v<type_list<>> == 0 );
-static_assert( type_list_size_v<type_list<int>> == 1 );
-static_assert( type_list_size_v<type_list<int, char>> == 2 );
-static_assert(
-    type_list_size_v<type_list<int, char, int, char, int>> ==
-    5 );
+static_assert( list_size_v<list<>> == 0 );
+static_assert( list_size_v<list<int>> == 1 );
+static_assert( list_size_v<list<int, char>> == 2 );
+static_assert( list_size_v<list<int, char, int, char, int>> ==
+               5 );
 
 /****************************************************************
 ** and

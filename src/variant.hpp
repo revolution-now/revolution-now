@@ -108,7 +108,7 @@ auto apply_to_alternatives_with_base(
     base::variant<Args...> const& v, DefT&& def, Func&& f ) {
   using Ret      = mp::callable_ret_type_t<Func>;
   using ArgsList = mp::callable_arg_types_t<Func>; // type_list
-  static_assert( mp::type_list_size_v<ArgsList> == 1 );
+  static_assert( mp::list_size_v<ArgsList> == 1 );
   using Base = std::decay_t<mp::head_t<ArgsList>>;
   constexpr bool at_least_one = mp::any_v<
       std::is_base_of_v<Base, std::remove_cvref_t<Args>>...>;
@@ -136,7 +136,7 @@ void apply_to_alternatives_with_base( base::variant<Args...>& v,
   using Ret = mp::callable_ret_type_t<Func>;
   static_assert( std::is_same_v<Ret, void> );
   using ArgsList = mp::callable_arg_types_t<Func>; // type_list
-  static_assert( mp::type_list_size_v<ArgsList> == 1 );
+  static_assert( mp::list_size_v<ArgsList> == 1 );
   using Base = std::decay_t<mp::head_t<ArgsList>>;
   constexpr bool at_least_one = mp::any_v<
       std::is_base_of_v<Base, std::remove_cvref_t<Args>>...>;
@@ -224,7 +224,7 @@ namespace detail {
 template<typename Func, typename Alternatives>
 inline constexpr bool overload_is_alternative_or_auto_v =
     std::is_same_v<mp::callable_arg_types_t<Func>,
-                   mp::type_list<mp::Auto>>
+                   mp::list<mp::Auto>>
         ? true
         : mp::list_contains_v<
               Alternatives,
@@ -235,12 +235,11 @@ template<typename...>
 struct visit_checks;
 
 template<typename... VarArgs, typename... Funcs>
-struct visit_checks<mp::type_list<VarArgs...>,
-                    mp::type_list<Funcs...>> {
+struct visit_checks<mp::list<VarArgs...>, mp::list<Funcs...>> {
   consteval static void go() {
     constexpr bool all_overloads_are_variants =
         mp::and_v<detail::overload_is_alternative_or_auto_v<
-            Funcs, mp::type_list<VarArgs...>>...>;
+            Funcs, mp::list<VarArgs...>>...>;
     static_assert( all_overloads_are_variants,
                    "One of the overloads takes an argument of a "
                    "type that is not in the variant." );
@@ -299,8 +298,8 @@ struct visit_checks<mp::type_list<VarArgs...>,
 template<typename... VarArgs, typename... Funcs>
 decltype( auto ) overload_visit(
     base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
-  detail::visit_checks<mp::type_list<VarArgs...>,
-                       mp::type_list<Funcs...>>::go();
+  detail::visit_checks<mp::list<VarArgs...>,
+                       mp::list<Funcs...>>::go();
   return std::visit( overload{ std::forward<Funcs>( funcs )... },
                      v );
 }
@@ -308,8 +307,8 @@ decltype( auto ) overload_visit(
 template<typename... VarArgs, typename... Funcs>
 decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
-  detail::visit_checks<mp::type_list<VarArgs...>,
-                       mp::type_list<Funcs...>>::go();
+  detail::visit_checks<mp::list<VarArgs...>,
+                       mp::list<Funcs...>>::go();
   return std::visit( overload{ std::forward<Funcs>( funcs )... },
                      v );
 }
@@ -318,8 +317,8 @@ decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
 template<typename Ret, typename... VarArgs, typename... Funcs>
 decltype( auto ) overload_visit(
     base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
-  detail::visit_checks<mp::type_list<VarArgs...>,
-                       mp::type_list<Funcs...>>::go();
+  detail::visit_checks<mp::list<VarArgs...>,
+                       mp::list<Funcs...>>::go();
   return std::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }
@@ -328,8 +327,8 @@ decltype( auto ) overload_visit(
 template<typename Ret, typename... VarArgs, typename... Funcs>
 decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
-  detail::visit_checks<mp::type_list<VarArgs...>,
-                       mp::type_list<Funcs...>>::go();
+  detail::visit_checks<mp::list<VarArgs...>,
+                       mp::list<Funcs...>>::go();
   return std::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }

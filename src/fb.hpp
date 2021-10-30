@@ -274,7 +274,7 @@ constexpr auto validate_variant_active_index() {
         "fields, one the 'active_index' and then one other." );
   }
   static_assert(
-      mp::type_list_size_v<fb_type_list> ==
+      mp::list_size_v<fb_type_list> ==
           std::variant_size_v<Variant>,
       "There is a mismatch between the number of fields in the "
       "variant and the flatbuffers table." );
@@ -555,9 +555,8 @@ using serialize_return_container_t =
 
 template<typename... FBTypes, typename... VarTypes>
 auto variant_serialize_return_containers_tuple(
-    mp::type_list<FBTypes...> const&,
-    mp::type_list<VarTypes...> const& )
-    -> mp::type_list<
+    mp::list<FBTypes...> const&, mp::list<VarTypes...> const& )
+    -> mp::list<
         serialize_return_container_t<FBTypes, VarTypes>...>;
 
 template<bool HasActiveIndex, typename Hint,
@@ -568,15 +567,13 @@ auto variant_serialize_return_container_tuple() {
         decltype( variant_serialize_return_containers_tuple(
             std::declval<
                 mp::tail_t<fb_creation_tuple_t<Hint>> const&>(),
-            std::declval<
-                mp::type_list<VarTypes...> const&>() ) );
+            std::declval<mp::list<VarTypes...> const&>() ) );
     return static_cast<ret_t*>( nullptr );
   } else {
     using ret_t =
         decltype( variant_serialize_return_containers_tuple(
             std::declval<fb_creation_tuple_t<Hint> const&>(),
-            std::declval<
-                mp::type_list<VarTypes...> const&>() ) );
+            std::declval<mp::list<VarTypes...> const&>() ) );
     return static_cast<ret_t*>( nullptr );
   }
 }
