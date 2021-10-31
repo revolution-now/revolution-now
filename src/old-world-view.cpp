@@ -176,8 +176,7 @@ auto range_of_rects( RectGridProxyIteratorHelper const&
                          rect_proxy ATTR_LIFETIMEBOUND ) {
   return rl::all( rect_proxy )
       .map( [&rect_proxy]( Coord coord ) {
-        return Rect::from(
-            coord, Delta{ 1_w, 1_h } * rect_proxy.scale() );
+        return Rect::from( coord, rect_proxy.delta() );
       } );
 }
 
@@ -206,6 +205,8 @@ class MarketCommodities {
 
   // Commodities will be 24x24 + 8 pixels for text.
   static constexpr auto sprite_scale = Scale{ 32 };
+  static constexpr auto sprite_delta =
+      Delta{ 1_w, 1_h } * sprite_scale;
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_scale.sx;
@@ -227,7 +228,7 @@ public:
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds     = bounds();
-    auto grid    = bds.to_grid_noalign( sprite_scale );
+    auto grid    = bds.to_grid_noalign( sprite_delta );
     auto comm_it = enum_traits<e_commodity>::values.begin();
     auto label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
@@ -312,7 +313,9 @@ class ActiveCargoBox {
 
 public:
   // Commodities will be 24x24.
-  static constexpr auto  box_scale   = Scale{ 32 };
+  static constexpr auto box_scale = Scale{ 32 };
+  static constexpr auto box_delta =
+      Delta{ 1_w, 1_h } * box_scale;
   static constexpr Delta size_pixels = size_blocks * box_scale;
 
   Rect bounds() const {
@@ -321,7 +324,7 @@ public:
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( box_scale );
+    auto grid = bds.to_grid_noalign( box_delta );
     for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
@@ -721,6 +724,8 @@ NOTHROW_MOVE( Exit );
 
 class Dock {
   static constexpr Scale dock_block_pixels{ 24 };
+  static constexpr Delta dock_block_pixels_delta =
+      Delta{ 1_w, 1_h } * dock_block_pixels;
 
 public:
   Rect bounds() const {
@@ -731,7 +736,7 @@ public:
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( dock_block_pixels );
+    auto grid = bds.to_grid_noalign( dock_block_pixels_delta );
     for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
@@ -1026,7 +1031,7 @@ public:
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( ActiveCargoBox::box_scale );
+    auto grid = bds.to_grid_noalign( ActiveCargoBox::box_delta );
     if( maybe_active_unit_ ) {
       auto&       unit = unit_from_id( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();

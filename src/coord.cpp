@@ -155,8 +155,8 @@ maybe<int> Rect::rasterize( Coord coord ) {
 }
 
 RectGridProxyIteratorHelper Rect::to_grid_noalign(
-    Scale scale ) const& {
-  return RectGridProxyIteratorHelper( *this, scale );
+    Delta delta ) const& {
+  return RectGridProxyIteratorHelper( *this, delta );
 }
 
 int RectGridProxyIteratorHelper::const_iterator::operator-(

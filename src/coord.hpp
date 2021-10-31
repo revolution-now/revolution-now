@@ -369,13 +369,13 @@ struct ND Rect {
   int area() const { return delta().area(); }
 
   // These will divide the inside of the rect into subrects of
-  // the given scale and will return an object which, when iter-
+  // the given delta and will return an object which, when iter-
   // ated over, will yield a series of Coord's representing the
   // upper-left corners of each of those sub rects.
   RectGridProxyIteratorHelper to_grid_noalign(
-      Scale scale ) const&;
+      Delta delta ) const&;
   RectGridProxyIteratorHelper to_grid_noalign(
-      Scale scale ) const&& = delete;
+      Delta delta ) const&& = delete;
 
   // This iterator will iterate over all of the points in the
   // rect in a well-defined order: top to bottom, left to right.
@@ -454,17 +454,17 @@ static_assert( std::input_iterator<Rect::const_iterator> );
 // certain size.
 class RectGridProxyIteratorHelper {
   Rect const& rect;
-  Scale       chunk_size;
+  Delta       chunk_size;
 
 public:
   RectGridProxyIteratorHelper( Rect&& rect_,
-                               Scale  chunk_size_ ) = delete;
+                               Delta  chunk_size_ ) = delete;
 
   RectGridProxyIteratorHelper( Rect const& rect_,
-                               Scale       chunk_size_ )
+                               Delta       chunk_size_ )
     : rect( rect_ ), chunk_size( chunk_size_ ) {}
 
-  Scale scale() const { return chunk_size; }
+  Delta delta() const { return chunk_size; }
 
   // This iterator will iterate through the points within the
   // rect in jumps given by chunk_size in a well-defined order:
@@ -483,10 +483,10 @@ public:
       return it;
     }
     const_iterator& operator++() {
-      it.x += 1_w * rect_proxy->chunk_size.sx;
+      it.x += rect_proxy->chunk_size.w;
       if( it.x >= rect_proxy->rect.right_edge() ) {
         it.x = rect_proxy->rect.left_edge();
-        it.y += 1_h * rect_proxy->chunk_size.sy;
+        it.y += rect_proxy->chunk_size.h;
         // If we've finished iterating then put the coordinate in
         // a well defined position (lower left corner, one past
         // the bottom edge).
