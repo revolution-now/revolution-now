@@ -69,18 +69,22 @@ GLuint load_texture( fs::path const& p ) {
 struct Vertex {
   gl::vec2 pos;
   gl::vec2 tx_pos;
+  gl::vec2 center;
 
   static consteval auto attributes() {
     return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, pos ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, tx_pos ) };
+                  VERTEX_ATTRIB_HOLDER( Vertex, tx_pos ),
+                  VERTEX_ATTRIB_HOLDER( Vertex, center ) };
   }
 };
 
+using ProgramAttributes = mp::list<gl::vec2, gl::vec2, gl::vec2>;
+
 struct OpenGLObjects {
-  gl::Program program;
-  GLuint      screen_size_location;
-  GLuint      tick_location;
-  GLuint      tx_location;
+  gl::Program<ProgramAttributes> program;
+  GLuint                         screen_size_location;
+  GLuint                         tick_location;
+  GLuint                         tx_location;
   // The order of these matters.
   gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
   GLuint                                    opengl_texture;
@@ -88,7 +92,8 @@ struct OpenGLObjects {
 
 int upload_sprites_buffer( OpenGLObjects* gl_objects,
                            Delta const&   screen_delta ) {
-  int scale = kSpriteScale;
+  Scale sprite_scale = Scale{ kSpriteScale };
+  Delta sprite_delta = Delta{ 1_w, 1_h } * sprite_scale;
 
   float sheet_w = 256.0;
   float sheet_h = 192.0;
@@ -104,24 +109,30 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
   // a large buffer is apparently expensive.
   static vector<Vertex> s_vertices = [&] {
     vector<Vertex> res;
-    int num_sprites = ( screen_delta.w._ + scale ) / scale *
-                      ( screen_delta.h._ + scale ) / scale;
+    int            num_sprites =
+        ( screen_delta.w._ + kSpriteScale ) / kSpriteScale *
+        ( screen_delta.h._ + kSpriteScale ) / kSpriteScale;
     int num_vertices = num_sprites * 6;
     res.resize( num_vertices );
 
     auto rect = Rect::from( {}, screen_delta );
     int  i    = 0;
-    W    w{ scale };
-    H    h{ scale };
-    for( auto coord : rect.to_grid_noalign( Scale{ scale } ) ) {
-      auto add_vertex = [&]( Coord const& c, float tx_x,
+    W    w    = sprite_delta.w;
+    H    h    = sprite_delta.h;
+    for( auto coord : rect.to_grid_noalign( sprite_delta ) ) {
+      Rect  sprite     = Rect::from( coord, sprite_delta );
+      Coord center     = sprite.center();
+      auto  add_vertex = [&]( Coord const& c, float tx_x,
                              float tx_y ) {
         ++num_rows;
         res[i++] = {
             // Coords
             { .x = float( c.x._ ), .y = float( c.y._ ) },
             // Texture coords
-            { .x = tx_x, .y = tx_y } };
+            { .x = tx_x, .y = tx_y },
+            // Sprite Center
+            { .x = float( center.x._ ),
+              .y = float( center.y._ ) } };
       };
 
       add_vertex( coord, tx_ox, tx_oy );
@@ -165,8 +176,8 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK( frag_shader,
                 gl::Shader::create( gl::e_shader_type::fragment,
                                     fragment_shader_source ) );
-  UNWRAP_CHECK(
-      pgrm, gl::Program::create( vert_shader, frag_shader ) );
+  UNWRAP_CHECK( pgrm, gl::Program<ProgramAttributes>::create(
+                          vert_shader, frag_shader ) );
 
   GLuint screen_size_location = GL_CHECK(
       glGetUniformLocation( pgrm.id(), "screen_size" ) );

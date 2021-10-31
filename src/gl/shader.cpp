@@ -66,8 +66,8 @@ base::expect<Shader, std::string> Shader::create(
   return Shader( id );
 }
 
-Shader::attacher::attacher( Program const& pgrm,
-                            Shader const&  shader )
+Shader::attacher::attacher( ProgramNonTyped const& pgrm,
+                            Shader const&          shader )
   : pgrm_( pgrm ), shader_( shader ) {
   GL_CHECK( glAttachShader( pgrm_.id(), shader_.id() ) );
 }
@@ -83,17 +83,18 @@ void Shader::free_resource() {
 }
 
 /****************************************************************
-** Shader Program
+** ProgramNonTyped
 *****************************************************************/
-Program::Program( ObjId id )
-  : base::zero<Program, ObjId>( id ) {}
+ProgramNonTyped::ProgramNonTyped( ObjId id )
+  : base::zero<ProgramNonTyped, ObjId>( id ) {}
 
-base::expect<Program, std::string> Program::create(
-    Shader const& vertex, Shader const& fragment ) {
-  Program pgrm( GL_CHECK( glCreateProgram() ) );
+base::expect<ProgramNonTyped, std::string>
+ProgramNonTyped::create( Shader const& vertex,
+                         Shader const& fragment ) {
+  ProgramNonTyped pgrm( GL_CHECK( glCreateProgram() ) );
 
   // Put this in a block so that se can detach the shaders before
-  // moving out of the program object to return it.
+  // moving out of the ProgramNonTyped object to return it.
   {
     auto vert_attacher = vertex.attach( pgrm );
     auto frag_attacher = fragment.attach( pgrm );
@@ -108,8 +109,8 @@ base::expect<Program, std::string> Program::create(
     if( !success ) {
       GL_CHECK( glGetProgramInfoLog( pgrm.id(), kErrorLength,
                                      NULL, errors ) );
-      return fmt::format( "shader program linking failed: {}",
-                          errors );
+      return fmt::format(
+          "shader ProgramNonTyped linking failed: {}", errors );
     }
 
     GL_CHECK( glValidateProgram( pgrm.id() ) );
@@ -123,23 +124,26 @@ base::expect<Program, std::string> Program::create(
     string_view info_log( errors, out_size );
     if( validation_successful != GL_TRUE )
       return fmt::format(
-          "shader program failed validation; info log: {}",
+          "shader ProgramNonTyped failed validation; info log: "
+          "{}",
           info_log );
   }
 
   return pgrm;
 }
 
-void Program::use() const { GL_CHECK( glUseProgram( id() ) ); }
+void ProgramNonTyped::use() const {
+  GL_CHECK( glUseProgram( id() ) );
+}
 
-void Program::free_resource() {
+void ProgramNonTyped::free_resource() {
   ObjId pgrm_id = resource();
   DCHECK( pgrm_id != 0 );
   GL_CHECK( glDeleteProgram( pgrm_id ) );
 }
 
-void Program::run( VertexArrayNonTyped const& vert_array,
-                   int                        num_vertices ) {
+void ProgramNonTyped::run( VertexArrayNonTyped const& vert_array,
+                           int num_vertices ) {
   DCHECK( num_vertices >= 0 );
   use();
   auto binder = vert_array.bind();

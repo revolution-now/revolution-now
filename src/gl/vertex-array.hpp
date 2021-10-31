@@ -77,6 +77,18 @@ struct VertexField {
   size_t const offset_bytes = 0;
 };
 
+template<typename...>
+struct VertexFieldTypeList;
+
+template<typename... T>
+struct VertexFieldTypeList<mp::list<T...>> {
+  using type = mp::list<typename T::field_type...>;
+};
+
+template<typename... T>
+using VertexFieldTypeList_t =
+    typename VertexFieldTypeList<T...>::type;
+
 /****************************************************************
 ** VertexArray
 *****************************************************************/
@@ -86,6 +98,12 @@ struct VertexArray;
 template<typename... VertexTypes>
 struct VertexArray<VertexBuffer<VertexTypes>...>
   : VertexArrayNonTyped {
+  // This will be an mp::list of all of the attribute types, in
+  // order, from all of the buffers concatenated and flattened.
+  using attrib_type_list = VertexFieldTypeList_t<
+      mp::to_list_t<decltype( std::tuple_cat(
+          VertexTypes::attributes()... ) )>>;
+
   VertexArray() {
     register_attribs_for_all_buffers(
         std::index_sequence_for<VertexTypes...>() );

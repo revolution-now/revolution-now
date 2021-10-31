@@ -22,7 +22,7 @@
 
 namespace gl {
 
-struct Program;
+struct ProgramNonTyped;
 
 /****************************************************************
 ** Shader Type
@@ -37,22 +37,23 @@ void to_str( e_shader_type type, std::string& out );
 struct Shader : base::zero<Shader, ObjId> {
 private:
   struct [[nodiscard]] attacher {
-    attacher( Program const& pgrm, Shader const& shader );
+    attacher( ProgramNonTyped const& pgrm,
+              Shader const&          shader );
 
     ~attacher();
 
     NO_COPY_NO_MOVE( attacher );
 
   private:
-    Program const& pgrm_;
-    Shader const&  shader_;
+    ProgramNonTyped const& pgrm_;
+    Shader const&          shader_;
   };
 
 public:
   static base::expect<Shader, std::string> create(
       e_shader_type type, std::string const& code );
 
-  attacher attach( Program const& pgrm ) const {
+  attacher attach( ProgramNonTyped const& pgrm ) const {
     return attacher( pgrm, *this );
   }
 
@@ -69,10 +70,10 @@ private:
 };
 
 /****************************************************************
-** Shader Program
+** ProgramNonTyped
 *****************************************************************/
-struct Program : base::zero<Program, ObjId> {
-  static base::expect<Program, std::string> create(
+struct ProgramNonTyped : base::zero<ProgramNonTyped, ObjId> {
+  static base::expect<ProgramNonTyped, std::string> create(
       Shader const& vertex, Shader const& fragment );
 
   ObjId id() const { return resource(); }
@@ -82,8 +83,43 @@ struct Program : base::zero<Program, ObjId> {
   void run( VertexArrayNonTyped const& vert_array,
             int                        num_vertices );
 
+protected:
+  ProgramNonTyped( ObjId id );
+
 private:
-  Program( ObjId id );
+  // Implement base::zero.
+  friend base::zero<ProgramNonTyped, ObjId>;
+
+  void free_resource();
+};
+
+/****************************************************************
+** Program
+*****************************************************************/
+template<typename InputAttribTypeList>
+struct Program : ProgramNonTyped {
+  static base::expect<Program, std::string> create(
+      Shader const& vertex, Shader const& fragment ) {
+    UNWRAP_RETURN( pgrm_non_typed,
+                   ProgramNonTyped::create( vertex, fragment ) );
+    // TODO: check attributes.
+    return Program( std::move( pgrm_non_typed ) );
+  }
+
+  template<typename... VertexBuffers>
+  void run( VertexArray<VertexBuffers...> const& vert_array,
+            int num_vertices ) requires
+      std::is_same_v<InputAttribTypeList,
+                     typename VertexArray<
+                         VertexBuffers...>::attrib_type_list> {
+    this->ProgramNonTyped::run( vert_array, num_vertices );
+  }
+
+  /* clang-format off */
+private:
+  Program( ProgramNonTyped pgrm )
+    : ProgramNonTyped( std::move( pgrm ) ) {}
+  /* clang-format on */
 
 private:
   // Implement base::zero.
