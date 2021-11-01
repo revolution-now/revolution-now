@@ -13,6 +13,9 @@
 // gl
 #include "error.hpp"
 
+// base
+#include "base/error.hpp"
+
 // Glad
 #include "glad/glad.h"
 
@@ -143,11 +146,45 @@ void ProgramNonTyped::free_resource() {
 }
 
 void ProgramNonTyped::run( VertexArrayNonTyped const& vert_array,
-                           int num_vertices ) {
+                           int num_vertices ) const {
   DCHECK( num_vertices >= 0 );
   use();
   auto binder = vert_array.bind();
   GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, num_vertices ) );
+}
+
+int ProgramNonTyped::num_input_attribs() const {
+  int num_active;
+  GL_CHECK( glGetProgramiv( id(), GL_ACTIVE_ATTRIBUTES,
+                            &num_active ) );
+  return num_active;
+}
+
+base::expect<e_attrib_compound_type, string>
+ProgramNonTyped::attrib_compound_type( int idx ) const {
+  GLint  size;
+  GLenum type;
+  // Need this in case it wants to write a null terminator to the
+  // name against our wishes.
+  constexpr size_t kBufSize = 256;
+  char             c_name[kBufSize];
+  GLsizei          name_length;
+  GL_CHECK( glGetActiveAttrib(
+      /*program=*/id(),
+      /*index=*/idx,
+      /*bufsize=*/kBufSize,
+      /*length=*/&name_length, // don't write name
+      /*size=*/&size,
+      /*type=*/&type,
+      /*name=*/c_name ) );
+  GLint location =
+      GL_CHECK( glGetAttribLocation( id(), c_name ) );
+  if( location != idx )
+    return fmt::format(
+        "shader program vertex attribute at index {} (\"{}\") "
+        "does not have matching location index, instead has {}.",
+        idx, c_name, location );
+  return from_GL( type );
 }
 
 } // namespace gl

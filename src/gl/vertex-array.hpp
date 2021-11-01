@@ -39,8 +39,9 @@ protected:
   // Vertex Array and Vertex Buffer must be bound before calling
   // this.
   void register_attrib( int idx, size_t attrib_field_count,
-                        e_attrib_type type, bool normalized,
-                        size_t stride, size_t offset ) const;
+                        e_attrib_type component_type,
+                        bool normalized, size_t stride,
+                        size_t offset ) const;
 
 private:
   VertexArrayNonTyped( ObjId vbo_id );
@@ -139,22 +140,21 @@ private:
     static constexpr size_t kNumAttribs =
         std::tuple_size_v<decltype( attribs )>;
 
-    mp::for_index_seq<kNumAttribs>(
-        [&, this]<size_t AttribIdx>(
-            std::integral_constant<size_t, AttribIdx> ) {
-          auto const& attrib = std::get<AttribIdx>( attribs );
-          using AttribType   = typename std::remove_cvref_t<
-              decltype( std::get<AttribIdx>(
-                  attribs ) )>::field_type;
-          this->register_attrib(
-              attrib_idx_start + AttribIdx,
-              /*attrib_field_count=*/
-              attrib_traits<AttribType>::count,
-              /*type=*/attrib_traits<AttribType>::type,
-              /*normalized=*/false,
-              /*stride=*/sizeof( VertexType ),
-              /*offset=*/attrib.offset_bytes );
-        } );
+    FOR_CONSTEXPR_IDX( AttribIdx, kNumAttribs ) {
+      auto const& attrib = std::get<AttribIdx>( attribs );
+      using AttribType   = typename std::remove_cvref_t<
+          decltype( std::get<AttribIdx>(
+              attribs ) )>::field_type;
+      this->register_attrib(
+          attrib_idx_start + AttribIdx,
+          /*attrib_field_count=*/
+          attrib_traits<AttribType>::count,
+          /*component_type=*/
+          attrib_traits<AttribType>::component_type,
+          /*normalized=*/false,
+          /*stride=*/sizeof( VertexType ),
+          /*offset=*/attrib.offset_bytes );
+    };
     return kNumAttribs;
   }
 
