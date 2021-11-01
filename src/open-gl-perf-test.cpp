@@ -151,12 +151,14 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
     return monostate{};
   }();
 
+#if 1 // to disable re-uploading.
   gl_objects->vertex_array.buffer<0>().upload_data_modify(
       s_vertices, 0 );
 
   for( int i = 0; i < 10; ++i )
     gl_objects->vertex_array.buffer<0>().upload_data_modify(
         span<Vertex const>{ s_vertices }.subspan( i, 1 ), i );
+#endif
 
   return s_vertices.size();
 }

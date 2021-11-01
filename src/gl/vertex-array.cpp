@@ -67,6 +67,14 @@ void VertexArrayNonTyped::register_attrib(
             "attributes.",
             kMaxAttributesAllowed );
   GLboolean gl_normalized = normalized ? GL_TRUE : GL_FALSE;
+#if 1
+  fmt::print(
+      "registering vertex attribute: {{idx={}, "
+      "attrib_field_count={}, component_type={}, normalized={}, "
+      "stride={}, offset={}}}\n",
+      idx, attrib_field_count, to_GL_str( component_type ),
+      normalized, stride, offset );
+#endif
   GL_CHECK( glVertexAttribPointer(
       idx, attrib_field_count, to_GL( component_type ),
       gl_normalized, stride, (void*)offset ) );

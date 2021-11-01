@@ -114,6 +114,7 @@ struct Program : ProgramNonTyped {
     UNWRAP_RETURN( pgrm_non_typed,
                    ProgramNonTyped::create( vertex, fragment ) );
     auto pgrm = Program( std::move( pgrm_non_typed ) );
+#if 1 // to disable input vertex attribute type checking.
     static constexpr size_t kNumAttribs =
         mp::list_size_v<InputAttribTypeList>;
     if( pgrm.num_input_attribs() != kNumAttribs )
@@ -145,6 +146,7 @@ struct Program : ProgramNonTyped {
       return false; // keep iterating.
     };
     if( !err.empty() ) return err;
+#endif
     return pgrm;
   }
 
