@@ -19,18 +19,15 @@ uniform vec2 tick;
 
 out vec2 tx_coord;
 
-vec2 rotate( vec2 point, float degree, vec2 pivot )
+mat2 rotation_matrix( float rad_angle ) {
+  return mat2( cos( rad_angle ), -sin( rad_angle ),
+               sin( rad_angle ),  cos( rad_angle ) );
+}
+
+vec2 rotate( vec2 point, float degree, vec2 center )
 {
   float rad_angle = -radians( degree ); // "-" for clockwise
-  float x = point.x;
-  float y = point.y;
-
-  float rX = pivot.x + (x - pivot.x) * cos( rad_angle )
-                     - (y - pivot.y) * sin( rad_angle );
-  float rY = pivot.y + (x - pivot.x) * sin( rad_angle )
-                     + (y - pivot.y) * cos( rad_angle );
-
-  return vec2( rX, rY );
+  return center + rotation_matrix( rad_angle )*(point - center);
 }
 
 // Convert a coordinate in screen coordinates (with 0,0 at the
