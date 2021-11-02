@@ -15,7 +15,7 @@ layout (location = 1) in vec2 in_tx_coord;
 layout (location = 2) in vec2 in_center;
 
 uniform vec2 screen_size;
-uniform vec2 tick;
+uniform int tick;
 
 out vec2 tx_coord;
 
@@ -42,8 +42,8 @@ vec3 to_ndc( in vec3 screen_pos ) {
 
 void main() {
   vec2 new_pos = in_pos;
-  new_pos = rotate( new_pos, tick.x/45.0, in_center );
-  new_pos = new_pos + floor( 100*sin( tick.x/2000 ) );
+  new_pos = rotate( new_pos, tick/45.0, in_center );
+  new_pos = new_pos + floor( 100*sin( tick/2000.0 ) );
   gl_Position = vec4( to_ndc( vec3( new_pos, 1.0 ) ), 1.0 );
   tx_coord = in_tx_coord;
 }

@@ -12,6 +12,7 @@
 
 // gl
 #include "types.hpp"
+#include "uniform.hpp"
 #include "vertex-array.hpp"
 
 // base
@@ -107,7 +108,7 @@ private:
 /****************************************************************
 ** Program
 *****************************************************************/
-template<typename InputAttribTypeList>
+template<typename InputAttribTypeList, typename ProgramUniforms>
 struct Program : ProgramNonTyped {
   static base::expect<Program, std::string> create(
       Shader const& vertex, Shader const& fragment ) {

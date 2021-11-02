@@ -80,11 +80,20 @@ struct Vertex {
 
 using ProgramAttributes = mp::list<gl::vec2, gl::vec2, gl::vec2>;
 
+struct ProgramUniforms {
+  static constexpr tuple uniforms{
+      gl::UniformSpec<gl::vec2>( "screen_size" ),
+  };
+};
+
+using ProgramType =
+    gl::Program<ProgramAttributes, ProgramUniforms>;
+
 struct OpenGLObjects {
-  gl::Program<ProgramAttributes> program;
-  GLuint                         screen_size_location;
-  GLuint                         tick_location;
-  GLuint                         tx_location;
+  ProgramType         program;
+  gl::UniformNonTyped screen_size_uniform;
+  gl::UniformNonTyped tick_uniform;
+  gl::UniformNonTyped tx_uniform;
   // The order of these matters.
   gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
   GLuint                                    opengl_texture;
@@ -178,26 +187,24 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK( frag_shader,
                 gl::Shader::create( gl::e_shader_type::fragment,
                                     fragment_shader_source ) );
-  UNWRAP_CHECK( pgrm, gl::Program<ProgramAttributes>::create(
-                          vert_shader, frag_shader ) );
+  UNWRAP_CHECK(
+      pgrm, ProgramType::create( vert_shader, frag_shader ) );
 
-  GLuint screen_size_location = GL_CHECK(
-      glGetUniformLocation( pgrm.id(), "screen_size" ) );
-  GLuint tick_location =
-      GL_CHECK( glGetUniformLocation( pgrm.id(), "tick" ) );
-  GLuint tx_location =
-      GL_CHECK( glGetUniformLocation( pgrm.id(), "tx" ) );
+  auto screen_size_uniform =
+      gl::UniformNonTyped( pgrm.id(), "screen_size" );
+  auto tick_uniform = gl::UniformNonTyped( pgrm.id(), "tick" );
+  auto tx_uniform   = gl::UniformNonTyped( pgrm.id(), "tx" );
 
   GLuint opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
 
   return OpenGLObjects{
-      .program              = std::move( pgrm ),
-      .screen_size_location = screen_size_location,
-      .tick_location        = tick_location,
-      .tx_location          = tx_location,
-      .vertex_array         = {},
-      .opengl_texture       = opengl_texture };
+      .program             = std::move( pgrm ),
+      .screen_size_uniform = screen_size_uniform,
+      .tick_uniform        = tick_uniform,
+      .tx_uniform          = tx_uniform,
+      .vertex_array        = {},
+      .opengl_texture      = opengl_texture };
 }
 
 } // namespace
@@ -226,11 +233,10 @@ void render_loop( ::SDL_Window* window ) {
                            gl_objects.opengl_texture ) );
 
   gl_objects.program.use();
-  GL_CHECK( glUniform2f( gl_objects.screen_size_location,
-                         float( screen_delta.w._ ),
-                         float( screen_delta.h._ ) ) );
-  GL_CHECK( glUniform2f( gl_objects.tick_location, 0, 0 ) );
-  GL_CHECK( glUniform1i( gl_objects.tx_location, 0 ) );
+  gl_objects.screen_size_uniform.set( gl::vec2{
+      float( screen_delta.w._ ), float( screen_delta.h._ ) } );
+  gl_objects.tick_uniform.set( 0L );
+  gl_objects.tx_uniform.set( 0L );
 
   int num_vertices =
       upload_sprites_buffer( &gl_objects, screen_delta );
@@ -251,8 +257,7 @@ void render_loop( ::SDL_Window* window ) {
 
     // Set program and uniforms.
     gl_objects.program.use();
-    GL_CHECK( glUniform2f( gl_objects.tick_location, frames,
-                           frames ) );
+    gl_objects.tick_uniform.set( frames );
 
     int num_vertices =
         upload_sprites_buffer( &gl_objects, screen_delta );
