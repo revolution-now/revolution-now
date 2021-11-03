@@ -47,6 +47,8 @@ struct attrib_traits;
 struct vec2 {
   float x;
   float y;
+
+  bool operator==( vec2 const& ) const = default;
 };
 
 template<>
@@ -63,6 +65,8 @@ struct vec3 {
   float x;
   float y;
   float z;
+
+  bool operator==( vec3 const& ) const = default;
 };
 
 template<>

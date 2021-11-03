@@ -22,6 +22,7 @@
 #include "gl/attribs.hpp"
 #include "gl/error.hpp"
 #include "gl/shader.hpp"
+#include "gl/uniform.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 
@@ -83,17 +84,20 @@ using ProgramAttributes = mp::list<gl::vec2, gl::vec2, gl::vec2>;
 struct ProgramUniforms {
   static constexpr tuple uniforms{
       gl::UniformSpec<gl::vec2>( "screen_size" ),
+      gl::UniformSpec<int>( "tick" ),
+      gl::UniformSpec<int>( "tx" ),
   };
 };
 
 using ProgramType =
     gl::Program<ProgramAttributes, ProgramUniforms>;
 
+DECL_UNIFORM_NAME_TAG( ProgramType, screen_size );
+DECL_UNIFORM_NAME_TAG( ProgramType, tick );
+DECL_UNIFORM_NAME_TAG( ProgramType, tx );
+
 struct OpenGLObjects {
-  ProgramType         program;
-  gl::UniformNonTyped screen_size_uniform;
-  gl::UniformNonTyped tick_uniform;
-  gl::UniformNonTyped tx_uniform;
+  ProgramType program;
   // The order of these matters.
   gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
   GLuint                                    opengl_texture;
@@ -190,21 +194,12 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK(
       pgrm, ProgramType::create( vert_shader, frag_shader ) );
 
-  auto screen_size_uniform =
-      gl::UniformNonTyped( pgrm.id(), "screen_size" );
-  auto tick_uniform = gl::UniformNonTyped( pgrm.id(), "tick" );
-  auto tx_uniform   = gl::UniformNonTyped( pgrm.id(), "tx" );
-
   GLuint opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
 
-  return OpenGLObjects{
-      .program             = std::move( pgrm ),
-      .screen_size_uniform = screen_size_uniform,
-      .tick_uniform        = tick_uniform,
-      .tx_uniform          = tx_uniform,
-      .vertex_array        = {},
-      .opengl_texture      = opengl_texture };
+  return OpenGLObjects{ .program        = std::move( pgrm ),
+                        .vertex_array   = {},
+                        .opengl_texture = opengl_texture };
 }
 
 } // namespace
@@ -232,12 +227,11 @@ void render_loop( ::SDL_Window* window ) {
   GL_CHECK( glBindTexture( GL_TEXTURE_2D,
                            gl_objects.opengl_texture ) );
 
-  gl_objects.program.use();
-  gl_objects.screen_size_uniform.set( gl::vec2{
-      float( screen_delta.w._ ), float( screen_delta.h._ ) } );
-  gl_objects.tick_uniform.set( 0L );
-  gl_objects.tx_uniform.set( 0L );
+  gl_objects.program[u_screen_size] = gl::vec2{
+      float( screen_delta.w._ ), float( screen_delta.h._ ) };
+  gl_objects.program[u_tx] = 0;
 
+  gl_objects.program[u_tick] = 0;
   int num_vertices =
       upload_sprites_buffer( &gl_objects, screen_delta );
   gl_objects.program.run( gl_objects.vertex_array,
@@ -255,9 +249,7 @@ void render_loop( ::SDL_Window* window ) {
     GL_CHECK(
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
-    // Set program and uniforms.
-    gl_objects.program.use();
-    gl_objects.tick_uniform.set( frames );
+    gl_objects.program[u_tick] = frames;
 
     int num_vertices =
         upload_sprites_buffer( &gl_objects, screen_delta );

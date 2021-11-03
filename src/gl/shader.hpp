@@ -162,9 +162,90 @@ struct Program : ProgramNonTyped {
 
   /* clang-format off */
 private:
-  Program( ProgramNonTyped pgrm )
-    : ProgramNonTyped( std::move( pgrm ) ) {}
   /* clang-format on */
+
+  template<size_t N>
+  struct CheckedUniform : std::integral_constant<size_t, N> {
+    explicit CheckedUniform() = default;
+  };
+
+  static constexpr size_t kInvalidUniformName = 1234567;
+
+  template<size_t... Idx>
+  constexpr static size_t find_uniform_index_impl(
+      std::string_view what, std::index_sequence<Idx...> ) {
+    size_t res      = kInvalidUniformName;
+    auto&  uniforms = ProgramUniforms::uniforms;
+    ( ( res = ( std::get<Idx>( uniforms ).name == what ) ? Idx
+                                                         : res ),
+      ... );
+    return res;
+  }
+
+  constexpr static size_t find_uniform_index(
+      std::string_view what ) {
+    return find_uniform_index_impl(
+        what, std::make_index_sequence<std::tuple_size_v<
+                  decltype( ProgramUniforms::uniforms )>>() );
+  }
+
+  template<typename U>
+  struct UniformSetterProxy {
+    UniformSetterProxy( U& u ) : u_( u ) {}
+
+    UniformSetterProxy( UniformSetterProxy const& ) = delete;
+    UniformSetterProxy( UniformSetterProxy&& )      = delete;
+
+    void operator=( typename U::type const& val ) {
+      u_.set( val );
+    }
+
+  private:
+    U& u_;
+  };
+
+public:
+  template<typename T>
+  constexpr static auto make_checked_uniform() {
+    return CheckedUniform<find_uniform_index( T::name )>{};
+  }
+
+  /* clang-format off */
+  template<size_t N>
+  requires( N != kInvalidUniformName )
+  auto operator[]( CheckedUniform<N> ) {
+    /* clang-format on */
+    using ProxyT = std::remove_cvref_t<decltype( std::get<N>(
+        uniforms_.values ) )>;
+    return UniformSetterProxy<ProxyT>(
+        std::get<N>( uniforms_.values ) );
+  }
+
+  /* clang-format off */
+private:
+  Program( ProgramNonTyped pgrm )
+    : ProgramNonTyped( std::move( pgrm ) ),
+      uniforms_( id(), ProgramUniforms::uniforms ) {}
+  /* clang-format on */
+
+  using SpecTuple  = decltype( ProgramUniforms::uniforms );
+  using SpecIdxSeq = decltype( std::make_index_sequence<
+                               std::tuple_size_v<SpecTuple>>() );
+
+  template<typename T, typename Sequence>
+  struct UniformArray;
+
+  template<typename... Specs, size_t... Idx>
+  struct UniformArray<std::tuple<Specs...> const,
+                      std::index_sequence<Idx...>> {
+    UniformArray( ObjId                       pgrm_id,
+                  std::tuple<Specs...> const& specs )
+      : values{ { pgrm_id, std::get<Idx>( specs ).name }... } {}
+
+    std::tuple<Uniform<typename Specs::type>...> values;
+  };
+
+  UniformArray<SpecTuple, SpecIdxSeq> uniforms_;
 
 private:
   // Implement base::zero.

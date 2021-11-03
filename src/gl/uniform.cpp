@@ -39,23 +39,23 @@ UniformNonTyped::UniformNonTyped( ObjId       pgrm_id,
 
 void UniformNonTyped::set(
     base::safe::floating<float> val ) const {
+  GL_CHECK( glUseProgram( pgrm_id_ ) );
   GL_CHECK( glUniform1f( location_, val ) );
-}
-
-void UniformNonTyped::set( base::safe::integer<int> val ) const {
-  GL_CHECK( glUniform1i( location_, val ) );
 }
 
 void UniformNonTyped::set(
     base::safe::integer<long> val ) const {
+  GL_CHECK( glUseProgram( pgrm_id_ ) );
   GL_CHECK( glUniform1i( location_, val ) );
 }
 
 void UniformNonTyped::set( base::safe::boolean val ) const {
+  GL_CHECK( glUseProgram( pgrm_id_ ) );
   GL_CHECK( glUniform1i( location_, bool( val ) ? 1 : 0 ) );
 }
 
 void UniformNonTyped::set( vec2 val ) const {
+  GL_CHECK( glUseProgram( pgrm_id_ ) );
   GL_CHECK( glUniform2f( location_, val.x, val.y ) );
 }
 
