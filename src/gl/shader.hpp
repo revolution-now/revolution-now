@@ -91,11 +91,14 @@ protected:
   int num_input_attribs() const;
 
   // Gets the compound type of the attribute at idx. idx is ex-
-  // pected to be < the value returned by num_input_attribs(). It
-  // will also make sure that the location index of the attribute
-  // is the same as the index passed in, otherwise it will return
-  // an error.
-  base::expect<e_attrib_compound_type, std::string>
+  // pected to be < the value returned by num_input_attribs().
+  // Note that this index is not necessarily the same as the lo-
+  // cation as specified in the shader source code. Some drivers
+  // appear to reorder them. So this function will also return
+  // the location.
+  base::expect<
+      std::pair<e_attrib_compound_type, int /*location*/>,
+      std::string>
   attrib_compound_type( int idx ) const;
 
 private:
@@ -123,25 +126,34 @@ struct Program : ProgramNonTyped {
           "shader program expected to have {} input attributes "
           "but has {}.",
           kNumAttribs, pgrm.num_input_attribs() );
+
+    // We need to make one pass over the attributes to fill out
+    // this map first because in some drivers the ordering of the
+    // vertex attributes as queried by glGetActiveAttrib does not
+    // correspond to the location as specified in the shader
+    // source code (some drivers seem to alphabetize them).
+    std::unordered_map<int, e_attrib_compound_type> idx_to_type;
+    for( int i = 0; i < int( kNumAttribs ); ++i ) {
+      UNWRAP_RETURN( info, pgrm.attrib_compound_type( i ) );
+      auto [type, location] = info;
+      idx_to_type[location] = type;
+    };
+
     std::string err;
-    FOR_CONSTEXPR_IDX( AttribIdx, kNumAttribs ) {
+    // Now check that the types match their expected types.
+    FOR_CONSTEXPR_IDX( Location, kNumAttribs ) {
       using AttribType = std::tuple_element_t<
-          AttribIdx, mp::to_tuple_t<InputAttribTypeList>>;
-      base::expect<e_attrib_compound_type, std::string> type =
-          pgrm.attrib_compound_type( AttribIdx );
-      if( !type.has_value() ) {
-        err = type.error();
-        return true; // stop iteration.
-      }
+          Location, mp::to_tuple_t<InputAttribTypeList>>;
+      DCHECK( idx_to_type.contains( Location ) );
       e_attrib_compound_type expected =
           attrib_traits<AttribType>::compound_type;
-      if( *type != expected ) {
+      if( idx_to_type[Location] != expected ) {
         err = fmt::format(
             "shader program input attribute at index {} "
             "(zero-based) expected to have type {} but has type "
             "{}.",
-            AttribIdx, to_GL_str( expected ),
-            to_GL_str( *type ) );
+            Location, to_GL_str( expected ),
+            to_GL_str( idx_to_type[Location] ) );
         return true; // stop iteration.
       }
       return false; // keep iterating.

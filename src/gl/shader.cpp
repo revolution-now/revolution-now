@@ -160,7 +160,8 @@ int ProgramNonTyped::num_input_attribs() const {
   return num_active;
 }
 
-base::expect<e_attrib_compound_type, string>
+base::expect<pair<e_attrib_compound_type, int /*location*/>,
+             string>
 ProgramNonTyped::attrib_compound_type( int idx ) const {
   GLint  size;
   GLenum type;
@@ -179,12 +180,7 @@ ProgramNonTyped::attrib_compound_type( int idx ) const {
       /*name=*/c_name ) );
   GLint location =
       GL_CHECK( glGetAttribLocation( id(), c_name ) );
-  if( location != idx )
-    return fmt::format(
-        "shader program vertex attribute at index {} (\"{}\") "
-        "does not have matching location index, instead has {}.",
-        idx, c_name, location );
-  return from_GL( type );
+  return pair{ from_GL( type ), location };
 }
 
 } // namespace gl
