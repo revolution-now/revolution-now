@@ -164,7 +164,7 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
     return monostate{};
   }();
 
-#if 1 // to disable re-uploading.
+#if 0 // to disable re-uploading.
   gl_objects->vertex_array.buffer<0>().upload_data_modify(
       s_vertices, 0 );
 
@@ -224,18 +224,20 @@ void render_loop( ::SDL_Window* window ) {
   int num_sprites = ( screen_delta.w._ + scale ) / scale *
                     ( screen_delta.h._ + scale ) / scale;
 
+  auto& program    = gl_objects.program;
+  auto& vert_array = gl_objects.vertex_array;
+
   GL_CHECK( glBindTexture( GL_TEXTURE_2D,
                            gl_objects.opengl_texture ) );
 
-  gl_objects.program[u_screen_size] = gl::vec2{
-      float( screen_delta.w._ ), float( screen_delta.h._ ) };
-  gl_objects.program[u_tx] = 0;
+  program[u_screen_size] = gl::vec2{ float( screen_delta.w._ ),
+                                     float( screen_delta.h._ ) };
+  program[u_tx]          = 0;
+  program[u_tick]        = 0;
 
-  gl_objects.program[u_tick] = 0;
   int num_vertices =
       upload_sprites_buffer( &gl_objects, screen_delta );
-  gl_objects.program.run( gl_objects.vertex_array,
-                          num_vertices );
+  program.run( vert_array, num_vertices );
   ::SDL_GL_SwapWindow( window );
 
   auto start_time = chrono::system_clock::now();
@@ -249,12 +251,10 @@ void render_loop( ::SDL_Window* window ) {
     GL_CHECK(
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
-    gl_objects.program[u_tick] = frames;
+    program[u_tick] = frames;
 
-    int num_vertices =
-        upload_sprites_buffer( &gl_objects, screen_delta );
-    gl_objects.program.run( gl_objects.vertex_array,
-                            num_vertices );
+    upload_sprites_buffer( &gl_objects, screen_delta );
+    program.run( vert_array, num_vertices );
     ::SDL_GL_SwapWindow( window );
 
     ++frames;
