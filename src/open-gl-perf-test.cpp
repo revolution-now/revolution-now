@@ -38,7 +38,7 @@ namespace rn {
 
 namespace {
 
-constexpr int kSpriteScale = 8;
+constexpr int kSpriteScale = 128;
 
 GLuint load_texture( fs::path const& p ) {
   auto           img = Surface::load_image( p.string().c_str() );
@@ -70,16 +70,19 @@ GLuint load_texture( fs::path const& p ) {
 struct Vertex {
   gl::vec2 pos;
   gl::vec2 tx_pos;
+  gl::vec3 shading_color;
   gl::vec2 center;
 
   static consteval auto attributes() {
     return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, pos ),
                   VERTEX_ATTRIB_HOLDER( Vertex, tx_pos ),
+                  VERTEX_ATTRIB_HOLDER( Vertex, shading_color ),
                   VERTEX_ATTRIB_HOLDER( Vertex, center ) };
   }
 };
 
-using ProgramAttributes = mp::list<gl::vec2, gl::vec2, gl::vec2>;
+using ProgramAttributes =
+    mp::list<gl::vec2, gl::vec2, gl::vec3, gl::vec2>;
 
 struct ProgramUniforms {
   static constexpr tuple uniforms{
@@ -116,8 +119,6 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
   float tx_dx = 32.0 / sheet_w;
   float tx_dy = 32.0 / sheet_h;
 
-  static size_t num_rows = 0;
-
   // Important: should only allocate this once, since allocating
   // a large buffer is apparently expensive.
   static vector<Vertex> s_vertices = [&] {
@@ -136,24 +137,26 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
       Rect  sprite     = Rect::from( coord, sprite_delta );
       Coord center     = sprite.center();
       auto  add_vertex = [&]( Coord const& c, float tx_x,
-                             float tx_y ) {
-        ++num_rows;
+                             float tx_y, float red ) {
         res[i++] = {
             // Coords
             { .x = float( c.x._ ), .y = float( c.y._ ) },
             // Texture coords
             { .x = tx_x, .y = tx_y },
+            // Shading color
+            { .x = red, .y = 0.0, .z = 0.0 },
             // Sprite Center
             { .x = float( center.x._ ),
               .y = float( center.y._ ) } };
       };
 
-      add_vertex( coord, tx_ox, tx_oy );
-      add_vertex( coord + w, tx_ox + tx_dx, tx_oy );
-      add_vertex( coord + h, tx_ox, tx_oy + tx_dy );
-      add_vertex( coord + w, tx_ox + tx_dx, tx_oy );
-      add_vertex( coord + w + h, tx_ox + tx_dx, tx_oy + tx_dy );
-      add_vertex( coord + h, tx_ox, tx_oy + tx_dy );
+      add_vertex( coord, tx_ox, tx_oy, /*red=*/1.0 );
+      add_vertex( coord + w, tx_ox + tx_dx, tx_oy, /*red=*/0.0 );
+      add_vertex( coord + h, tx_ox, tx_oy + tx_dy, /*red=*/0.0 );
+      add_vertex( coord + w, tx_ox + tx_dx, tx_oy, /*red=*/0.0 );
+      add_vertex( coord + w + h, tx_ox + tx_dx, tx_oy + tx_dy,
+                  /*red=*/0.0 );
+      add_vertex( coord + h, tx_ox, tx_oy + tx_dy, /*red=*/0.0 );
     };
     return res;
   }();
@@ -353,7 +356,7 @@ void open_gl_perf_test() {
   GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
                         win_size.h._ * viewport_scale ) );
 
-  bool wait_for_vsync = false;
+  bool wait_for_vsync = true;
 
   CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
          "setting swap interval is not supported." );
