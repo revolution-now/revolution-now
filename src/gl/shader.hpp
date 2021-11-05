@@ -22,6 +22,9 @@
 #include "base/to-str.hpp"
 #include "base/zero.hpp"
 
+// C++ standard library
+#include <unordered_map>
+
 namespace gl {
 
 struct ProgramNonTyped;
