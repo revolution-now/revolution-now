@@ -58,7 +58,7 @@ struct ct_string {
     return std::string_view( data.data(), kStringLength );
   }
 
-  std::array<char, kStringLength> data;
+  std::array<char, kStringLength> data = {};
 };
 
 } // namespace base
