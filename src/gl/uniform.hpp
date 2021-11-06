@@ -21,14 +21,6 @@
 // C++ standard library
 #include <string_view>
 
-#define DECL_UNIFORM_NAME_TAG( prog_type, shader_name )    \
-  struct shader_name##_##Uniform_Tag {                     \
-    constexpr static std::string_view name = #shader_name; \
-  };                                                       \
-  inline constexpr auto u_##shader_name =                  \
-      prog_type::make_checked_uniform<                     \
-          shader_name##_##Uniform_Tag>();
-
 namespace gl {
 
 /****************************************************************

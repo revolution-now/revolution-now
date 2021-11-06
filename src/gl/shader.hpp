@@ -16,6 +16,7 @@
 #include "vertex-array.hpp"
 
 // base
+#include "base/ct-string.hpp"
 #include "base/expect.hpp"
 #include "base/macros.hpp"
 #include "base/meta.hpp"
@@ -177,14 +178,8 @@ struct Program : ProgramNonTyped {
 
   /* clang-format off */
 private:
-  /* clang-format on */
-
-  template<size_t N>
-  struct CheckedUniform : std::integral_constant<size_t, N> {
-    explicit CheckedUniform() = default;
-  };
-
   static constexpr size_t kInvalidUniformName = 1234567;
+  /* clang-format on */
 
   template<size_t... Idx>
   constexpr static size_t find_uniform_index_impl(
@@ -202,38 +197,6 @@ private:
     return find_uniform_index_impl(
         what, std::make_index_sequence<std::tuple_size_v<
                   decltype( ProgramUniforms::uniforms )>>() );
-  }
-
-  template<typename U>
-  struct UniformSetterProxy {
-    UniformSetterProxy( U& u ) : u_( u ) {}
-
-    UniformSetterProxy( UniformSetterProxy const& ) = delete;
-    UniformSetterProxy( UniformSetterProxy&& )      = delete;
-
-    void operator=( typename U::type const& val ) {
-      u_.set( val );
-    }
-
-  private:
-    U& u_;
-  };
-
-public:
-  template<typename T>
-  constexpr static auto make_checked_uniform() {
-    return CheckedUniform<find_uniform_index( T::name )>{};
-  }
-
-  /* clang-format off */
-  template<size_t N>
-  requires( N != kInvalidUniformName )
-  auto operator[]( CheckedUniform<N> ) {
-    /* clang-format on */
-    using ProxyT = std::remove_cvref_t<decltype( std::get<N>(
-        uniforms_.values ) )>;
-    return UniformSetterProxy<ProxyT>(
-        std::get<N>( uniforms_.values ) );
   }
 
   /* clang-format off */
@@ -257,10 +220,26 @@ private:
                   std::tuple<Specs...> const& specs )
       : values{ { pgrm_id, std::get<Idx>( specs ).name }... } {}
 
-    std::tuple<Uniform<typename Specs::type>...> values;
+    using values_t =
+        std::tuple<Uniform<typename Specs::type>...>;
+    values_t values;
   };
 
-  UniformArray<SpecTuple, SpecIdxSeq> uniforms_;
+  using UniformTuple = UniformArray<SpecTuple, SpecIdxSeq>;
+  UniformTuple uniforms_;
+
+public:
+  // If a call to this function fails to compile it is either be-
+  // cause the name of the uniform is wrong or the type of the
+  // parameter does not match the type of the uniform.
+  template<base::ct_string name, size_t N = find_uniform_index(
+                                     std::string_view( name ) )>
+  void set_uniform(
+      typename std::tuple_element_t<
+          N, typename UniformTuple::values_t>::type const&
+          val ) {
+    std::get<N>( uniforms_.values ).set( val );
+  }
 
 private:
   // Implement base::zero.

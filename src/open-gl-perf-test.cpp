@@ -95,10 +95,6 @@ struct ProgramUniforms {
 using ProgramType =
     gl::Program<ProgramAttributes, ProgramUniforms>;
 
-DECL_UNIFORM_NAME_TAG( ProgramType, screen_size );
-DECL_UNIFORM_NAME_TAG( ProgramType, tick );
-DECL_UNIFORM_NAME_TAG( ProgramType, tx );
-
 struct OpenGLObjects {
   ProgramType program;
   // The order of these matters.
@@ -233,10 +229,10 @@ void render_loop( ::SDL_Window* window ) {
   GL_CHECK( glBindTexture( GL_TEXTURE_2D,
                            gl_objects.opengl_texture ) );
 
-  program[u_screen_size] = gl::vec2{ float( screen_delta.w._ ),
-                                     float( screen_delta.h._ ) };
-  program[u_tx]          = 0;
-  program[u_tick]        = 0;
+  program.set_uniform<"screen_size">( gl::vec2{
+      float( screen_delta.w._ ), float( screen_delta.h._ ) } );
+  program.set_uniform<"tx">( 0 );
+  program.set_uniform<"tick">( 0 );
 
   int num_vertices =
       upload_sprites_buffer( &gl_objects, screen_delta );
@@ -254,7 +250,7 @@ void render_loop( ::SDL_Window* window ) {
     GL_CHECK(
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
-    program[u_tick] = frames;
+    program.set_uniform<"tick">( frames );
 
     upload_sprites_buffer( &gl_objects, screen_delta );
     program.run( vert_array, num_vertices );
