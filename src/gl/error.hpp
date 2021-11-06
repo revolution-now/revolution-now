@@ -29,6 +29,11 @@
 
 namespace gl {
 
+// Returns true if error found.
+bool print_errors();
+
+// Prints errors to console and then dies if any errors are
+// found.
 void check_errors();
 
 namespace detail {

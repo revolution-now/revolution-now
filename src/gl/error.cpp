@@ -20,20 +20,21 @@ using namespace std;
 
 namespace gl {
 
-void check_errors() {
+bool print_errors() {
   GLenum err_code;
   bool   error_found = false;
   while( true ) {
     err_code = glGetError();
     if( err_code == GL_NO_ERROR ) break;
-    std::cerr << "OpenGL error: " << err_code << "\n";
+    cerr << "OpenGL error: " << err_code << "\n";
     error_found = true;
   }
-  if( error_found ) {
-    FATAL(
-        "Terminating after one or more OpenGL errors "
-        "occurred." );
-  }
+  return error_found;
+}
+
+void check_errors() {
+  if( !print_errors() ) return;
+  FATAL( "Aborting after one or more OpenGL errors occurred." );
 }
 
 } // namespace gl

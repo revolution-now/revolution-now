@@ -37,26 +37,36 @@ UniformNonTyped::UniformNonTyped( ObjId       pgrm_id,
   }
 }
 
-void UniformNonTyped::set(
+UniformNonTyped::set_valid_t UniformNonTyped::set(
     base::safe::floating<float> val ) const {
   GL_CHECK( glUseProgram( pgrm_id_ ) );
-  GL_CHECK( glUniform1f( location_, val ) );
+  glUniform1f( location_, val );
+  if( print_errors() ) return "failed to set uniform as float";
+  return base::valid;
 }
 
-void UniformNonTyped::set(
+UniformNonTyped::set_valid_t UniformNonTyped::set(
     base::safe::integer<long> val ) const {
   GL_CHECK( glUseProgram( pgrm_id_ ) );
-  GL_CHECK( glUniform1i( location_, val ) );
+  glUniform1i( location_, val );
+  if( print_errors() ) return "failed to set uniform as long";
+  return base::valid;
 }
 
-void UniformNonTyped::set( base::safe::boolean val ) const {
+UniformNonTyped::set_valid_t UniformNonTyped::set(
+    base::safe::boolean val ) const {
   GL_CHECK( glUseProgram( pgrm_id_ ) );
-  GL_CHECK( glUniform1i( location_, bool( val ) ? 1 : 0 ) );
+  glUniform1i( location_, bool( val ) ? 1 : 0 );
+  if( print_errors() ) return "failed to set uniform as bool";
+  return base::valid;
 }
 
-void UniformNonTyped::set( vec2 val ) const {
+UniformNonTyped::set_valid_t UniformNonTyped::set(
+    vec2 val ) const {
   GL_CHECK( glUseProgram( pgrm_id_ ) );
-  GL_CHECK( glUniform2f( location_, val.x, val.y ) );
+  glUniform2f( location_, val.x, val.y );
+  if( print_errors() ) return "failed to set uniform as vec2";
+  return base::valid;
 }
 
 } // namespace gl

@@ -17,6 +17,7 @@
 // base
 #include "base/maybe.hpp"
 #include "base/safe-num.hpp"
+#include "base/valid.hpp"
 
 // C++ standard library
 #include <string_view>
@@ -41,12 +42,13 @@ struct UniformNonTyped {
   UniformNonTyped( ObjId pgrm_id, std::string_view name );
 
 protected:
+  using set_valid_t = base::valid_or<std::string>;
   // Use the safe-num types as parameters so that there are no
   // ambiguities/uncertainties due to implicit conversions.
-  void set( base::safe::floating<float> val ) const;
-  void set( base::safe::integer<long> val ) const;
-  void set( base::safe::boolean val ) const;
-  void set( vec2 val ) const;
+  set_valid_t set( base::safe::floating<float> val ) const;
+  set_valid_t set( base::safe::integer<long> val ) const;
+  set_valid_t set( base::safe::boolean val ) const;
+  set_valid_t set( vec2 val ) const;
 
 private:
   ObjId pgrm_id_;
@@ -63,10 +65,17 @@ struct Uniform : UniformNonTyped {
   Uniform( ObjId pgrm_id, std::string_view name )
     : UniformNonTyped( pgrm_id, name ) {}
 
-  void set( T const& val ) {
-    if( cache_ == val ) return;
+  void set( T const& val ) { CHECK_HAS_VALUE( try_set( val ) ); }
+
+  // Normally you should just use `set` above. This version is
+  // used when constructing the uniforms to check that they can
+  // be set with a given type (which effectively verifies that
+  // they have the same type in the shader code as in the C++
+  // code).
+  base::valid_or<std::string> try_set( T const& val ) {
+    if( cache_ == val ) return base::valid;
     cache_ = val;
-    this->UniformNonTyped::set( val );
+    return this->UniformNonTyped::set( val );
   }
 
 private:

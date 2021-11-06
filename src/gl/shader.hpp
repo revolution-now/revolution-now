@@ -21,6 +21,7 @@
 #include "base/macros.hpp"
 #include "base/meta.hpp"
 #include "base/to-str.hpp"
+#include "base/valid.hpp"
 #include "base/zero.hpp"
 
 // C++ standard library
@@ -122,7 +123,46 @@ struct Program : ProgramNonTyped {
     UNWRAP_RETURN( pgrm_non_typed,
                    ProgramNonTyped::create( vertex, fragment ) );
     auto pgrm = Program( std::move( pgrm_non_typed ) );
-#if 1 // to disable input vertex attribute type checking.
+#if 1 // to enable input vertex attribute type checking.
+    HAS_VALUE_OR_RET( validate_program( pgrm ) );
+#endif
+    HAS_VALUE_OR_RET( try_initialize_uniforms( pgrm ) );
+    return pgrm;
+  }
+
+  template<typename... VertexBuffers>
+  void run( VertexArray<VertexBuffers...> const& vert_array,
+            int num_vertices ) requires
+      std::is_same_v<InputAttribTypeList,
+                     typename VertexArray<
+                         VertexBuffers...>::attrib_type_list> {
+    this->ProgramNonTyped::run( vert_array, num_vertices );
+  }
+
+  /* clang-format off */
+private:
+  /* clang-format on */
+  static base::valid_or<std::string>
+  try_initialize_uniforms( Program& pgrm ) {
+    static constexpr int kNumUniforms =
+        std::tuple_size_v<decltype( ProgramUniforms::uniforms )>;
+    base::valid_or<std::string> res = base::valid;
+    FOR_CONSTEXPR_IDX( Idx, kNumUniforms ) {
+      res = std::get<Idx>( pgrm.uniforms_.values ).try_set( {} );
+      if( !res.valid() ) {
+        static constexpr std::string_view kUniformName =
+            std::get<Idx>( ProgramUniforms::uniforms ).name;
+        res = fmt::format( "failed to set uniform named {}: {}",
+                           kUniformName, res.error() );
+        return true; // stop iterating.
+      }
+      return false; // keep iterating.
+    };
+    return res;
+  }
+
+  static base::valid_or<std::string> validate_program(
+      Program const& pgrm ) {
     static constexpr size_t kNumAttribs =
         mp::list_size_v<InputAttribTypeList>;
     if( pgrm.num_input_attribs() != kNumAttribs )
@@ -163,23 +203,10 @@ struct Program : ProgramNonTyped {
       return false; // keep iterating.
     };
     if( !err.empty() ) return err;
-#endif
-    return pgrm;
+    return base::valid;
   }
 
-  template<typename... VertexBuffers>
-  void run( VertexArray<VertexBuffers...> const& vert_array,
-            int num_vertices ) requires
-      std::is_same_v<InputAttribTypeList,
-                     typename VertexArray<
-                         VertexBuffers...>::attrib_type_list> {
-    this->ProgramNonTyped::run( vert_array, num_vertices );
-  }
-
-  /* clang-format off */
-private:
   static constexpr size_t kInvalidUniformName = 1234567;
-  /* clang-format on */
 
   template<size_t... Idx>
   constexpr static size_t find_uniform_index_impl(
