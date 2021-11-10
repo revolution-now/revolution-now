@@ -24,10 +24,10 @@
 
 using namespace std;
 
-#define ADD_TO_PARAM_STR( var )                     \
-  param_str =                                       \
-      fmt::format( "/*{}=*/{}, ", TO_STRING( var ), \
-                   fmt::to_string( cast_to_void( var ) ) )
+#define ADD_TO_PARAM_STR( var )                 \
+  param_str =                                   \
+      fmt::format( "{}={}, ", TO_STRING( var ), \
+                   fmt::to_string( handle_pointer( var ) ) )
 
 #define EXPAND_PARAM( type, name ) type name
 
@@ -54,11 +54,15 @@ namespace gl {
 namespace {
 
 template<typename T>
-auto cast_to_void( T&& arg ) {
-  if constexpr( is_pointer_v<remove_cvref_t<T>> )
-    return (void*)arg;
-  else
+auto handle_pointer( T&& arg ) {
+  if constexpr( is_pointer_v<remove_cvref_t<T>> ) {
+    if( arg == nullptr )
+      return "nullptr";
+    else
+      return "<pointer>";
+  } else {
     return arg;
+  }
 }
 
 unordered_set<string_view> no_log{
