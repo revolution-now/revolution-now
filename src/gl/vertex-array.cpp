@@ -12,13 +12,11 @@
 
 // gl
 #include "error.hpp"
+#include "iface.hpp"
 
 // base
 #include "base/error.hpp"
 #include "base/fmt.hpp"
-
-// Glad
-#include "glad/glad.h"
 
 using namespace std;
 
@@ -29,7 +27,7 @@ namespace gl {
 *****************************************************************/
 VertexArrayNonTyped::VertexArrayNonTyped() {
   ObjId vao_id = 0;
-  GL_CHECK( glGenVertexArrays( 1, &vao_id ) );
+  GL_CHECK( CALL_GL( gl_GenVertexArrays, 1, &vao_id ) );
   *this = VertexArrayNonTyped( vao_id );
 }
 
@@ -40,17 +38,18 @@ VertexArrayNonTyped::VertexArrayNonTyped( ObjId vao_id )
 void VertexArrayNonTyped::free_resource() {
   ObjId vao_id = resource();
   DCHECK( vao_id != 0 );
-  GL_CHECK( glDeleteVertexArrays( 1, &vao_id ) );
+  GL_CHECK( CALL_GL( gl_DeleteVertexArrays, 1, &vao_id ) );
 }
 
 ObjId VertexArrayNonTyped::current_bound() {
   GLint id;
-  GL_CHECK( glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &id ) );
+  GL_CHECK(
+      CALL_GL( gl_GetIntegerv, GL_VERTEX_ARRAY_BINDING, &id ) );
   return (ObjId)id;
 }
 
 void VertexArrayNonTyped::bind_obj_id( ObjId new_id ) {
-  GL_CHECK( glBindVertexArray( new_id ) );
+  GL_CHECK( CALL_GL( gl_BindVertexArray, new_id ) );
 }
 
 void VertexArrayNonTyped::register_attrib(
@@ -75,10 +74,10 @@ void VertexArrayNonTyped::register_attrib(
       idx, attrib_field_count, to_GL_str( component_type ),
       normalized, stride, offset );
 #endif
-  GL_CHECK( glVertexAttribPointer(
-      idx, attrib_field_count, to_GL( component_type ),
-      gl_normalized, stride, (void*)offset ) );
-  GL_CHECK( glEnableVertexAttribArray( idx ) );
+  GL_CHECK( CALL_GL( gl_VertexAttribPointer, idx,
+                     attrib_field_count, to_GL( component_type ),
+                     gl_normalized, stride, (void*)offset ) );
+  GL_CHECK( CALL_GL( gl_EnableVertexAttribArray, idx ) );
 }
 
 } // namespace gl

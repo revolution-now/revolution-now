@@ -12,12 +12,10 @@
 
 // gl
 #include "error.hpp"
+#include "iface.hpp"
 
 // base
 #include "base/error.hpp"
-
-// Glad
-#include "glad/glad.h"
 
 using namespace std;
 
@@ -49,20 +47,23 @@ base::expect<Shader, std::string> Shader::create(
       gl_shader_type = GL_FRAGMENT_SHADER;
       break;
   }
-  GLuint      id = GL_CHECK( glCreateShader( gl_shader_type ) );
+  GLuint id =
+      GL_CHECK( CALL_GL( gl_CreateShader, gl_shader_type ) );
   char const* p_code = code.c_str();
   // According to the docs, the fact that we put nullptr for the
   // last argument requires that the string be null terminated.
-  GL_CHECK( glShaderSource( id, 1, &p_code, nullptr ) );
-  GL_CHECK( glCompileShader( id ) );
+  GL_CHECK(
+      CALL_GL( gl_ShaderSource, id, 1, &p_code, nullptr ) );
+  GL_CHECK( CALL_GL( gl_CompileShader, id ) );
   // Check for compiler errors.
   int              success;
   constexpr size_t kErrorLength = 512;
   char             errors[kErrorLength];
-  GL_CHECK( glGetShaderiv( id, GL_COMPILE_STATUS, &success ) );
+  GL_CHECK( CALL_GL( gl_GetShaderiv, id, GL_COMPILE_STATUS,
+                     &success ) );
   if( !success ) {
-    GL_CHECK(
-        glGetShaderInfoLog( id, kErrorLength, NULL, errors ) );
+    GL_CHECK( CALL_GL( gl_GetShaderInfoLog, id, kErrorLength,
+                       NULL, errors ) );
     return fmt::format( "{} shader compilation failed: {}",
                         base::to_str( type ), errors );
   }
@@ -72,17 +73,19 @@ base::expect<Shader, std::string> Shader::create(
 Shader::attacher::attacher( ProgramNonTyped const& pgrm,
                             Shader const&          shader )
   : pgrm_( pgrm ), shader_( shader ) {
-  GL_CHECK( glAttachShader( pgrm_.id(), shader_.id() ) );
+  GL_CHECK(
+      CALL_GL( gl_AttachShader, pgrm_.id(), shader_.id() ) );
 }
 
 Shader::attacher::~attacher() {
-  GL_CHECK( glDetachShader( pgrm_.id(), shader_.id() ) );
+  GL_CHECK(
+      CALL_GL( gl_DetachShader, pgrm_.id(), shader_.id() ) );
 }
 
 void Shader::free_resource() {
   ObjId shader_id = resource();
   DCHECK( shader_id != 0 );
-  GL_CHECK( glDeleteShader( shader_id ) );
+  GL_CHECK( CALL_GL( gl_DeleteShader, shader_id ) );
 }
 
 /****************************************************************
@@ -94,7 +97,8 @@ ProgramNonTyped::ProgramNonTyped( ObjId id )
 base::expect<ProgramNonTyped, std::string>
 ProgramNonTyped::create( Shader const& vertex,
                          Shader const& fragment ) {
-  ProgramNonTyped pgrm( GL_CHECK( glCreateProgram() ) );
+  ProgramNonTyped pgrm(
+      GL_CHECK( CALL_GL( gl_CreateProgram ) ) );
 
   // Put this in a block so that se can detach the shaders before
   // moving out of the ProgramNonTyped object to return it.
@@ -102,28 +106,29 @@ ProgramNonTyped::create( Shader const& vertex,
     auto vert_attacher = vertex.attach( pgrm );
     auto frag_attacher = fragment.attach( pgrm );
 
-    GL_CHECK( glLinkProgram( pgrm.id() ) );
+    GL_CHECK( CALL_GL( gl_LinkProgram, pgrm.id() ) );
     // Check for linking errors.
     int              success;
     constexpr size_t kErrorLength = 512;
     char             errors[kErrorLength];
-    GL_CHECK(
-        glGetProgramiv( pgrm.id(), GL_LINK_STATUS, &success ) );
+    GL_CHECK( CALL_GL( gl_GetProgramiv, pgrm.id(),
+                       GL_LINK_STATUS, &success ) );
     if( !success ) {
-      GL_CHECK( glGetProgramInfoLog( pgrm.id(), kErrorLength,
-                                     NULL, errors ) );
+      GL_CHECK( CALL_GL( gl_GetProgramInfoLog, pgrm.id(),
+                         kErrorLength, NULL, errors ) );
       return fmt::format(
           "shader ProgramNonTyped linking failed: {}", errors );
     }
 
-    GL_CHECK( glValidateProgram( pgrm.id() ) );
+    GL_CHECK( CALL_GL( gl_ValidateProgram, pgrm.id() ) );
     GLint validation_successful;
-    GL_CHECK( glGetProgramiv( pgrm.id(), GL_VALIDATE_STATUS,
-                              &validation_successful ) );
+    GL_CHECK( CALL_GL( gl_GetProgramiv, pgrm.id(),
+                       GL_VALIDATE_STATUS,
+                       &validation_successful ) );
     GLint out_size;
-    GL_CHECK( glGetProgramInfoLog( pgrm.id(),
-                                   /*maxlength=*/kErrorLength,
-                                   &out_size, errors ) );
+    GL_CHECK( CALL_GL( gl_GetProgramInfoLog, pgrm.id(),
+                       /*maxlength=*/kErrorLength, &out_size,
+                       errors ) );
     string_view info_log( errors, out_size );
     if( validation_successful != GL_TRUE )
       return fmt::format(
@@ -136,13 +141,13 @@ ProgramNonTyped::create( Shader const& vertex,
 }
 
 void ProgramNonTyped::use() const {
-  GL_CHECK( glUseProgram( id() ) );
+  GL_CHECK( CALL_GL( gl_UseProgram, id() ) );
 }
 
 void ProgramNonTyped::free_resource() {
   ObjId pgrm_id = resource();
   DCHECK( pgrm_id != 0 );
-  GL_CHECK( glDeleteProgram( pgrm_id ) );
+  GL_CHECK( CALL_GL( gl_DeleteProgram, pgrm_id ) );
 }
 
 void ProgramNonTyped::run( VertexArrayNonTyped const& vert_array,
@@ -150,13 +155,14 @@ void ProgramNonTyped::run( VertexArrayNonTyped const& vert_array,
   DCHECK( num_vertices >= 0 );
   use();
   auto binder = vert_array.bind();
-  GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, num_vertices ) );
+  GL_CHECK(
+      CALL_GL( gl_DrawArrays, GL_TRIANGLES, 0, num_vertices ) );
 }
 
 int ProgramNonTyped::num_input_attribs() const {
   int num_active;
-  GL_CHECK( glGetProgramiv( id(), GL_ACTIVE_ATTRIBUTES,
-                            &num_active ) );
+  GL_CHECK( CALL_GL( gl_GetProgramiv, id(), GL_ACTIVE_ATTRIBUTES,
+                     &num_active ) );
   return num_active;
 }
 
@@ -170,16 +176,16 @@ ProgramNonTyped::attrib_compound_type( int idx ) const {
   constexpr size_t kBufSize = 256;
   char             c_name[kBufSize];
   GLsizei          name_length;
-  GL_CHECK( glGetActiveAttrib(
-      /*program=*/id(),
-      /*index=*/idx,
-      /*bufsize=*/kBufSize,
-      /*length=*/&name_length, // don't write name
-      /*size=*/&size,
-      /*type=*/&type,
-      /*name=*/c_name ) );
+  GL_CHECK( CALL_GL( gl_GetActiveAttrib,
+                     /*program=*/id(),
+                     /*index=*/idx,
+                     /*bufsize=*/kBufSize,
+                     /*length=*/&name_length, // don't write name
+                     /*size=*/&size,
+                     /*type=*/&type,
+                     /*name=*/c_name ) );
   GLint location =
-      GL_CHECK( glGetAttribLocation( id(), c_name ) );
+      GL_CHECK( CALL_GL( gl_GetAttribLocation, id(), c_name ) );
   return pair{ from_GL( type ), location };
 }
 

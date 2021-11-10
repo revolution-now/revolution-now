@@ -10,11 +10,11 @@
 *****************************************************************/
 #include "attribs.hpp"
 
+// gl
+#include "iface.hpp"
+
 // base
 #include "base/error.hpp"
-
-// Glad
-#include "glad/glad.h"
 
 using namespace std;
 

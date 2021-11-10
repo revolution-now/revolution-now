@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "error.hpp"
 
-// Glad
-#include "glad/glad.h"
+// gl
+#include "iface.hpp"
 
 // C++ standard library
 #include <iostream>
@@ -24,7 +24,7 @@ bool print_errors() {
   GLenum err_code;
   bool   error_found = false;
   while( true ) {
-    err_code = glGetError();
+    err_code = CALL_GL( gl_GetError );
     if( err_code == GL_NO_ERROR ) break;
     cerr << "OpenGL error: " << err_code << "\n";
     error_found = true;

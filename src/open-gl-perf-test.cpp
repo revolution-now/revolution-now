@@ -21,6 +21,7 @@
 // gl
 #include "gl/attribs.hpp"
 #include "gl/error.hpp"
+#include "gl/iface.hpp"
 #include "gl/shader.hpp"
 #include "gl/uniform.hpp"
 #include "gl/vertex-array.hpp"
@@ -28,9 +29,6 @@
 
 // SDL
 #include "SDL.h"
-
-// GLAD (OpenGL Loader)
-#include "glad/glad.h"
 
 using namespace std;
 
