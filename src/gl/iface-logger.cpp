@@ -31,14 +31,16 @@ using namespace std;
 #define LOG_AND_CALL_GL_METHOD( name, ret_type, params )      \
   EVAL( ret_type OpenGLWithLogger::name( PP_MAP_TUPLE_COMMAS( \
       EXPAND_PARAM, PP_REMOVE_PARENS params ) ) {             \
-    string param_str;                                         \
-    PP_MAP_SEMI(                                              \
-        ADD_TO_PARAM_STR,                                     \
-        PP_MAP_TUPLE_COMMAS( PP_PAIR_TAKE_SECOND,             \
-                             PP_REMOVE_PARENS params ) );     \
-    if( !param_str.empty() )                                  \
-      param_str.resize( param_str.size() - 2 );               \
-    log_gl_call( #name, param_str );                          \
+    if( logging_enabled_ ) {                                  \
+      string param_str;                                       \
+      PP_MAP_SEMI(                                            \
+          ADD_TO_PARAM_STR,                                   \
+          PP_MAP_TUPLE_COMMAS( PP_PAIR_TAKE_SECOND,           \
+                               PP_REMOVE_PARENS params ) );   \
+      if( !param_str.empty() )                                \
+        param_str.resize( param_str.size() - 2 );             \
+      log_gl_call( #name, param_str );                        \
+    }                                                         \
     return next_->name( PP_MAP_TUPLE_COMMAS(                  \
         PP_PAIR_TAKE_SECOND, PP_REMOVE_PARENS params ) );     \
   } )
@@ -62,6 +64,10 @@ void log_gl_call( string_view name, string_view params ) {
 }
 
 } // namespace
+
+void OpenGLWithLogger::enable_logging( bool enabled ) {
+  logging_enabled_ = enabled;
+}
 
 LOG_AND_CALL_GL_METHOD( gl_AttachShader, void,
                         ( ( GLuint, program ),

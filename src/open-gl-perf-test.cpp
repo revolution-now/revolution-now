@@ -21,6 +21,8 @@
 // gl
 #include "gl/attribs.hpp"
 #include "gl/error.hpp"
+#include "gl/iface-glad.hpp"
+#include "gl/iface-logger.hpp"
 #include "gl/iface.hpp"
 #include "gl/shader.hpp"
 #include "gl/uniform.hpp"
@@ -204,7 +206,8 @@ OpenGLObjects init_opengl() {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void render_loop( ::SDL_Window* window ) {
+void render_loop( ::SDL_Window*         window,
+                  gl::OpenGLWithLogger* opengl_with_logger ) {
   // == Initialization ==========================================
 
   OpenGLObjects gl_objects = init_opengl();
@@ -242,7 +245,14 @@ void render_loop( ::SDL_Window* window ) {
 
   // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
 
+  opengl_with_logger->enable_logging( false );
+
   while( !input::is_q_down() ) {
+    if( frames == 5 ) {
+      fmt::print( "=== frame 5 ===\n" );
+      opengl_with_logger->enable_logging( true );
+    }
+
     // Clear screen.
     GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
     GL_CHECK(
@@ -255,7 +265,11 @@ void render_loop( ::SDL_Window* window ) {
     ::SDL_GL_SwapWindow( window );
 
     ++frames;
+    opengl_with_logger->enable_logging( false );
   }
+
+  opengl_with_logger->enable_logging( false );
+  fmt::print( "=== end frames ===\n" );
 
   auto end_time   = chrono::system_clock::now();
   auto delta_time = end_time - start_time;
@@ -280,6 +294,12 @@ void render_loop( ::SDL_Window* window ) {
 }
 
 void open_gl_perf_test() {
+  gl::OpenGLGlad       opengl_glad;
+  gl::OpenGLWithLogger opengl_with_logger( &opengl_glad );
+  gl::set_global_gl_implementation( &opengl_with_logger );
+
+  opengl_with_logger.enable_logging( true );
+
   CHECK( ::SDL_GL_LoadLibrary( nullptr ) == 0,
          "Failed to load OpenGL library." );
 
@@ -355,7 +375,7 @@ void open_gl_perf_test() {
   CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
          "setting swap interval is not supported." );
 
-  render_loop( window );
+  render_loop( window, &opengl_with_logger );
 
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_GL_UnloadLibrary();

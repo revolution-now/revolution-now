@@ -20,7 +20,11 @@ namespace gl {
 
 struct OpenGLWithLogger : IOpenGL {
 private:
-  IOpenGL* next_;
+  bool     logging_enabled_ = false;
+  IOpenGL* next_            = nullptr;
+
+public:
+  void enable_logging( bool enabled );
 
 public:
   OpenGLWithLogger( IOpenGL* next ) : next_( next ) {}
