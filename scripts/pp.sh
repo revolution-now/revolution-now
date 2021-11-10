@@ -2,11 +2,12 @@
 set -e
 
 [[ -z "$1" ]] && {
-  echo 'first parameter is stem.'
+  echo 'first parameter is stem path without src/, e.g. cargo, base/to-str'
   exit 1
 }
 
-stem=$1
+stem_path=$1
+stem="$(basename "$1")"
 
 get_flag() {
   local flag=$1
@@ -17,7 +18,7 @@ get_flag() {
 
 get_flag_ninja() {
   local flag=$1
-  local chunk=$(cat .builds/current/build.ninja | grep ".*rn\.dir.*$stem\.cpp\.o:" -A6)
+  local chunk=$(cat .builds/current/build.ninja | grep ".*rn.*\.dir.*$stem\.cpp\.o:" -A6)
   echo "$chunk" | sed -n "s/^  $flag = \(.*\)/\1/p"
 }
 
@@ -37,13 +38,13 @@ clear
 
 (( ninja )) && pushd .builds/current &>/dev/null
 
-$HOME/dev/tools/llvm-current/bin/clang++ \
-  -E                                     \
-  $CXX_DEFINES                           \
-  $CXX_INCLUDES                          \
-  $CXX_FLAGS                             \
-  -o $HOME/dev/rn/$stem.pp.cpp           \
-  -c $HOME/dev/rn/src/$stem.cpp
+$HOME/dev/tools/llvm-current/bin/clang++    \
+  -E                                        \
+  $CXX_DEFINES                              \
+  $CXX_INCLUDES                             \
+  $CXX_FLAGS                                \
+  -o $HOME/dev/revolution-now/$stem.pp.cpp  \
+  -c $HOME/dev/revolution-now/src/$stem_path.cpp
 
 (( ninja )) && popd &>/dev/null
 
