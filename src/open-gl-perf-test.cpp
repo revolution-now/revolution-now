@@ -248,6 +248,10 @@ void render_loop( ::SDL_Window*         window,
   opengl_with_logger->enable_logging( false );
 
   while( !input::is_q_down() ) {
+    if( frames == 0 ) {
+      fmt::print( "=== frame 0 ===\n" );
+      opengl_with_logger->enable_logging( true );
+    }
     if( frames == 5 ) {
       fmt::print( "=== frame 5 ===\n" );
       opengl_with_logger->enable_logging( true );
