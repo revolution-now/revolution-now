@@ -13,10 +13,14 @@
 // base
 #include "base/error.hpp"
 #include "base/fmt.hpp"
+#include "base/keyval.hpp"
 #include "base/macros.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
+
+// C++ standard library
+#include <unordered_set>
 
 using namespace std;
 
@@ -57,10 +61,16 @@ auto cast_to_void( T&& arg ) {
     return arg;
 }
 
+unordered_set<string_view> no_log{
+    "gl_GetError",
+};
+
 void log_gl_call( string_view name, string_view params ) {
   DCHECK( name.starts_with( "gl_" ) );
+  if( base::find( no_log, name ) ) return;
   string no_prefix( name.begin() + 3, name.end() );
-  fmt::print( "OpenGLWithLogger: gl{}( {} )\n", name, params );
+  fmt::print( "OpenGLWithLogger: gl{}( {} )\n", no_prefix,
+              params );
 }
 
 } // namespace
