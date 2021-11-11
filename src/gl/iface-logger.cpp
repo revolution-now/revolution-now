@@ -25,7 +25,7 @@
 using namespace std;
 
 #define ADD_TO_PARAM_STR( var )                 \
-  param_str =                                   \
+  param_str +=                                  \
       fmt::format( "{}={}, ", TO_STRING( var ), \
                    fmt::to_string( handle_pointer( var ) ) )
 
