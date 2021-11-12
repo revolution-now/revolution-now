@@ -395,6 +395,27 @@ struct formatter<std::pair<T, U>> : base::formatter_base {
   }
 };
 
+// {fmt} formatter for formatting pairs whose contained types are
+// formattable.
+template<base::HasFmt... Ts>
+struct formatter<std::tuple<Ts...>> : base::formatter_base {
+  template<typename FormatContext>
+  auto format( std::tuple<Ts...> const& o, FormatContext& ctx ) {
+    auto build = [&]<size_t... Idx>(
+        std::index_sequence<Idx...> ) {
+      std::string res;
+      ( ( res += fmt::format( "{}, ", std::get<Idx>( o ) ) ),
+        ... );
+      if( !res.empty() ) res.resize( res.size() - 2 );
+      return res;
+    };
+    return base::formatter_base::format(
+        fmt::format( "({})",
+                     build( std::index_sequence_for<Ts...>() ) ),
+        ctx );
+  }
+};
+
 // {fmt} formatter for formatting std::deque whose contained type
 // is formattable.
 // FIXME: this should be in its own header, along with <deque>.

@@ -40,6 +40,10 @@ template<typename T>
 constexpr bool has_fmt =
     ::fmt::has_formatter<T, ::fmt::format_context>();
 
+template<typename T>
+concept HasFmt =
+    ::fmt::has_formatter<T, ::fmt::format_context>();
+
 } // namespace base
 
 /****************************************************************

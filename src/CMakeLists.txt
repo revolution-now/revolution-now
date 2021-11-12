@@ -6,6 +6,7 @@ add_subdirectory( fb )
 add_subdirectory( luapp )
 add_subdirectory( rds )
 add_subdirectory( gl )
+add_subdirectory( mock ) # should not be depended on by `rn`.
 
 # === this directory ==============================================
 
