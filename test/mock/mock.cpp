@@ -29,6 +29,8 @@ struct IPoint {
 
   virtual int get_y() const = 0;
 
+  virtual bool get_xy( int* x_out, int& y_out ) const = 0;
+
   virtual void set_x( int x ) = 0;
 
   virtual void set_y( int y ) = 0;
@@ -44,6 +46,8 @@ struct IPoint {
 struct MockPoint : IPoint {
   MOCK_METHOD( int, get_x, (), ( const ) );
   MOCK_METHOD( int, get_y, (), ( const ) );
+  MOCK_METHOD( bool, get_xy,
+               ( ( int*, x_out ), ( int&, y_out ) ), ( const ) );
   MOCK_METHOD( void, set_x, ( ( int, x ) ), () );
   MOCK_METHOD( void, set_y, ( ( int, y ) ), () );
   MOCK_METHOD( void, set_xy, ( ( int, x ), ( int, y ) ), () );
@@ -78,6 +82,10 @@ struct PointUser {
   int get_x() const { return p_->get_x(); }
 
   int get_y() const { return p_->get_y(); }
+
+  bool get_xy( int* x_out, int& y_out ) const {
+    return p_->get_xy( x_out, y_out );
+  }
 
   IPoint* p_;
 };
@@ -119,6 +127,33 @@ TEST_CASE( "[mock] repeated calls" ) {
   REQUIRE( user.get_x() == 9 );
   REQUIRE( user.get_x() == 7 );
   REQUIRE( user.get_x() == 7 );
+}
+
+TEST_CASE( "[mock] sets_arg" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, get_xy( _, _ ) )
+      .sets_arg<0>( 5 )
+      .sets_arg<1>( 6 )
+      .returns( true );
+  int x = 0, y = 0;
+  REQUIRE( user.get_xy( &x, y ) == true );
+  REQUIRE( x == 5 );
+  REQUIRE( y == 6 );
+}
+
+TEST_CASE( "[mock] any" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( _, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, get_y() ).returns( 10 );
+  EXPECT_CALL( mp, set_y( _ ) );
+  REQUIRE( user.increment_y() == 11 );
 }
 
 } // namespace
