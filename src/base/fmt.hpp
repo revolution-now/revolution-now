@@ -38,11 +38,10 @@ namespace base {
 // This partially works I think...
 template<typename T>
 constexpr bool has_fmt =
-    ::fmt::has_formatter<T, ::fmt::format_context>();
+    ::fmt::has_formatter<T, ::fmt::format_context>::value;
 
 template<typename T>
-concept HasFmt =
-    ::fmt::has_formatter<T, ::fmt::format_context>();
+concept HasFmt = has_fmt<T>;
 
 } // namespace base
 
