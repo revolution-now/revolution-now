@@ -125,7 +125,6 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl" ) {
 }
 
 TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl e_empty" ) {
-  using KV     = rcl::table::value_type;
   rcl::table t = rcl::make_table();
   UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
   rcl::value v{

@@ -65,16 +65,18 @@
   requires std::is_constructible_v<                             \
       typename responder__##fn_name::matchers_t, Args...>       \
       responder__##fn_name& add__##fn_name( Args&&... args ) {  \
-    return queues__##fn_name.add(                               \
-        { std::forward<Args>( args )... } );                    \
+    auto matchers = responder__##fn_name::matchers_t{           \
+        std::forward<Args>( args )... };                        \
+    return queues__##fn_name.add( std::move( matchers ) );      \
   }                                                             \
                                                                 \
   template<typename... Args>                                    \
   requires std::is_constructible_v<                             \
       typename responder__##fn_name::matchers_t, Args...>       \
       responder__##fn_name& set__##fn_name( Args&&... args ) {  \
-    return queues__##fn_name.set(                               \
-        { std::forward<Args>( args )... } );                    \
+    auto matchers = responder__##fn_name::matchers_t{           \
+        std::forward<Args>( args )... };                        \
+    return queues__##fn_name.set( std::move( matchers ) );      \
   }                                                             \
                                                                 \
   ret_type fn_name( PP_MAP_TUPLE_COMMAS(                        \
@@ -149,12 +151,13 @@ public:
       matchers_( std::move( args ) ) {}
 
   RetT operator()( args_refs_t const& args ) {
-    auto format_if_possible = []<typename T>( T&& o ) {
-      std::string res = "<non-formattable>";
-      if constexpr( base::has_fmt<std::remove_cvref_t<T>> )
-        res = fmt::to_string( o );
-      return res;
-    };
+    auto format_if_possible
+        [[maybe_unused]] = []<typename T>( T&& o ) {
+          std::string res = "<non-formattable>";
+          if constexpr( base::has_fmt<std::remove_cvref_t<T>> )
+            res = fmt::to_string( o );
+          return res;
+        };
 
     std::string formatted_args;
     ( ( formatted_args +=
@@ -171,8 +174,8 @@ public:
 
     // 2. Set any output parameters that need to be set.
     if( setters_.has_value() ) {
-      auto setter = []<typename T, typename U>( T&& src,
-                                                U&  dst ) {
+      auto setter [[maybe_unused]] = []<typename T, typename U>(
+                                         T&& src, U& dst ) {
         if constexpr( !std::is_same_v<std::remove_reference_t<T>,
                                       None> ) {
           if constexpr( std::is_pointer_v<U> )

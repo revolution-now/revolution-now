@@ -70,6 +70,8 @@ using namespace std::chrono;
            res.error() );                                  \
     const_cast<__type&>( dest_ptr()->__name ) =            \
         std::move( *res );                                 \
+    /* fix weird gcc warning */                            \
+    res = rcl::error( "" );                                \
   }                                                        \
   static inline bool const __register_##__name = [] {      \
     populate_functions().push_back( __populate_##__name ); \

@@ -215,8 +215,7 @@ TEST_CASE( "[ext-builtin] std::unordered_map (table)" ) {
 }
 
 TEST_CASE( "[ext-builtin] std::unordered_map (table) empty" ) {
-  using KV = table::value_type;
-  table t  = make_table();
+  table t = make_table();
   UNWRAP_CHECK( ppt, run_postprocessing( std::move( t ) ) );
   value v{ std::make_unique<table>( std::move( ppt ) ) };
 

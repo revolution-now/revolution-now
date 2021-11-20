@@ -82,13 +82,13 @@ private:
 ** Transformations
 *****************************************************************/
 struct UnitTransformationResult {
-  UnitComposition new_comp;
+  UnitComposition new_comp = {};
   std::unordered_map<e_unit_type_modifier,
                      e_unit_type_modifier_delta>
-      modifier_deltas;
+      modifier_deltas = {};
   // Positive means that it has been extracted FROM the unit,
   // negative means it has been consumed BY the unit.
-  std::unordered_map<e_commodity, int> commodity_deltas;
+  std::unordered_map<e_commodity, int> commodity_deltas = {};
 
   bool operator==( UnitTransformationResult const& ) const =
       default;
@@ -130,11 +130,11 @@ UnitTransformationResult strip_to_base_type(
     UnitComposition const& comp );
 
 struct UnitTransformationFromCommodityResult {
-  UnitComposition new_comp;
+  UnitComposition new_comp = {};
   std::unordered_map<e_unit_type_modifier,
                      e_unit_type_modifier_delta>
-      modifier_deltas;
-  int quantity_used;
+      modifier_deltas = {};
+  int quantity_used   = {};
 
   bool operator==( UnitTransformationFromCommodityResult const& )
       const = default;
