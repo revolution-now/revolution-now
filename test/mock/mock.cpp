@@ -20,6 +20,7 @@ namespace mock {
 namespace {
 
 using namespace std;
+using ::mock::matchers::_;
 
 /****************************************************************
 ** IPoint

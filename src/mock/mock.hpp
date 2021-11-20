@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// mock
+#include "matcher.hpp"
+
 // base
 #include "base/error.hpp"
 #include "base/fmt.hpp"
@@ -59,13 +62,17 @@
       queues__##fn_name = { #fn_name };                         \
                                                                 \
   template<typename... Args>                                    \
-  responder__##fn_name& add__##fn_name( Args&&... args ) {      \
+  requires std::is_constructible_v<                             \
+      typename responder__##fn_name::matchers_t, Args...>       \
+      responder__##fn_name& add__##fn_name( Args&&... args ) {  \
     return queues__##fn_name.add(                               \
         { std::forward<Args>( args )... } );                    \
   }                                                             \
                                                                 \
   template<typename... Args>                                    \
-  responder__##fn_name& set__##fn_name( Args&&... args ) {      \
+  requires std::is_constructible_v<                             \
+      typename responder__##fn_name::matchers_t, Args...>       \
+      responder__##fn_name& set__##fn_name( Args&&... args ) {  \
     return queues__##fn_name.set(                               \
         { std::forward<Args>( args )... } );                    \
   }                                                             \
@@ -78,31 +85,6 @@
   }
 
 namespace mock {
-
-/****************************************************************
-** Matchers
-*****************************************************************/
-struct Any {};
-
-inline constexpr auto _ = Any{};
-
-template<typename T>
-struct Matcher {
-  Matcher() = delete;
-  Matcher( T val ) : o_( std::move( val ) ) {}
-  Matcher( Any ) : o_{} {}
-
-  base::maybe<T> o_;
-
-  bool matches( T const& val ) const {
-    if( !o_.has_value() ) return true;
-    return val == *o_;
-  }
-
-  bool operator==( T const& val ) const {
-    return matches( val );
-  }
-};
 
 /****************************************************************
 ** Mocking
@@ -153,9 +135,10 @@ template<typename RetT, typename... Args, size_t... Idx>
 struct Responder<RetT, std::tuple<Args...>,
                  std::index_sequence<Idx...>> {
 public:
-  using args_t     = std::tuple<Args...>;
-  using matchers_t = std::tuple<Matcher<Args>...>;
-  using setters_t  = std::tuple<
+  using args_t      = std::tuple<Args...>;
+  using args_refs_t = std::tuple<Args const&...>;
+  using matchers_t  = std::tuple<MatcherWrapper<Args>...>;
+  using setters_t   = std::tuple<
       std::conditional_t<Settable<Args>,
                          base::maybe<std::remove_reference_t<
                              std::remove_pointer_t<Args>>>,
@@ -165,12 +148,20 @@ public:
     : fn_name_( std::move( fn_name ) ),
       matchers_( std::move( args ) ) {}
 
-  RetT operator()( args_t const& args ) {
-    std::string formatted_args = "...";
-    if constexpr( base::has_fmt<args_t> &&
-                  ( base::has_fmt<Args> && ... ) ) {
-      formatted_args = fmt::to_string( args );
-    }
+  RetT operator()( args_refs_t const& args ) {
+    auto format_if_possible = []<typename T>( T&& o ) {
+      std::string res = "<non-formattable>";
+      if constexpr( base::has_fmt<std::remove_cvref_t<T>> )
+        res = fmt::to_string( o );
+      return res;
+    };
+
+    std::string formatted_args;
+    ( ( formatted_args +=
+        format_if_possible( std::get<Idx>( args ) ) + ", " ),
+      ... );
+    if( !formatted_args.empty() )
+      formatted_args.resize( formatted_args.size() - 2 );
 
     // 1. Check if the arguments match.
     BASE_CHECK(
