@@ -56,9 +56,9 @@ struct NoCopy {
   /**************************************************************
   ** Implicit conversions
   ***************************************************************/
-  operator T const &() const& noexcept { return val; }
+  operator T const&() const& noexcept { return val; }
   operator T&() & noexcept { return val; }
-  operator T const &&() const&& noexcept {
+  operator T const&&() const&& noexcept {
     return std::move( val );
   }
   operator T&&() && noexcept { return std::move( val ); }

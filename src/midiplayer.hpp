@@ -59,7 +59,7 @@ public:
 
 private:
   MidiSeqMusicPlayer() = default;
-  friend void         init_midiplayer();
+  friend void           init_midiplayer();
   maybe<TunePlayerInfo> last_played_tune_info_;
 };
 

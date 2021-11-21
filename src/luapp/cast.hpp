@@ -24,6 +24,9 @@ template<typename From, typename To>
 concept Castable = Pushable<From> && Gettable<To> &&
     CompatibleNvalues<From, To>;
 
+// Needed to prevent weird indentation after concept.
+struct FixClangFormat1 {};
+
 namespace detail {
 
 void        cast_pop( cthread L, int n );

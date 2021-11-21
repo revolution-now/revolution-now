@@ -123,7 +123,7 @@ void LineEditor::set( std::string_view new_buffer,
                                  new_cursor_closed_upper_bound );
 
   pos_    = ::rn::modulus( clamped_pos,
-                        new_cursor_closed_upper_bound + 1 );
+                           new_cursor_closed_upper_bound + 1 );
   buffer_ = string( new_buffer );
   LE_ASSERT_INVARIANTS;
 }
