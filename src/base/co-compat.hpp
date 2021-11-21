@@ -62,19 +62,6 @@ class coroutine_handle : public coro::coroutine_handle<T> {};
 } // namespace base
 
 /****************************************************************
-** Fix that clang is looking for these in the experimental ns.
-*****************************************************************/
-#if defined( __clang__ ) && !defined( _LIBCPP_VERSION )
-namespace std::experimental {
-// Inject these into std::experimental to make clang happy.
-// FIXME: remove these when libc++ moves the coroutine library
-// out of experimental.
-using base::coroutine_handle;
-using coro::coroutine_traits;
-} // namespace std::experimental
-#endif
-
-/****************************************************************
 ** Fix that gcc's suspend_never has non-noexcept methods.
 *****************************************************************/
 namespace base {
