@@ -42,7 +42,7 @@ namespace rn {
 class MovingAverage {
   NON_COPYABLE( MovingAverage );
 
-public:
+ public:
   using QueryTimeFunc = std::chrono::system_clock::time_point();
 
   MovingAverage( std::chrono::seconds window_size );
@@ -63,7 +63,7 @@ public:
 
   uint64_t total_ticks() const { return ticks_; }
 
-private:
+ private:
   using nanoseconds = std::chrono::nanoseconds;
   using seconds     = std::chrono::seconds;
 

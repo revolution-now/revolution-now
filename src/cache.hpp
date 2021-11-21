@@ -79,7 +79,7 @@ class memoizer_t<Invalidator, Return ( * )()> {
   Invalidator invalidator_;
   CacheType   cache_;
 
-public:
+ public:
   memoizer_t( Func generator, Invalidator invalidator )
     : generator_( generator ),
       invalidator_( std::move( invalidator ) ),
@@ -98,7 +98,7 @@ public:
 // IndirectPredicate concept.
 template<typename Invalidator, typename Return, typename Arg>
 class memoizer_1_arg_base_t {
-public:
+ public:
   using Func = Return ( * )( Arg );
   // Note we need pointer stability because our operator()
   // function returns references. WARNING: this still does not
@@ -131,7 +131,7 @@ class memoizer_t<Invalidator, Return ( * )( Arg )>
   using parent_t =
       memoizer_1_arg_base_t<Invalidator, Return, Arg>;
 
-public:
+ public:
   memoizer_t( Func generator, Invalidator&& invalidator )
     : parent_t( generator, std::move( invalidator ) ) {}
 };
@@ -146,7 +146,7 @@ class memoizer_t<Invalidator, Return ( * )( Arg const& )>
   using parent_t =
       memoizer_1_arg_base_t<Invalidator, Return, Arg const&>;
 
-public:
+ public:
   memoizer_t( Func generator, Invalidator&& invalidator )
     : parent_t( generator, std::move( invalidator ) ) {}
 };

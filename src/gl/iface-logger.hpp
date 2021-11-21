@@ -19,14 +19,14 @@
 namespace gl {
 
 struct OpenGLWithLogger : IOpenGL {
-private:
+ private:
   bool     logging_enabled_ = false;
   IOpenGL* next_            = nullptr;
 
-public:
+ public:
   void enable_logging( bool enabled );
 
-public:
+ public:
   OpenGLWithLogger( IOpenGL* next ) : next_( next ) {}
 
   void gl_AttachShader( GLuint program, GLuint shader ) override;

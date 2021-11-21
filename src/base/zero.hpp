@@ -112,7 +112,7 @@ struct zero {
     return *r_;
   }
 
-private:
+ private:
   Derived& derived() noexcept {
     return *static_cast<Derived*>( this );
   }
@@ -138,7 +138,7 @@ private:
     return derived().copy_resource();
   }
 
-protected:
+ protected:
   maybe<Resource> r_;
   bool            own_ = false;
 };

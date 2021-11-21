@@ -41,7 +41,7 @@ struct unique_coro : unique_coro_base {
     : unique_coro_base( h ) {}
   MOVABLE_ONLY( unique_coro );
 
-private:
+ private:
   friend unique_coro_base;
   // Implement base::zero.
   void free_resource() { resource().destroy(); }

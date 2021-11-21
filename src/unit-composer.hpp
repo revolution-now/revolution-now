@@ -38,7 +38,7 @@ namespace rn {
 ** UnitComposition
 *****************************************************************/
 class UnitComposition {
-public:
+ public:
   using UnitInventoryMap =
       std::unordered_map<e_unit_inventory, int>;
 
@@ -68,7 +68,7 @@ public:
   friend void to_str( UnitComposition const& o,
                       std::string&           out );
 
-private:
+ private:
   UnitComposition( UnitType type, UnitInventoryMap inventory );
 
   // clang-format off

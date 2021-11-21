@@ -131,7 +131,7 @@ struct IColViewDragSink {
 };
 
 class ColonySubView : public AwaitableView {
-public:
+ public:
   ColonySubView() = default;
 
   virtual maybe<e_colview_entity> entity() const = 0;
@@ -164,7 +164,7 @@ public:
   maybe<IColViewDragSource&> drag_source();
   maybe<IColViewDragSink&>   drag_sink();
 
-private:
+ private:
   ColonyId id_;
 };
 

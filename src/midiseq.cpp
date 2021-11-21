@@ -65,7 +65,7 @@ void rtmidi_error_callback( RtMidiError::Type,
 // method. If said method succeeds to return a MidiIO object then
 // that means that MIDI music can and should be playable.
 class MidiIO {
-public:
+ public:
   NON_COPYABLE( MidiIO );
 
   MidiIO( MidiIO&& rhs ) noexcept {
@@ -167,7 +167,7 @@ public:
     update_volumes();
   }
 
-private:
+ private:
   MidiIO() = default;
 
   double             master_volume_{ 1.0 };
@@ -336,7 +336,7 @@ maybe<thread> g_midi_thread;
 // thread safety (we don't want the caller to have a reference to
 // any data inside this class).
 class MidiCommunication {
-public:
+ public:
   MidiCommunication() = default;
   NO_COPY_NO_MOVE( MidiCommunication );
 
@@ -413,7 +413,7 @@ public:
     return nothing;
   }
 
-private:
+ private:
   mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.

@@ -45,10 +45,10 @@ struct SAVEGAME_STRUCT( Player ) {
   ( PlayerMap_t, players ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
-private:
+ private:
   SAVEGAME_FRIENDS( Player );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

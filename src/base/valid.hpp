@@ -53,7 +53,7 @@ class [[nodiscard]] valid_or : expect<valid_t, E> {
   Base const&& as_expect() const&& { return *this; }
   Base&&       as_expect() && { return *this; }
 
-public:
+ public:
   using typename Base::error_type;
 
   // Take only the things from the base class that are relevant

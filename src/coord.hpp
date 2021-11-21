@@ -172,7 +172,7 @@ NOTHROW_MOVE( Delta );
 struct ND Coord {
   SERIALIZABLE_STRUCT_MEMBERS( Coord, ( Y, y ), ( X, x ) );
 
-public:
+ public:
   valid_deserial_t check_invariants_safe() const {
     return valid;
   }
@@ -456,7 +456,7 @@ class RectGridProxyIteratorHelper {
   Rect const& rect;
   Delta       chunk_size;
 
-public:
+ public:
   RectGridProxyIteratorHelper( Rect&& rect_,
                                Delta  chunk_size_ ) = delete;
 

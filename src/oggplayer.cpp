@@ -32,7 +32,7 @@ namespace rn {
 namespace {
 
 class OggTune {
-public:
+ public:
   NON_COPYABLE( OggTune );
 
   OggTune( TuneId id, ::Mix_Music* music )
@@ -69,7 +69,7 @@ public:
     ::std::swap( id_, rhs.id_ );
   }
 
-private:
+ private:
   ::Mix_Music* ptr_;
   TuneId       id_;
 };

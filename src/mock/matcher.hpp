@@ -65,7 +65,7 @@ struct Value : IMatcher<T> {
     return val == val_;
   }
 
-private:
+ private:
   T val_;
 };
 
@@ -115,7 +115,7 @@ struct MatcherWrapper {
     return matches( val );
   }
 
-private:
+ private:
   std::unique_ptr<IMatcher<T>> matcher_;
 };
 

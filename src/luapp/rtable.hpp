@@ -56,7 +56,7 @@ struct table : public any {
     return res;
   }
 
-private:
+ private:
   static table pop_or_create_table( cthread L );
 };
 

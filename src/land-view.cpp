@@ -107,13 +107,13 @@ struct SAVEGAME_STRUCT( LandView ) {
   ( SmoothViewport, viewport ));
   // clang-format on
 
-public:
+ public:
   // Non-serialized fields.
   unordered_map<UnitId, UnitAnimation_t> unit_animations;
   LandViewState_t landview_state = LandViewState::none{};
   maybe<UnitId>   last_unit_input;
 
-private:
+ private:
   SAVEGAME_FRIENDS( LandView );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

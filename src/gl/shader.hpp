@@ -42,7 +42,7 @@ void to_str( e_shader_type type, std::string& out );
 ** Vertex/Fragment Shader
 *****************************************************************/
 struct Shader : base::zero<Shader, ObjId> {
-private:
+ private:
   struct [[nodiscard]] attacher {
     attacher( ProgramNonTyped const& pgrm,
               Shader const&          shader );
@@ -51,12 +51,12 @@ private:
 
     NO_COPY_NO_MOVE( attacher );
 
-  private:
+   private:
     ProgramNonTyped const& pgrm_;
     Shader const&          shader_;
   };
 
-public:
+ public:
   static base::expect<Shader, std::string> create(
       e_shader_type type, std::string const& code );
 
@@ -66,10 +66,10 @@ public:
 
   ObjId id() const { return resource(); }
 
-private:
+ private:
   Shader( ObjId id );
 
-private:
+ private:
   // Implement base::zero.
   friend base::zero<Shader, ObjId>;
 
@@ -90,7 +90,7 @@ struct ProgramNonTyped : base::zero<ProgramNonTyped, ObjId> {
   void run( VertexArrayNonTyped const& vert_array,
             int                        num_vertices ) const;
 
-protected:
+ protected:
   ProgramNonTyped( ObjId id );
 
   int num_input_attribs() const;
@@ -106,7 +106,7 @@ protected:
       std::string>
   attrib_compound_type( int idx ) const;
 
-private:
+ private:
   // Implement base::zero.
   friend base::zero<ProgramNonTyped, ObjId>;
 
@@ -141,9 +141,9 @@ struct Program : ProgramNonTyped {
 
   /* clang-format off */
 private:
-  /* clang-format on */
-  static base::valid_or<std::string>
-  try_initialize_uniforms( Program& pgrm ) {
+   /* clang-format on */
+   static base::valid_or<std::string>
+   try_initialize_uniforms( Program& pgrm ) {
     static constexpr int kNumUniforms =
         std::tuple_size_v<decltype( ProgramUniforms::uniforms )>;
     base::valid_or<std::string> res = base::valid;
@@ -255,7 +255,7 @@ private:
   using UniformTuple = UniformArray<SpecTuple, SpecIdxSeq>;
   UniformTuple uniforms_;
 
-public:
+ public:
   // If a call to this function fails to compile it is either be-
   // cause the name of the uniform is wrong or the type of the
   // parameter does not match the type of the uniform.
@@ -268,7 +268,7 @@ public:
     std::get<N>( uniforms_.values ).set( val );
   }
 
-private:
+ private:
   // Implement base::zero.
   friend base::zero<Program, ObjId>;
 

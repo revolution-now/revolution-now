@@ -258,7 +258,7 @@ struct table {
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
 
-private:
+ private:
   void unflatten_impl( std::string_view dotted, value&& v );
 
   friend base::valid_or<std::string> merge_values(
@@ -319,7 +319,7 @@ struct list {
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
 
-private:
+ private:
   std::vector<value> members_;
 };
 
@@ -350,7 +350,7 @@ struct doc {
   table const& top_tbl() const { return *tbl_; }
   value const& top_val() const { return val_; }
 
-private:
+ private:
   doc( table&& tbl )
     : val_( std::make_unique<table>( std::move( tbl ) ) ) {
     tbl_ = val_.get_if<std::unique_ptr<table>>()->get();

@@ -320,7 +320,7 @@ struct ticker {
 
   waitable<> wait() const { return p.waitable(); }
 
-private:
+ private:
   waitable_promise<> p;
 };
 
@@ -368,7 +368,7 @@ struct stream {
   stream( stream&& )                 = default;
   stream& operator=( stream&& ) = default;
 
-private:
+ private:
   void update() {
     if( !p.has_value() && !q.empty() ) {
       p.set_value_emplace( std::move( q.front() ) );
@@ -408,7 +408,7 @@ struct finite_stream {
   // For testing; not sure if this would be useful otherwise.
   void set_exception() { s.set_exception(); }
 
-private:
+ private:
   bool               ended = false;
   stream<value_type> s;
 };
@@ -437,7 +437,7 @@ struct one_shot_stream_adapter {
     return std::move( w_ );
   }
 
-private:
+ private:
   waitable<T> w_;
   bool        retrieved_ = false;
 };
@@ -530,7 +530,7 @@ struct interleave {
   interleave( interleave&& ) = delete;
   interleave& operator=( interleave&& ) = delete;
 
-private:
+ private:
   // Input streamables.
   std::tuple<Ss*...> streamables;
   // This is a stream that supplies the output to the interleave.

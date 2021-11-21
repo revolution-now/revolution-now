@@ -49,12 +49,12 @@ struct type_traits<std::tuple<Ts...>> {
 
   // clang-format off
 private:
-  // clang-format on
+   // clang-format on
 
-  template<size_t... Idx>
-  static void
-  push_impl( cthread L, std::tuple<Ts...> const& tup,
-             std::index_sequence<Idx...> ) {
+   template<size_t... Idx>
+   static void
+   push_impl( cthread L, std::tuple<Ts...> const& tup,
+              std::index_sequence<Idx...> ) {
     ( lua::push( L, std::get<Idx>( tup ) ), ... );
   }
 

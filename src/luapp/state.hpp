@@ -39,11 +39,11 @@ namespace lua {
 struct state : base::zero<state, cthread> {
   using Base = base::zero<state, cthread>;
 
-private:
+ private:
   // Creates a non-owned (view) state.
   state( cthread L );
 
-public:
+ public:
   // Creates an owned Lua state and sets a panic function.
   state();
 
@@ -53,13 +53,13 @@ public:
   state( state&& ) = default;
   state& operator=( state&& ) = default;
 
-private:
+ private:
   friend Base;
 
   // Implement base::zero.
   void free_resource();
 
-public:
+ public:
   /**************************************************************
   ** Threads
   ***************************************************************/
@@ -78,7 +78,7 @@ public:
     // coroutine.resume.
     rthread create_coro( rfunction func ) noexcept;
 
-  private:
+   private:
     cthread L;
   } thread;
 
@@ -90,7 +90,7 @@ public:
 
     rstring create( std::string_view sv ) noexcept;
 
-  private:
+   private:
     cthread L;
   } string;
 
@@ -103,7 +103,7 @@ public:
     table global() noexcept;
     table create() noexcept;
 
-  private:
+   private:
     cthread L;
   } table;
 
@@ -115,7 +115,7 @@ public:
 
     void open_all();
 
-  private:
+   private:
     cthread L;
   } lib;
 
@@ -130,7 +130,7 @@ public:
       return lua::usertype<T>( L );
     }
 
-  private:
+   private:
     cthread L;
   } usertype;
 
@@ -174,7 +174,7 @@ public:
       return call_lua_safe_and_get<R>( L );
     }
 
-  private:
+   private:
     lua_valid load_file_safe( std::string_view file );
     void      load_file( std::string_view file );
 
@@ -210,7 +210,7 @@ public:
     throw_lua_error( resource(), msg, FWD( args )... );
   }
 
-private:
+ private:
   state( state const& ) = delete;
   state& operator=( state const& ) = delete;
 };

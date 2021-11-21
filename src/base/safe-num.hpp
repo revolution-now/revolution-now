@@ -56,7 +56,7 @@ struct pointer {
     return value_ == nullptr;
   }
 
-private:
+ private:
   T* value_;
 };
 
@@ -76,7 +76,7 @@ struct boolean {
 
   auto get() const noexcept { return value_; }
 
-private:
+ private:
   bool value_;
 };
 
@@ -104,7 +104,7 @@ struct integer {
 
   auto get() const noexcept { return value_; }
 
-private:
+ private:
   T value_;
 };
 
@@ -134,7 +134,7 @@ struct floating {
 
   auto get() const noexcept { return value_; }
 
-private:
+ private:
   T value_;
 };
 

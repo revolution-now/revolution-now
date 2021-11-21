@@ -115,7 +115,7 @@ ColViewObject_t from_cargo( Cargo const& o ) {
 ** Entities
 *****************************************************************/
 class TitleBar : public ui::View, public ColonySubView {
-public:
+ public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -146,7 +146,7 @@ public:
 
   TitleBar( Delta size ) : size_( size ) {}
 
-private:
+ private:
   Delta size_;
 };
 
@@ -155,7 +155,7 @@ class MarketCommodities : public ui::View,
                           public IColViewDragSource,
                           public IColViewDragSourceUserInput,
                           public IColViewDragSink {
-public:
+ public:
   Delta delta() const override {
     return Delta{
         block_width_ * SX{ enum_traits<e_commodity>::count },
@@ -302,13 +302,13 @@ public:
   MarketCommodities( W block_width )
     : block_width_( block_width ) {}
 
-private:
+ private:
   W                block_width_;
   maybe<Commodity> draggable_;
 };
 
 class PopulationView : public ui::View, public ColonySubView {
-public:
+ public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -339,7 +339,7 @@ public:
 
   PopulationView( Delta size ) : size_( size ) {}
 
-private:
+ private:
   Delta size_;
 };
 
@@ -348,7 +348,7 @@ class CargoView : public ui::View,
                   public IColViewDragSource,
                   public IColViewDragSourceUserInput,
                   public IColViewDragSink {
-public:
+ public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -629,7 +629,7 @@ public:
     co_return from_cargo( new_comm );
   }
 
-private:
+ private:
   struct Draggable {
     int             slot;
     ColViewObject_t object;
@@ -648,7 +648,7 @@ class UnitsAtGateColonyView : public ui::View,
                               public ColonySubView,
                               public IColViewDragSource,
                               public IColViewDragSink {
-public:
+ public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -904,7 +904,7 @@ public:
     internal::ustate_disown_unit( unit_id );
   }
 
-private:
+ private:
   void set_selected_unit( maybe<UnitId> id ) {
     selected_ = id;
     cargo_view_->set_unit( id );
@@ -992,7 +992,7 @@ private:
 };
 
 class ProductionView : public ui::View, public ColonySubView {
-public:
+ public:
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -1015,12 +1015,12 @@ public:
 
   ProductionView( Delta size ) : size_( size ) {}
 
-private:
+ private:
   Delta size_;
 };
 
 class LandView : public ui::View, public ColonySubView {
-public:
+ public:
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -1115,7 +1115,7 @@ public:
   LandView( e_render_mode mode, Texture land_tx )
     : mode_( mode ), land_tx_( std::move( land_tx ) ) {}
 
-private:
+ private:
   e_render_mode   mode_;
   mutable Texture land_tx_;
 };

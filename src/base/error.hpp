@@ -85,7 +85,7 @@
 // Non-testing code should use this. Code written in unit test
 // cpp files should use BASE_CHECK to avoid a collision with a
 // similar Catch2 symbol.
-#define CHECK( ... ) BASE_CHECK( __VA_ARGS__ )
+#define CHECK( ... )    BASE_CHECK( __VA_ARGS__ )
 #define CHECK_EQ( ... ) BASE_CHECK_EQ( __VA_ARGS__ )
 
 #define BASE_CHECK( a, ... )                             \
@@ -288,7 +288,7 @@ struct GenericError {
   std::string what;
   SourceLoc   loc;
 
-private:
+ private:
   GenericError( std::string_view what_,
                 SourceLoc        loc_ = SourceLoc::current() )
     : what( what_ ), loc( loc_ ) {}

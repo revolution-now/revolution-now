@@ -35,7 +35,7 @@ struct VertexArrayNonTyped
 
   ObjId id() const { return bindable_obj_id(); }
 
-protected:
+ protected:
   // Vertex Array and Vertex Buffer must be bound before calling
   // this.
   void register_attrib( int idx, size_t attrib_field_count,
@@ -43,16 +43,16 @@ protected:
                         bool normalized, size_t stride,
                         size_t offset ) const;
 
-private:
+ private:
   VertexArrayNonTyped( ObjId vbo_id );
 
-private:
+ private:
   // Implement base::zero.
   friend base::zero<VertexArrayNonTyped, ObjId>;
 
   void free_resource();
 
-private:
+ private:
   // Implement bindable.
   friend bindable<VertexArrayNonTyped>;
 
@@ -115,7 +115,7 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
     return std::get<N>( buffers_ );
   }
 
-private:
+ private:
   template<size_t... Idxs>
   void register_attribs_for_all_buffers(
       std::index_sequence<Idxs...> ) const {

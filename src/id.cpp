@@ -51,7 +51,7 @@ struct SAVEGAME_STRUCT( Id ) {
   );
   // clang-format on
 
-private:
+ private:
   SAVEGAME_FRIENDS( Id );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

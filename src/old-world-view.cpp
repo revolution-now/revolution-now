@@ -82,10 +82,10 @@ struct SAVEGAME_STRUCT( OldWorldView ) {
   ( maybe<UnitId>, selected_unit ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
-private:
+ private:
   SAVEGAME_FRIENDS( OldWorldView );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields
@@ -217,7 +217,7 @@ class MarketCommodities {
   static constexpr H double_layer_height =
       double_layer_blocks_height * sprite_scale.sy;
 
-public:
+ public:
   Rect bounds() const {
     return Rect::from( origin_,
                        Delta{ doubled_ ? double_layer_width
@@ -301,7 +301,7 @@ public:
   bool  doubled_{};
   Coord origin_{};
 
-private:
+ private:
   MarketCommodities() = default;
   MarketCommodities( bool doubled, Coord origin )
     : doubled_( doubled ), origin_( origin ) {}
@@ -311,7 +311,7 @@ NOTHROW_MOVE( MarketCommodities );
 class ActiveCargoBox {
   static constexpr Delta size_blocks{ 6_w, 1_h };
 
-public:
+ public:
   // Commodities will be 24x24.
   static constexpr auto box_scale = Scale{ 32 };
   static constexpr auto box_delta =
@@ -362,7 +362,7 @@ public:
     return res;
   }
 
-private:
+ private:
   ActiveCargoBox() = default;
   ActiveCargoBox( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
@@ -373,7 +373,7 @@ class DockAnchor {
   static constexpr Delta cross_leg_size{ 5_w, 5_h };
   static constexpr H     above_active_cargo_box{ 32_h };
 
-public:
+ public:
   Rect bounds() const {
     // Just a point.
     return Rect::from( location_, Delta{} );
@@ -422,7 +422,7 @@ public:
     return res;
   }
 
-private:
+ private:
   DockAnchor() = default;
   DockAnchor( Coord location ) : location_( location ) {}
   Coord location_{};
@@ -433,7 +433,7 @@ class Backdrop {
   static constexpr Delta image_distance_from_anchor{ 950_w,
                                                      544_h };
 
-public:
+ public:
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -459,7 +459,7 @@ public:
     return res;
   }
 
-private:
+ private:
   Backdrop() = default;
   Backdrop( Coord upper_left, Delta size )
     : upper_left_of_render_rect_( upper_left ), size_( size ) {}
@@ -469,7 +469,7 @@ private:
 NOTHROW_MOVE( Backdrop );
 
 class InPortBox {
-public:
+ public:
   static constexpr Delta block_size{ 32_w, 32_h };
   static constexpr SY    height_blocks{ 3 };
   static constexpr SX    width_wide{ 3 };
@@ -524,7 +524,7 @@ public:
   Scale size_in_blocks_{};
   bool  is_wide_{};
 
-private:
+ private:
   InPortBox() = default;
   InPortBox( Coord origin, Scale size_in_blocks, bool is_wide )
     : origin_( origin ),
@@ -534,7 +534,7 @@ private:
 NOTHROW_MOVE( InPortBox );
 
 class InboundBox {
-public:
+ public:
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
@@ -588,7 +588,7 @@ public:
 
   bool is_wide() const { return is_wide_; }
 
-private:
+ private:
   InboundBox() = default;
   InboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
     : origin_( origin ),
@@ -601,7 +601,7 @@ private:
 NOTHROW_MOVE( InboundBox );
 
 class OutboundBox {
-public:
+ public:
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
@@ -655,7 +655,7 @@ public:
 
   bool is_wide() const { return is_wide_; }
 
-private:
+ private:
   OutboundBox() = default;
   OutboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
     : origin_( origin ),
@@ -670,7 +670,7 @@ NOTHROW_MOVE( OutboundBox );
 class Exit {
   static constexpr Delta exit_block_pixels{ 24_w, 24_h };
 
-public:
+ public:
   Rect bounds() const {
     return Rect::from( origin_, exit_block_pixels ) +
            Delta{ 2_w, 2_h };
@@ -715,7 +715,7 @@ public:
     return res;
   }
 
-private:
+ private:
   Exit() = default;
   Exit( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
@@ -727,7 +727,7 @@ class Dock {
   static constexpr Delta dock_block_pixels_delta =
       Delta{ 1_w, 1_h } * dock_block_pixels;
 
-public:
+ public:
   Rect bounds() const {
     return Rect::from(
         origin_, Delta{ length_in_blocks_ * dock_block_pixels.sx,
@@ -770,7 +770,7 @@ public:
     return res;
   }
 
-private:
+ private:
   Dock() = default;
   Dock( Coord origin, W length_in_blocks )
     : origin_( origin ), length_in_blocks_( length_in_blocks ) {}
@@ -782,7 +782,7 @@ NOTHROW_MOVE( Dock );
 // Base class for other entities that just consist of a collec-
 // tion of units.
 class UnitCollection {
-public:
+ public:
   Rect bounds() const {
     auto Union = L2( _1.uni0n( _2 ) );
     auto to_rect =
@@ -833,7 +833,7 @@ public:
   UnitCollection( UnitCollection&& ) = default;
   UnitCollection& operator=( UnitCollection&& ) = default;
 
-protected:
+ protected:
   struct UnitWithPosition {
     UnitId id;
     Coord  pixel_coord;
@@ -850,7 +850,7 @@ protected:
 NOTHROW_MOVE( UnitCollection );
 
 class UnitsOnDock : public UnitCollection {
-public:
+ public:
   UnitsOnDock( UnitsOnDock&& ) = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
@@ -887,7 +887,7 @@ public:
     return res;
   }
 
-private:
+ private:
   UnitsOnDock( Rect                       dock_anchor,
                vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
@@ -895,7 +895,7 @@ private:
 NOTHROW_MOVE( UnitsOnDock );
 
 class ShipsInPort : public UnitCollection {
-public:
+ public:
   ShipsInPort( ShipsInPort&& ) = default;
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
@@ -931,7 +931,7 @@ public:
     return res;
   }
 
-private:
+ private:
   ShipsInPort( Rect                       dock_anchor,
                vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
@@ -939,7 +939,7 @@ private:
 NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
-public:
+ public:
   ShipsInbound( ShipsInbound&& ) = default;
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
@@ -974,7 +974,7 @@ public:
     return res;
   }
 
-private:
+ private:
   ShipsInbound( Rect                       dock_anchor,
                 vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
@@ -982,7 +982,7 @@ private:
 NOTHROW_MOVE( ShipsInbound );
 
 class ShipsOutbound : public UnitCollection {
-public:
+ public:
   ShipsOutbound( ShipsOutbound&& ) = default;
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
@@ -1018,7 +1018,7 @@ public:
     return res;
   }
 
-private:
+ private:
   ShipsOutbound( Rect                       dock_anchor,
                  vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
@@ -1026,7 +1026,7 @@ private:
 NOTHROW_MOVE( ShipsOutbound );
 
 class ActiveCargo {
-public:
+ public:
   Rect bounds() const { return bounds_; }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -1166,7 +1166,7 @@ public:
     return maybe_active_unit_;
   }
 
-private:
+ private:
   ActiveCargo() = default;
   ActiveCargo( maybe<UnitId> maybe_active_unit, Rect bounds )
     : maybe_active_unit_( maybe_active_unit ),

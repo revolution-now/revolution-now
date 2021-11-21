@@ -28,10 +28,10 @@ namespace gl {
 // vides mocked methods, but also sets/restores the global
 // IOpenGL instance uponn construction/destruction.
 struct MockOpenGL : IOpenGL {
-private:
+ private:
   IOpenGL* prev_;
 
-public:
+ public:
   MockOpenGL();
 
   ~MockOpenGL();

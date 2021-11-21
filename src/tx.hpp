@@ -43,7 +43,7 @@ enum class e_tx_blend_mode {
 // RAII wrapper and type eraser for SDL Surface.
 // TODO: rewrite this in terms of base::zero.
 class Surface {
-public:
+ public:
   explicit Surface( void* sf );
   Surface( Surface&& sf ) noexcept;
   Surface& operator=( Surface&& rhs ) noexcept;
@@ -86,7 +86,7 @@ public:
     lhs.swap( rhs );
   }
 
-private:
+ private:
   friend class Texture;
 
   void* sf_{ nullptr };
@@ -96,7 +96,7 @@ NOTHROW_MOVE( Surface );
 // RAII wrapper and type eraser for SDL Texture.
 // TODO: rewrite this in terms of base::zero.
 class Texture {
-public:
+ public:
   Texture() = default; // try to get rid of this.
   explicit Texture( void* tx );
   Texture( Texture&& tx ) noexcept;
@@ -175,7 +175,7 @@ public:
     lhs.swap( rhs );
   }
 
-private:
+ private:
   void* tx_{ nullptr };
   // globally unique id and monotonically increasing. 0 is for
   // default texture.

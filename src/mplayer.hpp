@@ -67,7 +67,7 @@ using MaybeMusicPlayer = expect<MusicPlayer&, std::string>;
 // mands sent to the music player have been processed. It also
 // accepts a timeout to avoid hanging if something goes wrong.
 class MusicPlayer {
-public:
+ public:
   MusicPlayer() = default;
   MOVABLE_ONLY( MusicPlayer );
 
@@ -169,7 +169,7 @@ public:
 * that manages music players.
 *****************************************************************/
 class SilentMusicPlayer : public MusicPlayer {
-public:
+ public:
   static std::pair<MusicPlayerDesc, MaybeMusicPlayer> player();
 
   bool good() const override;
@@ -203,7 +203,7 @@ public:
   // Implement MusicPlayer
   void resume() override;
 
-private:
+ private:
   SilentMusicPlayer() = default;
 
   bool          is_paused_{ false };

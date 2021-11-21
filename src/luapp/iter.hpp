@@ -57,7 +57,7 @@ struct raw_table_iterator {
     return !( *this == rhs );
   }
 
-private:
+ private:
   table                            tbl_;
   base::maybe<std::pair<any, any>> curr_pair_;
 };

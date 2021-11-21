@@ -30,7 +30,7 @@ namespace rn {
 
 // Cannot convert to int.
 class ND MovementPoints {
-public:
+ public:
   MovementPoints() = default;
   explicit MovementPoints( int p )
     : points_atoms( p * factor ) {}
@@ -133,7 +133,7 @@ public:
   friend rcl::convert_err<MovementPoints> convert_to(
       rcl::value const& v, rcl::tag<MovementPoints> );
 
-private:
+ private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );
   static constexpr int factor = 3;

@@ -45,7 +45,7 @@ NOTHROW_MOVE( PositionedViewConst );
 
 // Same as above, but owns the view.  The
 class OwningPositionedView {
-public:
+ public:
   OwningPositionedView( std::unique_ptr<View> view,
                         Coord const&          coord )
     : view_( std::move( view ) ), coord_( coord ) {}
@@ -58,7 +58,7 @@ public:
   Coord const& coord() const { return coord_; }
   Coord&       coord() { return coord_; }
 
-private:
+ private:
   std::unique_ptr<View> view_;
   Coord                 coord_;
 };

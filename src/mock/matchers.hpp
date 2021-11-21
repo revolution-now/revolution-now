@@ -49,7 +49,7 @@ struct PointeeMatcher : IMatcher<T const*> {
         TargetPointeeMatcher{ std::move( child_ ) } );
   }
 
-private:
+ private:
   MatcherWrapper<T> child_;
 };
 

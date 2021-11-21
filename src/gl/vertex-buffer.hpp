@@ -32,23 +32,23 @@ struct VertexBufferNonTyped
     bindable<VertexBufferNonTyped> {
   VertexBufferNonTyped();
 
-protected:
+ protected:
   void upload_data_replace_impl( void const* data, size_t size,
                                  e_draw_mode mode ) const;
   void upload_data_modify_impl(
       void const* data, size_t size,
       size_t start_offset_bytes ) const;
 
-private:
+ private:
   VertexBufferNonTyped( ObjId vbo_id );
 
-private:
+ private:
   // Implement base::zero.
   friend base::zero<VertexBufferNonTyped, ObjId>;
 
   void free_resource();
 
-private:
+ private:
   // Implement bindable.
   friend bindable<VertexBufferNonTyped>;
 

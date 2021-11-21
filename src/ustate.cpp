@@ -66,7 +66,7 @@ struct SAVEGAME_STRUCT( Unit ) {
   ( StatesMap_t,  states ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
   // Holds deleted units for debugging purposes (they will never
@@ -86,7 +86,7 @@ public:
   unordered_map<ColonyId, unordered_set<UnitId>>
       worker_units_from_colony;
 
-private:
+ private:
   SAVEGAME_FRIENDS( Unit );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

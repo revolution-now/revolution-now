@@ -26,7 +26,7 @@ template<typename T, typename Idx, typename Length>
 class strong_span {
   std::span<T> span_;
 
-public:
+ public:
   strong_span( T* data, Length size ) : span_( data, size._ ) {}
 
   int size() const { return int( span_.size() ); }

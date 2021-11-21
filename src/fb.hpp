@@ -1101,7 +1101,8 @@ valid_deserial_t deserialize( SrcT const*           src,
 
 #define SERIALIZABLE_TABLE_MEMBERS_NO_EVAL( ns, name, ... )  \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )      \
-public:                                                      \
+                                                             \
+ public:                                                     \
   using fb_target_t = ns::name;                              \
   serial::FBOffset<ns::name> serialize_table(                \
       serial::FBBuilder& builder ) const {                   \
@@ -1125,7 +1126,7 @@ public:                                                      \
     return valid;                                            \
   }                                                          \
                                                              \
-private:
+ private:
 
 #define SERIALIZABLE_TABLE_MEMBERS( ... ) \
   EVAL( SERIALIZABLE_TABLE_MEMBERS_NO_EVAL( __VA_ARGS__ ) )
@@ -1154,7 +1155,8 @@ private:
 
 #define SERIALIZABLE_STRUCT_MEMBERS_IMPL( name, ... )          \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
-public:                                                        \
+                                                               \
+ public:                                                       \
   using fb_target_t = fb::name;                                \
   fb::name serialize_struct( serial::FBBuilder& builder )      \
       const {                                                  \

@@ -39,7 +39,7 @@ enum class ND e_push_direction {
 // acceleration (== 0.0) only the drag acceleration will apply
 // (in the direction opposite the velocity).
 class ND DissipativeVelocity {
-public:
+ public:
   DissipativeVelocity() = default;
   DissipativeVelocity( double min_velocity, double max_velocity,
                        double initial_velocity,
@@ -70,7 +70,7 @@ public:
 
   valid_deserial_t check_invariants_safe() const;
 
-private:
+ private:
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( DissipativeVelocity,
   ( double, min_velocity_ ),

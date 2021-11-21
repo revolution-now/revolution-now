@@ -249,7 +249,7 @@ struct UnitType {
 
   valid_deserial_t check_invariants_safe() const;
 
-private:
+ private:
   UnitType( e_unit_type base_type, e_unit_type type );
 
   // Check-fails when invariants are broken.

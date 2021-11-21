@@ -35,10 +35,10 @@ template<ReflectedEnum Enum, typename ValT>
 struct ExhaustiveEnumMap {
   static constexpr int kSize = enum_traits<Enum>::count;
 
-private:
+ private:
   using ArrayT = std::array<std::pair<Enum, ValT>, kSize>;
 
-public:
+ public:
   ExhaustiveEnumMap() : data_( std::make_unique<ArrayT>() ) {
     for( int i = 0; i < kSize; ++i )
       ( *data_ )[i] = { from_idx( i ), {} };
@@ -128,7 +128,7 @@ public:
     return res;
   }
 
-private:
+ private:
   static int to_idx( Enum i ) {
     int idx = static_cast<int>( i );
     DCHECK( idx < kSize );

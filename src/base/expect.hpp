@@ -99,7 +99,7 @@ constexpr bool is_expect_v<expect<T, E>> = true;
 template<typename T, typename E>
 requires ExpectTypeRequirements<T, E> /* clang-format off */
 class [[nodiscard]] expect { /* clang-format on */
-public:
+ public:
   /**************************************************************
   ** Types
   ***************************************************************/
@@ -114,7 +114,8 @@ public:
   /**************************************************************
   ** Destruction
   ***************************************************************/
-private:
+
+ private:
   constexpr void destroy_val() {
     if constexpr( !std::is_trivially_destructible_v<T> )
       val_.T::~T();
@@ -132,7 +133,7 @@ private:
       destroy_err();
   }
 
-public:
+ public:
   constexpr ~expect() noexcept { destroy(); }
 
   /**************************************************************
@@ -1139,9 +1140,10 @@ public:
   /**************************************************************
   ** Storage
   ***************************************************************/
-private :
-  // Allows expect<T> to access private members of expect<U>.
-  template<typename U, typename V>
+
+ private :
+   // Allows expect<T> to access private members of expect<U>.
+   template<typename U, typename V>
   requires ExpectTypeRequirements<U, V>
   friend class expect;
 
@@ -1202,7 +1204,7 @@ private :
 template<typename T, typename E>
 requires ExpectTypeRequirements<T, E> /* clang-format off */
 class [[nodiscard]] expect<T&, E> { /* clang-format on */
-public:
+ public:
   /**************************************************************
   ** Types
   ***************************************************************/
@@ -1217,7 +1219,8 @@ public:
   /**************************************************************
   ** Destruction
   ***************************************************************/
-private:
+
+ private:
   constexpr void destroy_if_err() {
     if( !p_ ) {
       if constexpr( !std::is_trivially_destructible_v<E> )
@@ -1225,7 +1228,7 @@ private:
     }
   }
 
-public:
+ public:
   constexpr ~expect() noexcept { destroy_if_err(); }
 
   /**************************************************************
@@ -1554,10 +1557,10 @@ public:
     return std::invoke( std::forward<Func>( func ), **this );
   }
 
-private :
-  // This allows expect<T, E> to access private members of
-  // expect<U, V>.
-  template<typename U, typename V>
+ private :
+   // This allows expect<T, E> to access private members of
+   // expect<U, V>.
+   template<typename U, typename V>
   requires ExpectTypeRequirements<U, V>
   friend class expect;
 

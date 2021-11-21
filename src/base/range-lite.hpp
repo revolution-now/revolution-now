@@ -31,15 +31,15 @@ namespace base::rl {
 #define RL_LAMBDA2( name, ... ) \
   name( [&]( auto&& _1, auto&& _2 ) { return __VA_ARGS__; } )
 
-#define keep_if_L( ... ) RL_LAMBDA( keep_if, __VA_ARGS__ )
-#define min_by_L( ... ) RL_LAMBDA( min_by, __VA_ARGS__ )
-#define max_by_L( ... ) RL_LAMBDA( max_by, __VA_ARGS__ )
-#define filter_L( ... ) RL_LAMBDA( filter, __VA_ARGS__ )
-#define group_by_L( ... ) RL_LAMBDA2( group_by, __VA_ARGS__ )
-#define group_on_L( ... ) RL_LAMBDA( group_on, __VA_ARGS__ )
-#define remove_if_L( ... ) RL_LAMBDA( remove_if, __VA_ARGS__ )
-#define map_L( ... ) RL_LAMBDA( map, __VA_ARGS__ )
-#define map2val_L( ... ) RL_LAMBDA( map2val, __VA_ARGS__ )
+#define keep_if_L( ... )    RL_LAMBDA( keep_if, __VA_ARGS__ )
+#define min_by_L( ... )     RL_LAMBDA( min_by, __VA_ARGS__ )
+#define max_by_L( ... )     RL_LAMBDA( max_by, __VA_ARGS__ )
+#define filter_L( ... )     RL_LAMBDA( filter, __VA_ARGS__ )
+#define group_by_L( ... )   RL_LAMBDA2( group_by, __VA_ARGS__ )
+#define group_on_L( ... )   RL_LAMBDA( group_on, __VA_ARGS__ )
+#define remove_if_L( ... )  RL_LAMBDA( remove_if, __VA_ARGS__ )
+#define map_L( ... )        RL_LAMBDA( map, __VA_ARGS__ )
+#define map2val_L( ... )    RL_LAMBDA( map2val, __VA_ARGS__ )
 #define take_while_L( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
 #define drop_while_L( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
 #define take_while_incl_L( ... ) \
@@ -184,7 +184,7 @@ template<typename InputView>
 class AllView {
   InputView* view_;
 
-public:
+ public:
   AllView( InputView* view ) : view_( view ) {}
 
   using ultimate_view_t = InputView;
@@ -208,7 +208,7 @@ template<typename InputView>
 class BidirectionalAllView {
   InputView* view_;
 
-public:
+ public:
   BidirectionalAllView( InputView* view ) : view_( view ) {}
 
   using ultimate_view_t = InputView;
@@ -241,7 +241,7 @@ template<typename InputView>
 class ReverseAllView {
   InputView* view_;
 
-public:
+ public:
   ReverseAllView( InputView* view ) : view_( view ) {
     assert_bt( view_ != nullptr );
   }
@@ -269,7 +269,7 @@ class IntsView {
   const int start_;
   const int end_;
 
-public:
+ public:
   IntsView( int start = 0,
             int end   = std::numeric_limits<int>::max() )
     : start_( start ), end_( end ) {
@@ -342,7 +342,7 @@ class GenerateView {
   Func      func_;
   const int count_;
 
-public:
+ public:
   template<typename T>
   GenerateView( T&& func, int count )
     : func_( std::forward<T>( func ) ), count_( count ) {}
@@ -354,7 +354,7 @@ public:
 
     void populate() { cache_ = view_->func_(); }
 
-  public:
+   public:
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
     using value_type        = std::invoke_result_t<Func>;
@@ -499,16 +499,16 @@ template<typename Cursor,
              decltype( &Cursor::get ), Cursor*,
              typename Cursor::View>>>
 class ChainView {
-public:
+ public:
   using InputView = typename Cursor::View;
 
-private:
+ private:
   using data_t = typename Cursor::Data;
 
   InputView input_;
   data_t    data_;
 
-public:
+ public:
   ChainView( InputView&& input, data_t&& data )
     : input_( std::move( input ) ), data_( std::move( data ) ) {}
 
@@ -574,7 +574,7 @@ public:
     ChainView const* view_ = nullptr;
     Cursor           cursor_;
 
-  public:
+   public:
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
     using value_type        = ChainView::value_type;
@@ -633,7 +633,7 @@ public:
     ChainView const* view_ = nullptr;
     Cursor           cursor_;
 
-  public:
+   public:
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
     using value_type        = ChainView::value_type;
@@ -843,7 +843,8 @@ public:
   /**************************************************************
   ** CursorBase
   ***************************************************************/
-private:
+
+ private:
   // Used to remove some redundancy from Cursors.  Uses CRTP.
   template<typename Derived>
   class CursorBase {
@@ -853,7 +854,7 @@ private:
 
     Derived* derived() { return static_cast<Derived*>( this ); }
 
-  public:
+   public:
     using View = ChainView;
 
     using iterator = typename ChainView::iterator;
@@ -891,7 +892,8 @@ private:
   /**************************************************************
   ** Chain Maker
   ***************************************************************/
-private:
+
+ private:
   // Add another element to the chain.
   template<typename NewCursor, typename... Args>
   auto make_chain( Args&&... args ) {
@@ -914,7 +916,7 @@ private:
   using func_storage_t =
       decltype( check_fn_ptr( std::declval<T>() ) );
 
-public:
+ public:
   /**************************************************************
   ** KeepIf
   ***************************************************************/
@@ -970,7 +972,7 @@ public:
 
     Derived* derived() { return static_cast<Derived*>( this ); }
 
-  public:
+   public:
     using func_t = std::remove_reference_t<Func>;
     struct Data {
       Data() = default;

@@ -45,7 +45,7 @@ struct UnitActivationInfo {
 ** UnitActivationView
 *****************************************************************/
 class UnitActivationView final : public CompositeSingleView {
-public:
+ public:
   using map_t = std::unordered_map<UnitId, UnitActivationInfo>;
 
   // Preferred way to create.
@@ -59,7 +59,7 @@ public:
 
   map_t& info_map() { return info_map_; }
 
-private:
+ private:
   void on_click_unit( UnitId id );
 
   bool  allow_activation_{};

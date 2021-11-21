@@ -36,7 +36,7 @@ namespace rn::serial {
 class ByteBuffer {
   using byte_t = uint8_t;
 
-public:
+ public:
   ByteBuffer( byte_t* buf, int size )
     : size_( size ), buf_( buf ) {}
 
@@ -48,13 +48,13 @@ public:
   byte_t const* get() const { return buf_.get(); }
   byte_t*       get() { return buf_.get(); }
 
-private:
+ private:
   int                       size_{ 0 };
   std::unique_ptr<byte_t[]> buf_{};
 };
 
 class BinaryBlob {
-public:
+ public:
   BinaryBlob( uint8_t* buf, int size, int offset )
     : buf_( buf, size ), offset_( offset ) {}
 
@@ -97,7 +97,7 @@ public:
 
   int size() const { return buf_.size() - offset_; }
 
-private:
+ private:
   ByteBuffer buf_;
   int        offset_;
 };

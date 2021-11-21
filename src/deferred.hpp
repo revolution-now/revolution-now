@@ -27,7 +27,7 @@ namespace rn {
 // ferred` will avoid.
 template<typename T>
 class deferred {
-public:
+ public:
   static_assert( !std::is_default_constructible_v<T>,
                  "The `deferred` wrapper is only to be used for "
                  "non-default-constructible types" );
@@ -70,7 +70,7 @@ public:
     return *val_;
   }
 
-private:
+ private:
   maybe<T> val_;
 };
 

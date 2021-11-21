@@ -49,10 +49,10 @@ struct SAVEGAME_STRUCT( Terrain ) {
   ( Matrix<LandSquare>, world_map ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
-private:
+ private:
   SAVEGAME_FRIENDS( Terrain );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

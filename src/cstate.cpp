@@ -52,13 +52,13 @@ struct SAVEGAME_STRUCT( Colony ) {
   ( StorageMap_t, colonies  ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
   unordered_map<Coord, ColonyId>  colony_from_coord;
   unordered_map<string, ColonyId> colony_from_name;
 
-private:
+ private:
   SAVEGAME_FRIENDS( Colony );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

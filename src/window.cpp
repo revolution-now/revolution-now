@@ -103,7 +103,7 @@ NOTHROW_MOVE( Window );
 ** WindowManager
 *****************************************************************/
 class WindowManager {
-public:
+ public:
   void draw_layout( Texture& tx ) const;
 
   ND Plane::e_input_handled input( input::event_t const& event );
@@ -122,7 +122,7 @@ public:
 
   int num_windows() const { return windows_.size(); }
 
-public:
+ public:
   void add_window( Window* win ) { windows_.push_back( win ); }
 
   void remove_window( Window* p_win ) {
@@ -130,7 +130,7 @@ public:
     if( dragging_win_ == p_win ) dragging_win_ = nullptr;
   }
 
-private:
+ private:
   // Gets the window with focus, throws if no windows.
   Window& focused();
 

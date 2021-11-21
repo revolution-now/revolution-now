@@ -80,7 +80,7 @@ struct StackTracePrinter {
 
   bw::TraceResolver const &resolver() const { return _resolver; }
 
-private:
+ private:
   bw::TraceResolver  _resolver;
   bw::SnippetFactory _snippets;
 

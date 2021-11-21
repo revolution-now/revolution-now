@@ -27,7 +27,7 @@ namespace rn {
 
 // This viewport also knows where it is located on screen.
 class SmoothViewport {
-public:
+ public:
   bool operator==( SmoothViewport const& ) const = default;
 
   // Note: this constructor will not itself put the object in a
@@ -116,7 +116,7 @@ public:
 
   valid_deserial_t check_invariants_safe() const;
 
-private:
+ private:
   void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
 

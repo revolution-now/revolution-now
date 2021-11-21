@@ -44,7 +44,7 @@ struct indexer_base {
     return pred_.this_cthread();
   }
 
-protected:
+ protected:
   Predecessor pred_;
 };
 
@@ -118,7 +118,7 @@ struct indexer : indexer_base<Predecessor> {
     return lua::cast<T>( *this );
   }
 
-private:
+ private:
   IndexT index_;
 };
 

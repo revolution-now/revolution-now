@@ -146,7 +146,7 @@ private:
     std::string name_;
   };
 
-public:
+ public:
   proxy operator[]( std::string_view sv ) {
     return proxy( *this, sv );
   }
@@ -158,7 +158,7 @@ public:
     return res;
   }
 
-private:
+ private:
   template<typename O, typename Func, typename... Args>
   static auto make_flattened_member_function(
       Func&& func, mp::list<Args...>* ) {

@@ -40,7 +40,7 @@
 /****************************************************************
 ** MOCK_METHOD Macros
 *****************************************************************/
-#define MOCK_TO_FN_ARGS( type, var ) type var
+#define MOCK_TO_FN_ARGS( type, var )   type var
 #define MOCK_GET_ARG_VARS( type, var ) var
 
 #define MOCK_METHOD( ret_type, fn_name, fn_args,      \
@@ -136,7 +136,7 @@ struct Responder;
 template<typename RetT, typename... Args, size_t... Idx>
 struct Responder<RetT, std::tuple<Args...>,
                  std::index_sequence<Idx...>> {
-public:
+ public:
   using args_t      = std::tuple<Args...>;
   using args_refs_t = std::tuple<Args const&...>;
   using matchers_t  = std::tuple<MatcherWrapper<Args>...>;
@@ -214,7 +214,7 @@ public:
     return *this;
   }
 
-private:
+ private:
   base::maybe<RetHolder<RetT>> ret_ = {};
   // setters_t is wrapped in a maybe for efficiency purposes; in
   // most cases there will be no parameter setting, and so then

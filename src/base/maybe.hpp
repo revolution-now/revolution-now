@@ -127,7 +127,7 @@ inline constexpr bool is_nothing_v<nothing_t> = true;
 template<typename T>
 requires MaybeTypeRequirements<T> /* clang-format off */
 class [[nodiscard]] maybe { /* clang-format on */
-public:
+ public:
   /**************************************************************
   ** Types
   ***************************************************************/
@@ -154,7 +154,8 @@ public:
   /**************************************************************
   ** Destruction
   ***************************************************************/
-private:
+
+ private:
   constexpr void destroy_if_active() {
     if constexpr( !std::is_trivially_destructible_v<T> ) {
       if( active_ ) ( **this ).T::~T();
@@ -164,7 +165,7 @@ private:
     }
   }
 
-public:
+ public:
 #ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
   constexpr ~maybe() noexcept
       requires( std::is_trivially_destructible_v<T> ) = default;
@@ -656,14 +657,15 @@ public:
   /**************************************************************
   ** value_or
   ***************************************************************/
-private:
+
+ private:
   // C++ does not support returning C array types by value from
   // functions, so we need to check for that here otherwise the
   // value_or methods below will cause hard compile errors.
   using return_type_for_arrays =
       std::conditional_t<std::is_array_v<T>, void, T>;
 
-public:
+ public:
   template<typename U = T>
   // clang-format off
   [[nodiscard]] return_type_for_arrays constexpr
@@ -979,9 +981,10 @@ public:
   /**************************************************************
   ** Storage
   ***************************************************************/
-private :
-  // This allows maybe<T> to access private members of maybe<U>.
-  template<typename U>
+
+ private :
+   // This allows maybe<T> to access private members of maybe<U>.
+   template<typename U>
   requires MaybeTypeRequirements<U>
   friend class maybe;
 
@@ -1025,7 +1028,7 @@ private :
 template<typename T>
 requires MaybeTypeRequirements<T> /* clang-format off */
 class [[nodiscard]] maybe<T&> { /* clang-format on */
-public:
+ public:
   /**************************************************************
   ** Types
   ***************************************************************/
@@ -1273,9 +1276,9 @@ public:
     return res;
   }
 
-private :
-  // This allows maybe<T> to access private members of maybe<U>.
-  template<typename U>
+ private :
+   // This allows maybe<T> to access private members of maybe<U>.
+   template<typename U>
   requires MaybeTypeRequirements<U>
   friend class maybe;
 

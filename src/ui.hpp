@@ -22,7 +22,7 @@ class Texture;
 namespace rn::ui {
 
 class Object {
-public:
+ public:
   Object()                = default;
   virtual ~Object()       = default;
   Object( Object const& ) = delete;

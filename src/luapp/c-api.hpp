@@ -609,7 +609,7 @@ struct c_api {
   ***************************************************************/
   void print_stack( std::string_view label = "" ) noexcept;
 
-private:
+ private:
   bool                 get( int idx, bool* ) noexcept;
   boolean              get( int idx, boolean* ) noexcept;
   base::maybe<integer> get( int idx, integer* ) noexcept;
@@ -641,7 +641,7 @@ private:
   // Initialize with a Lua state and whether we own it.
   c_api( cthread state, bool own );
 
-private:
+ private:
   c_api( c_api const& ) = delete;
   c_api( c_api&& )      = delete;
   c_api& operator=( c_api const& ) = delete;

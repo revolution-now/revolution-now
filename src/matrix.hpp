@@ -33,7 +33,7 @@ class Matrix {
   W              w_ = 0_w;
   std::vector<T> data_{};
 
-public:
+ public:
   Matrix( W w, H h ) : w_( w ) {
     CHECK( w >= 0_w );
     CHECK( h >= 0_h );

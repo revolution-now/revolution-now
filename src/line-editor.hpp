@@ -30,7 +30,7 @@ class LineEditor {
   std::string buffer_{};
   int         pos_ = 0;
 
-public:
+ public:
   LineEditor() = default;
   LineEditor( std::string buffer, int pos );
 
@@ -72,7 +72,7 @@ class LineEditorInputView {
   // Size of the window.
   int width_;
 
-public:
+ public:
   LineEditorInputView( int w ) : width_( w ) {}
 
   int width() const { return width_; }

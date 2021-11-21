@@ -56,7 +56,7 @@ struct any : base::zero<any, int> {
   template<typename U>
   auto operator[]( U&& idx ) const noexcept;
 
-private:
+ private:
   using Base = base::zero<any, int>;
   friend Base;
 
@@ -66,7 +66,7 @@ private:
   // Implement base::zero.
   int copy_resource() const;
 
-protected:
+ protected:
   void lua_push_impl( cthread L ) const;
 
   cthread L; // not owned.

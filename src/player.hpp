@@ -25,7 +25,7 @@
 namespace rn {
 
 class Player {
-public:
+ public:
   Player() = default; // for serialization framework.
   Player( e_nation nation, bool is_human, int money );
   MOVABLE_ONLY( Player );
@@ -38,7 +38,7 @@ public:
     return valid;
   }
 
-private:
+ private:
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, Player,
   ( e_nation, nation_ ),

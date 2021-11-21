@@ -40,7 +40,7 @@ template<typename... Args>
 class variant : public std::variant<Args...> {
   using Base = std::variant<Args...>;
 
-public:
+ public:
   /**************************************************************
   ** Referring to base class.
   ***************************************************************/

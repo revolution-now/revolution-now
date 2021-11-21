@@ -25,7 +25,7 @@ namespace gl {
 *****************************************************************/
 template<typename Derived>
 struct bindable {
-private:
+ private:
   struct [[nodiscard]] binder {
     binder( Derived const& derived )
       : derived_( derived ), prev_( Derived::current_bound() ) {
@@ -41,18 +41,18 @@ private:
 
     NO_COPY_NO_MOVE( binder );
 
-  private:
+   private:
     Derived const& derived_;
     ObjId          prev_;
   };
 
-public:
+ public:
   binder bind() const { return binder( derived() ); }
 
-protected:
+ protected:
   bindable() = default;
 
-private:
+ private:
   Derived const& derived() const {
     return static_cast<Derived const&>( *this );
   }

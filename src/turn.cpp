@@ -141,10 +141,10 @@ struct SAVEGAME_STRUCT( Turn ) {
   ( TurnState, turn ));
   // clang-format on
 
-public:
+ public:
   // Fields that are derived from the serialized fields.
 
-private:
+ private:
   SAVEGAME_FRIENDS( Turn );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields

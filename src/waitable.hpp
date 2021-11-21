@@ -44,7 +44,7 @@ namespace detail {
 
 template<typename T>
 class waitable_shared_state {
-public:
+ public:
   waitable_shared_state()  = default;
   ~waitable_shared_state() = default;
 
@@ -157,7 +157,7 @@ public:
       ( *exception_ucallback_ )( eptr_ );
   }
 
-private:
+ private:
   // Accumulates callbacks in a list, then when the value eventu-
   // ally becomes ready, it will call them all in order. Any
   // callbacks added after the value is ready will be called im-
@@ -223,7 +223,7 @@ class [[nodiscard]] waitable {
   using SharedStatePtr =
       std::shared_ptr<detail::waitable_shared_state<U>>;
 
-public:
+ public:
   using value_type = T;
 
   waitable( T const& ready_val );
@@ -284,7 +284,7 @@ public:
     if( shared_state_ ) shared_state_->cancel();
   }
 
-private:
+ private:
   SharedStatePtr<T> shared_state_;
 };
 
@@ -293,7 +293,7 @@ private:
 *****************************************************************/
 template<typename T>
 class waitable_promise {
-public:
+ public:
   waitable_promise()
     : shared_state_( new detail::waitable_shared_state<T> ) {
     // shared state ref count should initialize to 1.
@@ -385,7 +385,7 @@ public:
     set_value_emplace( std::forward<Args>( args )... );
   }
 
-private:
+ private:
   // This is because it is often that we have to capture promises
   // in lambdas, which this allows us to set the value on the
   // promise without making the lambda mutable, which tends to be

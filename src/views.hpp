@@ -38,7 +38,7 @@ namespace rn::ui {
 ** Fundamental Views
 *****************************************************************/
 class CompositeView : public View {
-public:
+ public:
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
@@ -102,12 +102,12 @@ public:
   citer begin() const { return citer{ this, 0 }; }
   citer end() const { return citer{ this, count() }; }
 
-private:
+ private:
   bool dispatch_mouse_event( input::event_t const& event );
 };
 
 class CompositeSingleView : public CompositeView {
-public:
+ public:
   CompositeSingleView() = default;
   CompositeSingleView( std::unique_ptr<View> view, Coord coord );
 
@@ -127,13 +127,13 @@ public:
     notify_children_updated();
   }
 
-private:
+ private:
   std::unique_ptr<View> view_;
   Coord                 coord_;
 };
 
 class VectorView : public CompositeView {
-public:
+ public:
   VectorView() {}
 
   VectorView( std::vector<OwningPositionedView> views )
@@ -159,14 +159,14 @@ public:
     return views_[idx];
   }
 
-private:
+ private:
   std::vector<OwningPositionedView> views_;
 };
 
 // Just a view for holding a collection of other views but which
 // has a fixed size and is invisible.
 class InvisibleView : public VectorView {
-public:
+ public:
   InvisibleView( Delta                             size,
                  std::vector<OwningPositionedView> views )
     : VectorView( std::move( views ) ), size_( size ) {}
@@ -179,7 +179,7 @@ public:
 
   void set_delta( Delta const& size ) { size_ = size; }
 
-private:
+ private:
   // We need to store the size because it cannot be derived from
   // the child views.
   Delta size_;
@@ -189,7 +189,7 @@ private:
 ** Simple Views
 *****************************************************************/
 class SolidRectView : public View {
-public:
+ public:
   SolidRectView( Color color ) : color_( color ), delta_{} {}
 
   SolidRectView( Color color, Delta delta )
@@ -202,13 +202,13 @@ public:
 
   void set_delta( Delta const& delta ) { delta_ = delta; }
 
-protected:
+ protected:
   Color color_;
   Delta delta_;
 };
 
 class OneLineStringView : public View {
-public:
+ public:
   OneLineStringView( std::string msg, Color color, bool shadow );
 
   // Implement Object
@@ -220,13 +220,13 @@ public:
 
   bool needs_padding() const override { return true; }
 
-protected:
+ protected:
   std::string msg_;
   Texture     tx_;
 };
 
 class TextView : public View {
-public:
+ public:
   TextView( std::string_view msg, TextMarkupInfo const& m_info,
             TextReflowInfo const& r_info );
 
@@ -237,12 +237,12 @@ public:
 
   bool needs_padding() const override { return true; }
 
-protected:
+ protected:
   Texture tx_;
 };
 
 class ButtonBaseView : public View {
-public:
+ public:
   enum class e_type { standard, blink };
 
   ButtonBaseView( std::string label );
@@ -258,7 +258,7 @@ public:
 
   bool needs_padding() const override { return true; }
 
-protected:
+ protected:
   enum class button_state { down, up, hover, disabled };
 
   void set_state( button_state state ) { state_ = state; }
@@ -270,7 +270,7 @@ protected:
   void   set_type( e_type type ) { type_ = type; }
   e_type type() const { return type_; }
 
-private:
+ private:
   void render( std::string const& label, Delta size_in_blocks );
 
   button_state state_{ button_state::up };
@@ -284,7 +284,7 @@ private:
 };
 
 class SpriteView : public View {
-public:
+ public:
   SpriteView( e_tile tile ) : tile_( tile ) {}
 
   // Implement Object
@@ -294,12 +294,12 @@ public:
     return Delta{ 1_w, 1_h } * lookup_sprite( tile_ ).scale;
   }
 
-private:
+ private:
   e_tile tile_;
 };
 
 class LineEditorView : public View {
-public:
+ public:
   using OnChangeFunc = std::function<void( std::string const& )>;
 
   LineEditorView( int              chars_wide,
@@ -342,7 +342,7 @@ public:
   void set( std::string_view new_string,
             maybe<int>       cursor_pos = nothing );
 
-private:
+ private:
   void render_background( Delta const& size );
   void update_visible_string();
 
@@ -362,7 +362,7 @@ private:
 ** Derived Views
 *****************************************************************/
 class PlainMessageBoxView : public CompositeSingleView {
-public:
+ public:
   static std::unique_ptr<PlainMessageBoxView> create(
       std::string_view msg, waitable_promise<> on_close );
 
@@ -375,14 +375,14 @@ public:
 
   bool on_key( input::key_event_t const& event ) override;
 
-private:
+ private:
   waitable_promise<> on_close_;
 };
 
 // Should not be used directly; will generally be inserted
 // automatically by the auto-pad mechanism.
 class PaddingView : public CompositeSingleView {
-public:
+ public:
   PaddingView( std::unique_ptr<View> view, int pixels, bool l,
                bool r, bool u, bool d );
 
@@ -394,14 +394,14 @@ public:
 
   bool can_pad_immediate_children() const override;
 
-private:
+ private:
   int   pixels_;
   bool  l_, r_, u_, d_;
   Delta delta_;
 };
 
 class ButtonView : public ButtonBaseView {
-public:
+ public:
   using OnClickFunc = std::function<void( void )>;
   ButtonView( std::string label, OnClickFunc on_click );
   ButtonView( std::string label, Delta size_in_blocks,
@@ -418,12 +418,12 @@ public:
 
   void blink( bool enabled = true );
 
-private:
+ private:
   OnClickFunc on_click_;
 };
 
 class OkCancelView : public CompositeView {
-public:
+ public:
   OkCancelView( ButtonView::OnClickFunc on_ok,
                 ButtonView::OnClickFunc on_cancel );
 
@@ -439,7 +439,7 @@ public:
   ButtonView* ok_button() { return ok_ref_; }
   ButtonView* cancel_button() { return cancel_ref_; }
 
-private:
+ private:
   std::unique_ptr<View> ok_;
   std::unique_ptr<View> cancel_;
   // Cache these to avoid dynamic_casts.
@@ -448,7 +448,7 @@ private:
 };
 
 class OkButtonView : public CompositeSingleView {
-public:
+ public:
   OkButtonView( ButtonView::OnClickFunc on_ok );
 
   // Implement CompositeView
@@ -456,7 +456,7 @@ public:
 
   ButtonView* ok_button() { return ok_ref_; }
 
-private:
+ private:
   // Cache this to avoid dynamic_casts.
   ButtonView* ok_ref_;
 };
@@ -467,7 +467,7 @@ private:
 // tion of justification arises because the views in the array
 // will generally have different widths.
 class VerticalArrayView : public VectorView {
-public:
+ public:
   enum class align { left, right, center };
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
                      align                              how );
@@ -477,7 +477,7 @@ public:
 
   void recompute_child_positions();
 
-private:
+ private:
   align alignment_;
 };
 
@@ -487,7 +487,7 @@ private:
 // tion of justification arises because the views in the array
 // will generally have different heights.
 class HorizontalArrayView : public VectorView {
-public:
+ public:
   enum class align { up, down, middle };
   HorizontalArrayView( std::vector<std::unique_ptr<View>> views,
                        align                              how );
@@ -497,12 +497,12 @@ public:
 
   void recompute_child_positions();
 
-private:
+ private:
   align alignment_;
 };
 
 class OkCancelAdapterView : public VerticalArrayView {
-public:
+ public:
   using OnClickFunc = std::function<void( e_ok_cancel )>;
   OkCancelAdapterView( std::unique_ptr<View> view,
                        OnClickFunc           on_click );
@@ -511,7 +511,7 @@ public:
 enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {
-public:
+ public:
   OptionSelectItemView( std::string msg );
 
   // Implement CompositeView
@@ -535,7 +535,7 @@ public:
     return false;
   }
 
-private:
+ private:
   e_option_active       active_;
   std::unique_ptr<View> background_active_;
   std::unique_ptr<View> background_inactive_;
@@ -544,7 +544,7 @@ private:
 };
 
 class OptionSelectView : public VectorView {
-public:
+ public:
   OptionSelectView( std::vector<std::string> const& options,
                     int initial_selection );
 
@@ -562,7 +562,7 @@ public:
   }
   bool needs_padding() const override { return true; }
 
-private:
+ private:
   OptionSelectItemView*       get_view( int item );
   OptionSelectItemView const* get_view( int item ) const;
   void                        set_selected( int item );
@@ -571,7 +571,7 @@ private:
 };
 
 class FakeUnitView : public CompositeSingleView {
-public:
+ public:
   FakeUnitView( e_unit_type type, e_nation nation,
                 e_unit_orders orders );
 
@@ -585,14 +585,14 @@ public:
 
   bool needs_padding() const override { return true; }
 
-private:
+ private:
   e_unit_type   type_;
   e_nation      nation_;
   e_unit_orders orders_;
 };
 
 class ClickableView : public CompositeSingleView {
-public:
+ public:
   using OnClick = std::function<void( void )>;
 
   ClickableView( std::unique_ptr<View> view, OnClick on_click );
@@ -603,12 +603,12 @@ public:
   // Implement CompositeView
   void notify_children_updated() override {}
 
-private:
+ private:
   OnClick on_click_;
 };
 
 class BorderView : public CompositeSingleView {
-public:
+ public:
   // padding is how many pixels between inner view and border.
   BorderView( std::unique_ptr<View> view, Color color,
               int padding, bool on_initially );
@@ -633,7 +633,7 @@ public:
   void on( bool v ) { on_ = v; }
   bool is_on() const { return on_; }
 
-private:
+ private:
   Color color_;
   bool  on_;
   int   padding_;

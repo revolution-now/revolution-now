@@ -1460,7 +1460,7 @@ struct MenuPlane : public Plane {
         } );
   }
 
-private:
+ private:
   void click_menu_item( e_menu_item item ) {
     switch( g_menu_state.to_enum() ) {
       case MenuState::e::item_click: {

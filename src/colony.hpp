@@ -37,7 +37,7 @@
 namespace rn {
 
 class Colony {
-public:
+ public:
   Colony()  = default; // for serialization framework.
   ~Colony() = default;
   Colony( Colony const& ) = delete;
@@ -103,7 +103,7 @@ public:
     return valid;
   }
 
-private:
+ private:
   friend expect<ColonyId, std::string> cstate_create_colony(
       e_nation nation, Coord const& where,
       std::string_view name );

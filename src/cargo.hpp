@@ -63,7 +63,7 @@ NOTHROW_MOVE( Cargo );
 namespace rn {
 
 class ND CargoHold {
-public:
+ public:
   CargoHold() = default; // for serialization framework.
   explicit CargoHold( int num_slots ) : slots_( num_slots ) {
     check_invariants_or_abort();
@@ -192,7 +192,7 @@ public:
   // FIXME: fix naming of these functions.
   valid_deserial_t check_invariants_post_load() const;
 
-protected:
+ protected:
   valid_or<generic_err> check_invariants() const;
   void                  check_invariants_or_abort() const;
 
@@ -249,7 +249,7 @@ protected:
   ( std::vector<CargoSlot_t>, slots_ ));
   // clang-format on
 
-private:
+ private:
   CargoHold( CargoHold const& ) = default; // !! default
   CargoHold operator=( CargoHold const& ) = delete;
 };

@@ -39,7 +39,7 @@ namespace rn {
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
 class ND Unit {
-public:
+ public:
   Unit()  = default; // for serialization framework.
   ~Unit() = default;
 
@@ -164,7 +164,7 @@ public:
   std::vector<UnitTransformationFromCommodityResult>
   with_commodity_added( Commodity const& commodity ) const;
 
-private:
+ private:
   friend UnitId create_unit( e_nation        nation,
                              UnitComposition type );
   friend UnitId create_unit( e_nation nation, UnitType type );

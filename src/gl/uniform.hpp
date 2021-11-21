@@ -41,7 +41,7 @@ struct UniformSpec {
 struct UniformNonTyped {
   UniformNonTyped( ObjId pgrm_id, std::string_view name );
 
-protected:
+ protected:
   using set_valid_t = base::valid_or<std::string>;
   // Use the safe-num types as parameters so that there are no
   // ambiguities/uncertainties due to implicit conversions.
@@ -50,7 +50,7 @@ protected:
   set_valid_t set( base::safe::boolean val ) const;
   set_valid_t set( vec2 val ) const;
 
-private:
+ private:
   ObjId pgrm_id_;
   int   location_;
 };
@@ -78,7 +78,7 @@ struct Uniform : UniformNonTyped {
     return this->UniformNonTyped::set( val );
   }
 
-private:
+ private:
   base::maybe<T> cache_;
 };
 

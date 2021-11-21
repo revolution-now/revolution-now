@@ -19,7 +19,7 @@ namespace rn {
 
 // A MusicPlayer with a MIDI sequencer backend.
 class OggMusicPlayer : public MusicPlayer {
-public:
+ public:
   static std::pair<MusicPlayerDesc, MaybeMusicPlayer> player();
 
   // Implement MusicPlayer
@@ -57,7 +57,7 @@ public:
   // Implement MusicPlayer
   void set_volume( double volume ) override;
 
-private:
+ private:
   OggMusicPlayer() = default;
   friend void init_oggplayer();
 };
