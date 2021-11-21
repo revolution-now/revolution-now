@@ -25,19 +25,22 @@ namespace {
 
 using namespace std;
 
-using ::mock::_;
+using namespace ::mock::matchers;
 
 struct Vertex {
   float x;
   float y;
 };
 
-TEST_CASE( "[vertex-buffer] some test" ) {
+TEST_CASE( "[vertex-buffer] creation" ) {
   gl::MockOpenGL mock;
-  gl::set_global_gl_implementation( &mock );
+
   EXPECT_MULTIPLE_CALLS( mock, gl_GetError() )
       .returns( GL_NO_ERROR );
 
+  EXPECT_CALL( mock, gl_GenBuffers( 1, _ ) ).sets_arg<1>( 42 );
+  EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 42 ) ) );
+  VertexBuffer<Vertex> buf;
 }
 
 } // namespace

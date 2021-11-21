@@ -24,7 +24,18 @@
 
 namespace gl {
 
+// This is a special implementation of IOpenGL that not only pro-
+// vides mocked methods, but also sets/restores the global
+// IOpenGL instance uponn construction/destruction.
 struct MockOpenGL : IOpenGL {
+private:
+  IOpenGL* prev_;
+
+public:
+  MockOpenGL();
+
+  ~MockOpenGL();
+
   MOCK_GL_METHOD( void, gl_AttachShader,
                   ( ( GLuint, program ), ( GLuint, shader ) ) );
   MOCK_GL_METHOD( void, gl_BindBuffer,
