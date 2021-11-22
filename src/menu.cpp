@@ -1353,8 +1353,9 @@ struct MenuPlane : public Plane {
             e_input_handled operator()(
                 MouseOver::header header ) {
               if( holds<MenuState::menu_open>( g_menu_state ) )
-                g_menu_state = MenuState::menu_open{
-                    header.menu, /*hover=*/{} };
+                g_menu_state =
+                    MenuState::menu_open{ header.menu,
+                                          /*hover=*/{} };
               if( holds<MenuState::menus_closed>(
                       g_menu_state ) )
                 g_menu_state = MenuState::menus_closed{
@@ -1411,8 +1412,9 @@ struct MenuPlane : public Plane {
                 },
                 []( MouseOver::header header ) {
                   if( !is_menu_open( header.menu ) )
-                    g_menu_state = MenuState::menu_open{
-                        header.menu, /*hover=*/{} };
+                    g_menu_state =
+                        MenuState::menu_open{ header.menu,
+                                              /*hover=*/{} };
                   else
                     g_menu_state = MenuState::menus_closed{
                         /*hover=*/header.menu };

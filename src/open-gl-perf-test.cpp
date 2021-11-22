@@ -143,7 +143,8 @@ int upload_sprites_buffer( OpenGLObjects* gl_objects,
             { .x = red, .y = 0.0, .z = 0.0 },
             // Sprite Center
             { .x = float( center.x._ ),
-              .y = float( center.y._ ) } };
+               .y = float( center.y._ ) },
+        };
       };
 
       add_vertex( coord, tx_ox, tx_oy, /*red=*/1.0 );

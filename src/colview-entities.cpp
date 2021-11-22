@@ -226,7 +226,7 @@ class MarketCommodities : public ui::View,
     if( quantity == 0 ) return nothing;
     return ColViewObjectWithBounds{
         .obj    = ColViewObject::commodity{ Commodity{
-            .type = type, .quantity = quantity } },
+               .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
             Delta{ 1_w, 1_h } * kCommodityTileScale ) };

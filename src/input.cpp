@@ -309,15 +309,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           drag_event.state = drag_state_t{ /*origin=*/val.origin,
                                            /*phase=*/val.phase };
           event            = drag_event;
-        }
-        else if( holds<drag_phase::maybe>( l_drag ) ) {
+        } else if( holds<drag_phase::maybe>( l_drag ) ) {
           l_drag = drag_phase::none{};
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::left_up;
           event                = button_event;
-        }
-        else {
+        } else {
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::left_up;
@@ -338,15 +336,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           drag_event.state = drag_state_t{ /*origin=*/val.origin,
                                            /*phase=*/val.phase };
           event            = drag_event;
-        }
-        else if( holds<drag_phase::maybe>( r_drag ) ) {
+        } else if( holds<drag_phase::maybe>( r_drag ) ) {
           r_drag = drag_phase::none{};
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::right_up;
           event                = button_event;
-        }
-        else {
+        } else {
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::right_up;

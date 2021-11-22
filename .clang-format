@@ -48,7 +48,7 @@ EmptyLineBeforeAccessModifier:                                Always
 EmptyLineAfterAccessModifier:                                 Never
 FixNamespaceComments:                                         true
 ForEachMacros:                                                []
-# (ENABLE WHEN SUPPORTED) IfMacros:                           ['if_get']
+IfMacros:                                                     ['if_get']
 #IncludeBlocks:                                               Preserve
 IncludeCategories: 
   - Regex:           '^<ext/.*\.h>'
@@ -69,13 +69,13 @@ IndentWidth:                                                  2
 IndentWrappedFunctionNames:                                   false
 IndentRequires:                                               false
 KeepEmptyLinesAtTheStartOfBlocks:                             false
-# (ENABLE WHEN SUPPORTED) LambdaBodyIndentation:              OuterScope
+# LambdaBodyIndentation:                                      OuterScope # Not working as expected
 MacroBlockBegin:                                              ''
 MacroBlockEnd:                                                ''
 MaxEmptyLinesToKeep:                                          1
 NamespaceIndentation:                                         None
 NamespaceMacros:                                              []
-# (ENABLE WHEN SUPPORTED) PackConstructorInitializers:        NextLine
+# PackConstructorInitializers:                                NextLine # Seems to have no effect relative to default
 PenaltyBreakAssignment:                                       2
 PenaltyBreakBeforeFirstCallParameter:                         1
 PenaltyBreakComment:                                          300
@@ -85,9 +85,9 @@ PenaltyBreakTemplateDeclaration:                              0
 PenaltyExcessCharacter:                                       1000000
 PenaltyReturnTypeOnItsOwnLine:                                200
 PointerAlignment:                                             Left
-# (ENABLE WHEN SUPPORTED) ReferenceAlignment:                 Left
+ReferenceAlignment:                                           Left
 # (ENABLE WHEN SUPPORTED) QualifierOrder:                     ['inline', 'constexpr', 'static', 'type', 'const', 'volatile' ]
-# (ENABLE WHEN SUPPORTED) PPIndentWidth:                      -1 # use IndentWidth
+PPIndentWidth:                                                -1 # use IndentWidth
 RawStringFormats: 
   - Language: Cpp
     Delimiters:      
