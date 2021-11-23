@@ -22,6 +22,10 @@ namespace lua {
 /****************************************************************
 ** raw_table_iterator
 *****************************************************************/
+// NOTE: Iteration order of keys when using lua_next is not spec-
+// ified, even for numeric indices. To iterate through the in-
+// dices of an array in order, use a numerical-for loop, or C
+// equivalent (i.e. don't use this in that case).
 struct raw_table_iterator {
   using iterator_category = std::input_iterator_tag;
   using difference_type   = int;

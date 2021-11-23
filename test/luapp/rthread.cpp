@@ -129,6 +129,7 @@ LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
   function f()
     coroutine.yield()
     local n = coroutine.yield( "hello" )
+    assert( n == 6, 'n is incorrect' )
     error( 'some error' )
   end
   )" );
@@ -146,7 +147,7 @@ LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
   REQUIRE( s == "hello" );
   REQUIRE(
       coro.resume_safe<int>( 6 ) ==
-      lua_unexpected<int>( "[string \"...\"]:5: some error" ) );
+      lua_unexpected<int>( "[string \"...\"]:6: some error" ) );
   REQUIRE( coro.status() == thread_status::err );
   REQUIRE( coro.coro_status() == coroutine_status::dead );
 }
