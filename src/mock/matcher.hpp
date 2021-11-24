@@ -12,6 +12,7 @@
 
 // base
 #include "base/error.hpp"
+#include "base/macros.hpp"
 
 // C++ standard library
 #include <concepts>
@@ -21,26 +22,36 @@
 namespace mock {
 
 /****************************************************************
-** IMatcher
+** Matcher Concepts
 *****************************************************************/
 template<typename T>
 concept MatchableValue = std::equality_comparable<T>;
 
 template<MatchableValue T>
+struct IMatcher;
+
+template<typename T>
+concept Matcher =
+    std::is_base_of_v<IMatcher<typename T::matched_type>, T>;
+
+// Without this clang format indents stuff below... strange.
+struct FixClangFormat {};
+
+/****************************************************************
+** IMatcher
+*****************************************************************/
+template<MatchableValue T>
 struct IMatcher {
   using matched_type = T;
+
+  IMatcher() = default;
+
+  MOVABLE_ONLY( IMatcher );
 
   virtual ~IMatcher() = default;
 
   virtual bool matches( T const& val ) const = 0;
 };
-
-template<typename T>
-concept IsMatcher =
-    std::is_base_of_v<IMatcher<typename T::matched_type>, T>;
-
-// Without this clang format indents stuff below... strange.
-struct FixClangFormat {};
 
 /****************************************************************
 ** Special Matchers
@@ -95,12 +106,12 @@ struct MatcherWrapper {
 
   template<typename U>
   requires( MatchableValue<std::remove_cvref_t<U>> &&
-            !IsMatcher<std::remove_cvref_t<U>> )
+            !Matcher<std::remove_cvref_t<U>> )
       MatcherWrapper( U&& val )
     : matcher_( std::make_unique<matchers::Value<T>>(
           std::forward<U>( val ) ) ) {}
 
-  template<IsMatcher U>
+  template<Matcher U>
   requires std::is_same_v<typename U::matched_type, T>
   MatcherWrapper( U&& val )
     : matcher_( std::make_unique<U>( std::forward<U>( val ) ) ) {

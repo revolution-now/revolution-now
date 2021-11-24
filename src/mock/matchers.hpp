@@ -65,7 +65,7 @@ struct PointeeMatcher : IMatcher<T const*> {
 template<typename T>
 auto Pointee( T&& arg ) {
   using base_t = std::remove_reference_t<T>;
-  if constexpr( IsMatcher<base_t> ) {
+  if constexpr( Matcher<base_t> ) {
     return detail::PointeeMatcher<typename base_t::matched_type>(
         std::forward<T>( arg ) );
   } else {
