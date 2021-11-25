@@ -66,31 +66,28 @@ struct IPoint {
 struct MockPoint : IPoint {
   MOCK_METHOD( int, get_x, (), ( const ) );
   MOCK_METHOD( int, get_y, (), ( const ) );
-  MOCK_METHOD( bool, get_xy,
-               ( ( int*, x_out ), ( int&, y_out ) ), ( const ) );
-  MOCK_METHOD( void, set_x, ( ( int, x ) ), () );
-  MOCK_METHOD( void, set_y, ( ( int, y ) ), () );
-  MOCK_METHOD( void, set_xy, ( ( int, x ), ( int, y ) ), () );
+  MOCK_METHOD( bool, get_xy, (int*, int&), ( const ) );
+  MOCK_METHOD( void, set_x, (int), () );
+  MOCK_METHOD( void, set_y, (int), () );
+  MOCK_METHOD( void, set_xy, (int, int), () );
 
-  MOCK_METHOD( void, set_x_from_ptr, ( ( int*, x ) ), () );
-  MOCK_METHOD( void, set_x_from_const_ptr, ( ( int const*, x ) ),
+  MOCK_METHOD( void, set_x_from_ptr, (int*), () );
+  MOCK_METHOD( void, set_x_from_const_ptr, (int const*), () );
+  MOCK_METHOD( void, set_x_from_ptr_ptr, (int**), () );
+  MOCK_METHOD( void, set_x_from_const_ptr_ptr, (int const**),
                () );
-  MOCK_METHOD( void, set_x_from_ptr_ptr, ( ( int**, x ) ), () );
-  MOCK_METHOD( void, set_x_from_const_ptr_ptr,
-               ( ( int const**, x ) ), () );
-  MOCK_METHOD( void, set_x_from_ptr_const_ptr,
-               ( ( int* const*, x ) ), () );
+  MOCK_METHOD( void, set_x_from_ptr_const_ptr, (int* const*),
+               () );
   MOCK_METHOD( void, set_x_from_const_ptr_const_ptr,
-               ( ( int const* const*, x ) ), () );
+               (int const* const*), () );
 
-  MOCK_METHOD( void, set_x_from_uptr, ( ( unique_ptr<int>, x ) ),
-               () );
+  MOCK_METHOD( void, set_x_from_uptr, (unique_ptr<int>), () );
   MOCK_METHOD( void, set_x_from_uptr_ref,
-               ( ( unique_ptr<int> const&, x ) ), () );
+               (unique_ptr<int> const&), () );
   MOCK_METHOD( void, set_x_from_const_uptr,
-               ( ( unique_ptr<int const>, x ) ), () );
+               (unique_ptr<int const>), () );
   MOCK_METHOD( void, set_x_from_const_uptr_ref,
-               ( ( unique_ptr<int const> const&, x ) ), () );
+               (unique_ptr<int const> const&), () );
 
   MOCK_METHOD( double, length, (), ( const ) );
 };

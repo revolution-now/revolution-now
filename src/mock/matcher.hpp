@@ -80,7 +80,7 @@ struct Value : IMatcher<T> {
   T val_;
 };
 
-// Matches anything.
+// Matches anything of type T.
 template<typename T>
 struct Any : IMatcher<T> {
   bool matches( T const& ) const override { return true; }
@@ -90,6 +90,7 @@ namespace detail {
 struct AnyTag {};
 } // namespace detail
 
+// Matches any value of any type.
 inline constexpr auto _ = detail::AnyTag{};
 
 } // namespace matchers
@@ -97,13 +98,26 @@ inline constexpr auto _ = detail::AnyTag{};
 /****************************************************************
 ** MatcherWrapper
 *****************************************************************/
+// When matchers need to be stored in mock objects (as a result
+// of EXPECT_CALL) they are stored in these wrappers. The purpose
+// of this is to provide a concrete non-pointer type to act as a
+// target for implicit conversion/construction by whatever
+// (value, matcher, or other) object the user writes in the
+// EXPECT_CALL as the arguments to expect. An explicit value, an
+// AnyTag, or an IMatcher derivative will be handled by the con-
+// structors below, while an arbitrary object will provide an im-
+// plicit conversion operator to convert to a MatcherWrapper of a
+// requested T. The latter is required to handle subtle type type
+// conversions between desired matchers and actual matchers,
+// e.g., when we need a matcher for `unsigned const int*` but
+// we're provided one for `int const*`.
 template<MatchableValue T>
 struct MatcherWrapper {
-  MatcherWrapper() = delete;
-
-  MatcherWrapper( matchers::detail::AnyTag )
+  // This is for the wildcard matcher, `_`.
+  MatcherWrapper( decltype( matchers::_ ) )
     : matcher_( std::make_unique<matchers::Any<T>>() ) {}
 
+  // This is for explicit values that are not IMatcher derived.
   template<typename U>
   requires( MatchableValue<std::remove_cvref_t<U>> &&
             !Matcher<std::remove_cvref_t<U>> )
@@ -111,22 +125,18 @@ struct MatcherWrapper {
     : matcher_( std::make_unique<matchers::Value<T>>(
           std::forward<U>( val ) ) ) {}
 
+  // This is for IMatcher-derived objects.
   template<Matcher U>
   requires std::is_same_v<typename U::matched_type, T>
   MatcherWrapper( U&& val )
     : matcher_( std::make_unique<U>( std::forward<U>( val ) ) ) {
   }
 
-  bool matches( T const& val ) const {
-    DCHECK( matcher_ );
-    return matcher_->matches( val );
-  }
-
-  bool operator==( T const& val ) const {
-    return matches( val );
-  }
+  IMatcher<T> const& matcher() const { return *matcher_; }
 
  private:
+  MatcherWrapper() = delete;
+
   std::unique_ptr<IMatcher<T>> matcher_;
 };
 

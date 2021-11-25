@@ -28,7 +28,7 @@ struct PointeeMatcher : IMatcher<T const*> {
   PointeeMatcher( U&& val ) : child_( std::forward<U>( val ) ) {}
 
   bool matches( T const* const& val ) const override {
-    return child_.matches( *val );
+    return child_.matcher().matches( *val );
   }
 
   template<typename Target>
@@ -41,7 +41,8 @@ struct PointeeMatcher : IMatcher<T const*> {
       TargetPointeeMatcher( MatcherWrapper<T>&& child )
         : child_( std::move( child ) ) {}
       bool matches( Target const& val ) const override {
-        return child_.matches( static_cast<T const&>( *val ) );
+        return child_.matcher().matches(
+            static_cast<T const&>( *val ) );
       }
       MatcherWrapper<T> child_;
     };

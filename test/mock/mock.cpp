@@ -20,12 +20,15 @@ namespace mock {
 namespace {
 
 using namespace std;
+using ::Catch::Matches;
 using ::mock::matchers::_;
 
 /****************************************************************
 ** IPoint
 *****************************************************************/
 struct IPoint {
+  virtual ~IPoint() = default;
+
   virtual int get_x() const = 0;
 
   virtual int get_y() const = 0;
@@ -47,11 +50,10 @@ struct IPoint {
 struct MockPoint : IPoint {
   MOCK_METHOD( int, get_x, (), ( const ) );
   MOCK_METHOD( int, get_y, (), ( const ) );
-  MOCK_METHOD( bool, get_xy,
-               ( ( int*, x_out ), ( int&, y_out ) ), ( const ) );
-  MOCK_METHOD( void, set_x, ( ( int, x ) ), () );
-  MOCK_METHOD( void, set_y, ( ( int, y ) ), () );
-  MOCK_METHOD( void, set_xy, ( ( int, x ), ( int, y ) ), () );
+  MOCK_METHOD( bool, get_xy, (int*, int&), ( const ) );
+  MOCK_METHOD( void, set_x, (int), () );
+  MOCK_METHOD( void, set_y, (int), () );
+  MOCK_METHOD( void, set_xy, (int, int), () );
   MOCK_METHOD( double, length, (), ( const ) );
 };
 
@@ -155,6 +157,26 @@ TEST_CASE( "[mock] any" ) {
   EXPECT_CALL( mp, get_y() ).returns( 10 );
   EXPECT_CALL( mp, set_y( _ ) );
   REQUIRE( user.increment_y() == 11 );
+}
+
+TEST_CASE(
+    "[mock] throws on unexpected mock function argument" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( _, 5 ) );
+  REQUIRE_THROWS_WITH( PointUser( &mp ),
+                       Matches( ".*unexpected arguments.*" ) );
+}
+
+TEST_CASE( "[mock] throws on unexpected mock call" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( _, 4 ) );
+  PointUser user( &mp );
+
+  REQUIRE_THROWS_WITH(
+      user.increment_y(),
+      Matches( "unexpected mock function call.*get_y.*" ) );
 }
 
 } // namespace

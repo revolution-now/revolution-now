@@ -32,6 +32,8 @@ namespace gl {
 // loader libraries (such as Glad) define those as macros, hence
 // the underscore after the gl.
 struct IOpenGL {
+  virtual ~IOpenGL() = default;
+
   virtual void gl_AttachShader( GLuint program,
                                 GLuint shader ) = 0;
 

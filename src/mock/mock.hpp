@@ -30,18 +30,29 @@
 // This one sets a method that will (and must) be called exactly
 // once, at which point it will be removed.
 #define EXPECT_CALL( obj, method_with_args ) \
-  obj.add__##method_with_args
+  ( obj ).add__##method_with_args
 
 // This one sets a (single) method that will be repeatedly called
 // any number of times when there are no more EXPECT_CALLs.
 #define EXPECT_MULTIPLE_CALLS( obj, method_with_args ) \
-  obj.set__##method_with_args
+  ( obj ).set__##method_with_args
 
 /****************************************************************
 ** MOCK_METHOD Macros
 *****************************************************************/
-#define MOCK_TO_FN_ARGS( type, var )   type var
-#define MOCK_GET_ARG_VARS( type, var ) var
+#define MAKE_FN_ARG( n, type ) type _##n
+#define MAKE_FN_ARG_TUPLE( t ) MAKE_FN_ARG t
+
+#define MAKE_FN_ARG_FWD( n, type ) \
+  std::forward<decltype( _##n )>( _##n )
+#define MAKE_FN_ARG_FWD_TUPLE( t ) MAKE_FN_ARG_FWD t
+
+#define MAKE_FN_ARGS( fn_args )     \
+  PP_MAP_COMMAS( MAKE_FN_ARG_TUPLE, \
+                 PP_ENUMERATE( PP_REMOVE_PARENS fn_args ) )
+#define MAKE_FN_ARGS_FWD_VARS( fn_args ) \
+  PP_MAP_COMMAS( MAKE_FN_ARG_FWD_TUPLE,  \
+                 PP_ENUMERATE( PP_REMOVE_PARENS fn_args ) )
 
 #define MOCK_METHOD( ret_type, fn_name, fn_args,      \
                      const_modifier )                 \
@@ -51,12 +62,9 @@
 #define MOCK_METHOD_IMPL( ret_type, fn_name, fn_args,           \
                           const_modifier )                      \
   using responder__##fn_name = ::mock::detail::Responder<       \
-      ret_type,                                                 \
-      std::tuple<PP_MAP_TUPLE_COMMAS(                           \
-          PP_PAIR_TAKE_FIRST, PP_REMOVE_PARENS fn_args )>,      \
-      decltype( std::index_sequence_for<PP_MAP_TUPLE_COMMAS(    \
-                    PP_PAIR_TAKE_FIRST,                         \
-                    PP_REMOVE_PARENS fn_args )>() )>;           \
+      ret_type, std::tuple<PP_REMOVE_PARENS fn_args>,           \
+      decltype( std::index_sequence_for<                        \
+                PP_REMOVE_PARENS fn_args>() )>;                 \
                                                                 \
   mutable ::mock::detail::ResponderQueues<responder__##fn_name> \
       queues__##fn_name = { #fn_name };                         \
@@ -79,11 +87,10 @@
     return queues__##fn_name.set( std::move( matchers ) );      \
   }                                                             \
                                                                 \
-  ret_type fn_name( PP_MAP_TUPLE_COMMAS(                        \
-      MOCK_TO_FN_ARGS, PP_REMOVE_PARENS fn_args ) )             \
+  ret_type fn_name( MAKE_FN_ARGS( fn_args ) )                   \
       PP_REMOVE_PARENS const_modifier override {                \
-    return queues__##fn_name( PP_MAP_TUPLE_COMMAS(              \
-        MOCK_GET_ARG_VARS, PP_REMOVE_PARENS fn_args ) );        \
+    return queues__##fn_name(                                   \
+        MAKE_FN_ARGS_FWD_VARS( fn_args ) );                     \
   }
 
 namespace mock {
@@ -167,10 +174,22 @@ struct Responder<RetT, std::tuple<Args...>,
       formatted_args.resize( formatted_args.size() - 2 );
 
     // 1. Check if the arguments match.
-    BASE_CHECK(
-        args == matchers_,
-        "mock function call with unexpected arguments: {}( {} )",
-        fn_name_, formatted_args );
+    auto check_argument [[maybe_unused]] =
+        [&]<size_t ArgIdx>(
+            std::integral_constant<size_t, ArgIdx> ) {
+          auto&&      arg = std::get<ArgIdx>( args );
+          auto const& matcher_wrapper =
+              std::get<ArgIdx>( matchers_ );
+          auto const& matcher = matcher_wrapper.matcher();
+          if( !matcher.matches( arg ) )
+            throw std::invalid_argument( fmt::format(
+                "mock function call with unexpected arguments: "
+                "{}( {} ); Argument #{} (one-based) does not "
+                "match.",
+                fn_name_, formatted_args, ArgIdx + 1 ) );
+        };
+    ( check_argument( std::integral_constant<size_t, Idx>{} ),
+      ... );
 
     // 2. Set any output parameters that need to be set.
     if( setters_.has_value() ) {
@@ -256,7 +275,8 @@ struct ResponderQueues {
     }
     if( answer_all_.has_value() )
       return ( *answer_all_ )( { std::forward<T>( args )... } );
-    FATAL( "unexpected mock function call: {}", fn_name_ );
+    throw std::invalid_argument( fmt::format(
+        "unexpected mock function call: {}", fn_name_ ) );
   }
 };
 

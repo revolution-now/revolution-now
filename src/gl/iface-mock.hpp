@@ -36,94 +36,58 @@ struct MockOpenGL : IOpenGL {
 
   ~MockOpenGL();
 
-  MOCK_GL_METHOD( void, gl_AttachShader,
-                  ( ( GLuint, program ), ( GLuint, shader ) ) );
-  MOCK_GL_METHOD( void, gl_BindBuffer,
-                  ( ( GLenum, target ), ( GLuint, buffer ) ) );
-  MOCK_GL_METHOD( void, gl_BindVertexArray,
-                  ( ( GLuint, array ) ) );
+  MOCK_GL_METHOD( void, gl_AttachShader, ( GLuint, GLuint ) );
+  MOCK_GL_METHOD( void, gl_BindBuffer, ( GLenum, GLuint ) );
+  MOCK_GL_METHOD( void, gl_BindVertexArray, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_BufferData,
-                  ( ( GLenum, target ), ( GLsizeiptr, size ),
-                    ( void const*, data ), ( GLenum, usage ) ) );
+                  ( GLenum, GLsizeiptr, void const*, GLenum ) );
   MOCK_GL_METHOD( void, gl_BufferSubData,
-                  ( ( GLenum, target ), ( GLintptr, offset ),
-                    ( GLsizeiptr, size ),
-                    ( const void*, data ) ) );
-  MOCK_GL_METHOD( void, gl_CompileShader,
-                  ( ( GLuint, shader ) ) );
+                  (GLenum, GLintptr, GLsizeiptr, const void*));
+  MOCK_GL_METHOD( void, gl_CompileShader, ( GLuint ) );
   MOCK_GL_METHOD( GLuint, gl_CreateProgram, () );
-  MOCK_GL_METHOD( GLuint, gl_CreateShader,
-                  ( ( GLenum, type ) ) );
+  MOCK_GL_METHOD( GLuint, gl_CreateShader, ( GLenum ) );
   MOCK_GL_METHOD( void, gl_DeleteBuffers,
-                  ( ( GLsizei, n ),
-                    ( GLuint const*, buffers ) ) );
-  MOCK_GL_METHOD( void, gl_DeleteProgram,
-                  ( ( GLuint, program ) ) );
-  MOCK_GL_METHOD( void, gl_DeleteShader,
-                  ( ( GLuint, shader ) ) );
+                  (GLsizei, GLuint const*));
+  MOCK_GL_METHOD( void, gl_DeleteProgram, ( GLuint ) );
+  MOCK_GL_METHOD( void, gl_DeleteShader, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_DeleteVertexArrays,
-                  ( ( GLsizei, n ),
-                    ( GLuint const*, arrays ) ) );
-  MOCK_GL_METHOD( void, gl_DetachShader,
-                  ( ( GLuint, program ), ( GLuint, shader ) ) );
+                  (GLsizei, GLuint const*));
+  MOCK_GL_METHOD( void, gl_DetachShader, ( GLuint, GLuint ) );
   MOCK_GL_METHOD( void, gl_DrawArrays,
-                  ( ( GLenum, mode ), ( GLint, first ),
-                    ( GLsizei, count ) ) );
-  MOCK_GL_METHOD( void, gl_EnableVertexAttribArray,
-                  ( ( GLuint, index ) ) );
-  MOCK_GL_METHOD( void, gl_GenBuffers,
-                  ( ( GLsizei, n ), ( GLuint*, buffers ) ) );
-  MOCK_GL_METHOD( void, gl_GenVertexArrays,
-                  ( ( GLsizei, n ), ( GLuint*, arrays ) ) );
+                  ( GLenum, GLint, GLsizei ) );
+  MOCK_GL_METHOD( void, gl_EnableVertexAttribArray, ( GLuint ) );
+  MOCK_GL_METHOD( void, gl_GenBuffers, (GLsizei, GLuint*));
+  MOCK_GL_METHOD( void, gl_GenVertexArrays, (GLsizei, GLuint*));
   MOCK_GL_METHOD( void, gl_GetActiveAttrib,
-                  ( ( GLuint, program ), ( GLuint, index ),
-                    ( GLsizei, bufSize ), ( GLsizei*, length ),
-                    ( GLint*, size ), ( GLenum*, type ),
-                    ( GLchar*, name ) ) );
+                  (GLuint, GLuint, GLsizei, GLsizei*, GLint*,
+                   GLenum*, GLchar*));
   MOCK_GL_METHOD( GLint, gl_GetAttribLocation,
-                  ( ( GLuint, program ),
-                    ( GLchar const*, name ) ) );
+                  (GLuint, GLchar const*));
   MOCK_GL_METHOD( GLenum, gl_GetError, () );
-  MOCK_GL_METHOD( void, gl_GetIntegerv,
-                  ( ( GLenum, pname ), ( GLint*, data ) ) );
+  MOCK_GL_METHOD( void, gl_GetIntegerv, (GLenum, GLint*));
   MOCK_GL_METHOD( void, gl_GetProgramInfoLog,
-                  ( ( GLuint, program ), ( GLsizei, bufSize ),
-                    ( GLsizei*, length ),
-                    ( GLchar*, infoLog ) ) );
+                  (GLuint, GLsizei, GLsizei*, GLchar*));
   MOCK_GL_METHOD( void, gl_GetProgramiv,
-                  ( ( GLuint, program ), ( GLenum, pname ),
-                    ( GLint*, params ) ) );
+                  (GLuint, GLenum, GLint*));
   MOCK_GL_METHOD( void, gl_GetShaderInfoLog,
-                  ( ( GLuint, shader ), ( GLsizei, bufSize ),
-                    ( GLsizei*, length ),
-                    ( GLchar*, infoLog ) ) );
+                  (GLuint, GLsizei, GLsizei*, GLchar*));
   MOCK_GL_METHOD( void, gl_GetShaderiv,
-                  ( ( GLuint, shader ), ( GLenum, pname ),
-                    ( GLint*, params ) ) );
+                  (GLuint, GLenum, GLint*));
   MOCK_GL_METHOD( GLint, gl_GetUniformLocation,
-                  ( ( GLuint, program ),
-                    ( GLchar const*, name ) ) );
-  MOCK_GL_METHOD( void, gl_LinkProgram,
-                  ( ( GLuint, program ) ) );
+                  (GLuint, GLchar const*));
+  MOCK_GL_METHOD( void, gl_LinkProgram, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_ShaderSource,
-                  ( ( GLuint, shader ), ( GLsizei, count ),
-                    ( GLchar const* const*, conststring ),
-                    ( GLint const*, length ) ) );
-  MOCK_GL_METHOD( void, gl_Uniform1f,
-                  ( ( GLint, location ), ( GLfloat, v0 ) ) );
-  MOCK_GL_METHOD( void, gl_Uniform1i,
-                  ( ( GLint, location ), ( GLint, v0 ) ) );
+                  (GLuint, GLsizei, GLchar const* const*,
+                   GLint const*));
+  MOCK_GL_METHOD( void, gl_Uniform1f, ( GLint, GLfloat ) );
+  MOCK_GL_METHOD( void, gl_Uniform1i, ( GLint, GLint ) );
   MOCK_GL_METHOD( void, gl_Uniform2f,
-                  ( ( GLint, location ), ( GLfloat, v0 ),
-                    ( GLfloat, v1 ) ) );
-  MOCK_GL_METHOD( void, gl_UseProgram, ( ( GLuint, program ) ) );
-  MOCK_GL_METHOD( void, gl_ValidateProgram,
-                  ( ( GLuint, program ) ) );
+                  ( GLint, GLfloat, GLfloat ) );
+  MOCK_GL_METHOD( void, gl_UseProgram, ( GLuint ) );
+  MOCK_GL_METHOD( void, gl_ValidateProgram, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_VertexAttribPointer,
-                  ( ( GLuint, index ), ( GLint, size ),
-                    ( GLenum, type ), ( GLboolean, normalized ),
-                    ( GLsizei, stride ),
-                    ( void const*, pointer ) ) );
+                  (GLuint, GLint, GLenum, GLboolean, GLsizei,
+                   void const*));
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );
