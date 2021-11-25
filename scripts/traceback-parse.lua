@@ -75,11 +75,9 @@ keep_lines_identical_containing = {
 --[[-------------------------------------------------------------
 |                         Implementation
 --]]-------------------------------------------------------------
-function append( t, e )
-  t[#t] = e
-end
+function append( t, e ) t[#t] = e end
 
-printf = function( ... ) print( string.format( ... ) ) end
+function printf( ... ) print( string.format( ... ) ) end
 
 if not show_std_library then
   append( remove_lines_containing, 'include/c++' )
@@ -93,10 +91,29 @@ function replace_inside_lines( line )
 end
 
 function split( s )
-  words = {}
+  local words = {}
   for w in s:gmatch("%S+") do words[#words+1] = w end
   return words
 end
+
+function iterate( f, arg )
+  repeat
+    local prev = arg
+    arg = f( arg )
+  until arg == prev
+  return arg
+end
+
+function freeze_table( tbl )
+  setmetatable( tbl, {
+    __newindex = function( _, k, v )
+      error( 'attempt to add key "' .. tostring( k ) .. '" to frozen table.', 2 )
+    end
+  } )
+end
+
+-- Prevent creation of new globals.
+freeze_table( _G )
 
 for line in io.lines() do
   for _,v in pairs( keep_lines_identical_containing ) do
@@ -105,11 +122,13 @@ for line in io.lines() do
       goto loop_end
     end
   end
+
   for _,v in pairs( remove_lines_containing ) do
     if line:find( v )  then
       goto loop_end
     end
   end
+
   for k, v in pairs( to_replace_by_line ) do
     if line:match( k ) then
       line = line:gsub( k, v )
@@ -117,20 +136,20 @@ for line in io.lines() do
       goto loop_end
     end
   end
-  -- Repeat a few times since some matches can only apply after
-  -- others have been applied.
-  line = replace_inside_lines( line )
-  line = replace_inside_lines( line )
-  line = replace_inside_lines( line )
-  line = replace_inside_lines( line )
-  line = replace_inside_lines( line )
-  words = split( line )
-  file = words[#words]
+
+  -- Repeat application until it converges since some matches can
+  -- only apply after others have been applied.
+  line = iterate( replace_inside_lines, line )
+
+  local words = split( line )
+  local file = words[#words]
+  local lineno
   file, lineno = file:match( '([^:]+):(%d+):.*' )
   if file == nil then goto loop_end end
   lineno = lineno or '?'
   words[#words] = nil
   line = table.concat( words, ' ' )
+  local num
   num, line = line:match( ' *(#%d+) 0x[0-9a-f]+ in (.*)' )
   line = line or ''
   printf( '  %-4s  %-35s %5s  %s', num, file, lineno, line )
