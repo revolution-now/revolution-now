@@ -47,7 +47,7 @@ ExperimentalAutoDetectBinPacking:                             false
 EmptyLineBeforeAccessModifier:                                Always
 EmptyLineAfterAccessModifier:                                 Never
 FixNamespaceComments:                                         true
-ForEachMacros:                                                []
+ForEachMacros:                                                [FOR_CONSTEXPR_IDX]
 IfMacros:                                                     ['if_get']
 #IncludeBlocks:                                               Preserve
 IncludeCategories: 
