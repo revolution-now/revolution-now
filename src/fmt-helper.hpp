@@ -191,7 +191,7 @@ struct formatter<::rn::FmtRemoveRnNamespace<T>>
 // table, in a JSON-like notation: [3,4,8,3]. However note that
 // it is not real json since e.g. strings will not have quotes
 // around them.
-template<typename T>
+template<base::HasFmt T>
 struct formatter<::rn::FmtJsonStyleList<T>>
   : base::formatter_base {
   template<typename FormatContext>
@@ -325,7 +325,7 @@ struct formatter<fs::path> : base::formatter_base {
 
 // {fmt} formatter for formatting vectors whose contained
 // type is formattable.
-template<typename T>
+template<base::HasFmt T>
 struct formatter<std::vector<T>> : base::formatter_base {
   template<typename FormatContext>
   auto format( std::vector<T> const& o, FormatContext& ctx ) {

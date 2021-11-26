@@ -25,6 +25,8 @@ namespace {
 using namespace std;
 using namespace ::mock::matchers;
 
+using ::Catch::Matches;
+
 /****************************************************************
 ** IPoint
 *****************************************************************/
@@ -58,6 +60,17 @@ struct IPoint {
       unique_ptr<int const> const& x ) = 0;
 
   virtual double length() const = 0;
+
+  virtual int sum_ints( vector<int> const& v ) const = 0;
+
+  virtual int sum_ints_ptr(
+      vector<int const*> const& v ) const = 0;
+
+  virtual int sum_ptr_ints_ptr(
+      vector<int const*> const* v ) const = 0;
+
+  virtual int sum_ints_nested(
+      vector<vector<unsigned int>> const& v ) const = 0;
 };
 
 /****************************************************************
@@ -90,6 +103,15 @@ struct MockPoint : IPoint {
                (unique_ptr<int const> const&), () );
 
   MOCK_METHOD( double, length, (), ( const ) );
+
+  MOCK_METHOD( int, sum_ints, (vector<int> const&), ( const ) );
+  MOCK_METHOD( int, sum_ints_ptr, (vector<int const*> const&),
+               ( const ) );
+  MOCK_METHOD( int, sum_ptr_ints_ptr,
+               (vector<int const*> const*), ( const ) );
+  MOCK_METHOD( int, sum_ints_nested,
+               (vector<vector<unsigned int>> const&),
+               ( const ) );
 };
 
 /****************************************************************
@@ -159,6 +181,23 @@ struct PointUser {
     p_->set_x_from_const_uptr_ref( make_unique<int>( x ) );
   }
 
+  int sum_ints( vector<int> const& v ) const {
+    return p_->sum_ints( v );
+  }
+
+  int sum_ints_ptr( vector<int const*> const& v ) const {
+    return p_->sum_ints_ptr( v );
+  }
+
+  int sum_ptr_ints_ptr( vector<int const*> const* v ) const {
+    return p_->sum_ptr_ints_ptr( v );
+  }
+
+  int sum_ints_nested(
+      vector<vector<unsigned int>> const& v ) const {
+    return p_->sum_ints_nested( v );
+  }
+
   IPoint* p_;
 };
 
@@ -214,6 +253,70 @@ TEST_CASE( "[mock] Pointee" ) {
   // unique_ptr<int const> const&
   EXPECT_CALL( mp, set_x_from_const_uptr_ref( Pointee( 8 ) ) );
   user.set_x_from_const_uptr_ref( 8 );
+}
+
+TEST_CASE( "[mock] Pointee arg match failure" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 9 ) ) );
+  REQUIRE_THROWS_WITH(
+      user.set_x_from_const_ptr( 8 ),
+      Matches(
+          ".*mock function call with unexpected arguments.*" ) );
+}
+
+TEST_CASE( "[mock] IterableContains" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, sum_ints( IterableContains( 3, 4, 5 ) ) )
+      .returns( 12 );
+  vector<int> v1{ 3, 4, 5 };
+  REQUIRE( user.sum_ints( v1 ) == 12 );
+
+  int n1 = 3, n2 = 4, n3 = 5;
+
+  EXPECT_CALL( mp,
+               sum_ints_ptr( IterableContains(
+                   Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) )
+      .returns( 12 );
+  vector<int const*> v2{ &n1, &n2, &n3 };
+  REQUIRE( user.sum_ints_ptr( v2 ) == 12 );
+
+  EXPECT_CALL(
+      mp, sum_ptr_ints_ptr( Pointee( IterableContains(
+              Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) ) )
+      .returns( 12 );
+  REQUIRE( user.sum_ptr_ints_ptr( &v2 ) == 12 );
+
+  EXPECT_CALL(
+      mp, sum_ints_nested( IterableContains(
+              IterableContains( 1, 2 ), IterableContains( 2, 2 ),
+              IterableContains( 2, 3 ) ) ) )
+      .returns( 12 );
+  vector<vector<unsigned int>> v3{
+      { 1, 2 }, { 2, 2 }, { 2, 3 } };
+  REQUIRE( user.sum_ints_nested( v3 ) == 12 );
+}
+
+TEST_CASE( "[mock] IterableContains arg match failure" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, sum_ints( IterableContains( 3, 5, 5 ) ) )
+      .returns( 12 );
+  vector<int> v1{ 3, 4, 5 };
+  REQUIRE_THROWS_WITH(
+      user.sum_ints( v1 ),
+      Matches(
+          ".*mock function call with unexpected arguments.*" ) );
 }
 
 } // namespace

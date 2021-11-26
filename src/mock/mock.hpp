@@ -40,8 +40,9 @@
 /****************************************************************
 ** MOCK_METHOD Macros
 *****************************************************************/
-#define MAKE_FN_ARG( n, type ) type _##n
-#define MAKE_FN_ARG_TUPLE( t ) MAKE_FN_ARG t
+#define MAKE_FN_ARG( n, type )      type _##n
+#define MAKE_FN_ARG_TUPLE( t )      MAKE_FN_ARG t
+#define ADD_MATCHER_WRAPPER( type ) ::mock::MatcherWrapper<type>
 
 #define MAKE_FN_ARG_FWD( n, type ) \
   std::forward<decltype( _##n )>( _##n )
@@ -71,7 +72,9 @@
                                                                 \
   template<typename... Args>                                    \
   requires std::is_constructible_v<                             \
-      typename responder__##fn_name::matchers_t, Args...>       \
+      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,            \
+                                PP_REMOVE_PARENS fn_args )>,    \
+      Args...>                                                  \
       responder__##fn_name& add__##fn_name( Args&&... args ) {  \
     auto matchers = responder__##fn_name::matchers_t{           \
         std::forward<Args>( args )... };                        \
@@ -80,7 +83,9 @@
                                                                 \
   template<typename... Args>                                    \
   requires std::is_constructible_v<                             \
-      typename responder__##fn_name::matchers_t, Args...>       \
+      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,            \
+                                PP_REMOVE_PARENS fn_args )>,    \
+      Args...>                                                  \
       responder__##fn_name& set__##fn_name( Args&&... args ) {  \
     auto matchers = responder__##fn_name::matchers_t{           \
         std::forward<Args>( args )... };                        \

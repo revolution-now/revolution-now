@@ -42,16 +42,6 @@ concept Matcher = HasMatchedType<T> &&
 // Without this clang format indents stuff below... strange.
 struct FixClangFormat {};
 
-template<typename T>
-struct matched_type_for {
-  using type = T;
-};
-
-template<HasMatchedType T>
-struct matched_type_for<T> {
-  using type = typename T::matched_type;
-};
-
 /****************************************************************
 ** IMatcher
 *****************************************************************/
