@@ -30,7 +30,7 @@ struct TargetMatcher : IMatcher<Target> {
   TargetMatcher( HeldType&& children )
     : children_( std::move( children ) ) {}
   bool matches( Target const& val ) const override {
-    return Parent::compare( children_, val );
+    return Parent::equal( children_, val );
   }
   HeldType children_;
 };
@@ -54,15 +54,18 @@ struct Node {
 
   template<typename U>
   bool operator==( U const& rhs ) const {
-    return Derived::compare( children_, rhs );
+    return Derived::equal( children_, rhs );
   }
 
  private:
   held_type children_;
 };
 
-// Order might matter here because there is an assymmetry in how
-// the conversion is done between the two parameters.
+// This should always be used instead of operator== when com-
+// paring values for the actual matching operations since it han-
+// dles implicit conversions. Order might matter here because
+// there is an assymmetry in how the conversion is done between
+// the two parameters.
 template<typename L, typename R>
 bool converting_operator_equal( L const& lhs, R const& rhs ) {
   if constexpr( std::is_convertible_v<R, L> )
@@ -81,31 +84,30 @@ bool converting_operator_equal( L const& lhs, R const& rhs ) {
   using Base::Base;                            \
   using Base::operator==
 
+#define MATCHER_NODE_STRUCT( name ) \
+  template<MatchableValue T>        \
+  struct name##Impl final : detail::Node<name##Impl<T>, T>
+
+#define MATCHER_EQUAL_HOOK( lhs, rhs ) \
+  template<typename U>                 \
+  static bool equal( held_type const& lhs, U const& rhs )
+
 /****************************************************************
 ** Pointee
 *****************************************************************/
 namespace detail {
 
-template<MatchableValue T>
-struct PointeeImpl final : detail::Node<PointeeImpl<T>, T> {
+MATCHER_NODE_STRUCT( Pointee ) {
   MATCHER_NODE_PREAMBLE( Pointee );
 
-  template<typename U>
-  static bool compare( held_type const& lhs, U const& rhs ) {
+  MATCHER_EQUAL_HOOK( lhs, rhs ) {
     return converting_operator_equal( lhs, *rhs );
   }
 };
 
 } // namespace detail
 
-// We need these little functions because if Pointee is the
-// struct itself then we can't seem to properly construct nested
-// Pointees, i.e. Pointee( Pointee( 8 ) ) seems to get collapsed
-// into a single Pointee<int> instead of Pointee<int*> which is
-// what we want, and there doesn't seem to be any way to prevent
-// it (caused by guaranteed copy elision?), even with deduction
-// guides.
-template<typename T>
+template<MatchableValue T>
 auto Pointee( T&& arg ) {
   return detail::PointeeImpl<std::remove_cvref_t<T>>(
       std::forward<T>( arg ) );
@@ -116,32 +118,25 @@ auto Pointee( T&& arg ) {
 *****************************************************************/
 namespace detail {
 
-template<MatchableValue T>
-struct IterableContainsImpl final
-  : detail::Node<IterableContainsImpl<T>, T> {
+MATCHER_NODE_STRUCT( IterableContains ) {
   MATCHER_NODE_PREAMBLE( IterableContains );
 
-  template<typename U>
-  static bool compare( held_type const& lhs, U const& rhs ) {
+  MATCHER_EQUAL_HOOK( lhs, rhs ) {
     bool stop = false;
     auto it   = std::begin( rhs );
     FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
-      if( it == std::end( rhs ) ||
-          !converting_operator_equal( std::get<Idx>( lhs ),
-                                      *it ) )
-        stop = true;
-      else
-        ++it;
+      stop = ( it == std::end( rhs ) ) ||
+             !converting_operator_equal( std::get<Idx>( lhs ),
+                                         *it++ );
       return stop;
     };
-    bool equal = ( it == std::end( rhs ) ) && !stop;
-    return equal;
+    return ( it == std::end( rhs ) ) && !stop;
   }
 };
 
 } // namespace detail
 
-template<typename... M>
+template<MatchableValue... M>
 auto IterableContains( M&&... to_match ) {
   using child_t = std::tuple<std::remove_reference_t<M>...>;
   return detail::IterableContainsImpl<child_t>(

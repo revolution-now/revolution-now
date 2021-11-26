@@ -25,18 +25,13 @@ namespace mock {
 ** Matcher Concepts
 *****************************************************************/
 template<typename T>
-concept HasMatchedType = requires {
-  typename T::matched_type;
-};
-
-template<typename T>
 concept MatchableValue = std::equality_comparable<T>;
 
 template<MatchableValue T>
 struct IMatcher;
 
 template<typename T>
-concept Matcher = HasMatchedType<T> &&
+concept Matcher =
     std::is_base_of_v<IMatcher<typename T::matched_type>, T>;
 
 // Without this clang format indents stuff below... strange.
