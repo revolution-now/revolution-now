@@ -21,22 +21,17 @@ namespace mock::matchers {
 namespace detail {
 
 template<typename T>
-struct PointeeMatcher : IMatcher<T const*> {
-  using Base = IMatcher<T const*>;
+struct PointeeImpl {
+  using matched_type = T const*;
 
   template<typename U>
-  PointeeMatcher( U&& val ) : child_( std::forward<U>( val ) ) {}
-
-  bool matches( T const* const& val ) const override {
-    return child_.matcher().matches( *val );
-  }
+  PointeeImpl( U&& val ) : child_( std::forward<U>( val ) ) {}
 
   template<typename Target>
+  requires std::is_convertible_v<
+      decltype( *std::declval<Target>() ),
+      decltype( *std::declval<matched_type>() )>
   operator MatcherWrapper<Target>() && {
-    static_assert( std::is_convertible_v<
-                   decltype( *std::declval<Target>() ),
-                   decltype( *std::declval<
-                             typename Base::matched_type>() )> );
     struct TargetPointeeMatcher : IMatcher<Target> {
       TargetPointeeMatcher( MatcherWrapper<T>&& child )
         : child_( std::move( child ) ) {}
@@ -66,13 +61,9 @@ struct PointeeMatcher : IMatcher<T const*> {
 template<typename T>
 auto Pointee( T&& arg ) {
   using base_t = std::remove_reference_t<T>;
-  if constexpr( Matcher<base_t> ) {
-    return detail::PointeeMatcher<typename base_t::matched_type>(
-        std::forward<T>( arg ) );
-  } else {
-    return detail::PointeeMatcher<base_t>(
-        std::forward<T>( arg ) );
-  }
+  return detail::PointeeImpl<
+      typename matched_type_for<base_t>::type>(
+      std::forward<T>( arg ) );
 }
 
 } // namespace mock::matchers

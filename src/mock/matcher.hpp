@@ -25,17 +25,32 @@ namespace mock {
 ** Matcher Concepts
 *****************************************************************/
 template<typename T>
+concept HasMatchedType = requires {
+  typename T::matched_type;
+};
+
+template<typename T>
 concept MatchableValue = std::equality_comparable<T>;
 
 template<MatchableValue T>
 struct IMatcher;
 
 template<typename T>
-concept Matcher =
+concept Matcher = HasMatchedType<T> &&
     std::is_base_of_v<IMatcher<typename T::matched_type>, T>;
 
 // Without this clang format indents stuff below... strange.
 struct FixClangFormat {};
+
+template<typename T>
+struct matched_type_for {
+  using type = T;
+};
+
+template<HasMatchedType T>
+struct matched_type_for<T> {
+  using type = typename T::matched_type;
+};
 
 /****************************************************************
 ** IMatcher
@@ -120,7 +135,8 @@ struct MatcherWrapper {
   // This is for explicit values that are not IMatcher derived.
   template<typename U>
   requires( MatchableValue<std::remove_cvref_t<U>> &&
-            !Matcher<std::remove_cvref_t<U>> )
+            !Matcher<std::remove_cvref_t<U>> &&
+            std::is_constructible_v<T, U> )
       MatcherWrapper( U&& val )
     : matcher_( std::make_unique<matchers::Value<T>>(
           std::forward<U>( val ) ) ) {}
