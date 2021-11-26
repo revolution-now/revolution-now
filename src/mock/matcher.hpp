@@ -34,12 +34,10 @@ template<typename T>
 concept Matcher =
     std::is_base_of_v<IMatcher<typename T::matched_type>, T>;
 
-// Without this clang format indents stuff below... strange.
-struct FixClangFormat {};
-
 /****************************************************************
 ** IMatcher
 *****************************************************************/
+// This is the interface for matchers.
 template<MatchableValue T>
 struct IMatcher {
   using matched_type = T;
@@ -56,20 +54,20 @@ struct IMatcher {
 /****************************************************************
 ** Special Matchers
 *****************************************************************/
-// These are some special matchers that we define in this file
-// because they are needed by the Matcher wrapper itself. All of
-// the other matchers should go into the dedicated matcher file.
-namespace matchers {
+namespace matchers::detail {
 
-// Matches an explicit value. This matcher is created in response
-// to just receiving a plain explicit value to match and should
-// not need to be created manually.
+// This is a special matcher that we define in this file because
+// it is needed by the Matcher wrapper itself. All of the other
+// matchers should go into the dedicated matchers files. This
+// matcher should not be referred to directly. Matches an ex-
+// plicit value that doesn't have an automatic conversion to a
+// MatcherWrapper already defined, as normal matchers do. This
+// will allow passing e.g. integer literals into the expected
+// mock call.
 template<MatchableValue T>
 struct Value : IMatcher<T> {
-  /* clang-format off */
   template<typename U>
-  requires std::is_constructible_v<T, U>
-  /* clang-format on */
+  requires std::is_constructible_v<T, U> //
   Value( U&& val ) : val_( std::forward<U>( val ) ) {}
 
   bool matches( T const& val ) const override {
@@ -80,20 +78,7 @@ struct Value : IMatcher<T> {
   T val_;
 };
 
-// Matches anything of type T.
-template<typename T>
-struct Any : IMatcher<T> {
-  bool matches( T const& ) const override { return true; }
-};
-
-namespace detail {
-struct AnyTag {};
-} // namespace detail
-
-// Matches any value of any type.
-inline constexpr auto _ = detail::AnyTag{};
-
-} // namespace matchers
+} // namespace matchers::detail
 
 /****************************************************************
 ** MatcherWrapper
@@ -113,17 +98,13 @@ inline constexpr auto _ = detail::AnyTag{};
 // we're provided one for `int const*`.
 template<MatchableValue T>
 struct MatcherWrapper {
-  // This is for the wildcard matcher, `_`.
-  MatcherWrapper( decltype( matchers::_ ) )
-    : matcher_( std::make_unique<matchers::Any<T>>() ) {}
-
-  // This is for explicit values that are not IMatcher derived.
+  // This is for values that are not IMatcher derived.
   template<typename U>
   requires( MatchableValue<std::remove_cvref_t<U>> &&
             !Matcher<std::remove_cvref_t<U>> &&
             std::is_constructible_v<T, U> )
       MatcherWrapper( U&& val )
-    : matcher_( std::make_unique<matchers::Value<T>>(
+    : matcher_( std::make_unique<matchers::detail::Value<T>>(
           std::forward<U>( val ) ) ) {}
 
   // This is for IMatcher-derived objects.

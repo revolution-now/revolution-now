@@ -8,6 +8,7 @@
 * Description: Unit tests for the src/mock/mock.* module.
 *
 *****************************************************************/
+#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.

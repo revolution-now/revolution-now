@@ -268,13 +268,13 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
           ".*mock function call with unexpected arguments.*" ) );
 }
 
-TEST_CASE( "[mock] IterableContains" ) {
+TEST_CASE( "[mock] IterableElementsAre" ) {
   MockPoint mp;
 
   EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( IterableContains( 3, 4, 5 ) ) )
+  EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 4, 5 ) ) )
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
   REQUIRE( user.sum_ints( v1 ) == 12 );
@@ -282,35 +282,35 @@ TEST_CASE( "[mock] IterableContains" ) {
   int n1 = 3, n2 = 4, n3 = 5;
 
   EXPECT_CALL( mp,
-               sum_ints_ptr( IterableContains(
+               sum_ints_ptr( IterableElementsAre(
                    Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) )
       .returns( 12 );
   vector<int const*> v2{ &n1, &n2, &n3 };
   REQUIRE( user.sum_ints_ptr( v2 ) == 12 );
 
   EXPECT_CALL(
-      mp, sum_ptr_ints_ptr( Pointee( IterableContains(
+      mp, sum_ptr_ints_ptr( Pointee( IterableElementsAre(
               Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) ) )
       .returns( 12 );
   REQUIRE( user.sum_ptr_ints_ptr( &v2 ) == 12 );
 
-  EXPECT_CALL(
-      mp, sum_ints_nested( IterableContains(
-              IterableContains( 1, 2 ), IterableContains( 2, 2 ),
-              IterableContains( 2, 3 ) ) ) )
+  EXPECT_CALL( mp, sum_ints_nested( IterableElementsAre(
+                       IterableElementsAre( 1, 2 ),
+                       IterableElementsAre( 2, 2 ),
+                       IterableElementsAre( 2, 3 ) ) ) )
       .returns( 12 );
   vector<vector<unsigned int>> v3{
       { 1, 2 }, { 2, 2 }, { 2, 3 } };
   REQUIRE( user.sum_ints_nested( v3 ) == 12 );
 }
 
-TEST_CASE( "[mock] IterableContains arg match failure" ) {
+TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
   MockPoint mp;
 
   EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( IterableContains( 3, 5, 5 ) ) )
+  EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 5, 5 ) ) )
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
   REQUIRE_THROWS_WITH(
