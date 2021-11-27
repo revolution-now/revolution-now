@@ -173,6 +173,8 @@ TEST_CASE(
   EXPECT_CALL( mp, set_xy( _, 5 ) );
   REQUIRE_THROWS_WITH( PointUser( &mp ),
                        Matches( ".*unexpected arguments.*" ) );
+  // Make the expected call to an error isn't thrown.
+  mp.set_xy( 0, 5 );
 }
 
 TEST_CASE( "[mock] throws on unexpected mock call" ) {

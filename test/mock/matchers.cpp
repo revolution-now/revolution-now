@@ -139,6 +139,8 @@ struct PointUser {
     return some_method_1( 42 ) + p_->get_x();
   }
 
+  void set_x( int x ) { p_->set_x( x ); }
+
   int get_x() const { return p_->get_x(); }
 
   int get_y() const { return p_->get_y(); }
@@ -262,10 +264,13 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
   PointUser user( &mp );
 
   EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 9 ) ) );
+  // Wrong one.
   REQUIRE_THROWS_WITH(
       user.set_x_from_const_ptr( 8 ),
       Matches(
           ".*mock function call with unexpected arguments.*" ) );
+  // Right one.
+  user.set_x_from_const_ptr( 9 );
 }
 
 TEST_CASE( "[mock] IterableElementsAre" ) {
@@ -313,10 +318,30 @@ TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
   EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 5, 5 ) ) )
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
+  // Wrong one.
   REQUIRE_THROWS_WITH(
       user.sum_ints( v1 ),
       Matches(
           ".*mock function call with unexpected arguments.*" ) );
+  // Right one.
+  user.sum_ints( { 3, 5, 5 } );
+}
+
+TEST_CASE( "[mock] Ge" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Ge( 8 ) ) ).times( 4 );
+  user.set_x( 10 );
+  user.set_x( 9 );
+  user.set_x( 8 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 7 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 8 );
 }
 
 } // namespace

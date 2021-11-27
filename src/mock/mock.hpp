@@ -56,31 +56,31 @@
   EVAL( MOCK_METHOD_IMPL( ret_type, fn_name, fn_args, \
                           const_modifier ) )
 
-#define MOCK_METHOD_IMPL( ret_type, fn_name, fn_args,           \
-                          const_modifier )                      \
-  using responder__##fn_name = ::mock::detail::Responder<       \
-      ret_type, std::tuple<PP_REMOVE_PARENS fn_args>,           \
-      decltype( std::index_sequence_for<                        \
-                PP_REMOVE_PARENS fn_args>() )>;                 \
-                                                                \
-  mutable ::mock::detail::ResponderQueues<responder__##fn_name> \
-      queues__##fn_name = { #fn_name };                         \
-                                                                \
-  template<typename... Args>                                    \
-  requires std::is_constructible_v<                             \
-      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,            \
-                                PP_REMOVE_PARENS fn_args )>,    \
-      Args...>                                                  \
-      responder__##fn_name& add__##fn_name( Args&&... args ) {  \
-    auto matchers = responder__##fn_name::matchers_t{           \
-        std::forward<Args>( args )... };                        \
-    return queues__##fn_name.add( std::move( matchers ) );      \
-  }                                                             \
-                                                                \
-  ret_type fn_name( MAKE_FN_ARGS( fn_args ) )                   \
-      PP_REMOVE_PARENS const_modifier override {                \
-    return queues__##fn_name(                                   \
-        MAKE_FN_ARGS_FWD_VARS( fn_args ) );                     \
+#define MOCK_METHOD_IMPL( ret_type, fn_name, fn_args,          \
+                          const_modifier )                     \
+  using responder__##fn_name = ::mock::detail::Responder<      \
+      ret_type, std::tuple<PP_REMOVE_PARENS fn_args>,          \
+      decltype( std::index_sequence_for<                       \
+                PP_REMOVE_PARENS fn_args>() )>;                \
+                                                               \
+  mutable ::mock::detail::ResponderQueue<responder__##fn_name> \
+      queue__##fn_name = { #fn_name };                         \
+                                                               \
+  template<typename... Args>                                   \
+  requires std::is_constructible_v<                            \
+      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,           \
+                                PP_REMOVE_PARENS fn_args )>,   \
+      Args...>                                                 \
+      responder__##fn_name& add__##fn_name( Args&&... args ) { \
+    auto matchers = responder__##fn_name::matchers_t{          \
+        std::forward<Args>( args )... };                       \
+    return queue__##fn_name.add( std::move( matchers ) );      \
+  }                                                            \
+                                                               \
+  ret_type fn_name( MAKE_FN_ARGS( fn_args ) )                  \
+      PP_REMOVE_PARENS const_modifier override {               \
+    return queue__##fn_name(                                   \
+        MAKE_FN_ARGS_FWD_VARS( fn_args ) );                    \
   }
 
 namespace mock {
@@ -107,8 +107,18 @@ struct exhaust_checker {
   T* p_;
   exhaust_checker( T* p ) : p_( p ) {}
   ~exhaust_checker() {
-    BASE_CHECK( p_->empty(),
-                "not all expected calls have been called." );
+    // This is so that if there is already an exception in pro-
+    // gress, e.g. from an unexpected mock function call, we will
+    // continue propagating that exception to the unit test
+    // framework so that it can display the appropriate error
+    // message (in that case there is no point to checking if all
+    // expected calls have been called because 1) we know that
+    // they haven't and 2) terminating here would prevent the
+    // unit test framework from displaying the real error).
+    if( std::uncaught_exceptions() == 0 ) {
+      BASE_CHECK( p_->empty(),
+                  "not all expected calls have been called." );
+    }
   }
 };
 
@@ -149,9 +159,6 @@ struct Responder<RetT, std::tuple<Args...>,
       times_expected_{ 1 } {}
 
   RetT operator()( args_refs_t const& args ) {
-    BASE_CHECK( times_expected_ > 0 );
-    times_expected_--;
-
     auto format_if_possible
         [[maybe_unused]] = []<typename T>( T&& o ) {
           std::string res = "<non-formattable>";
@@ -202,6 +209,11 @@ struct Responder<RetT, std::tuple<Args...>,
         ... );
     }
 
+    // Decrement this after args are checked so that we can de-
+    // tect arg failures and recover and still use the responder.
+    BASE_CHECK( times_expected_ > 0 );
+    --times_expected_;
+
     // 3. Return what was requested to be returned.
     if constexpr( !std::is_same_v<RetT, void> ) {
       BASE_CHECK( ret_.has_value(),
@@ -249,13 +261,13 @@ struct Responder<RetT, std::tuple<Args...>,
 };
 
 template<typename R>
-struct ResponderQueues {
+struct ResponderQueue {
   std::string   fn_name_ = {};
   std::queue<R> answers_ = {};
 
   exhaust_checker<std::queue<R>> checker_ = &answers_;
 
-  ResponderQueues( std::string fn_name )
+  ResponderQueue( std::string fn_name )
     : fn_name_( std::move( fn_name ) ) {}
 
   R& add( typename R::matchers_t args ) {
@@ -265,13 +277,12 @@ struct ResponderQueues {
 
   template<typename... T>
   auto operator()( T&&... args ) {
-    if( !answers_.empty() ) {
-      R& responder = answers_.front();
-      SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
-      return responder( { std::forward<T>( args )... } );
-    }
-    throw std::invalid_argument( fmt::format(
-        "unexpected mock function call: {}", fn_name_ ) );
+    if( answers_.empty() )
+      throw std::invalid_argument( fmt::format(
+          "unexpected mock function call: {}", fn_name_ ) );
+    R& responder = answers_.front();
+    SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
+    return responder( { std::forward<T>( args )... } );
   }
 };
 

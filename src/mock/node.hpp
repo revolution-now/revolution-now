@@ -19,7 +19,8 @@
   using typename Base::held_type;              \
   using Base::Base;                            \
   using Base::operator==;                      \
-  using Base::converting_operator_equal
+  using Base::converting_operator_equal;       \
+  using Base::converting_operator_ge
 
 #define MATCHER_NODE_STRUCT( name ) \
   template<MatchableValue T>        \
@@ -89,23 +90,34 @@ struct Node {
   }
 
  protected:
-  // This should always be used instead of operator== when com-
-  // paring values for the actual matching operations since it
-  // handles implicit conversions. Order might matter here be-
-  // cause there is an assymmetry in how the conversion is done
-  // between the two parameters.
+  // These should always be used instead of the bare operators
+  // when comparing values for the actual matching operations
+  // since it handles implicit conversions.
+
   template<typename L, typename R>
   static bool converting_operator_equal( L const& lhs,
                                          R const& rhs ) {
-    if constexpr( std::is_convertible_v<R, L> )
-      // Prevents e.g. signed/unsigned integer conversion warn-
-      // ings.
-      return lhs == static_cast<L>( rhs );
-    else
-      return lhs == rhs;
+    return lhs == maybe_cast<L>( rhs );
+  }
+
+  template<typename L, typename R>
+  static bool converting_operator_ge( L const& lhs,
+                                      R const& rhs ) {
+    return lhs >= maybe_cast<L>( rhs );
   }
 
  private:
+  template<typename To, typename From>
+  static auto maybe_cast( From const& rhs )
+      -> std::conditional_t<std::is_convertible_v<From, To>, To,
+                            From const&> {
+    if constexpr( std::is_convertible_v<From, To> )
+      // Prevents e.g. signed/unsigned int conversion warnings.
+      return static_cast<To>( rhs );
+    else
+      return rhs;
+  }
+
   held_type children_;
 };
 

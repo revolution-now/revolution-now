@@ -12,6 +12,7 @@ let s:stems = [
  \ 'gl/error',
  \ 'gl/bindable',
  \ 'mock/matcher',
+ \ 'mock/node',
  \ 'mock/matchers',
  \ 'mock/mock',
  \ 'gl/vertex-buffer',

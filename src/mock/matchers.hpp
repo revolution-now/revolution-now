@@ -81,4 +81,21 @@ auto IterableElementsAre( M&&... to_match ) {
       child_t{ std::forward<M>( to_match )... } );
 }
 
+/****************************************************************
+** Ge
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Ge, held, actual ) {
+  return converting_operator_ge( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Ge( T&& arg ) {
+  return detail::GeImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
 } // namespace mock::matchers
