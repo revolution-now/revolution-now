@@ -120,17 +120,23 @@ TEST_CASE( "[mock] repeated calls" ) {
   EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
-  EXPECT_MULTIPLE_CALLS( mp, get_x() ).returns( 7 );
+  EXPECT_CALL( mp, get_x() ).times( 3 ).returns( 7 );
   REQUIRE( user.get_x() == 7 );
   REQUIRE( user.get_x() == 7 );
   REQUIRE( user.get_x() == 7 );
+  REQUIRE_THROWS_WITH(
+      user.get_x(),
+      Matches( "unexpected mock function call.*" ) );
 
-  EXPECT_CALL( mp, get_x() ).returns( 8 );
-  EXPECT_CALL( mp, get_x() ).returns( 9 );
+  EXPECT_CALL( mp, get_x() ).times( 1 ).returns( 8 );
+  EXPECT_CALL( mp, get_x() ).times( 2 ).returns( 9 );
   REQUIRE( user.get_x() == 8 );
   REQUIRE( user.get_x() == 9 );
-  REQUIRE( user.get_x() == 7 );
-  REQUIRE( user.get_x() == 7 );
+  REQUIRE( user.get_x() == 9 );
+
+  REQUIRE_THROWS_WITH(
+      user.get_x(),
+      Matches( "unexpected mock function call.*" ) );
 }
 
 TEST_CASE( "[mock] sets_arg" ) {

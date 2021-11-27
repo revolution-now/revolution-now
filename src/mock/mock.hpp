@@ -17,6 +17,7 @@
 #include "base/error.hpp"
 #include "base/fmt.hpp"
 #include "base/maybe.hpp"
+#include "base/scope-exit.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -31,11 +32,6 @@
 // once, at which point it will be removed.
 #define EXPECT_CALL( obj, method_with_args ) \
   ( obj ).add__##method_with_args
-
-// This one sets a (single) method that will be repeatedly called
-// any number of times when there are no more EXPECT_CALLs.
-#define EXPECT_MULTIPLE_CALLS( obj, method_with_args ) \
-  ( obj ).set__##method_with_args
 
 /****************************************************************
 ** MOCK_METHOD Macros
@@ -79,17 +75,6 @@
     auto matchers = responder__##fn_name::matchers_t{           \
         std::forward<Args>( args )... };                        \
     return queues__##fn_name.add( std::move( matchers ) );      \
-  }                                                             \
-                                                                \
-  template<typename... Args>                                    \
-  requires std::is_constructible_v<                             \
-      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,            \
-                                PP_REMOVE_PARENS fn_args )>,    \
-      Args...>                                                  \
-      responder__##fn_name& set__##fn_name( Args&&... args ) {  \
-    auto matchers = responder__##fn_name::matchers_t{           \
-        std::forward<Args>( args )... };                        \
-    return queues__##fn_name.set( std::move( matchers ) );      \
   }                                                             \
                                                                 \
   ret_type fn_name( MAKE_FN_ARGS( fn_args ) )                   \
@@ -160,9 +145,13 @@ struct Responder<RetT, std::tuple<Args...>,
 
   Responder( std::string fn_name, matchers_t&& args )
     : fn_name_( std::move( fn_name ) ),
-      matchers_( std::move( args ) ) {}
+      matchers_( std::move( args ) ),
+      times_expected_{ 1 } {}
 
   RetT operator()( args_refs_t const& args ) {
+    BASE_CHECK( times_expected_ > 0 );
+    times_expected_--;
+
     auto format_if_possible
         [[maybe_unused]] = []<typename T>( T&& o ) {
           std::string res = "<non-formattable>";
@@ -221,6 +210,14 @@ struct Responder<RetT, std::tuple<Args...>,
     }
   }
 
+  bool finished() const { return times_expected_ == 0; }
+
+  Responder& times( int n ) {
+    BASE_CHECK( n > 0 );
+    times_expected_ = n;
+    return *this;
+  }
+
   Responder& returns( RetHolder<RetT> val ) {
     ret_ = std::move( val );
     return *this;
@@ -248,13 +245,13 @@ struct Responder<RetT, std::tuple<Args...>,
   base::maybe<setters_t> setters_ = {};
   std::string            fn_name_;
   matchers_t             matchers_;
+  int                    times_expected_;
 };
 
 template<typename R>
 struct ResponderQueues {
-  std::string    fn_name_    = {};
-  std::queue<R>  answers_    = {};
-  base::maybe<R> answer_all_ = {};
+  std::string   fn_name_ = {};
+  std::queue<R> answers_ = {};
 
   exhaust_checker<std::queue<R>> checker_ = &answers_;
 
@@ -266,20 +263,13 @@ struct ResponderQueues {
     return answers_.back();
   }
 
-  R& set( typename R::matchers_t args ) {
-    answer_all_ = R( fn_name_, std::move( args ) );
-    return *answer_all_;
-  }
-
   template<typename... T>
   auto operator()( T&&... args ) {
     if( !answers_.empty() ) {
-      R f = std::move( answers_.front() );
-      answers_.pop();
-      return f( { std::forward<T>( args )... } );
+      R& responder = answers_.front();
+      SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
+      return responder( { std::forward<T>( args )... } );
     }
-    if( answer_all_.has_value() )
-      return ( *answer_all_ )( { std::forward<T>( args )... } );
     throw std::invalid_argument( fmt::format(
         "unexpected mock function call: {}", fn_name_ ) );
   }

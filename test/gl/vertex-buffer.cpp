@@ -35,7 +35,8 @@ struct Vertex {
 TEST_CASE( "[vertex-buffer] creation" ) {
   gl::MockOpenGL mock;
 
-  EXPECT_MULTIPLE_CALLS( mock, gl_GetError() )
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( 2 )
       .returns( GL_NO_ERROR );
 
   EXPECT_CALL( mock, gl_GenBuffers( 1, _ ) ).sets_arg<1>( 42 );
