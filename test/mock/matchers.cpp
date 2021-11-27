@@ -344,5 +344,22 @@ TEST_CASE( "[mock] Ge" ) {
   user.set_x( 8 );
 }
 
+TEST_CASE( "[mock] Not" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Not( Ge( 8 ) ) ) ).times( 4 );
+  user.set_x( 5 );
+  user.set_x( 6 );
+  user.set_x( 7 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 8 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 7 );
+}
+
 } // namespace
 } // namespace mock

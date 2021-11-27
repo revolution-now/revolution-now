@@ -98,4 +98,21 @@ auto Ge( T&& arg ) {
       std::forward<T>( arg ) );
 }
 
+/****************************************************************
+** Not
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Not, held, actual ) {
+  return !converting_operator_equal( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Not( T&& arg ) {
+  return detail::NotImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
 } // namespace mock::matchers
