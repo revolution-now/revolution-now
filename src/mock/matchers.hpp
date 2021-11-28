@@ -17,6 +17,34 @@
 // base
 #include "base/meta.hpp"
 
+#define GENERIC_SINGLE_ARG_MATCHER( name )             \
+  template<MatchableValue T>                           \
+  auto name( T&& arg ) {                               \
+    return detail::name##Impl<std::remove_cvref_t<T>>( \
+        std::forward<T>( arg ) );                      \
+  }
+
+#define GENERIC_ZERO_ARG_MATCHER( name )                \
+  inline constexpr auto name() {                        \
+    struct Unused {                                     \
+      bool operator==( Unused const& ) const = default; \
+    };                                                  \
+    return detail::name##Impl<Unused>( Unused{} );      \
+  }
+
+#define GENERIC_TUPLE_ARG_MATCHER( name )                      \
+  template<MatchableValue... M>                                \
+  auto name( M&&... to_match ) {                               \
+    using child_t = std::tuple<std::remove_reference_t<M>...>; \
+    return detail::name##Impl<child_t>(                        \
+        child_t{ std::forward<M>( to_match )... } );           \
+  }
+
+#define CONCRETE_SINGLE_ARG_MATCHER( name, type )        \
+  inline auto name( type arg ) {                         \
+    return detail::name##Impl<type>( std::move( arg ) ); \
+  }
+
 namespace mock::matchers {
 
 /****************************************************************
@@ -26,12 +54,9 @@ MATCHER_DEFINE_NODE( Any, /*held*/, /*actual*/ ) {
   return true;
 };
 
-template<MatchableValue T>
-constexpr auto Any( T&& ) {
-  return detail::AnyImpl<std::remove_cvref_t<T>>( 0 );
-}
+GENERIC_ZERO_ARG_MATCHER( Any );
 
-inline constexpr auto _ = Any( 0 );
+inline constexpr auto _ = Any();
 
 /****************************************************************
 ** Pointee
@@ -40,11 +65,7 @@ MATCHER_DEFINE_NODE( Pointee, held, actual ) {
   return converting_operator_equal( held, *actual );
 };
 
-template<MatchableValue T>
-auto Pointee( T&& arg ) {
-  return detail::PointeeImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Pointee );
 
 /****************************************************************
 ** IterableElementsAre
@@ -61,12 +82,7 @@ MATCHER_DEFINE_NODE( IterableElementsAre, held, actual ) {
   return ( it == std::end( actual ) ) && !should_stop;
 };
 
-template<MatchableValue... M>
-auto IterableElementsAre( M&&... to_match ) {
-  using child_t = std::tuple<std::remove_reference_t<M>...>;
-  return detail::IterableElementsAreImpl<child_t>(
-      child_t{ std::forward<M>( to_match )... } );
-}
+GENERIC_TUPLE_ARG_MATCHER( IterableElementsAre );
 
 /****************************************************************
 ** Ge
@@ -76,11 +92,7 @@ MATCHER_DEFINE_NODE( Ge, held, actual ) {
          converting_operator_equal( actual, held );
 };
 
-template<MatchableValue T>
-auto Ge( T&& arg ) {
-  return detail::GeImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Ge );
 
 /****************************************************************
 ** Le
@@ -89,11 +101,7 @@ MATCHER_DEFINE_NODE( Le, held, actual ) {
   return !converting_operator_greater( actual, held );
 };
 
-template<MatchableValue T>
-auto Le( T&& arg ) {
-  return detail::LeImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Le );
 
 /****************************************************************
 ** Gt
@@ -102,11 +110,7 @@ MATCHER_DEFINE_NODE( Gt, held, actual ) {
   return converting_operator_greater( actual, held );
 };
 
-template<MatchableValue T>
-auto Gt( T&& arg ) {
-  return detail::GtImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Gt );
 
 /****************************************************************
 ** Lt
@@ -116,11 +120,7 @@ MATCHER_DEFINE_NODE( Lt, held, actual ) {
          !converting_operator_greater( actual, held );
 };
 
-template<MatchableValue T>
-auto Lt( T&& arg ) {
-  return detail::LtImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Lt );
 
 /****************************************************************
 ** Ne
@@ -129,11 +129,7 @@ MATCHER_DEFINE_NODE( Ne, held, actual ) {
   return !converting_operator_equal( actual, held );
 };
 
-template<MatchableValue T>
-auto Ne( T&& arg ) {
-  return detail::NeImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Ne );
 
 /****************************************************************
 ** Not
@@ -142,11 +138,7 @@ MATCHER_DEFINE_NODE( Not, held, actual ) {
   return !converting_operator_equal( actual, held );
 };
 
-template<MatchableValue T>
-auto Not( T&& arg ) {
-  return detail::NotImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Not );
 
 /****************************************************************
 ** StartsWith
@@ -155,9 +147,7 @@ MATCHER_DEFINE_NODE( StartsWith, held, actual ) {
   return std::string_view( actual ).starts_with( held );
 };
 
-inline auto StartsWith( std::string arg ) {
-  return detail::StartsWithImpl<std::string>( std::move( arg ) );
-}
+CONCRETE_SINGLE_ARG_MATCHER( StartsWith, std::string );
 
 /****************************************************************
 ** StrContains
@@ -167,10 +157,7 @@ MATCHER_DEFINE_NODE( StrContains, held, actual ) {
          std::string_view::npos;
 };
 
-inline auto StrContains( std::string arg ) {
-  return detail::StrContainsImpl<std::string>(
-      std::move( arg ) );
-}
+CONCRETE_SINGLE_ARG_MATCHER( StrContains, std::string );
 
 /****************************************************************
 ** Empty
@@ -179,12 +166,7 @@ MATCHER_DEFINE_NODE( Empty, /*held*/, actual ) {
   return actual.empty();
 };
 
-inline auto Empty() {
-  struct Unused {
-    bool operator==( Unused const& ) const = default;
-  };
-  return detail::EmptyImpl<Unused>( Unused{} );
-}
+GENERIC_ZERO_ARG_MATCHER( Empty );
 
 /****************************************************************
 ** HasSize
@@ -193,11 +175,7 @@ MATCHER_DEFINE_NODE( HasSize, held, actual ) {
   return converting_operator_equal( held, actual.size() );
 };
 
-template<MatchableValue T>
-auto HasSize( T&& arg ) {
-  return detail::HasSizeImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( HasSize );
 
 /****************************************************************
 ** Each
@@ -211,11 +189,7 @@ MATCHER_DEFINE_NODE( Each, held, actual ) {
       } );
 };
 
-template<MatchableValue T>
-auto Each( T&& arg ) {
-  return detail::EachImpl<std::remove_cvref_t<T>>(
-      std::forward<T>( arg ) );
-}
+GENERIC_SINGLE_ARG_MATCHER( Each );
 
 /****************************************************************
 ** AllOf
@@ -232,12 +206,7 @@ MATCHER_DEFINE_NODE( AllOf, held, actual ) {
   return !should_stop;
 };
 
-template<MatchableValue... M>
-auto AllOf( M&&... to_match ) {
-  using child_t = std::tuple<std::remove_reference_t<M>...>;
-  return detail::AllOfImpl<child_t>(
-      child_t{ std::forward<M>( to_match )... } );
-}
+GENERIC_TUPLE_ARG_MATCHER( AllOf );
 
 /****************************************************************
 ** AnyOf
@@ -255,12 +224,7 @@ MATCHER_DEFINE_NODE( AnyOf, held, actual ) {
   return at_least_one_matches;
 };
 
-template<MatchableValue... M>
-auto AnyOf( M&&... to_match ) {
-  using child_t = std::tuple<std::remove_reference_t<M>...>;
-  return detail::AnyOfImpl<child_t>(
-      child_t{ std::forward<M>( to_match )... } );
-}
+GENERIC_TUPLE_ARG_MATCHER( AnyOf );
 
 /****************************************************************
 ** TupleElement
@@ -339,21 +303,25 @@ MATCHER_DEFINE_NODE( Boolean, held, actual ) {
   return bool( actual ) == held;
 };
 
-inline auto Boolean( bool b ) {
-  return detail::BooleanImpl<bool>( std::move( b ) );
-}
+CONCRETE_SINGLE_ARG_MATCHER( Boolean, bool );
 
 /****************************************************************
 ** True
 *****************************************************************/
-inline auto True() { return detail::BooleanImpl<bool>( true ); }
+MATCHER_DEFINE_NODE( True, /*held*/, actual ) {
+  return bool( actual ) == true;
+};
+
+GENERIC_ZERO_ARG_MATCHER( True );
 
 /****************************************************************
 ** False
 *****************************************************************/
-inline auto False() {
-  return detail::BooleanImpl<bool>( false );
-}
+MATCHER_DEFINE_NODE( False, /*held*/, actual ) {
+  return bool( actual ) == false;
+};
+
+GENERIC_ZERO_ARG_MATCHER( False );
 
 /****************************************************************
 ** Null
@@ -362,11 +330,6 @@ MATCHER_DEFINE_NODE( Null, /*held*/, actual ) {
   return actual == nullptr;
 };
 
-inline auto Null() {
-  struct Unused {
-    bool operator==( Unused const& ) const = default;
-  };
-  return detail::NullImpl<Unused>( Unused{} );
-}
+GENERIC_ZERO_ARG_MATCHER( Null );
 
 } // namespace mock::matchers

@@ -19,6 +19,12 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+#define REQUIRE_UNEXPECTED_ARGS( ... ) \
+  REQUIRE_THROWS_WITH(                 \
+      __VA_ARGS__,                     \
+      Matches(                         \
+          "mock function call with unexpected arguments.*" ) );
+
 namespace mock {
 namespace {
 
@@ -318,10 +324,7 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
 
   EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 9 ) ) );
   // Wrong one.
-  REQUIRE_THROWS_WITH(
-      user.set_x_from_const_ptr( 8 ),
-      Matches(
-          ".*mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x_from_const_ptr( 8 ) );
   // Right one.
   user.set_x_from_const_ptr( 9 );
 }
@@ -368,10 +371,7 @@ TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
   // Wrong one.
-  REQUIRE_THROWS_WITH(
-      user.sum_ints( v1 ),
-      Matches(
-          ".*mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v1 ) );
   // Right one.
   user.sum_ints( { 3, 5, 5 } );
 }
@@ -384,10 +384,7 @@ TEST_CASE( "[mock] Ge" ) {
   user.set_x( 10 );
   user.set_x( 9 );
   user.set_x( 8 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 7 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 7 ) );
   user.set_x( 8 );
 }
 
@@ -399,10 +396,7 @@ TEST_CASE( "[mock] Le" ) {
   user.set_x( 6 );
   user.set_x( 7 );
   user.set_x( 8 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 9 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 9 ) );
   user.set_x( 8 );
 }
 
@@ -413,10 +407,7 @@ TEST_CASE( "[mock] Gt" ) {
   EXPECT_CALL( mp, set_x( Gt( 8 ) ) ).times( 3 );
   user.set_x( 10 );
   user.set_x( 9 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 8 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
   user.set_x( 9 );
 }
 
@@ -427,10 +418,7 @@ TEST_CASE( "[mock] Lt" ) {
   EXPECT_CALL( mp, set_x( Lt( 8 ) ) ).times( 3 );
   user.set_x( 6 );
   user.set_x( 7 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 8 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
   user.set_x( 7 );
 }
 
@@ -441,10 +429,7 @@ TEST_CASE( "[mock] Ne" ) {
   EXPECT_CALL( mp, set_x( Ne( 8 ) ) ).times( 3 );
   user.set_x( 7 );
   user.set_x( 9 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 8 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
   user.set_x( 7 );
 }
 
@@ -456,10 +441,7 @@ TEST_CASE( "[mock] Not" ) {
   user.set_x( 5 );
   user.set_x( 6 );
   user.set_x( 7 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 8 ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
   user.set_x( 7 );
 }
 
@@ -527,10 +509,7 @@ TEST_CASE( "[mock] StrContains" ) {
 
   EXPECT_CALL( mp, say_hello( StrContains( "ccc" ) ) )
       .returns( "hello bob" );
-  REQUIRE_THROWS_WITH(
-      user.say_hello( "bob bob" ),
-      Matches(
-          "mock function call with unexpected arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.say_hello( "bob bob" ) );
   REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
 }
 
@@ -552,10 +531,7 @@ TEST_CASE( "[mock] True" ) {
   PointUser user( &mp );
 
   EXPECT_CALL( mp, take_bool( True() ) );
-  REQUIRE_THROWS_WITH(
-      user.take_bool( false ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.take_bool( false ) );
   user.take_bool( true );
 }
 
@@ -564,10 +540,7 @@ TEST_CASE( "[mock] False" ) {
   PointUser user( &mp );
 
   EXPECT_CALL( mp, take_bool( False() ) );
-  REQUIRE_THROWS_WITH(
-      user.take_bool( true ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.take_bool( true ) );
   user.take_bool( false );
 }
 
@@ -577,10 +550,7 @@ TEST_CASE( "[mock] Null" ) {
 
   int n = 0;
   EXPECT_CALL( mp, set_x_from_ptr( Null() ) );
-  REQUIRE_THROWS_WITH(
-      user.set_x_from_ptr( &n ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x_from_ptr( &n ) );
   user.set_x_from_ptr( nullptr );
 }
 
@@ -599,25 +569,16 @@ TEST_CASE( "[mock] HasSize" ) {
   v.pop_back();
   REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4
   v.pop_back();
-  REQUIRE_THROWS_WITH(
-      user.sum_ints( v ), // 3
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3
   v.push_back( 1 );
   REQUIRE( user.sum_ints( v ) == 42 ); // 3, 1
 
   v = { 3, 4, 5 };
   EXPECT_CALL( mp, sum_ints( Not( HasSize( Ge( 2 ) ) ) ) )
       .returns( 42 );
-  REQUIRE_THROWS_WITH(
-      user.sum_ints( v ), // 3, 4, 5
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4, 5
   v.pop_back();
-  REQUIRE_THROWS_WITH(
-      user.sum_ints( v ), // 3, 4
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4
   v.pop_back();
   REQUIRE( user.sum_ints( v ) == 42 ); // 3
 }
@@ -632,10 +593,7 @@ TEST_CASE( "[mock] Each" ) {
 
   EXPECT_CALL( mp, sum_ints( Each( Ge( 6 ) ) ) ).returns( 12 );
   v = { 5, 6, 7 };
-  REQUIRE_THROWS_WITH(
-      user.sum_ints( v ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) );
 
   v = { 6, 7, 8 };
   REQUIRE( user.sum_ints( v ) == 12 );
@@ -656,15 +614,9 @@ TEST_CASE( "[mock] AllOf" ) {
 
   EXPECT_CALL( mp, set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) ) );
   n = 6;
-  REQUIRE_THROWS_WITH(
-      user.set_x( n ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( n ) );
   n = 4;
-  REQUIRE_THROWS_WITH(
-      user.set_x( n ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( n ) );
   n = 5;
   user.set_x( n );
 
@@ -681,24 +633,15 @@ TEST_CASE( "[mock] AnyOf" ) {
       .times( 5 );
   user.set_x( 6 );
   user.set_x( 5 );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 4 ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 3 ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 4 ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 3 ) );
   user.set_x( 2 );
   user.set_x( 1 );
   user.set_x( 0 );
 
   // Empty list of matchers should fail.
   auto& responder = EXPECT_CALL( mp, set_x( AnyOf() ) );
-  REQUIRE_THROWS_WITH(
-      user.set_x( 1 ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 1 ) );
   // Since nothing can satisfy the above matcher, we must clear
   // the expectations.
   responder.clear_expectations();
@@ -711,14 +654,8 @@ TEST_CASE( "[mock] TupleElement" ) {
   EXPECT_CALL(
       mp, set_xy_pair( AllOf( TupleElement<0>( Ge( 5 ) ),
                               TupleElement<1>( Ge( 3 ) ) ) ) );
-  REQUIRE_THROWS_WITH(
-      user.set_xy_pair( { 5, 2 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
-  REQUIRE_THROWS_WITH(
-      user.set_xy_pair( { 4, 3 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 5, 2 } ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 4, 3 } ) );
   user.set_xy_pair( { 5, 3 } );
 }
 
@@ -729,14 +666,8 @@ TEST_CASE( "[mock] Key" ) {
   EXPECT_CALL(
       mp, set_xy_pair( AllOf( Key( Ge( 5 ) ),
                               TupleElement<1>( Ge( 3 ) ) ) ) );
-  REQUIRE_THROWS_WITH(
-      user.set_xy_pair( { 5, 2 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
-  REQUIRE_THROWS_WITH(
-      user.set_xy_pair( { 4, 3 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 5, 2 } ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 4, 3 } ) );
   user.set_xy_pair( { 5, 3 } );
 }
 
@@ -756,14 +687,8 @@ TEST_CASE( "[mock] Field" ) {
       Field( &Foo::baz, 6 )        //
   );
   EXPECT_CALL( mp, set_foo( matcher2 ) );
-  REQUIRE_THROWS_WITH(
-      user.set_foo( Foo{ 5, 6 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
-  REQUIRE_THROWS_WITH(
-      user.set_foo( Foo{ 6, 6 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 5, 6 } ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 6, 6 } ) );
   user.set_foo( Foo{ 7, 6 } );
 }
 
@@ -783,14 +708,8 @@ TEST_CASE( "[mock] Property" ) {
       Property( &Foo::get_baz, 6 )        //
   );
   EXPECT_CALL( mp, set_foo( matcher2 ) );
-  REQUIRE_THROWS_WITH(
-      user.set_foo( Foo{ 5, 6 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
-  REQUIRE_THROWS_WITH(
-      user.set_foo( Foo{ 6, 6 } ),
-      Matches( "mock function call with unexpected "
-               "arguments.*" ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 5, 6 } ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 6, 6 } ) );
   user.set_foo( Foo{ 7, 6 } );
 }
 
