@@ -293,4 +293,50 @@ auto Key( M&& to_match ) {
       child_t{ {}, std::forward<M>( to_match ) } );
 }
 
+/****************************************************************
+** Field
+*****************************************************************/
+// Given a member variable pointer and a matcher, it requires
+// that the member variable match the matcher.
+namespace detail {
+
+MATCHER_DEFINE_NODE( Field, held, actual ) {
+  return converting_operator_equal( held.second,
+                                    actual.*( held.first ) );
+};
+
+} // namespace detail
+
+template<typename MemberVarT, MatchableValue M>
+requires std::is_member_object_pointer_v<MemberVarT>
+auto Field( MemberVarT&& member_ptr, M&& to_match ) {
+  using child_t = std::pair<std::remove_reference_t<MemberVarT>,
+                            std::remove_reference_t<M>>;
+  return detail::FieldImpl<child_t>(
+      child_t{ member_ptr, std::forward<M>( to_match ) } );
+}
+
+/****************************************************************
+** Property
+*****************************************************************/
+// Given a pointer to member getter and a matcher, it requires
+// that the property match the matcher.
+namespace detail {
+
+MATCHER_DEFINE_NODE( Property, held, actual ) {
+  return converting_operator_equal(
+      held.second, ( actual.*( held.first ) )() );
+};
+
+} // namespace detail
+
+template<typename MemberFnT, MatchableValue M>
+requires std::is_member_function_pointer_v<MemberFnT>
+auto Property( MemberFnT&& member_ptr, M&& to_match ) {
+  using child_t = std::pair<std::remove_reference_t<MemberFnT>,
+                            std::remove_reference_t<M>>;
+  return detail::PropertyImpl<child_t>(
+      child_t{ member_ptr, std::forward<M>( to_match ) } );
+}
+
 } // namespace mock::matchers

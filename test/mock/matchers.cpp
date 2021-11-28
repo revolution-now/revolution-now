@@ -27,6 +27,16 @@ using namespace ::mock::matchers;
 
 using ::Catch::Matches;
 
+struct Foo {
+  bool operator==( Foo const& ) const = default;
+
+  int       bar = 6;
+  int const baz = 7;
+
+  int        get_bar() const { return bar; }
+  int const& get_baz() const { return baz; }
+};
+
 /****************************************************************
 ** IPoint
 *****************************************************************/
@@ -80,6 +90,8 @@ struct IPoint {
   virtual string say_hello_sv( string_view to ) const    = 0;
   virtual string_view say_hello_sv_sv(
       string_view to ) const = 0;
+
+  virtual void set_foo( Foo const& foo ) = 0;
 };
 
 /****************************************************************
@@ -132,6 +144,8 @@ struct MockPoint : IPoint {
                ( const ) );
   MOCK_METHOD( string_view, say_hello_sv_sv, ( string_view ),
                ( const ) );
+
+  MOCK_METHOD( void, set_foo, (Foo const&), () );
 };
 
 /****************************************************************
@@ -233,6 +247,8 @@ struct PointUser {
   string_view say_hello_sv_sv( string_view to ) const {
     return p_->say_hello_sv_sv( to );
   }
+
+  void set_foo( Foo const& foo ) { p_->set_foo( foo ); }
 
   IPoint* p_;
 };
@@ -621,6 +637,60 @@ TEST_CASE( "[mock] Key" ) {
       Matches( "mock function call with unexpected "
                "arguments.*" ) );
   user.set_xy_pair( { 5, 3 } );
+}
+
+TEST_CASE( "[mock] Field" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  auto matcher = AllOf(      //
+      Field( &Foo::bar, 5 ), //
+      Field( &Foo::baz, 6 )  //
+  );
+  EXPECT_CALL( mp, set_foo( matcher ) );
+  user.set_foo( Foo{ 5, 6 } );
+
+  auto matcher2 = AllOf(           //
+      Field( &Foo::bar, Ge( 7 ) ), //
+      Field( &Foo::baz, 6 )        //
+  );
+  EXPECT_CALL( mp, set_foo( matcher2 ) );
+  REQUIRE_THROWS_WITH(
+      user.set_foo( Foo{ 5, 6 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  REQUIRE_THROWS_WITH(
+      user.set_foo( Foo{ 6, 6 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_foo( Foo{ 7, 6 } );
+}
+
+TEST_CASE( "[mock] Property" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  auto matcher = AllOf(             //
+      Property( &Foo::get_bar, 5 ), //
+      Property( &Foo::get_baz, 6 )  //
+  );
+  EXPECT_CALL( mp, set_foo( matcher ) );
+  user.set_foo( Foo{ 5, 6 } );
+
+  auto matcher2 = AllOf(                  //
+      Property( &Foo::get_bar, Ge( 7 ) ), //
+      Property( &Foo::get_baz, 6 )        //
+  );
+  EXPECT_CALL( mp, set_foo( matcher2 ) );
+  REQUIRE_THROWS_WITH(
+      user.set_foo( Foo{ 5, 6 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  REQUIRE_THROWS_WITH(
+      user.set_foo( Foo{ 6, 6 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_foo( Foo{ 7, 6 } );
 }
 
 } // namespace
