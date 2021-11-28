@@ -22,13 +22,9 @@ namespace mock::matchers {
 /****************************************************************
 ** Any
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Any, /*held*/, /*actual*/ ) {
   return true;
 };
-
-}
 
 template<MatchableValue T>
 constexpr auto Any( T&& ) {
@@ -40,13 +36,9 @@ inline constexpr auto _ = Any( 0 );
 /****************************************************************
 ** Pointee
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Pointee, held, actual ) {
   return converting_operator_equal( held, *actual );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Pointee( T&& arg ) {
@@ -57,8 +49,6 @@ auto Pointee( T&& arg ) {
 /****************************************************************
 ** IterableElementsAre
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( IterableElementsAre, held, actual ) {
   bool should_stop = false;
   auto it          = std::begin( actual );
@@ -71,8 +61,6 @@ MATCHER_DEFINE_NODE( IterableElementsAre, held, actual ) {
   return ( it == std::end( actual ) ) && !should_stop;
 };
 
-} // namespace detail
-
 template<MatchableValue... M>
 auto IterableElementsAre( M&&... to_match ) {
   using child_t = std::tuple<std::remove_reference_t<M>...>;
@@ -83,14 +71,10 @@ auto IterableElementsAre( M&&... to_match ) {
 /****************************************************************
 ** Ge
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Ge, held, actual ) {
   return converting_operator_greater( actual, held ) ||
          converting_operator_equal( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Ge( T&& arg ) {
@@ -101,13 +85,9 @@ auto Ge( T&& arg ) {
 /****************************************************************
 ** Le
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Le, held, actual ) {
   return !converting_operator_greater( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Le( T&& arg ) {
@@ -118,13 +98,9 @@ auto Le( T&& arg ) {
 /****************************************************************
 ** Gt
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Gt, held, actual ) {
   return converting_operator_greater( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Gt( T&& arg ) {
@@ -135,14 +111,10 @@ auto Gt( T&& arg ) {
 /****************************************************************
 ** Lt
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Lt, held, actual ) {
   return !converting_operator_equal( actual, held ) &&
          !converting_operator_greater( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Lt( T&& arg ) {
@@ -153,13 +125,9 @@ auto Lt( T&& arg ) {
 /****************************************************************
 ** Ne
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Ne, held, actual ) {
   return !converting_operator_equal( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Ne( T&& arg ) {
@@ -170,13 +138,9 @@ auto Ne( T&& arg ) {
 /****************************************************************
 ** Not
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Not, held, actual ) {
   return !converting_operator_equal( actual, held );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Not( T&& arg ) {
@@ -187,13 +151,9 @@ auto Not( T&& arg ) {
 /****************************************************************
 ** StartsWith
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( StartsWith, held, actual ) {
   return std::string_view( actual ).starts_with( held );
 };
-
-} // namespace detail
 
 inline auto StartsWith( std::string arg ) {
   return detail::StartsWithImpl<std::string>( std::move( arg ) );
@@ -202,14 +162,10 @@ inline auto StartsWith( std::string arg ) {
 /****************************************************************
 ** StrContains
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( StrContains, held, actual ) {
   return std::string_view( actual ).find( held ) !=
          std::string_view::npos;
 };
-
-} // namespace detail
 
 inline auto StrContains( std::string arg ) {
   return detail::StrContainsImpl<std::string>(
@@ -219,13 +175,9 @@ inline auto StrContains( std::string arg ) {
 /****************************************************************
 ** Empty
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Empty, /*held*/, actual ) {
   return actual.empty();
 };
-
-} // namespace detail
 
 inline auto Empty() {
   struct Unused {
@@ -237,13 +189,9 @@ inline auto Empty() {
 /****************************************************************
 ** HasSize
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( HasSize, held, actual ) {
   return converting_operator_equal( held, actual.size() );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto HasSize( T&& arg ) {
@@ -256,16 +204,12 @@ auto HasSize( T&& arg ) {
 *****************************************************************/
 // Matches a container, and requires that each element in the
 // container match a given (single) matcher/value.
-namespace detail {
-
 MATCHER_DEFINE_NODE( Each, held, actual ) {
   return std::all_of(
       actual.begin(), actual.end(), [&held]( auto const& elem ) {
         return converting_operator_equal( elem, held );
       } );
 };
-
-} // namespace detail
 
 template<MatchableValue T>
 auto Each( T&& arg ) {
@@ -278,8 +222,6 @@ auto Each( T&& arg ) {
 *****************************************************************/
 // Matches a value and requires that all supplied matchers match
 // that same value.
-namespace detail {
-
 MATCHER_DEFINE_NODE( AllOf, held, actual ) {
   bool should_stop = false;
   FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
@@ -289,8 +231,6 @@ MATCHER_DEFINE_NODE( AllOf, held, actual ) {
   };
   return !should_stop;
 };
-
-} // namespace detail
 
 template<MatchableValue... M>
 auto AllOf( M&&... to_match ) {
@@ -304,8 +244,6 @@ auto AllOf( M&&... to_match ) {
 *****************************************************************/
 // Matches a value and requires that all supplied matchers match
 // that same value.
-namespace detail {
-
 MATCHER_DEFINE_NODE( AnyOf, held, actual ) {
   bool at_least_one_matches = false;
   FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
@@ -316,8 +254,6 @@ MATCHER_DEFINE_NODE( AnyOf, held, actual ) {
   };
   return at_least_one_matches;
 };
-
-} // namespace detail
 
 template<MatchableValue... M>
 auto AnyOf( M&&... to_match ) {
@@ -332,16 +268,12 @@ auto AnyOf( M&&... to_match ) {
 // The specified tuple element matches the specified matcher.
 // This should work with any tuple-like type that supports
 // std::get<N>();
-namespace detail {
-
 MATCHER_DEFINE_NODE( TupleElement, held, actual ) {
   constexpr size_t N       = decltype( held.first )::value;
   auto&            matcher = held.second;
   return converting_operator_equal( matcher,
                                     std::get<N>( actual ) );
 };
-
-} // namespace detail
 
 template<size_t N, MatchableValue M>
 auto TupleElement( M&& to_match ) {
@@ -367,14 +299,10 @@ auto Key( M&& to_match ) {
 *****************************************************************/
 // Given a member variable pointer and a matcher, it requires
 // that the member variable match the matcher.
-namespace detail {
-
 MATCHER_DEFINE_NODE( Field, held, actual ) {
   return converting_operator_equal( held.second,
                                     actual.*( held.first ) );
 };
-
-} // namespace detail
 
 template<typename MemberVarT, MatchableValue M>
 requires std::is_member_object_pointer_v<MemberVarT>
@@ -390,14 +318,10 @@ auto Field( MemberVarT&& member_ptr, M&& to_match ) {
 *****************************************************************/
 // Given a pointer to member getter and a matcher, it requires
 // that the property match the matcher.
-namespace detail {
-
 MATCHER_DEFINE_NODE( Property, held, actual ) {
   return converting_operator_equal(
       held.second, ( actual.*( held.first ) )() );
 };
-
-} // namespace detail
 
 template<typename MemberFnT, MatchableValue M>
 requires std::is_member_function_pointer_v<MemberFnT>
@@ -411,13 +335,9 @@ auto Property( MemberFnT&& member_ptr, M&& to_match ) {
 /****************************************************************
 ** Boolean
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Boolean, held, actual ) {
   return bool( actual ) == held;
 };
-
-} // namespace detail
 
 inline auto Boolean( bool b ) {
   return detail::BooleanImpl<bool>( std::move( b ) );
@@ -438,13 +358,9 @@ inline auto False() {
 /****************************************************************
 ** Null
 *****************************************************************/
-namespace detail {
-
 MATCHER_DEFINE_NODE( Null, /*held*/, actual ) {
   return actual == nullptr;
 };
-
-} // namespace detail
 
 inline auto Null() {
   struct Unused {

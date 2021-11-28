@@ -31,16 +31,18 @@
   static bool equal( held_type const& lhs, U const& rhs )
 
 #define MATCHER_DEFINE_NODE( name, lhs, rhs )                \
+  namespace detail {                                         \
   MATCHER_NODE_STRUCT( name ) {                              \
     MATCHER_NODE_PREAMBLE( name );                           \
                                                              \
     template<typename U>                                     \
     static bool equal( held_type const& lhs, U const& rhs ); \
   };                                                         \
+  }                                                          \
   template<MatchableValue T>                                 \
   template<typename U>                                       \
-  bool name##Impl<T>::equal( held_type const& lhs,           \
-                             U const&         rhs )
+  bool detail::name##Impl<T>::equal( held_type const& lhs,   \
+                                     U const&         rhs )
 
 namespace mock::matchers {
 
