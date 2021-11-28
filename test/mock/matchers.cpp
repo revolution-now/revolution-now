@@ -72,8 +72,9 @@ struct IPoint {
   virtual int sum_ints_nested(
       vector<vector<unsigned int>> const& v ) const = 0;
 
-  virtual string      say_hello( string const& to ) const  = 0;
-  virtual string      say_hello_sv( string_view to ) const = 0;
+  virtual string say_hello( string const& to ) const     = 0;
+  virtual string say_hello_ptr( string const* to ) const = 0;
+  virtual string say_hello_sv( string_view to ) const    = 0;
   virtual string_view say_hello_sv_sv(
       string_view to ) const = 0;
 };
@@ -119,6 +120,8 @@ struct MockPoint : IPoint {
                ( const ) );
 
   MOCK_METHOD( string, say_hello, (string const&), ( const ) );
+  MOCK_METHOD( string, say_hello_ptr, (string const*),
+               ( const ) );
   MOCK_METHOD( string, say_hello_sv, ( string_view ),
                ( const ) );
   MOCK_METHOD( string_view, say_hello_sv_sv, ( string_view ),
@@ -213,6 +216,9 @@ struct PointUser {
 
   string say_hello( string const& to ) const {
     return p_->say_hello( to );
+  }
+  string say_hello_ptr( string const* to ) const {
+    return p_->say_hello_ptr( to );
   }
   string say_hello_sv( string_view to ) const {
     return p_->say_hello_sv( to );
@@ -423,6 +429,42 @@ TEST_CASE( "[mock] string_view" ) {
         .returns( "hello bob" );
     REQUIRE( user.say_hello_sv_sv( "bob" ) == "hello bob" );
   }
+}
+
+TEST_CASE( "[mock] StartsWith" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, say_hello( StartsWith( "bob" ) ) )
+      .returns( "hello bob" );
+  REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
+
+  EXPECT_CALL( mp,
+               say_hello_ptr( Pointee( StartsWith( "bob" ) ) ) )
+      .returns( "hello bob" );
+  string bobbob = "bob bob";
+  REQUIRE( user.say_hello_ptr( &bobbob ) == "hello bob" );
+}
+
+TEST_CASE( "[mock] StrContains" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, say_hello( StrContains( "b b" ) ) )
+      .returns( "hello bob" );
+  REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
+
+  EXPECT_CALL( mp, say_hello( StrContains( "ccc" ) ) )
+      .returns( "hello bob" );
+  REQUIRE_THROWS_WITH(
+      user.say_hello( "bob bob" ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
 }
 
 } // namespace

@@ -108,10 +108,10 @@ struct Node {
 
  private:
   template<typename To, typename From>
-  static auto maybe_cast( From const& rhs )
-      -> std::conditional_t<std::is_convertible_v<From, To>, To,
-                            From const&> {
-    if constexpr( std::is_convertible_v<From, To> )
+  static auto
+  maybe_cast( From const& rhs ) -> std::conditional_t<
+      std::is_convertible_v<From const&, To>, To, From const&> {
+    if constexpr( std::is_convertible_v<From const&, To> )
       // Prevents e.g. signed/unsigned int conversion warnings.
       return static_cast<To>( rhs );
     else

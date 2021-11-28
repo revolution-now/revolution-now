@@ -115,4 +115,36 @@ auto Not( T&& arg ) {
       std::forward<T>( arg ) );
 }
 
+/****************************************************************
+** StartsWith
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( StartsWith, held, actual ) {
+  return std::string_view( actual ).starts_with( held );
+};
+
+} // namespace detail
+
+inline auto StartsWith( std::string arg ) {
+  return detail::StartsWithImpl<std::string>( std::move( arg ) );
+}
+
+/****************************************************************
+** StrContains
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( StrContains, held, actual ) {
+  return std::string_view( actual ).find( held ) !=
+         std::string_view::npos;
+};
+
+} // namespace detail
+
+inline auto StrContains( std::string arg ) {
+  return detail::StrContainsImpl<std::string>(
+      std::move( arg ) );
+}
+
 } // namespace mock::matchers
