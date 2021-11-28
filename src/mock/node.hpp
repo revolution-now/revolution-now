@@ -60,35 +60,9 @@ struct NodeMatcher : IMatcher<Target> {
   HeldType children_;
 };
 
-// This is the common behavior/interface for a node in the struc-
-// ture that describes a matching operation.
-template<typename Derived, MatchableValue T>
-struct Node {
-  using held_type = T;
-
-  constexpr Node( T&& val ) : children_( std::move( val ) ) {}
-
-  template<typename Target>
-  operator MatcherWrapper<Target>() && {
-    return MatcherWrapper<Target>(
-        NodeMatcher<Target, held_type, Derived>(
-            std::move( children_ ) ) );
-  }
-
-  template<typename Target>
-  requires std::is_copy_assignable_v<held_type>
-  operator MatcherWrapper<Target>() const& {
-    return MatcherWrapper<Target>(
-        NodeMatcher<Target, held_type, Derived>( children_ ) );
-  }
-
-  bool operator==( Node const& ) const = default;
-
-  template<typename U>
-  bool operator==( U const& rhs ) const {
-    return Derived::equal( children_, rhs );
-  }
-
+// Common Node stuff not dependent on the template parameters of
+// Node.
+struct NodeBase {
  protected:
   // These should always be used instead of the bare operators
   // when comparing values for the actual matching operations
@@ -117,7 +91,42 @@ struct Node {
     else
       return rhs;
   }
+};
 
+// This is the common behavior/interface for a node in the struc-
+// ture that describes a matching operation.
+template<typename Derived, MatchableValue T>
+struct Node : public NodeBase {
+  using held_type = T;
+
+  using NodeBase::converting_operator_equal;
+  using NodeBase::converting_operator_ge;
+
+  explicit constexpr Node( T&& val )
+    : children_( std::move( val ) ) {}
+
+  template<typename Target>
+  operator MatcherWrapper<Target>() && {
+    return MatcherWrapper<Target>(
+        NodeMatcher<Target, held_type, Derived>(
+            std::move( children_ ) ) );
+  }
+
+  template<typename Target>
+  requires std::is_copy_assignable_v<held_type>
+  operator MatcherWrapper<Target>() const& {
+    return MatcherWrapper<Target>(
+        NodeMatcher<Target, held_type, Derived>( children_ ) );
+  }
+
+  bool operator==( Node const& ) const = default;
+
+  template<typename U>
+  bool operator==( U const& rhs ) const {
+    return Derived::equal( children_, rhs );
+  }
+
+ private:
   held_type children_;
 };
 

@@ -147,4 +147,39 @@ inline auto StrContains( std::string arg ) {
       std::move( arg ) );
 }
 
+/****************************************************************
+** Empty
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Empty, held [[maybe_unused]], actual ) {
+  return actual.empty();
+};
+
+} // namespace detail
+
+inline auto Empty() {
+  struct Unused {
+    bool operator==( Unused const& ) const = default;
+  };
+  return detail::EmptyImpl<Unused>( Unused{} );
+}
+
+/****************************************************************
+** HasSize
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( HasSize, held, actual ) {
+  return converting_operator_equal( held, actual.size() );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto HasSize( T&& arg ) {
+  return detail::HasSizeImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
 } // namespace mock::matchers

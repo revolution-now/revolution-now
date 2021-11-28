@@ -444,5 +444,56 @@ TEST_CASE( "[mock] StrContains" ) {
   REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
 }
 
+TEST_CASE( "[mock] Empty" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, sum_ints( Not( Empty() ) ) ).returns( 12 );
+  vector<int> v{ 3, 4, 5 };
+  REQUIRE( user.sum_ints( v ) == 12 );
+
+  EXPECT_CALL( mp, sum_ints( Empty() ) ).returns( 0 );
+  v.clear();
+  REQUIRE( user.sum_ints( v ) == 0 );
+}
+
+TEST_CASE( "[mock] HasSize" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, sum_ints( HasSize( 3 ) ) ).returns( 12 );
+  vector<int> v{ 3, 4, 5 };
+  REQUIRE( user.sum_ints( v ) == 12 );
+
+  EXPECT_CALL( mp, sum_ints( HasSize( Ge( 2 ) ) ) )
+      .times( 3 )
+      .returns( 42 );
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4, 5
+  v.pop_back();
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4
+  v.pop_back();
+  REQUIRE_THROWS_WITH(
+      user.sum_ints( v ), // 3
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) ); // 3
+  v.push_back( 1 );
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 1
+
+  v = { 3, 4, 5 };
+  EXPECT_CALL( mp, sum_ints( Not( HasSize( Ge( 2 ) ) ) ) )
+      .returns( 42 );
+  REQUIRE_THROWS_WITH(
+      user.sum_ints( v ), // 3, 4, 5
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) ); // 3
+  v.pop_back();
+  REQUIRE_THROWS_WITH(
+      user.sum_ints( v ), // 3, 4
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) ); // 3
+  v.pop_back();
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3
+}
+
 } // namespace
 } // namespace mock
