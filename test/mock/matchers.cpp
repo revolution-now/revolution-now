@@ -132,10 +132,7 @@ struct MockPoint : IPoint {
 ** PointUser
 *****************************************************************/
 struct PointUser {
-  PointUser( IPoint* p ) : p_( p ) {
-    DCHECK( p_ != nullptr );
-    p_->set_xy( 3, 4 );
-  }
+  PointUser( IPoint* p ) : p_( p ) { DCHECK( p_ != nullptr ); }
 
   int increment_y() {
     int new_val = p_->get_y() + 1;
@@ -235,8 +232,6 @@ struct PointUser {
 *****************************************************************/
 TEST_CASE( "[mock] Pointee" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   // int*
@@ -286,8 +281,6 @@ TEST_CASE( "[mock] Pointee" ) {
 
 TEST_CASE( "[mock] Pointee arg match failure" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 9 ) ) );
@@ -302,8 +295,6 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
 
 TEST_CASE( "[mock] IterableElementsAre" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 4, 5 ) ) )
@@ -338,8 +329,6 @@ TEST_CASE( "[mock] IterableElementsAre" ) {
 
 TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 5, 5 ) ) )
@@ -356,8 +345,6 @@ TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
 
 TEST_CASE( "[mock] Ge" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, set_x( Ge( 8 ) ) ).times( 4 );
@@ -373,8 +360,6 @@ TEST_CASE( "[mock] Ge" ) {
 
 TEST_CASE( "[mock] Not" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, set_x( Not( Ge( 8 ) ) ) ).times( 4 );
@@ -390,8 +375,6 @@ TEST_CASE( "[mock] Not" ) {
 
 TEST_CASE( "[mock] string" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, say_hello( "bob" ) ).returns( "hello bob" );
@@ -400,8 +383,6 @@ TEST_CASE( "[mock] string" ) {
 
 TEST_CASE( "[mock] string_view" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   SECTION( "takes string_view" ) {
@@ -433,8 +414,6 @@ TEST_CASE( "[mock] string_view" ) {
 
 TEST_CASE( "[mock] StartsWith" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, say_hello( StartsWith( "bob" ) ) )
@@ -450,8 +429,6 @@ TEST_CASE( "[mock] StartsWith" ) {
 
 TEST_CASE( "[mock] StrContains" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, say_hello( StrContains( "b b" ) ) )

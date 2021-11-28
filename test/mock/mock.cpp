@@ -62,10 +62,7 @@ struct MockPoint : IPoint {
 ** PointUser
 *****************************************************************/
 struct PointUser {
-  PointUser( IPoint* p ) : p_( p ) {
-    DCHECK( p_ != nullptr );
-    p_->set_xy( 3, 4 );
-  }
+  PointUser( IPoint* p ) : p_( p ) { DCHECK( p_ != nullptr ); }
 
   int increment_y() {
     int new_val = p_->get_y() + 1;
@@ -91,6 +88,8 @@ struct PointUser {
     return p_->get_xy( x_out, y_out );
   }
 
+  void set_xy( int x, int y ) { p_->set_xy( x, y ); }
+
   IPoint* p_;
 };
 
@@ -99,9 +98,10 @@ struct PointUser {
 *****************************************************************/
 TEST_CASE( "[mock] one off calls" ) {
   MockPoint mp;
+  PointUser user( &mp );
 
   EXPECT_CALL( mp, set_xy( 3, 4 ) );
-  PointUser user( &mp );
+  user.set_xy( 3, 4 );
 
   EXPECT_CALL( mp, get_x() ).returns( 7 );
   REQUIRE( user.get_x() == 7 );
@@ -116,8 +116,6 @@ TEST_CASE( "[mock] one off calls" ) {
 
 TEST_CASE( "[mock] repeated calls" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, get_x() ).times( 3 ).returns( 7 );
@@ -141,8 +139,6 @@ TEST_CASE( "[mock] repeated calls" ) {
 
 TEST_CASE( "[mock] sets_arg" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, get_xy( _, _ ) )
@@ -157,8 +153,6 @@ TEST_CASE( "[mock] sets_arg" ) {
 
 TEST_CASE( "[mock] any" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( _, 4 ) );
   PointUser user( &mp );
 
   EXPECT_CALL( mp, get_y() ).returns( 10 );
@@ -169,9 +163,10 @@ TEST_CASE( "[mock] any" ) {
 TEST_CASE(
     "[mock] throws on unexpected mock function argument" ) {
   MockPoint mp;
+  PointUser user( &mp );
 
   EXPECT_CALL( mp, set_xy( _, 5 ) );
-  REQUIRE_THROWS_WITH( PointUser( &mp ),
+  REQUIRE_THROWS_WITH( user.set_xy( 0, 4 ),
                        Matches( ".*unexpected arguments.*" ) );
   // Make the expected call to an error isn't thrown.
   mp.set_xy( 0, 5 );
@@ -179,8 +174,6 @@ TEST_CASE(
 
 TEST_CASE( "[mock] throws on unexpected mock call" ) {
   MockPoint mp;
-
-  EXPECT_CALL( mp, set_xy( _, 4 ) );
   PointUser user( &mp );
 
   REQUIRE_THROWS_WITH(
