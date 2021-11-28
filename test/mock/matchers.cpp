@@ -475,7 +475,7 @@ TEST_CASE( "[mock] HasSize" ) {
   REQUIRE_THROWS_WITH(
       user.sum_ints( v ), // 3
       Matches( "mock function call with unexpected "
-               "arguments.*" ) ); // 3
+               "arguments.*" ) );
   v.push_back( 1 );
   REQUIRE( user.sum_ints( v ) == 42 ); // 3, 1
 
@@ -485,14 +485,33 @@ TEST_CASE( "[mock] HasSize" ) {
   REQUIRE_THROWS_WITH(
       user.sum_ints( v ), // 3, 4, 5
       Matches( "mock function call with unexpected "
-               "arguments.*" ) ); // 3
+               "arguments.*" ) );
   v.pop_back();
   REQUIRE_THROWS_WITH(
       user.sum_ints( v ), // 3, 4
       Matches( "mock function call with unexpected "
-               "arguments.*" ) ); // 3
+               "arguments.*" ) );
   v.pop_back();
   REQUIRE( user.sum_ints( v ) == 42 ); // 3
+}
+
+TEST_CASE( "[mock] Each" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, sum_ints( Each( 5 ) ) ).returns( 12 );
+  vector<int> v{ 5, 5, 5 };
+  REQUIRE( user.sum_ints( v ) == 12 );
+
+  EXPECT_CALL( mp, sum_ints( Each( Ge( 6 ) ) ) ).returns( 12 );
+  v = { 5, 6, 7 };
+  REQUIRE_THROWS_WITH(
+      user.sum_ints( v ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+
+  v = { 6, 7, 8 };
+  REQUIRE( user.sum_ints( v ) == 12 );
 }
 
 } // namespace

@@ -182,4 +182,26 @@ auto HasSize( T&& arg ) {
       std::forward<T>( arg ) );
 }
 
+/****************************************************************
+** Each
+*****************************************************************/
+// Matches a container, and requires that each element in the
+// container match a given (single) matcher/value.
+namespace detail {
+
+MATCHER_DEFINE_NODE( Each, held, actual ) {
+  return std::all_of(
+      actual.begin(), actual.end(), [&held]( auto const& elem ) {
+        return converting_operator_equal( elem, held );
+      } );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Each( T&& arg ) {
+  return detail::EachImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
 } // namespace mock::matchers
