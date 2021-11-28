@@ -20,7 +20,7 @@
   using Base::Base;                            \
   using Base::operator==;                      \
   using Base::converting_operator_equal;       \
-  using Base::converting_operator_ge
+  using Base::converting_operator_greater
 
 #define MATCHER_NODE_STRUCT( name ) \
   template<MatchableValue T>        \
@@ -75,9 +75,9 @@ struct NodeBase {
   }
 
   template<typename L, typename R>
-  static bool converting_operator_ge( L const& lhs,
-                                      R const& rhs ) {
-    return lhs >= maybe_cast<L>( rhs );
+  static bool converting_operator_greater( L const& lhs,
+                                           R const& rhs ) {
+    return lhs > maybe_cast<L>( rhs );
   }
 
  private:
@@ -100,7 +100,7 @@ struct Node : public NodeBase {
   using held_type = T;
 
   using NodeBase::converting_operator_equal;
-  using NodeBase::converting_operator_ge;
+  using NodeBase::converting_operator_greater;
 
   explicit constexpr Node( T&& val )
     : children_( std::move( val ) ) {}

@@ -92,6 +92,8 @@ struct IPoint {
       string_view to ) const = 0;
 
   virtual void set_foo( Foo const& foo ) = 0;
+
+  virtual void take_bool( bool b ) const = 0;
 };
 
 /****************************************************************
@@ -146,6 +148,8 @@ struct MockPoint : IPoint {
                ( const ) );
 
   MOCK_METHOD( void, set_foo, (Foo const&), () );
+
+  MOCK_METHOD( void, take_bool, (bool), ( const ) );
 };
 
 /****************************************************************
@@ -184,7 +188,7 @@ struct PointUser {
     return p_->get_xy( x_out, y_out );
   }
 
-  void set_x_from_ptr( int x ) { p_->set_x_from_ptr( &x ); }
+  void set_x_from_ptr( int* x ) { p_->set_x_from_ptr( x ); }
   void set_x_from_const_ptr( int x ) {
     p_->set_x_from_const_ptr( &x );
   }
@@ -250,6 +254,8 @@ struct PointUser {
 
   void set_foo( Foo const& foo ) { p_->set_foo( foo ); }
 
+  void take_bool( bool b ) const { p_->take_bool( b ); }
+
   IPoint* p_;
 };
 
@@ -262,7 +268,8 @@ TEST_CASE( "[mock] Pointee" ) {
 
   // int*
   EXPECT_CALL( mp, set_x_from_ptr( Pointee( 8 ) ) );
-  user.set_x_from_ptr( 8 );
+  int n = 8;
+  user.set_x_from_ptr( &n );
 
   // int const*
   EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 8 ) ) );
@@ -384,6 +391,63 @@ TEST_CASE( "[mock] Ge" ) {
   user.set_x( 8 );
 }
 
+TEST_CASE( "[mock] Le" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Le( 8 ) ) ).times( 4 );
+  user.set_x( 6 );
+  user.set_x( 7 );
+  user.set_x( 8 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 9 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 8 );
+}
+
+TEST_CASE( "[mock] Gt" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Gt( 8 ) ) ).times( 3 );
+  user.set_x( 10 );
+  user.set_x( 9 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 8 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 9 );
+}
+
+TEST_CASE( "[mock] Lt" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Lt( 8 ) ) ).times( 3 );
+  user.set_x( 6 );
+  user.set_x( 7 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 8 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 7 );
+}
+
+TEST_CASE( "[mock] Ne" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Ne( 8 ) ) ).times( 3 );
+  user.set_x( 7 );
+  user.set_x( 9 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 8 ),
+      Matches(
+          "mock function call with unexpected arguments.*" ) );
+  user.set_x( 7 );
+}
+
 TEST_CASE( "[mock] Not" ) {
   MockPoint mp;
   PointUser user( &mp );
@@ -481,6 +545,43 @@ TEST_CASE( "[mock] Empty" ) {
   EXPECT_CALL( mp, sum_ints( Empty() ) ).returns( 0 );
   v.clear();
   REQUIRE( user.sum_ints( v ) == 0 );
+}
+
+TEST_CASE( "[mock] True" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, take_bool( True() ) );
+  REQUIRE_THROWS_WITH(
+      user.take_bool( false ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.take_bool( true );
+}
+
+TEST_CASE( "[mock] False" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, take_bool( False() ) );
+  REQUIRE_THROWS_WITH(
+      user.take_bool( true ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.take_bool( false );
+}
+
+TEST_CASE( "[mock] Null" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  int n = 0;
+  EXPECT_CALL( mp, set_x_from_ptr( Null() ) );
+  REQUIRE_THROWS_WITH(
+      user.set_x_from_ptr( &n ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_x_from_ptr( nullptr );
 }
 
 TEST_CASE( "[mock] HasSize" ) {

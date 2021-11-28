@@ -24,8 +24,7 @@ namespace mock::matchers {
 *****************************************************************/
 namespace detail {
 
-MATCHER_DEFINE_NODE( Any, held [[maybe_unused]],
-                     actual [[maybe_unused]] ) {
+MATCHER_DEFINE_NODE( Any, /*held*/, /*actual*/ ) {
   return true;
 };
 
@@ -87,7 +86,8 @@ auto IterableElementsAre( M&&... to_match ) {
 namespace detail {
 
 MATCHER_DEFINE_NODE( Ge, held, actual ) {
-  return converting_operator_ge( actual, held );
+  return converting_operator_greater( actual, held ) ||
+         converting_operator_equal( actual, held );
 };
 
 } // namespace detail
@@ -95,6 +95,75 @@ MATCHER_DEFINE_NODE( Ge, held, actual ) {
 template<MatchableValue T>
 auto Ge( T&& arg ) {
   return detail::GeImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** Le
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Le, held, actual ) {
+  return !converting_operator_greater( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Le( T&& arg ) {
+  return detail::LeImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** Gt
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Gt, held, actual ) {
+  return converting_operator_greater( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Gt( T&& arg ) {
+  return detail::GtImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** Lt
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Lt, held, actual ) {
+  return !converting_operator_equal( actual, held ) &&
+         !converting_operator_greater( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Lt( T&& arg ) {
+  return detail::LtImpl<std::remove_cvref_t<T>>(
+      std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** Ne
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Ne, held, actual ) {
+  return !converting_operator_equal( actual, held );
+};
+
+} // namespace detail
+
+template<MatchableValue T>
+auto Ne( T&& arg ) {
+  return detail::NeImpl<std::remove_cvref_t<T>>(
       std::forward<T>( arg ) );
 }
 
@@ -152,7 +221,7 @@ inline auto StrContains( std::string arg ) {
 *****************************************************************/
 namespace detail {
 
-MATCHER_DEFINE_NODE( Empty, held [[maybe_unused]], actual ) {
+MATCHER_DEFINE_NODE( Empty, /*held*/, actual ) {
   return actual.empty();
 };
 
@@ -337,6 +406,51 @@ auto Property( MemberFnT&& member_ptr, M&& to_match ) {
                             std::remove_reference_t<M>>;
   return detail::PropertyImpl<child_t>(
       child_t{ member_ptr, std::forward<M>( to_match ) } );
+}
+
+/****************************************************************
+** Boolean
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Boolean, held, actual ) {
+  return bool( actual ) == held;
+};
+
+} // namespace detail
+
+inline auto Boolean( bool b ) {
+  return detail::BooleanImpl<bool>( std::move( b ) );
+}
+
+/****************************************************************
+** True
+*****************************************************************/
+inline auto True() { return detail::BooleanImpl<bool>( true ); }
+
+/****************************************************************
+** False
+*****************************************************************/
+inline auto False() {
+  return detail::BooleanImpl<bool>( false );
+}
+
+/****************************************************************
+** Null
+*****************************************************************/
+namespace detail {
+
+MATCHER_DEFINE_NODE( Null, /*held*/, actual ) {
+  return actual == nullptr;
+};
+
+} // namespace detail
+
+inline auto Null() {
+  struct Unused {
+    bool operator==( Unused const& ) const = default;
+  };
+  return detail::NullImpl<Unused>( Unused{} );
 }
 
 } // namespace mock::matchers
