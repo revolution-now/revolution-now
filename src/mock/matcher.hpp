@@ -75,7 +75,7 @@ struct Value : IMatcher<T> {
   }
 
  private:
-  T val_;
+  std::remove_cvref_t<T> val_;
 };
 
 } // namespace matchers::detail

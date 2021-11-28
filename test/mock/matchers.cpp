@@ -71,6 +71,8 @@ struct IPoint {
 
   virtual int sum_ints_nested(
       vector<vector<unsigned int>> const& v ) const = 0;
+
+  virtual string say_hello( string const& to ) const = 0;
 };
 
 /****************************************************************
@@ -112,6 +114,7 @@ struct MockPoint : IPoint {
   MOCK_METHOD( int, sum_ints_nested,
                (vector<vector<unsigned int>> const&),
                ( const ) );
+  MOCK_METHOD( string, say_hello, (string const&), ( const ) );
 };
 
 /****************************************************************
@@ -198,6 +201,10 @@ struct PointUser {
   int sum_ints_nested(
       vector<vector<unsigned int>> const& v ) const {
     return p_->sum_ints_nested( v );
+  }
+
+  string say_hello( string const& to ) const {
+    return p_->say_hello( to );
   }
 
   IPoint* p_;
@@ -359,6 +366,16 @@ TEST_CASE( "[mock] Not" ) {
       Matches(
           "mock function call with unexpected arguments.*" ) );
   user.set_x( 7 );
+}
+
+TEST_CASE( "[mock] string" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, say_hello( "bob" ) ).returns( "hello bob" );
+  REQUIRE( user.say_hello( "bob" ) == "hello bob" );
 }
 
 } // namespace

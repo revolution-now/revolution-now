@@ -230,8 +230,12 @@ struct Responder<RetT, std::tuple<Args...>,
     return *this;
   }
 
-  Responder& returns( RetHolder<RetT> val ) {
-    ret_ = std::move( val );
+  // clang-format off
+  template<typename U>
+  requires std::is_convertible_v<U, RetT>
+  Responder& returns( U&& val ) {
+    // clang-format on
+    ret_ = static_cast<RetT>( std::forward<U>( val ) );
     return *this;
   }
 
