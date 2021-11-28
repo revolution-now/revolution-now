@@ -43,6 +43,9 @@ struct IPoint {
 
   virtual void set_xy( int x, int y ) = 0;
 
+  virtual void set_xy_pair(
+      std::pair<int /*x*/, int /*y*/> p ) = 0;
+
   virtual void set_x_from_ptr( int* x )                  = 0;
   virtual void set_x_from_const_ptr( int const* x )      = 0;
   virtual void set_x_from_ptr_ptr( int** x )             = 0;
@@ -89,6 +92,9 @@ struct MockPoint : IPoint {
   MOCK_METHOD( void, set_x, (int), () );
   MOCK_METHOD( void, set_y, (int), () );
   MOCK_METHOD( void, set_xy, (int, int), () );
+
+  using pair_int_int = std::pair<int, int>;
+  MOCK_METHOD( void, set_xy_pair, ( pair_int_int ), () );
 
   MOCK_METHOD( void, set_x_from_ptr, (int*), () );
   MOCK_METHOD( void, set_x_from_const_ptr, (int const*), () );
@@ -148,6 +154,10 @@ struct PointUser {
 
   int some_method_2() {
     return some_method_1( 42 ) + p_->get_x();
+  }
+
+  void set_xy_pair( std::pair<int /*x*/, int /*y*/> p ) {
+    p_->set_xy_pair( p );
   }
 
   void set_x( int x ) { p_->set_x( x ); }
@@ -575,6 +585,42 @@ TEST_CASE( "[mock] AnyOf" ) {
   // Since nothing can satisfy the above matcher, we must clear
   // the expectations.
   responder.clear_expectations();
+}
+
+TEST_CASE( "[mock] TupleElement" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL(
+      mp, set_xy_pair( AllOf( TupleElement<0>( Ge( 5 ) ),
+                              TupleElement<1>( Ge( 3 ) ) ) ) );
+  REQUIRE_THROWS_WITH(
+      user.set_xy_pair( { 5, 2 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  REQUIRE_THROWS_WITH(
+      user.set_xy_pair( { 4, 3 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_xy_pair( { 5, 3 } );
+}
+
+TEST_CASE( "[mock] Key" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL(
+      mp, set_xy_pair( AllOf( Key( Ge( 5 ) ),
+                              TupleElement<1>( Ge( 3 ) ) ) ) );
+  REQUIRE_THROWS_WITH(
+      user.set_xy_pair( { 5, 2 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  REQUIRE_THROWS_WITH(
+      user.set_xy_pair( { 4, 3 } ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_xy_pair( { 5, 3 } );
 }
 
 } // namespace

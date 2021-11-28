@@ -257,4 +257,40 @@ auto AnyOf( M&&... to_match ) {
       child_t{ std::forward<M>( to_match )... } );
 }
 
+/****************************************************************
+** TupleElement
+*****************************************************************/
+// The specified tuple element matches the specified matcher.
+// This should work with any tuple-like type that supports
+// std::get<N>();
+namespace detail {
+
+MATCHER_DEFINE_NODE( TupleElement, held, actual ) {
+  constexpr size_t N       = decltype( held.first )::value;
+  auto&            matcher = held.second;
+  return converting_operator_equal( matcher,
+                                    std::get<N>( actual ) );
+};
+
+} // namespace detail
+
+template<size_t N, MatchableValue M>
+auto TupleElement( M&& to_match ) {
+  using child_t = std::pair<std::integral_constant<size_t, N>,
+                            std::remove_reference_t<M>>;
+  return detail::TupleElementImpl<child_t>(
+      child_t{ {}, std::forward<M>( to_match ) } );
+}
+
+/****************************************************************
+** Key
+*****************************************************************/
+template<MatchableValue M>
+auto Key( M&& to_match ) {
+  using child_t = std::pair<std::integral_constant<size_t, 0>,
+                            std::remove_reference_t<M>>;
+  return detail::TupleElementImpl<child_t>(
+      child_t{ {}, std::forward<M>( to_match ) } );
+}
+
 } // namespace mock::matchers
