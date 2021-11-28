@@ -514,5 +514,68 @@ TEST_CASE( "[mock] Each" ) {
   REQUIRE( user.sum_ints( v ) == 12 );
 }
 
+TEST_CASE( "[mock] AllOf" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) ) );
+  int n = 5;
+  user.set_x( n );
+
+  // Explicit value as matcher.
+  EXPECT_CALL( mp, set_x( AllOf( 5 ) ) );
+  n = 5;
+  user.set_x( n );
+
+  EXPECT_CALL( mp, set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) ) );
+  n = 6;
+  REQUIRE_THROWS_WITH(
+      user.set_x( n ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  n = 4;
+  REQUIRE_THROWS_WITH(
+      user.set_x( n ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  n = 5;
+  user.set_x( n );
+
+  // Empty list of matchers should always succeed.
+  EXPECT_CALL( mp, set_x( AllOf() ) );
+  user.set_x( n );
+}
+
+TEST_CASE( "[mock] AnyOf" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( AnyOf( Ge( 5 ), Not( Ge( 3 ) ) ) ) )
+      .times( 5 );
+  user.set_x( 6 );
+  user.set_x( 5 );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 4 ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 3 ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  user.set_x( 2 );
+  user.set_x( 1 );
+  user.set_x( 0 );
+
+  // Empty list of matchers should fail.
+  auto& responder = EXPECT_CALL( mp, set_x( AnyOf() ) );
+  REQUIRE_THROWS_WITH(
+      user.set_x( 1 ),
+      Matches( "mock function call with unexpected "
+               "arguments.*" ) );
+  // Since nothing can satisfy the above matcher, we must clear
+  // the expectations.
+  responder.clear_expectations();
+}
+
 } // namespace
 } // namespace mock

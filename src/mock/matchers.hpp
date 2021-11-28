@@ -24,8 +24,8 @@ namespace mock::matchers {
 *****************************************************************/
 namespace detail {
 
-MATCHER_DEFINE_NODE( Any, lhs [[maybe_unused]],
-                     rhs [[maybe_unused]] ) {
+MATCHER_DEFINE_NODE( Any, held [[maybe_unused]],
+                     actual [[maybe_unused]] ) {
   return true;
 };
 
@@ -43,8 +43,8 @@ inline constexpr auto _ = Any( 0 );
 *****************************************************************/
 namespace detail {
 
-MATCHER_DEFINE_NODE( Pointee, lhs, rhs ) {
-  return converting_operator_equal( lhs, *rhs );
+MATCHER_DEFINE_NODE( Pointee, held, actual ) {
+  return converting_operator_equal( held, *actual );
 };
 
 } // namespace detail
@@ -60,16 +60,16 @@ auto Pointee( T&& arg ) {
 *****************************************************************/
 namespace detail {
 
-MATCHER_DEFINE_NODE( IterableElementsAre, lhs, rhs ) {
-  bool stop = false;
-  auto it   = std::begin( rhs );
+MATCHER_DEFINE_NODE( IterableElementsAre, held, actual ) {
+  bool should_stop = false;
+  auto it          = std::begin( actual );
   FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
-    stop = ( it == std::end( rhs ) ) ||
-           !converting_operator_equal( std::get<Idx>( lhs ),
-                                       *it++ );
-    return stop;
+    should_stop = ( it == std::end( actual ) ) ||
+                  !converting_operator_equal(
+                      std::get<Idx>( held ), *it++ );
+    return should_stop;
   };
-  return ( it == std::end( rhs ) ) && !stop;
+  return ( it == std::end( actual ) ) && !should_stop;
 };
 
 } // namespace detail
@@ -202,6 +202,59 @@ template<MatchableValue T>
 auto Each( T&& arg ) {
   return detail::EachImpl<std::remove_cvref_t<T>>(
       std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** AllOf
+*****************************************************************/
+// Matches a value and requires that all supplied matchers match
+// that same value.
+namespace detail {
+
+MATCHER_DEFINE_NODE( AllOf, held, actual ) {
+  bool should_stop = false;
+  FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
+    should_stop = !converting_operator_equal(
+        std::get<Idx>( held ), actual );
+    return should_stop;
+  };
+  return !should_stop;
+};
+
+} // namespace detail
+
+template<MatchableValue... M>
+auto AllOf( M&&... to_match ) {
+  using child_t = std::tuple<std::remove_reference_t<M>...>;
+  return detail::AllOfImpl<child_t>(
+      child_t{ std::forward<M>( to_match )... } );
+}
+
+/****************************************************************
+** AnyOf
+*****************************************************************/
+// Matches a value and requires that all supplied matchers match
+// that same value.
+namespace detail {
+
+MATCHER_DEFINE_NODE( AnyOf, held, actual ) {
+  bool at_least_one_matches = false;
+  FOR_CONSTEXPR_IDX( Idx, std::tuple_size_v<T> ) {
+    at_least_one_matches = converting_operator_equal(
+        std::get<Idx>( held ), actual );
+    bool should_stop = at_least_one_matches;
+    return should_stop;
+  };
+  return at_least_one_matches;
+};
+
+} // namespace detail
+
+template<MatchableValue... M>
+auto AnyOf( M&&... to_match ) {
+  using child_t = std::tuple<std::remove_reference_t<M>...>;
+  return detail::AnyOfImpl<child_t>(
+      child_t{ std::forward<M>( to_match )... } );
 }
 
 } // namespace mock::matchers

@@ -116,7 +116,12 @@ struct exhaust_checker {
     // they haven't and 2) terminating here would prevent the
     // unit test framework from displaying the real error).
     if( std::uncaught_exceptions() == 0 ) {
-      BASE_CHECK( p_->empty(),
+      int unfinished = 0;
+      while( !p_->empty() ) {
+        if( !p_->front().finished() ) ++unfinished;
+        p_->pop();
+      }
+      BASE_CHECK( !unfinished,
                   "not all expected calls have been called." );
     }
   }
@@ -224,6 +229,8 @@ struct Responder<RetT, std::tuple<Args...>,
 
   bool finished() const { return times_expected_ == 0; }
 
+  void clear_expectations() { times_expected_ = 0; }
+
   Responder& times( int n ) {
     BASE_CHECK( n > 0 );
     times_expected_ = n;
@@ -281,6 +288,11 @@ struct ResponderQueue {
 
   template<typename... T>
   auto operator()( T&&... args ) {
+    // We need to clear any empty responders from the front of
+    // the queue just in case the user manually cleared them of
+    // their expectations.
+    while( !answers_.empty() && answers_.front().finished() )
+      answers_.pop();
     if( answers_.empty() )
       throw std::invalid_argument( fmt::format(
           "unexpected mock function call: {}", fn_name_ ) );
