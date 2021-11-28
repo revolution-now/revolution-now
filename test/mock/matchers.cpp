@@ -72,7 +72,10 @@ struct IPoint {
   virtual int sum_ints_nested(
       vector<vector<unsigned int>> const& v ) const = 0;
 
-  virtual string say_hello( string const& to ) const = 0;
+  virtual string      say_hello( string const& to ) const  = 0;
+  virtual string      say_hello_sv( string_view to ) const = 0;
+  virtual string_view say_hello_sv_sv(
+      string_view to ) const = 0;
 };
 
 /****************************************************************
@@ -114,7 +117,12 @@ struct MockPoint : IPoint {
   MOCK_METHOD( int, sum_ints_nested,
                (vector<vector<unsigned int>> const&),
                ( const ) );
+
   MOCK_METHOD( string, say_hello, (string const&), ( const ) );
+  MOCK_METHOD( string, say_hello_sv, ( string_view ),
+               ( const ) );
+  MOCK_METHOD( string_view, say_hello_sv_sv, ( string_view ),
+               ( const ) );
 };
 
 /****************************************************************
@@ -205,6 +213,12 @@ struct PointUser {
 
   string say_hello( string const& to ) const {
     return p_->say_hello( to );
+  }
+  string say_hello_sv( string_view to ) const {
+    return p_->say_hello_sv( to );
+  }
+  string_view say_hello_sv_sv( string_view to ) const {
+    return p_->say_hello_sv_sv( to );
   }
 
   IPoint* p_;
@@ -376,6 +390,39 @@ TEST_CASE( "[mock] string" ) {
 
   EXPECT_CALL( mp, say_hello( "bob" ) ).returns( "hello bob" );
   REQUIRE( user.say_hello( "bob" ) == "hello bob" );
+}
+
+TEST_CASE( "[mock] string_view" ) {
+  MockPoint mp;
+
+  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  PointUser user( &mp );
+
+  SECTION( "takes string_view" ) {
+    // Note that if "bob" were a temporary std::string then this
+    // would crash due to stored dangling string_view.
+    EXPECT_CALL( mp, say_hello_sv( "bob" ) )
+        .returns( "hello bob" );
+    REQUIRE( user.say_hello_sv( "bob" ) == "hello bob" );
+  }
+
+  SECTION( "takes string_view (use string for return)" ) {
+    // Note that if "bob" were a temporary std::string then this
+    // would crash due to stored dangling string_view.
+    EXPECT_CALL( mp, say_hello_sv( "bob" ) )
+        // Passing a temporary string here should be OK because
+        // say_hello_sv returns a std::string, so nothing will
+        // dangle.
+        .returns( string( "hello bob" ) );
+    REQUIRE( user.say_hello_sv( "bob" ) == "hello bob" );
+  }
+
+  SECTION( "takes and returns string_view" ) {
+    // Both of these must be non-dangling.
+    EXPECT_CALL( mp, say_hello_sv_sv( "bob" ) )
+        .returns( "hello bob" );
+    REQUIRE( user.say_hello_sv_sv( "bob" ) == "hello bob" );
+  }
 }
 
 } // namespace
