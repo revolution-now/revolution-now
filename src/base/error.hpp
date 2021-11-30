@@ -96,13 +96,23 @@
     }                                                    \
   }
 
+// We use a lambda for this so that we can reference the input
+// expressions twice (once to evaluate them and once to print
+// them) without having to store them in a local variable or ref-
+// erence, because doing so is tricky since if we stored them by
+// value then we have copy move issues, while if we stored them
+// by reference then we'd potentially have lifetime issues with
+// expressions like a.b.c(), since reference lifetime extension
+// only applies to the final value returned. By passing the
+// values into a lambda we know that they will only be evaluated
+// once and that their entire expressions will stay alive until
+// the lambda returns.
 #define BASE_CHECK_EQ( x, y )                                \
-  {                                                          \
-    if( ( x ) != ( y ) ) {                                   \
+  []( auto&& l, auto&& r ) {                                 \
+    if( l != r )                                             \
       ::base::abort_with_msg( ::base::detail::check_msg(     \
-          #x " == " #y, fmt::format( "{} != {}", x, y ) ) ); \
-    }                                                        \
-  }
+          #x " == " #y, fmt::format( "{} != {}", l, r ) ) ); \
+  }( x, y )
 
 // DCHECK is CHECK in debug builds, but compiles to nothing in
 // release builds.
