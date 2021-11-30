@@ -35,13 +35,56 @@ struct Vertex {
 TEST_CASE( "[vertex-buffer] creation" ) {
   gl::MockOpenGL mock;
 
+  // Prepare for construction.
   EXPECT_CALL( mock, gl_GetError() )
       .times( 2 )
       .returns( GL_NO_ERROR );
-
-  EXPECT_CALL( mock, gl_GenBuffers( 1, _ ) ).sets_arg<1>( 42 );
+  EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
+      .sets_arg<1>( 42 );
   EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 42 ) ) );
   VertexBuffer<Vertex> buf;
+
+  // Prepare for bind/unbind, which will happen in each of the
+  // sections below.
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( 5 )
+      .returns( GL_NO_ERROR );
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 41 );
+  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 42 ) );
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 42 );
+  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 41 );
+
+  SECTION( "bind/unbind" ) {
+    // Test bind/unbind in isolation.
+    auto binder = buf.bind();
+  }
+
+  SECTION( "upload_data_replace" ) {
+    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
+    vector<Vertex> vertices( 10 );
+    EXPECT_CALL(
+        mock,
+        gl_BufferData( GL_ARRAY_BUFFER, 10 * sizeof( Vertex ),
+                       &vertices[0], GL_STATIC_DRAW ) );
+    buf.upload_data_replace( vertices, e_draw_mode::stat1c );
+  }
+
+  SECTION( "upload_data_modify" ) {
+    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
+    vector<Vertex> vertices( 6 );
+    EXPECT_CALL(
+        mock,
+        gl_BufferSubData( GL_ARRAY_BUFFER, 2 * sizeof( Vertex ),
+                          6 * sizeof( Vertex ), &vertices[0] ) );
+    buf.upload_data_modify( vertices, 2 );
+  }
 }
 
 } // namespace
