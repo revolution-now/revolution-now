@@ -49,6 +49,9 @@ struct IPoint {
 ** MockPoint
 *****************************************************************/
 struct MockPoint : IPoint {
+  MockConfig::binder config =
+      MockConfig{ .throw_on_unexpected = true };
+
   MOCK_METHOD( int, get_x, (), ( const ) );
   MOCK_METHOD( int, get_y, (), ( const ) );
   MOCK_METHOD( bool, get_xy, (int*, int&), ( const ) );

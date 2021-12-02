@@ -41,12 +41,12 @@ struct Vertex {
 TEST_CASE( "[vertex-array] creation" ) {
   gl::MockOpenGL mock;
 
-  // Prepare for construction of VertexArrayNonTyped.
+  // Construct VertexArrayNonTyped.
   EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GenVertexArrays( 1, Not( Null() ) ) )
       .sets_arg<1>( 21 );
 
-  // Prepare for construction of vertex buffer.
+  // Construct vertex buffer.
   EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
       .sets_arg<1>( 41 );
@@ -75,7 +75,7 @@ TEST_CASE( "[vertex-array] creation" ) {
                                      Not( Null() ) ) )
       .sets_arg<1>( 10 );
 
-  // Registring attribute 0 (vec3).
+  // Register attribute 0 (vec3).
   EXPECT_CALL( mock, gl_GetError() )
       .times( 2 )
       .returns( GL_NO_ERROR );
@@ -87,7 +87,7 @@ TEST_CASE( "[vertex-array] creation" ) {
                    /*pointer=*/(void*)0 ) );
   EXPECT_CALL( mock, gl_EnableVertexAttribArray( 0 ) );
 
-  // Registring attribute 1 (float).
+  // Register attribute 1 (float).
   EXPECT_CALL( mock, gl_GetError() )
       .times( 2 )
       .returns( GL_NO_ERROR );

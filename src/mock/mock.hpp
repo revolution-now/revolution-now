@@ -86,6 +86,25 @@
 namespace mock {
 
 /****************************************************************
+** Mock Config
+*****************************************************************/
+struct MockConfig {
+  // By default we want to check-fail on unexpected so that we
+  // can get the stack trace for debugging. Though when we are
+  // unit testing the mocking framework itself we want to throw
+  // so that we can test that those errors are thrown.
+  bool throw_on_unexpected = false;
+
+  struct binder;
+};
+
+struct [[nodiscard]] MockConfig::binder {
+  binder( MockConfig config );
+  ~binder();
+  MockConfig old_config_;
+};
+
+/****************************************************************
 ** Mocking
 *****************************************************************/
 namespace detail {
@@ -101,6 +120,8 @@ template<>
 struct RetHolder<void> {
   void get() {}
 };
+
+void throw_unexpected_error( std::string_view msg );
 
 template<typename T>
 struct exhaust_checker {
@@ -188,7 +209,7 @@ struct Responder<RetT, std::tuple<Args...>,
               std::get<ArgIdx>( matchers_ );
           auto const& matcher = matcher_wrapper.matcher();
           if( !matcher.matches( arg ) )
-            throw std::invalid_argument( fmt::format(
+            throw_unexpected_error( fmt::format(
                 "mock function call with unexpected arguments: "
                 "{}( {} ); Argument #{} (one-based) does not "
                 "match.",
@@ -294,7 +315,7 @@ struct ResponderQueue {
     while( !answers_.empty() && answers_.front().finished() )
       answers_.pop();
     if( answers_.empty() )
-      throw std::invalid_argument( fmt::format(
+      throw_unexpected_error( fmt::format(
           "unexpected mock function call: {}", fn_name_ ) );
     R& responder = answers_.front();
     SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
