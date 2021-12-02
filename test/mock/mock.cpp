@@ -25,6 +25,19 @@ using ::Catch::Matches;
 using ::mock::matchers::_;
 
 /****************************************************************
+** Static Checks
+*****************************************************************/
+using TestResponder =
+    detail::Responder<int, tuple<>,
+                      decltype( make_index_sequence<0>() )>;
+using TestResponderQueue = detail::ResponderQueue<TestResponder>;
+
+static_assert( !is_move_constructible_v<TestResponderQueue> );
+static_assert( !is_move_assignable_v<TestResponderQueue> );
+static_assert( !is_copy_constructible_v<TestResponderQueue> );
+static_assert( !is_copy_assignable_v<TestResponderQueue> );
+
+/****************************************************************
 ** IPoint
 *****************************************************************/
 struct IPoint {

@@ -299,6 +299,11 @@ struct ResponderQueue {
 
   exhaust_checker<std::queue<R>> checker_ = &answers_;
 
+  // Because checker_ contains a pointer to answers_ that means
+  // that these objects are self-referential and should not be
+  // moved or copied.
+  NO_COPY_NO_MOVE( ResponderQueue );
+
   ResponderQueue( std::string fn_name )
     : fn_name_( std::move( fn_name ) ) {}
 
