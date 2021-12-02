@@ -41,44 +41,36 @@ struct Vertex {
 TEST_CASE( "[vertex-array] creation" ) {
   gl::MockOpenGL mock;
 
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( 19 )
+      .returns( GL_NO_ERROR );
+
   // Construct VertexArrayNonTyped.
-  EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GenVertexArrays( 1, Not( Null() ) ) )
       .sets_arg<1>( 21 );
 
   // Construct vertex buffer.
-  EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
       .sets_arg<1>( 41 );
 
   // Bind vertex array.
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 2 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 20 );
   EXPECT_CALL( mock, gl_BindVertexArray( 21 ) );
 
   // Bind vertex buffer.
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 2 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 40 );
   EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
 
   // One-time call to get max allowed attributes.
-  EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_MAX_VERTEX_ATTRIBS,
                                      Not( Null() ) ) )
       .sets_arg<1>( 10 );
 
   // Register attribute 0 (vec3).
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 2 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock,
                gl_VertexAttribPointer(
                    /*index=*/0, /*size=*/3, /*type=*/GL_FLOAT,
@@ -88,9 +80,6 @@ TEST_CASE( "[vertex-array] creation" ) {
   EXPECT_CALL( mock, gl_EnableVertexAttribArray( 0 ) );
 
   // Register attribute 1 (float).
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 2 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL(
       mock,
       gl_VertexAttribPointer(
@@ -100,9 +89,6 @@ TEST_CASE( "[vertex-array] creation" ) {
   EXPECT_CALL( mock, gl_EnableVertexAttribArray( 1 ) );
 
   // Unbind vertex buffer.
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 3 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 41 );
@@ -112,9 +98,6 @@ TEST_CASE( "[vertex-array] creation" ) {
       .sets_arg<1>( 40 );
 
   // Unbind vertex array.
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 3 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 21 );
@@ -124,11 +107,9 @@ TEST_CASE( "[vertex-array] creation" ) {
       .sets_arg<1>( 20 );
 
   // Delete vertex buffer.
-  EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 41 ) ) );
 
   // Delete vertex array.
-  EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_DeleteVertexArrays( 1, Pointee( 21 ) ) );
 
   // The call.

@@ -35,10 +35,11 @@ struct Vertex {
 TEST_CASE( "[vertex-buffer] interface" ) {
   gl::MockOpenGL mock;
 
-  // Prepare for construction.
   EXPECT_CALL( mock, gl_GetError() )
-      .times( 2 )
+      .times( 7 )
       .returns( GL_NO_ERROR );
+
+  // Prepare for construction.
   EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
       .sets_arg<1>( 42 );
   EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 42 ) ) );
@@ -46,9 +47,6 @@ TEST_CASE( "[vertex-buffer] interface" ) {
 
   // Prepare for bind/unbind, which will happen in each of the
   // sections below.
-  EXPECT_CALL( mock, gl_GetError() )
-      .times( 5 )
-      .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 41 );
@@ -67,8 +65,8 @@ TEST_CASE( "[vertex-buffer] interface" ) {
   }
 
   SECTION( "upload_data_replace" ) {
-    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
     vector<Vertex> vertices( 10 );
+    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
     EXPECT_CALL(
         mock,
         gl_BufferData( GL_ARRAY_BUFFER, 10 * sizeof( Vertex ),
@@ -77,8 +75,8 @@ TEST_CASE( "[vertex-buffer] interface" ) {
   }
 
   SECTION( "upload_data_modify" ) {
-    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
     vector<Vertex> vertices( 6 );
+    EXPECT_CALL( mock, gl_GetError() ).returns( GL_NO_ERROR );
     EXPECT_CALL(
         mock,
         gl_BufferSubData( GL_ARRAY_BUFFER, 2 * sizeof( Vertex ),
