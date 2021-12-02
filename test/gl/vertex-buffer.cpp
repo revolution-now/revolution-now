@@ -32,7 +32,7 @@ struct Vertex {
   float y;
 };
 
-TEST_CASE( "[vertex-buffer] creation" ) {
+TEST_CASE( "[vertex-buffer] interface" ) {
   gl::MockOpenGL mock;
 
   // Prepare for construction.

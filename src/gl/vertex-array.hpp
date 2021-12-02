@@ -101,7 +101,7 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
   : VertexArrayNonTyped {
   // This will be an mp::list of all of the attribute types, in
   // order, from all of the buffers concatenated and flattened.
-  using attrib_type_list = VertexFieldTypeList_t<
+  using AttribTypeList = VertexFieldTypeList_t<
       mp::to_list_t<decltype( std::tuple_cat(
           VertexTypes::attributes()... ) )>>;
 

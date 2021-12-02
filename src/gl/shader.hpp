@@ -135,7 +135,7 @@ struct Program : ProgramNonTyped {
             int num_vertices ) requires
       std::is_same_v<InputAttribTypeList,
                      typename VertexArray<
-                         VertexBuffers...>::attrib_type_list> {
+                         VertexBuffers...>::AttribTypeList> {
     this->ProgramNonTyped::run( vert_array, num_vertices );
   }
 

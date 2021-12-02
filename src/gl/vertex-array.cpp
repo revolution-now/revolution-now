@@ -58,7 +58,8 @@ void VertexArrayNonTyped::register_attrib(
     size_t offset ) const {
   static int kMaxAttributesAllowed = [] {
     int n;
-    glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &n );
+    GL_CHECK(
+        CALL_GL( gl_GetIntegerv, GL_MAX_VERTEX_ATTRIBS, &n ) );
     return n;
   }();
   CHECK_LT( idx, kMaxAttributesAllowed,

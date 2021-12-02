@@ -27,7 +27,7 @@ std::string_view to_GL_str( e_attrib_type type );
 /****************************************************************
 ** Attribute Compound Type
 *****************************************************************/
-enum class e_attrib_compound_type { vec2, vec3 };
+enum class e_attrib_compound_type { float_, vec2, vec3 };
 
 int to_GL( e_attrib_compound_type type );
 
@@ -42,6 +42,18 @@ template<typename T>
 struct attrib_traits;
 
 /****************************************************************
+** float
+*****************************************************************/
+template<>
+struct attrib_traits<float> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::float_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::float_;
+  inline static int count = 1;
+};
+
+/****************************************************************
 ** vec2
 *****************************************************************/
 struct vec2 {
@@ -53,9 +65,11 @@ struct vec2 {
 
 template<>
 struct attrib_traits<vec2> {
-  static e_attrib_type          component_type;
-  static e_attrib_compound_type compound_type;
-  static int                    count;
+  inline static e_attrib_type component_type =
+      e_attrib_type::float_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::vec2;
+  inline static int count = 2;
 };
 
 /****************************************************************
@@ -71,9 +85,11 @@ struct vec3 {
 
 template<>
 struct attrib_traits<vec3> {
-  static e_attrib_type          component_type;
-  static e_attrib_compound_type compound_type;
-  static int                    count;
+  inline static e_attrib_type component_type =
+      e_attrib_type::float_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::vec3;
+  inline static int count = 3;
 };
 
 } // namespace gl
