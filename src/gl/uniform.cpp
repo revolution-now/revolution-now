@@ -38,32 +38,40 @@ UniformNonTyped::UniformNonTyped( ObjId       pgrm_id,
 UniformNonTyped::set_valid_t UniformNonTyped::set(
     base::safe::floating<float> val ) const {
   GL_CHECK( CALL_GL( gl_UseProgram, pgrm_id_ ) );
-  glUniform1f( location_, val );
-  if( print_errors() ) return "failed to set uniform as float";
+  // No GL_CHECK here since we do it on the next line.
+  CALL_GL( gl_Uniform1f, location_, val );
+  if( vector<string> errors = has_errors(); !errors.empty() )
+    return "failed to set uniform as float";
   return base::valid;
 }
 
 UniformNonTyped::set_valid_t UniformNonTyped::set(
     base::safe::integer<long> val ) const {
   GL_CHECK( CALL_GL( gl_UseProgram, pgrm_id_ ) );
-  glUniform1i( location_, val );
-  if( print_errors() ) return "failed to set uniform as long";
+  // No GL_CHECK here since we do it on the next line.
+  CALL_GL( gl_Uniform1i, location_, val );
+  if( vector<string> errors = has_errors(); !errors.empty() )
+    return "failed to set uniform as long";
   return base::valid;
 }
 
 UniformNonTyped::set_valid_t UniformNonTyped::set(
     base::safe::boolean val ) const {
   GL_CHECK( CALL_GL( gl_UseProgram, pgrm_id_ ) );
-  glUniform1i( location_, bool( val ) ? 1 : 0 );
-  if( print_errors() ) return "failed to set uniform as bool";
+  // No GL_CHECK here since we do it on the next line.
+  CALL_GL( gl_Uniform1i, location_, bool( val ) ? 1 : 0 );
+  if( vector<string> errors = has_errors(); !errors.empty() )
+    return "failed to set uniform as bool";
   return base::valid;
 }
 
 UniformNonTyped::set_valid_t UniformNonTyped::set(
     vec2 val ) const {
   GL_CHECK( CALL_GL( gl_UseProgram, pgrm_id_ ) );
-  glUniform2f( location_, val.x, val.y );
-  if( print_errors() ) return "failed to set uniform as vec2";
+  // No GL_CHECK here since we do it on the next line.
+  CALL_GL( gl_Uniform2f, location_, val.x, val.y );
+  if( vector<string> errors = has_errors(); !errors.empty() )
+    return "failed to set uniform as vec2";
   return base::valid;
 }
 

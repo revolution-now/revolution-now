@@ -39,14 +39,14 @@ TEST_CASE( "[vertex-buffer] interface" ) {
       .times( 7 )
       .returns( GL_NO_ERROR );
 
-  // Prepare for construction.
+  // Construction.
   EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
       .sets_arg<1>( 42 );
   EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 42 ) ) );
   VertexBuffer<Vertex> buf;
 
-  // Prepare for bind/unbind, which will happen in each of the
-  // sections below.
+  // Bind/unbind, which will happen in each of the sections be-
+  // low.
   EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 41 );

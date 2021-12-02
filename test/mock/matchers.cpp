@@ -436,6 +436,17 @@ TEST_CASE( "[mock] Ne" ) {
   user.set_x( 7 );
 }
 
+TEST_CASE( "[mock] Eq" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( Eq( 8 ) ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 7 ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 9 ) );
+  REQUIRE_UNEXPECTED_ARGS( user.set_x( 10 ) );
+  user.set_x( 8 );
+}
+
 TEST_CASE( "[mock] Not" ) {
   MockPoint mp;
   PointUser user( &mp );

@@ -13,6 +13,9 @@
 // gl
 #include "iface.hpp"
 
+// base
+#include "base/fmt.hpp"
+
 // C++ standard library
 #include <iostream>
 
@@ -20,16 +23,22 @@ using namespace std;
 
 namespace gl {
 
-bool print_errors() {
-  GLenum err_code;
-  bool   error_found = false;
+vector<string> has_errors() {
+  vector<string> errors;
+  GLenum         err_code;
   while( true ) {
     err_code = CALL_GL( gl_GetError );
     if( err_code == GL_NO_ERROR ) break;
-    cerr << "OpenGL error: " << err_code << "\n";
-    error_found = true;
+    errors.push_back(
+        fmt::format( "OpenGL error: {}", err_code ) );
   }
-  return error_found;
+  return errors;
+}
+
+bool print_errors() {
+  vector<string> errors = has_errors();
+  for( string const& error : errors ) cerr << error;
+  return !errors.empty();
 }
 
 void check_errors() {

@@ -132,6 +132,15 @@ MATCHER_DEFINE_NODE( Ne, held, actual ) {
 GENERIC_SINGLE_ARG_MATCHER( Ne );
 
 /****************************************************************
+** Eq
+*****************************************************************/
+MATCHER_DEFINE_NODE( Eq, held, actual ) {
+  return converting_operator_equal( actual, held );
+};
+
+GENERIC_SINGLE_ARG_MATCHER( Eq );
+
+/****************************************************************
 ** Not
 *****************************************************************/
 MATCHER_DEFINE_NODE( Not, held, actual ) {

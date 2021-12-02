@@ -29,7 +29,12 @@
 
 namespace gl {
 
-// Returns true if error found.
+// Returns empty if no errors, otherwise a vector where each ele-
+// ment is one error (not multiple lines of the same error).
+std::vector<std::string> has_errors();
+
+// Returns true if there were errors, after printing them to the
+// console.
 bool print_errors();
 
 // Prints errors to console and then dies if any errors are

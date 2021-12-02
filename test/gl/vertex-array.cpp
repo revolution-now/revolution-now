@@ -14,8 +14,7 @@
 // Under test.
 #include "src/gl/vertex-array.hpp"
 
-// gl mock
-#include "src/gl/iface-logger.hpp"
+// gl
 #include "src/gl/iface-mock.hpp"
 
 // Must be last.
@@ -25,7 +24,6 @@ namespace gl {
 namespace {
 
 using namespace std;
-
 using namespace ::mock::matchers;
 
 struct Vertex {
