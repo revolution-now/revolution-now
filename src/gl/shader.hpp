@@ -258,13 +258,19 @@ private:
  public:
   // If a call to this function fails to compile it is either be-
   // cause the name of the uniform is wrong or the type of the
-  // parameter does not match the type of the uniform.
-  template<base::ct_string name, size_t N = find_uniform_index(
-                                     std::string_view( name ) )>
+  // parameter does not match the type of the uniform. The Bar-
+  // rier is to prevent the user from trying to set the N tem-
+  // plate parameter.
+  template<
+      base::ct_string name, size_t... Barrier,
+      size_t N = find_uniform_index( std::string_view( name ) )>
   void set_uniform(
       typename std::tuple_element_t<
           N, typename UniformTuple::values_t>::type const&
           val ) {
+    static_assert(
+        sizeof...( Barrier ) == 0,
+        "Too many template parameters given to set_uniform." );
     std::get<N>( uniforms_.values ).set( val );
   }
 
