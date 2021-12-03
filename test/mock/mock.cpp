@@ -56,6 +56,9 @@ struct IPoint {
   virtual void set_xy( int x, int y ) = 0;
 
   virtual double length() const = 0;
+
+  virtual void output_c_array( size_t* size_written,
+                               int*    arr ) const = 0;
 };
 
 /****************************************************************
@@ -72,6 +75,8 @@ struct MockPoint : IPoint {
   MOCK_METHOD( void, set_y, (int), () );
   MOCK_METHOD( void, set_xy, (int, int), () );
   MOCK_METHOD( double, length, (), ( const ) );
+  MOCK_METHOD( void, output_c_array, (size_t*, int*),
+               ( const ) );
 };
 
 /****************************************************************
@@ -105,6 +110,15 @@ struct PointUser {
   }
 
   void set_xy( int x, int y ) { p_->set_xy( x, y ); }
+
+  int output_c_array() const {
+    int    buf[10];
+    size_t n_written;
+    p_->output_c_array( &n_written, buf );
+    int res = 0;
+    for( size_t i = 0; i < n_written; ++i ) res += buf[i];
+    return res;
+  }
 
   IPoint* p_;
 };
@@ -165,6 +179,16 @@ TEST_CASE( "[mock] sets_arg" ) {
   REQUIRE( user.get_xy( &x, y ) == true );
   REQUIRE( x == 5 );
   REQUIRE( y == 6 );
+}
+
+TEST_CASE( "[mock] sets_arg_array" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, output_c_array( _, _ ) )
+      .sets_arg<0>( 3 )
+      .sets_arg_array<1>( vector{ 1, 2, 3 } );
+  REQUIRE( user.output_c_array() == 1 + 2 + 3 );
 }
 
 TEST_CASE( "[mock] any" ) {

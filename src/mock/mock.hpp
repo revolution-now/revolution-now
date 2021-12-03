@@ -178,6 +178,11 @@ struct Responder<RetT, std::tuple<Args...>,
                          base::maybe<std::remove_reference_t<
                              std::remove_pointer_t<Args>>>,
                          None>...>;
+  using array_setters_t = std::tuple<
+      std::conditional_t<SettablePointer<Args>,
+                         std::vector<std::remove_reference_t<
+                             std::remove_pointer_t<Args>>>,
+                         None>...>;
 
   Responder( std::string fn_name, matchers_t&& args )
     : fn_name_( std::move( fn_name ) ),
@@ -235,12 +240,27 @@ struct Responder<RetT, std::tuple<Args...>,
         ... );
     }
 
+    // 3. Set any output parameter C arrays that need to be set.
+    if( array_setters_.has_value() ) {
+      auto setter [[maybe_unused]] = []<typename T, typename U>(
+                                         T&& src, U& dst ) {
+        if constexpr( !std::is_same_v<std::remove_reference_t<T>,
+                                      None> ) {
+          auto* p = dst;
+          for( auto const& src_elem : src ) *p++ = src_elem;
+        }
+      };
+      ( setter( std::get<Idx>( *array_setters_ ),
+                std::get<Idx>( args ) ),
+        ... );
+    }
+
     // Decrement this after args are checked so that we can de-
     // tect arg failures and recover and still use the responder.
     BASE_CHECK( times_expected_ > 0 );
     --times_expected_;
 
-    // 3. Return what was requested to be returned.
+    // 4. Return what was requested to be returned.
     if constexpr( !std::is_same_v<RetT, void> ) {
       BASE_CHECK( ret_.has_value(),
                   "return value not set for {}.", fn_name_ );
@@ -279,17 +299,43 @@ struct Responder<RetT, std::tuple<Args...>,
     return *this;
   }
 
+  // For setting pointers to C arrays.
+  template<size_t Elem, typename Container>
+  /* clang-format off */
+  requires
+    SettablePointer<std::tuple_element_t<Elem, args_t>> &&
+    requires( Container const& c ) {
+      std::begin( c );
+      std::end( c );
+    } &&
+    std::is_assignable_v<
+      std::add_lvalue_reference_t<
+          std::remove_pointer_t<
+              std::tuple_element_t<Elem, args_t>>>,
+      decltype( *std::begin( std::declval<Container>() ) )
+    >
+  Responder& sets_arg_array( Container&& container ) {
+    /* clang-format on */
+    if( !array_setters_.has_value() ) array_setters_.emplace();
+    auto& vec = std::get<Elem>( *array_setters_ );
+    BASE_CHECK( vec.empty() );
+    for( auto&& val : std::forward<Container>( container ) )
+      vec.push_back( std::forward<decltype( val )>( val ) );
+    return *this;
+  }
+
  private:
   base::maybe<RetHolder<RetT>> ret_ = {};
-  // setters_t is wrapped in a maybe for efficiency purposes; in
-  // most cases there will be no parameter setting, and so then
-  // setters_ will remain `nothing` and when the mock is called,
-  // we will not have to iterate through the tuple members to
-  // check if there are any that need to be set.
-  base::maybe<setters_t> setters_ = {};
-  std::string            fn_name_;
-  matchers_t             matchers_;
-  int                    times_expected_;
+  // setters_t and array_setters_t are wrapped in a maybe for ef-
+  // ficiency purposes; in most cases there will be no parameter
+  // setting, and so then they will remain `nothing` and when the
+  // mock is called, we will not have to iterate through the
+  // tuple members to check if there are any that need to be set.
+  base::maybe<setters_t>       setters_       = {};
+  base::maybe<array_setters_t> array_setters_ = {};
+  std::string                  fn_name_;
+  matchers_t                   matchers_;
+  int                          times_expected_;
 };
 
 template<typename R>
