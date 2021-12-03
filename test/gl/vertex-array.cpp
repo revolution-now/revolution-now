@@ -40,7 +40,7 @@ TEST_CASE( "[vertex-array] creation" ) {
   gl::MockOpenGL mock;
 
   EXPECT_CALL( mock, gl_GetError() )
-      .times( 19 )
+      .times( 20 )
       .returns( GL_NO_ERROR );
 
   // Construct VertexArrayNonTyped.
@@ -63,10 +63,11 @@ TEST_CASE( "[vertex-array] creation" ) {
       .sets_arg<1>( 40 );
   EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
 
-  // One-time call to get max allowed attributes.
+  // Call to get max allowed attributes.
   EXPECT_CALL( mock, gl_GetIntegerv( GL_MAX_VERTEX_ATTRIBS,
                                      Not( Null() ) ) )
-      .sets_arg<1>( 10 );
+      .sets_arg<1>( 10 )
+      .times( 2 );
 
   // Register attribute 0 (vec3).
   EXPECT_CALL( mock,

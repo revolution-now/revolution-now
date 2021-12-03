@@ -56,12 +56,9 @@ void VertexArrayNonTyped::register_attrib(
     int idx, size_t attrib_field_count,
     e_attrib_type component_type, bool normalized, size_t stride,
     size_t offset ) const {
-  static int kMaxAttributesAllowed = [] {
-    int n;
-    GL_CHECK(
-        CALL_GL( gl_GetIntegerv, GL_MAX_VERTEX_ATTRIBS, &n ) );
-    return n;
-  }();
+  int kMaxAttributesAllowed;
+  GL_CHECK( CALL_GL( gl_GetIntegerv, GL_MAX_VERTEX_ATTRIBS,
+                     &kMaxAttributesAllowed ) );
   CHECK_LT( idx, kMaxAttributesAllowed,
             "graphics card/driver only supports up to {} vertex "
             "attributes.",

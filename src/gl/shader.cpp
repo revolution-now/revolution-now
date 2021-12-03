@@ -180,7 +180,7 @@ ProgramNonTyped::attrib_compound_type( int idx ) const {
                      /*program=*/id(),
                      /*index=*/idx,
                      /*bufsize=*/kBufSize,
-                     /*length=*/&name_length, // don't write name
+                     /*length=*/&name_length,
                      /*size=*/&size,
                      /*type=*/&type,
                      /*name=*/c_name ) );
