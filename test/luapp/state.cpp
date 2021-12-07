@@ -136,7 +136,7 @@ LUA_TEST_CASE( "[lua-state] thread create" ) {
 
 LUA_TEST_CASE( "[lua-state] thread create coro" ) {
   st.script.run( "function f() end" );
-  rfunction f      = st["f"].cast<rfunction>();
+  rfunction f      = st["f"].as<rfunction>();
   rthread   coro   = st.thread.create_coro( f );
   cthread   L_coro = coro.cthread();
   c_api     C_coro( L_coro );
@@ -149,17 +149,17 @@ LUA_TEST_CASE( "[lua-state] thread create coro" ) {
 LUA_TEST_CASE( "[lua-state] cast" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    REQUIRE( st.cast<int>( st["x"] ) == 5 );
+    REQUIRE( st.as<int>( st["x"] ) == 5 );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( st.cast<string>( st["x"] ) == "hello" );
+    REQUIRE( st.as<string>( st["x"] ) == "hello" );
     st["x"] = 5;
-    REQUIRE( st.cast<string>( st["x"] ) == "5" );
+    REQUIRE( st.as<string>( st["x"] ) == "5" );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    REQUIRE( st.cast<table>( st["x"] ) == st["x"] );
+    REQUIRE( st.as<table>( st["x"] ) == st["x"] );
   }
 }
 

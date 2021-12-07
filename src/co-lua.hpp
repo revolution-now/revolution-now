@@ -17,7 +17,7 @@
 
 // luapp
 #include "luapp/any.hpp"
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/rthread.hpp"
 
 // base
@@ -74,7 +74,7 @@ struct LuaWaitable {
     waitable_promise<R> p;
 
     auto set_result = [&]( lua::any res ) {
-      p.set_value( lua::cast<R>( res ) );
+      p.set_value( lua::as<R>( res ) );
     };
     auto set_error = [&]( std::string msg ) {
       p.template set_exception_emplace<lua_error_exception>(

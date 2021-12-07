@@ -13,7 +13,7 @@
 // luapp
 #include "any.hpp"
 #include "call.hpp"
-#include "cast.hpp"
+#include "as.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "ext.hpp"
@@ -114,8 +114,8 @@ struct indexer : indexer_base<Predecessor> {
   error_type_for_return_type<R> pcall( Args&&... args );
 
   template<typename T>
-  T cast() const {
-    return lua::cast<T>( *this );
+  T as() const {
+    return lua::as<T>( *this );
   }
 
  private:

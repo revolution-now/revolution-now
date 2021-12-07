@@ -224,16 +224,16 @@ void setup( lua::state& st ) {
   st["trace"] = trace;
 
   st["get_int_from_user1"] = [&]() -> waitable<lua::any> {
-    co_return st.cast<lua::any>( co_await get_int_from_user1() );
+    co_return st.as<lua::any>( co_await get_int_from_user1() );
   };
 
   st["get_int_from_user2"] = [&]() -> waitable<lua::any> {
-    co_return st.cast<lua::any>( co_await get_int_from_user2() );
+    co_return st.as<lua::any>( co_await get_int_from_user2() );
   };
 
   st["display_int"] = [&]( int n ) -> waitable<lua::any> {
     co_await display_int( n );
-    co_return st.cast<lua::any>( lua::nil );
+    co_return st.as<lua::any>( lua::nil );
   };
 
   st.script.run( lua_1 );
@@ -538,7 +538,7 @@ void setup( lua::state& st ) {
   st["trace"]     = trace;
   st["accum_cpp"] = []( int n ) -> waitable<lua::any> {
     lua::state& st = lua_global_state();
-    co_return st.cast<lua::any>( co_await accum_cpp( n ) );
+    co_return st.as<lua::any>( co_await accum_cpp( n ) );
   };
   st.script.run( lua_1 );
 }
@@ -771,21 +771,21 @@ void setup( lua::state& st ) {
 
   st["to_auto_cancel"] = [&]() -> waitable<lua::any> {
     co_await to_auto_cancel();
-    co_return st.cast<lua::any>( lua::nil );
+    co_return st.as<lua::any>( lua::nil );
   };
 
   st["cpp_1"] = [&]() -> waitable<lua::any> {
     co_await cpp_1();
-    co_return st.cast<lua::any>( lua::nil );
+    co_return st.as<lua::any>( lua::nil );
   };
 
   st["cpp_2"] = [&]() -> waitable<lua::any> {
     co_await cpp_2();
-    co_return st.cast<lua::any>( lua::nil );
+    co_return st.as<lua::any>( lua::nil );
   };
 
   st["cpp_3"] = [&]() -> waitable<lua::any> {
-    co_return st.cast<lua::any>( co_await cpp_3() );
+    co_return st.as<lua::any>( co_await cpp_3() );
   };
 
   st.script.run( lua_1 );

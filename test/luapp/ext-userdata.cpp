@@ -18,7 +18,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
 #include "src/luapp/ruserdata.hpp"
@@ -138,20 +138,20 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
   st["x"] = o;
   any a   = st["x"];
   REQUIRE( type_of( a ) == type::userdata );
-  userdata ud = cast<userdata>( a );
+  userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches(
           "lua::CppOwned&@0x[0-9a-z]+: CppOwned\\{n=5\\}" ) );
 
-  decltype( auto ) o2 = cast<CppOwned&>( st["x"] );
+  decltype( auto ) o2 = as<CppOwned&>( st["x"] );
   static_assert( is_same_v<decltype( o2 ), CppOwned&> );
 
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 == &o );
 
   REQUIRE(
-      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      as<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
       false );
   REQUIRE(
       C.dostring(
@@ -160,7 +160,7 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
 
   st["foo"] = []( CppOwned const& o0, CppOwned& o1,
                   CppOwned o2 ) { return o0.n + o1.n + o2.n; };
-  REQUIRE( cast<int>( st["foo"]( o, o, o ) ) == 5 * 3 );
+  REQUIRE( as<int>( st["foo"]( o, o, o ) ) == 5 * 3 );
 
   static_assert( !Pushable<maybe<CppOwned>> );
   static_assert( Pushable<maybe<CppOwned&>> );
@@ -178,9 +178,9 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
   static_assert(
       Castable<decltype( st["x"] ), maybe<CppOwned const&>> );
 
-  REQUIRE( cast<maybe<CppOwned&>>( st["foo"]( o, o, o ) ) ==
+  REQUIRE( as<maybe<CppOwned&>>( st["foo"]( o, o, o ) ) ==
            nothing );
-  REQUIRE( cast<maybe<CppOwned&>>( st["x"] ).value().n == 5 );
+  REQUIRE( as<maybe<CppOwned&>>( st["x"] ).value().n == 5 );
 }
 
 LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
@@ -210,12 +210,12 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   st["x"] = o;
   any a   = st["x"];
   REQUIRE( type_of( a ) == type::userdata );
-  userdata ud = cast<userdata>( a );
+  userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches( "lua::CppOwnedNonCopyable&: 0x[0-9a-z]+" ) );
 
-  decltype( auto ) o2 = cast<CppOwnedNonCopyable&>( st["x"] );
+  decltype( auto ) o2 = as<CppOwnedNonCopyable&>( st["x"] );
   static_assert(
       is_same_v<decltype( o2 ), CppOwnedNonCopyable&> );
 
@@ -223,7 +223,7 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   REQUIRE( &o2 == &o );
 
   REQUIRE(
-      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      as<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
       false );
   REQUIRE(
       C.dostring(
@@ -234,7 +234,7 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
                   CppOwnedNonCopyable&       o1 ) {
     return o0.n + o1.n;
   };
-  REQUIRE( cast<int>( st["foo"]( o, o ) ) == 5 * 2 );
+  REQUIRE( as<int>( st["foo"]( o, o ) ) == 5 * 2 );
 
   static_assert( !Pushable<maybe<CppOwnedNonCopyable>> );
   static_assert( Pushable<maybe<CppOwnedNonCopyable&>> );
@@ -253,10 +253,10 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   static_assert( Castable<decltype( st["x"] ),
                           maybe<CppOwnedNonCopyable const&>> );
 
-  REQUIRE( cast<maybe<CppOwnedNonCopyable&>>(
+  REQUIRE( as<maybe<CppOwnedNonCopyable&>>(
                st["foo"]( o, o ) ) == nothing );
   REQUIRE(
-      cast<maybe<CppOwnedNonCopyable&>>( st["x"] ).value().n ==
+      as<maybe<CppOwnedNonCopyable&>>( st["x"] ).value().n ==
       5 );
 }
 
@@ -283,20 +283,20 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   st["x"] = std::move( o );
   any a   = st["x"];
   REQUIRE( type_of( a ) == type::userdata );
-  userdata ud = cast<userdata>( a );
+  userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches(
           "lua::LuaOwned@0x[0-9a-z]+: LuaOwned\\{n=5\\}" ) );
 
-  decltype( auto ) o2 = cast<LuaOwned&>( st["x"] );
+  decltype( auto ) o2 = as<LuaOwned&>( st["x"] );
   static_assert( is_same_v<decltype( o2 ), LuaOwned&> );
 
   REQUIRE( o2.n == 5 );
   REQUIRE( &o2 != &o );
 
   REQUIRE(
-      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      as<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
       true );
   REQUIRE( C.dostring(
                "assert( getmetatable( x ).is_owned_by_lua )" ) ==
@@ -304,7 +304,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
 
   st["foo"] = []( LuaOwned const& o0, LuaOwned& o1,
                   LuaOwned o2 ) { return o0.n + o1.n + o2.n; };
-  REQUIRE( cast<int>( st["foo"]( LuaOwned{}, LuaOwned{},
+  REQUIRE( as<int>( st["foo"]( LuaOwned{}, LuaOwned{},
                                  LuaOwned{} ) ) == 5 * 3 );
 
   static_assert( Pushable<maybe<LuaOwned>> );
@@ -323,10 +323,10 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   static_assert(
       Castable<decltype( st["x"] ), maybe<LuaOwned const&>> );
 
-  REQUIRE( cast<maybe<LuaOwned&>>( st["foo"](
+  REQUIRE( as<maybe<LuaOwned&>>( st["foo"](
                LuaOwned{}, LuaOwned{}, LuaOwned{} ) ) ==
            nothing );
-  REQUIRE( cast<maybe<LuaOwned&>>( st["x"] ).value().n == 5 );
+  REQUIRE( as<maybe<LuaOwned&>>( st["x"] ).value().n == 5 );
 }
 
 LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
@@ -355,12 +355,12 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   st["x"] = std::move( o );
   any a   = st["x"];
   REQUIRE( type_of( a ) == type::userdata );
-  userdata ud = cast<userdata>( a );
+  userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
       Matches( "lua::LuaOwnedNonCopyable: 0x[0-9a-z]+" ) );
 
-  decltype( auto ) o2 = cast<LuaOwnedNonCopyable&>( st["x"] );
+  decltype( auto ) o2 = as<LuaOwnedNonCopyable&>( st["x"] );
   static_assert(
       is_same_v<decltype( o2 ), LuaOwnedNonCopyable&> );
 
@@ -368,7 +368,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   REQUIRE( &o2 != &o );
 
   REQUIRE(
-      cast<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
+      as<bool>( st["x"][metatable_key]["is_owned_by_lua"] ) ==
       true );
   REQUIRE( C.dostring(
                "assert( getmetatable( x ).is_owned_by_lua )" ) ==
@@ -378,7 +378,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
                   LuaOwnedNonCopyable&       o1 ) {
     return o0.n + o1.n;
   };
-  REQUIRE( cast<int>( st["foo"]( LuaOwnedNonCopyable{},
+  REQUIRE( as<int>( st["foo"]( LuaOwnedNonCopyable{},
                                  LuaOwnedNonCopyable{} ) ) ==
            5 * 2 );
 
@@ -399,11 +399,11 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   static_assert( Castable<decltype( st["x"] ),
                           maybe<LuaOwnedNonCopyable const&>> );
 
-  REQUIRE( cast<maybe<LuaOwnedNonCopyable&>>(
+  REQUIRE( as<maybe<LuaOwnedNonCopyable&>>(
                st["foo"]( LuaOwnedNonCopyable{},
                           LuaOwnedNonCopyable{} ) ) == nothing );
   REQUIRE(
-      cast<maybe<LuaOwnedNonCopyable&>>( st["x"] ).value().n ==
+      as<maybe<LuaOwnedNonCopyable&>>( st["x"] ).value().n ==
       5 );
 }
 

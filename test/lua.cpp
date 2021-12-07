@@ -17,7 +17,7 @@
 #include "lua.hpp"
 
 // luapp
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/error.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/rstring.hpp"
@@ -327,25 +327,25 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-      return lua::cast<string>( o ) + "!";
-    } else if( auto maybe_double = lua::cast<maybe<double>>( o );
+      return lua::as<string>( o ) + "!";
+    } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
       return fmt::format( "a double: {}", *maybe_double );
-    } else if( auto maybe_bool = lua::cast<maybe<bool>>( o );
+    } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
       return fmt::format( "a bool: {}", *maybe_bool );
     } else {
       return "?";
     }
   };
-  REQUIRE( lua::cast<string>( st["func"]( "hello" ) ) ==
+  REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==
            "hello!" );
-  REQUIRE( lua::cast<string>( st["func"]( 5 ) ) ==
+  REQUIRE( lua::as<string>( st["func"]( 5 ) ) ==
            "a double: 5.0" );
-  REQUIRE( lua::cast<string>( st["func"]( true ) ) ==
+  REQUIRE( lua::as<string>( st["func"]( true ) ) ==
            "a bool: true" );
 
-  REQUIRE( lua::cast<maybe<string>>( st["func"]( false ) ) ==
+  REQUIRE( lua::as<maybe<string>>( st["func"]( false ) ) ==
            "a bool: false" );
 }
 

@@ -18,7 +18,7 @@
 #include "test/monitoring-types.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -578,7 +578,7 @@ LUA_TEST_CASE(
     REQUIRE( &s[2] != &s2[2] );
     return s + "-" + s2 + "-" + string( sv );
   };
-  REQUIRE( cast<string>( st["foo"]( "one", "two", "three" ) ) ==
+  REQUIRE( as<string>( st["foo"]( "one", "two", "three" ) ) ==
            "one-two-three" );
 }
 

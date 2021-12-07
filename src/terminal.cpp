@@ -23,7 +23,7 @@
 
 // luapp
 #include "luapp/any.hpp"
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/metatable.hpp"
 #include "luapp/rstring.hpp"
@@ -231,19 +231,19 @@ vector<string> autocomplete( string_view fragment ) {
   auto table_for_object = []( lua::any o ) {
     maybe<lua::table> res;
     if( lua::type_of( o ) == lua::type::table )
-      res = lua::cast<lua::table>( o );
+      res = lua::as<lua::table>( o );
     if( lua::type_of( o ) == lua::type::userdata ) {
-      lua::userdata ud = lua::cast<lua::userdata>( o );
+      lua::userdata ud = lua::as<lua::userdata>( o );
 
       res = ud[lua::metatable_key]["member_types"]
-                .cast<lua::table>();
+                .as<lua::table>();
     }
     return res;
   };
 
   auto lifted_pairs_for_table = []( lua::table t ) {
     // FIXME: luapp should access __pairs.
-    return lua::cast<lua::table>(
+    return lua::as<lua::table>(
         lua_global_state()["meta"]["all_pairs"]( t ) );
   };
 
@@ -260,8 +260,8 @@ vector<string> autocomplete( string_view fragment ) {
         t, []( lua::any /*parent*/, lua::any key_obj ) {
           if( lua::type_of( key_obj ) != lua::type::string )
             return false;
-          return !util::starts_with(
-              lua::cast<string>( key_obj ), "__" );
+          return !util::starts_with( lua::as<string>( key_obj ),
+                                     "__" );
         } );
   };
 
@@ -270,7 +270,7 @@ vector<string> autocomplete( string_view fragment ) {
         t, [&]( lua::any parent, lua::any key_obj ) {
           if( lua::type_of( key_obj ) != lua::type::string )
             return false;
-          auto key = lua::cast<string>( key_obj );
+          auto key = lua::as<string>( key_obj );
           if( util::starts_with( key, "__" ) ) return false;
           return ( lua::type_of( parent[key] ) ==
                    lua::type::function );
@@ -301,7 +301,7 @@ vector<string> autocomplete( string_view fragment ) {
   auto add_keys = [&]( lua::any parent, auto kv ) {
     lua::any o = kv.first;
     if( lua::type_of( o ) == lua::type::string ) {
-      string key = lua::cast<string>( o );
+      string key = lua::as<string>( o );
       lg.trace( "does {} start with last?", key, last );
       if( util::starts_with( key, "__" ) ) return;
       if( util::starts_with( key, last ) ) {

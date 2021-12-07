@@ -17,7 +17,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/func-push.hpp"
 
 // Must be last.
@@ -195,7 +195,7 @@ LUA_TEST_CASE( "[rfunction] cpp->lua->cpp round trip" ) {
       return go( n, s, d )
     end
   )" ) == valid );
-  rfunction foo = cast<rfunction>( st["foo"] );
+  rfunction foo = as<rfunction>( st["foo"] );
 
   any a = foo( 3, "hello", 3.6 );
   REQUIRE( a == "args: n=3, s='hello', d=3.6" );

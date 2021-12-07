@@ -58,7 +58,7 @@ lua::table require( string const& name ) {
   if( ext[name] != lua::nil ) {
     LUA_CHECK( st, ext[name] != "loading",
                "cyclic dependency detected." )
-    return ext[name].cast<lua::table>();
+    return ext[name].as<lua::table>();
   }
   lg.info( "loading lua module \"{}\".", name );
   LUA_CHECK( st, is_valid_lua_identifier( name ),

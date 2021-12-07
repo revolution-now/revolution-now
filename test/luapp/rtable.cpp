@@ -17,7 +17,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/func-push.hpp"
 
 // Must be last.
@@ -213,7 +213,7 @@ LUA_TEST_CASE( "[table] cpp from cpp via lua" ) {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
 
-  table t = cast<table>( st["go"] );
+  table t = as<table>( st["go"] );
 
   any a = t( 3, "hello", 3.6 );
   REQUIRE( a == "args: n=3, s='hello', d=3.6" );

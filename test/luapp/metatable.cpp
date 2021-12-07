@@ -17,7 +17,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/func-push.hpp"
 
 // Must be last.
@@ -41,7 +41,7 @@ LUA_TEST_CASE( "[metatable] metatable" ) {
   metatable["y"]       = 5;
 
   REQUIRE( st["x"]["y"] == nil );
-  setmetatable( cast<table>( st["x"] ), metatable );
+  setmetatable( as<table>( st["x"] ), metatable );
   REQUIRE( st["x"]["y"] == 5 );
 
   maybe<table> metatable2 = metatable_for( st["x"] );

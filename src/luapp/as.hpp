@@ -1,5 +1,5 @@
 /****************************************************************
-**cast.hpp
+**as.hpp
 *
 * Project: Revolution Now
 *
@@ -29,29 +29,29 @@ struct FixClangFormat1 {};
 
 namespace detail {
 
-void        cast_pop( cthread L, int n );
-std::string cast_type_name( cthread L, int idx );
+void        as_pop( cthread L, int n );
+std::string as_type_name( cthread L, int idx );
 
 } // namespace detail
 
 template<typename To, typename From>
 requires Castable<From, To>
-[[nodiscard]] To cast(
+[[nodiscard]] To as(
     cthread L, From&& from,
     base::SourceLoc loc = base::SourceLoc::current() ) {
   int n_pushed = lua::push( L, FWD( from ) );
   To  to       = get_or_luaerr<To>( L, -1, loc );
-  detail::cast_pop( L, n_pushed );
+  detail::as_pop( L, n_pushed );
   return to;
 }
 
 template<typename To, typename From>
 requires Castable<From, To> && HasCthread<From>
-[[nodiscard]] To cast(
+[[nodiscard]] To as(
     From&&          from,
     base::SourceLoc loc = base::SourceLoc::current() ) {
   cthread L = from.this_cthread();
-  return cast<To>( L, FWD( from ), loc );
+  return as<To>( L, FWD( from ), loc );
 }
 
 // Wraps the type in a maybe<...> so that it won't throw errors
@@ -59,10 +59,10 @@ requires Castable<From, To> && HasCthread<From>
 // specialization that makes this happen).
 template<typename To, typename From>
 requires Castable<From, To>
-[[nodiscard]] auto safe_cast(
+[[nodiscard]] auto safe_as(
     From&&          from,
     base::SourceLoc loc = base::SourceLoc::current() ) {
-  return cast<base::maybe<To>>( FWD( from ), loc );
+  return as<base::maybe<To>>( FWD( from ), loc );
 }
 
 } // namespace lua

@@ -16,7 +16,7 @@
 #include "lua.hpp"
 
 // luapp
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/func-push.hpp"
 #include "luapp/metatable.hpp"
 #include "luapp/rtable.hpp"
@@ -586,7 +586,7 @@ maybe<Coord> lua_get( lua::cthread L, int idx,
   if( !maybe_t.has_value() ) return nothing;
   lua::table& t = *maybe_t;
   if( t["x"] == lua::nil || t["y"] == lua::nil ) return nothing;
-  Coord coord{ lua::cast<X>( t["x"] ), lua::cast<Y>( t["y"] ) };
+  Coord coord{ lua::as<X>( t["x"] ), lua::as<Y>( t["y"] ) };
   return coord;
 }
 

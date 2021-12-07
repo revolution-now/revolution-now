@@ -12,7 +12,7 @@
 
 // luapp
 #include "call.hpp"
-#include "cast.hpp"
+#include "as.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "rfunction.hpp"
@@ -194,11 +194,11 @@ struct state : base::zero<state, cthread> {
   ***************************************************************/
   template<typename To, typename From>
   requires Castable<From, To>
-  [[nodiscard]] To cast(
+  [[nodiscard]] To as(
       From&&          from,
       base::SourceLoc loc = base::SourceLoc::current() ) {
     cthread L = resource();
-    return lua::cast<To>( L, std::forward<From>( from ), loc );
+    return lua::as<To>( L, std::forward<From>( from ), loc );
   }
 
   /**************************************************************

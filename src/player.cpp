@@ -18,7 +18,7 @@
 #include "util.hpp"
 
 // luapp
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
 
@@ -104,7 +104,7 @@ namespace {
 LUA_FN( set_players, void, lua::table nations ) {
   vector<e_nation> vec;
   for( auto p : nations )
-    vec.push_back( lua::cast<e_nation>( p.second ) );
+    vec.push_back( lua::as<e_nation>( p.second ) );
   lg.info( "enabling nations: {}", FmtJsonStyleList{ vec } );
   set_players( vec );
 }

@@ -219,7 +219,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     any a = call_lua_unsafe_and_get<any>( L, 3, "hello", 3.5 );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( type_of( a ) == type::table );
-    table t = cast<table>( a );
+    table t = as<table>( a );
     REQUIRE( t[1] == 4 );
     REQUIRE( t[2] == "hello!" );
     REQUIRE( t[3] == 5.0 );
@@ -256,7 +256,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( a.has_value() );
     REQUIRE( type_of( *a ) == type::table );
-    table t = cast<table>( *a );
+    table t = as<table>( *a );
     REQUIRE( t[1] == 4 );
     REQUIRE( t[2] == "hello!" );
     REQUIRE( t[3] == 5.0 );

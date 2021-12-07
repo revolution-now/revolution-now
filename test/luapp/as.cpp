@@ -1,17 +1,17 @@
 /****************************************************************
-**cast.cpp
+**as.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-06-19.
 *
-* Description: Unit tests for the src/luapp/cast.* module.
+* Description: Unit tests for the src/luapp/as.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 
 // Testing
 #include "test/luapp/common.hpp"
@@ -77,7 +77,7 @@ FMT_TO_CATCH( ::lua::Point );
 namespace lua {
 namespace {
 
-LUA_TEST_CASE( "[cast] castability test" ) {
+LUA_TEST_CASE( "[as] castability test" ) {
   using indexer_t = decltype( st["foo"] );
 
   // Things that should not be castable.
@@ -120,108 +120,108 @@ LUA_TEST_CASE( "[cast] castability test" ) {
   static_assert( Castable<indexer_t, maybe<Point>> );
 }
 
-LUA_TEST_CASE( "[cast] cast to _" ) {
+LUA_TEST_CASE( "[as] cast to _" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    (void)cast<int>( st["x"] );
+    (void)as<int>( st["x"] );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    (void)cast<string>( st["x"] );
+    (void)as<string>( st["x"] );
     st["x"] = 5;
-    (void)cast<string>( st["x"] );
+    (void)as<string>( st["x"] );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    (void)cast<table>( st["x"] );
+    (void)as<table>( st["x"] );
   }
 }
 
-LUA_TEST_CASE( "[cast] cast with L" ) {
+LUA_TEST_CASE( "[as] cast with L" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    REQUIRE( cast<int>( L, st["x"] ) == 5 );
+    REQUIRE( as<int>( L, st["x"] ) == 5 );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( cast<string>( L, st["x"] ) == "hello" );
+    REQUIRE( as<string>( L, st["x"] ) == "hello" );
     st["x"] = 5;
-    REQUIRE( cast<string>( L, st["x"] ) == "5" );
+    REQUIRE( as<string>( L, st["x"] ) == "5" );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    REQUIRE( cast<table>( L, st["x"] ) == st["x"] );
+    REQUIRE( as<table>( L, st["x"] ) == st["x"] );
   }
 }
 
-LUA_TEST_CASE( "[cast] cast to maybe<_>" ) {
+LUA_TEST_CASE( "[as] cast to maybe<_>" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    REQUIRE( cast<maybe<int>>( st["x"] ) == 5 );
-    REQUIRE( cast<maybe<string>>( st["x"] ) == "5" );
-    REQUIRE( cast<maybe<table>>( st["x"] ) == nothing );
+    REQUIRE( as<maybe<int>>( st["x"] ) == 5 );
+    REQUIRE( as<maybe<string>>( st["x"] ) == "5" );
+    REQUIRE( as<maybe<table>>( st["x"] ) == nothing );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( cast<maybe<int>>( st["x"] ) == nothing );
-    REQUIRE( cast<maybe<string>>( st["x"] ) == "hello" );
-    REQUIRE( cast<maybe<table>>( st["x"] ) == nothing );
+    REQUIRE( as<maybe<int>>( st["x"] ) == nothing );
+    REQUIRE( as<maybe<string>>( st["x"] ) == "hello" );
+    REQUIRE( as<maybe<table>>( st["x"] ) == nothing );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    table t = cast<table>( st["x"] );
-    REQUIRE( cast<maybe<int>>( st["x"] ) == nothing );
-    REQUIRE( cast<maybe<string>>( st["x"] ) == nothing );
-    REQUIRE( cast<maybe<table>>( st["x"] ) == st["x"] );
-    REQUIRE( cast<maybe<table>>( st["x"] ) == t );
+    table t = as<table>( st["x"] );
+    REQUIRE( as<maybe<int>>( st["x"] ) == nothing );
+    REQUIRE( as<maybe<string>>( st["x"] ) == nothing );
+    REQUIRE( as<maybe<table>>( st["x"] ) == st["x"] );
+    REQUIRE( as<maybe<table>>( st["x"] ) == t );
   }
 }
 
-LUA_TEST_CASE( "[cast] safe_cast" ) {
+LUA_TEST_CASE( "[as] safe_as" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    REQUIRE( safe_cast<int>( st["x"] ) == 5 );
-    REQUIRE( safe_cast<string>( st["x"] ) == "5" );
-    REQUIRE( safe_cast<table>( st["x"] ) == nothing );
+    REQUIRE( safe_as<int>( st["x"] ) == 5 );
+    REQUIRE( safe_as<string>( st["x"] ) == "5" );
+    REQUIRE( safe_as<table>( st["x"] ) == nothing );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( safe_cast<int>( st["x"] ) == nothing );
-    REQUIRE( safe_cast<string>( st["x"] ) == "hello" );
-    REQUIRE( safe_cast<table>( st["x"] ) == nothing );
+    REQUIRE( safe_as<int>( st["x"] ) == nothing );
+    REQUIRE( safe_as<string>( st["x"] ) == "hello" );
+    REQUIRE( safe_as<table>( st["x"] ) == nothing );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
-    table t = cast<table>( st["x"] );
-    REQUIRE( safe_cast<int>( st["x"] ) == nothing );
-    REQUIRE( safe_cast<string>( st["x"] ) == nothing );
-    REQUIRE( safe_cast<table>( st["x"] ) == st["x"] );
-    REQUIRE( safe_cast<table>( st["x"] ) == t );
+    table t = as<table>( st["x"] );
+    REQUIRE( safe_as<int>( st["x"] ) == nothing );
+    REQUIRE( safe_as<string>( st["x"] ) == nothing );
+    REQUIRE( safe_as<table>( st["x"] ) == st["x"] );
+    REQUIRE( safe_as<table>( st["x"] ) == t );
   }
 }
 
-LUA_TEST_CASE( "[cast] Point" ) {
+LUA_TEST_CASE( "[as] Point" ) {
   st["point"] = Point{ .x = 3, .y = 5 };
-  table t     = cast<table>( st["point"] );
-  REQUIRE( cast<maybe<int>>( st["point"] ) == nothing );
-  REQUIRE( cast<maybe<string>>( st["point"] ) == nothing );
-  REQUIRE( cast<maybe<table>>( st["point"] ) == st["point"] );
-  REQUIRE( cast<maybe<table>>( st["point"] ) == t );
+  table t     = as<table>( st["point"] );
+  REQUIRE( as<maybe<int>>( st["point"] ) == nothing );
+  REQUIRE( as<maybe<string>>( st["point"] ) == nothing );
+  REQUIRE( as<maybe<table>>( st["point"] ) == st["point"] );
+  REQUIRE( as<maybe<table>>( st["point"] ) == t );
 
   // The test.
-  REQUIRE( cast<maybe<Point>>( st["point"] ) ==
+  REQUIRE( as<maybe<Point>>( st["point"] ) ==
            Point{ .x = 3, .y = 5 } );
-  Point p = cast<Point>( st["point"] );
+  Point p = as<Point>( st["point"] );
   REQUIRE( p.x == 3 );
   REQUIRE( p.y == 5 );
 
   st["non-point"] = 5;
-  REQUIRE( cast<maybe<Point>>( st["non-point"] ) == nothing );
+  REQUIRE( as<maybe<Point>>( st["non-point"] ) == nothing );
 }
 
-LUA_TEST_CASE( "[cast] failed cast" ) {
+LUA_TEST_CASE( "[as] failed cast" ) {
   st["point"] = "hello";
-  st["foo"]   = [&] { return cast<Point>( st["point"] ); };
+  st["foo"]   = [&] { return as<Point>( st["point"] ); };
 
   lua_expect<Point> xp = st["foo"].pcall<Point>();
   REQUIRE( xp.has_error() );

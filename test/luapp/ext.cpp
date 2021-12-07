@@ -238,9 +238,9 @@ LUA_TEST_CASE( "[ext] Point" ) {
   REQUIRE( st["my_point"]["x"] == 4 );
   REQUIRE( st["my_point"]["y"] == 5 );
 
-  any a = cast<any>( L, Point{ .x = 1, .y = 2 } );
-  REQUIRE( cast<table>( a )["x"] == 1 );
-  REQUIRE( cast<table>( a )["y"] == 2 );
+  any a = as<any>( L, Point{ .x = 1, .y = 2 } );
+  REQUIRE( as<table>( a )["x"] == 1 );
+  REQUIRE( as<table>( a )["y"] == 2 );
 
   // get.
   table lua_point = st.table.create();

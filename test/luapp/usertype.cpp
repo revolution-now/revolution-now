@@ -17,7 +17,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/ruserdata.hpp"
 
 // Must be last.
@@ -141,9 +141,9 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   CppOwnedType o;
   st["o"] = o;
 
-  REQUIRE( cast<userdata>( st["o"] )[metatable_key]["__name"] ==
+  REQUIRE( as<userdata>( st["o"] )[metatable_key]["__name"] ==
            "lua::CppOwnedType&" );
-  REQUIRE( cast<userdata>( st["o"] ).name() ==
+  REQUIRE( as<userdata>( st["o"] ).name() ==
            "lua::CppOwnedType&" );
 
   REQUIRE( C.stack_size() == 0 );
@@ -159,16 +159,16 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
 
   // Make sure that the metatable has been populated correctly.
   // Try this one this time to make sure it works.
-  auto metatable = cast<table>( st["o"][metatable_key] );
+  auto metatable = as<table>( st["o"][metatable_key] );
   REQUIRE( C.stack_size() == 0 );
   REQUIRE( ut[metatable_key] == metatable );
   REQUIRE( metatable["__name"] == "lua::CppOwnedType&" );
   REQUIRE( ut[metatable_key]["__name"] == "lua::CppOwnedType&" );
   table member_setters =
-      cast<table>( metatable["member_setters"] );
-  table member_types = cast<table>( metatable["member_types"] );
+      as<table>( metatable["member_setters"] );
+  table member_types = as<table>( metatable["member_types"] );
   table member_getters =
-      cast<table>( metatable["member_getters"] );
+      as<table>( metatable["member_getters"] );
   REQUIRE( member_types["n"] == false );
   REQUIRE( member_types["d"] == false );
   REQUIRE( member_types["s"] == false );
@@ -285,9 +285,9 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   st["o"] = LuaOwnedType{};
   REQUIRE( C.stack_size() == 0 );
 
-  REQUIRE( cast<userdata>( st["o"] )[metatable_key]["__name"] ==
+  REQUIRE( as<userdata>( st["o"] )[metatable_key]["__name"] ==
            "lua::LuaOwnedType" );
-  REQUIRE( cast<userdata>( st["o"] ).name() ==
+  REQUIRE( as<userdata>( st["o"] ).name() ==
            "lua::LuaOwnedType" );
   REQUIRE( ut[metatable_key]["__name"] == "lua::LuaOwnedType" );
 
@@ -312,10 +312,10 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( ut[metatable_key] == metatable );
   REQUIRE( ut[metatable_key]["__name"] == metatable["__name"] );
   table member_setters =
-      cast<table>( metatable["member_setters"] );
-  table member_types = cast<table>( metatable["member_types"] );
+      as<table>( metatable["member_setters"] );
+  table member_types = as<table>( metatable["member_types"] );
   table member_getters =
-      cast<table>( metatable["member_getters"] );
+      as<table>( metatable["member_getters"] );
 
   REQUIRE( member_types["n"] == false );
   REQUIRE( member_types["d"] == false );
@@ -436,7 +436,7 @@ LUA_TEST_CASE( "[usertype] lua owned constructor" ) {
   )" );
   REQUIRE( res == 7 + 10 );
 
-  LuaOwnedType& lo = cast<LuaOwnedType&>( st["lo"] );
+  LuaOwnedType& lo = as<LuaOwnedType&>( st["lo"] );
   REQUIRE( lo.n == 7 );
 
   st.script.run( R"(

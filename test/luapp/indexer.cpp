@@ -17,8 +17,8 @@
 #include "test/luapp/common.hpp"
 
 // luapp
+#include "src/luapp/as.hpp"
 #include "src/luapp/c-api.hpp"
-#include "src/luapp/cast.hpp"
 #include "src/luapp/ext-base.hpp"
 #include "src/luapp/func-push.hpp"
 
@@ -260,11 +260,11 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   mt[5][1][2]       = 7.7;
 
   SECTION( "from nil" ) {
-    auto mb = cast<maybe<bool>>( mt[5][1]["xxx"] );
-    auto mi = cast<maybe<int>>( mt[5][1]["xxx"] );
-    auto ms = cast<maybe<string>>( mt[5][1]["xxx"] );
-    auto md = cast<maybe<double>>( mt[5][1]["xxx"] );
-    auto t  = cast<maybe<table>>( mt[5][1]["xxx"] );
+    auto mb = as<maybe<bool>>( mt[5][1]["xxx"] );
+    auto mi = as<maybe<int>>( mt[5][1]["xxx"] );
+    auto ms = as<maybe<string>>( mt[5][1]["xxx"] );
+    auto md = as<maybe<double>>( mt[5][1]["xxx"] );
+    auto t  = as<maybe<table>>( mt[5][1]["xxx"] );
     REQUIRE( mb == false );
     REQUIRE( mi == nothing );
     REQUIRE( ms == nothing );
@@ -273,12 +273,12 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   }
 
   SECTION( "from table" ) {
-    auto mb = cast<maybe<bool>>( mt[5][1] );
-    auto mi = cast<maybe<int>>( mt[5][1] );
-    auto ms = cast<maybe<string>>( mt[5][1] );
-    auto md = cast<maybe<double>>( mt[5][1] );
-    auto t  = cast<maybe<table>>( mt[5][1] );
-    auto t2 = cast<table>( mt[5][1] );
+    auto mb = as<maybe<bool>>( mt[5][1] );
+    auto mi = as<maybe<int>>( mt[5][1] );
+    auto ms = as<maybe<string>>( mt[5][1] );
+    auto md = as<maybe<double>>( mt[5][1] );
+    auto t  = as<maybe<table>>( mt[5][1] );
+    auto t2 = as<table>( mt[5][1] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == nothing );
@@ -289,11 +289,11 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   }
 
   SECTION( "from string" ) {
-    auto mb = cast<maybe<bool>>( mt[5][1]["hello"] );
-    auto mi = cast<maybe<int>>( mt[5][1]["hello"] );
-    auto ms = cast<maybe<string>>( mt[5][1]["hello"] );
-    auto md = cast<maybe<double>>( mt[5][1]["hello"] );
-    auto t  = cast<maybe<table>>( mt[5][1]["hello"] );
+    auto mb = as<maybe<bool>>( mt[5][1]["hello"] );
+    auto mi = as<maybe<int>>( mt[5][1]["hello"] );
+    auto ms = as<maybe<string>>( mt[5][1]["hello"] );
+    auto md = as<maybe<double>>( mt[5][1]["hello"] );
+    auto t  = as<maybe<table>>( mt[5][1]["hello"] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == "payload" );
@@ -302,12 +302,12 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   }
 
   SECTION( "from double" ) {
-    auto   mb  = cast<maybe<bool>>( mt[5][1][2] );
-    auto   mi  = cast<maybe<int>>( mt[5][1][2] );
-    auto   ms  = cast<maybe<string>>( mt[5][1][2] );
-    auto   md  = cast<maybe<double>>( mt[5][1][2] );
-    double md2 = cast<double>( mt[5][1][2] );
-    auto   t   = cast<maybe<table>>( mt[5][1][2] );
+    auto   mb  = as<maybe<bool>>( mt[5][1][2] );
+    auto   mi  = as<maybe<int>>( mt[5][1][2] );
+    auto   ms  = as<maybe<string>>( mt[5][1][2] );
+    auto   md  = as<maybe<double>>( mt[5][1][2] );
+    double md2 = as<double>( mt[5][1][2] );
+    auto   t   = as<maybe<table>>( mt[5][1][2] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == "7.7" );
@@ -415,7 +415,7 @@ LUA_TEST_CASE( "[indexer] error recovery" ) {
 
   st["go"] = [&] { st["a"]["b"]["c"]["d"]["e"] = 1; };
 
-  rfunction go = cast<rfunction>( st["go"] );
+  rfunction go = as<rfunction>( st["go"] );
 
   char const* err =
       "[string \"...\"]:7: no go.\n"
@@ -479,8 +479,8 @@ LUA_TEST_CASE( "[indexer] metatable" ) {
 LUA_TEST_CASE( "[indexer] inline cast" ) {
   st["x"]      = st.table.create();
   st["x"]["y"] = 42;
-  table t      = st["x"].cast<table>();
-  REQUIRE( st["x"].cast<table>()["y"].cast<int>() == 42 );
+  table t      = st["x"].as<table>();
+  REQUIRE( t["y"].as<int>() == 42 );
 }
 
 } // namespace

@@ -18,7 +18,7 @@
 #include "test/monitoring-types.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 #include "src/luapp/iter.hpp"
 #include "src/luapp/ruserdata.hpp"
 
@@ -88,41 +88,41 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   REQUIRE( metatable1["is_owned_by_lua"] == true );
 
   // check __index.
-  rfunction m__index = cast<rfunction>( metatable1["__index"] );
+  rfunction m__index = as<rfunction>( metatable1["__index"] );
   // No checks yet.
   (void)m__index;
 
   // check __newindex.
   rfunction m__newindex =
-      cast<rfunction>( metatable1["__newindex"] );
+      as<rfunction>( metatable1["__newindex"] );
 
   // check __gc.
-  rfunction m__gc = cast<rfunction>( metatable1["__gc"] );
+  rfunction m__gc = as<rfunction>( metatable1["__gc"] );
   // Stack:
   //   userdata1
 
   // check __tostring.
   rfunction m__tostring =
-      cast<rfunction>( metatable1["__tostring"] );
+      as<rfunction>( metatable1["__tostring"] );
 
   // check __name.
-  string m__name = cast<string>( metatable1["__name"] );
+  string m__name = as<string>( metatable1["__name"] );
   REQUIRE( m__name == "testing::monitoring_types::Empty" );
 
   // check member_types.
-  table member_types = cast<table>( metatable1["member_types"] );
+  table member_types = as<table>( metatable1["member_types"] );
   REQUIRE( distance( begin( member_types ),
                      end( member_types ) ) == 0 );
 
   // check member_getters.
   table member_getters =
-      cast<table>( metatable1["member_getters"] );
+      as<table>( metatable1["member_getters"] );
   REQUIRE( distance( begin( member_getters ),
                      end( member_getters ) ) == 0 );
 
   // check member_setters.
   table member_setters =
-      cast<table>( metatable1["member_setters"] );
+      as<table>( metatable1["member_setters"] );
   REQUIRE( distance( begin( member_setters ),
                      end( member_setters ) ) == 0 );
 
@@ -198,36 +198,36 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   REQUIRE( metatable1["is_owned_by_lua"] == false );
 
   // check __index.
-  rfunction m__index = cast<rfunction>( metatable1["__index"] );
+  rfunction m__index = as<rfunction>( metatable1["__index"] );
   // No checks yet.
   (void)m__index;
 
   // check __newindex.
   rfunction m__newindex =
-      cast<rfunction>( metatable1["__newindex"] );
+      as<rfunction>( metatable1["__newindex"] );
 
   // check __tostring.
   rfunction m__tostring =
-      cast<rfunction>( metatable1["__tostring"] );
+      as<rfunction>( metatable1["__tostring"] );
 
   // check __name.
-  string m__name = cast<string>( metatable1["__name"] );
+  string m__name = as<string>( metatable1["__name"] );
   REQUIRE( m__name == "testing::monitoring_types::Empty&" );
 
   // check member_types.
-  table member_types = cast<table>( metatable1["member_types"] );
+  table member_types = as<table>( metatable1["member_types"] );
   REQUIRE( distance( begin( member_types ),
                      end( member_types ) ) == 0 );
 
   // check member_getters.
   table member_getters =
-      cast<table>( metatable1["member_getters"] );
+      as<table>( metatable1["member_getters"] );
   REQUIRE( distance( begin( member_getters ),
                      end( member_getters ) ) == 0 );
 
   // check member_setters.
   table member_setters =
-      cast<table>( metatable1["member_setters"] );
+      as<table>( metatable1["member_setters"] );
   REQUIRE( distance( begin( member_setters ),
                      end( member_setters ) ) == 0 );
 

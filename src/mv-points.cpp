@@ -15,7 +15,7 @@
 #include "fmt/format.h"
 
 // luapp
-#include "luapp/cast.hpp"
+#include "luapp/as.hpp"
 #include "luapp/metatable.hpp"
 #include "luapp/state.hpp"
 
@@ -51,7 +51,7 @@ maybe<MovementPoints> lua_get( lua::cthread L, int idx,
   if( !maybe_t.has_value() ) return nothing;
   lua::table& t = *maybe_t;
   if( t["atoms"] == lua::nil ) return nothing;
-  MovementPoints mv_pts( lua::cast<int>( t["atoms"] ) );
+  MovementPoints mv_pts( lua::as<int>( t["atoms"] ) );
   return mv_pts;
 }
 

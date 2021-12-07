@@ -83,7 +83,7 @@ namespace internal {
 lua::rthread create_runner_coro( lua::cthread L ) {
   auto st = lua::state::view( L );
   return st.thread.create_coro(
-      st.cast<lua::rfunction>( &coro_runner ) );
+      st.as<lua::rfunction>( &coro_runner ) );
 }
 
 void cleanup_coro( lua::rthread coro ) {

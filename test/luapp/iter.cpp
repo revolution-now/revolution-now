@@ -17,7 +17,7 @@
 #include "test/luapp/common.hpp"
 
 // luapp
-#include "src/luapp/cast.hpp"
+#include "src/luapp/as.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -36,10 +36,10 @@ LUA_TEST_CASE( "[iter] empty" ) {
 
   vector<pair<string, int>> pairs;
 
-  table tbl = cast<table>( st["tbl"] );
+  table tbl = as<table>( st["tbl"] );
 
   for( auto& [k, v] : tbl )
-    pairs.push_back( { cast<string>( k ), cast<int>( v ) } );
+    pairs.push_back( { as<string>( k ), as<int>( v ) } );
 
   vector<pair<string, int>> expected{};
 
@@ -52,10 +52,10 @@ LUA_TEST_CASE( "[iter] single" ) {
 
   vector<pair<string, int>> pairs;
 
-  table tbl = cast<table>( st["tbl"] );
+  table tbl = as<table>( st["tbl"] );
 
   for( auto& [k, v] : tbl )
-    pairs.push_back( { cast<string>( k ), cast<int>( v ) } );
+    pairs.push_back( { as<string>( k ), as<int>( v ) } );
 
   vector<pair<string, int>> expected{ { "hello", 5 } };
 
@@ -70,10 +70,10 @@ LUA_TEST_CASE( "[iter] iterate" ) {
 
   vector<pair<string, int>> pairs;
 
-  table tbl = cast<table>( st["tbl"] );
+  table tbl = as<table>( st["tbl"] );
 
   for( auto& [k, v] : tbl )
-    pairs.push_back( { cast<string>( k ), cast<int>( v ) } );
+    pairs.push_back( { as<string>( k ), as<int>( v ) } );
 
   vector<pair<string, int>> expected{
       { "hello", 5 }, { "world", 6 }, { "the_end", 7 } };
@@ -90,7 +90,7 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
 
   vector<pair<string, int>> pairs;
 
-  table tbl = cast<table>( st["tbl"] );
+  table tbl = as<table>( st["tbl"] );
 
   // To test iteration we must use these maps because the itera-
   // tion order of keys when using lua_next is not specified,
@@ -109,10 +109,10 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
     INFO( fmt::format( "str_keys: {}", str_keys ) );
     REQUIRE( it != end( tbl ) );
     type key_type = type_of( it->first );
-    int  val      = cast<int>( it->second );
+    int  val      = as<int>( it->second );
     switch( key_type ) {
       case type::number: {
-        int key = cast<int>( it->first );
+        int key = as<int>( it->first );
         INFO( fmt::format( "key: {}", key ) );
         REQUIRE( int_keys.contains( key ) );
         REQUIRE( int_keys[key] == val );
@@ -120,7 +120,7 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
         break;
       }
       case type::string: {
-        string key = cast<string>( it->first );
+        string key = as<string>( it->first );
         INFO( fmt::format( "key: {}", key ) );
         REQUIRE( str_keys.contains( key ) );
         REQUIRE( str_keys[key] == val );

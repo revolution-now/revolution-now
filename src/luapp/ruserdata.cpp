@@ -12,8 +12,8 @@
 #include "ruserdata.hpp"
 
 // luapp
+#include "as.hpp"
 #include "c-api.hpp"
-#include "cast.hpp"
 
 using namespace std;
 
@@ -30,7 +30,7 @@ base::maybe<userdata> lua_get( cthread L, int idx,
 }
 
 std::string userdata::name() const {
-  return cast<string>( ( *this )[metatable_key]["__name"] );
+  return as<string>( ( *this )[metatable_key]["__name"] );
 }
 
 } // namespace lua

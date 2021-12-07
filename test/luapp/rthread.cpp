@@ -101,7 +101,7 @@ LUA_TEST_CASE( "[lua-state] thread resume unsafe" ) {
     return n+m
   end
   )" );
-  rfunction f = st["f"].cast<rfunction>();
+  rfunction f = st["f"].as<rfunction>();
 
   rthread coro = st.thread.create_coro( f );
   REQUIRE( coro.status() == thread_status::ok );
@@ -133,7 +133,7 @@ LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
     error( 'some error' )
   end
   )" );
-  rfunction f = st["f"].cast<rfunction>();
+  rfunction f = st["f"].as<rfunction>();
 
   rthread coro = st.thread.create_coro( f );
   REQUIRE( coro.status() == thread_status::ok );
