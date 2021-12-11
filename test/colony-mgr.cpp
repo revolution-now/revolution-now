@@ -27,7 +27,7 @@
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::ColonyId );
 
-namespace rn::testing {
+namespace rn {
 namespace {
 
 using namespace std;
@@ -253,4 +253,4 @@ TEST_CASE( "[colony-mgr] lua" ) {
 }
 
 } // namespace
-} // namespace rn::testing
+} // namespace rn

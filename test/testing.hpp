@@ -19,7 +19,7 @@
 // base
 #include "base/fs.hpp"
 
-namespace rn::testing {
+namespace testing {
 
 fs::path const& data_dir();
 
@@ -28,4 +28,4 @@ fs::path const& data_dir();
 // but it may be ok for some unit tests.
 void default_construct_all_game_state();
 
-} // namespace rn::testing
+} // namespace testing

@@ -43,7 +43,7 @@ FMT_TO_CATCH( ::rn::CargoSlot_t );
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::Commodity );
 
-namespace rn::testing {
+namespace rn {
 namespace {
 
 using namespace std;
@@ -55,6 +55,7 @@ using ::Catch::UnorderedEquals;
 using ::rn::serial::BinaryBlob;
 using ::rn::serial::FBBuilder;
 using ::rn::serial::FBOffset;
+using ::testing::data_dir;
 
 struct Weapon {
   valid_deserial_t check_invariants_safe() const {
@@ -154,17 +155,16 @@ struct Monster {
 };
 
 } // namespace
-} // namespace rn::testing
+} // namespace rn
 
-DEFINE_FORMAT( ::rn::testing::Vec2, "Vec2{{x={},y={}}}", o.x,
-               o.y );
-DEFINE_FORMAT( ::rn::testing::Weapon,
-               "Weapon{{name={},damage={}}}", o.name, o.damage );
+DEFINE_FORMAT( ::rn::Vec2, "Vec2{{x={},y={}}}", o.x, o.y );
+DEFINE_FORMAT( ::rn::Weapon, "Weapon{{name={},damage={}}}",
+               o.name, o.damage );
 
-FMT_TO_CATCH( ::rn::testing::Vec2 );
-FMT_TO_CATCH( ::rn::testing::Weapon );
+FMT_TO_CATCH( ::rn::Vec2 );
+FMT_TO_CATCH( ::rn::Weapon );
 
-namespace rn::testing {
+namespace rn {
 namespace {
 
 BinaryBlob create_monster_blob() {
@@ -633,7 +633,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 }
 
 TEST_CASE( "deserialize json" ) {
-  default_construct_all_game_state();
+  testing::default_construct_all_game_state();
 
   (void)create_unit(
       e_nation::english,
@@ -677,7 +677,7 @@ TEST_CASE( "deserialize json" ) {
 }
 
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
-  default_construct_all_game_state();
+  testing::default_construct_all_game_state();
 
   auto ship = create_unit(
       e_nation::english,
@@ -1094,9 +1094,9 @@ TEST_CASE( "[flatbuffers] matrix" ) {
 }
 
 } // namespace
-} // namespace rn::testing
+} // namespace rn
 
-namespace rn::testing {
+namespace rn {
 namespace {
 
 TEST_CASE( "[flatbuffers] Golden Comparison" ) {
@@ -1237,4 +1237,4 @@ TEST_CASE( "[flatbuffers] variant with all primitive types" ) {
 }
 
 } // namespace
-} // namespace rn::testing
+} // namespace rn

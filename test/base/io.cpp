@@ -22,7 +22,7 @@ namespace {
 using namespace std;
 
 fs::path text_path( fs::path const& p ) {
-  return rn::testing::data_dir() / "text-files" / p;
+  return testing::data_dir() / "text-files" / p;
 }
 
 TEST_CASE( "[io] non-existent" ) {

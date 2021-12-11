@@ -24,7 +24,7 @@ namespace {
 
 using namespace std;
 
-using ::rn::testing::data_dir;
+using ::testing::data_dir;
 
 TEST_CASE( "[parse] complex doc" ) {
   string_view input = R"(

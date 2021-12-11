@@ -23,7 +23,7 @@
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::ColonyId );
 
-namespace rn::testing {
+namespace rn {
 namespace {
 
 using namespace std;
@@ -33,7 +33,7 @@ using Catch::Contains;
 using Catch::UnorderedEquals;
 
 TEST_CASE( "[cstate] create, query, destroy" ) {
-  default_construct_all_game_state();
+  testing::default_construct_all_game_state();
   auto xp = cstate_create_colony(
       e_nation::english, Coord{ 1_x, 2_y }, "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
@@ -73,7 +73,7 @@ TEST_CASE( "[cstate] create, query, destroy" ) {
 }
 
 TEST_CASE( "[cstate] colonies_in_rect" ) {
-  default_construct_all_game_state();
+  testing::default_construct_all_game_state();
   vector<Coord> coords{
       { 1_x, 2_y }, // 1
       { 1_x, 5_y }, // 2
@@ -116,7 +116,7 @@ TEST_CASE( "[cstate] colonies_in_rect" ) {
 
 TEST_CASE( "[cstate] lua" ) {
   lua::state& st = lua_global_state();
-  default_construct_all_game_state();
+  testing::default_construct_all_game_state();
   auto xp = cstate_create_colony(
       e_nation::english, Coord{ 1_x, 2_y }, "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
@@ -136,4 +136,4 @@ TEST_CASE( "[cstate] lua" ) {
 }
 
 } // namespace
-} // namespace rn::testing
+} // namespace rn

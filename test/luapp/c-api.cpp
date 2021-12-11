@@ -34,9 +34,10 @@ using ::base::maybe;
 using ::base::nothing;
 using ::base::valid;
 using ::Catch::Matches;
+using ::testing::data_dir;
 
 string lua_testing_file( string const& filename ) {
-  return rn::testing::data_dir() / "lua" / filename;
+  return data_dir() / "lua" / filename;
 }
 
 LUA_TEST_CASE( "[lua-c-api] create and destroy" ) {}

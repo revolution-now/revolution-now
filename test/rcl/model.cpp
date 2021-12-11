@@ -25,7 +25,7 @@ namespace {
 using namespace std;
 
 using ::base::expect;
-using ::rn::testing::data_dir;
+using ::testing::data_dir;
 
 /****************************************************************
 ** Tests
