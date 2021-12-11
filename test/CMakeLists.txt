@@ -4,6 +4,7 @@ file( GLOB src_rcl_sources   "rcl/[a-zA-Z]*.cpp"   )
 file( GLOB src_luapp_sources "luapp/[a-zA-Z]*.cpp" )
 file( GLOB src_gl_sources    "gl/[a-zA-Z]*.cpp"    )
 file( GLOB src_mock_sources  "mock/[a-zA-Z]*.cpp"  )
+file( GLOB src_stb_sources   "stb/[a-zA-Z]*.cpp"  )
 
 add_executable(
   unittest
@@ -13,6 +14,7 @@ add_executable(
   ${src_luapp_sources}
   ${src_gl_sources}
   ${src_mock_sources}
+  ${src_stb_sources}
 )
 
 set_warning_options( unittest )

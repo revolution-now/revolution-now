@@ -12,6 +12,7 @@ let s:stems = [
  \ 'gl/vertex-array',
  \ 'gl/uniform',
  \ 'gl/shader',
+ \ 'stb/image',
  \ 'open-gl-perf-test',
  \ 'shaders/perf-test',
 \]
