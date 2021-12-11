@@ -36,4 +36,4 @@
 	url = ../../dpacbach/flatbuffers.git
 [submodule "extern/stb"]
 	path = extern/stb
-	url = https://github.com/dpacbach/stb
+	url = ../../dpacbach/stb
