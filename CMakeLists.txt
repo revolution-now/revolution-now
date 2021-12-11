@@ -74,6 +74,7 @@ add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/lua-5.4.3     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
 add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
+add_subdirectory( extern/stb           EXCLUDE_FROM_ALL )
 
 set( BUILD_TESTING ON ) # Catch2 will actually do this as well.
 add_subdirectory( extern/Catch2        EXCLUDE_FROM_ALL )
