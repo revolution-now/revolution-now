@@ -13,6 +13,7 @@
 #include "config.hpp"
 
 // base
+#include "error.hpp"
 #include "maybe.hpp"
 
 // C++ standard library
