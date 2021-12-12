@@ -889,6 +889,9 @@ lua_valid c_api::thread_ok() noexcept {
 }
 
 lua_valid c_api::resetthread() noexcept {
+  // As of Lua 5.4.4, this will reset the error state of the
+  // thread as well, though it will still return the error from
+  // this function (presumably just the first time).
   int res = lua_resetthread( L );
   if( res == LUA_OK ) return base::valid;
   // We have an error, either in closing the to-be-closed vari-
