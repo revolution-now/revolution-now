@@ -134,9 +134,9 @@ class TitleBar : public ui::View, public ColonySubView {
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    render_fill_rect( tx, Color::wood(), rect( coord ) );
+    render_fill_rect( tx, gfx::pixel::wood(), rect( coord ) );
     Texture const& name = render_text(
-        font::standard(), Color::banana(), title() );
+        font::standard(), gfx::pixel::banana(), title() );
     name.copy_to( tx, centered( name.size(), rect( coord ) ) );
   }
 
@@ -188,7 +188,7 @@ class MarketCommodities : public ui::View,
     auto const& colony = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
-      render_rect( tx, Color::black(), rect );
+      render_rect( tx, gfx::pixel::black(), rect );
       label.value = colony.commodity_quantity( *comm_it );
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
@@ -321,7 +321,7 @@ class PopulationView : public ui::View, public ColonySubView {
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    render_rect( tx, Color::black(),
+    render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     auto const& colony = colony_from_id( colony_id() );
     unordered_map<UnitId, ColonyJob_t> const& units_jobs =
@@ -392,7 +392,7 @@ class CargoView : public ui::View,
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    render_rect( tx, Color::black(),
+    render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     auto unit = holder_.fmap( unit_from_id );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
@@ -400,15 +400,15 @@ class CargoView : public ui::View,
       auto [is_open, relative_rect] = info;
       Rect rect = relative_rect.as_if_origin_were( coord );
       if( !is_open ) {
-        render_fill_rect( tx, Color::wood(), rect );
+        render_fill_rect( tx, gfx::pixel::wood(), rect );
         continue;
       }
 
       // FIXME: need to deduplicate this logic with that in
       // the Old World view.
-      render_fill_rect( tx, Color::wood().highlighted( 4 ),
+      render_fill_rect( tx, gfx::pixel::wood().highlighted( 4 ),
                         rect );
-      render_rect( tx, Color::wood(), rect );
+      render_rect( tx, gfx::pixel::wood(), rect );
       CargoHold const& hold = unit->cargo();
       switch( auto& v = hold[idx]; v.to_enum() ) {
         case CargoSlot::e::empty: break;
@@ -661,13 +661,13 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    render_rect( tx, Color::black(),
+    render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
       render_unit( tx, unit_id, draw_pos, /*with_icon=*/true );
       if( selected_ == unit_id )
-        render_rect( tx, Color::green(),
+        render_rect( tx, gfx::pixel::green(),
                      Rect::from( draw_pos, g_tile_delta ) );
     }
   }
@@ -1005,7 +1005,7 @@ class ProductionView : public ui::View, public ColonySubView {
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    render_rect( tx, Color::black(),
+    render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
   }
 
@@ -1097,7 +1097,8 @@ class LandView : public ui::View, public ColonySubView {
         draw_land_3x3( tx, coord );
         break;
       case e_render_mode::_5x5:
-        render_fill_rect( tx, Color::wood(), rect( coord ) );
+        render_fill_rect( tx, gfx::pixel::wood(),
+                          rect( coord ) );
         draw_land_3x3( tx, coord + g_tile_delta );
         break;
       case e_render_mode::_6x6:
@@ -1358,16 +1359,19 @@ void colview_drag_n_drop_draw(
     using e = drag::e_status_indicator;
     case e::none: break;
     case e::bad: {
-      auto const& status_tx = render_text( "X", Color::red() );
+      auto const& status_tx =
+          render_text( "X", gfx::pixel::red() );
       copy_texture( status_tx, tx, sprite_upper_left );
       break;
     }
     case e::good: {
-      auto const& status_tx = render_text( "+", Color::green() );
+      auto const& status_tx =
+          render_text( "+", gfx::pixel::green() );
       copy_texture( status_tx, tx, sprite_upper_left );
       if( state.user_requests_input ) {
-        auto const& mod_tx  = render_text( "?", Color::green() );
-        auto        mod_pos = state.where;
+        auto const& mod_tx =
+            render_text( "?", gfx::pixel::green() );
+        auto mod_pos = state.where;
         mod_pos.y -= mod_tx.size().h;
         copy_texture( mod_tx, tx, mod_pos - state.click_offset );
       }

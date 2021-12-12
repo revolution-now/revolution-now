@@ -14,11 +14,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
 #include "font.hpp"
 #include "macros.hpp"
 #include "tx.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <tuple>
@@ -54,22 +56,23 @@ namespace rn {
 // Will not in any way reformat or re-flow or wrap the text; will
 // just render it with spacing/newlines as-is and with the given
 // color. Will ignore markup (will render it literally).
-Texture const& render_text( e_font font, Color color,
+Texture const& render_text( e_font font, gfx::pixel color,
                             std::string_view text );
 
 // Same as above but uses the default font.
-Texture const& render_text( std::string_view text, Color color );
+Texture const& render_text( std::string_view text,
+                            gfx::pixel       color );
 
 // The struct gives the engine information on how to interpret
 // the markup language.
 struct TextMarkupInfo {
-  Color normal    = Color::black();
-  Color highlight = Color::white();
+  gfx::pixel normal    = gfx::pixel::black();
+  gfx::pixel highlight = gfx::pixel::white();
   // Shadowing means that for each pixel in the text, we will
   // render a "shadow" pixel to the right of it and also below
   // it, creating a partial outline or shadow.
-  Color shadowed_text_color   = Color::white();
-  Color shadowed_shadow_color = Color::black();
+  gfx::pixel shadowed_text_color   = gfx::pixel::white();
+  gfx::pixel shadowed_shadow_color = gfx::pixel::black();
   // !! Update std::hash specialization when adding new fields!
 
   // Adds some member functions to make this struct a cache key.

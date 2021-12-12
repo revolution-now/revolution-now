@@ -46,7 +46,7 @@ struct MainMenuPlane : public Plane {
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : enum_traits<e_main_menu_item>::values ) {
-      Color       c       = Color::banana().shaded( 3 );
+      gfx::pixel  c       = gfx::pixel::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
       auto w   = screen.w / 2_sx - text_tx.size().w / 2_sx;
@@ -57,7 +57,7 @@ struct MainMenuPlane : public Plane {
       dst.x -= 3_w;
       dst.w += 6_w;
       if( e == g_curr_item )
-        render_rect( tx, Color::banana(), dst );
+        render_rect( tx, gfx::pixel::banana(), dst );
       h += dst.delta().h;
     }
   }

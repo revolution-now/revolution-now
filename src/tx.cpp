@@ -277,7 +277,7 @@ void Texture::set_alpha_mod( uint8_t alpha ) {
                                     alpha ) );
 }
 
-Matrix<Color> Texture::pixels() const {
+Matrix<gfx::pixel> Texture::pixels() const {
   auto surface = to_surface();
 
   auto* fmt = ::SDL_AllocFormat( g_pixel_format );
@@ -289,7 +289,7 @@ Matrix<Color> Texture::pixels() const {
   auto delta = size();
   lg.trace( "reading texture pixel data of size {}", delta );
 
-  Matrix<Color> res( delta );
+  Matrix<gfx::pixel> res( delta );
   surface.lock();
 
   auto rect = Rect::from( Coord{}, delta );
@@ -351,7 +351,7 @@ void Texture::copy_to( Texture& to ) const {
                             nullptr, nullptr ) );
 }
 
-void Texture::fill( Color const& color ) {
+void Texture::fill( gfx::pixel const& color ) {
   set_render_target();
   set_blend_mode( e_tx_blend_mode::none );
   ::SDL_SetRenderDrawColor( g_renderer, color.r, color.g,

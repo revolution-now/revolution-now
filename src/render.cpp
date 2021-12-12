@@ -45,10 +45,10 @@ void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
 }
 
 void render_colony_flag( Texture& tx, Coord coord,
-                         Color color ) {
+                         gfx::pixel color ) {
   auto cloth_rect = Rect::from( coord, Delta{ 8_w, 6_h } );
   render_fill_rect( tx, color, cloth_rect );
-  render_line( tx, Color::wood().shaded( 4 ),
+  render_line( tx, gfx::pixel::wood().shaded( 4 ),
                cloth_rect.upper_right(), Delta{ 0_w, 12_h } );
 }
 

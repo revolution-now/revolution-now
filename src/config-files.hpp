@@ -11,8 +11,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "color.hpp"
+// gfx
+#include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <string>
@@ -64,6 +64,6 @@ bool configs_loaded();
 // aid in color selection or troubleshooting and/or if one needs
 // to iterate over all the colors in the palette. NOTE: this
 // will skip over the grey scale colors.
-std::vector<Color> const& g_palette();
+std::vector<gfx::pixel> const& g_palette();
 
 } // namespace rn

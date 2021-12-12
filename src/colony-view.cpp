@@ -13,7 +13,6 @@
 // Revolution Now
 #include "anim.hpp"
 #include "co-combinator.hpp"
-#include "color.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
@@ -22,6 +21,9 @@
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -51,7 +53,7 @@ void reset_globals() {
 ** Drawing
 *****************************************************************/
 void draw_colony_view( Texture& tx, ColonyId id ) {
-  tx.fill( Color::parse_from_hex( "f1cf81" ).value() );
+  tx.fill( gfx::pixel::parse_from_hex( "f1cf81" ).value() );
 
   UNWRAP_CHECK( canvas,
                 compositor::section(
@@ -63,7 +65,7 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
 
   auto line = [&]( string_view fmt_str, auto&&... args ) {
     string text = fmt::format( fmt_str, args... );
-    render_text( font::standard(), Color::black(), text )
+    render_text( font::standard(), gfx::pixel::black(), text )
         .copy_to( tx, pos );
     pos += 16_h;
   };

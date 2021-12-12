@@ -281,8 +281,8 @@ void render_colonies( Rect const& covered ) {
           render_text_markup(
               config_land_view.colonies.colony_name_font,
               TextMarkupInfo{
-                  .shadowed_text_color   = Color::white(),
-                  .shadowed_shadow_color = Color::black() },
+                  .shadowed_text_color   = gfx::pixel::white(),
+                  .shadowed_shadow_color = gfx::pixel::black() },
               fmt::format( "@[S]{}@[]", colony.name() ) ),
           g_texture_viewport, name_coord );
     }
@@ -426,7 +426,7 @@ waitable<> animate_depixelation( UnitId            id,
     for( auto point : new_non_pixels ) {
       auto color = depixelate.demoted_pixels.size().area() > 0
                        ? depixelate.demoted_pixels[point]
-                       : Color( 0, 0, 0, 0 );
+                       : gfx::pixel( 0, 0, 0, 0 );
       set_render_draw_color( color );
       depixelate.tx_depixelate_from.set_render_target();
       ::SDL_RenderDrawPoint( g_renderer, point.x._, point.y._ );

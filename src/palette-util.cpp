@@ -1,14 +1,14 @@
 /****************************************************************
-**color.cpp
+**palette-util.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-12-17.
 *
-* Description: All things color.
+* Description: Non-game utils for palette manipulation.
 *
 *****************************************************************/
-#include "color.hpp"
+#include "palette-util.hpp"
 
 // Revolution Now
 #include "config-files.hpp"
@@ -45,6 +45,7 @@ using namespace std;
 
 using ::base::maybe;
 using ::fmt::format;
+using ::gfx::pixel;
 
 namespace rn {
 
@@ -83,81 +84,6 @@ static_assert( hue_names.size() == hue_buckets );
 
 // Only relevant for testing/displaying palettes.
 Coord const palette_render_origin{ 10_y, 10_x };
-
-struct ColorHSL {
-  double  h = 0; // hue [0..360]
-  double  s = 0; // saturation [0, 1]
-  double  l = 0; // lightness [0, 1]
-  uint8_t a = 0; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, l, a ); }
-
-  bool operator<( ColorHSL const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-NOTHROW_MOVE( ColorHSL );
-
-ColorHSL to_HSL( Color const& rgb ) {
-  ColorHSL hsl;
-  hsl.a = rgb.a;
-  // www.rapidtables.com/convert/color/rgb-to-hsl.html
-  double rp    = rgb.r / 255.0;
-  double gp    = rgb.g / 255.0;
-  double bp    = rgb.b / 255.0;
-  auto   c_max = std::max( rp, std::max( gp, bp ) );
-  auto   c_min = std::min( rp, std::min( gp, bp ) );
-  auto   delta = c_max - c_min;
-  // Calculate hue
-  if( delta == 0.0 ) {
-    hsl.h = 0;
-  } else {
-    if( c_max == rp ) {
-      hsl.h = ( gp - bp ) / delta;
-    } else if( c_max == gp ) {
-      hsl.h = ( ( bp - rp ) / delta + 2.0 );
-    } else if( c_max == bp ) {
-      hsl.h = ( ( rp - gp ) / delta + 4.0 );
-    } else {
-      SHOULD_NOT_BE_HERE;
-    }
-  }
-  hsl.h *= 60;
-  if( hsl.h > 360 ) hsl.h -= 360;
-  if( hsl.h < 0 ) hsl.h += 360;
-
-  // Calculate lightness.
-  hsl.l = ( c_max + c_min ) / 2.0;
-  // Calculate saturation.
-  hsl.s = ( delta == 0.0 )
-              ? 0
-              : delta / ( 1.0 - fabs( 2 * hsl.l - 1 ) );
-  return hsl;
-}
-
-Color to_RGB( ColorHSL const& hsl ) {
-  // www.rapidtables.com/convert/color/hsl-to-rgb.html
-  Color rgb;
-  rgb.a  = hsl.a;
-  auto C = ( 1 - std::fabs( 2 * hsl.l - 1 ) ) * hsl.s;
-  auto X =
-      C * ( 1 - std::fabs( std::fmod( ( hsl.h / 60.0 ), 2.0 ) -
-                           1 ) );
-  auto   m = hsl.l - C / 2;
-  double R = 0, G = 0, B = 0; // initailize to make gcc happy
-  // clang-format off
-  if( 0   <= hsl.h && hsl.h <  60 ) { R = C; G = X; B = 0; };
-  if( 60  <= hsl.h && hsl.h < 120 ) { R = X; G = C; B = 0; };
-  if( 120 <= hsl.h && hsl.h < 180 ) { R = 0; G = C; B = X; };
-  if( 180 <= hsl.h && hsl.h < 240 ) { R = 0; G = X; B = C; };
-  if( 240 <= hsl.h && hsl.h < 300 ) { R = X; G = 0; B = C; };
-  if( 300 <= hsl.h && hsl.h < 360 ) { R = C; G = 0; B = X; };
-  // clang-format on
-  rgb.r = ( R + m ) * 255;
-  rgb.g = ( G + m ) * 255;
-  rgb.b = ( B + m ) * 255;
-  return rgb;
-}
 
 // Takes a hue in [0,360) and returns a bucket index from
 // [0,hue_buckets-1). Our strategy here is that the firt bucket
@@ -212,18 +138,18 @@ using HueBucketKey = int; // hue bucket key
 
 // Maps a color onto an indicator (`key`) that will have a unique
 // value for each possible bucketing of the color's hue.
-HueBucketKey hue_bucket_key( Color c ) {
+HueBucketKey hue_bucket_key( pixel c ) {
   return to_hue_bucket( to_HSL( c ).h );
 }
 
 // Maps a color onto an indicator (`key`) that will have a unique
 // value for each possible bucketing of the color's saturation.
-HueBucketKey sat_bucket_key( Color c ) {
+HueBucketKey sat_bucket_key( pixel c ) {
   return to_bucket( to_HSL( c ).s, saturation_buckets );
 }
 
 void render_palette_segment( Texture&             tx,
-                             vector<Color> const& colors,
+                             vector<pixel> const& colors,
                              Coord origin, int row_size = 64 ) {
   int idx                  = 0;
   int constexpr block_size = 10;
@@ -243,7 +169,7 @@ void render_palette_segment( Texture&             tx,
 // approximate redundancy.  A color is considered redundant if we
 // already have a color whose r/g/b components are all within the
 // same chunk.
-vector<Color> coursen_impl( vector<Color> const& colors,
+vector<pixel> coursen_impl( vector<pixel> const& colors,
                             uint8_t              chunk ) {
   // Do this in a dedicated function so that we don't have any
   // issues with the fact that a) we're using unsigned numbers
@@ -255,12 +181,12 @@ vector<Color> coursen_impl( vector<Color> const& colors,
     else
       return r - l;
   };
-  auto matches = [&abs_diff, chunk]( Color c1, Color c2 ) {
+  auto matches = [&abs_diff, chunk]( pixel c1, pixel c2 ) {
     return ( abs_diff( c1.r, c2.r ) < chunk ) &&
            ( abs_diff( c1.g, c2.g ) < chunk ) &&
            ( abs_diff( c1.b, c2.b ) < chunk );
   };
-  vector<Color> result;
+  vector<pixel> result;
   for( auto c : colors ) {
     bool found_match = false;
     for( auto cp : result ) {
@@ -275,192 +201,10 @@ vector<Color> coursen_impl( vector<Color> const& colors,
   return result;
 }
 
-// If highlight == true then we highlight, otherwise we shade.
-Color shift_color( Color input, bool highlight ) {
-  // These constants were chosen through experimentation so that
-  // 1-10 applications of this algorithm to a color will yield a
-  // nice spectrum for both dark and light colors.
-  double constexpr hue_shift     = 4.0;
-  double constexpr sat_shift_max = .04;
-  double constexpr lit_shift_max = .04;
-  double constexpr sat_mult      = .90;
-  double constexpr lit_mult      = .90;
-  static_assert( sat_shift_max > 0 && sat_shift_max < .3 );
-  static_assert( lit_shift_max > 0 && lit_shift_max < .3 );
-  static_assert( sat_mult > .7 && sat_mult < 1.0 );
-  static_assert( lit_mult > .7 && lit_mult < 1.0 );
-  // upper bound of 60 is arbitrary but seems reasonable.
-  static_assert( hue_shift > 0 && hue_shift < 60.0 );
-
-  auto hsl = to_HSL( input );
-  // The idea here is that when we highlight we want to shift the
-  // hue closer to yellow and when we shade we want to make it
-  // closer to blue. So so that end we want to shift the hue
-  // spectrum so that yellow is 0 and blue is +/180, that way it
-  // is easier to move a hue in the right direction to get to
-  // where it needs to go. Note that when we e.g. shift toward
-  // yellow, we need to shift in the direction with the closest
-  // distance of the color to yellow.
-  auto& h = hsl.h;
-  h -= 60;
-  if( h > 180 ) h -= 360;
-  CHECK( h >= -180 && h <= 180 );
-  if( highlight ) {
-    if( h > hue_shift )
-      h -= hue_shift;
-    else if( h < -hue_shift )
-      h += hue_shift;
-    else
-      h = 0;
-  } else {
-    if( h > 0 && h < ( 180 - hue_shift ) )
-      h += hue_shift;
-    else if( h < 0 && h > -( 180 - hue_shift ) )
-      h -= hue_shift;
-    else if( h >= ( 180 - hue_shift ) ||
-             h <= -( 180 - hue_shift ) )
-      h = 180;
-  }
-  // Now shift it back
-  h += 60;
-  if( h < 0 ) h += 360;
-  CHECK( h >= -0.01 && h <= 360.01 );
-  h = std::clamp( h, 0.0, 360.0 );
-
-  // Now for shading we want to lessen the saturation for shading
-  // and do the opposite for highlighting.
-  auto& s = hsl.s;
-  if( highlight ) {
-    auto delta = ( 1.0 - s ) * ( 1.0 - sat_mult );
-    if( delta > sat_shift_max ) delta = sat_shift_max;
-    s += delta;
-  } else {
-    auto delta = s * ( 1.0 - sat_mult );
-    if( delta > sat_shift_max ) delta = sat_shift_max;
-    s -= delta;
-  }
-  s = std::clamp( s, 0.0, 1.0 );
-
-  // Now for lightness we want to lessen the lightness for
-  // shading and do the opposite for highlighting.
-  auto& l = hsl.l;
-  if( highlight ) {
-    auto delta = ( 1.0 - l ) * ( 1.0 - lit_mult );
-    if( delta > lit_shift_max ) delta = lit_shift_max;
-    l += delta;
-  } else {
-    auto delta = l * ( 1.0 - lit_mult );
-    if( delta > lit_shift_max ) delta = lit_shift_max;
-    l -= delta;
-  }
-  l = std::clamp( l, 0.0, 1.0 );
-
-  return to_RGB( hsl );
-}
-
 } // namespace
 
-string Color::to_string( bool with_alpha ) const {
-  if( with_alpha )
-    return format( "#{:02X}{:02X}{:02X}{:02X}", r, g, b, a );
-  else
-    return format( "#{:02X}{:02X}{:02X}", r, g, b );
-}
-
-double Color::luminosity() const {
-  return std::sqrt( .241 * pow( r / 255.0, 2.0 ) +
-                    .691 * pow( g / 255.0, 2.0 ) +
-                    .068 * pow( b / 255.0, 2.0 ) );
-}
-
-// Parses a string of the form 'NNNNNN[NN]' where N is:
-// [0-9a-fA-F]. The optional two digits at the end represent al-
-// pha. If these are omitted then alpha will be set to 255.
-maybe<Color> Color::parse_from_hex( string_view hex ) {
-  if( hex.size() != 6 && hex.size() != 8 ) return nothing;
-  auto is_valid = []( char c ) {
-    return ( c >= '0' && c <= '9' ) ||
-           ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' );
-  };
-  if( !all_of( hex.begin(), hex.end(), is_valid ) )
-    return nothing;
-  auto to_num = []( char c ) {
-    // c must already have been validated as a hex digit!
-    if( c >= '0' && c <= '9' )
-      return c - '0';
-    else if( c >= 'a' && c <= 'f' )
-      return ( c - 'a' ) + 10;
-    else
-      return ( c - 'A' ) + 10;
-  };
-  auto vec  = vector<char>( hex.begin(), hex.end() );
-  auto ns   = util::map( to_num, vec );
-  auto byte = []( auto upper, auto lower ) {
-    return uint8_t( upper * 16 + lower );
-  };
-  Color color;
-  CHECK( ns.size() == 6 || ns.size() == 8 );
-  color.r = byte( ns[0], ns[1] );
-  color.g = byte( ns[2], ns[3] );
-  color.b = byte( ns[4], ns[5] );
-  if( ns.size() == 8 )
-    color.a = byte( ns[6], ns[7] );
-  else
-    color.a = 255;
-  return color;
-}
-
-uint32_t Color::to_uint32() const {
-  uint32_t i = r;
-  i <<= 8;
-  i += g;
-  i <<= 8;
-  i += b;
-  i <<= 8;
-  i += a;
-  return i;
-}
-
-// A random color.
-Color Color::random() {
-  MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE;
-  // Seed with a real random value, if available
-  random_device r;
-
-  default_random_engine e( r() );
-  // Choose a random mean between 0 and 255
-  uniform_int_distribution<uint8_t> uniform_dist( 0, 255 );
-
-  return { uniform_dist( e ), uniform_dist( e ),
-           uniform_dist( e ), 255 };
-}
-
-Color Color::with_alpha( uint8_t a_new ) const {
-  auto res = *this;
-  res.a    = a_new;
-  return res;
-}
-
-Color Color::highlighted( int iterations ) const {
-  if( iterations == 0 ) return *this;
-  return shift_color( *this, true )
-      .highlighted( iterations - 1 );
-}
-
-Color Color::shaded( int iterations ) const {
-  if( iterations == 0 ) return *this;
-  return shift_color( *this, false ).shaded( iterations - 1 );
-}
-
-Color Color::banana() {
-  return Color::parse_from_hex( "E4C890" ).value();
-}
-Color Color::wood() {
-  return Color::parse_from_hex( "703F24" ).value();
-}
-
 // Takes the average of each component.
-Color mix( Color first, Color second ) {
+pixel mix( pixel first, pixel second ) {
   return {
       // clang-format off
     uint8_t((uint32_t(first.r)+uint32_t(second.r))/2),
@@ -471,19 +215,19 @@ Color mix( Color first, Color second ) {
   };
 }
 
-void hsl_bucketed_sort( vector<Color>& colors ) {
+void hsl_bucketed_sort( vector<pixel>& colors ) {
   util::sort_by_key( colors, L( _.luminosity() ) );
   util::stable_sort_by_key( colors, sat_bucket_key );
   util::stable_sort_by_key( colors, hue_bucket_key );
 }
 
-vector<Color> extract_palette( fs::path const& glob,
+vector<pixel> extract_palette( fs::path const& glob,
                                maybe<int>      target ) {
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
   CHECK( !files.empty(), "need at least one file" );
 
-  unordered_set<Color> colors;
+  unordered_set<pixel> colors;
 
   for( auto const& file : files ) {
     ::SDL_Surface* surface = ::IMG_Load( file.c_str() );
@@ -511,7 +255,7 @@ vector<Color> extract_palette( fs::path const& glob,
 
     for( int i = 0; i < surface->h; ++i ) {
       for( int j = 0; j < surface->w; ++j ) {
-        Color color;
+        pixel color;
         if( bpp == 8 ) {
           Uint8 index =
               ( (Uint8*)surface->pixels )[i * surface->w + j];
@@ -537,7 +281,7 @@ vector<Color> extract_palette( fs::path const& glob,
   }
   CHECK( !colors.empty(), "found no colors" );
 
-  auto res = vector<Color>( colors.begin(), colors.end() );
+  auto res = vector<pixel>( colors.begin(), colors.end() );
   util::sort( res );
 
   lg.info( "found {} colors", res.size() );
@@ -551,10 +295,10 @@ vector<Color> extract_palette( fs::path const& glob,
   return res;
 }
 
-ColorBuckets hsl_bucket( vector<Color> const& colors ) {
+ColorBuckets hsl_bucket( vector<pixel> const& colors ) {
   auto sorted = colors;
   hsl_bucketed_sort( sorted );
-  vector<vector<vector<maybe<Color>>>> bucketed;
+  vector<vector<vector<maybe<pixel>>>> bucketed;
 
   // First build out the full structure with nothing's
   // everywhere.
@@ -571,7 +315,7 @@ ColorBuckets hsl_bucket( vector<Color> const& colors ) {
   }
 
   // Now insert the colors.
-  for( Color c : colors ) {
+  for( pixel c : colors ) {
     auto hsl        = to_HSL( c );
     auto hue_bucket = to_hue_bucket( hsl.h );
     auto sat_bucket = to_bucket( hsl.s, saturation_buckets );
@@ -608,7 +352,7 @@ void dump_palette( ColorBuckets const& bucketed,
           auto line = format( "    lum{}: \"{}\"\n", lum,
                               c.value().to_string( false ) );
           rcl_out << line;
-          inl_out << "      FLD( Color, lum" << lum << " )\n";
+          inl_out << "      FLD( pixel, lum" << lum << " )\n";
         }
       }
       rcl_out << "  }\n";
@@ -626,9 +370,9 @@ void dump_palette( ColorBuckets const& bucketed,
     auto v = n * jump;
     auto line =
         format( "  n{:02X}: \"{}\"\n", v,
-                Color( v, v, v, 255 ).to_string( false ) );
+                pixel( v, v, v, 255 ).to_string( false ) );
     rcl_out << line;
-    auto fld = format( "    FLD( Color, n{:02X} )\n", v );
+    auto fld = format( "    FLD( pixel, n{:02X} )\n", v );
     inl_out << fld;
   }
   rcl_out << "}\n";
@@ -637,20 +381,20 @@ void dump_palette( ColorBuckets const& bucketed,
   inl_out << ")\n";
 }
 
-vector<vector<Color>> partition_by_hue(
-    vector<Color> const& colors ) {
+vector<vector<pixel>> partition_by_hue(
+    vector<pixel> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, hue_bucket_key ) );
 }
 
-vector<vector<Color>> partition_by_sat(
-    vector<Color> const& colors ) {
+vector<vector<pixel>> partition_by_sat(
+    vector<pixel> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, sat_bucket_key ) );
 }
 
-void remove_greys( vector<Color>& colors ) {
-  auto is_greyscale = []( Color c ) {
+void remove_greys( vector<pixel>& colors ) {
+  auto is_greyscale = []( pixel c ) {
     auto hsl = to_HSL( c );
     return hsl.s < greyscale_max_saturation;
   };
@@ -660,25 +404,25 @@ void remove_greys( vector<Color>& colors ) {
   lg.info( "removed {} greys", init - final );
 }
 
-vector<Color> coursen( vector<Color> const& colors,
+vector<pixel> coursen( vector<pixel> const& colors,
                        int                  min_count ) {
   uint8_t chunk = 64;
   while( chunk > 1 ) {
     chunk--;
-    vector<Color> res = coursen_impl( colors, chunk );
+    vector<pixel> res = coursen_impl( colors, chunk );
     if( int( res.size() ) >= min_count ) return res;
   }
   return colors;
 }
 
-void show_palette( Texture& tx, vector<Color> const& colors ) {
+void show_palette( Texture& tx, vector<pixel> const& colors ) {
   clear_texture_black( tx );
   render_palette_segment( tx, colors, palette_render_origin,
                           64 );
   ::SDL_RenderPresent( g_renderer );
 }
 
-void show_palette( vector<Color> const& colors ) {
+void show_palette( vector<pixel> const& colors ) {
   show_palette( Texture::screen(), colors );
 }
 
@@ -698,8 +442,8 @@ void show_palette( Texture& tx, ColorBuckets const& colors ) {
   ::SDL_RenderPresent( g_renderer );
 }
 
-void show_color_adjustment( Color center ) {
-  vector<Color> colors;
+void show_color_adjustment( pixel center ) {
+  vector<pixel> colors;
   for( int i = 10; i >= 0; --i )
     colors.push_back( center.shaded( i ) );
   for( int i = 0; i <= 10; ++i )
@@ -748,7 +492,7 @@ void show_config_palette() {
   show_palette( Texture::screen(), hsl_bucket( colors ) );
 }
 
-string bucket_path( Color c ) {
+string bucket_path( pixel c ) {
   auto hsl        = to_HSL( c );
   auto hue_bucket = to_hue_bucket( hsl.h );
   auto sat_bucket = to_bucket( hsl.s, saturation_buckets );
@@ -756,32 +500,6 @@ string bucket_path( Color c ) {
       to_bucket( c.luminosity(), luminosity_buckets );
   return format( "{}.sat{}.lum{}", hue_names[hue_bucket],
                  sat_bucket, lum_bucket );
-}
-
-/****************************************************************
-** Rcl
-*****************************************************************/
-rcl::convert_err<Color> convert_to( rcl::value const& v,
-                                    rcl::tag<Color> ) {
-  maybe<string const&> s = v.get_if<string>();
-  if( !s )
-    return rcl::error( fmt::format(
-        "cannot produce a Color from type {}. String required.",
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  if( s->size() != 7 && s->size() != 9 )
-    return rcl::error(
-        "Color objects must be of the form `#NNNNNN[NN]` with N "
-        "in 0-f." );
-  string const& hex = *s;
-  if( hex[0] != '#' )
-    return rcl::error( "Color objects must start with a '#'." );
-  string_view digits( &hex[1], hex.length() - 1 );
-
-  maybe<Color> parsed = Color::parse_from_hex( digits );
-  if( !parsed.has_value() )
-    return rcl::error(
-        fmt::format( "failed to parse color: `{}'.", digits ) );
-  return *parsed;
 }
 
 } // namespace rn

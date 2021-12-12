@@ -8,6 +8,7 @@ add_subdirectory( rds )
 add_subdirectory( gl )
 add_subdirectory( mock ) # should not be depended on by `rn`.
 add_subdirectory( stb )
+add_subdirectory( gfx )
 
 # === this directory ==============================================
 
@@ -43,6 +44,7 @@ target_link_libraries(
     lua::lua
     midifile
     rn-base
+    rn-gfx
     rn-gl
     rn-rcl
     rn-luapp

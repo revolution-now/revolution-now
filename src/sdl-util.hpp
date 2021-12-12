@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // SDL
 #include "SDL.h"
@@ -38,10 +40,10 @@ void check_SDL_compile_link_version(
 
 ::SDL_Point to_SDL( Coord const& coord );
 ::SDL_Rect  to_SDL( Rect const& rect );
-::SDL_Color to_SDL( Color color );
+::SDL_Color to_SDL( gfx::pixel color );
 
-Coord from_SDL( ::SDL_Point const& p );
-Color from_SDL( ::SDL_Color color );
-Rect  from_SDL( ::SDL_Rect const& rect );
+Coord      from_SDL( ::SDL_Point const& p );
+gfx::pixel from_SDL( ::SDL_Color color );
+Rect       from_SDL( ::SDL_Rect const& rect );
 
 } // namespace rn

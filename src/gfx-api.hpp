@@ -13,10 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
+#include "coord.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "typed-int.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // Abseil
 #include "absl/types/span.h"
@@ -53,16 +56,17 @@ void render_cpu_buffer( std::vector<std::byte> const& buf );
 void render_gpu_buffer( GfxObjId id );
 
 ///////////////////// Rendering Primitives //////////////////////
-void line( Coord start, Coord end, Color c );
+void line( Coord start, Coord end, gfx::pixel c );
 
 void rect_unfilled( Coord corner, Coord opposite_corner,
-                    Color c );
-void rect_unfilled_inside( Rect const& rect, Color c );
-void rect_unfilled_outside( Rect const& rect, Color c );
+                    gfx::pixel c );
+void rect_unfilled_inside( Rect const& rect, gfx::pixel c );
+void rect_unfilled_outside( Rect const& rect, gfx::pixel c );
 
-void rect_filled( Coord corner, Coord opposite_corner, Color c );
-void rect_filled_inside( Rect const& rect, Color c );
-void rect_filled_outside( Rect const& rect, Color c );
+void rect_filled( Coord corner, Coord opposite_corner,
+                  gfx::pixel c );
+void rect_filled_inside( Rect const& rect, gfx::pixel c );
+void rect_filled_outside( Rect const& rect, gfx::pixel c );
 
 void texture( Rect const& atlas_rect, Coord const& target );
 void texture( Rect const& atlas_rect, Rect const& target );

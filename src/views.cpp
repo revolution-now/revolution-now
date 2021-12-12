@@ -159,8 +159,9 @@ void SolidRectView::draw( Texture& tx, Coord coord ) const {
   render_fill_rect( tx, color_, rect( coord ) );
 }
 
-OneLineStringView::OneLineStringView( string msg, Color color,
-                                      bool shadow )
+OneLineStringView::OneLineStringView( string     msg,
+                                      gfx::pixel color,
+                                      bool       shadow )
   : msg_( move( msg ) ) {
   if( shadow )
     tx_ = clone_texture(
@@ -282,12 +283,13 @@ void ButtonBaseView::render( string const& label,
       e_tile::button_down_ur, e_tile::button_down_ll,
       e_tile::button_down_lr );
 
-  auto info_normal = TextMarkupInfo{ Color::wood().shaded( 3 ),
-                                     /*highlight=*/{} };
+  auto info_normal =
+      TextMarkupInfo{ gfx::pixel::wood().shaded( 3 ),
+                      /*highlight=*/{} };
   auto info_hover =
-      TextMarkupInfo{ Color::banana(), /*highlight=*/{} };
+      TextMarkupInfo{ gfx::pixel::banana(), /*highlight=*/{} };
   auto info_pressed =
-      TextMarkupInfo{ Color::banana().shaded( 2 ),
+      TextMarkupInfo{ gfx::pixel::banana().shaded( 2 ),
                       /*highlight=*/{} };
   auto info_disabled = TextMarkupInfo{ config_palette.grey.n50,
                                        /*highlight=*/{} };
@@ -317,8 +319,9 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
 }
 
 LineEditorView::LineEditorView( e_font font, W pixels_wide,
-                                OnChangeFunc on_change, Color fg,
-                                Color bg, string_view prompt,
+                                OnChangeFunc on_change,
+                                gfx::pixel fg, gfx::pixel bg,
+                                string_view prompt,
                                 string_view initial_text )
   : prompt_{ prompt },
     fg_{ fg },
@@ -331,22 +334,23 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     current_rendering_{},
     cursor_width_{} {
   string      text( 100, 'X' );
-  auto const& X_tx = render_text( font, Color::wood(), text );
-  cursor_width_    = X_tx.size().w / SX{ int( text.size() ) };
+  auto const& X_tx =
+      render_text( font, gfx::pixel::wood(), text );
+  cursor_width_ = X_tx.size().w / SX{ int( text.size() ) };
   set_pixel_size( Delta{ pixels_wide, X_tx.size().h } );
 }
 
 LineEditorView::LineEditorView( int          chars_wide,
                                 string_view  initial_text,
                                 OnChangeFunc on_change )
-  : LineEditorView( font::standard(),
-                    render_text( font::standard(), Color::wood(),
-                                 string( chars_wide, 'X' ) )
-                        .size()
-                        .w,
-                    std::move( on_change ), Color::wood(),
-                    Color::banana(), /*prompt=*/"",
-                    initial_text ) {}
+  : LineEditorView(
+        font::standard(),
+        render_text( font::standard(), gfx::pixel::wood(),
+                     string( chars_wide, 'X' ) )
+            .size()
+            .w,
+        std::move( on_change ), gfx::pixel::wood(),
+        gfx::pixel::banana(), /*prompt=*/"", initial_text ) {}
 
 LineEditorView::LineEditorView( int         chars_wide,
                                 string_view initial_text )
@@ -873,7 +877,7 @@ bool ClickableView::on_mouse_button(
   return true;
 }
 
-BorderView::BorderView( unique_ptr<View> view, Color color,
+BorderView::BorderView( unique_ptr<View> view, gfx::pixel color,
                         int padding, bool on_initially )
   : CompositeSingleView(
         std::move( view ),

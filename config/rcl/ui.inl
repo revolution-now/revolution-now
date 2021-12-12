@@ -12,13 +12,13 @@ CFG( ui,
   OBJ( window,
     FLD( int, border_width )
     FLD( int, window_padding )
-    FLD( Color, border_color )
+    FLD( gfx::pixel, border_color )
     FLD( int, ui_padding )
   )
 
   OBJ( dialog_text,
-    FLD( Color, normal )
-    FLD( Color, highlighted )
+    FLD( gfx::pixel, normal )
+    FLD( gfx::pixel, highlighted )
     FLD( int, columns )
   )
 

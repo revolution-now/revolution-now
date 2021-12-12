@@ -175,7 +175,7 @@ static_assert( sizeof( VertexData ) == sizeof( float ) * 6 );
 static_assert( sizeof( VertexData ) % 8 == 0 );
 
 void draw_horizontal_line( vector<VertexData>* vertices,
-                           Coord start, W w, Color c ) {
+                           Coord start, W w, gfx::pixel c ) {
   if( w < 0_w ) {
     start += w;
     w = -w;
@@ -203,7 +203,7 @@ void draw_horizontal_line( vector<VertexData>* vertices,
 }
 
 void draw_vertical_line( vector<VertexData>* vertices,
-                         Coord start, H h, Color c ) {
+                         Coord start, H h, gfx::pixel c ) {
   if( h < 0_h ) {
     start += h;
     h = -h;
@@ -231,7 +231,7 @@ void draw_vertical_line( vector<VertexData>* vertices,
 }
 
 void draw_box( vector<VertexData>* vertices, Coord corner,
-               Coord opposite_corner, Color c ) {
+               Coord opposite_corner, gfx::pixel c ) {
   auto rect = Rect::from( corner, opposite_corner );
   draw_horizontal_line( vertices, rect.upper_left(), rect.w, c );
   draw_vertical_line( vertices, rect.upper_right(), rect.h + 1_h,
@@ -242,7 +242,7 @@ void draw_box( vector<VertexData>* vertices, Coord corner,
 }
 
 void draw_box_inside( vector<VertexData>* vertices,
-                      Rect const& rect, Color c ) {
+                      Rect const& rect, gfx::pixel c ) {
   if( rect.w == 0_w || rect.h == 0_h ) return;
   // Rect is expected to be normalized here.
   draw_box( vertices, rect.upper_left(),
@@ -250,7 +250,7 @@ void draw_box_inside( vector<VertexData>* vertices,
 }
 
 void draw_box_outside( vector<VertexData>* vertices,
-                       Rect const& rect, Color c ) {
+                       Rect const& rect, gfx::pixel c ) {
   auto upper_left  = rect.upper_left();
   auto lower_right = rect.lower_right();
   upper_left -= 1_w;
@@ -279,42 +279,42 @@ void draw_lines( OpenGLObjects* gl_objects,
   vector<VertexData> vertices;
 
   draw_box_outside( &vertices, { 100_x, 100_y, 0_w, 0_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 120_y, 1_w, 0_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 140_y, 0_w, 1_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 160_y, 1_w, 1_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 180_y, 2_w, 2_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 200_y, 3_w, 3_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 220_y, 4_w, 4_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 100_x, 240_y, 5_w, 5_h },
-                    Color::red() );
+                    gfx::pixel::red() );
   draw_box_outside( &vertices, { 200_x, 100_y, 50_w, 50_h },
-                    Color::red() );
+                    gfx::pixel::red() );
 
   draw_box_inside( &vertices, { 100_x, 100_y, 0_w, 0_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 120_y, 1_w, 0_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 140_y, 0_w, 1_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 160_y, 1_w, 1_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 180_y, 2_w, 2_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 200_y, 3_w, 3_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 220_y, 4_w, 4_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 100_x, 240_y, 5_w, 5_h },
-                   Color::white() );
+                   gfx::pixel::white() );
   draw_box_inside( &vertices, { 200_x, 100_y, 50_w, 50_h },
-                   Color::white() );
+                   gfx::pixel::white() );
 
   int data_size_in_bytes =
       sizeof( VertexData ) * vertices.size();

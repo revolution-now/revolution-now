@@ -15,10 +15,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
 #include "fmt-helper.hpp"
 #include "matrix.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 namespace rn {
 
@@ -149,7 +151,7 @@ class Texture {
 
   // WARNING: Very slow function, should not be done in real
   // time. This is because it reads data from a texture.
-  Matrix<Color> pixels() const;
+  Matrix<gfx::pixel> pixels() const;
 
   void copy_to( Texture& to ) const;
   void copy_to( Texture& to, Coord target_location ) const;
@@ -158,7 +160,7 @@ class Texture {
   void copy_to( Texture& to, Rect const& src, Rect const& dst,
                 double angle, e_flip flip ) const;
 
-  void fill( Color const& color = { 0, 0, 0, 0 } );
+  void fill( gfx::pixel const& color = { 0, 0, 0, 0 } );
 
   // Estimated memory size (in megabytes) of a texture with
   // given pixel dimensions.

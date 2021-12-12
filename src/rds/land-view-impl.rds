@@ -61,7 +61,7 @@ sumtype.UnitAnimation {
   depixelate {
     tx_depixelate_from: Texture
     pixels: 'std::vector<Coord>'
-    demoted_pixels: 'Matrix<Color>'
+    demoted_pixels: 'Matrix<gfx::pixel>'
   }
 
   _features: [equality]

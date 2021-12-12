@@ -232,7 +232,7 @@ class MarketCommodities {
     auto comm_it = enum_traits<e_commodity>::values.begin();
     auto label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
-      render_rect( tx, Color::white(),
+      render_rect( tx, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
       render_commodity_annotated(
           tx, *comm_it++,
@@ -326,7 +326,7 @@ class ActiveCargoBox {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( box_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( tx, Color::white(),
+      render_rect( tx, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
   }
 
@@ -382,10 +382,11 @@ class DockAnchor {
   void draw( Texture& tx, Delta offset ) const {
     // This mess just draws an X.
     render_line(
-        tx, Color::white(), location_ - cross_leg_size + offset,
+        tx, gfx::pixel::white(),
+        location_ - cross_leg_size + offset,
         cross_leg_size * Scale{ 2 } + Delta{ 1_w, 1_h } );
     render_line(
-        tx, Color::white(),
+        tx, gfx::pixel::white(),
         location_ - cross_leg_size.mirrored_vertically() +
             offset,
         cross_leg_size.mirrored_vertically() * Scale{ 2 } +
@@ -481,10 +482,10 @@ class InPortBox {
   }
 
   void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, Color::white(),
+    render_rect( tx, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
-        render_text( "In Port", Color::white() );
+        render_text( "In Port", gfx::pixel::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
@@ -542,10 +543,10 @@ class InboundBox {
   }
 
   void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, Color::white(),
+    render_rect( tx, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
-        render_text( "Inbound", Color::white() );
+        render_text( "Inbound", gfx::pixel::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
@@ -609,10 +610,10 @@ class OutboundBox {
   }
 
   void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, Color::white(),
+    render_rect( tx, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
-        render_text( "Outbound", Color::white() );
+        render_text( "Outbound", gfx::pixel::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
@@ -677,13 +678,14 @@ class Exit {
   }
 
   void draw( Texture& tx, Delta offset ) const {
-    auto bds = bounds().with_inc_size();
-    bds      = bds.shifted_by( Delta{ -2_w, -2_h } );
-    auto const& exit_tx =
-        render_text( font::standard(), Color::red(), "Exit" );
+    auto bds            = bounds().with_inc_size();
+    bds                 = bds.shifted_by( Delta{ -2_w, -2_h } );
+    auto const& exit_tx = render_text(
+        font::standard(), gfx::pixel::red(), "Exit" );
     auto drawing_origin = centered( exit_tx.size(), bds );
     copy_texture( exit_tx, tx, drawing_origin + offset );
-    render_rect( tx, Color::white(), bds.shifted_by( offset ) );
+    render_rect( tx, gfx::pixel::white(),
+                 bds.shifted_by( offset ) );
   }
 
   Exit( Exit&& ) = default;
@@ -738,7 +740,7 @@ class Dock {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( dock_block_pixels_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( tx, Color::white(),
+      render_rect( tx, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
   }
 
@@ -795,7 +797,8 @@ class UnitCollection {
 
   void draw( Texture& tx, Delta offset ) const {
     // auto bds = bounds();
-    // render_rect( tx, Color::white(), bds.shifted_by( offset )
+    // render_rect( tx, gfx::pixel::white(), bds.shifted_by(
+    // offset )
     // );
     for( auto const& unit_with_pos : units_ )
       if( !g_drag_state || g_drag_state->object !=
@@ -808,7 +811,7 @@ class UnitCollection {
     if( SG().selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *SG().selected_unit ) {
-          render_rect( tx, Color::green(),
+          render_rect( tx, gfx::pixel::green(),
                        Rect::from( coord, g_tile_delta )
                            .shifted_by( offset ) );
           break;
@@ -1080,12 +1083,12 @@ class ActiveCargo {
       for( auto [idx, rect] :
            rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
         if( idx >= unit.cargo().slots_total() )
-          render_fill_rect( tx, Color::white(),
+          render_fill_rect( tx, gfx::pixel::white(),
                             rect.shifted_by( offset ) );
       }
     } else {
       for( auto rect : range_of_rects( grid ) )
-        render_fill_rect( tx, Color::white(),
+        render_fill_rect( tx, gfx::pixel::white(),
                           rect.shifted_by( offset ) );
     }
   }
@@ -1866,18 +1869,21 @@ void drag_n_drop_draw( Texture& tx ) {
     using e = drag::e_status_indicator;
     case e::none: break;
     case e::bad: {
-      auto const& status_tx = render_text( "X", Color::red() );
+      auto const& status_tx =
+          render_text( "X", gfx::pixel::red() );
       copy_texture( status_tx, tx,
                     origin_for( status_tx.size() ) );
       break;
     }
     case e::good: {
-      auto const& status_tx = render_text( "+", Color::green() );
+      auto const& status_tx =
+          render_text( "+", gfx::pixel::green() );
       copy_texture( status_tx, tx,
                     origin_for( status_tx.size() ) );
       if( state.user_requests_input ) {
-        auto const& mod_tx  = render_text( "?", Color::green() );
-        auto        mod_pos = state.where;
+        auto const& mod_tx =
+            render_text( "?", gfx::pixel::green() );
+        auto mod_pos = state.where;
         mod_pos.y -= mod_tx.size().h;
         copy_texture( mod_tx, tx, mod_pos - state.click_offset );
       }

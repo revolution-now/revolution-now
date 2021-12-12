@@ -145,7 +145,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
     auto* p_fake_unit_view = fake_unit_view.get();
 
     auto border_view = make_unique<BorderView>(
-        std::move( fake_unit_view ), Color::white(),
+        std::move( fake_unit_view ), gfx::pixel::white(),
         /*padding=*/1,
         /*on_initially=*/false );
     auto* p_border_view = border_view.get();
@@ -165,7 +165,8 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
         } );
 
     auto unit_label = make_unique<OneLineStringView>(
-        unit.desc().name, Color::banana(), /*shadow=*/true );
+        unit.desc().name, gfx::pixel::banana(),
+        /*shadow=*/true );
 
     vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );

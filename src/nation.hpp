@@ -13,10 +13,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
 #include "lua-enum.hpp"
 #include "maybe.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // Rds
 #include "rds/nation.hpp"
@@ -31,7 +33,7 @@ struct NationDesc {
   std::string country_name;
   std::string adjective;
   std::string article;
-  Color       flag_color;
+  gfx::pixel  flag_color;
 
   std::string name_proper() const;
 };

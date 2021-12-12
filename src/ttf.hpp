@@ -13,17 +13,20 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
 #include "font.hpp"
 #include "tx.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <string_view>
 
 namespace rn {
 
-Texture ttf_render_text_line_uncached( e_font font, Color fg,
+Texture ttf_render_text_line_uncached( e_font           font,
+                                       gfx::pixel       fg,
                                        std::string_view line );
 
 struct FontTTFInfo {

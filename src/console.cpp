@@ -56,8 +56,8 @@ struct ConsolePlane : public Plane {
     // window size changes.
     le_view_.emplace(
         config_rn.console.font, main_window_logical_size().w,
-        []( string const& ) {}, Color::banana(), Color::wood(),
-        prompt, /*initial_text=*/"" );
+        []( string const& ) {}, gfx::pixel::banana(),
+        gfx::pixel::wood(), prompt, /*initial_text=*/"" );
   }
   void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;
@@ -82,13 +82,14 @@ struct ConsolePlane : public Plane {
     auto console_edit_rect = Rect::from(
         console_rect.lower_left(), le_view_.get().delta() );
 
-    render_fill_rect( tx,
-                      Color::wood().with_alpha( console_alpha ),
-                      console_rect );
+    render_fill_rect(
+        tx, gfx::pixel::wood().with_alpha( console_alpha ),
+        console_rect );
 
-    auto text_color = Color::banana().with_alpha( text_alpha );
+    auto text_color =
+        gfx::pixel::banana().with_alpha( text_alpha );
     auto stats_color =
-        Color::banana().highlighted( 5 ).with_alpha(
+        gfx::pixel::banana().highlighted( 5 ).with_alpha(
             stats_alpha );
 
     // auto info_start = Coord{} + 16_h;
@@ -99,7 +100,8 @@ struct ConsolePlane : public Plane {
     //{
     //  auto mouse_coords = fmt::format( "unscaled: {}", mouse );
     //  auto const& mouse_coords_tx = render_text(
-    //      config_rn.console.font, Color::white(), mouse_coords
+    //      config_rn.console.font, gfx::pixel::white(),
+    //      mouse_coords
     //      );
     //  copy_texture( mouse_coords_tx, tx, info_start );
     //  info_start += mouse_coords_tx.size().h;
@@ -111,7 +113,8 @@ struct ConsolePlane : public Plane {
     //{
     //  auto mouse_coords = fmt::format( "  scaled: {}", mouse );
     //  auto const& mouse_coords_tx = render_text(
-    //      config_rn.console.font, Color::white(), mouse_coords
+    //      config_rn.console.font, gfx::pixel::white(),
+    //      mouse_coords
     //      );
     //  copy_texture( mouse_coords_tx, tx, info_start );
     //  info_start += mouse_coords_tx.size().h;

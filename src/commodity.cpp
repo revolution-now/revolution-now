@@ -75,8 +75,8 @@ e_tile tile_for_commodity( e_commodity c ) {
 maybe<Texture const&> render_commodity_label(
     string_view label ) {
   if( !label.empty() ) {
-    TextMarkupInfo info{ /*normal=*/Color::white(),
-                         /*highlight=*/Color::green() };
+    TextMarkupInfo info{ /*normal=*/gfx::pixel::white(),
+                         /*highlight=*/gfx::pixel::green() };
     return render_text_markup( font::small(), info, label );
   }
   return nothing;

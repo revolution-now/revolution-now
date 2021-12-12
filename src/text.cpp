@@ -49,9 +49,9 @@ namespace {
 // the generation of a texture from any of the possible inputs
 // (or parameters) in any function in this module.
 struct TextCacheKey {
-  string text; // may contain markup.
-  e_font font;
-  Color  color;
+  string     text; // may contain markup.
+  e_font     font;
+  gfx::pixel color;
   // If this is active then we are in markup mode.
   maybe<TextMarkupInfo> markup_info;
   // If this is active then we are in reflow mode.
@@ -243,7 +243,7 @@ vector<vector<MarkedUpText>> parse_text( string_view text ) {
 /****************************************************************
 ** Rendering
 *****************************************************************/
-Texture render( e_font font, Color fg, string_view txt ) {
+Texture render( e_font font, gfx::pixel fg, string_view txt ) {
   return ttf_render_text_line_uncached( font, fg, txt );
 }
 
@@ -271,7 +271,8 @@ Texture render_markup( e_font font, MarkedUpText const& mk,
                                         mk.text );
 }
 
-Texture render_line( e_font font, Color fg, string_view txt ) {
+Texture render_line( e_font font, gfx::pixel fg,
+                     string_view txt ) {
   return render( font, fg, txt );
 }
 
@@ -299,7 +300,7 @@ Texture render_line_markup( e_font                      font,
   return res;
 }
 
-Texture render_lines( e_font font, Color fg,
+Texture render_lines( e_font font, gfx::pixel fg,
                       vector<string> const& txt ) {
   auto renderer = [&]( string_view line ) {
     return render_line( font, fg, line );
@@ -479,7 +480,7 @@ Texture const& render_text_markup( e_font                font,
   CACHE_AND_RETURN( res );
 }
 
-Texture const& render_text( e_font font, Color color,
+Texture const& render_text( e_font font, gfx::pixel color,
                             std::string_view text ) {
   RETURN_IF_CACHED(
       /*text=*/string( text ),
@@ -494,7 +495,7 @@ Texture const& render_text( e_font font, Color color,
 }
 
 Texture const& render_text( std::string_view text,
-                            Color            color ) {
+                            gfx::pixel       color ) {
   // Caching will happen in the following method.
   return render_text( font::standard(), color, text );
 }
@@ -540,13 +541,14 @@ void text_render_test() {
     function to distinguish menu items. @[H]@[H]
   )";
 
-  TextMarkupInfo info{ .normal    = Color::white(),
-                       .highlight = Color::red() };
+  TextMarkupInfo info{ .normal    = gfx::pixel::white(),
+                       .highlight = gfx::pixel::red() };
 
   auto const& tx1 =
       render_text_markup( font::standard(), info, msg );
   // auto tx1 =
-  //    render_text( font::standard(), Color::white(), msg );
+  //    render_text( font::standard(), gfx::pixel::white(), msg
+  //    );
   copy_texture( tx1, Texture::screen(), { 50_y, 100_x } );
 
   auto const& tx2 = render_text_markup_reflow(
@@ -564,7 +566,7 @@ namespace std {
 
 size_t hash<::rn::TextMarkupInfo>::operator()(
     ::rn::TextMarkupInfo const& o ) const noexcept {
-  size_t h = hash<rn::Color>{}( o.normal );
+  size_t h = hash<::gfx::pixel>{}( o.normal );
   base::hash_combine( h, o.highlight );
   base::hash_combine( h, o.shadowed_text_color );
   base::hash_combine( h, o.shadowed_shadow_color );

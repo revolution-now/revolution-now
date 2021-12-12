@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "anim.hpp"
-#include "color.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "error.hpp"
@@ -30,6 +29,9 @@
 // Revolution Now (config)
 #include "../config/rcl/palette.inl"
 #include "../config/rcl/ui.inl"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -284,8 +286,8 @@ maybe<e_menu> first_visible_menu() {
 /****************************************************************
 ** Colors
 *****************************************************************/
-auto const& menu_theme_color1 = Color::banana();
-auto const& menu_theme_color2 = Color::wood();
+auto const& menu_theme_color1 = gfx::pixel::banana();
+auto const& menu_theme_color2 = gfx::pixel::wood();
 
 namespace color::item::foreground {
 auto disabled() {
@@ -570,9 +572,9 @@ maybe<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
 // For either a menu header or item.
 ItemTextures render_menu_element( string_view const text,
                                   maybe<char>       shortcut,
-                                  Color inactive_color,
-                                  Color active_color,
-                                  Color disabled_color ) {
+                                  gfx::pixel inactive_color,
+                                  gfx::pixel active_color,
+                                  gfx::pixel disabled_color ) {
   Texture inactive, active;
   if( shortcut.has_value() ) {
     auto shortcut_pos =
@@ -636,9 +638,9 @@ ItemTextures render_menu_header_element( string const& text,
 }
 
 Texture render_divider( e_menu menu ) {
-  Delta   delta      = divider_delta( menu );
-  Texture res        = create_texture_transparent( delta );
-  Color   color_fore = menu_theme_color2.shaded( 3 );
+  Delta      delta      = divider_delta( menu );
+  Texture    res        = create_texture_transparent( delta );
+  gfx::pixel color_fore = menu_theme_color2.shaded( 3 );
   render_line( res, color_fore, Coord{} + delta.h / 2 + 2_w,
                { delta.w - 5_w, 0_h } );
   return res;

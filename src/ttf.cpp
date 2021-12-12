@@ -125,9 +125,9 @@ void init_ttf() {
   }
 }
 
-// Texture render_text_line_shadow( e_font font, Color fg,
+// Texture render_text_line_shadow( e_font font, gfx::pixel fg,
 //                                 string_view line ) {
-//  Color bg        = fg.shaded( 6 );
+//  gfx::pixel bg        = fg.shaded( 6 );
 //  bg.a            = 80;
 //  auto texture_fg = ttf_render_text_line_uncached( font, fg,
 //  line ); auto texture_bg = ttf_render_text_line_uncached(
@@ -155,7 +155,8 @@ REGISTER_INIT_ROUTINE( ttf );
 /****************************************************************
 ** Public API
 *****************************************************************/
-Texture ttf_render_text_line_uncached( e_font font, Color fg,
+Texture ttf_render_text_line_uncached( e_font      font,
+                                       gfx::pixel  fg,
                                        string_view line ) {
   auto* ttf_font    = loaded_fonts()[font].ttf_font;
   auto  vert_offset = loaded_fonts()[font].vert_offset;
@@ -208,7 +209,7 @@ void font_test() {
       "ask what you can do for your country!";
 
   auto render_line = [font]( string const& text ) {
-    Color fg = config_palette.orange.sat1.lum11;
+    gfx::pixel fg = config_palette.orange.sat1.lum11;
     return ttf_render_text_line_uncached( font, fg, text );
   };
   auto texture = render_line( msg );

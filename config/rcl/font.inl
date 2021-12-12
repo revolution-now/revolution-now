@@ -5,7 +5,11 @@
 #define FONT_INL
 
 // Revolution Now
+#include "../../src/coord.hpp"
 #include "../../src/font.hpp"
+
+// base
+#include "../../src/base/fs.hpp"
 
 // C++ standard library
 #include <unordered_map>

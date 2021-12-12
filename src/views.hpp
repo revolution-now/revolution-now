@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "line-editor.hpp"
 #include "nation.hpp"
 #include "text.hpp"
@@ -25,6 +24,9 @@
 #include "utype.hpp"
 #include "view.hpp"
 #include "waitable.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <memory>
@@ -190,9 +192,10 @@ class InvisibleView : public VectorView {
 *****************************************************************/
 class SolidRectView : public View {
  public:
-  SolidRectView( Color color ) : color_( color ), delta_{} {}
+  SolidRectView( gfx::pixel color )
+    : color_( color ), delta_{} {}
 
-  SolidRectView( Color color, Delta delta )
+  SolidRectView( gfx::pixel color, Delta delta )
     : color_( color ), delta_( delta ) {}
 
   // Implement Object
@@ -203,13 +206,14 @@ class SolidRectView : public View {
   void set_delta( Delta const& delta ) { delta_ = delta; }
 
  protected:
-  Color color_;
-  Delta delta_;
+  gfx::pixel color_;
+  Delta      delta_;
 };
 
 class OneLineStringView : public View {
  public:
-  OneLineStringView( std::string msg, Color color, bool shadow );
+  OneLineStringView( std::string msg, gfx::pixel color,
+                     bool shadow );
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
@@ -307,8 +311,8 @@ class LineEditorView : public View {
   LineEditorView( int chars_wide, std::string_view initial_text,
                   OnChangeFunc on_change );
   LineEditorView( e_font font, W pixels_wide,
-                  OnChangeFunc on_change, Color fg, Color bg,
-                  std::string_view prompt,
+                  OnChangeFunc on_change, gfx::pixel fg,
+                  gfx::pixel bg, std::string_view prompt,
                   std::string_view initial_text );
 
   // Implement Object
@@ -347,8 +351,8 @@ class LineEditorView : public View {
   void update_visible_string();
 
   std::string         prompt_;
-  Color               fg_;
-  Color               bg_;
+  gfx::pixel          fg_;
+  gfx::pixel          bg_;
   e_font              font_;
   OnChangeFunc        on_change_;
   LineEditor          line_editor_;
@@ -610,7 +614,7 @@ class ClickableView : public CompositeSingleView {
 class BorderView : public CompositeSingleView {
  public:
   // padding is how many pixels between inner view and border.
-  BorderView( std::unique_ptr<View> view, Color color,
+  BorderView( std::unique_ptr<View> view, gfx::pixel color,
               int padding, bool on_initially );
 
   // Implement Object
@@ -634,9 +638,9 @@ class BorderView : public CompositeSingleView {
   bool is_on() const { return on_; }
 
  private:
-  Color color_;
-  bool  on_;
-  int   padding_;
+  gfx::pixel color_;
+  bool       on_;
+  int        padding_;
 };
 
 } // namespace rn::ui

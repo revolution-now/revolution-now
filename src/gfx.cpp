@@ -101,7 +101,8 @@ ND Texture create_texture( Delta delta ) {
   return tx;
 }
 
-ND Texture create_texture( Delta delta, Color const& color ) {
+ND Texture create_texture( Delta             delta,
+                           gfx::pixel const& color ) {
   auto tx = create_texture( delta );
   tx.fill( color );
   return tx;
@@ -124,7 +125,7 @@ Texture create_shadow_texture( Texture const& tx ) {
   auto cloned = clone_texture( tx );
   // black.a should not be relevant here.
   auto black =
-      create_texture( tx.size(), Color{ 0, 0, 0, 255 } );
+      create_texture( tx.size(), gfx::pixel{ 0, 0, 0, 255 } );
 
   // The process will be done in two stages; note that each stage
   // respects alpha gradations when performing its action, so
@@ -137,8 +138,8 @@ Texture create_shadow_texture( Texture const& tx ) {
   //   dstA = dstA
   Texture::screen().set_blend_mode( e_tx_blend_mode::add );
   cloned.set_blend_mode( e_tx_blend_mode::add );
-  auto white =
-      create_texture( tx.size(), Color{ 255, 255, 255, 255 } );
+  auto white = create_texture(
+      tx.size(), gfx::pixel{ 255, 255, 255, 255 } );
   white.set_blend_mode( e_tx_blend_mode::add );
   white.copy_to( cloned );
 
@@ -156,20 +157,20 @@ Texture create_shadow_texture( Texture const& tx ) {
   return cloned;
 }
 
-void set_render_draw_color( Color color ) {
+void set_render_draw_color( gfx::pixel color ) {
   CHECK( !::SDL_SetRenderDrawColor( g_renderer, color.r, color.g,
                                     color.b, color.a ) );
 }
 
 void clear_texture_black( Texture& tx ) {
-  tx.fill( Color::black() );
+  tx.fill( gfx::pixel::black() );
 }
 
 void clear_texture_transparent( Texture& tx ) {
   tx.fill( { 0, 0, 0, 0 } );
 }
 
-void render_fill_rect( Texture& tx, Color color,
+void render_fill_rect( Texture& tx, gfx::pixel color,
                        Rect const& rect ) {
   tx.set_render_target();
   set_render_draw_color( color );
@@ -177,7 +178,7 @@ void render_fill_rect( Texture& tx, Color color,
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
 }
 
-void render_line( Texture& tx, Color color, Coord start,
+void render_line( Texture& tx, gfx::pixel color, Coord start,
                   Delta delta ) {
   // The SDL rendering method used below includes end points, so
   // we must avoid calling it if the line will have zero length.
@@ -189,7 +190,8 @@ void render_line( Texture& tx, Color color, Coord start,
                         end.x._, end.y._ );
 }
 
-void render_rect( Texture& tx, Color color, Rect const& rect ) {
+void render_rect( Texture& tx, gfx::pixel color,
+                  Rect const& rect ) {
   tx.set_render_target();
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );

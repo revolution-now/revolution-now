@@ -153,11 +153,11 @@ REGISTER_INIT_ROUTINE( sdl );
   return color;
 }
 
-::SDL_Color to_SDL( Color color ) {
+::SDL_Color to_SDL( gfx::pixel color ) {
   return { color.r, color.g, color.b, color.a };
 }
 
-Color from_SDL( ::SDL_Color color ) {
+gfx::pixel from_SDL( ::SDL_Color color ) {
   return { color.r, color.g, color.b, color.a };
 }
 

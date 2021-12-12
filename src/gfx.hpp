@@ -13,15 +13,17 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "coord.hpp"
 #include "tx.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 namespace rn {
 
 // struct Pixel {
 //  Coord coord;
-//  Color color;
+//  gfx::pixel color;
 //};
 // NOTHROW_MOVE( Pixel );
 
@@ -63,7 +65,7 @@ void copy_texture_stretch( Texture const& from, Texture& to,
 Texture clone_texture( Texture const& tx );
 
 Texture create_texture( Delta delta );
-Texture create_texture( Delta delta, Color const& color );
+Texture create_texture( Delta delta, gfx::pixel const& color );
 Texture create_texture_transparent( Delta delta );
 Texture create_screen_physical_sized_texture();
 
@@ -74,7 +76,7 @@ Texture create_screen_physical_sized_texture();
 // source texture's opaque (or semi-opaque) parts.
 Texture create_shadow_texture( Texture const& tx );
 
-void set_render_draw_color( Color color );
+void set_render_draw_color( gfx::pixel color );
 
 void clear_texture_black( Texture& tx );
 void clear_texture_transparent( Texture& tx );
@@ -84,10 +86,11 @@ void clear_texture_transparent( Texture& tx );
 // took a Coord as the end point then we'd have to subtract one
 // from each length in order to allow for zero-length lines with
 // that approach.
-void render_line( Texture& tx, Color color, Coord start,
+void render_line( Texture& tx, gfx::pixel color, Coord start,
                   Delta delta );
-void render_rect( Texture& tx, Color color, Rect const& rect );
-void render_fill_rect( Texture& tx, Color color,
+void render_rect( Texture& tx, gfx::pixel color,
+                  Rect const& rect );
+void render_fill_rect( Texture& tx, gfx::pixel color,
                        Rect const& rect );
 
 // TODO: needs to be retested.  Returns true on success.

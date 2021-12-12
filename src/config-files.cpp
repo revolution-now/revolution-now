@@ -11,7 +11,6 @@
 #include "config-files.hpp"
 
 // Revolution Now
-#include "color.hpp"
 #include "conductor.hpp"
 #include "coord.hpp"
 #include "error.hpp"
@@ -20,9 +19,13 @@
 #include "logger.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
+#include "palette-util.hpp"
 #include "tune.hpp"
 #include "typed-int.hpp"
 #include "utype.hpp"
+
+// gfx
+#include "gfx/pixel.hpp"
 
 // Rcl
 #include "rcl/ext-base.hpp"
@@ -298,10 +301,10 @@ namespace rn {
 
 bool configs_loaded() { return g_configs_loaded; }
 
-vector<Color> const& g_palette() {
-  static vector<Color> colors = [] {
-    vector<Color> res;
-    string        file = "config/rcl/palette.rcl";
+vector<gfx::pixel> const& g_palette() {
+  static vector<gfx::pixel> colors = [] {
+    vector<gfx::pixel> res;
+    string             file = "config/rcl/palette.rcl";
 
     base::expect<rcl::doc, std::string> doc =
         rcl::parse_file( file );
@@ -316,7 +319,7 @@ vector<Color> const& g_palette() {
                       sat_val.get_if<unique_ptr<rcl::table>>() );
         for( auto& [lum_key, lum_val] : *sat_val_tbl ) {
           UNWRAP_CHECK( parsed,
-                        rcl::convert_to<Color>( lum_val ) );
+                        rcl::convert_to<gfx::pixel>( lum_val ) );
           res.push_back( parsed );
         }
       }
