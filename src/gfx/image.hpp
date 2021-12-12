@@ -22,6 +22,11 @@
 
 namespace gfx {
 
+/****************************************************************
+** image
+*****************************************************************/
+// Holds ownership over a byte buffer representing an image. Each
+// pixel is assumed to be four bytes (RGBA).
 struct image : base::zero<image, unsigned char*> {
   // The data pointer passed in is assumed allocated by malloc.
   // This class will take ownership of it and release it with
@@ -54,5 +59,11 @@ struct image : base::zero<image, unsigned char*> {
   friend base::zero<image, unsigned char*>;
   void free_resource();
 };
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+// Returns an image with all pixels set to zero (0,0,0,0).
+image empty_image( int width_pixels, int height_pixels );
 
 } // namespace gfx

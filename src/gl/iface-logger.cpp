@@ -220,4 +220,28 @@ LOG_AND_CALL_GL_METHOD( gl_VertexAttribPointer, void,
                           ( GLsizei, stride ),
                           ( const void*, pointer ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_GenTextures, void,
+                        ( ( GLsizei, n ),
+                          ( GLuint*, textures ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_DeleteTextures, void,
+                        ( ( GLsizei, n ),
+                          ( GLuint const*, textures ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_BindTexture, void,
+                        ( ( GLenum, target ),
+                          ( GLuint, texture ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_TexParameteri, void,
+                        ( ( GLenum, target ), ( GLenum, pname ),
+                          ( GLint, param ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_TexImage2D, void,
+                        ( ( GLenum, target ), ( GLint, level ),
+                          ( GLint, internalformat ),
+                          ( GLsizei, width ),
+                          ( GLsizei, height ), ( GLint, border ),
+                          ( GLenum, format ), ( GLenum, type ),
+                          ( void const*, pixels ) ) );
+
 } // namespace gl

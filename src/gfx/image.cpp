@@ -72,4 +72,17 @@ image::operator span<pixel const>() const {
 
 void image::free_resource() { ::free( resource() ); }
 
+/****************************************************************
+** Helpers
+*****************************************************************/
+image empty_image( int width_pixels, int height_pixels ) {
+  CHECK_GE( width_pixels, 1 );
+  CHECK_GE( height_pixels, 1 );
+  int size_bytes =
+      width_pixels * height_pixels * image::kBytesPerPixel;
+  unsigned char* data = (unsigned char*)::malloc( size_bytes );
+  ::memset( data, 0, size_bytes );
+  return image( width_pixels, height_pixels, data );
+}
+
 } // namespace gfx

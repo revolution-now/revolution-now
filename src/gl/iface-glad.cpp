@@ -138,4 +138,25 @@ GLAD_GL_METHOD( VertexAttribPointer, void,
                   ( GLsizei, stride ),
                   ( const void*, pointer ) ) );
 
+GLAD_GL_METHOD( GenTextures, void,
+                ( ( GLsizei, n ), ( GLuint*, textures ) ) );
+
+GLAD_GL_METHOD( DeleteTextures, void,
+                ( ( GLsizei, n ),
+                  ( GLuint const*, textures ) ) );
+
+GLAD_GL_METHOD( BindTexture, void,
+                ( ( GLenum, target ), ( GLuint, texture ) ) );
+
+GLAD_GL_METHOD( TexParameteri, void,
+                ( ( GLenum, target ), ( GLenum, pname ),
+                  ( GLint, param ) ) );
+
+GLAD_GL_METHOD( TexImage2D, void,
+                ( ( GLenum, target ), ( GLint, level ),
+                  ( GLint, internalformat ), ( GLsizei, width ),
+                  ( GLsizei, height ), ( GLint, border ),
+                  ( GLenum, format ), ( GLenum, type ),
+                  ( void const*, pixels ) ) );
+
 } // namespace gl

@@ -132,6 +132,24 @@ struct IOpenGL {
                                        GLboolean   normalized,
                                        GLsizei     stride,
                                        void const* pointer ) = 0;
+
+  virtual void gl_GenTextures( GLsizei n, GLuint* textures ) = 0;
+
+  virtual void gl_DeleteTextures( GLsizei       n,
+                                  GLuint const* textures ) = 0;
+
+  virtual void gl_BindTexture( GLenum target,
+                               GLuint texture ) = 0;
+
+  virtual void gl_TexParameteri( GLenum target, GLenum pname,
+                                 GLint param ) = 0;
+
+  virtual void gl_TexImage2D( GLenum target, GLint level,
+                              GLint   internalformat,
+                              GLsizei width, GLsizei height,
+                              GLint border, GLenum format,
+                              GLenum      type,
+                              void const* pixels ) = 0;
 };
 
 /****************************************************************

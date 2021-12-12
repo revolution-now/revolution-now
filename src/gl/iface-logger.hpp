@@ -119,6 +119,22 @@ struct OpenGLWithLogger : IOpenGL {
                                GLenum type, GLboolean normalized,
                                GLsizei     stride,
                                void const* pointer ) override;
+
+  void gl_GenTextures( GLsizei n, GLuint* textures ) override;
+
+  void gl_DeleteTextures( GLsizei       n,
+                          GLuint const* textures ) override;
+
+  void gl_BindTexture( GLenum target, GLuint texture ) override;
+
+  void gl_TexParameteri( GLenum target, GLenum pname,
+                         GLint param ) override;
+
+  void gl_TexImage2D( GLenum target, GLint level,
+                      GLint internalformat, GLsizei width,
+                      GLsizei height, GLint border,
+                      GLenum format, GLenum type,
+                      void const* pixels ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLWithLogger> );

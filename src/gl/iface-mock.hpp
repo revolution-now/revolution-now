@@ -88,6 +88,19 @@ struct MockOpenGL : IOpenGL {
   MOCK_GL_METHOD( void, gl_VertexAttribPointer,
                   (GLuint, GLint, GLenum, GLboolean, GLsizei,
                    void const*));
+  MOCK_GL_METHOD( void, gl_GenTextures, (GLsizei, GLuint*));
+
+  MOCK_GL_METHOD( void, gl_DeleteTextures,
+                  (GLsizei, GLuint const*));
+
+  MOCK_GL_METHOD( void, gl_BindTexture, ( GLenum, GLuint ) );
+
+  MOCK_GL_METHOD( void, gl_TexParameteri,
+                  ( GLenum, GLenum, GLint ) );
+
+  MOCK_GL_METHOD( void, gl_TexImage2D,
+                  (GLenum, GLint, GLint, GLsizei, GLsizei, GLint,
+                   GLenum, GLenum, void const*));
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );

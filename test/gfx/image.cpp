@@ -83,5 +83,57 @@ TEST_CASE( "[image] creation" ) {
   REQUIRE( sp[7 * 1 + 1] == pixel( 0, 0, 0, 0 ) );
 }
 
+TEST_CASE( "[image] empty_image" ) {
+  image img =
+      empty_image( /*width_pixels=*/7, /*height_pixels=*/5 );
+
+  REQUIRE( img.height_pixels() == 5 );
+  REQUIRE( img.width_pixels() == 7 );
+  REQUIRE( img.size_bytes() == 140 );
+  REQUIRE( img.total_pixels() == 35 );
+
+  REQUIRE( img.get( /*y=*/0, /*x=*/0 ) == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( img.get( /*y=*/1, /*x=*/0 ) == pixel( 0, 0, 0, 0 ) );
+
+  span<byte const> sb = img;
+  REQUIRE( int( sb.size() ) == img.size_bytes() );
+  REQUIRE( to_integer<int>( sb[0] ) == 0 );
+  REQUIRE( to_integer<int>( sb[1] ) == 0 );
+  REQUIRE( to_integer<int>( sb[2] ) == 0 );
+  REQUIRE( to_integer<int>( sb[3] ) == 0 );
+  REQUIRE( to_integer<int>( sb[7 * 1 * 4 + 0] ) == 0 );
+  REQUIRE( to_integer<int>( sb[7 * 1 * 4 + 1] ) == 0 );
+  REQUIRE( to_integer<int>( sb[7 * 1 * 4 + 2] ) == 0 );
+  REQUIRE( to_integer<int>( sb[7 * 1 * 4 + 3] ) == 0 );
+
+  span<char const> sc = img;
+  REQUIRE( int( sc.size() ) == img.size_bytes() );
+  REQUIRE( sc[0] == 0 );
+  REQUIRE( sc[1] == 0 );
+  REQUIRE( sc[2] == 0 );
+  REQUIRE( sc[3] == 0 );
+  REQUIRE( sc[7 * 1 * 4 + 0] == 0 );
+  REQUIRE( sc[7 * 1 * 4 + 1] == 0 );
+  REQUIRE( sc[7 * 1 * 4 + 2] == 0 );
+  REQUIRE( sc[7 * 1 * 4 + 3] == 0 );
+
+  span<unsigned char const> suc = img;
+  REQUIRE( int( suc.size() ) == img.size_bytes() );
+  REQUIRE( suc[0] == 0 );
+  REQUIRE( suc[1] == 0 );
+  REQUIRE( suc[2] == 0 );
+  REQUIRE( suc[3] == 0 );
+  REQUIRE( suc[7 * 1 * 4 + 0] == 0 );
+  REQUIRE( suc[7 * 1 * 4 + 1] == 0 );
+  REQUIRE( suc[7 * 1 * 4 + 2] == 0 );
+  REQUIRE( suc[7 * 1 * 4 + 3] == 0 );
+
+  span<pixel const> sp = img;
+  REQUIRE( int( sp.size() ) == img.total_pixels() );
+  REQUIRE( sp[0] == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( sp[7 * 1] == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( sp[7 * 1 + 1] == pixel( 0, 0, 0, 0 ) );
+}
+
 } // namespace
 } // namespace gfx
