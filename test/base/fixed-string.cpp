@@ -1,17 +1,17 @@
 /****************************************************************
-**ct-string.cpp
+**fixed-string.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-11-04.
 *
-* Description: Unit tests for the src/base/ct-string.* module.
+* Description: Unit tests for the src/base/fixed-string.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/base/ct-string.hpp"
+#include "src/base/fixed-string.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -23,31 +23,31 @@ using namespace std;
 using namespace std::literals::string_view_literals;
 
 /****************************************************************
-** ct_string
+** fixed_string
 *****************************************************************/
-static_assert( ct_string( "" ).ssize() == 0 );
-static_assert( ct_string( "" ).data.size() == 0 );
-static_assert( ct_string( "" ).kArrayLength == 1 );
-static_assert( ct_string( "" ).kStringLength == 0 );
+static_assert( fixed_string( "" ).ssize() == 0 );
+static_assert( fixed_string( "" ).data.size() == 0 );
+static_assert( fixed_string( "" ).kArrayLength == 1 );
+static_assert( fixed_string( "" ).kStringLength == 0 );
 
-static_assert( ct_string( "X" ).ssize() == 1 );
-static_assert( ct_string( "X" ).data.size() == 1 );
-static_assert( ct_string( "X" ).kArrayLength == 2 );
-static_assert( ct_string( "X" ).kStringLength == 1 );
+static_assert( fixed_string( "X" ).ssize() == 1 );
+static_assert( fixed_string( "X" ).data.size() == 1 );
+static_assert( fixed_string( "X" ).kArrayLength == 2 );
+static_assert( fixed_string( "X" ).kStringLength == 1 );
 
-static_assert( ct_string( "hello" ).ssize() == 5 );
-static_assert( ct_string( "hello" ).data.size() == 5 );
-static_assert( ct_string( "hello" ).kArrayLength == 6 );
-static_assert( ct_string( "hello" ).kStringLength == 5 );
+static_assert( fixed_string( "hello" ).ssize() == 5 );
+static_assert( fixed_string( "hello" ).data.size() == 5 );
+static_assert( fixed_string( "hello" ).kArrayLength == 6 );
+static_assert( fixed_string( "hello" ).kStringLength == 5 );
 
-static_assert( ct_string( "" ) == ""sv );
-static_assert( ct_string( "X" ) == "X"sv );
-static_assert( ct_string( "hello" ) == "hello"sv );
+static_assert( fixed_string( "" ) == ""sv );
+static_assert( fixed_string( "X" ) == "X"sv );
+static_assert( fixed_string( "hello" ) == "hello"sv );
 
 /****************************************************************
 ** parametrized_by_string
 *****************************************************************/
-template<ct_string Arr>
+template<fixed_string Arr>
 struct parametrized_by_string {
   static constexpr size_t size() { return Arr.size(); }
 
@@ -80,7 +80,7 @@ static_assert( cts5::size() == 5 );
 static_assert( cts5::ssize() == 5 );
 static_assert( cts5::sv == "hello" );
 
-template<ct_string CS>
+template<fixed_string CS>
 constexpr char foo() {
   return string_view( CS )[1];
 }

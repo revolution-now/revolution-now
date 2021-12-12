@@ -16,8 +16,8 @@
 #include "vertex-array.hpp"
 
 // base
-#include "base/ct-string.hpp"
 #include "base/expect.hpp"
+#include "base/fixed-string.hpp"
 #include "base/macros.hpp"
 #include "base/meta.hpp"
 #include "base/to-str.hpp"
@@ -262,7 +262,7 @@ private:
   // rier is to prevent the user from trying to set the N tem-
   // plate parameter.
   template<
-      base::ct_string name, size_t... Barrier,
+      base::fixed_string name, size_t... Barrier,
       size_t N = find_uniform_index( std::string_view( name ) )>
   void set_uniform(
       typename std::tuple_element_t<

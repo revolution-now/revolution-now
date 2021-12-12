@@ -1,5 +1,5 @@
 /****************************************************************
-**ct-string.hpp
+**fixed-string.hpp
 *
 * Project: Revolution Now
 *
@@ -20,7 +20,7 @@
 namespace base {
 
 /****************************************************************
-** ct_string (Compile-Time String)
+** fixed_string (Compile-Time String)
 *****************************************************************/
 // This is a string wrapper that can be used as a template para-
 // meter. Be careful, this should probably only be used sparingly
@@ -29,7 +29,7 @@ namespace base {
 //
 // Example:
 //
-//   template<base::ct_string Arr>
+//   template<base::fixed_string Arr>
 //   struct parametrized_by_string {
 //     ...
 //     static constexpr std::string_view sv = Arr;
@@ -39,12 +39,12 @@ namespace base {
 template<int N>
 /* clang-format off */
 requires( N >= 0 )
-struct ct_string {
+struct fixed_string {
   /* clang-format on */
   static constexpr size_t kArrayLength  = N;
   static constexpr size_t kStringLength = N - 1;
 
-  constexpr ct_string( char const ( &arr )[N] ) {
+  constexpr fixed_string( char const ( &arr )[N] ) {
     for( size_t i = 0; i < kStringLength; ++i ) data[i] = arr[i];
   }
 
