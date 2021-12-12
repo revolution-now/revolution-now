@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// gfx
+#include "gfx/pixel.hpp"
+
 // base
 #include "base/fs.hpp"
 #include "base/maybe.hpp"
@@ -21,15 +24,8 @@
 
 namespace stb {
 
-struct pixel {
-  unsigned char r = 0;
-  unsigned char g = 0;
-  unsigned char b = 0;
-  unsigned char a = 0;
-};
-
 struct image : base::zero<image, unsigned char*> {
-  pixel get( int y, int x ) const;
+  gfx::pixel get( int y, int x ) const;
 
   int height_pixels() const;
   int width_pixels() const;

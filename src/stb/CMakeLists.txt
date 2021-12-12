@@ -15,6 +15,7 @@ set_warning_options( rn-stb )
 target_link_libraries(
   rn-stb
   PRIVATE
+  rn-gfx
   rn-base
   stb::stb
 )

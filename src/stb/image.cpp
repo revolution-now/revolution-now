@@ -43,15 +43,14 @@ image::image( int width_pixels, int height_pixels,
     width_pixels_( width_pixels ),
     height_pixels_( height_pixels ) {}
 
-pixel image::get( int y, int x ) const {
+gfx::pixel image::get( int y, int x ) const {
   unsigned char const* pixel_start =
       data() + ( y * width_pixels_ + x );
-  return pixel{
-      .r = pixel_start[0],
-      .g = pixel_start[1],
-      .b = pixel_start[2],
-      .a = pixel_start[3],
-  };
+  return gfx::pixel(
+      /*r=*/pixel_start[0],
+      /*g=*/pixel_start[1],
+      /*b=*/pixel_start[2],
+      /*a=*/pixel_start[3] );
 }
 
 int image::height_pixels() const { return height_pixels_; }
