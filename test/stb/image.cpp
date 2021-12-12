@@ -24,7 +24,7 @@ using namespace std;
 using ::testing::data_dir;
 
 TEST_CASE( "[image] load png" ) {
-  image im =
+  gfx::image im =
       load_image( data_dir() / "images" / "64w_x_32h.png" );
 
   REQUIRE( im.size_bytes() == 64 * 32 * 4 );
