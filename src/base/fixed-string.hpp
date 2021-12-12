@@ -58,6 +58,8 @@ struct fixed_string {
     return std::string_view( data.data(), kStringLength );
   }
 
+  auto operator<=>( fixed_string const& ) const = default;
+
   std::array<char, kStringLength> data = {};
 };
 
