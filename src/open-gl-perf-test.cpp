@@ -25,9 +25,16 @@
 #include "gl/iface-logger.hpp"
 #include "gl/iface.hpp"
 #include "gl/shader.hpp"
+#include "gl/texture.hpp"
 #include "gl/uniform.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
+
+// gfx
+#include "gfx/image.hpp"
+
+// stb
+#include "stb/image.hpp"
 
 // SDL
 #include "SDL.h"
@@ -39,33 +46,6 @@ namespace rn {
 namespace {
 
 constexpr int kSpriteScale = 128;
-
-GLuint load_texture( fs::path const& p ) {
-  auto           img = Surface::load_image( p.string().c_str() );
-  ::SDL_Surface* surface = (::SDL_Surface*)img.get();
-  // Make sure we have RGBA.
-  CHECK( surface->format->BytesPerPixel == 4 );
-
-  GLuint opengl_texture = 0;
-  GL_CHECK( glGenTextures( 1, &opengl_texture ) );
-  GL_CHECK( glBindTexture( GL_TEXTURE_2D, opengl_texture ) );
-
-  // Configure how OpenGL maps coordinate to texture pixel.
-  GL_CHECK( glTexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) );
-  GL_CHECK( glTexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ) );
-
-  GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                             GL_CLAMP_TO_EDGE ) );
-  GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                             GL_CLAMP_TO_EDGE ) );
-
-  GL_CHECK( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
-                          surface->h, 0, GL_RGBA,
-                          GL_UNSIGNED_BYTE, surface->pixels ) );
-  return opengl_texture;
-}
 
 struct Vertex {
   gl::vec2 pos;
@@ -99,7 +79,7 @@ struct OpenGLObjects {
   ProgramType program;
   // The order of these matters.
   gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
-  GLuint                                    opengl_texture;
+  gl::Texture                               tx;
 };
 
 int upload_sprites_buffer( OpenGLObjects* gl_objects,
@@ -194,12 +174,12 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK(
       pgrm, ProgramType::create( vert_shader, frag_shader ) );
 
-  GLuint opengl_texture =
-      load_texture( "assets/art/tiles/world.png" );
+  gl::Texture tx(
+      stb::load_image( "assets/art/tiles/world.png" ) );
 
-  return OpenGLObjects{ .program        = std::move( pgrm ),
-                        .vertex_array   = {},
-                        .opengl_texture = opengl_texture };
+  return OpenGLObjects{ .program      = std::move( pgrm ),
+                        .vertex_array = {},
+                        .tx           = std::move( tx ) };
 }
 
 } // namespace
@@ -228,8 +208,7 @@ void render_loop( ::SDL_Window*         window,
   auto& program    = gl_objects.program;
   auto& vert_array = gl_objects.vertex_array;
 
-  GL_CHECK( glBindTexture( GL_TEXTURE_2D,
-                           gl_objects.opengl_texture ) );
+  auto tx_binder = gl_objects.tx.bind();
 
   program.set_uniform<"screen_size">( gl::vec2{
       float( screen_delta.w._ ), float( screen_delta.h._ ) } );
@@ -292,10 +271,6 @@ void render_loop( ::SDL_Window*         window,
                                           ( 1024 * 1024 ) );
   lg.info( "Sprite count:   {}k", num_sprites / 1000 );
   lg.info( "=================================================" );
-
-  // == Cleanup =================================================
-
-  GL_CHECK( glDeleteTextures( 1, &gl_objects.opengl_texture ) );
 }
 
 void open_gl_perf_test() {
@@ -375,10 +350,10 @@ void open_gl_perf_test() {
   GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
                         win_size.h._ * viewport_scale ) );
 
-  bool wait_for_vsync = true;
+  static constexpr bool wait_for_vsync = true;
 
-  CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
-         "setting swap interval is not supported." );
+  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
+    lg.warn( "setting swap interval is not supported." );
 
   render_loop( window, &opengl_with_logger );
 

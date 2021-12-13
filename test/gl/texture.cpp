@@ -31,7 +31,7 @@ TEST_CASE( "[texture] construct then set image" ) {
   gl::MockOpenGL mock;
 
   EXPECT_CALL( mock, gl_GetError() )
-      .times( 5 )
+      .times( 7 )
       .returns( GL_NO_ERROR );
 
   auto expect_bind = [&] {
@@ -61,6 +61,12 @@ TEST_CASE( "[texture] construct then set image" ) {
   EXPECT_CALL( mock, gl_TexParameteri( GL_TEXTURE_2D,
                                        GL_TEXTURE_MAG_FILTER,
                                        GL_NEAREST ) );
+  EXPECT_CALL(
+      mock, gl_TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                              GL_CLAMP_TO_EDGE ) );
+  EXPECT_CALL(
+      mock, gl_TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                              GL_CLAMP_TO_EDGE ) );
   EXPECT_CALL( mock, gl_DeleteTextures( 1, Pointee( 42 ) ) );
   Texture tx;
 
@@ -80,7 +86,7 @@ TEST_CASE( "[texture] construct with image" ) {
   gl::MockOpenGL mock;
 
   EXPECT_CALL( mock, gl_GetError() )
-      .times( 5 )
+      .times( 7 )
       .returns( GL_NO_ERROR );
 
   auto expect_bind = [&] {
@@ -110,6 +116,12 @@ TEST_CASE( "[texture] construct with image" ) {
   EXPECT_CALL( mock, gl_TexParameteri( GL_TEXTURE_2D,
                                        GL_TEXTURE_MAG_FILTER,
                                        GL_NEAREST ) );
+  EXPECT_CALL(
+      mock, gl_TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                              GL_CLAMP_TO_EDGE ) );
+  EXPECT_CALL(
+      mock, gl_TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                              GL_CLAMP_TO_EDGE ) );
   EXPECT_CALL( mock, gl_DeleteTextures( 1, Pointee( 42 ) ) );
   expect_bind();
   gfx::image img = gfx::empty_image( /*width_pixels=*/7,

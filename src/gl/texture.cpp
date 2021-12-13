@@ -37,6 +37,11 @@ Texture::Texture( ObjId tx_id )
   // more smoothed look.
   GL_CHECK( CALL_GL( gl_TexParameteri, GL_TEXTURE_2D,
                      GL_TEXTURE_MAG_FILTER, GL_NEAREST ) );
+
+  GL_CHECK( CALL_GL( gl_TexParameteri, GL_TEXTURE_2D,
+                     GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );
+  GL_CHECK( CALL_GL( gl_TexParameteri, GL_TEXTURE_2D,
+                     GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) );
 }
 
 Texture::Texture( gfx::image const& img ) : Texture() {
