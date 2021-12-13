@@ -261,9 +261,8 @@ private:
   // parameter does not match the type of the uniform. The Bar-
   // rier is to prevent the user from trying to set the N tem-
   // plate parameter.
-  template<
-      base::fixed_string name, size_t... Barrier,
-      size_t N = find_uniform_index( std::string_view( name ) )>
+  template<base::fixed_string name, size_t... Barrier,
+           size_t             N = find_uniform_index( name )>
   void set_uniform(
       typename std::tuple_element_t<
           N, typename UniformTuple::values_t>::type const&
