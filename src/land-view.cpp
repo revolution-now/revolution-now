@@ -687,6 +687,48 @@ void advance_viewport_state() {
   }
 }
 
+maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
+                                     bool shf_down ) {
+  lua::state& st = lua_global_state();
+
+  lua::any lua_orders = st["land-view"]["key_to_orders"](
+      keycode, ctrl_down, shf_down );
+  if( !lua_orders ) return nothing;
+
+  // FIXME: the conversion from Lua to C++ below needs to be au-
+  // tomated once we have sumtype and struct reflection. When
+  // this is done then ideally we will just be able to do this:
+  //
+  //   orders_t orders = lua_orders.as<orders_t>();
+  //
+  // And it should do the correct conversion and error checking.
+  lua::table tbl = lua_orders.as<lua::table>();
+  orders_t   orders;
+  if( false )
+    ;
+  else if( tbl["wait"] )
+    orders = orders::wait{};
+  else if( tbl["forfeight"] )
+    orders = orders::forfeight{};
+  else if( tbl["build"] )
+    orders = orders::build{};
+  else if( tbl["fortify"] )
+    orders = orders::fortify{};
+  else if( tbl["sentry"] )
+    orders = orders::sentry{};
+  else if( tbl["disband"] )
+    orders = orders::disband{};
+  else if( tbl["move"] ) {
+    e_direction d = tbl["move"]["d"].as<e_direction>();
+    orders        = orders::move{ .d = d };
+  } else {
+    FATAL(
+        "invalid orders::move object received from "
+        "lua." );
+  }
+  return orders;
+}
+
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
@@ -775,6 +817,18 @@ struct LandViewPlane : public Plane {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
+        // First allow the Lua hook to handle the key press if it
+        // wants.
+        maybe<orders_t> lua_orders = try_orders_from_lua(
+            key_event.keycode, key_event.mod.ctrl_down,
+            key_event.mod.shf_down );
+        if( lua_orders ) {
+          lg.debug( "received key from lua: {}", lua_orders );
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = *lua_orders } ) );
+          break;
+        }
         switch( key_event.keycode ) {
           case ::SDLK_z:
             if( SG().viewport.get_zoom() < 1.0 )
