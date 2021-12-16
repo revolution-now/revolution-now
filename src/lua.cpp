@@ -70,18 +70,18 @@ lua::table require( string const& name ) {
   fs::path file_name = "src/lua/" + name + ".lua";
   LUA_CHECK( st, fs::exists( file_name ),
              "file {} does not exist.", file_name );
-  lua::table package_exports = g_lua.script.run_file<lua::table>(
+  lua::table module_table = g_lua.script.run_file<lua::table>(
       "src/lua/" + name + ".lua" );
-  ext[name] = package_exports;
+  ext[name] = module_table;
   // In case the symbol already exists we will assume that it is
   // a table and merge its contents into this one.
   auto old_table = lua::table::create_or_get( g_lua[name] );
-  g_lua[name]    = package_exports;
+  g_lua[name]    = module_table;
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
-  return package_exports;
+  return module_table;
 }
 
-void reset_sol_state() {
+void reset_lua_state() {
   g_lua = lua::state{};
   // FIXME
   g_lua.lib.open_all();
@@ -173,7 +173,7 @@ void run_lua_startup_main() {
 }
 
 void lua_reload() {
-  reset_sol_state();
+  reset_lua_state();
   run_lua_startup_routines();
   load_lua_modules();
   // Freeze all existing global variables and tables.
