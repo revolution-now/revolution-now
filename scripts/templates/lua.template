@@ -9,11 +9,14 @@
 | Description: {{CURSOR}}
 |
 --]] ------------------------------------------------------------
+local M = {}
 
 local function foo()
-  -- code here.
+  -- local function.
 end
 
-package_exports = {
-  foo=foo
-}
+function M.bar()
+  -- exported function.
+end
+
+return M
