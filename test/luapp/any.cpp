@@ -171,5 +171,14 @@ LUA_TEST_CASE( "[any] any indexing" ) {
   REQUIRE( a["y"] == 5 );
 }
 
+LUA_TEST_CASE( "[any] as" ) {
+  st["x"]      = st.table.create();
+  st["x"]["y"] = 5;
+
+  any a = st["x"];
+  any i = a.as<table>()["y"];
+  REQUIRE( i.as<int>() == 5 );
+}
+
 } // namespace
 } // namespace lua

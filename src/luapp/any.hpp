@@ -12,6 +12,7 @@
 #pragma once
 
 // luapp
+#include "as.hpp"
 #include "cthread.hpp"
 #include "ext.hpp"
 
@@ -55,6 +56,11 @@ struct any : base::zero<any, int> {
   // order to avoid circular header dependencies.
   template<typename U>
   auto operator[]( U&& idx ) const noexcept;
+
+  template<Gettable T>
+  T as() const {
+    return lua::as<T>( *this );
+  }
 
  private:
   using Base = base::zero<any, int>;

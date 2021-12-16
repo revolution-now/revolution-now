@@ -30,7 +30,7 @@ base::maybe<userdata> lua_get( cthread L, int idx,
 }
 
 std::string userdata::name() const {
-  return as<string>( ( *this )[metatable_key]["__name"] );
+  return ( *this )[metatable_key]["__name"].as<string>();
 }
 
 } // namespace lua
