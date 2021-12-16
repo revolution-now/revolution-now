@@ -50,6 +50,8 @@ void any::lua_push_impl( cthread L ) const {
   C.registry_get( ref );
 }
 
+any::operator bool() const { return as<bool>(); }
+
 namespace {
 
 template<typename T>

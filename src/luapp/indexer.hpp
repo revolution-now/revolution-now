@@ -118,6 +118,10 @@ struct indexer : indexer_base<Predecessor> {
     return lua::as<T>( *this );
   }
 
+  explicit operator bool() const {
+    return this->template as<bool>();
+  }
+
  private:
   IndexT index_;
 };

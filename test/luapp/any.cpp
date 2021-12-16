@@ -180,5 +180,29 @@ LUA_TEST_CASE( "[any] as" ) {
   REQUIRE( i.as<int>() == 5 );
 }
 
+LUA_TEST_CASE( "[any] bool conversion" ) {
+  // Should not be implicitly convertible.
+  static_assert( !std::is_convertible_v<any, bool> );
+  // But should be constructible explicitly.
+  static_assert( std::is_constructible_v<bool, any> );
+
+  st["x"]            = st.table.create();
+  st["x"]["nonzero"] = 5;
+  st["x"]["zero"]    = 0;
+  st["x"]["false"]   = false;
+  st["x"]["true"]    = true;
+
+  any a = st["x"];
+  REQUIRE( bool( a ) );
+  a = st["x"]["nonzero"];
+  REQUIRE( bool( a ) );
+  a = st["x"]["zero"];
+  REQUIRE( bool( a ) ); // in lua, 0 is true-ish.
+  a = st["x"]["false"];
+  REQUIRE_FALSE( bool( a ) );
+  a = st["x"]["true"];
+  REQUIRE( bool( a ) );
+}
+
 } // namespace
 } // namespace lua

@@ -62,6 +62,8 @@ struct any : base::zero<any, int> {
     return lua::as<T>( *this );
   }
 
+  explicit operator bool() const;
+
  private:
   using Base = base::zero<any, int>;
   friend Base;

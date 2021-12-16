@@ -483,5 +483,23 @@ LUA_TEST_CASE( "[indexer] inline cast" ) {
   REQUIRE( t["y"].as<int>() == 42 );
 }
 
+LUA_TEST_CASE( "[indexer] bool conversion" ) {
+  // Should not be implicitly convertible.
+  static_assert(
+      !std::is_convertible_v<decltype( st["x"] ), bool> );
+
+  st["x"]            = st.table.create();
+  st["x"]["nonzero"] = 5;
+  st["x"]["zero"]    = 0;
+  st["x"]["false"]   = false;
+  st["x"]["true"]    = true;
+
+  REQUIRE( bool( st["x"] ) );
+  REQUIRE( bool( st["x"]["nonzero"] ) );
+  REQUIRE( bool( st["x"]["zero"] ) ); // in lua, 0 is true-ish.
+  REQUIRE_FALSE( bool( st["x"]["false"] ) );
+  REQUIRE( bool( st["x"]["true"] ) );
+}
+
 } // namespace
 } // namespace lua
