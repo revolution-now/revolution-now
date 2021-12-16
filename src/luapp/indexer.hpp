@@ -12,8 +12,8 @@
 
 // luapp
 #include "any.hpp"
-#include "call.hpp"
 #include "as.hpp"
+#include "call.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "ext.hpp"
@@ -113,7 +113,7 @@ struct indexer : indexer_base<Predecessor> {
   template<GettableOrVoid R = void, Pushable... Args>
   error_type_for_return_type<R> pcall( Args&&... args );
 
-  template<typename T>
+  template<Gettable T>
   T as() const {
     return lua::as<T>( *this );
   }
