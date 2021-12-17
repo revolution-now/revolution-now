@@ -2,3 +2,4 @@ leak:libX11
 leak:libGLX
 leak:libpulse
 leak:iris_dri
+leak:libSDL2
