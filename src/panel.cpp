@@ -11,7 +11,7 @@
 #include "panel.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
 #include "gfx.hpp"
@@ -123,17 +123,17 @@ struct PanelPlane : public Plane {
                                   : e_input_handled::no;
   }
 
-  waitable<> user_hits_eot_button() {
+  wait<> user_hits_eot_button() {
     next_turn_button().enable( /*enabled=*/true );
     // Use a scoped setter here so that the button gets disabled
     // if this coroutine gets cancelled.
     SCOPE_EXIT( next_turn_button().enable( /*enabled=*/false ) );
     w_promise = {};
-    co_await w_promise.waitable();
+    co_await w_promise.wait();
   }
 
   unique_ptr<ui::InvisibleView> view;
-  waitable_promise<>            w_promise;
+  wait_promise<>                w_promise;
 };
 
 PanelPlane g_panel_plane;
@@ -155,7 +155,7 @@ MENU_ITEM_HANDLER(
 *****************************************************************/
 Plane* panel_plane() { return &g_panel_plane; }
 
-waitable<> wait_for_eot_button_click() {
+wait<> wait_for_eot_button_click() {
   return g_panel_plane.user_hits_eot_button();
 }
 

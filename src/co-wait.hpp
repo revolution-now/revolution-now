@@ -1,11 +1,11 @@
 /****************************************************************
-**co-waitable.hpp
+**co-wait.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-01-09.
 *
-* Description: Enable waitable to work with coroutines.
+* Description: Enable wait to work with coroutines.
 *
 *****************************************************************/
 #pragma once
@@ -14,29 +14,29 @@
 
 // Revolution Now
 #include "co-scheduler.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/co-compat.hpp"
 
 namespace rn {
 
-// Implement co_await_transform extension point for waitable<T>.
+// Implement co_await_transform extension point for wait<T>.
 template<typename T>
-inline waitable<T> co_await_transform( waitable<T> w ) {
+inline wait<T> co_await_transform( wait<T> w ) {
   return w;
 }
 
 namespace detail {
 
-// The PromiseT is the type (inside the waitable) that will be
-// returned by the coroutine that is awaiting on this awaitable.
+// The PromiseT is the type (inside the wait) that will be re-
+// turned by the coroutine that is awaiting on this awaitable.
 // The type T is the type that this awaitable will yield.
 template<typename PromiseT, typename T>
 struct awaitable {
-  waitable<T> w_;
+  wait<T> w_;
   // Promise pointer so that template type can be inferred.
-  awaitable( PromiseT*, waitable<T> w ) : w_( std::move( w ) ) {}
+  awaitable( PromiseT*, wait<T> w ) : w_( std::move( w ) ) {}
   bool await_ready() noexcept {
     return w_.ready() || w_.has_exception();
   }
@@ -78,27 +78,25 @@ struct promise_type_base : public promise_type_base_base {
 
   using Base::Base;
 
-  auto get_return_object() {
-    return waitable_promise_.waitable();
-  }
+  auto get_return_object() { return wait_promise_.wait(); }
 
   void unhandled_exception() {
-    waitable_promise_.set_exception( std::current_exception() );
+    wait_promise_.set_exception( std::current_exception() );
   }
 
-  rn::waitable_promise<T> waitable_promise_{};
+  rn::wait_promise<T> wait_promise_{};
 };
 
 template<typename T>
 struct promise_type final : public promise_type_base<T> {
   using Base = promise_type_base<T>;
 
-  using Base::waitable_promise_;
+  using Base::wait_promise_;
 
   promise_type() {
     auto h = coro::coroutine_handle<promise_type>::from_promise(
         *this );
-    waitable_promise_.shared_state()->set_coro(
+    wait_promise_.shared_state()->set_coro(
         base::unique_coro( h ) );
   }
 
@@ -109,10 +107,10 @@ struct promise_type final : public promise_type_base<T> {
   }
 
   void return_value( T const& val ) {
-    waitable_promise_.set_value( val );
+    wait_promise_.set_value( val );
   }
   void return_value( T&& val ) {
-    waitable_promise_.set_value( std::move( val ) );
+    wait_promise_.set_value( std::move( val ) );
   }
 
   template<typename U>
@@ -124,19 +122,19 @@ struct promise_type final : public promise_type_base<T> {
   }
 };
 
-// Specialization for waitable<> that allows us to just use bare
+// Specialization for wait<> that allows us to just use bare
 // `co_return` statements instead of `co_return {}`.
 template<>
 struct promise_type<std::monostate> final
   : public promise_type_base<std::monostate> {
   using Base = promise_type_base<std::monostate>;
 
-  using Base::waitable_promise_;
+  using Base::wait_promise_;
 
   promise_type() {
     auto h = coro::coroutine_handle<promise_type>::from_promise(
         *this );
-    waitable_promise_.shared_state()->set_coro(
+    wait_promise_.shared_state()->set_coro(
         base::unique_coro( h ) );
   }
 
@@ -147,7 +145,7 @@ struct promise_type<std::monostate> final
   }
 
   void return_void() {
-    waitable_promise_.set_value( std::monostate{} );
+    wait_promise_.set_value( std::monostate{} );
   }
 
   template<typename U>
@@ -166,7 +164,7 @@ struct promise_type<std::monostate> final
 namespace CORO_NS {
 
 template<typename T, typename... Args>
-struct coroutine_traits<::rn::waitable<T>, Args...> {
+struct coroutine_traits<::rn::wait<T>, Args...> {
   using promise_type = ::rn::detail::promise_type<T>;
 };
 

@@ -11,7 +11,7 @@
 #include "orders-disband.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "fmt-helper.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
@@ -28,7 +28,7 @@ namespace {
 struct DisbandHandler : public OrdersHandler {
   DisbandHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
 
-  waitable<bool> confirm() override {
+  wait<bool> confirm() override {
     auto q = fmt::format( "Really disband {}?",
                           unit_from_id( unit_id ).desc().name );
 
@@ -36,7 +36,7 @@ struct DisbandHandler : public OrdersHandler {
     co_return answer == ui::e_confirm::yes;
   }
 
-  waitable<> perform() override {
+  wait<> perform() override {
     destroy_unit( unit_id );
     co_return;
   }

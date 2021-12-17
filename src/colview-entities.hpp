@@ -20,7 +20,7 @@
 #include "id.hpp"
 #include "tx.hpp"
 #include "view.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // Rds
 #include "rds/colview-entities.hpp"
@@ -29,12 +29,10 @@ namespace rn {
 
 // TODO: Keep this generic and move it into the ui namespace
 // eventually.
-struct AwaitableView {
-  virtual ~AwaitableView() = default;
+struct AwaitView {
+  virtual ~AwaitView() = default;
 
-  virtual waitable<> perform_click( Coord ) {
-    return make_waitable<>();
-  }
+  virtual wait<> perform_click( Coord ) { return make_wait<>(); }
 };
 
 class ColonySubView;
@@ -65,7 +63,7 @@ struct IColViewDragSourceUserInput {
   // being dragged after editing (which could be unchanged). If
   // it returns `nothing` then the drag is considered to be can-
   // celled.
-  virtual waitable<maybe<ColViewObject_t>> user_edit_object()
+  virtual wait<maybe<ColViewObject_t>> user_edit_object()
       const = 0;
 };
 
@@ -104,8 +102,8 @@ struct IColViewDragSource {
 // Interface for drag targets that can/might ask the user for
 // confirmation just before affecting the drag.
 struct IColViewDragSinkConfirm {
-  virtual waitable<bool> confirm( ColViewObject_t const&,
-                                  Coord const& ) const = 0;
+  virtual wait<bool> confirm( ColViewObject_t const&,
+                              Coord const& ) const = 0;
 };
 
 // Interface for views that can accept dragged items.
@@ -130,7 +128,7 @@ struct IColViewDragSink {
                      Coord const&           where ) = 0;
 };
 
-class ColonySubView : public AwaitableView {
+class ColonySubView : public AwaitView {
  public:
   ColonySubView() = default;
 

@@ -14,11 +14,11 @@
 
 // Revolution Now
 #include "id.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 namespace rn {
 
-waitable<> show_old_world_view();
+wait<> show_old_world_view();
 
 void old_world_view_set_selected_unit( UnitId id );
 

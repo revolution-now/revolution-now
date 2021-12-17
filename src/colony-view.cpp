@@ -97,7 +97,7 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
     co_return;                               \
   }
 
-waitable<> eat_remaining_drag_events() {
+wait<> eat_remaining_drag_events() {
   while( true ) {
     input::event_t event = co_await g_input.next();
     auto drag = event.get_if<input::mouse_drag_event_t>();
@@ -108,7 +108,7 @@ waitable<> eat_remaining_drag_events() {
   }
 }
 
-waitable<> drag_drop_routine(
+wait<> drag_drop_routine(
     input::mouse_drag_event_t const& event ) {
   CHECK( event.state.phase == input::e_drag_phase::begin );
   CHECK( !g_drag_state.has_value() );
@@ -386,7 +386,7 @@ waitable<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-waitable<bool> handle_event( input::key_event_t const& event ) {
+wait<bool> handle_event( input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
@@ -399,7 +399,7 @@ waitable<bool> handle_event( input::key_event_t const& event ) {
 }
 
 // Returns true if the user wants to exit the colony view.
-waitable<bool> handle_event(
+wait<bool> handle_event(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
@@ -408,22 +408,22 @@ waitable<bool> handle_event(
   co_return false;
 }
 
-waitable<bool> handle_event( input::win_event_t const& event ) {
+wait<bool> handle_event( input::win_event_t const& event ) {
   if( event.type == input::e_win_event_type::resized )
     // Force a re-composite.
     set_colview_colony( g_colony_id );
   co_return false;
 }
 
-waitable<bool> handle_event(
+wait<bool> handle_event(
     input::mouse_drag_event_t const& event ) {
   co_await drag_drop_routine( event );
   co_return false;
 }
 
-waitable<bool> handle_event( auto const& ) { co_return false; }
+wait<bool> handle_event( auto const& ) { co_return false; }
 
-waitable<> run_colview() {
+wait<> run_colview() {
   while( true ) {
     input::event_t event   = co_await g_input.next();
     auto [exit, suspended] = co_await co::detect_suspend(
@@ -470,7 +470,7 @@ ColonyPlane g_colony_plane;
 *****************************************************************/
 Plane* colony_plane() { return &g_colony_plane; }
 
-waitable<> show_colony_view( ColonyId id ) {
+wait<> show_colony_view( ColonyId id ) {
   CHECK( colony_exists( id ) );
   reset_globals();
   g_colony_id = id;

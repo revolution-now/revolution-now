@@ -11,12 +11,12 @@
 --]] ------------------------------------------------------------
 M = {}
 
-local waitable = require( 'waitable' )
+local wait = require( 'wait' )
 
-local auto_await = waitable.auto_await
-local await = waitable.await
-local native_coroutine = waitable.native_coroutine
-local auto_assert = waitable.auto_assert
+local auto_await = wait.auto_await
+local await = wait.await
+local native_coroutine = wait.native_coroutine
+local auto_assert = wait.auto_assert
 
 local function message_box_format( ... )
   local msg = string.format( ... )
@@ -58,7 +58,7 @@ function M.some_ui_routine( n )
   log.info( 'start of some_ui_routine: ' .. tostring( n ) )
 
   do
-    -- auto_assert will wrap the resulting waitable in an object
+    -- auto_assert will wrap the resulting wait in an object
     -- that will automatically check for errors at scope exit.
     -- This is useful because otherwise errors in the timer
     -- thread would not be propagated because we are not going to

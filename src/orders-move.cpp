@@ -12,7 +12,7 @@
 #include "orders-move.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "conductor.hpp"
@@ -149,7 +149,7 @@ struct TravelHandler : public OrdersHandler {
     sail_high_seas,
   };
 
-  waitable<bool> confirm() override {
+  wait<bool> confirm() override {
     verdict = co_await confirm_travel_impl();
 
     switch( verdict ) {
@@ -190,7 +190,7 @@ struct TravelHandler : public OrdersHandler {
     co_return true;
   }
 
-  waitable<> animate() const override {
+  wait<> animate() const override {
     // TODO: in the case of board_ship we need to make sure that
     // the ship being borded gets rendered on top because there
     // may be a stack of ships in the square, otherwise it will
@@ -202,9 +202,9 @@ struct TravelHandler : public OrdersHandler {
     co_await landview_animate_move( unit_id, direction );
   }
 
-  waitable<> perform() override;
+  wait<> perform() override;
 
-  waitable<> post() const override {
+  wait<> post() const override {
     co_return; //
   }
 
@@ -212,8 +212,8 @@ struct TravelHandler : public OrdersHandler {
     return prioritize;
   }
 
-  waitable<e_travel_verdict> confirm_travel_impl();
-  waitable<e_travel_verdict> analyze_unload();
+  wait<e_travel_verdict> confirm_travel_impl();
+  wait<e_travel_verdict> analyze_unload();
 
   // The unit that is moving.
   UnitId      unit_id;
@@ -249,7 +249,7 @@ struct TravelHandler : public OrdersHandler {
   maybe<UnitId> target_unit = nothing;
 };
 
-waitable<TravelHandler::e_travel_verdict>
+wait<TravelHandler::e_travel_verdict>
 TravelHandler::analyze_unload() {
   std::vector<UnitId> to_offload;
   auto&               unit = unit_from_id( unit_id );
@@ -287,8 +287,7 @@ TravelHandler::analyze_unload() {
 // FIXME: temporary
 bool is_high_seas( Coord c ) { return c == Coord{}; }
 
-waitable<TravelHandler::e_travel_verdict>
-confirm_sail_high_seas() {
+wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
   ui::e_confirm confirmed = co_await ui::yes_no(
       "Would you like to sail the high seas?" );
   co_return confirmed == ui::e_confirm::yes
@@ -296,7 +295,7 @@ confirm_sail_high_seas() {
       : TravelHandler::e_travel_verdict::map_to_map;
 }
 
-waitable<TravelHandler::e_travel_verdict>
+wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
   UnitId id = unit_id;
   move_src  = coord_for_unit_indirect_or_die( id );
@@ -485,7 +484,7 @@ TravelHandler::confirm_travel_impl() {
   SHOULD_NOT_BE_HERE;
 }
 
-waitable<> TravelHandler::perform() {
+wait<> TravelHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
   CHECK( !unit.mv_pts_exhausted() );
@@ -606,7 +605,7 @@ struct AttackHandler : public OrdersHandler {
     attack_from_ship,
   };
 
-  waitable<bool> confirm() override {
+  wait<bool> confirm() override {
     verdict = co_await confirm_attack_impl();
 
     switch( verdict ) {
@@ -644,7 +643,7 @@ struct AttackHandler : public OrdersHandler {
     co_return true;
   }
 
-  waitable<> animate() const override {
+  wait<> animate() const override {
     if( verdict == e_attack_verdict::colony_undefended &&
         fight_stats->attacker_wins ) {
       UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
@@ -676,9 +675,9 @@ struct AttackHandler : public OrdersHandler {
         attacker, defender, stats.attacker_wins, dp_anim );
   }
 
-  waitable<> perform() override;
+  wait<> perform() override;
 
-  waitable<> post() const override {
+  wait<> post() const override {
     if( verdict == e_attack_verdict::colony_undefended &&
         fight_stats->attacker_wins ) {
       conductor::play_request(
@@ -695,7 +694,7 @@ struct AttackHandler : public OrdersHandler {
     }
   }
 
-  waitable<e_attack_verdict> confirm_attack_impl();
+  wait<e_attack_verdict> confirm_attack_impl();
 
   // The unit doing the attacking.
   UnitId      unit_id;
@@ -723,7 +722,7 @@ struct AttackHandler : public OrdersHandler {
   maybe<FightStatistics> fight_stats{};
 };
 
-waitable<AttackHandler::e_attack_verdict>
+wait<AttackHandler::e_attack_verdict>
 AttackHandler::confirm_attack_impl() {
   auto id    = unit_id;
   attack_src = coord_for_unit_indirect_or_die( id );
@@ -891,7 +890,7 @@ AttackHandler::confirm_attack_impl() {
   SHOULD_NOT_BE_HERE;
 }
 
-waitable<> AttackHandler::perform() {
+wait<> AttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
 

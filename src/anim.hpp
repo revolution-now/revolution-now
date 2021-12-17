@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -57,7 +57,7 @@ struct AnimThrottler {
     : gap( gap_ ),
       accum( initial_delay ? microseconds{} : gap_ ) {}
 
-  waitable<> operator()();
+  wait<> operator()();
 };
 
 } // namespace rn

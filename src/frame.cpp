@@ -12,12 +12,12 @@
 
 // Revolution Now
 #include "co-runner.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "lua-waitable.hpp"
+#include "lua-wait.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
@@ -117,7 +117,7 @@ using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc =
     base::function_ref<void( InputReceivedFunc )>;
 
-void frame_loop_scheduler( waitable<> const& what,
+void frame_loop_scheduler( wait<> const&     what,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
 
@@ -228,26 +228,26 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc func,
                                  .func         = func } );
 }
 
-waitable<> wait_n_frames( FrameCount n ) {
-  if( n == 0_frames ) return make_waitable<>();
-  waitable_promise<> p;
+wait<> wait_n_frames( FrameCount n ) {
+  if( n == 0_frames ) return make_wait<>();
+  wait_promise<> p;
   auto after_ticks = [p]() mutable { p.set_value_emplace(); };
   subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
-  return p.waitable();
+  return p.wait();
 }
 
-waitable<chrono::microseconds> wait_for_duration(
+wait<chrono::microseconds> wait_for_duration(
     chrono::microseconds us ) {
   if( us == chrono::microseconds{ 0 } )
-    return waitable<chrono::microseconds>( 0 );
-  waitable_promise<chrono::microseconds> p;
-  auto                                   now = Clock_t::now();
+    return wait<chrono::microseconds>( 0 );
+  wait_promise<chrono::microseconds> p;
+  auto                               now = Clock_t::now();
   auto after_time = [p, then = now]() mutable {
     p.set_value( duration_cast<chrono::microseconds>(
         Clock_t::now() - then ) );
   };
   subscribe_to_frame_tick( after_time, us, /*repeating=*/false );
-  return p.waitable();
+  return p.wait();
 }
 
 EventCountMap& event_counts() { return g_event_counts; }
@@ -255,7 +255,7 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( waitable<> const& what ) {
+void frame_loop( wait<> const& what ) {
   g_target_fps = config_rn.target_frame_rate;
   frame_loop_scheduler( what, frame_loop_body );
   deinit_frame();
@@ -274,7 +274,7 @@ LUA_FN( set_target_framerate, void, int target ) {
   g_target_fps = target;
 }
 
-LUA_FN( wait_for_micros, waitable<int>, int micros ) {
+LUA_FN( wait_for_micros, wait<int>, int micros ) {
   chrono::microseconds actual = co_await wait_for_duration(
       chrono::microseconds{ micros } );
   co_return actual.count();

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "cstate.hpp"
@@ -160,7 +160,7 @@ SAVEGAME_IMPL( Turn );
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-waitable<> menu_save_handler() {
+wait<> menu_save_handler() {
   if( auto res = save_game( 0 ); !res ) {
     co_await ui::message_box(
         "There was a problem saving the game." );
@@ -172,25 +172,25 @@ waitable<> menu_save_handler() {
   }
 }
 
-waitable<> menu_revolution_handler() {
+wait<> menu_revolution_handler() {
   e_revolution_confirmation answer =
       co_await ui::select_box_enum<e_revolution_confirmation>(
           "Declare Revolution?" );
   co_await ui::message_box( "You selected: {}", answer );
 }
 
-waitable<> menu_old_world_view_handler() {
+wait<> menu_old_world_view_handler() {
   co_await show_old_world_view();
 }
 
-waitable<bool> proceed_to_leave_game() { co_return true; }
+wait<bool> proceed_to_leave_game() { co_return true; }
 
-waitable<> menu_exit_handler() {
+wait<> menu_exit_handler() {
   if( co_await proceed_to_leave_game() )
     throw game_quit_interrupt{};
 }
 
-waitable<> menu_load_handler() {
+wait<> menu_load_handler() {
   if( co_await proceed_to_leave_game() )
     throw game_load_interrupt{};
 }
@@ -210,7 +210,7 @@ DEFAULT_TURN_MENU_ITEM_HANDLER( old_world_view );
 #define CASE_MENU_HANDLER( item ) \
   case e_menu_actions::item: return menu_##item##_handler();
 
-waitable<> handle_menu_item( e_menu_actions action ) {
+wait<> handle_menu_item( e_menu_actions action ) {
   switch( action ) {
     CASE_MENU_HANDLER( exit );
     CASE_MENU_HANDLER( save );
@@ -220,7 +220,7 @@ waitable<> handle_menu_item( e_menu_actions action ) {
   }
 }
 
-waitable<e_menu_actions> wait_for_menu_selection() {
+wait<e_menu_actions> wait_for_menu_selection() {
   SCOPED_SET_AND_CHANGE( g_menu_commands_accepted, true, false );
   co_return co_await g_menu_actions.next();
 }
@@ -305,13 +305,13 @@ void unsentry_surroundings( UnitId src_id ) {
 *****************************************************************/
 namespace eot {
 
-waitable<> process_player_input( e_menu_actions action ) {
+wait<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
   return handle_menu_item( action );
 }
 
-waitable<> process_player_input(
+wait<> process_player_input(
     LandViewPlayerInput_t const& input ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
@@ -323,12 +323,12 @@ waitable<> process_player_input(
   }
 }
 
-waitable<> process_player_input( button_click_t ) {
+wait<> process_player_input( button_click_t ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
 
-waitable<> process_inputs() {
+wait<> process_inputs() {
   landview_reset_input_buffers();
   while( true ) {
     auto wait_for_button = co::fmap(
@@ -353,7 +353,7 @@ waitable<> process_inputs() {
 
 } // namespace eot
 
-waitable<> end_of_turn() {
+wait<> end_of_turn() {
   SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
   return eot::process_inputs();
 }
@@ -361,15 +361,14 @@ waitable<> end_of_turn() {
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-waitable<> process_player_input( UnitId,
-                                 e_menu_actions action ) {
+wait<> process_player_input( UnitId, e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   return handle_menu_item( action );
 }
 
-waitable<> process_player_input(
+wait<> process_player_input(
     UnitId id, LandViewPlayerInput_t const& input ) {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
@@ -469,8 +468,7 @@ waitable<> process_player_input(
   }
 }
 
-waitable<LandViewPlayerInput_t> landview_player_input(
-    UnitId id ) {
+wait<LandViewPlayerInput_t> landview_player_input( UnitId id ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
@@ -483,7 +481,7 @@ waitable<LandViewPlayerInput_t> landview_player_input(
   co_return response;
 }
 
-waitable<> query_unit_input( UnitId id ) {
+wait<> query_unit_input( UnitId id ) {
   auto command = co_await co::first(
       wait_for_menu_selection(), landview_player_input( id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
@@ -499,7 +497,7 @@ waitable<> query_unit_input( UnitId id ) {
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-waitable<bool> advance_unit( UnitId id ) {
+wait<bool> advance_unit( UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   // - if it is it in `goto` mode focus on it and advance it
   //
@@ -556,7 +554,7 @@ waitable<bool> advance_unit( UnitId id ) {
   co_return true;
 }
 
-waitable<> units_turn_one_pass( deque<UnitId>& q ) {
+wait<> units_turn_one_pass( deque<UnitId>& q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -592,7 +590,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
   }
 }
 
-waitable<> units_turn() {
+wait<> units_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   auto& q  = st.units;
@@ -631,7 +629,7 @@ waitable<> units_turn() {
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-waitable<> colonies_turn() {
+wait<> colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -648,7 +646,7 @@ waitable<> colonies_turn() {
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
-waitable<> nation_turn() {
+wait<> nation_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
 
@@ -674,7 +672,7 @@ waitable<> nation_turn() {
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-waitable<> next_turn_impl() {
+wait<> next_turn_impl() {
   landview_start_new_turn();
   auto& st = SG().turn;
 
@@ -710,7 +708,7 @@ waitable<> next_turn_impl() {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-waitable<> next_turn() {
+wait<> next_turn() {
   ScopedPlanePush pusher( e_plane_config::land_view );
   co_await next_turn_impl();
 }

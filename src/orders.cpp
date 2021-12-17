@@ -13,7 +13,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
@@ -69,14 +69,13 @@ std::unique_ptr<OrdersHandler> orders_handler(
   return visit( orders, LC( handle_orders( id, _ ) ) );
 }
 
-waitable<OrdersHandler::RunResult> OrdersHandler::run() {
+wait<OrdersHandler::RunResult> OrdersHandler::run() {
   RunResult res{ .order_was_run = false, .suspended = false };
 
   // Run the given coroutine, await its result, and return it,
   // but run it under a detect that can detect if it suspended in
   // the process, and record that before returning the result.
-  auto record_suspend =
-      [&]<typename T>( waitable<T> w ) -> waitable<T> {
+  auto record_suspend = [&]<typename T>( wait<T> w ) -> wait<T> {
     auto info = co_await co::detect_suspend( std::move( w ) );
     res.suspended |= info.suspended;
     if constexpr( !is_same_v<T, monostate> )

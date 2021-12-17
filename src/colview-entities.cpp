@@ -11,7 +11,7 @@
 #include "colview-entities.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
 #include "config-files.hpp"
@@ -277,7 +277,7 @@ class MarketCommodities : public ui::View,
     colony().set_commodity_quantity( c.type, q );
   }
 
-  waitable<maybe<ColViewObject_t>> user_edit_object()
+  wait<maybe<ColViewObject_t>> user_edit_object()
       const override {
     CHECK( draggable_ );
     int    min  = 1;
@@ -600,7 +600,7 @@ class CargoView : public ui::View,
         } );
   }
 
-  waitable<maybe<ColViewObject_t>> user_edit_object()
+  wait<maybe<ColViewObject_t>> user_edit_object()
       const override {
     CHECK( draggable_ );
     UNWRAP_CHECK( cargo_and_rect,
@@ -683,8 +683,8 @@ class UnitsAtGateColonyView : public ui::View,
     update();
   }
 
-  // Implement AwaitableView.
-  waitable<> perform_click( Coord pos ) override {
+  // Implement AwaitView.
+  wait<> perform_click( Coord pos ) override {
     CHECK( pos.is_inside( rect( {} ) ) );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( pos.is_inside(
@@ -910,7 +910,7 @@ class UnitsAtGateColonyView : public ui::View,
     cargo_view_->set_unit( id );
   }
 
-  waitable<> click_on_unit( UnitId id ) {
+  wait<> click_on_unit( UnitId id ) {
     lg.info( "clicked on unit {}.", debug_string( id ) );
     auto& unit = unit_from_id( id );
     if( selected_ != id ) {
@@ -926,10 +926,10 @@ class UnitsAtGateColonyView : public ui::View,
     static string kStripUnit    = "Strip Unit";
     // Put co_await in separate statement to remove weird gcc
     // ICE, which hopefully will go away in a future version.
-    waitable<string> waitable_mode =
+    wait<string> wait_mode =
         ui::select_box( "What would you like to do?",
                         { kChangeOrders, kStripUnit } );
-    string mode = co_await waitable_mode;
+    string mode = co_await wait_mode;
     if( mode == kChangeOrders ) {
       vector<e_unit_orders> possible_orders;
       if( unit.desc().ship )
@@ -1142,15 +1142,15 @@ struct CompositeColSubView : public ui::InvisibleView,
     return *this;
   }
 
-  // Implement AwaitableView.
-  waitable<> perform_click( Coord pos ) override {
+  // Implement AwaitView.
+  wait<> perform_click( Coord pos ) override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
       if( !pos.is_inside( pos_view.rect() ) ) continue;
       return ptrs_[i]->perform_click(
           pos.with_new_origin( pos_view.coord ) );
     }
-    return make_waitable<>();
+    return make_wait<>();
   }
 
   maybe<PositionedColSubView> view_here( Coord coord ) override {

@@ -14,7 +14,7 @@
 #include "anim.hpp"
 #include "cargo.hpp"
 #include "co-combinator.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
@@ -36,7 +36,7 @@
 #include "tiles.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 #include "window.hpp"
 
 // base
@@ -69,7 +69,7 @@ constexpr int const k_default_market_quantity = 100;
 /****************************************************************
 ** Globals
 *****************************************************************/
-waitable_promise<> g_exit_promise;
+wait_promise<> g_exit_promise;
 
 /****************************************************************
 ** Save-Game State
@@ -102,7 +102,7 @@ SAVEGAME_IMPL( OldWorldView );
 ** Dragging
 *****************************************************************/
 maybe<drag::State<OldWorldDraggableObject_t>> g_drag_state;
-maybe<waitable<>>                             g_drag_thread;
+maybe<wait<>>                                 g_drag_thread;
 
 /****************************************************************
 ** Draggable Object
@@ -1615,7 +1615,7 @@ struct DragUserInput {
   DragUserInput( Entities const* entities_ )
     : entities( entities_ ) {}
 
-  static waitable<base::NoDiscard<bool>> visit(
+  static wait<base::NoDiscard<bool>> visit(
       Entities const* entities, OldWorldDragSrc_t* drag_src,
       OldWorldDragDst_t* drag_dst ) {
     // Need to co_await here to keep parameters alive.
@@ -1624,8 +1624,8 @@ struct DragUserInput {
     co_return proceed;
   }
 
-  static waitable<maybe<int>> ask_for_quantity(
-      e_commodity type, string_view verb ) {
+  static wait<maybe<int>> ask_for_quantity( e_commodity type,
+                                            string_view verb ) {
     string text = fmt::format(
         "What quantity of @[H]{}@[] would you like to {}? "
         "(0-100):",
@@ -1637,15 +1637,15 @@ struct DragUserInput {
                                 .max   = 100 } );
   }
 
-  waitable<bool> DRAG_CONFIRM_CASE( market, cargo ) const {
+  wait<bool> DRAG_CONFIRM_CASE( market, cargo ) const {
     src.quantity = co_await ask_for_quantity( src.type, "buy" );
     co_return src.quantity.has_value();
   }
-  waitable<bool> DRAG_CONFIRM_CASE( market, inport_ship ) const {
+  wait<bool> DRAG_CONFIRM_CASE( market, inport_ship ) const {
     src.quantity = co_await ask_for_quantity( src.type, "buy" );
     co_return src.quantity.has_value();
   }
-  waitable<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
+  wait<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     CHECK( is_unit_in_port( ship ) );
     UNWRAP_CHECK( commodity_ref,
@@ -1657,7 +1657,7 @@ struct DragUserInput {
         co_await ask_for_quantity( commodity_ref.type, "sell" );
     co_return src.quantity.has_value();
   }
-  waitable<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
+  wait<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     CHECK( is_unit_in_port( ship ) );
     auto maybe_commodity_ref =
@@ -1672,7 +1672,7 @@ struct DragUserInput {
         maybe_commodity_ref->type, "move" );
     co_return src.quantity.has_value();
   }
-  waitable<bool> operator()( auto const&, auto const& ) const {
+  wait<bool> operator()( auto const&, auto const& ) const {
     co_return true;
   }
 };
@@ -1906,9 +1906,9 @@ void drag_n_drop_handle_input(
                   .current = input::current_mouse_position() } );
 }
 
-waitable<> dragging_thread( Entities*             entities,
-                            input::e_mouse_button button,
-                            Coord                 origin ) {
+wait<> dragging_thread( Entities*             entities,
+                        input::e_mouse_button button,
+                        Coord                 origin ) {
   // Must check first if there is anything to drag. If this is
   // not the start of a valid drag then we must return immedi-
   // ately without co_awaiting on anything.
@@ -2063,7 +2063,7 @@ struct OldWorldPlane : public Plane {
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
     if( g_drag_state ) return Plane::e_accept_drag::swallow;
-    waitable<> w = dragging_thread( &entities_, button, origin );
+    wait<> w = dragging_thread( &entities_, button, origin );
     if( w.ready() ) return e_accept_drag::no;
     g_drag_thread = std::move( w );
     return e_accept_drag::yes;
@@ -2109,12 +2109,12 @@ REGISTER_INIT_ROUTINE( old_world_view );
 /****************************************************************
 ** Main Thread
 *****************************************************************/
-waitable<> run_old_world_view() {
+wait<> run_old_world_view() {
   create_entities( &g_old_world_plane.entities_ );
   // TODO: how does this thread interact with the dragging
   // thread? It should probably somehow co_await on it when a
   // drag happens.
-  co_await g_exit_promise.waitable();
+  co_await g_exit_promise.wait();
 }
 
 } // namespace
@@ -2122,7 +2122,7 @@ waitable<> run_old_world_view() {
 /****************************************************************
 ** Public API
 *****************************************************************/
-waitable<> show_old_world_view() {
+wait<> show_old_world_view() {
   g_exit_promise = {};
   if( SG().selected_unit ) {
     UnitId id = *SG().selected_unit;

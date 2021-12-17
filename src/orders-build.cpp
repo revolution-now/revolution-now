@@ -11,7 +11,7 @@
 #include "orders-build.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "maybe.hpp"
@@ -42,7 +42,7 @@ valid_or<string> is_valid_colony_name_msg( string_view name ) {
 struct BuildHandler : public OrdersHandler {
   BuildHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
 
-  waitable<bool> confirm() override {
+  wait<bool> confirm() override {
     if( auto valid = unit_can_found_colony( unit_id ); !valid ) {
       switch( valid.error() ) {
         case e_found_colony_err::colony_exists_here:
@@ -83,12 +83,12 @@ struct BuildHandler : public OrdersHandler {
     }
   }
 
-  waitable<> perform() override {
+  wait<> perform() override {
     colony_id = found_colony_unsafe( unit_id, *colony_name );
     co_return;
   }
 
-  waitable<> post() const override {
+  wait<> post() const override {
     return show_colony_view( colony_id );
   }
 

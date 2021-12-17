@@ -15,8 +15,8 @@
 
 // Revolution Now
 #include "src/co-runner.hpp"
-#include "src/co-waitable.hpp"
-#include "src/lua-waitable.hpp"
+#include "src/co-wait.hpp"
+#include "src/lua-wait.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
@@ -63,16 +63,16 @@ string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-waitable<int> do_lua_coroutine( int n ) {
+wait<int> do_lua_coroutine( int n ) {
   TRACE( A );
   lua::state& st = lua_global_state();
-  int         r = co_await lua_waitable<int>( st["get_int"], n );
+  int         r  = co_await lua_wait<int>( st["get_int"], n );
   TRACE( B );
   co_return r;
 }
 
 constexpr string_view lua_1 = R"(
-  local await = waitable.await
+  local await = wait.await
 
   function TRACE( letter )
     trace( letter )
@@ -104,7 +104,7 @@ TEST_CASE( "[co-lua] scenario 0" ) {
 
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine( 0 );
+  wait<int> w = do_lua_coroutine( 0 );
   run_all_coroutines();
   REQUIRE( trace_log == "ACcBba" );
 
@@ -121,7 +121,7 @@ TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
 
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine( 50 );
+  wait<int> w = do_lua_coroutine( 50 );
   REQUIRE( w.has_exception() );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ACca" );
@@ -141,25 +141,24 @@ TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_1 {
 
-waitable_promise<int> p1;
-waitable_promise<int> p2;
-waitable_promise<>    p3;
-string                shown_int;
-string                trace_log;
+wait_promise<int> p1;
+wait_promise<int> p2;
+wait_promise<>    p3;
+string            shown_int;
+string            trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-waitable<int> do_lua_coroutine() {
+wait<int> do_lua_coroutine() {
   TRACE( A );
   lua::state& st = lua_global_state();
-  int         r =
-      co_await lua_waitable<int>( st["get_and_add_ints"], 5 );
+  int r = co_await lua_wait<int>( st["get_and_add_ints"], 5 );
   TRACE( B );
   co_return r;
 }
 
 constexpr string_view lua_1 = R"(
-  local await = waitable.await
+  local await = wait.await
 
   function TRACE( letter )
     trace( letter )
@@ -185,36 +184,36 @@ constexpr string_view lua_1 = R"(
   end
 )";
 
-waitable<int> get_int_from_user1() {
+wait<int> get_int_from_user1() {
   TRACE( G );
-  int result = co_await p1.waitable();
+  int result = co_await p1.wait();
   TRACE( H );
   co_return result;
 }
 
-waitable<int> get_int_from_user2() {
+wait<int> get_int_from_user2() {
   TRACE( I );
-  int result = co_await p2.waitable();
+  int result = co_await p2.wait();
   if( result == 42 ) throw runtime_error( "error from cpp" );
   if( result == 43 ) {
     lua::state& st = lua_global_state();
     TRACE( O );
-    co_await lua_waitable<>( st["throw_error_from_lua"],
-                             "error from lua" );
+    co_await lua_wait<>( st["throw_error_from_lua"],
+                         "error from lua" );
     SHOULD_NOT_BE_HERE;
   }
   TRACE( J );
   co_return result;
 }
 
-waitable<> show_int( int n ) {
+wait<> show_int( int n ) {
   TRACE( K );
   shown_int = to_string( n );
-  co_await p3.waitable();
+  co_await p3.wait();
   TRACE( L );
 }
 
-waitable<> display_int( int n ) {
+wait<> display_int( int n ) {
   TRACE( M );
   co_await show_int( n ); //
   TRACE( N );
@@ -223,15 +222,15 @@ waitable<> display_int( int n ) {
 void setup( lua::state& st ) {
   st["trace"] = trace;
 
-  st["get_int_from_user1"] = [&]() -> waitable<lua::any> {
+  st["get_int_from_user1"] = [&]() -> wait<lua::any> {
     co_return st.as<lua::any>( co_await get_int_from_user1() );
   };
 
-  st["get_int_from_user2"] = [&]() -> waitable<lua::any> {
+  st["get_int_from_user2"] = [&]() -> wait<lua::any> {
     co_return st.as<lua::any>( co_await get_int_from_user2() );
   };
 
-  st["display_int"] = [&]( int n ) -> waitable<lua::any> {
+  st["display_int"] = [&]( int n ) -> wait<lua::any> {
     co_await display_int( n );
     co_return st.as<lua::any>( lua::nil );
   };
@@ -259,7 +258,7 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine();
   p1.set_value( 7 );
   p2.set_value( 8 );
   p3.finish();
@@ -289,7 +288,7 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine();
   REQUIRE( trace_log == "ACG" );
   run_all_coroutines();
   REQUIRE( trace_log == "ACG" );
@@ -337,7 +336,7 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine();
   p1.set_value( 7 );
   p2.set_value( 42 );
   run_all_coroutines();
@@ -352,7 +351,7 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
     "\\[string \"...\"\\]:15: error from cpp\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
       "\t\\[C\\]: in \\?"
   ) );
@@ -377,7 +376,7 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  waitable<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine();
   p1.set_value( 7 );
   p2.set_value( 43 );
   run_all_coroutines();
@@ -397,7 +396,7 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
       "\t\\[C\\]: in \\?"
   ) );
@@ -435,7 +434,7 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   // to things. In other words, this line is only to prevent the
   // test from crashing when it fails (for some other reason).
   // When the test is passing, there is no need for this since
-  // all of the waitables are assigned to <close> variables that
+  // all of the waits are assigned to <close> variables that
   // get cleaned up when the coroutine finishes running.
   //
   // This isn't needed in some of the other test cases in this
@@ -480,26 +479,25 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_2 {
 
-waitable_promise<int>    p1;
-waitable_promise<string> p2;
-string                   trace_log;
+wait_promise<int>    p1;
+wait_promise<string> p2;
+string               trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-waitable<string> accum_cpp( int n ) {
+wait<string> accum_cpp( int n ) {
   lua::state& st = lua_global_state();
   TRACE( A );
   if( n == 1 ) {
     TRACE( L );
-    string s = co_await p2.waitable();
+    string s = co_await p2.wait();
     TRACE( M );
     if( s == "failed" ) throw runtime_error( "c++ failed" );
     co_return s;
   }
   if( n % 3 == 0 ) {
     TRACE( B );
-    int m =
-        n + co_await lua_waitable<int>( st["accum_lua"], n - 1 );
+    int m = n + co_await lua_wait<int>( st["accum_lua"], n - 1 );
     TRACE( C );
     co_return to_string( m );
   }
@@ -511,7 +509,7 @@ waitable<string> accum_cpp( int n ) {
 }
 
 constexpr string_view lua_1 = R"(
-  local await = waitable.await
+  local await = wait.await
 
   function TRACE( letter )
     trace( letter )
@@ -536,7 +534,7 @@ constexpr string_view lua_1 = R"(
 
 void setup( lua::state& st ) {
   st["trace"]     = trace;
-  st["accum_cpp"] = []( int n ) -> waitable<lua::any> {
+  st["accum_cpp"] = []( int n ) -> wait<lua::any> {
     lua::state& st = lua_global_state();
     co_return st.as<lua::any>( co_await accum_cpp( n ) );
   };
@@ -559,8 +557,7 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   REQUIRE( !p2.has_value() );
   REQUIRE( trace_log == "" );
 
-  waitable<string> w =
-      lua_waitable<string>( st["accum_lua"], 15 );
+  wait<string> w = lua_wait<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -595,8 +592,7 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   REQUIRE( !p2.has_value() );
   REQUIRE( trace_log == "" );
 
-  waitable<string> w =
-      lua_waitable<string>( st["accum_lua"], 15 );
+  wait<string> w = lua_wait<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -625,27 +621,27 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
     "\\[string \"...\"\\]:19: c\\+\\+ failed\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
       "\t\\[C\\]: in global 'error'\n"
-      "\tsrc/lua/waitable.lua:[0-9]+: in upvalue 'await'\n"
+      "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?"
   ) );
@@ -666,8 +662,7 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   REQUIRE( !p2.has_value() );
   REQUIRE( trace_log == "" );
 
-  waitable<string> w =
-      lua_waitable<string>( st["accum_lua"], 15 );
+  wait<string> w = lua_wait<string>( st["accum_lua"], 15 );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -697,47 +692,47 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_3 {
 
-waitable_promise<>    p1;
-waitable_promise<>    p2;
-waitable_promise<int> p3;
-waitable_promise<>    p4;
-string                trace_log;
+wait_promise<>    p1;
+wait_promise<>    p2;
+wait_promise<int> p3;
+wait_promise<>    p4;
+string            trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-waitable<> to_auto_cancel() {
+wait<> to_auto_cancel() {
   TRACE( P );
-  co_await p4.waitable();
+  co_await p4.wait();
   TRACE( Q );
 }
 
-waitable<> cpp_1() {
+wait<> cpp_1() {
   TRACE( H );
-  co_await p1.waitable();
+  co_await p1.wait();
   TRACE( I );
 }
 
-waitable<> another_cpp() {
+wait<> another_cpp() {
   TRACE( J );
-  co_await p2.waitable();
+  co_await p2.wait();
   TRACE( K );
 }
 
-waitable<> cpp_2() {
+wait<> cpp_2() {
   TRACE( L );
   co_await another_cpp();
   TRACE( M );
 }
 
-waitable<int> cpp_3() {
+wait<int> cpp_3() {
   TRACE( N );
-  int n = co_await p3.waitable();
+  int n = co_await p3.wait();
   TRACE( O );
   co_return n;
 }
 
 constexpr string_view lua_1 = R"(
-  local await = waitable.await
+  local await = wait.await
 
   function TRACE( letter )
     trace( letter )
@@ -769,22 +764,22 @@ constexpr string_view lua_1 = R"(
 void setup( lua::state& st ) {
   st["trace"] = trace;
 
-  st["to_auto_cancel"] = [&]() -> waitable<lua::any> {
+  st["to_auto_cancel"] = [&]() -> wait<lua::any> {
     co_await to_auto_cancel();
     co_return st.as<lua::any>( lua::nil );
   };
 
-  st["cpp_1"] = [&]() -> waitable<lua::any> {
+  st["cpp_1"] = [&]() -> wait<lua::any> {
     co_await cpp_1();
     co_return st.as<lua::any>( lua::nil );
   };
 
-  st["cpp_2"] = [&]() -> waitable<lua::any> {
+  st["cpp_2"] = [&]() -> wait<lua::any> {
     co_await cpp_2();
     co_return st.as<lua::any>( lua::nil );
   };
 
-  st["cpp_3"] = [&]() -> waitable<lua::any> {
+  st["cpp_3"] = [&]() -> wait<lua::any> {
     co_return st.as<lua::any>( co_await cpp_3() );
   };
 
@@ -805,7 +800,7 @@ TEST_CASE( "[co-lua] scenario 3" ) {
 
   setup( st );
 
-  waitable<int> w = lua_waitable<int>( st["launch"] );
+  wait<int> w = lua_wait<int>( st["launch"] );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJC" );
   run_all_coroutines();
@@ -848,7 +843,7 @@ LUA_USERDATA_TRAITS( rn::MyType, owned_by_lua ){};
 namespace rn {
 namespace {
 
-TEST_CASE( "[co-lua] waitable auto registration" ) {
+TEST_CASE( "[co-lua] wait auto registration" ) {
   lua::state& st = lua_global_state();
 
   st.script.run( R"(
@@ -873,14 +868,13 @@ TEST_CASE( "[co-lua] waitable auto registration" ) {
     end
   )" );
 
-  waitable_promise<>       p1;
-  waitable_promise<int>    p2;
-  waitable_promise<string> p3;
-  waitable_promise<MyType> p4;
+  wait_promise<>       p1;
+  wait_promise<int>    p2;
+  wait_promise<string> p3;
+  wait_promise<MyType> p4;
 
-  REQUIRE( st["go"].pcall( p1.waitable(), p2.waitable(),
-                           p3.waitable(),
-                           p4.waitable() ) == valid );
+  REQUIRE( st["go"].pcall( p1.wait(), p2.wait(), p3.wait(),
+                           p4.wait() ) == valid );
 }
 
 } // namespace

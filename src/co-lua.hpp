@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // luapp
 #include "luapp/any.hpp"
@@ -42,7 +42,7 @@ struct lua_error_exception : std::runtime_error {
 };
 
 template<typename T>
-concept LuaAwaitable = lua::Pushable<T> && lua::HasCthread<T>;
+concept LuaAwait = lua::Pushable<T> && lua::HasCthread<T>;
 
 template<typename T>
 concept GettableOrMonostate =
@@ -54,7 +54,7 @@ template<GettableOrMonostate R>
 struct LuaWaitable {
   // Although the arguments to this function may be taken by ref-
   // erence, it should always be safe to use, even for producing
-  // waitables that are not immediately awaited on. That is be-
+  // waits that are not immediately awaited on. That is be-
   // cause of two things: 1) all of the arguments (`o` and
   // `args`) are pushed onto the Lua stack before this function
   // returns (deeper into the call stack), and 2) any C++ type
@@ -63,15 +63,15 @@ struct LuaWaitable {
   // semantics (cpp-owned or lua-owned). So therefore, any usage
   // of this function that would cause a dangling reference
   // should trigger a compile error.
-  template<LuaAwaitable T, lua::Pushable... Args>
-  waitable<R> operator()( T&& o, Args&&... args ) const {
+  template<LuaAwait T, lua::Pushable... Args>
+  wait<R> operator()( T&& o, Args&&... args ) const {
     lua::rthread coro =
         internal::create_runner_coro( o.this_cthread() );
     // Ensure that all to-be-closed variables get closed and the
     // coroutine gets de-queued if an error happens.
     SCOPE_EXIT( internal::cleanup_coro( coro ) );
 
-    waitable_promise<R> p;
+    wait_promise<R> p;
 
     auto set_result = [&]( lua::any res ) {
       p.set_value( lua::as<R>( res ) );
@@ -82,11 +82,11 @@ struct LuaWaitable {
     };
 
     // Start running it; if it finishes right away then the re-
-    // sulting waitable should be ready right away. If not, then
+    // sulting wait should be ready right away. If not, then
     // we will suspend on the co_await below. In other words, we
     // don't care about the return values of the coro.resume
     // calls (either the first or subsequent) because the value
-    // is returned to us in the waitable.
+    // is returned to us in the wait.
     //
     // Although this version of `resume` will propagate errors
     // (exceptions), that is not relevant here, because the func-
@@ -100,19 +100,19 @@ struct LuaWaitable {
                  FWD( o ), FWD( args )... );
 
     // If an exception already happened before the first yield
-    // point, then the waitable will have an exception in it, and
+    // point, then the wait will have an exception in it, and
     // it will be dealt with by the co_await.
     //
     // Need to keep the SCOPE_EXIT alive while we wait.
     if constexpr( std::is_same_v<R, std::monostate> )
-      co_await p.waitable();
+      co_await p.wait();
     else
-      co_return co_await p.waitable();
+      co_return co_await p.wait();
   }
 };
 
 template<GettableOrMonostate R = std::monostate>
-inline constexpr LuaWaitable<R> lua_waitable{};
+inline constexpr LuaWaitable<R> lua_wait{};
 
 void linker_dont_discard_module_co_lua();
 

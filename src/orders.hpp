@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "id.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // Rds
 #include "rds/orders.hpp"
@@ -50,7 +50,7 @@ struct OrdersHandler {
   };
 
   // Run though the entire sequence of
-  waitable<RunResult> run();
+  wait<RunResult> run();
 
   // This will do a few things:
   //
@@ -62,21 +62,19 @@ struct OrdersHandler {
   //      move (in which case it returns false).
   //   3. if the move can proceed, it will return true.
   //
-  virtual waitable<bool> confirm() = 0;
+  virtual wait<bool> confirm() = 0;
 
   // Animate the orders being carried out, if any. This should be
   // run before `perform`.
-  virtual waitable<> animate() const {
-    return make_waitable<>();
-  }
+  virtual wait<> animate() const { return make_wait<>(); }
 
   // Perform the orders (i.e., make changes to game state).
-  virtual waitable<> perform() = 0;
+  virtual wait<> perform() = 0;
 
   // Perform any actions that should be done after affecting the
   // orders. For example, after founding a colony, this will open
   // the colony view.
-  virtual waitable<> post() const { return make_waitable<>(); }
+  virtual wait<> post() const { return make_wait<>(); }
 
   // Any units that need to be prioritized (in the sense of
   // asking for orders) after this order has been carried out. An

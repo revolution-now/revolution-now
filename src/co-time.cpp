@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-05-21.
 *
-* Description: Time-related waitable and coroutine helpers.
+* Description: Time-related wait and coroutine helpers.
 *
 *****************************************************************/
 #include "co-time.hpp"
@@ -17,7 +17,7 @@ using namespace std;
 
 namespace rn {
 
-waitable<std::chrono::microseconds> co_await_transform(
+wait<std::chrono::microseconds> co_await_transform(
     chrono::microseconds us ) {
   return wait_for_duration( us );
 }

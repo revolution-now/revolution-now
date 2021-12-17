@@ -1,11 +1,11 @@
 /****************************************************************
-**lua-waitable.hpp
+**lua-wait.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-07-23.
 *
-* Description: Lua userdata type traits for waitable<T>.
+* Description: Lua userdata type traits for wait<T>.
 *
 *****************************************************************/
 #pragma once
@@ -15,7 +15,7 @@
 // Revolution Now
 #include "co-lua-scheduler.hpp"
 #include "lua.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // luapp
 #include "luapp/any.hpp"
@@ -28,11 +28,11 @@
 namespace lua {
 
 template<Pushable T>
-struct type_traits<::rn::waitable<T>>
-  : TraitsForModel<::rn::waitable<T>,
+struct type_traits<::rn::wait<T>>
+  : TraitsForModel<::rn::wait<T>,
                    e_userdata_ownership_model::owned_by_lua> {
   static void register_usertype( state& st ) {
-    using W = ::rn::waitable<T>;
+    using W = ::rn::wait<T>;
     auto ut = st.usertype.create<W>();
 
     ut["cancel"] = &W::cancel;

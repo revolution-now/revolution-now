@@ -12,8 +12,8 @@
 
 // Revolution now
 #include "co-lua-scheduler.hpp"
-#include "co-waitable.hpp"
-#include "lua-waitable.hpp"
+#include "co-wait.hpp"
+#include "lua-wait.hpp"
 #include "lua.hpp"
 
 // luapp
@@ -97,9 +97,8 @@ void linker_dont_discard_module_co_lua() {}
 
 namespace {
 
-LUA_FN( waitable_from_lua, waitable<lua::any>,
-        lua::rfunction func ) {
-  return lua_waitable<lua::any>( func );
+LUA_FN( wait_from_lua, wait<lua::any>, lua::rfunction func ) {
+  return lua_wait<lua::any>( func );
 }
 
 } // namespace

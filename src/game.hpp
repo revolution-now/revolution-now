@@ -13,16 +13,16 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "waitable.hpp"
+#include "wait.hpp"
 
 namespace rn {
 
 // Run through the entire sequence of starting a new game and
 // playing it.
-waitable<> run_new_game();
+wait<> run_new_game();
 
 // Run through the sequence of asking the user which game to load
 // and then loading it and playing it.
-waitable<> run_existing_game();
+wait<> run_existing_game();
 
 } // namespace rn

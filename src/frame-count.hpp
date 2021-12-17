@@ -14,13 +14,13 @@
 
 // Revolution Now
 #include "typed-int.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // Strongly-typed integer for representing frame counts.
 TYPED_INT( FrameCount, frames );
 
 namespace rn {
 
-waitable<> co_await_transform( FrameCount count );
+wait<> co_await_transform( FrameCount count );
 
 } // namespace rn

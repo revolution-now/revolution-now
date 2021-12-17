@@ -22,8 +22,8 @@ enum class e_mode {
   gl_perf
 };
 
-waitable<> ui_test() { return make_waitable<>(); }
-waitable<> lua_ui_test() { return rn::lua_ui_test(); }
+wait<> ui_test() { return make_wait<>(); }
+wait<> lua_ui_test() { return rn::lua_ui_test(); }
 
 void full_init() {
   run_all_init_routines( e_log_level::debug );

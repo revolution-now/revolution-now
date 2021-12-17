@@ -13,13 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "waitable.hpp"
+#include "wait.hpp"
 
 namespace rn {
 
 struct Plane;
 Plane* panel_plane();
 
-waitable<> wait_for_eot_button_click();
+wait<> wait_for_eot_button_click();
 
 } // namespace rn

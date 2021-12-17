@@ -14,11 +14,11 @@
 
 // Revolution Now
 #include "id.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 namespace rn {
 
-waitable<> show_colony_view( ColonyId id );
+wait<> show_colony_view( ColonyId id );
 
 struct Plane;
 Plane* colony_plane();

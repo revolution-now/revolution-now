@@ -1,5 +1,5 @@
 /****************************************************************
-**waitable.hpp
+**wait.hpp
 *
 * Project: Revolution Now
 *
@@ -38,24 +38,23 @@
 namespace rn {
 
 template<typename T = std::monostate>
-class waitable_promise;
+class wait_promise;
 
 namespace detail {
 
 template<typename T>
-class waitable_shared_state {
+class wait_shared_state {
  public:
-  waitable_shared_state()  = default;
-  ~waitable_shared_state() = default;
+  wait_shared_state()  = default;
+  ~wait_shared_state() = default;
 
-  waitable_shared_state( waitable_shared_state const& ) = delete;
-  waitable_shared_state& operator                       =(
-      waitable_shared_state const& ) = delete;
+  wait_shared_state( wait_shared_state const& ) = delete;
+  wait_shared_state& operator=( wait_shared_state const& ) =
+      delete;
   // Note that this object is in general self-referential, there-
   // fore it cannot be moved.
-  waitable_shared_state( waitable_shared_state&& ) = delete;
-  waitable_shared_state& operator=( waitable_shared_state&& ) =
-      delete;
+  wait_shared_state( wait_shared_state&& ) = delete;
+  wait_shared_state& operator=( wait_shared_state&& ) = delete;
 
   using NotifyFunc = void( T const& );
   using ExceptFunc = void( std::exception_ptr );
@@ -101,7 +100,7 @@ class waitable_shared_state {
   // So that we can access private members of this class when it
   // is templated on types other than our T.
   template<typename U>
-  friend class waitable_shared_state;
+  friend class wait_shared_state;
 
   bool has_value() const { return maybe_value_.has_value(); }
   std::exception_ptr exception() const { return eptr_; }
@@ -137,7 +136,7 @@ class waitable_shared_state {
     do_exception_callback();
     // No need to call cancel() here. An exception should propa-
     // gate outword and cause the coroutine call stack to unwind,
-    // and in doing so the waitable's destructors will be called
+    // and in doing so the wait's destructors will be called
     // and things will be cancelled naturally.
   }
 
@@ -215,35 +214,35 @@ class waitable_shared_state {
 } // namespace detail
 
 /****************************************************************
-** waitable
+** wait
 *****************************************************************/
 template<typename T = std::monostate>
-class [[nodiscard]] waitable {
+class [[nodiscard]] wait {
   template<typename U>
   using SharedStatePtr =
-      std::shared_ptr<detail::waitable_shared_state<U>>;
+      std::shared_ptr<detail::wait_shared_state<U>>;
 
  public:
   using value_type = T;
 
-  waitable( T const& ready_val );
+  wait( T const& ready_val );
 
   // This constructor should not be used by client code.
-  explicit waitable( SharedStatePtr<T> shared_state )
+  explicit wait( SharedStatePtr<T> shared_state )
     : shared_state_{ shared_state } {}
 
   // We need to cancel in this destructor if we want the corou-
   // tine to be freed as a result (if there is a coroutine asso-
-  // ciated with this waitable). This is because there would oth-
+  // ciated with this wait). This is because there would oth-
   // erwise be a memory cycle: shared_state owns coroutine which
   // owns promise which owns shared_state.
-  ~waitable() noexcept { cancel(); }
+  ~wait() noexcept { cancel(); }
 
-  waitable( waitable const& ) = delete;
-  waitable& operator=( waitable const& ) = delete;
-  waitable( waitable&& )                 = default;
+  wait( wait const& ) = delete;
+  wait& operator=( wait const& ) = delete;
+  wait( wait&& )                 = default;
 
-  waitable& operator=( waitable&& rhs ) noexcept {
+  wait& operator=( wait&& rhs ) noexcept {
     if( shared_state_ == rhs.shared_state_ ) {
       rhs.shared_state_ = nullptr;
       return *this;
@@ -289,32 +288,31 @@ class [[nodiscard]] waitable {
 };
 
 /****************************************************************
-** waitable_promise
+** wait_promise
 *****************************************************************/
 template<typename T>
-class waitable_promise {
+class wait_promise {
  public:
-  waitable_promise()
-    : shared_state_( new detail::waitable_shared_state<T> ) {
+  wait_promise()
+    : shared_state_( new detail::wait_shared_state<T> ) {
     // shared state ref count should initialize to 1.
   }
 
-  bool operator==( waitable_promise<T> const& rhs ) const {
+  bool operator==( wait_promise<T> const& rhs ) const {
     return shared_state_.get() == rhs.shared_state_.get();
   }
 
-  bool operator!=( waitable_promise<T> const& rhs ) const {
+  bool operator!=( wait_promise<T> const& rhs ) const {
     return !( *this == rhs );
   }
 
   bool has_value() const { return shared_state_->has_value(); }
 
-  ::rn::waitable<T> waitable() const {
-    return ::rn::waitable<T>( shared_state_ );
+  ::rn::wait<T> wait() const {
+    return ::rn::wait<T>( shared_state_ );
   }
 
-  std::shared_ptr<detail::waitable_shared_state<T>>&
-  shared_state() {
+  std::shared_ptr<detail::wait_shared_state<T>>& shared_state() {
     return shared_state_;
   }
 
@@ -390,34 +388,33 @@ class waitable_promise {
   // in lambdas, which this allows us to set the value on the
   // promise without making the lambda mutable, which tends to be
   // viral and is painful to deal with.
-  detail::waitable_shared_state<T>* mutable_state() const {
-    return const_cast<detail::waitable_shared_state<T>*>(
+  detail::wait_shared_state<T>* mutable_state() const {
+    return const_cast<detail::wait_shared_state<T>*>(
         shared_state_.get() );
   }
 
-  std::shared_ptr<detail::waitable_shared_state<T>>
-      shared_state_;
+  std::shared_ptr<detail::wait_shared_state<T>> shared_state_;
 };
 
 /****************************************************************
 ** Helpers
 *****************************************************************/
-// Returns a waitable immediately containing the given value.
+// Returns a wait immediately containing the given value.
 template<typename T = std::monostate, typename... Args>
-waitable<T> make_waitable( Args&&... args ) {
-  waitable_promise<T> s_promise;
+wait<T> make_wait( Args&&... args ) {
+  wait_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
-  return s_promise.waitable();
+  return s_promise.wait();
 }
 
 template<typename T = std::monostate>
-waitable<T> empty_waitable() {
-  return waitable_promise<T>{}.waitable();
+wait<T> empty_wait() {
+  return wait_promise<T>{}.wait();
 }
 
 template<typename T>
-waitable<T>::waitable( T const& ready_val ) {
-  *this = make_waitable<T>( ready_val );
+wait<T>::wait( T const& ready_val ) {
+  *this = make_wait<T>( ready_val );
 }
 
 } // namespace rn
@@ -429,9 +426,9 @@ namespace fmt {
 // {fmt} formatters.
 
 template<typename T>
-struct formatter<::rn::waitable<T>> : base::formatter_base {
+struct formatter<::rn::wait<T>> : base::formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::waitable<T> const& o, FormatContext& ctx ) {
+  auto format( ::rn::wait<T> const& o, FormatContext& ctx ) {
     std::string res;
     if( !o.ready() )
       res = "<waiting>";
@@ -442,11 +439,10 @@ struct formatter<::rn::waitable<T>> : base::formatter_base {
 };
 
 template<typename T>
-struct formatter<::rn::waitable_promise<T>>
-  : base::formatter_base {
+struct formatter<::rn::wait_promise<T>> : base::formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::waitable_promise<T> const& o,
-               FormatContext&                   ctx ) {
+  auto format( ::rn::wait_promise<T> const& o,
+               FormatContext&               ctx ) {
     std::string res;
     if( !o.has_value() )
       res = "<empty>";

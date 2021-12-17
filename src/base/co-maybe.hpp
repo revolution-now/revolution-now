@@ -27,7 +27,7 @@ namespace base {
 
 template<typename T>
 auto operator co_await( maybe<T> const& o ) {
-  struct maybe_awaitable {
+  struct maybe_await {
     maybe<T> const* o_;
     bool await_ready() noexcept { return o_->has_value(); }
     void await_suspend( coro::coroutine_handle<> h ) noexcept {
@@ -39,7 +39,7 @@ auto operator co_await( maybe<T> const& o ) {
     }
     T await_resume() noexcept { return o_->value(); }
   };
-  return maybe_awaitable{ &o };
+  return maybe_await{ &o };
 }
 
 namespace detail {

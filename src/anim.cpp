@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-time.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 
 using namespace std;
 
@@ -21,7 +21,7 @@ namespace rn {
 /****************************************************************
 ** AnimThrottler
 *****************************************************************/
-waitable<> AnimThrottler::operator()() {
+wait<> AnimThrottler::operator()() {
   // Need >= so that the first frame runs immediately.
   if( accum >= gap ) {
     accum -= gap;

@@ -431,7 +431,7 @@ void LineEditorView::set( std::string_view new_string,
 ** Derived Views
 *****************************************************************/
 unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
-    string_view msg, waitable_promise<> on_close ) {
+    string_view msg, wait_promise<> on_close ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
       /*highlight=*/config_ui.dialog_text.highlighted };
@@ -444,7 +444,7 @@ unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
 }
 
 PlainMessageBoxView::PlainMessageBoxView(
-    unique_ptr<TextView> tview, waitable_promise<> on_close )
+    unique_ptr<TextView> tview, wait_promise<> on_close )
   : CompositeSingleView( std::move( tview ), Coord{} ),
     on_close_( std::move( on_close ) ) {}
 

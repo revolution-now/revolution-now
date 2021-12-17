@@ -18,7 +18,7 @@
 #include "expect.hpp"
 #include "id.hpp"
 #include "ui-enums.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // c++ standard library
 #include <string_view>
@@ -37,10 +37,10 @@ namespace rn::ui {
 // user input apart from waiting for the <CR> or Space keys to be
 // pressed, which then closes the window. It takes markup text as
 // input and it will reflow the message.
-waitable<> message_box_basic( std::string_view msg );
+wait<> message_box_basic( std::string_view msg );
 
 template<typename... Args>
-waitable<> message_box( std::string_view msg, Args&&... args ) {
+wait<> message_box( std::string_view msg, Args&&... args ) {
   return message_box_basic(
       fmt::format( msg, std::forward<Args>( args )... ) );
 }
@@ -56,7 +56,7 @@ struct UnitSelection {
 };
 NOTHROW_MOVE( UnitSelection );
 
-waitable<std::vector<UnitSelection>> unit_selection_box(
+wait<std::vector<UnitSelection>> unit_selection_box(
     std::vector<UnitId> const& ids_, bool allow_activation );
 
 /****************************************************************
@@ -74,7 +74,7 @@ ValidatorFunc make_int_validator( maybe<int> min,
 /****************************************************************
 ** Windows
 *****************************************************************/
-waitable<e_ok_cancel> ok_cancel( std::string_view msg );
+wait<e_ok_cancel> ok_cancel( std::string_view msg );
 
 struct IntInputBoxOptions {
   std::string_view title   = "";
@@ -84,25 +84,25 @@ struct IntInputBoxOptions {
   maybe<int>       initial = nothing;
 };
 
-waitable<maybe<int>> int_input_box(
+wait<maybe<int>> int_input_box(
     IntInputBoxOptions const& options );
 
-waitable<maybe<std::string>> str_input_box(
+wait<maybe<std::string>> str_input_box(
     std::string_view title, std::string_view msg,
     std::string_view initial_text );
 
 /****************************************************************
 ** Generic Option-Select Window
 *****************************************************************/
-waitable<std::string> select_box(
-    std::string_view title, std::vector<std::string> options );
+wait<std::string> select_box( std::string_view         title,
+                              std::vector<std::string> options );
 
 // FIXME: clang can't seem to handle function template corouti-
 // nes, without emitting warnings, so to work around that we make
 // this a niebloid.
 template<typename Enum>
 struct SelectBoxEnum {
-  waitable<Enum> operator()(
+  wait<Enum> operator()(
       std::string_view         title,
       std::vector<Enum> const& options ) const {
     // map over member function?
@@ -117,7 +117,7 @@ struct SelectBoxEnum {
     SHOULD_NOT_BE_HERE;
   }
 
-  waitable<Enum> operator()( std::string_view title ) const {
+  wait<Enum> operator()( std::string_view title ) const {
     static const std::vector<Enum> options = [] {
       return std::vector<Enum>(
           enum_traits<Enum>::values.begin(),
@@ -133,11 +133,11 @@ inline constexpr SelectBoxEnum<Enum> select_box_enum{};
 /****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
-waitable<e_confirm> yes_no( std::string_view title );
+wait<e_confirm> yes_no( std::string_view title );
 
 template<typename... Args>
-waitable<e_confirm> yes_no( std::string_view question,
-                            Args&&... args ) {
+wait<e_confirm> yes_no( std::string_view question,
+                        Args&&... args ) {
   return yes_no(
       fmt::format( question, std::forward<Args>( args )... ) );
 }

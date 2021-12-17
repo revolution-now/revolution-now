@@ -11,7 +11,7 @@
 #include "orders-fortify.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
@@ -24,7 +24,7 @@ namespace {
 struct FortifyHandler : public OrdersHandler {
   FortifyHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
 
-  waitable<bool> confirm() override {
+  wait<bool> confirm() override {
     if( unit_from_id( unit_id ).desc().ship ) {
       co_await ui::message_box( "Ships cannot be fortified." );
       co_return false;
@@ -37,7 +37,7 @@ struct FortifyHandler : public OrdersHandler {
     co_return true;
   }
 
-  waitable<> perform() override {
+  wait<> perform() override {
     Unit& unit = unit_from_id( unit_id );
     unit.forfeight_mv_points();
     unit.fortify();
@@ -50,9 +50,9 @@ struct FortifyHandler : public OrdersHandler {
 struct SentryHandler : public OrdersHandler {
   SentryHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
 
-  waitable<bool> confirm() override { co_return true; }
+  wait<bool> confirm() override { co_return true; }
 
-  waitable<> perform() override {
+  wait<> perform() override {
     unit_from_id( unit_id ).sentry();
     co_return;
   }

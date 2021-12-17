@@ -11,7 +11,7 @@
 #include "colony-mgr.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
@@ -201,7 +201,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-waitable<> evolve_colony_one_turn( ColonyId id ) {
+wait<> evolve_colony_one_turn( ColonyId id ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();

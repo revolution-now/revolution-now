@@ -38,11 +38,11 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-waitable<> turn_loop() {
+wait<> turn_loop() {
   while( true ) co_await next_turn();
 }
 
-waitable<> run_loaded_game() {
+wait<> run_loaded_game() {
   return co::erase( co::try_<game_quit_interrupt>( turn_loop ) );
 }
 
@@ -51,14 +51,14 @@ waitable<> run_loaded_game() {
 /****************************************************************
 ** Public API
 *****************************************************************/
-waitable<> run_existing_game() {
+wait<> run_existing_game() {
   lua_reload();
   CHECK_HAS_VALUE( load_game( 0 ) );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
 
-waitable<> run_new_game() {
+wait<> run_new_game() {
   lua_reload();
   default_construct_savegame_state();
   run_lua_startup_main();

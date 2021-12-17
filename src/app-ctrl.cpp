@@ -34,7 +34,7 @@ struct quit_app_interrupt : exception {};
 /****************************************************************
 ** Main Menu.
 *****************************************************************/
-waitable<> main_menu_item_selected( e_main_menu_item item ) {
+wait<> main_menu_item_selected( e_main_menu_item item ) {
   switch( item ) {
     case e_main_menu_item::new_: //
       co_await run_new_game();
@@ -53,7 +53,7 @@ waitable<> main_menu_item_selected( e_main_menu_item item ) {
   }
 }
 
-waitable<> main_menu() {
+wait<> main_menu() {
   ScopedPlanePush pusher( e_plane_config::main_menu );
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
@@ -75,7 +75,7 @@ waitable<> main_menu() {
 /****************************************************************
 ** Top-Level Application Flow.
 *****************************************************************/
-waitable<> revolution_now() {
+wait<> revolution_now() {
   return co::erase( co::try_<quit_app_interrupt>( main_menu ) );
 }
 

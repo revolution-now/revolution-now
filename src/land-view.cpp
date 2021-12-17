@@ -13,7 +13,7 @@
 // Revolution Now
 #include "anim.hpp"
 #include "co-combinator.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
@@ -371,8 +371,8 @@ void render_land_view() {
 /****************************************************************
 ** Animations
 *****************************************************************/
-waitable<> animate_depixelation( UnitId            id,
-                                 e_depixelate_anim dp_anim ) {
+wait<> animate_depixelation( UnitId            id,
+                             e_depixelate_anim dp_anim ) {
   CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::depixelate& depixelate =
       SG().unit_animations[id]
@@ -434,7 +434,7 @@ waitable<> animate_depixelation( UnitId            id,
   }
 }
 
-waitable<> animate_blink( UnitId id ) {
+wait<> animate_blink( UnitId id ) {
   using namespace std::literals::chrono_literals;
   CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::blink& blink =
@@ -466,7 +466,7 @@ waitable<> animate_blink( UnitId id ) {
   }
 }
 
-waitable<> animate_slide( UnitId id, e_direction d ) {
+wait<> animate_slide( UnitId id, e_direction d ) {
   CHECK( !SG().unit_animations.contains( id ) );
   Coord target = coord_for_unit_indirect_or_die( id );
   UnitAnimation::slide& mv =
@@ -495,13 +495,13 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
   }
 }
 
-waitable<> center_on_blinking_unit_if_any() {
+wait<> center_on_blinking_unit_if_any() {
   using u_i = LandViewState::unit_input;
   auto blinking_unit =
       SG().landview_state.get_if<u_i>().member( &u_i::unit_id );
   if( !blinking_unit ) {
     lg.warn( "There are no units currently asking for orders." );
-    return make_waitable<>();
+    return make_wait<>();
   }
   return landview_ensure_visible( *blinking_unit );
 }
@@ -530,7 +530,7 @@ waitable<> center_on_blinking_unit_if_any() {
 // them, with the results for each unit behaving in a similar way
 // to the single-unit case described above with respect to orders
 // and the allow_activate flag.
-waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
+wait<vector<LandViewPlayerInput_t>> click_on_world_tile(
     Coord coord ) {
   vector<LandViewPlayerInput_t> res;
   auto add = [&res]<typename T>( T t ) -> T& {
@@ -602,7 +602,7 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
 // into the "translated" stream. For each translated event cre-
 // ated, preserve the time that the corresponding raw input event
 // was received.
-waitable<> raw_input_translator() {
+wait<> raw_input_translator() {
   while( !g_translated_input_stream.ready() ) {
     RawInput raw_input = co_await g_raw_input_stream.next();
 
@@ -638,7 +638,7 @@ waitable<> raw_input_translator() {
   }
 }
 
-waitable<LandViewPlayerInput_t> next_player_input_object() {
+wait<LandViewPlayerInput_t> next_player_input_object() {
   while( true ) {
     if( !g_translated_input_stream.ready() )
       co_await raw_input_translator();
@@ -939,11 +939,11 @@ struct LandViewPlane : public Plane {
   co::finite_stream<DragUpdate> drag_stream;
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
-  maybe<waitable<>> drag_thread;
-  bool              drag_finished = true;
+  maybe<wait<>> drag_thread;
+  bool          drag_finished = true;
 
-  waitable<> dragging( input::e_mouse_button /*button*/,
-                       Coord /*origin*/ ) {
+  wait<> dragging( input::e_mouse_button /*button*/,
+                   Coord /*origin*/ ) {
     SCOPE_EXIT( drag_finished = true );
     while( maybe<DragUpdate> d = co_await drag_stream.next() )
       SG().viewport.pan_by_screen_coords( d->prev - d->current );
@@ -1002,11 +1002,11 @@ void landview_start_new_turn() {
   g_needs_scroll_to_unit_on_input = true;
 }
 
-waitable<> landview_ensure_visible( Coord const& coord ) {
+wait<> landview_ensure_visible( Coord const& coord ) {
   return SG().viewport.ensure_tile_visible_smooth( coord );
 }
 
-waitable<> landview_ensure_visible( UnitId id ) {
+wait<> landview_ensure_visible( UnitId id ) {
   // Need multi-ownership variant because sometimes the unit in
   // question is a worker in a colony, as can happen if we are
   // attacking an undefended colony.
@@ -1014,7 +1014,7 @@ waitable<> landview_ensure_visible( UnitId id ) {
   return landview_ensure_visible( coord );
 }
 
-waitable<LandViewPlayerInput_t> landview_get_next_input(
+wait<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id ) {
   // When we start on a new unit clear the input queue so that
   // commands that were accidentally buffered while controlling
@@ -1045,14 +1045,14 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
                                      animate_blink( id ) );
 }
 
-waitable<LandViewPlayerInput_t> landview_eot_get_next_input() {
+wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
   SG().last_unit_input = nothing;
   SG().landview_state  = LandViewState::none{};
   return next_player_input_object();
 }
 
-waitable<> landview_animate_move( UnitId      id,
-                                  e_direction direction ) {
+wait<> landview_animate_move( UnitId      id,
+                              e_direction direction ) {
   // Ensure that both src and dst squares are visible.
   Coord src = coord_for_unit_indirect_or_die( id );
   Coord dst = src.moved( direction );
@@ -1065,10 +1065,9 @@ waitable<> landview_animate_move( UnitId      id,
   co_await animate_slide( id, direction );
 }
 
-waitable<> landview_animate_attack( UnitId attacker,
-                                    UnitId defender,
-                                    bool   attacker_wins,
-                                    e_depixelate_anim dp_anim ) {
+wait<> landview_animate_attack( UnitId attacker, UnitId defender,
+                                bool              attacker_wins,
+                                e_depixelate_anim dp_anim ) {
   co_await landview_ensure_visible( defender );
   co_await landview_ensure_visible( attacker );
   auto new_state = LandViewState::unit_attack{
@@ -1093,9 +1092,9 @@ waitable<> landview_animate_attack( UnitId attacker,
 // FIXME: Would be nice to make this animation a bit more sophis-
 // ticated, but we first need to fix the animation framework in
 // this module to be more flexible.
-waitable<> landview_animate_colony_capture(
-    UnitId attacker_id, UnitId defender_id,
-    ColonyId colony_id ) {
+wait<> landview_animate_colony_capture( UnitId   attacker_id,
+                                        UnitId   defender_id,
+                                        ColonyId colony_id ) {
   co_await landview_animate_attack( attacker_id, defender_id,
                                     /*attacker_wins=*/true,
                                     e_depixelate_anim::death );

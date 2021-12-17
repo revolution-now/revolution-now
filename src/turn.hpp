@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // C++ standard library
 #include <exception>
@@ -23,6 +23,6 @@ namespace rn {
 struct game_quit_interrupt : std::exception {};
 struct game_load_interrupt : std::exception {};
 
-waitable<> next_turn();
+wait<> next_turn();
 
 } // namespace rn

@@ -618,17 +618,17 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord ) {
   center_on_tile_y( coord );
 }
 
-waitable<> SmoothViewport::ensure_tile_visible_smooth(
+wait<> SmoothViewport::ensure_tile_visible_smooth(
     Coord const& coord ) {
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) )
-    return make_waitable<>();
+    return make_wait<>();
   smooth_center_ = SmoothCenter{
       .x_target = XD{ double( ( coord.x * g_tile_width )._ ) },
       .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
       .tile_target = coord,
       .promise     = {} };
-  return smooth_center_->promise.waitable();
+  return smooth_center_->promise.wait();
 }
 
 } // namespace rn

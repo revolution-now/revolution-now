@@ -13,7 +13,7 @@
 // Under test.
 #include "src/co-combinator.hpp"
 #include "src/co-scheduler.hpp"
-#include "src/co-waitable.hpp"
+#include "src/co-wait.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -36,12 +36,12 @@ using Catch::Contains;
 using Catch::Equals;
 
 TEST_CASE( "[co-combinator] any" ) {
-  waitable_promise<> p1, p2;
-  auto f1 = [p1]() -> waitable<> { co_await p1.waitable(); };
-  auto f2 = [p2]() -> waitable<> { co_await p2.waitable(); };
-  waitable<> w1 = f1();
-  waitable<> w2 = f2();
-  waitable<> w  = any( f1(), f2() );
+  wait_promise<> p1, p2;
+  auto           f1 = [p1]() -> wait<> { co_await p1.wait(); };
+  auto           f2 = [p2]() -> wait<> { co_await p2.wait(); };
+  wait<>         w1 = f1();
+  wait<>         w2 = f2();
+  wait<>         w  = any( f1(), f2() );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.finish();
@@ -61,28 +61,27 @@ TEST_CASE( "[co-combinator] any" ) {
 }
 
 TEST_CASE( "[co-combinator] all" ) {
-  waitable_promise<> p1;
-  waitable_promise<> p2;
-  waitable_promise<> p3;
+  wait_promise<> p1;
+  wait_promise<> p2;
+  wait_promise<> p3;
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
-  waitable<> w1 = []( waitable_promise<> p ) -> waitable<> {
-    co_await p.waitable();
+  wait<> w1 = []( wait_promise<> p ) -> wait<> {
+    co_await p.wait();
   }( p1 );
-  waitable<> w2 = []( waitable_promise<> p ) -> waitable<> {
-    co_await p.waitable();
+  wait<> w2 = []( wait_promise<> p ) -> wait<> {
+    co_await p.wait();
   }( p2 );
-  waitable<> w3 = []( waitable_promise<> p ) -> waitable<> {
-    co_await p.waitable();
+  wait<> w3 = []( wait_promise<> p ) -> wait<> {
+    co_await p.wait();
   }( p3 );
   auto ss1 = w1.shared_state();
   auto ss2 = w2.shared_state();
   auto ss3 = w3.shared_state();
 
   // This is an "all" function.
-  waitable<> w = []( waitable<> w1, waitable<> w2,
-                     waitable<> w3 ) -> waitable<> {
+  wait<> w = []( wait<> w1, wait<> w2, wait<> w3 ) -> wait<> {
     co_await std::move( w1 );
     co_await std::move( w2 );
     co_await std::move( w3 );
@@ -150,16 +149,16 @@ TEST_CASE( "[co-combinator] all" ) {
 }
 
 TEST_CASE( "[co-combinator] first" ) {
-  waitable_promise<int>    p1;
-  waitable_promise<>       p2;
-  waitable_promise<string> p3;
+  wait_promise<int>    p1;
+  wait_promise<>       p2;
+  wait_promise<string> p3;
 
-  waitable<int>    w1 = p1.waitable();
-  waitable<>       w2 = p2.waitable();
-  waitable<string> w3 = p3.waitable();
+  wait<int>    w1 = p1.wait();
+  wait<>       w2 = p2.wait();
+  wait<string> w3 = p3.wait();
 
   SECTION( "w1 finishes first" ) {
-    waitable<base::variant<int, monostate, string>> w = first(
+    wait<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -170,7 +169,7 @@ TEST_CASE( "[co-combinator] first" ) {
     REQUIRE( w.get().get_if<int>() == 5 );
   }
   SECTION( "w2 finishes first" ) {
-    waitable<base::variant<int, monostate, string>> w = first(
+    wait<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -181,7 +180,7 @@ TEST_CASE( "[co-combinator] first" ) {
     REQUIRE( w.get().get_if<monostate>().has_value() );
   }
   SECTION( "w3 finishes first" ) {
-    waitable<base::variant<int, monostate, string>> w = first(
+    wait<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -192,7 +191,7 @@ TEST_CASE( "[co-combinator] first" ) {
     REQUIRE( w.get().get_if<string>() == "hello" );
   }
   SECTION( "both p1 and p3 finish (p1 first)" ) {
-    waitable<base::variant<int, monostate, string>> w = first(
+    wait<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -204,7 +203,7 @@ TEST_CASE( "[co-combinator] first" ) {
     REQUIRE( w.get().get_if<int>() == 5 );
   }
   SECTION( "both p1 and p3 finish (p3 first)" ) {
-    waitable<base::variant<int, monostate, string>> w = first(
+    wait<base::variant<int, monostate, string>> w = first(
         std::move( w1 ), std::move( w2 ), std::move( w3 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -218,24 +217,23 @@ TEST_CASE( "[co-combinator] first" ) {
 }
 
 TEST_CASE( "[co-combinator] background" ) {
-  waitable_promise<int> p1;
-  waitable_promise<>    p2;
+  wait_promise<int> p1;
+  wait_promise<>    p2;
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
-  waitable<int> w1 =
-      []( waitable_promise<int> p ) -> waitable<int> {
-    co_return co_await p.waitable();
+  wait<int> w1 = []( wait_promise<int> p ) -> wait<int> {
+    co_return co_await p.wait();
   }( p1 );
-  waitable<> w2 = []( waitable_promise<> p ) -> waitable<> {
-    co_await p.waitable();
+  wait<> w2 = []( wait_promise<> p ) -> wait<> {
+    co_await p.wait();
   }( p2 );
   auto ss1 = w1.shared_state();
   auto ss2 = w2.shared_state();
 
   SECTION( "w1 finishes first" ) {
     {
-      waitable<int> w =
+      wait<int> w =
           background( std::move( w1 ), std::move( w2 ) );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
@@ -256,8 +254,7 @@ TEST_CASE( "[co-combinator] background" ) {
     REQUIRE( !ss2->has_value() );
   }
   SECTION( "w2 finishes first, w1 does not finish" ) {
-    waitable<int> w =
-        background( std::move( w1 ), std::move( w2 ) );
+    wait<int> w = background( std::move( w1 ), std::move( w2 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
@@ -265,8 +262,7 @@ TEST_CASE( "[co-combinator] background" ) {
     REQUIRE( !w.ready() );
   }
   SECTION( "both (p1 first)" ) {
-    waitable<int> w =
-        background( std::move( w1 ), std::move( w2 ) );
+    wait<int> w = background( std::move( w1 ), std::move( w2 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
@@ -276,8 +272,7 @@ TEST_CASE( "[co-combinator] background" ) {
     REQUIRE( w.get() == 5 );
   }
   SECTION( "both (p2 first)" ) {
-    waitable<int> w =
-        background( std::move( w1 ), std::move( w2 ) );
+    wait<int> w = background( std::move( w1 ), std::move( w2 ) );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
     p2.finish();
@@ -289,9 +284,9 @@ TEST_CASE( "[co-combinator] background" ) {
 }
 
 TEST_CASE( "[co-combinator] latch" ) {
-  latch      l;
-  waitable<> w1 = l.waitable();
-  waitable<> w2 = l.waitable();
+  latch  l;
+  wait<> w1 = l.wait();
+  wait<> w2 = l.wait();
   REQUIRE( !w1.ready() );
   REQUIRE( !w2.ready() );
   l.set();
@@ -300,8 +295,8 @@ TEST_CASE( "[co-combinator] latch" ) {
   l.reset();
   REQUIRE( w1.ready() );
   REQUIRE( w2.ready() );
-  w1 = l.waitable();
-  w2 = l.waitable();
+  w1 = l.wait();
+  w2 = l.wait();
   REQUIRE( !w1.ready() );
   REQUIRE( !w2.ready() );
   l.set();
@@ -315,8 +310,8 @@ TEST_CASE( "[co-combinator] latch" ) {
 TEST_CASE( "[co-combinator] ticker" ) {
   ticker t;
   t.tick();
-  waitable<> w1 = t.wait();
-  waitable<> w2 = t.wait();
+  wait<> w1 = t.wait();
+  wait<> w2 = t.wait();
   REQUIRE( !w1.ready() );
   REQUIRE( !w2.ready() );
   t.tick();
@@ -336,7 +331,7 @@ TEST_CASE( "[co-combinator] ticker" ) {
 
 TEST_CASE( "[co-combinator] stream" ) {
   stream<int> s;
-  waitable    w = s.next();
+  wait        w = s.next();
   REQUIRE( !w.ready() );
   run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
@@ -376,7 +371,7 @@ TEST_CASE( "[co-combinator] stream" ) {
 
 TEST_CASE( "[co-combinator] finite_stream" ) {
   finite_stream<int> s;
-  waitable           w = s.next();
+  wait               w = s.next();
   REQUIRE( !w.ready() );
   run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
@@ -427,14 +422,14 @@ TEST_CASE( "[co-combinator] finite_stream" ) {
   REQUIRE( w.get() == nothing );
 }
 
-waitable<int> some_coroutine( waitable<int>&& w ) {
+wait<int> some_coroutine( wait<int>&& w ) {
   co_return co_await std::move( w );
 }
 
 TEST_CASE( "[co-combinator] detect_suspend" ) {
-  waitable_promise<int> p1, p2;
-  waitable<int>         w1 = p1.waitable();
-  waitable<int>         w2 = p2.waitable();
+  wait_promise<int> p1, p2;
+  wait<int>         w1 = p1.wait();
+  wait<int>         w2 = p2.wait();
   p1.set_value( 5 );
 
   auto should_not_suspend =
@@ -459,18 +454,18 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   REQUIRE( rws2.suspended == true );
 }
 
-TEST_CASE( "[waitable] simple exception chained" ) {
-  waitable_promise<> p1;
-  waitable<>         w1 = p1.waitable();
+TEST_CASE( "[wait] simple exception chained" ) {
+  wait_promise<> p1;
+  wait<>         w1 = p1.wait();
   REQUIRE( !w1.ready() );
 
-  waitable_promise<> p2;
+  wait_promise<> p2;
   disjunctive_link_to_promise( w1, p2 );
-  waitable<> w2 = p2.waitable();
+  wait<> w2 = p2.wait();
 
-  waitable_promise<> p3;
+  wait_promise<> p3;
   disjunctive_link_to_promise( w2, p3 );
-  waitable<> w3 = p3.waitable();
+  wait<> w3 = p3.wait();
 
   SECTION( "no exception" ) {
     REQUIRE( !w3.ready() );
@@ -509,11 +504,10 @@ TEST_CASE( "[waitable] simple exception chained" ) {
 }
 
 TEST_CASE( "[co-combinator] exception with any" ) {
-  waitable_promise<> p1;
-  waitable_promise<> p2;
-  waitable_promise<> p3;
-  waitable<>         w =
-      co::any( p1.waitable(), p2.waitable(), p3.waitable() );
+  wait_promise<> p1;
+  wait_promise<> p2;
+  wait_promise<> p3;
+  wait<>         w = co::any( p1.wait(), p2.wait(), p3.wait() );
   REQUIRE( !w.ready() );
   REQUIRE( !w.has_exception() );
 
@@ -535,51 +529,51 @@ TEST_CASE( "[co-combinator] exception with any" ) {
 }
 
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
-waitable_promise<> get_int1_p;
-waitable_promise<> get_int2_p;
-stream<int>        int_stream;
-string             places;
+wait_promise<> get_int1_p;
+wait_promise<> get_int2_p;
+stream<int>    int_stream;
+string         places;
 
 #  define LOG_PLACES( a, A ) \
     places += a;             \
     SCOPE_EXIT( places += A );
 
-waitable<int> get_int_from_stream() {
+wait<int> get_int_from_stream() {
   LOG_PLACES( 'a', 'A' );
   int n = co_await int_stream.next();
   LOG_PLACES( 'b', 'B' );
   co_return n;
 }
 
-waitable<int> get_int1() {
+wait<int> get_int1() {
   get_int1_p = {};
   LOG_PLACES( 'c', 'C' );
-  co_await get_int1_p.waitable();
+  co_await get_int1_p.wait();
   LOG_PLACES( 'd', 'D' );
   throw runtime_error( "test-failed" );
   LOG_PLACES( 'e', 'E' );
   co_return 5;
 }
 
-waitable<> get_int2() {
+wait<> get_int2() {
   LOG_PLACES( 'f', 'F' );
-  co_await co::loop( []() -> waitable<> {
+  co_await co::loop( []() -> wait<> {
     get_int2_p = {};
     LOG_PLACES( 'g', 'G' );
-    co_await get_int2_p.waitable();
+    co_await get_int2_p.wait();
     LOG_PLACES( 'x', 'X' );
   } );
   LOG_PLACES( 'h', 'H' );
 }
 
-waitable<double> get_int3() {
+wait<double> get_int3() {
   LOG_PLACES( 'i', 'I' );
   co_await get_int_from_stream();
   LOG_PLACES( 'j', 'J' );
   co_return 6.6;
 }
 
-waitable<int> get_int_from_some_combinators() {
+wait<int> get_int_from_some_combinators() {
   LOG_PLACES( 'k', 'K' );
   // Do these out of line so that we can control the precise or-
   // der, so that the test is deterministic.
@@ -597,10 +591,10 @@ waitable<int> get_int_from_some_combinators() {
 TEST_CASE(
     "[co-combinator] exception with various combinators" ) {
   places.clear();
-  get_int1_p      = {};
-  get_int2_p      = {};
-  int_stream      = {};
-  waitable<int> w = get_int_from_some_combinators();
+  get_int1_p  = {};
+  get_int2_p  = {};
+  int_stream  = {};
+  wait<int> w = get_int_from_some_combinators();
   REQUIRE( places == "kcfgia" );
 
   SECTION( "sanity check - run to completion" ) {
@@ -719,13 +713,12 @@ TEST_CASE(
 }
 #endif
 
-waitable_promise<int> wp;
+wait_promise<int> wp;
 
-waitable<int> throwing_coro( bool should_throw,
-                             bool throw_eager ) {
+wait<int> throwing_coro( bool should_throw, bool throw_eager ) {
   if( should_throw && throw_eager )
     throw runtime_error( "first" );
-  int n = co_await wp.waitable();
+  int n = co_await wp.wait();
   if( should_throw ) throw runtime_error( "second" );
   co_return n;
 }
@@ -738,7 +731,7 @@ TEST_CASE( "[co-combinator] try" ) {
   };
 
   SECTION( "eager throw" ) {
-    waitable<maybe<int>> w = co::try_<runtime_error>(
+    wait<maybe<int>> w = co::try_<runtime_error>(
         LC0( throwing_coro( true, true ) ), catcher );
     REQUIRE( what == "first" );
     REQUIRE( w.ready() );
@@ -752,7 +745,7 @@ TEST_CASE( "[co-combinator] try" ) {
     REQUIRE( w.get() == nothing );
   }
   SECTION( "lazy throw" ) {
-    waitable<maybe<int>> w = co::try_<runtime_error>(
+    wait<maybe<int>> w = co::try_<runtime_error>(
         LC0( throwing_coro( true, false ) ), catcher );
     REQUIRE( what == "" );
     run_all_cpp_coroutines();
@@ -767,7 +760,7 @@ TEST_CASE( "[co-combinator] try" ) {
     REQUIRE( w.get() == nothing );
   }
   SECTION( "no throw" ) {
-    waitable<maybe<int>> w = co::try_<runtime_error>(
+    wait<maybe<int>> w = co::try_<runtime_error>(
         L0( throwing_coro( false, false ) ), catcher );
     REQUIRE( what == "" );
     run_all_cpp_coroutines();
@@ -784,15 +777,14 @@ TEST_CASE( "[co-combinator] try" ) {
 }
 
 #if !defined( CORO_TEST_DISABLE_FOR_GCC )
-waitable<int> wait_on_stream( co::stream<int>& s ) {
+wait<int> wait_on_stream( co::stream<int>& s ) {
   int n = co_await s.next(); // #1
   int m = co_await s.next(); // #2
   int o = co_await s.next(); // #3
   co_return n + m + o;
 }
 
-waitable<int> wait_on_finite_stream(
-    co::finite_stream<int>& s ) {
+wait<int> wait_on_finite_stream( co::finite_stream<int>& s ) {
   maybe<int> n = co_await s.next(); // #1
   REQUIRE( n.has_value() );
   maybe<int> m = co_await s.next(); // #2
@@ -817,7 +809,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
   SECTION( "stream" ) {
     co::stream<int> s;
     {
-      waitable<int> w = wait_on_stream( s );
+      wait<int> w = wait_on_stream( s );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       s.send( kFirst );
@@ -832,7 +824,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
       REQUIRE( !w.ready() );
     }
     // w has now been cancelled.
-    waitable<int> w = wait_on_stream( s );
+    wait<int> w = wait_on_stream( s );
     REQUIRE( !w.ready() );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -846,7 +838,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
   SECTION( "finite_stream" ) {
     co::finite_stream<int> s;
     {
-      waitable<int> w = wait_on_finite_stream( s );
+      wait<int> w = wait_on_finite_stream( s );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       s.send( kFirst );
@@ -861,7 +853,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
       REQUIRE( !w.ready() );
     }
     // w has now been cancelled.
-    waitable<int> w = wait_on_finite_stream( s );
+    wait<int> w = wait_on_finite_stream( s );
     REQUIRE( !w.ready() );
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
@@ -875,7 +867,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     // Now let's end the finite stream while someone is waiting
     // on it, then cancel it, and make sure it is still ended.
     {
-      waitable<maybe<int>> w = s.next();
+      wait<maybe<int>> w = s.next();
       REQUIRE( !w.ready() );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
@@ -883,11 +875,11 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
       REQUIRE( !w.ready() );
       // w gets cancelled now.
     }
-    waitable<maybe<int>> w2 = s.next();
+    wait<maybe<int>> w2 = s.next();
     REQUIRE( w2.ready() );
     REQUIRE( *w2 == nothing );
 
-    waitable<maybe<int>> w3 = s.next();
+    wait<maybe<int>> w3 = s.next();
     REQUIRE( w3.ready() );
     REQUIRE( *w3 == nothing );
   }
@@ -908,7 +900,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     for( int i = 6; i < 9; ++i ) s3.send( i );
 
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       found.push_back( std::visit( L( _ ), *w ) );
@@ -923,7 +915,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 
     for( int i = 3; i < 6; ++i ) s1.send( i );
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 0 );
@@ -932,7 +924,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 
     for( int i = 0; i < 3; ++i ) s2.send( i );
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 1 );
@@ -941,7 +933,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 
     for( int i = 6; i < 9; ++i ) s3.send( i );
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 2 );
@@ -961,7 +953,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     s3.send( 6 );
     idx = 0;
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
@@ -973,7 +965,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     s3.send( 7 );
     idx = 0;
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
@@ -985,7 +977,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
     s3.send( 8 );
     idx = 0;
     while( true ) {
-      waitable<base::variant<int, int, int>> w = il.next();
+      wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
@@ -1009,7 +1001,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s2.send( 0 );
       s3.send( 6 );
       while( true ) {
-        waitable<base::variant<int, int, int>> w = il.next();
+        wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
@@ -1022,7 +1014,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s2.send( 1 );
       s3.send( 7 );
       while( true ) {
-        waitable<base::variant<int, int, int>> w = il.next();
+        wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
@@ -1035,7 +1027,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       s2.send( 2 );
       s3.send( 8 );
       while( true ) {
-        waitable<base::variant<int, int, int>> w = il.next();
+        wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
         found.push_back( std::visit( L( _ ), *w ) );
@@ -1061,7 +1053,7 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
   for( string s = "x"; s.size() < 4; s += "x" ) s3.send( s );
 
   while( true ) {
-    waitable<base::variant<int, double, string>> w = il.next();
+    wait<base::variant<int, double, string>> w = il.next();
     run_all_cpp_coroutines();
     if( !w.ready() ) break;
     found.push_back( *w );
@@ -1075,11 +1067,11 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
 }
 
 TEST_CASE( "[co-combinator] one shot stream adapter" ) {
-  waitable_promise<int> p;
-  auto shot = co::make_streamable( p.waitable() );
+  wait_promise<int> p;
+  auto              shot = co::make_streamable( p.wait() );
   run_all_cpp_coroutines();
 
-  waitable<int> w1 = shot.next();
+  wait<int> w1 = shot.next();
   run_all_cpp_coroutines();
   REQUIRE( !w1.ready() );
   p.set_value( 5 );
@@ -1087,27 +1079,27 @@ TEST_CASE( "[co-combinator] one shot stream adapter" ) {
   REQUIRE( w1.ready() );
   REQUIRE( *w1 == 5 );
 
-  waitable<int> w2 = shot.next();
+  wait<int> w2 = shot.next();
   run_all_cpp_coroutines();
   REQUIRE( !w2.ready() );
 }
 
 TEST_CASE(
-    "[co-combinator] interleave with waitables via stream "
+    "[co-combinator] interleave with waits via stream "
     "adapter" ) {
-  waitable_promise<int> p1;
-  waitable_promise<int> p2;
+  wait_promise<int> p1;
+  wait_promise<int> p2;
 
   // Convert the waitbales into things that have a Streamable in-
   // terface.
-  auto shot1 = co::make_streamable( p1.waitable() );
-  auto shot2 = co::make_streamable( p2.waitable() );
+  auto shot1 = co::make_streamable( p1.wait() );
+  auto shot2 = co::make_streamable( p2.wait() );
 
   co::interleave il( shot1, shot2 );
 
   SECTION( "send both first" ) {
     {
-      waitable<base::variant<int, int>> w = il.next();
+      wait<base::variant<int, int>> w = il.next();
       REQUIRE( !w.ready() );
       p2.set_value( 5 );
       p1.set_value( 6 );
@@ -1117,7 +1109,7 @@ TEST_CASE(
       REQUIRE( get<1>( *w ) == 5 );
     }
     {
-      waitable<base::variant<int, int>> w = il.next();
+      wait<base::variant<int, int>> w = il.next();
       run_all_cpp_coroutines();
       REQUIRE( w.ready() );
       REQUIRE( w->index() == 0 );
@@ -1126,7 +1118,7 @@ TEST_CASE(
   }
   SECTION( "send one at a time" ) {
     {
-      waitable<base::variant<int, int>> w = il.next();
+      wait<base::variant<int, int>> w = il.next();
       REQUIRE( !w.ready() );
       p2.set_value( 5 );
       run_all_cpp_coroutines();
@@ -1135,7 +1127,7 @@ TEST_CASE(
       REQUIRE( get<1>( *w ) == 5 );
     }
     {
-      waitable<base::variant<int, int>> w = il.next();
+      wait<base::variant<int, int>> w = il.next();
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       p1.set_value( 6 );
@@ -1144,10 +1136,10 @@ TEST_CASE(
       REQUIRE( w->index() == 0 );
       REQUIRE( get<0>( *w ) == 6 );
     }
-    // Now we've exhausted the two waitables so we should not
+    // Now we've exhausted the two waits so we should not
     // have anything further.
     {
-      waitable<base::variant<int, int>> w = il.next();
+      wait<base::variant<int, int>> w = il.next();
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
     }
@@ -1155,15 +1147,15 @@ TEST_CASE(
 }
 
 TEST_CASE( "[co-combinator] repeater" ) {
-  waitable_promise<int> p;
+  wait_promise<int> p;
 
   co::repeater r( [&] {
     p = {};
-    return p.waitable();
+    return p.wait();
   } );
 
   for( int i = 0; i < 10; ++i ) {
-    waitable<int> w = r.next();
+    wait<int> w = r.next();
     REQUIRE( !w.ready() );
     p.set_value( i );
     run_all_cpp_coroutines();
@@ -1173,10 +1165,10 @@ TEST_CASE( "[co-combinator] repeater" ) {
 }
 
 TEST_CASE( "[co-combinator] fmap" ) {
-  waitable_promise<int> p;
+  wait_promise<int> p;
 
-  waitable<string> w =
-      co::fmap( L( to_string( _ ) + '.' ), p.waitable() );
+  wait<string> w =
+      co::fmap( L( to_string( _ ) + '.' ), p.wait() );
 
   REQUIRE( !w.ready() );
   p.set_value( 5 );

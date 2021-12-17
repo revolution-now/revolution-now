@@ -15,7 +15,7 @@
 #include "core-config.hpp"
 #include "frame-count.hpp"
 #include "moving-avg.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -23,8 +23,8 @@
 
 namespace rn {
 
-// Will spin until the waitable is ready.
-void frame_loop( waitable<> const& what );
+// Will spin until the wait is ready.
+void frame_loop( wait<> const& what );
 
 double avg_frame_rate();
 
@@ -43,16 +43,16 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc,
                               std::chrono::microseconds n,
                               bool repeating = true );
 
-// The returned waitable becomes ready after `n` frames have
+// The returned wait becomes ready after `n` frames have
 // passed. Note: instead of co_await'ing this directly, you can
 // do: co_await 5_frames.
-waitable<> wait_n_frames( FrameCount n );
-// The returned waitable becomes ready after the given duration
+wait<> wait_n_frames( FrameCount n );
+// The returned wait becomes ready after the given duration
 // has passed, and it returns the actual duration that has
 // passed. This is useful if co_await'ing on small time intervals
 // and the frame rate is low. Note: instead of co_await'ing this
 // directly, you can do: co_await 2s.
-waitable<std::chrono::microseconds> wait_for_duration(
+wait<std::chrono::microseconds> wait_for_duration(
     std::chrono::microseconds us );
 
 using EventCountMap =

@@ -1,19 +1,19 @@
 /****************************************************************
-**waitable.cpp
+**wait.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-12-08.
 *
-* Description: Unit tests for the waitable module.
+* Description: Unit tests for the wait module.
 *
 *****************************************************************/
 #include "testing.hpp"
 
 // Revolution Now
 #include "co-scheduler.hpp"
-#include "co-waitable.hpp"
-#include "waitable.hpp"
+#include "co-wait.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/scope-exit.hpp"
@@ -24,8 +24,8 @@
 // C++ standard library
 #include <queue>
 
-FMT_TO_CATCH_T( ( T ), ::rn::waitable );
-FMT_TO_CATCH_T( ( T ), ::rn::waitable_promise );
+FMT_TO_CATCH_T( ( T ), ::rn::wait );
+FMT_TO_CATCH_T( ( T ), ::rn::wait_promise );
 
 namespace rn {
 namespace {
@@ -35,13 +35,13 @@ using namespace rn;
 
 using ::Catch::Equals;
 
-// Unit test for waitable's default template parameter.
-static_assert( is_same_v<waitable<>, waitable<monostate>> );
+// Unit test for wait's default template parameter.
+static_assert( is_same_v<wait<>, wait<monostate>> );
 
-TEST_CASE( "[waitable] future api basic" ) {
-  auto ss = make_shared<detail::waitable_shared_state<int>>();
+TEST_CASE( "[wait] future api basic" ) {
+  auto ss = make_shared<detail::wait_shared_state<int>>();
 
-  waitable<int> s_future( ss );
+  wait<int> s_future( ss );
 
   REQUIRE( !s_future.ready() );
 
@@ -50,11 +50,11 @@ TEST_CASE( "[waitable] future api basic" ) {
   REQUIRE( s_future.get() == 3 );
 }
 
-TEST_CASE( "[waitable] promise api basic api" ) {
-  waitable_promise<int> s_promise;
+TEST_CASE( "[wait] promise api basic api" ) {
+  wait_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );
 
-  waitable<int> s_future = s_promise.waitable();
+  wait<int> s_future = s_promise.wait();
   REQUIRE( !s_future.ready() );
 
   s_promise.set_value( 3 );
@@ -64,11 +64,11 @@ TEST_CASE( "[waitable] promise api basic api" ) {
   REQUIRE( s_future.get() == 3 );
 }
 
-TEST_CASE( "[waitable] formatting" ) {
-  waitable_promise<int> s_promise;
+TEST_CASE( "[wait] formatting" ) {
+  wait_promise<int> s_promise;
   REQUIRE( fmt::format( "{}", s_promise ) == "<empty>" );
 
-  waitable<int> s_future = s_promise.waitable();
+  wait<int> s_future = s_promise.wait();
   REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
 
   s_promise.set_value_if_not_set( 3 );
@@ -94,7 +94,7 @@ struct LogDestruction {
 ** Coroutines
 *****************************************************************/
 template<typename T>
-using w_coro_promise = waitable_promise<T>;
+using w_coro_promise = wait_promise<T>;
 
 queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
     g_promises;
@@ -114,28 +114,28 @@ void deliver_promise() {
   }
 }
 
-waitable<int> waitable_int() {
+wait<int> wait_int() {
   w_coro_promise<int> p;
   g_promises.emplace( p );
-  return p.waitable();
+  return p.wait();
 }
 
-waitable<double> waitable_double() {
+wait<double> wait_double() {
   w_coro_promise<double> p;
   g_promises.emplace( p );
-  return p.waitable();
+  return p.wait();
 }
 
-waitable<int> waitable_sum() {
-  co_return                     //
-      co_await waitable_int() + //
-      co_await waitable_int() + //
-      co_await waitable_int();
+wait<int> wait_sum() {
+  co_return                 //
+      co_await wait_int() + //
+      co_await wait_int() + //
+      co_await wait_int();
 }
 
 template<typename Func, typename... Args>
 auto co_invoke( Func&& func, Args... args )
-    -> waitable<decltype( std::forward<Func>( func )(
+    -> wait<decltype( std::forward<Func>( func )(
         std::declval<typename Args::value_type>()... ) )> {
   co_return std::forward<Func>( func )(
       ( co_await std::move( args ) )... );
@@ -152,20 +152,20 @@ struct co_lift {
   }
 };
 
-waitable<string> waitable_string() {
-  int    n = co_await waitable_sum();
-  double d = co_await waitable_double();
+wait<string> wait_string() {
+  int    n = co_await wait_sum();
+  double d = co_await wait_double();
 
-  int m = co_await waitable_sum();
+  int m = co_await wait_sum();
   for( int i = 0; i < m; ++i ) //
-    d += co_await waitable_double();
+    d += co_await wait_double();
 
-  int sum = co_await co_lift{ std::plus<>{} }( waitable_sum(),
-                                               waitable_sum() );
+  int sum = co_await co_lift{ std::plus<>{} }( wait_sum(),
+                                               wait_sum() );
 
-  auto f = [&]() -> waitable<int> {
-    int res = co_await waitable_sum() *
-              int( co_await waitable_double() );
+  auto f = [&]() -> wait<int> {
+    int res =
+        co_await wait_sum() * int( co_await wait_double() );
     co_return res;
   };
   int z = co_await f() + sum;
@@ -174,9 +174,9 @@ waitable<string> waitable_string() {
       to_string( d );
 }
 
-TEST_CASE( "[waitable] coro" ) {
-  waitable<string> ws = waitable_string();
-  int              i  = 0;
+TEST_CASE( "[wait] coro" ) {
+  wait<string> ws = wait_string();
+  int          i  = 0;
   while( !ws.ready() ) {
     ++i;
     deliver_promise();
@@ -202,29 +202,29 @@ void log_str( string const& s ) {
   string_log.push_back( "run: " + s );
 }
 
-waitable_promise<string> p;
-waitable_promise<int>    p0;
-waitable_promise<int>    p1;
+wait_promise<string> p;
+wait_promise<int>    p0;
+wait_promise<int>    p1;
 
-waitable<string> coro() {
+wait<string> coro() {
   LogDestructionStr lds( "coro" );
   log_str( "coro" );
-  return p.waitable();
+  return p.wait();
 }
 
-waitable<int> coro0() {
+wait<int> coro0() {
   LogDestructionStr lds( "coro0" );
   log_str( "coro0" );
-  return p0.waitable();
+  return p0.wait();
 }
 
-waitable<int> coro1() {
+wait<int> coro1() {
   LogDestructionStr lds( "coro1" );
   log_str( "coro1" );
-  return p1.waitable();
+  return p1.wait();
 }
 
-waitable<string> coro2() {
+wait<string> coro2() {
   int n;
   {
     LogDestructionStr lds( "coro2-1" );
@@ -239,7 +239,7 @@ waitable<string> coro2() {
   co_return res;
 }
 
-waitable<string> coro3() {
+wait<string> coro3() {
   LogDestructionStr lds1( "coro3-1" );
   log_str( "coro3-1" );
   string            s = co_await coro2();
@@ -251,13 +251,13 @@ waitable<string> coro3() {
   co_return s + ".";
 }
 
-TEST_CASE( "[waitable] coro cancel" ) {
+TEST_CASE( "[wait] coro cancel" ) {
   p  = {};
   p0 = {};
   p1 = {};
   string_log.clear();
 
-  waitable<string> ws = coro3();
+  wait<string> ws = coro3();
 
   SECTION( "no cancel" ) {
     REQUIRE( !ws.ready() );
@@ -281,7 +281,7 @@ TEST_CASE( "[waitable] coro cancel" ) {
     run_all_cpp_coroutines();
     REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( ws.ready() );
-    // Cancelling a ready waitable should do nothing.
+    // Cancelling a ready wait should do nothing.
     ws.cancel();
     REQUIRE( number_of_queued_cpp_coroutines() == 0 );
     REQUIRE( ws.ready() );
@@ -492,7 +492,7 @@ TEST_CASE( "[waitable] coro cancel" ) {
   }
 }
 
-TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
+TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
   p  = {};
   p0 = {};
   p1 = {};
@@ -500,7 +500,7 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
 
   SECTION( "cancel coro with scheduled" ) {
     {
-      waitable<string> ws = coro3();
+      wait<string> ws = coro3();
 
       REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
@@ -546,7 +546,7 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
   }
   SECTION( "cancel coro no scheduled" ) {
     {
-      waitable<string> ws = coro3();
+      wait<string> ws = coro3();
 
       REQUIRE( number_of_queued_cpp_coroutines() == 0 );
       REQUIRE( !ws.ready() );
@@ -607,26 +607,26 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
   }
 }
 
-TEST_CASE( "[waitable] simple exception" ) {
-  waitable_promise<> p;
-  waitable<>         w = p.waitable();
+TEST_CASE( "[wait] simple exception" ) {
+  wait_promise<> p;
+  wait<>         w = p.wait();
 
   REQUIRE( !w.ready() );
   p.set_exception( runtime_error( "test" ) );
   REQUIRE( !w.ready() );
 }
 
-waitable<> throws_eagerly_from_non_coro() {
-  // This is not a coroutine (even though it returns a waitable),
+wait<> throws_eagerly_from_non_coro() {
+  // This is not a coroutine (even though it returns a wait),
   // and so the following exception will just fly out.
   throw runtime_error( "eager exception" );
 }
 
-waitable<> doomed_awaiter_on_non_coro() {
+wait<> doomed_awaiter_on_non_coro() {
   co_await throws_eagerly_from_non_coro();
 }
 
-waitable<> throws_eagerly_from_coro() {
+wait<> throws_eagerly_from_coro() {
   // This is a coroutine (because we have a co_return in it),
   // which changes how it will handle the below exception (it
   // will catch it instead of letting it fly).
@@ -634,26 +634,26 @@ waitable<> throws_eagerly_from_coro() {
   co_return;
 }
 
-waitable<> doomed_awaiter_on_coro() {
+wait<> doomed_awaiter_on_coro() {
   co_await throws_eagerly_from_coro();
 }
 
-TEST_CASE( "[waitable] eager co_await'd exception" ) {
-  waitable<> w2 = doomed_awaiter_on_non_coro();
+TEST_CASE( "[wait] eager co_await'd exception" ) {
+  wait<> w2 = doomed_awaiter_on_non_coro();
   REQUIRE( w2.has_exception() );
   REQUIRE( !w2.ready() );
 
-  waitable<> w1 = doomed_awaiter_on_coro();
+  wait<> w1 = doomed_awaiter_on_coro();
   REQUIRE( w1.has_exception() );
   REQUIRE( !w1.ready() );
 }
 
-waitable_promise<> exception_p0;
-waitable_promise<> exception_p1;
-waitable_promise<> exception_p2;
-string             places;
+wait_promise<> exception_p0;
+wait_promise<> exception_p1;
+wait_promise<> exception_p2;
+string         places;
 
-waitable<> exception_coro_early_level_2() {
+wait<> exception_coro_early_level_2() {
   places += 'c';
   SCOPE_EXIT( places += 'C' );
   throw runtime_error( "test" );
@@ -661,29 +661,29 @@ waitable<> exception_coro_early_level_2() {
   SCOPE_EXIT( places += 'D' );
 }
 
-waitable<> exception_coro_early_level_1() {
+wait<> exception_coro_early_level_1() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
-  waitable<> w = exception_coro_early_level_2();
+  wait<> w = exception_coro_early_level_2();
   REQUIRE( w.has_exception() );
   co_await std::move( w );
   places += 'b';
   SCOPE_EXIT( places += 'B' );
 }
 
-TEST_CASE( "[waitable] exception coro early two_levels" ) {
+TEST_CASE( "[wait] exception coro early two_levels" ) {
   places.clear();
 
-  waitable<> w = exception_coro_early_level_1();
+  wait<> w = exception_coro_early_level_1();
   REQUIRE( places == "acCA" );
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
 }
 
-waitable<> exception_coro_simple() {
+wait<> exception_coro_simple() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
-  co_await exception_p0.waitable();
+  co_await exception_p0.wait();
   places += 'b';
   SCOPE_EXIT( places += 'B' );
   throw runtime_error( "test" );
@@ -691,14 +691,14 @@ waitable<> exception_coro_simple() {
   SCOPE_EXIT( places += 'C' );
 }
 
-TEST_CASE( "[waitable] exception coro simple" ) {
+TEST_CASE( "[wait] exception coro simple" ) {
   places.clear();
   exception_p0 = {};
 
   SECTION( "forward cancellation" ) {
     // We don't really need to test this here because it's cov-
     // ered in other tests, but just do it anyway.
-    waitable<> w = exception_coro_simple();
+    wait<> w = exception_coro_simple();
     REQUIRE( places == "a" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -710,7 +710,7 @@ TEST_CASE( "[waitable] exception coro simple" ) {
   }
 
   SECTION( "exception (backward cancellation)" ) {
-    waitable<> w = exception_coro_simple();
+    wait<> w = exception_coro_simple();
     REQUIRE( places == "a" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -723,30 +723,30 @@ TEST_CASE( "[waitable] exception coro simple" ) {
   }
 }
 
-waitable<> exception_0() {
+wait<> exception_0() {
   exception_p0 = {};
   places += 'l';
   SCOPE_EXIT( places += 'L' );
-  co_await exception_p0.waitable();
+  co_await exception_p0.wait();
   places += 'm';
   SCOPE_EXIT( places += 'M' );
 }
 
-waitable<> exception_2() {
+wait<> exception_2() {
   places += 'h';
   SCOPE_EXIT( places += 'H' );
-  co_await exception_p1.waitable();
+  co_await exception_p1.wait();
   places += 'i';
   SCOPE_EXIT( places += 'I' );
   throw runtime_error( "test" );
   places += 'j';
   SCOPE_EXIT( places += 'J' );
-  co_await exception_p2.waitable();
+  co_await exception_p2.wait();
   places += 'k';
   SCOPE_EXIT( places += 'K' );
 }
 
-waitable<> exception_1() {
+wait<> exception_1() {
   places += 'e';
   SCOPE_EXIT( places += 'E' );
   co_await exception_0();
@@ -757,7 +757,7 @@ waitable<> exception_1() {
   SCOPE_EXIT( places += 'G' );
 }
 
-waitable<> exception_coro_complex() {
+wait<> exception_coro_complex() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
   co_await exception_0();
@@ -771,7 +771,7 @@ waitable<> exception_coro_complex() {
   SCOPE_EXIT( places += 'D' );
 }
 
-TEST_CASE( "[waitable] exception coro complex" ) {
+TEST_CASE( "[wait] exception coro complex" ) {
   places.clear();
   exception_p0 = {};
   exception_p1 = {};
@@ -780,7 +780,7 @@ TEST_CASE( "[waitable] exception coro complex" ) {
   SECTION( "cancelled, then exception via promise" ) {
     // We don't really need to test this here because it's cov-
     // ered in other tests, but just do it anyway.
-    waitable<> w = exception_coro_complex();
+    wait<> w = exception_coro_complex();
     REQUIRE( places == "al" );
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
@@ -837,7 +837,7 @@ TEST_CASE( "[waitable] exception coro complex" ) {
   }
 
   SECTION( "exception, then cancelled" ) {
-    waitable<> w = exception_coro_complex();
+    wait<> w = exception_coro_complex();
     REQUIRE( places == "al" );
     REQUIRE( !w.has_exception() );
 
@@ -870,7 +870,7 @@ TEST_CASE( "[waitable] exception coro complex" ) {
   }
 
   SECTION( "exception via promise, then cancelled" ) {
-    waitable<> w = exception_coro_complex();
+    wait<> w = exception_coro_complex();
     REQUIRE( places == "al" );
     REQUIRE( !w.has_exception() );
 

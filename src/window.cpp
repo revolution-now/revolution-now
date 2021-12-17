@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "auto-pad.hpp"
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "config-files.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
@@ -412,7 +412,7 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
                              Coord current ) {
   if( dragging_win_ == nullptr )
     // This can happen if the window is destroyed while dragging
-    // is in progress, which can happen if a waitable that owns
+    // is in progress, which can happen if a wait that owns
     // the window is cancelled.
     return;
   if( button == input::e_mouse_button::l ) {
@@ -580,11 +580,11 @@ template<typename ResultT>
   );
 }
 
-waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
-  waitable_promise<e_ok_cancel> p;
-  unique_ptr<Window>            win = ok_cancel_impl(
-                 msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
-  co_return co_await p.waitable();
+wait<e_ok_cancel> ok_cancel( std::string_view msg ) {
+  wait_promise<e_ok_cancel> p;
+  unique_ptr<Window>        win = ok_cancel_impl(
+             msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
+  co_return co_await p.wait();
 }
 
 namespace {
@@ -639,9 +639,9 @@ namespace {
 }
 } // namespace
 
-waitable<maybe<int>> int_input_box(
+wait<maybe<int>> int_input_box(
     IntInputBoxOptions const& options ) {
-  waitable_promise<maybe<int>> p;
+  wait_promise<maybe<int>> p;
 
   string initial_text =
       options.initial.has_value()
@@ -653,24 +653,24 @@ waitable<maybe<int>> int_input_box(
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
       } );
-  co_return co_await p.waitable();
+  co_return co_await p.wait();
 }
 
-waitable<maybe<string>> str_input_box(
-    string_view title, string_view msg,
-    string_view initial_text ) {
-  waitable_promise<maybe<string>> p;
-  unique_ptr<Window>              win = text_input_box(
-                   title, msg, initial_text, L( _.size() > 0 ),
-                   [p]( maybe<string> result ) { p.set_value( result ); } );
-  co_return co_await p.waitable();
+wait<maybe<string>> str_input_box( string_view title,
+                                   string_view msg,
+                                   string_view initial_text ) {
+  wait_promise<maybe<string>> p;
+  unique_ptr<Window>          win = text_input_box(
+               title, msg, initial_text, L( _.size() > 0 ),
+               [p]( maybe<string> result ) { p.set_value( result ); } );
+  co_return co_await p.wait();
 }
 
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-waitable<string> select_box( string_view    title,
-                             vector<string> options ) {
+wait<string> select_box( string_view    title,
+                         vector<string> options ) {
   lg.info( "question: \"{}\"", title );
   auto view = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
@@ -678,7 +678,7 @@ waitable<string> select_box( string_view    title,
 
   // p_selector->grow_to( win->inside_padding_rect().w );
 
-  waitable_promise<string> p;
+  wait_promise<string> p;
 
   auto on_result_prime = [=]( string const& result ) {
     lg.info( "selected: {}", result );
@@ -705,24 +705,24 @@ waitable<string> select_box( string_view    title,
 
   // Need to co_await instead of returning so that the window
   // stays alive while we wait.
-  co_return co_await p.waitable();
+  co_return co_await p.wait();
 }
 
-waitable<e_confirm> yes_no( std::string_view title ) {
+wait<e_confirm> yes_no( std::string_view title ) {
   return select_box_enum<e_confirm>( title );
 }
 
-waitable<> message_box_basic( string_view msg ) {
-  waitable_promise<> p;
+wait<> message_box_basic( string_view msg ) {
+  wait_promise<>     p;
   unique_ptr<Window> win = async_window_builder(
       /*title=*/"note",
       PlainMessageBoxView::create( string( msg ), p ) );
-  co_await p.waitable();
+  co_await p.wait();
 }
 
-waitable<vector<UnitSelection>> unit_selection_box(
+wait<vector<UnitSelection>> unit_selection_box(
     vector<UnitId> const& ids, bool allow_activation ) {
-  waitable_promise<vector<UnitSelection>> s_promise;
+  wait_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
       [s_promise]( maybe<UnitActivationView::map_t> result ) {
@@ -773,7 +773,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
       /*get_view_fun=*/get_view_fn //
   );
 
-  co_return co_await s_promise.waitable();
+  co_return co_await s_promise.wait();
 }
 
 /****************************************************************

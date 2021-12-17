@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // Rds
 #include "rds/main-menu.hpp"

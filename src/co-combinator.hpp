@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-01-24.
 *
-* Description: Combinators for waitables.
+* Description: Combinators for waits.
 *
 *****************************************************************/
 #pragma once
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "co-waitable.hpp"
+#include "co-wait.hpp"
 #include "error.hpp"
 #include "maybe.hpp"
 
@@ -33,18 +33,18 @@ namespace rn::co {
 ** Disjunctive Links
 *****************************************************************/
 // This is a specialized function for use in chaining together
-// waitables manually (meaning not through coroutines) in a
+// waits manually (meaning not through coroutines) in a
 // many-to-one, logically disjunctive manner, i.e. for situations
-// in which a single waitable needs to wait on any of multiple
-// other waitables. In other words, we want to detect when the
+// in which a single wait needs to wait on any of multiple
+// other waits. In other words, we want to detect when the
 // first of them finishes. It is mostly used in coroutine combi-
 // nators, you probably should not be using this outside of those
 // implementations.
 template<typename T, typename U>
-void disjunctive_link_to_promise( waitable<T>&        w,
-                                  waitable_promise<U> wp ) {
+void disjunctive_link_to_promise( wait<T>&        w,
+                                  wait_promise<U> wp ) {
   w.shared_state()->add_callback(
-      [wp]( typename waitable<T>::value_type const& o ) {
+      [wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
         // the first result available and ignoring the rest.
@@ -62,11 +62,11 @@ void disjunctive_link_to_promise( waitable<T>&        w,
 // variant using a specified index, although it will work for
 // variants with non-duplicate types as well.
 template<int Index, typename T, typename U>
-void disjunctive_link_to_variant_promise(
-    waitable<T>& w, waitable_promise<U> wp ) {
+void disjunctive_link_to_variant_promise( wait<T>&        w,
+                                          wait_promise<U> wp ) {
   static_assert( base::is_base_variant_v<U> );
   w.shared_state()->add_callback(
-      [wp]( typename waitable<T>::value_type const& o ) {
+      [wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
         // the first result available and ignoring the rest.
@@ -82,49 +82,46 @@ void disjunctive_link_to_variant_promise(
 /****************************************************************
 ** any
 *****************************************************************/
-// Returns a waitable that will be ready when (and as soon as)
-// the first waitable becomes ready. Since this function takes
-// ownership of all of the waitables, they will be gone when this
+// Returns a wait that will be ready when (and as soon as)
+// the first wait becomes ready. Since this function takes
+// ownership of all of the waits, they will be gone when this
 // function becomes ready, and thus any that are not ready will
 // be cancelled.
-waitable<> any( std::vector<waitable<>> ws );
+wait<> any( std::vector<wait<>> ws );
 
-waitable<> any( waitable<>&& w );
-waitable<> any( waitable<>&& w1, waitable<>&& w2 );
-waitable<> any( waitable<>&& w1, waitable<>&& w2,
-                waitable<>&& w3 );
+wait<> any( wait<>&& w );
+wait<> any( wait<>&& w1, wait<>&& w2 );
+wait<> any( wait<>&& w1, wait<>&& w2, wait<>&& w3 );
 
 /****************************************************************
 ** all
 *****************************************************************/
 // FIXME: add unit tests for this.
-waitable<> all( std::vector<waitable<>> ws );
+wait<> all( std::vector<wait<>> ws );
 
-waitable<> all( waitable<>&& w );
-waitable<> all( waitable<>&& w1, waitable<>&& w2 );
-waitable<> all( waitable<>&& w1, waitable<>&& w2,
-                waitable<>&& w3 );
+wait<> all( wait<>&& w );
+wait<> all( wait<>&& w1, wait<>&& w2 );
+wait<> all( wait<>&& w1, wait<>&& w2, wait<>&& w3 );
 
 /****************************************************************
 ** first
 *****************************************************************/
 struct First {
-  // Run the waitables ws in parallel, then return the result of
+  // Run the waits ws in parallel, then return the result of
   // the first one that finishes. NOTE: The values of any other
-  // waitables that become ready at the same time will be lost.
+  // waits that become ready at the same time will be lost.
   template<size_t... Idxs, typename... Ts>
-  waitable<base::variant<Ts...>> operator()(
-      std::index_sequence<Idxs...>, waitable<Ts>... ws ) const {
-    waitable_promise<base::variant<Ts...>> wp;
+  wait<base::variant<Ts...>> operator()(
+      std::index_sequence<Idxs...>, wait<Ts>... ws ) const {
+    wait_promise<base::variant<Ts...>> wp;
     ( disjunctive_link_to_variant_promise<Idxs>( ws, wp ), ... );
-    // !! Need to co_await instead of just returning the waitable
-    // because we need to keep the waitables alive.
-    co_return co_await wp.waitable();
+    // !! Need to co_await instead of just returning the wait
+    // because we need to keep the waits alive.
+    co_return co_await wp.wait();
   }
 
   template<typename... Ts>
-  waitable<base::variant<Ts...>> operator()(
-      waitable<Ts>... ws ) const {
+  wait<base::variant<Ts...>> operator()( wait<Ts>... ws ) const {
     return ( *this )(
         std::make_index_sequence<sizeof...( Ts )>(),
         std::move( ws )... );
@@ -137,7 +134,7 @@ inline constexpr First first{};
 ** background
 *****************************************************************/
 struct WithBackground {
-  // Run the waitable w in parallel with the background task,
+  // Run the wait w in parallel with the background task,
   // until w becomes ready, at which point return w's value. It
   // is inconsequential whether the background task finishes
   // early or not. If background is still running when w fin-
@@ -154,15 +151,14 @@ struct WithBackground {
   //      terminates, without the caller having to manage that.
   //
   template<typename T>
-  waitable<T> operator()( waitable<T> w,
-                          waitable<> /*background*/ ) const {
-    waitable_promise<T> wp;
+  wait<T> operator()( wait<T> w, wait<> /*background*/ ) const {
+    wait_promise<T> wp;
     // Need to do w first so that if both are ready already then
     // w will take precedence and return its value.
     disjunctive_link_to_promise( w, wp );
-    // !! Need to co_await instead of just returning the waitable
-    // because we need to keep the waitables alive.
-    co_return co_await wp.waitable();
+    // !! Need to co_await instead of just returning the wait
+    // because we need to keep the waits alive.
+    co_return co_await wp.wait();
   }
 };
 
@@ -173,10 +169,10 @@ inline constexpr WithBackground background{};
 *****************************************************************/
 struct Fmap {
   // Needs to take Func by value because it needs to keep it
-  // around until the waitable w is ready.
+  // around until the wait w is ready.
   template<typename Func, typename T>
-  auto operator()( Func f, waitable<T> w ) const
-      -> waitable<std::invoke_result_t<Func, T>> {
+  auto operator()( Func f, wait<T> w ) const
+      -> wait<std::invoke_result_t<Func, T>> {
     co_return f( co_await std::move( w ) );
   }
 };
@@ -194,7 +190,7 @@ struct Try {
   // gument is called with the exception object as an argument.
   //
   // Note: the reason that we take a function as the first argu-
-  // ment and not a waitable is because if we took a waitable
+  // ment and not a wait is because if we took a wait
   // then it would have to be created in the caller's frame,
   // which means that we wouldn't be able to catch exceptions
   // that happen before the first suspension point (since our
@@ -213,7 +209,7 @@ struct Try {
   // Take functions by value for lifetime reasons.
   template<typename TryFunc, typename CatchFunc>
   auto operator()( TryFunc body, CatchFunc catcher ) const
-      -> waitable<maybe<
+      -> wait<maybe<
           typename std::invoke_result_t<TryFunc>::value_type>> {
     using result_t = maybe<
         typename std::invoke_result_t<TryFunc>::value_type>;
@@ -243,10 +239,10 @@ inline constexpr Try<Exception> try_{};
 /****************************************************************
 ** Erase
 *****************************************************************/
-// Wait for a waitable but ignore the result.
+// Wait for a wait but ignore the result.
 struct Erase {
   template<typename T>
-  waitable<> operator()( waitable<T> w ) const {
+  wait<> operator()( wait<T> w ) const {
     (void)co_await std::move( w );
   }
 };
@@ -256,26 +252,25 @@ inline constexpr Erase erase{};
 /****************************************************************
 ** loop
 *****************************************************************/
-waitable<> loop(
-    base::unique_func<waitable<>() const> coroutine );
+wait<> loop( base::unique_func<wait<>() const> coroutine );
 
 /****************************************************************
 ** repeater
 *****************************************************************/
-// Given a function that produces a waitable, this object will
+// Given a function that produces a wait, this object will
 // take ownership of the function, then repeatedly call the func-
-// tion to obtain a waitable.
+// tion to obtain a wait.
 template<typename T>
 struct repeater {
   using value_type = T;
 
-  repeater( base::unique_func<waitable<T>() const> producer )
+  repeater( base::unique_func<wait<T>() const> producer )
     : producer_( std::move( producer ) ) {}
 
   // Implement the Streamable concept interface.
-  waitable<T> next() { return producer_(); }
+  wait<T> next() { return producer_(); }
 
-  base::unique_func<waitable<T>() const> producer_;
+  base::unique_func<wait<T>() const> producer_;
 };
 
 template<typename Func>
@@ -292,16 +287,16 @@ struct latch {
   void set() { p.set_value_emplace_if_not_set(); }
   void reset() { p = {}; }
 
-  auto waitable() const { return p.waitable(); }
+  auto wait() const { return p.wait(); }
 
   auto operator co_await() const noexcept {
     return detail::awaitable(
         static_cast<detail::promise_type<std::monostate>*>(
             nullptr ),
-        waitable() );
+        wait() );
   }
 
-  waitable_promise<> p;
+  wait_promise<> p;
 };
 
 /****************************************************************
@@ -318,10 +313,10 @@ struct ticker {
     p = {};
   }
 
-  waitable<> wait() const { return p.waitable(); }
+  wait<> wait() const { return p.wait(); }
 
  private:
-  waitable_promise<> p;
+  wait_promise<> p;
 };
 
 /****************************************************************
@@ -332,8 +327,8 @@ struct stream {
   using value_type = T;
 
   // Implement the Streamable concept interface.
-  waitable<T> next() {
-    T res = co_await p.waitable();
+  wait<T> next() {
+    T res = co_await p.wait();
     p     = {};
     update();
     co_return res;
@@ -376,8 +371,8 @@ struct stream {
     }
   }
 
-  waitable_promise<T> p;
-  std::queue<T>       q;
+  wait_promise<T> p;
+  std::queue<T>   q;
 };
 
 /****************************************************************
@@ -388,7 +383,7 @@ struct finite_stream {
   using value_type = maybe<T>;
 
   // Implement the Streamable concept interface.
-  waitable<value_type> next() {
+  wait<value_type> next() {
     if( ended ) co_return nothing;
     maybe<T> res = co_await s.next();
     if( !res ) {
@@ -414,9 +409,9 @@ struct finite_stream {
 };
 
 /****************************************************************
-** Adapter: waitable to streamable
+** Adapter: wait to streamable
 *****************************************************************/
-// This is an adapter that takes a waitable and makes it into
+// This is an adapter that takes a wait and makes it into
 // something streamable (implementing the Streamble concept).
 // However, the resulting "stream" will only produce one object,
 // so the resulting object is a kind of latch but that cannot be
@@ -425,21 +420,21 @@ template<typename T>
 struct one_shot_stream_adapter {
   using value_type = T;
 
-  one_shot_stream_adapter( waitable<T>&& w )
+  one_shot_stream_adapter( wait<T>&& w )
     : w_( std::move( w ) ) {}
 
   // Implement the Streamable concept interface.
-  waitable<T> next() {
+  wait<T> next() {
     if( retrieved_ )
-      // A waitable that will never be fulfilled.
-      return waitable_promise<T>().waitable();
+      // A wait that will never be fulfilled.
+      return wait_promise<T>().wait();
     retrieved_ = true;
     return std::move( w_ );
   }
 
  private:
-  waitable<T> w_;
-  bool        retrieved_ = false;
+  wait<T> w_;
+  bool    retrieved_ = false;
 };
 
 /****************************************************************
@@ -449,7 +444,7 @@ struct one_shot_stream_adapter {
 // them to have the streamable interface.
 
 template<typename T>
-auto make_streamable( waitable<T>&& w ) {
+auto make_streamable( wait<T>&& w ) {
   return one_shot_stream_adapter( std::move( w ) );
 }
 
@@ -459,7 +454,7 @@ auto make_streamable( waitable<T>&& w ) {
 template<typename T>
 concept Streamable = requires( T s ) {
   typename T::value_type;
-  { s.next() } -> std::same_as<waitable<typename T::value_type>>;
+  { s.next() } -> std::same_as<wait<typename T::value_type>>;
 };
 
 /****************************************************************
@@ -488,7 +483,7 @@ concept Streamable = requires( T s ) {
 //
 //   ... send data into s1, s2, s3 ...
 //
-//   waitable<base::variant<int, double, string>> w = il.next();
+//   wait<base::variant<int, double, string>> w = il.next();
 //
 // NOTE: duplicate types are supported.
 //
@@ -497,7 +492,7 @@ struct interleave {
   using value_type = base::variant<typename Ss::value_type...>;
 
   // Implement the Streamable concept interface.
-  waitable<value_type> next() { return output_stream.next(); }
+  wait<value_type> next() { return output_stream.next(); }
 
   explicit interleave( Ss&... ss ) : streamables{ &ss... } {
     // This lambda needs access to `this`, but we can't capture
@@ -507,7 +502,7 @@ struct interleave {
     // this as an argument.
     auto forwarder = []<size_t Index>(
                          std::integral_constant<size_t, Index>,
-                         auto* that ) -> waitable<> {
+                         auto* that ) -> wait<> {
       while( true )
         that->output_stream.send( value_type(
             std::in_place_index_t<Index>{},
@@ -535,10 +530,10 @@ struct interleave {
   std::tuple<Ss*...> streamables;
   // This is a stream that supplies the output to the interleave.
   stream<value_type> output_stream;
-  // Holds ownership of a list of waitables that each own a
+  // Holds ownership of a list of waits that each own a
   // coroutine whose job it is to monitor a given stream and for-
   // ward its events into `output_stream`.
-  std::vector<waitable<>> forwarders;
+  std::vector<wait<>> forwarders;
 };
 
 /****************************************************************
@@ -551,11 +546,10 @@ struct ResultWithSuspend {
 };
 
 struct DetectSuspend {
-  // Wrap a waitable in this in order to detect whether it sus-
+  // Wrap a wait in this in order to detect whether it sus-
   // pends in the process of computing its result.
   template<typename T>
-  waitable<ResultWithSuspend<T>> operator()(
-      waitable<T>&& w ) const {
+  wait<ResultWithSuspend<T>> operator()( wait<T>&& w ) const {
     ResultWithSuspend<T> res;
     res.suspended = !w.ready();
     res.result    = co_await std::move( w );

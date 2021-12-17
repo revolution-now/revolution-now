@@ -18,7 +18,7 @@
 #include "error.hpp"
 #include "fb.hpp"
 #include "physics.hpp"
-#include "waitable.hpp"
+#include "wait.hpp"
 
 // Flatbuffers
 #include "fb/viewport_generated.h"
@@ -52,10 +52,10 @@ class SmoothViewport {
   // visible.
   void ensure_tile_visible( Coord const& coord );
   // Same as above but will animate the motion as opposed to a
-  // sudden shift. The waitable will be fulfilled when the given
+  // sudden shift. The wait will be fulfilled when the given
   // tile becomes visible, but the scrolling may continue for a
   // bit after that.
-  waitable<> ensure_tile_visible_smooth( Coord const& coord );
+  wait<> ensure_tile_visible_smooth( Coord const& coord );
 
   // This function will compute the rectangle in the source
   // viewport texture that should be rendered to the screen.
@@ -181,7 +181,7 @@ class SmoothViewport {
     // This promise will be fulfilled when the above tile becomes
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.
-    waitable_promise<> promise{};
+    wait_promise<> promise{};
     bool operator==( SmoothCenter const& ) const = default;
   };
   // If this has a value then the viewport will attempt to scroll
