@@ -313,7 +313,7 @@ struct ticker {
     p = {};
   }
 
-  wait<> wait() const { return p.wait(); }
+  ::rn::wait<> wait() const { return p.wait(); }
 
  private:
   wait_promise<> p;
