@@ -11,14 +11,16 @@
 #pragma once
 
 // base
-#include "base/co-compat.hpp"
 #include "base/zero.hpp"
+
+// C++ standard library
+#include <coroutine>
 
 namespace base {
 
 struct unique_coro;
 using unique_coro_base =
-    base::zero<unique_coro, coro::coroutine_handle<>>;
+    base::zero<unique_coro, std::coroutine_handle<>>;
 
 // unique_coro
 //
@@ -37,7 +39,7 @@ using unique_coro_base =
 // running, we must have the coroutine always suspend at the
 // final suspend point.
 struct unique_coro : unique_coro_base {
-  explicit unique_coro( coro::coroutine_handle<> h )
+  explicit unique_coro( std::coroutine_handle<> h )
     : unique_coro_base( h ) {}
   MOVABLE_ONLY( unique_coro );
 

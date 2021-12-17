@@ -13,9 +13,11 @@
 #include "config.hpp"
 
 // base
-#include "co-compat.hpp"
 #include "maybe.hpp"
 #include "stack-trace.hpp"
+
+// C++ standard library
+#include <coroutine>
 
 // FIXME: maybes, expecteds, etc. should probably not be used
 // with coroutines until it is verified in godbolt that both
@@ -30,7 +32,7 @@ auto operator co_await( maybe<T> const& o ) {
   struct maybe_await {
     maybe<T> const* o_;
     bool await_ready() noexcept { return o_->has_value(); }
-    void await_suspend( coro::coroutine_handle<> h ) noexcept {
+    void await_suspend( std::coroutine_handle<> h ) noexcept {
       // If we are suspending then that means that one of the
       // maybe's is `nothing`, in which case we will return to
       // the caller and never resume the coroutine, so there is
@@ -75,7 +77,7 @@ struct maybe_holder {
 
 } // namespace base
 
-namespace CORO_NS {
+namespace std {
 
 template<typename T>
 struct coroutine_traits<::base::maybe<T>> {
@@ -86,7 +88,7 @@ struct coroutine_traits<::base::maybe<T>> {
     // methods that need to be noexcept (used with the clang+lib-
     // stdc++ combo).
     auto initial_suspend() noexcept {
-      return ::base::suspend_never{};
+      return std::suspend_never{};
     }
 
     using holder = ::base::detail::maybe_holder<T, promise_type>;
@@ -101,11 +103,11 @@ struct coroutine_traits<::base::maybe<T>> {
     }
 
     auto final_suspend() noexcept {
-      return ::base::suspend_never{};
+      return std::suspend_never{};
     }
 
     void unhandled_exception() noexcept {}
   };
 };
 
-} // namespace CORO_NS
+} // namespace std

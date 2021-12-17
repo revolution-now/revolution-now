@@ -52,7 +52,6 @@ function( set_warning_options target )
             # fixable, so we will suppress that until it is
             # fixed.
             -Wno-maybe-uninitialized
-            -fcoroutines
          >
         # msvc
         $<$<CXX_COMPILER_ID:MSVC>:

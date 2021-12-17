@@ -13,13 +13,13 @@
 
 #include "core-config.hpp"
 
-// base
-#include "base/co-compat.hpp"
+// C++ standard library
+#include <coroutine>
 
 namespace rn {
 
 // Add the coroutine to the queue to be resumed.
-void queue_cpp_coroutine_handle( coro::coroutine_handle<> h );
+void queue_cpp_coroutine_handle( std::coroutine_handle<> h );
 
 // This will run all coroutines including the new coroutines that
 // are queued in the process of running other coroutines.
@@ -29,7 +29,6 @@ int number_of_queued_cpp_coroutines();
 
 // This is to be called when a coroutine that has already been
 // queued for running needs to be cancelled.
-void remove_cpp_coroutine_if_queued(
-    coro::coroutine_handle<> h );
+void remove_cpp_coroutine_if_queued( std::coroutine_handle<> h );
 
 } // namespace rn

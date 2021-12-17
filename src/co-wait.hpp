@@ -16,8 +16,8 @@
 #include "co-scheduler.hpp"
 #include "wait.hpp"
 
-// base
-#include "base/co-compat.hpp"
+// C++ standard library
+#include <coroutine>
 
 namespace rn {
 
@@ -40,7 +40,7 @@ struct awaitable {
   bool await_ready() noexcept {
     return w_.ready() || w_.has_exception();
   }
-  void await_suspend( coro::coroutine_handle<> h ) noexcept {
+  void await_suspend( std::coroutine_handle<> h ) noexcept {
     w_.shared_state()->add_callback(
         [h]( T const& ) { queue_cpp_coroutine_handle( h ); } );
     w_.shared_state()->set_exception_callback(
@@ -59,9 +59,9 @@ struct awaitable {
 // all the common stuff that does not depend on the type T para-
 // meter of the promise type.
 struct promise_type_base_base {
-  auto initial_suspend() const { return base::suspend_never{}; }
+  auto initial_suspend() const { return std::suspend_never{}; }
   auto final_suspend() const noexcept {
-    return base::suspend_always{};
+    return std::suspend_always{};
   }
   // Ensure that this is not copyable. See
   // https://devblogs.microsoft.com/oldnewthing/20210504-00/?p=105176
@@ -94,14 +94,14 @@ struct promise_type final : public promise_type_base<T> {
   using Base::wait_promise_;
 
   promise_type() {
-    auto h = coro::coroutine_handle<promise_type>::from_promise(
+    auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     wait_promise_.shared_state()->set_coro(
         base::unique_coro( h ) );
   }
 
   ~promise_type() noexcept {
-    auto h = coro::coroutine_handle<promise_type>::from_promise(
+    auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     remove_cpp_coroutine_if_queued( h );
   }
@@ -132,14 +132,14 @@ struct promise_type<std::monostate> final
   using Base::wait_promise_;
 
   promise_type() {
-    auto h = coro::coroutine_handle<promise_type>::from_promise(
+    auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     wait_promise_.shared_state()->set_coro(
         base::unique_coro( h ) );
   }
 
   ~promise_type() noexcept {
-    auto h = coro::coroutine_handle<promise_type>::from_promise(
+    auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     remove_cpp_coroutine_if_queued( h );
   }
@@ -161,11 +161,11 @@ struct promise_type<std::monostate> final
 
 } // namespace rn
 
-namespace CORO_NS {
+namespace std {
 
 template<typename T, typename... Args>
 struct coroutine_traits<::rn::wait<T>, Args...> {
   using promise_type = ::rn::detail::promise_type<T>;
 };
 
-} // namespace CORO_NS
+} // namespace std
