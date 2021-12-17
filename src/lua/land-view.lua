@@ -12,7 +12,7 @@
 local M = {}
 
 local orders = {
-  move=function( d ) return { move={ d=d } } end,
+  move=function( d ) return { move={ d=assert( d ) } } end,
   forfeight=function() return { forfeight={} } end,
   fortify=function() return { fortify={} } end,
   sentry=function() return { sentry={} } end,
