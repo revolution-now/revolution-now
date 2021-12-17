@@ -318,8 +318,7 @@ template<>
 struct formatter<fs::path> : base::formatter_base {
   template<typename FormatContext>
   auto format( fs::path const& o, FormatContext& ctx ) {
-    return base::formatter_base::format(
-        fmt::format( o.string() ), ctx );
+    return base::formatter_base::format( o.string(), ctx );
   }
 };
 

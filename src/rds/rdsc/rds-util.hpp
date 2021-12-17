@@ -31,7 +31,8 @@ namespace rds {
 template<typename... Args>
 void error_no_exit_msg( string_view fmt, Args&&... args ) {
   cerr << "\033[31merror:\033[00m ";
-  cerr << fmt::format( fmt, forward<Args>( args )... );
+  cerr << fmt::format( fmt::runtime( fmt ),
+                       forward<Args>( args )... );
   cerr << "\n";
 }
 

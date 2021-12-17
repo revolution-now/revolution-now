@@ -15,6 +15,9 @@
 #include "base/error.hpp"
 #include "base/io.hpp"
 
+// C++ standard library
+#include <cassert>
+
 using namespace std;
 
 namespace rcl {

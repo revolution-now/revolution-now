@@ -19,6 +19,9 @@
 #include "maybe.hpp"
 #include "rds/helper/sumtype-helper.hpp"
 
+// Rds
+#include "rds/input.hpp"
+
 // base
 #include "base/variant.hpp"
 
@@ -110,8 +113,6 @@ Coord current_mouse_position();
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/
-enum class e_drag_phase { begin, in_progress, end };
-
 struct drag_state_t {
   Coord        origin{};
   e_drag_phase phase{};

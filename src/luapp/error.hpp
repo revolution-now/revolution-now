@@ -73,8 +73,8 @@ template<typename... Args>
                                    std::string_view fmt_str,
                                    Args&&... args ) {
   try {
-    std::string msg =
-        fmt::format( fmt_str, std::forward<Args>( args )... );
+    std::string msg = fmt::format(
+        fmt::runtime( fmt_str ), std::forward<Args>( args )... );
     detail::throw_lua_error_impl( L, msg );
   } catch( fmt::format_error const& e ) {
     FATAL( "fmt format error while formatting Lua error: {}",

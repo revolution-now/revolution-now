@@ -34,19 +34,6 @@
 // to the console before aborting.
 
 /****************************************************************
-** Compile-time format string checking.
-*****************************************************************/
-// This is used to wrap calls to fmt::format that want compile
-// time format string checking. It assumes that the first argu-
-// ment is some kind of constexpr expression (maybe has to
-// specifically be a string literal, not sure) and will wrap that
-// first argument in the FMT_STRING() macro, which will enable
-// compile-time checking that e.g. the number of {} in the format
-// string matches the number of arguments.
-#define FMT_SAFE( fmt_str, ... ) \
-  fmt::format( FMT_STRING( fmt_str ), ##__VA_ARGS__ )
-
-/****************************************************************
 ** Self-documenting one-line aborters.
 *****************************************************************/
 #define SHOULD_NOT_BE_HERE \
@@ -77,7 +64,7 @@
 // the `abort_with_msg` function.
 #define FATAL( ... )                                 \
   ::base::abort_with_msg( ::base::detail::check_msg( \
-      "fatal error", FMT_SAFE( "" __VA_ARGS__ ) ) );
+      "fatal error", fmt::format( "", __VA_ARGS__ ) ) );
 
 /****************************************************************
 ** Main check-fail macros.
@@ -92,7 +79,7 @@
   {                                                      \
     if( !( a ) ) {                                       \
       ::base::abort_with_msg( ::base::detail::check_msg( \
-          #a, FMT_SAFE( "" __VA_ARGS__ ) ) );            \
+          #a, fmt::format( "" __VA_ARGS__ ) ) );         \
     }                                                    \
   }
 
@@ -172,7 +159,7 @@
            "{} is not < than {}: {}",             \
            STRING_JOIN( __a, __LINE__ ),          \
            STRING_JOIN( __b, __LINE__ ),          \
-           FMT_SAFE( __VA_ARGS__ ) );             \
+           fmt::format( __VA_ARGS__ ) );          \
   }
 
 /****************************************************************
@@ -195,7 +182,7 @@
       ::base::abort_with_msg( fmt::format(               \
           "bad unwrap, original error: {}, message: {}", \
           STRING_JOIN( __e, __LINE__ ).error(),          \
-          FMT_SAFE( __VA_ARGS__ ) ) );                   \
+          fmt::format( __VA_ARGS__ ) ) );                \
     }                                                    \
   }
 
@@ -223,7 +210,7 @@
     ::base::abort_with_msg( fmt::format(               \
         "bad unwrap, original error: {}, message: {}", \
         STRING_JOIN( __e, __LINE__ ).error(),          \
-        FMT_SAFE( __VA_ARGS__ ) ) );                   \
+        fmt::format( __VA_ARGS__ ) ) );                \
   }                                                    \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 

@@ -340,8 +340,7 @@ TEST_CASE( "[lua] get as maybe" ) {
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==
            "hello!" );
-  REQUIRE( lua::as<string>( st["func"]( 5 ) ) ==
-           "a double: 5.0" );
+  REQUIRE( lua::as<string>( st["func"]( 5 ) ) == "a double: 5" );
   REQUIRE( lua::as<string>( st["func"]( true ) ) ==
            "a bool: true" );
 

@@ -64,7 +64,8 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   Coord pos = canvas.upper_left();
 
   auto line = [&]( string_view fmt_str, auto&&... args ) {
-    string text = fmt::format( fmt_str, args... );
+    string text =
+        fmt::format( fmt::runtime( fmt_str ), args... );
     render_text( font::standard(), gfx::pixel::black(), text )
         .copy_to( tx, pos );
     pos += 16_h;

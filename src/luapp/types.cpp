@@ -59,6 +59,16 @@ void pop_stack( cthread L, int n ) noexcept {
   c_api( L ).pop( n );
 }
 
+bool operator==( lightuserdata const& l,
+                 lightuserdata const& r ) {
+  return l.get() == r.get();
+}
+
+bool operator!=( lightuserdata const& l,
+                 lightuserdata const& r ) {
+  return l.get() != r.get();
+}
+
 /****************************************************************
 ** equality
 *****************************************************************/

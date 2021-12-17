@@ -185,7 +185,8 @@ string fmt_bar( char c, string_view msg ) {
   // by exhausting all columns.
   string_view maybe_newline = maybe_cols.has_value() ? "" : "\n";
   string fmt = fmt::format( "{{:{}^{{}}}}{}", c, maybe_newline );
-  return fmt::format( fmt, msg, maybe_cols.value_or( 65 ) );
+  return fmt::format( fmt::runtime( fmt ), msg,
+                      maybe_cols.value_or( 65 ) );
 }
 
 void print_bar( char c, string_view msg ) {

@@ -560,12 +560,13 @@ void midi_play_event( MidiPlayInfo* info ) {
 
 // Called by the MIDI thread when it wants to abort due to an
 // error.
-template<typename... Args>
-void midi_thread_record_failure( Args... args ) {
+template<typename FmtStr, typename... Args>
+void midi_thread_record_failure( FmtStr const& fmt_str,
+                                 Args... args ) {
   g_midi_comm.set_state( e_midiseq_state::failed );
-  lg.error( std::forward<Args>( args )... );
-  g_midi_comm.set_last_error(
-      fmt::format( std::forward<Args>( args )... ) );
+  string msg = fmt::format( fmt::runtime( fmt_str ), args... );
+  lg.error( "{}", msg );
+  g_midi_comm.set_last_error( msg );
 }
 
 // The MIDI thread will just hang in this function for its entire

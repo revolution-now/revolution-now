@@ -262,7 +262,9 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<integer>( L, -1 ) == nothing );
   REQUIRE( get<double>( L, -1 ) == nothing );
   REQUIRE( get<floating>( L, -1 ) == nothing );
-  REQUIRE( get<lightuserdata>( L, -1 ) == (void*)L );
+  REQUIRE( get<lightuserdata>( L, -1 )
+               .value_or( lightuserdata{ nullptr } )
+               .get() == (void*)L );
   REQUIRE( get<void*>( L, -1 ) == (void*)L );
   REQUIRE( get<string>( L, -1 ) == nothing );
   C.pop();
@@ -391,14 +393,14 @@ LUA_TEST_CASE( "[types] equality" ) {
     REQUIRE( lud2 == lud2 );
     REQUIRE( lud1 != lud2 );
     REQUIRE( lud2 != lud1 );
-    REQUIRE( lud1 == p1 );
-    REQUIRE( lud1 != p2 );
-    REQUIRE( p1 == lud1 );
-    REQUIRE( p2 != lud1 );
+    REQUIRE( lud1.get() == p1 );
+    REQUIRE( lud1.get() != p2 );
+    REQUIRE( p1 == lud1.get() );
+    REQUIRE( p2 != lud1.get() );
     int x;
-    REQUIRE( lud1 != &x );
+    REQUIRE( lud1.get() != &x );
     string s;
-    REQUIRE( lud1 != &s );
+    REQUIRE( lud1.get() != &s );
     C.pop( 2 );
   }
 

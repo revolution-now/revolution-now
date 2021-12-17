@@ -44,7 +44,7 @@
       auto loc = ::base::SourceLoc::current();      \
       return rcl::error( fmt::format(               \
           "{}:{}: {}", loc.file_name(), loc.line(), \
-          FMT_SAFE( "" __VA_ARGS__ ) ) );           \
+          fmt::format( "" __VA_ARGS__ ) ) );        \
     }                                               \
   }
 
@@ -62,7 +62,7 @@ struct error {
 
   template<typename... Args>
   error( std::string_view fmt_str, Args&&... args )
-    : error( fmt::format( fmt_str,
+    : error( fmt::format( fmt::runtime( fmt_str ),
                           std::forward<Args>( args )... ) ) {}
 
   bool operator==( error const& ) const = default;

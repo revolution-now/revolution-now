@@ -41,8 +41,8 @@ wait<> message_box_basic( std::string_view msg );
 
 template<typename... Args>
 wait<> message_box( std::string_view msg, Args&&... args ) {
-  return message_box_basic(
-      fmt::format( msg, std::forward<Args>( args )... ) );
+  return message_box_basic( fmt::format(
+      fmt::runtime( msg ), std::forward<Args>( args )... ) );
 }
 
 enum class e_unit_selection {
@@ -138,8 +138,8 @@ wait<e_confirm> yes_no( std::string_view title );
 template<typename... Args>
 wait<e_confirm> yes_no( std::string_view question,
                         Args&&... args ) {
-  return yes_no(
-      fmt::format( question, std::forward<Args>( args )... ) );
+  return yes_no( fmt::format( fmt::runtime( question ),
+                              std::forward<Args>( args )... ) );
 }
 
 /****************************************************************

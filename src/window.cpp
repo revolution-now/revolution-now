@@ -746,7 +746,8 @@ wait<vector<UnitSelection>> unit_selection_box(
         for( auto selection : selections )
           lg.debug( "selection: {} --> {}",
                     debug_string( selection.id ),
-                    selection.what );
+                    // FIXME: until we can format this enum.
+                    static_cast<int>( selection.what ) );
         s_promise.set_value( std::move( selections ) );
       };
 

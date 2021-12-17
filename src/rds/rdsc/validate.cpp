@@ -35,7 +35,7 @@ struct Validator {
   template<typename Arg1, typename... Args>
   void error( string_view fmt_str, Arg1&& arg1,
               Args&&... args ) {
-    errors_.push_back( fmt::format( fmt_str,
+    errors_.push_back( fmt::format( fmt::runtime( fmt_str ),
                                     forward<Arg1>( arg1 ),
                                     forward<Args>( args )... ) );
   }

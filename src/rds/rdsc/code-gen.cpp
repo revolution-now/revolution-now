@@ -248,9 +248,9 @@ struct CodeGenerator {
     assert( !curr_line_.has_value() );
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     string indent( options().indent_level * 2, ' ' );
-    string to_print = trim_trailing_spaces(
-        fmt::format( fmt_str, forward<Arg1>( arg1 ),
-                     forward<Args>( args )... ) );
+    string to_print = trim_trailing_spaces( fmt::format(
+        fmt::runtime( fmt_str ), forward<Arg1>( arg1 ),
+        forward<Args>( args )... ) );
     // Only print empty strings if they are to be quoted.
     if( options().quotes )
       oss_ << indent << std::quoted( to_print );
@@ -267,8 +267,8 @@ struct CodeGenerator {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
     curr_line_ = absl::StrCat(
-        *curr_line_,
-        fmt::format( fmt_str, forward<Args>( args )... ) );
+        *curr_line_, fmt::format( fmt::runtime( fmt_str ),
+                                  forward<Args>( args )... ) );
   }
 
   void flush() {
@@ -283,7 +283,8 @@ struct CodeGenerator {
   template<typename... Args>
   void comment( string_view fmt_str, Args&&... args ) {
     frag( "// " );
-    frag( fmt_str, forward<Args>( args )... );
+    frag( "{}", fmt::format( fmt::runtime( fmt_str ),
+                             forward<Args>( args )... ) );
     flush();
   }
 
@@ -321,8 +322,8 @@ struct CodeGenerator {
 
   template<typename... Args>
   void emit_code_block( string_view fmt_str, Args&&... args ) {
-    string formatted =
-        fmt::format( fmt_str, forward<Args>( args )... );
+    string formatted     = fmt::format( fmt::runtime( fmt_str ),
+                                        forward<Args>( args )... );
     vector<string> lines = absl::StrSplit( formatted, "\n" );
     remove_common_space_prefix( &lines );
     if( lines.empty() ) return;

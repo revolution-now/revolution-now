@@ -15,6 +15,7 @@
 
 // C++ standard library
 #include <type_traits>
+#include <vector>
 
 // The use of a lambda and an RAII object to do the checking is a
 // trick that is used to allow supporting calling both functions

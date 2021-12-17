@@ -65,7 +65,7 @@ struct StringAndLoc {
   template<typename... Args>                               \
   void level( StringAndLoc str_and_loc, Args&&... args ) { \
     log( e_log_level::level,                               \
-         fmt::format( str_and_loc.what,                    \
+         fmt::format( fmt::runtime( str_and_loc.what ),    \
                       std::forward<Args>( args )... ),     \
          str_and_loc.loc );                                \
   }

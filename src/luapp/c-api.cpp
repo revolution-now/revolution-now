@@ -363,7 +363,7 @@ void c_api::push( LuaCFunction* f, int upvalues ) noexcept {
 }
 
 void c_api::push( lightuserdata p ) noexcept {
-  lua_pushlightuserdata( L, p );
+  lua_pushlightuserdata( L, p.get() );
 }
 
 void c_api::push( boolean b ) noexcept {

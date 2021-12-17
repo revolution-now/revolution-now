@@ -734,8 +734,8 @@ LUA_TEST_CASE( "[lua-c-api] pcallk no yield or error" ) {
     c_api C2( L );
     C2.getglobal( "foo" );
     BASE_CHECK_EQ( C2.stack_size(), 1 );
-    BASE_CHECK_EQ( C2.status(), thread_status::ok );
-    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( C2.status() == thread_status::ok );
+    BASE_CHECK( C2.coro_status() == coroutine_status::normal );
     BASE_CHECK( !k_ran );
 
     // This is what's under test.
@@ -792,8 +792,8 @@ LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
     c_api C2( L );
     C2.getglobal( "foo" );
     BASE_CHECK_EQ( C2.stack_size(), 1 );
-    BASE_CHECK_EQ( C2.status(), thread_status::ok );
-    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( C2.status() == thread_status::ok );
+    BASE_CHECK( C2.coro_status() == coroutine_status::normal );
     BASE_CHECK( !k_ran );
 
     // This is what's under test.
@@ -856,8 +856,8 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
     c_api C2( L );
     C2.getglobal( "foo" );
     BASE_CHECK_EQ( C2.stack_size(), 1 );
-    BASE_CHECK_EQ( C2.status(), thread_status::ok );
-    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( C2.status() == thread_status::ok );
+    BASE_CHECK( C2.coro_status() == coroutine_status::normal );
     BASE_CHECK( !k_ran );
 
     // This is what's under test.
@@ -913,8 +913,8 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
     c_api C2( L );
     C2.getglobal( "foo" );
     BASE_CHECK_EQ( C2.stack_size(), 1 );
-    BASE_CHECK_EQ( C2.status(), thread_status::ok );
-    BASE_CHECK_EQ( C2.coro_status(), coroutine_status::normal );
+    BASE_CHECK( C2.status() == thread_status::ok );
+    BASE_CHECK( C2.coro_status() == coroutine_status::normal );
     BASE_CHECK( !k_ran );
 
     // This is what's under test.
@@ -1285,7 +1285,9 @@ LUA_TEST_CASE( "[lua-c-api] newuserdata" ) {
   void* p = C.newuserdata( 1 );
   REQUIRE( C.type_of( -1 ) == type::userdata );
   REQUIRE( C.get<void*>( -1 ) == p );
-  REQUIRE( C.get<lightuserdata>( -1 ) == p );
+  REQUIRE( C.get<lightuserdata>( -1 )
+               .value_or( lightuserdata{ nullptr } )
+               .get() == p );
   C.pop();
 }
 

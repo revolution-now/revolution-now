@@ -101,8 +101,24 @@ using integer  = base::safe::integer<long long>;
 // This is just a value type.
 struct lightuserdata : public base::safe::pointer<void> {
   using Base = base::safe::pointer<void>;
+
   using Base::Base;
+
+  // We need to get rid of this from the base method because oth-
+  // erwise the implicit conversion to void* causes {fmt} to
+  // refuse to format it (even though it can format void point-
+  // ers). It tests if the type (lightuserdata) can be converted
+  // to void* (which lightuserdata and maybe<lightuserdata> can
+  // be, and thus it probably thinks that it (lightuserdata) is
+  // some kind of non-void pointer, which it does not support
+  // formatting.
+  operator void*() const noexcept = delete;
 };
+
+bool operator==( lightuserdata const& l,
+                 lightuserdata const& r );
+bool operator!=( lightuserdata const& l,
+                 lightuserdata const& r );
 
 void to_str( lightuserdata const& lud, std::string& out );
 

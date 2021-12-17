@@ -14,8 +14,10 @@
 
 // base
 #include "expect.hpp"
+#include "fmt.hpp"
 #include "fs.hpp"
 #include "maybe.hpp"
+#include "to-str.hpp"
 
 // C++ standard library
 #include <memory>
@@ -29,6 +31,8 @@ enum class e_error_read_text_file {
   open_file_failure,
   incomplete_read // failed to read all bytes in file.
 };
+
+void to_str( e_error_read_text_file val, std::string& out );
 
 // For convenience; take an error code and return a human read-
 // able message describing it. Supplying the filename that was
@@ -75,3 +79,5 @@ expect<std::string, e_error_read_text_file>
 read_text_file_as_string( fs::path const& p );
 
 } // namespace base
+
+TOSTR_TO_FMT( ::base::e_error_read_text_file );
