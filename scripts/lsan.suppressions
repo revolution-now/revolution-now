@@ -3,3 +3,4 @@ leak:libGLX
 leak:libpulse
 leak:iris_dri
 leak:libSDL2
+leak:libnvidia-glcore
