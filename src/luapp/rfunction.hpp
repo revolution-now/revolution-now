@@ -16,7 +16,6 @@
 #include "call.hpp"
 
 // base
-#include "base/fmt.hpp"
 #include "base/macros.hpp"
 
 namespace lua {
@@ -68,8 +67,3 @@ error_type_for_return_type<R> rfunction::pcall(
 }
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::rfunction );

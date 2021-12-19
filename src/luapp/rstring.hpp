@@ -14,9 +14,6 @@
 // luapp
 #include "any.hpp"
 
-// base
-#include "base/fmt.hpp"
-
 // C++ standard library
 #include <string>
 
@@ -41,8 +38,3 @@ struct rstring : public any {
 };
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::rstring );

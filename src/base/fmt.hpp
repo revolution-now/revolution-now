@@ -48,20 +48,6 @@ concept HasFmt = has_fmt<T>;
 /****************************************************************
 ** Macros
 *****************************************************************/
-// Macro to generate an fmt formatter for a type that has a
-// to_str overload.
-#define TOSTR_TO_FMT( type )                           \
-  template<>                                           \
-  struct fmt::formatter<type> : base::formatter_base { \
-    template<typename FormatContext>                   \
-    auto format( type const& o, FormatContext& ctx ) { \
-      std::string res;                                 \
-      to_str( o, res );                                \
-      return base::formatter_base::format(             \
-          fmt::format( "{}", res ), ctx );             \
-    }                                                  \
-  };
-
 // Macro to easily extend {fmt} to user-defined types. This macro
 // should be issued in the global namespace.
 #define DEFINE_FORMAT_IMPL( use_param, type, ... )     \
@@ -99,5 +85,3 @@ concept HasFmt = has_fmt<T>;
   DEFINE_FORMAT_T_IMPL(, t_args, type, __VA_ARGS__ )
 #define DEFINE_FORMAT_T_( t_args, type, ... ) \
   DEFINE_FORMAT_T_IMPL( (void)o;, t_args, type, __VA_ARGS__ )
-
-namespace base {} // namespace base

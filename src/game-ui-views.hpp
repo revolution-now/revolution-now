@@ -18,10 +18,6 @@
 #include "unit.hpp"
 #include "views.hpp"
 
-// base
-#include "base/fmt.hpp"
-#include "base/to-str.hpp"
-
 // C++ standard library
 #include <unordered_map>
 
@@ -67,5 +63,3 @@ class UnitActivationView final : public CompositeSingleView {
 };
 
 } // namespace rn::ui
-
-TOSTR_TO_FMT( ::rn::ui::UnitActivationInfo );

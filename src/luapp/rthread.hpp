@@ -16,9 +16,6 @@
 #include "call.hpp"
 #include "thread-status.hpp"
 
-// base
-#include "base/fmt.hpp"
-
 // C++ standard library
 #include <string>
 
@@ -84,8 +81,3 @@ int push( rthread th, T&& o ) {
 }
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::rthread );

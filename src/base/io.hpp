@@ -14,10 +14,8 @@
 
 // base
 #include "expect.hpp"
-#include "fmt.hpp"
 #include "fs.hpp"
 #include "maybe.hpp"
-#include "to-str.hpp"
 
 // C++ standard library
 #include <memory>
@@ -79,5 +77,3 @@ expect<std::string, e_error_read_text_file>
 read_text_file_as_string( fs::path const& p );
 
 } // namespace base
-
-TOSTR_TO_FMT( ::base::e_error_read_text_file );

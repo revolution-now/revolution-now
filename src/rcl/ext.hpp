@@ -119,5 +119,3 @@ convert_err<T> convert_to( value const& v ) {
 }
 
 } // namespace rcl
-
-TOSTR_TO_FMT( rcl::error );

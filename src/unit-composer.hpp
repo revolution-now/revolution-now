@@ -23,9 +23,6 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// base
-#include "base/to-str.hpp"
-
 // Rds
 #include "rds/unit-composer.hpp"
 
@@ -166,10 +163,3 @@ void adjust_for_independence_status(
 namespace lua {
 LUA_USERDATA_TRAITS( ::rn::UnitComposition, owned_by_lua ){};
 }
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( ::rn::UnitComposition );
-TOSTR_TO_FMT( ::rn::UnitTransformationResult );
-TOSTR_TO_FMT( ::rn::UnitTransformationFromCommodityResult );

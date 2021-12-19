@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "thread-status.hpp"
 
+// base
+#include "base/fmt.hpp"
+
 using namespace std;
 
 namespace lua {

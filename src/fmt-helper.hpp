@@ -30,7 +30,9 @@
 
 // C++ standard library
 #include <chrono>
+#include <concepts>
 #include <deque>
+#include <ranges>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -75,46 +77,34 @@ struct FmtTags<FirstTag, RestTags...> {
   }
 };
 
-// In the struct below we capture the argument by value if it is
-// a temporary and then point to it with the ref. If not a tempo-
-// rary we just point to it with the ref. In either case, the ref
-// will always refer to the underlying value.
-#define DEFINE_FMT_TAG( name )                              \
-  template<typename T>                                      \
-  struct name {                                             \
-    name( T const& o ) : maybe_o{}, ref( o ) {}             \
-    name( T&& o )                                           \
-      : maybe_o( std::forward<T>( o ) ), ref( *maybe_o ) {} \
-    maybe<T>                        maybe_o;                \
-    std::reference_wrapper<T const> ref;                    \
-  };                                                        \
-  template<typename T>                                      \
-  name( T const& ) -> name<T>;
+template<typename R>
+concept FormattableRange = std::ranges::range<R> &&
+    base::HasFmt<typename R::value_type>;
 
-DEFINE_FMT_TAG( FmtRemoveTemplateArgs );
-DEFINE_FMT_TAG( FmtRemoveRnNamespace );
+template<typename R>
+concept FormattableSizedRange =
+    FormattableRange<R> && std::ranges::sized_range<R>;
 
-template<typename T>
+template<FormattableRange R>
 struct FmtJsonStyleList {
-  std::reference_wrapper<std::vector<T> const> vec;
+  R const& rng;
 };
 
-// Deduction guide.
-template<typename T>
-FmtJsonStyleList( std::vector<T> const& ) -> FmtJsonStyleList<T>;
+template<FormattableRange R>
+FmtJsonStyleList( R const& ) -> FmtJsonStyleList<R>;
 
-template<typename T>
+template<FormattableSizedRange R>
 struct FmtVerticalJsonList {
-  std::vector<T> const& vec;
+  R const& rng;
 
+  // FIXME: get rid of this.
   bool operator==( FmtVerticalJsonList const& rhs ) const {
-    return vec == rhs.vec;
+    return rng == rhs.rng;
   }
 };
 
-template<typename T>
-FmtVerticalJsonList( std::vector<T> const& )
-    -> FmtVerticalJsonList<T>;
+template<FormattableSizedRange R>
+FmtVerticalJsonList( R const& ) -> FmtVerticalJsonList<R>;
 
 template<template<typename K, typename V, typename...>
          typename M,
@@ -139,93 +129,44 @@ FmtVerticalMap( M<K, V> const& ) -> FmtVerticalMap<M, K, V>;
 *****************************************************************/
 namespace fmt {
 
-// "some_type<x, y, z<a, b, c>>" --> "some_type<...>"
-template<typename T>
-struct formatter<::rn::FmtRemoveTemplateArgs<T>>
-  : base::formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::FmtRemoveTemplateArgs<T> const& o,
-               FormatContext&                        ctx ) {
-    std::string inner = fmt::format( "{}", o.ref.get() );
-    std::string reduced;
-    reduced.reserve( inner.size() );
-    int angle_bracket_level = 0;
-    for( int i = 0; i < int( inner.size() ); ++i ) {
-      if( inner[i] == '<' ) {
-        if( angle_bracket_level == 0 ) reduced += "<...>";
-        angle_bracket_level++;
-        continue;
-      }
-      if( inner[i] == '>' ) {
-        angle_bracket_level--;
-        continue;
-      }
-      if( angle_bracket_level == 0 )
-        reduced.push_back( inner[i] );
-    }
-    return base::formatter_base::format( reduced, ctx );
-  }
-};
-
-// "rn::xyz" --> "xyz"
-// "rn::(anonymous namespace)::xyz" --> "xyz"
-template<typename T>
-struct formatter<::rn::FmtRemoveRnNamespace<T>>
-  : base::formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::FmtRemoveRnNamespace<T> const& o,
-               FormatContext&                       ctx ) {
-    std::string with_namespaces =
-        fmt::format( "{}", o.ref.get() );
-    std::string_view sv = with_namespaces;
-    if( util::starts_with( sv, "::" ) ) sv.remove_prefix( 2 );
-    if( util::starts_with( sv, "rn::" ) ) sv.remove_prefix( 4 );
-    if( util::starts_with( sv, "(anonymous namespace)::" ) )
-      sv.remove_prefix( 23 );
-    return base::formatter_base::format( std::string( sv ),
-                                         ctx );
-  }
-};
-
 // {fmt} formatter for vectors whose contained type is format-
 // table, in a JSON-like notation: [3,4,8,3]. However note that
 // it is not real json since e.g. strings will not have quotes
 // around them.
-template<base::HasFmt T>
-struct formatter<::rn::FmtJsonStyleList<T>>
+template<typename R>
+struct formatter<::rn::FmtJsonStyleList<R>>
   : base::formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::FmtJsonStyleList<T> const& o,
+  auto format( ::rn::FmtJsonStyleList<R> const& o,
                FormatContext&                   ctx ) {
-    std::vector<T> const&    vec = o.vec.get();
     std::vector<std::string> items;
-    items.reserve( vec.size() );
-    for( auto const& item : vec )
+    if constexpr( std::ranges::sized_range<R> )
+      items.reserve( o.rng.size() );
+    for( auto const& item : o.rng )
       items.push_back( fmt::format( "{}", item ) );
     return base::formatter_base::format(
-        std::string( "[" ) + util::join( items, "," ) + "]",
-        ctx );
+        fmt::format( "[{}]", fmt::join( items, "," ) ), ctx );
   }
 };
 
 // {fmt} formatter for vectors whose contained type is format-
 // table, in a vertical pretty-printed JSON-style list with com-
 // mas.  This is a bit expensive.
-template<typename T>
-struct formatter<::rn::FmtVerticalJsonList<T>>
+template<typename R>
+struct formatter<::rn::FmtVerticalJsonList<R>>
   : base::formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::FmtVerticalJsonList<T> const& o,
+  auto format( ::rn::FmtVerticalJsonList<R> const& o,
                FormatContext&                      ctx ) {
     std::string res = "[";
-    if( !o.vec.empty() ) {
+    if( !o.rng.empty() ) {
       res += '\n';
-      for( int i = 0; i < int( o.vec.size() ); ++i ) {
-        std::string formatted = fmt::to_string( o.vec[i] );
+      for( int i = 0; i < int( o.rng.size() ); ++i ) {
+        std::string formatted = fmt::to_string( o.rng[i] );
         auto        lines     = util::split( formatted, '\n' );
         for( std::string_view line : lines )
           res += fmt::format( "  {}\n", line );
-        if( i != int( o.vec.size() ) - 1 ) {
+        if( i != int( o.rng.size() ) - 1 ) {
           res.resize( res.size() - 1 ); // remove newline.
           res += ',';
         }

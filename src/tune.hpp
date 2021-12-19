@@ -23,10 +23,6 @@
 // Rcl
 #include "rcl/ext.hpp"
 
-// base
-#include "base/fmt.hpp"
-#include "base/to-str.hpp"
-
 // base-util
 #include "base-util/pp.hpp"
 
@@ -200,6 +196,3 @@ namespace std {
 DEFINE_HASH_FOR_TYPED_INT( ::rn::TuneId )
 
 } // namespace std
-
-TOSTR_TO_FMT( ::rn::Tune );
-TOSTR_TO_FMT( ::rn::TuneDimensions );

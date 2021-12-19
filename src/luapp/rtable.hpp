@@ -16,7 +16,6 @@
 #include "indexer.hpp"
 
 // base
-#include "base/fmt.hpp"
 #include "base/macros.hpp"
 
 namespace lua {
@@ -85,8 +84,3 @@ error_type_for_return_type<R> table::pcall( Args&&... args ) {
 }
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::table );

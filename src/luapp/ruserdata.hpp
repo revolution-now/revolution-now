@@ -16,9 +16,6 @@
 #include "ext.hpp"
 #include "indexer.hpp"
 
-// base
-#include "base/fmt.hpp"
-
 // C++ standard library
 #include <string>
 
@@ -44,8 +41,3 @@ struct userdata : public any {
 };
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::userdata );

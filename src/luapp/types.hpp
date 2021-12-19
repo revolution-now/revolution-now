@@ -15,7 +15,6 @@
 #include "ext.hpp"
 
 // base
-#include "base/fmt.hpp"
 #include "base/maybe.hpp"
 #include "base/safe-num.hpp"
 
@@ -167,10 +166,3 @@ void                       lua_get( cthread L, int idx,
 void lua_get( cthread L, int idx, tag<char const*> ) = delete;
 
 } // namespace lua
-
-/****************************************************************
-** {fmt}
-*****************************************************************/
-TOSTR_TO_FMT( lua::type );
-TOSTR_TO_FMT( lua::nil_t );
-TOSTR_TO_FMT( lua::lightuserdata );

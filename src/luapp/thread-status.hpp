@@ -11,7 +11,6 @@
 #pragma once
 
 // base
-#include "base/fmt.hpp"
 #include "base/to-str.hpp"
 
 namespace lua {
@@ -97,9 +96,3 @@ enum class coroutine_status {
 void to_str( coroutine_status status, std::string& out );
 
 } // namespace lua
-
-TOSTR_TO_FMT( ::lua::resume_status );
-TOSTR_TO_FMT( ::lua::coroutine_status );
-TOSTR_TO_FMT( ::lua::resume_result );
-DEFINE_FORMAT_T( ( R ), (::lua::resume_result_with_value<R>),
-                 "{}", base::to_str( o ) );

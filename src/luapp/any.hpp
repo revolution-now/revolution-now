@@ -17,7 +17,6 @@
 #include "ext.hpp"
 
 // base
-#include "base/fmt.hpp"
 #include "base/zero.hpp"
 
 // C++ standard library
@@ -102,8 +101,3 @@ bool operator==( any const& r, T const& rhs ) {
 void to_str( any const& r, std::string& out );
 
 } // namespace lua
-
-/****************************************************************
-** fmt
-*****************************************************************/
-TOSTR_TO_FMT( lua::any );
