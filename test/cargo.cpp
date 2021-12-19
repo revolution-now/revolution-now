@@ -12,9 +12,11 @@
 
 // Revolution Now
 #include "src/cargo.hpp"
-#include "src/fmt-helper.hpp"
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
+
+// base
+#include "base/to-str-tags.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -1958,7 +1960,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 21 );
 
   INFO( fmt::format( "Shuffled cargo: {}",
-                     FmtJsonStyleList{ shuffled } ) );
+                     base::FmtJsonStyleList{ shuffled } ) );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 24 );

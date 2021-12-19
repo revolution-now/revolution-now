@@ -11,7 +11,6 @@
 #include "player.hpp"
 
 // Revolution Now
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "sg-macros.hpp"
@@ -21,6 +20,9 @@
 #include "luapp/as.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
+
+// base
+#include "base/to-str-tags.hpp"
 
 // Flatbuffers
 #include "fb/sg-player_generated.h"
@@ -105,7 +107,8 @@ LUA_FN( set_players, void, lua::table nations ) {
   vector<e_nation> vec;
   for( auto p : nations )
     vec.push_back( lua::as<e_nation>( p.second ) );
-  lg.info( "enabling nations: {}", FmtJsonStyleList{ vec } );
+  lg.info( "enabling nations: {}",
+           base::FmtJsonStyleList{ vec } );
   set_players( vec );
 }
 

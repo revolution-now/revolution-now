@@ -17,7 +17,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 
@@ -35,6 +34,7 @@
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-tags.hpp"
 
 // base-util
 #include "base-util/string.hpp"
@@ -335,14 +335,14 @@ vector<string> autocomplete( string_view fragment ) {
   }
 
   if( res.size() == 0 ) {
-    lg.trace( "returning: {}", FmtJsonStyleList{ res } );
+    lg.trace( "returning: {}", base::FmtJsonStyleList{ res } );
     return res;
   } else if( res.size() > 1 ) {
     // Try to find a common prefix.
     auto prefix = util::common_prefix( res );
     CHECK( prefix.has_value() );
     if( prefix->size() > fragment.size() ) res = { *prefix };
-    lg.trace( "returning: {}", FmtJsonStyleList{ res } );
+    lg.trace( "returning: {}", base::FmtJsonStyleList{ res } );
     return res;
   }
 
@@ -376,7 +376,7 @@ vector<string> autocomplete( string_view fragment ) {
       res[0] += '(';
     lg.trace( "final res[0]: {}", res[0] );
   }
-  lg.trace( "returning: {}", FmtJsonStyleList{ res } );
+  lg.trace( "returning: {}", base::FmtJsonStyleList{ res } );
   return res;
 }
 
@@ -388,7 +388,7 @@ vector<string> autocomplete_iterative( string_view fragment ) {
     auto try_res = autocomplete( single_result );
     if( try_res.empty() ) break;
     res = std::move( try_res );
-    lg.trace( "  res: {}", FmtJsonStyleList{ res } );
+    lg.trace( "  res: {}", base::FmtJsonStyleList{ res } );
     if( res.size() == 1 ) {
       lg.trace( "  size is 1" );
       if( single_result == res[0] ) break;

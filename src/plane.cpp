@@ -13,7 +13,6 @@
 // Revolution Now
 #include "colony-view.hpp"
 #include "console.hpp"
-#include "fmt-helper.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
@@ -32,6 +31,7 @@
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-tags.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -270,7 +270,7 @@ void set_plane_list( vector<e_plane> const& arr ) {
   g_plane_list.push_back( e_plane::console );
   g_plane_list.push_back( e_plane::omni );
   lg.debug( "setting next plane list: {}",
-            FmtJsonStyleList{ g_plane_list } );
+            base::FmtJsonStyleList{ g_plane_list } );
 }
 
 bool is_plane_enabled( e_plane plane ) {

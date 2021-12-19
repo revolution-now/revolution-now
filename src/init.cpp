@@ -13,12 +13,12 @@
 // Revolution Now
 #include "co-scheduler.hpp"
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "maybe.hpp"
 
 // base
 #include "base/lambda.hpp"
+#include "base/to-str-tags.hpp"
 
 // base-util
 #include "base-util/graph.hpp"
@@ -216,11 +216,11 @@ void run_all_init_routines(
   CHECK( unregistered_init.empty(),
          "not all e_init_routine values have registered "
          "init functions: {}",
-         FmtJsonStyleList{ unregistered_init } );
+         base::FmtJsonStyleList{ unregistered_init } );
   CHECK( unregistered_cleanup.empty(),
          "not all e_init_routine values have registered "
          "cleanup functions: {}",
-         FmtJsonStyleList{ unregistered_cleanup } );
+         base::FmtJsonStyleList{ unregistered_cleanup } );
 
   auto graph = util::make_graph( g_init_deps );
   CHECK( !graph.cyclic(),

@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
@@ -24,6 +23,7 @@
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
+#include "base/to-str-tags.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -45,7 +45,7 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
-      fmt::format( "{}", FmtJsonStyleList{ slots_ } ),
+      fmt::format( "{}", base::FmtJsonStyleList{ slots_ } ),
       { { "CargoSlot::", "" } } );
 }
 

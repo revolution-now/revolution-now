@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fmt-helper.hpp"
 #include "lua.hpp"
 
 // Revolution Now (config)
@@ -29,10 +28,14 @@
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
+#include "base/to-str-ext-std.hpp"
+#include "base/to-str-tags.hpp"
 
 using namespace std;
 
 namespace rn {
+
+using ::base::FmtVerticalMap;
 
 /****************************************************************
 ** UnitComposition

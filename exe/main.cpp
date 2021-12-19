@@ -1,5 +1,4 @@
 #include "app-ctrl.hpp"
-#include "fmt-helper.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"

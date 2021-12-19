@@ -13,9 +13,6 @@
 // Under test.
 #include "src/base/vocab.hpp"
 
-// Revolution Now
-#include "src/fmt-helper.hpp"
-
 // Must be last.
 #include "test/catch-common.hpp"
 

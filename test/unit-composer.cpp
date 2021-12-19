@@ -14,9 +14,11 @@
 #include "src/unit-composer.hpp"
 
 // Revolution Now
-#include "src/fmt-helper.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
+
+// base
+#include "base/to-str-tags.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -25,6 +27,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::base::FmtVerticalJsonList;
 
 void sort_by_new_type( vector<UnitTransformationResult>& v ) {
   sort( v.begin(), v.end(), []( auto const& l, auto const& r ) {
