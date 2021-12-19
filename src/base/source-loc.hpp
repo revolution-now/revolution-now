@@ -12,6 +12,9 @@
 
 #include "config.hpp"
 
+// base
+#include "to-str.hpp"
+
 #include <type_traits>
 
 // Instructions:
@@ -44,6 +47,9 @@ struct SourceLoc {
 };
 static_assert( std::is_nothrow_move_constructible_v<SourceLoc> );
 static_assert( std::is_nothrow_move_assignable_v<SourceLoc> );
+
+void to_str( base::SourceLoc const& o, std::string& out, ADL_t );
+
 } // namespace base
 
 #endif

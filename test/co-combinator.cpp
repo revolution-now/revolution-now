@@ -18,7 +18,6 @@
 // base
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
-#include "base/to-str-ext-base.hpp"
 #include "base/to-str-ext-std.hpp"
 #include "base/to-str.hpp"
 

@@ -1,17 +1,14 @@
 /****************************************************************
-**to-str-ext-base.cpp
+**source-loc.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2021-12-18.
+* Created by dsicilia on 2021-12-19.
 *
-* Description: to_str implementations to base types.
+* Description: Use this to use the source_location facility.
 *
 *****************************************************************/
-#include "to-str-ext-base.hpp"
-
-// base
-#include "fmt.hpp"
+#include "source-loc.hpp"
 
 using namespace std;
 
@@ -23,4 +20,4 @@ void to_str( base::SourceLoc const& o, std::string& out,
                       o.column() );
 };
 
-} // namespace base
+}
