@@ -22,7 +22,8 @@ namespace rn::ui {
 /****************************************************************
 ** UnitActivationInfo
 *****************************************************************/
-void to_str( UnitActivationInfo const& o, string& out ) {
+void to_str( UnitActivationInfo const& o, string& out,
+             base::ADL_t ) {
   out += fmt::format(
       "UnitActivationInfo{{original_orders={},current_orders={},"
       "is_activated={}}}",

@@ -31,7 +31,7 @@
 #include "rcl/ext.hpp"
 
 // base
-#include "base/fmt.hpp"
+#include "base/adl-tag.hpp"
 
 // Flatbuffers
 #include "fb/utype_generated.h"
@@ -249,6 +249,9 @@ struct UnitType {
 
   valid_deserial_t check_invariants_safe() const;
 
+  friend void to_str( UnitType const& o, std::string& out,
+                      base::ADL_t );
+
  private:
   UnitType( e_unit_type base_type, e_unit_type type );
 
@@ -323,9 +326,6 @@ maybe<UnitType> cleared_expertise( UnitType ut );
 namespace lua {
 LUA_USERDATA_TRAITS( ::rn::UnitType, owned_by_lua ){};
 }
-
-DEFINE_FORMAT( ::rn::UnitType, "UnitType{{type={},base={}}}",
-               o.type(), o.base_type() );
 
 namespace rn {
 

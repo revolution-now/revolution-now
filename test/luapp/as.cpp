@@ -24,8 +24,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
 namespace lua {
 namespace {
 
@@ -67,15 +65,6 @@ struct Point {
 };
 
 static_assert( nvalues_for<Point>() == 1 );
-
-} // namespace
-} // namespace lua
-
-DEFINE_FORMAT( ::lua::Point, "Point{{x={},y={}}}", o.x, o.y );
-FMT_TO_CATCH( ::lua::Point );
-
-namespace lua {
-namespace {
 
 LUA_TEST_CASE( "[as] castability test" ) {
   using indexer_t = decltype( st["foo"] );

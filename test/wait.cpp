@@ -24,9 +24,6 @@
 // C++ standard library
 #include <queue>
 
-FMT_TO_CATCH_T( ( T ), ::rn::wait );
-FMT_TO_CATCH_T( ( T ), ::rn::wait_promise );
-
 namespace rn {
 namespace {
 

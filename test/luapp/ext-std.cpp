@@ -18,6 +18,9 @@
 #include "src/luapp/ext-monostate.hpp"
 #include "src/luapp/types.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Testing
 #include "test/luapp/common.hpp"
 
@@ -27,8 +30,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
 using namespace std;
 
 namespace lua {
@@ -37,15 +38,15 @@ struct MyUserdata {
   int n = 5;
 
   bool operator==( MyUserdata const& ) const = default;
+
+  friend void to_str( MyUserdata const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "MyUserdata{{n={}}}", o.n );
+  }
 };
 
 LUA_USERDATA_TRAITS( MyUserdata, owned_by_cpp ){};
 
-} // namespace lua
-
-DEFINE_FORMAT( lua::MyUserdata, "MyUserdata{{n={}}}", o.n );
-
-namespace lua {
 namespace {
 
 using ::Catch::Matches;

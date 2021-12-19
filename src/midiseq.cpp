@@ -12,12 +12,14 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "rand.hpp"
 #include "ranges-fwd.hpp"
 #include "time.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/io.hpp"

@@ -25,10 +25,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
-DEFINE_FORMAT_( testing::monitoring_types::Empty, "Empty{{}}" );
-
 namespace lua {
 namespace {
 

@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "fmt-helper.hpp"
 #include "gfx.hpp"
 #include "lua.hpp"
 #include "macros.hpp"

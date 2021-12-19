@@ -22,8 +22,8 @@
 #include "rds/helper/enum.hpp"
 
 // base
+#include "base/adl-tag.hpp"
 #include "base/cc-specific.hpp"
-#include "base/fmt.hpp"
 
 // C++ standard library
 #include <array>
@@ -118,14 +118,14 @@ struct ExhaustiveEnumMap {
   auto end() { return data_->end(); }
   auto end() const { return data_->end(); }
 
-  std::string to_str() const {
-    std::string res = "[";
-    for( auto const& [k, v] : *this )
-      res += fmt::format( "{}={},", k, v );
-    if( res.size() > 1 )
-      res.resize( res.size() - 1 ); // remove trailing comma.
-    res += ']';
-    return res;
+  friend std::string to_str( ExhaustiveEnumMap const& o,
+                             std::string& out, base::ADL_t ) {
+    out += "[";
+    for( auto const& [k, v] : o )
+      out += fmt::format( "{}={},", k, v );
+    if( o.size() > 0 )
+      out.resize( out.size() - 1 ); // remove trailing comma.
+    out += ']';
   }
 
  private:
@@ -145,6 +145,3 @@ struct ExhaustiveEnumMap {
 };
 
 } // namespace rn
-
-EVAL( DEFINE_FORMAT_T( ( K, V ), (::rn::ExhaustiveEnumMap<K, V>),
-                       "{}", o.to_str() ) );

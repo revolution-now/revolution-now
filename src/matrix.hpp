@@ -16,8 +16,10 @@
 #include "coord.hpp"
 #include "error.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "strong-span.hpp"
+
+// base
+#include "base/fmt.hpp"
 
 // C++ standard library
 #include <vector>
@@ -98,6 +100,11 @@ class Matrix {
     data_.clear();
     w_ = 0_w;
   }
+
+  friend void to_str( Matrix const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "Matrix{{size={}}}", o.size() );
+  }
 };
 
 namespace serial {
@@ -164,16 +171,3 @@ valid_deserial_t deserialize( SrcT const* src, Matrix<T>* m,
 } // namespace serial
 
 } // namespace rn
-
-namespace fmt {
-
-template<typename T>
-struct formatter<::rn::Matrix<T>> : base::formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::Matrix<T> const& o, FormatContext& ctx ) {
-    return base::formatter_base::format(
-        fmt::format( "Matrix{{size={}}}", o.size() ), ctx );
-  }
-};
-
-} // namespace fmt

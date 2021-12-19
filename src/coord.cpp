@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "lua.hpp"
 
 // luapp
@@ -22,6 +21,9 @@
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
+
+// base
+#include "base/fmt.hpp"
 
 // c++ standard library
 #include <algorithm>
@@ -33,6 +35,26 @@ using namespace std;
 namespace rn {
 
 namespace {} // namespace
+
+void to_str( Scale const& o, string& out, base::ADL_t ) {
+  out += "(";
+  to_str( o.sx, out, base::ADL );
+  out += ",";
+  to_str( o.sy, out, base::ADL );
+  out += ")";
+}
+
+void to_str( Rect const& o, std::string& out, base::ADL_t ) {
+  out += "(";
+  to_str( o.x, out, base::ADL );
+  out += ",";
+  to_str( o.y, out, base::ADL );
+  out += ",";
+  to_str( o.w, out, base::ADL );
+  out += ",";
+  to_str( o.h, out, base::ADL );
+  out += ")";
+}
 
 Rect Rect::from( Coord const& _1, Coord const& _2 ) {
   Rect res;
@@ -183,6 +205,14 @@ H const& Rect::length<Y>() const {
   return h;
 }
 
+void to_str( Coord const& o, std::string& out, base::ADL_t ) {
+  out += "(";
+  to_str( o.x, out, base::ADL );
+  out += ",";
+  to_str( o.y, out, base::ADL );
+  out += ")";
+}
+
 template<>
 X const& Coord::coordinate<X>() const {
   return x;
@@ -289,6 +319,14 @@ bool Coord::is_inside( Rect const& rect ) const {
 
 bool Coord::is_on_border_of( Rect const& rect ) const {
   return is_inside( rect ) && !is_inside( rect.edges_removed() );
+}
+
+void to_str( Delta const& o, std::string& out, base::ADL_t ) {
+  out += "(";
+  to_str( o.w, out, base::ADL );
+  out += ",";
+  to_str( o.h, out, base::ADL );
+  out += ")";
 }
 
 Delta Delta::round_up( Scale grid_size ) const {

@@ -22,9 +22,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-FMT_TO_CATCH( ::lua::resume_result );
-
 namespace lua {
 namespace {
 
@@ -252,7 +249,7 @@ LUA_TEST_CASE( "[lua-c-api] fmt type" ) {
 LUA_TEST_CASE( "[lua-c-api] to_str type" ) {
   auto to_str_ = []( type type ) {
     string res;
-    to_str( type, res );
+    to_str( type, res, base::ADL );
     return res;
   };
   REQUIRE( to_str_( type::nil ) == "nil" );

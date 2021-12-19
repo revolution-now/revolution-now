@@ -19,12 +19,6 @@
 // Must be last.
 #include "catch-common.hpp"
 
-FMT_TO_CATCH( ::rn::Coord );
-FMT_TO_CATCH( ::rn::Rect );
-FMT_TO_CATCH( ::rn::Delta );
-FMT_TO_CATCH( ::rn::Scale );
-FMT_TO_CATCH( ::rcl::error );
-
 namespace {
 
 using namespace std;

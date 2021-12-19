@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "src/cargo.hpp"
+#include "src/fmt-helper.hpp"
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
 
@@ -22,11 +23,6 @@
   REQUIRE( !ch.check_invariants() )
 
 #define REQUIRE_GOOD_INVARIANTS REQUIRE( ch.check_invariants() )
-
-FMT_TO_CATCH( ::rn::CargoSlot_t );
-FMT_TO_CATCH( ::rn::Cargo );
-FMT_TO_CATCH( ::rn::UnitId );
-FMT_TO_CATCH( ::rn::Commodity );
 
 namespace {
 

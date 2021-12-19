@@ -16,7 +16,6 @@
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "enum.hpp"
-#include "fmt-helper.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"

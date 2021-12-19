@@ -18,14 +18,12 @@
 // base
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
+#include "base/to-str-ext-base.hpp"
+#include "base/to-str-ext-std.hpp"
+#include "base/to-str.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
-
-// This allows Catch2 to print out any variant that has three al-
-// ternatives, each of which would be formattable with fmt::for-
-// mat.
-FMT_TO_CATCH_T( ( T1, T2, T3 ), ::base::variant );
 
 namespace rn::co {
 namespace {

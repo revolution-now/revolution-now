@@ -15,7 +15,6 @@
 
 // base
 #include "base/cc-specific.hpp"
-#include "base/fmt.hpp"
 #include "base/func-concepts.hpp"
 #include "base/function-ref.hpp"
 #include "base/maybe.hpp"
@@ -83,7 +82,7 @@ template<typename T>
 bool register_userdata_metatable_by_val_if_needed( cthread L ) {
   static_assert( !std::is_pointer_v<T> );
   static constexpr bool fmtable =
-      base::has_fmt<std::remove_const_t<T>>;
+      base::Show<std::remove_const_t<T>>;
 
   static std::string const type_name = userdata_typename<T>();
 
@@ -120,7 +119,7 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
   using T_noref = std::remove_reference_t<T>;
   static_assert( !std::is_pointer_v<T_noref> );
   static constexpr bool fmtable =
-      base::has_fmt<std::remove_const_t<T_noref>>;
+      base::Show<std::remove_const_t<T_noref>>;
 
   static std::string const type_name = userdata_typename<T>();
 

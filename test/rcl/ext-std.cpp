@@ -10,14 +10,15 @@
 *****************************************************************/
 #include "test/testing.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Under test.
 #include "src/rcl/ext-builtin.hpp"
 #include "src/rcl/ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
-
-FMT_TO_CATCH( ::rcl::error );
 
 namespace rcl {
 namespace {

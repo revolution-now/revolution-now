@@ -17,7 +17,6 @@
 #include "commodity.hpp"
 #include "error.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "id.hpp"
 #include "nation.hpp"
 
@@ -94,7 +93,8 @@ class Colony {
   int  population() const;
   bool has_unit( UnitId id ) const;
 
-  std::string to_string() const;
+  friend void to_str( Colony const& o, std::string& out,
+                      base::ADL_t );
 
   // This class itself is not equipped to check all of its own
   // invariants, since many of them require other game state to
@@ -104,7 +104,7 @@ class Colony {
   }
 
  private:
-  friend expect<ColonyId, std::string> cstate_create_colony(
+  friend expect<ColonyId> cstate_create_colony(
       e_nation nation, Coord const& where,
       std::string_view name );
 
@@ -143,8 +143,6 @@ class Colony {
 NOTHROW_MOVE( Colony );
 
 } // namespace rn
-
-DEFINE_FORMAT( ::rn::Colony, "{}", o.to_string() );
 
 /****************************************************************
 ** Lua

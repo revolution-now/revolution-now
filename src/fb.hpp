@@ -15,7 +15,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "fmt-helper.hpp"
 #include "maybe.hpp"
 
 // Rds
@@ -24,6 +23,7 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/meta.hpp"
+#include "base/to-str.hpp"
 #include "base/variant.hpp"
 
 // Flatbuffers
@@ -912,7 +912,7 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
                      serial::ADL{} ) );
 
-    if constexpr( base::has_fmt<key_t> ) {
+    if constexpr( base::Show<key_t> ) {
       if( m->find( key ) != m->end() )
         return invalid_deserial( fmt::format(
             "duplicate key ({}) found when deserializing map.",

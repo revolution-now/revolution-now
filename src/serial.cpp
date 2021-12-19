@@ -12,12 +12,13 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 
 // base
+#include "base/fmt.hpp"
 #include "base/io.hpp"
 #include "base/meta.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/rn.inl"

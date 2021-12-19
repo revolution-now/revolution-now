@@ -13,11 +13,9 @@
 // Under test.
 #include "rds/testing.hpp"
 
-// Revolution Now
-#include "fmt-helper.hpp"
-
 // base
 #include "base/build-properties.hpp"
+#include "base/fmt.hpp"
 #include "base/fs.hpp"
 #include "base/io.hpp"
 
@@ -36,16 +34,24 @@ namespace rn {
 template<typename T>
 struct my_optional {
   T t;
+
+  friend void to_str( my_optional const& o, std::string& out,
+                      base::ADL_t ) {
+    to_str( o.t, out, base::ADL );
+  }
 };
 
 struct String {
   String( char const* s ) : s_( s ) {}
+
+  friend void to_str( String const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.s_;
+  }
+
   std::string s_;
 };
 } // namespace rn
-
-DEFINE_FORMAT_T( ( T ), (::rn::my_optional<T>), "{}", o.t );
-DEFINE_FORMAT( ::rn::String, "{}", o.s_ );
 
 namespace rn {
 
@@ -98,7 +104,7 @@ TEST_CASE( "[rds] Maybe" ) {
 }
 
 TEST_CASE( "[rds] MyVariant1" ) {
-  static_assert( !base::has_fmt<MyVariant1_t> );
+  static_assert( !base::Show<MyVariant1_t> );
   MyVariant1_t my1;
   my1    = MyVariant1::happy{ { 'c', 4 } };
   my1    = MyVariant1::excited{};
@@ -123,7 +129,7 @@ TEST_CASE( "[rds] MyVariant1" ) {
 }
 
 TEST_CASE( "[rds] MyVariant2" ) {
-  static_assert( base::has_fmt<MyVariant2_t> );
+  static_assert( base::Show<MyVariant2_t> );
   MyVariant2_t my2;
   my2 = MyVariant2::first{ "hello", true };
   my2 = MyVariant2::second{ true, false };
@@ -152,7 +158,7 @@ TEST_CASE( "[rds] MyVariant2" ) {
 }
 
 TEST_CASE( "[rds] MyVariant3" ) {
-  static_assert( base::has_fmt<inner::MyVariant3_t> );
+  static_assert( base::Show<inner::MyVariant3_t> );
   inner::MyVariant3_t my3;
   my3 = inner::MyVariant3::a1{ MyVariant0_t{} };
   my3 = inner::MyVariant3::a2{ MyVariant0_t{}, MyVariant2_t{} };
@@ -183,7 +189,7 @@ TEST_CASE( "[rds] MyVariant3" ) {
 }
 
 TEST_CASE( "[rds] MyVariant4" ) {
-  static_assert( base::has_fmt<inner::MyVariant4_t> );
+  static_assert( base::Show<inner::MyVariant4_t> );
   inner::MyVariant4_t my4;
   my4 = inner::MyVariant4::first{ 1, 'r', true, { 3 } };
   my4 = inner::MyVariant4::_2nd{};
@@ -232,7 +238,7 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
   namespace V_ns = inner::CompositeTemplateTwo;
-  static_assert( base::has_fmt<V> );
+  static_assert( base::Show<V> );
   V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
                                            short>{
       .ttp = inner::TemplateTwoParams::third_alternative<

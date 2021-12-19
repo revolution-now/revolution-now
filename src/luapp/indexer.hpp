@@ -21,8 +21,8 @@
 #include "types.hpp"
 
 // base
+#include "base/adl-tag.hpp"
 #include "base/error.hpp"
-#include "base/fmt.hpp"
 #include "base/macros.hpp"
 #include "base/maybe.hpp"
 
@@ -259,6 +259,15 @@ struct indexer<metatable_key_t const&, Predecessor>
 };
 
 /****************************************************************
+** to_str
+*****************************************************************/
+template<typename I, typename P>
+void to_str( indexer<I, P> const& o, std::string& out,
+             base::ADL_t ) {
+  to_str( any( o ), out, base::ADL );
+}
+
+/****************************************************************
 ** Equality
 *****************************************************************/
 // clang-format off
@@ -284,6 +293,3 @@ auto any::operator[]( U&& idx ) const noexcept {
 }
 
 } // namespace lua
-
-EVAL( DEFINE_FORMAT_T( ( I, P ), (::lua::indexer<I, P>), "{}",
-                       ::lua::any( o ) ) );

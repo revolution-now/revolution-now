@@ -11,8 +11,8 @@
 #pragma once
 
 // base
+#include "base/adl-tag.hpp"
 #include "base/expect.hpp"
-#include "base/fmt.hpp"
 #include "base/valid.hpp"
 #include "base/variant.hpp"
 
@@ -245,7 +245,7 @@ struct table {
   table unflatten() &&;
 
   // Consumes this table.
-  base::expect<table, std::string> dedupe() &&;
+  base::expect<table> dedupe() &&;
 
   // This should be done after all other post processing has fin-
   // ished; it will create the mapping in the map_ member (which
@@ -257,6 +257,11 @@ struct table {
 
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
+
+  friend void to_str( table const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.pretty_print();
+  }
 
  private:
   void unflatten_impl( std::string_view dotted, value&& v );
@@ -310,7 +315,7 @@ struct list {
   // This is only called as part of post processing after pars-
   // ing, you do not need to ever call this as a user of this
   // class.
-  base::expect<list, std::string> dedupe_tables() &&;
+  base::expect<list> dedupe_tables() &&;
 
   // Perform the member-mapping post-processing step on any ele-
   // ments that are tables.
@@ -318,6 +323,11 @@ struct list {
 
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
+
+  friend void to_str( list const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.pretty_print();
+  }
 
  private:
   std::vector<value> members_;
@@ -330,10 +340,9 @@ struct list {
 // be applied recursively. In practice, this is only really
 // useful for unit tests, since otherwise the top-level table is
 // placed into a doc, and the doc will run this post-processing.
-base::expect<table, std::string> run_postprocessing(
-    table&& tbl );
+base::expect<table> run_postprocessing( table&& tbl );
 
-base::expect<list, std::string> run_postprocessing( list&& lst );
+base::expect<list> run_postprocessing( list&& lst );
 
 /****************************************************************
 ** doc
@@ -343,12 +352,17 @@ base::expect<list, std::string> run_postprocessing( list&& lst );
 struct doc {
   // This will not only create the doc, it will also run a recur-
   // sive post-processing over the table.
-  static base::expect<doc, std::string> create( table&& tbl );
+  static base::expect<doc> create( table&& tbl );
 
   std::string pretty_print( std::string_view indent = "" ) const;
 
   table const& top_tbl() const { return *tbl_; }
   value const& top_val() const { return val_; }
+
+  friend void to_str( doc const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.pretty_print();
+  }
 
  private:
   doc( table&& tbl )
@@ -391,7 +405,7 @@ value make_table_val( Kvs&&... kvs ) {
 }
 
 template<typename... Kvs>
-base::expect<doc, std::string> make_doc( Kvs&&... kvs ) {
+base::expect<doc> make_doc( Kvs&&... kvs ) {
   using KV = table::value_type;
   std::vector<KV> v;
   ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
@@ -399,7 +413,3 @@ base::expect<doc, std::string> make_doc( Kvs&&... kvs ) {
 }
 
 } // namespace rcl
-
-DEFINE_FORMAT( rcl::doc, "{}", o.pretty_print() );
-DEFINE_FORMAT( rcl::list, "{}", o.pretty_print() );
-DEFINE_FORMAT( rcl::table, "{}", o.pretty_print() );

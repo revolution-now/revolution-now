@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-view.hpp"
 #include "console.hpp"
+#include "fmt-helper.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "image.hpp"

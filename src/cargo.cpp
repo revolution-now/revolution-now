@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
@@ -22,6 +23,7 @@
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -45,6 +47,11 @@ string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
       fmt::format( "{}", FmtJsonStyleList{ slots_ } ),
       { { "CargoSlot::", "" } } );
+}
+
+void to_str( CargoHold const& o, std::string& out,
+             base::ADL_t ) {
+  out += o.debug_string();
 }
 
 valid_deserial_t CargoHold::check_invariants_post_load() const {

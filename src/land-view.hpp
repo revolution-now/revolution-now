@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fmt-helper.hpp"
 #include "id.hpp"
 #include "wait.hpp"
 

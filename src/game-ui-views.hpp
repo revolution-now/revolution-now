@@ -34,7 +34,7 @@ struct UnitActivationInfo {
   bool          is_activated;
 
   friend void to_str( UnitActivationInfo const& o,
-                      std::string&              out );
+                      std::string& out, base::ADL_t );
 };
 
 /****************************************************************

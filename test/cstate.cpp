@@ -20,9 +20,6 @@
 // Must be last.
 #include "catch-common.hpp"
 
-FMT_TO_CATCH( ::rn::UnitId );
-FMT_TO_CATCH( ::rn::ColonyId );
-
 namespace rn {
 namespace {
 

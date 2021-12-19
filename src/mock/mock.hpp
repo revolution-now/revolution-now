@@ -15,9 +15,9 @@
 
 // base
 #include "base/error.hpp"
-#include "base/fmt.hpp"
 #include "base/maybe.hpp"
 #include "base/scope-exit.hpp"
+#include "base/to-str.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -193,7 +193,7 @@ struct Responder<RetT, std::tuple<Args...>,
     auto format_if_possible
         [[maybe_unused]] = []<typename T>( T&& o ) {
           std::string res = "<non-formattable>";
-          if constexpr( base::has_fmt<std::remove_cvref_t<T>> )
+          if constexpr( base::Show<std::remove_cvref_t<T>> )
             res = fmt::to_string( o );
           return res;
         };

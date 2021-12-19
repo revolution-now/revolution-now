@@ -14,15 +14,12 @@
 #include "src/unit-composer.hpp"
 
 // Revolution Now
+#include "src/fmt-helper.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
-
-FMT_TO_CATCH( ::rn::UnitComposition );
-FMT_TO_CATCH( ::rn::UnitTransformationResult );
-FMT_TO_CATCH( ::rn::UnitTransformationFromCommodityResult );
 
 namespace rn {
 namespace {

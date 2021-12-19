@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fmt-helper.hpp"
 #include "logger.hpp"
 #include "matrix.hpp"
 

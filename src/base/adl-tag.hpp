@@ -1,18 +1,21 @@
 /****************************************************************
-**fs.hpp
+**adl-tag.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2020-11-15.
+* Created by dsicilia on 2021-12-18.
 *
-* Description: Include this to use std::filesystem.
+* Description: Tag to be used to help ADL find things in base/.
 *
 *****************************************************************/
 #pragma once
 
 #include "config.hpp"
 
-// C++ standard library
-#include <filesystem>
+namespace base {
 
-namespace fs = ::std::filesystem;
+struct ADL_t {};
+
+inline constexpr ADL_t ADL{};
+
+} // namespace base

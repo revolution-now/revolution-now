@@ -16,7 +16,9 @@
 // Revolution Now
 #include "error.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
+
+// base
+#include "base/fmt.hpp"
 
 // Flatbuffers
 #include "fb/physics_generated.h"
@@ -70,6 +72,12 @@ class ND DissipativeVelocity {
 
   valid_deserial_t check_invariants_safe() const;
 
+  friend void to_str( DissipativeVelocity const& o,
+                      std::string& out, base::ADL_t ) {
+    out += fmt::format( "DissipativeVelocity{{velocity={}}}",
+                        o.to_double() );
+  }
+
  private:
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( DissipativeVelocity,
@@ -83,7 +91,3 @@ class ND DissipativeVelocity {
 NOTHROW_MOVE( DissipativeVelocity );
 
 } // namespace rn
-
-DEFINE_FORMAT( ::rn::DissipativeVelocity,
-               "DissipativeVelocity{{velocity={}}}",
-               o.to_double() );

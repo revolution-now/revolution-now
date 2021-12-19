@@ -14,7 +14,7 @@
 #include "rcl/ext.hpp"
 
 // base
-#include "base/fmt.hpp"
+#include "base/adl-tag.hpp"
 #include "base/maybe.hpp"
 
 // C++ standard library
@@ -48,6 +48,9 @@ struct pixel {
   // #NNNNNN with N in [0-9A-F] and optionally #NNNNNNNN
   // if with_alpha = true;
   std::string to_string( bool with_alpha = false ) const;
+
+  friend void to_str( pixel const& o, std::string& out,
+                      base::ADL_t );
 
   // Parses a string of the form 'NNNNNN[NN]' where N is:
   // [0-9a-fA-F]. The optional two digits at the end represent
@@ -113,12 +116,6 @@ pixel_hsl to_HSL( pixel const& rgb );
 pixel     to_RGB( pixel_hsl const& hsl );
 
 } // namespace gfx
-
-/****************************************************************
-** fmt
-*****************************************************************/
-DEFINE_FORMAT( ::gfx::pixel, "{}",
-               o.to_string( /*with_alpha=*/true ) );
 
 /****************************************************************
 ** std::hash

@@ -364,58 +364,38 @@ struct CodeGenerator {
     }
   }
 
-  void emit_fmt_format_method(
-      expr::Alternative const& alt, string_view full_alt_name,
+  void emit_fmt_for_alternative(
+      string_view                        sumtype_name,
       vector<expr::TemplateParam> const& tmpls,
-      string_view                        sumtype_name ) {
-    line( "template<typename Context>" );
+      expr::Alternative const&           alt ) {
+    if( !tmpls.empty() ) emit_template_decl( tmpls );
+    string full_alt_name = fmt::format(
+        "{}::{}{}", sumtype_name, alt.name,
+        template_params( tmpls, /*put_typename=*/false ) );
     string maybe_o = alt.members.empty() ? "" : " o";
-    line( "auto format( {} const&{}, Context& ctx ) {{",
-          full_alt_name, maybe_o );
+    line(
+        "inline void to_str( {} const&{}, std::string& out, "
+        "::base::ADL_t ) {{",
+        full_alt_name, maybe_o );
     {
       auto _ = indent();
-      line(
-          "return base::formatter_base::format( fmt::format(" );
+      line( "out += fmt::format(" );
       {
         auto _ = indent();
         emit_format_str_for_formatting_alternative(
             alt, tmpls, sumtype_name );
-        if( !alt.members.empty() || !tmpls.empty() )
-          frag( ", " );
-        vector<string> fmt_args;
-        if( !tmpls.empty() )
-          fmt_args.push_back(
-              template_params_type_names( tmpls ) );
-        for( expr::AlternativeMember const& member :
-             alt.members )
-          fmt_args.push_back(
-              fmt::format( "o.{}", member.var ) );
-        frag( "{} ), ctx );", absl::StrJoin( fmt_args, ", " ) );
-        flush();
       }
+      if( !alt.members.empty() || !tmpls.empty() ) frag( ", " );
+      vector<string> fmt_args;
+      if( !tmpls.empty() )
+        fmt_args.push_back(
+            template_params_type_names( tmpls ) );
+      for( expr::AlternativeMember const& member : alt.members )
+        fmt_args.push_back( fmt::format( "o.{}", member.var ) );
+      frag( "{} );", absl::StrJoin( fmt_args, ", " ) );
+      flush();
     }
     line( "}" );
-  }
-
-  void emit_fmt_for_alternative(
-      string_view ns, string_view sumtype_name,
-      vector<expr::TemplateParam> const& tmpls,
-      expr::Alternative const&           alt ) {
-    if( !tmpls.empty() )
-      emit_template_decl( tmpls );
-    else
-      line( "template<>" );
-    string full_alt_name = fmt::format(
-        "{}::{}::{}{}", ns, sumtype_name, alt.name,
-        template_params( tmpls, /*put_typename=*/false ) );
-    line( "struct fmt::formatter<{}>", full_alt_name );
-    {
-      auto _ = indent();
-      line( ": base::formatter_base {" );
-      emit_fmt_format_method( alt, full_alt_name, tmpls,
-                              sumtype_name );
-    }
-    line( "};" );
   }
 
   void emit( vector<expr::TemplateParam> const& tmpls,
@@ -609,6 +589,21 @@ struct CodeGenerator {
     line( "};" );
     newline();
     close_ns( "rn" );
+    // emit to_str.
+    newline();
+    open_ns( ns );
+    line(
+        "inline void to_str( {}{}, std::string&{}, "
+        "::base::ADL_t ) {{",
+        e.name, e.values.empty() ? "" : " o",
+        e.values.empty() ? "" : " out" );
+    if( !e.values.empty() ) {
+      auto _ = indent();
+      line( "out += enum_traits<{}>::value_name( o );", e.name );
+    }
+    line( "}" );
+    newline();
+    close_ns( ns );
   }
 
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
@@ -624,6 +619,15 @@ struct CodeGenerator {
             sumtype, expr::e_sumtype_feature::serializable );
         emit( sumtype.tmpl_params, alt, sumtype.name,
               emit_equality, emit_serialization );
+        if( sumtype_has_feature(
+                sumtype,
+                expr::e_sumtype_feature::formattable ) ) {
+          newline();
+          string alt_name = fmt::format( "{}", alt.name );
+          comment( "{}", alt_name );
+          emit_fmt_for_alternative( sumtype.name,
+                                    sumtype.tmpl_params, alt );
+        }
         newline();
       }
       emit_enum_for_sumtype( sumtype.alternatives );
@@ -651,20 +655,8 @@ struct CodeGenerator {
     }
     newline();
     close_ns( ns );
-    emit_variant_to_enum_specialization( ns, sumtype );
     // Global namespace.
-    if( sumtype_has_feature(
-            sumtype, expr::e_sumtype_feature::formattable ) ) {
-      for( expr::Alternative const& alt :
-           sumtype.alternatives ) {
-        newline();
-        string alt_name = fmt::format( "{}::{}::{}", ns,
-                                       sumtype.name, alt.name );
-        comment( "{}", alt_name );
-        emit_fmt_for_alternative( ns, sumtype.name,
-                                  sumtype.tmpl_params, alt );
-      }
-    }
+    emit_variant_to_enum_specialization( ns, sumtype );
   }
 
   void emit( expr::Item const& item ) {
@@ -761,8 +753,6 @@ struct CodeGenerator {
       line( "#include \"rds/helper/sumtype-helper.hpp\"" );
     if( rds_has_enum( rds ) )
       line( "#include \"rds/helper/enum.hpp\"" );
-    if( rds_needs_fmt_headers( rds ) )
-      line( "#include \"fmt-helper.hpp\"" );
     if( rds_needs_serial_header( rds ) ) {
       line( "#include \"error.hpp\"" );
       line( "#include \"fb.hpp\"" );
@@ -771,6 +761,10 @@ struct CodeGenerator {
     line( "" );
     comment( "base" );
     line( "#include \"base/cc-specific.hpp\"" );
+    if( rds_needs_fmt_headers( rds ) ) {
+      line( "#include \"base/to-str.hpp\"" );
+      line( "#include \"base/to-str-ext-std.hpp\"" );
+    }
     line( "#include \"base/variant.hpp\"" );
     line( "" );
     comment( "base-util" );

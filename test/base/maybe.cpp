@@ -2617,8 +2617,8 @@ TEST_CASE( "[maybe] stringification" ) {
   REQUIRE( fmt::format( "{}", m2 ) == "3" );
 
   string out1, out2;
-  to_str( m1, out1 );
-  to_str( m2, out2 );
+  to_str( m1, out1, ADL );
+  to_str( m2, out2, ADL );
 
   REQUIRE( out1 == "5" );
   REQUIRE( out2 == "3" );

@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "fmt-helper.hpp"
 #include "lua.hpp"
 
 // Revolution Now (config)
@@ -119,7 +120,8 @@ maybe<UnitComposition> UnitComposition::with_new_type(
   return create( type, inventory_ );
 }
 
-void to_str( UnitComposition const& o, string& out ) {
+void to_str( UnitComposition const& o, string& out,
+             base::ADL_t ) {
   out += fmt::format( "UnitComposition{{type={},inventory={}}}",
                       o.type_, o.inventory_ );
   // out += "UnitComposition";
@@ -209,7 +211,8 @@ void remove_commodities_from_inventory(
 /****************************************************************
 ** Transformations
 *****************************************************************/
-void to_str( UnitTransformationResult const& o, string& out ) {
+void to_str( UnitTransformationResult const& o, string& out,
+             base::ADL_t ) {
   out += fmt::format(
       "UnitTransformationResult{{\n"
       "  new_comp={},\n"
@@ -232,7 +235,7 @@ void to_str( UnitTransformationResult const& o, string& out ) {
 }
 
 void to_str( UnitTransformationFromCommodityResult const& o,
-             string&                                      out ) {
+             string& out, base::ADL_t ) {
   out += fmt::format(
       "UnitTransformationFromCommodityResult{{new_comp={},"
       "modifier_deltas={},quantity_used={}}}",

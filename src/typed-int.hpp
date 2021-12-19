@@ -13,9 +13,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "fmt-helper.hpp"
-
 // Rcl
 #include "rcl/ext.hpp"
 
@@ -452,8 +449,13 @@ inline constexpr bool operator>=( int           left,
       return P::_ >= rhs._;                           \
     }                                                 \
   };                                                  \
+  inline void to_str( a const& o, std::string& out,   \
+                      ::base::ADL_t ) {               \
+    to_str( o._, out, ::base::ADL );                  \
+    out += "_";                                       \
+    out += #suffix;                                   \
   }                                                   \
-  DEFINE_FORMAT( ::ns::a, "{}_{}", o._, #suffix );    \
+  }                                                   \
   NOTHROW_MOVE( ::ns::a );
 
 #define DERIVE_TYPED_NUM( ... ) \

@@ -12,23 +12,8 @@
 
 // Revolution Now
 #include "error.hpp"
-//#include "fmt-helper.hpp"
-//#include "frame.hpp"
 #include "init.hpp"
 #include "logger.hpp"
-//#include "macros.hpp"
-//#include "screen.hpp"
-//#include "util.hpp"
-
-// base-util
-//#include "base-util/algo.hpp"
-//#include "base-util/string.hpp"
-
-// C++ standard library
-//#include <cmath>
-//#include <iomanip>
-//#include <unordered_map>
-//#include <vector>
 
 using namespace std;
 

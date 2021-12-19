@@ -13,16 +13,17 @@
 // Revolution Now
 #include "console.hpp"
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "terminal.hpp"
 #include "util.hpp"
 
 // base
 #include "base/ansi.hpp"
+#include "base/fmt.hpp"
 
 // C++ standard library
 #include <mutex>
+#include <sstream>
 #include <unordered_map>
 
 using namespace std;
@@ -132,7 +133,7 @@ struct TerminalLogger final : public ILogger {
                        to_colored_level_name( target ), what );
 
     lock_guard<mutex> lock( terminal_mutex() );
-    cout << ss.str() << '\n';
+    fmt::print( "{}\n", ss.str() );
   }
 };
 

@@ -62,8 +62,8 @@ class UnitComposition {
 
   valid_deserial_t check_invariants_safe() const;
 
-  friend void to_str( UnitComposition const& o,
-                      std::string&           out );
+  friend void to_str( UnitComposition const& o, std::string& out,
+                      base::ADL_t );
 
  private:
   UnitComposition( UnitType type, UnitInventoryMap inventory );
@@ -91,7 +91,7 @@ struct UnitTransformationResult {
       default;
 
   friend void to_str( UnitTransformationResult const& o,
-                      std::string&                    out );
+                      std::string& out, base::ADL_t );
 };
 
 // What derived/base units can this unit become, along with the
@@ -138,7 +138,7 @@ struct UnitTransformationFromCommodityResult {
 
   friend void to_str(
       UnitTransformationFromCommodityResult const& o,
-      std::string&                                 out );
+      std::string& out, base::ADL_t );
 };
 
 // Can unit receive commodity, and if so how many and what unit

@@ -39,10 +39,6 @@
 // Must be last.
 #include "catch-common.hpp"
 
-FMT_TO_CATCH( ::rn::CargoSlot_t );
-FMT_TO_CATCH( ::rn::UnitId );
-FMT_TO_CATCH( ::rn::Commodity );
-
 namespace rn {
 namespace {
 
@@ -153,19 +149,6 @@ struct Monster {
   ( maybe<int>,        opt_int3       ));
   // clang-format on
 };
-
-} // namespace
-} // namespace rn
-
-DEFINE_FORMAT( ::rn::Vec2, "Vec2{{x={},y={}}}", o.x, o.y );
-DEFINE_FORMAT( ::rn::Weapon, "Weapon{{name={},damage={}}}",
-               o.name, o.damage );
-
-FMT_TO_CATCH( ::rn::Vec2 );
-FMT_TO_CATCH( ::rn::Weapon );
-
-namespace rn {
-namespace {
 
 BinaryBlob create_monster_blob() {
   FBBuilder builder;

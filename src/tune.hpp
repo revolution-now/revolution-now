@@ -66,8 +66,8 @@ struct TuneDimensions {
       rcl::value const& v, rcl::tag<TuneDimensions> );
 
   // ADL stringifier.
-  friend void to_str( TuneDimensions const& o,
-                      std::string&          out );
+  friend void to_str( TuneDimensions const& o, std::string& out,
+                      base::ADL_t );
 };
 NOTHROW_MOVE( TuneDimensions );
 
@@ -101,7 +101,8 @@ struct Tune {
                                             rcl::tag<Tune> );
 
   // ADL stringifier.
-  friend void to_str( Tune const& o, std::string& out );
+  friend void to_str( Tune const& o, std::string& out,
+                      base::ADL_t );
 };
 NOTHROW_MOVE( Tune );
 

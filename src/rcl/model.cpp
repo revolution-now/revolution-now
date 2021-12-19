@@ -402,7 +402,7 @@ base::expect<list, string> run_postprocessing( list&& v1 ) {
 /****************************************************************
 ** Document
 *****************************************************************/
-expect<doc, std::string> doc::create( table&& tbl ) {
+expect<doc> doc::create( table&& tbl ) {
   UNWRAP_RETURN( postprocessed,
                  run_postprocessing( std::move( tbl ) ) );
   return doc( std::move( postprocessed ) );

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fmt-helper.hpp"
 #include "maybe.hpp"
 
 // base
@@ -283,6 +282,11 @@ class [[nodiscard]] wait {
     if( shared_state_ ) shared_state_->cancel();
   }
 
+  friend void to_str( wait const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.ready() ? "<ready>" : "<waiting>";
+  }
+
  private:
   SharedStatePtr<T> shared_state_;
 };
@@ -383,6 +387,11 @@ class wait_promise {
     set_value_emplace( std::forward<Args>( args )... );
   }
 
+  friend void to_str( wait_promise const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.has_value() ? "<ready>" : "<empty>";
+  }
+
  private:
   // This is because it is often that we have to capture promises
   // in lambdas, which this allows us to set the value on the
@@ -418,38 +427,3 @@ wait<T>::wait( T const& ready_val ) {
 }
 
 } // namespace rn
-
-/****************************************************************
-** {fmt}
-*****************************************************************/
-namespace fmt {
-// {fmt} formatters.
-
-template<typename T>
-struct formatter<::rn::wait<T>> : base::formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::wait<T> const& o, FormatContext& ctx ) {
-    std::string res;
-    if( !o.ready() )
-      res = "<waiting>";
-    else if( o.ready() )
-      res = fmt::format( "<ready>" );
-    return base::formatter_base::format( res, ctx );
-  }
-};
-
-template<typename T>
-struct formatter<::rn::wait_promise<T>> : base::formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::wait_promise<T> const& o,
-               FormatContext&               ctx ) {
-    std::string res;
-    if( !o.has_value() )
-      res = "<empty>";
-    else
-      res = fmt::format( "<ready>" );
-    return base::formatter_base::format( res, ctx );
-  }
-};
-
-} // namespace fmt

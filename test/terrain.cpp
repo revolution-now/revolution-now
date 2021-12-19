@@ -17,18 +17,11 @@
 // Must be last.
 #include "catch-common.hpp"
 
-FMT_TO_CATCH( ::rn::Delta );
-FMT_TO_CATCH( ::rn::Coord );
-FMT_TO_CATCH( ::rn::e_surface );
-
 namespace rn {
 namespace {
 
 using namespace std;
 using namespace rn;
-
-// using Catch::Contains;
-// using Catch::UnorderedEquals;
 
 TEST_CASE( "[terrain] generate unit testing land" ) {
   generate_unittest_terrain();

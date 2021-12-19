@@ -30,7 +30,8 @@ enum class e_error_read_text_file {
   incomplete_read // failed to read all bytes in file.
 };
 
-void to_str( e_error_read_text_file val, std::string& out );
+void to_str( e_error_read_text_file val, std::string& out,
+             ADL_t );
 
 // For convenience; take an error code and return a human read-
 // able message describing it. Supplying the filename that was

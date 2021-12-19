@@ -13,68 +13,29 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "expect.hpp"
-#include "fmt-helper.hpp"
-#include "maybe.hpp"
-
 // base
-#include "base/valid.hpp"
-
-// base-util
-#include "base-util/mp.hpp"
-#include "base-util/pp.hpp"
+#include "base/to-str.hpp"
 
 // Catch2
 #include "catch2/catch.hpp"
 
 // C++ standard library
-#include <optional>
-#include <utility>
+#include <ranges>
+#include <string>
 
-// Use this to teach Catch2 how to convert types to strings that
-// are a) non-templated, and b) can be printed using {fmt}.
-#define FMT_TO_CATCH( ... )                                  \
-  namespace Catch {                                          \
-  template<>                                                 \
-  struct StringMaker<__VA_ARGS__> {                          \
-    static std::string convert( __VA_ARGS__ const& value ) { \
-      return fmt::format( "{}", value );                     \
-    }                                                        \
-  };                                                         \
+namespace Catch {
+
+// Allow Catch2 to format anything that supports to_str. But not
+// things that are ranges because Catch2 already has specializa-
+// tions for those which would clash.
+// clang-format off
+template<base::Show T>
+requires( !std::ranges::range<T> ) //
+struct StringMaker<T> {
+  // clang-format on
+  static std::string convert( T const& value ) {
+    return base::to_str( value );
   }
+};
 
-#define RN_HAS_FMT_FORMAT( ... ) ::base::has_fmt<__VA_ARGS__>
-
-#define FMT_TO_CATCH_T_IMPL( t_args, ... )                     \
-  namespace Catch {                                            \
-  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
-  requires( mp::and_v<PP_MAP_COMMAS( RN_HAS_FMT_FORMAT,        \
-                                     EXPAND t_args )> ) struct \
-      StringMaker<__VA_ARGS__<EXPAND t_args>> {                \
-    static std::string convert(                                \
-        __VA_ARGS__<EXPAND t_args> const& value ) {            \
-      return fmt::format( "{}", value );                       \
-    }                                                          \
-  };                                                           \
-  }
-
-// Use this to teach Catch2 how to convert types to strings that
-// are a) templated, and b) can be printed using {fmt}.
-#define FMT_TO_CATCH_T( t_args, ... ) \
-  EVAL( FMT_TO_CATCH_T_IMPL( t_args, __VA_ARGS__ ) )
-
-namespace rn {} // namespace rn
-
-/****************************************************************
-** Standard Formatting
-*****************************************************************/
-FMT_TO_CATCH_T( ( T, U ), ::std::pair );
-FMT_TO_CATCH_T( ( T ), ::std::reference_wrapper );
-FMT_TO_CATCH_T( ( T ), ::std::optional );
-FMT_TO_CATCH_T( ( T ), ::base::maybe );
-FMT_TO_CATCH_T( ( T, E ), ::base::expect );
-FMT_TO_CATCH_T( ( E ), ::base::valid_or );
-FMT_TO_CATCH_T( ( T ), ::rn::FmtVerticalJsonList );
-FMT_TO_CATCH( ::base::valid_t );
-FMT_TO_CATCH( ::base::nothing_t );
+} // namespace Catch

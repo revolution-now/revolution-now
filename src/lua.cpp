@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 
@@ -24,6 +23,9 @@
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
 #include "luapp/usertype.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/io.hpp"

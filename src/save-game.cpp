@@ -21,6 +21,7 @@
 #include "base/cc-specific.hpp"
 #include "base/io.hpp"
 #include "base/meta.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/savegame.inl"

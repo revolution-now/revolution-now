@@ -6,6 +6,9 @@
 
 #include "../../src/conductor.hpp"
 
+// base
+#include "../../src/base/fs.hpp"
+
 namespace rn {
 
 // This is to avoid commas in macro arguments.

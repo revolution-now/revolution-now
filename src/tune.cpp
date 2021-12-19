@@ -30,6 +30,7 @@
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -243,7 +244,7 @@ TuneId random_tune() {
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( Tune const& o, std::string& out ) {
+void to_str( Tune const& o, std::string& out, base::ADL_t ) {
   out += fmt::format(
       "Tune{{display_name={}, stem={}, description=\"{}\", "
       "dimensions={}}}",
@@ -253,7 +254,8 @@ void to_str( Tune const& o, std::string& out ) {
 #define TUNE_DIM_TO_STR( name ) \
   out += fmt::format( TO_STRING( name ) "={}, ", o.name );
 
-void to_str( TuneDimensions const& o, std::string& out ) {
+void to_str( TuneDimensions const& o, std::string& out,
+             base::ADL_t ) {
   out += "TuneDimensions{";
   EVAL( PP_MAP( TUNE_DIM_TO_STR, TUNE_DIMENSION_LIST ) );
   // Remove trailing comma and space.

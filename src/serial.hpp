@@ -17,6 +17,9 @@
 #include "expect.hpp"
 #include "fb.hpp"
 
+// base
+#include "base/fs.hpp"
+
 // base-util
 #include "base-util/macros.hpp"
 #include "base-util/pp.hpp"
@@ -40,8 +43,7 @@ class ByteBuffer {
   ByteBuffer( byte_t* buf, int size )
     : size_( size ), buf_( buf ) {}
 
-  static expect<ByteBuffer, std::string> read(
-      fs::path const& file );
+  static expect<ByteBuffer> read( fs::path const& file );
 
   int size() const { return size_; }
 
@@ -61,8 +63,7 @@ class BinaryBlob {
   BinaryBlob( ByteBuffer&& buf )
     : buf_( std::move( buf ) ), offset_( 0 ) {}
 
-  static expect<BinaryBlob, std::string> read(
-      fs::path const& path );
+  static expect<BinaryBlob> read( fs::path const& path );
 
   valid_or<std::string> write( fs::path const& path ) const;
 

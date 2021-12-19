@@ -11,6 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
+#include "src/base/to-str-ext-std.hpp"
 #include "src/base/to-str.hpp"
 
 // Must be last.
@@ -24,7 +25,7 @@ using namespace std;
 template<typename T>
 string call_to_str( T const& o ) {
   string out;
-  to_str( o, out );
+  to_str( o, out, ADL );
   return out;
 }
 

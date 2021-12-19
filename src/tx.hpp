@@ -16,8 +16,10 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fmt-helper.hpp"
 #include "matrix.hpp"
+
+// base
+#include "base/fs.hpp"
 
 // gfx
 #include "gfx/pixel.hpp"
@@ -177,6 +179,9 @@ class Texture {
     lhs.swap( rhs );
   }
 
+  friend void to_str( Texture const& o, std::string& out,
+                      base::ADL_t );
+
  private:
   void* tx_{ nullptr };
   // globally unique id and monotonically increasing. 0 is for
@@ -193,5 +198,3 @@ NOTHROW_MOVE( Texture );
 int live_texture_count();
 
 } // namespace rn
-
-DEFINE_FORMAT( ::rn::Texture, "Texture[id={}]", o.id() );

@@ -33,7 +33,8 @@ enum class [[nodiscard]] thread_status{ ok, yield, err };
 // thing similar.
 enum class [[nodiscard]] resume_status{ ok, yield };
 
-void to_str( resume_status status, std::string& out );
+void to_str( resume_status status, std::string& out,
+             base::ADL_t );
 
 // This is used to communicate the results from lua_resume.
 struct [[nodiscard]] resume_result {
@@ -43,7 +44,8 @@ struct [[nodiscard]] resume_result {
   bool operator==( resume_result const& ) const = default;
 };
 
-void to_str( resume_result result, std::string& out );
+void to_str( resume_result result, std::string& out,
+             base::ADL_t );
 
 template<typename R>
 struct [[nodiscard]] resume_result_with_value {
@@ -51,12 +53,12 @@ struct [[nodiscard]] resume_result_with_value {
   R             value;
 
   friend void to_str( resume_result_with_value result,
-                      std::string&             out ) {
+                      std::string& out, base::ADL_t ) {
     using base::to_str; // two-step
-    to_str( "{status=", out );
-    to_str( result.status, out );
-    to_str( ", value=", out );
-    to_str( result.value, out );
+    to_str( "{status=", out, base::ADL );
+    to_str( result.status, out, base::ADL );
+    to_str( ", value=", out, base::ADL );
+    to_str( result.value, out, base::ADL );
     out += "}";
   }
 
@@ -93,6 +95,7 @@ enum class coroutine_status {
   dead
 };
 
-void to_str( coroutine_status status, std::string& out );
+void to_str( coroutine_status status, std::string& out,
+             base::ADL_t );
 
 } // namespace lua

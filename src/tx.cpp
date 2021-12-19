@@ -22,6 +22,9 @@
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // SDL
 #include "SDL.h"
 #include "SDL_image.h"
@@ -372,6 +375,10 @@ double Texture::mem_usage_mb( Delta size ) {
 
 double Texture::mem_usage_mb() const {
   return Texture::mem_usage_mb( size() );
+}
+
+void to_str( Texture const& o, std::string& out, base::ADL_t ) {
+  out += fmt::format( "Texture[id={}]", o.id() );
 }
 
 /****************************************************************

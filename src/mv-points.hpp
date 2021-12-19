@@ -15,7 +15,6 @@
 
 // Revolution Now
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 
 // Rcl
 #include "rcl/ext.hpp"
@@ -121,7 +120,8 @@ class ND MovementPoints {
   }
   void operator-=( int rhs ) { points_atoms -= rhs * factor; }
 
-  std::string to_string() const;
+  friend void to_str( MovementPoints const& o, std::string& out,
+                      base::ADL_t );
 
   valid_deserial_t check_invariants_safe() const;
 
@@ -149,5 +149,3 @@ NOTHROW_MOVE( MovementPoints );
 using MvPoints = MovementPoints;
 
 } // namespace rn
-
-DEFINE_FORMAT( rn::MvPoints, "{}", o.to_string() )

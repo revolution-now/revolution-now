@@ -16,10 +16,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::rcl::error );
-FMT_TO_CATCH( ::rn::Tune );
-FMT_TO_CATCH( ::rn::TuneDimensions );
-
 namespace rn {
 namespace {
 

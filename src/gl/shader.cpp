@@ -24,7 +24,8 @@ namespace gl {
 /****************************************************************
 ** Shader Type
 *****************************************************************/
-void to_str( e_shader_type type, std::string& out ) {
+void to_str( e_shader_type type, std::string& out,
+             base::ADL_t ) {
   switch( type ) {
     case e_shader_type::vertex: out += "vertex"; return;
     case e_shader_type::fragment: out += "fragment"; return;
@@ -36,8 +37,8 @@ void to_str( e_shader_type type, std::string& out ) {
 *****************************************************************/
 Shader::Shader( ObjId id ) : base::zero<Shader, ObjId>( id ) {}
 
-base::expect<Shader, std::string> Shader::create(
-    e_shader_type type, std::string const& code ) {
+base::expect<Shader> Shader::create( e_shader_type      type,
+                                     std::string const& code ) {
   GLenum gl_shader_type = 0;
   switch( type ) {
     case e_shader_type::vertex:
@@ -94,9 +95,8 @@ void Shader::free_resource() {
 ProgramNonTyped::ProgramNonTyped( ObjId id )
   : base::zero<ProgramNonTyped, ObjId>( id ) {}
 
-base::expect<ProgramNonTyped, std::string>
-ProgramNonTyped::create( Shader const& vertex,
-                         Shader const& fragment ) {
+base::expect<ProgramNonTyped> ProgramNonTyped::create(
+    Shader const& vertex, Shader const& fragment ) {
   ProgramNonTyped pgrm(
       GL_CHECK( CALL_GL( gl_CreateProgram ) ) );
 

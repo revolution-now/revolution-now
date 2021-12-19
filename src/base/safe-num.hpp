@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 // base
+#include "adl-tag.hpp"
 #include "fmt.hpp"
 
 // C++ standard library
@@ -56,6 +57,15 @@ struct pointer {
     return value_ == nullptr;
   }
 
+  friend void to_str( pointer const& o, std::string& out,
+                      base::ADL_t ) {
+    if constexpr( std::is_same_v<T, void> ||
+                  std::is_same_v<T, void const> )
+      out += fmt::to_string( o.value_ );
+    else
+      out += "<pointer>";
+  }
+
  private:
   T* value_;
 };
@@ -75,6 +85,11 @@ struct boolean {
   bool operator!() const noexcept { return !value_; }
 
   auto get() const noexcept { return value_; }
+
+  friend void to_str( boolean const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::to_string( o.value_ );
+  }
 
  private:
   bool value_;
@@ -103,6 +118,11 @@ struct integer {
   operator T() const noexcept { return value_; }
 
   auto get() const noexcept { return value_; }
+
+  friend void to_str( integer const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::to_string( o.value_ );
+  }
 
  private:
   T value_;
@@ -134,6 +154,11 @@ struct floating {
 
   auto get() const noexcept { return value_; }
 
+  friend void to_str( floating const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::to_string( o.value_ );
+  }
+
  private:
   T value_;
 };
@@ -144,11 +169,3 @@ inline bool operator==( floating<T> l, T v ) {
 }
 
 } // namespace base::safe
-
-DEFINE_FORMAT( base::safe::boolean, "{}", o.get() );
-DEFINE_FORMAT_T( ( T ), (base::safe::integer<T>), "{}",
-                 o.get() );
-DEFINE_FORMAT_T( ( T ), (base::safe::floating<T>), "{}",
-                 o.get() );
-DEFINE_FORMAT_T( ( T ), (base::safe::pointer<T>), "{}",
-                 o.get() );

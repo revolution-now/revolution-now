@@ -483,7 +483,7 @@ template<typename ResultT>
         if( validator( proposed ) ) {
           on_result( proposed );
         } else {
-          if constexpr( base::has_fmt<decltype( proposed )> ) {
+          if constexpr( base::Show<decltype( proposed )> ) {
             lg.debug( "{} is invalid.", proposed );
           } else {
             lg.debug( "result is invalid." );

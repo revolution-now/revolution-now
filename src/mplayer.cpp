@@ -14,6 +14,9 @@
 #include "logger.hpp"
 #include "time.hpp"
 
+// C++ standard library
+#include <iostream>
+
 using namespace std;
 
 namespace rn {

@@ -36,6 +36,9 @@
 // stb
 #include "stb/image.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // SDL
 #include "SDL.h"
 

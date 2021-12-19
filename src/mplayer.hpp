@@ -51,7 +51,7 @@ struct MusicPlayerCapabilities {
   bool can_seek{ false };
 };
 
-using MaybeMusicPlayer = expect<MusicPlayer&, std::string>;
+using MaybeMusicPlayer = expect<MusicPlayer&>;
 
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous

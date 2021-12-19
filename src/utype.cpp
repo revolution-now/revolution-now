@@ -555,6 +555,11 @@ UnitType UnitType::create( e_unit_type type ) {
   }
 }
 
+void to_str( UnitType const& o, string& out, base::ADL_t ) {
+  out += fmt::format( "UnitType{{type={},base={}}}", o.type(),
+                      o.base_type() );
+}
+
 valid_deserial_t UnitType::check_invariants_safe() const {
   if( !unit_type_modifier_path_exists( base_type_, type_ ) )
     return invalid_deserial(

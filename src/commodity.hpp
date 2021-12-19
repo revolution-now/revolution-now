@@ -15,7 +15,6 @@
 // Revolution Now
 #include "coord.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "id.hpp"
 #include "lua-enum.hpp"
 #include "tx.hpp"
@@ -78,6 +77,12 @@ struct Commodity {
   Commodity with_quantity( int new_quantity ) const;
 
   valid_deserial_t check_invariants_safe() const;
+
+  friend void to_str( Commodity const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "Commodity{{type={},quantity={}}}",
+                        o.type, o.quantity );
+  }
 
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,
@@ -147,6 +152,3 @@ void render_commodity_annotated( Texture&         tx,
 LUA_ENUM_DECL( commodity );
 
 } // namespace rn
-
-DEFINE_FORMAT( rn::Commodity, "Commodity{{type={},quantity={}}}",
-               o.type, o.quantity );

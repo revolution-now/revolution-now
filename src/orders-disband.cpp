@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "fmt-helper.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 

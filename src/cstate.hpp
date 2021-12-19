@@ -34,8 +34,9 @@ void map_colonies( base::function_ref<void( Colony& )> func );
 // DO NOT call this directly as it will return a Colony that is
 // not yet fully valid, e.g., it will have no units or buildings
 // in it.
-expect<ColonyId, std::string> cstate_create_colony(
-    e_nation nation, Coord const& where, std::string_view name );
+expect<ColonyId> cstate_create_colony( e_nation         nation,
+                                       Coord const&     where,
+                                       std::string_view name );
 
 // DO NOT call this directly as it will not properly remove units
 // or check for errors. Should not be holding any references to

@@ -26,12 +26,17 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
 namespace lua {
 
 struct CppOwned {
   int n = 5;
+
+  friend void to_str( CppOwned const& o, std::string& out,
+                      base::ADL_t ) {
+    out += "CppOwned{n=";
+    to_str( o.n, out, base::ADL );
+    out += '}';
+  }
 };
 
 LUA_USERDATA_TRAITS( CppOwned, owned_by_cpp ){};
@@ -60,6 +65,13 @@ static_assert(
 
 struct LuaOwned {
   int n = 5;
+
+  friend void to_str( LuaOwned const& o, std::string& out,
+                      base::ADL_t ) {
+    out += "LuaOwned{n=";
+    to_str( o.n, out, base::ADL );
+    out += '}';
+  }
 };
 
 LUA_USERDATA_TRAITS( LuaOwned, owned_by_lua ){};
@@ -98,13 +110,6 @@ struct type_traits<NoOwnershipModelButHasTraits> {
 static_assert( HasTraitsNvalues<NoOwnershipModelButHasTraits> );
 static_assert(
     !HasUserdataOwnershipModel<NoOwnershipModelButHasTraits> );
-
-} // namespace lua
-
-DEFINE_FORMAT( ::lua::CppOwned, "CppOwned{{n={}}}", o.n );
-DEFINE_FORMAT( ::lua::LuaOwned, "LuaOwned{{n={}}}", o.n );
-
-namespace lua {
 
 namespace {
 
@@ -305,7 +310,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   st["foo"] = []( LuaOwned const& o0, LuaOwned& o1,
                   LuaOwned o2 ) { return o0.n + o1.n + o2.n; };
   REQUIRE( as<int>( st["foo"]( LuaOwned{}, LuaOwned{},
-                                 LuaOwned{} ) ) == 5 * 3 );
+                               LuaOwned{} ) ) == 5 * 3 );
 
   static_assert( Pushable<maybe<LuaOwned>> );
   static_assert( !Pushable<maybe<LuaOwned&>> );
@@ -379,7 +384,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
     return o0.n + o1.n;
   };
   REQUIRE( as<int>( st["foo"]( LuaOwnedNonCopyable{},
-                                 LuaOwnedNonCopyable{} ) ) ==
+                               LuaOwnedNonCopyable{} ) ) ==
            5 * 2 );
 
   static_assert( Pushable<maybe<LuaOwnedNonCopyable>> );

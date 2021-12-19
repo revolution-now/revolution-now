@@ -17,6 +17,9 @@
 #include "time.hpp"
 #include "util.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Abseil
 #include "absl/strings/str_replace.h"
 
@@ -228,7 +231,7 @@ bool screenshot() {
       ( *home_folder ) /
       absl::StrReplaceAll(
           fmt::format( "revolution-now-screenshot-{}.png",
-                       util::to_string( Clock_t::now() ) ),
+                       Clock_t::now() ),
           { { " ", "-" } } ) );
 }
 

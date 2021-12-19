@@ -19,10 +19,11 @@
 // luapp
 #include "src/luapp/as.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
-
-FMT_TO_CATCH( ::lua::type );
 
 namespace lua {
 namespace {

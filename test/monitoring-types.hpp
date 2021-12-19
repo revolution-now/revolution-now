@@ -13,6 +13,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// base
+#include "base/fmt.hpp"
+
 // C++ standard library
 #include <type_traits>
 
@@ -43,6 +46,11 @@ struct Tracker {
     ++move_assigned;
     return *this;
   }
+
+  friend void to_str( Tracker const&, std::string& out,
+                      base::ADL_t ) {
+    out += "Tracker";
+  }
 };
 
 /****************************************************************
@@ -52,6 +60,12 @@ struct Formattable {
   int         n = 5;
   double      d = 7.7;
   std::string s = "hello";
+
+  friend void to_str( Formattable const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "Formattable{{n={},d={},s={}}}", o.n,
+                        o.d, o.s );
+  }
 };
 
 /****************************************************************
@@ -74,6 +88,11 @@ struct Constexpr {
 *****************************************************************/
 struct Empty {};
 
+inline void to_str( Empty const&, std::string& out,
+                    base::ADL_t ) {
+  out += "Empty{}";
+}
+
 /****************************************************************
 ** Non-Copyable
 *****************************************************************/
@@ -81,10 +100,14 @@ struct NoCopy {
   explicit NoCopy( char c_ ) : c( c_ ) {}
   NoCopy( NoCopy const& ) = delete;
   NoCopy( NoCopy&& )      = default;
-  NoCopy& operator=( NoCopy const& ) = delete;
-  NoCopy& operator=( NoCopy&& )              = default;
-  bool    operator==( NoCopy const& ) const& = default;
-  char    c;
+  NoCopy&     operator=( NoCopy const& ) = delete;
+  NoCopy&     operator=( NoCopy&& )              = default;
+  bool        operator==( NoCopy const& ) const& = default;
+  char        c;
+  friend void to_str( NoCopy const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "NoCopy{{c={}}}", o.c );
+  }
 };
 static_assert( !std::is_copy_constructible_v<NoCopy> );
 static_assert( std::is_move_constructible_v<NoCopy> );
@@ -186,14 +209,3 @@ struct BaseClass {};
 struct DerivedClass : BaseClass {};
 
 } // namespace testing::monitoring_types
-
-DEFINE_FORMAT( testing::monitoring_types::Formattable,
-               "Formattable{{n={},d={},s={}}}", o.n, o.d, o.s );
-FMT_TO_CATCH( testing::monitoring_types::Formattable );
-
-DEFINE_FORMAT_( testing::monitoring_types::Tracker, "Tracker" );
-FMT_TO_CATCH( testing::monitoring_types::Tracker );
-
-DEFINE_FORMAT( testing::monitoring_types::NoCopy,
-               "NoCopy{{c={}}}", o.c );
-FMT_TO_CATCH( testing::monitoring_types::NoCopy );

@@ -13,6 +13,7 @@
 #include "config.hpp"
 
 // base
+#include "adl-tag.hpp"
 #include "macros.hpp"
 #include "source-loc.hpp"
 
@@ -231,6 +232,35 @@
   auto& BASE_IDENTITY( ref ) = *STRING_JOIN( __ptr, __LINE__ )
 
 /****************************************************************
+** If false, return formatted string as error.
+*****************************************************************/
+#define RETURN_IF_FALSE( ... ) \
+  PP_ONE_OR_MORE_ARGS( RETURN_IF_FALSE, __VA_ARGS__ )
+
+#define RETURN_IF_FALSE_SINGLE( e )          \
+  if( auto&& __expr = e; !bool( __expr ) ) { \
+    return fmt::format( #e );                \
+  }
+
+#define RETURN_IF_FALSE_MULTI( e, ... )      \
+  if( auto&& __expr = e; !bool( __expr ) ) { \
+    return fmt::format( __VA_ARGS__ );       \
+  }
+
+#define RETURN_IF( ... ) \
+  PP_ONE_OR_MORE_ARGS( RETURN_IF, __VA_ARGS__ )
+
+#define RETURN_IF_SINGLE( e )               \
+  if( auto&& __expr = e; bool( __expr ) ) { \
+    return fmt::format( #e );               \
+  }
+
+#define RETURN_IF_MULTI( e, ... )           \
+  if( auto&& __expr = e; bool( __expr ) ) { \
+    return fmt::format( __VA_ARGS__ );      \
+  }
+
+/****************************************************************
 ** If false, create generic error.
 *****************************************************************/
 #define TRUE_OR_RETURN_GENERIC_ERR( ... ) \
@@ -299,7 +329,7 @@ static_assert( std::is_nothrow_move_assignable_v<GenericError> );
 
 using generic_err = std::unique_ptr<GenericError>;
 
-void to_str( generic_err const& ge, std::string& out );
+void to_str( generic_err const& ge, std::string& out, ADL_t );
 
 // This is supposed to be an exception in the std::exception hi-
 // erarchy. If it is not then it will still work, but will return
@@ -315,7 +345,7 @@ struct fmt::formatter<::base::generic_err>
   auto format( ::base::generic_err const& o,
                FormatContext&             ctx ) {
     std::string out;
-    to_str( o, out );
+    to_str( o, out, base::ADL );
     return fmt::formatter<std::string>::format( out, ctx );
   }
 };

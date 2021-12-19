@@ -36,7 +36,7 @@ struct ProgramNonTyped;
 *****************************************************************/
 enum class e_shader_type { vertex, fragment };
 
-void to_str( e_shader_type type, std::string& out );
+void to_str( e_shader_type type, std::string& out, base::ADL_t );
 
 /****************************************************************
 ** Vertex/Fragment Shader
@@ -57,8 +57,8 @@ struct Shader : base::zero<Shader, ObjId> {
   };
 
  public:
-  static base::expect<Shader, std::string> create(
-      e_shader_type type, std::string const& code );
+  static base::expect<Shader> create( e_shader_type      type,
+                                      std::string const& code );
 
   attacher attach( ProgramNonTyped const& pgrm ) const {
     return attacher( pgrm, *this );
@@ -80,7 +80,7 @@ struct Shader : base::zero<Shader, ObjId> {
 ** ProgramNonTyped
 *****************************************************************/
 struct ProgramNonTyped : base::zero<ProgramNonTyped, ObjId> {
-  static base::expect<ProgramNonTyped, std::string> create(
+  static base::expect<ProgramNonTyped> create(
       Shader const& vertex, Shader const& fragment );
 
   ObjId id() const { return resource(); }
@@ -118,8 +118,8 @@ struct ProgramNonTyped : base::zero<ProgramNonTyped, ObjId> {
 *****************************************************************/
 template<typename InputAttribTypeList, typename ProgramUniforms>
 struct Program : ProgramNonTyped {
-  static base::expect<Program, std::string> create(
-      Shader const& vertex, Shader const& fragment ) {
+  static base::expect<Program> create( Shader const& vertex,
+                                       Shader const& fragment ) {
     UNWRAP_RETURN( pgrm_non_typed,
                    ProgramNonTyped::create( vertex, fragment ) );
     auto pgrm = Program( std::move( pgrm_non_typed ) );

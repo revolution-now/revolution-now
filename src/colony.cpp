@@ -48,11 +48,12 @@ vector<UnitId> Colony::units() const {
   return units_working_in_colony;
 }
 
-string Colony::to_string() const {
-  return fmt::format(
+void to_str( Colony const& o, string& out, base::ADL_t ) {
+  out += fmt::format(
       "Colony{{name=\"{}\",id={},nation={},coord={},population={"
       "}}}",
-      name(), id(), nation(), location(), population() );
+      o.name(), o.id(), o.nation(), o.location(),
+      o.population() );
 }
 
 void Colony::add_building( e_colony_building building ) {

@@ -23,19 +23,21 @@
 // luapp
 #include "src/luapp/ext-monostate.hpp"
 
+// base
+#include "base/valid.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
 // C++ standard library
 #include <cctype>
 
-FMT_TO_CATCH( ::lua::type );
-
 namespace rn {
 namespace {
 
 using namespace std;
 
+using ::base::valid;
 using ::Catch::Equals;
 using ::Catch::Matches;
 

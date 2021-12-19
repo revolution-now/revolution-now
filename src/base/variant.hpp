@@ -15,9 +15,9 @@
 
 // base
 #include "error.hpp"
-#include "fmt.hpp"
 #include "maybe.hpp"
 #include "source-loc.hpp"
+#include "to-str.hpp"
 
 // C++ standard library
 #include <variant>
@@ -175,6 +175,21 @@ template<typename... Args>
 inline constexpr bool is_base_variant_v =
     is_base_variant<Args...>::value;
 
+/****************************************************************
+** to_str
+*****************************************************************/
+template<template<typename...> typename V, typename... Ts>
+/* clang-format off */
+    requires( std::is_convertible_v<V<Ts...>&,
+              std::variant<Ts...>&> &&
+              (base::Show<Ts> &&...) )
+void to_str( V<Ts...> const& o, std::string& out, ADL_t ) {
+  /* clang-format on */
+  return std::visit(
+      [&]( auto const& _ ) { to_str( _, out, ADL ); },
+      static_cast<std::variant<Ts...> const&>( o ) );
+};
+
 } // namespace base
 
 namespace std {
@@ -223,26 +238,3 @@ T visit( Visitor&& visitor, Variants&&... variants ) {
 }
 
 } // namespace std
-
-/****************************************************************
-** fmt
-*****************************************************************/
-// {fmt} formatter for formatting variant-like things whose
-// constituent types are also formattable.
-template<template<typename...> typename V, typename... Ts>
-/* clang-format off */
-    requires( std::is_convertible_v<V<Ts...>&,
-              std::variant<Ts...>&> &&
-              (base::has_fmt<Ts> &&...) )
-struct fmt::formatter<V<Ts...>> : dynamic_formatter<> {
-  /* clang-format on */
-  using B = dynamic_formatter<>;
-  template<typename Context>
-  auto format( V<Ts...> const& v, Context& ctx ) {
-    return std::visit(
-        [&]( auto const& _ ) {
-          return B::format( fmt::format( "{}", _ ), ctx );
-        },
-        static_cast<std::variant<Ts...> const&>( v ) );
-  }
-};

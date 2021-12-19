@@ -21,8 +21,6 @@
 using ::base::maybe;
 using ::base::nothing;
 
-FMT_TO_CATCH( ::rcl::error );
-
 namespace rcl {
 namespace {
 

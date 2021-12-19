@@ -63,6 +63,20 @@ namespace base {
 namespace {
 
 /****************************************************************
+** [static] Default Error Type.
+*****************************************************************/
+static_assert( std::is_same_v<::base::expect<int>::error_type,
+                              std::string> );
+static_assert( std::is_same_v<::base::expect<int&>::error_type,
+                              std::string> );
+// If we construct it with a std::string as the value_type but
+// leave out the error type then the error type should default to
+// a std::string, which should then not be allowed since we don't
+// allow same value and error types.
+static_assert( !is_detected_v<::base::expect, std::string> );
+static_assert( !is_detected_v<::base::expect, std::string&> );
+
+/****************************************************************
 ** [static] Invalid value types.
 *****************************************************************/
 /* clang-format off */
@@ -3028,14 +3042,9 @@ TEST_CASE( "[expected] stringification" ) {
   REQUIRE( fmt::format( "{}", e2 ) == "unexpected{hello}" );
   REQUIRE( fmt::format( "{}", e3 ) == "3" );
 
-  string out1, out2, out3;
-  to_str( e1, out1 );
-  to_str( e2, out2 );
-  to_str( e3, out3 );
-
-  REQUIRE( out1 == "5" );
-  REQUIRE( out2 == "unexpected{hello}" );
-  REQUIRE( out3 == "3" );
+  REQUIRE( to_str( e1 ) == "5" );
+  REQUIRE( to_str( e2 ) == "unexpected{hello}" );
+  REQUIRE( to_str( e3 ) == "3" );
 }
 
 } // namespace

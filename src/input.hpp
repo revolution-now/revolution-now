@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "maybe.hpp"
 #include "rds/helper/sumtype-helper.hpp"
@@ -23,6 +22,7 @@
 #include "rds/input.hpp"
 
 // base
+#include "base/adl-tag.hpp"
 #include "base/variant.hpp"
 
 // SDL
@@ -48,6 +48,11 @@ struct mod_keys {
   bool r_ctrl_down;
   bool ctrl_down; // either ctrl down
 };
+
+inline void to_str( mod_keys const&, std::string& out,
+                    base::ADL_t ) {
+  out += "<modkeys>";
+}
 
 // All event types must inherit either directly or indirectly
 // from this type.
@@ -226,5 +231,3 @@ struct variant_to_enum<::rn::input::event_t> {
 };
 
 } // namespace base
-
-DEFINE_FORMAT_( ::rn::input::mod_keys, "<mod_keys>" );

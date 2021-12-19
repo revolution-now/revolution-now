@@ -22,10 +22,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-FMT_TO_CATCH( ::lua::coroutine_status );
-FMT_TO_CATCH_T( ( R ), ::lua::resume_result_with_value );
-
 namespace lua {
 namespace {
 

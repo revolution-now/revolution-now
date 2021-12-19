@@ -22,8 +22,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
 namespace lua {
 namespace {
 

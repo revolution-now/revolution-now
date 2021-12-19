@@ -24,11 +24,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::rn::UnitPromotion_t );
-FMT_TO_CATCH( ::rn::e_unit_type_modifier );
-FMT_TO_CATCH( ::rn::e_unit_inventory );
-FMT_TO_CATCH( ::rn::UnitType );
-
 namespace rn {
 namespace {
 

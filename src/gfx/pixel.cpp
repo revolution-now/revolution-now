@@ -121,6 +121,10 @@ string pixel::to_string( bool with_alpha ) const {
     return fmt::format( "#{:02X}{:02X}{:02X}", r, g, b );
 }
 
+void to_str( pixel const& o, std::string& out, base::ADL_t ) {
+  out += o.to_string( /*with_alpha=*/true );
+}
+
 double pixel::luminosity() const {
   return std::sqrt( .241 * pow( r / 255.0, 2.0 ) +
                     .691 * pow( g / 255.0, 2.0 ) +

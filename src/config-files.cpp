@@ -260,8 +260,7 @@ void init_configs() {
   for( auto const& f : load_functions() ) f();
   for( auto [rcl_name, file] : config_files() ) {
     replace( file.begin(), file.end(), '_', '-' );
-    base::expect<rcl::doc, std::string> doc =
-        rcl::parse_file( file );
+    base::expect<rcl::doc> doc = rcl::parse_file( file );
     CHECK( doc, "failed to load {}: {}", file, doc.error() );
     rcl_configs.emplace( rcl_name, std::move( *doc ) );
   }
@@ -306,8 +305,7 @@ vector<gfx::pixel> const& g_palette() {
     vector<gfx::pixel> res;
     string             file = "config/rcl/palette.rcl";
 
-    base::expect<rcl::doc, std::string> doc =
-        rcl::parse_file( file );
+    base::expect<rcl::doc> doc = rcl::parse_file( file );
     CHECK( doc, "failed to load {}: {}", file, doc.error() );
 
     for( auto& [hue_key, hue_val] : doc->top_tbl() ) {

@@ -14,13 +14,14 @@
 #include "core-config.hpp"
 #include "rds/helper/sumtype-helper.hpp"
 #include "rds/helper/enum.hpp"
-#include "fmt-helper.hpp"
 #include "error.hpp"
 #include "fb.hpp"
 #include "maybe.hpp"
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/to-str.hpp"
+#include "base/to-str-ext-std.hpp"
 #include "base/variant.hpp"
 
 // base-util
@@ -59,6 +60,14 @@ namespace rdstest {
       bool operator!=( struct nothing const& ) const = default;
     };
 
+    // nothing
+    template<typename T>
+    inline void to_str( Maybe::nothing<T> const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "Maybe::nothing<{}>"
+      , ::base::type_list_to_names<T>() );
+    }
+
     template<typename T>
     struct just {
       T val;
@@ -67,6 +76,16 @@ namespace rdstest {
       bool operator==( struct just const& ) const = default;
       bool operator!=( struct just const& ) const = default;
     };
+
+    // just
+    template<typename T>
+    inline void to_str( Maybe::just<T> const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "Maybe::just<{}>{{"
+          "val={}"
+        "}}"
+      , ::base::type_list_to_names<T>(), o.val );
+    }
 
     enum class e {
       nothing,
@@ -88,32 +107,6 @@ namespace rdstest {
 template<typename T>
 struct base::variant_to_enum<rdstest::Maybe_t<T>> {
   using type = rdstest::Maybe::e;
-};
-
-// rdstest::Maybe::nothing
-template<typename T>
-struct fmt::formatter<rdstest::Maybe::nothing<T>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::Maybe::nothing<T> const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "Maybe::nothing<{}>"
-      , ::base::type_list_to_names<T>() ), ctx );
-  }
-};
-
-// rdstest::Maybe::just
-template<typename T>
-struct fmt::formatter<rdstest::Maybe::just<T>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::Maybe::just<T> const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "Maybe::just<{}>{{"
-        "val={}"
-      "}}"
-      , ::base::type_list_to_names<T>(), o.val ), ctx );
-  }
 };
 
 /****************************************************************
@@ -236,6 +229,16 @@ namespace rdstest {
 
     };
 
+    // first
+    inline void to_str( MyVariant2::first const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant2::first{{"
+          "name={},"
+          "b={}"
+        "}}"
+      , o.name, o.b );
+    }
+
     struct second {
       bool flag1;
       bool flag2;
@@ -286,6 +289,16 @@ namespace rdstest {
 
     };
 
+    // second
+    inline void to_str( MyVariant2::second const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant2::second{{"
+          "flag1={},"
+          "flag2={}"
+        "}}"
+      , o.flag1, o.flag2 );
+    }
+
     struct third {
       int cost;
       using fb_target_t = fb::MyVariant2::third;
@@ -327,6 +340,15 @@ namespace rdstest {
 
     };
 
+    // third
+    inline void to_str( MyVariant2::third const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant2::third{{"
+          "cost={}"
+        "}}"
+      , o.cost );
+    }
+
     enum class e {
       first,
       second,
@@ -350,50 +372,6 @@ struct base::variant_to_enum<rdstest::MyVariant2_t> {
   using type = rdstest::MyVariant2::e;
 };
 
-// rdstest::MyVariant2::first
-template<>
-struct fmt::formatter<rdstest::MyVariant2::first>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::MyVariant2::first const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant2::first{{"
-        "name={},"
-        "b={}"
-      "}}"
-      , o.name, o.b ), ctx );
-  }
-};
-
-// rdstest::MyVariant2::second
-template<>
-struct fmt::formatter<rdstest::MyVariant2::second>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::MyVariant2::second const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant2::second{{"
-        "flag1={},"
-        "flag2={}"
-      "}}"
-      , o.flag1, o.flag2 ), ctx );
-  }
-};
-
-// rdstest::MyVariant2::third
-template<>
-struct fmt::formatter<rdstest::MyVariant2::third>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::MyVariant2::third const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant2::third{{"
-        "cost={}"
-      "}}"
-      , o.cost ), ctx );
-  }
-};
-
 /****************************************************************
 *                     Sum Type: MyVariant3
 *****************************************************************/
@@ -409,6 +387,15 @@ namespace rdstest::inner {
       bool operator!=( struct a1 const& ) const = default;
     };
 
+    // a1
+    inline void to_str( MyVariant3::a1 const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant3::a1{{"
+          "var0={}"
+        "}}"
+      , o.var0 );
+    }
+
     struct a2 {
       MyVariant0_t var1;
       MyVariant2_t var2;
@@ -418,6 +405,16 @@ namespace rdstest::inner {
       bool operator!=( struct a2 const& ) const = default;
     };
 
+    // a2
+    inline void to_str( MyVariant3::a2 const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant3::a2{{"
+          "var1={},"
+          "var2={}"
+        "}}"
+      , o.var1, o.var2 );
+    }
+
     struct a3 {
       char c;
       // This requires that the types of the member variables
@@ -425,6 +422,15 @@ namespace rdstest::inner {
       bool operator==( struct a3 const& ) const = default;
       bool operator!=( struct a3 const& ) const = default;
     };
+
+    // a3
+    inline void to_str( MyVariant3::a3 const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant3::a3{{"
+          "c={}"
+        "}}"
+      , o.c );
+    }
 
     enum class e {
       a1,
@@ -449,49 +455,6 @@ struct base::variant_to_enum<rdstest::inner::MyVariant3_t> {
   using type = rdstest::inner::MyVariant3::e;
 };
 
-// rdstest::inner::MyVariant3::a1
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant3::a1>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant3::a1 const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant3::a1{{"
-        "var0={}"
-      "}}"
-      , o.var0 ), ctx );
-  }
-};
-
-// rdstest::inner::MyVariant3::a2
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant3::a2>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant3::a2 const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant3::a2{{"
-        "var1={},"
-        "var2={}"
-      "}}"
-      , o.var1, o.var2 ), ctx );
-  }
-};
-
-// rdstest::inner::MyVariant3::a3
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant3::a3>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant3::a3 const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant3::a3{{"
-        "c={}"
-      "}}"
-      , o.c ), ctx );
-  }
-};
-
 /****************************************************************
 *                     Sum Type: MyVariant4
 *****************************************************************/
@@ -510,12 +473,31 @@ namespace rdstest::inner {
       bool operator!=( struct first const& ) const = default;
     };
 
+    // first
+    inline void to_str( MyVariant4::first const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant4::first{{"
+          "i={},"
+          "c={},"
+          "b={},"
+          "op={}"
+        "}}"
+      , o.i, o.c, o.b, o.op );
+    }
+
     struct _2nd {
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct _2nd const& ) const = default;
       bool operator!=( struct _2nd const& ) const = default;
     };
+
+    // _2nd
+    inline void to_str( MyVariant4::_2nd const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant4::_2nd"
+       );
+    }
 
     struct third {
       std::string  s;
@@ -525,6 +507,16 @@ namespace rdstest::inner {
       bool operator==( struct third const& ) const = default;
       bool operator!=( struct third const& ) const = default;
     };
+
+    // third
+    inline void to_str( MyVariant4::third const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MyVariant4::third{{"
+          "s={},"
+          "var3={}"
+        "}}"
+      , o.s, o.var3 );
+    }
 
     enum class e {
       first,
@@ -549,50 +541,6 @@ struct base::variant_to_enum<rdstest::inner::MyVariant4_t> {
   using type = rdstest::inner::MyVariant4::e;
 };
 
-// rdstest::inner::MyVariant4::first
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant4::first>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant4::first const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant4::first{{"
-        "i={},"
-        "c={},"
-        "b={},"
-        "op={}"
-      "}}"
-      , o.i, o.c, o.b, o.op ), ctx );
-  }
-};
-
-// rdstest::inner::MyVariant4::_2nd
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant4::_2nd>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant4::_2nd const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant4::_2nd"
-       ), ctx );
-  }
-};
-
-// rdstest::inner::MyVariant4::third
-template<>
-struct fmt::formatter<rdstest::inner::MyVariant4::third>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::MyVariant4::third const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MyVariant4::third{{"
-        "s={},"
-        "var3={}"
-      "}}"
-      , o.s, o.var3 ), ctx );
-  }
-};
-
 /****************************************************************
 *                  Sum Type: TemplateTwoParams
 *****************************************************************/
@@ -610,6 +558,17 @@ namespace rdstest::inner {
       bool operator!=( struct first_alternative const& ) const = default;
     };
 
+    // first_alternative
+    template<typename T, typename U>
+    inline void to_str( TemplateTwoParams::first_alternative<T, U> const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "TemplateTwoParams::first_alternative<{}>{{"
+          "t={},"
+          "c={}"
+        "}}"
+      , ::base::type_list_to_names<T, U>(), o.t, o.c );
+    }
+
     template<typename T, typename U>
     struct second_alternative {
       // This requires that the types of the member variables
@@ -617,6 +576,14 @@ namespace rdstest::inner {
       bool operator==( struct second_alternative const& ) const = default;
       bool operator!=( struct second_alternative const& ) const = default;
     };
+
+    // second_alternative
+    template<typename T, typename U>
+    inline void to_str( TemplateTwoParams::second_alternative<T, U> const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "TemplateTwoParams::second_alternative<{}>"
+      , ::base::type_list_to_names<T, U>() );
+    }
 
     template<typename T, typename U>
     struct third_alternative {
@@ -627,6 +594,17 @@ namespace rdstest::inner {
       bool operator==( struct third_alternative const& ) const = default;
       bool operator!=( struct third_alternative const& ) const = default;
     };
+
+    // third_alternative
+    template<typename T, typename U>
+    inline void to_str( TemplateTwoParams::third_alternative<T, U> const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "TemplateTwoParams::third_alternative<{}>{{"
+          "hello={},"
+          "u={}"
+        "}}"
+      , ::base::type_list_to_names<T, U>(), o.hello, o.u );
+    }
 
     enum class e {
       first_alternative,
@@ -652,48 +630,6 @@ struct base::variant_to_enum<rdstest::inner::TemplateTwoParams_t<T, U>> {
   using type = rdstest::inner::TemplateTwoParams::e;
 };
 
-// rdstest::inner::TemplateTwoParams::first_alternative
-template<typename T, typename U>
-struct fmt::formatter<rdstest::inner::TemplateTwoParams::first_alternative<T, U>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::TemplateTwoParams::first_alternative<T, U> const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "TemplateTwoParams::first_alternative<{}>{{"
-        "t={},"
-        "c={}"
-      "}}"
-      , ::base::type_list_to_names<T, U>(), o.t, o.c ), ctx );
-  }
-};
-
-// rdstest::inner::TemplateTwoParams::second_alternative
-template<typename T, typename U>
-struct fmt::formatter<rdstest::inner::TemplateTwoParams::second_alternative<T, U>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::TemplateTwoParams::second_alternative<T, U> const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "TemplateTwoParams::second_alternative<{}>"
-      , ::base::type_list_to_names<T, U>() ), ctx );
-  }
-};
-
-// rdstest::inner::TemplateTwoParams::third_alternative
-template<typename T, typename U>
-struct fmt::formatter<rdstest::inner::TemplateTwoParams::third_alternative<T, U>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::TemplateTwoParams::third_alternative<T, U> const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "TemplateTwoParams::third_alternative<{}>{{"
-        "hello={},"
-        "u={}"
-      "}}"
-      , ::base::type_list_to_names<T, U>(), o.hello, o.u ), ctx );
-  }
-};
-
 /****************************************************************
 *                Sum Type: CompositeTemplateTwo
 *****************************************************************/
@@ -710,6 +646,16 @@ namespace rdstest::inner {
       bool operator!=( struct first const& ) const = default;
     };
 
+    // first
+    template<typename T, typename U>
+    inline void to_str( CompositeTemplateTwo::first<T, U> const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "CompositeTemplateTwo::first<{}>{{"
+          "ttp={}"
+        "}}"
+      , ::base::type_list_to_names<T, U>(), o.ttp );
+    }
+
     template<typename T, typename U>
     struct second {
       // This requires that the types of the member variables
@@ -717,6 +663,14 @@ namespace rdstest::inner {
       bool operator==( struct second const& ) const = default;
       bool operator!=( struct second const& ) const = default;
     };
+
+    // second
+    template<typename T, typename U>
+    inline void to_str( CompositeTemplateTwo::second<T, U> const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "CompositeTemplateTwo::second<{}>"
+      , ::base::type_list_to_names<T, U>() );
+    }
 
     enum class e {
       first,
@@ -738,32 +692,6 @@ namespace rdstest::inner {
 template<typename T, typename U>
 struct base::variant_to_enum<rdstest::inner::CompositeTemplateTwo_t<T, U>> {
   using type = rdstest::inner::CompositeTemplateTwo::e;
-};
-
-// rdstest::inner::CompositeTemplateTwo::first
-template<typename T, typename U>
-struct fmt::formatter<rdstest::inner::CompositeTemplateTwo::first<T, U>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::CompositeTemplateTwo::first<T, U> const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "CompositeTemplateTwo::first<{}>{{"
-        "ttp={}"
-      "}}"
-      , ::base::type_list_to_names<T, U>(), o.ttp ), ctx );
-  }
-};
-
-// rdstest::inner::CompositeTemplateTwo::second
-template<typename T, typename U>
-struct fmt::formatter<rdstest::inner::CompositeTemplateTwo::second<T, U>>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rdstest::inner::CompositeTemplateTwo::second<T, U> const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "CompositeTemplateTwo::second<{}>"
-      , ::base::type_list_to_names<T, U>() ), ctx );
-  }
 };
 
 /****************************************************************
@@ -796,6 +724,13 @@ namespace rn {
         maybe<type>{};
     }
   };
+
+} // namespace rn
+
+namespace rn {
+
+  inline void to_str( e_empty, std::string&, ::base::ADL_t ) {
+  }
 
 } // namespace rn
 
@@ -840,6 +775,14 @@ namespace rn {
         maybe<type>{};
     }
   };
+
+} // namespace rn
+
+namespace rn {
+
+  inline void to_str( e_single o, std::string& out, ::base::ADL_t ) {
+    out += enum_traits<e_single>::value_name( o );
+  }
 
 } // namespace rn
 
@@ -888,6 +831,14 @@ namespace rn {
         maybe<type>{};
     }
   };
+
+} // namespace rn
+
+namespace rn {
+
+  inline void to_str( e_two o, std::string& out, ::base::ADL_t ) {
+    out += enum_traits<e_two>::value_name( o );
+  }
 
 } // namespace rn
 
@@ -943,6 +894,14 @@ namespace rn {
 
 } // namespace rn
 
+namespace rn {
+
+  inline void to_str( e_color o, std::string& out, ::base::ADL_t ) {
+    out += enum_traits<e_color>::value_name( o );
+  }
+
+} // namespace rn
+
 /****************************************************************
 *                         Enum: e_hand
 *****************************************************************/
@@ -991,6 +950,14 @@ namespace rn {
 
 } // namespace rn
 
+namespace rn {
+
+  inline void to_str( e_hand o, std::string& out, ::base::ADL_t ) {
+    out += enum_traits<e_hand>::value_name( o );
+  }
+
+} // namespace rn
+
 /****************************************************************
 *                      Sum Type: MySumtype
 *****************************************************************/
@@ -1033,6 +1000,13 @@ namespace rn {
       }
 
     };
+
+    // none
+    inline void to_str( MySumtype::none const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MySumtype::none"
+       );
+    }
 
     struct some {
       std::string s;
@@ -1088,6 +1062,16 @@ namespace rn {
 
     };
 
+    // some
+    inline void to_str( MySumtype::some const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MySumtype::some{{"
+          "s={},"
+          "y={}"
+        "}}"
+      , o.s, o.y );
+    }
+
     struct more {
       double d;
       // This requires that the types of the member variables
@@ -1133,6 +1117,15 @@ namespace rn {
 
     };
 
+    // more
+    inline void to_str( MySumtype::more const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "MySumtype::more{{"
+          "d={}"
+        "}}"
+      , o.d );
+    }
+
     enum class e {
       none,
       some,
@@ -1154,47 +1147,6 @@ namespace rn {
 template<>
 struct base::variant_to_enum<rn::MySumtype_t> {
   using type = rn::MySumtype::e;
-};
-
-// rn::MySumtype::none
-template<>
-struct fmt::formatter<rn::MySumtype::none>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::MySumtype::none const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MySumtype::none"
-       ), ctx );
-  }
-};
-
-// rn::MySumtype::some
-template<>
-struct fmt::formatter<rn::MySumtype::some>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::MySumtype::some const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MySumtype::some{{"
-        "s={},"
-        "y={}"
-      "}}"
-      , o.s, o.y ), ctx );
-  }
-};
-
-// rn::MySumtype::more
-template<>
-struct fmt::formatter<rn::MySumtype::more>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::MySumtype::more const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "MySumtype::more{{"
-        "d={}"
-      "}}"
-      , o.d ), ctx );
-  }
 };
 
 /****************************************************************
@@ -1239,6 +1191,13 @@ namespace rn {
       }
 
     };
+
+    // off
+    inline void to_str( OnOffState::off const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffState::off"
+       );
+    }
 
     struct on {
       std::string user;
@@ -1285,6 +1244,15 @@ namespace rn {
 
     };
 
+    // on
+    inline void to_str( OnOffState::on const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffState::on{{"
+          "user={}"
+        "}}"
+      , o.user );
+    }
+
     struct switching_on {
       double percent;
       // This requires that the types of the member variables
@@ -1329,6 +1297,15 @@ namespace rn {
       }
 
     };
+
+    // switching_on
+    inline void to_str( OnOffState::switching_on const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffState::switching_on{{"
+          "percent={}"
+        "}}"
+      , o.percent );
+    }
 
     struct switching_off {
       double percent;
@@ -1375,6 +1352,15 @@ namespace rn {
 
     };
 
+    // switching_off
+    inline void to_str( OnOffState::switching_off const& o, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffState::switching_off{{"
+          "percent={}"
+        "}}"
+      , o.percent );
+    }
+
     enum class e {
       off,
       on,
@@ -1400,60 +1386,6 @@ struct base::variant_to_enum<rn::OnOffState_t> {
   using type = rn::OnOffState::e;
 };
 
-// rn::OnOffState::off
-template<>
-struct fmt::formatter<rn::OnOffState::off>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffState::off const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffState::off"
-       ), ctx );
-  }
-};
-
-// rn::OnOffState::on
-template<>
-struct fmt::formatter<rn::OnOffState::on>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffState::on const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffState::on{{"
-        "user={}"
-      "}}"
-      , o.user ), ctx );
-  }
-};
-
-// rn::OnOffState::switching_on
-template<>
-struct fmt::formatter<rn::OnOffState::switching_on>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffState::switching_on const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffState::switching_on{{"
-        "percent={}"
-      "}}"
-      , o.percent ), ctx );
-  }
-};
-
-// rn::OnOffState::switching_off
-template<>
-struct fmt::formatter<rn::OnOffState::switching_off>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffState::switching_off const& o, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffState::switching_off{{"
-        "percent={}"
-      "}}"
-      , o.percent ), ctx );
-  }
-};
-
 /****************************************************************
 *                     Sum Type: OnOffEvent
 *****************************************************************/
@@ -1468,12 +1400,26 @@ namespace rn {
       bool operator!=( struct turn_off const& ) const = default;
     };
 
+    // turn_off
+    inline void to_str( OnOffEvent::turn_off const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffEvent::turn_off"
+       );
+    }
+
     struct turn_on {
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct turn_on const& ) const = default;
       bool operator!=( struct turn_on const& ) const = default;
     };
+
+    // turn_on
+    inline void to_str( OnOffEvent::turn_on const&, std::string& out, ::base::ADL_t ) {
+      out += fmt::format(
+        "OnOffEvent::turn_on"
+       );
+    }
 
     enum class e {
       turn_off,
@@ -1494,28 +1440,4 @@ namespace rn {
 template<>
 struct base::variant_to_enum<rn::OnOffEvent_t> {
   using type = rn::OnOffEvent::e;
-};
-
-// rn::OnOffEvent::turn_off
-template<>
-struct fmt::formatter<rn::OnOffEvent::turn_off>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffEvent::turn_off const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffEvent::turn_off"
-       ), ctx );
-  }
-};
-
-// rn::OnOffEvent::turn_on
-template<>
-struct fmt::formatter<rn::OnOffEvent::turn_on>
-  : base::formatter_base {
-  template<typename Context>
-  auto format( rn::OnOffEvent::turn_on const&, Context& ctx ) {
-    return base::formatter_base::format( fmt::format(
-      "OnOffEvent::turn_on"
-       ), ctx );
-  }
 };

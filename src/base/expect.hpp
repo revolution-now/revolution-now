@@ -96,7 +96,7 @@ constexpr bool is_expect_v<expect<T, E>> = true;
 // constructors of type T or E should preferably not throw during
 // construction, otherwise the expect object will be left in an
 // indeterminate state.
-template<typename T, typename E>
+template<typename T, typename E = std::string>
 requires ExpectTypeRequirements<T, E> /* clang-format off */
 class [[nodiscard]] expect { /* clang-format on */
  public:
@@ -1693,13 +1693,13 @@ template<typename T, std::equality_comparable E>
 /****************************************************************
 ** to_str
 *****************************************************************/
-template<typename T, typename E>
-void to_str( expect<T, E> const& e, std::string& out ) {
+template<Show T, Show E>
+void to_str( expect<T, E> const& e, std::string& out, ADL_t ) {
   if( e.has_value() )
-    to_str( *e, out );
+    to_str( *e, out, ADL );
   else {
     out += "unexpected{";
-    to_str( e.error(), out );
+    to_str( e.error(), out, ADL );
     out += "}";
   }
 }

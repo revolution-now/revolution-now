@@ -15,7 +15,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "lua-enum.hpp"
 #include "maybe.hpp"
 #include "typed-int.hpp"
@@ -28,6 +27,9 @@
 
 // luapp
 #include "luapp/ext.hpp"
+
+// base
+#include "base/adl-tag.hpp"
 
 // Flatbuffers
 #include "fb/coord_generated.h"
@@ -66,6 +68,9 @@ struct ND Scale {
   constexpr bool operator!=( Scale const& rhs ) const {
     return ( sx != rhs.sx ) || ( sy != rhs.sy );
   }
+
+  friend void to_str( Scale const& o, std::string& out,
+                      base::ADL_t );
 };
 NOTHROW_MOVE( Scale );
 
@@ -87,6 +92,9 @@ struct ND Delta {
   constexpr bool operator!=( Delta const& other ) const {
     return ( h != other.h ) || ( w != other.w );
   }
+
+  friend void to_str( Delta const& o, std::string& out,
+                      base::ADL_t );
 
   template<typename Dimension>
   auto get() const {
@@ -209,6 +217,9 @@ struct ND Coord {
     y /= scale.sy;
   }
 
+  friend void to_str( Coord const& o, std::string& out,
+                      base::ADL_t );
+
   Coord operator-() const { return { -x, -y }; }
 
   // If this coord is outside the rect then it will be brought
@@ -276,6 +287,9 @@ struct ND Rect {
   bool operator!=( Rect const& rhs ) const {
     return !( *this == rhs );
   }
+
+  friend void to_str( Rect const& o, std::string& out,
+                      base::ADL_t );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -611,11 +625,6 @@ Scale operator*( Scale const& lhs, Scale const& rhs );
 Scale operator/( Scale const& lhs, Scale const& rhs );
 
 } // namespace rn
-
-DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );
-DEFINE_FORMAT( ::rn::Delta, "({},{})", o.w, o.h );
-DEFINE_FORMAT( ::rn::Coord, "({},{})", o.x, o.y );
-DEFINE_FORMAT( ::rn::Rect, "({},{},{},{})", o.x, o.y, o.w, o.h );
 
 // Here  we  open up the std namespace to add a hash function
 // spe- cialization for a Coord.

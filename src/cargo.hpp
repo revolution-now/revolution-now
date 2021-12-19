@@ -16,7 +16,6 @@
 #include "commodity.hpp"
 #include "error.hpp"
 #include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "id.hpp"
 #include "macros.hpp"
 #include "typed-int.hpp"
@@ -24,6 +23,7 @@
 #include "variant.hpp"
 
 // base
+#include "base/adl-tag.hpp"
 #include "base/variant.hpp"
 
 // Flatbuffers
@@ -192,6 +192,9 @@ class ND CargoHold {
   // FIXME: fix naming of these functions.
   valid_deserial_t check_invariants_post_load() const;
 
+  friend void to_str( CargoHold const& o, std::string& out,
+                      base::ADL_t );
+
  protected:
   valid_or<generic_err> check_invariants() const;
   void                  check_invariants_or_abort() const;
@@ -290,5 +293,3 @@ maybe<T const&> CargoHold::slot_holds_cargo_type(
 }
 
 } // namespace rn
-
-DEFINE_FORMAT( rn::CargoHold, "{}", o.debug_string() );

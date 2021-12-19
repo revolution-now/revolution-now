@@ -16,8 +16,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::rcl::error );
-
 namespace rcl {
 namespace {
 

@@ -28,12 +28,14 @@ MovementPoints::MovementPoints( int integral, int atoms ) {
                  ( atoms % factor );
 }
 
-std::string MovementPoints::to_string() const {
-  if( points_atoms % factor == 0 )
-    return fmt::format( "{:d}", points_atoms / factor );
+void to_str( MovementPoints const& o, std::string& out,
+             base::ADL_t ) {
+  if( o.points_atoms % o.factor == 0 )
+    out += fmt::format( "{:d}", o.points_atoms / o.factor );
   else
-    return fmt::format( "{:d} {:d}/{:d}", points_atoms / factor,
-                        points_atoms % factor, factor );
+    out +=
+        fmt::format( "{:d} {:d}/{:d}", o.points_atoms / o.factor,
+                     o.points_atoms % o.factor, o.factor );
 }
 
 valid_deserial_t MovementPoints::check_invariants_safe() const {

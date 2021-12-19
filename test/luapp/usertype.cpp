@@ -23,8 +23,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-FMT_TO_CATCH( ::lua::type );
-
 namespace lua {
 
 using namespace std;
@@ -44,6 +42,12 @@ struct CppOwnedType {
   string say( string const& what ) {
     return string( "saying: " ) + what;
   }
+
+  friend void to_str( CppOwnedType const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "CppOwnedType{{n={},d={},s={}}}", o.n,
+                        o.d, o.s );
+  }
 };
 
 LUA_USERDATA_TRAITS( CppOwnedType, owned_by_cpp ){};
@@ -61,6 +65,12 @@ struct LuaOwnedType {
 
   string say( string const& what ) {
     return string( "saying: " ) + what;
+  }
+
+  friend void to_str( LuaOwnedType const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format( "LuaOwnedType{{n={},d={},s={}}}", o.n,
+                        o.d, o.s );
   }
 };
 
@@ -93,14 +103,6 @@ static_assert( HasUserdataOwnershipModel<
 
 struct NotValid {};
 
-} // namespace lua
-
-DEFINE_FORMAT( ::lua::CppOwnedType,
-               "CppOwnedType{{n={},d={},s={}}}", o.n, o.d, o.s );
-DEFINE_FORMAT( ::lua::LuaOwnedType,
-               "LuaOwnedType{{n={},d={},s={}}}", o.n, o.d, o.s );
-
-namespace lua {
 namespace {
 
 /****************************************************************

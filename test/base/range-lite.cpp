@@ -17,6 +17,7 @@
 #include "base/conv.hpp"
 #include "base/lambda.hpp"
 #include "base/string.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

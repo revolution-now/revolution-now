@@ -33,6 +33,9 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace rn::conductor {

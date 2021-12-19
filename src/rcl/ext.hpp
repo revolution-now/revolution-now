@@ -67,7 +67,8 @@ struct error {
 
   bool operator==( error const& ) const = default;
 
-  friend void to_str( error const& o, std::string& out ) {
+  friend void to_str( error const& o, std::string& out,
+                      base::ADL_t ) {
     out += o.what;
   }
 

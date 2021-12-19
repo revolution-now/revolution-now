@@ -25,11 +25,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-// FIXME: These don't appear to be working...
-FMT_TO_CATCH( ::lua::any );
-FMT_TO_CATCH( ::lua::table );
-FMT_TO_CATCH_T( ( I, P ), ::lua::indexer );
-
 namespace lua {
 namespace {
 

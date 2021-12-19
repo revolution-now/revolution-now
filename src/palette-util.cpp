@@ -22,6 +22,7 @@
 // base
 #include "base/lambda.hpp"
 #include "base/maybe-util.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
