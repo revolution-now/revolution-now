@@ -85,6 +85,12 @@ add_custom_target( cmake-run
                    COMMAND exe
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
                    USES_TERMINAL )
+
+add_custom_target( game
+                   COMMAND exe --mode=game
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                   USES_TERMINAL )
+
 add_custom_target( test
                  # COMMAND unittest --rng-seed=time --order=rand --abort
                    COMMAND unittest --rng-seed=time              --abort

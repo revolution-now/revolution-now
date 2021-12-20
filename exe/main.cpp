@@ -10,8 +10,14 @@
 #include "screen.hpp"
 #include "util.hpp"
 
+// base
+#include "base/cli-args.hpp"
+#include "base/error.hpp"
+#include "base/keyval.hpp"
+
 using namespace rn;
 using namespace std;
+using namespace base;
 
 enum class e_mode {
   game,
@@ -20,6 +26,19 @@ enum class e_mode {
   gl_test,
   gl_perf
 };
+
+// FIXME: this should be using reflection.
+maybe<e_mode> mode_from_str( string_view key ) {
+  return base::lookup(
+      unordered_map<string_view, e_mode>{
+          { "game", e_mode::game },
+          { "ui_test", e_mode::ui_test },
+          { "lua_ui_test", e_mode::lua_ui_test },
+          { "gl_test", e_mode::gl_test },
+          { "gl_perf", e_mode::gl_perf },
+      },
+      key );
+}
 
 wait<> ui_test() { return make_wait<>(); }
 wait<> lua_ui_test() { return rn::lua_ui_test(); }
@@ -60,11 +79,22 @@ void run( e_mode mode ) {
   }
 }
 
-int main( int /*unused*/, char** /*unused*/ ) {
+int main( int argc, char** argv ) {
+  ProgramArguments args = base::parse_args_or_die_with_usage(
+      vector<string>( argv + 1, argv + argc ) );
+
+  auto mode = e_mode::gl_perf;
+  if( args.key_val_args.contains( "mode" ) ) {
+    UNWRAP_CHECK_MSG( m,
+                      mode_from_str( args.key_val_args["mode"] ),
+                      "invalid program mode: `{}'.",
+                      args.key_val_args["mode"] );
+    mode = m;
+  }
+
   linker_dont_discard_me();
-  print_bar( '=', "[ Revolution | Now ]" );
   try {
-    run( e_mode::gl_perf );
+    run( mode );
   } catch( exception_exit const& ) {}
   hide_window();
   print_bar( '-', "[ Shutting Down ]" );
