@@ -367,10 +367,10 @@ LUA_TEST_CASE( "[userdata] userdata tostring" ) {
   SECTION( "Formattable by value" ) {
     REQUIRE( push_userdata_by_value( L, Formattable{} ) );
     REQUIRE( C.stack_size() == 1 );
-    C.setglobal( "fmtable" );
+    C.setglobal( "showable" );
     REQUIRE( C.stack_size() == 0 );
 
-    REQUIRE( C.dostring( "return tostring( fmtable )" ) ==
+    REQUIRE( C.dostring( "return tostring( showable )" ) ==
              valid );
     REQUIRE( C.stack_size() == 1 );
     UNWRAP_CHECK( name, C.get<string>( -1 ) );
@@ -384,13 +384,13 @@ LUA_TEST_CASE( "[userdata] userdata tostring" ) {
     C.pop();
   }
   SECTION( "Formattable by reference" ) {
-    Formattable fmtable;
-    REQUIRE( push_userdata_by_ref( L, fmtable ) );
+    Formattable showable;
+    REQUIRE( push_userdata_by_ref( L, showable ) );
     REQUIRE( C.stack_size() == 1 );
-    C.setglobal( "fmtable" );
+    C.setglobal( "showable" );
     REQUIRE( C.stack_size() == 0 );
 
-    REQUIRE( C.dostring( "return tostring( fmtable )" ) ==
+    REQUIRE( C.dostring( "return tostring( showable )" ) ==
              valid );
     REQUIRE( C.stack_size() == 1 );
     UNWRAP_CHECK( name, C.get<string>( -1 ) );
@@ -404,13 +404,13 @@ LUA_TEST_CASE( "[userdata] userdata tostring" ) {
     C.pop();
   }
   SECTION( "Formattable by const reference" ) {
-    Formattable const fmtable;
-    REQUIRE( push_userdata_by_ref( L, fmtable ) );
+    Formattable const showable;
+    REQUIRE( push_userdata_by_ref( L, showable ) );
     REQUIRE( C.stack_size() == 1 );
-    C.setglobal( "fmtable" );
+    C.setglobal( "showable" );
     REQUIRE( C.stack_size() == 0 );
 
-    REQUIRE( C.dostring( "return tostring( fmtable )" ) ==
+    REQUIRE( C.dostring( "return tostring( showable )" ) ==
              valid );
     REQUIRE( C.stack_size() == 1 );
     UNWRAP_CHECK( name, C.get<string>( -1 ) );

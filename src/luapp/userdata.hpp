@@ -81,22 +81,22 @@ void push_existing_userdata_metatable_impl(
 template<typename T>
 bool register_userdata_metatable_by_val_if_needed( cthread L ) {
   static_assert( !std::is_pointer_v<T> );
-  static constexpr bool fmtable =
+  static constexpr bool showable =
       base::Show<std::remove_const_t<T>>;
 
   static std::string const type_name = userdata_typename<T>();
 
   static auto call_destructor = []( lua_State* L ) -> int {
     void* ud     = check_udata( L, 1, type_name.c_str() );
-    auto* object = static_cast<T*>( ud );
-    object->~T();
+    auto* object = reinterpret_cast<T*>( ud );
+    std::destroy_at( object );
     return 0;
   };
 
   static auto tostring = []( lua_State* L ) -> int {
-    if constexpr( fmtable ) {
+    if constexpr( showable ) {
       void* ud     = check_udata( L, 1, type_name.c_str() );
-      T*    object = static_cast<T*>( ud );
+      T*    object = reinterpret_cast<T*>( ud );
       detail::push_string(
           L,
           fmt::format( "{}@{}: {}", type_name, ud, *object ) );
@@ -106,7 +106,7 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
   };
 
   static constexpr LuaCFunction* fmt_func =
-      fmtable ? +tostring : nullptr;
+      showable ? +tostring : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
       L, e_userdata_ownership_model::owned_by_lua, fmt_func,
@@ -118,15 +118,15 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
     cthread L ) {
   using T_noref = std::remove_reference_t<T>;
   static_assert( !std::is_pointer_v<T_noref> );
-  static constexpr bool fmtable =
+  static constexpr bool showable =
       base::Show<std::remove_const_t<T_noref>>;
 
   static std::string const type_name = userdata_typename<T>();
 
   static auto tostring = []( lua_State* L ) -> int {
-    if constexpr( fmtable ) {
+    if constexpr( showable ) {
       void*  ud     = check_udata( L, 1, type_name.c_str() );
-      auto** object = static_cast<T_noref**>( ud );
+      auto** object = reinterpret_cast<T_noref**>( ud );
       CHECK( object != nullptr );
       std::string res = fmt::format( "{}@{}: ", type_name, ud );
       if( *object != nullptr )
@@ -140,7 +140,7 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
   };
 
   static constexpr LuaCFunction* fmt_func =
-      fmtable ? +tostring : nullptr;
+      showable ? +tostring : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
       L, e_userdata_ownership_model::owned_by_cpp, fmt_func,
