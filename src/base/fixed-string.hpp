@@ -63,4 +63,25 @@ struct fixed_string {
   std::array<char, kStringLength> data = {};
 };
 
+// This is an object that we can pass by value in a function that
+// we can use to match the fixed_string object to a template pa-
+// rameter, which is where it needs to be in order to use it in a
+// constexpr way (passing the fixed_string as an argument di-
+// rectly won't work because parameters cannot be used in a cons-
+// texpr way, and also the type of the fixed_string itself only
+// encodes the size, not the underlying string).
+template<fixed_string Fs>
+struct fixed_string_holder {
+  static constexpr std::string_view value = Fs;
+};
+
+namespace literals {
+
+template<fixed_string Fs>
+constexpr auto operator""_t() {
+  return fixed_string_holder<Fs>{};
+}
+
+}
+
 } // namespace base

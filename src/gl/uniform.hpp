@@ -62,10 +62,15 @@ template<typename T>
 struct Uniform : UniformNonTyped {
   using type = T;
 
-  Uniform( ObjId pgrm_id, std::string_view name )
+  explicit Uniform( ObjId pgrm_id, std::string_view name )
     : UniformNonTyped( pgrm_id, name ) {}
 
   void set( T const& val ) { CHECK_HAS_VALUE( try_set( val ) ); }
+
+  Uniform& operator=( T const& val ) {
+    set( val );
+    return *this;
+  }
 
   // Normally you should just use `set` above. This version is
   // used when constructing the uniforms to check that they can

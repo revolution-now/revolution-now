@@ -72,7 +72,8 @@ TEST_CASE( "[uniform] creation/set float" ) {
       .returns( GL_NO_ERROR );
   EXPECT_CALL( mock, gl_UseProgram( 7 ) );
   EXPECT_CALL( mock, gl_Uniform1f( 88, 5.6 ) );
-  REQUIRE( uf.try_set( 5.6 ) == valid );
+  // This time, set with operator=.
+  uf = 5.6;
 
   // Set float again (no GL calls since it should use the cached
   // value).

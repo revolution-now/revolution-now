@@ -245,7 +245,8 @@ private:
                       std::index_sequence<Idx...>> {
     UniformArray( ObjId                       pgrm_id,
                   std::tuple<Specs...> const& specs )
-      : values{ { pgrm_id, std::get<Idx>( specs ).name }... } {}
+      : values{ Uniform<typename Specs::type>{
+            pgrm_id, std::get<Idx>( specs ).name }... } {}
 
     using values_t =
         std::tuple<Uniform<typename Specs::type>...>;
@@ -256,21 +257,21 @@ private:
   UniformTuple uniforms_;
 
  public:
-  // If a call to this function fails to compile it is either be-
-  // cause the name of the uniform is wrong or the type of the
-  // parameter does not match the type of the uniform. The Bar-
-  // rier is to prevent the user from trying to set the N tem-
-  // plate parameter.
-  template<base::fixed_string name, size_t... Barrier,
+  // This is how you set a uniform.  Usage:
+  //
+  //   using ::base::literals;
+  //   Program<...> pgrm;
+  //   ...
+  //   pgrm["uniform_name"_t] = 5;
+  //
+  // The operator[] takes a fixed (i.e., compile-time)
+  // string-as-type which then allows type checking the value
+  // being assigned to be sure that it agrees with the uniform of
+  // the given name.
+  template<base::fixed_string name,
            size_t             N = find_uniform_index( name )>
-  void set_uniform(
-      typename std::tuple_element_t<
-          N, typename UniformTuple::values_t>::type const&
-          val ) {
-    static_assert(
-        sizeof...( Barrier ) == 0,
-        "Too many template parameters given to set_uniform." );
-    std::get<N>( uniforms_.values ).set( val );
+  auto& operator[]( base::fixed_string_holder<name> ) {
+    return std::get<N>( uniforms_.values );
   }
 
  private:

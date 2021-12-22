@@ -216,13 +216,15 @@ TEST_CASE( "[shader] Program" ) {
   EXPECT_CALL( mock, gl_Uniform1i( 89, 0 ) );
 
   // Since we're just mocking we can use the same shader twice.
-  auto pgrm = ProgramType::create( vert_shader, vert_shader );
-  REQUIRE( pgrm.has_value() );
-  REQUIRE( pgrm->id() == 9 );
+  auto maybe_pgrm =
+      ProgramType::create( vert_shader, vert_shader );
+  REQUIRE( maybe_pgrm.has_value() );
+  auto& pgrm = *maybe_pgrm;
+  REQUIRE( pgrm.id() == 9 );
 
   // Use the program.
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
-  pgrm->use();
+  pgrm.use();
 
   // Construct VertexArrayNonTyped.
   EXPECT_CALL( mock, gl_GenVertexArrays( 1, Not( Null() ) ) )
@@ -302,15 +304,16 @@ TEST_CASE( "[shader] Program" ) {
   EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
                                      Not( Null() ) ) )
       .sets_arg<1>( 20 );
-  pgrm->run( vertex_array, 99 );
+  pgrm.run( vertex_array, 99 );
 
   // Set some uniforms.
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
   EXPECT_CALL( mock, gl_Uniform2f( 88, 3.4, 4.5 ) );
-  pgrm->set_uniform<"some_vec2">( { .x = 3.4, .y = 4.5 } );
+  using namespace ::base::literals;
+  pgrm["some_vec2"_t] = { .x = 3.4, .y = 4.5 };
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
   EXPECT_CALL( mock, gl_Uniform1i( 89, 888 ) );
-  pgrm->set_uniform<"some_int">( 888 );
+  pgrm["some_int"_t] = 888;
 
   // Cleanup.
   EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 41 ) ) );

@@ -87,5 +87,18 @@ constexpr char foo() {
 
 static_assert( foo<"hello">() == 'e' );
 
+/****************************************************************
+** fixed_string_holder
+*****************************************************************/
+static_assert( fixed_string_holder<"hello">::value == "hello" );
+
+/****************************************************************
+** UDL
+*****************************************************************/
+using namespace ::base::literals;
+
+static_assert( decltype( "hello"_t )::value == "hello" );
+static_assert( "hello"_t.value == "hello" );
+
 } // namespace
 } // namespace base

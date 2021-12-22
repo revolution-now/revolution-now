@@ -213,10 +213,12 @@ void render_loop( ::SDL_Window*         window,
 
   auto tx_binder = gl_objects.tx.bind();
 
-  program.set_uniform<"screen_size">( gl::vec2{
-      float( screen_delta.w._ ), float( screen_delta.h._ ) } );
-  program.set_uniform<"tx">( 0 );
-  program.set_uniform<"tick">( 0 );
+  using namespace ::base::literals;
+
+  program["screen_size"_t] = gl::vec2{
+      float( screen_delta.w._ ), float( screen_delta.h._ ) };
+  program["tx"_t]   = 0;
+  program["tick"_t] = 0;
 
   int num_vertices =
       upload_sprites_buffer( &gl_objects, screen_delta );
@@ -245,7 +247,7 @@ void render_loop( ::SDL_Window*         window,
     GL_CHECK(
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
-    program.set_uniform<"tick">( frames );
+    program["tick"_t] = frames;
 
     upload_sprites_buffer( &gl_objects, screen_delta );
     program.run( vert_array, num_vertices );
