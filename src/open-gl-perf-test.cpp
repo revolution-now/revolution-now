@@ -251,6 +251,7 @@ void render_loop( ::SDL_Window*         window,
     program["tick"_t] = frames;
 
     upload_sprites_buffer( &gl_objects, screen_delta );
+    // FIXME: vertex array/buffer should know their size.
     program.run( vert_array, num_vertices );
     ::SDL_GL_SwapWindow( window );
 
