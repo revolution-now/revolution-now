@@ -78,11 +78,12 @@ struct ProgramUniforms {
 using ProgramType =
     gl::Program<ProgramAttributes, ProgramUniforms>;
 
+using VertexArray_t = gl::VertexArray<gl::VertexBuffer<Vertex>>;
+
 struct OpenGLObjects {
-  ProgramType program;
-  // The order of these matters.
-  gl::VertexArray<gl::VertexBuffer<Vertex>> vertex_array;
-  gl::Texture                               tx;
+  ProgramType   program;
+  VertexArray_t vertex_array;
+  gl::Texture   tx;
 };
 
 int upload_sprites_buffer( OpenGLObjects* gl_objects,
