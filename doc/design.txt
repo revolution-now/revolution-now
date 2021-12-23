@@ -1,5 +1,200 @@
+=================================================================
+Reflection
+=================================================================
+
+namespace refl {
+
+enum class kind {
+  enum_type,
+  variant_type,
+  struct_type,
+}
+
+template<typename T>
+struct traits;
+
+template<typename T>
+concept ReflectedBase = requires {
+  typename traits<T>::type;
+  { traits<T>::name } -> std::same_as<std::string_view const&>;
+  { traits<T>::k } -> std::same_as<kind const&>;
+};
+
+template<typename T>
+concept ReflectedEnum = ReflectedBase<T> && requires {
+  requires std::is_enum_v<T>;
+  { traits<T>::count } -> std::same_as<int const&>;
+  requires traits<T>::count >= 0;
+  { traits<T>::value_names } ->
+      std::same_as<std::array<std::string_view, traits<T>::count> const&>;
+};
+
+template<typename T>
+concept ReflectedStruct = ReflectedBase<T> && requires {
+  // TODO
+};
+
+template<typename T>
+concept ReflectedVariant = ReflectedBase<T> && requires {
+  // TODO
+};
+
+// template<typename T>
+// concept ReflectedDataType = ReflectedEnum<T>
+//                          || ReflectedStruct<T>
+//                          || ReflectedVariant<T>;
+
+// template<typename T>
+// concept ReflectedByComposition = requires {
+//   typename T::refl_type;
+//   requires ReflectedDataType<typename T::refl_type>;
+//   requires std::is_constructible_v<T, typename T::refl_type>;
+// };
+
+template<typename T>
+concept Reflected =  ReflectedEnum<T>
+                  || ReflectedStruct<T>
+                  || ReflectedVariant<T>;
+
+template<typename T>
+struct traits {
+  using type = T;
+
+  static constexpr std::string_view type_name = ...;
+
+  static constexpr kind k = ...;
+};
+
+}
+
+=================================================================
+Coroutine-based GUI windows and widgets
+=================================================================
+       ________________________________________________
+      /__________________Enter_Level___________________\
+      |                                                |
+      |  ( ) 5                                         |
+      |  ( ) 10                                        |
+      |  ( ) 15                                        |
+      |  ( ) Slider                                    |
+      |                                                |
+      |  [-------------||||-------------------------]  |
+      |                                                |
+      |  Value: 4                                      |
+      |                    __________     __________   |
+      |                   /          \   /          \  |
+      |                   |    OK    |   |  Cancel  |  |
+      |                   \__________/   \__________/  |
+      \________________________________________________/
+
+  struct actor {
+    waitable<> coro;
+    // Pointer to stream inside of coro.
+    co::stream<>* strm;
+  };
+
+  template<typename Derived>
+  struct view {
+    actor place( view w, X x, Y y ) {
+      co::stream<>* pings = nullptr;
+      waitable<> coro = derived().run( pings, w, x, y );
+      CHECK( pings != nullptr );
+      return actor {
+        .strm = pings,
+        .coro = std::move( coro )
+      };
+    }
+
+    virtual draw(where) = 0;
+  };
+
+  struct Button : view<Button> {
+    bool down() const { return down_; }
+
+    waitable<> run( co::stream<>*& pinger, view v, Coord c ) {
+      co::stream<> pings;
+      pinger = &pings;
+      co::stream<input_t> input;
+      auto placer = v.place( get_view(), c, input );
+
+      while( true) {
+        // Update state.
+        switch( input_t in = co_await input.next() ) {
+          case click_down:
+            down = true;
+            break;
+          case click_up:
+            if( down ) {
+              down = false;
+              // button click has happened.
+              pings.send({});
+            }
+            break;
+        }
+      }
+    }
+
+    // State
+    bool down_ = false;
+  };
+
+In user code:
+
+  int level = co_await get_level();
+
+  waitable<maybe<int>> get_level() {
+    window w = open_window();
+
+    RadioButtons radios( "5", "10", "15", "Slider" );
+    SliderControl slider( 1, 15 );
+    OutputControl output( "Value: %d" );
+    Button ok( "OK" );
+    Button cancel( "Cancel" );
+
+    // actor = coroutine + channel.
+    actor c_radios = radios.place( w, x, y );
+    actor c_slider = slider.place( w, x, y );
+    actor c_output = output.place( w, x, y );
+    actor c_ok     =     ok.place( w, x, y );
+    actor c_cancel = cancel.place( w, x, y );
+
+    co::interleave il(
+      c_radios.strm,
+      c_slider.strm,
+      c_output.strm,
+      c_ok.strm,
+      c_cancel.strm
+    );
+
+    // State.
+    // (none)
+
+    while( true ) {
+      // Update state.
+      if( radio.selected() == "slider" ) {
+        value = slider.value();
+        slider.enable();
+      } else {
+        value = radio.selected_num();
+        slider.disable();
+      }
+      output.set_val( value );
+
+      auto o = co_await il.next();
+      switch( o.index() ) {
+        case e::ok:
+          co_return output.get_value();
+        case e::cancel:
+          co_return nothing;
+        default:
+          break;
+      }
+    }
+  }
+
+=================================================================
 Unit Composition
-=======================================
+=================================================================
 
 Types of requests that will need to be made:
 
