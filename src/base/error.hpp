@@ -65,7 +65,7 @@
 // the `abort_with_msg` function.
 #define FATAL( ... )                                 \
   ::base::abort_with_msg( ::base::detail::check_msg( \
-      "fatal error", fmt::format( "", __VA_ARGS__ ) ) );
+      "fatal error", fmt::format( "" __VA_ARGS__ ) ) );
 
 /****************************************************************
 ** Main check-fail macros.
