@@ -50,12 +50,15 @@ auto& registration_functions() {
 bool is_valid_lua_identifier( string_view name ) {
   // Good enough for now.
   return !util::contains( name, " " ) &&
+         !util::contains( name, "-" ) &&
          !util::contains( name, "." );
 }
 
-lua::table require( string const& name ) {
+lua::table require( string const& unsanitized_name ) {
   lua::state& st  = lua_global_state();
   lua::table  ext = lua::table::create_or_get( st["ext"] );
+  string      name =
+      absl::StrReplaceAll( unsanitized_name, { { "-", "_" } } );
   lg.debug( "requiring lua module \"{}\".", name );
   if( ext[name] != lua::nil ) {
     LUA_CHECK( st, ext[name] != "loading",
@@ -69,11 +72,11 @@ lua::table require( string const& name ) {
   // Set the module to something while we're loading in order to
   // detect and break cyclic dependencies.
   ext[name]          = "loading";
-  fs::path file_name = "src/lua/" + name + ".lua";
+  fs::path file_name = "src/lua/" + unsanitized_name + ".lua";
   LUA_CHECK( st, fs::exists( file_name ),
              "file {} does not exist.", file_name );
-  lua::table module_table = g_lua.script.run_file<lua::table>(
-      "src/lua/" + name + ".lua" );
+  lua::table module_table =
+      g_lua.script.run_file<lua::table>( file_name.string() );
   ext[name] = module_table;
   // In case the symbol already exists we will assume that it is
   // a table and merge its contents into this one.

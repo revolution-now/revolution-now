@@ -197,6 +197,12 @@ ColonyId found_colony_unsafe( UnitId           founder,
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
            desc.adjective, where );
+
+  // 6. Let Lua do anything that it needs to the colony.
+  CHECK_HAS_VALUE(
+      lua_global_state()["colony_mgr"]["on_founded_colony"]
+          .pcall( col ) );
+
   return col_id;
 }
 

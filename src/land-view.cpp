@@ -691,7 +691,7 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
                                      bool shf_down ) {
   lua::state& st = lua_global_state();
 
-  lua::any lua_orders = st["land-view"]["key_to_orders"](
+  lua::any lua_orders = st["land_view"]["key_to_orders"](
       keycode, ctrl_down, shf_down );
   if( !lua_orders ) return nothing;
 

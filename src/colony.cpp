@@ -122,6 +122,7 @@ LUA_STARTUP( lua::state& st ) {
   colony["add_building"] = &Colony::add_building;
   colony["set_commodity_quantity"] =
       &Colony::set_commodity_quantity;
+  colony["commodity_quantity"] = &Colony::commodity_quantity;
 };
 
 } // namespace
