@@ -18,6 +18,9 @@
 #include "ustate.hpp"
 #include "utype.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 // luapp
 #include "luapp/state.hpp"
 
@@ -79,6 +82,13 @@ UnitId create_wagon( Coord where ) {
       where );
 }
 
+unordered_map<e_commodity, int> const
+    kExpectedInitialColonyCommodityQuantities{
+        { e_commodity::horses, 100 },
+        { e_commodity::tools, 60 },
+        { e_commodity::muskets, 100 },
+    };
+
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   init_game_world_for_test();
 
@@ -89,7 +99,10 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   Colony&  col    = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == 0 );
+    REQUIRE( q == base::lookup(
+                      kExpectedInitialColonyCommodityQuantities,
+                      type )
+                      .value_or( 0 ) );
   }
 }
 
@@ -110,9 +123,29 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     for( auto [type, q] : col.commodities() ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::horses: REQUIRE( q == 50 ); break;
-        case e_commodity::muskets: REQUIRE( q == 50 ); break;
-        default: REQUIRE( q == 0 ); break;
+        case e_commodity::horses:
+          REQUIRE( q ==
+                   base::lookup(
+                       kExpectedInitialColonyCommodityQuantities,
+                       e_commodity::horses )
+                           .value_or( 0 ) +
+                       50 );
+          break;
+        case e_commodity::muskets:
+          REQUIRE( q ==
+                   base::lookup(
+                       kExpectedInitialColonyCommodityQuantities,
+                       e_commodity::muskets )
+                           .value_or( 0 ) +
+                       50 );
+          break;
+        default:
+          REQUIRE( q ==
+                   base::lookup(
+                       kExpectedInitialColonyCommodityQuantities,
+                       type )
+                       .value_or( 0 ) );
+          break;
       }
     }
   }
@@ -131,8 +164,21 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     for( auto [type, q] : col.commodities() ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::tools: REQUIRE( q == 100 ); break;
-        default: REQUIRE( q == 0 ); break;
+        case e_commodity::tools:
+          REQUIRE( q ==
+                   base::lookup(
+                       kExpectedInitialColonyCommodityQuantities,
+                       e_commodity::tools )
+                           .value_or( 0 ) +
+                       100 );
+          break;
+        default:
+          REQUIRE( q ==
+                   base::lookup(
+                       kExpectedInitialColonyCommodityQuantities,
+                       type )
+                       .value_or( 0 ) );
+          break;
       }
     }
   }
@@ -149,7 +195,10 @@ TEST_CASE(
   Colony&  col    = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == 0 );
+    REQUIRE( q == base::lookup(
+                      kExpectedInitialColonyCommodityQuantities,
+                      type )
+                      .value_or( 0 ) );
   }
 
   id = create_colonist_on_map( coord );
@@ -168,7 +217,10 @@ TEST_CASE(
   Colony&  col    = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == 0 );
+    REQUIRE( q == base::lookup(
+                      kExpectedInitialColonyCommodityQuantities,
+                      type )
+                      .value_or( 0 ) );
   }
 
   coord += 1_w;
