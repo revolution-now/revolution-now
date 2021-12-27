@@ -19,9 +19,9 @@ include [
   rds/orders.hpp
 ]
 
-namespace.rn {
+namespace rn {
 
-sumtype.LandViewState {
+sumtype LandViewState {
   none {}
   unit_input {
     unit_id: UnitId
@@ -36,7 +36,7 @@ sumtype.LandViewState {
   }
 }
 
-sumtype.LandViewRawInput {
+sumtype LandViewRawInput {
   orders {
     orders: orders_t
   }
@@ -49,7 +49,7 @@ sumtype.LandViewRawInput {
 # These are animation primitives. A unit "move" is a slide, and a
 # unit attack sequence is constructed from a slide + depixela-
 # tion.
-sumtype.UnitAnimation {
+sumtype UnitAnimation {
   blink {
     visible: bool
   }
@@ -64,7 +64,7 @@ sumtype.UnitAnimation {
     demoted_pixels: 'Matrix<gfx::pixel>'
   }
 
-  _features: [equality]
+  _features [equality]
 }
 
 } # namespace rn

@@ -28,7 +28,7 @@ hi def link  rdsIncludeFileErr Error
 " ===============================================================
 " Namespace
 " ===============================================================
-syn keyword  rdsNamespaceKeyword namespace nextgroup=rdsNamespaceDot
+syn keyword  rdsNamespaceKeyword namespace nextgroup=rdsNamespaceDot,rdsNamespaceName skipwhite skipempty
 syn match    rdsNamespaceDot '\.' contained nextgroup=rdsNamespaceName
 syn match    rdsNamespaceName '[a-zA-Z_][a-zA-Z0-9_]\+' contained nextgroup=rdsNamespaceBlock,rdsNamespaceKeywordDot skipwhite skipempty
 syn region   rdsNamespaceBlock start='{' end='}' contained fold contains=rdsSumtypeKeyword,rdsEnumKeyword,rdsNamespaceKeyword,rdsLineComment skipwhite skipempty
@@ -40,13 +40,12 @@ hi def link  rdsNamespaceName Identifier
 " ===============================================================
 " Enum
 " ===============================================================
-syn keyword  rdsEnumKeyword enum contained nextgroup=rdsEnumDot,rdsEnumTableBlock skipwhite skipempty
+syn keyword  rdsEnumKeyword enum contained nextgroup=rdsEnumDot,rdsEnumName skipwhite skipempty
 syn match    rdsEnumDot '\.' contained nextgroup=rdsEnumName
 syn match    rdsEnumName '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsEnumListBlock,rdsEnumListBlockErr skipwhite skipempty
 syn region   rdsEnumListBlockErr start='{' end='}' contained fold skipwhite skipempty
 syn region   rdsEnumListBlock start='\[' end='\]' contained fold contains=rdsEnumItem,rdsLineComment skipwhite skipempty
 syn match    rdsEnumItem '[a-zA-Z_][a-zA-Z0-9_]*' contained skipwhite skipempty
-syn region   rdsEnumTableBlock start='{' end='}' contained fold contains=rdsEnumName,rdsLineComment skipwhite skipempty
 
 hi def link  rdsEnumKeyword Keyword
 " hi def link  rdsEnumName Type
@@ -56,10 +55,10 @@ hi def link  rdsEnumListBlockErr Error
 " ===============================================================
 " Sumtype
 " ===============================================================
-syn keyword  rdsSumtypeKeyword sumtype contained nextgroup=rdsSumtypeDot,rdsSumtypeGroupBlock skipwhite
+syn keyword  rdsSumtypeKeyword sumtype contained nextgroup=rdsSumtypeDot,rdsSumtypeName skipwhite skipempty
 
 syn match    rdsSumtypeDot '\.' contained nextgroup=rdsSumtypeName
-syn match    rdsSumtypeName '[a-zA-Z_][a-zA-Z0-9_]\+' contained nextgroup=rdsSumtypeTableBlock,rdsSumtypeNameDot skipwhite
+syn match    rdsSumtypeName '[a-zA-Z_][a-zA-Z0-9_]\+' contained nextgroup=rdsSumtypeTableBlock,rdsSumtypeNameDot,rdsSumtypeTemplate,rdsSumtypeFeatures skipwhite
 syn region   rdsSumtypeTableBlock start='{' end='}' contained fold contains=rdsSumtypeAlternative,rdsSumtypeFeatures,rdsSumtypeTemplate,rdsLineComment
 syn match    rdsSumtypeAlternative '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rdsSumtypeAlternativeBlock,rdsSumtypeAlternativeColon,rdsSumtypeAlternativeEquals  skipwhite skipempty
 syn match    rdsSumtypeAlternativeColon ':' contained nextgroup=rdsSumtypeAlternativeBlock skipwhite skipempty
@@ -71,8 +70,6 @@ syn region   rdsSumtypeAlternativeVarTypeQuoted start="'" end="'" contained cont
 syn match    rdsSumtypeAlternativeVarTypeError "[^']\+" contained
 syn match    rdsSumtypeAlternativeVarTypeQuotedContents "[a-zA-Z_][a-zA-Z0-9_:\*, <>]*" contained
 syn match    rdsSumtypeAlternativeVarTypeUnquoted "[a-zA-Z_][a-zA-Z0-9_]*" contained
-
-syn region   rdsSumtypeGroupBlock start='{' end='}' contained fold contains=rdsSumtypeName skipwhite
 
 syn keyword  rdsSumtypeTemplate _template contained nextgroup=rdsSumtypeTemplateColon,rdsSumtypeTemplateListBlock skipwhite skipempty
 syn match    rdsSumtypeTemplateColon ':' contained nextgroup=rdsSumtypeTemplateListBlock skipwhite skipempty

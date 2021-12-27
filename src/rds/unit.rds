@@ -8,9 +8,9 @@
 # Description: RDS definitions for the unit module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
-enum.e_unit_orders [
+enum e_unit_orders [
   none
   sentry
   fortified

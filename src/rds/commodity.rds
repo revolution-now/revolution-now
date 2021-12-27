@@ -13,7 +13,7 @@ namespace.rn {
 # Important: the ordering here matters, as it determines the
 # order in which the commodities are displayed in an array and
 # the order in which they are processed.
-enum.e_commodity [
+enum e_commodity [
   food
   sugar
   tobacco
@@ -32,7 +32,7 @@ enum.e_commodity [
   muskets
 ]
 
-sumtype.CommodityLabel {
+sumtype CommodityLabel {
   none {}
   quantity {
     value: int

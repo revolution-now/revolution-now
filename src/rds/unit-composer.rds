@@ -8,9 +8,9 @@
 # Description: RDS definitions for the unit-composer module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
-enum.e_unit_type_modifier_delta [
+enum e_unit_type_modifier_delta [
   add # added
   del # removed
 ]

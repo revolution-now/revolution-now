@@ -19,9 +19,9 @@ include [
   fb/sg-unit_generated.h
 ]
 
-namespace.rn {
+namespace rn {
 
-sumtype.UnitState {
+sumtype UnitState {
   free {}
   world {
     coord: Coord
@@ -36,7 +36,7 @@ sumtype.UnitState {
     id: ColonyId
   }
 
-  _features: [formattable, serializable, equality]
+  _features [formattable, serializable, equality]
 }
 
 } # namespace rn

@@ -21,12 +21,12 @@ composition {
   modifier_traits {
     blessing {
       player_can_grant: true
-      association.none {}
+      association       none{}
     }
 
     horses {
       player_can_grant: true
-      association.commodity {
+      association       commodity{
         commodity {
           type:     horses
           quantity: 50
@@ -36,7 +36,7 @@ composition {
 
     muskets {
       player_can_grant: true
-      association.commodity {
+      association       commodity{
         commodity {
           type:     muskets
           quantity: 50
@@ -46,19 +46,19 @@ composition {
 
     tools {
       player_can_grant: true
-      association.inventory {
+      association       inventory{
         type: tools
       }
     }
 
     independence {
       player_can_grant: false
-      association.none: {}
+      association       none{}
     }
 
     strength {
       player_can_grant: false
-      association.none: {}
+      association       none{}
     }
   }
 
@@ -79,12 +79,12 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.fixed:       { type=indentured_servant }
+      promotion              fixed{ type=indentured_servant }
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -107,12 +107,12 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.fixed:       { type=free_colonist }
+      promotion              fixed{ type=free_colonist }
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -135,12 +135,12 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.occupation:  {}
+      promotion              occupation{}
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -166,12 +166,12 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       [tools]
-      promotion.expertise:   { kind: pioneering }
+      promotion              expertise{ kind: pioneering }
       modifiers:             {}
     }
 
@@ -188,12 +188,12 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.expertise:   { kind: missioning }
+      promotion              expertise{ kind: missioning }
       modifiers:             {}
     }
 
@@ -212,12 +212,12 @@ composition {
       defense_points:        1
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
-      on_death.destroy:      {}
+      on_death               destroy{}
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.expertise:   { kind: scouting }
+      promotion              expertise{ kind: scouting }
       modifiers:             {}
     }
 
@@ -234,12 +234,12 @@ composition {
       movement_points:       1
       attack_points:         2
       defense_points:        2
-      on_death.demote:       { lose=[muskets] }
+      on_death               demote{ lose=[muskets] }
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.expertise:   { kind: fighting }
+      promotion              expertise{ kind: fighting }
       modifiers:             {}
     }
 
@@ -256,12 +256,12 @@ composition {
       movement_points:       4
       attack_points:         3
       defense_points:        3
-      on_death.demote:       { lose=[horses] }
+      on_death               demote{ lose=[horses] }
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.expertise:   { kind: fighting }
+      promotion              expertise{ kind: fighting }
       modifiers:             {}
     }
 
@@ -281,7 +281,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -309,7 +309,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -337,7 +337,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -365,7 +365,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -393,7 +393,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -421,7 +421,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -449,7 +449,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -477,7 +477,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -505,7 +505,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -533,7 +533,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -561,7 +561,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -589,7 +589,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -617,7 +617,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -645,7 +645,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -673,7 +673,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -701,7 +701,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -729,7 +729,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -757,7 +757,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -785,7 +785,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -813,7 +813,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -841,7 +841,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -869,7 +869,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -902,12 +902,12 @@ composition {
       movement_points:       1
       attack_points:         3
       defense_points:        3
-      on_death.demote:       { lose=[muskets] }
+      on_death               demote{ lose=[muskets] }
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.modifier:    { kind=independence }
+      promotion              modifier{ kind=independence }
       modifiers:             {}
     }
 
@@ -924,12 +924,12 @@ composition {
       movement_points:       4
       attack_points:         4
       defense_points:        4
-      on_death.demote:       { lose=[horses] }
+      on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
-      promotion.modifier:    { kind=independence }
+      promotion              modifier{ kind=independence }
       modifiers:             {}
     }
 
@@ -946,7 +946,7 @@ composition {
       movement_points:       1
       attack_points:         4
       defense_points:        4
-      on_death.demote:       { lose=[muskets, independence] }
+      on_death               demote{ lose=[muskets, independence] }
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -968,7 +968,7 @@ composition {
       movement_points:       4
       attack_points:         5
       defense_points:        5
-      on_death.demote:       { lose=[horses] }
+      on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -990,7 +990,7 @@ composition {
       movement_points:       1
       attack_points:         5
       defense_points:        5
-      on_death.destroy:      {}
+      on_death               destroy{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1012,7 +1012,7 @@ composition {
       movement_points:       4
       attack_points:         6
       defense_points:        6
-      on_death.destroy:      {}
+      on_death               destroy{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1034,7 +1034,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        hardy_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1056,7 +1056,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        jesuit_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1080,7 +1080,7 @@ composition {
       defense_points:        1
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
-      on_death.destroy:      {}
+      on_death               destroy{}
       canonical_base:        seasoned_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1105,7 +1105,7 @@ composition {
       movement_points:       1
       attack_points:         5
       defense_points:        3
-      on_death.destroy:      {}
+      on_death               destroy{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1129,7 +1129,7 @@ composition {
       movement_points:       1
       attack_points:         7
       defense_points:        5
-      on_death.demote:       { lose=[strength] }
+      on_death               demote{ lose=[strength] }
       canonical_base:        damaged_artillery
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1154,7 +1154,7 @@ composition {
       movement_points:       4
       attack_points:         2
       defense_points:        2
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1176,7 +1176,7 @@ composition {
       movement_points:       5
       attack_points:         0
       defense_points:        5
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           4
       cargo_slots_occupies:  null
@@ -1198,7 +1198,7 @@ composition {
       movement_points:       6
       attack_points:         0
       defense_points:        10
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           6
       cargo_slots_occupies:  null
@@ -1220,7 +1220,7 @@ composition {
       movement_points:       8
       attack_points:         8
       defense_points:        8
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1242,7 +1242,7 @@ composition {
       movement_points:       6
       attack_points:         16
       defense_points:        16
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           4
       cargo_slots_occupies:  null
@@ -1264,7 +1264,7 @@ composition {
       movement_points:       5
       attack_points:         24
       defense_points:        24
-      on_death.naval:        {}
+      on_death               naval{}
       canonical_base:        null
       cargo_slots:           6
       cargo_slots_occupies:  null
@@ -1289,7 +1289,7 @@ composition {
       movement_points:       2
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1315,7 +1315,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  4
@@ -1337,7 +1337,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death.capture:      {}
+      on_death               capture{}
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  6

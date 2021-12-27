@@ -27,7 +27,7 @@ using namespace std;
 using ::testing::data_dir;
 
 TEST_CASE( "[parse] complex doc" ) {
-  string_view input = R"(
+  static string const input = R"(
     a.c.f = 5
     a.c.g = true
     a.c.h = truedat
@@ -115,6 +115,71 @@ TEST_CASE( "[parse] complex doc" ) {
                 base::read_text_file_as_string( golden_file ) );
 
   REQUIRE( fmt::to_string( doc ) == golden );
+}
+
+TEST_CASE( "[parse] space-separated nested table syntax" ) {
+  static string const input = R"(
+    one two {
+      a: b
+      c: d
+      three four  five {
+        six: 6
+      }
+      three {
+        four five: {
+          seven: 7
+        }
+      }
+    }
+    list: [
+      {
+        # Test braces next to key.
+        x y z{ a=5 }
+      }
+      {
+        a b c  = 9
+      }
+    ]
+  )";
+
+  auto doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  string expected =
+      "one {\n"
+      "  two {\n"
+      "    a: \"b\"\n"
+      "    c: \"d\"\n"
+      "    three {\n"
+      "      four {\n"
+      "        five {\n"
+      "          six: 6\n"
+      "          seven: 7\n"
+      "        }\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "list: [\n"
+      "  {\n"
+      "    x {\n"
+      "      y {\n"
+      "        z {\n"
+      "          a: 5\n"
+      "        }\n"
+      "      }\n"
+      "    }\n"
+      "  },\n"
+      "  {\n"
+      "    a {\n"
+      "      b {\n"
+      "        c: 9\n"
+      "      }\n"
+      "    }\n"
+      "  },\n"
+      "]\n";
+  REQUIRE( fmt::to_string( doc ) == expected );
 }
 
 } // namespace

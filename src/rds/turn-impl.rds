@@ -8,9 +8,9 @@
 # Description: RDS definitions for the turn (impl) module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
-enum.e_revolution_confirmation [
+enum e_revolution_confirmation [
   no
   revolution
 ]

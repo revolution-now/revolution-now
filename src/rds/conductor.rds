@@ -8,30 +8,30 @@
 # Description: RDS definitions for the conductor module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
 # NOTE: The ordering of these determines priority in the event
 # that the first and second choices (set in the config files) are
 # not available.
-enum.e_music_player [
+enum e_music_player [
   midiseq
   ogg
   silent
 ]
 
-enum.e_special_music_event [
+enum e_special_music_event [
   fountain_of_youth
   founding_father
 ]
 
-namespace.conductor {
+namespace conductor {
 
 # Tune Selection. Each of these methods will search through
 # available tunes and select one that meets the criteria and then
 # play it if requested. If the tune is played then the conductor
 # will return to autoplay when it is finished, if autoplay is en-
 # abled.
-enum.e_request [
+enum e_request [
   won_battle_europeans
   won_battle_natives
   lost_battle_europeans
@@ -51,7 +51,7 @@ enum.e_request [
   king_war
 ]
 
-enum.e_music_state [
+enum e_music_state [
   playing
   stopped
   paused

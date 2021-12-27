@@ -13,9 +13,9 @@ include [
   <unordered_set>
 ]
 
-namespace.rn {
+namespace rn {
 
-enum.e_unit_type [
+enum e_unit_type [
   # Basic colonists.
   petty_criminal
   indentured_servant
@@ -83,13 +83,13 @@ enum.e_unit_type [
   large_treasure
 ]
 
-enum.e_unit_human [
+enum e_unit_human [
   no
   yes
   from_base
 ]
 
-enum.e_unit_type_modifier [
+enum e_unit_type_modifier [
   blessing
   horses
   muskets
@@ -98,12 +98,12 @@ enum.e_unit_type_modifier [
   strength
 ]
 
-enum.e_unit_inventory [
+enum e_unit_inventory [
   gold
   tools
 ]
 
-sumtype.ModifierAssociation {
+sumtype ModifierAssociation {
   # There is no association between the modifier and any com-
   # modity or inventory item.
   none {}
@@ -128,7 +128,7 @@ sumtype.ModifierAssociation {
 #      less of its type.
 #   2. The expertise that a unit has.
 #
-enum.e_unit_activity [
+enum e_unit_activity [
   # Raw commodities.
   farming
   fishing
@@ -160,7 +160,7 @@ enum.e_unit_activity [
   preaching
 ]
 
-sumtype.UnitDeathAction {
+sumtype UnitDeathAction {
   destroy {}
   capture {}
   naval {}
@@ -173,7 +173,7 @@ sumtype.UnitDeathAction {
 # rived type can sometimes inform how that happens. So both base
 # types and derived types can have this attribute, but some al-
 # ternatives are only allowed for one or the other.
-sumtype.UnitPromotion {
+sumtype UnitPromotion {
   # For base types. The unit type always changes to a fixed type.
   fixed {
     type: e_unit_type

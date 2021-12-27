@@ -18,9 +18,9 @@ include [
 ]
 
 
-namespace.rn {
+namespace rn {
 
-sumtype.ColonyJob {
+sumtype ColonyJob {
   land {
     d: e_direction
     producing: e_commodity
@@ -29,7 +29,7 @@ sumtype.ColonyJob {
     mfg_job: e_mfg_job
   }
 
-  _features: [serializable, equality]
+  _features [serializable, equality]
 }
 
 } # namespace rn

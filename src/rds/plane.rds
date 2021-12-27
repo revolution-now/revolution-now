@@ -8,9 +8,9 @@
 # Description: RDS definitions for the plane module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
-enum.e_plane [
+enum e_plane [
   land_view # land, units, colonies, etc.
   panel     # the info panel on the right
   image     # any of the fullscreen pics displayed

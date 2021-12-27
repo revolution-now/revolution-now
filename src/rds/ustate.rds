@@ -13,11 +13,11 @@ include [
   fb/unit_generated.h
 ]
 
-namespace.rn {
+namespace rn {
 
 # These pertain to units who are owned by either the high seas or
 # by europe view (e.g., in port, on the dock, etc.);
-sumtype.UnitOldWorldViewState {
+sumtype UnitOldWorldViewState {
   # For ships that are venturing to europe. `percent` starts from
   # 0 and goes to 1.0 at arrival. This means that the value
   # should never actually assume a value of 1.0, because as soon
@@ -40,7 +40,7 @@ sumtype.UnitOldWorldViewState {
   # are on the dock.
   in_port {}
 
-  _features: [
+  _features [
     formattable,
     serializable,
     equality

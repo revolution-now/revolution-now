@@ -16,7 +16,7 @@ include [
   fb/orders_generated.h
 ]
 
-namespace.rn {
+namespace rn {
 
 # An `orders_t` is a general term describing what the player pro-
 # poses that a unit do when the unit asks the player. Roughly
@@ -29,7 +29,7 @@ namespace.rn {
 # ders to a unit to "move left", but doing so might cause a land
 # unit to go into a sea square without a ship, which would not be
 # allowed. In that case, the orders are not allowed.
-sumtype.orders {
+sumtype orders {
   wait      {}
   forfeight {}
   build     {}
@@ -38,7 +38,7 @@ sumtype.orders {
   disband   {}
   move      { d: e_direction }
 
-  _features: [formattable, equality, serializable]
+  _features [formattable, equality, serializable]
 }
 
 } # namespace rn

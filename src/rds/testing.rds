@@ -20,19 +20,19 @@ include [
   <vector>
 ]
 
-namespace.rdstest {
+namespace rdstest {
 
 # Descriptive comment.
-sumtype.Maybe._template [T]
-sumtype.Maybe {
+sumtype Maybe _template [T]
+sumtype Maybe {
   nothing {}
   just { val: T }
 }
 
-sumtype.MyVariant0 {}
+sumtype MyVariant0 {}
 
 # Descriptive comment.
-sumtype.MyVariant1 {
+sumtype MyVariant1 {
   # hello
   happy {
     # hello
@@ -45,9 +45,9 @@ sumtype.MyVariant1 {
   }
   excited {}
 }
-sumtype.MyVariant1._features: [equality]
+sumtype MyVariant1 _features [equality]
 
-sumtype.MyVariant2 {
+sumtype MyVariant2 {
   first {
     name: 'std::string'
     b: bool
@@ -60,11 +60,11 @@ sumtype.MyVariant2 {
     cost: int
   }
 }
-sumtype.MyVariant2._features: [formattable, serializable]
+sumtype MyVariant2 _features [formattable, serializable]
 
-namespace.inner {
+namespace inner {
 
-sumtype.MyVariant3 {
+sumtype MyVariant3 {
   a1 {
     var0: MyVariant0_t
   }
@@ -78,7 +78,7 @@ sumtype.MyVariant3 {
 }
 
 # Descriptive comment.
-sumtype.MyVariant4 {
+sumtype MyVariant4 {
   # Alternatives.
   first {
     i:  int
@@ -94,8 +94,8 @@ sumtype.MyVariant4 {
 }
 
 # Descriptive comment.
-sumtype.TemplateTwoParams._template: [T, U]
-sumtype.TemplateTwoParams {
+sumtype TemplateTwoParams _template [T, U]
+sumtype TemplateTwoParams {
   # Alternatives.
   first_alternative {
     t: T
@@ -110,8 +110,8 @@ sumtype.TemplateTwoParams {
 
 # This one has two template parameters are references another
 # sumtype that also has two parameters.
-sumtype.CompositeTemplateTwo._template: [T, U]
-sumtype.CompositeTemplateTwo {
+sumtype CompositeTemplateTwo _template [T, U]
+sumtype CompositeTemplateTwo {
   first {
     ttp: 'rdstest::inner::TemplateTwoParams_t<T,U>'
   }
@@ -121,9 +121,9 @@ sumtype.CompositeTemplateTwo {
 } # namespace inner
 } # namespace rdstest
 
-namespace.rn {
+namespace rn {
 
-sumtype.MySumtype {
+sumtype MySumtype {
   none {}
   some {
     s: 'std::string'
@@ -133,14 +133,14 @@ sumtype.MySumtype {
     d: double
   }
 
-  _features: [
+  _features [
     equality
     formattable
     serializable
   ]
 }
 
-sumtype.OnOffState {
+sumtype OnOffState {
   off {}
   on {
     user: 'std::string'
@@ -152,27 +152,23 @@ sumtype.OnOffState {
     percent: double
   }
 
-  _features: [
+  _features [
     equality,
     formattable,
     serializable
   ]
 }
 
-sumtype.OnOffEvent {
+sumtype OnOffEvent {
   turn_off {}
   turn_on  {}
 }
 
-enum {
-
 # hello
-e_empty  []
-e_single [hello]
-e_two    [hello, world]
-e_color  [red, green, blue]
-e_hand   [left, right]
-
-}
+enum e_empty  []
+enum e_single [hello]
+enum e_two    [hello, world]
+enum e_color  [red, green, blue]
+enum e_hand   [left, right]
 
 } # namespace rn

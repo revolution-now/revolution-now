@@ -245,6 +245,9 @@ struct table {
   table unflatten() &&;
 
   // Consumes this table.
+  table despacer() &&;
+
+  // Consumes this table.
   base::expect<table> dedupe() &&;
 
   // This should be done after all other post processing has fin-
@@ -265,6 +268,7 @@ struct table {
 
  private:
   void unflatten_impl( std::string_view dotted, value&& v );
+  void despacer_impl( std::string_view dotted, value&& v );
 
   friend base::valid_or<std::string> merge_values(
       std::string_view key, value& v_target, value&& v_source );
@@ -308,6 +312,9 @@ struct list {
 
   // Consumes this list.
   list unflatten() &&;
+
+  // Consumes this list.
+  list despacer() &&;
 
   // Will apply deduplication processing to any elements that are
   // tables. Returns a new list with the same elements except

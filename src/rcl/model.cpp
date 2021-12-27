@@ -13,6 +13,10 @@
 // base
 #include "base/valid.hpp" // FIXME: remove
 
+// Abseil
+#include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
+
 // C++ standard library
 #include <sstream>
 #include <unordered_map>
@@ -158,7 +162,63 @@ string doc::pretty_print( string_view indent ) const {
 }
 
 /****************************************************************
-** Table Flattening
+** Table Key De-spacer
+*****************************************************************/
+// Replaces contiguous chunks of spaces in keys with dots. E.g.:
+// "aaa bbb ccc" ==> "aaa.bbb.ccc".
+namespace {
+
+struct despacer_visitor {
+  value operator()( null_t ) const { return value{ null }; }
+
+  value operator()( bool o ) const { return value{ o }; }
+
+  value operator()( int n ) const { return value{ n }; }
+
+  value operator()( double d ) const { return value{ d }; }
+
+  value operator()( std::string&& o ) const {
+    return value{ std::move( o ) };
+  }
+
+  value operator()( unique_ptr<table>&& o ) const {
+    return value{
+        make_unique<table>( std::move( *o ).despacer() ) };
+  }
+
+  value operator()( unique_ptr<list>&& o ) const {
+    return value{
+        make_unique<list>( std::move( *o ).despacer() ) };
+  }
+};
+
+} // namespace
+
+void table::despacer_impl( string_view spaced, value&& v ) {
+  vector<string> keys = absl::StrSplit( spaced, " " );
+  erase_if( keys, []( string const& s ) { return s.empty(); } );
+  members_.emplace_back(
+      absl::StrJoin( keys, "." ),
+      std::visit( despacer_visitor{}, std::move( v ) ) );
+}
+
+table table::despacer() && {
+  table t;
+  for( auto& [k, v] : members_ )
+    t.despacer_impl( k, std::move( v ) );
+  return t;
+}
+
+list list::despacer() && {
+  list l;
+  for( value& v : members_ )
+    l.members_.push_back(
+        std::visit( despacer_visitor{}, std::move( v ) ) );
+  return l;
+}
+
+/****************************************************************
+** Table Unflattening
 *****************************************************************/
 namespace {
 
@@ -382,21 +442,23 @@ void list::map_members() & {
 ** Post-processing Routine
 *****************************************************************/
 base::expect<table, string> run_postprocessing( table&& v1 ) {
-  table v2 = std::move( v1 ).unflatten();
+  table v2 = std::move( v1 ).despacer();
+  table v3 = std::move( v2 ).unflatten();
   // Dedupe must happen after unflattening.
-  UNWRAP_RETURN( v3, std::move( v2 ).dedupe() );
+  UNWRAP_RETURN( v4, std::move( v3 ).dedupe() );
   // Mapping should be last.
-  v3.map_members();
-  return std::move( v3 );
+  v4.map_members();
+  return std::move( v4 );
 }
 
 base::expect<list, string> run_postprocessing( list&& v1 ) {
-  list v2 = std::move( v1 ).unflatten();
+  list v2 = std::move( v1 ).despacer();
+  list v3 = std::move( v2 ).unflatten();
   // Dedupe must happen after unflattening.
-  UNWRAP_RETURN( v3, std::move( v2 ).dedupe_tables() );
+  UNWRAP_RETURN( v4, std::move( v3 ).dedupe_tables() );
   // Mapping should be last.
-  v3.map_members();
-  return std::move( v3 );
+  v4.map_members();
+  return std::move( v4 );
 }
 
 /****************************************************************

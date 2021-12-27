@@ -72,6 +72,17 @@ bool is_identifier_char( char c ) {
 
 bool is_digit( char c ) { return ( c >= '0' && c <= '9' ); }
 
+// This will remove trailing spaces from the end and will also
+// move the global cursor back as well.
+void trim_and_back_up( string_view* out ) {
+  // Remove trailing spaces.
+  while( !out->empty() &&
+         is_blank( ( *out )[out->size() - 1] ) ) {
+    out->remove_suffix( 1 );
+    --g_cur;
+  }
+}
+
 /****************************************************************
 ** Parsers
 *****************************************************************/
@@ -85,22 +96,27 @@ bool parse_key( string_view* out ) {
   char const* start = g_cur;
   if( !is_leading_identifier_char( *start ) ) return false;
   bool got_dot = false;
-  while( g_cur != g_end &&
-         ( is_identifier_char( *g_cur ) || *g_cur == '.' ) ) {
-    // Ensure we don't get two dots in a row.
+  // This allows a series of identifiers separated by dots and/or
+  // spaces (which are equivalent).
+  while( g_cur != g_end && ( is_identifier_char( *g_cur ) ||
+                             *g_cur == '.' || *g_cur == ' ' ) ) {
+    // Ensure we don't get two dots in a row, even if they have
+    // spaces between them.
     if( *g_cur == '.' ) {
       if( got_dot ) return false;
       got_dot = true;
-    } else {
+    } else if( !is_blank( *g_cur ) ) {
       got_dot = false;
     }
     ++g_cur;
   }
   *out = string_view( start, g_cur - start );
+  trim_and_back_up( out );
   return true;
 }
 
 bool parse_assignment() {
+  if( g_cur != g_end && *g_cur == '{' ) return true;
   bool has_space = false;
   while( g_cur != g_end && is_nonnewline_blank( *g_cur ) ) {
     ++g_cur;
@@ -389,11 +405,14 @@ void blankify_comments( string& text ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-base::expect<doc, string> parse( string_view filename,
-                                 string_view in ) {
-  g_start = in.begin();
-  g_cur   = g_start;
-  g_end   = in.end();
+base::expect<doc, string> parse(
+    string_view filename, string const& in_with_comments ) {
+  string in_blankified = in_with_comments;
+  blankify_comments( in_blankified );
+  string_view in = in_blankified;
+  g_start        = in.begin();
+  g_cur          = g_start;
+  g_end          = in.end();
 
   vector<pair<string, value>> kvs;
   while( parse_key_val( &kvs ) ) {}
@@ -411,7 +430,6 @@ base::expect<doc, string> parse_file( string_view filename ) {
   if( !buffer )
     FATAL( "{}", base::error_read_text_file_msg(
                      filename, buffer.error() ) );
-  blankify_comments( *buffer );
   return parse( filename, *buffer );
 }
 

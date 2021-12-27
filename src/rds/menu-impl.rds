@@ -13,9 +13,9 @@ include [
   maybe.hpp
 ]
 
-namespace.rn {
+namespace rn {
 
-sumtype.MenuItem {
+sumtype MenuItem {
   menu_divider {}
   menu_clickable {
     item: e_menu_item
@@ -23,10 +23,10 @@ sumtype.MenuItem {
     callbacks: MenuCallbacks
   }
 
-  _features: []
+  _features []
 }
 
-sumtype.MenuState {
+sumtype MenuState {
   menus_hidden {}
   menus_closed {
     hover: 'maybe<e_menu>'
@@ -41,7 +41,7 @@ sumtype.MenuState {
   }
 }
 
-sumtype.MouseOver {
+sumtype MouseOver {
   header {
     menu: e_menu
   }

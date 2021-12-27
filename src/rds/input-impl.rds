@@ -12,7 +12,7 @@ include [
   coord.hpp
 ]
 
-namespace.rn.namespace.input {
+namespace rn namespace input {
 
 # This type will keep track of the dragging state of a given
 # mouse button. When a drag is initiated is it represented as a
@@ -28,7 +28,7 @@ namespace.rn.namespace.input {
 # the user inadvertantly triggers a drag event by accidentally
 # moving the mouse a bit during a click (that would be bad be-
 # cause it would not be sent as a click event).
-sumtype.drag_phase {
+sumtype drag_phase {
   none {}
   maybe {
     origin: Coord

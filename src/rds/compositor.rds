@@ -8,11 +8,11 @@
 # Description: RDS definitions for the compositor module.
 #
 # ===============================================================
-namespace.rn {
-namespace.compositor {
+namespace rn {
+namespace compositor {
 
 # In general, these sections may overlap.
-enum.e_section [
+enum e_section [
   menu_bar
   # All parts of the screen except for the menu bar.
   non_menu_bar

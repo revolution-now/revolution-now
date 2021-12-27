@@ -41,7 +41,7 @@ TEST_CASE( "[model] complex doc" ) {
    * b.s = 5
    * b.t = 3.5
    *
-   * c.d.e.f.g.h.i = 9
+   * c.d e.f.g.h.i = 9
    * c.d.e.f.g.h.j = 10
    *
    * file: /this/is/a/file/path
@@ -56,7 +56,7 @@ TEST_CASE( "[model] complex doc" ) {
    *      2,
    *      {
    *        one.two.three = 3
-   *        one.two.four = 4
+   *        one two   four = 4
    *        one.two {
    *          hello=1
    *          world=2
@@ -72,7 +72,7 @@ TEST_CASE( "[model] complex doc" ) {
    *   }
    * }
    *
-   * subtype.some_section.a = [
+   * subtype some_section a = [
    *   abc,
    *   5,
    *   -.03,
@@ -139,7 +139,7 @@ TEST_CASE( "[model] complex doc" ) {
                       1, 2,
                       make_table_val(
                           KV{ "one.two.three", 3 },
-                          KV{ "one.two.four", 4 },
+                          KV{ "one two   four", 4 },
                           KV{ "one.two",
                               make_table_val(
                                   KV{ "hello", 1 },
@@ -150,7 +150,7 @@ TEST_CASE( "[model] complex doc" ) {
                           KV{ "f.g", make_table_val( KV{
                                          "yes", "no" } ) } ) },
 
-      KV{ "subtype.some_section.a",
+      KV{ "subtype some_section a",
           make_list_val( "abc", 5, -.03, "table",
                          make_table_val( KV{ "a.b.c", 1 },
                                          KV{ "a.d", 2 } ) ) },

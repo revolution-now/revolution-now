@@ -14,9 +14,9 @@ include [
   id.hpp
 ]
 
-namespace.rn {
+namespace rn {
 
-enum.e_colview_entity [
+enum e_colview_entity [
   commodities
   land
   title_bar
@@ -26,7 +26,7 @@ enum.e_colview_entity [
   production
 ]
 
-sumtype.ColViewObject {
+sumtype ColViewObject {
   unit {
     id: UnitId
   }
@@ -34,7 +34,7 @@ sumtype.ColViewObject {
     comm: Commodity
   }
 
-  _features: [equality, formattable]
+  _features [equality, formattable]
 }
 
 } # namespace rn

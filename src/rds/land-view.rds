@@ -13,9 +13,9 @@ include [
   rds/orders.hpp
 ]
 
-namespace.rn {
+namespace rn {
 
-sumtype.LandViewPlayerInput {
+sumtype LandViewPlayerInput {
   # Player clicked on a colony. It is important that this be a
   # command sent back to the caller of the land-view module (as
   # opposed to the land-view input processor coroutine just

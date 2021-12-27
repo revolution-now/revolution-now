@@ -12,7 +12,7 @@ include [
   menu.hpp
 ]
 
-namespace.rn.enum {
+namespace rn.enum {
 
 e_menu [
   game
