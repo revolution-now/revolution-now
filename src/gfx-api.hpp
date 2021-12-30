@@ -21,8 +21,8 @@
 // gfx
 #include "gfx/pixel.hpp"
 
-// Abseil
-#include "absl/types/span.h"
+// C++ standard library
+#include <span>
 
 TYPED_ID_NS( rn::render, GfxObjId );
 
@@ -44,7 +44,7 @@ GfxObjId end_gpu_buffer();
 
 //////////////////////////// Textures ///////////////////////////
 void create_texture_from_bytes(
-    absl::Span<std::byte const> bytes );
+    std::span<std::byte const> bytes );
 
 void free_texture( GfxObjId id );
 
