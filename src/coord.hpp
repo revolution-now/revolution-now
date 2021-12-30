@@ -369,6 +369,19 @@ struct ND Rect {
     return { x, y, w + 1_w, h + 1_h };
   }
 
+  Rect with_new_right_edge( X xp ) const {
+    return Rect{ x, y, xp - x, h }.normalized();
+  }
+  Rect with_new_left_edge( X xp ) const {
+    return Rect{ xp, y, w + ( x - xp ), h }.normalized();
+  }
+  Rect with_new_top_edge( Y yp ) const {
+    return Rect{ x, yp, w, h + ( y - yp ) }.normalized();
+  }
+  Rect with_new_bottom_edge( Y yp ) const {
+    return Rect{ x, y, w, yp - y }.normalized();
+  }
+
   // Returns a rect that is equivalent to this one but where x
   // and y represent the upper left corner of the rect.
   Rect normalized() const;

@@ -11,6 +11,7 @@
 #include "main-menu.hpp"
 
 // Revolution Now
+#include "compositor.hpp"
 #include "enum.hpp"
 #include "gfx.hpp"
 #include "plane.hpp"
@@ -38,19 +39,21 @@ struct MainMenuPlane : public Plane {
   MainMenuPlane() = default;
   bool covers_screen() const override { return true; }
   void draw( Texture& tx ) const override {
-    tile_sprite( tx, e_tile::wood_middle,
-                 main_window_logical_rect() );
-    auto screen    = main_window_logical_size();
-    H    h         = screen.h / 2_sy;
+    UNWRAP_CHECK(
+        normal_area,
+        compositor::section( compositor::e_section::normal ) );
+    tile_sprite( tx, e_tile::wood_middle, normal_area );
+    Y    y         = normal_area.y + normal_area.h / 2_sy;
     auto num_items = enum_traits<e_main_menu_item>::count;
-    h -= ttf_get_font_info( font::main_menu() ).height *
+    y -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : enum_traits<e_main_menu_item>::values ) {
       gfx::pixel  c       = gfx::pixel::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
-      auto w   = screen.w / 2_sx - text_tx.size().w / 2_sx;
-      auto dst = text_tx.rect().shifted_by( Delta{ w, h } );
+      auto w = normal_area.w / 2_sx - text_tx.size().w / 2_sx;
+      auto dst =
+          text_tx.rect().shifted_by( Delta{ w, y - 0_y } );
       text_tx.copy_to( tx, /*src=*/nothing,
                        /*dst=*/dst );
       dst = dst.with_border_added( 2 );
@@ -58,7 +61,7 @@ struct MainMenuPlane : public Plane {
       dst.w += 6_w;
       if( e == g_curr_item )
         render_rect( tx, gfx::pixel::banana(), dst );
-      h += dst.delta().h;
+      y += dst.delta().h;
     }
   }
   e_input_handled input( input::event_t const& event ) override {

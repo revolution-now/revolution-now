@@ -44,47 +44,94 @@ constexpr string_view prompt = "> ";
 /****************************************************************
 ** Console Plane
 *****************************************************************/
-constexpr uint8_t console_alpha = 60;
-constexpr uint8_t text_alpha    = 225;
-constexpr uint8_t cmds_alpha    = 240;
-constexpr uint8_t stats_alpha   = 255;
+constexpr uint8_t text_alpha  = 225;
+constexpr uint8_t cmds_alpha  = 240;
+constexpr uint8_t stats_alpha = 255;
+
+constexpr H kDividerHeight = 2_h;
+constexpr W kDividerWidth  = 2_w;
 
 struct ConsolePlane : public Plane {
   ConsolePlane() = default;
+
   void initialize() override {
     // FIXME: move this into method that gets called when logical
-    // window size changes.
+    // window size changes and/or compositor layout changes.
+    UNWRAP_CHECK(
+        total_area,
+        compositor::section( compositor::e_section::total ) );
     le_view_.emplace(
-        config_rn.console.font, main_window_logical_size().w,
+        config_rn.console.font, total_area.w,
         []( string const& ) {}, gfx::pixel::banana(),
         gfx::pixel::wood(), prompt, /*initial_text=*/"" );
   }
+
   void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
+    compositor::set_console_height( console_height() );
   }
+
   bool covers_screen() const override { return false; }
+
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     if( show_percent_ < .0001 ) return;
-    auto console_rect = Rect::from(
-        compositor::section( compositor::e_section::menu_bar )
-            .value_or( Rect::from(
-                Coord{},
-                Delta{ 0_h, main_window_logical_size().w } ) )
-            .lower_left(),
-        main_window_logical_rect().lower_right() -
-            le_view_.get().delta().h );
-    console_rect.h -=
-        H{ int( console_rect.h._ * ( 1.0 - show_percent_ ) ) };
+    UNWRAP_CHECK(
+        console_rect,
+        compositor::section( compositor::e_section::console ) );
+
+    Rect divider_rect = console_rect;
+
+    UNWRAP_CHECK(
+        total_area,
+        compositor::section( compositor::e_section::total ) );
+
+    if( console_rect.h < total_area.h ) {
+      // Console is either at the top or bottom.
+      if( console_rect.y == 0_y ) {
+        // Console is at the top.
+        console_rect = console_rect.with_new_bottom_edge(
+            console_rect.bottom_edge() - kDividerHeight );
+        divider_rect.h = kDividerHeight;
+        divider_rect.y = console_rect.bottom_edge();
+      } else {
+        // Console is at the bottom.
+        divider_rect.h = kDividerHeight;
+        divider_rect.y = console_rect.top_edge();
+        console_rect   = console_rect.with_new_top_edge(
+              console_rect.top_edge() + kDividerHeight );
+      }
+    }
+    if( console_rect.w < total_area.w ) {
+      // Console is either at the left or right.
+      if( console_rect.x == 0_x ) {
+        // Console is on the left.
+        console_rect = console_rect.with_new_right_edge(
+            console_rect.right_edge() - kDividerWidth );
+        divider_rect.w = kDividerWidth;
+        divider_rect.x = console_rect.right_edge();
+      } else {
+        // Console is on the right.
+        divider_rect.w = kDividerWidth;
+        divider_rect.x = console_rect.left_edge();
+        console_rect   = console_rect.with_new_left_edge(
+              console_rect.left_edge() + kDividerWidth );
+      }
+    }
 
     // Render edit box.
-    auto console_edit_rect = Rect::from(
-        console_rect.lower_left(), le_view_.get().delta() );
+    Delta const edit_box_delta = le_view_.get().delta();
+    auto        console_edit_rect =
+        Rect::from( console_rect.lower_left() - edit_box_delta.h,
+                    edit_box_delta );
+    Rect text_rect = console_rect;
+    text_rect.h -= edit_box_delta.h;
 
-    render_fill_rect(
-        tx, gfx::pixel::wood().with_alpha( console_alpha ),
-        console_rect );
+    render_fill_rect( tx, gfx::pixel::wood().shaded( 2 ),
+                      console_rect );
+    render_fill_rect( tx, gfx::pixel::wood().shaded( 4 ),
+                      divider_rect );
 
     auto text_color =
         gfx::pixel::banana().with_alpha( text_alpha );
@@ -120,7 +167,7 @@ struct ConsolePlane : public Plane {
     //  info_start += mouse_coords_tx.size().h;
     //}
 
-    auto info_start = console_rect.lower_right() - 1_w;
+    auto info_start = text_rect.lower_right() - 1_w;
 
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
@@ -184,9 +231,9 @@ struct ConsolePlane : public Plane {
     }
 
     // Render the log
-    int  max_lines = console_rect.h / text_height;
-    auto log_px_start =
-        console_rect.lower_left() -
+    int const max_lines = text_rect.h / text_height;
+    auto      log_px_start =
+        text_rect.lower_left() -
         ttf_get_font_info( config_rn.console.font ).height;
     for( auto i = 0; i < max_lines; ++i ) {
       auto maybe_line = term::line( i );
@@ -277,6 +324,30 @@ struct ConsolePlane : public Plane {
     return le_view_.get().on_key( key_event )
                ? e_input_handled::yes
                : e_input_handled::no;
+  }
+
+  // This will return the maximum console height (i.e., the
+  // height that it will have when it is fully expanded) such
+  // that the logged text aread inside will be a multiple of the
+  // font height so that there are no gaps at the top or bottom.
+  H max_console_height() const {
+    UNWRAP_CHECK(
+        total_screen_area,
+        compositor::section( compositor::e_section::total ) );
+    H max_height = total_screen_area.h / 3;
+    if( le_view_.constructed() ) {
+      H text_box_height =
+          max_height - le_view_.get().delta().h - kDividerHeight;
+      H font_height =
+          ttf_get_font_info( config_rn.console.font ).height;
+      H residual = text_box_height % font_height;
+      if( residual != 0_h ) max_height -= residual;
+    }
+    return max_height;
+  }
+
+  H console_height() const {
+    return H{ int( max_console_height()._ * show_percent_ ) };
   }
 
   bool                         show_{ false };

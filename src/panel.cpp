@@ -87,22 +87,7 @@ struct PanelPlane : public Plane {
 
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    auto left_side =
-        0_x + main_window_logical_size().w - panel_width();
-
-    auto const& wood = lookup_sprite( e_tile::wood_middle );
-    auto        wood_width  = wood.size().w;
-    auto        wood_height = wood.size().h;
-
-    for( Y i = rect().top_edge(); i < rect().bottom_edge();
-         i += wood_height )
-      render_sprite( tx, e_tile::wood_middle, i,
-                     left_side + wood_width, 0, 0 );
-    for( Y i = rect().top_edge(); i < rect().bottom_edge();
-         i += wood_height )
-      render_sprite( tx, e_tile::wood_left_edge, i, left_side, 0,
-                     0 );
-
+    tile_sprite( tx, e_tile::wood_middle, rect() );
     view->draw( tx, origin() );
   }
 

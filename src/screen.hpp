@@ -29,6 +29,11 @@ extern Scale g_resolution_scale_factor;
 // These are cheap to call because their values are cached and
 // are only updated when either the main window is resized or if
 // the user changes the scale factor.
+//
+// NOTE: you should not normally call this in most game code, in-
+// stead you should go through the compositor in order to allow
+// it to control the logical size of the screen seen by the rest
+// of the game.
 Delta main_window_logical_size();
 Delta main_window_physical_size();
 Rect  main_window_logical_rect();  // !! origin at (0,0)

@@ -200,8 +200,8 @@ maybe<char> ascii_char_for_event( key_event_t const& event );
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-
 // rent origin.
-event_t move_mouse_origin_by( event_t const& event,
-                              Delta          delta );
+[[nodiscard]] event_t move_mouse_origin_by( event_t const& event,
+                                            Delta delta );
 
 maybe<mouse_event_base_t const&> is_mouse_event(
     event_t const& event );

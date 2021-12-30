@@ -14,10 +14,11 @@ namespace compositor {
 # In general, these sections may overlap.
 enum e_section [
   menu_bar
-  # All parts of the screen except for the menu bar.
-  non_menu_bar
   viewport
   panel
+  console
+  normal  # non console area.
+  total # The entire renderable window.
 ]
 
 } # namespace compositor

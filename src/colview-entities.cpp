@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
@@ -78,7 +79,7 @@ constexpr W kCommodityTileWidth = 16_w;
 *****************************************************************/
 struct ColViewComposited {
   ColonyId                                        id;
-  Delta                                           screen_size;
+  Delta                                           canvas_size;
   unique_ptr<ColonySubView>                       top_level;
   unordered_map<e_colview_entity, ColonySubView*> entities;
 };
@@ -1197,22 +1198,22 @@ struct CompositeColSubView : public ui::InvisibleView,
   vector<ColonySubView*> ptrs_;
 };
 
-void recomposite( ColonyId id, Delta screen_size ) {
+void recomposite( ColonyId id, Delta const& canvas_size ) {
+  lg.trace( "recompositing colony view." );
   CHECK( colony_exists( id ) );
   g_composition.id          = id;
-  g_composition.screen_size = screen_size;
+  g_composition.canvas_size = canvas_size;
 
   g_composition.top_level = nullptr;
   g_composition.entities.clear();
   vector<ui::OwningPositionedView> views;
 
-  Rect  screen_rect = Rect::from( Coord{}, screen_size );
   Coord pos;
   Delta available;
 
   // [Title Bar] ------------------------------------------------
   auto title_bar =
-      TitleBar::create( Delta{ 10_h, screen_size.w } );
+      TitleBar::create( Delta{ 10_h, canvas_size.w } );
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
   pos = Coord{};
@@ -1222,8 +1223,8 @@ void recomposite( ColonyId id, Delta screen_size ) {
       ui::OwningPositionedView( std::move( title_bar ), pos ) );
 
   // [MarketCommodities] ----------------------------------------
-  W comm_block_width = screen_rect.delta().w /
-                       SX{ enum_traits<e_commodity>::count };
+  W comm_block_width =
+      canvas_size.w / SX{ enum_traits<e_commodity>::count };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
@@ -1231,13 +1232,13 @@ void recomposite( ColonyId id, Delta screen_size ) {
   g_composition.entities[e_colview_entity::commodities] =
       market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
-                         screen_rect );
+                         Rect::from( Coord{}, canvas_size ) );
   auto const market_commodities_top = pos.y;
   views.push_back( ui::OwningPositionedView(
       std::move( market_commodities ), pos ) );
 
   // [Middle Strip] ---------------------------------------------
-  Delta   middle_strip_size{ screen_size.w, 32_h + 32_h + 16_h };
+  Delta   middle_strip_size{ canvas_size.w, 32_h + 32_h + 16_h };
   Y const middle_strip_top =
       market_commodities_top - middle_strip_size.h;
 
@@ -1289,7 +1290,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
       std::move( production_view ), pos ) );
 
   // [LandView] -------------------------------------------------
-  available = Delta{ screen_size.w,
+  available = Delta{ canvas_size.w,
                      middle_strip_top - title_bar_bottom };
 
   H max_landview_height = available.h;
@@ -1315,8 +1316,8 @@ void recomposite( ColonyId id, Delta screen_size ) {
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(
-      screen_rect.delta(), std::move( views ) );
-  invisible_view->set_delta( screen_rect.delta() );
+      canvas_size, std::move( views ) );
+  invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
   for( auto e : enum_traits<e_colview_entity>::values ) {
@@ -1341,8 +1342,10 @@ ColonySubView& colview_top_level() {
 // FIXME: a lot of this needs to be de-duped with the corre-
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
-    drag::State<ColViewObject_t> const& state, Texture& tx ) {
-  Coord sprite_upper_left = state.where - state.click_offset;
+    drag::State<ColViewObject_t> const& state,
+    Coord const& canvas_origin, Texture& tx ) {
+  Coord sprite_upper_left = state.where - state.click_offset +
+                            canvas_origin.distance_from_origin();
   using namespace ColViewObject;
   // Render the dragged item.
   overload_visit(
@@ -1380,9 +1383,10 @@ void colview_drag_n_drop_draw(
   }
 }
 void set_colview_colony( ColonyId id ) {
-  auto new_id   = id;
-  auto new_size = main_window_logical_size();
-  recomposite( new_id, new_size );
+  auto new_id = id;
+  UNWRAP_CHECK( normal, compositor::section(
+                            compositor::e_section::normal ) );
+  recomposite( new_id, normal.delta() );
 }
 
 } // namespace rn

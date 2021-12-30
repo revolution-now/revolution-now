@@ -116,6 +116,62 @@ TEST_CASE( "[coord] as_if_origin_were" ) {
   REQUIRE( rect.as_if_origin_were( coord ) == expect );
 }
 
+TEST_CASE( "[coord] Rect::with_new_right_edge" ) {
+  auto rect = Rect{ 5_x, 5_y, 7_w, 9_h };
+  X    new_edge{};
+  Rect expect{};
+
+  new_edge = 7_x;
+  expect   = Rect{ 5_x, 5_y, 2_w, 9_h };
+  REQUIRE( rect.with_new_right_edge( new_edge ) == expect );
+
+  new_edge = 50_x;
+  expect   = Rect{ 5_x, 5_y, 45_w, 9_h };
+  REQUIRE( rect.with_new_right_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[coord] Rect::with_new_left_edge" ) {
+  auto rect = Rect{ 5_x, 5_y, 7_w, 9_h };
+  X    new_edge{};
+  Rect expect{};
+
+  new_edge = 7_x;
+  expect   = Rect{ 7_x, 5_y, 5_w, 9_h };
+  REQUIRE( rect.with_new_left_edge( new_edge ) == expect );
+
+  new_edge = 3_x;
+  expect   = Rect{ 3_x, 5_y, 9_w, 9_h };
+  REQUIRE( rect.with_new_left_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[coord] Rect::with_new_top_edge" ) {
+  auto rect = Rect{ 5_x, 5_y, 7_w, 9_h };
+  Y    new_edge{};
+  Rect expect{};
+
+  new_edge = 7_y;
+  expect   = Rect{ 5_x, 7_y, 7_w, 7_h };
+  REQUIRE( rect.with_new_top_edge( new_edge ) == expect );
+
+  new_edge = 3_y;
+  expect   = Rect{ 5_x, 3_y, 7_w, 11_h };
+  REQUIRE( rect.with_new_top_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[coord] Rect::with_new_bottom_edge" ) {
+  auto rect = Rect{ 5_x, 5_y, 7_w, 9_h };
+  Y    new_edge{};
+  Rect expect{};
+
+  new_edge = 7_y;
+  expect   = Rect{ 5_x, 5_y, 7_w, 2_h };
+  REQUIRE( rect.with_new_bottom_edge( new_edge ) == expect );
+
+  new_edge = 50_y;
+  expect   = Rect{ 5_x, 5_y, 7_w, 45_h };
+  REQUIRE( rect.with_new_bottom_edge( new_edge ) == expect );
+}
+
 TEST_CASE( "[coord] Rect::normalized" ) {
   Rect rect, expect;
 

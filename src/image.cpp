@@ -11,6 +11,7 @@
 #include "image.hpp"
 
 // Revolution Now
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "error.hpp"
@@ -52,8 +53,10 @@ struct ImagePlane : public Plane {
     clear_texture_transparent( tx );
     UNWRAP_CHECK( image_tx, base::lookup( g_images, *image ) );
     auto image_delta = image_tx.size();
-    auto win_rect    = main_window_logical_rect();
-    auto dest_coord  = centered( image_delta, win_rect );
+    UNWRAP_CHECK(
+        normal_area,
+        compositor::section( compositor::e_section::normal ) );
+    auto dest_coord = centered( image_delta, normal_area );
     copy_texture( image_tx, tx, dest_coord );
   }
 

@@ -493,6 +493,13 @@ event_t move_mouse_origin_by( event_t const& event,
       new_event,
       [&]( mouse_move_event_t& e ) { e.prev -= delta; } );
 
+  // Third, if mouse drag event, move the origin coordinate in-
+  // side the drag state.
+  apply_to_alternatives_with_base( new_event,
+                                   [&]( mouse_drag_event_t& e ) {
+                                     e.state.origin -= delta;
+                                   } );
+
   return new_event;
 }
 

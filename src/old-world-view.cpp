@@ -16,6 +16,7 @@
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
+#include "compositor.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "fb.hpp"
@@ -1204,7 +1205,10 @@ NOTHROW_MOVE( Entities );
 
 void create_entities( Entities* entities ) {
   using namespace entity;
-  Delta clip                   = main_window_logical_size();
+  UNWRAP_CHECK(
+      normal_area,
+      compositor::section( compositor::e_section::normal ) );
+  Delta clip                   = normal_area.delta();
   entities->market_commodities = //
       MarketCommodities::create( clip );
   entities->active_cargo_box =      //
@@ -1254,7 +1258,10 @@ void create_entities( Entities* entities ) {
 }
 
 void draw_entities( Texture& tx, Entities const& entities ) {
-  auto offset = Delta{};
+  UNWRAP_CHECK(
+      normal_area,
+      compositor::section( compositor::e_section::normal ) );
+  auto offset = normal_area.upper_left().distance_from_origin();
   if( entities.backdrop.has_value() )
     entities.backdrop->draw( tx, offset );
   if( entities.market_commodities.has_value() )
@@ -1837,12 +1844,15 @@ struct DragPerform {
   }
 };
 
-void drag_n_drop_draw( Texture& tx ) {
+void drag_n_drop_draw( Texture& tx, Rect const& canvas ) {
   if( !g_drag_state ) return;
-  auto& state      = *g_drag_state;
-  auto  origin_for = [&]( Delta const& tile_size ) {
-    return state.where - tile_size / Scale{ 2 } -
-           state.click_offset;
+  auto& state            = *g_drag_state;
+  auto  to_screen_coords = [&]( Coord const& c ) {
+    return c + canvas.upper_left().distance_from_origin();
+  };
+  auto origin_for = [&]( Delta const& tile_size ) {
+    return to_screen_coords( state.where ) -
+           tile_size / Scale{ 2 } - state.click_offset;
   };
   using namespace OldWorldDraggableObject;
   // Render the dragged item.
@@ -1882,7 +1892,7 @@ void drag_n_drop_draw( Texture& tx ) {
       if( state.user_requests_input ) {
         auto const& mod_tx =
             render_text( "?", gfx::pixel::green() );
-        auto mod_pos = state.where;
+        auto mod_pos = to_screen_coords( state.where );
         mod_pos.y -= mod_tx.size().h;
         copy_texture( mod_tx, tx, mod_pos - state.click_offset );
       }
@@ -1905,6 +1915,8 @@ void drag_n_drop_handle_input(
                   .current = input::current_mouse_position() } );
 }
 
+// This function takes a coordinate relative to the canvas and
+// works in that frame.
 wait<> dragging_thread( Entities*             entities,
                         input::e_mouse_button button,
                         Coord                 origin ) {
@@ -1985,16 +1997,43 @@ wait<> dragging_thread( Entities*             entities,
 *****************************************************************/
 struct OldWorldPlane : public Plane {
   OldWorldPlane() = default;
+
   bool covers_screen() const override { return true; }
+
+  // FIXME: find a better way to do this. One idea is that when
+  // the compositor changes the layout it will inject a window
+  // resize event into the input queue that will then be automat-
+  // ically picked up by all of the planes.
+  void advance_state() override {
+    UNWRAP_CHECK(
+        new_canvas,
+        compositor::section( compositor::e_section::normal ) );
+    if( new_canvas != canvas_ ) {
+      canvas_ = new_canvas;
+      // FIXME: this may cause a crash if it is done while a
+      // coroutine is running that is holding references to the
+      // existing entities, as may be the case during a drag.
+      // This issue is solved in the colony-view plane where
+      // input events are sent into a co::stream; see that module
+      // for a proper solution. That will require that this plane
+      // be rewritten to send its inputs into the co::stream as
+      // the colony-view plane does.
+      create_entities( &entities_ );
+    }
+  }
 
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     draw_entities( tx, entities_ );
     // Should be last.
-    drag_n_drop_draw( tx );
+    drag_n_drop_draw( tx, canvas_ );
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  e_input_handled input(
+      input::event_t const& event_untranslated ) override {
+    input::event_t event = move_mouse_origin_by(
+        event_untranslated,
+        canvas_.upper_left().distance_from_origin() );
     // If there is a drag happening then the user's input should
     // not be needed for anything other than the drag.
     if( g_drag_state ) {
@@ -2062,7 +2101,9 @@ struct OldWorldPlane : public Plane {
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
     if( g_drag_state ) return Plane::e_accept_drag::swallow;
-    wait<> w = dragging_thread( &entities_, button, origin );
+    wait<> w = dragging_thread(
+        &entities_, button,
+        origin.with_new_origin( canvas_.upper_left() ) );
     if( w.ready() ) return e_accept_drag::no;
     g_drag_thread = std::move( w );
     return e_accept_drag::yes;
@@ -2073,8 +2114,10 @@ struct OldWorldPlane : public Plane {
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
     CHECK( g_drag_state );
-    g_drag_state->stream.send(
-        drag::Step{ .mod = mod, .current = current } );
+    g_drag_state->stream.send( drag::Step{
+        .mod = mod,
+        .current =
+            current.with_new_origin( canvas_.upper_left() ) } );
   }
 
   void on_drag_finished( input::mod_keys const& /*mod*/,
@@ -2092,6 +2135,7 @@ struct OldWorldPlane : public Plane {
   // Members
   // ------------------------------------------------------------
   Entities entities_{};
+  Rect     canvas_;
 };
 
 OldWorldPlane g_old_world_plane;

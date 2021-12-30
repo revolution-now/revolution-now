@@ -175,6 +175,7 @@ ColonySubView& colview_top_level();
 void set_colview_colony( ColonyId id );
 
 void colview_drag_n_drop_draw(
-    drag::State<ColViewObject_t> const& state, Texture& tx );
+    drag::State<ColViewObject_t> const& state,
+    Coord const& canvas_origin, Texture& tx );
 
 } // namespace rn

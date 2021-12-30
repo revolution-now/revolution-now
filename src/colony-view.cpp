@@ -55,9 +55,8 @@ void reset_globals() {
 void draw_colony_view( Texture& tx, ColonyId id ) {
   tx.fill( gfx::pixel::parse_from_hex( "f1cf81" ).value() );
 
-  UNWRAP_CHECK( canvas,
-                compositor::section(
-                    compositor::e_section::non_menu_bar ) );
+  UNWRAP_CHECK( canvas, compositor::section(
+                            compositor::e_section::normal ) );
 
   auto& colony = colony_from_id( id );
 
@@ -76,7 +75,7 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   line( "nation: {}", colony.nation() );
   line( "location: {}", colony.location() );
 
-  colview_top_level().view().draw( tx, Coord{} );
+  colview_top_level().view().draw( tx, canvas.upper_left() );
 }
 
 /****************************************************************
@@ -109,6 +108,8 @@ wait<> eat_remaining_drag_events() {
   }
 }
 
+// Note that the mouse events received here will be relative to
+// the colony-view canvas.
 wait<> drag_drop_routine(
     input::mouse_drag_event_t const& event ) {
   CHECK( event.state.phase == input::e_drag_phase::begin );
@@ -424,12 +425,33 @@ wait<bool> handle_event(
 
 wait<bool> handle_event( auto const& ) { co_return false; }
 
+// Remove all input events from the queue corresponding to normal
+// user input, but save the ones that we always need to process,
+// such as window resize events (which are needed to maintain
+// proper drawing as the window is resized).
+void clear_non_essential_events() {
+  vector<input::event_t> saved;
+  while( g_input.ready() ) {
+    input::event_t e = g_input.next().get();
+    switch( e.to_enum() ) {
+      case input::e_input_event::win_event:
+        saved.push_back( std::move( e ) );
+        break;
+      default: break;
+    }
+  }
+  CHECK( !g_input.ready() );
+  // Re-insert the ones we want to save.
+  for( input::event_t& e : saved )
+    g_input.send( std::move( e ) );
+}
+
 wait<> run_colview() {
   while( true ) {
     input::event_t event   = co_await g_input.next();
     auto [exit, suspended] = co_await co::detect_suspend(
         std::visit( L( handle_event( _ ) ), event ) );
-    if( suspended ) g_input.reset();
+    if( suspended ) clear_non_essential_events();
     if( exit ) co_return;
   }
 }
@@ -439,27 +461,62 @@ wait<> run_colview() {
 *****************************************************************/
 struct ColonyPlane : public Plane {
   ColonyPlane() = default;
+
   bool covers_screen() const override { return true; }
+
+  // FIXME: find a better way to do this. One idea is that when
+  // the compositor changes the layout it will inject a window
+  // resize event into the input queue that will then be automat-
+  // ically picked up by all of the planes.
+  void advance_state() override {
+    UNWRAP_CHECK(
+        new_canvas,
+        compositor::section( compositor::e_section::normal ) );
+    if( new_canvas != canvas_ ) {
+      canvas_ = new_canvas;
+      // This is slightly hacky since this is not a real window
+      // resize event, but it'll do for now. Doing it this way
+      // will ensure that 1) we wake up the input-processing
+      // coroutine which is likely asleep waiting for input
+      // events, and 2) we allow the same logic to handle this
+      // recompositing that is used for real window resize
+      // events, which is good because it has some safeguards
+      // built in to it, such as not allowing a recomposite
+      // during a drag operation (which would cause dangling
+      // pointers; see the comment about that in the dragging
+      // coroutine. This should probably be fixed).
+      g_input.send( input::win_event_t{
+          .type = input::e_win_event_type::resized } );
+    }
+  }
+
   void draw( Texture& tx ) const override {
     draw_colony_view( tx, g_colony_id );
     if( g_drag_state.has_value() )
-      colview_drag_n_drop_draw( *g_drag_state, tx );
+      colview_drag_n_drop_draw( *g_drag_state,
+                                canvas_.upper_left(), tx );
   }
+
   e_input_handled input( input::event_t const& event ) override {
-    g_input.send( event );
-    if( event.holds<input::win_event_t>() )
+    input::event_t event_translated = move_mouse_origin_by(
+        event, canvas_.upper_left().distance_from_origin() );
+    g_input.send( event_translated );
+    if( event_translated.holds<input::win_event_t>() )
       // Generally we should return no here because this is an
       // event that we want all planes to see. FIXME: need to
       // find a better way to handle this automatically.
       return e_input_handled::no;
     return e_input_handled::yes;
   }
+
   Plane::e_accept_drag can_drag(
       input::e_mouse_button /*button*/,
       Coord /*origin*/ ) override {
     if( g_drag_state ) return Plane::e_accept_drag::swallow;
     return e_accept_drag::yes_but_raw;
   }
+
+  Rect canvas_;
 };
 
 ColonyPlane g_colony_plane;

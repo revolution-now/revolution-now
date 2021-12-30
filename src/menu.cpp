@@ -421,10 +421,10 @@ auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
 Rect menu_header_rect( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
   auto y_offset =
-      0_y + ( ( menu_bar_height() - max_text_height() ) / 2_sy );
-  return Rect::from(
-      Coord{ y_offset, menu_header_x_pos( menu ) },
-      menu_header_delta( menu ) );
+      ( menu_bar_height() - max_text_height() ) / 2_sy;
+  return Rect::from( Coord{ menu_bar_rect().y + y_offset,
+                            menu_header_x_pos( menu ) },
+                     menu_header_delta( menu ) );
 }
 
 // This is the width of the menu body not including the borders,
@@ -492,32 +492,29 @@ Delta divider_delta( e_menu menu ) {
 
 Rect menu_body_rect_inner( e_menu menu ) {
   CHECK( g_menus.contains( menu ) );
+  Coord pos;
+  pos.y = menu_bar_rect().bottom_edge() + 8_h;
   if( g_menus[menu].right_side ) {
-    Coord pos{ Y{ 0 } + menu_bar_height() + 8_h,
-               menu_header_x_pos( menu ) +
-                   menu_header_delta( menu ).w -
-                   menu_body_delta_inner( menu ).w };
-    return Rect::from( pos, menu_body_delta_inner( menu ) );
+    pos.x = menu_header_x_pos( menu ) +
+            menu_header_delta( menu ).w -
+            menu_body_delta_inner( menu ).w;
   } else {
-    Coord pos{ Y{ 0 } + menu_bar_height() + 8_h,
-               menu_header_x_pos( menu ) };
-    return Rect::from( pos, menu_body_delta_inner( menu ) );
+    pos.x = menu_header_x_pos( menu );
   }
+  return Rect::from( pos, menu_body_delta_inner( menu ) );
 }
 
 Rect menu_body_rect( e_menu menu ) {
   CHECK( g_menus.contains( menu ) );
-  if( g_menus[menu].right_side ) {
-    Coord pos{ Y{ 0 } + menu_bar_height(),
-               menu_header_x_pos( menu ) +
-                   menu_header_delta( menu ).w + 8_w -
-                   menu_body_delta( menu ).w };
-    return Rect::from( pos, menu_body_delta( menu ) );
-  } else {
-    Coord pos{ Y{ 0 } + menu_bar_height(),
-               menu_header_x_pos( menu ) - 8_w };
-    return Rect::from( pos, menu_body_delta( menu ) );
-  }
+  Coord pos;
+  pos.y = menu_bar_rect().bottom_edge();
+  if( g_menus[menu].right_side )
+    pos.x = menu_header_x_pos( menu ) +
+            menu_header_delta( menu ).w + 8_w -
+            menu_body_delta( menu ).w;
+  else
+    pos.x = menu_header_x_pos( menu ) - 8_w;
+  return Rect::from( pos, menu_body_delta( menu ) );
 }
 
 // This includes (roughly) the space overwhich an open menu
@@ -615,8 +612,10 @@ ItemTextures render_menu_element( string_view const text,
       ItemTextures{ std::move( inactive ), std::move( active ),
                     std::move( disabled ), width };
   // Sanity check
-  CHECK( res.width > 0 &&
-         res.width < main_window_logical_size().w );
+  UNWRAP_CHECK(
+      normal_area,
+      compositor::section( compositor::e_section::normal ) );
+  CHECK( res.width > 0 && res.width < normal_area.w );
   return res;
 }
 
