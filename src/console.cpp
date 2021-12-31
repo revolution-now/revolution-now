@@ -69,7 +69,7 @@ struct ConsolePlane : public Plane {
   void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
-    compositor::set_console_height( console_height() );
+    compositor::set_console_size( console_height() );
   }
 
   bool covers_screen() const override { return false; }
@@ -259,6 +259,10 @@ struct ConsolePlane : public Plane {
     if( key_event.change != input::e_key_change::down )
       return e_input_handled::no;
     if( key_event.keycode == ::SDLK_BACKQUOTE ) {
+      if( key_event.mod.shf_down ) {
+        compositor::rotate_console();
+        return e_input_handled::yes;
+      }
       show_ = !show_;
       return e_input_handled::yes;
     }
@@ -326,29 +330,7 @@ struct ConsolePlane : public Plane {
                : e_input_handled::no;
   }
 
-  // This will return the maximum console height (i.e., the
-  // height that it will have when it is fully expanded) such
-  // that the logged text aread inside will be a multiple of the
-  // font height so that there are no gaps at the top or bottom.
-  H max_console_height() const {
-    UNWRAP_CHECK(
-        total_screen_area,
-        compositor::section( compositor::e_section::total ) );
-    H max_height = total_screen_area.h / 3;
-    if( le_view_.constructed() ) {
-      H text_box_height =
-          max_height - le_view_.get().delta().h - kDividerHeight;
-      H font_height =
-          ttf_get_font_info( config_rn.console.font ).height;
-      H residual = text_box_height % font_height;
-      if( residual != 0_h ) max_height -= residual;
-    }
-    return max_height;
-  }
-
-  H console_height() const {
-    return H{ int( max_console_height()._ * show_percent_ ) };
-  }
+  double console_height() const { return show_percent_ * .33; }
 
   bool                         show_{ false };
   double                       show_percent_{ 0.0 };

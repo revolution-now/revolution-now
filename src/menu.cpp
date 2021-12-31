@@ -410,9 +410,9 @@ X menu_header_x_pos_( e_menu target ) {
   }
   width_delta += config_ui.menus.first_menu_start;
   CHECK( width_delta >= 0_w );
-  return 0_x + ( !desc.right_side
-                     ? width_delta
-                     : menu_bar_rect().w - width_delta );
+  Rect rect = menu_bar_rect();
+  return rect.x + ( !desc.right_side ? width_delta
+                                     : rect.w - width_delta );
 }
 
 auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
