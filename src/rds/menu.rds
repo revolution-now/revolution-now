@@ -12,9 +12,9 @@ include [
   menu.hpp
 ]
 
-namespace rn.enum {
+namespace rn {
 
-e_menu [
+enum e_menu [
   game
   view
   orders
@@ -26,7 +26,7 @@ e_menu [
   pedia
 ]
 
-e_menu_item [
+enum e_menu_item [
   about
   save
   load

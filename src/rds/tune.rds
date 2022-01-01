@@ -8,54 +8,54 @@
 # Description: RDS definitions for the tune module.
 #
 # ===============================================================
-namespace rn.enum {
+namespace rn {
 
-e_tune_tempo [
+enum e_tune_tempo [
   fast
   medium
   slow
 ]
 
-e_tune_genre [
+enum e_tune_genre [
   trad
   classical
 ]
 
-e_tune_culture [
+enum e_tune_culture [
   native
   new_world
   old_world
 ]
 
-e_tune_inst [
+enum e_tune_inst [
   fife_and_drum
   fiddle
   percussive
   orchestrated
 ]
 
-e_tune_sentiment [
+enum e_tune_sentiment [
   happy
   sad
   war_triumph
   war_lost
 ]
 
-e_tune_key [
+enum e_tune_key [
   a, bb, b, c, cs, d, eb, e, f, fs, g, ab
 ]
 
-e_tune_tonality [
+enum e_tune_tonality [
   major
   minor
 ]
 
-e_tune_epoch [
+enum e_tune_epoch [
   standard
   post_revolution
 ]
 
-e_tune_purpose [
+enum e_tune_purpose [
   standard
   special_event
 ]

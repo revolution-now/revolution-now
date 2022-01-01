@@ -23,9 +23,9 @@ sumtype LandViewPlayerInput {
   # a user might change the orders of a unit in the colony view,
   # e.g. they could fortify the unit that is currently asking for
   # orders, then upon closing the colony view we'd be a bad state
-  # (a fortified unit asking for orders). But by this back to the
-  # turn processor, it can handle that issue and we don't have
-  # that problem.
+  # (a fortified unit asking for orders). But by sending this
+  # back to the turn processor, it can handle that issue and we
+  # don't have that problem.
   colony {
     id: ColonyId
   }

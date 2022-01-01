@@ -8,7 +8,7 @@
 # Description: RDS definitions for the commodity module.
 #
 # ===============================================================
-namespace.rn {
+namespace rn {
 
 # Important: the ordering here matters, as it determines the
 # order in which the commodities are displayed in an array and
@@ -37,7 +37,7 @@ sumtype CommodityLabel {
   quantity {
     value: int
   }
-  buy_sell={
+  buy_sell {
     sell: int
     buy: int
   }
