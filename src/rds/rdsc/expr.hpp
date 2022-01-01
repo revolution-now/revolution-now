@@ -20,55 +20,73 @@
 
 namespace rds::expr {
 
+/****************************************************************
+** General
+*****************************************************************/
+struct TemplateParam {
+  std::string param;
+};
+
+enum class e_feature { formattable, serializable, equality };
+
+/****************************************************************
+** sumtype
+*****************************************************************/
 struct AlternativeMember {
   std::string type;
   std::string var;
-
-  std::string to_string( std::string_view spaces ) const;
 };
 
 struct Alternative {
   std::string                    name;
   std::vector<AlternativeMember> members;
-
-  std::string to_string( std::string_view spaces ) const;
 };
 
-enum class e_sumtype_feature {
-  formattable,
-  serializable,
-  equality
-};
-
-std::string to_str( e_sumtype_feature feature );
-base::maybe<e_sumtype_feature> feature_from_str(
+std::string            to_str( e_feature feature );
+base::maybe<e_feature> feature_from_str(
     std::string_view feature );
-
-struct TemplateParam {
-  std::string param;
-};
 
 struct Sumtype {
   std::string                name;
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
-  base::maybe<std::vector<e_sumtype_feature>> features;
-  std::vector<Alternative>                    alternatives;
-
-  std::string to_string( std::string_view spaces ) const;
+  base::maybe<std::vector<e_feature>> features;
+  std::vector<Alternative>            alternatives;
 };
 
+/****************************************************************
+** enum
+*****************************************************************/
 struct Enum {
   std::string              name;
   std::vector<std::string> values;
-
-  std::string to_string( std::string_view spaces ) const;
 };
 
+/****************************************************************
+** struct
+*****************************************************************/
+struct StructMember {
+  std::string type;
+  std::string var;
+};
+
+struct Struct {
+  std::string                name;
+  std::vector<TemplateParam> tmpl_params;
+  // A specified-but-empty feature list means something different
+  // from one that was not specified at all.
+  base::maybe<std::vector<e_feature>> features;
+  std::vector<StructMember>           members;
+};
+
+/****************************************************************
+** Document
+*****************************************************************/
 using Construct = base::variant< //
     Enum,                        //
-    Sumtype                      //
+    Sumtype,                     //
+    Struct                       //
     >;
 
 std::string to_str( Construct const& construct,
@@ -77,8 +95,6 @@ std::string to_str( Construct const& construct,
 struct Item {
   std::string            ns;
   std::vector<Construct> constructs;
-
-  std::string to_string( std::string_view spaces ) const;
 };
 
 struct Metadata {
@@ -91,8 +107,6 @@ struct Rds {
   std::vector<std::string> imports;
   std::vector<std::string> includes;
   std::vector<Item>        items;
-
-  std::string to_string() const;
 };
 
 } // namespace rds::expr

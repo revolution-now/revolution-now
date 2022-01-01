@@ -1,23 +1,39 @@
 =================================================================
 Reflection
 =================================================================
-
 namespace refl {
 
 enum class kind {
+  builtin,
   enum_type,
   variant_type,
   struct_type,
+  custom, // e.g. base::maybe
 }
 
 template<typename T>
 struct traits;
 
 template<typename T>
+struct traits {
+  using type = T;
+
+  static constexpr std::string_view type_name = ...;
+
+  static constexpr kind k = ...;
+};
+
+template<typename T>
 concept ReflectedBase = requires {
   typename traits<T>::type;
   { traits<T>::name } -> std::same_as<std::string_view const&>;
+  { traits<T>::ns } -> std::same_as<std::string_view const&>;
   { traits<T>::k } -> std::same_as<kind const&>;
+};
+
+template<typename T>
+concept ReflectedBuiltin = ReflectedBase<T> && requires {
+  // TODO
 };
 
 template<typename T>
@@ -39,31 +55,31 @@ concept ReflectedVariant = ReflectedBase<T> && requires {
   // TODO
 };
 
-// template<typename T>
-// concept ReflectedDataType = ReflectedEnum<T>
-//                          || ReflectedStruct<T>
-//                          || ReflectedVariant<T>;
-
-// template<typename T>
-// concept ReflectedByComposition = requires {
-//   typename T::refl_type;
-//   requires ReflectedDataType<typename T::refl_type>;
-//   requires std::is_constructible_v<T, typename T::refl_type>;
-// };
-
 template<typename T>
-concept Reflected =  ReflectedEnum<T>
-                  || ReflectedStruct<T>
-                  || ReflectedVariant<T>;
-
-template<typename T>
-struct traits {
-  using type = T;
-
-  static constexpr std::string_view type_name = ...;
-
-  static constexpr kind k = ...;
+concept ReflectedCustom = ReflectedBase<T> && requires {
+  // TODO
 };
+
+template<typename T>
+concept ReflectedDataType = ReflectedBuiltin<T>
+                         || ReflectedEnum<T>
+                         || ReflectedStruct<T>
+                         || ReflectedVariant<T>
+                         || ReflectedCustom<T>;
+
+// This is for when a type is reflected by way of either a con-
+// tained type (composition) or base type (inheritance) that it-
+// self is reflected.
+template<typename T>
+concept ReflectedWrapper = requires( T o ) {
+  typename T::refl_type;
+  requires ReflectedDataType<typename T::refl_type>;
+  requires std::is_constructible_v<T, typename T::refl_type>;
+  { o.refl() } -> std::same_as<typename T::refl_type&>;
+};
+
+template<typename T>
+concept Reflected =  ReflectedDataType<T> || ReflectedWrapper<T>;
 
 }
 

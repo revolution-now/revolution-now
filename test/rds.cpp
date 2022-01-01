@@ -414,5 +414,19 @@ TEST_CASE( "[rds] enums" ) {
                  e_color::green );
 }
 
+TEST_CASE( "[rds] structs" ) {
+  static_assert( sizeof( EmptyStruct ) == 1 );
+  MyStruct ms{
+      .xxx     = 5,
+      .yyy     = 2.3,
+      .zzz_map = { { "hello", "1" }, { "world", "2" } },
+  };
+  MyTemplateStruct<int, string> mts{
+      .xxx     = 5,
+      .yyy     = 2.3,
+      .zzz_map = { { "hello", "1" }, { "world", "2" } },
+  };
+}
+
 } // namespace
 } // namespace rn

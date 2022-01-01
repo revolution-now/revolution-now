@@ -171,4 +171,19 @@ enum e_two    [hello, world]
 enum e_color  [red, green, blue]
 enum e_hand   [left, right]
 
+struct EmptyStruct {}
+
+struct MyStruct {
+  xxx: int
+  yyy: double
+  zzz_map: 'std::unordered_map<std::string, std::string>'
+}
+
+struct.MyTemplateStruct._template [T, U]
+struct MyTemplateStruct {
+  xxx: T
+  yyy: double
+  zzz_map: 'std::unordered_map<std::string, U>'
+}
+
 } # namespace rn

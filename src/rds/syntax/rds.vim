@@ -31,8 +31,8 @@ hi def link  rdsIncludeFileErr Error
 syn keyword  rdsNamespaceKeyword namespace nextgroup=rdsNamespaceDot,rdsNamespaceName skipwhite skipempty
 syn match    rdsNamespaceDot '\.' contained nextgroup=rdsNamespaceName
 syn match    rdsNamespaceName '[a-zA-Z_][a-zA-Z0-9_]\+' contained nextgroup=rdsNamespaceBlock,rdsNamespaceKeywordDot skipwhite skipempty
-syn region   rdsNamespaceBlock start='{' end='}' contained fold contains=rdsSumtypeKeyword,rdsEnumKeyword,rdsNamespaceKeyword,rdsLineComment skipwhite skipempty
-syn match    rdsNamespaceKeywordDot '\.' contained nextgroup=rdsSumtypeKeyword,rdsEnumKeyword,rdsNamespaceKeyword
+syn region   rdsNamespaceBlock start='{' end='}' contained fold contains=rdsSumtypeKeyword,rdsStructKeyword,rdsEnumKeyword,rdsNamespaceKeyword,rdsLineComment skipwhite skipempty
+syn match    rdsNamespaceKeywordDot '\.' contained nextgroup=rdsSumtypeKeyword,rdsStructKeyword,rdsEnumKeyword,rdsNamespaceKeyword
 
 hi def link  rdsNamespaceKeyword Keyword
 hi def link  rdsNamespaceName Identifier
@@ -100,3 +100,49 @@ hi def link  rdsSumtypeFeaturesListItem Tag
 hi def link  rdsSumtypeTemplate Keyword
 hi def link  rdsSumtypeTemplateListItemErr Error
 hi def link  rdsSumtypeTemplateListItem Tag
+
+" ===============================================================
+" Struct
+" ===============================================================
+syn keyword  rdsStructKeyword struct contained nextgroup=rdsStructDot,rdsStructName skipwhite skipempty
+
+syn match    rdsStructDot '\.' contained nextgroup=rdsStructName
+syn match    rdsStructName '[a-zA-Z_][a-zA-Z0-9_]\+' contained nextgroup=rdsStructTableBlock,rdsStructNameDot,rdsStructTemplate,rdsStructFeatures skipwhite
+syn region   rdsStructTableBlock start='{' end='}' contained fold contains=rdsStructMember,rdsStructFeatures,rdsStructTemplate,rdsLineComment
+
+syn match    rdsStructMember '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rdsStructMemberColon,rdsStructMemberEquals skipwhite skipempty
+syn match    rdsStructMemberColon ':' contained nextgroup=rdsStructMemberTypeQuoted,rdsStructMemberTypeUnquoted skipwhite skipempty
+syn match    rdsStructMemberEquals '=' contained nextgroup=rdsStructMemberTypeQuoted,rdsStructMemberTypeUnquoted skipwhite skipempty
+syn region   rdsStructMemberTypeQuoted start="'" end="'" contained contains=rdsStructMemberTypeQuotedContents,rdsStructMemberTypeError  skipwhite skipempty
+syn match    rdsStructMemberTypeError "[^']\+" contained
+syn match    rdsStructMemberTypeQuotedContents "[a-zA-Z_][a-zA-Z0-9_:\*, <>]*" contained
+syn match    rdsStructMemberTypeUnquoted "[a-zA-Z_][a-zA-Z0-9_]*" contained
+
+syn keyword  rdsStructTemplate _template contained nextgroup=rdsStructTemplateColon,rdsStructTemplateListBlock skipwhite skipempty
+syn match    rdsStructTemplateColon ':' contained nextgroup=rdsStructTemplateListBlock skipwhite skipempty
+syn region   rdsStructTemplateListBlock start='\[' end='\]' contained fold contains=rdsStructTemplateListItem,rdsStructTemplateListItemErr skipwhite skipempty
+syn match    rdsStructTemplateListItemErr '[^\[\] ,]\+' contained
+syn match    rdsStructTemplateListItem '[a-zA-Z0-9]\+' contained
+
+syn keyword  rdsStructFeatures _features contained nextgroup=rdsStructFeaturesColon,rdsStructFeaturesListBlock skipwhite skipempty
+syn match    rdsStructFeaturesColon ':' contained nextgroup=rdsStructFeaturesListBlock skipwhite skipempty
+syn region   rdsStructFeaturesListBlock start='\[' end='\]' contained fold contains=rdsStructFeaturesListItem,rdsStructFeaturesListItemErr skipwhite skipempty
+syn match    rdsStructFeaturesListItemErr '[^\[\] ,]\+' contained
+syn match    rdsStructFeaturesListItem '\(equality\|formattable\|serializable\)' contained
+
+syn match    rdsStructNameDot '\.' contained nextgroup=rdsStructFeatures,rdsStructTemplate
+
+hi def link  rdsStructKeyword Keyword
+hi def link  rdsStructMember Identifier
+hi def link  rdsStructMemberTypeQuoted Comment
+hi def link  rdsStructMemberTypeQuotedContents String
+hi def link  rdsStructMemberTypeUnquoted String
+hi def link  rdsStructMemberTypeError Error
+
+hi def link  rdsStructFeatures Keyword
+hi def link  rdsStructFeaturesListItemErr Error
+hi def link  rdsStructFeaturesListItem Tag
+
+hi def link  rdsStructTemplate Keyword
+hi def link  rdsStructTemplateListItemErr Error
+hi def link  rdsStructTemplateListItem Tag

@@ -33,6 +33,7 @@ using ::base::maybe;
 constexpr string_view kTemplateKey  = "_template";
 constexpr string_view kFeaturesKey  = "_features";
 constexpr string_view kSumtypeKey   = "sumtype";
+constexpr string_view kStructKey    = "struct";
 constexpr string_view kEnumKey      = "enum";
 constexpr string_view kNamespaceKey = "namespace";
 constexpr string_view kIncludeKey   = "include";
@@ -42,6 +43,7 @@ bool reserved_name( string_view sv ) {
          || sv == kTemplateKey  //
          || sv == kFeaturesKey  //
          || sv == kSumtypeKey   //
+         || sv == kStructKey    //
          || sv == kEnumKey      //
          || sv == kNamespaceKey //
          || sv == kIncludeKey;  //
@@ -115,7 +117,7 @@ void parse_sumtype( vector<string> const& parent_namespaces,
       UNWRAP_CHECK_MSG(
           feature_name, v.get_if<string>(),
           "features list must consist of strings." );
-      maybe<expr::e_sumtype_feature> feat =
+      maybe<expr::e_feature> feat =
           expr::feature_from_str( feature_name );
       CHECK( feat, "unknown feature name: {}", feature_name );
       sumtype.features->push_back( *feat );
@@ -146,6 +148,64 @@ void parse_sumtype( vector<string> const& parent_namespaces,
   rds.items.push_back( item );
 }
 
+void parse_struct( vector<string> const& parent_namespaces,
+                   string_view name, rcl::table const& tbl,
+                   expr::Rds& rds ) {
+  expr::Item item;
+  item.ns =
+      fmt::format( "{}", fmt::join( parent_namespaces, "." ) );
+
+  expr::Struct strukt;
+  strukt.name = name;
+
+  if( tbl.has_key( kTemplateKey ) ) {
+    UNWRAP_CHECK_MSG(
+        tmpl, tbl[kTemplateKey].get_if<unique_ptr<rcl::list>>(),
+        "value of {} must be a list.", kTemplateKey );
+    for( rcl::value const& v : *tmpl ) {
+      UNWRAP_CHECK_MSG(
+          t_arg, v.get_if<string>(),
+          "template argument list must consist of strings." );
+      expr::TemplateParam tmpl_param;
+      tmpl_param.param = t_arg;
+      strukt.tmpl_params.push_back( tmpl_param );
+    }
+  }
+
+  if( tbl.has_key( kFeaturesKey ) ) {
+    strukt.features.emplace();
+    UNWRAP_CHECK_MSG(
+        features,
+        tbl[kFeaturesKey].get_if<unique_ptr<rcl::list>>(),
+        "value of {} must be a list.", kFeaturesKey );
+    for( rcl::value const& v : *features ) {
+      UNWRAP_CHECK_MSG(
+          feature_name, v.get_if<string>(),
+          "features list must consist of strings." );
+      maybe<expr::e_feature> feat =
+          expr::feature_from_str( feature_name );
+      CHECK( feat, "unknown feature name: {}", feature_name );
+      strukt.features->push_back( *feat );
+    }
+  }
+
+  for( auto& [k, v] : tbl ) {
+    if( k == kFeaturesKey || k == kTemplateKey ) continue;
+    string             member_name = k;
+    expr::StructMember member;
+    member.var = member_name;
+
+    UNWRAP_CHECK_MSG(
+        member_type, v.get_if<string>(),
+        "value of struct member {} must be a string.", k );
+    member.type = member_type;
+    strukt.members.push_back( member );
+  }
+
+  item.constructs.push_back( strukt );
+  rds.items.push_back( item );
+}
+
 void parse_sumtypes( vector<string> const& parent_namespaces,
                      rcl::table const& tbl, expr::Rds& rds ) {
   for( auto& [k, v] : tbl ) {
@@ -157,6 +217,20 @@ void parse_sumtypes( vector<string> const& parent_namespaces,
                       "value of sumtype key {} must be a table.",
                       k );
     parse_sumtype( parent_namespaces, k, *t, rds );
+  }
+}
+
+void parse_structs( vector<string> const& parent_namespaces,
+                    rcl::table const& tbl, expr::Rds& rds ) {
+  for( auto& [k, v] : tbl ) {
+    CHECK( !reserved_name( k ),
+           "expected struct name but instead found reserved "
+           "word {}.",
+           k );
+    UNWRAP_CHECK_MSG( t, v.get_if<unique_ptr<rcl::table>>(),
+                      "value of struct key {} must be a table.",
+                      k );
+    parse_struct( parent_namespaces, k, *t, rds );
   }
 }
 
@@ -173,11 +247,11 @@ void parse_namespace( vector<string> const& parent_namespaces,
   // Make sure we only have keywords.
   for( auto& [k, v] : ns_tbl ) {
     bool valid = ( k == kEnumKey ) || ( k == kSumtypeKey ) ||
-                 ( k == kNamespaceKey );
+                 ( k == kStructKey ) || ( k == kNamespaceKey );
     CHECK( valid, "invalid/unexpected keyword {}.", k );
   }
 
-  // 1. Enums.
+  // Enums.
   if( ns_tbl.has_key( kEnumKey ) ) {
     UNWRAP_CHECK_MSG(
         t, ns_tbl[kEnumKey].get_if<unique_ptr<rcl::table>>(),
@@ -185,7 +259,7 @@ void parse_namespace( vector<string> const& parent_namespaces,
     parse_enums( namespaces, *t, rds );
   }
 
-  // 2. Sumtypes.
+  // Sumtypes.
   if( ns_tbl.has_key( kSumtypeKey ) ) {
     UNWRAP_CHECK_MSG(
         t, ns_tbl[kSumtypeKey].get_if<unique_ptr<rcl::table>>(),
@@ -193,7 +267,15 @@ void parse_namespace( vector<string> const& parent_namespaces,
     parse_sumtypes( namespaces, *t, rds );
   }
 
-  // 3. Sub-namespaces.
+  // Structs.
+  if( ns_tbl.has_key( kStructKey ) ) {
+    UNWRAP_CHECK_MSG(
+        t, ns_tbl[kStructKey].get_if<unique_ptr<rcl::table>>(),
+        "value of key {} must be a table.", kStructKey );
+    parse_structs( namespaces, *t, rds );
+  }
+
+  // Sub-namespaces.
   if( ns_tbl.has_key( kNamespaceKey ) ) {
     UNWRAP_CHECK_MSG(
         t,

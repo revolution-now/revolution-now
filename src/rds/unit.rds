@@ -16,4 +16,17 @@ enum e_unit_orders [
   fortified
 ]
 
+namespace refl {
+
+# struct Unit {
+#   id:          UnitId
+#   composition: UnitComposition
+#   orders:      e_unit_orders
+#   cargo:       CargoHold
+#   nation:      e_nation
+#   mv_pts:      MovementPoints
+# }
+
+} # namespace refl
+
 } # namespace rn

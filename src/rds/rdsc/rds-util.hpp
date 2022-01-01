@@ -57,12 +57,31 @@ void error_msg( string_view fmt, Args&&... args ) {
   exit( 1 );
 }
 
-void perform_on_sumtypes(
-    expr::Rds*                                 rds,
-    base::function_ref<void( expr::Sumtype* )> func );
+// const version.
+template<typename T>
+void perform_on_item_type(
+    expr::Rds const&                     rds,
+    base::function_ref<void( T const& )> func ) {
+  for( expr::Item const& item : rds.items ) {
+    for( expr::Construct const& construct : item.constructs ) {
+      std::visit( mp::overload{ [&]( T const& o ) { func( o ); },
+                                []( auto const& ) {} },
+                  construct );
+    }
+  }
+}
 
-void perform_on_sumtypes(
-    expr::Rds const&                                 rds,
-    base::function_ref<void( expr::Sumtype const& )> func );
+// non-const version.
+template<typename T>
+void perform_on_item_type(
+    expr::Rds& rds, base::function_ref<void( T& )> func ) {
+  for( expr::Item& item : rds.items ) {
+    for( expr::Construct& construct : item.constructs ) {
+      std::visit( mp::overload{ [&]( T& o ) { func( o ); },
+                                []( auto& ) {} },
+                  construct );
+    }
+  }
+}
 
 } // namespace rds

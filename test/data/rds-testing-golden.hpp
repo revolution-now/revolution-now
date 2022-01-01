@@ -1441,3 +1441,39 @@ template<>
 struct base::variant_to_enum<rn::OnOffEvent_t> {
   using type = rn::OnOffEvent::e;
 };
+
+/****************************************************************
+*                      Struct: EmptyStruct
+*****************************************************************/
+namespace rn {
+
+  struct EmptyStruct {};
+
+} // namespace rn
+
+/****************************************************************
+*                       Struct: MyStruct
+*****************************************************************/
+namespace rn {
+
+  struct MyStruct {
+    int                                          xxx;
+    double                                       yyy;
+    std::unordered_map<std::string, std::string> zzz_map;
+  };
+
+} // namespace rn
+
+/****************************************************************
+*                   Struct: MyTemplateStruct
+*****************************************************************/
+namespace rn {
+
+  template<typename T, typename U>
+  struct MyTemplateStruct {
+    T                                  xxx;
+    double                             yyy;
+    std::unordered_map<std::string, U> zzz_map;
+  };
+
+} // namespace rn

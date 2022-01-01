@@ -151,12 +151,11 @@ string template_params_type_names(
   return "::base::type_list_to_names"s + params + "()";
 }
 
-bool sumtype_has_feature( expr::Sumtype const&    sumtype,
-                          expr::e_sumtype_feature feature ) {
-  if( !sumtype.features.has_value() ) return false;
-  for( auto type : *sumtype.features ) {
+template<typename T>
+bool item_has_feature( T const& item, expr::e_feature feature ) {
+  if( !item.features.has_value() ) return false;
+  for( auto type : *item.features )
     if( type == feature ) return true;
-  }
   return false;
 }
 
@@ -606,6 +605,28 @@ struct CodeGenerator {
     close_ns( ns );
   }
 
+  void emit( string_view ns, expr::Struct const& strukt ) {
+    section( "Struct: "s + strukt.name );
+    open_ns( ns );
+    emit_template_decl( strukt.tmpl_params );
+    if( strukt.members.empty() ) {
+      line( "struct {} {{}};", strukt.name );
+    } else {
+      line( "struct {} {{", strukt.name );
+      int max_type_len =
+          max_of( strukt.members, L( _.type.size() ), 0 );
+      {
+        auto _ = indent();
+        for( expr::StructMember const& member : strukt.members )
+          line( "{: <{}} {};", member.type, max_type_len,
+                member.var );
+      }
+      line( "};" );
+    }
+    newline();
+    close_ns( ns );
+  }
+
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
     section( "Sum Type: "s + sumtype.name );
     open_ns( ns );
@@ -613,15 +634,14 @@ struct CodeGenerator {
       open_ns( sumtype.name );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
-        bool emit_equality = sumtype_has_feature(
-            sumtype, expr::e_sumtype_feature::equality );
-        bool emit_serialization = sumtype_has_feature(
-            sumtype, expr::e_sumtype_feature::serializable );
+        bool emit_equality = item_has_feature(
+            sumtype, expr::e_feature::equality );
+        bool emit_serialization = item_has_feature(
+            sumtype, expr::e_feature::serializable );
         emit( sumtype.tmpl_params, alt, sumtype.name,
               emit_equality, emit_serialization );
-        if( sumtype_has_feature(
-                sumtype,
-                expr::e_sumtype_feature::formattable ) ) {
+        if( item_has_feature( sumtype,
+                              expr::e_feature::formattable ) ) {
           newline();
           string alt_name = fmt::format( "{}", alt.name );
           comment( "{}", alt_name );
@@ -683,13 +703,12 @@ struct CodeGenerator {
   }
 
   bool rds_has_sumtype_feature(
-      expr::Rds const&        rds,
-      expr::e_sumtype_feature target_feature ) {
+      expr::Rds const& rds, expr::e_feature target_feature ) {
     for( expr::Item const& item : rds.items ) {
       for( expr::Construct const& construct : item.constructs ) {
         bool has_feature = visit(
             mp::overload{ [&]( expr::Sumtype const& sumtype ) {
-                           return sumtype_has_feature(
+                           return item_has_feature(
                                sumtype, target_feature );
                          },
                           []( auto const& ) { return false; } },
@@ -730,12 +749,12 @@ struct CodeGenerator {
 
   bool rds_needs_serial_header( expr::Rds const& rds ) {
     return rds_has_sumtype_feature(
-        rds, expr::e_sumtype_feature::serializable );
+        rds, expr::e_feature::serializable );
   }
 
   bool rds_needs_fmt_headers( expr::Rds const& rds ) {
     return rds_has_sumtype_feature(
-        rds, expr::e_sumtype_feature::formattable );
+        rds, expr::e_feature::formattable );
   }
 
   void emit_includes( expr::Rds const& rds ) {

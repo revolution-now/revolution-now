@@ -43,7 +43,7 @@ struct Validator {
   void error( string_view msg ) { errors_.emplace_back( msg ); }
 
   void validate_sumtype( expr::Sumtype const& sumtype ) {
-    using F = expr::e_sumtype_feature;
+    using F = expr::e_feature;
     if( sumtype.features.has_value() ) {
       unordered_set<F> features( sumtype.features->begin(),
                                  sumtype.features->end() );
@@ -62,7 +62,8 @@ struct Validator {
   }
 
   void validate_sumtypes( expr::Rds const& rds ) {
-    perform_on_sumtypes( rds, LC( validate_sumtype( _ ) ) );
+    perform_on_item_type<expr::Sumtype>(
+        rds, LC( validate_sumtype( _ ) ) );
   }
 };
 
