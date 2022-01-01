@@ -21,5 +21,13 @@ enum e_section [
   total # The entire renderable window.
 ]
 
+# These should be clockwise.
+enum e_composite_location [
+  top
+  right
+  bottom
+  left
+]
+
 } # namespace compositor
 } # namespace rn

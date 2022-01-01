@@ -14,15 +14,11 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
-#include "lua.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/ui.inl"
-
-// luapp
-#include "luapp/state.hpp"
 
 namespace rn::compositor {
 
@@ -30,10 +26,10 @@ namespace {
 
 W g_panel_width{ 4 * 32 };
 
-H g_console_height = 0_h;
-
 // Is the console at the top or bottom of the screen.
-bool g_console_top = false;
+e_composite_location g_console_loc = e_composite_location::right;
+// Percent of screen dimension occupied.
+double g_console_size = 0.0;
 
 void init_compositor() {}
 
@@ -46,8 +42,14 @@ REGISTER_INIT_ROUTINE( compositor );
 /****************************************************************
 ** Public API
 *****************************************************************/
-void set_console_height( H height ) {
-  g_console_height = height;
+void set_console_size( double percent ) {
+  g_console_size = percent;
+}
+
+void rotate_console() {
+  g_console_loc = static_cast<e_composite_location>(
+      ( static_cast<int>( g_console_loc ) + 1 ) %
+      enum_traits<e_composite_location>::count );
 }
 
 maybe<Rect> section_inverted( e_section sec ) {
@@ -121,14 +123,25 @@ maybe<Rect> section( e_section sec ) {
       break;
     }
     case e_section::console: {
-      if( g_console_height == 0_h ) break;
+      if( g_console_size == 0.0 ) break;
       UNWRAP_CHECK( total, section( e_section::total ) );
-      if( g_console_top )
-        res =
-            Rect{ 0_x, 0_y, total.delta().w, g_console_height };
-      else
-        res = Rect{ 0_x, total.bottom_edge() - g_console_height,
-                    total.delta().w, g_console_height };
+      res = total;
+      switch( g_console_loc ) {
+        case e_composite_location::top: //
+          res->h._ *= g_console_size;
+          break;
+        case e_composite_location::bottom:
+          res->h._ *= g_console_size;
+          res->y = total.bottom_edge() - res->h;
+          break;
+        case e_composite_location::left: //
+          res->w._ *= g_console_size;
+          break;
+        case e_composite_location::right:
+          res->w._ *= g_console_size;
+          res->x = total.right_edge() - res->w;
+          break;
+      }
       break;
     }
     case e_section::normal:
@@ -153,16 +166,4 @@ maybe<Rect> section( e_section sec ) {
   }
   return res;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_FN( switch_console_position, void ) {
-  g_console_top = !g_console_top;
-};
-
-}
-
 } // namespace rn::compositor

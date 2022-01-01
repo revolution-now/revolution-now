@@ -29,7 +29,9 @@ maybe<Rect> section( e_section section );
 // inverted area cannot be represented by a single rectangle.
 maybe<Rect> section_inverted( e_section section );
 
-// Zero effectively removes the console.
-void set_console_height( H height );
+// Rotates the position of the console clockwise.
+void rotate_console();
+
+void set_console_size( double percent );
 
 } // namespace rn::compositor

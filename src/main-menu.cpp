@@ -43,25 +43,28 @@ struct MainMenuPlane : public Plane {
         normal_area,
         compositor::section( compositor::e_section::normal ) );
     tile_sprite( tx, e_tile::wood_middle, normal_area );
-    Y    y         = normal_area.y + normal_area.h / 2_sy;
+    H    h         = normal_area.h / 2_sy;
     auto num_items = enum_traits<e_main_menu_item>::count;
-    y -= ttf_get_font_info( font::main_menu() ).height *
+    h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : enum_traits<e_main_menu_item>::values ) {
       gfx::pixel  c       = gfx::pixel::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
-      auto w = normal_area.w / 2_sx - text_tx.size().w / 2_sx;
-      auto dst =
-          text_tx.rect().shifted_by( Delta{ w, y - 0_y } );
-      text_tx.copy_to( tx, /*src=*/nothing,
-                       /*dst=*/dst );
+      auto w   = normal_area.w / 2_sx - text_tx.size().w / 2_sx;
+      auto dst = text_tx.rect().shifted_by( Delta{ w, h } );
+      text_tx.copy_to(
+          tx, /*src=*/nothing,
+          /*dst=*/
+          dst.as_if_origin_were( normal_area.upper_left() ) );
       dst = dst.with_border_added( 2 );
       dst.x -= 3_w;
       dst.w += 6_w;
       if( e == g_curr_item )
-        render_rect( tx, gfx::pixel::banana(), dst );
-      y += dst.delta().h;
+        render_rect(
+            tx, gfx::pixel::banana(),
+            dst.as_if_origin_were( normal_area.upper_left() ) );
+      h += dst.delta().h;
     }
   }
   e_input_handled input( input::event_t const& event ) override {
