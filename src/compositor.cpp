@@ -154,7 +154,7 @@ maybe<Rect> section( e_section sec ) {
   }
   // Check invariants before returning.
   if( res.has_value() ) {
-    Rect total = main_window_logical_rect();
+    Rect total [[maybe_unused]] = main_window_logical_rect();
     DCHECK( res->right_edge() <= total.right_edge(),
             "section {} is out of bounds", sec );
     DCHECK( res->left_edge() >= total.left_edge(),
