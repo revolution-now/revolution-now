@@ -486,7 +486,8 @@ struct ColonyPlane : public Plane {
       // pointers; see the comment about that in the dragging
       // coroutine. This should probably be fixed).
       g_input.send( input::win_event_t{
-          .type = input::e_win_event_type::resized } );
+          input::event_base_t{},
+          /*type=*/input::e_win_event_type::resized } );
     }
   }
 
