@@ -52,9 +52,7 @@ namespace lua {
 // different namespaces (and hence where specializing a function
 // template won't work).
 template<typename T>
-struct tag {
-  using type = T;
-};
+using tag = std::type_identity<T>;
 
 /****************************************************************
 ** type traits
@@ -163,9 +161,10 @@ namespace internal {
   auto storage_type_impl() {
     using unqualified_t = std::remove_cvref_t<T>;
     if constexpr( HasTraitsStorageType<T> )
-      return tag<typename traits_for<T>::storage_type>{};
+      return std::type_identity<
+          typename traits_for<T>::storage_type>{};
     else
-      return tag<unqualified_t>{};
+      return std::type_identity<unqualified_t>{};
   }
 
 } // namespace internal
