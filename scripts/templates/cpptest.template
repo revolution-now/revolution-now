@@ -20,8 +20,6 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-// FMT_TO_CATCH( ::rn::UnitId );
-
 namespace rn {
 namespace {
 
