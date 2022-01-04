@@ -1,0 +1,36 @@
+Rollout Process:
+
+  1.  Add some reflection utilities for querying properties of
+      structs or enums from the traits.
+  2.  Go into utype.?pp and add reflection traits manually for
+      some structs and variants, then in utype.cpp implement the
+      rcl converters for them and to_str overloads for them using
+      the reflection. Be sure to add generic functions where nec-
+      essary, such as a function to apply a lambda to all struct
+      fields.
+  3.  Once finalized, move those into the rcl folder, creating
+      ext-refl for converting from rcl values to any reflected
+      type, and the base/ folder, creating to-str-ext-refl.hpp
+      similarly.
+  4.  Add reflection output to Rds generated files and remove
+      to_str.
+  5.  Find places, such as Coord, where we can add reflection
+      manually and therefore remove the manual to_str and rcl
+      overloads.
+  6.  Add logic to rcl to pretty-print an rcl value if it is not
+      already there.
+  7.  Add logic to rcl to convert from a reflected data type to
+      an rcl value.
+  8.  Add rcl conversion methods for all datatypes needed for
+      game state serialization, e.g. Matrix.
+  9.  Remove flatbuffers and consolidate game state in one large
+      data structure, including a semver number.
+  10. Reimplement game saving by serializing the game state to
+      rcl and then to a string. Do some profiling to see if it
+      makes sense to bypass rcl post-processing when deserial-
+      izing game data.
+
+Finished:
+
+  1.  Finish refl concepts design.
+  2.  Create refl header in base library.
