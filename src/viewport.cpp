@@ -620,6 +620,9 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord ) {
 
 wait<> SmoothViewport::ensure_tile_visible_smooth(
     Coord const& coord ) {
+  // FIXME: this seems to never finish if the viewport is zoomed
+  // in too far (to where a unit and its surroundings are not
+  // fully visible).
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
