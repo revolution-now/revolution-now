@@ -27,7 +27,8 @@ namespace {
 W g_panel_width{ 4 * 32 };
 
 // Is the console at the top or bottom of the screen.
-e_composite_location g_console_loc = e_composite_location::right;
+e_composite_location g_console_loc =
+    e_composite_location::bottom;
 // Percent of screen dimension occupied.
 double g_console_size = 0.0;
 
