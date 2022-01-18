@@ -148,3 +148,34 @@ function( force_compiler_color_diagnostics )
 	endif()
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE )
 endfunction()
+
+# === add_rn_library ==============================================
+
+function( add_rn_library target )
+  file( GLOB sources "[a-zA-Z]*.cpp" )
+
+  add_library(
+    ${target}
+    STATIC
+    ${sources}
+  )
+
+  target_compile_features( ${target} PUBLIC cxx_std_20 )
+  set_target_properties( ${target} PROPERTIES CXX_EXTENSIONS OFF )
+  set_warning_options( ${target} )
+
+  target_link_libraries(
+      ${target}
+      PUBLIC
+      ${ARGN}
+  )
+
+  target_include_directories(
+      ${target}
+      PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/../
+  )
+
+  clang_tidy( ${target} )
+endfunction()
