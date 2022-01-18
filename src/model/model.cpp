@@ -30,9 +30,13 @@ value& table::operator[]( string const& key ) {
 
 base::maybe<value const&> table::operator[](
     string const& key ) const {
-  if( !o_.get().contains( key ) ) return base::nothing;
-  return o_.get().find( key )->second;
+  auto it = o_.get().find( key );
+  if( it == o_.get().end() ) return base::nothing;
+  return it->second;
 }
+
+table::table( initializer_list<pair<string, value>> il )
+  : o_( unordered_map<string, value>( il.begin(), il.end() ) ) {}
 
 /****************************************************************
 ** list
@@ -52,5 +56,8 @@ value const& list::operator[]( size_t idx ) const {
   DCHECK( idx < o_.get().size() );
   return o_.get()[idx];
 }
+
+list::list( initializer_list<value> il )
+  : o_( vector<value>( il.begin(), il.end() ) ) {}
 
 } // namespace model

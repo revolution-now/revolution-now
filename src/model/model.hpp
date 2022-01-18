@@ -13,12 +13,9 @@
 
 // base
 #include "base/heap-value.hpp"
-#include "base/refl.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
-#include <concepts>
-#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -59,6 +56,8 @@ inline constexpr null_t null;
 ** table
 *****************************************************************/
 struct table {
+  // The V template parameter must be `value`, but we use a tem-
+  // plate in order to break the circular dependency.
   template<typename V>
   table( std::unordered_map<std::string, V>&& m )
     : o_( std::move( m ) ) {}
@@ -66,6 +65,11 @@ struct table {
   template<typename V>
   table( std::unordered_map<std::string, V> const& m )
     : o_( m ) {}
+
+  // Beware this one entails copying since elements in initial-
+  // izer lists can't be moved from.
+  table(
+      std::initializer_list<std::pair<std::string, value>> il );
 
   table();
 
@@ -91,14 +95,21 @@ struct table {
 ** list
 *****************************************************************/
 struct list {
+  // The V template parameter must be `value`, but we use a tem-
+  // plate in order to break the circular dependency.
   template<typename V>
   list( std::vector<V>&& v ) : o_( std::move( v ) ) {}
 
   template<typename V>
   list( std::vector<V> const& v ) : o_( v ) {}
 
+  // Beware this one entails copying since elements in initial-
+  // izer lists can't be moved from.
+  list( std::initializer_list<value> il );
+
   list();
 
+  // This is UB if the index is out of bounds.
   value&       operator[]( size_t idx );
   value const& operator[]( size_t idx ) const;
 
@@ -158,7 +169,6 @@ struct table::table_impl
 *****************************************************************/
 struct list::list_impl : public std::vector<value> {
   using base = std::vector<value>;
-  using base::base;
 
   template<typename... Args>
   list_impl( Args&&... args )
