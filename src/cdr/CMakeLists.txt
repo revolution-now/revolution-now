@@ -1,5 +1,5 @@
 add_rn_library(
-  rn-model
+  rn-cdr
   # Link dependencies.
   rn-base
 )

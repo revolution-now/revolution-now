@@ -1,28 +1,28 @@
 /****************************************************************
-**model.cpp
+**repr.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-01-17.
 *
-* Description: Unit tests for the src/model/model.* module.
+* Description: Unit tests for the src/cdr/repr.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/model/model.hpp"
+#include "src/cdr/repr.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
 
-namespace model {
+namespace cdr {
 namespace {
 
 using namespace std;
 
-TEST_CASE( "[model] value" ) {
-  using namespace ::model::literals;
+TEST_CASE( "[cdr] value" ) {
+  using namespace ::cdr::literals;
 
   value v;
   REQUIRE( v.is<null_t>() );
@@ -38,6 +38,9 @@ TEST_CASE( "[model] value" ) {
 
   v = 5;
   REQUIRE( v.is<int>() );
+
+  value v2{ 5 };
+  REQUIRE( v2.is<int>() );
 
   v = 5_val;
   REQUIRE( v.is<int>() );
@@ -56,15 +59,16 @@ TEST_CASE( "[model] value" ) {
   REQUIRE( v.as<table>().size() == 0 );
   REQUIRE( v.as<table>().ssize() == 0 );
 
-  table from_il = { { "one", 1_val }, { "two", 2 } };
-  v             = from_il;
+  table from_il{ { "one", 1_val }, { "two", 2 } };
+
+  v = std::move( from_il );
   REQUIRE( v.is<table>() );
   REQUIRE( v.as<table>().size() == 2 );
   REQUIRE( v.as<table>().ssize() == 2 );
   REQUIRE( v.as<table>()["one"] == 1_val );
   REQUIRE( v.as<table>()["two"] == 2_val );
 
-  v = unordered_map<string, value>{
+  v = table{
       { "one", 1_val },
       { "two", 2_val },
   };
@@ -78,6 +82,7 @@ TEST_CASE( "[model] value" ) {
   table& t2 = v.as<table>();
   // The non-const version will create a non-existent entry.
   REQUIRE( t2["three"] == null );
+  // Note that `null` is not the same as base::nothing.
   REQUIRE( t["three"] == null );
 
   v = list{};
@@ -85,15 +90,16 @@ TEST_CASE( "[model] value" ) {
   REQUIRE( v.as<list>().size() == 0 );
   REQUIRE( v.as<list>().ssize() == 0 );
 
-  list from_il2 = { 4_val, "one" };
-  v             = from_il2;
+  list from_il2{ 4_val, "one" };
+
+  v = from_il2;
   REQUIRE( v.is<list>() );
   REQUIRE( v.as<list>().size() == 2 );
   REQUIRE( v.as<list>().ssize() == 2 );
   REQUIRE( v.as<list>()[0] == 4_val );
   REQUIRE( v.as<list>()[1] == "one" );
 
-  v = vector<value>{ 1_val, 2_val, 3_val, 4_val };
+  v = list{ 1_val, 2_val, 3_val, 4_val };
   REQUIRE( v.is<list>() );
   REQUIRE( v.as<list>().size() == 4 );
   REQUIRE( v.as<list>().ssize() == 4 );
@@ -104,18 +110,42 @@ TEST_CASE( "[model] value" ) {
   REQUIRE( l[3] == 4_val );
 }
 
-TEST_CASE( "[model] complex" ) {
-  using namespace ::model::literals;
+TEST_CASE( "[cdr] complex" ) {
+  using namespace ::cdr::literals;
 
-  table doc = {
+  table doc{
       { "one", list{ 2, 3, "hello" } },
-      { "two", table{ { "three", 3.3 }, { "four", 4 } } } };
+      { "two",
+        table{
+            { "three", 3.3 },
+            { "four", true },
+        } },
+      { "three",
+        list{
+            table{
+                { "hello", "world" },
+                { "yes", 333 },
+            },
+            table{},
+            3,
+        } },
+  };
+
+  REQUIRE( doc["three"].is<list>() );
+  REQUIRE( doc["three"].as<list>()[0].is<table>() );
+  REQUIRE(
+      doc["three"].as<list>()[0].as<table>()["yes"].is<int>() );
+  REQUIRE( doc["three"].as<list>()[0].as<table>()["yes"] ==
+           333 );
 
   REQUIRE( doc["one"].is<list>() );
   REQUIRE( doc["one"].as<list>()[1] == 3 );
+  REQUIRE( doc["one"].as<list>()[2].is<string>() );
+  REQUIRE( doc["one"].as<list>()[2].as<string>() == "hello" );
 
   REQUIRE( doc["two"].is<table>() );
-  REQUIRE( doc["two"].as<table>()["four"] == 4_val );
+  REQUIRE( doc["two"].as<table>()["four"].is<bool>() );
+  REQUIRE( doc["two"].as<table>()["four"] == true );
 
   table t2 = doc;
 
@@ -123,7 +153,7 @@ TEST_CASE( "[model] complex" ) {
   REQUIRE( t2["one"].as<list>()[1] == 3 );
 
   REQUIRE( t2["two"].is<table>() );
-  REQUIRE( t2["two"].as<table>()["four"] == 4_val );
+  REQUIRE( t2["two"].as<table>()["four"] == true );
 
   // Make sure that the deep copy happened.
   REQUIRE( &doc["two"].as<table>()["four"] ==
@@ -135,8 +165,9 @@ TEST_CASE( "[model] complex" ) {
   value* address = &t2["two"].as<table>()["four"];
 
   table t3 = std::move( t2 );
+  // Ensure that a move happened.
   REQUIRE( &t3["two"].as<table>()["four"] == address );
 }
 
 } // namespace
-} // namespace model
+} // namespace cdr

@@ -9,7 +9,7 @@ add_subdirectory( gl )
 add_subdirectory( mock ) # should not be depended on by `rn`.
 add_subdirectory( stb )
 add_subdirectory( gfx )
-add_subdirectory( model )
+add_subdirectory( cdr )
 
 # === this directory ==============================================
 
@@ -49,7 +49,7 @@ target_link_libraries(
     rn-gl
     rn-rcl
     rn-luapp
-    rn-model
+    rn-cdr
     rn-stb
     rtmidi
     Threads::Threads
