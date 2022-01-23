@@ -37,7 +37,8 @@ namespace base {
 // We don't constrain the functions with requires clauses or put
 // any type traits in the signatures of the methods because that
 // seems to prevent us from using this type with a forward de-
-// clared T, which we want to be able to do.
+// clared T, which we want to be able to do. Though there are a
+// few exceptions that seem to be fine for our use cases.
 template<typename T>
 struct heap_value : zero<heap_value<T>, T*> {
   using base_t = base::zero<heap_value, T*>;
