@@ -43,7 +43,7 @@ struct value;
 //   - list
 //   - table
 //
-// The table keys must be strings.
+// The table keys must be strings and are **unordered**.
 
 /****************************************************************
 ** null
