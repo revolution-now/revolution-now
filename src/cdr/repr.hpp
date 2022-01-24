@@ -65,13 +65,25 @@ inline constexpr null_t null;
 // the implementation below since we have to add an additional
 // layer of indirection. Performance-wise, std::map should not be
 // that much worse than std::unordered_map for this use case
-// (theoretically; was not measured), since these CDR data struc-
-// tures are not created to linger and be queried many times (in
-// which case unordered_map might have the advantage); instead,
-// they are constructed once, iterated over, and converted to
-// something else. Moreover, the per-node heap allocations done
-// by std::map would also be done by unordered map, since it is a
-// node-based container.
+// (this is theoretical; it was not measured), since these CDR
+// data structures are not created to linger and be queried many
+// times (in which case unordered_map might have the advantage).
+// Instead, they are constructed once, iterated over, and con-
+// verted to something else. Moreover, the per-node heap alloca-
+// tions done by std::map would also be done by unordered map,
+// since it is a node-based container.
+//
+// This behavior of std::map was tested on the three major com-
+// pilers and seems to work as of 2022-01-24:
+//
+//   https://godbolt.org/z/dcG9oGqjY
+//
+// If this ever cases an issue then we may need to add an extra
+// level of indirection; for an example of how this was done
+// successfully, see:
+//
+//   $ git show d6279eb583647:src/model/model.hpp
+//
 struct table {
   using Map = std::map<std::string, value>;
 
