@@ -12,11 +12,13 @@
 #pragma once
 
 // base
+#include "base/heap-value.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
-#include <map>
+#include <concepts>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace cdr {
@@ -51,52 +53,52 @@ struct value;
 struct null_t {
   bool operator==( null_t const& ) const = default;
 };
+
 inline constexpr null_t null;
 
 /****************************************************************
 ** table
 *****************************************************************/
-// Note on map types: we are using a std::map here because it,
-// unlike std::unordered_map, seems to allow declaration and de-
-// fault construction with an incomplete value type (though not
-// sure if this is guaranteed by the standard). If we're not al-
-// lowed to use an incomplete type as the value type (as would be
-// the case with std::unordered_map) then that really complicates
-// the implementation below since we have to add an additional
-// layer of indirection. Performance-wise, std::map should not be
-// that much worse than std::unordered_map for this use case
-// (this is theoretical; it was not measured), since these CDR
-// data structures are not created to linger and be queried many
-// times (in which case unordered_map might have the advantage).
-// Instead, they are constructed once, iterated over, and con-
-// verted to something else. Moreover, the per-node heap alloca-
-// tions done by std::map would also be done by unordered map,
-// since it is a node-based container.
-//
-// This behavior of std::map was tested on the three major com-
-// pilers and seems to work as of 2022-01-24:
-//
-//   https://godbolt.org/z/dcG9oGqjY
-//
-// If this ever cases an issue then we may need to add an extra
-// level of indirection; for an example of how this was done
-// successfully, see:
-//
-//   $ git show d6279eb583647:src/model/model.hpp
-//
-struct table {
-  using Map = std::map<std::string, value>;
+// This is the map type used to represent tables. We make this a
+// template but limit the type to `value`. We can't refer to
+// unordered_map<string, value> at this point because `value` is
+// an incomplete type due to the cyclic dependency between
+// `table` and `value`.
+template<std::same_as<value> V>
+using MapTo = std::unordered_map<std::string, V>;
 
+// Writing this is a bit tricky because the table depends on
+// `value`, but `value` is an incomplete type at this point, so
+// we have to use some templates, wrappers, and indirection to
+// make it work.
+struct table {
   table() = default;
 
-  table( Map const& m );
+  // This is a template to break the cyclic dependency.
+  template<std::same_as<value> V>
+  table( MapTo<V> const& m ) : o_( m ) {}
 
-  table( Map&& m );
+  // This is a template to break the cyclic dependency.
+  template<std::same_as<value> V>
+  table( MapTo<V>&& m ) : o_( std::move( m ) ) {}
 
   // Beware this one entails copying since elements in initial-
-  // izer lists can't be moved from. Apparently std::pair is ok
-  // with having value be an incomplete type (?).
-  table( std::initializer_list<Map::value_type> il );
+  // izer lists can't be moved from.
+  //
+  // The parameter of the initializer list must be the value type
+  // of MapTo<value>, but we can't say that explicitly because we
+  // can't write MapTo<value> at this point because `value` is
+  // incomplete.
+  //
+  // Apparently std::pair is ok with having value be an incom-
+  // plete type at least in this context. Not sure if this is
+  // guaranteed by the standard. Luckily this works because, if
+  // we make this a template like we've done for the above con-
+  // structors, then the compiler can't seem to infer the tem-
+  // plate parameter.
+  table(
+      std::initializer_list<std::pair<std::string const, value>>
+          il );
 
   // Will create the value if it doesn't exist.
   value& operator[]( std::string const& key );
@@ -110,12 +112,25 @@ struct table {
   friend bool operator==( table const& lhs, table const& rhs );
 
  private:
-  Map o_;
+  // This will inherit from MapTo<value>. We do this in order to
+  // defer the mention of MapTo<value> which we can't mention at
+  // this point because `value` is an incomplete type.
+  struct TableImpl;
+
+  // Need to use heap_value to add one level of indirection since
+  // TableImpl is an incomplete type, which in turn is the case
+  // because of the cyclic dependency (table -> value -> table).
+  base::heap_value<TableImpl> o_;
 };
 
 /****************************************************************
 ** list
 *****************************************************************/
+// In this class, which depends on `value`, we don't have to jump
+// through all of the same hoops that we did in the `table` class
+// because `list` is implemented in terms of std::vector which is
+// one of the only types in the standard lib that allows instan-
+// tiating with an incomplete type.
 struct list {
   list() = default;
 
@@ -124,7 +139,11 @@ struct list {
   list( std::vector<value>&& v );
 
   // Beware this one entails copying since elements in initial-
-  // izer lists can't be moved from.
+  // izer lists can't be moved from. Note that `value` is incom-
+  // plete here, and indications are that the standard does not
+  // explicitly allow initializer lists of incomplete types, but
+  // in practice it seems fine, since that class basically just
+  // holds a pointer to T.
   list( std::initializer_list<value> il );
 
   // This is UB if the index is out of bounds.
@@ -139,10 +158,6 @@ struct list {
   bool operator==( list const& ) const = default;
 
  private:
-  // vector is one of the containers that is specified by the
-  // standard to support declaration with an incomplete type,
-  // which is useful here to break the cyclic dependency of value
-  // -> list -> value.
   std::vector<value> o_;
 };
 
@@ -151,37 +166,37 @@ struct list {
 *****************************************************************/
 // I believe the order of these matters since it might affect
 // conversions and how the alternative is selected upon assign-
-// ment.
-// clang-format off
-using value_base = base::variant<
-  // null should be first so that a default-constructed value ob-
-  // ject will default to it.
-  null_t,
-  double,
-  int,
-  bool,
-  std::string,
-  table,
-  list
->;
-// clang-format on
+// ment. null should be first so that a default-constructed value
+// object will default to it.
+using value_base = base::variant< //
+    null_t, double, int, bool, std::string, table, list>;
 
 struct value : public value_base {
-  // It seems that we automatically inherit all of the methods of
-  // the base (which we want) except for the special members, so
-  // we need to explicitly pull those in.
   using value_base::value_base;
 
   bool operator==( value const& ) const = default;
 
   value( std::vector<value> const& v ) : value( list( v ) ) {}
-
   value( std::vector<value>&& v )
     : value( list( std::move( v ) ) ) {}
 
-  value( table::Map const& m ) : value( table( m ) ) {}
+  value( MapTo<value> const& m ) : value( table( m ) ) {}
+  value( MapTo<value>&& m ) : value( table( std::move( m ) ) ) {}
+};
 
-  value( table::Map&& m ) : value( table( std::move( m ) ) ) {}
+/****************************************************************
+** table map implementation
+*****************************************************************/
+// This needs to be defined after `value` is no longer an incom-
+// plete type type.
+struct table::TableImpl : public MapTo<value> {
+  using base = MapTo<value>;
+  using base::base;
+
+  TableImpl( MapTo<value> const& m ) : base( m ) {}
+  TableImpl( MapTo<value>&& m ) : base( std::move( m ) ) {}
+
+  bool operator==( TableImpl const& ) const = default;
 };
 
 /****************************************************************

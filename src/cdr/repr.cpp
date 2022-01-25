@@ -18,24 +18,24 @@ namespace cdr {
 /****************************************************************
 ** table
 *****************************************************************/
-table::table( Map const& m ) : o_( m ) {}
+size_t table::size() const { return o_->size(); }
 
-table::table( Map&& m ) : o_( std::move( m ) ) {}
+long table::ssize() const { return long( o_->size() ); }
 
-size_t table::size() const { return o_.size(); }
-
-long table::ssize() const { return long( o_.size() ); }
-
-value& table::operator[]( string const& key ) { return o_[key]; }
+value& table::operator[]( string const& key ) {
+  return o_.get()[key];
+}
 
 base::maybe<value const&> table::operator[](
     string const& key ) const {
-  auto it = o_.find( key );
-  if( it == o_.end() ) return base::nothing;
+  auto& impl = o_.get();
+  auto  it   = impl.find( key );
+  if( it == impl.end() ) return base::nothing;
   return it->second;
 }
 
-table::table( initializer_list<table::Map::value_type> il )
+table::table(
+    initializer_list<std::pair<string const, value>> il )
   : o_( il.begin(), il.end() ) {}
 
 bool operator==( table const& lhs, table const& rhs ) {
