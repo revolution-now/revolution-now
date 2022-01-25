@@ -10,10 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#include "config.hpp"
-
 // base
-#include "meta.hpp"
+#include "base/meta.hpp"
 
 // C++ standard library
 #include <array>
@@ -21,7 +19,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace base {
+namespace refl {
 
 /****************************************************************
 ** Helpers
@@ -44,24 +42,24 @@ concept StdArray =
 /****************************************************************
 ** Common
 *****************************************************************/
-enum class refl_type_kind {
+enum class type_kind {
   enum_kind,
   struct_kind,
 };
 
 template<typename T>
-struct refl_traits;
+struct traits;
 
 template<typename T>
 concept Reflected = requires {
-  typename refl_traits<T>::type;
+  typename traits<T>::type;
   // clang-format off
-  requires std::is_same_v<typename refl_traits<T>::type, T>;
-  { refl_traits<T>::kind } -> std::same_as<refl_type_kind const&>;
-  { refl_traits<T>::ns   } -> std::same_as<std::string_view const&>;
-  { refl_traits<T>::name } -> std::same_as<std::string_view const&>;
+  requires std::is_same_v<typename traits<T>::type, T>;
+  { traits<T>::kind } -> std::same_as<type_kind const&>;
+  { traits<T>::ns   } -> std::same_as<std::string_view const&>;
+  { traits<T>::name } -> std::same_as<std::string_view const&>;
   // clang-format on
-  requires !refl_traits<T>::name.empty();
+  requires !traits<T>::name.empty();
 };
 
 /****************************************************************
@@ -74,8 +72,8 @@ concept Reflected = requires {
 template<typename T>
 concept ReflectedEnum = Reflected<T> && requires {
   requires std::is_enum_v<T>;
-  requires refl_traits<T>::kind == refl_type_kind::enum_kind;
-  { refl_traits<T>::value_names } -> StdArray<std::string_view>;
+  requires traits<T>::kind == type_kind::enum_kind;
+  { traits<T>::value_names } -> StdArray<std::string_view>;
 };
 
 /****************************************************************
@@ -101,9 +99,13 @@ struct ReflectedStructField {
 template<typename T>
 concept ReflectedStruct = Reflected<T> && requires {
   requires std::is_class_v<T>;
-  requires refl_traits<T>::kind == refl_type_kind::struct_kind;
-  { refl_traits<T>::template_types } -> HasTupleSize;
-  { refl_traits<T>::fields } -> HasTupleSize;
+  requires traits<T>::kind == type_kind::struct_kind;
+  requires HasTupleSize<std::remove_cvref_t<
+      decltype( traits<T>::template_types )>>;
+  requires HasTupleSize<
+      std::remove_cvref_t<decltype( traits<T>::fields )>>;
 };
 
-} // namespace base
+};
+
+} // namespace refl

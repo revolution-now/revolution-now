@@ -6,7 +6,8 @@ file( GLOB src_gl_sources    "gl/[a-zA-Z]*.cpp"    )
 file( GLOB src_mock_sources  "mock/[a-zA-Z]*.cpp"  )
 file( GLOB src_stb_sources   "stb/[a-zA-Z]*.cpp"   )
 file( GLOB src_gfx_sources   "gfx/[a-zA-Z]*.cpp"   )
-file( GLOB src_cdr_sources   "cdr/[a-zA-Z]*.cpp" )
+file( GLOB src_cdr_sources   "cdr/[a-zA-Z]*.cpp"   )
+file( GLOB src_refl_sources  "refl/[a-zA-Z]*.cpp"  )
 
 add_executable(
   unittest
@@ -19,6 +20,7 @@ add_executable(
   ${src_stb_sources}
   ${src_gfx_sources}
   ${src_cdr_sources}
+  ${src_refl_sources}
 )
 
 set_warning_options( unittest )

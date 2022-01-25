@@ -10,6 +10,7 @@ add_subdirectory( mock ) # should not be depended on by `rn`.
 add_subdirectory( stb )
 add_subdirectory( gfx )
 add_subdirectory( cdr )
+add_subdirectory( refl )
 
 # === this directory ==============================================
 
@@ -45,11 +46,12 @@ target_link_libraries(
     lua::lua
     midifile
     rn-base
+    rn-cdr
     rn-gfx
     rn-gl
     rn-rcl
     rn-luapp
-    rn-cdr
+    rn-refl
     rn-stb
     rtmidi
     Threads::Threads
