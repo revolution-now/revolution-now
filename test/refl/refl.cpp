@@ -42,6 +42,16 @@ struct MyTmpStruct {
   V y;
 };
 
+struct Wrapper {
+  Wrapper( MyStruct const& );
+
+  // Implement refl::WrapsReflected.
+  MyStruct const&              refl() const;
+  static constexpr string_view refl_name = "Wrapper";
+
+  MyStruct wrapped;
+};
+
 enum class non_reflected_enum { yes, no };
 
 enum class empty_enum {};
@@ -199,6 +209,14 @@ static_assert( Reflected<my_ns::my_enum> );
 static_assert( Reflected<my_ns::my_enum> );
 static_assert( ReflectedEnum<my_ns::my_enum> );
 static_assert( !ReflectedStruct<my_ns::my_enum> );
+
+/****************************************************************
+** wrappers.
+*****************************************************************/
+static_assert( WrapsReflected<my_ns::Wrapper> );
+static_assert( !Reflected<my_ns::Wrapper> );
+static_assert( !ReflectedStruct<my_ns::Wrapper> );
+static_assert( !ReflectedEnum<my_ns::Wrapper> );
 
 } // namespace
 } // namespace refl

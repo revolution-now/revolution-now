@@ -106,6 +106,33 @@ concept ReflectedStruct = Reflected<T> && requires {
       std::remove_cvref_t<decltype( traits<T>::fields )>>;
 };
 
+/****************************************************************
+** Wrappers
+*****************************************************************/
+template<typename T>
+using wrapped_refltype_t =
+    std::remove_cvref_t<decltype( std::declval<T>().refl() )>;
+
+// This is for classes that are not themselves reflected but wrap
+// all of their reflected fields in one subfield that is of a re-
+// flected type. Essentially, operations that operate on such a
+// wrapper will just forward their operations into the wrapped
+// type.
+template<typename T>
+concept WrapsReflected = requires( T o ) {
+  requires !Reflected<T>;
+  requires std::is_class_v<T>;
+  // This is a const& because the object should not expose a mu-
+  // table reflected type because that would allow direct manipu-
+  // lation of members. If the object wants that, then it should
+  // expose those in a different way. For constructing the ob-
+  // ject, one should first construct a wrapped type, then pass
+  // it to the object's constructor, which is guaranteed to
+  // exxist by the below.
+  { o.refl() } -> std::same_as<wrapped_refltype_t<T> const&>;
+  requires Reflected<wrapped_refltype_t<T>>;
+  requires std::is_constructible_v<T, wrapped_refltype_t<T> &&>;
+  { T::refl_name } -> std::same_as<std::string_view const&>;
 };
 
 } // namespace refl
