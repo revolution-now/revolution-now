@@ -23,45 +23,48 @@ Rollout Process:
 
   1.  Add to_canonical and from_canonical implementations for
       some base types, std types, and builtin types.
-  2.  Add CDR module to Rcl to allow it to convert its data rep-
+  2.  Add ext-cdr.hpp to refl library to convert reflected types
+      to/from Cdr.
+  3.  Add CDR module to Rcl to allow it to convert its data rep-
       resentation to CDR.
-  3.  Change all of the rcl::convert_to to the new model_to and
+  4.  Change all of the rcl::convert_to to the new model_to and
       model_from and reimplement (temporarily) the
       rcl::convert_to in terms of model_to.
-  4.  Change config-files to to use Modelizable and remove the
+  5.  Change config-files to to use Modelizable and remove the
       rcl::convert_to extension point.
-  5.  Add rcl module to emit the data model as rcl language.
-  6.  Add some reflection utilities for querying properties of
+  6.  Add rcl module to emit the data model as rcl language.
+  7.  Add some reflection utilities for querying properties of
       structs or enums from the reflection traits.
-  7.  Go into utype.?pp and add reflection traits manually for
+  8.  Go into utype.?pp and add reflection traits manually for
       some structs and variants, then in utype.cpp implement the
       model_to converters for them and to_str overloads for them
       using the reflection. Be sure to add generic functions
       where necessary, such as a function to apply a lambda to
       all struct fields.
-  8.  Once finalized, make those generic (structs, enums, vari-
+  9.  Once finalized, make those generic (structs, enums, vari-
       ants) and move them into the data model folder, creating
       ext-refl for converting the data model to/from reflected
       types.
-  9.  Add modelizable ext points for std and base types in the
+  10. Add modelizable ext points for std and base types in the
       model folder.
-  10. Creating to-str-ext-refl.hpp in the base library.
-  11. Find places, such as Coord, where we can add reflection
+  11. Create refl/ext-to-str.hpp to allow converting reflected
+      types to strings.
+  12. Find places, such as Coord, where we can add reflection
       manually and therefore remove the manual to_str and rcl
       overloads.
-  12. Add reflection output to Rds generated files.
-  13. Remove to_str from Rds files.
-  14. Remove all traces of flatbuffers, but leaving per-module
+  13. Add reflection output to Rds generated files.
+  14. Remove to_str from Rds files.
+  15. Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  15. Find structs/classes that have to_str or model_to overloads
+  16. Find structs/classes that have to_str or model_to overloads
       and move them into Rds, creating reflected wrappers as
       needed.
-  16. Consolidate game state into one large data structure, in-
+  17. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  17. Reimplement game saving by modelizing game state then con-
+  18. Reimplement game saving by modelizing game state then con-
       verting to rcl. Do some profiling of game save/load times
       to see if it is ok.
-  18. Consider how to handle forward/backward compatibility in a
+  19. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
