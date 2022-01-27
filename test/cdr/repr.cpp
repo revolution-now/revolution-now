@@ -26,36 +26,47 @@ TEST_CASE( "[cdr] value" ) {
 
   value v;
   REQUIRE( v.is<null_t>() );
+  REQUIRE( type_name( v ) == "null" );
 
   v = null;
   REQUIRE( v.is<null_t>() );
+  REQUIRE( type_name( v ) == "null" );
 
   v = 5.5;
   REQUIRE( v.is<double>() );
+  REQUIRE( type_name( v ) == "floating" );
 
   v = 5.5_val;
   REQUIRE( v.is<double>() );
+  REQUIRE( type_name( v ) == "floating" );
 
   v = 5;
   REQUIRE( v.is<int>() );
+  REQUIRE( type_name( v ) == "integer" );
 
   value v2{ 5 };
   REQUIRE( v2.is<int>() );
+  REQUIRE( type_name( v ) == "integer" );
 
   v = 5_val;
   REQUIRE( v.is<int>() );
+  REQUIRE( type_name( v ) == "integer" );
 
   v = true;
   REQUIRE( v.is<bool>() );
+  REQUIRE( type_name( v ) == "boolean" );
 
   v = false;
   REQUIRE( v.is<bool>() );
+  REQUIRE( type_name( v ) == "boolean" );
 
   v = "hello"s;
   REQUIRE( v.is<string>() );
+  REQUIRE( type_name( v ) == "string" );
 
   v = table{};
   REQUIRE( v.is<table>() );
+  REQUIRE( type_name( v ) == "table" );
   REQUIRE( v.as<table>().size() == 0 );
   REQUIRE( v.as<table>().ssize() == 0 );
 
@@ -73,6 +84,7 @@ TEST_CASE( "[cdr] value" ) {
       { "two", 2_val },
   };
   REQUIRE( v.is<table>() );
+  REQUIRE( type_name( v ) == "table" );
   REQUIRE( v.as<table>().size() == 2 );
   REQUIRE( v.as<table>().ssize() == 2 );
   table const& t = v.as<table>();
@@ -87,6 +99,7 @@ TEST_CASE( "[cdr] value" ) {
 
   v = list{};
   REQUIRE( v.is<list>() );
+  REQUIRE( type_name( v ) == "list" );
   REQUIRE( v.as<list>().size() == 0 );
   REQUIRE( v.as<list>().ssize() == 0 );
 
@@ -94,6 +107,7 @@ TEST_CASE( "[cdr] value" ) {
 
   v = from_il2;
   REQUIRE( v.is<list>() );
+  REQUIRE( type_name( v ) == "list" );
   REQUIRE( v.as<list>().size() == 2 );
   REQUIRE( v.as<list>().ssize() == 2 );
   REQUIRE( v.as<list>()[0] == 4_val );
@@ -101,6 +115,7 @@ TEST_CASE( "[cdr] value" ) {
 
   v = list{ 1_val, 2_val, 3_val, 4_val };
   REQUIRE( v.is<list>() );
+  REQUIRE( type_name( v ) == "list" );
   REQUIRE( v.as<list>().size() == 4 );
   REQUIRE( v.as<list>().ssize() == 4 );
   list const& l = v.as<list>();

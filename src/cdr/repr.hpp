@@ -191,7 +191,12 @@ struct value : public value_base {
 
   value( MapTo<value> const& m ) : value( table( m ) ) {}
   value( MapTo<value>&& m ) : value( table( std::move( m ) ) ) {}
+
+  value_base&       as_base() { return *this; }
+  value_base const& as_base() const { return *this; }
 };
+
+std::string_view type_name( value const& v );
 
 /****************************************************************
 ** table map implementation

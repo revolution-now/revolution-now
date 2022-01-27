@@ -65,4 +65,20 @@ value const& list::operator[]( size_t idx ) const {
 list::list( initializer_list<value> il )
   : o_( vector<value>( il.begin(), il.end() ) ) {}
 
+/****************************************************************
+** value
+*****************************************************************/
+string_view type_name( value const& v ) {
+  struct visitor {
+    string_view operator()( null_t ) const { return "null"; }
+    string_view operator()( double ) const { return "floating"; }
+    string_view operator()( int ) const { return "integer"; }
+    string_view operator()( bool ) const { return "boolean"; }
+    string_view operator()( string ) const { return "string"; }
+    string_view operator()( table ) const { return "table"; }
+    string_view operator()( list ) const { return "list"; }
+  };
+  return std::visit( visitor{}, v.as_base() );
+}
+
 } // namespace cdr
