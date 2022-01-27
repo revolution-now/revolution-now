@@ -64,6 +64,11 @@ inline constexpr null_t null;
 // unordered_map<string, value> at this point because `value` is
 // an incomplete type due to the cyclic dependency between
 // `table` and `value`.
+//
+// This alias probably can't be used when constructing maps using
+// braced initialization because it probably won't be able to de-
+// tect the type of V. Instead just use the underlying
+// std::unordered_map for that.
 template<std::same_as<value> V>
 using MapTo = std::unordered_map<std::string, V>;
 
@@ -100,7 +105,8 @@ struct table {
       std::initializer_list<std::pair<std::string const, value>>
           il );
 
-  // Will create the value if it doesn't exist.
+  // Will create the value if it doesn't exist, and it will have
+  // an initial value of null.
   value& operator[]( std::string const& key );
 
   base::maybe<value const&> operator[](
@@ -109,7 +115,7 @@ struct table {
   size_t size() const;
   long   ssize() const;
 
-  friend bool operator==( table const& lhs, table const& rhs );
+  bool operator==( table const& rhs ) const;
 
  private:
   // This will inherit from MapTo<value>. We do this in order to
@@ -120,6 +126,9 @@ struct table {
   // Need to use heap_value to add one level of indirection since
   // TableImpl is an incomplete type, which in turn is the case
   // because of the cyclic dependency (table -> value -> table).
+  // heap_value is kind of like unique_ptr except it allows copy-
+  // ing, in which case it makes a deep copy using a new heap al-
+  // location.
   base::heap_value<TableImpl> o_;
 };
 
@@ -164,12 +173,12 @@ struct list {
 /****************************************************************
 ** value
 *****************************************************************/
-// I believe the order of these matters since it might affect
-// conversions and how the alternative is selected upon assign-
-// ment. null should be first so that a default-constructed value
+// The order of these matters since 1) affects conversions and
+// how the alternative is selected upon assignment (I think), and
+// 2) null should be first so that a default-constructed value
 // object will default to it.
-using value_base = base::variant< //
-    null_t, double, int, bool, std::string, table, list>;
+using value_base = base::variant<null_t, double, int, bool,
+                                 std::string, table, list>;
 
 struct value : public value_base {
   using value_base::value_base;

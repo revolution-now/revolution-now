@@ -34,12 +34,11 @@ base::maybe<value const&> table::operator[](
   return it->second;
 }
 
-table::table(
-    initializer_list<std::pair<string const, value>> il )
+table::table( initializer_list<pair<string const, value>> il )
   : o_( il.begin(), il.end() ) {}
 
-bool operator==( table const& lhs, table const& rhs ) {
-  return lhs.o_ == rhs.o_;
+bool table::operator==( table const& rhs ) const {
+  return o_ == rhs.o_;
 }
 
 /****************************************************************

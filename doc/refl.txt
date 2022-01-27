@@ -1,24 +1,5 @@
 Rollout Process:
 
-  Done:
-
-  1.  Figure out how to deal with wrappers.
-  2.  Think of a name for the new data model and associated con-
-      cepts.
-  3.  Finalize new data model based architecture.
-  4.  Define core data model.
-  5.  Make sure that data model can interoperate with Lua.
-  6.  Make sure that data model works with variants.
-  7.  Make sure that data model works with base types, such as
-      maybe and expect.
-  8.  Make sure that it supports maps in the way that we want.
-  9.  Make sure that it supports all of the datatypes that we
-      will need for game saving, such as Matrix.
-  10. Do maps need to support ordering of keys?
-  11. Do maps need to support non-string keys?
-  12. Add new concepts and extension point to data model library,
-      with subconcepts of FromCanonical, ToCanonical.
-
   Not Done:
 
   1.  Add to_canonical and from_canonical implementations for
@@ -69,6 +50,25 @@ Rollout Process:
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
       could save each version's schema and check all of them.
+
+  Done:
+
+  1.  Figure out how to deal with wrappers.
+  2.  Think of a name for the new data model and associated con-
+      cepts.
+  3.  Finalize new data model based architecture.
+  4.  Define core data model.
+  5.  Make sure that data model can interoperate with Lua.
+  6.  Make sure that data model works with variants.
+  7.  Make sure that data model works with base types, such as
+      maybe and expect.
+  8.  Make sure that it supports maps in the way that we want.
+  9.  Make sure that it supports all of the datatypes that we
+      will need for game saving, such as Matrix.
+  10. Do maps need to support ordering of keys?
+  11. Do maps need to support non-string keys?
+  12. Add new concepts and extension point to data model library,
+      with subconcepts of FromCanonical, ToCanonical.
 
 Finished:
 
