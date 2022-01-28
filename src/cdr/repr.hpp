@@ -152,6 +152,9 @@ struct list : std::vector<value> {
   list( std::vector<value>&& v );
 
   long ssize() const;
+
+  base&       as_base() { return *this; }
+  base const& as_base() const { return *this; }
 };
 
 /****************************************************************
