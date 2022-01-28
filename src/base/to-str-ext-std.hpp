@@ -34,7 +34,7 @@
 namespace base {
 
 void to_str( std::string_view o, std::string& out, ADL_t );
-void to_str( std::string o, std::string& out, ADL_t );
+void to_str( std::string const& o, std::string& out, ADL_t );
 
 template<Show T>
 void to_str( std::vector<T> o, std::string& out, ADL_t ) {
