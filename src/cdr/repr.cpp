@@ -41,6 +41,10 @@ bool table::operator==( table const& rhs ) const {
   return o_ == rhs.o_;
 }
 
+bool table::contains( string const& key ) const {
+  return ( *this )[key].has_value();
+}
+
 /****************************************************************
 ** list
 *****************************************************************/

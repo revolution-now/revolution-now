@@ -78,6 +78,9 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( v.as<table>().ssize() == 2 );
   REQUIRE( v.as<table>()["one"] == 1_val );
   REQUIRE( v.as<table>()["two"] == 2_val );
+  REQUIRE( v.as<table>().contains( "one" ) );
+  REQUIRE( v.as<table>().contains( "two" ) );
+  REQUIRE( !v.as<table>().contains( "three" ) );
 
   v = table{
       { "one", 1_val },
@@ -91,11 +94,17 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( t["one"] == 1_val );
   REQUIRE( t["two"] == 2_val );
   REQUIRE( t["three"] == base::nothing );
+  REQUIRE( v.as<table>().contains( "one" ) );
+  REQUIRE( v.as<table>().contains( "two" ) );
+  REQUIRE( !v.as<table>().contains( "three" ) );
   table& t2 = v.as<table>();
   // The non-const version will create a non-existent entry.
   REQUIRE( t2["three"] == null );
   // Note that `null` is not the same as base::nothing.
   REQUIRE( t["three"] == null );
+  REQUIRE( v.as<table>().contains( "one" ) );
+  REQUIRE( v.as<table>().contains( "two" ) );
+  REQUIRE( v.as<table>().contains( "three" ) );
 
   v = list{};
   REQUIRE( v.is<list>() );

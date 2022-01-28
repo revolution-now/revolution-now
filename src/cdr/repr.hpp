@@ -112,6 +112,8 @@ struct table {
   base::maybe<value const&> operator[](
       std::string const& key ) const;
 
+  bool contains( std::string const& key ) const;
+
   size_t size() const;
   long   ssize() const;
 
