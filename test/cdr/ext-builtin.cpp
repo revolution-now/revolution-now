@@ -34,11 +34,13 @@ TEST_CASE( "[cdr/ext-builtin] int" ) {
   REQUIRE( to_canonical( n ).holds<int>() );
   REQUIRE( from_canonical<int>( value{ n } ) == n );
   REQUIRE( from_canonical<double>( value{ n } ) ==
-           error( "failed to convert cdr value of type integer "
-                  "to double." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type integer "
+               "to double." ) );
   REQUIRE( from_canonical<bool>( value{ n } ) ==
-           error( "failed to convert cdr value of type integer "
-                  "to bool." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type integer "
+               "to bool." ) );
 }
 
 TEST_CASE( "[cdr/ext-builtin] bool" ) {
@@ -48,11 +50,13 @@ TEST_CASE( "[cdr/ext-builtin] bool" ) {
   REQUIRE( to_canonical( b ).holds<bool>() );
   REQUIRE( from_canonical<bool>( value{ b } ) == b );
   REQUIRE( from_canonical<double>( value{ b } ) ==
-           error( "failed to convert cdr value of type boolean "
-                  "to double." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type boolean "
+               "to double." ) );
   REQUIRE( from_canonical<int>( value{ b } ) ==
-           error( "failed to convert cdr value of type boolean "
-                  "to int." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type boolean "
+               "to int." ) );
 }
 
 TEST_CASE( "[cdr/ext-builtin] double" ) {
@@ -62,11 +66,13 @@ TEST_CASE( "[cdr/ext-builtin] double" ) {
   REQUIRE( to_canonical( d ).holds<double>() );
   REQUIRE( from_canonical<double>( value{ d } ) == d );
   REQUIRE( from_canonical<bool>( value{ d } ) ==
-           error( "failed to convert cdr value of type floating "
-                  "to bool." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type floating "
+               "to bool." ) );
   REQUIRE( from_canonical<int>( value{ d } ) ==
-           error( "failed to convert cdr value of type floating "
-                  "to int." ) );
+           error::build{ "test" }(
+               "failed to convert cdr value of type floating "
+               "to int." ) );
 }
 
 } // namespace

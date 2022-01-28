@@ -24,7 +24,7 @@ value to_canonical( string const& o, tag_t<string> ) {
 result<string> from_canonical( value const& v, tag_t<string> ) {
   auto maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
-    return error(
+    return error::build{ "std::string" }(
         "producing a std::string requires type string, instead "
         "found type {}.",
         type_name( v ) );
