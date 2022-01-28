@@ -48,7 +48,10 @@ concept ToCanonical = requires( T const& o ) {
   // namespace (which will be searched), but it will be necessary
   // for builtin types or std types where we don't want to open
   // the std namespace.
-  { to_canonical( o, tag<T> ) } -> std::same_as<value>;
+  // clang-format off
+  { to_canonical( o, tag<std::remove_const_t<T>> ) }
+      -> std::same_as<value>;
+  // clang-format on
 };
 
 // This one should be used to convert a value (i.e., don't call
@@ -56,7 +59,7 @@ concept ToCanonical = requires( T const& o ) {
 template<ToCanonical T>
 value to_canonical( T const& o ) {
   // The function called below should be found via ADL.
-  return to_canonical( o, tag<T> );
+  return to_canonical( o, tag<std::remove_const_t<T>> );
 }
 
 /****************************************************************
@@ -71,6 +74,10 @@ struct error {
                           std::forward<Args>( args )... ) ) {}
 
   bool operator==( error const& ) const = default;
+
+  friend void to_str( error const& o, std::string& out ) {
+    out += o.what;
+  }
 
   std::string what;
 };
@@ -88,15 +95,18 @@ template<typename T>
 concept FromCanonical = requires( value const& o ) {
   // Note that this from_canonical function is expected to per-
   // form any validation that is needed after the conversion.
-  { from_canonical( o, tag<T> ) } -> std::same_as<result<T>>;
+  // clang-format off
+  { from_canonical( o, tag<std::remove_const_t<T>> ) }
+      -> std::same_as<result<std::remove_const_t<T>>>;
+  // clang-format on
 };
 
 // This one should be used to convert a value (i.e., don't call
 // the one with the tag explicitly).
 template<FromCanonical T>
-result<T> from_canonical( value const& v ) {
+result<std::remove_const_t<T>> from_canonical( value const& v ) {
   // The function called below should be found via ADL.
-  return from_canonical( v, tag<T> );
+  return from_canonical( v, tag<std::remove_const_t<T>> );
 }
 
 /****************************************************************
