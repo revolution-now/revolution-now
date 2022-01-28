@@ -127,11 +127,22 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( type_name( v ) == "list" );
   REQUIRE( v.as<list>().size() == 4 );
   REQUIRE( v.as<list>().ssize() == 4 );
-  list const& l = v.as<list>();
+  list& l = v.as<list>();
   REQUIRE( l[0] == 1_val );
   REQUIRE( l[1] == 2_val );
   REQUIRE( l[2] == 3_val );
   REQUIRE( l[3] == 4_val );
+
+  l.push_back( 2 );
+  l.emplace_back( 2.3 );
+  REQUIRE( v.as<list>().size() == 6 );
+  REQUIRE( v.as<list>().ssize() == 6 );
+  REQUIRE( l[0] == 1_val );
+  REQUIRE( l[1] == 2_val );
+  REQUIRE( l[2] == 3_val );
+  REQUIRE( l[3] == 4_val );
+  REQUIRE( l[4] == 2_val );
+  REQUIRE( l[5] == 2.3_val );
 }
 
 TEST_CASE( "[cdr] complex" ) {

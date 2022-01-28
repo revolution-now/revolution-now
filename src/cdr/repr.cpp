@@ -48,26 +48,11 @@ bool table::contains( string const& key ) const {
 /****************************************************************
 ** list
 *****************************************************************/
-list::list( vector<value> const& v ) : o_( v ) {}
+list::list( vector<value> const& v ) : base( v ) {}
 
-list::list( vector<value>&& v ) : o_( std::move( v ) ) {}
+list::list( vector<value>&& v ) : base( std::move( v ) ) {}
 
-size_t list::size() const { return o_.size(); }
-
-long list::ssize() const { return long( o_.size() ); }
-
-value& list::operator[]( size_t idx ) {
-  DCHECK( idx < o_.size() );
-  return o_[idx];
-}
-
-value const& list::operator[]( size_t idx ) const {
-  DCHECK( idx < o_.size() );
-  return o_[idx];
-}
-
-list::list( initializer_list<value> il )
-  : o_( vector<value>( il.begin(), il.end() ) ) {}
+long list::ssize() const { return long( size() ); }
 
 /****************************************************************
 ** value

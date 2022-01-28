@@ -142,34 +142,16 @@ struct table {
 // because `list` is implemented in terms of std::vector which is
 // one of the only types in the standard lib that allows instan-
 // tiating with an incomplete type.
-struct list {
-  list() = default;
+struct list : std::vector<value> {
+  using base = std::vector<value>;
+
+  using base::base;
 
   list( std::vector<value> const& v );
 
   list( std::vector<value>&& v );
 
-  // Beware this one entails copying since elements in initial-
-  // izer lists can't be moved from. Note that `value` is incom-
-  // plete here, and indications are that the standard does not
-  // explicitly allow initializer lists of incomplete types, but
-  // in practice it seems fine, since that class basically just
-  // holds a pointer to T.
-  list( std::initializer_list<value> il );
-
-  // This is UB if the index is out of bounds.
-  value& operator[]( size_t idx );
-
-  // This is UB if the index is out of bounds.
-  value const& operator[]( size_t idx ) const;
-
-  size_t size() const;
-  long   ssize() const;
-
-  bool operator==( list const& ) const = default;
-
- private:
-  std::vector<value> o_;
+  long ssize() const;
 };
 
 /****************************************************************
