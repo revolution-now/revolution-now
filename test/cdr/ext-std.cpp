@@ -36,11 +36,11 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
              pair<int, bool>{ 5, true } );
     REQUIRE( from_canonical<pair<int, bool>>(
                  table{ { "fxt", 5 }, { "snd", true } } ) ==
-             error::build{ "test" }(
+             error::builder{ "test" }(
                  "table must have both a 'fst' and 'snd' "
                  "field for conversion to std::pair." ) );
     REQUIRE( from_canonical<pair<int, bool>>( 5 ) ==
-             error::build{ "test" }(
+             error::builder{ "test" }(
                  "producing a std::pair requires type "
                  "table, instead found type integer." ) );
   }
@@ -57,11 +57,11 @@ TEST_CASE( "[cdr/ext-std] vector" ) {
     REQUIRE( from_canonical<vector<double>>( list{
                  5.5, 7.7 } ) == vector<double>{ 5.5, 7.7 } );
     REQUIRE( from_canonical<vector<double>>( table{} ) ==
-             error::build{ "test" }(
+             error::builder{ "test" }(
                  "producing a std::vector requires type "
                  "list, instead found type table." ) );
     REQUIRE( from_canonical<vector<double>>( list{ true } ) ==
-             error::build{ "test" }(
+             error::builder{ "test" }(
                  "failed to convert cdr value of type "
                  "boolean to double." ) );
   }
@@ -79,16 +79,16 @@ TEST_CASE( "[cdr/ext-std] array" ) {
              array<int, 2>{ 5, 7 } );
     REQUIRE(
         from_canonical<array<int, 2>>( list{ 5 } ) ==
-        error::build{ "test" }(
+        error::builder{ "test" }(
             "expected list of size 2 for producing std::array "
             "of that same size, instead found size 1." ) );
     REQUIRE( from_canonical<array<int, 2>>( 5.5 ) ==
-             error::build{ "test" }(
+             error::builder{ "test" }(
                  "producing a std::array requires type list, "
                  "instead found type floating." ) );
     REQUIRE(
         from_canonical<array<int, 2>>( list{ true, false } ) ==
-        error::build{ "test" }(
+        error::builder{ "test" }(
             "failed to convert cdr value of type boolean to "
             "int." ) );
   }

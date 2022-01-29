@@ -76,12 +76,12 @@ value to_canonical( T const& o ) {
     err.frames.push_back( ::cdr::error::Frame{             \
         .conversion_target_type_name = kFrameName,         \
         .location = base::SourceLoc::current() } );        \
-    return err;                                            \
+    return std::move( err );                               \
   }                                                        \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
 
 struct error {
-  struct build;
+  struct builder;
 
   error( error const& ) = default;
   error( error&& )      = default;
@@ -117,9 +117,9 @@ struct error {
           .location                    = loc } } {}
 };
 
-struct error::build {
-  build( std::string     name,
-         base::SourceLoc loc = base::SourceLoc::current() )
+struct error::builder {
+  builder( std::string     name,
+           base::SourceLoc loc = base::SourceLoc::current() )
     : name_( std::move( name ) ), loc_( loc ) {}
   std::string     name_;
   base::SourceLoc loc_;

@@ -21,7 +21,7 @@ value to_canonical( int o, tag_t<int> ) { return value{ o }; }
 
 result<int> from_canonical( value const& v, tag_t<int> ) {
   if( !v.holds<int>() )
-    return error::build{ "int" }(
+    return error::builder{ "int" }(
         "failed to convert cdr value of type {} to int.",
         type_name( v ) );
   return v.get<int>();
@@ -34,7 +34,7 @@ value to_canonical( bool o, tag_t<bool> ) { return value{ o }; }
 
 result<bool> from_canonical( value const& v, tag_t<bool> ) {
   if( !v.holds<bool>() )
-    return error::build{ "bool" }(
+    return error::builder{ "bool" }(
         "failed to convert cdr value of type {} to bool.",
         type_name( v ) );
   return v.get<bool>();
@@ -49,7 +49,7 @@ value to_canonical( double o, tag_t<double> ) {
 
 result<double> from_canonical( value const& v, tag_t<double> ) {
   if( !v.holds<double>() )
-    return error::build{ "double" }(
+    return error::builder{ "double" }(
         "failed to convert cdr value of type {} to double.",
         type_name( v ) );
   return v.get<double>();

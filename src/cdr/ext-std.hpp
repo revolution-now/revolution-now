@@ -68,13 +68,13 @@ result<std::pair<Fst, Snd>> from_canonical(
   static std::string kFrameName = "std::pair";
   auto               maybe_tbl  = v.get_if<table>();
   if( !maybe_tbl.has_value() )
-    return error::build{ "std::pair" }(
+    return error::builder{ "std::pair" }(
         "producing a std::pair requires type table, instead "
         "found type {}.",
         type_name( v ) );
   table const& tbl = *maybe_tbl;
   if( !tbl.contains( "fst" ) || !tbl.contains( "snd" ) )
-    return error::build{ "std::pair" }(
+    return error::builder{ "std::pair" }(
         "table must have both a 'fst' and 'snd' field for "
         "conversion to std::pair." );
   CDR_UNWRAP_RETURN( fst, from_canonical<Fst>( *tbl["fst"] ) );
@@ -112,7 +112,7 @@ result<std::vector<T>> from_canonical( value const& v,
   static std::string kFrameName = "std::vector";
   auto               maybe_lst  = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::build{ "std::vector" }(
+    return error::builder{ "std::vector" }(
         "producing a std::vector requires type list, instead "
         "found type {}.",
         type_name( v ) );
@@ -137,13 +137,13 @@ result<std::array<T, N>> from_canonical(
   static std::string kFrameName = "std::array";
   auto               maybe_lst  = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::build{ "std::array" }(
+    return error::builder{ "std::array" }(
         "producing a std::array requires type list, instead "
         "found type {}.",
         type_name( v ) );
   list const& lst = *maybe_lst;
   if( lst.size() != N )
-    return error::build{ "std::array" }(
+    return error::builder{ "std::array" }(
         "expected list of size {} for producing std::array of "
         "that same size, instead found size {}.",
         N, lst.size() );
@@ -171,7 +171,7 @@ result<std::unordered_map<K, V>> from_canonical(
   // clang-format on
   auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::build{ "std::unordered_map" }(
+    return error::builder{ "std::unordered_map" }(
         "producing a std::unordered_map requires type list, "
         "instead found type {}.",
         type_name( v ) );
@@ -184,10 +184,10 @@ result<std::unordered_map<K, V>> from_canonical(
     CDR_UNWRAP_RETURN( val, from_canonical<value_type>( elem ) );
     if( res.contains( val.first ) ) {
       if constexpr( base::Show<K> )
-        return error::build{ "std::unordered_map" }(
+        return error::builder{ "std::unordered_map" }(
             "map contains duplicate key {}.", val.first );
       else
-        return error::build{ "std::unordered_map" }(
+        return error::builder{ "std::unordered_map" }(
             "map contains duplicate key." );
     }
     res.insert( val );
