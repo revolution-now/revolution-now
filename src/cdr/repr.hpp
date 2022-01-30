@@ -13,6 +13,7 @@
 
 // base
 #include "base/heap-value.hpp"
+#include "base/to-str.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
@@ -52,6 +53,9 @@ struct value;
 *****************************************************************/
 struct null_t {
   bool operator==( null_t const& ) const = default;
+
+  friend void to_str( null_t const& o, std::string& out,
+                      base::ADL_t );
 };
 
 inline constexpr null_t null;
@@ -119,6 +123,12 @@ struct table {
 
   bool operator==( table const& rhs ) const;
 
+  auto begin() const;
+  auto end() const;
+
+  friend void to_str( table const& o, std::string& out,
+                      ::base::ADL_t );
+
  private:
   // This will inherit from MapTo<value>. We do this in order to
   // defer the mention of MapTo<value> which we can't mention at
@@ -142,20 +152,56 @@ struct table {
 // because `list` is implemented in terms of std::vector which is
 // one of the only types in the standard lib that allows instan-
 // tiating with an incomplete type.
-struct list : std::vector<value> {
-  using base = std::vector<value>;
+//
+// Originally we had `list` inheriting from vector so that we
+// didn't have to forward all of its member functions, but that
+// caused trouble because it seems that, even when inheriting
+// privately, the concept-checking mechanism will check for
+// satistfaction of a concept using the base class (at least in
+// some cases) that that was causing issues with the to_str con-
+// cepts in that it led to recursive template errors.
+struct list {
+  list() = default;
 
-  using base::base;
+  list( std::initializer_list<value> il );
 
   list( std::vector<value> const& v );
 
   list( std::vector<value>&& v );
 
+  value&       operator[]( size_t idx ) { return o_[idx]; }
+  value const& operator[]( size_t idx ) const { return o_[idx]; }
+
+  auto begin() const { return o_.begin(); }
+  auto end() const { return o_.end(); }
+
+  auto cbegin() const { return o_.cbegin(); }
+  auto cend() const { return o_.cend(); }
+
+  template<typename... T>
+  auto emplace_back( T&&... args ) {
+    return o_.emplace_back( std::forward<T>( args )... );
+  }
+
+  auto push_back( value const& v ) { return o_.push_back( v ); }
+
+  auto push_back( value&& v ) {
+    return o_.push_back( std::move( v ) );
+  }
+
+  auto reserve( size_t elems ) { return o_.reserve( elems ); }
+
+  bool operator==( list const& ) const = default;
+
   long ssize() const;
 
-  base&       as_base() { return *this; }
-  base const& as_base() const { return *this; }
+  auto size() const { return o_.size(); }
+
+ private:
+  std::vector<value> o_;
 };
+
+void to_str( list const& o, std::string& out, ::base::ADL_t );
 
 /****************************************************************
 ** value
@@ -168,7 +214,8 @@ using value_base = base::variant<null_t, double, int, bool,
                                  std::string, table, list>;
 
 struct value : public value_base {
-  using value_base::value_base;
+  using base = value_base;
+  using base::base;
 
   bool operator==( value const& ) const = default;
 
@@ -182,6 +229,8 @@ struct value : public value_base {
   value_base&       as_base() { return *this; }
   value_base const& as_base() const { return *this; }
 };
+
+void to_str( value const& o, std::string& out, ::base::ADL_t );
 
 std::string_view type_name( value const& v );
 
@@ -199,6 +248,10 @@ struct table::TableImpl : public MapTo<value> {
 
   bool operator==( TableImpl const& ) const = default;
 };
+
+inline auto table::begin() const { return o_->begin(); }
+
+inline auto table::end() const { return o_->end(); }
 
 /****************************************************************
 ** literals

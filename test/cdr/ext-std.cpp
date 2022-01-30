@@ -16,6 +16,9 @@
 // cdr
 #include "src/cdr/ext-builtin.hpp"
 
+// base
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -24,6 +27,8 @@ namespace {
 
 using namespace std;
 
+converter conv( "test" );
+
 TEST_CASE( "[cdr/ext-std] pair" ) {
   SECTION( "to_canonical" ) {
     pair<int, bool> p{ 5, true };
@@ -31,18 +36,16 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
              table{ { "fst", 5 }, { "snd", true } } );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( from_canonical<pair<int, bool>>(
+    REQUIRE( conv.from<pair<int, bool>>(
                  table{ { "fst", 5 }, { "snd", true } } ) ==
              pair<int, bool>{ 5, true } );
-    REQUIRE( from_canonical<pair<int, bool>>(
+    REQUIRE( conv.from<pair<int, bool>>(
                  table{ { "fxt", 5 }, { "snd", true } } ) ==
-             error::builder{ "test" }(
-                 "table must have both a 'fst' and 'snd' "
-                 "field for conversion to std::pair." ) );
-    REQUIRE( from_canonical<pair<int, bool>>( 5 ) ==
-             error::builder{ "test" }(
-                 "producing a std::pair requires type "
-                 "table, instead found type integer." ) );
+             error( "table must have both a 'fst' and 'snd' "
+                    "field for conversion to std::pair." ) );
+    REQUIRE( conv.from<pair<int, bool>>( 5 ) ==
+             error( "producing a std::pair requires type "
+                    "table, instead found type integer." ) );
   }
 }
 
@@ -54,16 +57,14 @@ TEST_CASE( "[cdr/ext-std] vector" ) {
     REQUIRE( to_canonical( vec ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
-    REQUIRE( from_canonical<vector<double>>( list{
-                 5.5, 7.7 } ) == vector<double>{ 5.5, 7.7 } );
-    REQUIRE( from_canonical<vector<double>>( table{} ) ==
-             error::builder{ "test" }(
-                 "producing a std::vector requires type "
-                 "list, instead found type table." ) );
-    REQUIRE( from_canonical<vector<double>>( list{ true } ) ==
-             error::builder{ "test" }(
-                 "failed to convert cdr value of type "
-                 "boolean to double." ) );
+    REQUIRE( conv.from<vector<double>>( list{ 5.5, 7.7 } ) ==
+             vector<double>{ 5.5, 7.7 } );
+    REQUIRE( conv.from<vector<double>>( table{} ) ==
+             error( "producing a std::vector requires type "
+                    "list, instead found type table." ) );
+    REQUIRE( conv.from<vector<double>>( list{ true } ) ==
+             error( "failed to convert cdr value of type "
+                    "boolean to double." ) );
   }
 }
 
@@ -75,22 +76,20 @@ TEST_CASE( "[cdr/ext-std] array" ) {
     REQUIRE( to_canonical( arr ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
-    REQUIRE( from_canonical<array<int, 2>>( list{ 5, 7 } ) ==
+    REQUIRE( conv.from<array<int, 2>>( list{ 5, 7 } ) ==
              array<int, 2>{ 5, 7 } );
     REQUIRE(
-        from_canonical<array<int, 2>>( list{ 5 } ) ==
-        error::builder{ "test" }(
+        conv.from<array<int, 2>>( list{ 5 } ) ==
+        error(
             "expected list of size 2 for producing std::array "
             "of that same size, instead found size 1." ) );
-    REQUIRE( from_canonical<array<int, 2>>( 5.5 ) ==
-             error::builder{ "test" }(
-                 "producing a std::array requires type list, "
-                 "instead found type floating." ) );
+    REQUIRE( conv.from<array<int, 2>>( 5.5 ) ==
+             error( "producing a std::array requires type list, "
+                    "instead found type floating." ) );
     REQUIRE(
-        from_canonical<array<int, 2>>( list{ true, false } ) ==
-        error::builder{ "test" }(
-            "failed to convert cdr value of type boolean to "
-            "int." ) );
+        conv.from<array<int, 2>>( list{ true, false } ) ==
+        error( "failed to convert cdr value of type boolean to "
+               "int." ) );
   }
 }
 
@@ -113,7 +112,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map" ) {
     M     expected{ { "one", 1 }, { "two", 2 } };
     value v = list{ table{ { "fst", "one" }, { "snd", 1 } },
                     table{ { "fst", "two" }, { "snd", 2 } } };
-    REQUIRE( from_canonical<M>( v ) == expected );
+    REQUIRE( conv.from<M>( v ) == expected );
   }
 }
 

@@ -22,9 +22,10 @@ value to_canonical( string const& o, tag_t<string> ) {
 }
 
 result<string> from_canonical( value const& v, tag_t<string> ) {
-  auto maybe_str = v.get_if<string>();
+  converter conv( "std::string" );
+  auto      maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
-    return error::builder{ "std::string" }(
+    return conv.err(
         "producing a std::string requires type string, instead "
         "found type {}.",
         type_name( v ) );

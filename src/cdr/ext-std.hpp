@@ -11,6 +11,7 @@
 #pragma once
 
 // cdr
+#include "converter.hpp"
 #include "ext.hpp"
 
 // base
@@ -65,20 +66,20 @@ value to_canonical( std::pair<Fst, Snd> const& o,
 template<FromCanonical Fst, FromCanonical Snd>
 result<std::pair<Fst, Snd>> from_canonical(
     value const& v, tag_t<std::pair<Fst, Snd>> ) {
-  static std::string kFrameName = "std::pair";
-  auto               maybe_tbl  = v.get_if<table>();
+  converter conv( "std::pair" );
+  auto      maybe_tbl = v.get_if<table>();
   if( !maybe_tbl.has_value() )
-    return error::builder{ "std::pair" }(
+    return conv.err(
         "producing a std::pair requires type table, instead "
         "found type {}.",
         type_name( v ) );
   table const& tbl = *maybe_tbl;
   if( !tbl.contains( "fst" ) || !tbl.contains( "snd" ) )
-    return error::builder{ "std::pair" }(
+    return conv.err(
         "table must have both a 'fst' and 'snd' field for "
         "conversion to std::pair." );
-  CDR_UNWRAP_RETURN( fst, from_canonical<Fst>( *tbl["fst"] ) );
-  CDR_UNWRAP_RETURN( snd, from_canonical<Snd>( *tbl["snd"] ) );
+  UNWRAP_RETURN( fst, conv.from<Fst>( *tbl["fst"] ) );
+  UNWRAP_RETURN( snd, conv.from<Snd>( *tbl["snd"] ) );
   return std::pair<Fst, Snd>{ std::move( fst ),
                               std::move( snd ) };
 }
@@ -109,10 +110,10 @@ value to_canonical( R const& o, tag_t<R> ) {
 template<FromCanonical T>
 result<std::vector<T>> from_canonical( value const& v,
                                        tag_t<std::vector<T>> ) {
-  static std::string kFrameName = "std::vector";
-  auto               maybe_lst  = v.get_if<list>();
+  converter conv( "std::vector" );
+  auto      maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::builder{ "std::vector" }(
+    return conv.err(
         "producing a std::vector requires type list, instead "
         "found type {}.",
         type_name( v ) );
@@ -120,7 +121,7 @@ result<std::vector<T>> from_canonical( value const& v,
   std::vector<T> res;
   res.reserve( lst.size() );
   for( value const& elem : lst ) {
-    CDR_UNWRAP_RETURN( val, from_canonical<T>( elem ) );
+    UNWRAP_RETURN( val, conv.from<T>( elem ) );
     res.push_back( val );
   }
   return res;
@@ -134,23 +135,23 @@ result<std::vector<T>> from_canonical( value const& v,
 template<FromCanonical T, size_t N>
 result<std::array<T, N>> from_canonical(
     value const& v, tag_t<std::array<T, N>> ) {
-  static std::string kFrameName = "std::array";
-  auto               maybe_lst  = v.get_if<list>();
+  converter conv( "std::array" );
+  auto      maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::builder{ "std::array" }(
+    return conv.err(
         "producing a std::array requires type list, instead "
         "found type {}.",
         type_name( v ) );
   list const& lst = *maybe_lst;
   if( lst.size() != N )
-    return error::builder{ "std::array" }(
+    return conv.err(
         "expected list of size {} for producing std::array of "
         "that same size, instead found size {}.",
         N, lst.size() );
   std::array<T, N> res;
   size_t           idx = 0;
   for( value const& elem : lst ) {
-    CDR_UNWRAP_RETURN( val, from_canonical<T>( elem ) );
+    UNWRAP_RETURN( val, conv.from<T>( elem ) );
     res[idx++] = val;
   }
   return res;
@@ -167,11 +168,11 @@ requires FromCanonical<
     typename std::unordered_map<K, V>::value_type>
 result<std::unordered_map<K, V>> from_canonical(
     value const& v, tag_t<std::unordered_map<K, V>> ) {
-  static std::string kFrameName = "std::unordered_map";
+  converter conv( "std::unordered_map" );
   // clang-format on
   auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
-    return error::builder{ "std::unordered_map" }(
+    return conv.err(
         "producing a std::unordered_map requires type list, "
         "instead found type {}.",
         type_name( v ) );
@@ -181,14 +182,13 @@ result<std::unordered_map<K, V>> from_canonical(
   using value_type =
       typename std::unordered_map<K, V>::value_type;
   for( value const& elem : lst ) {
-    CDR_UNWRAP_RETURN( val, from_canonical<value_type>( elem ) );
+    UNWRAP_RETURN( val, conv.from<value_type>( elem ) );
     if( res.contains( val.first ) ) {
       if constexpr( base::Show<K> )
-        return error::builder{ "std::unordered_map" }(
-            "map contains duplicate key {}.", val.first );
+        return conv.err( "map contains duplicate key {}.",
+                         val.first );
       else
-        return error::builder{ "std::unordered_map" }(
-            "map contains duplicate key." );
+        return conv.err( "map contains duplicate key." );
     }
     res.insert( val );
   }

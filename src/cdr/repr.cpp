@@ -11,9 +11,19 @@
 *****************************************************************/
 #include "repr.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace cdr {
+
+/****************************************************************
+** null_t
+*****************************************************************/
+void to_str( null_t const&, std::string& out, base::ADL_t ) {
+  out += "null";
+}
 
 /****************************************************************
 ** table
@@ -45,14 +55,49 @@ bool table::contains( string const& key ) const {
   return ( *this )[key].has_value();
 }
 
+void to_str( table const& o, std::string& out, base::ADL_t ) {
+  out += '{';
+  bool remove_comma = false;
+
+  vector<pair<string, value>> pairs( o.begin(), o.end() );
+  sort( pairs.begin(), pairs.end(),
+        []( auto const& l, auto const& r ) {
+          return l.first < r.first;
+        } );
+
+  for( auto const& [k, v] : pairs ) {
+    to_str( k, out, base::ADL_t{} );
+    out += '=';
+    to_str( v, out, base::ADL_t{} );
+    out += ',';
+    remove_comma = true;
+  }
+  if( remove_comma ) out.resize( out.size() - 1 );
+  out += '}';
+}
+
 /****************************************************************
 ** list
 *****************************************************************/
-list::list( vector<value> const& v ) : base( v ) {}
+list::list( initializer_list<value> il ) : o_( il ) {}
 
-list::list( vector<value>&& v ) : base( std::move( v ) ) {}
+list::list( vector<value> const& v ) : o_( v ) {}
+
+list::list( vector<value>&& v ) : o_( std::move( v ) ) {}
 
 long list::ssize() const { return long( size() ); }
+
+void to_str( list const& o, std::string& out, base::ADL_t ) {
+  out += '[';
+  bool remove_comma = false;
+  for( auto const& elem : o ) {
+    to_str( elem, out, base::ADL_t{} );
+    out += ',';
+    remove_comma = true;
+  }
+  if( remove_comma ) out.resize( out.size() - 1 );
+  out += ']';
+}
 
 /****************************************************************
 ** value
@@ -68,6 +113,14 @@ string_view type_name( value const& v ) {
     string_view operator()( list ) const { return "list"; }
   };
   return std::visit( visitor{}, v.as_base() );
+}
+
+void to_str( value const& o, std::string& out, base::ADL_t ) {
+  std::visit(
+      [&]( auto const& alt ) {
+        to_str( alt, out, base::ADL_t{} );
+      },
+      o.as_base() );
 }
 
 } // namespace cdr

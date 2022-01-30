@@ -11,12 +11,9 @@
 *****************************************************************/
 #pragma once
 
-// CDR
+// cdr
+#include "error.hpp"
 #include "repr.hpp"
-
-// base
-#include "base/expect.hpp"
-#include "base/fmt.hpp"
 
 // C++ standard library
 #include <concepts>
@@ -63,79 +60,6 @@ value to_canonical( T const& o ) {
 }
 
 /****************************************************************
-** Error reporting
-*****************************************************************/
-// This is similar to UNWRAP_RETURN except that, upon failure, it
-// will add in the current frame for better error tracking. There
-// needs to be a string in the local scope called kFrameName.
-#define CDR_UNWRAP_RETURN( var, ... )                      \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;       \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) {        \
-    auto err =                                             \
-        std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
-    err.frames.push_back( ::cdr::error::Frame{             \
-        .conversion_target_type_name = kFrameName,         \
-        .location = base::SourceLoc::current() } );        \
-    return std::move( err );                               \
-  }                                                        \
-  auto&& var = *STRING_JOIN( __x, __LINE__ );
-
-struct error {
-  struct builder;
-
-  error( error const& ) = default;
-  error( error&& )      = default;
-
-  error& operator=( error const& ) = default;
-  error& operator=( error&& ) = default;
-
-  // This doesn't compare frames.
-  bool operator==( error const& rhs ) const {
-    return what == rhs.what;
-  }
-
-  friend void to_str( error const& o, std::string& out ) {
-    out += o.what;
-  }
-
-  struct Frame {
-    std::string     conversion_target_type_name;
-    base::SourceLoc location;
-  };
-
-  std::string        what;
-  std::vector<Frame> frames;
-
- private:
-  template<typename... Args>
-  explicit error( std::string frame_name, base::SourceLoc loc,
-                  std::string_view fmt_str, Args&&... args )
-    : what( fmt::format( fmt::runtime( fmt_str ),
-                         std::forward<Args>( args )... ) ),
-      frames{ Frame{
-          .conversion_target_type_name = std::move( frame_name ),
-          .location                    = loc } } {}
-};
-
-struct error::builder {
-  builder( std::string     name,
-           base::SourceLoc loc = base::SourceLoc::current() )
-    : name_( std::move( name ) ), loc_( loc ) {}
-  std::string     name_;
-  base::SourceLoc loc_;
-
-  template<typename... Args>
-  error operator()( std::string_view fmt_str,
-                    Args&&... args ) const&& {
-    return error( std::move( name_ ), loc_, fmt_str,
-                  std::forward<Args>( args )... );
-  }
-};
-
-template<typename T>
-using result = base::expect<T, error>;
-
-/****************************************************************
 ** Canonical ==> C++
 *****************************************************************/
 // For types that support converting themselves from the canon-
@@ -151,13 +75,10 @@ concept FromCanonical = requires( value const& o ) {
   // clang-format on
 };
 
-// This one should be used to convert a value (i.e., don't call
-// the one with the tag explicitly).
-template<FromCanonical T>
-result<std::remove_const_t<T>> from_canonical( value const& v ) {
-  // The function called below should be found via ADL.
-  return from_canonical( v, tag<std::remove_const_t<T>> );
-}
+// Note that there is no top-level from_canonical function, un-
+// like to_canonical. That is because you must use the cdr::con-
+// verter instead because it ensures that errors are tracked au-
+// tomatically.
 
 /****************************************************************
 ** C++ <==> Canonical

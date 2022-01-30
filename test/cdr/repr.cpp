@@ -204,5 +204,72 @@ TEST_CASE( "[cdr] complex" ) {
   REQUIRE( &t3["two"].as<table>()["four"] == address );
 }
 
+TEST_CASE( "[cdr] to_str" ) {
+  value v;
+
+  // null
+  v = null;
+  REQUIRE( base::to_str( v ) == "null" );
+
+  // double
+  v = 5.5;
+  REQUIRE( base::to_str( v ) == "5.5" );
+
+  // int
+  v = 5;
+  REQUIRE( base::to_str( v ) == "5" );
+
+  // bool
+  v = true;
+  REQUIRE( base::to_str( v ) == "true" );
+  v = false;
+  REQUIRE( base::to_str( v ) == "false" );
+
+  // string
+  v = "hello";
+  REQUIRE( base::to_str( v ) == "hello" );
+
+  // table
+  v = table{};
+  REQUIRE( base::to_str( v ) == "{}" );
+  v = table{ { "one", 1 } };
+  REQUIRE( base::to_str( v ) == "{one=1}" );
+  v = table{ { "one", 1 }, { "two", 2 } };
+  REQUIRE( base::to_str( v ) == "{one=1,two=2}" );
+  v = table{ { "one", 1 }, { "two", 2 }, { "three", "3" } };
+  REQUIRE( base::to_str( v ) == "{one=1,three=3,two=2}" );
+
+  // list
+  v = list{};
+  REQUIRE( base::to_str( v ) == "[]" );
+  v = list{ 5 };
+  REQUIRE( base::to_str( v ) == "[5]" );
+  v = list{ 5, "hello" };
+  REQUIRE( base::to_str( v ) == "[5,hello]" );
+  v = list{ 5, "hello", 4.4 };
+  REQUIRE( base::to_str( v ) == "[5,hello,4.4]" );
+
+  table doc{
+      { "one", list{ 2, 3, "hello" } },
+      { "two",
+        table{
+            { "three", 3.3 },
+            { "four", true },
+        } },
+      { "three",
+        list{
+            table{
+                { "hello", "world" },
+                { "yes", 333 },
+            },
+            table{},
+            3,
+        } },
+  };
+  REQUIRE( base::to_str( doc ) ==
+           "{one=[2,3,hello],three=[{hello=world,yes=333},{},3],"
+           "two={four=true,three=3.3}}" );
+}
+
 } // namespace
 } // namespace cdr

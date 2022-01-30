@@ -6,46 +6,43 @@ Rollout Process:
       some base types, std types, and builtin types.
   2.  Add ext-cdr.hpp to refl library to convert reflected types
       to/from Cdr.
-  3.  Add CDR module to Rcl to allow it to convert its data rep-
-      resentation to CDR.
-  4.  Change all of the rcl::convert_to to the new model_to and
-      model_from and reimplement (temporarily) the
-      rcl::convert_to in terms of model_to.
-  5.  Change config-files to to use Modelizable and remove the
-      rcl::convert_to extension point.
-  6.  Add rcl module to emit the data model as rcl language.
-  7.  Add some reflection utilities for querying properties of
+  3.  Add Cdr module to Rcl to allow it to convert its data rep-
+      resentation to Cdr.
+  4.  Remove the rcl::convert_to extension point, then replace
+      all of the convert_to implementations with from_canonical,
+      and have config-files call from_canonical.
+  5.  Add rcl module to emit the data model as rcl language. This
+      may require sorting the table keys so that we get consis-
+      tent output.
+  6.  Add some reflection utilities for querying properties of
       structs or enums from the reflection traits.
-  8.  Go into utype.?pp and add reflection traits manually for
+  7.  Go into utype.?pp and add reflection traits manually for
       some structs and variants, then in utype.cpp implement the
-      model_to converters for them and to_str overloads for them
-      using the reflection. Be sure to add generic functions
+      from_canonical converters for them and to_str overloads for
+      them using the reflection. Be sure to add generic functions
       where necessary, such as a function to apply a lambda to
       all struct fields.
-  9.  Once finalized, make those generic (structs, enums, vari-
-      ants) and move them into the data model folder, creating
-      ext-refl for converting the data model to/from reflected
-      types.
-  10. Add modelizable ext points for std and base types in the
-      model folder.
-  11. Create refl/ext-to-str.hpp to allow converting reflected
+  8.  [?] Once finalized, make those generic (structs, enums,
+      variants) and move them into the refl folder into a module
+      for converting the data model to/from reflected types.
+  9.  Create refl/ext-to-str.hpp to allow converting reflected
       types to strings.
-  12. Find places, such as Coord, where we can add reflection
+  10. Find places, such as Coord, where we can add reflection
       manually and therefore remove the manual to_str and rcl
       overloads.
-  13. Add reflection output to Rds generated files.
-  14. Remove to_str from Rds files.
-  15. Remove all traces of flatbuffers, but leaving per-module
+  11. Add reflection output to Rds generated files.
+  12. Remove to_str from Rds files.
+  13. Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  16. Find structs/classes that have to_str or model_to overloads
+  14. Find structs/classes that have to_str or model_to overloads
       and move them into Rds, creating reflected wrappers as
       needed.
-  17. Consolidate game state into one large data structure, in-
+  15. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  18. Reimplement game saving by modelizing game state then con-
+  16. Reimplement game saving by modelizing game state then con-
       verting to rcl. Do some profiling of game save/load times
       to see if it is ok.
-  19. Consider how to handle forward/backward compatibility in a
+  17. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -53,24 +50,21 @@ Rollout Process:
 
   Done:
 
-  1.  Figure out how to deal with wrappers.
-  2.  Think of a name for the new data model and associated con-
-      cepts.
-  3.  Finalize new data model based architecture.
-  4.  Define core data model.
-  5.  Make sure that data model can interoperate with Lua.
-  6.  Make sure that data model works with variants.
-  7.  Make sure that data model works with base types, such as
-      maybe and expect.
-  8.  Make sure that it supports maps in the way that we want.
-  9.  Make sure that it supports all of the datatypes that we
-      will need for game saving, such as Matrix.
-  10. Do maps need to support ordering of keys?
-  11. Do maps need to support non-string keys?
-  12. Add new concepts and extension point to data model library,
-      with subconcepts of FromCanonical, ToCanonical.
-
-Finished:
-
   1.  Finish refl concepts design.
   2.  Create refl header in base library.
+  3.  Figure out how to deal with wrappers.
+  4.  Think of a name for the new data model and associated con-
+      cepts.
+  5.  Finalize new data model based architecture.
+  6.  Define core data model.
+  7.  Make sure that data model can interoperate with Lua.
+  8.  Make sure that data model works with variants.
+  9.  Make sure that data model works with base types, such as
+      maybe and expect.
+  10. Make sure that it supports maps in the way that we want.
+  11. Make sure that it supports all of the datatypes that we
+      will need for game saving, such as Matrix.
+  12. Do maps need to support ordering of keys?
+  13. Do maps need to support non-string keys?
+  14. Add new concepts and extension point to data model library,
+      with subconcepts of FromCanonical, ToCanonical.
