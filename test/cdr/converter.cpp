@@ -40,9 +40,9 @@ TEST_CASE( "[cdr/converter] unordered_map" ) {
       "---------------------------------------------------\n"
       "std::unordered_map<std::string, int, "
       "std::hash<std::string>, s...\n"
-      " \\-(from list)\n"
-      "    \\-index 1\n"
-      "       \\-std::pair<std::string const, int>\n"
+      " \\-index 1\n"
+      "    \\-std::pair<std::string const, int>\n"
+      "       \\-value for key 'val'\n"
       "          \\-int\n"
       "---------------------------------------------------";
   REQUIRE( run_conversion_from_canonical<M>( v ) ==

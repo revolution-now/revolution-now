@@ -59,6 +59,29 @@ struct converter {
   }
 
   template<FromCanonical T>
+  result<std::remove_const_t<T>> from_index( list const& lst,
+                                             int         idx ) {
+    auto _ = frame( "index {}", idx );
+    return from<T>( lst[idx] );
+  }
+
+  template<FromCanonical T>
+  result<std::remove_const_t<T>> from_field(
+      table const& tbl, std::string const& key ) {
+    auto _ = frame( "value for key '{}'", key );
+    base::maybe<value const&> val = tbl[key];
+    if( !val.has_value() )
+      return error( "key {} not found in table.", key );
+    return from<T>( *val );
+  }
+
+  // This one should only really be called by a top-level conver-
+  // sion that is initiating the entire operation (which includes
+  // unit tests, which will have to call this). Otherwise, you
+  // should pick one of the more specific ones above that are
+  // adapted to the particular type of data type (table or list)
+  // that you are going into.
+  template<FromCanonical T>
   result<std::remove_const_t<T>> from( value const& v ) {
     auto _ = frame( base::demangled_typename<T>() );
     // The function called below should be found via ADL.
@@ -94,7 +117,6 @@ struct converter {
     converter* owner_;
   };
 
- public:
   scoped_frame frame( std::string name ) {
     return scoped_frame( this, std::move( name ) );
   }
@@ -107,7 +129,6 @@ struct converter {
                                std::forward<Args>( args )... ) );
   }
 
- private:
   options                  options_ = {};
   std::vector<std::string> frames_  = {};
   // These are the frames as they were on the most recent call to

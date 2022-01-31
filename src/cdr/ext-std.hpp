@@ -93,8 +93,8 @@ result<std::pair<Fst, Snd>> from_canonical(
     return conv.err(
         "table must have both a 'key' and 'val' field for "
         "conversion to std::pair." );
-  UNWRAP_RETURN( fst, conv.from<Fst>( *tbl["key"] ) );
-  UNWRAP_RETURN( snd, conv.from<Snd>( *tbl["val"] ) );
+  UNWRAP_RETURN( fst, conv.from_field<Fst>( tbl, "key" ) );
+  UNWRAP_RETURN( snd, conv.from_field<Snd>( tbl, "val" ) );
   return std::pair<Fst, Snd>{ std::move( fst ),
                               std::move( snd ) };
 }
@@ -133,10 +133,8 @@ result<std::vector<T>> from_canonical( converter&   conv,
   list const&    lst = *maybe_lst;
   std::vector<T> res;
   res.reserve( lst.size() );
-  int idx = 0;
-  for( value const& elem : lst ) {
-    auto _ = conv.frame( "index {}", idx++ );
-    UNWRAP_RETURN( val, conv.from<T>( elem ) );
+  for( int idx = 0; idx < lst.ssize(); ++idx ) {
+    UNWRAP_RETURN( val, conv.from_index<T>( lst, idx ) );
     res.push_back( std::move( val ) );
   }
   return res;
@@ -163,11 +161,9 @@ result<std::array<T, N>> from_canonical(
         "that same size, instead found size {}.",
         N, lst.size() );
   std::array<T, N> res;
-  size_t           idx = 0;
-  for( value const& elem : lst ) {
-    auto _ = conv.frame( "index {}", idx );
-    UNWRAP_RETURN( val, conv.from<T>( elem ) );
-    res[idx++] = std::move( val );
+  for( int idx = 0; idx < lst.ssize(); ++idx ) {
+    UNWRAP_RETURN( val, conv.from_index<T>( lst, idx ) );
+    res[idx] = std::move( val );
   }
   return res;
 }
@@ -211,15 +207,13 @@ template<typename K, typename V>
 result<std::unordered_map<K, V>>
 unordered_map_from_canonical_list( converter&  conv,
                                    list const& lst ) {
-  auto                     _ = conv.frame( "(from list)" );
   std::unordered_map<K, V> res;
   res.reserve( lst.size() );
   using value_type =
       typename std::unordered_map<K, V>::value_type;
-  int idx = 0;
-  for( value const& elem : lst ) {
-    auto _ = conv.frame( "index {}", idx++ );
-    UNWRAP_RETURN( val, conv.from<value_type>( elem ) );
+  for( int idx = 0; idx < lst.ssize(); ++idx ) {
+    UNWRAP_RETURN( val,
+                   conv.from_index<value_type>( lst, idx ) );
     auto&       key = val.first;
     std::string key_str;
     if constexpr( base::Show<K> )
@@ -240,7 +234,6 @@ template<typename K, typename V>
 result<std::unordered_map<K, V>>
 unordered_map_from_canonical_table( converter&   conv,
                                     table const& tbl ) {
-  auto                     _ = conv.frame( "(from table)" );
   std::unordered_map<K, V> res;
   res.reserve( tbl.size() );
   // The keys are string types already.
@@ -254,8 +247,7 @@ unordered_map_from_canonical_table( converter&   conv,
     if( res.contains( key ) )
       return conv.err( "map contains duplicate key {}.",
                        key_str );
-    auto _ = conv.frame( "[{}]", key_str );
-    UNWRAP_RETURN( val, conv.from<V>( v ) );
+    UNWRAP_RETURN( val, conv.from_field<V>( tbl, k ) );
     res[std::move( key )] = std::move( val );
   }
   return res;
