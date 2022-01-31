@@ -27,52 +27,52 @@ namespace {
 
 using namespace std;
 
-converter conv( "test" );
+converter conv;
 
 TEST_CASE( "[cdr/ext-std] string" ) {
   SECTION( "to_canonical" ) {
-    REQUIRE( to_canonical( "hello"s ) == string( "hello" ) );
+    REQUIRE( conv.to( "hello"s ) == string( "hello" ) );
   }
   SECTION( "from_canonical" ) {
     REQUIRE( conv.from<string>( "hello" ) == "hello" );
     REQUIRE( conv.from<string>( 5 ) ==
-             error( "producing a std::string requires type "
-                    "string, instead found type integer." ) );
+             conv.err( "producing a std::string requires type "
+                       "string, instead found type integer." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] std::filesystem::path" ) {
   SECTION( "to_canonical" ) {
-    REQUIRE( to_canonical( fs::path( "hello" ) ) ==
+    REQUIRE( conv.to( fs::path( "hello" ) ) ==
              string( "hello" ) );
   }
   SECTION( "from_canonical" ) {
     REQUIRE( conv.from<fs::path>( "hello" ) == "hello" );
     REQUIRE(
         conv.from<fs::path>( 5 ) ==
-        error( "producing a std::filesystem::path requires type "
-               "string, instead found type integer." ) );
+        conv.err( "producing a std::filesystem::path requires "
+                  "type string, instead found type integer." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] chrono::seconds" ) {
   SECTION( "to_canonical" ) {
-    REQUIRE( to_canonical( chrono::seconds{ 5 } ) == 5 );
+    REQUIRE( conv.to( chrono::seconds{ 5 } ) == 5 );
   }
   SECTION( "from_canonical" ) {
     REQUIRE( conv.from<chrono::seconds>( 5 ) ==
              chrono::seconds{ 5 } );
     REQUIRE(
         conv.from<chrono::seconds>( "5" ) ==
-        error( "producing a std::chrono::seconds requires type "
-               "integer, instead found type string." ) );
+        conv.err( "producing a std::chrono::seconds requires "
+                  "type integer, instead found type string." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] pair" ) {
   SECTION( "to_canonical" ) {
     pair<int, bool> p{ 5, true };
-    REQUIRE( to_canonical( p ) ==
+    REQUIRE( conv.to( p ) ==
              table{ { "key", 5 }, { "val", true } } );
   }
   SECTION( "from_canonical" ) {
@@ -81,64 +81,63 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
              pair<int, bool>{ 5, true } );
     REQUIRE( conv.from<pair<int, bool>>(
                  table{ { "fxt", 5 }, { "val", true } } ) ==
-             error( "table must have both a 'key' and 'val' "
-                    "field for conversion to std::pair." ) );
+             conv.err( "table must have both a 'key' and 'val' "
+                       "field for conversion to std::pair." ) );
     REQUIRE( conv.from<pair<int, bool>>( 5 ) ==
-             error( "producing a std::pair requires type "
-                    "table, instead found type integer." ) );
+             conv.err( "producing a std::pair requires type "
+                       "table, instead found type integer." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] vector" ) {
   SECTION( "to_canonoical" ) {
     vector<int> empty;
-    REQUIRE( to_canonical( empty ) == list{} );
+    REQUIRE( conv.to( empty ) == list{} );
     vector<int> vec{ 3, 4, 5 };
-    REQUIRE( to_canonical( vec ) == list{ 3, 4, 5 } );
+    REQUIRE( conv.to( vec ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
     REQUIRE( conv.from<vector<double>>( list{ 5.5, 7.7 } ) ==
              vector<double>{ 5.5, 7.7 } );
     REQUIRE( conv.from<vector<double>>( table{} ) ==
-             error( "producing a std::vector requires type "
-                    "list, instead found type table." ) );
+             conv.err( "producing a std::vector requires type "
+                       "list, instead found type table." ) );
     REQUIRE( conv.from<vector<double>>( list{ true } ) ==
-             error( "failed to convert cdr value of type "
-                    "boolean to double." ) );
+             conv.err( "failed to convert value of type boolean "
+                       "to double." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] array" ) {
   SECTION( "to_canonoical" ) {
     array<int, 0> empty;
-    REQUIRE( to_canonical( empty ) == list{} );
+    REQUIRE( conv.to( empty ) == list{} );
     array<int, 3> arr{ 3, 4, 5 };
-    REQUIRE( to_canonical( arr ) == list{ 3, 4, 5 } );
+    REQUIRE( conv.to( arr ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
     REQUIRE( conv.from<array<int, 2>>( list{ 5, 7 } ) ==
              array<int, 2>{ 5, 7 } );
     REQUIRE(
         conv.from<array<int, 2>>( list{ 5 } ) ==
-        error(
+        conv.err(
             "expected list of size 2 for producing std::array "
             "of that same size, instead found size 1." ) );
     REQUIRE( conv.from<array<int, 2>>( 5.5 ) ==
-             error( "producing a std::array requires type list, "
-                    "instead found type floating." ) );
-    REQUIRE(
-        conv.from<array<int, 2>>( list{ true, false } ) ==
-        error( "failed to convert cdr value of type boolean to "
-               "int." ) );
+             conv.err( "producing a std::array requires type "
+                       "list, instead found type floating." ) );
+    REQUIRE( conv.from<array<int, 2>>( list{ true, false } ) ==
+             conv.err( "failed to convert value of type boolean "
+                       "to int." ) );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
   SECTION( "to_canonoical" ) {
     unordered_map<int, double> empty;
-    REQUIRE( to_canonical( empty ) == list{} );
+    REQUIRE( conv.to( empty ) == list{} );
     unordered_map<int, double> m1{ { 3, 5.5 }, { 4, 7.7 } };
-    value                      v1 = to_canonical( m1 );
+    value                      v1 = conv.to( m1 );
     REQUIRE(
         ( ( v1 ==
             list{ table{ { "key", 3 }, { "val", 5.5 } },
@@ -163,16 +162,16 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
     // Here we have string keys, so it should convert to a Cdr
     // table.
     unordered_map<string, double> empty;
-    REQUIRE( to_canonical( empty ) == table{} );
+    REQUIRE( conv.to( empty ) == table{} );
     unordered_map<string, double> m1{ { "3", 5.5 },
                                       { "4", 7.7 } };
 
-    value v1 = to_canonical( m1 );
+    value v1 = conv.to( m1 );
     REQUIRE( v1 == table{ { "3", 5.5 }, { "4", 7.7 } } );
     unordered_map<string_view, double> m2{ { "3", 5.5 },
                                            { "4", 7.7 } };
 
-    value v2 = to_canonical( m2 );
+    value v2 = conv.to( m2 );
     REQUIRE( v2 == table{ { "3", 5.5 }, { "4", 7.7 } } );
   }
   SECTION( "from_canonoical" ) {
@@ -188,9 +187,9 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
 TEST_CASE( "[cdr/ext-std] unordered_set" ) {
   SECTION( "to_canonoical" ) {
     unordered_set<string> empty;
-    REQUIRE( to_canonical( empty ) == list{} );
+    REQUIRE( conv.to( empty ) == list{} );
     unordered_set<string> m1{ "hello", "world" };
-    value                 v1 = to_canonical( m1 );
+    value                 v1 = conv.to( m1 );
     REQUIRE( ( ( v1 == list{ "hello", "world" } ) ||
                ( v1 == list{ "world", "hello" } ) ) );
   }
@@ -205,9 +204,9 @@ TEST_CASE( "[cdr/ext-std] unordered_set" ) {
 TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
   SECTION( "to_canonoical" ) {
     unique_ptr<string> empty;
-    REQUIRE( to_canonical( empty ) == null );
+    REQUIRE( conv.to( empty ) == null );
     auto  u = make_unique<string>( "hello" );
-    value v = to_canonical( u );
+    value v = conv.to( u );
     REQUIRE( v == "hello" );
   }
   SECTION( "from_canonoical" ) {

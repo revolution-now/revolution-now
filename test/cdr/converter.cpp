@@ -28,24 +28,24 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[cdr/converter] unordered_map" ) {
-  converter conv( "test" );
+converter conv;
 
-  using M   = unordered_map<string, int>;
-  value v   = list{ table{ { "key", "one" }, { "val", 1 } },
+TEST_CASE( "[cdr/converter] unordered_map" ) {
+  using M  = unordered_map<string, int>;
+  value  v = list{ table{ { "key", "one" }, { "val", 1 } },
                   table{ { "key", "two" }, { "val", "2" } } };
-  auto  res = conv.from<M>( v );
-  REQUIRE( res.has_error() );
-  REQUIRE( base::to_str( res.error() ) ==
-           "Message: failed to convert cdr value of type string "
-           "to int.\n"
-           "Frame Trace (most recent frame last):\n"
-           "------------------------------------\n"
-           "test\n"
-           " \\-std::unordered_map\n"
-           "    \\-std::pair\n"
-           "       \\-int\n"
-           "------------------------------------\n" );
+  string expected =
+      "message: failed to convert value of type string to int.\n"
+      "frame trace (most recent frame last):\n"
+      "---------------------------------------------------\n"
+      "std::unordered_map<std::string, int>\n"
+      " \\-(from list)\n"
+      "    \\-index 1\n"
+      "       \\-std::pair<std::string const, int>\n"
+      "          \\-int\n"
+      "---------------------------------------------------";
+  REQUIRE( run_conversion_from_canonical<M>( v ) ==
+           conv.err( expected ) );
 }
 
 } // namespace

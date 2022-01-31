@@ -18,19 +18,22 @@ namespace cdr {
 /****************************************************************
 ** int
 *****************************************************************/
-value       to_canonical( int o, tag_t<int> );
-result<int> from_canonical( value const& v, tag_t<int> );
+value       to_canonical( converter& conv, int o, tag_t<int> );
+result<int> from_canonical( converter& conv, value const& v,
+                            tag_t<int> );
 
 /****************************************************************
 ** bool
 *****************************************************************/
-value        to_canonical( bool o, tag_t<bool> );
-result<bool> from_canonical( value const& v, tag_t<bool> );
+value to_canonical( converter& conv, bool o, tag_t<bool> );
+result<bool> from_canonical( converter& conv, value const& v,
+                             tag_t<bool> );
 
 /****************************************************************
 ** double
 *****************************************************************/
-value          to_canonical( double o, tag_t<double> );
-result<double> from_canonical( value const& v, tag_t<double> );
+value to_canonical( converter& conv, double o, tag_t<double> );
+result<double> from_canonical( converter& conv, value const& v,
+                               tag_t<double> );
 
 } // namespace cdr

@@ -17,13 +17,15 @@ namespace cdr {
 /****************************************************************
 ** string
 *****************************************************************/
-value to_canonical( string const& o, tag_t<string> ) {
+value to_canonical( converter&, string const& o,
+                    tag_t<string> ) {
   return o;
 }
 
-result<string> from_canonical( value const& v, tag_t<string> ) {
-  converter conv( "std::string" );
-  auto      maybe_str = v.get_if<string>();
+result<string> from_canonical( converter& conv, value const& v,
+                               tag_t<string> tag ) {
+  auto _         = conv.frame( tag );
+  auto maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
     return conv.err(
         "producing a std::string requires type string, instead "
@@ -35,21 +37,23 @@ result<string> from_canonical( value const& v, tag_t<string> ) {
 /****************************************************************
 ** string_view
 *****************************************************************/
-value to_canonical( string_view const& o, tag_t<string_view> ) {
+value to_canonical( converter&, string_view const& o,
+                    tag_t<string_view> ) {
   return string( o );
 }
 
 /****************************************************************
 ** std::filesystem::path
 *****************************************************************/
-value to_canonical( fs::path const& o, tag_t<fs::path> ) {
+value to_canonical( converter&, fs::path const& o,
+                    tag_t<fs::path> ) {
   return o.string();
 }
 
-result<fs::path> from_canonical( value const& v,
-                                 tag_t<fs::path> ) {
-  converter conv( "std::filesystem::path" );
-  auto      maybe_str = v.get_if<string>();
+result<fs::path> from_canonical( converter& conv, value const& v,
+                                 tag_t<fs::path> tag ) {
+  auto _         = conv.frame( tag );
+  auto maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
     return conv.err(
         "producing a std::filesystem::path requires type "
@@ -61,15 +65,16 @@ result<fs::path> from_canonical( value const& v,
 /****************************************************************
 ** std::chrono::seconds
 *****************************************************************/
-value to_canonical( chrono::seconds const& o,
+value to_canonical( converter&, chrono::seconds const& o,
                     tag_t<chrono::seconds> ) {
   return integer_type( o.count() );
 }
 
 result<chrono::seconds> from_canonical(
-    value const& v, tag_t<chrono::seconds> ) {
-  converter conv( "std::chrono::seconds" );
-  auto      maybe_int = v.get_if<integer_type>();
+    converter& conv, value const& v,
+    tag_t<chrono::seconds> tag ) {
+  auto _         = conv.frame( tag );
+  auto maybe_int = v.get_if<integer_type>();
   if( !maybe_int.has_value() )
     return conv.err(
         "producing a std::chrono::seconds requires type "

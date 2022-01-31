@@ -20,15 +20,16 @@ namespace cdr {
 /****************************************************************
 ** int
 *****************************************************************/
-value to_canonical( int o, tag_t<int> ) {
+value to_canonical( converter&, int o, tag_t<int> ) {
   return value{ integer_type{ o } };
 }
 
-result<int> from_canonical( value const& v, tag_t<int> ) {
-  converter conv( "int" );
+result<int> from_canonical( converter& conv, value const& v,
+                            tag_t<int> tag ) {
+  auto _ = conv.frame( tag );
   if( !v.holds<integer_type>() )
     return conv.err(
-        "failed to convert cdr value of type {} to int.",
+        "failed to convert value of type {} to int.",
         type_name( v ) );
   return v.get<integer_type>();
 }
@@ -36,13 +37,16 @@ result<int> from_canonical( value const& v, tag_t<int> ) {
 /****************************************************************
 ** bool
 *****************************************************************/
-value to_canonical( bool o, tag_t<bool> ) { return value{ o }; }
+value to_canonical( converter&, bool o, tag_t<bool> ) {
+  return value{ o };
+}
 
-result<bool> from_canonical( value const& v, tag_t<bool> ) {
-  converter conv( "bool" );
+result<bool> from_canonical( converter& conv, value const& v,
+                             tag_t<bool> tag ) {
+  auto _ = conv.frame( tag );
   if( !v.holds<bool>() )
     return conv.err(
-        "failed to convert cdr value of type {} to bool.",
+        "failed to convert value of type {} to bool.",
         type_name( v ) );
   return v.get<bool>();
 }
@@ -50,15 +54,16 @@ result<bool> from_canonical( value const& v, tag_t<bool> ) {
 /****************************************************************
 ** double
 *****************************************************************/
-value to_canonical( double o, tag_t<double> ) {
+value to_canonical( converter&, double o, tag_t<double> ) {
   return value{ o };
 }
 
-result<double> from_canonical( value const& v, tag_t<double> ) {
-  converter conv( "double" );
+result<double> from_canonical( converter& conv, value const& v,
+                               tag_t<double> tag ) {
+  auto _ = conv.frame( tag );
   if( !v.holds<double>() )
     return conv.err(
-        "failed to convert cdr value of type {} to double.",
+        "failed to convert value of type {} to double.",
         type_name( v ) );
   return v.get<double>();
 }

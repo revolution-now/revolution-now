@@ -30,53 +30,60 @@ namespace cdr {
 /****************************************************************
 ** string
 *****************************************************************/
-value to_canonical( std::string const& o, tag_t<std::string> );
+value to_canonical( converter& conv, std::string const& o,
+                    tag_t<std::string> );
 
-result<std::string> from_canonical( value const& v,
+result<std::string> from_canonical( converter&   conv,
+                                    value const& v,
                                     tag_t<std::string> );
 
 /****************************************************************
 ** string_view
 *****************************************************************/
-value to_canonical( std::string_view const& o,
+value to_canonical( converter& conv, std::string_view const& o,
                     tag_t<std::string_view> );
 
 // Don't implement this because it will probably be indicative of
 // a dangling-string_view bug.
 result<std::string_view> from_canonical(
-    value const& v, tag_t<std::string_view> ) = delete;
+    converter& conv, value const& v,
+    tag_t<std::string_view> ) = delete;
 
 /****************************************************************
 ** std::filesystem::path
 *****************************************************************/
-value to_canonical( fs::path const& o, tag_t<fs::path> );
+value to_canonical( converter& conv, fs::path const& o,
+                    tag_t<fs::path> );
 
-result<fs::path> from_canonical( value const& v,
+result<fs::path> from_canonical( converter& conv, value const& v,
                                  tag_t<fs::path> );
 
 /****************************************************************
 ** std::chrono::seconds
 *****************************************************************/
-value to_canonical( std::chrono::seconds const& o,
+value to_canonical( converter&                  conv,
+                    std::chrono::seconds const& o,
                     tag_t<std::chrono::seconds> );
 
 result<std::chrono::seconds> from_canonical(
-    value const& v, tag_t<std::chrono::seconds> );
+    converter& conv, value const& v,
+    tag_t<std::chrono::seconds> );
 
 /****************************************************************
 ** std::pair
 *****************************************************************/
 template<ToCanonical Fst, ToCanonical Snd>
-value to_canonical( std::pair<Fst, Snd> const& o,
+value to_canonical( converter&, std::pair<Fst, Snd> const& o,
                     tag_t<std::pair<Fst, Snd>> ) {
   return table{ { "key", o.first }, { "val", o.second } };
 }
 
 template<FromCanonical Fst, FromCanonical Snd>
 result<std::pair<Fst, Snd>> from_canonical(
-    value const& v, tag_t<std::pair<Fst, Snd>> ) {
-  converter conv( "std::pair" );
-  auto      maybe_tbl = v.get_if<table>();
+    converter& conv, value const& v,
+    tag_t<std::pair<Fst, Snd>> tag ) {
+  auto _         = conv.frame( tag );
+  auto maybe_tbl = v.get_if<table>();
   if( !maybe_tbl.has_value() )
     return conv.err(
         "producing a std::pair requires type table, instead "
@@ -100,13 +107,12 @@ result<std::pair<Fst, Snd>> from_canonical(
 // clang-format off
 template<std::ranges::range R>
 requires ToCanonical<typename R::value_type>
-value to_canonical( R const& o, tag_t<R> ) {
+value to_canonical( converter& conv, R const& o, tag_t<R> ) {
   // clang-format on
   list res;
   if constexpr( std::ranges::sized_range<R> )
     res.reserve( o.size() );
-  for( auto const& elem : o )
-    res.push_back( to_canonical( elem ) );
+  for( auto const& elem : o ) res.push_back( conv.to( elem ) );
   return res;
 }
 
@@ -116,10 +122,12 @@ value to_canonical( R const& o, tag_t<R> ) {
 // to_canonical will use the std::ranges::range overload.
 
 template<FromCanonical T>
-result<std::vector<T>> from_canonical( value const& v,
+result<std::vector<T>> from_canonical( converter&   conv,
+                                       value const& v,
                                        tag_t<std::vector<T>> ) {
-  converter conv( "std::vector" );
-  auto      maybe_lst = v.get_if<list>();
+  auto _         = conv.frame( "std::vector<{}>",
+                               base::demangled_typename<T>() );
+  auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
         "producing a std::vector requires type list, instead "
@@ -128,7 +136,9 @@ result<std::vector<T>> from_canonical( value const& v,
   list const&    lst = *maybe_lst;
   std::vector<T> res;
   res.reserve( lst.size() );
+  int idx = 0;
   for( value const& elem : lst ) {
+    auto _ = conv.frame( "index {}", idx++ );
     UNWRAP_RETURN( val, conv.from<T>( elem ) );
     res.push_back( std::move( val ) );
   }
@@ -142,9 +152,10 @@ result<std::vector<T>> from_canonical( value const& v,
 
 template<FromCanonical T, size_t N>
 result<std::array<T, N>> from_canonical(
-    value const& v, tag_t<std::array<T, N>> ) {
-  converter conv( "std::array" );
-  auto      maybe_lst = v.get_if<list>();
+    converter& conv, value const& v,
+    tag_t<std::array<T, N>> tag ) {
+  auto _         = conv.frame( tag );
+  auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
         "producing a std::array requires type list, instead "
@@ -159,6 +170,7 @@ result<std::array<T, N>> from_canonical(
   std::array<T, N> res;
   size_t           idx = 0;
   for( value const& elem : lst ) {
+    auto _ = conv.frame( "index {}", idx );
     UNWRAP_RETURN( val, conv.from<T>( elem ) );
     res[idx++] = std::move( val );
   }
@@ -178,20 +190,19 @@ result<std::array<T, N>> from_canonical(
 template<typename K, typename V>
 requires ToCanonical<
     typename std::unordered_map<K, V>::value_type>
-value to_canonical( std::unordered_map<K, V> const& o,
+value to_canonical( converter& conv, std::unordered_map<K, V> const& o,
                     tag_t<std::unordered_map<K, V>> ) {
   // clang-format on
   if constexpr( std::is_constructible_v<std::string, K> ) {
     table res;
     res.reserve( o.size() );
     for( auto const& [k, v] : o )
-      res[std::string( k )] = to_canonical( v );
+      res[std::string( k )] = conv.to( v );
     return res;
   } else {
     list res;
     res.reserve( o.size() );
-    for( auto const& elem : o )
-      res.push_back( to_canonical( elem ) );
+    for( auto const& elem : o ) res.push_back( conv.to( elem ) );
     return res;
   }
 }
@@ -203,21 +214,26 @@ namespace detail {
 
 template<typename K, typename V>
 result<std::unordered_map<K, V>>
-unordered_map_from_canonical_list( list const& lst ) {
-  converter                conv( "std::unordered_map" );
+unordered_map_from_canonical_list( converter&  conv,
+                                   list const& lst ) {
+  auto                     _ = conv.frame( "(from list)" );
   std::unordered_map<K, V> res;
   res.reserve( lst.size() );
   using value_type =
       typename std::unordered_map<K, V>::value_type;
+  int idx = 0;
   for( value const& elem : lst ) {
+    auto _ = conv.frame( "index {}", idx++ );
     UNWRAP_RETURN( val, conv.from<value_type>( elem ) );
-    if( res.contains( val.first ) ) {
-      if constexpr( base::Show<K> )
-        return conv.err( "map contains duplicate key {}.",
-                         val.first );
-      else
-        return conv.err( "map contains duplicate key." );
-    }
+    auto&       key = val.first;
+    std::string key_str;
+    if constexpr( base::Show<K> )
+      key_str = base::to_str( key );
+    else
+      key_str = "<unformattable>";
+    if( res.contains( key ) )
+      return conv.err( "map contains duplicate key {}.",
+                       key_str );
     res.insert( std::move( val ) );
   }
   return res;
@@ -227,19 +243,23 @@ unordered_map_from_canonical_list( list const& lst ) {
 // keys in a Cdr table are always keys.
 template<typename K, typename V>
 result<std::unordered_map<K, V>>
-unordered_map_from_canonical_table( table const& tbl ) {
-  converter                conv( "std::unordered_map" );
+unordered_map_from_canonical_table( converter&   conv,
+                                    table const& tbl ) {
+  auto                     _ = conv.frame( "(from table)" );
   std::unordered_map<K, V> res;
   res.reserve( tbl.size() );
   // The keys are string types already.
   for( auto const& [k, v] : tbl ) {
     UNWRAP_RETURN( key, conv.from<K>( k ) );
-    if( res.contains( key ) ) {
-      if constexpr( base::Show<K> )
-        return conv.err( "map contains duplicate key {}.", key );
-      else
-        return conv.err( "map contains duplicate key." );
-    }
+    std::string key_str;
+    if constexpr( base::Show<K> )
+      key_str = base::to_str( key );
+    else
+      key_str = "<unformattable>";
+    if( res.contains( key ) )
+      return conv.err( "map contains duplicate key {}.",
+                       key_str );
+    auto _ = conv.frame( "[{}]", key_str );
     UNWRAP_RETURN( val, conv.from<V>( v ) );
     res[std::move( key )] = std::move( val );
   }
@@ -253,17 +273,19 @@ template<typename K, typename V>
 requires FromCanonical<
     typename std::unordered_map<K, V>::value_type>
 result<std::unordered_map<K, V>> from_canonical(
-    value const& v, tag_t<std::unordered_map<K, V>> ) {
-  converter conv( "std::unordered_map" );
+    converter& conv, value const& v, tag_t<std::unordered_map<K, V>> ) {
+  auto _ = conv.frame( "std::unordered_map<{}, {}>",
+                       base::demangled_typename<K>(),
+                       base::demangled_typename<V>());
   // clang-format on
   auto maybe_lst = v.get_if<list>();
   if( maybe_lst.has_value() )
     return detail::unordered_map_from_canonical_list<K, V>(
-        *maybe_lst );
+        conv, *maybe_lst );
   auto maybe_tbl = v.get_if<table>();
   if( maybe_tbl.has_value() )
     return detail::unordered_map_from_canonical_table<K, V>(
-        *maybe_tbl );
+        conv, *maybe_tbl );
   return conv.err(
       "producing a std::unordered_map requires either a list of "
       "pair objects or a table with string keys; instead found "
@@ -278,9 +300,11 @@ result<std::unordered_map<K, V>> from_canonical(
 
 template<FromCanonical T>
 result<std::unordered_set<T>> from_canonical(
-    value const& v, tag_t<std::unordered_set<T>> ) {
-  converter conv( "std::unordered_set" );
-  auto      maybe_lst = v.get_if<list>();
+    converter& conv, value const& v,
+    tag_t<std::unordered_set<T>> ) {
+  auto _         = conv.frame( "std::unordered_set<{}>",
+                               base::demangled_typename<T>() );
+  auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
         "producing a std::unordered_set requires type list, "
@@ -301,16 +325,18 @@ result<std::unordered_set<T>> from_canonical(
 ** std::unique_ptr
 *****************************************************************/
 template<ToCanonical T>
-value to_canonical( std::unique_ptr<T> const& o,
+value to_canonical( converter& conv, std::unique_ptr<T> const& o,
                     tag_t<std::unique_ptr<T>> ) {
   if( o == nullptr ) return null;
-  return to_canonical( *o );
+  return conv.to( *o );
 }
 
 template<FromCanonical T>
 result<std::unique_ptr<T>> from_canonical(
-    value const& v, tag_t<std::unique_ptr<T>> ) {
-  converter conv( "std::unique_ptr" );
+    converter& conv, value const& v,
+    tag_t<std::unique_ptr<T>> ) {
+  auto _ = conv.frame( "std::unique_ptr<{}>",
+                       base::demangled_typename<T>() );
   if( v == null ) return std::unique_ptr<T>{ nullptr };
   UNWRAP_RETURN( res, conv.from<T>( v ) );
   return std::make_unique<T>( std::move( res ) );

@@ -30,48 +30,51 @@ static_assert( Canonical<bool> );
 static_assert( !Canonical<long> );
 static_assert( !Canonical<float> );
 
-converter conv( "test" );
+converter conv;
 
 TEST_CASE( "[cdr/ext-builtin] int" ) {
   int n = 4;
 
-  REQUIRE( to_canonical( n ) == 4 );
-  REQUIRE( to_canonical( n ).holds<integer_type>() );
+  REQUIRE( conv.to( n ) == 4 );
+  REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv.from<int>( value{ n } ) == n );
   REQUIRE( conv.from<double>( value{ n } ) ==
-           error( "failed to convert cdr value of type integer "
-                  "to double." ) );
-  REQUIRE( conv.from<bool>( value{ n } ) ==
-           error( "failed to convert cdr value of type integer "
-                  "to bool." ) );
+           conv.err( "failed to convert value of type integer "
+                     "to double." ) );
+  REQUIRE(
+      conv.from<bool>( value{ n } ) ==
+      conv.err(
+          "failed to convert value of type integer to bool." ) );
 }
 
 TEST_CASE( "[cdr/ext-builtin] bool" ) {
   bool b = true;
 
-  REQUIRE( to_canonical( b ) == true );
-  REQUIRE( to_canonical( b ).holds<bool>() );
+  REQUIRE( conv.to( b ) == true );
+  REQUIRE( conv.to( b ).holds<bool>() );
   REQUIRE( conv.from<bool>( value{ b } ) == b );
   REQUIRE( conv.from<double>( value{ b } ) ==
-           error( "failed to convert cdr value of type boolean "
-                  "to double." ) );
-  REQUIRE( conv.from<int>( value{ b } ) ==
-           error( "failed to convert cdr value of type boolean "
-                  "to int." ) );
+           conv.err( "failed to convert value of type boolean "
+                     "to double." ) );
+  REQUIRE(
+      conv.from<int>( value{ b } ) ==
+      conv.err(
+          "failed to convert value of type boolean to int." ) );
 }
 
 TEST_CASE( "[cdr/ext-builtin] double" ) {
   double d = 5.5;
 
-  REQUIRE( to_canonical( d ) == 5.5 );
-  REQUIRE( to_canonical( d ).holds<double>() );
+  REQUIRE( conv.to( d ) == 5.5 );
+  REQUIRE( conv.to( d ).holds<double>() );
   REQUIRE( conv.from<double>( value{ d } ) == d );
   REQUIRE( conv.from<bool>( value{ d } ) ==
-           error( "failed to convert cdr value of type floating "
-                  "to bool." ) );
-  REQUIRE( conv.from<int>( value{ d } ) ==
-           error( "failed to convert cdr value of type floating "
-                  "to int." ) );
+           conv.err( "failed to convert value of type floating "
+                     "to bool." ) );
+  REQUIRE(
+      conv.from<int>( value{ d } ) ==
+      conv.err(
+          "failed to convert value of type floating to int." ) );
 }
 
 } // namespace
