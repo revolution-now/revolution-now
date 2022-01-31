@@ -33,8 +33,11 @@ std::string demangle( char const* name );
 
 // You need to include <typeinfo> in your module to call this.
 template<typename T>
-std::string demangled_typename() {
-  return demangle( typeid( T ).name() );
+std::string const& demangled_typename() {
+  static std::string const demangled = [] {
+    return demangle( typeid( T ).name() );
+  }();
+  return demangled;
 }
 
 template<typename... Types>

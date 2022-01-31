@@ -44,21 +44,22 @@ base::maybe<void*> try_udata( cthread L, int idx,
 
 // Get the canonical name for a userdata by type. For consis-
 // tency, this function should always be used whenever a name for
-// a userdata is needed. It is recommended to store the result of
-// this function in a local static variable so that it only needs
-// to be computed once.
+// a userdata is needed.
 template<typename T>
-std::string userdata_typename() {
-  static_assert( !std::is_rvalue_reference_v<T> );
-  static_assert( !std::is_pointer_v<T> );
-  std::string res;
-  using T1 = T;
-  if constexpr( std::is_reference_v<T1> ) res = res + "&";
-  using T2 = std::remove_reference_t<T1>;
-  if constexpr( std::is_const_v<T2> ) res = " const" + res;
-  using T3 = std::remove_const_t<T2>;
-  res      = base::demangled_typename<T3>() + res;
-  return res;
+std::string const& userdata_typename() {
+  static std::string const name = [] {
+    static_assert( !std::is_rvalue_reference_v<T> );
+    static_assert( !std::is_pointer_v<T> );
+    std::string res;
+    using T1 = T;
+    if constexpr( std::is_reference_v<T1> ) res = res + "&";
+    using T2 = std::remove_reference_t<T1>;
+    if constexpr( std::is_const_v<T2> ) res = " const" + res;
+    using T3 = std::remove_const_t<T2>;
+    res      = base::demangled_typename<T3>() + res;
+    return res;
+  }();
+  return name;
 }
 
 namespace detail {
