@@ -60,6 +60,7 @@ struct converter {
 
   template<FromCanonical T>
   result<std::remove_const_t<T>> from( value const& v ) {
+    auto _ = frame( base::demangled_typename<T>() );
     // The function called below should be found via ADL.
     auto res =
         from_canonical( *this, v, tag<std::remove_const_t<T>> );
@@ -104,11 +105,6 @@ struct converter {
     return frame( fmt::format( fmt::runtime( fmt_str ),
                                std::forward<Arg1>( arg1 ),
                                std::forward<Args>( args )... ) );
-  }
-
-  template<typename T>
-  scoped_frame frame( tag_t<T> ) {
-    return frame( base::demangled_typename<T>() );
   }
 
  private:

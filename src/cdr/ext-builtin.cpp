@@ -25,8 +25,7 @@ value to_canonical( converter&, int o, tag_t<int> ) {
 }
 
 result<int> from_canonical( converter& conv, value const& v,
-                            tag_t<int> tag ) {
-  auto _ = conv.frame( tag );
+                            tag_t<int> ) {
   if( !v.holds<integer_type>() )
     return conv.err(
         "failed to convert value of type {} to int.",
@@ -42,8 +41,7 @@ value to_canonical( converter&, bool o, tag_t<bool> ) {
 }
 
 result<bool> from_canonical( converter& conv, value const& v,
-                             tag_t<bool> tag ) {
-  auto _ = conv.frame( tag );
+                             tag_t<bool> ) {
   if( !v.holds<bool>() )
     return conv.err(
         "failed to convert value of type {} to bool.",
@@ -59,8 +57,7 @@ value to_canonical( converter&, double o, tag_t<double> ) {
 }
 
 result<double> from_canonical( converter& conv, value const& v,
-                               tag_t<double> tag ) {
-  auto _ = conv.frame( tag );
+                               tag_t<double> ) {
   if( !v.holds<double>() )
     return conv.err(
         "failed to convert value of type {} to double.",

@@ -23,8 +23,7 @@ value to_canonical( converter&, string const& o,
 }
 
 result<string> from_canonical( converter& conv, value const& v,
-                               tag_t<string> tag ) {
-  auto _         = conv.frame( tag );
+                               tag_t<string> ) {
   auto maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
     return conv.err(
@@ -51,8 +50,7 @@ value to_canonical( converter&, fs::path const& o,
 }
 
 result<fs::path> from_canonical( converter& conv, value const& v,
-                                 tag_t<fs::path> tag ) {
-  auto _         = conv.frame( tag );
+                                 tag_t<fs::path> ) {
   auto maybe_str = v.get_if<string>();
   if( !maybe_str.has_value() )
     return conv.err(
@@ -71,9 +69,7 @@ value to_canonical( converter&, chrono::seconds const& o,
 }
 
 result<chrono::seconds> from_canonical(
-    converter& conv, value const& v,
-    tag_t<chrono::seconds> tag ) {
-  auto _         = conv.frame( tag );
+    converter& conv, value const& v, tag_t<chrono::seconds> ) {
   auto maybe_int = v.get_if<integer_type>();
   if( !maybe_int.has_value() )
     return conv.err(

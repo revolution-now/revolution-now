@@ -81,8 +81,7 @@ value to_canonical( converter&, std::pair<Fst, Snd> const& o,
 template<FromCanonical Fst, FromCanonical Snd>
 result<std::pair<Fst, Snd>> from_canonical(
     converter& conv, value const& v,
-    tag_t<std::pair<Fst, Snd>> tag ) {
-  auto _         = conv.frame( tag );
+    tag_t<std::pair<Fst, Snd>> ) {
   auto maybe_tbl = v.get_if<table>();
   if( !maybe_tbl.has_value() )
     return conv.err(
@@ -125,8 +124,6 @@ template<FromCanonical T>
 result<std::vector<T>> from_canonical( converter&   conv,
                                        value const& v,
                                        tag_t<std::vector<T>> ) {
-  auto _         = conv.frame( "std::vector<{}>",
-                               base::demangled_typename<T>() );
   auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
@@ -152,9 +149,7 @@ result<std::vector<T>> from_canonical( converter&   conv,
 
 template<FromCanonical T, size_t N>
 result<std::array<T, N>> from_canonical(
-    converter& conv, value const& v,
-    tag_t<std::array<T, N>> tag ) {
-  auto _         = conv.frame( tag );
+    converter& conv, value const& v, tag_t<std::array<T, N>> ) {
   auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
@@ -274,9 +269,6 @@ requires FromCanonical<
     typename std::unordered_map<K, V>::value_type>
 result<std::unordered_map<K, V>> from_canonical(
     converter& conv, value const& v, tag_t<std::unordered_map<K, V>> ) {
-  auto _ = conv.frame( "std::unordered_map<{}, {}>",
-                       base::demangled_typename<K>(),
-                       base::demangled_typename<V>());
   // clang-format on
   auto maybe_lst = v.get_if<list>();
   if( maybe_lst.has_value() )
@@ -302,8 +294,6 @@ template<FromCanonical T>
 result<std::unordered_set<T>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::unordered_set<T>> ) {
-  auto _         = conv.frame( "std::unordered_set<{}>",
-                               base::demangled_typename<T>() );
   auto maybe_lst = v.get_if<list>();
   if( !maybe_lst.has_value() )
     return conv.err(
@@ -335,8 +325,6 @@ template<FromCanonical T>
 result<std::unique_ptr<T>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::unique_ptr<T>> ) {
-  auto _ = conv.frame( "std::unique_ptr<{}>",
-                       base::demangled_typename<T>() );
   if( v == null ) return std::unique_ptr<T>{ nullptr };
   UNWRAP_RETURN( res, conv.from<T>( v ) );
   return std::make_unique<T>( std::move( res ) );
