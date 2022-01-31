@@ -36,7 +36,7 @@ TEST_CASE( "[cdr/ext-builtin] int" ) {
   int n = 4;
 
   REQUIRE( to_canonical( n ) == 4 );
-  REQUIRE( to_canonical( n ).holds<int>() );
+  REQUIRE( to_canonical( n ).holds<integer_type>() );
   REQUIRE( conv.from<int>( value{ n } ) == n );
   REQUIRE( conv.from<double>( value{ n } ) ==
            error( "failed to convert cdr value of type integer "

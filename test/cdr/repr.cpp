@@ -21,6 +21,9 @@ namespace {
 
 using namespace std;
 
+static_assert( std::ranges::range<table> );
+static_assert( std::ranges::range<list> );
+
 TEST_CASE( "[cdr] value" ) {
   using namespace ::cdr::literals;
 
@@ -41,15 +44,15 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( type_name( v ) == "floating" );
 
   v = 5;
-  REQUIRE( v.is<int>() );
+  REQUIRE( v.is<integer_type>() );
   REQUIRE( type_name( v ) == "integer" );
 
   value v2{ 5 };
-  REQUIRE( v2.is<int>() );
+  REQUIRE( v2.is<integer_type>() );
   REQUIRE( type_name( v ) == "integer" );
 
   v = 5_val;
-  REQUIRE( v.is<int>() );
+  REQUIRE( v.is<integer_type>() );
   REQUIRE( type_name( v ) == "integer" );
 
   v = true;
@@ -168,8 +171,10 @@ TEST_CASE( "[cdr] complex" ) {
 
   REQUIRE( doc["three"].is<list>() );
   REQUIRE( doc["three"].as<list>()[0].is<table>() );
-  REQUIRE(
-      doc["three"].as<list>()[0].as<table>()["yes"].is<int>() );
+  REQUIRE( doc["three"]
+               .as<list>()[0]
+               .as<table>()["yes"]
+               .is<integer_type>() );
   REQUIRE( doc["three"].as<list>()[0].as<table>()["yes"] ==
            333 );
 
@@ -215,7 +220,7 @@ TEST_CASE( "[cdr] to_str" ) {
   v = 5.5;
   REQUIRE( base::to_str( v ) == "5.5" );
 
-  // int
+  // integer_type
   v = 5;
   REQUIRE( base::to_str( v ) == "5" );
 

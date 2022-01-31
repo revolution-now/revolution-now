@@ -29,19 +29,59 @@ using namespace std;
 
 converter conv( "test" );
 
+TEST_CASE( "[cdr/ext-std] string" ) {
+  SECTION( "to_canonical" ) {
+    REQUIRE( to_canonical( "hello"s ) == string( "hello" ) );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv.from<string>( "hello" ) == "hello" );
+    REQUIRE( conv.from<string>( 5 ) ==
+             error( "producing a std::string requires type "
+                    "string, instead found type integer." ) );
+  }
+}
+
+TEST_CASE( "[cdr/ext-std] std::filesystem::path" ) {
+  SECTION( "to_canonical" ) {
+    REQUIRE( to_canonical( fs::path( "hello" ) ) ==
+             string( "hello" ) );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv.from<fs::path>( "hello" ) == "hello" );
+    REQUIRE(
+        conv.from<fs::path>( 5 ) ==
+        error( "producing a std::filesystem::path requires type "
+               "string, instead found type integer." ) );
+  }
+}
+
+TEST_CASE( "[cdr/ext-std] chrono::seconds" ) {
+  SECTION( "to_canonical" ) {
+    REQUIRE( to_canonical( chrono::seconds{ 5 } ) == 5 );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv.from<chrono::seconds>( 5 ) ==
+             chrono::seconds{ 5 } );
+    REQUIRE(
+        conv.from<chrono::seconds>( "5" ) ==
+        error( "producing a std::chrono::seconds requires type "
+               "integer, instead found type string." ) );
+  }
+}
+
 TEST_CASE( "[cdr/ext-std] pair" ) {
   SECTION( "to_canonical" ) {
     pair<int, bool> p{ 5, true };
     REQUIRE( to_canonical( p ) ==
-             table{ { "fst", 5 }, { "snd", true } } );
+             table{ { "key", 5 }, { "val", true } } );
   }
   SECTION( "from_canonical" ) {
     REQUIRE( conv.from<pair<int, bool>>(
-                 table{ { "fst", 5 }, { "snd", true } } ) ==
+                 table{ { "key", 5 }, { "val", true } } ) ==
              pair<int, bool>{ 5, true } );
     REQUIRE( conv.from<pair<int, bool>>(
-                 table{ { "fxt", 5 }, { "snd", true } } ) ==
-             error( "table must have both a 'fst' and 'snd' "
+                 table{ { "fxt", 5 }, { "val", true } } ) ==
+             error( "table must have both a 'key' and 'val' "
                     "field for conversion to std::pair." ) );
     REQUIRE( conv.from<pair<int, bool>>( 5 ) ==
              error( "producing a std::pair requires type "
@@ -93,7 +133,7 @@ TEST_CASE( "[cdr/ext-std] array" ) {
   }
 }
 
-TEST_CASE( "[cdr/ext-std] unordered_map" ) {
+TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
   SECTION( "to_canonoical" ) {
     unordered_map<int, double> empty;
     REQUIRE( to_canonical( empty ) == list{} );
@@ -101,18 +141,84 @@ TEST_CASE( "[cdr/ext-std] unordered_map" ) {
     value                      v1 = to_canonical( m1 );
     REQUIRE(
         ( ( v1 ==
-            list{ table{ { "fst", 3 }, { "snd", 5.5 } },
-                  table{ { "fst", 4 }, { "snd", 7.7 } } } ) ||
+            list{ table{ { "key", 3 }, { "val", 5.5 } },
+                  table{ { "key", 4 }, { "val", 7.7 } } } ) ||
           ( v1 ==
-            list{ table{ { "fst", 4 }, { "snd", 7.7 } },
-                  table{ { "fst", 3 }, { "snd", 5.5 } } } ) ) );
+            list{ table{ { "key", 4 }, { "val", 7.7 } },
+                  table{ { "key", 3 }, { "val", 5.5 } } } ) ) );
   }
   SECTION( "from_canonoical" ) {
+    // Here we can convert from either a table or a list, but
+    // here we are testing the list version.
     using M = unordered_map<string, int>;
     M     expected{ { "one", 1 }, { "two", 2 } };
-    value v = list{ table{ { "fst", "one" }, { "snd", 1 } },
-                    table{ { "fst", "two" }, { "snd", 2 } } };
+    value v = list{ table{ { "key", "one" }, { "val", 1 } },
+                    table{ { "key", "two" }, { "val", 2 } } };
     REQUIRE( conv.from<M>( v ) == expected );
+  }
+}
+
+TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
+  SECTION( "to_canonoical" ) {
+    // Here we have string keys, so it should convert to a Cdr
+    // table.
+    unordered_map<string, double> empty;
+    REQUIRE( to_canonical( empty ) == table{} );
+    unordered_map<string, double> m1{ { "3", 5.5 },
+                                      { "4", 7.7 } };
+
+    value v1 = to_canonical( m1 );
+    REQUIRE( v1 == table{ { "3", 5.5 }, { "4", 7.7 } } );
+    unordered_map<string_view, double> m2{ { "3", 5.5 },
+                                           { "4", 7.7 } };
+
+    value v2 = to_canonical( m2 );
+    REQUIRE( v2 == table{ { "3", 5.5 }, { "4", 7.7 } } );
+  }
+  SECTION( "from_canonoical" ) {
+    // Here we can convert from either a table or a list, but
+    // here we are testing the table version.
+    using M = unordered_map<string, int>;
+    M     expected{ { "one", 1 }, { "two", 2 } };
+    value v = table{ { "one", 1 }, { "two", 2 } };
+    REQUIRE( conv.from<M>( v ) == expected );
+  }
+}
+
+TEST_CASE( "[cdr/ext-std] unordered_set" ) {
+  SECTION( "to_canonoical" ) {
+    unordered_set<string> empty;
+    REQUIRE( to_canonical( empty ) == list{} );
+    unordered_set<string> m1{ "hello", "world" };
+    value                 v1 = to_canonical( m1 );
+    REQUIRE( ( ( v1 == list{ "hello", "world" } ) ||
+               ( v1 == list{ "world", "hello" } ) ) );
+  }
+  SECTION( "from_canonoical" ) {
+    using M = unordered_set<int>;
+    M     expected{ 1, 2, 3 };
+    value v = list{ 2, 3, 3, 1, 2, 1, 1 };
+    REQUIRE( conv.from<M>( v ) == expected );
+  }
+}
+
+TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
+  SECTION( "to_canonoical" ) {
+    unique_ptr<string> empty;
+    REQUIRE( to_canonical( empty ) == null );
+    auto  u = make_unique<string>( "hello" );
+    value v = to_canonical( u );
+    REQUIRE( v == "hello" );
+  }
+  SECTION( "from_canonoical" ) {
+    REQUIRE( conv.from<unique_ptr<string>>( null ) ==
+             unique_ptr<string>( nullptr ) );
+    value                      v = "hello";
+    result<unique_ptr<string>> res =
+        conv.from<unique_ptr<string>>( v );
+    REQUIRE( res.has_value() );
+    REQUIRE( *res != nullptr );
+    REQUIRE( **res == "hello" );
   }
 }
 

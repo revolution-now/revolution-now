@@ -32,8 +32,8 @@ TEST_CASE( "[cdr/converter] unordered_map" ) {
   converter conv( "test" );
 
   using M   = unordered_map<string, int>;
-  value v   = list{ table{ { "fst", "one" }, { "snd", 1 } },
-                  table{ { "fst", "two" }, { "snd", "2" } } };
+  value v   = list{ table{ { "key", "one" }, { "val", 1 } },
+                  table{ { "key", "two" }, { "val", "2" } } };
   auto  res = conv.from<M>( v );
   REQUIRE( res.has_error() );
   REQUIRE( base::to_str( res.error() ) ==

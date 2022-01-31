@@ -20,15 +20,17 @@ namespace cdr {
 /****************************************************************
 ** int
 *****************************************************************/
-value to_canonical( int o, tag_t<int> ) { return value{ o }; }
+value to_canonical( int o, tag_t<int> ) {
+  return value{ integer_type{ o } };
+}
 
 result<int> from_canonical( value const& v, tag_t<int> ) {
   converter conv( "int" );
-  if( !v.holds<int>() )
+  if( !v.holds<integer_type>() )
     return conv.err(
         "failed to convert cdr value of type {} to int.",
         type_name( v ) );
-  return v.get<int>();
+  return v.get<integer_type>();
 }
 
 /****************************************************************

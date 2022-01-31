@@ -76,6 +76,8 @@ void to_str( table const& o, std::string& out, base::ADL_t ) {
   out += '}';
 }
 
+void table::reserve( size_t elems ) { o_->reserve( elems ); }
+
 /****************************************************************
 ** list
 *****************************************************************/
@@ -106,7 +108,9 @@ string_view type_name( value const& v ) {
   struct visitor {
     string_view operator()( null_t ) const { return "null"; }
     string_view operator()( double ) const { return "floating"; }
-    string_view operator()( int ) const { return "integer"; }
+    string_view operator()( integer_type ) const {
+      return "integer";
+    }
     string_view operator()( bool ) const { return "boolean"; }
     string_view operator()( string ) const { return "string"; }
     string_view operator()( table ) const { return "table"; }

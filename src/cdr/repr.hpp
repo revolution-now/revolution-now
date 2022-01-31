@@ -126,6 +126,8 @@ struct table {
   auto begin() const;
   auto end() const;
 
+  void reserve( size_t elems );
+
   friend void to_str( table const& o, std::string& out,
                       ::base::ADL_t );
 
@@ -206,12 +208,14 @@ void to_str( list const& o, std::string& out, ::base::ADL_t );
 /****************************************************************
 ** value
 *****************************************************************/
+using integer_type = long;
+
 // The order of these matters since 1) affects conversions and
 // how the alternative is selected upon assignment (I think), and
 // 2) null should be first so that a default-constructed value
 // object will default to it.
-using value_base = base::variant<null_t, double, int, bool,
-                                 std::string, table, list>;
+using value_base = base::variant<null_t, double, integer_type,
+                                 bool, std::string, table, list>;
 
 struct value : public value_base {
   using base = value_base;
@@ -263,7 +267,7 @@ inline value operator""_val( long double d ) {
 }
 
 inline value operator""_val( unsigned long long i ) {
-  return value{ int( i ) };
+  return value{ integer_type( i ) };
 }
 
 } // namespace literals
