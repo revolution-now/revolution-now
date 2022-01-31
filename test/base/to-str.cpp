@@ -36,6 +36,13 @@ TEST_CASE( "[to-str] int" ) {
   REQUIRE( call_to_str( 1234 ) == "1234" );
 }
 
+TEST_CASE( "[to-str] long" ) {
+  REQUIRE( call_to_str( -1L ) == "-1" );
+  REQUIRE( call_to_str( 0L ) == "0" );
+  REQUIRE( call_to_str( 5L ) == "5" );
+  REQUIRE( call_to_str( 1234L ) == "1234" );
+}
+
 TEST_CASE( "[to-str] double" ) {
   REQUIRE( call_to_str( -1.0 ) == "-1" );
   REQUIRE( call_to_str( 0.0 ) == "0" );

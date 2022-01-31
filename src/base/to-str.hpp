@@ -26,6 +26,7 @@
 namespace base {
 
 void to_str( int const& o, std::string& out, ADL_t );
+void to_str( long const& o, std::string& out, ADL_t );
 void to_str( char o, std::string& out, ADL_t );
 void to_str( double o, std::string& out, ADL_t );
 void to_str( std::string_view o, std::string& out, ADL_t );
