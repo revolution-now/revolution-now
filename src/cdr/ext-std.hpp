@@ -73,28 +73,24 @@ result<std::chrono::seconds> from_canonical(
 ** std::pair
 *****************************************************************/
 template<ToCanonical Fst, ToCanonical Snd>
-value to_canonical( converter&, std::pair<Fst, Snd> const& o,
+value to_canonical( converter&                 conv,
+                    std::pair<Fst, Snd> const& o,
                     tag_t<std::pair<Fst, Snd>> ) {
-  return table{ { "key", o.first }, { "val", o.second } };
+  table tbl;
+  conv.to_field( tbl, "key", o.first );
+  conv.to_field( tbl, "val", o.second );
+  return tbl;
 }
 
 template<FromCanonical Fst, FromCanonical Snd>
 result<std::pair<Fst, Snd>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::pair<Fst, Snd>> ) {
-  auto maybe_tbl = v.get_if<table>();
-  if( !maybe_tbl.has_value() )
-    return conv.err(
-        "producing a std::pair requires type table, instead "
-        "found type {}.",
-        type_name( v ) );
-  table const& tbl = *maybe_tbl;
-  if( !tbl.contains( "key" ) || !tbl.contains( "val" ) )
-    return conv.err(
-        "table must have both a 'key' and 'val' field for "
-        "conversion to std::pair." );
+  UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
+  conv.start_field_tracking();
   UNWRAP_RETURN( fst, conv.from_field<Fst>( tbl, "key" ) );
   UNWRAP_RETURN( snd, conv.from_field<Snd>( tbl, "val" ) );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl ) );
   return std::pair<Fst, Snd>{ std::move( fst ),
                               std::move( snd ) };
 }
@@ -124,13 +120,7 @@ template<FromCanonical T>
 result<std::vector<T>> from_canonical( converter&   conv,
                                        value const& v,
                                        tag_t<std::vector<T>> ) {
-  auto maybe_lst = v.get_if<list>();
-  if( !maybe_lst.has_value() )
-    return conv.err(
-        "producing a std::vector requires type list, instead "
-        "found type {}.",
-        type_name( v ) );
-  list const&    lst = *maybe_lst;
+  UNWRAP_RETURN( lst, conv.ensure_type<list>( v ) );
   std::vector<T> res;
   res.reserve( lst.size() );
   for( int idx = 0; idx < lst.ssize(); ++idx ) {
@@ -148,18 +138,8 @@ result<std::vector<T>> from_canonical( converter&   conv,
 template<FromCanonical T, size_t N>
 result<std::array<T, N>> from_canonical(
     converter& conv, value const& v, tag_t<std::array<T, N>> ) {
-  auto maybe_lst = v.get_if<list>();
-  if( !maybe_lst.has_value() )
-    return conv.err(
-        "producing a std::array requires type list, instead "
-        "found type {}.",
-        type_name( v ) );
-  list const& lst = *maybe_lst;
-  if( lst.size() != N )
-    return conv.err(
-        "expected list of size {} for producing std::array of "
-        "that same size, instead found size {}.",
-        N, lst.size() );
+  UNWRAP_RETURN( lst, conv.ensure_type<list>( v ) );
+  HAS_VALUE_OR_RET( conv.ensure_list_size( lst, N ) );
   std::array<T, N> res;
   for( int idx = 0; idx < lst.ssize(); ++idx ) {
     UNWRAP_RETURN( val, conv.from_index<T>( lst, idx ) );
@@ -177,13 +157,14 @@ result<std::array<T, N>> from_canonical(
 // a Cdr table (whose keys must always be strings), whereas
 // unordered_maps with any other key type must be converted to a
 // list of pairs.
-// clang-format off
-template<typename K, typename V>
-requires ToCanonical<
-    typename std::unordered_map<K, V>::value_type>
-value to_canonical( converter& conv, std::unordered_map<K, V> const& o,
+template<ToCanonical K, ToCanonical V>
+value to_canonical( converter&                      conv,
+                    std::unordered_map<K, V> const& o,
                     tag_t<std::unordered_map<K, V>> ) {
-  // clang-format on
+  // Note: here we don't use conv.to_field because map keys are
+  // not really "fields" of a struct; e.g., we don't necessarily
+  // want them to be ommitted when they have default values, even
+  // when that serialization mode is enabled.
   if constexpr( std::is_constructible_v<std::string, K> ) {
     table res;
     res.reserve( o.size() );
@@ -197,9 +178,6 @@ value to_canonical( converter& conv, std::unordered_map<K, V> const& o,
     return res;
   }
 }
-
-// Put this here to fix a weird clang-format issue.
-inline constexpr int fix_clang_format = 0;
 
 namespace detail {
 
@@ -244,9 +222,9 @@ unordered_map_from_canonical_table( converter&   conv,
       key_str = base::to_str( key );
     else
       key_str = "<unformattable>";
-    if( res.contains( key ) )
-      return conv.err( "map contains duplicate key {}.",
-                       key_str );
+    // There should never be a duplicate key even upon invalid
+    // user input because `tbl` is backed by a real map.
+    CHECK( !res.contains( key ) );
     UNWRAP_RETURN( val, conv.from_field<V>( tbl, k ) );
     res[std::move( key )] = std::move( val );
   }
@@ -286,17 +264,11 @@ template<FromCanonical T>
 result<std::unordered_set<T>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::unordered_set<T>> ) {
-  auto maybe_lst = v.get_if<list>();
-  if( !maybe_lst.has_value() )
-    return conv.err(
-        "producing a std::unordered_set requires type list, "
-        "instead found type {}.",
-        type_name( v ) );
-  list const&           lst = *maybe_lst;
+  UNWRAP_RETURN( lst, conv.ensure_type<list>( v ) );
   std::unordered_set<T> res;
   res.reserve( lst.size() );
-  for( value const& elem : lst ) {
-    UNWRAP_RETURN( val, conv.from<T>( elem ) );
+  for( int idx = 0; idx < lst.ssize(); ++idx ) {
+    UNWRAP_RETURN( val, conv.from_index<T>( lst, idx ) );
     // We don't complain on duplicate elements here.
     res.insert( val );
   }

@@ -24,13 +24,8 @@ value to_canonical( converter&, string const& o,
 
 result<string> from_canonical( converter& conv, value const& v,
                                tag_t<string> ) {
-  auto maybe_str = v.get_if<string>();
-  if( !maybe_str.has_value() )
-    return conv.err(
-        "producing a std::string requires type string, instead "
-        "found type {}.",
-        type_name( v ) );
-  return *maybe_str;
+  UNWRAP_RETURN( str, conv.ensure_type<string>( v ) );
+  return str;
 }
 
 /****************************************************************
@@ -51,13 +46,8 @@ value to_canonical( converter&, fs::path const& o,
 
 result<fs::path> from_canonical( converter& conv, value const& v,
                                  tag_t<fs::path> ) {
-  auto maybe_str = v.get_if<string>();
-  if( !maybe_str.has_value() )
-    return conv.err(
-        "producing a std::filesystem::path requires type "
-        "string, instead found type {}.",
-        type_name( v ) );
-  return *maybe_str;
+  UNWRAP_RETURN( str, conv.ensure_type<string>( v ) );
+  return str;
 }
 
 /****************************************************************
@@ -70,13 +60,8 @@ value to_canonical( converter&, chrono::seconds const& o,
 
 result<chrono::seconds> from_canonical(
     converter& conv, value const& v, tag_t<chrono::seconds> ) {
-  auto maybe_int = v.get_if<integer_type>();
-  if( !maybe_int.has_value() )
-    return conv.err(
-        "producing a std::chrono::seconds requires type "
-        "integer, instead found type {}.",
-        type_name( v ) );
-  return chrono::seconds{ *maybe_int };
+  UNWRAP_RETURN( n, conv.ensure_type<integer_type>( v ) );
+  return chrono::seconds{ n };
 }
 
 } // namespace cdr

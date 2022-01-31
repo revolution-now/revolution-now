@@ -16,6 +16,10 @@
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/valid.hpp"
+
+// C++ standard library
+#include <unordered_set>
 
 namespace cdr {
 
@@ -23,29 +27,42 @@ namespace cdr {
 ** converter
 *****************************************************************/
 // This is a helper object that is used to do Cdr conversions to
-// and from C++ types. Instead of calling to_canonical or
-// from_canonical directly, you must use a converter object (even
-// inside the implementations of to_canonical and from_canonical
-// extensions) because it does two things for us: 1) It is used
-// to keep track of the back trace when propagating errors gener-
-// ated from from_canonical, and 2) it holds conversion options
-// used to customize the behaviors of the conversions.
+// and from C++ types. It is created once at the start of a con-
+// version operation and it is threaded down through all of the
+// nested fields, allowing it to gather information as it goes,
+// which is useful for error checking.
+//
+// Instead of calling to_canonical or from_canonical directly,
+// you must use a converter object (even inside the implementa-
+// tions of to_canonical and from_canonical extensions) because
+// it does two things for us: 1) It is used to keep track of the
+// backtrace when propagating errors generated from
+// from_canonical, and 2) it holds conversion options used to
+// customize the behaviors of the conversions.
 //
 // Note that when initiating a conversion at the top level you
-// should use the functions:
+// should use these functions:
 //
 //   run_conversion_from_canonical
 //   run_conversion_to_canonical
 //
-// Further below instead of manually creating a converter.
+// further below instead of manually creating a converter. Fur-
+// thermore, when implementing from_canonical and to_canonical,
+// you should avoid using the bare `from` and `to` by default;
+// instead you should prefer the specialized ones, such as e.g.
+// from_field or to_field and only fall back to the `from` and
+// `to` when you have a reason (usually this will only apply to
+// "special" types such as containers that aren't simple lists or
+// records).
 //
 struct converter {
   struct options {
-    // TODO: add options here for how to deal with:
-    //
-    //   1. missing fields.
-    //   2. extra unrecognized fields.
-    //   3. fields that hold their default value.
+    // Options for to_canonical.
+    bool write_fields_with_default_value = true;
+
+    // Options for from_canonical.
+    bool allow_unrecognized_fields        = false;
+    bool default_construct_missing_fields = false;
   };
 
   converter() = default;
@@ -69,9 +86,16 @@ struct converter {
   result<std::remove_const_t<T>> from_field(
       table const& tbl, std::string const& key ) {
     auto _ = frame( "value for key '{}'", key );
+    used_keys_.insert( key );
     base::maybe<value const&> val = tbl[key];
-    if( !val.has_value() )
-      return error( "key {} not found in table.", key );
+    if( !val.has_value() ) {
+      static_assert( std::is_default_constructible_v<
+                     std::remove_const_t<T>> );
+      if( options_.default_construct_missing_fields )
+        return T{};
+      else
+        return error( "key '{}' not found in table.", key );
+    }
     return from<T>( *val );
   }
 
@@ -91,6 +115,38 @@ struct converter {
     return res;
   }
 
+  // Ensure that the type T is in the `value` variant.
+  template<typename T>
+  result<T const&> ensure_type( value const& v ) {
+    if( !v.holds<T>() )
+      return err( "expected type {}, instead found type {}.",
+                  type_name( value{ T{} } ), type_name( v ) );
+    return v.get<T>();
+  }
+
+  // Ensure that the given list has the given size.
+  base::valid_or<error> ensure_list_size( list const& lst,
+                                          int expected_size );
+
+  // Call this just before you start calling from_field on the
+  // fields of a record object. Don't forget to call
+  // end_field_tracking when finished.
+  void start_field_tracking();
+
+  // Call this and check the result when finished calling
+  // from_field on the fields of a record object.
+  base::valid_or<error> end_field_tracking( table const& tbl );
+
+  template<ToCanonical T>
+  void to_field( table& tbl, std::string const& key,
+                 T const& o ) {
+    if( !options_.write_fields_with_default_value && o == T{} )
+      return;
+    tbl[key] = to( o );
+  }
+
+  // Prefer to call to_field when dealing with named fields of
+  // records.
   template<ToCanonical T>
   value to( T const& o ) {
     (void)options_;
@@ -100,6 +156,16 @@ struct converter {
 
   // If there was an error then this will have the frames.
   std::vector<std::string> const& error_stack() const;
+
+  // If the converter contains an error then this will format the
+  // back trace into something readable. If the converter does
+  // not contain an error, it will return something unspecified
+  // (don't call it in that case).
+  std::string dump_error_stack() const;
+
+  // Takes an error object and returns a new one containing not
+  // only the original error, but also a formatted backtrace.
+  error from_canonical_readable_error( error const& err ) const;
 
  private:
   struct scoped_frame {
@@ -129,20 +195,25 @@ struct converter {
                                std::forward<Args>( args )... ) );
   }
 
-  options                  options_ = {};
-  std::vector<std::string> frames_  = {};
+  options options_ = {};
+
+  // Backtrace frames that are accumulated during the conversion
+  // process.
+  std::vector<std::string> frames_ = {};
+
   // These are the frames as they were on the most recent call to
   // generate an error. This gets reset when a call to
   // from_canonical is made that succeeds.
   std::vector<std::string> frames_on_error_ = {};
-};
 
-// If the converter contains an error then this will format the
-// back trace into something readable. If the converter does not
-// contain an error, it will return something unspecified (don't
-// call it in that case).
-std::string dump_error_stack(
-    std::vector<std::string> const& frames );
+  // This is used in "field tracking mode"; in this mode, one
+  // first calls start_field_tracking, then calls `from_field`
+  // repeatedly, and each field requested will be recorded here.
+  // Then one calls end_field_tracking, which checks whether
+  // there are any extra unused keys in the table and returns an
+  // error (if that is enabled in the options).
+  std::unordered_set<std::string> used_keys_ = {};
+};
 
 /****************************************************************
 ** Conversion Orchestration.
@@ -156,11 +227,7 @@ result<T> run_conversion_from_canonical(
   converter conv( std::move( opts ) );
   result<T> res = conv.from<T>( v );
   if( res.has_value() ) return res;
-  // We have an error.
-  std::string err =
-      fmt::format( "message: {}\n", res.error().what() ) +
-      dump_error_stack( conv.error_stack() );
-  return conv.err( std::move( err ) );
+  return conv.from_canonical_readable_error( res.error() );
 }
 
 template<typename T>
@@ -169,5 +236,24 @@ value run_conversion_to_canonical(
   converter conv( std::move( opts ) );
   return conv.to( o );
 }
+
+/****************************************************************
+** Testing Helpers.
+*****************************************************************/
+namespace testing {
+
+// This will add the backtrace into the error message upon fail-
+// ure, so that the unit testing framework will automatically
+// show it if a test fails.
+template<FromCanonical T>
+result<T> conv_from_bt( value const& v ) {
+  static converter conv;
+  auto             res = conv.from<T>( v );
+  if( !res.has_value() )
+    return conv.from_canonical_readable_error( res.error() );
+  return res;
+};
+
+} // namespace testing
 
 } // namespace cdr

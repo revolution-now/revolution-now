@@ -24,6 +24,8 @@ namespace {
 
 using namespace std;
 
+using ::cdr::testing::conv_from_bt;
+
 static_assert( Canonical<int> );
 static_assert( Canonical<double> );
 static_assert( Canonical<bool> );
@@ -37,7 +39,7 @@ TEST_CASE( "[cdr/ext-builtin] int" ) {
 
   REQUIRE( conv.to( n ) == 4 );
   REQUIRE( conv.to( n ).holds<integer_type>() );
-  REQUIRE( conv.from<int>( value{ n } ) == n );
+  REQUIRE( conv_from_bt<int>( value{ n } ) == n );
   REQUIRE( conv.from<double>( value{ n } ) ==
            conv.err( "failed to convert value of type integer "
                      "to double." ) );
@@ -52,7 +54,7 @@ TEST_CASE( "[cdr/ext-builtin] bool" ) {
 
   REQUIRE( conv.to( b ) == true );
   REQUIRE( conv.to( b ).holds<bool>() );
-  REQUIRE( conv.from<bool>( value{ b } ) == b );
+  REQUIRE( conv_from_bt<bool>( value{ b } ) == b );
   REQUIRE( conv.from<double>( value{ b } ) ==
            conv.err( "failed to convert value of type boolean "
                      "to double." ) );
@@ -67,7 +69,7 @@ TEST_CASE( "[cdr/ext-builtin] double" ) {
 
   REQUIRE( conv.to( d ) == 5.5 );
   REQUIRE( conv.to( d ).holds<double>() );
-  REQUIRE( conv.from<double>( value{ d } ) == d );
+  REQUIRE( conv_from_bt<double>( value{ d } ) == d );
   REQUIRE( conv.from<bool>( value{ d } ) ==
            conv.err( "failed to convert value of type floating "
                      "to bool." ) );
