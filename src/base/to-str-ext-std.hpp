@@ -22,6 +22,7 @@
 // C++ standard library
 #include <chrono>
 #include <deque>
+#include <map>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -73,6 +74,20 @@ void to_str( std::unordered_map<K, V> const& o, std::string& out,
   out += "]";
 };
 
+// {fmt} formatter for formatting map whose contained types are
+// formattable.
+template<Show K, Show V>
+void to_str( std::map<K, V> const& o, std::string& out, ADL_t ) {
+  out += "[";
+  for( auto const& [k, v] : o )
+    out += fmt::format( "({},{}),", k, v );
+  if( !o.empty() )
+    // Remove trailing comma.
+    out.resize( out.size() - 1 );
+  out += "]";
+};
+
+// {fmt} formatter for formatting unordered_sets whose contained
 // {fmt} formatter for formatting unordered_sets whose contained
 // types are formattable.
 template<Show T>
