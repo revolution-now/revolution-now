@@ -19,6 +19,7 @@
 
 // C++ standard library
 #include <concepts>
+#include <map>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -167,7 +168,6 @@ value to_canonical( converter&                      conv,
   // when that serialization mode is enabled.
   if constexpr( std::is_constructible_v<std::string, K> ) {
     table res;
-    res.reserve( o.size() );
     for( auto const& [k, v] : o )
       res[std::string( k )] = conv.to( v );
     return res;

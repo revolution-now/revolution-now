@@ -76,8 +76,6 @@ void to_str( table const& o, std::string& out, base::ADL_t ) {
   out += '}';
 }
 
-void table::reserve( size_t elems ) { o_->reserve( elems ); }
-
 /****************************************************************
 ** list
 *****************************************************************/

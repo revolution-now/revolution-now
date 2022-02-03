@@ -18,8 +18,8 @@
 
 // C++ standard library
 #include <concepts>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace cdr {
@@ -65,16 +65,30 @@ inline constexpr null_t null;
 *****************************************************************/
 // This is the map type used to represent tables. We make this a
 // template but limit the type to `value`. We can't refer to
-// unordered_map<string, value> at this point because `value` is
-// an incomplete type due to the cyclic dependency between
-// `table` and `value`.
+// map<string, value> at this point because `value` is an incom-
+// plete type due to the cyclic dependency between `table` and
+// `value`.
 //
 // This alias probably can't be used when constructing maps using
 // braced initialization because it probably won't be able to de-
-// tect the type of V. Instead just use the underlying
-// std::unordered_map for that.
+// tect the type of V. Instead just use the underlying std::map
+// for that.
+//
+// Use std::map instead of std::unordered_map so that we get a
+// stable ordering of map elements, which is useful generally fo
+// getting deterministic results when converting, serializing,
+// and testing these things. Performance-wise, std::map should
+// not be a problem (or at least any worse than
+// std::unordered_map) for this use case, because 1)
+// unordered_map does a heap allocation per node just like
+// std::map, and 2) these Cdr tables are really meant to be
+// short-lived and to be iterated over (a use case where std::map
+// excels) as opposed to being long-lived and queried many times
+// for specific keys (a use case where unordered_map would ex-
+// cel). Hence, std::map might be more performant here than
+// unordered_map, but no profiling was done.
 template<std::same_as<value> V>
-using MapTo = std::unordered_map<std::string, V>;
+using MapTo = std::map<std::string, V>;
 
 // Writing this is a bit tricky because the table depends on
 // `value`, but `value` is an incomplete type at this point, so
@@ -125,8 +139,6 @@ struct table {
 
   auto begin() const;
   auto end() const;
-
-  void reserve( size_t elems );
 
   friend void to_str( table const& o, std::string& out,
                       ::base::ADL_t );
