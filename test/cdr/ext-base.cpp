@@ -58,5 +58,32 @@ TEST_CASE( "[ext-base] maybe" ) {
   }
 }
 
+TEST_CASE( "[ext-base] heap_value" ) {
+  using ::base::heap_value;
+  static_assert( Canonical<heap_value<int>> );
+  static_assert( Canonical<heap_value<string>> );
+  SECTION( "to_canonical" ) {
+    heap_value<string> m = "hello";
+    REQUIRE( conv.to( m ) == string( "hello" ) );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<heap_value<int>>( conv, 5 ) == 5 );
+    REQUIRE( conv_from_bt<heap_value<string>>( conv, "5" ) ==
+             "5" );
+    REQUIRE( conv.from<heap_value<string>>( 5 ) ==
+             conv.err( "expected type string, instead found "
+                       "type integer." ) );
+  }
+}
+
+TEST_CASE( "[ext-base] base::variant" ) {
+  SECTION( "to_canonical" ) {
+    static_assert( !ToCanonical<base::variant<int, string>> );
+  }
+  SECTION( "from_canonical" ) {
+    static_assert( !FromCanonical<base::variant<int, string>> );
+  }
+}
+
 } // namespace
 } // namespace cdr

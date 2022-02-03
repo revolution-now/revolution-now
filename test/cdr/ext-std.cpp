@@ -292,5 +292,14 @@ TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
   }
 }
 
+TEST_CASE( "[cdr/ext-std] std::variant" ) {
+  SECTION( "to_canonical" ) {
+    static_assert( !ToCanonical<std::variant<int, string>> );
+  }
+  SECTION( "from_canonical" ) {
+    static_assert( !FromCanonical<std::variant<int, string>> );
+  }
+}
+
 } // namespace
 } // namespace cdr

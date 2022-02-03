@@ -16,10 +16,15 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// C++ standard library
+#include <experimental/type_traits>
+
 namespace base {
 namespace {
 
 using namespace std;
+
+using ::std::experimental::is_detected_v;
 
 struct MoveOnly {
   MoveOnly() = default;
@@ -59,6 +64,10 @@ static_assert( is_move_assignable_v<HV<string>> );
 static_assert( is_nothrow_move_constructible_v<HV<string>> );
 static_assert( is_nothrow_move_assignable_v<HV<string>> );
 static_assert( !std::is_convertible_v<HV<string>, bool> );
+
+static_assert( is_detected_v<heap_value, int> );
+static_assert( !is_detected_v<heap_value, int&> );
+static_assert( !is_detected_v<heap_value, int const&> );
 
 TEST_CASE( "[heap-value] default construction/assignment" ) {
   HV<string> hv;

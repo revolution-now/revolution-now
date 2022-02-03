@@ -25,6 +25,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 
 namespace cdr {
 
@@ -392,5 +393,28 @@ result<std::unique_ptr<T>> from_canonical(
   UNWRAP_RETURN( res, conv.from<T>( v ) );
   return std::make_unique<T>( std::move( res ) );
 }
+
+/****************************************************************
+** std::variant
+*****************************************************************/
+// We don't want to attempt to convert a simple variant for which
+// no other reflection information is known, since then we would
+// be basically forced (if we want efficiency) to use an approach
+// consisting of recording the active alternative index, which is
+// not very robust serialization-wise or readability-wise. There
+// will be a more constrained overload in the reflection library
+// that will provide these overloads in the case that the variant
+// alternatives all consist of unique reflected structs, and
+// hopefully that one will be selected in the relevant cases
+// since it is more constrained.
+template<typename... Ts>
+value to_canonical( converter&                 conv,
+                    std::variant<Ts...> const& o,
+                    tag_t<std::variant<Ts...>> ) = delete;
+
+template<typename... Ts>
+result<std::variant<Ts...>> from_canonical(
+    converter& conv, value const& v,
+    tag_t<std::variant<Ts...>> ) = delete;
 
 } // namespace cdr

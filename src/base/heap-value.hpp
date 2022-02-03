@@ -39,8 +39,11 @@ namespace base {
 // seems to prevent us from using this type with a forward de-
 // clared T, which we want to be able to do. Though there are a
 // few exceptions that seem to be fine for our use cases.
+// clang-format off
 template<typename T>
+requires( !std::is_reference_v<T> )
 struct heap_value : zero<heap_value<T>, T*> {
+  // clang-format on
   using base_t = base::zero<heap_value, T*>;
 
   // Since this object has value semantics, it must be initial-
