@@ -31,8 +31,6 @@ using namespace ::cdr::literals;
 
 using ::cdr::testing::conv_from_bt;
 
-converter conv;
-
 #define CONV_TO_FIELD( name ) conv.to_field( tbl, #name, o.name )
 
 #define CONV_FROM_FIELD( name )                             \
@@ -268,6 +266,131 @@ value const cdr_rolodex_1 = table{
         },
 };
 
+// This one has no field values set if they assume their
+// default-constructed values.
+value const cdr_rolodex_1_no_def_fields = table{
+    "self"_key =
+        table{
+            "name"_key   = "bob",
+            "height"_key = 5.5,
+            "male"_key   = true,
+            "houses"_key =
+                list{
+                    table{
+                        "street_number"_key = 444,
+                        "state"_key         = "CA",
+                    },
+                    table{
+                        "street_number"_key = 555,
+                        "state"_key         = "MD",
+                    },
+                },
+            "pets"_key =
+                list{
+                    table{ { "val", 3 } },
+                    table{ { "key", "frog" }, { "val", 6 } },
+                },
+        },
+    "updated"_key = "1900-02-01",
+    "contacts"_key =
+        table{
+            "joe"_key =
+                table{
+                    "name"_key   = "joe",
+                    "height"_key = 7.5,
+                    "pets"_key =
+                        list{
+                            table{ { "val", 7 } },
+                            table{ { "key", "dog" },
+                                   { "val", 8 } },
+                        },
+                },
+            "moe"_key =
+                table{
+                    "name"_key   = "moe",
+                    "height"_key = 8.5,
+                    "male"_key   = true,
+                    "houses"_key =
+                        list{
+                            table{
+                                "street_number"_key = 666,
+                                "state"_key         = "VA",
+                            },
+                        },
+                    "pets"_key =
+                        list{
+                            table{ { "key", "dog" },
+                                   { "val", 2 } },
+                        },
+                },
+        },
+};
+
+// This one has some invalid/unrecognized fields.
+value const cdr_rolodex_1_with_unrecognized = table{
+    "self"_key =
+        table{
+            "name"_key   = "bob",
+            "height"_key = 5.5,
+            "male"_key   = true,
+            "houses"_key =
+                list{
+                    table{
+                        "street_number"_key = 444,
+                        "state"_key         = "CA",
+                    },
+                    table{
+                        "street_number"_key = 555,
+                        "state"_key         = "MD",
+                        "xyz"_key           = 1,
+                    },
+                },
+            "pets"_key =
+                list{
+                    table{ { "key", "cat" }, { "val", 3 } },
+                    table{ { "key", "frog" }, { "val", 6 } },
+                },
+        },
+    "updated"_key = "1900-02-01",
+    "???"_key     = "hello",
+    "contacts"_key =
+        table{
+            "joe"_key =
+                table{
+                    "name"_key   = "joe",
+                    "height"_key = 7.5,
+                    "male"_key   = false,
+                    "houses"_key = list{},
+                    "pets"_key =
+                        list{
+                            table{ { "key", "cat" },
+                                   { "val", 7 },
+                                   { "abc", 9 } },
+                            table{ { "key", "dog" },
+                                   { "val", 8 } },
+                        },
+                },
+            "moe"_key =
+                table{
+                    "name"_key   = "moe",
+                    "height"_key = 8.5,
+                    "male"_key   = true,
+                    "houses"_key =
+                        list{
+                            table{
+                                "street_number"_key = 666,
+                                "state"_key         = "VA",
+                            },
+                        },
+                    "pets"_key =
+                        list{
+                            table{ { "key", "dog" },
+                                   { "val", 2 } },
+                        },
+                },
+        },
+};
+
 Rolodex const native_rolodex_1{
     .self =
         {
@@ -334,25 +457,96 @@ Rolodex const native_rolodex_1{
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[cdr/converter] default options" ) {
+  converter::options opts{
+      .write_fields_with_default_value  = true,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = false };
+  // Sanity check to make sure the above are actually the de-
+  // fault.
+  REQUIRE( opts == converter::options{} );
   // Test roundtrip with default options.
-  REQUIRE( conv_from_bt<Rolodex>( cdr_rolodex_1 ) ==
+  converter conv;
+  REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
+           native_rolodex_1 );
+  REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
+           conv.err( "key 'key' not found in table." ) );
+  REQUIRE(
+      conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
+      conv.err( "unrecognized key 'xyz' in table." ) );
+  REQUIRE( conv.to( native_rolodex_1 ) == cdr_rolodex_1 );
+}
+
+TEST_CASE( "[cdr/converter] no write def values" ) {
+  converter::options opts{
+      .write_fields_with_default_value  = false,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = false };
+  converter conv( opts );
+  REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
+           native_rolodex_1 );
+  REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
+           conv.err( "key 'key' not found in table." ) );
+  REQUIRE(
+      conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
+      conv.err( "unrecognized key 'xyz' in table." ) );
+  REQUIRE( conv.to( native_rolodex_1 ) ==
+           cdr_rolodex_1_no_def_fields );
+}
+
+TEST_CASE(
+    "[cdr/converter] no write def values & default construct "
+    "missing" ) {
+  converter::options opts{
+      .write_fields_with_default_value  = false,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = true };
+  converter conv( opts );
+  REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
+           native_rolodex_1 );
+  REQUIRE( conv_from_bt<Rolodex>(
+               conv, cdr_rolodex_1_no_def_fields ) ==
+           native_rolodex_1 );
+  REQUIRE(
+      conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
+      conv.err( "unrecognized key 'xyz' in table." ) );
+  REQUIRE( conv.to( native_rolodex_1 ) ==
+           cdr_rolodex_1_no_def_fields );
+}
+
+TEST_CASE(
+    "[cdr/converter] write def values & default construct "
+    "missing" ) {
+  converter::options opts{
+      .write_fields_with_default_value  = true,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = true };
+  converter conv( opts );
+  REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
+           native_rolodex_1 );
+  REQUIRE( conv_from_bt<Rolodex>(
+               conv, cdr_rolodex_1_no_def_fields ) ==
+           native_rolodex_1 );
+  REQUIRE(
+      conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
+      conv.err( "unrecognized key 'xyz' in table." ) );
+  REQUIRE( conv.to( native_rolodex_1 ) == cdr_rolodex_1 );
+}
+
+TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
+  converter::options opts{ .allow_unrecognized_fields = true };
+  converter          conv( opts );
+  REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
+           native_rolodex_1 );
+  REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
+           conv.err( "key 'key' not found in table." ) );
+  REQUIRE( conv_from_bt<Rolodex>(
+               conv, cdr_rolodex_1_with_unrecognized ) ==
            native_rolodex_1 );
   REQUIRE( conv.to( native_rolodex_1 ) == cdr_rolodex_1 );
 }
 
-TEST_CASE( "[cdr/converter] write_fields_with_default_value" ) {
-  // TODO
-}
-
-TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
-  // TODO
-}
-
-TEST_CASE( "[cdr/converter] default_construct_missing_fields" ) {
-  // TODO
-}
-
 TEST_CASE( "[cdr/converter] backtrace" ) {
+  converter conv;
   using M  = unordered_map<string, int>;
   value  v = list{ table{ { "key", "one" }, { "val", 1 } },
                   table{ { "key", "two" }, { "val", "2" } } };

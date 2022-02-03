@@ -36,7 +36,7 @@ TEST_CASE( "[cdr/ext-std] string" ) {
     REQUIRE( conv.to( "hello"s ) == string( "hello" ) );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<string>( "hello" ) == "hello" );
+    REQUIRE( conv_from_bt<string>( conv, "hello" ) == "hello" );
     REQUIRE( conv.from<string>( 5 ) ==
              conv.err( "expected type string, instead found "
                        "type integer." ) );
@@ -49,7 +49,8 @@ TEST_CASE( "[cdr/ext-std] std::filesystem::path" ) {
              string( "hello" ) );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<fs::path>( "hello" ) == "hello" );
+    REQUIRE( conv_from_bt<fs::path>( conv, "hello" ) ==
+             "hello" );
     REQUIRE( conv.from<fs::path>( 5 ) ==
              conv.err( "expected type string, instead found "
                        "type integer." ) );
@@ -61,7 +62,7 @@ TEST_CASE( "[cdr/ext-std] chrono::seconds" ) {
     REQUIRE( conv.to( chrono::seconds{ 5 } ) == 5 );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<chrono::seconds>( 5 ) ==
+    REQUIRE( conv_from_bt<chrono::seconds>( conv, 5 ) ==
              chrono::seconds{ 5 } );
     REQUIRE( conv.from<chrono::seconds>( "5" ) ==
              conv.err( "expected type integer, instead found "
@@ -76,9 +77,10 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
              table{ { "key", 5 }, { "val", true } } );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<pair<int, bool>>(
-                 table{ { "key", 5 }, { "val", true } } ) ==
-             pair<int, bool>{ 5, true } );
+    REQUIRE(
+        conv_from_bt<pair<int, bool>>(
+            conv, table{ { "key", 5 }, { "val", true } } ) ==
+        pair<int, bool>{ 5, true } );
     REQUIRE( conv.from<pair<int, bool>>(
                  table{ { "fxt", 5 }, { "val", true } } ) ==
              conv.err( "key 'key' not found in table." ) );
@@ -100,8 +102,9 @@ TEST_CASE( "[cdr/ext-std] vector" ) {
     REQUIRE( conv.to( vec ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
-    REQUIRE( conv_from_bt<vector<double>>( list{ 5.5, 7.7 } ) ==
-             vector<double>{ 5.5, 7.7 } );
+    REQUIRE(
+        conv_from_bt<vector<double>>( conv, list{ 5.5, 7.7 } ) ==
+        vector<double>{ 5.5, 7.7 } );
     REQUIRE(
         conv.from<vector<double>>( table{} ) ==
         conv.err(
@@ -120,7 +123,7 @@ TEST_CASE( "[cdr/ext-std] array" ) {
     REQUIRE( conv.to( arr ) == list{ 3, 4, 5 } );
   }
   SECTION( "from_canonoical" ) {
-    REQUIRE( conv_from_bt<array<int, 2>>( list{ 5, 7 } ) ==
+    REQUIRE( conv_from_bt<array<int, 2>>( conv, list{ 5, 7 } ) ==
              array<int, 2>{ 5, 7 } );
     REQUIRE(
         conv.from<array<int, 2>>( list{ 5 } ) ==
@@ -156,7 +159,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
     M     expected{ { "one", 1 }, { "two", 2 } };
     value v = list{ table{ { "key", "one" }, { "val", 1 } },
                     table{ { "key", "two" }, { "val", 2 } } };
-    REQUIRE( conv_from_bt<M>( v ) == expected );
+    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
@@ -183,7 +186,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
     using M = unordered_map<string, int>;
     M     expected{ { "one", 1 }, { "two", 2 } };
     value v = table{ { "one", 1 }, { "two", 2 } };
-    REQUIRE( conv_from_bt<M>( v ) == expected );
+    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
@@ -208,7 +211,7 @@ TEST_CASE( "[cdr/ext-std] map (list)" ) {
     M     expected{ { "one", 1 }, { "two", 2 } };
     value v = list{ table{ { "key", "one" }, { "val", 1 } },
                     table{ { "key", "two" }, { "val", 2 } } };
-    REQUIRE( conv_from_bt<M>( v ) == expected );
+    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
@@ -233,7 +236,7 @@ TEST_CASE( "[cdr/ext-std] map (table)" ) {
     using M = map<string, int>;
     M     expected{ { "one", 1 }, { "two", 2 } };
     value v = table{ { "one", 1 }, { "two", 2 } };
-    REQUIRE( conv_from_bt<M>( v ) == expected );
+    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
@@ -250,7 +253,7 @@ TEST_CASE( "[cdr/ext-std] unordered_set" ) {
     using M = unordered_set<int>;
     M     expected{ 1, 2, 3 };
     value v = list{ 2, 3, 3, 1, 2, 1, 1 };
-    REQUIRE( conv_from_bt<M>( v ) == expected );
+    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
@@ -266,7 +269,7 @@ TEST_CASE( "[cdr/ext-std] unordered_set invalid element" ) {
         " \\-index 4\n"
         "    \\-int\n"
         "---------------------------------------------------" );
-  REQUIRE( conv_from_bt<M>( v ) == expected );
+  REQUIRE( conv_from_bt<M>( conv, v ) == expected );
 }
 
 TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
@@ -278,11 +281,11 @@ TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
     REQUIRE( v == "hello" );
   }
   SECTION( "from_canonoical" ) {
-    REQUIRE( conv_from_bt<unique_ptr<string>>( null ) ==
+    REQUIRE( conv_from_bt<unique_ptr<string>>( conv, null ) ==
              unique_ptr<string>( nullptr ) );
     value                      v = "hello";
     result<unique_ptr<string>> res =
-        conv_from_bt<unique_ptr<string>>( v );
+        conv_from_bt<unique_ptr<string>>( conv, v );
     REQUIRE( res.has_value() );
     REQUIRE( *res != nullptr );
     REQUIRE( **res == "hello" );

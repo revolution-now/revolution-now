@@ -63,6 +63,8 @@ struct converter {
     // Options for from_canonical.
     bool allow_unrecognized_fields        = false;
     bool default_construct_missing_fields = false;
+
+    bool operator==( options const& ) const = default;
   };
 
   converter() = default;
@@ -247,9 +249,8 @@ namespace testing {
 // ure, so that the unit testing framework will automatically
 // show it if a test fails.
 template<FromCanonical T>
-result<T> conv_from_bt( value const& v ) {
-  static converter conv;
-  auto             res = conv.from<T>( v );
+result<T> conv_from_bt( converter& conv, value const& v ) {
+  auto res = conv.from<T>( v );
   if( !res.has_value() )
     return conv.from_canonical_readable_error( res.error() );
   return res;
