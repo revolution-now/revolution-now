@@ -32,6 +32,8 @@ size_t table::size() const { return o_->size(); }
 
 long table::ssize() const { return long( o_->size() ); }
 
+bool table::empty() const { return o_->empty(); }
+
 value& table::operator[]( string const& key ) {
   return o_.get()[key];
 }

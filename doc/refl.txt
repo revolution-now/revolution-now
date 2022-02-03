@@ -2,12 +2,11 @@ Rollout Process:
 
   Not Done:
 
-  1.  Add to_canonical and from_canonical implementations for
-      some base types, std types, and builtin types.
-  2.  Add ext-cdr.hpp to refl library to convert reflected types
-      to/from Cdr.
-  3.  Add Cdr module to Rcl to allow it to convert its data rep-
+  1.  Any to_canonical that takes an unordered container to a
+      cdr::list must sort the elements before hand.
+  2.  Add Cdr module to Rcl to allow it to convert its data rep-
       resentation to Cdr.
+  3.  Add reflection output to Rds generated files.
   4.  Remove the rcl::convert_to extension point, then replace
       all of the convert_to implementations with from_canonical,
       and have config-files call from_canonical.
@@ -30,19 +29,18 @@ Rollout Process:
   10. Find places, such as Coord, where we can add reflection
       manually and therefore remove the manual to_str and rcl
       overloads.
-  11. Add reflection output to Rds generated files.
-  12. Remove to_str from Rds files.
-  13. Remove all traces of flatbuffers, but leaving per-module
+  11. Remove to_str from Rds files.
+  12. Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  14. Find structs/classes that have to_str or model_to overloads
+  13. Find structs/classes that have to_str or model_to overloads
       and move them into Rds, creating reflected wrappers as
       needed.
-  15. Consolidate game state into one large data structure, in-
+  14. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  16. Reimplement game saving by modelizing game state then con-
+  15. Reimplement game saving by modelizing game state then con-
       verting to rcl. Do some profiling of game save/load times
       to see if it is ok.
-  17. Consider how to handle forward/backward compatibility in a
+  16. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -68,3 +66,7 @@ Rollout Process:
   13. Do maps need to support non-string keys?
   14. Add new concepts and extension point to data model library,
       with subconcepts of FromCanonical, ToCanonical.
+  15. Add to_canonical and from_canonical implementations for
+      some base types, std types, and builtin types.
+  16. Add cdr.hpp to refl library to convert reflected types
+      to/from Cdr.

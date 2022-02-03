@@ -134,6 +134,7 @@ struct table {
 
   size_t size() const;
   long   ssize() const;
+  bool   empty() const;
 
   bool operator==( table const& rhs ) const;
 
@@ -287,9 +288,16 @@ namespace detail {
 struct key_proxy {
   key_proxy( char const* key, unsigned long len )
     : key_( key, key + len ) {}
-  std::pair<std::string const, value> operator=( value&& v ) && {
+
+  std::pair<std::string const, value> operator=( value&& v ) {
     return { std::move( key_ ), std::move( v ) };
   }
+
+  std::pair<std::string const, value> operator=(
+      value const& v ) {
+    return { std::move( key_ ), v };
+  }
+
   std::string key_;
 };
 

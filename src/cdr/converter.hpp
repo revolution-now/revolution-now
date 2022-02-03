@@ -95,7 +95,7 @@ struct converter {
       if( options_.default_construct_missing_fields )
         return T{};
       else
-        return error( "key '{}' not found in table.", key );
+        return err( "key '{}' not found in table.", key );
     }
     return from<T>( *val );
   }
@@ -141,6 +141,11 @@ struct converter {
   // Ensure that the given list has the given size.
   base::valid_or<error> ensure_list_size( list const& lst,
                                           int expected_size );
+
+  // Ensure that the given table has the given size (number of
+  // keys).
+  base::valid_or<error> ensure_table_size( table const& tbl,
+                                           int expected_size );
 
   // Call this and check the result when finished calling
   // from_field on the fields of a record object.

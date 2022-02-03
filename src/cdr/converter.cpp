@@ -29,6 +29,16 @@ base::valid_or<error> converter::ensure_list_size(
   return base::valid;
 }
 
+base::valid_or<error> converter::ensure_table_size(
+    table const& tbl, int expected_size ) {
+  if( tbl.ssize() != expected_size )
+    return err(
+        "expected table with {} key(s), instead found {} "
+        "key(s).",
+        expected_size, tbl.size() );
+  return base::valid;
+}
+
 base::valid_or<error> converter::end_field_tracking(
     table const& tbl, unordered_set<string> const& used_keys ) {
   if( options_.allow_unrecognized_fields ) return base::valid;
