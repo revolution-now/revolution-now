@@ -88,10 +88,12 @@ result<std::pair<Fst, Snd>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::pair<Fst, Snd>> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  conv.start_field_tracking();
-  UNWRAP_RETURN( fst, conv.from_field<Fst>( tbl, "key" ) );
-  UNWRAP_RETURN( snd, conv.from_field<Snd>( tbl, "val" ) );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl ) );
+  std::unordered_set<std::string> used_keys;
+  UNWRAP_RETURN( fst,
+                 conv.from_field<Fst>( tbl, "key", used_keys ) );
+  UNWRAP_RETURN( snd,
+                 conv.from_field<Snd>( tbl, "val", used_keys ) );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return std::pair<Fst, Snd>{ std::move( fst ),
                               std::move( snd ) };
 }
@@ -207,7 +209,7 @@ unordered_map_from_canonical_list( converter&  conv,
 }
 
 // `K` must be a type convertible from a Cdr string, since the
-// keys in a Cdr table are always keys.
+// keys in a Cdr table are always strings.
 template<typename K, typename V>
 result<std::unordered_map<K, V>>
 unordered_map_from_canonical_table( converter&   conv,
@@ -225,7 +227,8 @@ unordered_map_from_canonical_table( converter&   conv,
     // There should never be a duplicate key even upon invalid
     // user input because `tbl` is backed by a real map.
     CHECK( !res.contains( key ) );
-    UNWRAP_RETURN( val, conv.from_field<V>( tbl, k ) );
+    UNWRAP_RETURN( val,
+                   conv.from_field_no_tracking<V>( tbl, k ) );
     res[std::move( key )] = std::move( val );
   }
   return res;
@@ -320,9 +323,8 @@ result<std::map<K, V>> map_from_canonical_table(
     // There should never be a duplicate key even upon invalid
     // user input because `tbl` is backed by a real map.
     CHECK( !res.contains( key ) );
-    UNWRAP_RETURN(
-        val, conv.from_field<V>( tbl, k,
-                                 /*used_keys=*/base::nothing ) );
+    UNWRAP_RETURN( val,
+                   conv.from_field_no_tracking<V>( tbl, k ) );
     res[std::move( key )] = std::move( val );
   }
   return res;

@@ -83,10 +83,9 @@ struct converter {
   }
 
   template<FromCanonical T>
-  result<std::remove_const_t<T>> from_field(
+  result<std::remove_const_t<T>> from_field_no_tracking(
       table const& tbl, std::string const& key ) {
     auto _ = frame( "value for key '{}'", key );
-    used_keys_.insert( key );
     base::maybe<value const&> val = tbl[key];
     if( !val.has_value() ) {
       static_assert( std::is_default_constructible_v<
@@ -97,6 +96,19 @@ struct converter {
         return error( "key '{}' not found in table.", key );
     }
     return from<T>( *val );
+  }
+
+  // The `used_keys` set should be a set that you create in the
+  // stack frame of the function that is calling from_field; it
+  // should start off as an empty set, and then the same set
+  // should be passed into each call to from_field for the same
+  // object so that the used fields can be recorded.
+  template<FromCanonical T>
+  result<std::remove_const_t<T>> from_field(
+      table const& tbl, std::string const& key,
+      std::unordered_set<std::string>& used_keys ) {
+    used_keys.insert( key );
+    return from_field_no_tracking<T>( tbl, key );
   }
 
   // This one should only really be called by a top-level conver-
@@ -128,14 +140,11 @@ struct converter {
   base::valid_or<error> ensure_list_size( list const& lst,
                                           int expected_size );
 
-  // Call this just before you start calling from_field on the
-  // fields of a record object. Don't forget to call
-  // end_field_tracking when finished.
-  void start_field_tracking();
-
   // Call this and check the result when finished calling
   // from_field on the fields of a record object.
-  base::valid_or<error> end_field_tracking( table const& tbl );
+  base::valid_or<error> end_field_tracking(
+      table const&                           tbl,
+      std::unordered_set<std::string> const& used_keys );
 
   template<ToCanonical T>
   void to_field( table& tbl, std::string const& key,
@@ -205,14 +214,6 @@ struct converter {
   // generate an error. This gets reset when a call to
   // from_canonical is made that succeeds.
   std::vector<std::string> frames_on_error_ = {};
-
-  // This is used in "field tracking mode"; in this mode, one
-  // first calls start_field_tracking, then calls `from_field`
-  // repeatedly, and each field requested will be recorded here.
-  // Then one calls end_field_tracking, which checks whether
-  // there are any extra unused keys in the table and returns an
-  // error (if that is enabled in the options).
-  std::unordered_set<std::string> used_keys_ = {};
 };
 
 /****************************************************************

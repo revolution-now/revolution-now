@@ -29,13 +29,11 @@ base::valid_or<error> converter::ensure_list_size(
   return base::valid;
 }
 
-void converter::start_field_tracking() { used_keys_.clear(); }
-
 base::valid_or<error> converter::end_field_tracking(
-    table const& tbl ) {
+    table const& tbl, unordered_set<string> const& used_keys ) {
   if( options_.allow_unrecognized_fields ) return base::valid;
   for( auto const& [k, v] : tbl )
-    if( !used_keys_.contains( k ) )
+    if( !used_keys.contains( k ) )
       return err( "unrecognized key '{}' in table.", k );
   return base::valid;
 }
@@ -55,6 +53,7 @@ string converter::dump_error_stack() const {
   static vector<pair<string, string>> to_replace{
       { base::demangled_typename<string>(), "std::string" },
       { "::__1", "" },
+      { "::(anonymous namespace)", "" },
       { " >", ">" },
   };
   for( string const& frame : error_stack() ) {
