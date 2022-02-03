@@ -209,6 +209,54 @@ TEST_CASE( "[cdr] complex" ) {
   REQUIRE( &t3["two"].as<table>()["four"] == address );
 }
 
+TEST_CASE( "[cdr] k=v syntax" ) {
+  using namespace ::cdr::literals;
+
+  table doc{
+      "one"_key = list{ 2, 3, "hello" },
+      "two"_key =
+          table{
+              "three"_key = 3.3,
+              "four"_key  = true,
+          },
+      "three"_key =
+          list{
+              table{
+                  "hello"_key = "world",
+                  "yes"_key   = 333,
+              },
+              table{},
+              3,
+          },
+  };
+
+  REQUIRE( doc["three"].is<list>() );
+  REQUIRE( doc["three"].as<list>()[0].is<table>() );
+  REQUIRE( doc["three"]
+               .as<list>()[0]
+               .as<table>()["yes"]
+               .is<integer_type>() );
+  REQUIRE( doc["three"].as<list>()[0].as<table>()["yes"] ==
+           333 );
+
+  REQUIRE( doc["one"].is<list>() );
+  REQUIRE( doc["one"].as<list>()[1] == 3 );
+  REQUIRE( doc["one"].as<list>()[2].is<string>() );
+  REQUIRE( doc["one"].as<list>()[2].as<string>() == "hello" );
+
+  REQUIRE( doc["two"].is<table>() );
+  REQUIRE( doc["two"].as<table>()["four"].is<bool>() );
+  REQUIRE( doc["two"].as<table>()["four"] == true );
+
+  table t2 = doc;
+
+  REQUIRE( t2["one"].is<list>() );
+  REQUIRE( t2["one"].as<list>()[1] == 3 );
+
+  REQUIRE( t2["two"].is<table>() );
+  REQUIRE( t2["two"].as<table>()["four"] == true );
+}
+
 TEST_CASE( "[cdr] to_str" ) {
   value v;
 

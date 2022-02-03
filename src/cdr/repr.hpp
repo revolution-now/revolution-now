@@ -270,6 +270,26 @@ inline value operator""_val( unsigned long long i ) {
   return value{ integer_type( i ) };
 }
 
+namespace detail {
+
+struct key_proxy {
+  key_proxy( char const* key, unsigned long len )
+    : key_( key, key + len ) {}
+  std::pair<std::string const, value> operator=( value&& v ) && {
+    return { std::move( key_ ), std::move( v ) };
+  }
+  std::string key_;
+};
+
+} // namespace detail
+
+// This allows using syntax like table{ "one"_key=123 } syntax
+// when manually constructing tables from initializer lists.
+inline detail::key_proxy operator""_key( char const*   key,
+                                         unsigned long len ) {
+  return detail::key_proxy( key, len );
+}
+
 } // namespace literals
 
 } // namespace cdr
