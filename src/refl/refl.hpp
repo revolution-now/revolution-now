@@ -12,6 +12,7 @@
 
 // base
 #include "base/meta.hpp"
+#include "base/valid.hpp"
 
 // C++ standard library
 #include <array>
@@ -104,6 +105,35 @@ concept ReflectedStruct = Reflected<T> && requires {
       decltype( traits<T>::template_types )>>;
   requires HasTupleSize<
       std::remove_cvref_t<decltype( traits<T>::fields )>>;
+};
+
+using validate_result = base::valid_or<std::string>;
+
+// This is specifically for structs that are reflected so that
+// they can be validated after construction, since often they
+// will be constructed through deserialization. This allows them
+// to enforce any invariants among their fields. It is a member
+// function as opposed to a free function so that the validation
+// function (which will likely be implemented as an Rds feature
+// on structs) can be removed, and that will cause a compile
+// error on the definition to remind the user to remove it.
+
+// This concept checks if the method exists with any signature at
+// all, then the following one will check if it has the right
+// signature. That allows us to catch validate methods that have
+// the wrong signature, which would otherwise silently prevent it
+// from being called, which is not what we want.
+template<typename T>
+concept HasValidateMethod = requires( T& o ) {
+  // Having `o` be non-const allows us to catch when the method
+  // is not const, since this concept will be satisfied but not
+  // ValidatableStruct.
+  { o.validate() };
+};
+
+template<typename T>
+concept ValidatableStruct = requires( T const& o ) {
+  { o.validate() } -> std::same_as<validate_result>;
 };
 
 /****************************************************************

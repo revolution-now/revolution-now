@@ -7,40 +7,39 @@ Rollout Process:
   2.  Add Cdr module to Rcl to allow it to convert its data rep-
       resentation to Cdr.
   3.  Add reflection output to Rds generated files.
-  4.  Remove the rcl::convert_to extension point, then replace
-      all of the convert_to implementations with from_canonical,
-      and have config-files call from_canonical.
-  5.  Add rcl module to emit the data model as rcl language. This
-      may require sorting the table keys so that we get consis-
-      tent output.
-  6.  Add some reflection utilities for querying properties of
+  4.  Ensure that all types that support rcl::convert_to also
+      support Cdr, either via reflection or manually.
+  5.  Gut the bodies of all rcl::convert_to methods and forward
+      it to from_canonical.
+  6.  In config-files, bypass the rcl::convert_to and call the
+      from_canonical directly on all types.
+  7.  Remove the rcl::convert_to extension point.
+  8.  Add rcl module to emit the data model as rcl language. Note
+      that we should not sort lists or table keys here since 1)
+      the ordering inherited from the cdr model will have table
+      keys ordered (since it uses std::map) and it will already
+      have had its list elements sorted where applicable during
+      the to_canonical conversion.
+  9.  Add some reflection utilities for querying properties of
       structs or enums from the reflection traits.
-  7.  Go into utype.?pp and add reflection traits manually for
-      some structs and variants, then in utype.cpp implement the
-      from_canonical converters for them and to_str overloads for
-      them using the reflection. Be sure to add generic functions
-      where necessary, such as a function to apply a lambda to
-      all struct fields.
-  8.  [?] Once finalized, make those generic (structs, enums,
-      variants) and move them into the refl folder into a module
-      for converting the data model to/from reflected types.
-  9.  Create refl/ext-to-str.hpp to allow converting reflected
+  10. Create refl/ext-to-str.hpp to allow converting reflected
       types to strings.
-  10. Find places, such as Coord, where we can add reflection
-      manually and therefore remove the manual to_str and rcl
-      overloads.
-  11. Remove to_str from Rds files.
-  12. Remove all traces of flatbuffers, but leaving per-module
+  11. Remove to_str from Rds files. May have to do this together
+      with the previous step.
+  12. Find places, such as Coord, where we can add reflection
+      manually (if it hasn't already been added by this point)
+      and therefore remove the manual to_str overloads.
+  13. Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  13. Find structs/classes that have to_str or model_to overloads
-      and move them into Rds, creating reflected wrappers as
-      needed.
-  14. Consolidate game state into one large data structure, in-
+  14. Find structs/classes that have to_str or manual reflection
+      traits and move them into Rds, creating reflected wrappers
+      as needed.
+  15. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  15. Reimplement game saving by modelizing game state then con-
-      verting to rcl. Do some profiling of game save/load times
-      to see if it is ok.
-  16. Consider how to handle forward/backward compatibility in a
+  16. Reimplement game saving by using to_canonical game state
+      then converting to rcl. Do some profiling of game save/load
+      times to see if it is ok.
+  17. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -70,3 +69,7 @@ Rollout Process:
       some base types, std types, and builtin types.
   16. Add cdr.hpp to refl library to convert reflected types
       to/from Cdr.
+  17. Add validation concept to refl library and call it from the
+      ReflectedStruct implementation of from_canonical. It should
+      be a const member function of the struct so that if the de-
+      claration is removed then the definition won't linger.

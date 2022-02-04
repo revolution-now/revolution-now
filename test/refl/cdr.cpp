@@ -55,6 +55,14 @@ struct Address {
                         o.street_number, o.state );
   }
 
+  validate_result validate() const {
+    static unordered_set<string> valid_states{ "PA", "VA", "CA",
+                                               "MD" };
+    RETURN_IF_FALSE( valid_states.contains( state ),
+                     "invalid state {}.", state );
+    return base::valid;
+  }
+
   bool operator==( Address const& ) const = default;
 };
 
@@ -601,6 +609,11 @@ value const cdr_address1 = table{
     "state"_key         = "PA",
 };
 
+value const cdr_address1_invalid_state = table{
+    "street_number"_key = 32,
+    "state"_key         = "XX",
+};
+
 my_ns::Variant1 const variant1         = person1;
 my_ns::Variant1 const variant1_default = my_ns::Variant1{};
 my_ns::Variant2 const variant2         = address1;
@@ -812,6 +825,13 @@ TEST_CASE( "[refl] variant/defaults" ) {
         conv_from_bt<Variant1>( conv, cdr_variant1_empty ) ==
         variant1_default );
   }
+}
+
+TEST_CASE( "[refl] struct validation" ) {
+  using namespace ::refl::my_ns;
+  converter conv;
+  REQUIRE( conv.from<Address>( cdr_address1_invalid_state ) ==
+           conv.err( "invalid state XX." ) );
 }
 
 } // namespace

@@ -111,6 +111,12 @@ result<S> from_canonical( converter& conv, value const& v,
   };
   if( err.has_value() ) return *err;
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  if constexpr( refl::HasValidateMethod<S> ) {
+    static_assert( refl::ValidatableStruct<S>,
+                   "validate method has incorrect signature." );
+    if( auto is_valid = res.validate(); !is_valid )
+      return conv.err( is_valid.error() );
+  }
   return res;
 }
 
