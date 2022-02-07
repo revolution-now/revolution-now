@@ -18,12 +18,13 @@ let s:stems = [
  "\ 'gl/texture',
  "\ 'open-gl-perf-test',
  "\ 'shaders/perf-test',
- \ 'rds/rdsc/rds-util',
- \ 'rds/rdsc/expr',
- \ 'rds/rdsc/parser',
- \ 'rds/rdsc/post-process',
- \ 'rds/rdsc/code-gen',
- \ 'rds/rdsc/validate',
+ \ 'cdr/repr',
+ \ 'cdr/converter',
+ \ 'cdr/ext',
+ \ 'cdr/ext-std',
+ \ 'cdr/ext-base',
+ \ 'refl/refl',
+ \ 'refl/cdr',
 \]
 
 let s:luas = [

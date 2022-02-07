@@ -116,11 +116,11 @@ static_assert( base::Show<e_pet> );
 ** Person
 *****************************************************************/
 struct Person {
-  string          name   = {};
-  double          height = {};
-  bool            male   = {};
-  vector<Address> houses = {};
-  map<e_pet, int> pets   = {};
+  string                    name   = {};
+  double                    height = {};
+  bool                      male   = {};
+  vector<Address>           houses = {};
+  unordered_map<e_pet, int> pets   = {};
 
   friend void to_str( Person const& o, string& out,
                       base::ADL_t ) {
@@ -164,9 +164,9 @@ static_assert( base::Show<Person> );
 ** Rolodex
 *****************************************************************/
 struct Rolodex {
-  Person              self     = {};
-  string              updated  = {};
-  map<string, Person> contacts = {};
+  Person                        self     = {};
+  string                        updated  = {};
+  unordered_map<string, Person> contacts = {};
 
   friend void to_str( Rolodex const& o, string& out,
                       base::ADL_t ) {
@@ -223,9 +223,9 @@ value const cdr_rolodex_1 = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "key", "cat" }, { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
         },
     "updated"_key = "1900-02-01",
@@ -238,11 +238,9 @@ value const cdr_rolodex_1 = table{
                     "male"_key   = false,
                     "houses"_key = list{},
                     "pets"_key =
-                        list{
-                            table{ { "key", "cat" },
-                                   { "val", 7 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
+                        table{
+                            "cat"_key = 7,
+                            "dog"_key = 8,
                         },
                 },
             "moe"_key =
@@ -258,9 +256,8 @@ value const cdr_rolodex_1 = table{
                             },
                         },
                     "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
+                        table{
+                            "dog"_key = 2,
                         },
                 },
         },
@@ -286,9 +283,9 @@ value const cdr_rolodex_1_no_def_fields = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
         },
     "updated"_key = "1900-02-01",
@@ -299,10 +296,9 @@ value const cdr_rolodex_1_no_def_fields = table{
                     "name"_key   = "joe",
                     "height"_key = 7.5,
                     "pets"_key =
-                        list{
-                            table{ { "val", 7 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
+                        table{
+                            "cat"_key = 7,
+                            "dog"_key = 8,
                         },
                 },
             "moe"_key =
@@ -318,9 +314,8 @@ value const cdr_rolodex_1_no_def_fields = table{
                             },
                         },
                     "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
+                        table{
+                            "dog"_key = 2,
                         },
                 },
         },
@@ -346,9 +341,9 @@ value const cdr_rolodex_1_with_unrecognized = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "key", "cat" }, { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
         },
     "updated"_key = "1900-02-01",
@@ -469,7 +464,7 @@ TEST_CASE( "[cdr/converter] default options" ) {
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
   REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
-           conv.err( "key 'key' not found in table." ) );
+           conv.err( "key 'male' not found in table." ) );
   REQUIRE(
       conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
       conv.err( "unrecognized key 'xyz' in table." ) );
@@ -485,7 +480,7 @@ TEST_CASE( "[cdr/converter] no write def values" ) {
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
   REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
-           conv.err( "key 'key' not found in table." ) );
+           conv.err( "key 'male' not found in table." ) );
   REQUIRE(
       conv.from<Rolodex>( cdr_rolodex_1_with_unrecognized ) ==
       conv.err( "unrecognized key 'xyz' in table." ) );
@@ -538,7 +533,7 @@ TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
   REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
-           conv.err( "key 'key' not found in table." ) );
+           conv.err( "key 'male' not found in table." ) );
   REQUIRE( conv_from_bt<Rolodex>(
                conv, cdr_rolodex_1_with_unrecognized ) ==
            native_rolodex_1 );

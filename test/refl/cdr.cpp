@@ -136,11 +136,11 @@ namespace my_ns {
 namespace {
 
 struct Person {
-  string          name   = {};
-  double          height = {};
-  bool            male   = {};
-  vector<Address> houses = {};
-  map<e_pet, int> pets   = {};
+  string                    name   = {};
+  double                    height = {};
+  bool                      male   = {};
+  vector<Address>           houses = {};
+  unordered_map<e_pet, int> pets   = {};
 
   friend void to_str( Person const& o, string& out,
                       base::ADL_t ) {
@@ -221,9 +221,9 @@ namespace my_ns {
 namespace {
 
 struct Rolodex {
-  PersonWrapper       self     = {};
-  string              updated  = {};
-  map<string, Person> contacts = {};
+  PersonWrapper                 self     = {};
+  string                        updated  = {};
+  unordered_map<string, Person> contacts = {};
 
   friend void to_str( Rolodex const& o, string& out,
                       base::ADL_t ) {
@@ -307,9 +307,9 @@ value const cdr_rolodex_1 = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "key", "cat" }, { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
         },
     "updated"_key = "1900-02-01",
@@ -322,11 +322,9 @@ value const cdr_rolodex_1 = table{
                     "male"_key   = false,
                     "houses"_key = list{},
                     "pets"_key =
-                        list{
-                            table{ { "key", "cat" },
-                                   { "val", 7 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
+                        table{
+                            "cat"_key = 7,
+                            "dog"_key = 8,
                         },
                 },
             "moe"_key =
@@ -342,9 +340,8 @@ value const cdr_rolodex_1 = table{
                             },
                         },
                     "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
+                        table{
+                            "dog"_key = 2,
                         },
                 },
         },
@@ -368,9 +365,9 @@ value const cdr_rolodex_1_missing_houses = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "key", "cat" }, { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
         },
     "updated"_key = "1900-02-01",
@@ -382,11 +379,9 @@ value const cdr_rolodex_1_missing_houses = table{
                     "height"_key = 7.5,
                     "male"_key   = false,
                     "pets"_key =
-                        list{
-                            table{ { "key", "cat" },
-                                   { "val", 7 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
+                        table{
+                            "cat"_key = 7,
+                            "dog"_key = 8,
                         },
                 },
             "moe"_key =
@@ -402,9 +397,8 @@ value const cdr_rolodex_1_missing_houses = table{
                             },
                         },
                     "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
+                        table{
+                            "dog"_key = 2,
                         },
                 },
         },
@@ -428,9 +422,9 @@ value const cdr_rolodex_1_extra_field = table{
                     },
                 },
             "pets"_key =
-                list{
-                    table{ { "key", "cat" }, { "val", 3 } },
-                    table{ { "key", "frog" }, { "val", 6 } },
+                table{
+                    "cat"_key  = 3,
+                    "frog"_key = 6,
                 },
             "xyz"_key = 5,
         },
@@ -444,11 +438,9 @@ value const cdr_rolodex_1_extra_field = table{
                     "male"_key   = false,
                     "houses"_key = list{},
                     "pets"_key =
-                        list{
-                            table{ { "key", "cat" },
-                                   { "val", 7 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
+                        table{
+                            "cat"_key = 7,
+                            "dog"_key = 8,
                         },
                 },
             "moe"_key =
@@ -464,9 +456,8 @@ value const cdr_rolodex_1_extra_field = table{
                             },
                         },
                     "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
+                        table{
+                            "dog"_key = 2,
                         },
                 },
         },
@@ -536,9 +527,9 @@ my_ns::Rolodex const native_rolodex_1{
 my_ns::Person const person_default{};
 
 value const cdr_person_default = table{
-    "name"_key = "",     "height"_key = 0.0,
-    "male"_key = false,  "houses"_key = cdr::list{},
-    "pets"_key = list{},
+    "name"_key = "",      "height"_key = 0.0,
+    "male"_key = false,   "houses"_key = cdr::list{},
+    "pets"_key = table{},
 };
 
 my_ns::Person const person1{
@@ -559,9 +550,9 @@ value const cdr_person1 = table{
     "male"_key   = false,
     "houses"_key = cdr::list{},
     "pets"_key =
-        list{
-            table{ { "key", "cat" }, { "val", 7 } },
-            table{ { "key", "dog" }, { "val", 8 } },
+        table{
+            "cat"_key = 7,
+            "dog"_key = 8,
         },
 };
 
@@ -594,8 +585,8 @@ value const cdr_person2 = table{
             },
         },
     "pets"_key =
-        list{
-            table{ { "key", "frog" }, { "val", 10 } },
+        table{
+            "frog"_key = 10,
         },
 };
 
@@ -686,8 +677,8 @@ TEST_CASE( "[refl] missing field" ) {
       "---------------------------------------------------\n"
       "refl::my_ns::Rolodex\n"
       " \\-value for key 'contacts'\n"
-      "    \\-std::map<std::string, refl::my_ns::Person, "
-      "std::less<std::stri...\n"
+      "    \\-std::unordered_map<std::string, "
+      "refl::my_ns::Person, std::hash...\n"
       "       \\-value for key 'joe'\n"
       "          \\-refl::my_ns::Person\n"
       "             \\-value for key 'houses'\n"

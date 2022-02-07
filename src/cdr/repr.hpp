@@ -46,7 +46,20 @@ struct value;
 //   - list
 //   - table
 //
-// The table keys must be strings and are **unordered**.
+// The table keys are always strings. Any map-like data with a
+// key type other than string would be represented by e.g. a list
+// of tables, where the tables has a key/value pair.
+//
+// Table keys are **unordered**.
+//
+// Must be deterministic: any C++ type that is converted to a Cdr
+// list must result in a deterministic ordering (any ordering is
+// fine, so long as it is not dependent on any factors other than
+// the data contained in the type). For example, when converting
+// an unordered_map or unordered_set to Cdr lists, the elements
+// are sorted first before putting them into the list, that way
+// we don't end up with a resulting order that depends on e.g.
+// the particular hashing algorithm used by the container.
 
 /****************************************************************
 ** null

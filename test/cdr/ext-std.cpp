@@ -95,13 +95,13 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
 }
 
 TEST_CASE( "[cdr/ext-std] vector" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     vector<int> empty;
     REQUIRE( conv.to( empty ) == list{} );
     vector<int> vec{ 3, 4, 5 };
     REQUIRE( conv.to( vec ) == list{ 3, 4, 5 } );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     REQUIRE(
         conv_from_bt<vector<double>>( conv, list{ 5.5, 7.7 } ) ==
         vector<double>{ 5.5, 7.7 } );
@@ -116,13 +116,13 @@ TEST_CASE( "[cdr/ext-std] vector" ) {
 }
 
 TEST_CASE( "[cdr/ext-std] array" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     array<int, 0> empty;
     REQUIRE( conv.to( empty ) == list{} );
     array<int, 3> arr{ 3, 4, 5 };
     REQUIRE( conv.to( arr ) == list{ 3, 4, 5 } );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     REQUIRE( conv_from_bt<array<int, 2>>( conv, list{ 5, 7 } ) ==
              array<int, 2>{ 5, 7 } );
     REQUIRE(
@@ -139,7 +139,7 @@ TEST_CASE( "[cdr/ext-std] array" ) {
 }
 
 TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     unordered_map<int, double> empty;
     REQUIRE( conv.to( empty ) == list{} );
     unordered_map<int, double> m1{ { 3, 5.5 }, { 4, 7.7 } };
@@ -152,7 +152,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
             list{ table{ { "key", 4 }, { "val", 7.7 } },
                   table{ { "key", 3 }, { "val", 5.5 } } } ) ) );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the list version.
     using M = unordered_map<string, int>;
@@ -164,7 +164,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
 }
 
 TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     // Here we have string keys, so it should convert to a Cdr
     // table.
     unordered_map<string, double> empty;
@@ -180,7 +180,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
     value v2 = conv.to( m2 );
     REQUIRE( v2 == table{ { "3", 5.5 }, { "4", 7.7 } } );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the table version.
     using M = unordered_map<string, int>;
@@ -190,66 +190,20 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
   }
 }
 
-TEST_CASE( "[cdr/ext-std] map (list)" ) {
-  SECTION( "to_canonoical" ) {
-    map<int, double> empty;
-    REQUIRE( conv.to( empty ) == list{} );
-    map<int, double> m1{ { 3, 5.5 }, { 4, 7.7 } };
-    value            v1 = conv.to( m1 );
-    REQUIRE(
-        ( ( v1 ==
-            list{ table{ { "key", 3 }, { "val", 5.5 } },
-                  table{ { "key", 4 }, { "val", 7.7 } } } ) ||
-          ( v1 ==
-            list{ table{ { "key", 4 }, { "val", 7.7 } },
-                  table{ { "key", 3 }, { "val", 5.5 } } } ) ) );
-  }
-  SECTION( "from_canonoical" ) {
-    // Here we can convert from either a table or a list, but
-    // here we are testing the list version.
-    using M = map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
-    value v = list{ table{ { "key", "one" }, { "val", 1 } },
-                    table{ { "key", "two" }, { "val", 2 } } };
-    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
-  }
-}
-
-TEST_CASE( "[cdr/ext-std] map (table)" ) {
-  SECTION( "to_canonoical" ) {
-    // Here we have string keys, so it should convert to a Cdr
-    // table.
-    map<string, double> empty;
-    REQUIRE( conv.to( empty ) == table{} );
-    map<string, double> m1{ { "3", 5.5 }, { "4", 7.7 } };
-
-    value v1 = conv.to( m1 );
-    REQUIRE( v1 == table{ { "3", 5.5 }, { "4", 7.7 } } );
-    map<string_view, double> m2{ { "3", 5.5 }, { "4", 7.7 } };
-
-    value v2 = conv.to( m2 );
-    REQUIRE( v2 == table{ { "3", 5.5 }, { "4", 7.7 } } );
-  }
-  SECTION( "from_canonoical" ) {
-    // Here we can convert from either a table or a list, but
-    // here we are testing the table version.
-    using M = map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
-    value v = table{ { "one", 1 }, { "two", 2 } };
-    REQUIRE( conv_from_bt<M>( conv, v ) == expected );
-  }
-}
-
 TEST_CASE( "[cdr/ext-std] unordered_set" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     unordered_set<string> empty;
     REQUIRE( conv.to( empty ) == list{} );
     unordered_set<string> m1{ "hello", "world" };
     value                 v1 = conv.to( m1 );
-    REQUIRE( ( ( v1 == list{ "hello", "world" } ) ||
-               ( v1 == list{ "world", "hello" } ) ) );
+    REQUIRE( v1 == list{ "hello", "world" } );
+    unordered_set<string> m2{ "9", "0", "8", "1", "7",
+                              "2", "6", "3", "5", "4" };
+    value                 v2 = conv.to( m2 );
+    REQUIRE( v2 == list{ "0", "1", "2", "3", "4", "5", "6", "7",
+                         "8", "9" } );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     using M = unordered_set<int>;
     M     expected{ 1, 2, 3 };
     value v = list{ 2, 3, 3, 1, 2, 1, 1 };
@@ -273,14 +227,14 @@ TEST_CASE( "[cdr/ext-std] unordered_set invalid element" ) {
 }
 
 TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
-  SECTION( "to_canonoical" ) {
+  SECTION( "to_canonical" ) {
     unique_ptr<string> empty;
     REQUIRE( conv.to( empty ) == null );
     auto  u = make_unique<string>( "hello" );
     value v = conv.to( u );
     REQUIRE( v == "hello" );
   }
-  SECTION( "from_canonoical" ) {
+  SECTION( "from_canonical" ) {
     REQUIRE( conv_from_bt<unique_ptr<string>>( conv, null ) ==
              unique_ptr<string>( nullptr ) );
     value                      v = "hello";
