@@ -26,6 +26,9 @@
 #include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
@@ -299,7 +302,7 @@ vector<UnitId> units_in_rect( Rect const& rect ) {
 
 vector<UnitId> surrounding_units( Coord const& coord ) {
   vector<UnitId> res;
-  for( e_direction d : enum_traits<e_direction>::values ) {
+  for( e_direction d : refl::enum_values<e_direction> ) {
     if( d == e_direction::c ) continue;
     for( auto id : units_from_coord( coord.moved( d ) ) )
       res.push_back( id );

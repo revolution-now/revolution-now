@@ -35,9 +35,13 @@ Rollout Process:
   14. Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  15. Consider replacing rcl data model with Cdr; figure out how
+  15. Add routine for converting from a Lua value to Cdr, and
+      therefore to a C++ type. This operation will probably be
+      expensive.
+  16. Add Lua module for generating a game state in Lua.
+  17. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  16. Consider how to handle forward/backward compatibility in a
+  18. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We

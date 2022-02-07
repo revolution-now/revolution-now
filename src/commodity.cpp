@@ -26,6 +26,9 @@
 // Rcl
 #include "rcl/ext-builtin.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/variant.hpp"
 
@@ -161,8 +164,8 @@ Delta commodity_tile_size( e_commodity type ) {
 maybe<e_commodity> commodity_from_index( int index ) {
   maybe<e_commodity> res;
   if( index >= 0 &&
-      index < int( enum_traits<e_commodity>::count ) )
-    res = enum_traits<e_commodity>::values[index];
+      index < int( refl::enum_count<e_commodity> ) )
+    res = refl::enum_values<e_commodity>[index];
   return res;
 }
 

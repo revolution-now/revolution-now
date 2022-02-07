@@ -21,6 +21,9 @@
 // Revolution Now (config)
 #include "../config/rcl/sound.inl"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // SDL
 #include "SDL.h"
 #include "SDL_mixer.h"
@@ -113,8 +116,7 @@ void init_sound() {
   constexpr int default_volume{ 10 }; // [0, 128)
   ::Mix_Volume( -1 /*=all channels*/, default_volume );
 
-  for( auto sound : enum_traits<e_sfx>::values )
-    load_sfx( sound );
+  for( auto sound : refl::enum_values<e_sfx> ) load_sfx( sound );
 }
 
 void cleanup_sound() {

@@ -23,6 +23,9 @@
 // Rds
 #include "rds/nation.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // C++ standard library
 #include <string>
 
@@ -44,16 +47,15 @@ NationDesc const& nation_obj( e_nation nation );
 maybe<e_nation> nation_from_coord( Coord coord );
 
 constexpr auto all_nations() {
-  constexpr std::array<e_nation, enum_traits<e_nation>::count>
+  constexpr std::array<e_nation, refl::enum_count<e_nation>>
       nations = [] {
-        std::array<e_nation, enum_traits<e_nation>::count> res{};
-        size_t idx = 0;
-        for( auto nation : enum_traits<e_nation>::values )
+        std::array<e_nation, refl::enum_count<e_nation>> res{};
+        size_t                                           idx = 0;
+        for( auto nation : refl::enum_values<e_nation> )
           res[idx++] = nation;
         return res;
       }();
-  static_assert( nations.size() ==
-                 enum_traits<e_nation>::count );
+  static_assert( nations.size() == refl::enum_count<e_nation> );
   return nations;
 }
 

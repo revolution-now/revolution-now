@@ -261,14 +261,18 @@ struct CodeGenerator {
   // Braces {} do NOT have to be escaped for this one.
   void line( string_view l ) { line( "{}", l ); }
 
-  template<typename... Args>
-  void frag( string_view fmt_str, Args&&... args ) {
+  template<typename Arg1, typename... Args>
+  void frag( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
     curr_line_ = absl::StrCat(
         *curr_line_, fmt::format( fmt::runtime( fmt_str ),
+                                  std::forward<Arg1>( arg1 ),
                                   forward<Args>( args )... ) );
   }
+
+  // Braces {} do NOT have to be escaped for this one.
+  void frag( string_view l ) { frag( "{}", l ); }
 
   void flush() {
     if( !curr_line_.has_value() ) return;
@@ -306,7 +310,7 @@ struct CodeGenerator {
   void open_ns( string_view ns, string_view leaf = "" ) {
     frag( "namespace {}", ns );
     if( !leaf.empty() ) frag( "::{}", leaf );
-    frag( " {{" );
+    frag( " {" );
     flush();
     newline();
     indent().cancel();
@@ -348,7 +352,7 @@ struct CodeGenerator {
       frag( "{}::{}", sumtype_name, alt.name );
     else
       frag( "{}::{}<{{}}>", sumtype_name, alt.name );
-    if( !alt.members.empty() ) frag( "{{{{" );
+    if( !alt.members.empty() ) frag( "{{" );
     flush();
     if( !alt.members.empty() ) {
       vector<string> fmt_members;
@@ -509,85 +513,44 @@ struct CodeGenerator {
       emit_vert_list( e.values, "," );
     }
     line( "};" );
-    // Emit the traits.
+    // Emit the reflection traits.
     newline();
     close_ns( ns );
     newline();
-    open_ns( "rn" );
+    open_ns( "refl" );
     comment( "Reflection info for enum {}.", e.name );
     line( "template<>" );
-    line( "struct enum_traits<{}::{}> {{", ns, e.name );
+    line( "struct traits<{}::{}> {{", ns, e.name );
     {
       auto _ = indent();
       line( "using type = {}::{};", ns, e.name );
-      line( "static constexpr int count = {};",
-            e.values.size() );
       line(
-          "static constexpr std::string_view type_name = "
-          "\"{}\";",
-          e.name );
-      line( "static constexpr std::array<type, {}> values{{",
-            e.values.size() );
-      {
-        auto           _       = indent();
-        vector<string> with_ns = e.values;
-        for( string& s : with_ns ) s = "type::" + s;
-        emit_vert_list( with_ns, "," );
-      }
-      line( "};" );
-      if( !e.values.empty() ) {
-        line(
-            "static constexpr std::string_view value_name( type "
-            "val ) {" );
+          "static constexpr type_kind kind        = "
+          "type_kind::enum_kind;" );
+      line( "static constexpr std::string_view ns   = \"{}\";",
+            ns );
+      line( "static constexpr std::string_view name = \"{}\";",
+            e.name );
+      newline();
+      frag(
+          "static constexpr std::array<std::string_view, {}> "
+          "value_names{{",
+          e.values.size() );
+      if( e.values.empty() ) {
+        frag( "};" );
+        flush();
+      } else {
+        flush();
         {
           auto _ = indent();
-          line( "switch( val ) {" );
-          {
-            auto _ = indent();
-            for( string const& s : e.values )
-              line( "case type::{}: return \"{}\";", s, s );
-          }
-          line( "}" );
+          for( string const& s : e.values ) line( "\"{}\",", s );
         }
-        line( "}" );
+        line( "};" );
       }
-      line( "template<typename Int>" );
-      line(
-          "static constexpr maybe<type> from_integral( Int {}) "
-          "{{",
-          e.values.empty() ? "" : "val " );
-      {
-        auto _ = indent();
-        line( "maybe<type> res;" );
-        if( !e.values.empty() ) {
-          line( "int intval = static_cast<int>( val );" );
-          line( "if( intval < 0 || intval >= {} ) return res;",
-                e.values.size() );
-          line( "res = static_cast<type>( intval );" );
-        }
-        line( "return res;" );
-      }
-      line( "}" );
-      line(
-          "static constexpr maybe<type> from_string( "
-          "std::string_view {}) {{",
-          e.values.empty() ? "" : "name " );
-      {
-        auto _ = indent();
-        line( "return" );
-        {
-          auto _ = indent();
-          for( string const& val : e.values )
-            line( "name == \"{}\" ? maybe<type>( type::{} ) :",
-                  val, val );
-          line( "maybe<type>{};" );
-        }
-      }
-      line( "}" );
     }
     line( "};" );
     newline();
-    close_ns( "rn" );
+    close_ns( "refl" );
     // emit to_str.
     newline();
     open_ns( ns );
@@ -598,7 +561,11 @@ struct CodeGenerator {
         e.values.empty() ? "" : " out" );
     if( !e.values.empty() ) {
       auto _ = indent();
-      line( "out += enum_traits<{}>::value_name( o );", e.name );
+      line(
+          "out += "
+          "refl::traits<{}>::value_names[static_cast<int>( o "
+          ")];",
+          e.name );
     }
     line( "}" );
     newline();
@@ -770,13 +737,14 @@ struct CodeGenerator {
     line( "#include \"core-config.hpp\"" );
     if( rds_has_sumtype( rds ) )
       line( "#include \"rds/helper/sumtype-helper.hpp\"" );
-    if( rds_has_enum( rds ) )
-      line( "#include \"rds/helper/enum.hpp\"" );
     if( rds_needs_serial_header( rds ) ) {
       line( "#include \"error.hpp\"" );
       line( "#include \"fb.hpp\"" );
     }
     if( rds_has_enum( rds ) ) line( "#include \"maybe.hpp\"" );
+    line( "" );
+    comment( "refl" );
+    line( "#include \"refl/refl.hpp\"" );
     line( "" );
     comment( "base" );
     line( "#include \"base/cc-specific.hpp\"" );

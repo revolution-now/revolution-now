@@ -333,84 +333,83 @@ TEST_CASE( "[rds] Associated Enums" ) {
 
 TEST_CASE( "[rds] enums" ) {
   // e_empty
-  static_assert( enum_traits<e_empty>::count == 0 );
-  static_assert( enum_traits<e_empty>::type_name == "e_empty" );
-  static_assert( enum_traits<e_empty>::values.size() == 0 );
-  static_assert( enum_traits<e_empty>::from_integral( 0 ) ==
+  static_assert( refl::enum_count<e_empty> == 0 );
+  static_assert( refl::traits<e_empty>::name == "e_empty" );
+  static_assert( refl::enum_values<e_empty>.size() == 0 );
+  static_assert( refl::enum_from_integral<e_empty>( 0 ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_empty>( 1 ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_empty>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_empty>( "hello" ) ==
                  nothing );
 
   // e_single
-  static_assert( enum_traits<e_single>::count == 1 );
-  static_assert( enum_traits<e_single>::type_name ==
-                 "e_single" );
-  static_assert( enum_traits<e_single>::values.size() == 1 );
-  static_assert( enum_traits<e_single>::value_name(
+  static_assert( refl::enum_count<e_single> == 1 );
+  static_assert( refl::traits<e_single>::name == "e_single" );
+  static_assert( refl::enum_values<e_single>.size() == 1 );
+  static_assert( refl::enum_value_name<e_single>(
                      e_single::hello ) == "hello" );
-  static_assert( enum_traits<e_single>::from_integral( 0 ) ==
+  static_assert( refl::enum_from_integral<e_single>( 0 ) ==
                  e_single::hello );
-  static_assert( enum_traits<e_single>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_single>( 1 ) ==
                  nothing );
-  static_assert( enum_traits<e_single>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_single>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_single>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_single>( "hello" ) ==
                  e_single::hello );
-  static_assert( enum_traits<e_single>::from_string(
-                     "hellox" ) == nothing );
+  static_assert( refl::enum_from_string<e_single>( "hellox" ) ==
+                 nothing );
 
   // e_two
-  static_assert( enum_traits<e_two>::count == 2 );
-  static_assert( enum_traits<e_two>::type_name == "e_two" );
-  static_assert( enum_traits<e_two>::values.size() == 2 );
-  static_assert( enum_traits<e_two>::value_name(
-                     e_two::hello ) == "hello" );
-  static_assert( enum_traits<e_two>::value_name(
-                     e_two::world ) == "world" );
-  static_assert( enum_traits<e_two>::from_integral( 0 ) ==
+  static_assert( refl::enum_count<e_two> == 2 );
+  static_assert( refl::traits<e_two>::name == "e_two" );
+  static_assert( refl::enum_values<e_two>.size() == 2 );
+  static_assert( refl::enum_value_name<e_two>( e_two::hello ) ==
+                 "hello" );
+  static_assert( refl::enum_value_name<e_two>( e_two::world ) ==
+                 "world" );
+  static_assert( refl::enum_from_integral<e_two>( 0 ) ==
                  e_two::hello );
-  static_assert( enum_traits<e_two>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 1 ) ==
                  e_two::world );
-  static_assert( enum_traits<e_two>::from_integral( 2 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 2 ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_integral( 10 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 10 ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_two>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_two>( "hello" ) ==
                  e_two::hello );
-  static_assert( enum_traits<e_two>::from_string( "hellox" ) ==
+  static_assert( refl::enum_from_string<e_two>( "hellox" ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "world" ) ==
+  static_assert( refl::enum_from_string<e_two>( "world" ) ==
                  e_two::world );
 
   // e_color
-  static_assert( enum_traits<e_color>::count == 3 );
-  static_assert( enum_traits<e_color>::type_name == "e_color" );
-  static_assert( enum_traits<e_color>::values.size() == 3 );
-  static_assert( enum_traits<e_color>::value_name(
-                     e_color::red ) == "red" );
-  static_assert( enum_traits<e_color>::value_name(
+  static_assert( refl::enum_count<e_color> == 3 );
+  static_assert( refl::traits<e_color>::name == "e_color" );
+  static_assert( refl::enum_values<e_color>.size() == 3 );
+  static_assert(
+      refl::enum_value_name<e_color>( e_color::red ) == "red" );
+  static_assert( refl::enum_value_name<e_color>(
                      e_color::blue ) == "blue" );
-  static_assert( enum_traits<e_color>::from_integral( 0 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 0 ) ==
                  e_color::red );
-  static_assert( enum_traits<e_color>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 1 ) ==
                  e_color::green );
-  static_assert( enum_traits<e_color>::from_integral( 2 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 2 ) ==
                  e_color::blue );
-  static_assert( enum_traits<e_color>::from_integral( 3 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 3 ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_integral( 10 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 10 ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_color>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_color>( "hello" ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "green" ) ==
+  static_assert( refl::enum_from_string<e_color>( "green" ) ==
                  e_color::green );
 }
 

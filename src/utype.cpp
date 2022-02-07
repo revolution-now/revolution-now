@@ -31,6 +31,9 @@
 #include "rcl/ext-builtin.hpp"
 #include "rcl/ext-std.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/keyval.hpp"
 
@@ -203,8 +206,8 @@ maybe<e_unit_type_modifier> inventory_to_modifier(
 
 maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm ) {
-  return enum_traits<e_unit_inventory>::from_string(
-      enum_name( comm ) );
+  return refl::enum_from_string<e_unit_inventory>(
+      refl::enum_value_name( comm ) );
 }
 
 maybe<e_commodity> inventory_to_commodity(
@@ -1110,7 +1113,7 @@ rcl::convert_valid rcl_validate(
         activity );
     expertises.insert( activity );
   }
-  for( auto activity : enum_traits<e_unit_activity>::values ) {
+  for( auto activity : refl::enum_values<e_unit_activity> ) {
     CHECK( expertises.contains( activity ),
            "there is no unit type that has expertise {}.",
            activity );

@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
+// refl
+#include "refl/query-enum.hpp"
 
 namespace rn {
 
@@ -41,9 +41,9 @@ template<typename Enum>
 std::string_view enum_to_display_name( Enum value ) {
   return internal::enum_to_display_name(
       /*type_name=*/internal::remove_namespaces(
-          enum_traits<Enum>::type_name ),  //
+          refl::traits<Enum>::name ),      //
       /*index=*/static_cast<int>( value ), //
-      /*default=*/enum_name( value ) );
+      /*default=*/refl::enum_value_name( value ) );
 }
 
 } // namespace rn

@@ -20,6 +20,9 @@
 #include "tiles.hpp"
 #include "ttf.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
 
@@ -44,10 +47,10 @@ struct MainMenuPlane : public Plane {
         compositor::section( compositor::e_section::normal ) );
     tile_sprite( tx, e_tile::wood_middle, normal_area );
     H    h         = normal_area.h / 2_sy;
-    auto num_items = enum_traits<e_main_menu_item>::count;
+    auto num_items = refl::enum_count<e_main_menu_item>;
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
-    for( auto e : enum_traits<e_main_menu_item>::values ) {
+    for( auto e : refl::enum_values<e_main_menu_item> ) {
       gfx::pixel  c       = gfx::pixel::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
@@ -78,14 +81,14 @@ struct MainMenuPlane : public Plane {
           case ::SDLK_UP:
           case ::SDLK_KP_8:
             g_curr_item = util::find_previous_and_cycle(
-                enum_traits<e_main_menu_item>::values,
+                refl::enum_values<e_main_menu_item>,
                 g_curr_item );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_DOWN:
           case ::SDLK_KP_2:
             g_curr_item = util::find_subsequent_and_cycle(
-                enum_traits<e_main_menu_item>::values,
+                refl::enum_values<e_main_menu_item>,
                 g_curr_item );
             handled = e_input_handled::yes;
             break;

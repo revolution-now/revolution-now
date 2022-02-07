@@ -22,6 +22,9 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/fmt.hpp"
 
@@ -291,7 +294,7 @@ Coord Coord::moved( e_direction d ) const {
 }
 
 maybe<e_direction> Coord::direction_to( Coord dest ) const {
-  for( auto d : enum_traits<e_direction>::values )
+  for( auto d : refl::enum_values<e_direction> )
     if( moved( d ) == dest ) return d;
   return {};
 }

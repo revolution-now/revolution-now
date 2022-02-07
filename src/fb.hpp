@@ -17,8 +17,8 @@
 #include "expect.hpp"
 #include "maybe.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
+// refl
+#include "refl/query-enum.hpp"
 
 // base
 #include "base/cc-specific.hpp"
@@ -344,10 +344,10 @@ auto serialize( FBBuilder&, T const& e, serial::ADL ) {
   using src_enum_t = T;
   // FB enums have two additional members (MIN/MAX) but their in-
   // dexes are repeated from previous values.
-  static_assert( enum_traits<src_enum_t>::count ==
+  static_assert( refl::enum_count<src_enum_t> ==
                  static_cast<int>( fbs_enum_t::MAX ) + 1 );
   static_assert( static_cast<int>(
-                     enum_traits<src_enum_t>::values[0] ) == 0 );
+                     refl::enum_values<src_enum_t>[0] ) == 0 );
   static_assert( static_cast<int>( fbs_enum_t::MIN ) == 0 );
   auto fbs_enum =
       static_cast<fbs_enum_t>( static_cast<int>( e ) );
@@ -672,10 +672,10 @@ valid_deserial_t deserialize( SrcT const* src, DstT* dst,
   using dst_enum_t = DstT;
   // FB enums have two additional members (MIN/MAX) but their in-
   // dexes are repeated from previous values.
-  static_assert( enum_traits<dst_enum_t>::count ==
+  static_assert( refl::enum_count<dst_enum_t> ==
                  static_cast<int>( fbs_enum_t::MAX ) + 1 );
   static_assert( static_cast<int>(
-                     enum_traits<dst_enum_t>::values[0] ) == 0 );
+                     refl::enum_values<dst_enum_t>[0] ) == 0 );
   static_assert( static_cast<int>( fbs_enum_t::MIN ) == 0 );
   CHECK( src != nullptr,
          "`src` is nullptr when deserializing enum." );

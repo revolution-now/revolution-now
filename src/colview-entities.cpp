@@ -31,6 +31,9 @@
 // Revolution Now (config)
 #include "../config/rcl/units.inl"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/maybe-util.hpp"
 
@@ -159,7 +162,7 @@ class MarketCommodities : public ui::View,
  public:
   Delta delta() const override {
     return Delta{
-        block_width_ * SX{ enum_traits<e_commodity>::count },
+        block_width_ * SX{ refl::enum_count<e_commodity> },
         1_h * 32_sy };
   }
 
@@ -183,10 +186,10 @@ class MarketCommodities : public ui::View,
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    auto  comm_it = enum_traits<e_commodity>::values.begin();
-    auto  label   = CommodityLabel::quantity{ 0 };
-    Coord pos     = coord;
-    auto const& colony = colony_from_id( colony_id() );
+    auto        comm_it = refl::enum_values<e_commodity>.begin();
+    auto        label   = CommodityLabel::quantity{ 0 };
+    Coord       pos     = coord;
+    auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, gfx::pixel::black(), rect );
@@ -1224,7 +1227,7 @@ void recomposite( ColonyId id, Delta const& canvas_size ) {
 
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
-      canvas_size.w / SX{ enum_traits<e_commodity>::count };
+      canvas_size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
@@ -1320,7 +1323,7 @@ void recomposite( ColonyId id, Delta const& canvas_size ) {
   invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
-  for( auto e : enum_traits<e_colview_entity>::values ) {
+  for( auto e : refl::enum_values<e_colview_entity> ) {
     CHECK( g_composition.entities.contains( e ),
            "colview entity {} is missing.", e );
   }

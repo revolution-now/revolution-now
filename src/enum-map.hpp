@@ -18,8 +18,9 @@
 // Rcl
 #include "rcl/ext.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/refl.hpp"
 
 // base
 #include "base/adl-tag.hpp"
@@ -31,9 +32,9 @@
 
 namespace rn {
 
-template<ReflectedEnum Enum, typename ValT>
+template<refl::ReflectedEnum Enum, typename ValT>
 struct ExhaustiveEnumMap {
-  static constexpr int kSize = enum_traits<Enum>::count;
+  static constexpr int kSize = refl::enum_count<Enum>;
 
  private:
   using ArrayT = std::array<std::pair<Enum, ValT>, kSize>;
@@ -137,7 +138,7 @@ struct ExhaustiveEnumMap {
   }
 
   static Enum from_idx( int i ) {
-    UNWRAP_CHECK( e, enum_traits<Enum>::from_integral( i ) );
+    UNWRAP_CHECK( e, refl::enum_from_integral<Enum>( i ) );
     return e;
   }
 

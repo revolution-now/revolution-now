@@ -26,6 +26,9 @@
 // Revolution Now (config)
 #include "../config/rcl/music.inl"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/keyval.hpp"
 #include "base/range-lite.hpp"
@@ -184,7 +187,7 @@ dimensions_for_request() {
 
 void register_requests() {
 #include "../config/c++/tune-requests.inl"
-  for( auto req : enum_traits<e_request>::values ) {
+  for( auto req : refl::enum_values<e_request> ) {
     CHECK( dimensions_for_request().contains( req ),
            "The Conductor request category `{}` has not been "
            "given a definition.",
@@ -211,7 +214,7 @@ void init_conductor() {
   ADD_MUSIC_PLAYER( ogg, Ogg );
 
   // Check each music player for viability and populate info.
-  for( auto mplayer : enum_traits<e_music_player>::values ) {
+  for( auto mplayer : refl::enum_values<e_music_player> ) {
     CHECK( g_mplayers.contains( mplayer ),
            "Music player `{}` not added to list.", mplayer );
     CHECK( g_mplayer_descs.contains( mplayer ),
@@ -273,8 +276,7 @@ void init_conductor() {
   // Now check that there is a tune assigned to each special
   // music event. That is defined as a game event where there
   // should always be the tune played.
-  for( auto event :
-       enum_traits<e_special_music_event>::values ) {
+  for( auto event : refl::enum_values<e_special_music_event> ) {
     CHECK( m.contains( event ),
            "There is no tune set to be played for the special "
            "event `{}`.",
@@ -300,7 +302,7 @@ void init_conductor() {
   }
 
   CHECK( g_special_tunes.size() ==
-         enum_traits<e_special_music_event>::count );
+         refl::enum_count<e_special_music_event> );
 
   // This will set the music player if possible, make sure all
   // music is stopped, etc.

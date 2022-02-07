@@ -28,6 +28,9 @@
 #include "tiles.hpp"
 #include "window.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
@@ -49,7 +52,7 @@ namespace rl = ::base::rl;
 namespace {
 
 constexpr auto num_planes =
-    static_cast<size_t>( enum_traits<e_plane>::count );
+    static_cast<size_t>( refl::enum_count<e_plane> );
 
 // The `values` array should be a constexpr.
 vector<e_plane> g_plane_list;

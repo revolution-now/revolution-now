@@ -20,6 +20,9 @@
 #include "base/lambda.hpp"
 #include "base/to-str-tags.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base-util
 #include "base-util/graph.hpp"
 
@@ -200,7 +203,7 @@ void run_all_init_routines(
 
   // A list of init routines that are unregistered.
   vector<e_init_routine> unregistered_init, unregistered_cleanup;
-  for( auto routine : enum_traits<e_init_routine>::values ) {
+  for( auto routine : refl::enum_values<e_init_routine> ) {
     if( !init_functions().contains( routine ) )
       unregistered_init.push_back( routine );
     if( !cleanup_functions().contains( routine ) )
@@ -209,10 +212,9 @@ void run_all_init_routines(
 
   // These should guarantee that the maps contain all enum
   // values, no more and no fewer.
-  CHECK(
-      enum_traits<e_init_routine>::count == g_init_deps.size(),
-      "The init routine dependency graph is missing some "
-      "enum values" );
+  CHECK( refl::enum_count<e_init_routine> == g_init_deps.size(),
+         "The init routine dependency graph is missing some "
+         "enum values" );
   CHECK( unregistered_init.empty(),
          "not all e_init_routine values have registered "
          "init functions: {}",

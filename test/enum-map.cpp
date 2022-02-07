@@ -31,7 +31,7 @@ using namespace std;
 using ::Catch::Matches;
 
 // If this changes then the below tests may need to be updated.
-static_assert( enum_traits<e_color>::count == 3 );
+static_assert( refl::enum_count<e_color> == 3 );
 
 static_assert( is_default_constructible_v<
                ExhaustiveEnumMap<e_color, int>> );

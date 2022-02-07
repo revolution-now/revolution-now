@@ -20,6 +20,9 @@
 // Revolution Now (config)
 #include "../config/rcl/ui.inl"
 
+// refl
+#include "refl/query-enum.hpp"
+
 namespace rn::compositor {
 
 namespace {
@@ -49,7 +52,7 @@ void set_console_size( double percent ) {
 void rotate_console() {
   g_console_loc = static_cast<e_composite_location>(
       ( static_cast<int>( g_console_loc ) + 1 ) %
-      enum_traits<e_composite_location>::count );
+      refl::enum_count<e_composite_location> );
 }
 
 maybe<Rect> section_inverted( e_section sec ) {

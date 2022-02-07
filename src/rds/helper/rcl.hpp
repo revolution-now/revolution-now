@@ -13,13 +13,17 @@
 // Rcl
 #include "rcl/ext.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/refl.hpp"
+
 // C++ standard library
 #include <type_traits>
 
 namespace rcl {
 
 // Allows deserializing reflected enums from Rcl config files.
-template<rn::ReflectedEnum Enum>
+template<refl::ReflectedEnum Enum>
 rcl::convert_err<Enum> convert_to( rcl::value const& v,
                                    rcl::tag<Enum> ) {
   base::maybe<std::string const&> s = v.get_if<std::string>();
@@ -27,14 +31,13 @@ rcl::convert_err<Enum> convert_to( rcl::value const& v,
     return rcl::error(
         fmt::format( "cannot produce an {} enum value from type "
                      "{}. String required.",
-                     rn::enum_traits<Enum>::type_name,
+                     refl::traits<Enum>::name,
                      rcl::name_of( rcl::type_of( v ) ) ) );
-  base::maybe<Enum> res =
-      rn::enum_traits<Enum>::from_string( *s );
+  base::maybe<Enum> res = refl::enum_from_string<Enum>( *s );
   if( !res.has_value() )
     return rcl::error( fmt::format(
         "failed to parse string `{}' into valid {} enum value.",
-        *s, rn::enum_traits<Enum>::type_name ) );
+        *s, refl::traits<Enum>::name ) );
   return *res;
 }
 

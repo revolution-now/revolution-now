@@ -25,6 +25,9 @@
 // Rds
 #include "rds/commodity.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // Flatbuffers
 #include "fb/commodity_generated.h"
 
@@ -39,8 +42,7 @@ constexpr Delta const kCommodityInCargoHoldRenderingOffset{
 /****************************************************************
 ** Commodity List
 *****************************************************************/
-constexpr int kNumCommodityTypes =
-    enum_traits<e_commodity>::count;
+constexpr int kNumCommodityTypes = refl::enum_count<e_commodity>;
 
 // Index refers to the ordering in the enum above, starting at 0.
 maybe<e_commodity> commodity_from_index( int index );

@@ -25,6 +25,9 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
@@ -48,7 +51,7 @@ valid_deserial_t UnitComposition::check_invariants_safe() const {
   // Validation: make sure that quantities of inventory items are
   // within range.
   for( e_unit_inventory type :
-       enum_values<e_unit_inventory>() ) {
+       refl::enum_values<e_unit_inventory> ) {
     maybe<int const&> quantity =
         base::lookup( inventory_, type );
     if( !quantity.has_value() ) continue;
@@ -205,7 +208,7 @@ maybe<int> max_valid_inventory_quantity(
 
 void remove_commodities_from_inventory(
     UnitComposition::UnitInventoryMap& inventory ) {
-  for( auto inv : enum_traits<e_unit_inventory>::values )
+  for( auto inv : refl::enum_values<e_unit_inventory> )
     if( inventory_to_commodity( inv ) ) inventory.erase( inv );
 }
 
@@ -342,8 +345,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
                                                  modifier_deltas;
       unordered_set<e_unit_type_modifier> const& new_mods =
           new_unit_type_obj.unit_type_modifiers();
-      for( auto mod :
-           enum_traits<e_unit_type_modifier>::values ) {
+      for( auto mod : refl::enum_values<e_unit_type_modifier> ) {
         if( old_mods.contains( mod ) &&
             !new_mods.contains( mod ) )
           modifier_deltas[mod] = e_unit_type_modifier_delta::del;
@@ -352,7 +354,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
           modifier_deltas[mod] = e_unit_type_modifier_delta::add;
       }
       unordered_map<e_commodity, int> commodity_deltas;
-      for( auto comm_type : enum_values<e_commodity>() ) {
+      for( auto comm_type : refl::enum_values<e_commodity> ) {
         int orig_quantity =
             base::lookup( commodity_store, comm_type )
                 .value_or( 0 );

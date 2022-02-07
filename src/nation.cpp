@@ -24,6 +24,9 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // C++ standard library
 #include <cctype>
 
@@ -48,7 +51,7 @@ NationDesc const& nation_obj( e_nation nation ) {
     MAKE_NATION( french );
     MAKE_NATION( english );
     MAKE_NATION( spanish );
-    CHECK( m.size() == enum_traits<e_nation>::count );
+    CHECK( m.size() == refl::enum_count<e_nation> );
     return m;
   }();
   return nations[nation];

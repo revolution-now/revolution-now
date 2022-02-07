@@ -20,6 +20,9 @@
 #include "ui-enums.hpp"
 #include "wait.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // c++ standard library
 #include <string_view>
 #include <vector>
@@ -119,9 +122,8 @@ struct SelectBoxEnum {
 
   wait<Enum> operator()( std::string_view title ) const {
     static const std::vector<Enum> options = [] {
-      return std::vector<Enum>(
-          enum_traits<Enum>::values.begin(),
-          enum_traits<Enum>::values.end() );
+      return std::vector<Enum>( refl::enum_values<Enum>.begin(),
+                                refl::enum_values<Enum>.end() );
     }();
     return ( *this )( title, options );
   }

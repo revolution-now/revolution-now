@@ -13,10 +13,12 @@
 // Revolution Now
 #include "core-config.hpp"
 #include "rds/helper/sumtype-helper.hpp"
-#include "rds/helper/enum.hpp"
 #include "error.hpp"
 #include "fb.hpp"
 #include "maybe.hpp"
+
+// refl
+#include "refl/refl.hpp"
 
 // base
 #include "base/cc-specific.hpp"
@@ -704,28 +706,20 @@ namespace rn {
 
 } // namespace rn
 
-namespace rn {
+namespace refl {
 
   // Reflection info for enum e_empty.
   template<>
-  struct enum_traits<rn::e_empty> {
+  struct traits<rn::e_empty> {
     using type = rn::e_empty;
-    static constexpr int count = 0;
-    static constexpr std::string_view type_name = "e_empty";
-    static constexpr std::array<type, 0> values{
-    };
-    template<typename Int>
-    static constexpr maybe<type> from_integral( Int ) {
-      maybe<type> res;
-      return res;
-    }
-    static constexpr maybe<type> from_string( std::string_view ) {
-      return
-        maybe<type>{};
-    }
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_empty";
+
+    static constexpr std::array<std::string_view, 0> value_names{};
   };
 
-} // namespace rn
+} // namespace refl
 
 namespace rn {
 
@@ -745,43 +739,27 @@ namespace rn {
 
 } // namespace rn
 
-namespace rn {
+namespace refl {
 
   // Reflection info for enum e_single.
   template<>
-  struct enum_traits<rn::e_single> {
+  struct traits<rn::e_single> {
     using type = rn::e_single;
-    static constexpr int count = 1;
-    static constexpr std::string_view type_name = "e_single";
-    static constexpr std::array<type, 1> values{
-      type::hello
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_single";
+
+    static constexpr std::array<std::string_view, 1> value_names{
+      "hello",
     };
-    static constexpr std::string_view value_name( type val ) {
-      switch( val ) {
-        case type::hello: return "hello";
-      }
-    }
-    template<typename Int>
-    static constexpr maybe<type> from_integral( Int val ) {
-      maybe<type> res;
-      int intval = static_cast<int>( val );
-      if( intval < 0 || intval >= 1 ) return res;
-      res = static_cast<type>( intval );
-      return res;
-    }
-    static constexpr maybe<type> from_string( std::string_view name ) {
-      return
-        name == "hello" ? maybe<type>( type::hello ) :
-        maybe<type>{};
-    }
   };
 
-} // namespace rn
+} // namespace refl
 
 namespace rn {
 
   inline void to_str( e_single o, std::string& out, ::base::ADL_t ) {
-    out += enum_traits<e_single>::value_name( o );
+    out += refl::traits<e_single>::value_names[static_cast<int>( o )];
   }
 
 } // namespace rn
@@ -798,46 +776,28 @@ namespace rn {
 
 } // namespace rn
 
-namespace rn {
+namespace refl {
 
   // Reflection info for enum e_two.
   template<>
-  struct enum_traits<rn::e_two> {
+  struct traits<rn::e_two> {
     using type = rn::e_two;
-    static constexpr int count = 2;
-    static constexpr std::string_view type_name = "e_two";
-    static constexpr std::array<type, 2> values{
-      type::hello,
-      type::world
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_two";
+
+    static constexpr std::array<std::string_view, 2> value_names{
+      "hello",
+      "world",
     };
-    static constexpr std::string_view value_name( type val ) {
-      switch( val ) {
-        case type::hello: return "hello";
-        case type::world: return "world";
-      }
-    }
-    template<typename Int>
-    static constexpr maybe<type> from_integral( Int val ) {
-      maybe<type> res;
-      int intval = static_cast<int>( val );
-      if( intval < 0 || intval >= 2 ) return res;
-      res = static_cast<type>( intval );
-      return res;
-    }
-    static constexpr maybe<type> from_string( std::string_view name ) {
-      return
-        name == "hello" ? maybe<type>( type::hello ) :
-        name == "world" ? maybe<type>( type::world ) :
-        maybe<type>{};
-    }
   };
 
-} // namespace rn
+} // namespace refl
 
 namespace rn {
 
   inline void to_str( e_two o, std::string& out, ::base::ADL_t ) {
-    out += enum_traits<e_two>::value_name( o );
+    out += refl::traits<e_two>::value_names[static_cast<int>( o )];
   }
 
 } // namespace rn
@@ -855,49 +815,29 @@ namespace rn {
 
 } // namespace rn
 
-namespace rn {
+namespace refl {
 
   // Reflection info for enum e_color.
   template<>
-  struct enum_traits<rn::e_color> {
+  struct traits<rn::e_color> {
     using type = rn::e_color;
-    static constexpr int count = 3;
-    static constexpr std::string_view type_name = "e_color";
-    static constexpr std::array<type, 3> values{
-      type::red,
-      type::green,
-      type::blue
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_color";
+
+    static constexpr std::array<std::string_view, 3> value_names{
+      "red",
+      "green",
+      "blue",
     };
-    static constexpr std::string_view value_name( type val ) {
-      switch( val ) {
-        case type::red: return "red";
-        case type::green: return "green";
-        case type::blue: return "blue";
-      }
-    }
-    template<typename Int>
-    static constexpr maybe<type> from_integral( Int val ) {
-      maybe<type> res;
-      int intval = static_cast<int>( val );
-      if( intval < 0 || intval >= 3 ) return res;
-      res = static_cast<type>( intval );
-      return res;
-    }
-    static constexpr maybe<type> from_string( std::string_view name ) {
-      return
-        name == "red" ? maybe<type>( type::red ) :
-        name == "green" ? maybe<type>( type::green ) :
-        name == "blue" ? maybe<type>( type::blue ) :
-        maybe<type>{};
-    }
   };
 
-} // namespace rn
+} // namespace refl
 
 namespace rn {
 
   inline void to_str( e_color o, std::string& out, ::base::ADL_t ) {
-    out += enum_traits<e_color>::value_name( o );
+    out += refl::traits<e_color>::value_names[static_cast<int>( o )];
   }
 
 } // namespace rn
@@ -914,46 +854,28 @@ namespace rn {
 
 } // namespace rn
 
-namespace rn {
+namespace refl {
 
   // Reflection info for enum e_hand.
   template<>
-  struct enum_traits<rn::e_hand> {
+  struct traits<rn::e_hand> {
     using type = rn::e_hand;
-    static constexpr int count = 2;
-    static constexpr std::string_view type_name = "e_hand";
-    static constexpr std::array<type, 2> values{
-      type::left,
-      type::right
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_hand";
+
+    static constexpr std::array<std::string_view, 2> value_names{
+      "left",
+      "right",
     };
-    static constexpr std::string_view value_name( type val ) {
-      switch( val ) {
-        case type::left: return "left";
-        case type::right: return "right";
-      }
-    }
-    template<typename Int>
-    static constexpr maybe<type> from_integral( Int val ) {
-      maybe<type> res;
-      int intval = static_cast<int>( val );
-      if( intval < 0 || intval >= 2 ) return res;
-      res = static_cast<type>( intval );
-      return res;
-    }
-    static constexpr maybe<type> from_string( std::string_view name ) {
-      return
-        name == "left" ? maybe<type>( type::left ) :
-        name == "right" ? maybe<type>( type::right ) :
-        maybe<type>{};
-    }
   };
 
-} // namespace rn
+} // namespace refl
 
 namespace rn {
 
   inline void to_str( e_hand o, std::string& out, ::base::ADL_t ) {
-    out += enum_traits<e_hand>::value_name( o );
+    out += refl::traits<e_hand>::value_names[static_cast<int>( o )];
   }
 
 } // namespace rn
