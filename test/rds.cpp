@@ -510,5 +510,101 @@ TEST_CASE( "[rds] structs" ) {
   }
 }
 
+TEST_CASE( "[rds] sumtype reflection" ) {
+  SECTION( "none" ) {
+    using Tr = refl::traits<MySumtype::none>;
+    static_assert( is_same_v<Tr::type, MySumtype::none> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "none" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "some" ) {
+    using Tr = refl::traits<MySumtype::some>;
+    static_assert( is_same_v<Tr::type, MySumtype::some> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "some" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 2 );
+    MySumtype::some ms{
+        .s = "hello",
+        .y = 5,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "s" );
+      REQUIRE( ms.s == "hello" );
+      ( ms.*acc ) = "world";
+      REQUIRE( ms.s == "world" );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "y" );
+      REQUIRE( ms.y == 5 );
+      ( ms.*acc ) = 6;
+      REQUIRE( ms.y == 6 );
+    }
+  }
+  SECTION( "more" ) {
+    using Tr = refl::traits<MySumtype::more>;
+    static_assert( is_same_v<Tr::type, MySumtype::more> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "more" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
+    MySumtype::more ms{
+        .d = 2.3,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "d" );
+      REQUIRE( ms.d == 2.3 );
+      ( ms.*acc ) = 3.2;
+      REQUIRE( ms.d == 3.2 );
+    }
+  }
+}
+
+TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
+  SECTION( "nothing" ) {
+    using Tr = refl::traits<rdstest::Maybe::nothing<int>>;
+    static_assert(
+        is_same_v<Tr::type, rdstest::Maybe::nothing<int>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rdstest::Maybe" );
+    static_assert( Tr::name == "nothing" );
+    static_assert( is_same_v<Tr::template_types, tuple<int>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "just" ) {
+    using Tr = refl::traits<rdstest::Maybe::just<int>>;
+    static_assert(
+        is_same_v<Tr::type, rdstest::Maybe::just<int>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rdstest::Maybe" );
+    static_assert( Tr::name == "just" );
+    static_assert( is_same_v<Tr::template_types, tuple<int>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
+    rdstest::Maybe::just<int> ms{
+        .val = 2,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "val" );
+      REQUIRE( ms.val == 2 );
+      ( ms.*acc ) = 3;
+      REQUIRE( ms.val == 3 );
+    }
+  }
+}
+
 } // namespace
 } // namespace rn

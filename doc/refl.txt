@@ -2,49 +2,48 @@ Rollout Process:
 
   Not Done:
 
-  1.  Add reflection output to Rds generated files.
-  2.  Check potential issue where Rcl table keys must be identi-
+  1.  Check potential issue where Rcl table keys must be identi-
       fiers, e.g. cannot have spaces or weird characters. This
       may need to be checked when converting from Cdr.
-  3.  Ensure that all types that support rcl::convert_to also
+  2.  Ensure that all types that support rcl::convert_to also
       support Cdr, either via reflection or manually.
-  4.  Gut the bodies of all rcl::convert_to methods and forward
+  3.  Gut the bodies of all rcl::convert_to methods and forward
       it to from_canonical.
-  5.  In config-files, bypass the rcl::convert_to and call the
+  4.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
-  6.  Remove the rcl::convert_to extension point.
-  7.  Add rcl module to emit the data model as rcl language. Note
+  5.  Remove the rcl::convert_to extension point.
+  6.  Add rcl module to emit the data model as rcl language. Note
       that we should not sort lists or table keys here since 1)
       the ordering inherited from the cdr model will have table
       keys ordered (since it uses std::map) and it will already
       have had its list elements sorted where applicable during
       the to_canonical conversion.
-  8.  Add some reflection utilities for querying properties of
+  7.  Add some reflection utilities for querying properties of
       structs or enums from the reflection traits.
-  9.  Create refl/ext-to-str.hpp to allow converting reflected
+  8.  Create refl/ext-to-str.hpp to allow converting reflected
       types to strings.
-  10. Remove to_str from Rds files. May have to do this together
+  9.  Remove to_str from Rds files. May have to do this together
       with the previous step.
-  11. Find places, such as Coord, where we can add reflection
+  10. Find places, such as Coord, where we can add reflection
       manually (if it hasn't already been added by this point)
       and therefore remove the manual to_str overloads.
-  12. Remove all traces of flatbuffers, but leaving per-module
+  11. Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  13. Find structs/classes that have to_str or manual reflection
+  12. Find structs/classes that have to_str or manual reflection
       traits and move them into Rds, creating reflected wrappers
       as needed.
-  14. Consolidate game state into one large data structure, in-
+  13. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  15. Reimplement game saving by using to_canonical game state
+  14. Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  16. Add routine for converting from a Lua value to Cdr, and
+  15. Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive.
-  17. Add Lua module for generating a game state in Lua.
-  18. Consider replacing rcl data model with Cdr; figure out how
+  16. Add Lua module for generating a game state in Lua.
+  17. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  19. Consider how to handle forward/backward compatibility in a
+  18. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -85,3 +84,4 @@ Rollout Process:
       bles.
   20. Add Cdr module to Rcl to allow it to convert its data rep-
       resentation to Cdr.
+  21. Add reflection output to Rds generated files.

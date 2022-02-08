@@ -27,19 +27,19 @@ struct TemplateParam {
   std::string param;
 };
 
+struct StructMember {
+  std::string type;
+  std::string var;
+};
+
 enum class e_feature { formattable, serializable, equality };
 
 /****************************************************************
 ** sumtype
 *****************************************************************/
-struct AlternativeMember {
-  std::string type;
-  std::string var;
-};
-
 struct Alternative {
-  std::string                    name;
-  std::vector<AlternativeMember> members;
+  std::string               name;
+  std::vector<StructMember> members;
 };
 
 std::string            to_str( e_feature feature );
@@ -66,11 +66,6 @@ struct Enum {
 /****************************************************************
 ** struct
 *****************************************************************/
-struct StructMember {
-  std::string type;
-  std::string var;
-};
-
 struct Struct {
   std::string                name;
   std::vector<TemplateParam> tmpl_params;

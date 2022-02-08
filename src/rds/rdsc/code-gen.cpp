@@ -356,7 +356,7 @@ struct CodeGenerator {
     flush();
     if( !alt.members.empty() ) {
       vector<string> fmt_members;
-      for( expr::AlternativeMember const& member : alt.members )
+      for( expr::StructMember const& member : alt.members )
         fmt_members.push_back(
             fmt::format( "{}={{}}", member.var ) );
       {
@@ -393,7 +393,7 @@ struct CodeGenerator {
       if( !tmpls.empty() )
         fmt_args.push_back(
             template_params_type_names( tmpls ) );
-      for( expr::AlternativeMember const& member : alt.members )
+      for( expr::StructMember const& member : alt.members )
         fmt_args.push_back( fmt::format( "o.{}", member.var ) );
       frag( "{} );", absl::StrJoin( fmt_args, ", " ) );
       flush();
@@ -401,10 +401,10 @@ struct CodeGenerator {
     line( "}" );
   }
 
-  void emit( vector<expr::TemplateParam> const& tmpls,
-             expr::Alternative const&           alt,
-             string_view sumtype_name, bool emit_equality,
-             bool emit_serialization ) {
+  void emit_sumtype_alternative(
+      vector<expr::TemplateParam> const& tmpls,
+      expr::Alternative const& alt, string_view sumtype_name,
+      bool emit_equality, bool emit_serialization ) {
     emit_template_decl( tmpls );
     if( alt.members.empty() && !emit_equality &&
         !emit_serialization ) {
@@ -415,8 +415,7 @@ struct CodeGenerator {
         auto cleanup = indent();
         int  max_type_len =
             max_of( alt.members, L( _.type.size() ), 0 );
-        for( expr::AlternativeMember const& alt_mem :
-             alt.members )
+        for( expr::StructMember const& alt_mem : alt.members )
           line( "{: <{}} {};", alt_mem.type, max_type_len,
                 alt_mem.var );
         if( emit_equality ) {
@@ -441,7 +440,7 @@ struct CodeGenerator {
           string member_serials;
           string member_deserials;
           string members_s_get;
-          for( expr::AlternativeMember const& alt_mem :
+          for( expr::StructMember const& alt_mem :
                alt.members ) {
             member_serials += fmt::format(
                 kSumtypeAlternativeMemberSerial,
@@ -573,6 +572,63 @@ struct CodeGenerator {
     close_ns( ns );
   }
 
+  void emit_reflection_for_struct(
+      string_view                        ns,
+      vector<expr::TemplateParam> const& tmpl_params,
+      string const&                      name,
+      vector<expr::StructMember> const&  members ) {
+    comment( "Reflection info for struct {}.", name );
+    string tmpl_brackets =
+        tmpl_params.empty()
+            ? "<>"
+            : template_params( tmpl_params,
+                               /*put_typename=*/false );
+    string tmpl_brackets_typename =
+        tmpl_params.empty()
+            ? "<>"
+            : template_params( tmpl_params,
+                               /*put_typename=*/true );
+    line( "template{}", tmpl_brackets_typename );
+    string name_w_tmpl =
+        fmt::format( "{}{}", name,
+                     template_params( tmpl_params,
+                                      /*put_typename=*/false ) );
+    string full_name_w_tmpl =
+        fmt::format( "{}::{}", ns, name_w_tmpl );
+    line( "struct traits<{}> {{", full_name_w_tmpl );
+    {
+      auto _ = indent();
+      line( "using type = {};", full_name_w_tmpl );
+      newline();
+      line(
+          "static constexpr type_kind kind        = "
+          "type_kind::struct_kind;" );
+      line( "static constexpr std::string_view ns   = \"{}\";",
+            ns );
+      line( "static constexpr std::string_view name = \"{}\";",
+            name );
+      newline();
+      line( "using template_types = std::tuple{};",
+            tmpl_brackets );
+      newline();
+      frag( "static constexpr std::tuple fields{" );
+      if( members.empty() ) {
+        frag( "};" );
+        flush();
+      } else {
+        flush();
+        {
+          auto _ = indent();
+          for( expr::StructMember const& sm : members )
+            line( "refl::StructField{{ \"{}\", &{}::{} }},",
+                  sm.var, full_name_w_tmpl, sm.var );
+        }
+        line( "};" );
+      }
+    }
+    line( "};" );
+  }
+
   void emit( string_view ns, expr::Struct const& strukt ) {
     section( "Struct: "s + strukt.name );
     open_ns( ns );
@@ -596,56 +652,8 @@ struct CodeGenerator {
     // Emit the reflection traits.
     newline();
     open_ns( "refl" );
-    comment( "Reflection info for struct {}.", strukt.name );
-    string tmpl_brackets =
-        strukt.tmpl_params.empty()
-            ? "<>"
-            : template_params( strukt.tmpl_params,
-                               /*put_typename=*/false );
-    string tmpl_brackets_typename =
-        strukt.tmpl_params.empty()
-            ? "<>"
-            : template_params( strukt.tmpl_params,
-                               /*put_typename=*/true );
-    line( "template{}", tmpl_brackets_typename );
-    string name_w_tmpl =
-        fmt::format( "{}{}", strukt.name,
-                     template_params( strukt.tmpl_params,
-                                      /*put_typename=*/false ) );
-    string full_name_w_tmpl =
-        fmt::format( "{}::{}", ns, name_w_tmpl );
-    line( "struct traits<{}> {{", full_name_w_tmpl );
-    {
-      auto _ = indent();
-      line( "using type = {};", full_name_w_tmpl );
-      newline();
-      line(
-          "static constexpr type_kind kind        = "
-          "type_kind::struct_kind;" );
-      line( "static constexpr std::string_view ns   = \"{}\";",
-            ns );
-      line( "static constexpr std::string_view name = \"{}\";",
-            strukt.name );
-      newline();
-      line( "using template_types = std::tuple{};",
-            tmpl_brackets );
-      newline();
-      frag( "static constexpr std::tuple fields{" );
-      if( strukt.members.empty() ) {
-        frag( "};" );
-        flush();
-      } else {
-        flush();
-        {
-          auto _ = indent();
-          for( expr::StructMember const& sm : strukt.members )
-            line( "refl::StructField{{ \"{}\", &{}::{} }},",
-                  sm.var, full_name_w_tmpl, sm.var );
-        }
-        line( "};" );
-      }
-    }
-    line( "};" );
+    emit_reflection_for_struct( ns, strukt.tmpl_params,
+                                strukt.name, strukt.members );
     newline();
     close_ns( "refl" );
   }
@@ -661,8 +669,9 @@ struct CodeGenerator {
             sumtype, expr::e_feature::equality );
         bool emit_serialization = item_has_feature(
             sumtype, expr::e_feature::serializable );
-        emit( sumtype.tmpl_params, alt, sumtype.name,
-              emit_equality, emit_serialization );
+        emit_sumtype_alternative( sumtype.tmpl_params, alt,
+                                  sumtype.name, emit_equality,
+                                  emit_serialization );
         if( item_has_feature( sumtype,
                               expr::e_feature::formattable ) ) {
           newline();
@@ -700,9 +709,25 @@ struct CodeGenerator {
     close_ns( ns );
     // Global namespace.
     emit_variant_to_enum_specialization( ns, sumtype );
+    // Emit the reflection traits.
+    if( !sumtype.alternatives.empty() ) {
+      newline();
+      comment( "Reflection traits for alternatives." );
+      open_ns( "refl" );
+      for( expr::Alternative const& alt :
+           sumtype.alternatives ) {
+        string sumtype_ns =
+            fmt::format( "{}::{}", ns, sumtype.name );
+        emit_reflection_for_struct( sumtype_ns,
+                                    sumtype.tmpl_params,
+                                    alt.name, alt.members );
+        newline();
+      }
+      close_ns( "refl" );
+    }
   }
 
-  void emit( expr::Item const& item ) {
+  void emit_item( expr::Item const& item ) {
     string cpp_ns =
         absl::StrReplaceAll( item.ns, { { ".", "::" } } );
     auto visitor = [&]( auto const& v ) { emit( cpp_ns, v ); };
@@ -862,7 +887,7 @@ struct CodeGenerator {
     emit_includes( rds );
     emit_metadata( rds );
 
-    for( expr::Item const& item : rds.items ) emit( item );
+    for( expr::Item const& item : rds.items ) emit_item( item );
   }
 };
 

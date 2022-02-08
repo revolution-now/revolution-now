@@ -137,8 +137,8 @@ void parse_sumtype( vector<string> const& parent_namespaces,
       UNWRAP_CHECK_MSG( var_type, var_v.get_if<string>(),
                         "type of variable {} must be a string.",
                         var_name );
-      expr::AlternativeMember alt_member{ .type = var_type,
-                                          .var  = var_name };
+      expr::StructMember alt_member{ .type = var_type,
+                                     .var  = var_name };
       alt.members.push_back( alt_member );
     }
     sumtype.alternatives.push_back( alt );
