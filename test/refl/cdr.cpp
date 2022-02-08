@@ -77,13 +77,12 @@ struct traits<my_ns::Address> {
   static constexpr string_view name = "Address";
 
   // Struct specific.
-  static constexpr tuple<> template_types{};
+  using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::ReflectedStructField{
-          "street_number", &my_ns::Address::street_number },
-      refl::ReflectedStructField{ "state",
-                                  &my_ns::Address::state },
+      refl::StructField{ "street_number",
+                         &my_ns::Address::street_number },
+      refl::StructField{ "state", &my_ns::Address::state },
   };
 };
 
@@ -163,16 +162,14 @@ struct traits<my_ns::Person> {
   static constexpr string_view name = "Person";
 
   // Struct specific.
-  static constexpr tuple<> template_types{};
+  using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::ReflectedStructField{ "name", &my_ns::Person::name },
-      refl::ReflectedStructField{ "height",
-                                  &my_ns::Person::height },
-      refl::ReflectedStructField{ "male", &my_ns::Person::male },
-      refl::ReflectedStructField{ "houses",
-                                  &my_ns::Person::houses },
-      refl::ReflectedStructField{ "pets", &my_ns::Person::pets },
+      refl::StructField{ "name", &my_ns::Person::name },
+      refl::StructField{ "height", &my_ns::Person::height },
+      refl::StructField{ "male", &my_ns::Person::male },
+      refl::StructField{ "houses", &my_ns::Person::houses },
+      refl::StructField{ "pets", &my_ns::Person::pets },
   };
 };
 
@@ -246,15 +243,12 @@ struct traits<my_ns::Rolodex> {
   static constexpr string_view name = "Rolodex";
 
   // Struct specific.
-  static constexpr tuple<> template_types{};
+  using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::ReflectedStructField{ "self",
-                                  &my_ns::Rolodex::self },
-      refl::ReflectedStructField{ "updated",
-                                  &my_ns::Rolodex::updated },
-      refl::ReflectedStructField{ "contacts",
-                                  &my_ns::Rolodex::contacts },
+      refl::StructField{ "self", &my_ns::Rolodex::self },
+      refl::StructField{ "updated", &my_ns::Rolodex::updated },
+      refl::StructField{ "contacts", &my_ns::Rolodex::contacts },
   };
 };
 

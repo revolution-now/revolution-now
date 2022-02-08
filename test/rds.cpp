@@ -414,17 +414,100 @@ TEST_CASE( "[rds] enums" ) {
 }
 
 TEST_CASE( "[rds] structs" ) {
-  static_assert( sizeof( EmptyStruct ) == 1 );
-  MyStruct ms{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
-  };
-  MyTemplateStruct<int, string> mts{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
-  };
+  SECTION( "EmptyStruct" ) {
+    using Tr = refl::traits<EmptyStruct>;
+    static_assert( sizeof( EmptyStruct ) == 1 );
+    static_assert( is_same_v<Tr::type, EmptyStruct> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn" );
+    static_assert( Tr::name == "EmptyStruct" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "MyStruct" ) {
+    using Tr = refl::traits<MyStruct>;
+    static_assert( is_same_v<Tr::type, MyStruct> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn" );
+    static_assert( Tr::name == "MyStruct" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
+    MyStruct ms{
+        .xxx     = 5,
+        .yyy     = 2.3,
+        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "xxx" );
+      REQUIRE( ms.xxx == 5 );
+      ( ms.*acc ) = 6;
+      REQUIRE( ms.xxx == 6 );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "yyy" );
+      REQUIRE( ms.yyy == 2.3 );
+      ( ms.*acc ) = 3.2;
+      REQUIRE( ms.yyy == 3.2 );
+    }
+    { // field 2
+      auto& [name, acc] = std::get<2>( Tr::fields );
+      static_assert( name == "zzz_map" );
+      REQUIRE( ms.zzz_map ==
+               unordered_map<string, string>{
+                   { "hello", "1" }, { "world", "2" } } );
+      ( ms.*acc ) =
+          unordered_map<string, string>{ { "one", "two" } };
+      REQUIRE( ms.zzz_map == unordered_map<string, string>{
+                                 { "one", "two" } } );
+    }
+  }
+  SECTION( "MyTemplateStruct" ) {
+    using Tr = refl::traits<test::MyTemplateStruct<int, string>>;
+    static_assert(
+        is_same_v<Tr::type,
+                  test::MyTemplateStruct<int, string>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::test" );
+    static_assert( Tr::name == "MyTemplateStruct" );
+    static_assert(
+        is_same_v<Tr::template_types, tuple<int, string>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
+    test::MyTemplateStruct<int, string> mts{
+        .xxx     = 5,
+        .yyy     = 2.3,
+        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "xxx" );
+      REQUIRE( mts.xxx == 5 );
+      ( mts.*acc ) = 6;
+      REQUIRE( mts.xxx == 6 );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "yyy" );
+      REQUIRE( mts.yyy == 2.3 );
+      ( mts.*acc ) = 3.2;
+      REQUIRE( mts.yyy == 3.2 );
+    }
+    { // field 2
+      auto& [name, acc] = std::get<2>( Tr::fields );
+      static_assert( name == "zzz_map" );
+      REQUIRE( mts.zzz_map ==
+               unordered_map<string, string>{
+                   { "hello", "1" }, { "world", "2" } } );
+      ( mts.*acc ) =
+          unordered_map<string, string>{ { "one", "two" } };
+      REQUIRE( mts.zzz_map == unordered_map<string, string>{
+                                  { "one", "two" } } );
+    }
+  }
 }
 
 } // namespace

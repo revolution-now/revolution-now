@@ -35,6 +35,7 @@
 // C++ standard library
 #include <array>
 #include <string_view>
+#include <tuple>
 
 /****************************************************************
 *                          Global Vars
@@ -712,6 +713,7 @@ namespace refl {
   template<>
   struct traits<rn::e_empty> {
     using type = rn::e_empty;
+
     static constexpr type_kind kind        = type_kind::enum_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "e_empty";
@@ -745,6 +747,7 @@ namespace refl {
   template<>
   struct traits<rn::e_single> {
     using type = rn::e_single;
+
     static constexpr type_kind kind        = type_kind::enum_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "e_single";
@@ -782,6 +785,7 @@ namespace refl {
   template<>
   struct traits<rn::e_two> {
     using type = rn::e_two;
+
     static constexpr type_kind kind        = type_kind::enum_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "e_two";
@@ -821,6 +825,7 @@ namespace refl {
   template<>
   struct traits<rn::e_color> {
     using type = rn::e_color;
+
     static constexpr type_kind kind        = type_kind::enum_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "e_color";
@@ -860,6 +865,7 @@ namespace refl {
   template<>
   struct traits<rn::e_hand> {
     using type = rn::e_hand;
+
     static constexpr type_kind kind        = type_kind::enum_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "e_hand";
@@ -1373,6 +1379,24 @@ namespace rn {
 
 } // namespace rn
 
+namespace refl {
+
+  // Reflection info for struct EmptyStruct.
+  template<>
+  struct traits<rn::EmptyStruct> {
+    using type = rn::EmptyStruct;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "EmptyStruct";
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{};
+  };
+
+} // namespace refl
+
 /****************************************************************
 *                       Struct: MyStruct
 *****************************************************************/
@@ -1386,10 +1410,32 @@ namespace rn {
 
 } // namespace rn
 
+namespace refl {
+
+  // Reflection info for struct MyStruct.
+  template<>
+  struct traits<rn::MyStruct> {
+    using type = rn::MyStruct;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "MyStruct";
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "xxx", &rn::MyStruct::xxx },
+      refl::StructField{ "yyy", &rn::MyStruct::yyy },
+      refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map },
+    };
+  };
+
+} // namespace refl
+
 /****************************************************************
 *                   Struct: MyTemplateStruct
 *****************************************************************/
-namespace rn {
+namespace rn::test {
 
   template<typename T, typename U>
   struct MyTemplateStruct {
@@ -1398,4 +1444,26 @@ namespace rn {
     std::unordered_map<std::string, U> zzz_map;
   };
 
-} // namespace rn
+} // namespace rn::test
+
+namespace refl {
+
+  // Reflection info for struct MyTemplateStruct.
+  template<typename T, typename U>
+  struct traits<rn::test::MyTemplateStruct<T, U>> {
+    using type = rn::test::MyTemplateStruct<T, U>;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn::test";
+    static constexpr std::string_view name = "MyTemplateStruct";
+
+    using template_types = std::tuple<T, U>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "xxx", &rn::test::MyTemplateStruct<T, U>::xxx },
+      refl::StructField{ "yyy", &rn::test::MyTemplateStruct<T, U>::yyy },
+      refl::StructField{ "zzz_map", &rn::test::MyTemplateStruct<T, U>::zzz_map },
+    };
+  };
+
+} // namespace refl

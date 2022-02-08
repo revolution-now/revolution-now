@@ -179,11 +179,15 @@ struct MyStruct {
   zzz_map: 'std::unordered_map<std::string, std::string>'
 }
 
+namespace test {
+
 struct.MyTemplateStruct._template [T, U]
 struct MyTemplateStruct {
   xxx: T
   yyy: double
   zzz_map: 'std::unordered_map<std::string, U>'
 }
+
+} # namespace test
 
 } # namespace rn

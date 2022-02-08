@@ -83,14 +83,13 @@ concept ReflectedEnum = Reflected<T> && requires {
 // Note that this will not allow fields that are references,
 // since we can't form an accessor pointer to such a field.
 template<typename Accessor>
-struct ReflectedStructField {
+struct StructField {
   using accessor_traits_t = mp::callable_traits<Accessor>;
 
   // Field type.
   using type = typename accessor_traits_t::ret_type;
 
-  consteval ReflectedStructField( std::string_view nm,
-                                  Accessor         acc )
+  consteval StructField( std::string_view nm, Accessor acc )
     : name{ nm }, accessor{ acc } {}
 
   std::string_view name;
@@ -101,8 +100,7 @@ template<typename T>
 concept ReflectedStruct = Reflected<T> && requires {
   requires std::is_class_v<T>;
   requires traits<T>::kind == type_kind::struct_kind;
-  requires HasTupleSize<std::remove_cvref_t<
-      decltype( traits<T>::template_types )>>;
+  requires HasTupleSize<typename traits<T>::template_types>;
   requires HasTupleSize<
       std::remove_cvref_t<decltype( traits<T>::fields )>>;
 };

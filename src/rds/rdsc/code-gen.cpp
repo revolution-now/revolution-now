@@ -513,9 +513,9 @@ struct CodeGenerator {
       emit_vert_list( e.values, "," );
     }
     line( "};" );
-    // Emit the reflection traits.
     newline();
     close_ns( ns );
+    // Emit the reflection traits.
     newline();
     open_ns( "refl" );
     comment( "Reflection info for enum {}.", e.name );
@@ -524,6 +524,7 @@ struct CodeGenerator {
     {
       auto _ = indent();
       line( "using type = {}::{};", ns, e.name );
+      newline();
       line(
           "static constexpr type_kind kind        = "
           "type_kind::enum_kind;" );
@@ -592,6 +593,61 @@ struct CodeGenerator {
     }
     newline();
     close_ns( ns );
+    // Emit the reflection traits.
+    newline();
+    open_ns( "refl" );
+    comment( "Reflection info for struct {}.", strukt.name );
+    string tmpl_brackets =
+        strukt.tmpl_params.empty()
+            ? "<>"
+            : template_params( strukt.tmpl_params,
+                               /*put_typename=*/false );
+    string tmpl_brackets_typename =
+        strukt.tmpl_params.empty()
+            ? "<>"
+            : template_params( strukt.tmpl_params,
+                               /*put_typename=*/true );
+    line( "template{}", tmpl_brackets_typename );
+    string name_w_tmpl =
+        fmt::format( "{}{}", strukt.name,
+                     template_params( strukt.tmpl_params,
+                                      /*put_typename=*/false ) );
+    string full_name_w_tmpl =
+        fmt::format( "{}::{}", ns, name_w_tmpl );
+    line( "struct traits<{}> {{", full_name_w_tmpl );
+    {
+      auto _ = indent();
+      line( "using type = {};", full_name_w_tmpl );
+      newline();
+      line(
+          "static constexpr type_kind kind        = "
+          "type_kind::struct_kind;" );
+      line( "static constexpr std::string_view ns   = \"{}\";",
+            ns );
+      line( "static constexpr std::string_view name = \"{}\";",
+            strukt.name );
+      newline();
+      line( "using template_types = std::tuple{};",
+            tmpl_brackets );
+      newline();
+      frag( "static constexpr std::tuple fields{" );
+      if( strukt.members.empty() ) {
+        frag( "};" );
+        flush();
+      } else {
+        flush();
+        {
+          auto _ = indent();
+          for( expr::StructMember const& sm : strukt.members )
+            line( "refl::StructField{{ \"{}\", &{}::{} }},",
+                  sm.var, full_name_w_tmpl, sm.var );
+        }
+        line( "};" );
+      }
+    }
+    line( "};" );
+    newline();
+    close_ns( "refl" );
   }
 
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
@@ -686,6 +742,20 @@ struct CodeGenerator {
     return false;
   }
 
+  bool rds_has_struct( expr::Rds const& rds ) {
+    for( expr::Item const& item : rds.items ) {
+      for( expr::Construct const& construct : item.constructs ) {
+        bool has_struct = visit(
+            mp::overload{
+                [&]( expr::Struct const& ) { return true; },
+                []( auto const& ) { return false; } },
+            construct );
+        if( has_struct ) return true;
+      }
+    }
+    return false;
+  }
+
   bool rds_has_sumtype( expr::Rds const& rds ) {
     for( expr::Item const& item : rds.items ) {
       for( expr::Construct const& construct : item.constructs ) {
@@ -765,6 +835,7 @@ struct CodeGenerator {
     comment( "C++ standard library" );
     if( rds_has_enum( rds ) ) line( "#include <array>" );
     line( "#include <string_view>" );
+    if( rds_has_struct( rds ) ) line( "#include <tuple>" );
     newline();
   }
 

@@ -68,7 +68,7 @@ struct traits<my_ns::MyEmptyStruct> {
   static constexpr string_view name = "MyEmptyStruct";
 
   // Struct specific.
-  static constexpr tuple<> template_types{};
+  using template_types = tuple<>;
 
   static constexpr tuple fields{};
 };
@@ -81,11 +81,11 @@ struct traits<my_ns::MyStruct> {
   static constexpr string_view name = "MyStruct";
 
   // Struct specific.
-  static constexpr tuple<> template_types{};
+  using template_types = tuple<>;
 
   static constexpr tuple fields{
-      ReflectedStructField{ "x", &my_ns::MyStruct::x },
-      ReflectedStructField{ "y", &my_ns::MyStruct::y },
+      StructField{ "x", &my_ns::MyStruct::x },
+      StructField{ "y", &my_ns::MyStruct::y },
   };
 };
 
@@ -97,11 +97,11 @@ struct traits<my_ns::MyTmpStruct<U, V>> {
   static constexpr string_view name = "MyStruct";
 
   // Struct specific.
-  static constexpr tuple<U, V> template_types{};
+  using template_types = tuple<U, V>;
 
   static constexpr tuple fields{
-      ReflectedStructField{ "x", &my_ns::MyTmpStruct<U, V>::x },
-      ReflectedStructField{ "y", &my_ns::MyTmpStruct<U, V>::y },
+      StructField{ "x", &my_ns::MyTmpStruct<U, V>::x },
+      StructField{ "y", &my_ns::MyTmpStruct<U, V>::y },
   };
 };
 
@@ -152,8 +152,8 @@ static_assert(
     tuple_size_v<
         decltype( traits<my_ns::MyEmptyStruct>::fields )> == 0 );
 static_assert(
-    tuple_size_v<decltype( traits<my_ns::MyEmptyStruct>::
-                               template_types )> == 0 );
+    tuple_size_v<traits<my_ns::MyEmptyStruct>::template_types> ==
+    0 );
 
 // MyStruct
 static_assert( Reflected<my_ns::MyStruct> );
@@ -162,9 +162,7 @@ static_assert( ReflectedStruct<my_ns::MyStruct> );
 static_assert( !ReflectedEnum<my_ns::MyStruct> );
 
 static_assert(
-    tuple_size_v<
-        decltype( traits<my_ns::MyStruct>::template_types )> ==
-    0 );
+    tuple_size_v<traits<my_ns::MyStruct>::template_types> == 0 );
 static_assert(
     tuple_size_v<decltype( traits<my_ns::MyStruct>::fields )> ==
     2 );
