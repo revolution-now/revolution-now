@@ -1866,7 +1866,9 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  struct EmptyStruct {};
+  struct EmptyStruct {
+    bool operator==( EmptyStruct const& ) const = default;
+  };
 
 } // namespace rn
 
@@ -1889,14 +1891,43 @@ namespace refl {
 } // namespace refl
 
 /****************************************************************
+*                     Struct: EmptyStruct2
+*****************************************************************/
+namespace rn {
+
+  struct EmptyStruct2 {};
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for struct EmptyStruct2.
+  template<>
+  struct traits<rn::EmptyStruct2> {
+    using type = rn::EmptyStruct2;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "EmptyStruct2";
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{};
+  };
+
+} // namespace refl
+
+/****************************************************************
 *                       Struct: MyStruct
 *****************************************************************/
 namespace rn {
 
   struct MyStruct {
-    int                                          xxx;
-    double                                       yyy;
-    std::unordered_map<std::string, std::string> zzz_map;
+    int                                          xxx     = {};
+    double                                       yyy     = {};
+    std::unordered_map<std::string, std::string> zzz_map = {};
+
+    bool operator==( MyStruct const& ) const = default;
   };
 
 } // namespace rn
@@ -1924,15 +1955,56 @@ namespace refl {
 } // namespace refl
 
 /****************************************************************
+*                 Struct: StructWithValidation
+*****************************************************************/
+namespace rn {
+
+  struct StructWithValidation {
+    int    xxx = {};
+    double yyy = {};
+
+    bool operator==( StructWithValidation const& ) const = default;
+
+    // Validates invariants among members.  Must be manually
+    // defined in some translation unit.
+    base::valid_or<std::string> validate() const;
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for struct StructWithValidation.
+  template<>
+  struct traits<rn::StructWithValidation> {
+    using type = rn::StructWithValidation;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "StructWithValidation";
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "xxx", &rn::StructWithValidation::xxx },
+      refl::StructField{ "yyy", &rn::StructWithValidation::yyy },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
 *                   Struct: MyTemplateStruct
 *****************************************************************/
 namespace rn::test {
 
   template<typename T, typename U>
   struct MyTemplateStruct {
-    T                                  xxx;
-    double                             yyy;
-    std::unordered_map<std::string, U> zzz_map;
+    T                                  xxx     = {};
+    double                             yyy     = {};
+    std::unordered_map<std::string, U> zzz_map = {};
+
+    bool operator==( MyTemplateStruct const& ) const = default;
   };
 
 } // namespace rn::test

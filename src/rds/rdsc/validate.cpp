@@ -45,9 +45,21 @@ struct Validator {
   void validate_sumtype( expr::Sumtype const& sumtype ) {
     using F = expr::e_feature;
     if( sumtype.features.has_value() ) {
-      unordered_set<F> features( sumtype.features->begin(),
-                                 sumtype.features->end() );
-      bool             has_tmpl = !sumtype.tmpl_params.empty();
+      unordered_set<F> const& features = *sumtype.features;
+      bool has_tmpl = !sumtype.tmpl_params.empty();
+
+      for( expr::e_feature feat : features ) {
+        switch( feat ) {
+          case expr::e_feature::formattable: break;
+          case expr::e_feature::serializable: break;
+          case expr::e_feature::equality: break;
+          case expr::e_feature::validation:
+            error(
+                "Sumtypes do not support the `validation' "
+                "feature." );
+            break;
+        }
+      }
 
       // If the sumtype is templated then we do not support
       // serialization. This wouldn't make sense since there

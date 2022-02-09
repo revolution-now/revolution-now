@@ -27,6 +27,7 @@ maybe<e_feature> feature_from_str( std::string_view feature ) {
   if( feature == "formattable" ) return e_feature::formattable;
   if( feature == "serializable" ) return e_feature::serializable;
   if( feature == "equality" ) return e_feature::equality;
+  if( feature == "validation" ) return e_feature::validation;
   return nothing;
 }
 

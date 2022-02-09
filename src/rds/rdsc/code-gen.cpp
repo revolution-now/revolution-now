@@ -153,10 +153,8 @@ string template_params_type_names(
 
 template<typename T>
 bool item_has_feature( T const& item, expr::e_feature feature ) {
-  if( !item.features.has_value() ) return false;
-  for( auto type : *item.features )
-    if( type == feature ) return true;
-  return false;
+  return item.features.has_value() &&
+         item.features->contains( feature );
 }
 
 string trim_trailing_spaces( string s ) {
@@ -633,17 +631,37 @@ struct CodeGenerator {
     section( "Struct: "s + strukt.name );
     open_ns( ns );
     emit_template_decl( strukt.tmpl_params );
-    if( strukt.members.empty() ) {
+    bool comparable =
+        item_has_feature( strukt, expr::e_feature::equality );
+    bool has_members = !strukt.members.empty();
+    if( !has_members && !comparable ) {
       line( "struct {} {{}};", strukt.name );
     } else {
       line( "struct {} {{", strukt.name );
       int max_type_len =
           max_of( strukt.members, L( _.type.size() ), 0 );
+      int max_var_len =
+          max_of( strukt.members, L( _.var.size() ), 0 );
       {
         auto _ = indent();
         for( expr::StructMember const& member : strukt.members )
-          line( "{: <{}} {};", member.type, max_type_len,
-                member.var );
+          line( "{: <{}} {: <{}} = {{}};", member.type,
+                max_type_len, member.var, max_var_len );
+        if( comparable ) {
+          if( has_members ) newline();
+          line( "bool operator==( {} const& ) const = default;",
+                strukt.name );
+        }
+        if( item_has_feature( strukt,
+                              expr::e_feature::validation ) ) {
+          newline();
+          comment(
+              "Validates invariants among members.  Must be "
+              "manually" );
+          comment( "defined in some translation unit." );
+          line(
+              "base::valid_or<std::string> validate() const;" );
+        }
       }
       line( "};" );
     }

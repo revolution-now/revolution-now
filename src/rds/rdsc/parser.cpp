@@ -120,7 +120,7 @@ void parse_sumtype( vector<string> const& parent_namespaces,
       maybe<expr::e_feature> feat =
           expr::feature_from_str( feature_name );
       CHECK( feat, "unknown feature name: {}", feature_name );
-      sumtype.features->push_back( *feat );
+      sumtype.features->insert( *feat );
     }
   }
 
@@ -185,7 +185,7 @@ void parse_struct( vector<string> const& parent_namespaces,
       maybe<expr::e_feature> feat =
           expr::feature_from_str( feature_name );
       CHECK( feat, "unknown feature name: {}", feature_name );
-      strukt.features->push_back( *feat );
+      strukt.features->insert( *feat );
     }
   }
 

@@ -128,7 +128,7 @@ syn keyword  rdsStructFeatures _features contained nextgroup=rdsStructFeaturesCo
 syn match    rdsStructFeaturesColon ':' contained nextgroup=rdsStructFeaturesListBlock skipwhite skipempty
 syn region   rdsStructFeaturesListBlock start='\[' end='\]' contained fold contains=rdsStructFeaturesListItem,rdsStructFeaturesListItemErr skipwhite skipempty
 syn match    rdsStructFeaturesListItemErr '[^\[\] ,]\+' contained
-syn match    rdsStructFeaturesListItem '\(equality\|formattable\|serializable\)' contained
+syn match    rdsStructFeaturesListItem '\(equality\|formattable\|serializable\|validation\)' contained
 
 syn match    rdsStructNameDot '\.' contained nextgroup=rdsStructFeatures,rdsStructTemplate
 

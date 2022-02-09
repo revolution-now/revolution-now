@@ -16,6 +16,7 @@
 
 // C++ standard library
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace rds::expr {
@@ -32,7 +33,12 @@ struct StructMember {
   std::string var;
 };
 
-enum class e_feature { formattable, serializable, equality };
+enum class e_feature {
+  formattable,
+  serializable,
+  equality,
+  validation
+};
 
 /****************************************************************
 ** sumtype
@@ -51,8 +57,8 @@ struct Sumtype {
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
-  base::maybe<std::vector<e_feature>> features;
-  std::vector<Alternative>            alternatives;
+  base::maybe<std::unordered_set<e_feature>> features;
+  std::vector<Alternative>                   alternatives;
 };
 
 /****************************************************************
@@ -71,8 +77,8 @@ struct Struct {
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
-  base::maybe<std::vector<e_feature>> features;
-  std::vector<StructMember>           members;
+  base::maybe<std::unordered_set<e_feature>> features;
+  std::vector<StructMember>                  members;
 };
 
 /****************************************************************

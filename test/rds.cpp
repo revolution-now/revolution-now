@@ -606,5 +606,23 @@ TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
   }
 }
 
+TEST_CASE( "[rds] validate method" ) {
+  static_assert( !refl::ValidatableStruct<EmptyStruct> );
+  static_assert( !refl::ValidatableStruct<EmptyStruct2> );
+  static_assert( !refl::ValidatableStruct<MyStruct> );
+  static_assert( refl::ValidatableStruct<StructWithValidation> );
+  static_assert( !refl::ValidatableStruct<
+                 test::MyTemplateStruct<int, int>> );
+}
+
+TEST_CASE( "[rds] equality_comparable" ) {
+  static_assert( equality_comparable<EmptyStruct> );
+  static_assert( !equality_comparable<EmptyStruct2> );
+  static_assert( equality_comparable<MyStruct> );
+  static_assert( equality_comparable<StructWithValidation> );
+  static_assert(
+      equality_comparable<test::MyTemplateStruct<int, int>> );
+}
+
 } // namespace
 } // namespace rn

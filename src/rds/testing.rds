@@ -173,10 +173,21 @@ enum e_hand   [left, right]
 
 struct EmptyStruct {}
 
+struct EmptyStruct2 {
+  _features: []
+}
+
 struct MyStruct {
   xxx: int
   yyy: double
   zzz_map: 'std::unordered_map<std::string, std::string>'
+}
+
+struct StructWithValidation {
+  xxx: int
+  yyy: double
+
+  _features: [equality, validation]
 }
 
 namespace test {

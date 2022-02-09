@@ -13,6 +13,9 @@
 // Under test.
 #include "src/refl/cdr.hpp"
 
+// rds
+#include "rds/testing.hpp"
+
 // cdr
 #include "src/cdr/ext-builtin.hpp"
 #include "src/cdr/ext-std.hpp"
@@ -25,19 +28,34 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-namespace refl {
-namespace {
-
 using namespace ::std;
 using namespace ::cdr::literals;
+
+namespace rn {
+
+base::valid_or<std::string> StructWithValidation::validate()
+    const {
+  if( yyy == double( xxx ) + 1.0 ) return base::valid;
+  return "failed validation";
+}
+
+// TODO: can remove once reflected structs have automatic to_str
+// overloads.
+void to_str( StructWithValidation const& o, string& out,
+             base::ADL_t ) {
+  out += fmt::format( "StructWithValidation{{xxx={},yyy={}}}",
+                      o.xxx, o.yyy );
+}
+
+} // namespace rn
+
+namespace refl {
 
 using ::cdr::converter;
 using ::cdr::list;
 using ::cdr::table;
 using ::cdr::value;
 using ::cdr::testing::conv_from_bt;
-
-} // namespace
 
 /****************************************************************
 ** Address
@@ -55,7 +73,7 @@ struct Address {
                         o.street_number, o.state );
   }
 
-  validate_result validate() const {
+  base::valid_or<string> validate() const {
     static unordered_set<string> valid_states{ "PA", "VA", "CA",
                                                "MD" };
     RETURN_IF_FALSE( valid_states.contains( state ),
@@ -817,6 +835,57 @@ TEST_CASE( "[refl] struct validation" ) {
   converter conv;
   REQUIRE( conv.from<Address>( cdr_address1_invalid_state ) ==
            conv.err( "invalid state XX." ) );
+}
+
+TEST_CASE( "[refl] validation on from_canonical" ) {
+  using namespace ::rn;
+  SECTION( "has no validation method" ) {
+    static_assert( !ValidatableStruct<MyStruct> );
+    MyStruct my_struct{
+        .xxx = 7,
+        .yyy = 5.5,
+        .zzz_map =
+            {
+                { "one", "two" },
+            },
+    };
+    cdr::value cdr_my_struct = cdr::table{
+        "xxx"_key = 7,
+        "yyy"_key = 5.5,
+        "zzz_map"_key =
+            cdr::table{
+                "one"_key = "two",
+            },
+    };
+    converter conv;
+    REQUIRE( conv_from_bt<MyStruct>( conv, cdr_my_struct ) ==
+             my_struct );
+  }
+  SECTION( "has validation method and passes" ) {
+    static_assert( ValidatableStruct<StructWithValidation> );
+    StructWithValidation swv{
+        .xxx = 7,
+        .yyy = 8.0,
+    };
+    cdr::value cdr_swv = cdr::table{
+        "xxx"_key = 7,
+        "yyy"_key = 8.0,
+    };
+    converter conv;
+    REQUIRE( conv_from_bt<StructWithValidation>(
+                 conv, cdr_swv ) == swv );
+  }
+  SECTION( "has validation method and fails" ) {
+    static_assert( ValidatableStruct<StructWithValidation> );
+    static_assert( base::Show<StructWithValidation> );
+    cdr::value cdr_swv = cdr::table{
+        "xxx"_key = 7,
+        "yyy"_key = 5.5,
+    };
+    converter conv;
+    REQUIRE( conv.from<StructWithValidation>( cdr_swv ) ==
+             conv.err( "failed validation" ) );
+  }
 }
 
 } // namespace

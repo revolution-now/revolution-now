@@ -26,9 +26,24 @@
 
 namespace refl {
 
-//
+namespace detail {
+
+// This concept checks if the method exists with any signature at
+// all, then the ValidatableStruct concept will check if it has
+// the right signature. That allows us to catch validate methods
+// that have the wrong signature, which would otherwise silently
+// prevent it from being called, which is not what we want.
+template<typename T>
+concept HasValidateMethod = requires( T& o ) {
+  // Having `o` be non-const allows us to catch when the method
+  // is not const, since this concept will be satisfied but not
+  // ValidatableStruct.
+  { o.validate() };
+};
 
 }
+
+} // namespace refl
 
 // Normally the to_canonical and from_canonical don't go into the
 // cdr namespace (they go alongside the type being converted in
@@ -111,7 +126,7 @@ result<S> from_canonical( converter& conv, value const& v,
   };
   if( err.has_value() ) return *err;
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  if constexpr( refl::HasValidateMethod<S> ) {
+  if constexpr( refl::detail::HasValidateMethod<S> ) {
     static_assert( refl::ValidatableStruct<S>,
                    "validate method has incorrect signature." );
     if( auto is_valid = res.validate(); !is_valid )
