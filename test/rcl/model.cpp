@@ -47,11 +47,11 @@ TEST_CASE( "[model] complex doc" ) {
    * file: /this/is/a/file/path
    * url: "http://domain.com?x=y"
    *
-   * tbl1: { x=1, y: 2, z=3, hello="world", yes=no }
+   * tbl1: { x=1, y: 2, z=3, "hello yo"="world", yes=no }
    * tbl2: { x=1, y: 2, z=3, hello="world", yes=     x  }
    *
    * one {
-   *   two = [
+   *   " two\a\b\" xxx" = [
    *      1,
    *      2,
    *      {
@@ -72,7 +72,7 @@ TEST_CASE( "[model] complex doc" ) {
    *   }
    * }
    *
-   * subtype some_section a = [
+   * subtype "this is.a test[]{}" a = [
    *   abc,
    *   5,
    *   -.03,
@@ -99,7 +99,7 @@ TEST_CASE( "[model] complex doc" ) {
    *   ]
    * }
    *
-   * list [
+   * "list" [
    *   one
    *   two
    *   3
@@ -123,10 +123,10 @@ TEST_CASE( "[model] complex doc" ) {
       KV{ "file", "/this/is/a/file/path" },
       KV{ "url", "http://domain.com?x=y" },
 
-      KV{ "tbl1",
-          make_table_val( KV{ "x", 1 }, KV{ "y", 2 },
-                          KV{ "z", 3 }, KV{ "hello", "world" },
-                          KV{ "yes", "no" } ) },
+      KV{ "tbl1", make_table_val( KV{ "x", 1 }, KV{ "y", 2 },
+                                  KV{ "z", 3 },
+                                  KV{ "\"hello yo\"", "world" },
+                                  KV{ "yes", "no" } ) },
       KV{ "tbl2",
           make_table_val( KV{ "x", 1 }, KV{ "y", 2 },
                           KV{ "z", 3 }, KV{ "hello", "world" },
@@ -134,7 +134,7 @@ TEST_CASE( "[model] complex doc" ) {
 
       KV{ "one",
           make_table_val(
-              KV{ "two",
+              KV{ "\" two\\a\\b\\\" xxx\"",
                   make_list_val(
                       1, 2,
                       make_table_val(
@@ -150,7 +150,7 @@ TEST_CASE( "[model] complex doc" ) {
                           KV{ "f.g", make_table_val( KV{
                                          "yes", "no" } ) } ) },
 
-      KV{ "subtype some_section a",
+      KV{ "subtype \"this is.a test[]{}\" a",
           make_list_val( "abc", 5, -.03, "table",
                          make_table_val( KV{ "a.b.c", 1 },
                                          KV{ "a.d", 2 } ) ) },
@@ -169,8 +169,8 @@ TEST_CASE( "[model] complex doc" ) {
                               KV{ "f.g.h.k", 5 },
                               KV{ "f.g.h.l", 6 } ) } ) ) } ) },
 
-      KV{ "list", make_list_val( "one", "two", 3, "false",
-                                 "four", null ) },
+      KV{ "\"list\"", make_list_val( "one", "two", 3, "false",
+                                     "four", null ) },
       KV{ "null_val", null }, KV{ "nonnull_val", "null" } );
 
   REQUIRE( doc );
@@ -198,11 +198,12 @@ TEST_CASE( "[model] complex doc" ) {
   REQUIRE( u_one != nullptr );
   table const& one = *u_one;
   REQUIRE( one.size() == 1 );
-  REQUIRE( one.has_key( "two" ) );
-  REQUIRE( one["two"].holds<unique_ptr<list>>() );
-  REQUIRE( type_of( one["two"] ) == type::list );
+  string two_stuff = " two\\a\\b\" xxx";
+  REQUIRE( one.has_key( two_stuff ) );
+  REQUIRE( one[two_stuff].holds<unique_ptr<list>>() );
+  REQUIRE( type_of( one[two_stuff] ) == type::list );
   unique_ptr<list> const& u_two =
-      one["two"].as<unique_ptr<list>>();
+      one[two_stuff].as<unique_ptr<list>>();
   REQUIRE( u_two != nullptr );
   list const& two = *u_two;
 

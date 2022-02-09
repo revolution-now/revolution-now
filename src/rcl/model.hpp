@@ -245,7 +245,7 @@ struct table {
   table unflatten() &&;
 
   // Consumes this table.
-  table despacer() &&;
+  table key_parser() &&;
 
   // Consumes this table.
   base::expect<table> dedupe() &&;
@@ -268,7 +268,7 @@ struct table {
 
  private:
   void unflatten_impl( std::string_view dotted, value&& v );
-  void despacer_impl( std::string_view dotted, value&& v );
+  void key_parser_impl( std::string_view dotted, value&& v );
 
   friend base::valid_or<std::string> merge_values(
       std::string_view key, value& v_target, value&& v_source );
@@ -314,7 +314,7 @@ struct list {
   list unflatten() &&;
 
   // Consumes this list.
-  list despacer() &&;
+  list key_parser() &&;
 
   // Will apply deduplication processing to any elements that are
   // tables. Returns a new list with the same elements except
@@ -380,6 +380,17 @@ struct doc {
   value        val_;
   table const* tbl_ = nullptr;
 };
+
+/****************************************************************
+** Helpers for parsing/formatting.
+*****************************************************************/
+// Any logic used by more than one of the parser, model post
+// processor, or formatter, should be put in this common location
+// so that it can be consistent across those three modules.
+
+bool is_leading_identifier_char( char c );
+
+bool is_identifier_char( char c );
 
 /****************************************************************
 ** Helpers for Testing

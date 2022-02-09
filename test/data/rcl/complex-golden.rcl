@@ -36,7 +36,7 @@ tbl1 {
   x: 1
   y: 2
   z: 3
-  hello: "world"
+  "hello yo": "world"
   yes: "no"
 }
 
@@ -49,7 +49,7 @@ tbl2 {
 }
 
 one {
-  two: [
+  " two\\a\\b\" xxx": [
     1,
     2,
     {
@@ -66,7 +66,7 @@ one {
 }
 
 subtype {
-  some_section {
+  "this is.a test[]{}" {
     a: [
       "abc",
       5,

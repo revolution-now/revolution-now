@@ -64,6 +64,16 @@ struct value_printer {
   }
 };
 
+bool is_leading_identifier_char( char c ) {
+  return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) ||
+         ( c == '_' );
+}
+
+bool is_identifier_char( char c ) {
+  return ( c >= '0' && c <= '9' ) || ( c >= 'A' && c <= 'Z' ) ||
+         ( c >= 'a' && c <= 'z' ) || ( c == '_' );
+}
+
 /****************************************************************
 ** value
 *****************************************************************/
@@ -105,6 +115,26 @@ table::value_type const& table::operator[]( int n ) const {
   return members_[n];
 }
 
+namespace {
+
+string format_key( string const& k ) {
+  if( k.empty() ) return k;
+  bool need_quotes = false;
+  // We have a stronger requirement for the first character.
+  if( !is_leading_identifier_char( k[0] ) ) need_quotes = true;
+  string res;
+  for( char c : k ) {
+    if( !is_identifier_char( c ) ) need_quotes = true;
+    if( c == '"' ) res += '\\';
+    if( c == '\\' ) res += '\\';
+    res += c;
+  }
+  if( need_quotes ) res = "\""s + res + "\""s;
+  return res;
+};
+
+} // namespace
+
 string table::pretty_print( string_view indent ) const {
   bool          is_top_level = ( indent.size() == 0 );
   ostringstream oss;
@@ -114,8 +144,9 @@ string table::pretty_print( string_view indent ) const {
   for( auto& [k, v] : members_ ) {
     string assign = ":";
     if( v.holds<unique_ptr<table>>() ) assign = "";
+    string k_str = format_key( k );
     oss << fmt::format(
-        "{}{}{} {}\n", indent, k, assign,
+        "{}{}{} {}\n", indent, k_str, assign,
         std::visit( value_printer{ string( indent ) + "  " },
                     v ) );
     if( is_top_level && n-- > 1 ) oss << "\n";
@@ -162,13 +193,25 @@ string doc::pretty_print( string_view indent ) const {
 }
 
 /****************************************************************
-** Table Key De-spacer
+** Table Key Parser
 *****************************************************************/
-// Replaces contiguous chunks of spaces in keys with dots. E.g.:
-// "aaa bbb ccc" ==> "aaa.bbb.ccc".
+// A raw key string can consist of multiple sequential keys, and
+// these will eventually be unflattened into nested tables. Fur-
+// thermore, each key within the raw key string can be quoted,
+// and the characters inside the quotes can be escaped. There-
+// fore, the raw key strings are non-trivial to parse and to
+// split into real keys. This post-processing step will do that
+// parsing, and will yield a new key string with 0x01 chars to
+// delimit real keys. Contiguous chunks of spaces and dots (both
+// outside of quotes) can also separate real keys, and so those
+// will be replaced with 0x01 as well.
 namespace {
 
-struct despacer_visitor {
+constexpr char        kKeyDelimiterChar = 0x01;
+constexpr string_view kKeyDelimiterStr  = "\001";
+static_assert( kKeyDelimiterStr[0] == kKeyDelimiterChar );
+
+struct key_parser_visitor {
   value operator()( null_t ) const { return value{ null }; }
 
   value operator()( bool o ) const { return value{ o }; }
@@ -183,37 +226,110 @@ struct despacer_visitor {
 
   value operator()( unique_ptr<table>&& o ) const {
     return value{
-        make_unique<table>( std::move( *o ).despacer() ) };
+        make_unique<table>( std::move( *o ).key_parser() ) };
   }
 
   value operator()( unique_ptr<list>&& o ) const {
     return value{
-        make_unique<list>( std::move( *o ).despacer() ) };
+        make_unique<list>( std::move( *o ).key_parser() ) };
   }
 };
 
 } // namespace
 
-void table::despacer_impl( string_view spaced, value&& v ) {
-  vector<string> keys = absl::StrSplit( spaced, " " );
+void table::key_parser_impl( string_view raw_key, value&& v ) {
+  string res;
+  bool   in_quote = false;
+  auto   cur      = raw_key.begin();
+  auto   end      = raw_key.end();
+  while( cur != end ) {
+    if( in_quote ) {
+      // We are in a quote.
+      if( *cur == '\\' ) {
+        // We're escaping something. If this is followed by one
+        // of the special escape chars, then action it, otherwise
+        // accept whatever we get literally, including the back-
+        // slash.
+        if( cur + 1 == end ) {
+          res += '\\';
+          break;
+        }
+        // We have a next char.
+        ++cur;
+        if( *cur == '\\' ) {
+          res += '\\';
+          ++cur;
+          continue;
+        }
+        if( *cur == '"' ) {
+          res += '"';
+          ++cur;
+          continue;
+        }
+        // The Rcl parser should not allow this case, but we
+        // allow it here because we could be getting input from
+        // sources other than parsed Rcl (e.g., from Cdr).
+        res += '\\';
+        res += *cur;
+        ++cur;
+        continue;
+      }
+      // We're not escaping anything.
+      if( *cur == '"' ) {
+        // This quote is being closed.
+        in_quote = false;
+        ++cur;
+        continue;
+      }
+      // Any other char: accept it.
+      res += *cur;
+      ++cur;
+      continue;
+    }
+
+    // We're not in a quote, so now check if we're opening one.
+    if( *cur == '"' ) {
+      // We are opening a quote.
+      CHECK( !in_quote );
+      in_quote = true;
+      ++cur;
+      continue;
+    }
+
+    // We are not in a quote and not opening one, so now we have
+    // some special interpretations of characters, namely a dot
+    // or consecutive spaces can delimit keys.
+    if( *cur == ' ' || *cur == '.' ) {
+      // Consolodate consecutive spaces/dots into one delimiter.
+      while( cur != end && ( *cur == ' ' || *cur == '.' ) )
+        ++cur;
+      res += kKeyDelimiterChar;
+      continue;
+    }
+
+    // Non-special char, just accept it.
+    res += *cur;
+    ++cur;
+  }
+  vector<string> keys = absl::StrSplit( res, kKeyDelimiterStr );
   erase_if( keys, []( string const& s ) { return s.empty(); } );
   members_.emplace_back(
-      absl::StrJoin( keys, "." ),
-      std::visit( despacer_visitor{}, std::move( v ) ) );
+      absl::StrJoin( keys, kKeyDelimiterStr ),
+      std::visit( key_parser_visitor{}, std::move( v ) ) );
 }
 
-table table::despacer() && {
+table table::key_parser() && {
   table t;
   for( auto& [k, v] : members_ )
-    t.despacer_impl( k, std::move( v ) );
+    t.key_parser_impl( k, std::move( v ) );
   return t;
 }
 
-list list::despacer() && {
+list list::key_parser() && {
   list l;
   for( value& v : members_ )
     l.members_.push_back(
-        std::visit( despacer_visitor{}, std::move( v ) ) );
+        std::visit( key_parser_visitor{}, std::move( v ) ) );
   return l;
 }
 
@@ -249,7 +365,7 @@ struct unflatten_visitor {
 } // namespace
 
 void table::unflatten_impl( string_view dotted, value&& v ) {
-  int i = dotted.find_first_of( "." );
+  int i = dotted.find_first_of( kKeyDelimiterStr );
   if( i == int( string_view::npos ) ) {
     members_.emplace_back(
         string( dotted ),
@@ -442,7 +558,7 @@ void list::map_members() & {
 ** Post-processing Routine
 *****************************************************************/
 base::expect<table, string> run_postprocessing( table&& v1 ) {
-  table v2 = std::move( v1 ).despacer();
+  table v2 = std::move( v1 ).key_parser();
   table v3 = std::move( v2 ).unflatten();
   // Dedupe must happen after unflattening.
   UNWRAP_RETURN( v4, std::move( v3 ).dedupe() );
@@ -452,7 +568,7 @@ base::expect<table, string> run_postprocessing( table&& v1 ) {
 }
 
 base::expect<list, string> run_postprocessing( list&& v1 ) {
-  list v2 = std::move( v1 ).despacer();
+  list v2 = std::move( v1 ).key_parser();
   list v3 = std::move( v2 ).unflatten();
   // Dedupe must happen after unflattening.
   UNWRAP_RETURN( v4, std::move( v3 ).dedupe_tables() );

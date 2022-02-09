@@ -41,11 +41,11 @@ TEST_CASE( "[parse] complex doc" ) {
     file: /this/is/a/file/path
     url: "http://domain.com?x=y"
 
-    tbl1: { x=1, y: 2, z=3, hello="world", yes=no }
+    tbl1: { x=1, y: 2, z=3, "hello yo"="world", yes=no }
     tbl2: { x=1, y: 2, z=3, hello="world", yes=     x  }
 
     one {
-      two = [
+      " two\a\b\" xxx" = [
          1,
          2,
          {
@@ -66,7 +66,7 @@ TEST_CASE( "[parse] complex doc" ) {
       }
     }
 
-    subtype.some_section.a = [
+    subtype."this is.a test[]{}".a = [
       abc,
       5,
       -.03,
@@ -93,7 +93,7 @@ TEST_CASE( "[parse] complex doc" ) {
       ]
     }
 
-    list [
+    "list" [
       one
       two
       3
@@ -173,6 +173,70 @@ TEST_CASE( "[parse] space-separated nested table syntax" ) {
       "  },\n"
       "  {\n"
       "    a {\n"
+      "      b {\n"
+      "        c: 9\n"
+      "      }\n"
+      "    }\n"
+      "  },\n"
+      "]\n";
+  REQUIRE( fmt::to_string( doc ) == expected );
+}
+
+TEST_CASE( "[parse] table keys with quotes" ) {
+  static string const input = R"(
+    one ".two'hello world'" {
+      a: b
+      c: d
+      three "fo\\ur  five" {
+        "six": 6
+      }
+      three {
+        "fo\\ur  five": {
+          seven: 7
+        }
+      }
+    }
+    " \"list\"": [
+      {
+        # Test braces next to key.
+        x y "z"{ a=5 }
+      }
+      {
+        # Test key next to quote.
+        "x"a b c  = 9
+      }
+    ]
+  )";
+
+  auto doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  string expected =
+      "one {\n"
+      "  \".two'hello world'\" {\n"
+      "    a: \"b\"\n"
+      "    c: \"d\"\n"
+      "    three {\n"
+      "      \"fo\\\\ur  five\" {\n"
+      "        six: 6\n"
+      "        seven: 7\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "\" \\\"list\\\"\": [\n"
+      "  {\n"
+      "    x {\n"
+      "      y {\n"
+      "        z {\n"
+      "          a: 5\n"
+      "        }\n"
+      "      }\n"
+      "    }\n"
+      "  },\n"
+      "  {\n"
+      "    xa {\n"
       "      b {\n"
       "        c: 9\n"
       "      }\n"

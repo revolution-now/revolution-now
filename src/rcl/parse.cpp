@@ -60,14 +60,8 @@ bool is_blank( char c ) {
          ( c == '\t' );
 }
 
-bool is_leading_identifier_char( char c ) {
-  return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) ||
-         ( c == '_' );
-}
-
-bool is_identifier_char( char c ) {
-  return ( c >= '0' && c <= '9' ) || ( c >= 'A' && c <= 'Z' ) ||
-         ( c >= 'a' && c <= 'z' ) || ( c == '_' );
+bool is_newline( char c ) {
+  return ( c == '\n' ) || ( c == '\r' );
 }
 
 bool is_digit( char c ) { return ( c >= '0' && c <= '9' ); }
@@ -90,16 +84,73 @@ void eat_blanks() {
   while( g_cur != g_end && is_blank( *g_cur ) ) ++g_cur;
 }
 
+// A table key can be a space and/or dot-separated list of compo-
+// nents, which a "component" can either be an identifier or an
+// arbitrary string in double quotes. Any characters inside the
+// double quotes must have any literal double quote characters
+// escaped with a backslash, and must have any literal back-
+// slashes escaped with a backslash.
+//
+// This function will parse a key and make sure that it is valid,
+// but will not transform it in any way (that is done by the
+// model post-processor).
 bool parse_key( string_view* out ) {
   eat_blanks();
   if( g_cur == g_end ) return false;
   char const* start = g_cur;
-  if( !is_leading_identifier_char( *start ) ) return false;
-  bool got_dot = false;
+  if( !is_leading_identifier_char( *start ) && *start != '"' )
+    return false;
+
+  bool got_dot  = false;
+  bool in_quote = false;
   // This allows a series of identifiers separated by dots and/or
-  // spaces (which are equivalent).
-  while( g_cur != g_end && ( is_identifier_char( *g_cur ) ||
-                             *g_cur == '.' || *g_cur == ' ' ) ) {
+  // spaces (which are equivalent), potentially with quotes to
+  // allow spaces and weird characters inside a key.
+  while( g_cur != g_end ) {
+    if( in_quote ) {
+      // We are in a quote.
+      CHECK( !got_dot );
+      if( *g_cur == '\\' ) {
+        // We're escaping something, so we must have a next char-
+        // acter in the stream, since a single backslash inside a
+        // quote is not valid.
+        ++g_cur;
+        if( g_cur == g_end ) return false;
+        // Accept whatever the next character is.
+        ++g_cur;
+        continue;
+      }
+      // We're not escaping anything.
+      if( *g_cur == '"' ) {
+        // This quote is being closed.
+        in_quote = false;
+      } else if( is_newline( *g_cur ) ) {
+        // Unclosed quote... fail.
+        return false;
+      }
+      // Any other char: accept it.
+      ++g_cur;
+      continue;
+    }
+
+    // We're not in a quote, so now check if we're opening one.
+    if( *g_cur == '"' ) {
+      // We are opening a quote.
+      CHECK( !in_quote );
+      in_quote = true;
+      ++g_cur;
+      got_dot = false;
+      continue;
+    }
+
+    // We are not in a quote and not opening one, so now we have
+    // some restrictions on allowed chars; actually, if we get an
+    // unallowed char, we assume that is the end of the key (not
+    // an error).
+    if( !is_identifier_char( *g_cur ) && *g_cur != '.' &&
+        *g_cur != ' ' )
+      break;
+
     // Ensure we don't get two dots in a row, even if they have
     // spaces between them.
     if( *g_cur == '.' ) {
