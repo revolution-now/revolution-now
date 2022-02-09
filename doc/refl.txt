@@ -9,46 +9,36 @@ Rollout Process:
   3.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
   4.  Remove the rcl::convert_to extension point.
-  5.  Add rcl module to emit the data model as rcl language. Note
-      that we should not sort lists or table keys here since 1)
-      the ordering inherited from the cdr model will have table
-      keys ordered (since it uses std::map) and it will already
-      have had its list elements sorted where applicable during
-      the to_canonical conversion. Also, we must properly escape
-      table keys as does the pretty printer in the model module.
-  6.  Add some reflection utilities for querying properties of
+  5.  Add some reflection utilities for querying properties of
       structs or enums from the reflection traits.
-  7.  Create refl/ext-to-str.hpp to allow converting reflected
+  6.  Create refl/ext-to-str.hpp to allow converting reflected
       types to strings.
-  8.  Remove to_str from Rds files. May have to do this together
+  7.  Remove to_str from Rds files. May have to do this together
       with the previous step.
-  9.  Find places, such as Coord, where we can add reflection
+  8.  Find places, such as Coord, where we can add reflection
       manually (if it hasn't already been added by this point)
       and therefore remove the manual to_str overloads.
-  10. Remove all traces of flatbuffers, but leaving per-module
+  9.  Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  11. Find structs/classes that have to_str or manual reflection
+  10. Find structs/classes that have to_str or manual reflection
       traits and move them into Rds, creating reflected wrappers
       as needed.
-  12. Consolidate game state into one large data structure, in-
+  11. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  13. Reimplement game saving by using to_canonical game state
+  12. Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  14. Add routine for converting from a Lua value to Cdr, and
+  13. Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive.
-  15. Add Lua module for generating a game state in Lua.
-  16. Consider replacing rcl data model with Cdr; figure out how
+  14. Add Lua module for generating a game state in Lua.
+  15. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  17. Consider how to handle forward/backward compatibility in a
+  16. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
       could save each version's schema and check all of them.
-  18. Check potential issue where Rcl table keys must be identi-
-      fiers, e.g. cannot have spaces or weird characters. This
-      may need to be checked when converting from Cdr.
 
   Done:
 
@@ -86,3 +76,13 @@ Rollout Process:
   20. Add Cdr module to Rcl to allow it to convert its data rep-
       resentation to Cdr.
   21. Add reflection output to Rds generated files.
+  22. Check potential issue where Rcl table keys must be identi-
+      fiers, e.g. cannot have spaces or weird characters. This
+      may need to be checked when converting from Cdr.
+  23. Add rcl module to emit the data model as rcl language. Note
+      that we should not sort lists or table keys here since 1)
+      the ordering inherited from the cdr model will have table
+      keys ordered (since it uses std::map) and it will already
+      have had its list elements sorted where applicable during
+      the to_canonical conversion. Also, we must properly escape
+      table keys as does the pretty printer in the model module.

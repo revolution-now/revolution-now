@@ -269,11 +269,8 @@ bool parse_number( value* out ) {
 
 bool parse_unquoted_string( string_view* out ) {
   char const* start = g_cur;
-  while( g_cur != g_end && *g_cur != '\n' && *g_cur != '\r' ) {
-    if( *g_cur == '{' || *g_cur == '}' || *g_cur == '[' ||
-        *g_cur == ']' || *g_cur == ',' || *g_cur == '"' ||
-        *g_cur == '=' || *g_cur == ':' || *g_cur == '\'' )
-      break;
+  while( g_cur != g_end ) {
+    if( is_forbidden_unquoted_str_char( *g_cur ) ) break;
     ++g_cur;
   }
   if( start == g_cur ) return false;
@@ -320,6 +317,8 @@ bool parse_string( string* out, bool* unquoted ) {
   }
 
   // unquoted string. End at end of line.
+  if( is_forbidden_leading_unquoted_str_char( *g_cur ) )
+    return false;
   *unquoted = true;
   string_view s;
   if( !parse_unquoted_string( &s ) ) return false;

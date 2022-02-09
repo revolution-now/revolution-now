@@ -51,7 +51,7 @@ c {
             i: 9
             j: 10
           }
-          yes: "no"
+          yes: no
         }
       }
       unit: 1
@@ -59,14 +59,14 @@ c {
   }
 }
 
-file: "/this/is/a/file/path"
+file: /this/is/a/file/path
 
 list: [
-  "one",
-  "two",
+  one,
+  two,
   3,
   "false",
-  "four",
+  four,
   null,
 ]
 
@@ -94,10 +94,10 @@ one {
 subtype {
   some_section {
     a: [
-      "abc",
+      abc,
       5,
       -0.03,
-      "table",
+      table,
       {
         a {
           b {
@@ -112,18 +112,18 @@ subtype {
 }
 
 tbl1 {
-  hello: "world"
+  hello: world
   x: 1
   y: 2
-  yes: "no"
+  yes: no
   z: 3
 }
 
 tbl2 {
-  hello: "world"
+  hello: world
   x: 1
   y: 2
-  yes: "x"
+  yes: x
   z: 3
 }
 

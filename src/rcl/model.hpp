@@ -273,8 +273,6 @@ struct table {
   // begin/end since they will be delivered in that order.
   value_type const& operator[]( int n ) const;
 
-  std::string pretty_print( std::string_view indent = "" ) const;
-
   // Consumes this table.
   table unflatten() &&;
 
@@ -294,11 +292,6 @@ struct table {
 
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
-
-  friend void to_str( table const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
-  }
 
  private:
   void unflatten_impl( std::string_view dotted, value&& v );
@@ -342,8 +335,6 @@ struct list {
   // Will check-fail on invalid index!
   value const& operator[]( int n ) const;
 
-  std::string pretty_print( std::string_view indent = "" ) const;
-
   // Consumes this list.
   list unflatten() &&;
 
@@ -364,11 +355,6 @@ struct list {
 
   auto begin() const { return members_.begin(); }
   auto end() const { return members_.end(); }
-
-  friend void to_str( list const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
-  }
 
  private:
   std::vector<value> members_;
@@ -395,15 +381,8 @@ struct doc {
   // sive post-processing over the table.
   static base::expect<doc> create( table&& tbl );
 
-  std::string pretty_print( std::string_view indent = "" ) const;
-
   table const& top_tbl() const { return *tbl_; }
   value const& top_val() const { return val_; }
-
-  friend void to_str( doc const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
-  }
 
  private:
   doc( table&& tbl )
@@ -415,6 +394,8 @@ struct doc {
   table const* tbl_ = nullptr;
 };
 
+void to_str( doc const& o, std::string& out, base::ADL_t );
+
 /****************************************************************
 ** Helpers for parsing/formatting.
 *****************************************************************/
@@ -422,9 +403,33 @@ struct doc {
 // processor, or formatter, should be put in this common location
 // so that it can be consistent across those three modules.
 
+// An table key that does not start with a double quote must
+// start with a character that satisfies this predicate.
 bool is_leading_identifier_char( char c );
 
+// A character in an unquoted segment of a table key must satisfy
+// this predicate if it is not a space or dot.
 bool is_identifier_char( char c );
+
+// A string value (i.e., not a table key) that is unquoted must
+// contain only characters that satisfy this predicate.
+//
+// Note: this is not relevant for table keys, which have more
+// strict rules for quoting.
+bool is_forbidden_unquoted_str_char( char c );
+
+// Same as above but for the first character of such a string.
+bool is_forbidden_leading_unquoted_str_char( char c );
+
+// This will escape any double quotes or backslashes in the
+// string and put quotes around the result if necessary (i.e.,
+// only if there are any non-identifier characters in the string
+// or if the string starts with a non-identifier-start charac-
+// ter). In other words, it will not put quotes around the result
+// unless it has to.
+std::string escape_and_quote_table_key( std::string const& k );
+
+std::string escape_and_quote_string_val( std::string const& k );
 
 /****************************************************************
 ** Helpers for Testing

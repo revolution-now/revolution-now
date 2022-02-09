@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "model.hpp"
 
+// rcl
+#include "emit.hpp"
+
 // base
 #include "base/valid.hpp" // FIXME: remove
 
@@ -34,36 +37,6 @@ using ::base::valid_or;
 /****************************************************************
 ** Formatting
 *****************************************************************/
-struct value_printer {
-  string_view indent;
-
-  string operator()( null_t ) const { return "null"; }
-
-  string operator()( bool b ) const {
-    return b ? "true" : "false";
-  }
-
-  string operator()( int n ) const {
-    return fmt::to_string( n );
-  }
-
-  string operator()( double d ) const {
-    return fmt::to_string( d );
-  }
-
-  string operator()( string const& s ) const {
-    return fmt::format( "\"{}\"", s );
-  }
-
-  string operator()( std::unique_ptr<table> const& tbl ) const {
-    return tbl->pretty_print( indent );
-  }
-
-  string operator()( std::unique_ptr<list> const& lst ) const {
-    return lst->pretty_print( indent );
-  }
-};
-
 bool is_leading_identifier_char( char c ) {
   return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) ||
          ( c == '_' );
@@ -72,6 +45,60 @@ bool is_leading_identifier_char( char c ) {
 bool is_identifier_char( char c ) {
   return ( c >= '0' && c <= '9' ) || ( c >= 'A' && c <= 'Z' ) ||
          ( c >= 'a' && c <= 'z' ) || ( c == '_' );
+}
+
+// This needs to be a subset of the corresponding "leading char"
+// function below.
+bool is_forbidden_unquoted_str_char( char c ) {
+  static char const forbidden[] = "\n\r{}\\[],\"=:'";
+  for( char forbidden_char : forbidden )
+    if( c == forbidden_char ) return true;
+  return false;
+}
+
+bool is_forbidden_leading_unquoted_str_char( char c ) {
+  static char const forbidden[] = "\n\r{}\\[],\"=:'-0123456789.";
+  for( char forbidden_char : forbidden )
+    if( c == forbidden_char ) return true;
+  return false;
+}
+
+string escape_and_quote_table_key( string const& k ) {
+  if( k.empty() ) return k;
+  bool need_quotes = false;
+  // We have a stronger requirement for the first character.
+  if( !is_leading_identifier_char( k[0] ) ) need_quotes = true;
+  string res;
+  for( char c : k ) {
+    if( !is_identifier_char( c ) ) need_quotes = true;
+    if( c == '"' ) res += '\\';
+    if( c == '\\' ) res += '\\';
+    res += c;
+  }
+  if( need_quotes ) res = "\""s + res + "\""s;
+  return res;
+};
+
+string escape_and_quote_string_val( string const& k ) {
+  if( k.empty() ) return k;
+  bool need_quotes = false;
+  // We have a stronger requirement for the first character.
+  if( is_forbidden_leading_unquoted_str_char( k[0] ) )
+    need_quotes = true;
+  // If it starts with these then the parser would confuse it
+  // with a boolean.
+  if( k.starts_with( "true" ) || k.starts_with( "false" ) )
+    need_quotes = true;
+  if( k == "null" ) need_quotes = true;
+  string res;
+  for( char c : k ) {
+    if( is_forbidden_unquoted_str_char( c ) ) need_quotes = true;
+    if( c == '"' ) res += '\\';
+    if( c == '\\' ) res += '\\';
+    res += c;
+  }
+  if( need_quotes ) res = "\""s + res + "\""s;
+  return res;
 }
 
 /****************************************************************
@@ -115,51 +142,6 @@ table::value_type const& table::operator[]( int n ) const {
   return members_[n];
 }
 
-namespace {
-
-string format_key( string const& k ) {
-  if( k.empty() ) return k;
-  bool need_quotes = false;
-  // We have a stronger requirement for the first character.
-  if( !is_leading_identifier_char( k[0] ) ) need_quotes = true;
-  string res;
-  for( char c : k ) {
-    if( !is_identifier_char( c ) ) need_quotes = true;
-    if( c == '"' ) res += '\\';
-    if( c == '\\' ) res += '\\';
-    res += c;
-  }
-  if( need_quotes ) res = "\""s + res + "\""s;
-  return res;
-};
-
-} // namespace
-
-string table::pretty_print( string_view indent ) const {
-  bool          is_top_level = ( indent.size() == 0 );
-  ostringstream oss;
-  if( indent.size() > 0 ) oss << fmt::format( "{{\n" );
-
-  size_t n = members_.size();
-  for( auto& [k, v] : members_ ) {
-    string assign = ":";
-    if( v.holds<unique_ptr<table>>() ) assign = "";
-    string k_str = format_key( k );
-    oss << fmt::format(
-        "{}{}{} {}\n", indent, k_str, assign,
-        std::visit( value_printer{ string( indent ) + "  " },
-                    v ) );
-    if( is_top_level && n-- > 1 ) oss << "\n";
-  }
-
-  if( !is_top_level ) {
-    indent.remove_suffix( 2 );
-    oss << fmt::format( "{}}}", indent );
-  }
-
-  return oss.str();
-}
-
 /****************************************************************
 ** list
 *****************************************************************/
@@ -169,27 +151,11 @@ value const& list::operator[]( int n ) const {
   return members_[n];
 }
 
-string list::pretty_print( string_view indent ) const {
-  ostringstream oss;
-  if( indent.size() > 0 ) oss << fmt::format( "[\n" );
-
-  for( auto& v : members_ )
-    oss << fmt::format(
-        "{}{},\n", indent,
-        std::visit( value_printer{ string( indent ) + "  " },
-                    v ) );
-
-  indent.remove_suffix( 2 );
-  oss << fmt::format( "{}]", indent );
-
-  return oss.str();
-}
-
 /****************************************************************
 ** doc
 *****************************************************************/
-string doc::pretty_print( string_view indent ) const {
-  return tbl_->pretty_print( indent );
+void to_str( doc const& o, string& out, base::ADL_t ) {
+  out += emit( o, EmitOptions{ .flatten_keys = false } );
 }
 
 /****************************************************************
