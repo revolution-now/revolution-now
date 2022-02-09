@@ -18,6 +18,7 @@ target_link_libraries(
     PUBLIC
     absl::strings
     rn-base
+    rn-cdr
 )
 
 target_include_directories(
