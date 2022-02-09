@@ -76,6 +76,38 @@
 // The "top level" of the config is always a table. The above
 // will be parsed, and then post processed.
 //
+// Table Keys
+// ==========
+// Table keys are normally just identifiers, but they can actu-
+// ally be arbitrary strings (containing spaces, backslashes,
+// double or single quotes, and any weird characters). This is
+// done by quoting (in double quotes) and escaping. For example,
+// if you want a table key of:
+//
+//   I can't stop "quoting" and backs\ashing.
+//
+// You would write the key as:
+//
+//   "I can't stop \"quoting\" and backs\\ashing."
+//
+// Quoted sections of keys that are adjacent to non-quoted iden-
+// tifiers will be joined with them, like in shell languages.
+// For example, if you write:
+//
+//   "this"is a.weird."string"
+//
+// It will be translated to:
+//
+//   thisis {
+//     a {
+//       weird {
+//         string {
+//          ...
+//         }
+//       }
+//     }
+//   }
+//
 // Post Processing
 // ===============
 //
@@ -110,6 +142,8 @@
 //
 //    Note that if there were duplicate keys, those will be pre-
 //    served. They are deduplicated in the next phase.
+//
+//    This step also parses any quoted/escaped table keys.
 //
 // 2. Deduplication of Table Keys.  The unflattening
 //    operation, which is applied recursively, transforms

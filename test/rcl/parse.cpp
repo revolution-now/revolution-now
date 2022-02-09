@@ -196,6 +196,7 @@ TEST_CASE( "[parse] table keys with quotes" ) {
         }
       }
     }
+    "this"is a.weird."string" {}
     " \"list\"": [
       {
         # Test braces next to key.
@@ -220,6 +221,15 @@ TEST_CASE( "[parse] table keys with quotes" ) {
       "      \"fo\\\\ur  five\" {\n"
       "        six: 6\n"
       "        seven: 7\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "thisis {\n"
+      "  a {\n"
+      "    weird {\n"
+      "      string {\n"
       "      }\n"
       "    }\n"
       "  }\n"
