@@ -592,9 +592,34 @@ cdr::value to_canonical( cdr::converter&   conv,
   return std::visit( visitor{ conv }, o );
 }
 
-cdr::result<rcl::value> from_canonical(
-    cdr::converter& conv, cdr::value const& v,
-    cdr::tag_t<rcl::value> ) {
+namespace {
+
+value value_from_canonical_value( cdr::converter&   conv,
+                                  cdr::value const& v );
+
+unique_ptr<table> table_from_canonical_table(
+    cdr::converter& conv, cdr::table const& tbl ) {
+  vector<pair<string, value>> values;
+  for( auto const& [k, v] : tbl ) {
+    value rcl_v = value_from_canonical_value( conv, v );
+    values.push_back(
+        pair<string, value>{ k, std::move( rcl_v ) } );
+  }
+  return make_unique<table>( std::move( values ) );
+}
+
+unique_ptr<list> list_from_canonical_list(
+    cdr::converter& conv, cdr::list const& lst ) {
+  vector<value> values;
+  for( cdr::value const& elem : lst ) {
+    value rcl_v = value_from_canonical_value( conv, elem );
+    values.push_back( std::move( rcl_v ) );
+  }
+  return make_unique<list>( std::move( values ) );
+}
+
+value value_from_canonical_value( cdr::converter&   conv,
+                                  cdr::value const& v ) {
   struct visitor {
     visitor( cdr::converter& conv ) : conv_{ conv } {}
 
@@ -607,27 +632,25 @@ cdr::result<rcl::value> from_canonical(
     value operator()( string const& o ) const { return o; }
 
     value operator()( cdr::table const& o ) const {
-      vector<pair<string, value>> values;
-      for( auto const& [k, v] : o ) {
-        UNWRAP_CHECK( rcl_v, conv_.from<value>( v ) );
-        values.push_back(
-            pair<string, value>{ k, std::move( rcl_v ) } );
-      }
-      return value( make_unique<table>( std::move( values ) ) );
+      return value( table_from_canonical_table( conv_, o ) );
     }
 
     value operator()( cdr::list const& o ) const {
-      vector<value> values;
-      for( cdr::value const& elem : o ) {
-        UNWRAP_CHECK( rcl_v, conv_.from<value>( elem ) );
-        values.push_back( std::move( rcl_v ) );
-      }
-      return value( make_unique<list>( std::move( values ) ) );
+      return value( list_from_canonical_list( conv_, o ) );
     }
 
     cdr::converter& conv_;
   };
   return std::visit( visitor{ conv }, v.as_base() );
+}
+
+} // namespace
+
+doc doc_from_cdr( cdr::converter& conv, cdr::table const& tbl ) {
+  unique_ptr<table> uptr_tbl =
+      table_from_canonical_table( conv, tbl );
+  UNWRAP_CHECK( res, doc::create( std::move( *uptr_tbl ) ) );
+  return std::move( res );
 }
 
 } // namespace rcl

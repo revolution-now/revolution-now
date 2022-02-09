@@ -767,19 +767,15 @@ TEST_CASE( "[rcl/model] cdr/to_canonical" ) {
 TEST_CASE( "[rcl/model] cdr/from_canonical" ) {
   cdr::converter conv;
   REQUIRE( rcl_doc.has_value() );
-  cdr::result<rcl::value> res = conv.from<rcl::value>( cdr_doc );
-  REQUIRE( res.has_value() );
-  REQUIRE( res->holds<unique_ptr<table>>() );
-  auto doc =
-      doc::create( std::move( *res->as<unique_ptr<table>>() ) );
-  REQUIRE( doc.has_value() );
+  REQUIRE( cdr_doc.holds<cdr::table>() );
+  doc res = doc_from_cdr( conv, cdr_doc.get<cdr::table>() );
 
   auto golden_file =
       data_dir() / "rcl" / "complex-golden-sorted.rcl";
   UNWRAP_CHECK( golden,
                 base::read_text_file_as_string( golden_file ) );
 
-  REQUIRE( fmt::to_string( *doc ) == golden );
+  REQUIRE( fmt::to_string( res ) == golden );
 }
 
 } // namespace

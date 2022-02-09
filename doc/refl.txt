@@ -3,38 +3,52 @@ Rollout Process:
   Not Done:
 
   1.  Ensure that all types that support rcl::convert_to also
-      support Cdr, either via reflection or manually.
+      support Cdr, either via reflection or manually. Wherever
+      there is an rcl::convert_to, put a static_assert inside its
+      body to make sure that it supports FromCanonical, that
+      should guarantee it for all relevant types. Where possible,
+      add missing Cdr support to a type by manually adding re-
+      flection (if it can't be moved to Rds) as opposed to manu-
+      ally implementing FromCanonical.
   2.  Gut the bodies of all rcl::convert_to methods and forward
       it to from_canonical.
   3.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
   4.  Remove the rcl::convert_to extension point.
-  5.  Add some reflection utilities for querying properties of
-      structs or enums from the reflection traits.
-  6.  Create refl/ext-to-str.hpp to allow converting reflected
-      types to strings.
-  7.  Remove to_str from Rds files. May have to do this together
+  5.  Create refl/to-str.hpp to allow converting reflected types
+      to strings.
+  6.  Remove to_str from Rds files. May have to do this together
       with the previous step.
-  8.  Find places, such as Coord, where we can add reflection
+  7.  Find places, such as Coord, where we can add reflection
       manually (if it hasn't already been added by this point)
       and therefore remove the manual to_str overloads.
-  9.  Remove all traces of flatbuffers, but leaving per-module
+  8.  Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  10. Find structs/classes that have to_str or manual reflection
+  9.  Find structs/classes that have to_str or manual reflection
       traits and move them into Rds, creating reflected wrappers
       as needed.
-  11. Consolidate game state into one large data structure, in-
+  10. Consolidate game state into one large data structure, in-
       cluding a semver number.
-  12. Reimplement game saving by using to_canonical game state
+  11. Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  13. Add routine for converting from a Lua value to Cdr, and
+  12. Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive.
-  14. Add Lua module for generating a game state in Lua.
-  15. Consider replacing rcl data model with Cdr; figure out how
+  13. Add Lua module for generating a game state in Lua.
+  14. Replace the config *.inl files with an Rds solution con-
+      sisting of a reflected struct defining the config structure
+      for each module. These Rds files can go in the config
+      folder next to the rcl files.
+  15. Make sure that the Rds library and generated files do not
+      have any dependencies on the rn library. Then move the
+      (non-config) rds files into the src/ folder next to their
+      associated source files, and add a cmake function to build
+      Rds files in any library. We will need to put some in
+      lower-level libraries, such as the rendering library.
+  16. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  16. Consider how to handle forward/backward compatibility in a
+  17. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We

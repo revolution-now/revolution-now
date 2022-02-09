@@ -480,16 +480,24 @@ cdr::value to_canonical( cdr::converter&   conv,
                          rcl::value const& o,
                          cdr::tag_t<rcl::value> );
 
-// Convert an cdr::value to an rcl::value. This will never fail;
-// it only returns a cdr::result because that is the required
-// type signature.
-//
-// WARNING: after calling this, you must extract the top-level
-// table from the value and put it into an rcl::doc so that it
-// can run the post-processing on it, which is required for the
-// tables and lists to maintain their invariants.
-cdr::result<rcl::value> from_canonical( cdr::converter&   conv,
-                                        cdr::value const& v,
-                                        cdr::tag_t<rcl::value> );
+// Note that we don't provide a from_canonical for rcl::value in
+// the header because we shouldn't be converting individual
+// cdr::values to Rcl, we should only convert one top-level table
+// into an Rcl doc so that it can do all of the post-processing
+// in one pass.
+
+// Convert a cdr::value to an rcl::doc. We're not writing this as
+// a real from_canonical implementation because then we wouldn't
+// really be able to call it with the cdr::converter because the
+// rcl model doesn't satisfy equality-comparable and thus does
+// not satisfy cdr::FromCanonical, and it seems not worth it to
+// give the rcl model operator==. Also, we shouldn't every really
+// have to perform this conversion by way of the converter anyway
+// since the rcl::value is only ever going to be a top-level
+// value. And since we're not using from_canonical, another ben-
+// efit is that we can have it take a cdr::table instead of a
+// cdr::value, which then allows this function to always succeed,
+// hence the return type.
+doc doc_from_cdr( cdr::converter& conv, cdr::table const& tbl );
 
 } // namespace rcl
