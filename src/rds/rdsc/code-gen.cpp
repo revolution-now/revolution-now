@@ -839,7 +839,7 @@ struct CodeGenerator {
     if( rds_has_enum( rds ) ) line( "#include \"maybe.hpp\"" );
     line( "" );
     comment( "refl" );
-    line( "#include \"refl/refl.hpp\"" );
+    line( "#include \"refl/ext.hpp\"" );
     line( "" );
     comment( "base" );
     line( "#include \"base/cc-specific.hpp\"" );

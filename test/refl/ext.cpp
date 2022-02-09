@@ -1,17 +1,17 @@
 /****************************************************************
-**refl.cpp
+**ext.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-01-04.
 *
-* Description: Unit tests for the src/refl/refl.* module.
+* Description: Unit tests for the src/refl/ext.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/refl/refl.hpp"
+#include "src/refl/ext.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

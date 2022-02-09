@@ -18,7 +18,7 @@
 #include "maybe.hpp"
 
 // refl
-#include "refl/refl.hpp"
+#include "refl/ext.hpp"
 
 // base
 #include "base/cc-specific.hpp"
