@@ -50,7 +50,6 @@ struct Validator {
 
       for( expr::e_feature feat : features ) {
         switch( feat ) {
-          case expr::e_feature::formattable: break;
           case expr::e_feature::serializable: break;
           case expr::e_feature::equality: break;
           case expr::e_feature::validation:

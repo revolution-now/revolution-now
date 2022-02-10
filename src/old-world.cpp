@@ -20,6 +20,9 @@
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/lambda.hpp"
 

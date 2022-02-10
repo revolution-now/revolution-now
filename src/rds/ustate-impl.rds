@@ -36,7 +36,7 @@ sumtype UnitState {
     id: ColonyId
   }
 
-  _features [formattable, serializable, equality]
+  _features [serializable, equality]
 }
 
 } # namespace rn

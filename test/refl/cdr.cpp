@@ -209,6 +209,7 @@ struct PersonWrapper {
 
   // Implement refl::WrapsReflected.
   Person const&                refl() const { return wrapped; }
+  static constexpr string_view refl_ns   = "my_ns";
   static constexpr string_view refl_name = "PersonWrapper";
 
   // Implement base::Show.

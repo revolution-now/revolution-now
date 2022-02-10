@@ -144,6 +144,7 @@ concept WrapsReflected = requires( T o ) {
   { o.refl() } -> std::same_as<wrapped_refltype_t<T> const&>;
   requires Reflected<wrapped_refltype_t<T>>;
   requires std::is_constructible_v<T, wrapped_refltype_t<T> &&>;
+  { T::refl_ns } -> std::same_as<std::string_view const&>;
   { T::refl_name } -> std::same_as<std::string_view const&>;
 };
 

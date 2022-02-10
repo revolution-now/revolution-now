@@ -18,6 +18,9 @@
 #include "ustate.hpp"
 #include "utype.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/keyval.hpp"
 

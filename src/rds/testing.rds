@@ -18,6 +18,7 @@ include [
   # C++ standard library
   <string>
   <vector>
+  <unordered_map>
 ]
 
 namespace rdstest {
@@ -60,7 +61,7 @@ sumtype MyVariant2 {
     cost: int
   }
 }
-sumtype MyVariant2 _features [formattable, serializable]
+sumtype MyVariant2 _features [serializable]
 
 namespace inner {
 
@@ -135,7 +136,6 @@ sumtype MySumtype {
 
   _features [
     equality
-    formattable
     serializable
   ]
 }
@@ -154,7 +154,6 @@ sumtype OnOffState {
 
   _features [
     equality,
-    formattable,
     serializable
   ]
 }

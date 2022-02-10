@@ -41,6 +41,9 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"

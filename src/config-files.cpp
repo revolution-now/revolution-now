@@ -38,6 +38,9 @@
 // Rds
 #include "rds/helper/rcl.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Revolution Now (config inl files)
 #include "../config/all-rcl.inl"
 

@@ -39,7 +39,7 @@ sumtype CargoSlot {
     contents: Cargo
   }
 
-  _features [formattable, equality, serializable]
+  _features [equality, serializable]
 }
 
 } # namespace rn

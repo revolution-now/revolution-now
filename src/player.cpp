@@ -21,6 +21,9 @@
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/to-str-tags.hpp"
 

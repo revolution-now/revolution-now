@@ -27,6 +27,7 @@
 
 // refl
 #include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/keyval.hpp"

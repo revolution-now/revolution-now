@@ -80,12 +80,6 @@ struct Commodity {
 
   valid_deserial_t check_invariants_safe() const;
 
-  friend void to_str( Commodity const& o, std::string& out,
-                      base::ADL_t ) {
-    out += fmt::format( "Commodity{{type={},quantity={}}}",
-                        o.type, o.quantity );
-  }
-
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,
     ( e_commodity, type     ),
@@ -94,6 +88,8 @@ struct Commodity {
   // clang-format on
 };
 NOTHROW_MOVE( Commodity );
+
+void to_str( Commodity const& o, std::string& out, base::ADL_t );
 
 rcl::convert_err<Commodity> convert_to( rcl::value const& v,
                                         rcl::tag<Commodity> );

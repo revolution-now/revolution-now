@@ -23,6 +23,7 @@
 
 // Rcl
 #include "rcl/ext-std.hpp"
+#include "refl/to-str.hpp"
 
 // Rds
 #include "rds/helper/rcl.hpp"

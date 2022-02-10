@@ -35,10 +35,12 @@
 
 // refl
 #include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/algo.hpp"

@@ -17,6 +17,9 @@
 #include "unit-composer.hpp"
 #include "ustate.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // luapp
 #include "luapp/state.hpp"
 

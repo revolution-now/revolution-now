@@ -47,6 +47,7 @@ struct Wrapper {
 
   // Implement refl::WrapsReflected.
   MyStruct const&              refl() const;
+  static constexpr string_view refl_ns   = "my_ns";
   static constexpr string_view refl_name = "Wrapper";
 
   MyStruct wrapped;

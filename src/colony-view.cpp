@@ -22,6 +22,9 @@
 #include "plane.hpp"
 #include "text.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // gfx
 #include "gfx/pixel.hpp"
 

@@ -41,11 +41,18 @@ std::string const& demangled_typename() {
 }
 
 template<typename... Types>
-std::string type_list_to_names() {
-  std::string joiner = ",";
-  auto res = ( ( demangled_typename<Types>() + joiner ) + ... );
-  if( res.size() > 0 ) res.resize( res.size() - joiner.size() );
-  return res;
+std::string const& type_list_to_names() {
+  static std::string const names = [] {
+    std::string res;
+    if constexpr( sizeof...( Types ) > 0 ) {
+      std::string const joiner = ",";
+      res = ( ( demangled_typename<Types>() + joiner ) + ... );
+      if( res.size() > 0 )
+        res.resize( res.size() - joiner.size() );
+    }
+    return res;
+  }();
+  return names;
 }
 
 } // namespace base

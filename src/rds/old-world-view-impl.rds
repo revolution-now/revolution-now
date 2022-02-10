@@ -33,7 +33,7 @@ sumtype OldWorldDraggableObject {
     slot: CargoSlotIndex
   }
 
-  _features [formattable, equality]
+  _features [equality]
 }
 
 sumtype OldWorldDragSrc {

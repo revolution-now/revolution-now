@@ -23,6 +23,7 @@
 
 // refl
 #include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // SDL
 #include "SDL.h"

@@ -13,11 +13,15 @@
 // Under test.
 #include "rds/testing.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/build-properties.hpp"
 #include "base/fmt.hpp"
 #include "base/fs.hpp"
 #include "base/io.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -74,16 +78,18 @@ TEST_CASE( "[rds] Monostate" ) {
 
 TEST_CASE( "[rds] Maybe" ) {
   Maybe_t<int> maybe;
-  REQUIRE( fmt::format( "{}", maybe ) == "Maybe::nothing<int>" );
+  REQUIRE( fmt::format( "{}", maybe ) ==
+           "rdstest::Maybe::nothing<int>" );
 
   maybe = Maybe::nothing<int>{};
-  REQUIRE( fmt::format( "{}", maybe ) == "Maybe::nothing<int>" );
+  REQUIRE( fmt::format( "{}", maybe ) ==
+           "rdstest::Maybe::nothing<int>" );
 
   auto just = Maybe::just<int>{ 5 };
   static_assert( is_same_v<decltype( just.val ), int> );
   maybe = just;
   REQUIRE( fmt::format( "{}", maybe ) ==
-           "Maybe::just<int>{val=5}" );
+           "rdstest::Maybe::just<int>{val=5}" );
 
   switch( maybe.to_enum() ) {
     case Maybe::e::nothing: //
@@ -97,14 +103,15 @@ TEST_CASE( "[rds] Maybe" ) {
 
   Maybe_t<rn::my_optional<char>> maybe_op_str;
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::nothing<rn::my_optional<char>>" );
+           "rdstest::Maybe::nothing<rn::my_optional<char>>" );
   maybe_op_str = Maybe::just<rn::my_optional<char>>{ { 'c' } };
-  REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::just<rn::my_optional<char>>{val=c}" );
+  REQUIRE(
+      fmt::format( "{}", maybe_op_str ) ==
+      "rdstest::Maybe::just<rn::my_optional<char>>{val=c}" );
 }
 
 TEST_CASE( "[rds] MyVariant1" ) {
-  static_assert( !base::Show<MyVariant1_t> );
+  static_assert( base::Show<MyVariant1_t> );
   MyVariant1_t my1;
   my1    = MyVariant1::happy{ { 'c', 4 } };
   my1    = MyVariant1::excited{};
@@ -154,7 +161,7 @@ TEST_CASE( "[rds] MyVariant2" ) {
     }
   }
   REQUIRE( fmt::format( "{}", my2 ) ==
-           "MyVariant2::third{cost=7}" );
+           "rdstest::MyVariant2::third{cost=7}" );
 }
 
 TEST_CASE( "[rds] MyVariant3" ) {
@@ -229,9 +236,9 @@ TEST_CASE( "[rds] MyVariant4" ) {
       break;
     }
   }
-  REQUIRE(
-      fmt::format( "{}", my4 ) ==
-      "MyVariant4::third{s=hello,var3=MyVariant3::a3{c=e}}" );
+  REQUIRE( fmt::format( "{}", my4 ) ==
+           "rdstest::inner::MyVariant4::third{s=hello,var3="
+           "rdstest::inner::MyVariant3::a3{c=e}}" );
 }
 
 TEST_CASE( "[rds] CompositeTemplateTwo" ) {
@@ -259,13 +266,12 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
       REQUIRE( false );
       break;
   }
-  REQUIRE(
-      fmt::format( "{}", v ) ==
-      "CompositeTemplateTwo::first<rn::my_optional<int>,short>{"
-      "ttp=TemplateTwoParams::third_alternative<rn::my_optional<"
-      "int>,short>{hello=Maybe::just<rn::my_optional<int>>{val="
-      "3},"
-      "u=9}}" );
+  REQUIRE( fmt::format( "{}", v ) ==
+           "rdstest::inner::CompositeTemplateTwo::first<rn::my_"
+           "optional<int>,short>{ttp=rdstest::inner::"
+           "TemplateTwoParams::third_alternative<rn::my_"
+           "optional<int>,short>{hello=rdstest::Maybe::just<rn::"
+           "my_optional<int>>{val=3},u=9}}" );
 }
 
 TEST_CASE( "[rds] Equality" ) {
@@ -309,7 +315,8 @@ TEST_CASE( "[rds] Associated Enums" ) {
       // Make sure that we can get a non-const reference.
       MyVariant2::second& snd = v.get<MyVariant2::second>();
       REQUIRE( fmt::format( "{}", snd ) ==
-               "MyVariant2::second{flag1=false,flag2=true}" );
+               "rdstest::MyVariant2::second{flag1=false,flag2="
+               "true}" );
       break;
     }
     case MyVariant2::e::third: //
@@ -325,7 +332,7 @@ TEST_CASE( "[rds] Associated Enums" ) {
     case Maybe::e::just: {
       auto& just = maybe.get<Maybe::just<String>>();
       REQUIRE( fmt::format( "{}", just ) ==
-               "Maybe::just<rn::String>{val=hello}" );
+               "rdstest::Maybe::just<rn::String>{val=hello}" );
       break;
     }
   }

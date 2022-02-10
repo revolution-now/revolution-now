@@ -15,6 +15,9 @@
 #include "unit.hpp"
 #include "ustate.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn::ui {

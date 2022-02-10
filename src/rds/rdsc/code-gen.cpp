@@ -144,13 +144,6 @@ string all_int_tmpl_params( int count ) {
                           /*space=*/true );
 }
 
-string template_params_type_names(
-    vector<expr::TemplateParam> const& tmpls ) {
-  string params = template_params( tmpls, /*put_typename=*/false,
-                                   /*space=*/true );
-  return "::base::type_list_to_names"s + params + "()";
-}
-
 template<typename T>
 bool item_has_feature( T const& item, expr::e_feature feature ) {
   return item.features.has_value() &&
@@ -365,40 +358,6 @@ struct CodeGenerator {
     }
   }
 
-  void emit_fmt_for_alternative(
-      string_view                        sumtype_name,
-      vector<expr::TemplateParam> const& tmpls,
-      expr::Alternative const&           alt ) {
-    if( !tmpls.empty() ) emit_template_decl( tmpls );
-    string full_alt_name = fmt::format(
-        "{}::{}{}", sumtype_name, alt.name,
-        template_params( tmpls, /*put_typename=*/false ) );
-    string maybe_o = alt.members.empty() ? "" : " o";
-    line(
-        "inline void to_str( {} const&{}, std::string& out, "
-        "::base::ADL_t ) {{",
-        full_alt_name, maybe_o );
-    {
-      auto _ = indent();
-      line( "out += fmt::format(" );
-      {
-        auto _ = indent();
-        emit_format_str_for_formatting_alternative(
-            alt, tmpls, sumtype_name );
-      }
-      if( !alt.members.empty() || !tmpls.empty() ) frag( ", " );
-      vector<string> fmt_args;
-      if( !tmpls.empty() )
-        fmt_args.push_back(
-            template_params_type_names( tmpls ) );
-      for( expr::StructMember const& member : alt.members )
-        fmt_args.push_back( fmt::format( "o.{}", member.var ) );
-      frag( "{} );", absl::StrJoin( fmt_args, ", " ) );
-      flush();
-    }
-    line( "}" );
-  }
-
   void emit_sumtype_alternative(
       vector<expr::TemplateParam> const& tmpls,
       expr::Alternative const& alt, string_view sumtype_name,
@@ -549,25 +508,6 @@ struct CodeGenerator {
     line( "};" );
     newline();
     close_ns( "refl" );
-    // emit to_str.
-    newline();
-    open_ns( ns );
-    line(
-        "inline void to_str( {}{}, std::string&{}, "
-        "::base::ADL_t ) {{",
-        e.name, e.values.empty() ? "" : " o",
-        e.values.empty() ? "" : " out" );
-    if( !e.values.empty() ) {
-      auto _ = indent();
-      line(
-          "out += "
-          "refl::traits<{}>::value_names[static_cast<int>( o "
-          ")];",
-          e.name );
-    }
-    line( "}" );
-    newline();
-    close_ns( ns );
   }
 
   void emit_reflection_for_struct(
@@ -690,14 +630,6 @@ struct CodeGenerator {
         emit_sumtype_alternative( sumtype.tmpl_params, alt,
                                   sumtype.name, emit_equality,
                                   emit_serialization );
-        if( item_has_feature( sumtype,
-                              expr::e_feature::formattable ) ) {
-          newline();
-          string alt_name = fmt::format( "{}", alt.name );
-          comment( "{}", alt_name );
-          emit_fmt_for_alternative( sumtype.name,
-                                    sumtype.tmpl_params, alt );
-        }
         newline();
       }
       emit_enum_for_sumtype( sumtype.alternatives );
@@ -832,11 +764,6 @@ struct CodeGenerator {
         rds, expr::e_feature::serializable );
   }
 
-  bool rds_needs_fmt_headers( expr::Rds const& rds ) {
-    return rds_has_sumtype_feature(
-        rds, expr::e_feature::formattable );
-  }
-
   void emit_includes( expr::Rds const& rds ) {
     section( "Includes" );
     if( !rds.includes.empty() ) {
@@ -859,21 +786,13 @@ struct CodeGenerator {
     comment( "refl" );
     line( "#include \"refl/ext.hpp\"" );
     line( "" );
-    comment( "base" );
-    line( "#include \"base/cc-specific.hpp\"" );
-    if( rds_needs_fmt_headers( rds ) ) {
-      line( "#include \"base/to-str.hpp\"" );
-      line( "#include \"base/to-str-ext-std.hpp\"" );
+    if( rds_has_sumtype( rds ) ) {
+      comment( "base" );
+      line( "#include \"base/variant.hpp\"" );
     }
-    line( "#include \"base/variant.hpp\"" );
     line( "" );
     comment( "base-util" );
     line( "#include \"base-util/mp.hpp\"" );
-    if( rds_needs_fmt_headers( rds ) ) {
-      line( "" );
-      comment( "{{fmt}}" );
-      line( "#include \"fmt/format.h\"" );
-    }
     line( "" );
     comment( "C++ standard library" );
     if( rds_has_enum( rds ) ) line( "#include <array>" );

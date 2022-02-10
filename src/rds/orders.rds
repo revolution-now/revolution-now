@@ -38,7 +38,7 @@ sumtype orders {
   disband   {}
   move      { d: e_direction }
 
-  _features [formattable, equality, serializable]
+  _features [equality, serializable]
 }
 
 } # namespace rn

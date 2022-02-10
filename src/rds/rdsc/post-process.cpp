@@ -26,8 +26,6 @@ void set_default_sumtype_features( expr::Rds& rds ) {
           // If features were not specified at all, then give
           // them some sensible default.
           sumtype.features.emplace();
-          sumtype.features->insert(
-              expr::e_feature::formattable );
           sumtype.features->insert( expr::e_feature::equality );
         }
       } );
@@ -40,8 +38,6 @@ void set_default_struct_features( expr::Rds& rds ) {
           // If features were not specified at all, then give
           // them some sensible default.
           strukt.features.emplace();
-          strukt.features->insert(
-              expr::e_feature::formattable );
           strukt.features->insert( expr::e_feature::equality );
         }
       } );

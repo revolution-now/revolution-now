@@ -28,6 +28,7 @@
 
 // refl
 #include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -152,6 +153,11 @@ rcl::convert_err<Commodity> convert_to( rcl::value const& v,
 rcl::convert_valid rcl_validate( Commodity const& o ) {
   RCL_CHECK( o.quantity >= 0 );
   return base::valid;
+}
+
+void to_str( Commodity const& o, string& out, base::ADL_t ) {
+  out += fmt::format( "Commodity{{type={},quantity={}}}", o.type,
+                      o.quantity );
 }
 
 /****************************************************************

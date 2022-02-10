@@ -41,7 +41,6 @@ sumtype UnitOldWorldViewState {
   in_port {}
 
   _features [
-    formattable,
     serializable,
     equality
   ]
