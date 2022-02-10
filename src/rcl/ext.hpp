@@ -13,6 +13,9 @@
 // rcl
 #include "model.hpp"
 
+// Cdr
+#include "cdr/converter.hpp" // TODO(migration): remove
+
 // base
 #include "base/expect.hpp"
 #include "base/fmt.hpp"
@@ -117,6 +120,18 @@ convert_err<T> convert_to( value const& v ) {
     HAS_VALUE_OR_RET( rcl_validate( *res ) );
   }
   return res;
+}
+
+// TODO(migration): remove this and the cdr/converter.hpp header
+// once migration is finished.
+template<typename T>
+convert_err<T> via_cdr( rcl::value const& v ) {
+  cdr::converter conv;
+  cdr::value     cdr_v = conv.to( v );
+  auto           res   = conv.from<T>( cdr_v );
+  if( !res.has_value() )
+    return rcl::error( std::move( res.error().what() ) );
+  return std::move( *res );
 }
 
 } // namespace rcl

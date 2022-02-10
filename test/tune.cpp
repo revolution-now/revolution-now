@@ -13,6 +13,9 @@
 // Under test.
 #include "src/tune.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -85,9 +88,9 @@ TEST_CASE( "[tune] rcl (Tune)" ) {
     value v{ std::make_unique<table>( std::move( tbl ) ) };
 
     // Test.
-    REQUIRE( convert_to<Tune>( v ) ==
-             error( "expected exactly 4 fields for Tune object, "
-                    "but found 5." ) );
+    REQUIRE(
+        convert_to<Tune>( v ) ==
+        error( "unrecognized key '"s + "???" + "' in table." ) );
   }
   SECTION( "failure 2" ) {
     UNWRAP_CHECK(
@@ -109,10 +112,8 @@ TEST_CASE( "[tune] rcl (Tune)" ) {
     value v{ std::make_unique<table>( std::move( tbl ) ) };
 
     // Test.
-    REQUIRE(
-        convert_to<Tune>( v ) ==
-        error( "field 'sentiment' required by TuneDimensions "
-               "object but was not found." ) );
+    REQUIRE( convert_to<Tune>( v ) ==
+             error( "key 'sentiment' not found in table." ) );
   }
   SECTION( "failure 3" ) {
     UNWRAP_CHECK(
@@ -135,8 +136,8 @@ TEST_CASE( "[tune] rcl (Tune)" ) {
 
     // Test.
     REQUIRE( convert_to<Tune>( v ) ==
-             error( "cannot produce std::string from value of "
-                    "type int." ) );
+             error( "expected type string, instead found type "
+                    "integer." ) );
   }
 }
 
@@ -161,18 +162,18 @@ TEST_CASE( "[tune] Tune to_str" ) {
 
   string_view expected =
       "Tune{"
-      "display_name=some-name, "
-      "stem=some-stem, "
-      "description=\"some-description\", "
+      "display_name=some-name,"
+      "stem=some-stem,"
+      "description=some-description,"
       "dimensions=TuneDimensions{"
-      "tempo=medium, "
-      "genre=trad, "
-      "culture=old_world, "
-      "inst=percussive, "
-      "sentiment=war_lost, "
-      "key=c, "
-      "tonality=major, "
-      "epoch=post_revolution, "
+      "tempo=medium,"
+      "genre=trad,"
+      "culture=old_world,"
+      "inst=percussive,"
+      "sentiment=war_lost,"
+      "key=c,"
+      "tonality=major,"
+      "epoch=post_revolution,"
       "purpose=standard"
       "}"
       "}";

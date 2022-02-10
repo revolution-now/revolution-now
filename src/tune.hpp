@@ -49,27 +49,27 @@ NOTHROW_MOVE( TuneVecDimensions );
   maybe<PP_JOIN( e_tune_, name )> name;
 
 struct TuneOptDimensions {
-  EVAL( PP_MAP( TUNE_OPT_DIMENSION, TUNE_DIMENSION_LIST ) )
-  TuneVecDimensions to_vec_dims() const;
+  maybe<e_tune_tempo>     tempo;
+  maybe<e_tune_genre>     genre;
+  maybe<e_tune_culture>   culture;
+  maybe<e_tune_inst>      inst;
+  maybe<e_tune_sentiment> sentiment;
+  maybe<e_tune_key>       key;
+  maybe<e_tune_tonality>  tonality;
+  maybe<e_tune_epoch>     epoch;
+  maybe<e_tune_purpose>   purpose;
+  TuneVecDimensions       to_vec_dims() const;
 };
 NOTHROW_MOVE( TuneOptDimensions );
 
 #define TUNE_DIMENSION( name ) PP_JOIN( e_tune_, name ) name;
 
-struct TuneDimensions {
-  EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
-  TuneOptDimensions to_opt_dims() const;
-  bool operator==( TuneDimensions const& ) const = default;
+TuneOptDimensions to_opt_dims(
+    TuneDimensions const& dimensions );
 
-  // Allows deserializing from an Rcl config file.
-  friend rcl::convert_err<TuneDimensions> convert_to(
-      rcl::value const& v, rcl::tag<TuneDimensions> );
-
-  // ADL stringifier.
-  friend void to_str( TuneDimensions const& o, std::string& out,
-                      base::ADL_t );
-};
-NOTHROW_MOVE( TuneDimensions );
+// Allows deserializing from an Rcl config file.
+rcl::convert_err<TuneDimensions> convert_to(
+    rcl::value const& v, rcl::tag<TuneDimensions> );
 
 #define K_NUM_DIMENSIONS \
   EVAL( PP_MAP_PLUS( PP_CONST_ONE, TUNE_DIMENSION_LIST ) )
@@ -83,28 +83,9 @@ static_assert( sizeof( TuneOptDimensions ) ==
                k_num_dimensions *
                    sizeof( maybe<e_tune_tempo> ) );
 
-// Client code is not supposed to get access to this struct di-
-// rectly, it is just in the header to allow deserialization from
-// the config files.
-struct Tune {
-  std::string display_name;
-  std::string stem;
-  std::string description;
-
-  // Classification.
-  TuneDimensions dimensions;
-
-  bool operator==( Tune const& ) const = default;
-
-  // Allows deserializing from an Rcl config file.
-  friend rcl::convert_err<Tune> convert_to( rcl::value const& v,
-                                            rcl::tag<Tune> );
-
-  // ADL stringifier.
-  friend void to_str( Tune const& o, std::string& out,
-                      base::ADL_t );
-};
-NOTHROW_MOVE( Tune );
+// Allows deserializing from an Rcl config file.
+rcl::convert_err<Tune> convert_to( rcl::value const& v,
+                                   rcl::tag<Tune> );
 
 // This can only be populated by a music player.
 struct TunePlayerInfo {
