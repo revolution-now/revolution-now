@@ -151,11 +151,6 @@ rcl::convert_valid rcl_validate( Commodity const& o ) {
   return valid;
 }
 
-void to_str( Commodity const& o, string& out, base::ADL_t ) {
-  out += fmt::format( "Commodity{{type={},quantity={}}}", o.type,
-                      o.quantity );
-}
-
 /****************************************************************
 ** Public API
 *****************************************************************/

@@ -15,6 +15,9 @@
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/to-str-tags.hpp"
 

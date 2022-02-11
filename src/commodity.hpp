@@ -95,8 +95,6 @@ struct Commodity {
 };
 NOTHROW_MOVE( Commodity );
 
-void to_str( Commodity const& o, std::string& out, base::ADL_t );
-
 rcl::convert_err<Commodity> convert_to( rcl::value const& v,
                                         rcl::tag<Commodity> );
 
