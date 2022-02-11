@@ -45,8 +45,8 @@ TEST_CASE( "[pixel] rcl" ) {
   SECTION( "failure wrong type" ) {
     value v{ 5 };
     REQUIRE( convert_to<pixel>( v ) ==
-             error( "cannot produce a pixel from type int. "
-                    "String required." ) );
+             error( "expected type string, instead found type "
+                    "integer." ) );
   }
   SECTION( "failure no hash" ) {
     value v{ "0101011" };

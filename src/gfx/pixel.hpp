@@ -13,6 +13,9 @@
 // rcl
 #include "rcl/ext.hpp"
 
+// Cdr
+#include "cdr/ext.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/maybe.hpp"
@@ -83,6 +86,16 @@ struct pixel {
   // This is for deserializing from Rcl config files.
   friend rcl::convert_err<pixel> convert_to( rcl::value const& v,
                                              rcl::tag<pixel> );
+
+  // Implement cdr::ToCanonical.
+  friend cdr::value to_canonical( cdr::converter& conv,
+                                  pixel const&    o,
+                                  cdr::tag_t<pixel> );
+
+  // Implement cdr::FromCanonical.
+  friend cdr::result<pixel> from_canonical( cdr::converter& conv,
+                                            cdr::value const& v,
+                                            cdr::tag_t<pixel> );
 
   static pixel red() { return { 255, 0, 0, 255 }; }
   static pixel yellow() { return { 255, 255, 0, 255 }; }
