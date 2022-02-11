@@ -2,29 +2,23 @@ Rollout Process:
 
   Not Done:
 
-  1.  Create a giant save-game struct in a new Rds file mirroring
-      the structure of the current flatbuffers top-level struct.
-  2.  Ensure that all types that support flatbuffers also support
-      Cdr, either via reflection, or manually.
-  3.  Remove all traces of flatbuffers, but leaving per-module
-      save-game data structures separate for the time being.
-  4.  Move remaining serializable types into Rds files, creating
+  1.  Move remaining serializable types into Rds files, creating
       wrappers where necessary.
-  5.  Add a unit test that makes sure that the new save-game
+  2.  Add a unit test that makes sure that the new save-game
       structure supports Cdr.
-  6.  Find a place to instantiate the save-game structure (hope-
+  3.  Find a place to instantiate the save-game structure (hope-
       fully in an RAII way) and move each module's global state
       over to it.
-  7.  Find structs/classes that have to_str or manual reflection
+  4.  Find structs/classes that have to_str or manual reflection
       traits and move them into Rds, creating reflected wrappers
       as needed.
-  8.  In config-files, bypass the rcl::convert_to and call the
+  5.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
-  9.  Remove the rcl::convert_to extension point.
-  10. Reimplement game saving by using to_canonical game state
+  6.  Remove the rcl::convert_to extension point.
+  7.  Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  11. Add routine for converting from a Lua value to Cdr, and
+  8.  Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive. This may be a bit tricky because not all lua
       values can be converted to Cdr, e.g. lua functions. But
@@ -33,20 +27,20 @@ Rollout Process:
       avoid making {to,from}_canonical overloads for lua types,
       and instead just make a separate API for converting them in
       the rn library.
-  12. Add Lua module for generating a game state in Lua.
-  13. Replace the config *.inl files with an Rds solution con-
+  9.  Add Lua module for generating a game state in Lua.
+  10. Replace the config *.inl files with an Rds solution con-
       sisting of a reflected struct defining the config structure
       for each module. These Rds files can go in the config
       folder next to the rcl files.
-  14. Make sure that the Rds library and generated files do not
+  11. Make sure that the Rds library and generated files do not
       have any dependencies on the rn library. Then move the
       (non-config) rds files into the src/ folder next to their
       associated source files, and add a cmake function to build
       Rds files in any library. We will need to put some in
       lower-level libraries, such as the rendering library.
-  15. Consider replacing rcl data model with Cdr; figure out how
+  12. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  16. Consider how to handle forward/backward compatibility in a
+  13. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -115,3 +109,9 @@ Rollout Process:
       and therefore remove the manual to_str overloads.
   28. Gut the bodies of all rcl::convert_to methods and forward
       it to from_canonical.
+  29. Create a giant save-game struct in a new Rds file mirroring
+      the structure of the current flatbuffers top-level struct.
+  30. Ensure that all types that support flatbuffers also support
+      Cdr, either via reflection, or manually.
+  31. Remove all traces of flatbuffers, but leaving per-module
+      save-game data structures separate for the time being.
