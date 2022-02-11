@@ -25,6 +25,9 @@
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Flatbuffers
 #include "fb/sg-terrain_generated.h"
 

@@ -22,6 +22,12 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// migration
+#include "cdr/ext-base.hpp"    // TODO(migration): remove
+#include "cdr/ext-builtin.hpp" // TODO(migration): remove
+#include "cdr/ext-std.hpp"     // TODO(migration): remove
+#include "refl/cdr.hpp"        // TODO(migration): remove
+
 // refl
 #include "refl/query-enum.hpp"
 
@@ -38,26 +44,6 @@ using namespace std;
 namespace rn {
 
 namespace {} // namespace
-
-void to_str( Scale const& o, string& out, base::ADL_t ) {
-  out += "(";
-  to_str( o.sx, out, base::ADL );
-  out += ",";
-  to_str( o.sy, out, base::ADL );
-  out += ")";
-}
-
-void to_str( Rect const& o, std::string& out, base::ADL_t ) {
-  out += "(";
-  to_str( o.x, out, base::ADL );
-  out += ",";
-  to_str( o.y, out, base::ADL );
-  out += ",";
-  to_str( o.w, out, base::ADL );
-  out += ",";
-  to_str( o.h, out, base::ADL );
-  out += ")";
-}
 
 Rect Rect::from( Coord const& _1, Coord const& _2 ) {
   Rect res;
@@ -208,14 +194,6 @@ H const& Rect::length<Y>() const {
   return h;
 }
 
-void to_str( Coord const& o, std::string& out, base::ADL_t ) {
-  out += "(";
-  to_str( o.x, out, base::ADL );
-  out += ",";
-  to_str( o.y, out, base::ADL );
-  out += ")";
-}
-
 template<>
 X const& Coord::coordinate<X>() const {
   return x;
@@ -322,14 +300,6 @@ bool Coord::is_inside( Rect const& rect ) const {
 
 bool Coord::is_on_border_of( Rect const& rect ) const {
   return is_inside( rect ) && !is_inside( rect.edges_removed() );
-}
-
-void to_str( Delta const& o, std::string& out, base::ADL_t ) {
-  out += "(";
-  to_str( o.w, out, base::ADL );
-  out += ",";
-  to_str( o.h, out, base::ADL );
-  out += ")";
 }
 
 Delta Delta::round_up( Scale grid_size ) const {
@@ -572,48 +542,14 @@ Scale operator/( Scale const& lhs, Scale const& rhs ) {
 *****************************************************************/
 rcl::convert_err<Delta> convert_to( rcl::value const& v,
                                     rcl::tag<Delta> ) {
-  constexpr string_view kTypeName          = "Delta";
-  constexpr int         kNumFieldsExpected = 2;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error(
-        fmt::format( "cannot produce a Delta from type {}.",
-                     rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( !tbl.has_key( "w" ) || !tbl.has_key( "h" ) ||
-      tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have a 'w' and 'h' field for "
-                     "conversion to {}.",
-                     kTypeName ) );
-  UNWRAP_RETURN( w, rcl::convert_to<W>( tbl["w"] ) );
-  UNWRAP_RETURN( h, rcl::convert_to<H>( tbl["h"] ) );
-  return Delta{ w, h };
+  // TODO(migration): remove
+  return rcl::via_cdr<Delta>( v );
 }
 
 rcl::convert_err<Coord> convert_to( rcl::value const& v,
                                     rcl::tag<Coord> ) {
-  constexpr string_view kTypeName          = "Coord";
-  constexpr int         kNumFieldsExpected = 2;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error(
-        fmt::format( "cannot produce a Coord from type {}.",
-                     rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( !tbl.has_key( "x" ) || !tbl.has_key( "y" ) ||
-      tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have a 'x' and 'y' field for "
-                     "conversion to {}.",
-                     kTypeName ) );
-  UNWRAP_RETURN( x, rcl::convert_to<X>( tbl["x"] ) );
-  UNWRAP_RETURN( y, rcl::convert_to<Y>( tbl["y"] ) );
-  return Coord{ x, y };
+  // TODO(migration): remove
+  return rcl::via_cdr<Coord>( v );
 }
 
 /****************************************************************

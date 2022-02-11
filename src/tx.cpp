@@ -25,6 +25,9 @@
 // base
 #include "base/to-str-ext-std.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // SDL
 #include "SDL.h"
 #include "SDL_image.h"

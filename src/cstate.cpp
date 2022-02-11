@@ -22,6 +22,9 @@
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"

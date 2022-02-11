@@ -28,4 +28,9 @@ RCL_TYPED_INT_IMPL( ::rn::Y );
 RCL_TYPED_INT_IMPL( ::rn::W );
 RCL_TYPED_INT_IMPL( ::rn::H );
 
+CDR_TYPED_INT_IMPL( ::rn::X );
+CDR_TYPED_INT_IMPL( ::rn::Y );
+CDR_TYPED_INT_IMPL( ::rn::W );
+CDR_TYPED_INT_IMPL( ::rn::H );
+
 } // namespace rn

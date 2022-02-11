@@ -68,9 +68,6 @@ struct ND Scale {
   constexpr bool operator!=( Scale const& rhs ) const {
     return ( sx != rhs.sx ) || ( sy != rhs.sy );
   }
-
-  friend void to_str( Scale const& o, std::string& out,
-                      base::ADL_t );
 };
 NOTHROW_MOVE( Scale );
 
@@ -92,9 +89,6 @@ struct ND Delta {
   constexpr bool operator!=( Delta const& other ) const {
     return ( h != other.h ) || ( w != other.w );
   }
-
-  friend void to_str( Delta const& o, std::string& out,
-                      base::ADL_t );
 
   template<typename Dimension>
   auto get() const {
@@ -217,9 +211,6 @@ struct ND Coord {
     y /= scale.sy;
   }
 
-  friend void to_str( Coord const& o, std::string& out,
-                      base::ADL_t );
-
   Coord operator-() const { return { -x, -y }; }
 
   // If this coord is outside the rect then it will be brought
@@ -287,9 +278,6 @@ struct ND Rect {
   bool operator!=( Rect const& rhs ) const {
     return !( *this == rhs );
   }
-
-  friend void to_str( Rect const& o, std::string& out,
-                      base::ADL_t );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -639,6 +627,9 @@ Scale operator/( Scale const& lhs, Scale const& rhs );
 
 } // namespace rn
 
+/****************************************************************
+** std::hash
+*****************************************************************/
 // Here  we  open up the std namespace to add a hash function
 // spe- cialization for a Coord.
 namespace std {
@@ -655,6 +646,83 @@ struct hash<::rn::Coord> {
 };
 
 } // namespace std
+
+/****************************************************************
+** Reflection
+*****************************************************************/
+namespace refl {
+
+// Reflection info for struct Scale.
+template<>
+struct traits<rn::Scale> {
+  using type = rn::Scale;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Scale";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "sx", &rn::Scale::sx },
+      refl::StructField{ "sy", &rn::Scale::sy },
+  };
+};
+
+// Reflection info for struct Delta.
+template<>
+struct traits<rn::Delta> {
+  using type = rn::Delta;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Delta";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "w", &rn::Delta::w },
+      refl::StructField{ "h", &rn::Delta::h },
+  };
+};
+
+// Reflection info for struct Coord.
+template<>
+struct traits<rn::Coord> {
+  using type = rn::Coord;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Coord";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::Coord::x },
+      refl::StructField{ "y", &rn::Coord::y },
+  };
+};
+
+// Reflection info for struct Rect.
+template<>
+struct traits<rn::Rect> {
+  using type = rn::Rect;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Rect";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::Rect::x },
+      refl::StructField{ "y", &rn::Rect::y },
+      refl::StructField{ "w", &rn::Rect::w },
+      refl::StructField{ "h", &rn::Rect::h },
+  };
+};
+
+} // namespace refl
 
 /****************************************************************
 ** Lua

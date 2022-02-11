@@ -16,6 +16,9 @@
 // Rcl
 #include "rcl/model.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -367,8 +370,7 @@ TEST_CASE( "[coord] Coord - rcl" ) {
 
     // Test.
     REQUIRE( convert_to<Coord>( v ) ==
-             error( "table must have a 'x' and 'y' field for "
-                    "conversion to Coord." ) );
+             error( "key 'y' not found in table." ) );
   }
   SECTION( "failure 2" ) {
     UNWRAP_CHECK(
@@ -379,7 +381,8 @@ TEST_CASE( "[coord] Coord - rcl" ) {
     // Test.
     REQUIRE(
         convert_to<Coord>( v ) ==
-        error( "cannot produce a ::rn::X from type string." ) );
+        error(
+            "failed to convert value of type string to int." ) );
   }
 }
 
@@ -402,8 +405,7 @@ TEST_CASE( "[coord] Delta - rcl" ) {
 
     // Test.
     REQUIRE( convert_to<Delta>( v ) ==
-             error( "table must have a 'w' and 'h' field for "
-                    "conversion to Delta." ) );
+             error( "key 'h' not found in table." ) );
   }
   SECTION( "failure 2" ) {
     UNWRAP_CHECK(
@@ -414,7 +416,8 @@ TEST_CASE( "[coord] Delta - rcl" ) {
     // Test.
     REQUIRE(
         convert_to<Delta>( v ) ==
-        error( "cannot produce a ::rn::W from type string." ) );
+        error(
+            "failed to convert value of type string to int." ) );
   }
 }
 

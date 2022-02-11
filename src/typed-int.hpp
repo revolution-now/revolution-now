@@ -16,6 +16,9 @@
 // Rcl
 #include "rcl/ext.hpp"
 
+// Cdr
+#include "cdr/ext.hpp"
+
 // luapp
 #include "luapp/ext.hpp"
 
@@ -490,6 +493,7 @@ inline constexpr bool operator>=( int           left,
 #define TYPED_SCALE( t, a, s ) \
   DERIVE_TYPED_NUM( t, a, TypedIntMinimal, s )
 
+// FIXME: move X,Y,W,H out of this header.
 TYPED_COORD( int, X, x ) // NOLINT(hicpp-explicit-conversions)
 TYPED_COORD( int, Y, y ) // NOLINT(hicpp-explicit-conversions)
 TYPED_COORD( int, W, w ) // NOLINT(hicpp-explicit-conversions)
@@ -506,6 +510,7 @@ TYPED_COORD( double, HD,
 
 // These are "scales"; they are numbers that can be used to scale
 // X/Y/W/H.
+// FIXME: get rid of these.
 TYPED_SCALE( int, SX, sx ) // NOLINT(hicpp-explicit-conversions)
 TYPED_SCALE( int, SY, sy ) // NOLINT(hicpp-explicit-conversions)
 TYPED_SCALE( double, SXD,
@@ -528,6 +533,7 @@ TYPED_SCALE( double, SYD,
   }                                                 \
   }
 
+// FIXME: move X,Y,W,H out of this header.
 UD_LITERAL( X, x )
 UD_LITERAL( Y, y )
 UD_LITERAL( W, w )
@@ -580,6 +586,7 @@ struct LengthTypeFor<YD> {
 template<typename Coordinate>
 using LengthType = typename LengthTypeFor<Coordinate>::length_t;
 
+// FIXME: move X,Y,W,H out of this header.
 // These express that when we add a delta to a coordinate that we
 // get another coordinate. They are specific to the semantics of
 // cartesian coordinates so we don't include them in the TYPE-
@@ -719,6 +726,7 @@ inline constexpr void operator/=( HD& h, SYD sy ) { h._ /= sy._; }
 
 namespace std {
 
+// FIXME: move X,Y,W,H out of this header.
 DEFINE_HASH_FOR_TYPED_INT( ::rn::X );
 DEFINE_HASH_FOR_TYPED_INT( ::rn::Y );
 DEFINE_HASH_FOR_TYPED_INT( ::rn::W );
@@ -759,8 +767,35 @@ DEFINE_HASH_FOR_TYPED_INT( ::rn::H );
     return name{ *i };                                    \
   }
 
+#define CDR_TYPED_INT_DECL( name )                          \
+  cdr::value to_canonical( cdr::converter&, name o,         \
+                           cdr::tag_t<name> );              \
+                                                            \
+  cdr::result<name> from_canonical( cdr::converter&   conv, \
+                                    cdr::value const& v,    \
+                                    cdr::tag_t<name> );
+
+#define CDR_TYPED_INT_IMPL( name )                              \
+  cdr::value to_canonical( cdr::converter&, name o,             \
+                           cdr::tag_t<name> ) {                 \
+    return cdr::value{ static_cast<cdr::integer_type>( o._ ) }; \
+  }                                                             \
+                                                                \
+  cdr::result<name> from_canonical( cdr::converter&   conv,     \
+                                    cdr::value const& v,        \
+                                    cdr::tag_t<name> ) {        \
+    if( !v.holds<cdr::integer_type>() )                         \
+      return conv.err(                                          \
+          "failed to convert value of type {} to int.",         \
+          cdr::type_name( v ) );                                \
+    /* WARNING: this may lose precision */                      \
+    return name{                                                \
+        static_cast<int>( v.get<cdr::integer_type>() ) };       \
+  }
+
 namespace rn {
 
+// FIXME: move X,Y,W,H out of this header.
 LUA_TYPED_INT_DECL( ::rn::X );
 LUA_TYPED_INT_DECL( ::rn::Y );
 LUA_TYPED_INT_DECL( ::rn::W );
@@ -770,5 +805,10 @@ RCL_TYPED_INT_DECL( ::rn::X );
 RCL_TYPED_INT_DECL( ::rn::Y );
 RCL_TYPED_INT_DECL( ::rn::W );
 RCL_TYPED_INT_DECL( ::rn::H );
+
+CDR_TYPED_INT_DECL( ::rn::X );
+CDR_TYPED_INT_DECL( ::rn::Y );
+CDR_TYPED_INT_DECL( ::rn::W );
+CDR_TYPED_INT_DECL( ::rn::H );
 
 } // namespace rn
