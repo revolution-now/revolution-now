@@ -124,25 +124,25 @@ maybe<OldWorldDraggableObject_t> cargo_slot_to_draggable(
       auto& cargo = slot.get<CargoSlot::cargo>();
       return overload_visit(
           cargo.contents,
-          []( UnitId id ) -> OldWorldDraggableObject_t {
-            return OldWorldDraggableObject::unit{ /*id=*/id };
+          []( Cargo::unit u ) -> OldWorldDraggableObject_t {
+            return OldWorldDraggableObject::unit{ /*id=*/u.id };
           },
-          [&](
-              Commodity const& c ) -> OldWorldDraggableObject_t {
+          [&]( Cargo::commodity const& c )
+              -> OldWorldDraggableObject_t {
             return OldWorldDraggableObject::cargo_commodity{
-                /*comm=*/c,
+                /*comm=*/c.obj,
                 /*slot=*/slot_idx };
           } );
     }
   }
 }
 
-maybe<Cargo> draggable_to_cargo_object(
+maybe<Cargo_t> draggable_to_cargo_object(
     OldWorldDraggableObject_t const& draggable ) {
   switch( draggable.to_enum() ) {
     case OldWorldDraggableObject::e::unit: {
       auto& val = draggable.get<OldWorldDraggableObject::unit>();
-      return val.id;
+      return Cargo::unit{ val.id };
     }
     case OldWorldDraggableObject::e::market_commodity:
       return nothing;
@@ -150,7 +150,7 @@ maybe<Cargo> draggable_to_cargo_object(
       auto& val =
           draggable
               .get<OldWorldDraggableObject::cargo_commodity>();
-      return val.comm;
+      return Cargo::commodity{ val.comm };
     }
   }
 }
@@ -1065,18 +1065,18 @@ class ActiveCargo {
             auto& cargo = v.get<CargoSlot::cargo>();
             overload_visit(
                 cargo.contents,
-                [&]( UnitId id ) {
+                [&]( Cargo::unit u ) {
                   if( !g_drag_state ||
                       g_drag_state->object !=
                           OldWorldDraggableObject_t{
                               OldWorldDraggableObject::unit{
-                                  id } } )
-                    render_unit( tx, id, dst_coord,
+                                  u.id } } )
+                    render_unit( tx, u.id, dst_coord,
                                  /*with_icon=*/false );
                 },
-                [&]( Commodity const& c ) {
+                [&]( Cargo::commodity const& c ) {
                   render_commodity_annotated(
-                      tx, c,
+                      tx, c.obj,
                       dst_coord +
                           kCommodityInCargoHoldRenderingOffset );
                 } );
@@ -1499,7 +1499,7 @@ struct DragConnector {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( ship ) ) return false;
     return unit_from_id( ship ).cargo().fits_somewhere(
-        src.id, dst.slot._ );
+        Cargo::unit{ src.id }, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<OldWorldDraggableObject::unit>(
@@ -1515,7 +1515,7 @@ struct DragConnector {
         draggable_to_cargo_object( draggable_from_src( src ) ) );
     return overload_visit(
         cargo_object,
-        [&]( UnitId ) {
+        [&]( Cargo::unit ) {
           return unit_from_id( ship )
               .cargo()
               .fits_with_item_removed(
@@ -1524,14 +1524,14 @@ struct DragConnector {
                   /*insert_slot=*/dst.slot  //
               );
         },
-        [&]( Commodity const& c ) {
+        [&]( Cargo::commodity const& c ) {
           // If at least one quantity of the commodity can be
           // moved then we will allow (at least a partial
           // transfer) to proceed.
-          auto size_one     = c;
+          auto size_one     = c.obj;
           size_one.quantity = 1;
           return unit_from_id( ship ).cargo().fits(
-              /*cargo=*/size_one,
+              /*cargo=*/Cargo::commodity{ size_one },
               /*slot=*/dst.slot );
         } );
   }
@@ -1554,7 +1554,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        src.id );
+        Cargo::unit{ src.id } );
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
     auto dst_ship = dst.id;
@@ -1563,20 +1563,20 @@ struct DragConnector {
         draggable_to_cargo_object( draggable_from_src( src ) ) );
     return overload_visit(
         cargo_object,
-        [&]( UnitId id ) {
-          if( is_unit_onboard( id ) == dst_ship ) return false;
+        [&]( Cargo::unit u ) {
+          if( is_unit_onboard( u.id ) == dst_ship ) return false;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( id );
+              .fits_somewhere( u );
         },
-        [&]( Commodity const& c ) {
+        [&]( Cargo::commodity const& c ) {
           // If even 1 quantity can fit then we can proceed
           // with (at least) a partial transfer.
-          auto size_one     = c;
+          auto size_one     = c.obj;
           size_one.quantity = 1;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( size_one );
+              .fits_somewhere( Cargo::commodity{ size_one } );
         } );
   }
   bool DRAG_CONNECT_CASE( market, cargo ) const {
@@ -1590,7 +1590,7 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( ship ).cargo().fits_somewhere(
-        comm, dst.slot._ );
+        Cargo::commodity{ comm }, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( market, inport_ship ) const {
     auto comm = Commodity{
@@ -1601,14 +1601,15 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        comm, /*starting_slot=*/0 );
+        Cargo::commodity{ comm }, /*starting_slot=*/0 );
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( ship ) ) return false;
     return unit_from_id( ship )
         .cargo()
-        .template slot_holds_cargo_type<Commodity>( src.slot._ )
+        .template slot_holds_cargo_type<Cargo::commodity>(
+            src.slot._ )
         .has_value();
   }
   bool operator()( auto const&, auto const& ) const {
@@ -1658,13 +1659,14 @@ struct DragUserInput {
   wait<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     CHECK( is_unit_in_port( ship ) );
-    UNWRAP_CHECK( commodity_ref,
-                  unit_from_id( ship )
-                      .cargo()
-                      .template slot_holds_cargo_type<Commodity>(
-                          src.slot._ ) );
-    src.quantity =
-        co_await ask_for_quantity( commodity_ref.type, "sell" );
+    UNWRAP_CHECK(
+        commodity_ref,
+        unit_from_id( ship )
+            .cargo()
+            .template slot_holds_cargo_type<Cargo::commodity>(
+                src.slot._ ) );
+    src.quantity = co_await ask_for_quantity(
+        commodity_ref.obj.type, "sell" );
     co_return src.quantity.has_value();
   }
   wait<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
@@ -1673,13 +1675,13 @@ struct DragUserInput {
     auto maybe_commodity_ref =
         unit_from_id( ship )
             .cargo()
-            .template slot_holds_cargo_type<Commodity>(
+            .template slot_holds_cargo_type<Cargo::commodity>(
                 src.slot._ );
     if( !maybe_commodity_ref.has_value() )
       // It's a unit.
       co_return true;
     src.quantity = co_await ask_for_quantity(
-        maybe_commodity_ref->type, "move" );
+        maybe_commodity_ref->obj.type, "move" );
     co_return src.quantity.has_value();
   }
   wait<bool> operator()( auto const&, auto const& ) const {
@@ -1708,7 +1710,8 @@ struct DragPerform {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     // First try to respect the destination slot chosen by
     // the player,
-    if( unit_from_id( ship ).cargo().fits( src.id, dst.slot._ ) )
+    if( unit_from_id( ship ).cargo().fits( Cargo::unit{ src.id },
+                                           dst.slot._ ) )
       ustate_change_to_cargo_somewhere( ship, src.id,
                                         dst.slot._ );
     else
@@ -1726,13 +1729,13 @@ struct DragPerform {
         draggable_to_cargo_object( draggable_from_src( src ) ) );
     overload_visit(
         cargo_object,
-        [&]( UnitId id ) {
+        [&]( Cargo::unit u ) {
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo_somewhere( ship, id,
+          ustate_change_to_cargo_somewhere( ship, u.id,
                                             dst.slot._ );
         },
-        [&]( Commodity const& ) {
+        [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
               ship, src.slot._, ship, dst.slot._,
               /*max_quantity=*/nothing,
@@ -1769,13 +1772,13 @@ struct DragPerform {
         draggable_to_cargo_object( draggable_from_src( src ) ) );
     overload_visit(
         cargo_object,
-        [&]( UnitId id ) {
+        [&]( Cargo::unit u ) {
           CHECK( !src.quantity.has_value() );
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo_somewhere( dst.id, id );
+          ustate_change_to_cargo_somewhere( dst.id, u.id );
         },
-        [&]( Commodity const& ) {
+        [&]( Cargo::commodity const& ) {
           UNWRAP_CHECK( src_ship,
                         active_cargo_ship( entities ) );
           move_commodity_as_much_as_possible(
@@ -1826,16 +1829,17 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    UNWRAP_CHECK( commodity_ref,
-                  unit_from_id( ship )
-                      .cargo()
-                      .template slot_holds_cargo_type<Commodity>(
-                          src.slot._ ) );
+    UNWRAP_CHECK(
+        commodity_ref,
+        unit_from_id( ship )
+            .cargo()
+            .template slot_holds_cargo_type<Cargo::commodity>(
+                src.slot._ ) );
     auto quantity_wants_to_sell =
-        src.quantity.value_or( commodity_ref.quantity );
+        src.quantity.value_or( commodity_ref.obj.quantity );
     int       amount_to_sell = std::min( quantity_wants_to_sell,
-                                         commodity_ref.quantity );
-    Commodity new_comm       = commodity_ref;
+                                         commodity_ref.obj.quantity );
+    Commodity new_comm       = commodity_ref.obj;
     new_comm.quantity -= amount_to_sell;
     rm_commodity_from_cargo( ship, src.slot._ );
     if( new_comm.quantity > 0 )

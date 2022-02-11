@@ -253,10 +253,11 @@ wait<TravelHandler::e_travel_verdict>
 TravelHandler::analyze_unload() {
   std::vector<UnitId> to_offload;
   auto&               unit = unit_from_id( unit_id );
-  for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
-    auto const& cargo_unit = unit_from_id( cargo_id );
+  for( auto unit_item :
+       unit.cargo().items_of_type<Cargo::unit>() ) {
+    auto const& cargo_unit = unit_from_id( unit_item.id );
     if( !cargo_unit.mv_pts_exhausted() )
-      to_offload.push_back( cargo_id );
+      to_offload.push_back( unit_item.id );
   }
   if( !to_offload.empty() ) {
     if( colony_from_coord( move_src ) ) {
@@ -271,7 +272,7 @@ TravelHandler::analyze_unload() {
     prioritize = to_offload;
     string msg = "Would you like to make landfall?";
     if( to_offload.size() <
-        unit.cargo().items_of_type<UnitId>().size() )
+        unit.cargo().items_of_type<Cargo::unit>().size() )
       msg =
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
@@ -449,7 +450,7 @@ TravelHandler::confirm_travel_impl() {
           lg.debug( "checking ship cargo: {}",
                     ship_unit.cargo().debug_string() );
           if( auto const& cargo = ship_unit.cargo();
-              cargo.fits_somewhere( id ) ) {
+              cargo.fits_somewhere( Cargo::unit{ id } ) ) {
             prioritize  = { ship_id };
             target_unit = ship_id;
             co_return e_travel_verdict::board_ship;
@@ -506,8 +507,9 @@ wait<> TravelHandler::perform() {
       // If it's a ship then sentry all its units before it
       // moves.
       if( unit.desc().ship ) {
-        for( UnitId id : unit.cargo().items_of_type<UnitId>() ) {
-          auto& cargo_unit = unit_from_id( id );
+        for( Cargo::unit u :
+             unit.cargo().items_of_type<Cargo::unit>() ) {
+          auto& cargo_unit = unit_from_id( u.id );
           cargo_unit.sentry();
         }
       }
@@ -552,15 +554,15 @@ wait<> TravelHandler::perform() {
       // Just activate all the units on the ship that have not
       // completed their turns. Note that the ship's movement
       // points are not consumed.
-      for( auto cargo_id :
-           unit.cargo().items_of_type<UnitId>() ) {
-        auto& cargo_unit = unit_from_id( cargo_id );
+      for( auto unit_item :
+           unit.cargo().items_of_type<Cargo::unit>() ) {
+        auto& cargo_unit = unit_from_id( unit_item.id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
           auto direction = old_coord.direction_to( move_dst );
           CHECK( direction.has_value() );
           orders_t orders = orders::move{ *direction };
-          push_unit_orders( cargo_id, orders );
+          push_unit_orders( unit_item.id, orders );
         }
       }
       break;
@@ -950,7 +952,7 @@ wait<> AttackHandler::perform() {
       break;
     case e::naval: {
       auto num_units_lost =
-          loser.cargo().items_of_type<UnitId>().size();
+          loser.cargo().items_of_type<Cargo::unit>().size();
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
       string msg = fmt::format(

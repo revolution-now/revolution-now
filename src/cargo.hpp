@@ -22,6 +22,9 @@
 #include "util.hpp"
 #include "variant.hpp"
 
+// Rds
+#include "rds/cargo.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/variant.hpp"
@@ -49,16 +52,6 @@ namespace internal {
 void ustate_disown_unit( UnitId id );
 } // namespace internal
 } // namespace rn
-
-namespace rn {
-
-using Cargo = base::variant<UnitId, Commodity>;
-NOTHROW_MOVE( Cargo );
-
-} // namespace rn
-
-// Rds
-#include "rds/cargo.hpp"
 
 namespace rn {
 
@@ -116,11 +109,11 @@ class ND CargoHold {
 
   // If there is a cargo item whose first (and possibly only)
   // slot is `idx`, it will be returned.
-  maybe<Cargo const&> cargo_starting_at_slot( int idx ) const;
+  maybe<Cargo_t const&> cargo_starting_at_slot( int idx ) const;
   // If there is a cargo item that occupies the given slot either
   // as its first slot or subsequent slot, it will be returned,
   // alon with its first slot.
-  maybe<std::pair<Cargo const&, int>> cargo_covering_slot(
+  maybe<std::pair<Cargo_t const&, int>> cargo_covering_slot(
       int idx ) const;
 
   // If unit is in cargo, returns its slot index.
@@ -144,8 +137,9 @@ class ND CargoHold {
   // Checks if the given cargo could be added at the given slot
   // index. If UnitId, will not check for unit id already in
   // cargo.
-  ND bool fits( Cargo const& cargo, int slot ) const;
-  ND bool fits( Cargo const& cargo, CargoSlotIndex slot ) const;
+  ND bool fits( Cargo_t const& cargo, int slot ) const;
+  ND bool fits( Cargo_t const& cargo,
+                CargoSlotIndex slot ) const;
 
   // Precondition: there must be a cargo item whose first slot is
   // the given slot; if not, then an error will be thrown. This
@@ -154,12 +148,12 @@ class ND CargoHold {
   // removed. Will not throw an error if the cargo represents a
   // unit that is already in the cargo.
   ND bool fits_with_item_removed(
-      Cargo const& cargo, CargoSlotIndex remove_slot,
+      Cargo_t const& cargo, CargoSlotIndex remove_slot,
       CargoSlotIndex insert_slot ) const;
 
   // Same as above except it will try the entire cargo.
   ND bool fits_somewhere_with_item_removed(
-      Cargo const& cargo, int remove_slot,
+      Cargo_t const& cargo, int remove_slot,
       int starting_slot = 0 ) const;
 
   // Will search through the cargo slots, starting at the speci-
@@ -170,8 +164,8 @@ class ND CargoHold {
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool fits_somewhere( Cargo const& cargo,
-                          int          starting_slot = 0 ) const;
+  ND bool fits_somewhere( Cargo_t const& cargo,
+                          int starting_slot = 0 ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
   // pying multiple slots further to the left and will consoli-
@@ -224,8 +218,8 @@ class ND CargoHold {
   // If an attempt is made to add a unit that is already in the
   // cargo then an exception will be thrown, since this likely
   // reflects a logic error on the part of the caller.
-  ND bool try_add_somewhere( Cargo const& cargo,
-                             int          starting_slot = 0 );
+  ND bool try_add_somewhere( Cargo_t const& cargo,
+                             int            starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
   // if there was enough space at the given slot to add the
@@ -234,7 +228,7 @@ class ND CargoHold {
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool try_add( Cargo const& cargo, int slot );
+  ND bool try_add( Cargo_t const& cargo, int slot );
 
   // There must be a cargo item in that slot, i.e., it cannot be
   // `overflow` or `empty`. Otherwise an error will be thrown.

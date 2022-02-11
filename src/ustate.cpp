@@ -225,14 +225,14 @@ void destroy_unit( UnitId id ) {
   // list of units to destroy first because we don't want to
   // destroy a cargo unit while iterating over the cargo.
   vector<UnitId> cargo_units_to_destroy;
-  for( auto const& cargo_id :
-       unit.cargo().items_of_type<UnitId>() ) {
+  for( auto const& cargo_unit :
+       unit.cargo().items_of_type<Cargo::unit>() ) {
     lg.debug(
         "{} being destroyed as a consequence of {} being "
         "destroyed",
-        debug_string( unit_from_id( cargo_id ) ),
+        debug_string( unit_from_id( cargo_unit.id ) ),
         debug_string( unit_from_id( id ) ) );
-    cargo_units_to_destroy.push_back( cargo_id );
+    cargo_units_to_destroy.push_back( cargo_unit.id );
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
   internal::ustate_disown_unit( id );
@@ -280,8 +280,8 @@ vector<UnitId> units_from_coord_recursive( Coord coord ) {
   for( auto id : units_from_coord( coord ) ) {
     res.push_back( id );
     auto held_units =
-        unit_from_id( id ).cargo().items_of_type<UnitId>();
-    for( auto held_id : held_units ) res.push_back( held_id );
+        unit_from_id( id ).cargo().items_of_type<Cargo::unit>();
+    for( auto held : held_units ) res.push_back( held.id );
   }
   return res;
 }
@@ -496,8 +496,8 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
   // unit (i.e., one occupying multiple slots) to another slot in
   // the same cargo where it will not fit unless it is first re-
   // moved from its current slot.
-  CHECK( cargo_hold.fits( held, slot ) );
-  CHECK( cargo_hold.try_add( Cargo{ held }, slot ) );
+  CHECK( cargo_hold.fits( Cargo::unit{ held }, slot ) );
+  CHECK( cargo_hold.try_add( Cargo::unit{ held }, slot ) );
   unit_from_id( held ).sentry();
   // Set new ownership
   SG().states[held] = UnitState::cargo{ /*holder=*/new_holder };
@@ -511,7 +511,7 @@ void ustate_change_to_cargo_somewhere( UnitId new_holder,
   for( int i = starting_slot;
        i < starting_slot + cargo.slots_total(); ++i ) {
     int modded = i % cargo.slots_total();
-    if( cargo.fits( held, modded ) ) {
+    if( cargo.fits( Cargo::unit{ held }, modded ) ) {
       ustate_change_to_cargo( new_holder, held, modded );
       return;
     }

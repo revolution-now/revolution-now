@@ -76,7 +76,11 @@ void Unit::new_turn() {
 
 maybe<vector<UnitId>> Unit::units_in_cargo() const {
   if( desc().cargo_slots == 0 ) return nothing;
-  return cargo_.items_of_type<UnitId>();
+  vector<UnitId> res;
+  for( Cargo::unit const& u :
+       cargo_.items_of_type<Cargo::unit>() )
+    res.push_back( u.id );
+  return res;
 }
 
 bool Unit::has_orders() const {
@@ -98,8 +102,8 @@ void Unit::fortify() {
 void Unit::change_nation( e_nation nation ) {
   // This could happen if we capture a colony containing a ship
   // that itself has units in its cargo.
-  for( UnitId id : cargo_.items_of_type<UnitId>() )
-    unit_from_id( id ).change_nation( nation );
+  for( Cargo::unit u : cargo_.items_of_type<Cargo::unit>() )
+    unit_from_id( u.id ).change_nation( nation );
 
   nation_ = nation;
 }

@@ -9,11 +9,26 @@
 #
 # ===============================================================
 include [
+  # Revolution Now
+  src/commodity.hpp
+  src/id.hpp
+
   # Flatbuffers
   fb/cargo_generated.h
 ]
 
 namespace rn {
+
+sumtype Cargo {
+  unit {
+    id: UnitId
+  }
+  commodity {
+    obj: Commodity
+  }
+
+  _features [equality, serializable]
+}
 
 # Here is an example of the way the cargo layout works:
 #
@@ -36,7 +51,7 @@ sumtype CargoSlot {
   empty {}
   overflow {}
   cargo {
-    contents: Cargo
+    contents: Cargo_t
   }
 
   _features [equality, serializable]

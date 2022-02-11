@@ -10,17 +10,24 @@
 // **************************************************************
 include "commodity.fbs";
 
-namespace fb.CargoSlot;
+namespace fb.Cargo;
 
-table Cargo {
-  active_index : int;
-  unit_id      : int;
-  commodity    : Commodity;
+table unit      { id:  int; }
+table commodity { obj: Commodity; }
+
+namespace fb;
+
+// This is a union.
+table Cargo_t {
+  unit      : Cargo.unit;
+  commodity : Cargo.commodity;
 }
+
+namespace fb.CargoSlot;
 
 table empty    {}
 table overflow {}
-table cargo    { contents : Cargo; }
+table cargo    { contents : Cargo_t; }
 
 namespace fb;
 
