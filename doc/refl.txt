@@ -8,29 +8,21 @@ Rollout Process:
   2.  Find structs/classes that have to_str or manual reflection
       traits and move them into Rds, creating reflected wrappers
       as needed.
-  3.  Ensure that all types that support rcl::convert_to also
-      support Cdr, either via reflection or manually. Wherever
-      there is an rcl::convert_to, put a static_assert inside its
-      body to make sure that it supports FromCanonical, that
-      should guarantee it for all relevant types. Where possible,
-      add missing Cdr support to a type by manually adding re-
-      flection (if it can't be moved to Rds) as opposed to manu-
-      ally implementing FromCanonical.
-  4.  Gut the bodies of all rcl::convert_to methods and forward
+  3.  Gut the bodies of all rcl::convert_to methods and forward
       it to from_canonical.
-  5.  In config-files, bypass the rcl::convert_to and call the
+  4.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
-  6.  Remove the rcl::convert_to extension point.
-  7.  Ensure that all types that support flatbuffers also support
+  5.  Remove the rcl::convert_to extension point.
+  6.  Ensure that all types that support flatbuffers also support
       Cdr, either via reflection, or manually.
-  8.  Remove all traces of flatbuffers, but leaving per-module
+  7.  Remove all traces of flatbuffers, but leaving per-module
       save-game data structures separate for the time being.
-  9.  Consolidate game state into one large data structure, in-
+  8.  Consolidate game state into one large data structure, in-
       cluding a semver number.
-  10. Reimplement game saving by using to_canonical game state
+  9.  Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  11. Add routine for converting from a Lua value to Cdr, and
+  10. Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive. This may be a bit tricky because not all lua
       values can be converted to Cdr, e.g. lua functions. But
@@ -39,20 +31,20 @@ Rollout Process:
       avoid making {to,from}_canonical overloads for lua types,
       and instead just make a separate API for converting them in
       the rn library.
-  12. Add Lua module for generating a game state in Lua.
-  13. Replace the config *.inl files with an Rds solution con-
+  11. Add Lua module for generating a game state in Lua.
+  12. Replace the config *.inl files with an Rds solution con-
       sisting of a reflected struct defining the config structure
       for each module. These Rds files can go in the config
       folder next to the rcl files.
-  14. Make sure that the Rds library and generated files do not
+  13. Make sure that the Rds library and generated files do not
       have any dependencies on the rn library. Then move the
       (non-config) rds files into the src/ folder next to their
       associated source files, and add a cmake function to build
       Rds files in any library. We will need to put some in
       lower-level libraries, such as the rendering library.
-  15. Consider replacing rcl data model with Cdr; figure out how
+  14. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  16. Consider how to handle forward/backward compatibility in a
+  15. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -108,3 +100,11 @@ Rollout Process:
       to strings.
   25. Remove to_str from Rds files. May have to do this together
       with the previous step.
+  26. Ensure that all types that support rcl::convert_to also
+      support Cdr, either via reflection or manually. Wherever
+      there is an rcl::convert_to, put a static_assert inside its
+      body to make sure that it supports FromCanonical, that
+      should guarantee it for all relevant types. Where possible,
+      add missing Cdr support to a type by manually adding re-
+      flection (if it can't be moved to Rds) as opposed to manu-
+      ally implementing FromCanonical.

@@ -87,9 +87,4 @@ double DissipativeVelocity::advance(
 
 void DissipativeVelocity::hit_wall() { velocity_ = 0; }
 
-valid_deserial_t DissipativeVelocity::check_invariants_safe()
-    const {
-  return valid;
-}
-
 } // namespace rn
