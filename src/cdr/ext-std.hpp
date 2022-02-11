@@ -19,6 +19,7 @@
 
 // C++ standard library
 #include <concepts>
+#include <queue>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -131,6 +132,32 @@ result<std::vector<T>> from_canonical( converter&   conv,
     res.push_back( std::move( val ) );
   }
   return res;
+}
+
+/****************************************************************
+** std::queue
+*****************************************************************/
+template<ToCanonical T>
+value to_canonical( converter& conv, std::queue<T> const& o,
+                    tag_t<std::queue<T>> ) {
+  std::vector<T> data;
+  data.reserve( size_t( o.size() ) );
+  auto m_copy = o;
+  while( !m_copy.empty() ) {
+    data.emplace_back( m_copy.front() );
+    m_copy.pop();
+  }
+  return conv.to( data );
+}
+
+template<FromCanonical T>
+result<std::queue<T>> from_canonical( converter&   conv,
+                                      value const& v,
+                                      tag_t<std::queue<T>> ) {
+  UNWRAP_RETURN( data, conv.from<std::vector<T>>( v ) );
+  std::queue<T> q;
+  for( auto& e : data ) q.emplace( std::move( e ) );
+  return std::move( q );
 }
 
 /****************************************************************

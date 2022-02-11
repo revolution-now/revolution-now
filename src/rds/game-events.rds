@@ -1,18 +1,19 @@
 # ===============================================================
-# turn-impl.rds
+# game-events.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2021-05-11.
+# Created by dsicilia on 2022-02-11.
 #
-# Description: RDS definitions for the turn (impl) module.
+# Description: RDS definitions for save-game events data.
 #
 # ===============================================================
 namespace rn {
+namespace state {
 
-enum e_revolution_confirmation [
-  no
-  revolution
-]
+struct Events {
+  independence_declared: bool
+}
 
+} # namespace state
 } # namespace rn

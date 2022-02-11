@@ -9,8 +9,17 @@
 #
 # ===============================================================
 include [
+  # Revolution Now
+  src/coord.hpp
+  src/id.hpp
+  src/unit.hpp
+
   # Flatbuffers
+  fb/sg-unit_generated.h
   fb/unit_generated.h
+
+  # C++ standard library
+  <unordered_map>
 ]
 
 namespace rn {
@@ -45,5 +54,33 @@ sumtype UnitOldWorldViewState {
     equality
   ]
 }
+
+sumtype UnitState {
+  free {}
+  world {
+    coord: Coord
+  }
+  cargo {
+    holder: UnitId
+  }
+  old_world {
+    st: UnitOldWorldViewState_t
+  }
+  colony {
+    id: ColonyId
+  }
+
+  _features [serializable, equality]
+}
+
+namespace state {
+
+struct Units {
+  next_unit_id:  int
+  units:        'std::unordered_map<UnitId, Unit>'
+  states:       'std::unordered_map<UnitId, UnitState_t>'
+}
+
+} # namespace state
 
 } # namespace rn

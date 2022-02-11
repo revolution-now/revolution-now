@@ -9,7 +9,11 @@
 #
 # ===============================================================
 include [
-  id.hpp
+  # Revolution Now
+  src/id.hpp
+  src/viewport.hpp
+
+  # Rds
   rds/orders.hpp
 ]
 
@@ -44,5 +48,13 @@ sumtype LandViewPlayerInput {
     units:  'std::vector<UnitId>'
   }
 }
+
+namespace state {
+
+struct LandView {
+  viewport: SmoothViewport
+}
+
+} # namespace state
 
 } # namespace rn

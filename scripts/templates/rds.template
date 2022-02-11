@@ -10,7 +10,7 @@
 # ===============================================================
 include [
   # Revolution Now
-  some-header.hpp
+  src/some-header.hpp
 
   # Rds
   rds/orders.hpp
@@ -19,7 +19,7 @@ include [
   <string>
 ]
 
-namespace.rn {
+namespace rn {
 
 sumtype.MyVariant {
   first {
@@ -53,5 +53,10 @@ enum.e_menu [
   test
   value
 ]
+
+struct MyStruct {
+  x: double
+  y: int
+}
 
 } # namespace rn

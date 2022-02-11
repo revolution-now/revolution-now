@@ -1,0 +1,24 @@
+# ===============================================================
+# old-world-view.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-11.
+#
+# Description: RDS definitions for the old-world-view module.
+#
+# ===============================================================
+include [
+  # base
+  base/maybe.hpp
+]
+
+namespace rn {
+namespace state {
+
+struct OldWorldView {
+  selected_unit: 'base::maybe<int>'
+}
+
+} # namespace state
+} # namespace rn

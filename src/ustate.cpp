@@ -34,9 +34,6 @@
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 
-// Rds
-#include "rds/ustate-impl.hpp"
-
 // Flatbuffers
 #include "fb/sg-unit_generated.h"
 
