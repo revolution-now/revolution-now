@@ -18,24 +18,15 @@
 #include "unit.hpp"
 #include "views.hpp"
 
+// Rds
+#include "rds/game-ui-views.hpp"
+
 // C++ standard library
+#include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace rn::ui {
-
-/****************************************************************
-** UnitActivationInfo
-*****************************************************************/
-// Holds the state of each unit in the window as the player is
-// selecting them and cycling them through the states.
-struct UnitActivationInfo {
-  e_unit_orders original_orders;
-  e_unit_orders current_orders;
-  bool          is_activated;
-
-  friend void to_str( UnitActivationInfo const& o,
-                      std::string& out, base::ADL_t );
-};
 
 /****************************************************************
 ** UnitActivationView
