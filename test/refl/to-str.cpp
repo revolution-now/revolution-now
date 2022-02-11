@@ -77,10 +77,10 @@ TEST_CASE( "[refl/to-str] struct" ) {
       .zzz_map = { { "hello", "1" }, { "world", "2" } },
   };
   string s = base::to_str( ms );
-  REQUIRE( ( s == "MyStruct{xxx=5,yyy=2.3,zzz_map=[(hello,1),("
-                  "world,2)]}" ||
-             s == "MyStruct{xxx=5,yyy=2.3,zzz_map=[(world,2),("
-                  "hello,1)]}" ) );
+  REQUIRE( (
+      s == "MyStruct{xxx=5,yyy=2.3,zzz_map={hello=1,world=2}}" ||
+      s == "MyStruct{xxx=5,yyy=2.3,zzz_map={world=2,hello=1}"
+           "}" ) );
 }
 
 TEST_CASE( "[refl/to-str] template struct" ) {
@@ -95,11 +95,11 @@ TEST_CASE( "[refl/to-str] template struct" ) {
   // the template arguments whose name will depend on standard
   // library used.
   REQUIRE( s.starts_with( "test::MyTemplateStruct<int,std::" ) );
-  REQUIRE( (
-      s.ends_with(
-          ">{xxx=5,yyy=2.3,zzz_map=[(hello,1),(world,2)]}" ) ||
-      s.ends_with(
-          ">{xxx=5,yyy=2.3,zzz_map=[(world,2),(hello,1)]}" ) ) );
+  REQUIRE(
+      ( s.ends_with(
+            ">{xxx=5,yyy=2.3,zzz_map={hello=1,world=2}}" ) ||
+        s.ends_with(
+            ">{xxx=5,yyy=2.3,zzz_map={world=2,hello=1}}" ) ) );
 }
 
 TEST_CASE( "[refl/to-str] wrapper" ) {
@@ -111,9 +111,9 @@ TEST_CASE( "[refl/to-str] wrapper" ) {
   } );
   string          s = base::to_str( msw );
   REQUIRE( ( s == "other::MyStructWrapper{xxx=5,yyy=2.3,zzz_map="
-                  "[(hello,1),(world,2)]}" ||
+                  "{hello=1,world=2}}" ||
              s == "other::MyStructWrapper{xxx=5,yyy=2.3,zzz_map="
-                  "[(world,2),(hello,1)]}" ) );
+                  "{world=2,hello=1}}" ) );
 }
 
 } // namespace

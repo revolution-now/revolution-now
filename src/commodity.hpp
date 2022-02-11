@@ -26,7 +26,11 @@
 #include "rds/commodity.hpp"
 
 // refl
+#include "refl/ext.hpp"
 #include "refl/query-enum.hpp"
+
+// base
+#include "base/valid.hpp"
 
 // Flatbuffers
 #include "fb/commodity_generated.h"
@@ -79,6 +83,8 @@ struct Commodity {
   Commodity with_quantity( int new_quantity ) const;
 
   valid_deserial_t check_invariants_safe() const;
+
+  base::valid_or<std::string> validate() const;
 
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,
@@ -144,9 +150,37 @@ void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
 
+} // namespace rn
+
+/****************************************************************
+** Reflection
+*****************************************************************/
+namespace refl {
+
+// Reflection info for struct Commodity.
+template<>
+struct traits<rn::Commodity> {
+  using type = rn::Commodity;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Commodity";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "type", &rn::Commodity::type },
+      refl::StructField{ "quantity", &rn::Commodity::quantity },
+  };
+};
+
+} // namespace refl
+
 /****************************************************************
 ** Lua
 *****************************************************************/
+namespace rn {
+
 LUA_ENUM_DECL( commodity );
 
 } // namespace rn

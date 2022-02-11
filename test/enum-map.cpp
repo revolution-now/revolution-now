@@ -20,6 +20,12 @@
 // Rcl
 #include "rcl/ext-std.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -136,25 +142,6 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl e_empty" ) {
                  v ) == expected ) );
 }
 
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl non-exhaustive" ) {
-  using KV     = rcl::table::value_type;
-  rcl::table t = rcl::make_table( KV{ "green", "two" },
-                                  KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  auto res =
-      rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v );
-  REQUIRE( res.has_error() );
-  REQUIRE_THAT(
-      res.error().what,
-      Matches(
-          "table must have precisely 3 field\\(s\\) for "
-          "conversion to ExhaustiveEnumMap.rn::e_color.*" ) );
-}
-
 TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl bad enum" ) {
   using KV = rcl::table::value_type;
   rcl::table t =
@@ -167,8 +154,8 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl bad enum" ) {
   // Test.
   REQUIRE(
       rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v ) ==
-      rcl::error( "failed to parse string `greenx' into valid "
-                  "e_color enum value." ) );
+      rcl::error(
+          "unrecognized value for enum e_color: \"greenx\"" ) );
 }
 
 } // namespace

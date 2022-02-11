@@ -121,8 +121,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::expert_cotton_planter );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( desc.can_attack() == false );
-    REQUIRE( desc.is_military_unit() == false );
+    REQUIRE( can_attack( desc ) == false );
+    REQUIRE( is_military_unit( desc ) == false );
   }
   SECTION( "petty_criminal" ) {
     UnitTypeAttributes const& desc =
@@ -166,8 +166,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::petty_criminal );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( desc.can_attack() == false );
-    REQUIRE( desc.is_military_unit() == false );
+    REQUIRE( can_attack( desc ) == false );
+    REQUIRE( is_military_unit( desc ) == false );
   }
   SECTION( "free_colonist" ) {
     UnitTypeAttributes const& desc =
@@ -210,8 +210,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::free_colonist );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( desc.can_attack() == false );
-    REQUIRE( desc.is_military_unit() == false );
+    REQUIRE( can_attack( desc ) == false );
+    REQUIRE( is_military_unit( desc ) == false );
   }
   SECTION( "veteran_dragoon" ) {
     UnitTypeAttributes const& desc =
@@ -247,8 +247,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::veteran_dragoon );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( desc.can_attack() == true );
-    REQUIRE( desc.is_military_unit() == true );
+    REQUIRE( can_attack( desc ) == true );
+    REQUIRE( is_military_unit( desc ) == true );
   }
   SECTION( "scout" ) {
     UnitTypeAttributes const& desc =
@@ -281,8 +281,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::scout );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( desc.can_attack() == true );
-    REQUIRE( desc.is_military_unit() == true );
+    REQUIRE( can_attack( desc ) == true );
+    REQUIRE( is_military_unit( desc ) == true );
   }
   SECTION( "pioneer" ) {
     UnitTypeAttributes const& desc =
@@ -316,8 +316,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::pioneer );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( desc.can_attack() == false );
-    REQUIRE( desc.is_military_unit() == false );
+    REQUIRE( can_attack( desc ) == false );
+    REQUIRE( is_military_unit( desc ) == false );
   }
   SECTION( "large_treasure" ) {
     UnitTypeAttributes const& desc =
@@ -349,8 +349,8 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::large_treasure );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( desc.can_attack() == false );
-    REQUIRE( desc.is_military_unit() == false );
+    REQUIRE( can_attack( desc ) == false );
+    REQUIRE( is_military_unit( desc ) == false );
   }
 }
 

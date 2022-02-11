@@ -765,7 +765,7 @@ AttackHandler::confirm_attack_impl() {
     erase_if( units_at_dst, L( unit_from_id( _ ).desc().ship ) );
     erase_if(
         units_at_dst,
-        L( !unit_from_id( _ ).desc().is_military_unit() ) );
+        L( !is_military_unit( unit_from_id( _ ).desc() ) ) );
   }
 
   // If military units are exhausted then attack the colony.
@@ -805,8 +805,8 @@ AttackHandler::confirm_attack_impl() {
     if( unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = unit.desc().can_attack() ? bh_t::attack
-                                    : bh_t::no_attack;
+      bh = can_attack( unit.desc() ) ? bh_t::attack
+                                     : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;
@@ -829,7 +829,7 @@ AttackHandler::confirm_attack_impl() {
     // Possible results: never, attack, trade.
     if( unit.desc().ship )
       bh = bh_t::trade;
-    else if( unit.desc().is_military_unit() )
+    else if( is_military_unit( unit.desc() ) )
       bh = bh_t::attack;
     else
       bh = bh_t::never;
@@ -838,9 +838,8 @@ AttackHandler::confirm_attack_impl() {
         co_return e_attack_verdict::unit_cannot_attack;
       case bh_t::attack: {
         e_attack_verdict which =
-            unit_from_id( highest_defense_unit )
-                    .desc()
-                    .is_military_unit()
+            is_military_unit(
+                unit_from_id( highest_defense_unit ).desc() )
                 ? e_attack_verdict::colony_defended
                 : e_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit;
@@ -860,8 +859,8 @@ AttackHandler::confirm_attack_impl() {
     if( !unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = unit.desc().can_attack() ? bh_t::attack
-                                    : bh_t::no_attack;
+      bh = can_attack( unit.desc() ) ? bh_t::attack
+                                     : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;

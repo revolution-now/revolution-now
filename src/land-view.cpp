@@ -34,6 +34,7 @@
 #include "sound.hpp"
 #include "terrain.hpp"
 #include "text.hpp"
+#include "tiles.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"

@@ -14,12 +14,9 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "coord.hpp"
 #include "enum-map.hpp"
 #include "fb.hpp"
 #include "lua-enum.hpp"
-#include "mv-points.hpp"
-#include "tiles.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -53,11 +50,6 @@ LUA_ENUM_DECL( unit_human );
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
 
-struct UnitTypeModifierTraits {
-  bool                  player_can_grant;
-  ModifierAssociation_t association;
-};
-
 // This is for deserializing from Rcl config files.
 rcl::convert_err<UnitTypeModifierTraits> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeModifierTraits> );
@@ -79,15 +71,6 @@ maybe<e_unit_inventory> commodity_to_inventory(
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type );
 
-// TODO: Move this to Rds once we have reflected structures.
-struct UnitInventoryTraits {
-  maybe<e_commodity> commodity;
-  int                min_quantity     = 0;
-  int                max_quantity     = 0;
-  int                multiple         = 0;
-  int                default_quantity = 0;
-};
-
 rcl::convert_err<UnitInventoryTraits> convert_to(
     rcl::value const& v, rcl::tag<UnitInventoryTraits> );
 
@@ -96,97 +79,9 @@ rcl::convert_valid rcl_validate( UnitInventoryTraits const& o );
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
-// Describes a unit type without regard
-struct UnitTypeAttributes {
-  std::string name{};
+bool can_attack( UnitTypeAttributes const& attr );
 
-  // Rendering
-  e_tile      tile{};
-  bool        nat_icon_front{};
-  e_direction nat_icon_position{};
-
-  // Movement
-  bool     ship{};
-  int      visibility{};
-  MvPoints movement_points{};
-
-  // Combat
-  int attack_points{};
-  int defense_points{};
-
-  // Cargo
-  int cargo_slots{};
-  // Slots occupied by this unit.
-  maybe<int> cargo_slots_occupies{};
-
-  UnitDeathAction_t on_death{};
-
-  // Describes if/how this unit is a human. This is important to
-  // know so that we can e.g. ensure that only human units can
-  // found colonies. Derived types must always have "from_base"
-  // for this field, meaning that the human status will be in-
-  // ferred from the base type, which it kind of has to be be-
-  // cause in theory there could be multiple pathways to derive a
-  // single unit and so there (again, theoretically) wouldn't be
-  // a well-defined value for this field for a derived type. For
-  // a base type, it can be either "yes" or "no".
-  e_unit_human human{};
-
-  // If this is a derived unit type then it must specify a canon-
-  // ical base type that will be used to construct it when none
-  // is specified. In some cases there is only one allowed base
-  // type (e.g. a veteran dragoon must have a veteran colonist as
-  // its base type) in which case it must hold that value.
-  maybe<e_unit_type> canonical_base{};
-
-  // If this unit type has an expertise. This is only for some
-  // base types.
-  maybe<e_unit_activity> expertise{};
-
-  // Describes how this unit (can be either base or derived) han-
-  // dles the clearing of its specialty. If it is a base type
-  // then this can be either null (cannot clear) or a unit type.
-  // For derived types, this can be either null (meaning consult
-  // the base type) or a unit type. See the `cleared_expertise`
-  // function below for more info on the precise logic used.
-  maybe<e_unit_type> cleared_expertise{};
-
-  // Determines how the unit gets promoted or how the unit influ-
-  // ences promotion of a base type. See sumtype comments to ex-
-  // planation of the meaning of the variant alternatives.
-  maybe<UnitPromotion_t> promotion{};
-
-  // Tells us how to convert a base unit type into another in re-
-  // sponse to the gain of some modifiers, e.g. when a
-  // free_colonist is given horses, what unit type does it be-
-  // come?  Only base unit types can have this.
-  std::unordered_map<e_unit_type,
-                     std::unordered_set<e_unit_type_modifier>>
-      modifiers{};
-
-  // This gives a list of all of the inventory types that the
-  // unit is required to have. Moreover, the unit cannot hold any
-  // inventory types that are not in this list. For consistency,
-  // if a certain inventory type has a modifier association then:
-  // 1) no base type can have that inventory type, and 2) derived
-  // types that have that inventory type must have the associated
-  // modifier along all possible paths to the derived unit (from
-  // all relevant base types).
-  std::unordered_set<e_unit_inventory> inventory_types{};
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Derived fields.
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  e_unit_type type{};
-
-  // Can this unit type be obtained from a base type
-  // plus some modifiers?
-  bool is_derived{};
-
-  bool can_attack() const { return attack_points > 0; }
-  bool is_military_unit() const { return can_attack(); }
-};
-NOTHROW_MOVE( UnitTypeAttributes );
+bool is_military_unit( UnitTypeAttributes const& attr );
 
 rcl::convert_err<UnitTypeAttributes> convert_to(
     rcl::value const& v, rcl::tag<UnitTypeAttributes> );
@@ -200,12 +95,6 @@ LUA_USERDATA_TRAITS( ::rn::UnitTypeAttributes, owned_by_cpp ){};
 }
 
 namespace rn {
-
-/****************************************************************
-** UnitAttributesMap
-*****************************************************************/
-using UnitAttributesMap =
-    ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>;
 
 /****************************************************************
 ** UnitType
@@ -332,20 +221,6 @@ namespace rn {
 /****************************************************************
 ** UnitCompositionConfig
 *****************************************************************/
-using UnitTypeModifierTraitsMap =
-    ExhaustiveEnumMap<e_unit_type_modifier,
-                      UnitTypeModifierTraits>;
-
-using UnitInventoryTraitsMap =
-    ExhaustiveEnumMap<e_unit_inventory, UnitInventoryTraits>;
-
-// The constituents of this struct need to be validated together.
-struct UnitCompositionConfig {
-  UnitInventoryTraitsMap    inventory_traits;
-  UnitTypeModifierTraitsMap modifier_traits;
-  UnitAttributesMap         unit_types;
-};
-
 rcl::convert_err<UnitCompositionConfig> convert_to(
     rcl::value const& v, rcl::tag<UnitCompositionConfig> );
 

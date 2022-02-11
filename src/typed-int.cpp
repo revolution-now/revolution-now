@@ -14,6 +14,9 @@
 // luapp
 #include "luapp/types.hpp"
 
+// Cdr
+#include "cdr/ext-builtin.hpp"
+
 using namespace std;
 
 namespace rn {

@@ -65,26 +65,26 @@ void to_str( std::chrono::time_point<Ts...> const& o,
 template<Show K, Show V>
 void to_str( std::unordered_map<K, V> const& o, std::string& out,
              ADL_t ) {
-  out += "[";
+  out += "{";
   for( auto const& [k, v] : o )
-    out += fmt::format( "({},{}),", k, v );
+    out += fmt::format( "{}={},", k, v );
   if( !o.empty() )
     // Remove trailing comma.
-    out.resize( out.size() - 1 );
-  out += "]";
+    out.pop_back();
+  out += "}";
 };
 
 // {fmt} formatter for formatting map whose contained types are
 // formattable.
 template<Show K, Show V>
 void to_str( std::map<K, V> const& o, std::string& out, ADL_t ) {
-  out += "[";
+  out += "{";
   for( auto const& [k, v] : o )
-    out += fmt::format( "({},{}),", k, v );
+    out += fmt::format( "{}={},", k, v );
   if( !o.empty() )
     // Remove trailing comma.
-    out.resize( out.size() - 1 );
-  out += "]";
+    out.pop_back();
+  out += "}";
 };
 
 // {fmt} formatter for formatting unordered_sets whose contained

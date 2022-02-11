@@ -19,6 +19,9 @@
 // Rcl
 #include "rcl/ext.hpp"
 
+// Cdr
+#include "cdr/ext.hpp"
+
 // luapp
 #include "luapp/ext.hpp"
 
@@ -132,6 +135,14 @@ class ND MovementPoints {
   // This is for deserializing from Rcl config files.
   friend rcl::convert_err<MovementPoints> convert_to(
       rcl::value const& v, rcl::tag<MovementPoints> );
+
+  friend cdr::value to_canonical( cdr::converter&       conv,
+                                  MovementPoints const& o,
+                                  cdr::tag_t<MovementPoints> );
+
+  friend cdr::result<MovementPoints> from_canonical(
+      cdr::converter& conv, cdr::value const& v,
+      cdr::tag_t<MovementPoints> );
 
  private:
   // atoms can be > 2

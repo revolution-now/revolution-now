@@ -19,6 +19,10 @@
 #include "luapp/metatable.hpp"
 #include "luapp/state.hpp"
 
+// Cdr
+#include "cdr/converter.hpp"
+#include "cdr/ext-builtin.hpp"
+
 namespace rn {
 
 namespace {} // namespace
@@ -85,12 +89,24 @@ void lua_push( lua::cthread L, MovementPoints mv_pts ) {
 *****************************************************************/
 rcl::convert_err<MovementPoints> convert_to(
     rcl::value const& v, rcl::tag<MovementPoints> ) {
-  base::maybe<int const&> i = v.get_if<int>();
-  if( !i.has_value() )
-    return rcl::error( fmt::format(
-        "cannot convert value of type {} to MovementPoints.",
-        name_of( type_of( v ) ) ) );
-  return MovementPoints( *i );
+  // TODO(migration): remove
+  return rcl::via_cdr<MovementPoints>( v );
+}
+
+/****************************************************************
+** Cdr
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&       conv,
+                         MovementPoints const& o,
+                         cdr::tag_t<MovementPoints> ) {
+  return conv.to( o.points_atoms );
+}
+
+cdr::result<MovementPoints> from_canonical(
+    cdr::converter& conv, cdr::value const& v,
+    cdr::tag_t<MovementPoints> ) {
+  UNWRAP_RETURN( base_res, conv.from<int>( v ) );
+  return MovementPoints( base_res );
 }
 
 } // namespace rn

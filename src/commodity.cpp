@@ -26,6 +26,12 @@
 // Rcl
 #include "rcl/ext-builtin.hpp"
 
+// migration
+#include "cdr/ext-base.hpp"    // TODO(migration): remove
+#include "cdr/ext-builtin.hpp" // TODO(migration): remove
+#include "cdr/ext-std.hpp"     // TODO(migration): remove
+#include "refl/cdr.hpp"        // TODO(migration): remove
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -130,29 +136,19 @@ Commodity Commodity::with_quantity( int new_quantity ) const {
 
 rcl::convert_err<Commodity> convert_to( rcl::value const& v,
                                         rcl::tag<Commodity> ) {
-  constexpr string_view kTypeName          = "Commodity";
-  constexpr int         kNumFieldsExpected = 2;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  RCL_CHECK( tbl.size() == kNumFieldsExpected,
-             "table must have precisely {} field(s) for "
-             "conversion to {}.",
-             kNumFieldsExpected, kTypeName );
-  Commodity res;
-  RCL_CONVERT_FIELD( type );
-  RCL_CONVERT_FIELD( quantity );
-  return res;
+  // TODO(migration): remove
+  return rcl::via_cdr<Commodity>( v );
+}
+
+base::valid_or<string> Commodity::validate() const {
+  REFL_VALIDATE( quantity >= 0 );
+  return base::valid;
 }
 
 rcl::convert_valid rcl_validate( Commodity const& o ) {
-  RCL_CHECK( o.quantity >= 0 );
-  return base::valid;
+  if( auto vld = o.validate(); !vld )
+    return rcl::error( vld.error() );
+  return valid;
 }
 
 void to_str( Commodity const& o, string& out, base::ADL_t ) {

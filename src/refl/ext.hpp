@@ -11,7 +11,9 @@
 #pragma once
 
 // base
+#include "base/fmt.hpp"
 #include "base/meta.hpp"
+#include "base/source-loc.hpp"
 #include "base/valid.hpp"
 
 // C++ standard library
@@ -104,6 +106,16 @@ concept ReflectedStruct = Reflected<T> && requires {
   requires HasTupleSize<
       std::remove_cvref_t<decltype( traits<T>::fields )>>;
 };
+
+#define REFL_VALIDATE( a, ... )                     \
+  {                                                 \
+    if( !( a ) ) {                                  \
+      auto loc = ::base::SourceLoc::current();      \
+      return base::invalid( fmt::format(            \
+          "{}:{}: {}", loc.file_name(), loc.line(), \
+          fmt::format( "" __VA_ARGS__ ) ) );        \
+    }                                               \
+  }
 
 // This is specifically for structs that are reflected so that
 // they can be validated after construction, since often they

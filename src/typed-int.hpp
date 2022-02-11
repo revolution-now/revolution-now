@@ -784,13 +784,8 @@ DEFINE_HASH_FOR_TYPED_INT( ::rn::H );
   cdr::result<name> from_canonical( cdr::converter&   conv,     \
                                     cdr::value const& v,        \
                                     cdr::tag_t<name> ) {        \
-    if( !v.holds<cdr::integer_type>() )                         \
-      return conv.err(                                          \
-          "failed to convert value of type {} to int.",         \
-          cdr::type_name( v ) );                                \
-    /* WARNING: this may lose precision */                      \
-    return name{                                                \
-        static_cast<int>( v.get<cdr::integer_type>() ) };       \
+    UNWRAP_RETURN( int_res, conv.from<int>( v ) );              \
+    return name{ int_res };                                     \
   }
 
 namespace rn {

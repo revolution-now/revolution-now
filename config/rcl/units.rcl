@@ -67,6 +67,7 @@ composition {
     # Basic Colonists
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     petty_criminal {
+      type:                  petty_criminal
       name:                  Petty Criminal
       tile:                  petty_criminal
       expertise:             null
@@ -85,6 +86,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              fixed{ type=indentured_servant }
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -95,6 +97,7 @@ composition {
     }
 
     indentured_servant {
+      type:                  indentured_servant
       name:                  Indentured Servant
       tile:                  indentured_servant
       expertise:             null
@@ -113,6 +116,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              fixed{ type=free_colonist }
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -123,6 +127,7 @@ composition {
     }
 
     free_colonist {
+      type:                  free_colonist
       name:                  Free Colonist
       tile:                  free_colonist
       expertise:             null
@@ -141,6 +146,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              occupation{}
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -154,6 +160,7 @@ composition {
     # Non-expert modified colonists.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     pioneer {
+      type:                  pioneer
       name:                  Pioneer
       tile:                  pioneer
       expertise:             null
@@ -172,10 +179,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       [tools]
       promotion              expertise{ kind: pioneering }
+      is_derived:            true
       modifiers:             {}
     }
 
     missionary {
+      type:                  missionary
       name:                  Missionary
       tile:                  missionary
       expertise:             null
@@ -194,10 +203,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              expertise{ kind: missioning }
+      is_derived:            true
       modifiers:             {}
     }
 
     scout {
+      type:                  scout
       name:                  Scout
       tile:                  scout
       expertise:             null
@@ -218,10 +229,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              expertise{ kind: scouting }
+      is_derived:            true
       modifiers:             {}
     }
 
     soldier {
+      type:                  soldier
       name:                  Soldier
       tile:                  soldier
       expertise:             null
@@ -240,10 +253,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              expertise{ kind: fighting }
+      is_derived:            true
       modifiers:             {}
     }
 
     dragoon {
+      type:                  dragoon
       name:                  Dragoon
       tile:                  dragoon
       expertise:             null
@@ -262,6 +277,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              expertise{ kind: fighting }
+      is_derived:            true
       modifiers:             {}
     }
 
@@ -269,6 +285,7 @@ composition {
     # Expert colonists.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     expert_farmer {
+      type:                  expert_farmer
       name:                  Expert Farmer
       tile:                  expert_farmer
       expertise:             farming
@@ -287,6 +304,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -297,6 +315,7 @@ composition {
     }
 
     expert_fisherman {
+      type:                  expert_fisherman
       name:                  Expert Fisherman
       tile:                  expert_fisherman
       expertise:             fishing
@@ -315,6 +334,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -325,6 +345,7 @@ composition {
     }
 
     expert_sugar_planter {
+      type:                  expert_sugar_planter
       name:                  Expert Sugar Planter
       tile:                  expert_sugar_planter
       expertise:             sugar_planting
@@ -343,6 +364,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -353,6 +375,7 @@ composition {
     }
 
     expert_tobacco_planter {
+      type:                  expert_tobacco_planter
       name:                  Expert Tobacco Planter
       tile:                  expert_tobacco_planter
       expertise:             tobacco_planting
@@ -371,6 +394,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -381,6 +405,7 @@ composition {
     }
 
     expert_cotton_planter {
+      type:                  expert_cotton_planter
       name:                  Expert Cotton Planter
       tile:                  expert_cotton_planter
       expertise:             cotton_planting
@@ -399,6 +424,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -409,6 +435,7 @@ composition {
     }
 
     expert_fur_trapper {
+      type:                  expert_fur_trapper
       name:                  Expert Fur Trapper
       tile:                  expert_fur_trapper
       expertise:             fur_trapping
@@ -427,6 +454,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -437,6 +465,7 @@ composition {
     }
 
     expert_lumberjack {
+      type:                  expert_lumberjack
       name:                  Expert Lumberjack
       tile:                  expert_lumberjack
       expertise:             lumberjacking
@@ -455,6 +484,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -465,6 +495,7 @@ composition {
     }
 
     expert_ore_miner {
+      type:                  expert_ore_miner
       name:                  Expert Ore Miner
       tile:                  expert_ore_miner
       expertise:             ore_mining
@@ -483,6 +514,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -493,6 +525,7 @@ composition {
     }
 
     expert_silver_miner {
+      type:                  expert_silver_miner
       name:                  Expert Silver Miner
       tile:                  expert_silver_miner
       expertise:             silver_mining
@@ -511,6 +544,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -521,6 +555,7 @@ composition {
     }
 
     master_carpenter {
+      type:                  master_carpenter
       name:                  Master Carpenter
       tile:                  master_carpenter
       expertise:             carpentry
@@ -539,6 +574,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -549,6 +585,7 @@ composition {
     }
 
     master_rum_distiller {
+      type:                  master_rum_distiller
       name:                  Master Rum Distiller
       tile:                  master_rum_distiller
       expertise:             rum_distilling
@@ -567,6 +604,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -577,6 +615,7 @@ composition {
     }
 
     master_tobacconist {
+      type:                  master_tobacconist
       name:                  Master Tobacconist
       tile:                  master_tobacconist
       expertise:             tobacconistry
@@ -595,6 +634,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -605,6 +645,7 @@ composition {
     }
 
     master_weaver {
+      type:                  master_weaver
       name:                  Master Weaver
       tile:                  master_weaver
       expertise:             weaving
@@ -623,6 +664,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -633,6 +675,7 @@ composition {
     }
 
     master_fur_trader {
+      type:                  master_fur_trader
       name:                  Master Fur Trader
       tile:                  master_fur_trader
       expertise:             fur_trading
@@ -651,6 +694,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -661,6 +705,7 @@ composition {
     }
 
     master_blacksmith {
+      type:                  master_blacksmith
       name:                  Master Blacksmith
       tile:                  master_blacksmith
       expertise:             blacksmithing
@@ -679,6 +724,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -689,6 +735,7 @@ composition {
     }
 
     master_gunsmith {
+      type:                  master_gunsmith
       name:                  Master Gunsmith
       tile:                  master_gunsmith
       expertise:             gunsmithing
@@ -707,6 +754,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -717,6 +765,7 @@ composition {
     }
 
     elder_statesman {
+      type:                  elder_statesman
       name:                  Elder Statesman
       tile:                  elder_statesman
       expertise:             bell_ringing
@@ -735,6 +784,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -745,6 +795,7 @@ composition {
     }
 
     firebrand_preacher {
+      type:                  firebrand_preacher
       name:                  Firebrand Preacher
       tile:                  firebrand_preacher
       expertise:             preaching
@@ -763,6 +814,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary: [blessing]
         scout:      [horses]
@@ -773,6 +825,7 @@ composition {
     }
 
     hardy_colonist {
+      type:                  hardy_colonist
       name:                  Hardy Colonist
       tile:                  hardy_colonist
       expertise:             pioneering
@@ -791,6 +844,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary:    [blessing]
         scout:         [horses]
@@ -801,6 +855,7 @@ composition {
     }
 
     jesuit_colonist {
+      type:                  jesuit_colonist
       name:                  Jesuit Colonist
       tile:                  jesuit_colonist
       expertise:             missioning
@@ -819,6 +874,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         jesuit_missionary: [blessing]
         scout:             [horses]
@@ -829,6 +885,7 @@ composition {
     }
 
     seasoned_colonist {
+      type:                  seasoned_colonist
       name:                  Seasoned Colonist
       tile:                  seasoned_colonist
       expertise:             scouting
@@ -847,6 +904,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary:     [blessing]
         seasoned_scout: [horses]
@@ -857,6 +915,7 @@ composition {
     }
 
     veteran_colonist {
+      type:                  veteran_colonist
       name:                  Veteran Colonist
       tile:                  veteran_colonist
       expertise:             fighting
@@ -875,6 +934,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         missionary:          [blessing]
         scout:               [horses]
@@ -890,6 +950,7 @@ composition {
     # Expert modified colonists.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     veteran_soldier {
+      type:                  veteran_soldier
       name:                  Veteran Soldier
       tile:                  veteran_soldier
       expertise:             null
@@ -908,10 +969,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              modifier{ kind=independence }
+      is_derived:            true
       modifiers:             {}
     }
 
     veteran_dragoon {
+      type:                  veteran_dragoon
       name:                  Veteran Dragoon
       tile:                  veteran_dragoon
       expertise:             null
@@ -930,10 +993,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion              modifier{ kind=independence }
+      is_derived:            true
       modifiers:             {}
     }
 
     continental_army {
+      type:                  continental_army
       name:                  Continental Army
       tile:                  continental_army
       expertise:             null
@@ -952,10 +1017,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
     continental_cavalry {
+      type:                  continental_cavalry
       name:                  Continental Cavalry
       tile:                  continental_cavalry
       expertise:             null
@@ -974,10 +1041,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
     regular {
+      type:                  regular
       name:                  Regular
       tile:                  regular
       expertise:             null
@@ -996,10 +1065,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     cavalry {
+      type:                  cavalry
       name:                  Cavalry
       tile:                  cavalry
       expertise:             null
@@ -1018,10 +1089,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     hardy_pioneer {
+      type:                  hardy_pioneer
       name:                  Hardy Pioneer
       tile:                  hardy_pioneer
       expertise:             null
@@ -1040,10 +1113,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       [tools]
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
     jesuit_missionary {
+      type:                  jesuit_missionary
       name:                  Jesuit Missionary
       tile:                  jesuit_missionary
       expertise:             null
@@ -1062,10 +1137,12 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
     seasoned_scout {
+      type:                  seasoned_scout
       name:                  Seasoned Scout
       tile:                  seasoned_scout
       expertise:             null
@@ -1086,6 +1163,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
@@ -1093,6 +1171,7 @@ composition {
     # Non-human combat units.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     damaged_artillery {
+      type:                  damaged_artillery
       name:                  Damaged Artillery
       tile:                  damaged_artillery
       expertise:             null
@@ -1111,12 +1190,14 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers {
         artillery: [strength]
       }
     }
 
     artillery {
+      type:                  artillery
       name:                  Artillery
       tile:                  artillery
       expertise:             null
@@ -1135,6 +1216,7 @@ composition {
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
+      is_derived:            true
       modifiers:             {}
     }
 
@@ -1142,6 +1224,7 @@ composition {
     # Ships.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     caravel {
+      type:                  caravel
       name:                  Caravel
       tile:                  caravel
       expertise:             null
@@ -1160,10 +1243,12 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     merchantman {
+      type:                  merchantman
       name:                  Merchantman
       tile:                  merchantman
       expertise:             null
@@ -1182,10 +1267,12 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     galleon {
+      type:                  galleon
       name:                  Galleon
       tile:                  galleon
       expertise:             null
@@ -1204,10 +1291,12 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     privateer {
+      type:                  privateer
       name:                  Privateer
       tile:                  privateer
       expertise:             null
@@ -1226,10 +1315,12 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     frigate {
+      type:                  frigate
       name:                  Frigate
       tile:                  frigate
       expertise:             null
@@ -1248,10 +1339,12 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     man_o_war {
+      type:                  man_o_war
       name:                  Man-O-War
       tile:                  man_o_war
       expertise:             null
@@ -1270,6 +1363,7 @@ composition {
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
@@ -1277,6 +1371,7 @@ composition {
     # Land transport.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     wagon_train {
+      type:                  wagon_train
       name:                  Wagon Train
       tile:                  wagon_train
       expertise:             null
@@ -1296,6 +1391,7 @@ composition {
       inventory_types:       []
       promotion:             null
       modifiers:             {}
+      is_derived:            false
       # TODO: requires capenter's shop to build.
     }
 
@@ -1303,6 +1399,7 @@ composition {
     # Treasure.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     small_treasure {
+      type:                  small_treasure
       name:                  Small Treasure
       tile:                  small_treasure
       expertise:             null
@@ -1321,10 +1418,12 @@ composition {
       cargo_slots_occupies:  4
       inventory_types:       [gold]
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
     large_treasure {
+      type:                  large_treasure
       name:                  Large Treasure
       tile:                  large_treasure
       expertise:             null
@@ -1343,6 +1442,7 @@ composition {
       cargo_slots_occupies:  6
       inventory_types:       [gold]
       promotion:             null
+      is_derived:            false
       modifiers:             {}
     }
 
