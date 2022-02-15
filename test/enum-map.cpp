@@ -15,7 +15,7 @@
 
 // Rds
 #include "rds/helper/rcl.hpp"
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
 
 // Rcl
 #include "rcl/ext-std.hpp"

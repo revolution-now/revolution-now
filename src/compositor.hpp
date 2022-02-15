@@ -16,7 +16,7 @@
 #include "coord.hpp"
 
 // Rds
-#include "rds/compositor.hpp"
+#include "compositor.rds.hpp"
 
 namespace rn::compositor {
 

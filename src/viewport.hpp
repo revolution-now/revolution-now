@@ -16,12 +16,11 @@
 // Revolution Now
 #include "coord.hpp"
 #include "error.hpp"
-#include "fb.hpp"
 #include "physics.hpp"
 #include "wait.hpp"
 
-// Flatbuffers
-#include "fb/viewport_generated.h"
+// Rds
+#include "viewport.rds.hpp"
 
 namespace rn {
 
@@ -110,11 +109,16 @@ class SmoothViewport {
   // edge of the viewport hids x=0.
   void pan_by_screen_coords( Delta delta );
 
-  // Will not throw; if an invariant is broken it will be fixed,
-  // and this is a normal part of the behavior of this class.
-  void enforce_invariants();
+  // Will not throw or die if invariants are broken; instead, if
+  // an invariant is broken it will be fixed, and this is a
+  // normal part of the behavior of this class.
+  void fix_invariants();
 
-  valid_deserial_t check_invariants_safe() const;
+  // Implement refl::WrapsReflected.
+  SmoothViewport( wrapped::SmoothViewport&& o );
+  wrapped::SmoothViewport const&    refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "SmoothViewport";
 
  private:
   void advance( e_push_direction x_push, e_push_direction y_push,
@@ -162,6 +166,12 @@ class SmoothViewport {
 
   bool is_tile_fully_visible( Coord const& coords ) const;
 
+  // ==================== Serialized Fields =====================
+
+  wrapped::SmoothViewport o_;
+
+  // ============ Transient Fields (not serialized) =============
+
   DissipativeVelocity x_vel_{};
   DissipativeVelocity y_vel_{};
   DissipativeVelocity zoom_vel_{};
@@ -194,13 +204,6 @@ class SmoothViewport {
 
   Rect  viewport_rect_pixels_{};
   Delta world_size_tiles_{};
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, SmoothViewport,
-  ( double, zoom_     ),
-  ( double, center_x_ ),
-  ( double, center_y_ ));
-  // clang-format on
 };
 NOTHROW_MOVE( SmoothViewport );
 

@@ -46,6 +46,7 @@
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library
+#include <set>
 #include <unordered_set>
 
 using namespace std;
@@ -329,34 +330,28 @@ UnitType UnitType::create( e_unit_type type ) {
   }
 }
 
-void to_str( UnitType const& o, string& out, base::ADL_t ) {
-  out += fmt::format( "UnitType{{type={},base={}}}", o.type(),
-                      o.base_type() );
-}
-
-valid_deserial_t UnitType::check_invariants_safe() const {
-  if( !unit_type_modifier_path_exists( base_type_, type_ ) )
-    return invalid_deserial(
-        fmt::format( "no unit type modifier path exists between "
-                     "unit types {} and {}.",
-                     base_type_, type_ ) );
+valid_or<string> wrapped::UnitType::validate() const {
+  REFL_VALIDATE(
+      unit_type_modifier_path_exists( base_type, type ),
+      "no unit type modifier path exists between unit types {} "
+      "and {}.",
+      base_type, type );
   return valid;
 }
 
 void UnitType::check_invariants_or_die() const {
-  CHECK_HAS_VALUE( check_invariants_safe() );
+  CHECK_HAS_VALUE( o_.validate() );
 }
 
 UnitType::UnitType( e_unit_type base_type, e_unit_type type )
-  : base_type_( base_type ), type_( type ) {
+  : o_( wrapped::UnitType{ .base_type = base_type,
+                           .type      = type } ) {
   check_invariants_or_die();
 }
 
 UnitType::UnitType()
   : UnitType( e_unit_type::free_colonist,
-              e_unit_type::free_colonist ) {
-  check_invariants_or_die();
-}
+              e_unit_type::free_colonist ) {}
 
 UnitTypeAttributes const& unit_attr( UnitType type ) {
   return unit_attr( type.type() );
@@ -422,8 +417,8 @@ maybe<UnitType> on_death_demoted_type( UnitType ut ) {
 
 std::unordered_set<e_unit_type_modifier> const&
 UnitType::unit_type_modifiers() {
-  UNWRAP_CHECK(
-      res, unit_type_modifiers_for_path( base_type_, type_ ) );
+  UNWRAP_CHECK( res, unit_type_modifiers_for_path( o_.base_type,
+                                                   o_.type ) );
   return res;
 }
 

@@ -18,7 +18,7 @@
 #include "window.hpp"
 
 // Rds
-#include "rds/ui-enums.hpp"
+#include "ui-enums.rds.hpp"
 
 // base
 #include "base/string.hpp"

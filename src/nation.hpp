@@ -21,7 +21,7 @@
 #include "gfx/pixel.hpp"
 
 // Rds
-#include "rds/nation.hpp"
+#include "nation.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

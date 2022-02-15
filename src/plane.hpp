@@ -18,13 +18,10 @@
 #include "tx.hpp"
 
 // Rds
-#include "rds/plane.hpp"
+#include "plane.rds.hpp"
 
 // base
 #include "base/function-ref.hpp"
-
-// Flatbuffers
-#include "fb/plane_generated.h"
 
 // C++ standard library
 #include <array>
@@ -155,6 +152,8 @@ void draw_all_planes( Texture& tx = Texture::screen() );
 // date any state that it has. It will only be called on frames
 // that are enabled and visible.
 void advance_plane_state();
+
+void reinitialize_planes();
 
 // Returns true if one of the planes handled the input, false
 // otherwise. At most one plane will handle the input.

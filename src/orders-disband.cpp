@@ -12,11 +12,13 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
 // Rds
-#include "rds/ui-enums.hpp"
+#include "ui-enums.rds.hpp"
 
 using namespace std;
 
@@ -36,7 +38,7 @@ struct DisbandHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    destroy_unit( unit_id );
+    GameState::units().destroy_unit( unit_id );
     co_return;
   }
 

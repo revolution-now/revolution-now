@@ -13,24 +13,21 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "colony-id.hpp"
 #include "coord.hpp"
 #include "error.hpp"
 #include "expect.hpp"
-#include "id.hpp"
 #include "nation.hpp"
+#include "unit-id.hpp"
 #include "wait.hpp"
 
 // Rds
-#include "rds/colony-mgr.hpp"
+#include "colony-mgr.rds.hpp"
 
 // C++ standard library
 #include <string_view>
 
 namespace rn {
-
-valid_or<generic_err> check_colony_invariants_safe(
-    ColonyId id );
-void check_colony_invariants_die( ColonyId id );
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     std::string_view name );

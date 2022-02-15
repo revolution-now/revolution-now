@@ -14,7 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "fb.hpp"
+#include "maybe.hpp"
 
 // Rcl
 #include "rcl/ext.hpp"
@@ -24,9 +24,6 @@
 
 // luapp
 #include "luapp/ext.hpp"
-
-// Flatbuffers
-#include "fb/mv-points_generated.h"
 
 namespace rn {
 
@@ -126,7 +123,7 @@ class ND MovementPoints {
   friend void to_str( MovementPoints const& o, std::string& out,
                       base::ADL_t );
 
-  valid_deserial_t check_invariants_safe() const;
+  base::valid_or<std::string> validate() const;
 
   friend maybe<MovementPoints> lua_get(
       lua::cthread L, int idx, lua::tag<MovementPoints> );
@@ -149,11 +146,8 @@ class ND MovementPoints {
   MovementPoints( int integral, int atoms );
   static constexpr int factor = 3;
 
-  // clang-format off
-  SERIALIZABLE_STRUCT_MEMBERS( MovementPoints,
   // 2 points would be represented by 2*factor.
-  ( int, points_atoms ));
-  // clang-format on
+  int points_atoms;
 };
 NOTHROW_MOVE( MovementPoints );
 

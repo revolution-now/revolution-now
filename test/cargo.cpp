@@ -16,19 +16,24 @@
 #include "src/ustate.hpp"
 
 // refl
+#include "refl/cdr.hpp"
 #include "refl/to-str.hpp"
 
 // base
+#include "base/to-str-ext-std.hpp"
 #include "base/to-str-tags.hpp"
+
+// Abseil
+#include "absl/strings/str_replace.h"
 
 // Must be last.
 #include "catch-common.hpp"
 
-#define REQUIRE_BROKEN_INVARIANTS \
-  REQUIRE( !ch.check_invariants() )
+#define REQUIRE_BROKEN_INVARIANTS REQUIRE( !ch.validate() )
 
-#define REQUIRE_GOOD_INVARIANTS REQUIRE( ch.check_invariants() )
+#define REQUIRE_GOOD_INVARIANTS REQUIRE( ch.validate() )
 
+namespace rn {
 namespace {
 
 using namespace std;
@@ -41,15 +46,26 @@ struct CargoHoldTester : public CargoHold {
   CargoHoldTester( int slots ) : CargoHold( slots ) {}
 
   // Methods.
-  using CargoHold::check_invariants;
   using CargoHold::clear;
   using CargoHold::remove;
   using CargoHold::try_add;
   using CargoHold::try_add_somewhere;
+  using CargoHold::validate;
   using CargoHold::operator[];
 
   // Data members.
-  using CargoHold::slots_;
+  using CargoHold::o_;
+
+  string debug_string() const {
+    string res = absl::StrReplaceAll(
+        base::to_str( static_cast<CargoHold const&>( *this ) ),
+        { { "CargoSlot::", "" },
+          { "slots=", "" },
+          { "CargoHold{", "" } } );
+    // Remove trailing '}'.
+    res.pop_back();
+    return res;
+  }
 };
 
 TEST_CASE( "CargoHold slot bounds zero" ) {
@@ -175,7 +191,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     REQUIRE( ch.slots_total() == 1 );
     REQUIRE( ch.slots_remaining() == 0 );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.slots_[0] == CargoSlot_t{ cargo } );
+    REQUIRE( ch.o_.slots[0] == CargoSlot_t{ cargo } );
     if( auto* u = get_if<Cargo::unit>( &( cargo.contents ) ) ) {
       UnitId unit_id = u->id;
       REQUIRE( ch.find_unit( unit_id ) == 0 );
@@ -210,7 +226,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     REQUIRE( ch.slots_total() == 1 );
     REQUIRE( ch.slots_remaining() == 0 );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.slots_[0] == CargoSlot_t{ cargo } );
+    REQUIRE( ch.o_.slots[0] == CargoSlot_t{ cargo } );
     if( auto* u = get_if<Cargo::unit>( &( cargo.contents ) ) ) {
       UnitId unit_id = u->id;
       REQUIRE( ch.find_unit( unit_id ) == 0 );
@@ -266,7 +282,7 @@ TEST_CASE(
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.slots_[0] == CargoSlot_t{ cargo } );
+    REQUIRE( ch.o_.slots[0] == CargoSlot_t{ cargo } );
     if( auto* u = get_if<Cargo::unit>( &( cargo.contents ) ) ) {
       UnitId unit_id = u->id;
       REQUIRE( ch.find_unit( unit_id ) == 0 );
@@ -299,7 +315,7 @@ TEST_CASE(
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.slots_[3] == CargoSlot_t{ cargo } );
+    REQUIRE( ch.o_.slots[3] == CargoSlot_t{ cargo } );
     if( auto* u = get_if<Cargo::unit>( &( cargo.contents ) ) ) {
       UnitId unit_id = u->id;
       REQUIRE( ch.find_unit( unit_id ) == 3 );
@@ -333,7 +349,7 @@ TEST_CASE(
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.slots_[0] == CargoSlot_t{ cargo } );
+    REQUIRE( ch.o_.slots[0] == CargoSlot_t{ cargo } );
     if( auto* u = get_if<Cargo::unit>( &( cargo.contents ) ) ) {
       UnitId unit_id = u->id;
       REQUIRE( ch.find_unit( unit_id ) == 0 );
@@ -389,17 +405,19 @@ TEST_CASE(
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 2 );
     REQUIRE( ch.slots_occupied() == 4 );
-    REQUIRE( ch.slots_[0] == CargoSlot_t{ CargoSlot::empty{} } );
-    REQUIRE( ch.slots_[1] ==
+    REQUIRE( ch.o_.slots[0] ==
+             CargoSlot_t{ CargoSlot::empty{} } );
+    REQUIRE( ch.o_.slots[1] ==
              CargoSlot_t{ CargoSlot::cargo{
                  /*contents=*/Cargo::unit{ unit_id } } } );
-    REQUIRE( ch.slots_[2] ==
+    REQUIRE( ch.o_.slots[2] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[3] ==
+    REQUIRE( ch.o_.slots[3] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[4] ==
+    REQUIRE( ch.o_.slots[4] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
+    REQUIRE( ch.o_.slots[5] ==
+             CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.find_unit( unit_id ) == 1 );
     REQUIRE_THAT( ch.units(),
                   UnorderedEquals( vector<UnitId>{ unit_id } ) );
@@ -419,17 +437,19 @@ TEST_CASE(
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 2 );
     REQUIRE( ch.slots_occupied() == 4 );
-    REQUIRE( ch.slots_[0] ==
+    REQUIRE( ch.o_.slots[0] ==
              CargoSlot_t{ CargoSlot::cargo{
                  /*contents=*/Cargo::unit{ unit_id } } } );
-    REQUIRE( ch.slots_[1] ==
+    REQUIRE( ch.o_.slots[1] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[2] ==
+    REQUIRE( ch.o_.slots[2] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[3] ==
+    REQUIRE( ch.o_.slots[3] ==
              CargoSlot_t{ CargoSlot::overflow{} } );
-    REQUIRE( ch.slots_[4] == CargoSlot_t{ CargoSlot::empty{} } );
-    REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
+    REQUIRE( ch.o_.slots[4] ==
+             CargoSlot_t{ CargoSlot::empty{} } );
+    REQUIRE( ch.o_.slots[5] ==
+             CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.find_unit( unit_id ) == 0 );
     REQUIRE_THAT( ch.units(),
                   UnorderedEquals( vector<UnitId>{ unit_id } ) );
@@ -602,7 +622,7 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
       UnitType::create( e_unit_type::small_treasure ) );
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.try_add_somewhere( Cargo::unit{ unit_id1 } ) );
-  REQUIRE( ch.slots_[1] ==
+  REQUIRE( ch.o_.slots[1] ==
            CargoSlot_t{ CargoSlot::overflow{} } );
   REQUIRE_NOTHROW( ch.remove( 0 ) );
   REQUIRE( ch.debug_string() ==
@@ -618,26 +638,26 @@ TEST_CASE( "CargoHold remove large cargo" ) {
       e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   REQUIRE( ch.try_add( Cargo::unit{ unit_id1 }, 1 ) );
-  REQUIRE( ch.slots_[0] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[1] ==
+  REQUIRE( ch.o_.slots[0] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[1] ==
            CargoSlot_t{ CargoSlot::cargo{
                /*contents=*/Cargo::unit{ unit_id1 } } } );
-  REQUIRE( ch.slots_[2] ==
+  REQUIRE( ch.o_.slots[2] ==
            CargoSlot_t{ CargoSlot::overflow{} } );
-  REQUIRE( ch.slots_[3] ==
+  REQUIRE( ch.o_.slots[3] ==
            CargoSlot_t{ CargoSlot::overflow{} } );
-  REQUIRE( ch.slots_[4] ==
+  REQUIRE( ch.o_.slots[4] ==
            CargoSlot_t{ CargoSlot::overflow{} } );
-  REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[5] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch.slots_occupied() == 4 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE_NOTHROW( ch.remove( 1 ) );
-  REQUIRE( ch.slots_[0] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[1] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[2] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[3] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[4] == CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[0] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[1] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[2] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[3] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[4] == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.o_.slots[5] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch.slots_occupied() == 0 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.debug_string() ==
@@ -724,7 +744,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[0] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch.try_add_somewhere( Cargo::unit{ unit_id2 } ) );
@@ -734,7 +754,7 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
   for( int i = 2; i <= 6; ++i )
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id3 } ) );
   REQUIRE( ch.try_add_somewhere( Cargo::unit{ unit_id3 } ) );
@@ -744,7 +764,7 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id3 } } };
   for( int i = 8; i <= 10; ++i )
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id4 } ) );
   REQUIRE( ch.try_add_somewhere( Cargo::unit{ unit_id4 } ) );
@@ -752,7 +772,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 12 );
   cmp_slots[11] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE_FALSE( ch.fits_somewhere( Cargo::unit{ unit_id5 } ) );
   REQUIRE_FALSE(
@@ -805,7 +825,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[2] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id2 },
                               /*starting_slot=*/2 ) );
@@ -817,7 +837,7 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
   for( int i = 4; i <= 8; ++i )
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE_FALSE( ch.fits_somewhere( Cargo::unit{ unit_id3 },
                                     /*starting_slot=*/2 ) );
@@ -834,7 +854,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 8 );
   cmp_slots[9] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id5 },
                               /*starting_slot=*/2 ) );
@@ -844,7 +864,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 9 );
   cmp_slots[10] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id5 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id6 },
                               /*starting_slot=*/2 ) );
@@ -854,7 +874,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 10 );
   cmp_slots[11] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id6 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id7 },
                               /*starting_slot=*/2 ) );
@@ -864,7 +884,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 11 );
   cmp_slots[0] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id7 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( Cargo::unit{ unit_id8 },
                               /*starting_slot=*/2 ) );
@@ -874,7 +894,7 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 12 );
   cmp_slots[1] = CargoSlot_t{
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id8 } } };
-  REQUIRE( ch.slots_ == cmp_slots );
+  REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE_FALSE( ch.fits_somewhere( Cargo::unit{ unit_id9 },
                                     /*starting_slot=*/2 ) );
@@ -914,7 +934,7 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
     REQUIRE( ch.slots_occupied() == i + 1 );
     cmp_slots[( i + start ) % 6] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_ids[i] } } };
-    REQUIRE( ch.slots_ == cmp_slots );
+    REQUIRE( ch.o_.slots == cmp_slots );
   }
 
   ch.clear();
@@ -939,109 +959,110 @@ TEST_CASE( "CargoHold check broken invariants" ) {
 
   SECTION( "no overflow in first slot" ) {
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[0] = CargoSlot::overflow{};
+    ch.o_.slots[0] = CargoSlot::overflow{};
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "no orphaned overflow" ) {
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[3] = CargoSlot::overflow{};
+    ch.o_.slots[3] = CargoSlot::overflow{};
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "too much overflow after unit 1" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id1 } } };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[1] = CargoSlot::overflow{};
+    ch.o_.slots[1] = CargoSlot::overflow{};
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "too much overflow after unit 2" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id2 } } };
-    ch.slots_[1] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[2] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[3] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[1] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[2] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[3] = CargoSlot_t{ CargoSlot::overflow{} };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_remaining() == 2 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[4] = CargoSlot::overflow{};
+    ch.o_.slots[4] = CargoSlot::overflow{};
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "not enough overflow after unit due to empty" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id2 } } };
-    ch.slots_[1] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[2] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[3] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[1] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[2] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[3] = CargoSlot_t{ CargoSlot::overflow{} };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_remaining() == 2 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[3] = CargoSlot_t{ CargoSlot::empty{} };
+    ch.o_.slots[3] = CargoSlot_t{ CargoSlot::empty{} };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "not enough overflow after unit due to unit" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id2 } } };
-    ch.slots_[1] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[2] = CargoSlot_t{ CargoSlot::overflow{} };
-    ch.slots_[3] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[1] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[2] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[3] = CargoSlot_t{ CargoSlot::overflow{} };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_remaining() == 2 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[3] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[3] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id1 } } };
-    REQUIRE( ch.slots_[4] == CargoSlot_t{ CargoSlot::empty{} } );
+    REQUIRE( ch.o_.slots[4] ==
+             CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "unit with overflow at end 1" ) {
-    ch.slots_[5] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[5] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id1 } } };
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[5] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[5] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id2 } } };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "unit with overflow at end 2" ) {
-    ch.slots_[4] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[4] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id1 } } };
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[4] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[4] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::unit{ unit_id2 } } };
-    ch.slots_[5] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[5] = CargoSlot_t{ CargoSlot::overflow{} };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "no overflow following commodity" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::commodity{ comm1 } } };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_remaining() == 5 );
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[1] = CargoSlot_t{ CargoSlot::overflow{} };
+    ch.o_.slots[1] = CargoSlot_t{ CargoSlot::overflow{} };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "commodities don't exceed max quantity" ) {
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::commodity{ comm1 } } };
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[1] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[1] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::commodity{ comm2 } } };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "commodities don't have zero quantity" ) {
     REQUIRE_GOOD_INVARIANTS;
-    ch.slots_[0] = CargoSlot_t{ CargoSlot::cargo{
+    ch.o_.slots[0] = CargoSlot_t{ CargoSlot::cargo{
         /*contents=*/Cargo::commodity{ comm3 } } };
     REQUIRE_BROKEN_INVARIANTS;
   }
@@ -2148,7 +2169,7 @@ TEST_CASE(
 
   for( auto const& cargo : shuffled ) {
     auto maybe_idx = util::find_index(
-        ch.slots_, CargoSlot_t{ CargoSlot::empty{} } );
+        ch.o_.slots, CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( maybe_idx.has_value() );
     // Don't use try_add_somewhere here because we don't want
     // to consolidate commodities a priori.
@@ -2666,3 +2687,4 @@ TEST_CASE( "CargoHold max_commodity_per_cargo_slot" ) {
 }
 
 } // namespace
+} // namespace rn

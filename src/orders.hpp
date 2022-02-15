@@ -14,11 +14,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "id.hpp"
+#include "unit-id.hpp"
 #include "wait.hpp"
 
 // Rds
-#include "rds/orders.hpp"
+#include "orders.rds.hpp"
 
 // C++ standard library
 #include <memory>

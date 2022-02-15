@@ -71,6 +71,8 @@ struct converter {
 
   converter( options const& opts ) : options_( opts ) {}
 
+  options const& opts() const { return options_; }
+
   template<typename... Args>
   error err( std::string_view fmt_str, Args&&... args ) & {
     frames_on_error_ = frames_;

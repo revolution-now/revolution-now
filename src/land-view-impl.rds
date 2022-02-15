@@ -1,0 +1,77 @@
+# ===============================================================
+# land-view-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the land-view module.
+#
+# ===============================================================
+include [
+  # Revolution Now
+  coord.hpp
+  matrix.hpp
+  physics.hpp
+  tx.hpp
+  unit-id.hpp
+
+  # Rds
+  orders.rds.hpp
+
+  # gfx
+  gfx/pixel.hpp
+
+  # C++ standard library
+  <vector>
+]
+
+namespace rn {
+
+sumtype LandViewUnitActionState {
+  none {}
+  unit_input {
+    unit_id: UnitId
+  }
+  unit_move {
+    unit_id: UnitId
+  }
+  unit_attack {
+    attacker: UnitId
+    defender: UnitId
+    attacker_wins: bool
+  }
+}
+
+sumtype LandViewRawInput {
+  orders {
+    orders: orders_t
+  }
+  tile_click {
+    coord: Coord
+  }
+  center {} # Center on blinking unit, if any.
+}
+
+# These are animation primitives. A unit "move" is a slide, and a
+# unit attack sequence is constructed from a slide + depixela-
+# tion.
+sumtype UnitAnimation {
+  blink {
+    visible: bool
+  }
+  slide {
+    target: Coord
+    percent: double
+    percent_vel: DissipativeVelocity
+  }
+  depixelate {
+    tx_depixelate_from: Texture
+    pixels: 'std::vector<Coord>'
+    demoted_pixels: 'Matrix<gfx::pixel>'
+  }
+
+  _features [equality]
+}
+
+} # namespace rn

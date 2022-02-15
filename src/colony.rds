@@ -1,0 +1,72 @@
+# ===============================================================
+# colony.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the colony module.
+#
+# ===============================================================
+include [
+  # Revolution Now
+  colony-id.hpp
+  colony-mfg.hpp
+  commodity.hpp
+  coord.hpp
+  maybe.hpp
+  enum-map.hpp
+  unit-id.hpp
+
+  # Rds
+  nation.rds.hpp
+
+  # C++ standard library
+  <string>
+  <unordered_map>
+  <unordered_set>
+]
+
+namespace rn {
+
+sumtype ColonyJob {
+  land {
+    d: e_direction
+    producing: e_commodity
+  }
+  mfg {
+    mfg_job: e_mfg_job
+  }
+}
+
+namespace wrapped {
+
+struct Colony {
+  # Basic info.
+  id:            ColonyId
+  nation:        e_nation
+  name:         'std::string'
+  location:      Coord
+
+  # Commodities.
+  commodities:  'ExhaustiveEnumMap<e_commodity, int>'
+
+  # Serves to both record the units in this colony as well as
+  # their occupations.
+  units:        'std::unordered_map<UnitId, ColonyJob_t>'
+  buildings:    'std::unordered_set<e_colony_building>'
+
+  # Production
+  production:   'maybe<e_colony_building>'
+  prod_hammers:  int
+  prod_tools:    int
+
+  # Liberty sentiment: [0,100].
+  sentiment:     int
+
+  _features: [equality, validation]
+}
+
+}
+
+} # namespace rn

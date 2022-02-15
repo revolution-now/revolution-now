@@ -2,4 +2,4 @@
 set -e
 set -o pipefail
 
-bash scripts/fbs-invalidator.sh
+# None yet

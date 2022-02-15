@@ -12,27 +12,7 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "fb.hpp"
-
 // Rds
-#include "rds/land-square.hpp"
+#include "land-square.rds.hpp"
 
-// Flatbuffers
-#include "fb/land-square_generated.h"
-
-namespace rn {
-
-struct LandSquare {
-  valid_deserial_t check_invariants_safe() const;
-
-  bool operator==( LandSquare const& ) const = default;
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, LandSquare,
-  ( e_surface, surface ));
-  // clang-format on
-};
-NOTHROW_MOVE( LandSquare );
-
-} // namespace rn
+namespace rn {} // namespace rn

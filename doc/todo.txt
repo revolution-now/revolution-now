@@ -8,27 +8,6 @@
   3. OpenGL
 
 # ===============================================================
-# Serialization
-# ===============================================================
-
-  1. Move all global save-game data into one giant data structure
-     and get all the SG stuff out of the individual modules.
-
-  2. Add struct w/ reflection to Rds and redo flatbuffers struct
-     and table serialization to make use of it. This will also
-     allow serializing game data to other formats. Add an Rcl de-
-     serializer for structs using this also. One challenge here
-     will be how to make a struct reflected but also have methods
-     that can be used to maintain invariants. Also, such classes
-     can be nested.
-
-  3. Add sumtype reflection to Rds (which will also require that
-     the structs comprising the alternatives be reflected using
-     the mechanism from \#2 above). Then write an Rcl deserial-
-     izer for sumtypes and use it to remove the manual implemen-
-     tations in the utype module.
-
-# ===============================================================
 # Type Safety
 # ===============================================================
 
@@ -42,9 +21,9 @@
 # Lua
 # ===============================================================
 
-  1. Look into using the Teal language, a typed lua.  It looks
-     really good, though some have said that it is not mature...
-       https://github.com/teal-language/tl
+  1. Look into using the Teal language, a typed lua. It looks re-
+     ally good, though some have said that it is not mature...
+     https://github.com/teal-language/tl
   2. Add support for equality of userdata types in Lua. By de-
      fault a usertype should get an __equal metamethod that
      throws a Lua error when attempting to compare with anything,
@@ -52,9 +31,7 @@
      should get a proper comparison method.
   3. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  4. Generate Flatbuffers Lua modules so that Lua can read and
-     write game save files.
-  5. Add some other standard containers like vector,
+  4. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================

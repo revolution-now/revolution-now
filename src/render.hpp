@@ -13,8 +13,9 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "id.hpp"
+#include "colony-id.hpp"
 #include "orders.hpp"
+#include "unit-id.hpp"
 #include "unit.hpp"
 
 namespace rn {

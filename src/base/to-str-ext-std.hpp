@@ -43,8 +43,11 @@ void to_str( std::vector<T> o, std::string& out, ADL_t ) {
   to_str( "["s, out, ADL );
   for( auto const& elem : o ) {
     to_str( elem, out, ADL );
-    to_str( ","s, out, ADL );
+    out += ',';
   }
+  if( !o.empty() )
+    // Remove trailing comma.
+    out.pop_back();
   to_str( "]"s, out, ADL );
 }
 

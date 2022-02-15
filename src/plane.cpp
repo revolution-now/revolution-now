@@ -304,6 +304,10 @@ void advance_plane_state() {
   for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }
 
+void reinitialize_planes() {
+  for( auto p : planes ) { p->initialize(); }
+}
+
 Plane::e_input_handled send_input_to_planes(
     input::event_t const& event ) {
   using namespace input;

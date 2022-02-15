@@ -23,7 +23,7 @@
 #include "base/meta.hpp"
 
 // Rds
-#include "rds/input-impl.hpp"
+#include "input-impl.rds.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/input.inl"

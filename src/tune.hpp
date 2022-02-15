@@ -18,7 +18,7 @@
 #include "typed-int.hpp"
 
 // Rds
-#include "rds/tune.hpp"
+#include "tune.rds.hpp"
 
 // Rcl
 #include "rcl/ext.hpp"

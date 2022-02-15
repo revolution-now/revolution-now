@@ -34,18 +34,10 @@ namespace rn {
 
 namespace {} // namespace
 
-Unit::Unit( e_nation nation, UnitComposition comp )
-  : id_( next_unit_id() ),
-    composition_( std::move( comp ) ),
-    orders_( e_unit_orders::none ),
-    cargo_( unit_attr( composition_.type() ).cargo_slots ),
-    nation_( nation ),
-    mv_pts_( unit_attr( composition_.type() ).movement_points ) {
-}
-
-valid_deserial_t Unit::check_invariants_safe() const {
-  VERIFY_DESERIAL( cargo().slots_total() == desc().cargo_slots,
-                   "inconsistent number of cargo slots" );
+base::valid_or<string> wrapped::Unit::validate() const {
+  REFL_VALIDATE( cargo.slots_total() ==
+                     unit_attr( composition.type() ).cargo_slots,
+                 "inconsistent number of cargo slots" );
   return valid;
 }
 
@@ -59,58 +51,58 @@ UnitTypeAttributes& Unit::desc_non_const() const {
 }
 
 bool Unit::is_human() const {
-  return is_unit_human( composition_.type_obj() );
+  return is_unit_human( o_.composition.type_obj() );
 }
 
 // Mark unit as having moved.
 void Unit::forfeight_mv_points() {
-  mv_pts_ = 0;
-  CHECK_HAS_VALUE( check_invariants_safe() );
+  o_.mv_pts = 0;
+  CHECK_HAS_VALUE( o_.validate() );
 }
 
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
-  mv_pts_ = desc().movement_points;
-  CHECK_HAS_VALUE( check_invariants_safe() );
+  o_.mv_pts = desc().movement_points;
+  CHECK_HAS_VALUE( o_.validate() );
 }
 
 maybe<vector<UnitId>> Unit::units_in_cargo() const {
   if( desc().cargo_slots == 0 ) return nothing;
   vector<UnitId> res;
   for( Cargo::unit const& u :
-       cargo_.items_of_type<Cargo::unit>() )
+       o_.cargo.items_of_type<Cargo::unit>() )
     res.push_back( u.id );
   return res;
 }
 
 bool Unit::has_orders() const {
-  return orders_ != e_unit_orders::none;
+  return o_.orders != e_unit_orders::none;
 }
 
 // Called to consume movement points as a result of a move.
 void Unit::consume_mv_points( MovementPoints points ) {
-  mv_pts_ -= points;
-  CHECK( mv_pts_ >= 0 );
-  CHECK_HAS_VALUE( check_invariants_safe() );
+  o_.mv_pts -= points;
+  CHECK( o_.mv_pts >= 0 );
+  CHECK_HAS_VALUE( o_.validate() );
 }
 
 void Unit::fortify() {
   CHECK( !desc().ship, "Only land units can be fortified." );
-  orders_ = e_unit_orders::fortified;
+  o_.orders = e_unit_orders::fortified;
 }
 
 void Unit::change_nation( e_nation nation ) {
   // This could happen if we capture a colony containing a ship
   // that itself has units in its cargo.
-  for( Cargo::unit u : cargo_.items_of_type<Cargo::unit>() )
+  for( Cargo::unit u : o_.cargo.items_of_type<Cargo::unit>() )
     unit_from_id( u.id ).change_nation( nation );
 
-  nation_ = nation;
+  o_.nation = nation;
 }
 
 void Unit::change_type( UnitComposition new_comp ) {
   UnitType const& new_type = new_comp.type_obj();
-  CHECK( cargo_.slots_occupied() == 0,
+  CHECK( o_.cargo.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
   CHECK( unit_attr( type() ).ship ==
              unit_attr( new_type.type() ).ship,
@@ -118,7 +110,7 @@ void Unit::change_type( UnitComposition new_comp ) {
   // Most attributes remain the same, save for a few.
   UnitTypeAttributes const& new_desc = unit_attr( new_type );
   UnitTypeAttributes const& old_desc = desc();
-  cargo_ = CargoHold( new_desc.cargo_slots );
+  o_.cargo = CargoHold( new_desc.cargo_slots );
 
   // For movement points, just subtract the number of movement
   // points that they have already used from the new unit types
@@ -131,13 +123,13 @@ void Unit::change_type( UnitComposition new_comp ) {
   // then give it horses again, hoping that it will then have a
   // full four movement points. This will cause those used move-
   // ment points to persist across type changes.
-  MovementPoints used = old_desc.movement_points - mv_pts_;
+  MovementPoints used = old_desc.movement_points - o_.mv_pts;
 
-  mv_pts_ = std::max( MovementPoints{ 0 },
-                      new_desc.movement_points - used );
+  o_.mv_pts = std::max( MovementPoints{ 0 },
+                        new_desc.movement_points - used );
 
   // This should be done last.
-  composition_ = std::move( new_comp );
+  o_.composition = std::move( new_comp );
 }
 
 string debug_string( Unit const& unit ) {
@@ -149,13 +141,13 @@ string debug_string( Unit const& unit ) {
 void Unit::demote_from_lost_battle() {
   UNWRAP_CHECK( new_type, on_death_demoted_type( type_obj() ) );
   UNWRAP_CHECK( new_comp,
-                composition_.with_new_type( new_type ) );
+                o_.composition.with_new_type( new_type ) );
   change_type( std::move( new_comp ) );
 }
 
 UnitTransformationResult Unit::strip_to_base_type() {
   UnitTransformationResult res =
-      rn::strip_to_base_type( composition_ );
+      rn::strip_to_base_type( o_.composition );
   change_type( res.new_comp );
   return res;
 }
@@ -167,7 +159,7 @@ maybe<e_unit_type> Unit::demoted_type() const {
 
 vector<UnitTransformationFromCommodityResult>
 Unit::with_commodity_added( Commodity const& commodity ) const {
-  return unit_receive_commodity( composition_, commodity );
+  return unit_receive_commodity( o_.composition, commodity );
 }
 
 /****************************************************************

@@ -1,0 +1,40 @@
+# ===============================================================
+# colview-entities.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the colview-entities module.
+#
+# ===============================================================
+include [
+  # Revolution Now
+  commodity.hpp
+  unit-id.hpp
+]
+
+namespace rn {
+
+enum e_colview_entity [
+  commodities
+  land
+  title_bar
+  population
+  cargo
+  units_at_gate
+  production
+]
+
+sumtype ColViewObject {
+  unit {
+    id: UnitId
+  }
+  commodity {
+    comm: Commodity
+  }
+
+  _features [equality]
+}
+
+} # namespace rn

@@ -538,7 +538,8 @@ wait<> show_colony_view( ColonyId id ) {
   g_colony_id = id;
   set_colview_colony( id );
   ScopedPlanePush pusher( e_plane_config::colony );
-  lg.info( "viewing colony {}.", colony_from_id( id ) );
+  lg.info( "viewing colony {}.",
+           colony_from_id( id ).debug_string() );
   co_await run_colview();
   lg.info( "leaving colony view." );
 }

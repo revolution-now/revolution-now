@@ -11,9 +11,10 @@
 #include "testing.hpp"
 
 // Under test.
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
 
 // refl
+#include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
 // base
@@ -290,7 +291,7 @@ TEST_CASE( "[rds] Equality" ) {
 
 TEST_CASE( "[rds] Rds File Golden Comparison" ) {
   auto golden = base::read_text_file_as_string(
-      testing::data_dir() / "rds-testing-golden.hpp" );
+      testing::data_dir() / "rds-testing-golden.rds.hpp" );
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(

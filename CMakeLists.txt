@@ -17,6 +17,7 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     "${CMAKE_SOURCE_DIR}/cmake/" )
 
 include( cmake/generic.cmake )
+include( cmake/rds.cmake )
 include( cmake/sdl2-helper.cmake )
 
 # If ENABLE_ADDRESS_SANITIZER is on then this function will do so.
@@ -59,11 +60,6 @@ set( CMAKE_CXX_STANDARD 20 )
 # vious CMake run because we do enable tests us.
 set( BUILD_TESTING OFF )
 
-set( FLATBUFFERS_BUILD_TESTS       OFF CACHE BOOL "" )
-set( FLATBUFFERS_INSTALL           OFF CACHE BOOL "" )
-set( FLATBUFFERS_BUILD_FLATHASH    OFF CACHE BOOL "" )
-set( FLATBUFFERS_LIBCXX_WITH_CLANG OFF CACHE BOOL "" )
-
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
@@ -72,7 +68,6 @@ add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/lua-5.4.3     EXCLUDE_FROM_ALL )
-add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
 add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/stb           EXCLUDE_FROM_ALL )
 

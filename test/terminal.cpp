@@ -77,8 +77,8 @@ TEST_CASE( "[terminal] autocomplete" ) {
   out = { "unit" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "id";
-  out = { "id." };
+  in  = "ustate";
+  out = { "ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.";
@@ -223,16 +223,20 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = { "unit" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "id";
-  out = { "id.last_" };
+  in  = "ustate.u";
+  out = { "ustate.unit" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "id.last_";
-  out = { "id.last_colony_id", "id.last_unit_id" };
+  in  = "ustate.unit";
+  out = { "ustate.unit_from_id", "ustate.units_from_coord" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "id.last_u";
-  out = { "id.last_unit_id(" };
+  in  = "cstate.last_";
+  out = { "cstate.last_colony_id(" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "ustate.last_u";
+  out = { "ustate.last_unit_id(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.";

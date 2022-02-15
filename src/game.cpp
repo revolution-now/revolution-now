@@ -13,8 +13,10 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "conductor.hpp"
+#include "game-state.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "plane.hpp"
 #include "save-game.hpp"
 #include "turn.hpp"
 
@@ -54,14 +56,16 @@ wait<> run_loaded_game() {
 wait<> run_existing_game() {
   lua_reload();
   CHECK_HAS_VALUE( load_game( 0 ) );
+  reinitialize_planes();
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
 
 wait<> run_new_game() {
   lua_reload();
-  default_construct_savegame_state();
+  default_construct_game_state();
   run_lua_startup_main();
+  reinitialize_planes();
 
   // 1. Take user through game setup/configuration.
 

@@ -1,0 +1,23 @@
+# ===============================================================
+# viewport.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-13.
+#
+# Description: RDS definitions for the viewport module.
+#
+# ===============================================================
+namespace rn {
+namespace wrapped {
+
+struct SmoothViewport {
+  zoom:     double
+  center_x: double
+  center_y: double
+
+  _features: [equality, validation]
+}
+
+} # namespace wrapped
+} # namespace rn

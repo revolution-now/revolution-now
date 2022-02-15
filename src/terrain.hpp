@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fb.hpp"
 #include "land-square.hpp"
 #include "tx.hpp"
 

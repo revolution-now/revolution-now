@@ -15,22 +15,19 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "error.hpp"
-#include "fb.hpp"
-#include "id.hpp"
+#include "expect.hpp"
 #include "macros.hpp"
 #include "typed-int.hpp"
+#include "unit-id.hpp"
 #include "util.hpp"
 #include "variant.hpp"
 
 // Rds
-#include "rds/cargo.hpp"
+#include "cargo.rds.hpp"
 
 // base
 #include "base/adl-tag.hpp"
 #include "base/variant.hpp"
-
-// Flatbuffers
-#include "fb/cargo_generated.h"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -42,36 +39,22 @@ TYPED_INDEX( CargoSlotIndex );
 
 // Friends.
 namespace rn {
-void      ustate_change_to_cargo( UnitId new_holder, UnitId held,
-                                  int slot );
-void      add_commodity_to_cargo( Commodity const& comm,
-                                  UnitId holder, int slot,
-                                  bool try_other_slots );
+
+void add_commodity_to_cargo( Commodity const& comm,
+                             UnitId holder, int slot,
+                             bool try_other_slots );
+
 Commodity rm_commodity_from_cargo( UnitId holder, int slot );
-namespace internal {
-void ustate_disown_unit( UnitId id );
-} // namespace internal
+
 } // namespace rn
 
 namespace rn {
 
-class ND CargoHold {
+class CargoHold {
  public:
   CargoHold() = default; // for serialization framework.
-  explicit CargoHold( int num_slots ) : slots_( num_slots ) {
-    check_invariants_or_abort();
-  }
 
-  // TODO: eventually we should change this to noexcept(false)
-  // and throw an exception from it (after logging an error) if
-  // it is called with items in the cargo (probably an indication
-  // of a logic error in the program.
-  ~CargoHold();
-
-  // We need this so that structures containing this CargoHold
-  // can be moved.
-  CargoHold( CargoHold&& ) = default;
-  CargoHold& operator=( CargoHold&& ) = default;
+  explicit CargoHold( int num_slots );
 
   bool operator==( CargoHold const& ) const = default;
 
@@ -92,8 +75,8 @@ class ND CargoHold {
 
   int max_commodity_per_cargo_slot() const;
 
-  auto begin() const { return slots_.begin(); }
-  auto end() const { return slots_.end(); }
+  auto begin() const { return o_.slots.begin(); }
+  auto end() const { return o_.slots.end(); }
 
   maybe<CargoSlot_t const&> at( int slot ) const;
   maybe<CargoSlot_t const&> at( CargoSlotIndex slot ) const;
@@ -101,7 +84,7 @@ class ND CargoHold {
   CargoSlot_t const& operator[]( int idx ) const;
   CargoSlot_t const& operator[]( CargoSlotIndex idx ) const;
   std::vector<CargoSlot_t> const& slots() const {
-    return slots_;
+    return o_.slots;
   }
 
   template<typename T>
@@ -174,31 +157,24 @@ class ND CargoHold {
   // units first.
   void compactify();
 
-  std::string debug_string() const;
+  // Implement refl::WrapsReflected.
+  CargoHold( wrapped::CargoHold&& o ) : o_( std::move( o ) ) {}
+  wrapped::CargoHold const&         refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "CargoHold";
 
-  // We can only validate fully after all units are loaded, so
-  // just return success here, and then expect that the unit
-  // state validation checks all of these.
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
-
-  // FIXME: fix naming of these functions.
-  valid_deserial_t check_invariants_post_load() const;
-
-  friend void to_str( CargoHold const& o, std::string& out,
-                      base::ADL_t );
+  // These are to be called after all game state has been loaded,
+  // because they need access to units. The wrapped (reflected)
+  // object will do some validation that does not require that
+  // access, and that is called by this method before it starts
+  // its own validation.
+  valid_or<generic_err> validate() const;
+  void                  validate_or_die() const;
 
  protected:
-  valid_or<generic_err> check_invariants() const;
-  void                  check_invariants_or_abort() const;
-
-  // ------------------------------------------------------------
-  // These are the only functions that should be allowed to add
-  // or remove units to/from the cargo.
-  friend void ustate_change_to_cargo( UnitId new_holder,
-                                      UnitId held, int slot );
-  friend void internal::ustate_disown_unit( UnitId id );
+  // These friend classes/functions are the only ones that should
+  // be allowed to add or remove units to/from the cargo.
+  friend struct UnitsState;
 
   // These are the only functions that should be allowed to add
   // or remove commodities to/from the cargo.
@@ -240,15 +216,7 @@ class ND CargoHold {
 
   CargoSlot_t& operator[]( int idx );
 
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, CargoHold,
-  // This will be of fixed length (number of total slots).
-  ( std::vector<CargoSlot_t>, slots_ ));
-  // clang-format on
-
- private:
-  CargoHold( CargoHold const& ) = default; // !! default
-  CargoHold operator=( CargoHold const& ) = delete;
+  wrapped::CargoHold o_;
 };
 NOTHROW_MOVE( CargoHold );
 
@@ -257,7 +225,7 @@ NOTHROW_MOVE( CargoHold );
 template<typename T>
 std::vector<T> CargoHold::items_of_type() const {
   std::vector<T> res;
-  for( auto const& slot : slots_ ) {
+  for( auto const& slot : o_.slots ) {
     if( auto* cargo = std::get_if<CargoSlot::cargo>( &slot ) )
       if( auto* val = std::get_if<T>( &( cargo->contents ) ) )
         res.emplace_back( *val );
@@ -268,7 +236,7 @@ std::vector<T> CargoHold::items_of_type() const {
 template<typename T>
 int CargoHold::count_items_of_type() const {
   int count = 0;
-  for( auto const& slot : slots_ ) {
+  for( auto const& slot : o_.slots ) {
     if( auto* cargo = std::get_if<CargoSlot::cargo>( &slot ) )
       if( auto* val = std::get_if<T>( &( cargo->contents ) ) )
         ++count;
@@ -280,7 +248,7 @@ template<typename T>
 maybe<T const&> CargoHold::slot_holds_cargo_type(
     int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
-  return slots_[idx]
+  return o_.slots[idx]
       .get_if<CargoSlot::cargo>()
       .member( &CargoSlot::cargo::contents )
       .get_if<T>();

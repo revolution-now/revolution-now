@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fb.hpp"
 #include "lua-enum.hpp"
 #include "maybe.hpp"
 #include "typed-int.hpp"
@@ -23,16 +22,13 @@
 #include "rcl/ext.hpp"
 
 // Rds
-#include "rds/coord.hpp"
+#include "coord.rds.hpp"
 
 // luapp
 #include "luapp/ext.hpp"
 
 // base
 #include "base/adl-tag.hpp"
-
-// Flatbuffers
-#include "fb/coord_generated.h"
 
 // c++ standard library
 #include <cmath>
@@ -72,11 +68,8 @@ struct ND Scale {
 NOTHROW_MOVE( Scale );
 
 struct ND Delta {
-  SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );
-
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  W w;
+  H h;
 
   constexpr Delta() = default;
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
@@ -172,13 +165,10 @@ struct ND Delta {
 NOTHROW_MOVE( Delta );
 
 struct ND Coord {
-  SERIALIZABLE_STRUCT_MEMBERS( Coord, ( Y, y ), ( X, x ) );
+  Y y;
+  X x;
 
  public:
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
-
   Coord() = default;
   Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}
   Coord( Y y_, X x_ ) : y( y_ ), x( x_ ) {}
@@ -260,12 +250,10 @@ NOTHROW_MOVE( Coord );
 class RectGridProxyIteratorHelper;
 
 struct ND Rect {
-  SERIALIZABLE_STRUCT_MEMBERS( Rect, ( X, x ), ( Y, y ),
-                               ( W, w ), ( H, h ) );
-
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  X x;
+  Y y;
+  W w;
+  H h;
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );

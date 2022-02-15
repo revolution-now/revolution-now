@@ -15,8 +15,14 @@
 // Revolution Now
 #include "coord.hpp"
 #include "error.hpp"
-#include "fb.hpp"
 #include "strong-span.hpp"
+
+// refl
+#include "refl/cdr.hpp"
+
+// Cdr
+#include "cdr/converter.hpp"
+#include "cdr/ext.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -107,67 +113,61 @@ class Matrix {
   }
 };
 
-namespace serial {
-
-template<typename Hint, typename T>
-auto serialize( FBBuilder& builder, Matrix<T> const& m,
-                serial::ADL ) {
-  auto size   = m.size();
-  auto s_size = serialize<fb_serialize_hint_t<
-      decltype( std::declval<Hint>().size() )>>( builder, size,
-                                                 serial::ADL{} );
-
+template<cdr::ToCanonical T>
+cdr::value to_canonical( cdr::converter&  conv,
+                         Matrix<T> const& m,
+                         cdr::tag_t<Matrix<T>> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "size", m.size() );
+  bool do_not_write_defaults =
+      !conv.opts().write_fields_with_default_value;
   std::vector<std::pair<Coord, T>> data;
-  data.reserve( size_t( size.area() ) );
-  for( auto const& c : m.rect() ) {
+  data.reserve( m.size().area() );
+  for( Coord c : m.rect() ) {
     T const&       elem = m[c];
     static const T def{};
-    if( elem == def ) continue;
+    if( do_not_write_defaults && elem == def ) continue;
     data.emplace_back( c, elem );
   }
-  auto s_data = serialize<fb_serialize_hint_t<
-      decltype( std::declval<Hint>().data() )>>( builder, data,
-                                                 serial::ADL{} );
-
-  return ReturnValue{ Hint::Traits::Create(
-      builder, s_size.get(), s_data.get() ) };
+  conv.to_field( tbl, "data", data );
+  return cdr::value{ std::move( tbl ) };
 }
 
-template<typename SrcT, typename T>
-valid_deserial_t deserialize( SrcT const* src, Matrix<T>* m,
-                              serial::ADL ) {
-  // SrcT should be a table with a `size` field of type Delta and
-  // a `data` field which is a flatbuffers Vector of a pair-like
-  // object containing a Coord and the matrix element itself.
-  if( src == nullptr ) {
-    // `dst` should be in its default-constructed state, which is
-    // an empty map.
-    return valid;
-  }
+template<cdr::FromCanonical T>
+cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
+                                       cdr::value const& v,
+                                       cdr::tag_t<Matrix<T>> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  std::unordered_set<std::string> used_keys;
+  UNWRAP_RETURN(
+      size, conv.from_field<Delta>( tbl, "size", used_keys ) );
+  UNWRAP_RETURN(
+      data, conv.from_field<std::vector<std::pair<Coord, T>>>(
+                tbl, "data", used_keys ) );
 
-  VERIFY_DESERIAL( src->data() != nullptr, "data is null" );
+  bool allow_missing_coords =
+      conv.opts().default_construct_missing_fields;
 
-  Delta size;
-  HAS_VALUE_OR_RET(
-      deserialize( src->size(), &size, serial::ADL{} ) );
+  if( size.area() < int( data.size() ) )
+    return conv.err(
+        "serialized matrix has more coordinates in 'data' ({}) "
+        "then are allowed by the 'size' ({}).",
+        data.size(), size.area() );
 
-  VERIFY_DESERIAL(
-      ( size.area() == 0 ) == ( src->data()->size() == 0 ),
-      "inconsistent sizes" );
+  if( !allow_missing_coords )
+    if( size.area() != int( data.size() ) )
+      return conv.err(
+          "inconsistent sizes between 'size' field and 'data' "
+          "field ('size' implies {} while 'data' implies {}).",
+          size.area(), data.size() );
 
-  if( size.area() == 0 ) return valid;
-
-  std::vector<std::pair<Coord, T>> data;
-  HAS_VALUE_OR_RET(
-      deserialize( src->data(), &data, serial::ADL{} ) );
-
-  *m = Matrix<T>( size );
+  Matrix<T> res( size );
   for( auto& [coord, elem] : data )
-    ( *m )[coord] = std::move( elem );
+    res[coord] = std::move( elem );
 
-  return valid;
+  // TODO: figure out if implicit move would apply here only is-
+  // suing a `return res`.
+  return cdr::result<Matrix<T>>( std::move( res ) );
 }
-
-} // namespace serial
 
 } // namespace rn

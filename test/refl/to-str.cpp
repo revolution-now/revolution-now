@@ -14,7 +14,7 @@
 #include "src/refl/to-str.hpp"
 
 // rds
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
 
 // base
 #include "base/to-str-ext-std.hpp"

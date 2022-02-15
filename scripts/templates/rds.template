@@ -30,7 +30,7 @@ sumtype.MyVariant {
   third {
     s: 'std::string'
   }
-  # No features listed defaults to 'formattable' and 'equality'.
+  # No features listed defaults to 'equality'.
 }
 
 sumtype.MyTemplateVariant._template: [T, U]
@@ -44,7 +44,7 @@ sumtype.MyTemplateVariant {
     u: 'U'
   }
 
-  _features: [serializable, equality, formattable]
+  _features: [equality]
 }
 
 enum.e_menu [

@@ -13,13 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "id.hpp"
 #include "macros.hpp"
+#include "unit-id.hpp"
 #include "unit.hpp"
 #include "views.hpp"
 
 // Rds
-#include "rds/game-ui-views.hpp"
+#include "game-ui-views.rds.hpp"
 
 // C++ standard library
 #include <memory>

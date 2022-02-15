@@ -40,78 +40,6 @@ namespace {
 
 using ::base::maybe;
 
-// Parameters:
-//   - member_var_name
-constexpr string_view kSumtypeAlternativeMemberSerial = R"xyz(
-    auto s_{member_var_name} = serialize<::rn::serial::fb_serialize_hint_t<
-        decltype( std::declval<fb_target_t>().{member_var_name}() )>>(
-        builder, {member_var_name}, ::rn::serial::ADL{{}} );
-)xyz";
-
-// Parameters:
-//   - member_var_name
-constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
-    HAS_VALUE_OR_RET( deserialize(
-        ::rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
-        &dst->{member_var_name}, ::rn::serial::ADL{{}} ) );
-)xyz";
-
-// Parameters:
-//   - sumtype_name
-//   - alt_name
-//   - members_serialization
-//   - members_deserialization
-//   - members_s_get:
-//       Vertical comma-separated list of "s_<member>.get()"
-constexpr string_view kSumtypeAlternativeSerial = R"xyz(
-  using fb_target_t = fb::{sumtype_name}::{alt_name};
-
-  rn::serial::FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
-      rn::serial::FBBuilder& builder ) const {{
-    using ::rn::serial::serialize;
-    {members_serialization}
-    // We must always serialize this table even if it is
-    // empty/default-valued because, for variants, its presence
-    // indicates that it is the active alternative.
-    return fb::{sumtype_name}::Create{alt_name}( builder
-        {members_s_get}
-    );
-  }}
-
-  static ::rn::valid_deserial_t deserialize_table(
-      fb::{sumtype_name}::{alt_name} const& src,
-      {alt_name}* dst ) {{
-    (void)src;
-    (void)dst;
-    DCHECK( dst );
-    using ::rn::serial::deserialize;
-    {members_deserialization}
-    return ::rn::valid;
-  }}
-
-  ::rn::valid_deserial_t check_invariants_safe() const {{
-    return ::rn::valid;
-  }}
-)xyz";
-
-void remove_common_space_prefix( vector<string>* lines ) {
-  if( lines->empty() ) return;
-  size_t min_spaces = 10000000;
-  for( string_view sv : *lines ) {
-    size_t first = sv.find_first_not_of( ' ' );
-    if( first == string_view::npos ) continue;
-    min_spaces = std::min( first, min_spaces );
-  }
-  for( string& s : *lines ) {
-    if( string_view( s ).find_first_not_of( ' ' ) ==
-        string_view::npos )
-      // Either empty or just spaces.
-      continue;
-    string new_s( s.begin() + min_spaces, s.end() );
-    s = std::move( new_s );
-  }
-}
-
 template<typename Range, typename Projection, typename Default>
 auto max_of( Range&& rng, Projection&& proj, Default value )
     -> invoke_result_t<Projection,
@@ -314,19 +242,6 @@ struct CodeGenerator {
     flush();
   }
 
-  template<typename... Args>
-  void emit_code_block( string_view fmt_str, Args&&... args ) {
-    string formatted     = fmt::format( fmt::runtime( fmt_str ),
-                                        forward<Args>( args )... );
-    vector<string> lines = absl::StrSplit( formatted, "\n" );
-    remove_common_space_prefix( &lines );
-    if( lines.empty() ) return;
-    int i = 0;
-    // Remove the first line if it's empty.
-    if( lines[0].empty() ) i = 1;
-    for( ; i < int( lines.size() ); ++i ) line( lines[i] );
-  }
-
   void emit_template_decl(
       vector<expr::TemplateParam> const& tmpls ) {
     if( tmpls.empty() ) return;
@@ -360,11 +275,11 @@ struct CodeGenerator {
 
   void emit_sumtype_alternative(
       vector<expr::TemplateParam> const& tmpls,
-      expr::Alternative const& alt, string_view sumtype_name,
-      bool emit_equality, bool emit_serialization ) {
+      expr::Alternative const& alt, bool emit_equality,
+      bool emit_validation ) {
     emit_template_decl( tmpls );
     if( alt.members.empty() && !emit_equality &&
-        !emit_serialization ) {
+        !emit_validation ) {
       line( "struct {} {{}};", alt.name );
     } else {
       line( "struct {} {{", alt.name );
@@ -393,31 +308,12 @@ struct CodeGenerator {
               "default;",
               alt.name );
         }
-        if( emit_serialization ) {
-          string member_serials;
-          string member_deserials;
-          string members_s_get;
-          for( expr::StructMember const& alt_mem :
-               alt.members ) {
-            member_serials += fmt::format(
-                kSumtypeAlternativeMemberSerial,
-                fmt::arg( "member_var_name", alt_mem.var ) );
-            member_deserials += fmt::format(
-                kSumtypeAlternativeMemberDeserial,
-                fmt::arg( "member_var_name", alt_mem.var ) );
-            members_s_get +=
-                fmt::format( ", s_{}.get()", alt_mem.var );
-          }
-
-          emit_code_block(
-              kSumtypeAlternativeSerial,
-              fmt::arg( "sumtype_name", sumtype_name ),
-              fmt::arg( "alt_name", alt.name ),
-              fmt::arg( "members_serialization",
-                        member_serials ),
-              fmt::arg( "members_deserialization",
-                        member_deserials ),
-              fmt::arg( "members_s_get", members_s_get ) );
+        if( emit_validation ) {
+          newline();
+          comment( "Validates invariants among members." );
+          comment( "defined in some translation unit." );
+          line(
+              "base::valid_or<std::string> validate() const;" );
         }
       }
       line( "};" );
@@ -595,9 +491,7 @@ struct CodeGenerator {
         if( item_has_feature( strukt,
                               expr::e_feature::validation ) ) {
           newline();
-          comment(
-              "Validates invariants among members.  Must be "
-              "manually" );
+          comment( "Validates invariants among members." );
           comment( "defined in some translation unit." );
           line(
               "base::valid_or<std::string> validate() const;" );
@@ -625,11 +519,11 @@ struct CodeGenerator {
            sumtype.alternatives ) {
         bool emit_equality = item_has_feature(
             sumtype, expr::e_feature::equality );
-        bool emit_serialization = item_has_feature(
-            sumtype, expr::e_feature::serializable );
+        bool emit_validation = item_has_feature(
+            sumtype, expr::e_feature::validation );
         emit_sumtype_alternative( sumtype.tmpl_params, alt,
-                                  sumtype.name, emit_equality,
-                                  emit_serialization );
+                                  emit_equality,
+                                  emit_validation );
         newline();
       }
       emit_enum_for_sumtype( sumtype.alternatives );
@@ -692,14 +586,6 @@ struct CodeGenerator {
     newline();
   }
 
-  void emit_imports( vector<string> const& imports ) {
-    if( imports.empty() ) return;
-    section( "Imports" );
-    for( string const& import : imports )
-      line( "#include \"rds/{}.hpp\"", import );
-    newline();
-  }
-
   bool rds_has_sumtype_feature(
       expr::Rds const& rds, expr::e_feature target_feature ) {
     for( expr::Item const& item : rds.items ) {
@@ -759,11 +645,6 @@ struct CodeGenerator {
     return false;
   }
 
-  bool rds_needs_serial_header( expr::Rds const& rds ) {
-    return rds_has_sumtype_feature(
-        rds, expr::e_feature::serializable );
-  }
-
   void emit_includes( expr::Rds const& rds ) {
     section( "Includes" );
     if( !rds.includes.empty() ) {
@@ -775,13 +656,6 @@ struct CodeGenerator {
 
     comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
-    if( rds_has_sumtype( rds ) )
-      line( "#include \"rds/helper/sumtype-helper.hpp\"" );
-    if( rds_needs_serial_header( rds ) ) {
-      line( "#include \"error.hpp\"" );
-      line( "#include \"fb.hpp\"" );
-    }
-    if( rds_has_enum( rds ) ) line( "#include \"maybe.hpp\"" );
     line( "" );
     comment( "refl" );
     line( "#include \"refl/ext.hpp\"" );
@@ -790,9 +664,9 @@ struct CodeGenerator {
       comment( "base" );
       line( "#include \"base/variant.hpp\"" );
     }
-    line( "" );
-    comment( "base-util" );
-    line( "#include \"base-util/mp.hpp\"" );
+    // line( "" );
+    // comment( "base-util" );
+    // line( "#include \"base-util/mp.hpp\"" );
     line( "" );
     comment( "C++ standard library" );
     if( rds_has_enum( rds ) ) line( "#include <array>" );
@@ -820,7 +694,6 @@ struct CodeGenerator {
 
   void emit_rds( expr::Rds const& rds ) {
     emit_preamble();
-    emit_imports( rds.imports );
     emit_includes( rds );
     emit_metadata( rds );
 

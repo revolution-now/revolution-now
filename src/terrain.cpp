@@ -12,14 +12,14 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fb.hpp"
+#include "game-state.hpp"
 #include "gfx.hpp"
+#include "gs-terrain.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "matrix.hpp"
-#include "sg-macros.hpp"
 #include "tiles.hpp"
 
 // luapp
@@ -28,14 +28,9 @@
 // refl
 #include "refl/to-str.hpp"
 
-// Flatbuffers
-#include "fb/sg-terrain_generated.h"
-
 using namespace std;
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 
 namespace {
 
@@ -45,28 +40,6 @@ bool g_show_grid       = false;
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-struct SAVEGAME_STRUCT( Terrain ) {
-  // Fields that are actually serialized.
-  // clang-format off
-  SAVEGAME_MEMBERS( Terrain,
-  ( Matrix<LandSquare>, world_map ));
-  // clang-format on
-
- public:
-  // Fields that are derived from the serialized fields.
-
- private:
-  SAVEGAME_FRIENDS( Terrain );
-  SAVEGAME_SYNC() {
-    // Sync all fields that are derived from serialized fields
-    // and then validate (check invariants).
-    return valid;
-  }
-  // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return valid; }
-};
-SAVEGAME_IMPL( Terrain );
-
 constexpr Scale terrain_block_size{ 50_sx, 50_sy };
 
 static_assert( world_size % terrain_block_size == Delta{} );
@@ -118,22 +91,23 @@ REGISTER_INIT_ROUTINE( terrain );
 } // namespace
 
 void generate_terrain() {
-  LandSquare const L = LandSquare{ e_surface::land };
+  TerrainState&    terrain_state = GameState::terrain();
+  LandSquare const L             = LandSquare{ e_surface::land };
   LandSquare const O = LandSquare{ e_surface::water };
 
-  auto& world_map = SG().world_map;
+  auto& world_map = terrain_state.world_map;
   // FIXME
   world_map = Matrix<LandSquare>( world_size );
 
-  for( auto const& coord : SG().world_map.rect() )
+  for( auto const& coord : terrain_state.world_map.rect() )
     world_map[coord] = O;
 
   auto make_squares = [&]( Coord origin ) {
     for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
       for( X x = origin.x; x < origin.x + 4_w; ++x )
-        SG().world_map[y][x] = L;
+        terrain_state.world_map[y][x] = L;
       for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
-        SG().world_map[y][x] = L;
+        terrain_state.world_map[y][x] = L;
     }
   };
 
@@ -197,7 +171,10 @@ void render_terrain( Rect src_tiles, Texture& dest,
   f( src_tiles, dest, dest_pixel_coord );
 }
 
-Delta world_size_tiles() { return SG().world_map.size(); }
+Delta world_size_tiles() {
+  TerrainState& terrain_state = GameState::terrain();
+  return terrain_state.world_map.size();
+}
 
 Delta world_size_pixels() {
   auto delta = world_size_tiles();
@@ -224,8 +201,9 @@ bool square_exists( Coord coord ) {
 }
 
 maybe<LandSquare const&> maybe_square_at( Coord coord ) {
+  TerrainState& terrain_state = GameState::terrain();
   if( !square_exists( coord.y, coord.x ) ) return nothing;
-  return SG().world_map[coord.y][coord.x];
+  return terrain_state.world_map[coord.y][coord.x];
 }
 
 LandSquare const& square_at( Coord coord ) {
@@ -248,12 +226,13 @@ void generate_unittest_terrain() {
   LandSquare const L = LandSquare{ e_surface::land };
   LandSquare const O = LandSquare{ e_surface::water };
 
-  auto& world_map = SG().world_map;
-  world_map       = Matrix<LandSquare>( 10_w, 10_h );
+  TerrainState& terrain_state = GameState::terrain();
+  auto&         world_map     = terrain_state.world_map;
+  world_map                   = Matrix<LandSquare>( 10_w, 10_h );
 
   Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
 
-  for( auto const& coord : SG().world_map.rect() ) {
+  for( auto const& coord : terrain_state.world_map.rect() ) {
     world_map[coord] = O;
     if( coord.is_inside( land_rect ) ) world_map[coord] = L;
   }
@@ -265,10 +244,11 @@ void generate_unittest_terrain() {
 namespace {
 
 LUA_FN( toggle_surface, void, Coord const& coord ) {
-  CHECK( coord.is_inside( SG().world_map.rect() ),
+  TerrainState& terrain_state = GameState::terrain();
+  CHECK( coord.is_inside( terrain_state.world_map.rect() ),
          "coordinate {} is out of bounds.", coord );
-  SG().world_map[coord].surface =
-      SG().world_map[coord].surface == e_surface::land
+  terrain_state.world_map[coord].surface =
+      terrain_state.world_map[coord].surface == e_surface::land
           ? e_surface::water
           : e_surface::land;
   invalidate_caches();

@@ -23,6 +23,8 @@
 #include "cdr/converter.hpp"
 #include "cdr/ext-builtin.hpp"
 
+using namespace std;
+
 namespace rn {
 
 namespace {} // namespace
@@ -42,11 +44,10 @@ void to_str( MovementPoints const& o, std::string& out,
                      o.points_atoms % o.factor, o.factor );
 }
 
-valid_deserial_t MovementPoints::check_invariants_safe() const {
-  if( points_atoms < 0 )
-    return invalid_deserial(
-        "MovementPoints object has negative points" );
-  return valid;
+base::valid_or<string> MovementPoints::validate() const {
+  RETURN_IF_FALSE( points_atoms >= 0,
+                   "MovementPoints object has negative points" );
+  return base::valid;
 }
 
 maybe<MovementPoints> lua_get( lua::cthread L, int idx,

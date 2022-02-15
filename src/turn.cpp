@@ -16,7 +16,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "cstate.hpp"
-#include "fb.hpp"
+#include "game-state.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
@@ -26,12 +26,15 @@
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
 #include "save-game.hpp"
-#include "sg-macros.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+
+// Rds
+#include "gs-turn.rds.hpp"
+#include "turn-impl.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -40,9 +43,6 @@
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
-
-// Flatbuffers
-#include "fb/sg-turn_generated.h"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -55,8 +55,6 @@
 using namespace std;
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Turn );
 
 namespace {
 
@@ -91,72 +89,29 @@ using UserInput = base::variant< //
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-struct NationState {
-  NationState() = default;
-  NationState( e_nation nat ) : NationState() { nation = nat; }
-  valid_deserial_t check_invariants_safe() { return valid; }
+NationTurn new_nation_turn_obj( e_nation nat ) {
+  return NationTurn{
+      .nation       = nat,
+      .started      = false,
+      .did_colonies = false,
+      .did_units    = false, // FIXME: do we need this?
+      .units        = {},
+  };
+}
 
-  bool operator==( NationState const& ) const = default;
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, NationState,
-  ( e_nation,      nation       ),
-  ( bool,          started      ),
-  ( bool,          did_colonies ),
-  ( bool,          did_units    ), // FIXME: do we need this?
-  ( deque<UnitId>, units        ));
-  // clang-format on
-};
-
-struct TurnState {
-  TurnState() = default;
-
-  void new_turn() {
-    started   = false;
-    need_eot  = true;
-    nation    = nothing;
-    remainder = {};
-    remainder.push( e_nation::english );
-    remainder.push( e_nation::french );
-    remainder.push( e_nation::dutch );
-    remainder.push( e_nation::spanish );
-  }
-
-  bool operator==( TurnState const& ) const = default;
-  valid_deserial_t check_invariants_safe() { return valid; }
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, TurnState,
-  ( bool,                 started   ),
-  ( bool,                 need_eot  ),
-  ( maybe<NationState>,   nation    ),
-  ( queue<e_nation>,      remainder ));
-  // clang-format on
-};
-
-struct SAVEGAME_STRUCT( Turn ) {
-  // Fields that are actually serialized.
-
-  // clang-format off
-  SAVEGAME_MEMBERS( Turn,
-  ( TurnState, turn ));
-  // clang-format on
-
- public:
-  // Fields that are derived from the serialized fields.
-
- private:
-  SAVEGAME_FRIENDS( Turn );
-  SAVEGAME_SYNC() {
-    // Sync all fields that are derived from serialized fields
-    // and then validate (check invariants).
-
-    return valid;
-  }
-  // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return valid; }
-};
-SAVEGAME_IMPL( Turn );
+TurnState new_turn() {
+  queue<e_nation> remainder;
+  remainder.push( e_nation::english );
+  remainder.push( e_nation::french );
+  remainder.push( e_nation::dutch );
+  remainder.push( e_nation::spanish );
+  return TurnState{
+      .started   = false,
+      .need_eot  = true,
+      .nation    = nothing,
+      .remainder = std::move( remainder ),
+  };
+}
 
 /****************************************************************
 ** Menu Handlers
@@ -371,8 +326,8 @@ wait<> process_player_input( UnitId, e_menu_actions action ) {
 
 wait<> process_player_input(
     UnitId id, LandViewPlayerInput_t const& input ) {
-  CHECK( SG().turn.nation );
-  auto& st = *SG().turn.nation;
+  CHECK( GameState::turn().nation );
+  auto& st = *GameState::turn().nation;
   auto& q  = st.units;
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
@@ -476,8 +431,8 @@ wait<LandViewPlayerInput_t> landview_player_input( UnitId id ) {
         .orders = *maybe_orders };
   } else {
     lg.debug( "asking orders for: {}", debug_string( id ) );
-    SG().turn.need_eot = false;
-    response           = co_await landview_get_next_input( id );
+    GameState::turn().need_eot = false;
+    response = co_await landview_get_next_input( id );
   }
   co_return response;
 }
@@ -592,8 +547,8 @@ wait<> units_turn_one_pass( deque<UnitId>& q ) {
 }
 
 wait<> units_turn() {
-  CHECK( SG().turn.nation );
-  auto& st = *SG().turn.nation;
+  CHECK( GameState::turn().nation );
+  auto& st = *GameState::turn().nation;
   auto& q  = st.units;
 
   // Unsentry any units that are sentried but have foreign units
@@ -631,8 +586,8 @@ wait<> units_turn() {
 ** Per-Colony Turn Processor
 *****************************************************************/
 wait<> colonies_turn() {
-  CHECK( SG().turn.nation );
-  auto& st = *SG().turn.nation;
+  CHECK( GameState::turn().nation );
+  auto& st = *GameState::turn().nation;
   lg.info( "processing colonies for the {}.", st.nation );
   queue<ColonyId> colonies;
   for( ColonyId colony_id : colonies_all( st.nation ) )
@@ -648,8 +603,8 @@ wait<> colonies_turn() {
 ** Per-Nation Turn Processor
 *****************************************************************/
 wait<> nation_turn() {
-  CHECK( SG().turn.nation );
-  auto& st = *SG().turn.nation;
+  CHECK( GameState::turn().nation );
+  auto& st = *GameState::turn().nation;
 
   // Starting.
   if( !st.started ) {
@@ -675,13 +630,13 @@ wait<> nation_turn() {
 *****************************************************************/
 wait<> next_turn_impl() {
   landview_start_new_turn();
-  auto& st = SG().turn;
+  auto& st = GameState::turn();
 
   // Starting.
   if( !st.started ) {
     print_bar( '=', "[ Starting Turn ]" );
     map_units( []( Unit& unit ) { unit.new_turn(); } );
-    st.new_turn();
+    st         = new_turn();
     st.started = true;
   }
 
@@ -692,7 +647,7 @@ wait<> next_turn_impl() {
   }
 
   while( !st.remainder.empty() ) {
-    st.nation = NationState( st.remainder.front() );
+    st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
     co_await nation_turn();
     st.nation.reset();
@@ -701,7 +656,7 @@ wait<> next_turn_impl() {
   // Ending.
   if( st.need_eot ) co_await end_of_turn();
 
-  st.new_turn();
+  st = new_turn();
 }
 
 } // namespace

@@ -13,6 +13,8 @@
 // Revolution Now
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "lua.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
@@ -237,7 +239,8 @@ TEST_CASE( "[colony-mgr] create colony in water fails" ) {
   Coord coord   = { 1_x, 1_y };
   auto  ship_id = create_ship( coord );
   auto  unit_id = create_colonist();
-  ustate_change_to_cargo_somewhere( ship_id, unit_id );
+  GameState::units().change_to_cargo_somewhere( ship_id,
+                                                unit_id );
   REQUIRE( unit_can_found_colony( unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
 }
@@ -247,7 +250,7 @@ TEST_CASE(
   init_game_world_for_test();
 
   auto id = create_colonist();
-  ustate_change_to_old_world_view(
+  GameState::units().change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );

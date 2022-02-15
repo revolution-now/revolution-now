@@ -13,11 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "fb.hpp"
 #include "nation.hpp"
 
-// Flatbuffers
-#include "fb/player_generated.h"
+// Rds
+#include "player.rds.hpp"
 
 // Abseil
 #include "absl/types/span.h"
@@ -26,25 +25,21 @@ namespace rn {
 
 class Player {
  public:
-  Player() = default; // for serialization framework.
-  Player( e_nation nation, bool is_human, int money );
-  MOVABLE_ONLY( Player );
-  bool     operator==( Player const& ) const = default;
-  e_nation nation() const { return nation_; }
-  int      money() const { return money_; }
-  bool     is_human() const { return human_; }
+  Player() = default;
 
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  bool     operator==( Player const& ) const = default;
+  e_nation nation() const { return o_.nation; }
+  int      money() const { return o_.money; }
+  bool     is_human() const { return o_.human; }
+
+  // Implement refl::WrapsReflected.
+  Player( wrapped::Player&& o ) : o_( std::move( o ) ) {}
+  wrapped::Player const&            refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "Player";
 
  private:
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, Player,
-  ( e_nation, nation_ ),
-  ( bool,     human_ ),
-  ( int,      money_ ));
-  // clang-format on
+  wrapped::Player o_;
 };
 
 Player& player_for_nation( e_nation nation );

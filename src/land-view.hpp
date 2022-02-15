@@ -13,13 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "colony-id.hpp"
 #include "coord.hpp"
-#include "id.hpp"
+#include "unit-id.hpp"
 #include "wait.hpp"
 
 // Rds
-#include "rds/land-view.hpp"
-#include "rds/orders.hpp"
+#include "land-view.rds.hpp"
+#include "orders.rds.hpp"
 
 namespace rn {
 

@@ -19,6 +19,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gfx.hpp"
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -27,6 +28,9 @@
 #include "ustate.hpp"
 #include "views.hpp"
 #include "window.hpp"
+
+// Rds
+#include "gs-events.rds.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/units.inl"
@@ -502,7 +506,7 @@ class CargoView : public ui::View,
     overload_visit(
         cargo, //
         [this, slot_idx = slot_idx]( Cargo::unit u ) {
-          ustate_change_to_cargo_somewhere(
+          GameState::units().change_to_cargo_somewhere(
               *holder_, u.id, /*starting_slot=*/slot_idx );
         },
         [this,
@@ -586,7 +590,7 @@ class CargoView : public ui::View,
     overload_visit(
         cargo_to_remove,
         []( Cargo::unit held ) {
-          internal::ustate_disown_unit( held.id );
+          GameState::units().disown_unit( held.id );
         },
         [this]( Cargo::commodity const& to_remove ) {
           UNWRAP_CHECK(
@@ -798,8 +802,9 @@ class UnitsAtGateColonyView : public ui::View,
       Unit const& unit, Commodity const& comm ) {
     vector<UnitTransformationFromCommodityResult> possibilities =
         unit.with_commodity_added( comm );
-    adjust_for_independence_status( possibilities,
-                                    is_independence_declared() );
+    adjust_for_independence_status(
+        possibilities,
+        GameState::events().independence_declared );
 
     erase_if( possibilities, []( auto const& xform_res ) {
       for( auto [mod, _] : xform_res.modifier_deltas )
@@ -863,11 +868,12 @@ class UnitsAtGateColonyView : public ui::View,
         o, //
         [&]( ColViewObject::unit const& unit ) {
           if( target_unit ) {
-            ustate_change_to_cargo_somewhere(
+            GameState::units().change_to_cargo_somewhere(
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            ustate_change_to_map( unit.id, colony().location() );
+            GameState::units().change_to_map(
+                unit.id, colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -912,7 +918,7 @@ class UnitsAtGateColonyView : public ui::View,
 
   void disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
-    internal::ustate_disown_unit( unit_id );
+    GameState::units().disown_unit( unit_id );
   }
 
  private:

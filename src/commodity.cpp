@@ -121,13 +121,6 @@ string commodity_number_to_markup( int value ) {
 /****************************************************************
 ** Commodity
 *****************************************************************/
-valid_deserial_t Commodity::check_invariants_safe() const {
-  if( quantity <= 0 )
-    return invalid_deserial( fmt::format(
-        "Commodity quantity <= 0 ({})", quantity ) );
-  return valid;
-}
-
 Commodity Commodity::with_quantity( int new_quantity ) const {
   Commodity res = *this;
   res.quantity  = new_quantity;
@@ -192,7 +185,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
 
   Commodity res = std::move( comm.obj );
   cargo[slot]   = CargoSlot_t{ CargoSlot::empty{} };
-  cargo.check_invariants_or_abort();
+  cargo.validate_or_die();
   return res;
 }
 

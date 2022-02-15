@@ -16,10 +16,9 @@
 #include "coord.hpp"
 #include "macros.hpp"
 #include "maybe.hpp"
-#include "rds/helper/sumtype-helper.hpp"
 
 // Rds
-#include "rds/input.hpp"
+#include "input.rds.hpp"
 
 // base
 #include "base/adl-tag.hpp"

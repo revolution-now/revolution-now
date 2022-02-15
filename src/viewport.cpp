@@ -39,7 +39,15 @@ double pan_accel_drag_init() {
 } // namespace
 
 SmoothViewport::SmoothViewport()
-  : x_vel_(
+  : SmoothViewport( wrapped::SmoothViewport{
+        .zoom     = 1.0,
+        .center_x = 0.0,
+        .center_y = 0.0,
+    } ) {}
+
+SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
+  : o_( std::move( o ) ),
+    x_vel_(
         /*min_velocity=*/-config_rn.viewport.pan_speed,
         /*max_velocity=*/config_rn.viewport.pan_speed,
         /*initial_velocity=*/0,
@@ -65,24 +73,21 @@ SmoothViewport::SmoothViewport()
     smooth_center_{},
     zoom_point_seek_{},
     viewport_rect_pixels_{},
-    world_size_tiles_{},
-    zoom_( 1.0 ),
-    center_x_( 0 ),
-    center_y_( 0 ) {
+    world_size_tiles_{} {
   // !! NOTE: invariants will not be satisifed here; must call
   // advance_state() at least once after constructor to put the
   // object in a ready state.
 }
 
-valid_deserial_t SmoothViewport::check_invariants_safe() const {
-  VERIFY_DESERIAL( zoom_ >= 0.0,
-                   "zoom must be larger than zero" );
-  VERIFY_DESERIAL( zoom_ >= 0.0, "zoom must be less than one" );
-  VERIFY_DESERIAL( center_x_ >= 0.0,
-                   "x center must be larger than 0" );
-  VERIFY_DESERIAL( center_y_ >= 0.0,
-                   "y center must be larger than 0" );
-  return valid;
+base::valid_or<string> wrapped::SmoothViewport::validate()
+    const {
+  REFL_VALIDATE( zoom >= 0.0, "zoom must be larger than zero" );
+  REFL_VALIDATE( zoom >= 0.0, "zoom must be less than one" );
+  REFL_VALIDATE( center_x >= 0.0,
+                 "x center must be larger than 0" );
+  REFL_VALIDATE( center_y >= 0.0,
+                 "y center must be larger than 0" );
+  return base::valid;
 }
 
 void SmoothViewport::advance( e_push_direction x_push,
@@ -127,9 +132,9 @@ void SmoothViewport::advance( e_push_direction x_push,
     auto delta_y =
         .98 * ( ( zoom_point_seek_->y - center_rounded().y )._ *
                 log_zoom_change );
-    center_x_ += delta_x;
-    center_y_ += delta_y;
-    enforce_invariants();
+    o_.center_x += delta_x;
+    o_.center_y += delta_y;
+    fix_invariants();
   }
 }
 
@@ -200,23 +205,23 @@ void SmoothViewport::advance_state(
   // sizes or rescales the window.
   viewport_rect_pixels_ = viewport_rect_pixels;
   world_size_tiles_     = world_size_tiles;
-  enforce_invariants();
+  fix_invariants();
 
   advance( x_push_, y_push_, zoom_push_ );
 
   if( smooth_center_ ) {
-    advance_target_seeking( smooth_center_->x_target, center_x_,
-                            x_vel_,
+    advance_target_seeking( smooth_center_->x_target,
+                            o_.center_x, x_vel_,
                             translation_seeking_parameters );
-    advance_target_seeking( smooth_center_->y_target, center_y_,
-                            y_vel_,
+    advance_target_seeking( smooth_center_->y_target,
+                            o_.center_y, y_vel_,
                             translation_seeking_parameters );
     if( is_tile_fully_visible( smooth_center_->tile_target ) )
       smooth_center_->promise.set_value_emplace_if_not_set();
   }
 
   if( smooth_zoom_target_ ) {
-    if( advance_target_seeking( *smooth_zoom_target_, zoom_,
+    if( advance_target_seeking( *smooth_zoom_target_, o_.zoom,
                                 zoom_vel_,
                                 zoom_seeking_parameters ) )
       smooth_zoom_target_ = nothing;
@@ -225,7 +230,7 @@ void SmoothViewport::advance_state(
   x_push_    = e_push_direction::none;
   y_push_    = e_push_direction::none;
   zoom_push_ = e_push_direction::none;
-  enforce_invariants();
+  fix_invariants();
 }
 
 void SmoothViewport::set_x_push( e_push_direction push ) {
@@ -277,23 +282,23 @@ double SmoothViewport::minimum_zoom_for_viewport() {
 }
 
 double SmoothViewport::x_world_pixels_in_viewport() const {
-  return double( viewport_rect_pixels_.delta().w ) / zoom_;
+  return double( viewport_rect_pixels_.delta().w ) / o_.zoom;
 }
 double SmoothViewport::y_world_pixels_in_viewport() const {
-  return double( viewport_rect_pixels_.delta().h ) / zoom_;
+  return double( viewport_rect_pixels_.delta().h ) / o_.zoom;
 }
 
 double SmoothViewport::start_x() const {
-  return center_x_ - x_world_pixels_in_viewport() / 2;
+  return o_.center_x - x_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::start_y() const {
-  return center_y_ - y_world_pixels_in_viewport() / 2;
+  return o_.center_y - y_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::end_x() const {
-  return center_x_ + x_world_pixels_in_viewport() / 2;
+  return o_.center_x + x_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::end_y() const {
-  return center_y_ + y_world_pixels_in_viewport() / 2;
+  return o_.center_y + y_world_pixels_in_viewport() / 2;
 }
 X SmoothViewport::start_tile_x() const {
   return X( int( start_x() ) ) / g_tile_width;
@@ -309,8 +314,8 @@ Rect SmoothViewport::get_bounds() const {
 }
 
 Coord SmoothViewport::center_rounded() const {
-  return Coord{ X{ int( lround( center_x_ ) ) },
-                Y{ int( lround( center_y_ ) ) } };
+  return Coord{ X{ int( lround( o_.center_x ) ) },
+                Y{ int( lround( o_.center_y ) ) } };
 }
 
 // Number of tiles needed to be drawn in order to subsume the
@@ -347,10 +352,10 @@ Rect SmoothViewport::world_rect_tiles() const {
   return Rect::from( Coord{}, world_size_tiles_ );
 }
 
-void SmoothViewport::enforce_invariants() {
-  zoom_ = std::max( zoom_, config_rn.viewport.zoom_min );
+void SmoothViewport::fix_invariants() {
+  o_.zoom = std::max( o_.zoom, config_rn.viewport.zoom_min );
   if( !config_rn.viewport.can_reveal_space_around_map )
-    zoom_ = std::max( zoom_, minimum_zoom_for_viewport() );
+    o_.zoom = std::max( o_.zoom, minimum_zoom_for_viewport() );
   auto [size_x, size_y] = world_size_tiles_;
   size_y *= g_tile_height;
   size_x *= g_tile_width;
@@ -364,22 +369,22 @@ void SmoothViewport::enforce_invariants() {
   // allow the edges of the viewport to go off of the world.
   if( x_world_pixels_in_viewport() <= size_x ) {
     if( start_x() < 0 )
-      center_x_ = x_world_pixels_in_viewport() / 2;
+      o_.center_x = x_world_pixels_in_viewport() / 2;
     if( end_x() > double( size_x ) )
-      center_x_ = double( size_x ) -
-                  double( x_world_pixels_in_viewport() ) / 2;
+      o_.center_x = double( size_x ) -
+                    double( x_world_pixels_in_viewport() ) / 2;
   } else {
-    center_x_ =
+    o_.center_x =
         double( 0_x + this->world_size_pixels().w / 2_sx );
   }
   if( y_world_pixels_in_viewport() <= size_y ) {
     if( start_y() < 0 )
-      center_y_ = y_world_pixels_in_viewport() / 2;
+      o_.center_y = y_world_pixels_in_viewport() / 2;
     if( end_y() > double( size_y ) )
-      center_y_ = double( size_y ) -
-                  double( y_world_pixels_in_viewport() ) / 2;
+      o_.center_y = double( size_y ) -
+                    double( y_world_pixels_in_viewport() ) / 2;
   } else {
-    center_y_ =
+    o_.center_y =
         double( 0_y + this->world_size_pixels().h / 2_sy );
   }
 }
@@ -504,18 +509,18 @@ bool SmoothViewport::screen_coord_in_viewport(
 }
 
 void SmoothViewport::scale_zoom( double factor ) {
-  zoom_ *= factor;
-  enforce_invariants();
+  o_.zoom *= factor;
+  fix_invariants();
 }
 
-double SmoothViewport::get_zoom() const { return zoom_; }
+double SmoothViewport::get_zoom() const { return o_.zoom; }
 
 void SmoothViewport::pan( double down_up, double left_right,
                           bool scale ) {
-  double factor = scale ? zoom_ : 1.0;
-  center_x_ += left_right / factor;
-  center_y_ += down_up / factor;
-  enforce_invariants();
+  double factor = scale ? o_.zoom : 1.0;
+  o_.center_x += left_right / factor;
+  o_.center_y += down_up / factor;
+  fix_invariants();
 }
 
 void SmoothViewport::pan_by_screen_coords( Delta delta ) {
@@ -523,21 +528,21 @@ void SmoothViewport::pan_by_screen_coords( Delta delta ) {
 }
 
 void SmoothViewport::center_on_tile_x( Coord const& coords ) {
-  center_x_ =
+  o_.center_x =
       double( coords.x * g_tile_width + g_tile_width._ / 2 );
-  enforce_invariants();
+  fix_invariants();
 }
 
 void SmoothViewport::center_on_tile_y( Coord const& coords ) {
-  center_y_ =
+  o_.center_y =
       double( coords.y * g_tile_height + g_tile_height._ / 2 );
-  enforce_invariants();
+  fix_invariants();
 }
 
 void SmoothViewport::center_on_tile( Coord const& coords ) {
   center_on_tile_x( coords );
   center_on_tile_y( coords );
-  enforce_invariants();
+  fix_invariants();
 }
 
 bool SmoothViewport::is_tile_fully_visible(

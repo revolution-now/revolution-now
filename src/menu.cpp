@@ -54,8 +54,25 @@ namespace rn {
 
 namespace rl = ::base::rl;
 
-namespace {
+struct MenuCallbacks {
+  std::function<void( void )> on_click;
+  std::function<bool( void )> enabled;
+};
 
+} // namespace rn
+
+// FIXME: need to fix Rds key ordering issue in order to move
+// this into the rds file. Rds currently always emits sumtypes
+// before structs, which leads to an "unefined symbol" error. To
+// fix this we need to get Rds to preserve ordering of constructs
+// and namespaces when emitting code.
+//
+// Rds
+#include "menu-impl.rds.hpp"
+
+namespace rn {
+
+namespace {
 /****************************************************************
 ** Main Data Structures
 *****************************************************************/
@@ -64,7 +81,6 @@ struct Menu {
   bool   right_side;
   char   shortcut;
 };
-NOTHROW_MOVE( Menu );
 
 unordered_map<e_menu, Menu> g_menus{
     { e_menu::game, { "Game", false, 'G' } },
@@ -76,22 +92,6 @@ unordered_map<e_menu, Menu> g_menus{
     { e_menu::window, { "Window", false, 'W' } },
     { e_menu::debug, { "Debug", true, 'D' } },
     { e_menu::pedia, { "Revolopedia", true, 'R' } } };
-
-} // namespace
-
-struct MenuCallbacks {
-  function<void( void )> on_click;
-  function<bool( void )> enabled;
-};
-NOTHROW_MOVE( MenuCallbacks );
-
-} // namespace rn
-
-// Rds
-#include "rds/menu-impl.hpp"
-
-namespace rn {
-namespace {
 
 unordered_map<e_menu_item, MenuItem::menu_clickable*>
                                            g_menu_items;
@@ -1089,6 +1089,9 @@ struct MenuPlane : public Plane {
     // of the game to be initialized first to be on the safe/ro-
     // bust side (though theoretically this could probably be
     // done in the init_menu method).
+    //
+    // FIXME: move this stuff out of here into an init_menu
+    // method.
 
     // Render Menu and Menu-item names. These have to be done
     // first because other things need to be calculated from the

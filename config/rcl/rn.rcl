@@ -32,7 +32,3 @@ console {
 power {
   time_till_slow_fps: 60
 }
-
-flatbuffers {
-  include_path: "src/fb"
-}

@@ -15,23 +15,20 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "enum-map.hpp"
-#include "fb.hpp"
+#include "expect.hpp"
 #include "lua-enum.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
 // Rds
-#include "rds/utype.hpp"
+#include "utype.rds.hpp"
 
 // Rcl
 #include "rcl/ext.hpp"
 
 // base
 #include "base/adl-tag.hpp"
-
-// Flatbuffers
-#include "fb/utype_generated.h"
 
 namespace rn {
 
@@ -120,9 +117,9 @@ struct UnitType {
   // base for the base type.
   static UnitType create( e_unit_type type );
 
-  e_unit_type base_type() const { return base_type_; }
+  e_unit_type base_type() const { return o_.base_type; }
 
-  e_unit_type type() const { return type_; }
+  e_unit_type type() const { return o_.type; }
 
   bool operator==( UnitType const& ) const = default;
 
@@ -136,10 +133,11 @@ struct UnitType {
   std::unordered_set<e_unit_type_modifier> const&
   unit_type_modifiers();
 
-  valid_deserial_t check_invariants_safe() const;
-
-  friend void to_str( UnitType const& o, std::string& out,
-                      base::ADL_t );
+  // Implement refl::WrapsReflected.
+  UnitType( wrapped::UnitType&& o ) : o_( std::move( o ) ) {}
+  wrapped::UnitType const&          refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "UnitType";
 
  private:
   UnitType( e_unit_type base_type, e_unit_type type );
@@ -147,11 +145,7 @@ struct UnitType {
   // Check-fails when invariants are broken.
   void check_invariants_or_die() const;
 
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, UnitType,
-  ( e_unit_type, base_type_ ),
-  ( e_unit_type, type_      ));
-  // clang-format on
+  wrapped::UnitType o_;
 };
 
 // This type is intended to be light-weight and to be passed

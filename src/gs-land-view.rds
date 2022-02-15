@@ -1,0 +1,22 @@
+# ===============================================================
+# gs-land-view.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-13.
+#
+# Description: RDS definitions for the gs-land-view module.
+#
+# ===============================================================
+include [
+  # Revolution Now
+  viewport.hpp
+]
+
+namespace rn {
+
+struct LandViewState {
+  viewport: SmoothViewport
+}
+
+} # namespace rn

@@ -19,8 +19,10 @@
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
-#include "fb.hpp"
+#include "game-state.hpp"
 #include "gfx.hpp"
+#include "gs-old-world-view.hpp"
+#include "gs-units.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
@@ -31,7 +33,6 @@
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"
-#include "sg-macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
@@ -51,18 +52,13 @@
 #include "base/vocab.hpp"
 
 // Rds
-#include "rds/old-world-view-impl.hpp"
-
-// Flatbuffers
-#include "fb/sg-old-world-view_generated.h"
+#include "old-world-view-impl.rds.hpp"
 
 using namespace std;
 
 namespace rn {
 
 namespace rl = ::base::rl;
-
-DECLARE_SAVEGAME_SERIALIZERS( OldWorldView );
 
 namespace {
 
@@ -74,33 +70,6 @@ constexpr int const k_default_market_quantity = 100;
 ** Globals
 *****************************************************************/
 wait_promise<> g_exit_promise;
-
-/****************************************************************
-** Save-Game State
-*****************************************************************/
-struct SAVEGAME_STRUCT( OldWorldView ) {
-  // Fields that are actually serialized.
-
-  // clang-format off
-  SAVEGAME_MEMBERS( OldWorldView,
-  ( maybe<UnitId>, selected_unit ));
-  // clang-format on
-
- public:
-  // Fields that are derived from the serialized fields.
-
- private:
-  SAVEGAME_FRIENDS( OldWorldView );
-  SAVEGAME_SYNC() {
-    // Sync all fields that are derived from serialized fields
-    // and then validate (check invariants).
-
-    return valid;
-  }
-  // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return valid; }
-};
-SAVEGAME_IMPL( OldWorldView );
 
 /****************************************************************
 ** Dragging
@@ -157,8 +126,9 @@ maybe<Cargo_t> draggable_to_cargo_object(
 
 maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  return SG()
-      .selected_unit.fmap( unit_from_id )
+  OldWorldViewState const& owv_state =
+      GameState::old_world_view();
+  return owv_state.selected_unit.fmap( unit_from_id )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
@@ -800,6 +770,8 @@ class UnitCollection {
   }
 
   void draw( Texture& tx, Delta offset ) const {
+    OldWorldViewState const& owv_state =
+        GameState::old_world_view();
     // auto bds = bounds();
     // render_rect( tx, gfx::pixel::white(), bds.shifted_by(
     // offset )
@@ -812,9 +784,9 @@ class UnitCollection {
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
-    if( SG().selected_unit ) {
+    if( owv_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
-        if( id == *SG().selected_unit ) {
+        if( id == *owv_state.selected_unit ) {
           render_rect( tx, gfx::pixel::green(),
                        Rect::from( coord, g_tile_delta )
                            .shifted_by( offset ) );
@@ -1104,10 +1076,12 @@ class ActiveCargo {
       Delta const&                 size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<ShipsInPort> const&    maybe_ships_in_port ) {
+    OldWorldViewState const& owv_state =
+        GameState::old_world_view();
     maybe<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
-          /*maybe_active_unit_=*/SG().selected_unit,
+          /*maybe_active_unit_=*/owv_state.selected_unit,
           /*bounds_=*/maybe_active_cargo_box->bounds() };
       // FIXME: if we are inside the active cargo box, and the
       // active cargo box exists, do we need the following
@@ -1712,10 +1686,11 @@ struct DragPerform {
     // the player,
     if( unit_from_id( ship ).cargo().fits( Cargo::unit{ src.id },
                                            dst.slot._ ) )
-      ustate_change_to_cargo_somewhere( ship, src.id,
-                                        dst.slot._ );
+      GameState::units().change_to_cargo_somewhere( ship, src.id,
+                                                    dst.slot._ );
     else
-      ustate_change_to_cargo_somewhere( ship, src.id );
+      GameState::units().change_to_cargo_somewhere( ship,
+                                                    src.id );
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
@@ -1732,8 +1707,8 @@ struct DragPerform {
         [&]( Cargo::unit u ) {
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo_somewhere( ship, u.id,
-                                            dst.slot._ );
+          GameState::units().change_to_cargo_somewhere(
+              ship, u.id, dst.slot._ );
         },
         [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
@@ -1752,6 +1727,7 @@ struct DragPerform {
     unit_sail_to_new_world( src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
+    OldWorldViewState& owv_state = GameState::old_world_view();
     unit_sail_to_new_world( src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
@@ -1759,12 +1735,13 @@ struct DragPerform {
     // with, as opposed to keeping the selection on the unit that
     // is now outbound. Or if there are no more units in port,
     // just deselect.
-    SG().selected_unit           = nothing;
+    owv_state.selected_unit      = nothing;
     vector<UnitId> units_in_port = old_world_units_in_port();
-    SG().selected_unit = rl::all( units_in_port ).head();
+    owv_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
-    ustate_change_to_cargo_somewhere( dst.id, src.id );
+    GameState::units().change_to_cargo_somewhere( dst.id,
+                                                  src.id );
   }
   void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK(
@@ -1776,7 +1753,8 @@ struct DragPerform {
           CHECK( !src.quantity.has_value() );
           // Will first "disown" unit which will remove it
           // from the cargo.
-          ustate_change_to_cargo_somewhere( dst.id, u.id );
+          GameState::units().change_to_cargo_somewhere( dst.id,
+                                                        u.id );
         },
         [&]( Cargo::commodity const& ) {
           UNWRAP_CHECK( src_ship,
@@ -2082,12 +2060,14 @@ struct OldWorldPlane : public Plane {
         // Unit selection.
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
+          OldWorldViewState& owv_state =
+              GameState::old_world_view();
           if( maybe_entity ) {
             if( auto maybe_pair =
                     maybe_entity->obj_under_cursor( val.pos );
                 maybe_pair ) {
-              SG().selected_unit = maybe_pair->first;
-              handled            = e_input_handled::yes;
+              owv_state.selected_unit = maybe_pair->first;
+              handled                 = e_input_handled::yes;
               create_entities( &entities_ );
             }
           }
@@ -2174,14 +2154,15 @@ wait<> run_old_world_view() {
 ** Public API
 *****************************************************************/
 wait<> show_old_world_view() {
-  g_exit_promise = {};
-  if( SG().selected_unit ) {
-    UnitId id = *SG().selected_unit;
+  OldWorldViewState& owv_state = GameState::old_world_view();
+  g_exit_promise               = {};
+  if( owv_state.selected_unit ) {
+    UnitId id = *owv_state.selected_unit;
     // We could have a case where the unit that was last selected
     // went to the new world and was then disbanded, or is just
     // no longer in the old world.
     if( !unit_exists( id ) || !unit_old_world_view_info( id ) )
-      SG().selected_unit = nothing;
+      owv_state.selected_unit = nothing;
   }
   ScopedPlanePush pusher( e_plane_config::old_world );
   lg.info( "entering old world view." );
@@ -2190,11 +2171,12 @@ wait<> show_old_world_view() {
 }
 
 void old_world_view_set_selected_unit( UnitId id ) {
+  OldWorldViewState& owv_state = GameState::old_world_view();
   // Ensure that the unit is either in port or on the high seas,
   // otherwise it doesn't make sense for the unit to be selected
   // on this screen.
   CHECK( unit_old_world_view_info( id ) );
-  SG().selected_unit = id;
+  owv_state.selected_unit = id;
 }
 
 Plane* old_world_plane() { return &g_old_world_plane; }

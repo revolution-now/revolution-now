@@ -12,10 +12,8 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fb.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "serial.hpp"
 
 // base
 #include "base/cc-specific.hpp"
@@ -25,9 +23,6 @@
 
 // Revolution Now (config)
 #include "../config/rcl/savegame.inl"
-
-// Flatbuffers
-#include "fb/save-game_generated.h"
 
 // base-util
 #include "base-util/stopwatch.hpp"
@@ -39,98 +34,20 @@ using namespace std;
 
 namespace rn {
 
-using ::rn::serial::FBBuilder;
-using ::rn::serial::FBOffset;
-
-/****************************************************************
-** Save-game module hooks.
-*****************************************************************/
-// These function templates are being forward declared here;
-// there must be one of these defined for each module that is
-// saved. However, we don't include any headers that declare
-// their specializations in order to reduce header dependencies.
-// We just rely on the linker to find each of them for us. If one
-// is missing, we'll get a compiler error, so there should be no
-// possibility for error. When these functions are called in code
-// further below, the compiler can deduce their only template ar-
-// guments, and so then there is no need for the function bodies
-// to be available in headers, and the compiler is happy to just
-// wait for the linker to find them. This is convenient for us
-// because it allows us to not include headers from all of the
-// save game modules in this translation unit.
-template<typename T>
-void savegame_serializer( FBBuilder&   builder,
-                          FBOffset<T>* out_offset );
-template<typename T>
-valid_deserial_t savegame_deserializer( T const* src );
-template<typename T>
-valid_deserial_t savegame_post_validate( T const* );
-template<typename T>
-void default_construct_savegame_state( T const* );
-
 namespace {
 
-constexpr size_t kNumSavegameModules =
-    fb::SaveGame::Traits::fields_number;
-
+#if 0
 fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
   return config_savegame.folder /
          fmt::format( "slot{:02}", slot );
 }
+#endif
 
-template<typename T>
-FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
-  FBOffset<T> state;
-  savegame_serializer( fbb, &state );
-  return state;
-}
-
-template<typename... Args>
-auto creation_tuple( FBBuilder& fbb, mp::list<Args...>* ) {
-  return tuple{
-      serialize_to_offset<serial::remove_fb_offset_t<Args>>(
-          fbb )... };
-}
-
-serial::BinaryBlob save_game_to_blob() {
-  FBBuilder fbb;
-  // This gets a tuple whose element types are the types
-  // needed to be passed to the table creation method of
-  // fb::SaveGame.
-  using creation_types =
-      serial::fb_creation_tuple_t<fb::SaveGame>;
-  auto tpl = creation_tuple(
-      fbb, static_cast<creation_types*>( nullptr ) );
-  auto to_apply = [&]( auto const&... args ) {
-    return fb::CreateSaveGame( fbb, args... );
-  };
-  auto sg = std::apply( to_apply, tpl );
-  fbb.Finish( sg );
-  return serial::BinaryBlob::from_builder( std::move( fbb ) );
-}
-
-template<size_t... Idxs>
-valid_deserial_t savegame_post_validate_impl(
-    std::index_sequence<Idxs...> ) {
-  valid_deserial_t res = valid;
-
-  auto validate_one = [&]<typename T>( T* p ) {
-    // If we've already failed on a past step, don't run anymore.
-    if( !res ) return;
-    lg.debug( "running post-deserialization validation on {}.",
-              base::demangled_typename<T>() );
-    res = savegame_post_validate( p );
-  };
-
-  ( validate_one(
-        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
-    ... );
-  return res;
-}
-
-valid_deserial_t load_from_blob(
-    serial::BinaryBlob const& blob ) {
+#if 0
+valid_or<string> load_from_blob(
+    /*serial::BinaryBlob const& blob*/ ) {
+  NOT_IMPLEMENTED;
   auto*           root = blob.root<fb::SaveGame>();
   util::StopWatch watch;
   watch.start( "load" );
@@ -153,6 +70,7 @@ valid_deserial_t load_from_blob(
            watch.human( "load" ), watch.human( "validate" ) );
   return valid;
 }
+#endif
 
 } // namespace
 
@@ -160,6 +78,9 @@ valid_deserial_t load_from_blob(
 ** Public API
 *****************************************************************/
 expect<fs::path, generic_err> save_game( int slot ) {
+  (void)slot;
+  NOT_IMPLEMENTED;
+#if 0
   // Increase this to get more accurate reading on save times.
   constexpr int   trials = 1;
   util::StopWatch watch;
@@ -193,9 +114,13 @@ expect<fs::path, generic_err> save_game( int slot ) {
 
   p.replace_extension();
   return p;
+#endif
 }
 
 expect<fs::path, generic_err> load_game( int slot ) {
+  (void)slot;
+  NOT_IMPLEMENTED;
+#if 0
   auto json_path =
       path_for_slot( slot ).replace_extension( ".jsav" );
   auto blob_path =
@@ -248,34 +173,7 @@ expect<fs::path, generic_err> load_game( int slot ) {
     HAS_VALUE_OR_RET( load_from_blob( blob ) );
     return blob_path;
   }
+#endif
 }
-
-valid_deserial_t reset_savegame_state() {
-  FBBuilder fbb;
-  auto      builder = fb::SaveGameBuilder( fbb );
-  auto      sg      = builder.Finish();
-  fbb.Finish( sg );
-  auto blob =
-      serial::BinaryBlob::from_builder( std::move( fbb ) );
-  return load_from_blob( blob );
-}
-
-template<size_t... Idxs>
-void default_construct_savegame_state_impl(
-    std::index_sequence<Idxs...> ) {
-  ( default_construct_savegame_state(
-        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
-    ... );
-}
-
-void default_construct_savegame_state() {
-  default_construct_savegame_state_impl(
-      std::make_index_sequence<kNumSavegameModules>() );
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_save_game() {}
 
 } // namespace rn

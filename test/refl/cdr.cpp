@@ -14,7 +14,7 @@
 #include "src/refl/cdr.hpp"
 
 // rds
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
 
 // cdr
 #include "src/cdr/ext-builtin.hpp"

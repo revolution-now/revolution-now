@@ -18,6 +18,8 @@
 #include "conductor.hpp"
 #include "cstate.hpp"
 #include "fight.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "terrain.hpp"
@@ -25,11 +27,15 @@
 #include "utype.hpp"
 #include "window.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/lambda.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Rds
-#include "rds/land-square.hpp"
+#include "land-square.rds.hpp"
 
 using namespace std;
 
@@ -448,7 +454,7 @@ TravelHandler::confirm_travel_impl() {
           auto const& ship_unit = unit_from_id( ship_id );
           CHECK( ship_unit.desc().ship );
           lg.debug( "checking ship cargo: {}",
-                    ship_unit.cargo().debug_string() );
+                    ship_unit.cargo() );
           if( auto const& cargo = ship_unit.cargo();
               cargo.fits_somewhere( Cargo::unit{ id } ) ) {
             prioritize  = { ship_id };
@@ -518,7 +524,8 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      ustate_change_to_cargo_somewhere( *target_unit, id );
+      GameState::units().change_to_cargo_somewhere( *target_unit,
+                                                    id );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -529,7 +536,7 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      ustate_change_to_map( id, move_dst );
+      GameState::units().change_to_map( id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
@@ -569,7 +576,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::sail_high_seas: {
       UnitOldWorldViewState_t state =
           UnitOldWorldViewState::inbound{ .percent = 0.0 };
-      ustate_change_to_old_world_view( id, state );
+      GameState::units().change_to_old_world_view( id, state );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -948,7 +955,7 @@ wait<> AttackHandler::perform() {
   switch( loser.desc().on_death.to_enum() ) {
     using namespace UnitDeathAction;
     case e::destroy: //
-      destroy_unit( loser.id() );
+      GameState::units().destroy_unit( loser.id() );
       break;
     case e::naval: {
       auto num_units_lost =
@@ -970,7 +977,7 @@ wait<> AttackHandler::perform() {
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
-      destroy_unit( loser.id() );
+      GameState::units().destroy_unit( loser.id() );
       co_await ui::message_box( msg );
       break;
     }

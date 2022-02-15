@@ -19,7 +19,7 @@
 #include "util.hpp"
 
 // Rds
-#include "rds/tiles.hpp"
+#include "tiles.rds.hpp"
 
 // C++ standard library
 #include <string_view>

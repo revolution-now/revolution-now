@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "cstate.hpp"
+#include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "lua.hpp"
 
 // luapp
@@ -31,8 +33,9 @@ using Catch::UnorderedEquals;
 
 TEST_CASE( "[cstate] create, query, destroy" ) {
   testing::default_construct_all_game_state();
-  auto xp = cstate_create_colony(
-      e_nation::english, Coord{ 1_x, 2_y }, "my colony" );
+  ColoniesState& cols_state = GameState::colonies();
+  auto xp = create_colony( e_nation::english, Coord{ 1_x, 2_y },
+                           "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
 
   Colony const& colony = colony_from_id( ColonyId{ 1 } );
@@ -44,8 +47,8 @@ TEST_CASE( "[cstate] create, query, destroy" ) {
   REQUIRE( colony_exists( ColonyId{ 1 } ) );
   REQUIRE( !colony_exists( ColonyId{ 2 } ) );
 
-  auto xp2 = cstate_create_colony(
-      e_nation::dutch, Coord{ 1_x, 3_y }, "my second colony" );
+  auto xp2 = create_colony( e_nation::dutch, Coord{ 1_x, 3_y },
+                            "my second colony" );
   REQUIRE( xp2 == ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all(),
                 UnorderedEquals( vector<ColonyId>{
@@ -59,12 +62,14 @@ TEST_CASE( "[cstate] create, query, destroy" ) {
   REQUIRE_THAT( colonies_all( e_nation::french ),
                 UnorderedEquals( vector<ColonyId>{} ) );
 
-  cstate_destroy_colony( ColonyId{ 1 } );
+  REQUIRE( cols_state.maybe_from_name( "my colony" ) ==
+           ColonyId{ 1 } );
+  cols_state.destroy_colony( ColonyId{ 1 } );
   REQUIRE_THAT(
       colonies_all(),
       UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
 
-  cstate_destroy_colony( ColonyId{ 2 } );
+  cols_state.destroy_colony( ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all(),
                 UnorderedEquals( vector<ColonyId>{} ) );
 }
@@ -86,9 +91,8 @@ TEST_CASE( "[cstate] colonies_in_rect" ) {
   };
   int i = 0;
   for( auto coord : coords ) {
-    auto xp =
-        cstate_create_colony( e_nation::english, coord,
-                              fmt::format( "colony{}", i++ ) );
+    auto xp = create_colony( e_nation::english, coord,
+                             fmt::format( "colony{}", i++ ) );
     REQUIRE( xp == ColonyId{ i } );
   }
   REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 3_y, 0_w, 0_h } ),
@@ -114,8 +118,8 @@ TEST_CASE( "[cstate] colonies_in_rect" ) {
 TEST_CASE( "[cstate] lua" ) {
   lua::state& st = lua_global_state();
   testing::default_construct_all_game_state();
-  auto xp = cstate_create_colony(
-      e_nation::english, Coord{ 1_x, 2_y }, "my colony" );
+  auto xp = create_colony( e_nation::english, Coord{ 1_x, 2_y },
+                           "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
   auto script = R"(
     local colony = cstate.colony_from_id( 1 )

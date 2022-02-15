@@ -81,7 +81,7 @@ syn keyword  rdsSumtypeFeatures _features contained nextgroup=rdsSumtypeFeatures
 syn match    rdsSumtypeFeaturesColon ':' contained nextgroup=rdsSumtypeFeaturesListBlock skipwhite skipempty
 syn region   rdsSumtypeFeaturesListBlock start='\[' end='\]' contained fold contains=rdsSumtypeFeaturesListItem,rdsSumtypeFeaturesListItemErr skipwhite skipempty
 syn match    rdsSumtypeFeaturesListItemErr '[^\[\] ,]\+' contained
-syn match    rdsSumtypeFeaturesListItem '\(equality\|serializable\)' contained
+syn match    rdsSumtypeFeaturesListItem '\(equality\|validation\)' contained
 
 syn match    rdsSumtypeNameDot '\.' contained nextgroup=rdsSumtypeFeatures,rdsSumtypeTemplate
 
@@ -128,7 +128,7 @@ syn keyword  rdsStructFeatures _features contained nextgroup=rdsStructFeaturesCo
 syn match    rdsStructFeaturesColon ':' contained nextgroup=rdsStructFeaturesListBlock skipwhite skipempty
 syn region   rdsStructFeaturesListBlock start='\[' end='\]' contained fold contains=rdsStructFeaturesListItem,rdsStructFeaturesListItemErr skipwhite skipempty
 syn match    rdsStructFeaturesListItemErr '[^\[\] ,]\+' contained
-syn match    rdsStructFeaturesListItem '\(equality\|serializable\|validation\)' contained
+syn match    rdsStructFeaturesListItem '\(equality\|validation\)' contained
 
 syn match    rdsStructNameDot '\.' contained nextgroup=rdsStructFeatures,rdsStructTemplate
 

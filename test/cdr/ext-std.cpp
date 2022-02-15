@@ -141,6 +141,32 @@ TEST_CASE( "[cdr/ext-std] queue" ) {
   }
 }
 
+TEST_CASE( "[cdr/ext-std] deque" ) {
+  SECTION( "to_canonical" ) {
+    deque<int> empty;
+    REQUIRE( conv.to( empty ) == list{} );
+    deque<int> q;
+    q.push_back( 3 );
+    q.push_back( 4 );
+    q.push_back( 5 );
+    REQUIRE( conv.to( q ) == list{ 3, 4, 5 } );
+  }
+  SECTION( "from_canonical" ) {
+    deque<double> expected;
+    expected.push_back( 5.5 );
+    expected.push_back( 7.7 );
+    REQUIRE( conv_from_bt<deque<double>>(
+                 conv, list{ 5.5, 7.7 } ) == expected );
+    REQUIRE(
+        conv.from<deque<double>>( table{} ) ==
+        conv.err(
+            "expected type list, instead found type table." ) );
+    REQUIRE( conv.from<deque<double>>( list{ true } ) ==
+             conv.err( "failed to convert value of type boolean "
+                       "to double." ) );
+  }
+}
+
 TEST_CASE( "[cdr/ext-std] array" ) {
   SECTION( "to_canonical" ) {
     array<int, 0> empty;

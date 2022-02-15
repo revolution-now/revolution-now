@@ -14,26 +14,19 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fb.hpp"
-#include "id.hpp"
 #include "lua-enum.hpp"
 #include "tx.hpp"
+#include "unit-id.hpp"
 
 // Rcl
 #include "rcl/ext.hpp"
 
 // Rds
-#include "rds/commodity.hpp"
+#include "commodity.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"
 #include "refl/query-enum.hpp"
-
-// base
-#include "base/valid.hpp"
-
-// Flatbuffers
-#include "fb/commodity_generated.h"
 
 // C++ standard library
 #include <string>
@@ -82,16 +75,10 @@ struct Commodity {
 
   Commodity with_quantity( int new_quantity ) const;
 
-  valid_deserial_t check_invariants_safe() const;
-
   base::valid_or<std::string> validate() const;
 
-  // clang-format off
-  SERIALIZABLE_STRUCT_MEMBERS( Commodity,
-    ( e_commodity, type     ),
-    ( int,         quantity )
-  );
-  // clang-format on
+  e_commodity type;
+  int         quantity;
 };
 NOTHROW_MOVE( Commodity );
 

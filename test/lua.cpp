@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "expect.hpp"
 #include "lua.hpp"
 
 // luapp
@@ -185,13 +186,13 @@ TEST_CASE( "[lua] frozen globals" ) {
       xp.error(),
       Contains( "attempt to modify a read-only table:" ) );
 
-  xp = st.script.run_safe( "id = 1" );
+  xp = st.script.run_safe( "ustate = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = st.script.run_safe( "id.x = 1" );
+  xp = st.script.run_safe( "ustate.x = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),

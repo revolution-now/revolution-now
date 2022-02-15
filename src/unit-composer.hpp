@@ -16,7 +16,6 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "fb.hpp"
 #include "maybe.hpp"
 #include "utype.hpp"
 
@@ -24,10 +23,7 @@
 #include "luapp/ext-userdata.hpp"
 
 // Rds
-#include "rds/unit-composer.hpp"
-
-// Flatbuffers
-#include "fb/unit-composer_generated.h"
+#include "unit-composer.rds.hpp"
 
 namespace rn {
 
@@ -39,7 +35,6 @@ class UnitComposition {
   using UnitInventoryMap =
       std::unordered_map<e_unit_inventory, int>;
 
-  // For serialization framework.
   UnitComposition() = default;
 
   static UnitComposition create( UnitType type );
@@ -52,27 +47,24 @@ class UnitComposition {
 
   bool operator==( UnitComposition const& ) const = default;
 
-  e_unit_type base_type() const { return type_.base_type(); }
-  e_unit_type type() const { return type_.type(); }
-  UnitType    type_obj() const { return type_; }
+  e_unit_type base_type() const { return o_.type.base_type(); }
+  e_unit_type type() const { return o_.type.type(); }
+  UnitType    type_obj() const { return o_.type; }
 
   UnitInventoryMap const& inventory() const {
-    return inventory_;
+    return o_.inventory;
   }
 
-  valid_deserial_t check_invariants_safe() const;
-
-  friend void to_str( UnitComposition const& o, std::string& out,
-                      base::ADL_t );
+  // Implement refl::WrapsReflected.
+  UnitComposition( wrapped::UnitComposition&& o )
+    : o_( std::move( o ) ) {}
+  wrapped::UnitComposition const&   refl() const { return o_; }
+  static constexpr std::string_view refl_ns = "rn";
+  static constexpr std::string_view refl_name =
+      "UnitComposition";
 
  private:
-  UnitComposition( UnitType type, UnitInventoryMap inventory );
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, UnitComposition,
-  ( UnitType,         type_      ),
-  ( UnitInventoryMap, inventory_ ));
-  // clang-format on
+  wrapped::UnitComposition o_;
 };
 
 /****************************************************************

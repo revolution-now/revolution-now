@@ -18,7 +18,7 @@
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
 #include "main-menu.hpp"
-#include "rds/turn-impl.hpp"
+#include "turn-impl.rds.hpp"
 #include "window.hpp"
 
 // refl

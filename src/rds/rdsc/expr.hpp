@@ -33,7 +33,7 @@ struct StructMember {
   std::string var;
 };
 
-enum class e_feature { serializable, equality, validation };
+enum class e_feature { equality, validation };
 
 /****************************************************************
 ** sumtype
@@ -100,7 +100,6 @@ struct Metadata {
 
 struct Rds {
   Metadata                 meta;
-  std::vector<std::string> imports;
   std::vector<std::string> includes;
   std::vector<Item>        items;
 };

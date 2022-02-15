@@ -16,6 +16,8 @@
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "enum.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -32,6 +34,9 @@
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // base-util
 #include "base-util/string.hpp"
 
@@ -44,91 +49,6 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-valid_or<generic_err> check_colony_invariants_safe(
-    ColonyId id ) {
-  // 0.  Colony is reported as existing.
-  if( !colony_exists( id ) )
-    return GENERIC_ERROR( "Colony does not exist." );
-
-  auto const& colony = colony_from_id( id );
-
-  // 1.  Colony location matches coord.
-  auto coord = colony.location();
-  if( colony_from_coord( coord ) != id )
-    return GENERIC_ERROR(
-        "Inconsistent colony map coordinate." );
-
-  // 2.  Colony is on land.
-  if( !terrain_is_land( coord ) )
-    return GENERIC_ERROR( "Colony is not on land." );
-
-  // 3.  Colony has non-empty stripped name.
-  if( util::strip( colony.name() ).empty() )
-    return GENERIC_ERROR(
-        "Colony name is empty (when stripped)." );
-
-  // 4.  Colony has at least one colonist.
-  if( colony.units_jobs().size() == 0 )
-    return GENERIC_ERROR( "Colony {} has no units.", colony );
-
-  // 5.1  All colony's units owned by colony.
-  for( auto const& p : colony.units_jobs() ) {
-    auto unit_id = p.first;
-    if( state_for_unit( unit_id ) != e_unit_state::colony )
-      return GENERIC_ERROR(
-          "{} in Colony {} is not owned by colony.",
-          debug_string( unit_id ), colony );
-  }
-
-  // 5.2  All units owned by colony are colony's units.
-  for( UnitId unit_id : worker_units_from_colony( id ) ) {
-    if( !colony.units_jobs().contains( unit_id ) )
-      return GENERIC_ERROR(
-          "unit {} owned by colony is not in colony {}.",
-          debug_string( unit_id ), colony );
-  }
-
-  // 6.  All colony's units can occupy a colony.
-  // TODO: this requires developing logic to classify units and
-  // detect when they are carrying items that could be discarded
-  // to put them in a colony (e.g. a soldier discarding muskets
-  // to become a free colonist).
-
-  // 7.  All colony's units are of same nation.
-  for( auto const& p : colony.units_jobs() ) {
-    auto nation = unit_from_id( p.first ).nation();
-    if( colony.nation() != unit_from_id( p.first ).nation() )
-      return GENERIC_ERROR(
-          "Colony has nation {} but unit has nation {}.",
-          colony.nation(), nation );
-  }
-
-  // 8.  Colony's commodity quantites in correct range.
-  for( auto comm : refl::enum_values<e_commodity> ) {
-    if( colony.commodity_quantity( comm ) < 0 )
-      return GENERIC_ERROR(
-          "Colony has negative quantity of {}.", comm );
-  }
-
-  // 9.  Colony's building set is self-consistent.
-  // TODO
-
-  // 10. Unit mfg jobs are self-consistent.
-  // TODO
-
-  // 11. Unit land jobs are good.
-  // TODO
-
-  // 12. Colony's production status is self-consistent.
-  // TODO
-
-  return valid;
-}
-
-void check_colony_invariants_die( ColonyId id ) {
-  CHECK_HAS_VALUE( check_colony_invariants_safe( id ) );
-}
-
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     std::string_view name ) {
   if( colony_from_name( name ).has_value() )
@@ -177,9 +97,8 @@ ColonyId found_colony_unsafe( UnitId           founder,
   UNWRAP_CHECK( where, coord_for_unit_indirect( founder ) );
 
   // 1. Create colony object.
-  UNWRAP_CHECK( col_id,
-                cstate_create_colony( nation, where, name ) );
-  Colony& col = colony_from_id( col_id );
+  ColonyId col_id = create_colony( nation, where, name );
+  Colony&  col    = colony_from_id( col_id );
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
@@ -190,12 +109,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
       ColonyJob::mfg{ .mfg_job = e_mfg_job::bells };
 
   // 3. Move unit into it.
-  ustate_change_to_colony( founder, col_id, job );
-
-  // 4. Check colony invariants. Need to abort here if the in-
-  // variants are violated because we have already created the
-  // colony, and so this should never happen.
-  CHECK_HAS_VALUE( check_colony_invariants_safe( col_id ) );
+  GameState::units().change_to_colony( founder, col_id, job );
 
   // 5. Done.
   auto& desc = nation_obj( nation );
@@ -225,7 +139,8 @@ wait<> evolve_colony_one_turn( ColonyId id ) {
     UnitType colonist =
         UnitType::create( e_unit_type::free_colonist );
     auto unit_id = create_unit( colony.nation(), colonist );
-    ustate_change_to_map( unit_id, colony.location() );
+    GameState::units().change_to_map( unit_id,
+                                      colony.location() );
     co_await landview_ensure_visible( colony.location() );
     ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "
@@ -234,7 +149,6 @@ wait<> evolve_colony_one_turn( ColonyId id ) {
     if( answer == ui::e_ok_cancel::ok )
       co_await show_colony_view( id );
   }
-  check_colony_invariants_die( id );
 }
 
 void change_colony_nation( ColonyId id, e_nation new_nation ) {

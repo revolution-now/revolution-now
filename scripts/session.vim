@@ -1,5 +1,4 @@
 " =========================== Config ============================
-let s:stems = [
  "\ 'screen',
  "\ 'gfx-api',
  "\ 'open-gl',
@@ -18,13 +17,21 @@ let s:stems = [
  "\ 'gl/texture',
  "\ 'open-gl-perf-test',
  "\ 'shaders/perf-test',
+let s:stems = [
  \ 'cdr/repr',
- \ 'cdr/converter',
  \ 'cdr/ext',
- \ 'cdr/ext-std',
- \ 'cdr/ext-base',
- \ 'refl/refl',
+ \ 'refl/ext',
  \ 'refl/cdr',
+ \ 'game-state',
+ \ 'gs-top',
+ \ 'gs-events',
+ \ 'gs-units',
+ \ 'gs-players',
+ \ 'gs-turn',
+ \ 'gs-old-world-view',
+ \ 'gs-colonies',
+ \ 'gs-land-view',
+ \ 'gs-terrain',
 \]
 
 let s:luas = [
@@ -43,12 +50,12 @@ let s:quads = [
 function s:Open3( stem )
   echo '  - ' . a:stem
   let l:rds_impl_opened = 0
-  if filereadable( 'src/rds/' . a:stem . '.rds' )
-    exe 'silent tabnew src/rds/' . a:stem . '.rds'
+  if filereadable( 'src/' . a:stem . '.rds' )
+    exe 'silent tabnew src/' . a:stem . '.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
-  elseif filereadable( 'src/rds/' . a:stem . '-impl.rds' )
+  elseif filereadable( 'src/' . a:stem . '-impl.rds' )
     let l:rds_impl_opened = 1
-    exe 'silent tabnew src/rds/' . a:stem . '-impl.rds'
+    exe 'silent tabnew src/' . a:stem . '-impl.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
   else
     exe 'silent tabnew src/' . a:stem . '.hpp'
@@ -68,13 +75,10 @@ function s:Open3( stem )
     :TemplateInit cpptest
     set nomodified
   endif
-  " Uncomment these to open Tagbar; slows things down.
-  ":TagbarOpen
-  "3wincmd h
   4wincmd h
   if l:rds_impl_opened == 0
-    if filereadable( 'src/rds/' . a:stem . '-impl.rds' )
-      exe 'silent split src/rds/' . a:stem . '-impl.rds'
+    if filereadable( 'src/' . a:stem . '-impl.rds' )
+      exe 'silent split src/' . a:stem . '-impl.rds'
       wincmd k
     endif
   endif
