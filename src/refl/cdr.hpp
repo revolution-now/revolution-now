@@ -165,10 +165,14 @@ value to_canonical( converter&                  conv,
     using Tr = refl::traits<T>;
     static const std::string kName{ Tr::name };
     table                    res;
-    // Use to_field so that the converter can decide whether to
-    // output this object if it happens to be
-    // default-constructed.
-    conv.to_field( res, kName, alt );
+    // Do not use to_field here, otherwise alternatives that have
+    // their default values will not be written (under certain
+    // converter options), which is never what we want, since the
+    // alternative always needs to get written so that we at
+    // least know which alternative is selected. Subfields within
+    // the alternative, however, can still be omitted if they as-
+    // sume their default values.
+    res[kName] = conv.to( alt );
     DCHECK( !res.contains( kName ) ||
             res[kName].template is<table>() );
     return res;

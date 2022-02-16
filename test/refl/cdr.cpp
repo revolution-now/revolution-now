@@ -624,6 +624,7 @@ my_ns::Variant2 const variant2         = address1;
 my_ns::Variant3 const variant3a        = address1;
 my_ns::Variant3 const variant3b        = person2;
 my_ns::Variant3 const variant3c        = native_rolodex_1;
+my_ns::Variant3 const variant3d        = my_ns::Person{};
 
 cdr::table cdr_variant1{
     "Person"_key = cdr_person1,
@@ -633,6 +634,10 @@ cdr::table cdr_variant1_empty{};
 
 cdr::table cdr_variant1_default{
     "Person"_key = cdr_person_default,
+};
+
+cdr::table cdr_variant1_first_alt_no_default{
+    "Person"_key = cdr::table{},
 };
 
 cdr::table cdr_variant2{
@@ -649,6 +654,10 @@ cdr::table cdr_variant3b{
 
 cdr::table cdr_variant3c{
     "Rolodex"_key = cdr_rolodex_1,
+};
+
+cdr::table cdr_variant3d_no_default{
+    "Person"_key = cdr::table{},
 };
 
 cdr::table cdr_variant3_no_fields{};
@@ -822,12 +831,20 @@ TEST_CASE( "[refl] variant/defaults" ) {
       .default_construct_missing_fields = true,
   } };
   SECTION( "to_canonical" ) {
-    REQUIRE( conv.to( variant1_default ) == cdr_variant1_empty );
+    // This is an important test: it tests that alternatives be-
+    // yond the first that have default values still get written
+    // in the face of the above options, which they need to be to
+    // tell us which alternative is selected.
+    REQUIRE( conv.to( variant1_default ) ==
+             cdr_variant1_first_alt_no_default );
+    REQUIRE( conv.to( variant3d ) == cdr_variant3d_no_default );
   }
   SECTION( "from_canonical" ) {
     REQUIRE(
         conv_from_bt<Variant1>( conv, cdr_variant1_empty ) ==
         variant1_default );
+    REQUIRE( conv_from_bt<Variant3>(
+                 conv, cdr_variant3d_no_default ) == variant3d );
   }
 }
 
