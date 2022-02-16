@@ -17,7 +17,6 @@
 
 // Cdr
 #include "cdr/converter.hpp"
-#include "cdr/ext-std.hpp"
 #include "cdr/ext.hpp"
 
 // Rcl
@@ -35,6 +34,7 @@
 // C++ standard library
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace rn {
 
@@ -58,6 +58,9 @@ struct ExhaustiveEnumMap
   base const& as_base() const { return *this; }
 
  public:
+  using typename base::key_type;
+  using typename base::value_type;
+
   // All other constructors should ultimately call this one,
   // since this is the one that ensures that all keys have a
   // value.
@@ -98,15 +101,38 @@ struct ExhaustiveEnumMap
   friend cdr::value to_canonical(
       cdr::converter& conv, ExhaustiveEnumMap const& o,
       cdr::tag_t<ExhaustiveEnumMap> ) {
-    return conv.to( o.as_base() );
+    cdr::table tbl;
+    // Here we can use to_field to allow the converter to control
+    // default field value behavior because, for this data struc-
+    // ture, we know the complete set of possible keys and all of
+    // their names, similar to a struct.
+    for( Enum e : refl::enum_values<Enum> )
+      conv.to_field(
+          tbl, std::string( refl::enum_value_name( e ) ), o[e] );
+    return tbl;
   }
 
   friend cdr::result<ExhaustiveEnumMap> from_canonical(
       cdr::converter& conv, cdr::value const& v,
       cdr::tag_t<ExhaustiveEnumMap> ) {
-    UNWRAP_RETURN( base_res,
-                   conv.from<ExhaustiveEnumMap::base>( v ) );
-    return ExhaustiveEnumMap( std::move( base_res ) );
+    UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+    std::unordered_set<std::string> used_keys;
+    ExhaustiveEnumMap               res;
+    // Here we can use from_field to allow the converter to con-
+    // trol default field value behavior because, for this data
+    // structure, we know the complete set of possible keys and
+    // all of their names, similar to a struct.
+    for( Enum e : refl::enum_values<Enum> ) {
+      UNWRAP_RETURN(
+          val,
+          conv.from_field<ValT>(
+              tbl, std::string( refl::enum_value_name( e ) ),
+              used_keys ) );
+      res[e] = std::move( val );
+    }
+    HAS_VALUE_OR_RET(
+        conv.end_field_tracking( tbl, used_keys ) );
+    return res;
   }
 
   // This is for deserializing from Rcl config files.

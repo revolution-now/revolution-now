@@ -23,6 +23,10 @@
 // refl
 #include "refl/to-str.hpp"
 
+// cdr
+#include "src/cdr/ext-std.hpp"
+#include "src/cdr/ext.hpp"
+
 // base
 #include "base/to-str-ext-std.hpp"
 
@@ -32,9 +36,11 @@
 namespace rn {
 namespace {
 
-using namespace std;
+using namespace ::std;
+using namespace ::cdr::literals;
 
 using ::Catch::Matches;
+using ::cdr::testing::conv_from_bt;
 
 // If this changes then the below tests may need to be updated.
 static_assert( refl::enum_count<e_color> == 3 );
@@ -154,8 +160,90 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl bad enum" ) {
   // Test.
   REQUIRE(
       rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v ) ==
-      rcl::error(
-          "unrecognized value for enum e_color: \"greenx\"" ) );
+      rcl::error( "key 'green' not found in table." ) );
+}
+
+ExhaustiveEnumMap<e_color, string> const native_colors1{
+    { e_color::red, "one" },
+    /*{ e_color::green, "" },*/
+    { e_color::blue, "three" },
+};
+
+cdr::value const cdr_colors1 = cdr::table{
+    "red"_key   = "one",
+    "green"_key = "",
+    "blue"_key  = "three",
+};
+
+cdr::value const cdr_colors1_extra_field = cdr::table{
+    "red"_key    = "one",
+    "green"_key  = "",
+    "blue"_key   = "three",
+    "purple"_key = "four",
+};
+
+cdr::value const cdr_colors1_wrong_type = cdr::table{
+    "red"_key   = "one",
+    "green"_key = 5,
+    "blue"_key  = "three",
+};
+
+cdr::value const cdr_colors1_missing_field = cdr::table{
+    "red"_key  = "one",
+    "blue"_key = "three",
+};
+
+TEST_CASE( "[enum-map] cdr/strict" ) {
+  using M = ExhaustiveEnumMap<e_color, string>;
+  cdr::converter conv{ {
+      .write_fields_with_default_value  = true,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = false,
+  } };
+  SECTION( "to_canonical" ) {
+    REQUIRE( conv.to( native_colors1 ) == cdr_colors1 );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<M>( conv, cdr_colors1 ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( 5 ) ==
+             conv.err( "expected type table, instead found type "
+                       "integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_wrong_type ) ==
+             conv.err( "expected type string, instead found "
+                       "type integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_extra_field ) ==
+             conv.err( "unrecognized key 'purple' in table." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_missing_field ) ==
+             conv.err( "key 'green' not found in table." ) );
+  }
+}
+
+TEST_CASE( "[enum-map] cdr/no-defaults" ) {
+  using M = ExhaustiveEnumMap<e_color, string>;
+  cdr::converter conv{ {
+      .write_fields_with_default_value  = false,
+      .allow_unrecognized_fields        = true,
+      .default_construct_missing_fields = true,
+  } };
+  SECTION( "to_canonical" ) {
+    REQUIRE( conv.to( native_colors1 ) ==
+             cdr_colors1_missing_field );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<M>( conv, cdr_colors1 ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( 5 ) ==
+             conv.err( "expected type table, instead found type "
+                       "integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_wrong_type ) ==
+             conv.err( "expected type string, instead found "
+                       "type integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_extra_field ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( cdr_colors1_missing_field ) ==
+             native_colors1 );
+  }
 }
 
 } // namespace

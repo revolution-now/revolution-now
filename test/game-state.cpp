@@ -81,7 +81,7 @@ cdr::value cdr_game_state_default = cdr::table{
                     "center_y"_key = 0.0,
                 },
         },
-    "terrain"_key =
+    "zzz_terrain"_key =
         cdr::table{
             "world_map"_key =
                 cdr::table{

@@ -44,7 +44,10 @@ struct TopLevelState {
   old_world_view: 'rn::OldWorldViewState'
   colonies:       'rn::ColoniesState'
   land_view:      'rn::LandViewState'
-  terrain:        'rn::TerrainState'
+  # Use a zzz prefix to make sure that the terrain field will be
+  # last in the save file (keys are alphabetized) for convenience
+  # because it is so large.
+  zzz_terrain:    'rn::TerrainState'
 
   _features: [equality, validation]
 }

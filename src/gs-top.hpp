@@ -59,8 +59,8 @@ struct TopLevelState {
   LandViewState&       land_view() { return o_.land_view; }
   LandViewState const& land_view() const { return o_.land_view; }
 
-  TerrainState&       terrain() { return o_.terrain; }
-  TerrainState const& terrain() const { return o_.terrain; }
+  TerrainState&       terrain() { return o_.zzz_terrain; }
+  TerrainState const& terrain() const { return o_.zzz_terrain; }
 
  private:
   // ----- Serializable state.

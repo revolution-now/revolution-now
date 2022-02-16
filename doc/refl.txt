@@ -2,34 +2,37 @@ Rollout Process:
 
   Not Done:
 
-  1.  Find structs/classes that have manual reflection traits and
+  1.  Fix cdr conversion with int/double.
+  2.  Fix variant cdr conversion when first alternative is se-
+      lected and it has the default value.
+  3.  Find structs/classes that have manual reflection traits and
       move them into Rds, creating reflected wrappers as needed.
       There probably won't be any of these, but still good to
       check.
-  2.  Find structs/classes that still have to_str overloads that
+  4.  Find structs/classes that still have to_str overloads that
       don't need them and remove them (and/or move the type into
       Rds if necessary).
-  3.  In config-files, bypass the rcl::convert_to and call the
+  5.  In config-files, bypass the rcl::convert_to and call the
       from_canonical directly on all types.
-  4.  Remove the rcl::convert_to extension point.
-  5.  Reimplement game saving by using to_canonical game state
+  6.  Remove the rcl::convert_to extension point.
+  7.  Reimplement game saving by using to_canonical game state
       then converting to rcl. Do some profiling of game save/load
       times to see if it is ok.
-  6.  Figure out a better way to handle remaining global state.
+  8.  Figure out a better way to handle remaining global state.
       This will probably involve putting the plane objects on the
       stack, which may be where they should go anyway. Maybe then
       we would not need plane configs since they could just
       somehow register themselves into a stack as they are creat-
       ed/destroyed.
-  7.  Figure out a more general way to handle validation. Find a
+  9.  Figure out a more general way to handle validation. Find a
       way (and place) to run validation methods recursively over
       a reflected struct so that the game state can be validated
       each turn. Run the complete validation at the start of each
       turn.
-  8.  See if it is possible to create the game state on the stack
+  10. See if it is possible to create the game state on the stack
       somewhere instead of in a global variable and pass it down
       as function parameters (possibly only sub components).
-  9.  Add routine for converting from a Lua value to Cdr, and
+  11. Add routine for converting from a Lua value to Cdr, and
       therefore to a C++ type. This operation will probably be
       expensive. This may be a bit tricky because not all lua
       values can be converted to Cdr, e.g. lua functions. But
@@ -38,20 +41,20 @@ Rollout Process:
       avoid making {to,from}_canonical overloads for lua types,
       and instead just make a separate API for converting them in
       the rn library.
-  10. Add Lua module for generating a game state in Lua.
-  11. Replace the config *.inl files with an Rds solution con-
+  12. Add Lua module for generating a game state in Lua.
+  13. Replace the config *.inl files with an Rds solution con-
       sisting of a reflected struct defining the config structure
       for each module. These Rds files can go in the config
       folder next to the rcl files.
-  12. Make sure that the Rds library and generated files do not
+  14. Make sure that the Rds library and generated files do not
       have any dependencies on the rn library. Then move the
       (non-config) rds files into the src/ folder next to their
       associated source files, and add a cmake function to build
       Rds files in any library. We will need to put some in
       lower-level libraries, such as the rendering library.
-  13. Consider replacing rcl data model with Cdr; figure out how
+  15. Consider replacing rcl data model with Cdr; figure out how
       to handle ordering of keys in table.
-  14. Consider how to handle forward/backward compatibility in a
+  16. Consider how to handle forward/backward compatibility in a
       generic way with model-based serialization. We could poten-
       tially have a way to define a schema (in Rcl) that would be
       used to check the model data as it is being serialized. We
@@ -133,3 +136,5 @@ Rollout Process:
   34. Find a place to instantiate the save-game structure (hope-
       fully in an RAII way) and move each module's global state
       over to it.
+  35. Fix ColonyJob_t Cdr conversion (or all variants).
+  36. Fix enum-map Cdr conversion with default fields.

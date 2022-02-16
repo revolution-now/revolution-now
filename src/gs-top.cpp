@@ -84,7 +84,8 @@ valid_or<string> FormatVersion::validate() const {
 
 valid_or<string> wrapped::TopLevelState::validate() const {
   HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
-  HAS_VALUE_OR_RET( validate_interaction( colonies, terrain ) );
+  HAS_VALUE_OR_RET(
+      validate_interaction( colonies, zzz_terrain ) );
   return valid;
 }
 
