@@ -618,13 +618,14 @@ value const cdr_address1_invalid_state = table{
     "state"_key         = "XX",
 };
 
-my_ns::Variant1 const variant1         = person1;
-my_ns::Variant1 const variant1_default = my_ns::Variant1{};
-my_ns::Variant2 const variant2         = address1;
-my_ns::Variant3 const variant3a        = address1;
-my_ns::Variant3 const variant3b        = person2;
-my_ns::Variant3 const variant3c        = native_rolodex_1;
-my_ns::Variant3 const variant3d        = my_ns::Person{};
+my_ns::Variant1 const variant1              = person1;
+my_ns::Variant1 const variant1_default      = my_ns::Variant1{};
+my_ns::Variant2 const variant2              = address1;
+my_ns::Variant3 const variant3a             = address1;
+my_ns::Variant3 const variant3b             = person2;
+my_ns::Variant3 const variant3c             = native_rolodex_1;
+my_ns::Variant3 const variant3d             = my_ns::Person{};
+my_ns::Variant3 const variant3d_fst_default = my_ns::Address{};
 
 cdr::table cdr_variant1{
     "Person"_key = cdr_person1,
@@ -634,10 +635,6 @@ cdr::table cdr_variant1_empty{};
 
 cdr::table cdr_variant1_default{
     "Person"_key = cdr_person_default,
-};
-
-cdr::table cdr_variant1_first_alt_no_default{
-    "Person"_key = cdr::table{},
 };
 
 cdr::table cdr_variant2{
@@ -831,13 +828,15 @@ TEST_CASE( "[refl] variant/defaults" ) {
       .default_construct_missing_fields = true,
   } };
   SECTION( "to_canonical" ) {
-    // This is an important test: it tests that alternatives be-
+    // These are important tests: they test that alternatives be-
     // yond the first that have default values still get written
     // in the face of the above options, which they need to be to
-    // tell us which alternative is selected.
-    REQUIRE( conv.to( variant1_default ) ==
-             cdr_variant1_first_alt_no_default );
+    // tell us which alternative is selected. But it also tests
+    // that the first alternative still need not be written if it
+    // has its default value.
+    REQUIRE( conv.to( variant1_default ) == cdr::table{} );
     REQUIRE( conv.to( variant3d ) == cdr_variant3d_no_default );
+    REQUIRE( conv.to( variant3d_fst_default ) == cdr::table{} );
   }
   SECTION( "from_canonical" ) {
     REQUIRE(
