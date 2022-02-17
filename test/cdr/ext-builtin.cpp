@@ -40,9 +40,6 @@ TEST_CASE( "[cdr/ext-builtin] int" ) {
   REQUIRE( conv.to( n ) == 4 );
   REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv_from_bt<int>( conv, value{ n } ) == n );
-  REQUIRE( conv.from<double>( value{ n } ) ==
-           conv.err( "failed to convert value of type integer "
-                     "to double." ) );
   REQUIRE(
       conv.from<bool>( value{ n } ) ==
       conv.err(
@@ -77,6 +74,12 @@ TEST_CASE( "[cdr/ext-builtin] double" ) {
       conv.from<int>( value{ d } ) ==
       conv.err(
           "failed to convert value of type floating to int." ) );
+}
+
+TEST_CASE( "[cdr/ext-builtin] double from int" ) {
+  integer_type n = 5;
+  double       d = 5.0;
+  REQUIRE( conv_from_bt<double>( conv, value{ n } ) == d );
 }
 
 } // namespace

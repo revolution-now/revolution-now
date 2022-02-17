@@ -58,11 +58,12 @@ value to_canonical( converter&, double o, tag_t<double> ) {
 
 result<double> from_canonical( converter& conv, value const& v,
                                tag_t<double> ) {
-  if( !v.holds<double>() )
-    return conv.err(
-        "failed to convert value of type {} to double.",
-        type_name( v ) );
-  return v.get<double>();
+  if( auto d = v.get_if<double>(); d.has_value() ) return *d;
+  if( auto n = v.get_if<integer_type>(); n.has_value() )
+    return static_cast<double>( *n );
+  return conv.err(
+      "failed to convert value of type {} to double.",
+      type_name( v ) );
 }
 
 } // namespace cdr

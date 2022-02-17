@@ -23,6 +23,7 @@ let s:stems = [
  \ 'refl/ext',
  \ 'refl/cdr',
  \ 'game-state',
+ \ 'save-game',
  \ 'gs-top',
  \ 'gs-events',
  \ 'gs-units',
