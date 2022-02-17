@@ -15,6 +15,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -33,7 +34,11 @@ valid_or<string> wrapped::ColoniesState::validate() const {
   unordered_set<Coord>  used_coords;
   unordered_set<string> used_names;
 
+  ColonyId max_id{ -1 };
+
   for( auto const& [id, colony] : colonies ) {
+    max_id = std::max( max_id, id );
+
     // Each colony has a unique location.
     Coord where = colony.location();
     REFL_VALIDATE( !used_coords.contains( where ),
@@ -47,6 +52,12 @@ valid_or<string> wrapped::ColoniesState::validate() const {
                    name );
     used_names.insert( name );
   }
+
+  // next colony ID is larger than any used colony ID.
+  REFL_VALIDATE( ColonyId{ next_colony_id } > max_id,
+                 "next_colony_id ({}) must be larger than any "
+                 "colony ID in use (max found is {}).",
+                 next_colony_id, max_id );
 
   return base::valid;
 }
