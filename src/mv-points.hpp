@@ -31,11 +31,10 @@ namespace rn {
 class ND MovementPoints {
  public:
   MovementPoints() = default;
-  explicit MovementPoints( int p )
-    : points_atoms( p * factor ) {}
+  explicit MovementPoints( int p ) : atoms( p * factor ) {}
 
   MovementPoints& operator=( int p ) {
-    points_atoms = p * factor;
+    atoms = p * factor;
     return *this;
   }
 
@@ -46,79 +45,81 @@ class ND MovementPoints {
       default;
   MovementPoints& operator=( MovementPoints&& other ) = default;
 
-  static MovementPoints _1_3() {
-    return MovementPoints( 0, 1 );
+  static MovementPoints const& _1_3() {
+    static MovementPoints const mp( 0, 1 );
+    return mp;
   };
 
-  static MovementPoints _2_3() {
-    return MovementPoints( 0, 2 );
+  static MovementPoints const& _2_3() {
+    static MovementPoints const mp( 0, 2 );
+    return mp;
   };
 
   bool operator==( MovementPoints const& rhs ) const {
-    return points_atoms == rhs.points_atoms;
+    return atoms == rhs.atoms;
   }
   bool operator==( int rhs ) const {
-    return points_atoms == rhs * factor;
+    return atoms == rhs * factor;
   }
 
   bool operator!=( MovementPoints const& rhs ) const {
-    return points_atoms != rhs.points_atoms;
+    return atoms != rhs.atoms;
   }
   bool operator!=( int rhs ) const {
-    return points_atoms != rhs * factor;
+    return atoms != rhs * factor;
   }
 
   bool operator>( MovementPoints const& rhs ) const {
-    return points_atoms > rhs.points_atoms;
+    return atoms > rhs.atoms;
   }
   bool operator>( int rhs ) const {
-    return points_atoms > rhs * factor;
+    return atoms > rhs * factor;
   }
 
   bool operator<( MovementPoints const& rhs ) const {
-    return points_atoms < rhs.points_atoms;
+    return atoms < rhs.atoms;
   }
   bool operator<( int rhs ) const {
-    return points_atoms < rhs * factor;
+    return atoms < rhs * factor;
   }
 
   bool operator>=( MovementPoints const& rhs ) const {
-    return points_atoms >= rhs.points_atoms;
+    return atoms >= rhs.atoms;
   }
   bool operator>=( int rhs ) const {
-    return points_atoms >= rhs * factor;
+    return atoms >= rhs * factor;
   }
 
   bool operator<=( MovementPoints const& rhs ) const {
-    return points_atoms <= rhs.points_atoms;
+    return atoms <= rhs.atoms;
   }
   bool operator<=( int rhs ) const {
-    return points_atoms <= rhs * factor;
+    return atoms <= rhs * factor;
   }
 
   MovementPoints operator+( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms + rhs.points_atoms );
+    return MovementPoints( 0, atoms + rhs.atoms );
   }
   MovementPoints operator+( int rhs ) const {
-    return MovementPoints( 0, points_atoms + ( rhs * factor ) );
+    return MovementPoints( 0, atoms + ( rhs * factor ) );
   }
 
   MovementPoints operator-( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms - rhs.points_atoms );
+    return MovementPoints( 0, atoms - rhs.atoms );
   }
   MovementPoints operator-( int rhs ) const {
-    return MovementPoints( 0, points_atoms - ( rhs * factor ) );
+    return MovementPoints( 0, atoms - ( rhs * factor ) );
   }
 
   void operator+=( MovementPoints const& rhs ) {
-    points_atoms += rhs.points_atoms;
+    atoms += rhs.atoms;
   }
-  void operator+=( int rhs ) { points_atoms += rhs * factor; }
+  void operator+=( int rhs ) { atoms += rhs * factor; }
 
   void operator-=( MovementPoints const& rhs ) {
-    points_atoms -= rhs.points_atoms;
+    atoms -= rhs.atoms;
   }
-  void operator-=( int rhs ) { points_atoms -= rhs * factor; }
+  void operator-=( int rhs ) { atoms -= rhs * factor; }
 
   friend void to_str( MovementPoints const& o, std::string& out,
                       base::ADL_t );
@@ -147,7 +148,7 @@ class ND MovementPoints {
   static constexpr int factor = 3;
 
   // 2 points would be represented by 2*factor.
-  int points_atoms;
+  int atoms = 0;
 };
 NOTHROW_MOVE( MovementPoints );
 
