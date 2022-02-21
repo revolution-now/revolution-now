@@ -67,6 +67,6 @@ struct Colony {
   _features: [equality, validation]
 }
 
-}
+} #
 
 } # namespace rn
