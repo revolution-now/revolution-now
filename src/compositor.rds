@@ -8,8 +8,7 @@
 # Description: RDS definitions for the compositor module.
 #
 # ===============================================================
-namespace rn {
-namespace compositor {
+namespace rn.compositor {
 
 # In general, these sections may overlap.
 enum e_section [
@@ -29,5 +28,4 @@ enum e_composite_location [
   left,
 ]
 
-} # namespace compositor
 } # namespace rn

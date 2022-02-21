@@ -13,8 +13,7 @@ include [
   nation.rds.hpp
 ]
 
-namespace rn  {
-namespace wrapped {
+namespace rn.wrapped  {
 
 struct Player {
   nation: e_nation
@@ -22,5 +21,4 @@ struct Player {
   money:  int
 }
 
-} # namespace wrapped
-} # namespace rn
+} # namespace rn.wrapped

@@ -35,7 +35,9 @@ struct FormatVersion {
   ]
 }
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct TopLevelState {
   version:        'rn::FormatVersion'
@@ -56,6 +58,4 @@ struct TopLevelState {
   ]
 }
 
-} # namespace wrapped
-
-} # namespace rn
+} # namespace rn.wrapped

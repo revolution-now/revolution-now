@@ -347,7 +347,9 @@ struct UnitCompositionConfig {
   ]
 }
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct UnitType {
   base_type: e_unit_type
@@ -358,6 +360,4 @@ struct UnitType {
   ]
 }
 
-} #
-
-} # namespace rn
+} # namespace rn.wrapped

@@ -45,7 +45,9 @@ struct UnitState {
   ownership: UnitOwnership_t
 }
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct UnitsState {
   next_unit_id:  int
@@ -56,6 +58,4 @@ struct UnitsState {
   ]
 }
 
-} # wrapped
-
-} # namespace rn
+} # namespace rn.wrapped

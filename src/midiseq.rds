@@ -13,7 +13,7 @@ include [
   base/fs.hpp
 ]
 
-namespace rn namespace midiseq {
+namespace rn.midiseq {
 
 # The possible commands that can be sent to the midi thread. Gen-
 # erally, after receiving one of these commands the midi thread

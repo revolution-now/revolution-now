@@ -17,9 +17,7 @@ include [
   <unordered_map>
 ]
 
-namespace rn {
-
-namespace wrapped {
+namespace rn.wrapped {
 
 struct ColoniesState {
   next_colony_id:  int
@@ -30,6 +28,4 @@ struct ColoniesState {
   ]
 }
 
-} # namespace wrapped
-
-} # namespace rn
+} # namespace rn.wrapped

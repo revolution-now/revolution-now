@@ -28,7 +28,9 @@ enum e_unit_orders [
   fortified,
 ]
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct Unit {
   id:           UnitId
@@ -43,6 +45,4 @@ struct Unit {
   ]
 }
 
-} # namespace wrapped
-
-} # namespace rn
+} # namespace rn.wrapped

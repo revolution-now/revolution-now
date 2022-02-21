@@ -23,7 +23,9 @@ enum e_unit_type_modifier_delta [
   del,
 ]
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct UnitComposition {
   type:      'rn::UnitType'
@@ -34,6 +36,4 @@ struct UnitComposition {
   ]
 }
 
-} #
-
-} # namespace rn
+} # namespace rn.wrapped

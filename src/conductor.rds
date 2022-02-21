@@ -24,7 +24,9 @@ enum e_special_music_event [
   founding_father,
 ]
 
-namespace conductor {
+} #
+
+namespace rn.conductor {
 
 # Tune Selection. Each of these methods will search through
 # available tunes and select one that meets the criteria and then
@@ -56,7 +58,5 @@ enum e_music_state [
   stopped,
   paused,
 ]
-
-} # namespace conductor
 
 } # namespace rn

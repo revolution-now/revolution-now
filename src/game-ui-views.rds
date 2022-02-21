@@ -13,8 +13,7 @@ include [
   unit.rds.hpp
 ]
 
-namespace.rn {
-namespace.ui {
+namespace rn.ui {
 
 # Holds the state of each unit in the window as the player is se-
 # lecting them and cycling them through the states.
@@ -24,5 +23,4 @@ struct UnitActivationInfo {
   is_activated:    bool
 }
 
-} # namespace ui
-} # namespace rn
+} # namespace rn.ui

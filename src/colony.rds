@@ -39,7 +39,9 @@ sumtype ColonyJob {
   }
 }
 
-namespace wrapped {
+} #
+
+namespace rn.wrapped {
 
 struct Colony {
   # Basic info.
@@ -70,5 +72,3 @@ struct Colony {
 }
 
 } #
-
-} # namespace rn

@@ -12,7 +12,7 @@ include [
   coord.hpp
 ]
 
-namespace rn namespace input {
+namespace rn.input {
 
 # This type will keep track of the dragging state of a given
 # mouse button. When a drag is initiated is it represented as a
