@@ -28,7 +28,8 @@ sumtype Maybe {
   just { val: T }
 }
 
-sumtype MyVariant0 {}
+sumtype MyVariant0 {
+}
 
 # Descriptive comment.
 sumtype MyVariant1 {
@@ -191,7 +192,8 @@ enum e_hand [
   right,
 ]
 
-struct EmptyStruct {}
+struct EmptyStruct {
+}
 
 struct EmptyStruct2 {
   _features: [
