@@ -71,7 +71,9 @@ sumtype UnitAnimation {
     demoted_pixels: 'Matrix<gfx::pixel>'
   }
 
-  _features [equality]
+  _features [
+    equality
+  ]
 }
 
 } # namespace rn

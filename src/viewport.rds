@@ -16,7 +16,9 @@ struct SmoothViewport {
   center_x: double
   center_y: double
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace wrapped

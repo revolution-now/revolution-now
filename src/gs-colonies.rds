@@ -25,7 +25,9 @@ struct ColoniesState {
   next_colony_id:  int
   colonies:       'std::unordered_map<ColonyId, rn::Colony>'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace wrapped

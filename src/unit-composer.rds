@@ -29,7 +29,9 @@ struct UnitComposition {
   type:      'rn::UnitType'
   inventory: 'std::unordered_map<e_unit_inventory, int>'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } #

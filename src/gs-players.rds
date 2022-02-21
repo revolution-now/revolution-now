@@ -24,7 +24,9 @@ namespace rn {
 struct PlayersState {
   players: 'std::unordered_map<e_nation, Player>'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace rn

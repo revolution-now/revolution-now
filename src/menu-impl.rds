@@ -31,7 +31,8 @@ sumtype MenuItem {
     callbacks: MenuCallbacks
   }
 
-  _features []
+  _features [
+  ]
 }
 
 sumtype MenuState {

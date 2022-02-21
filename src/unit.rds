@@ -38,7 +38,9 @@ struct Unit {
   nation:       e_nation
   mv_pts:       MovementPoints
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace wrapped

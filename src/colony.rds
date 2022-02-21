@@ -64,7 +64,9 @@ struct Colony {
   # Liberty sentiment: [0,100].
   sentiment:     int
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } #

@@ -59,7 +59,9 @@ struct CargoHold {
   # This will be of fixed length (number of total slots).
   slots: 'std::vector<CargoSlot_t>'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } #

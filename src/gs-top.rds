@@ -30,7 +30,9 @@ struct FormatVersion {
   minor: int
   patch: int
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 namespace wrapped {
@@ -49,7 +51,9 @@ struct TopLevelState {
   # because it is so large.
   zzz_terrain:    'rn::TerrainState'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace wrapped

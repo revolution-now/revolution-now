@@ -35,7 +35,9 @@ sumtype UnitOldWorldViewState {
   # are on the dock.
   in_port {}
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # namespace rn

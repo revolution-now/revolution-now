@@ -34,7 +34,9 @@ sumtype ColViewObject {
     comm: Commodity
   }
 
-  _features [equality]
+  _features [
+    equality
+  ]
 }
 
 } # namespace rn

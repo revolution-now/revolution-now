@@ -51,7 +51,9 @@ struct UnitsState {
   next_unit_id:  int
   units:        'std::unordered_map<UnitId, UnitState>'
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
 } # wrapped
