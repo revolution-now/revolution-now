@@ -11,9 +11,9 @@
 namespace rn {
 
 enum e_font [
-  _7_12_serif_16pt
-  _6x6
-  habbo_15
+  _7_12_serif_16pt,
+  _6x6,
+  habbo_15,
 ]
 
 } # namespace rn

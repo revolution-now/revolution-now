@@ -11,11 +11,11 @@
 namespace rn {
 
 enum e_main_menu_item [
-  new_
-  load
-  settings_graphics
-  settings_sound
-  quit
+  new_,
+  load,
+  settings_graphics,
+  settings_sound,
+  quit,
 ]
 
 } # namespace rn

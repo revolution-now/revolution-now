@@ -11,10 +11,10 @@
 namespace rn {
 
 enum e_nation [
-  dutch
-  french
-  english
-  spanish
+  dutch,
+  french,
+  english,
+  spanish,
 ]
 
 } # namespace rn

@@ -11,9 +11,15 @@
 namespace rn {
 namespace ui {
 
-enum e_ok_cancel [ok, cancel]
+enum e_ok_cancel [
+  ok,
+  cancel,
+]
 
-enum e_confirm [yes, no]
+enum e_confirm [
+  yes,
+  no,
+]
 
 } # namespace ui
 } # namespace rn

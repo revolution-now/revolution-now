@@ -17,13 +17,13 @@ include [
 namespace rn {
 
 enum e_colview_entity [
-  commodities
-  land
-  title_bar
-  population
-  cargo
-  units_at_gate
-  production
+  commodities,
+  land,
+  title_bar,
+  population,
+  cargo,
+  units_at_gate,
+  production,
 ]
 
 sumtype ColViewObject {

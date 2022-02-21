@@ -14,22 +14,22 @@ namespace rn {
 # order in which the commodities are displayed in an array and
 # the order in which they are processed.
 enum e_commodity [
-  food
-  sugar
-  tobacco
-  cotton
-  fur
-  lumber
-  ore
-  silver
-  horses
-  rum
-  cigars
-  cloth
-  coats
-  trade_goods
-  tools
-  muskets
+  food,
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  lumber,
+  ore,
+  silver,
+  horses,
+  rum,
+  cigars,
+  cloth,
+  coats,
+  trade_goods,
+  tools,
+  muskets,
 ]
 
 sumtype CommodityLabel {

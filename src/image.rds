@@ -11,7 +11,7 @@
 namespace rn {
 
 enum e_image [
-  europe
+  europe,
 ]
 
 } # namespace rn

@@ -11,15 +11,15 @@
 namespace rn {
 
 enum e_found_colony_err [
-  colony_exists_here
-  no_water_colony
-  colonist_not_on_map
-  ship_cannot_found_colony
-  non_human_cannot_found_colony
+  colony_exists_here,
+  no_water_colony,
+  colonist_not_on_map,
+  ship_cannot_found_colony,
+  non_human_cannot_found_colony,
 ]
 
 enum e_new_colony_name_err [
-  already_exists
+  already_exists,
 ]
 
 } # namespace rn

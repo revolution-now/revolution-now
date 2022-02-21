@@ -12,27 +12,27 @@ namespace rn {
 
 # Ordering of these enum values does not matter.
 enum e_init_routine [
-  compositor
-  conductor
-  configs
-  old_world_view
-  lua
-  images
-  menus
-  midiplayer
-  midiseq
-  oggplayer
-  planes
-  renderer
-  rng
-  screen
-  sdl
-  sound
-  sprites
-  terrain
-  text
-  ttf
-  tunes
+  compositor,
+  conductor,
+  configs,
+  old_world_view,
+  lua,
+  images,
+  menus,
+  midiplayer,
+  midiseq,
+  oggplayer,
+  planes,
+  renderer,
+  rng,
+  screen,
+  sdl,
+  sound,
+  sprites,
+  terrain,
+  text,
+  ttf,
+  tunes,
 ]
 
 } # namespace rn

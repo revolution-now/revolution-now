@@ -11,17 +11,17 @@
 namespace rn {
 
 enum e_plane [
-  land_view # land, units, colonies, etc.
-  panel     # the info panel on the right
-  image     # any of the fullscreen pics displayed
-  colony    # colony view
-  old_world # the old world
-  main_menu # main menu.
-  console   # the developer console
-  menu      # the menus at the top of screen
-  window    # the windows
+  land_view, # land, units, colonies, etc.
+  panel,     # the info panel on the right
+  image,     # any of the fullscreen pics displayed
+  colony,    # colony view
+  old_world, # the old world
+  main_menu, # main menu.
+  console,   # the developer console
+  menu,      # the menus at the top of screen
+  window,    # the windows
   # -------------------------------------------------------------
-  omni      # Always present, invisible, and first.
+  omni,      # Always present, invisible, and first.
 ]
 
 } # namespace rn

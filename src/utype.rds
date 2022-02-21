@@ -29,90 +29,90 @@ namespace rn {
 
 enum e_unit_type [
   # Basic colonists.
-  petty_criminal
-  indentured_servant
-  free_colonist
+  petty_criminal,
+  indentured_servant,
+  free_colonist,
 
   # Non-expert colonist with modifiers.
-  soldier
-  dragoon
-  pioneer
-  missionary
-  scout
+  soldier,
+  dragoon,
+  pioneer,
+  missionary,
+  scout,
 
   # Expert colonists.
-  expert_farmer
-  expert_fisherman
-  expert_sugar_planter
-  expert_tobacco_planter
-  expert_cotton_planter
-  expert_fur_trapper
-  expert_lumberjack
-  expert_ore_miner
-  expert_silver_miner
-  master_carpenter
-  master_rum_distiller
-  master_tobacconist
-  master_weaver
-  master_fur_trader
-  master_blacksmith
-  master_gunsmith
-  elder_statesman
-  firebrand_preacher
-  hardy_colonist
-  jesuit_colonist
-  seasoned_colonist
-  veteran_colonist
+  expert_farmer,
+  expert_fisherman,
+  expert_sugar_planter,
+  expert_tobacco_planter,
+  expert_cotton_planter,
+  expert_fur_trapper,
+  expert_lumberjack,
+  expert_ore_miner,
+  expert_silver_miner,
+  master_carpenter,
+  master_rum_distiller,
+  master_tobacconist,
+  master_weaver,
+  master_fur_trader,
+  master_blacksmith,
+  master_gunsmith,
+  elder_statesman,
+  firebrand_preacher,
+  hardy_colonist,
+  jesuit_colonist,
+  seasoned_colonist,
+  veteran_colonist,
 
   # Expert colonist with modifier.
-  veteran_soldier
-  veteran_dragoon
-  continental_army
-  continental_cavalry
-  regular
-  cavalry
-  hardy_pioneer
-  jesuit_missionary
-  seasoned_scout
+  veteran_soldier,
+  veteran_dragoon,
+  continental_army,
+  continental_cavalry,
+  regular,
+  cavalry,
+  hardy_pioneer,
+  jesuit_missionary,
+  seasoned_scout,
 
   # Non-human combat units.
-  artillery
-  damaged_artillery
+  artillery,
+  damaged_artillery,
 
   # Ships.
-  caravel
-  merchantman
-  galleon
-  privateer
-  frigate
-  man_o_war
+  caravel,
+  merchantman,
+  galleon,
+  privateer,
+  frigate,
+  man_o_war,
 
   # Land transport.
-  wagon_train
+  wagon_train,
 
   # Treasure.
-  small_treasure
-  large_treasure
+  small_treasure,
+  large_treasure,
 ]
 
 enum e_unit_human [
-  no
-  yes
-  from_base
+  no,
+  yes,
+  from_base,
 ]
 
 enum e_unit_type_modifier [
-  blessing
-  horses
-  muskets
-  tools
-  independence
-  strength
+  blessing,
+  horses,
+  muskets,
+  tools,
+  independence,
+  strength,
 ]
 
 enum e_unit_inventory [
-  gold
-  tools
+  gold,
+  tools,
 ]
 
 struct UnitInventoryTraits {
@@ -157,34 +157,34 @@ struct UnitTypeModifierTraits {
 #
 enum e_unit_activity [
   # Raw commodities.
-  farming
-  fishing
-  sugar_planting
-  tobacco_planting
-  cotton_planting
-  fur_trapping
-  lumberjacking
-  ore_mining
-  silver_mining
+  farming,
+  fishing,
+  sugar_planting,
+  tobacco_planting,
+  cotton_planting,
+  fur_trapping,
+  lumberjacking,
+  ore_mining,
+  silver_mining,
 
   # Production.
-  carpentry
-  rum_distilling
-  tobacconistry
-  weaving
-  fur_trading
-  blacksmithing
-  gunsmithing
+  carpentry,
+  rum_distilling,
+  tobacconistry,
+  weaving,
+  fur_trading,
+  blacksmithing,
+  gunsmithing,
 
   # External to colony.
-  fighting
-  pioneering
-  scouting
-  missioning
+  fighting,
+  pioneering,
+  scouting,
+  missioning,
 
   # Misc.
-  bell_ringing
-  preaching
+  bell_ringing,
+  preaching,
 ]
 
 sumtype UnitDeathAction {

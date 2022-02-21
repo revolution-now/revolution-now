@@ -11,8 +11,8 @@
 namespace rn {
 
 enum e_surface [
-  water
-  land
+  water,
+  land,
 ]
 
 struct LandSquare {

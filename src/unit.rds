@@ -23,9 +23,9 @@ include [
 namespace rn {
 
 enum e_unit_orders [
-  none
-  sentry
-  fortified
+  none,
+  sentry,
+  fortified,
 ]
 
 namespace wrapped {

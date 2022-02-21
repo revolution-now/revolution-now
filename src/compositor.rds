@@ -13,20 +13,20 @@ namespace compositor {
 
 # In general, these sections may overlap.
 enum e_section [
-  menu_bar
-  viewport
-  panel
-  console
-  normal  # non console area.
-  total # The entire renderable window.
+  menu_bar,
+  viewport,
+  panel,
+  console,
+  normal,  # non console area.
+  total, # The entire renderable window.
 ]
 
 # These should be clockwise.
 enum e_composite_location [
-  top
-  right
-  bottom
-  left
+  top,
+  right,
+  bottom,
+  left,
 ]
 
 } # namespace compositor

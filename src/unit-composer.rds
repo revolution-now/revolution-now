@@ -19,8 +19,8 @@ include [
 namespace rn {
 
 enum e_unit_type_modifier_delta [
-  add # added
-  del # removed
+  add,
+  del,
 ]
 
 namespace wrapped {
