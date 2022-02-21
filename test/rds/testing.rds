@@ -25,7 +25,9 @@ sumtype Maybe {
   _template {T}
 
   nothing {}
-  just { val: T }
+  just {
+    val: T
+  }
 }
 
 sumtype MyVariant0 {
