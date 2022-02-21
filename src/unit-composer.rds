@@ -32,6 +32,6 @@ struct UnitComposition {
   _features: [equality, validation]
 }
 
-}
+} #
 
 } # namespace rn

@@ -352,6 +352,6 @@ struct UnitType {
   _features: [equality, validation]
 }
 
-}
+} #
 
 } # namespace rn

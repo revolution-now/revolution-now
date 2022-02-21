@@ -8,10 +8,12 @@
 # Description: RDS definitions for the ui-enums module.
 #
 # ===============================================================
-namespace rn namespace ui {
+namespace rn {
+namespace ui {
 
 enum e_ok_cancel [ok, cancel]
 
 enum e_confirm [yes, no]
 
-} # namespace rn.ui
+} # namespace ui
+} # namespace rn
