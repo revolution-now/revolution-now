@@ -29,7 +29,8 @@ struct NationTurn {
   nation:        e_nation
   started:       bool
   did_colonies:  bool
-  did_units:     bool # FIXME: do we need this?
+  # FIXME: do we need this?
+  did_units:     bool
   units:        'std::deque<UnitId>'
 }
 
