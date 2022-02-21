@@ -13,7 +13,7 @@ namespace rn.input {
 enum e_drag_phase [
   begin,
   in_progress,
-  end,
+  'end',
 ]
 
 } # namespace rn.input
