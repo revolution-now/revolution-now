@@ -21,8 +21,9 @@ include [
 namespace rdstest {
 
 # Descriptive comment.
-sumtype Maybe _template [T]
 sumtype Maybe {
+  _template {T}
+
   nothing {}
   just { val: T }
 }
@@ -42,8 +43,11 @@ sumtype MyVariant1 {
     ptr:   'bool*'
   }
   excited {}
+
+  _features [
+    equality
+  ]
 }
-sumtype MyVariant1 _features [equality]
 
 sumtype MyVariant2 {
   first {
@@ -57,10 +61,14 @@ sumtype MyVariant2 {
   third {
     cost: int
   }
-}
-sumtype MyVariant2 _features []
 
-namespace inner {
+  _features [
+  ]
+}
+
+} #
+
+namespace rdstest.inner {
 
 sumtype MyVariant3 {
   a1 {
@@ -92,8 +100,9 @@ sumtype MyVariant4 {
 }
 
 # Descriptive comment.
-sumtype TemplateTwoParams _template [T, U]
 sumtype TemplateTwoParams {
+  _template { T, U }
+
   # Alternatives.
   first_alternative {
     t: T
@@ -108,16 +117,16 @@ sumtype TemplateTwoParams {
 
 # This one has two template parameters are references another
 # sumtype that also has two parameters.
-sumtype CompositeTemplateTwo _template [T, U]
 sumtype CompositeTemplateTwo {
+  _template { T, U }
+
   first {
     ttp: 'rdstest::inner::TemplateTwoParams_t<T,U>'
   }
   second {}
 }
 
-} # namespace inner
-} # namespace rdstest
+} # namespace rdstest.inner
 
 namespace rn {
 
@@ -159,16 +168,34 @@ sumtype OnOffEvent {
 }
 
 # hello
-enum e_empty  []
-enum e_single [hello]
-enum e_two    [hello, world]
-enum e_color  [red, green, blue]
-enum e_hand   [left, right]
+enum e_empty [
+]
+
+enum e_single [
+  hello,
+]
+
+enum e_two [
+  hello,
+  world,
+]
+
+enum e_color [
+  red,
+  green,
+  blue,
+]
+
+enum e_hand [
+  left,
+  right,
+]
 
 struct EmptyStruct {}
 
 struct EmptyStruct2 {
-  _features: []
+  _features: [
+  ]
 }
 
 struct MyStruct {
@@ -181,18 +208,21 @@ struct StructWithValidation {
   xxx: int
   yyy: double
 
-  _features: [equality, validation]
+  _features: [
+    equality, validation
+  ]
 }
 
-namespace test {
+} #
 
-struct.MyTemplateStruct._template [T, U]
+namespace rn.test {
+
 struct MyTemplateStruct {
+  _template { T, U }
+
   xxx: T
   yyy: double
   zzz_map: 'std::unordered_map<std::string, U>'
 }
 
-} # namespace test
-
-} # namespace rn
+} # namespace rn.test
