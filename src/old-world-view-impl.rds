@@ -8,73 +8,70 @@
 # Description: RDS definitions for the old-world-view module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  cargo.hpp
-  commodity.hpp
-  maybe.hpp
-  unit-id.hpp
-]
+# Revolution Now
+include "cargo.hpp"
+include "commodity.hpp"
+include "maybe.hpp"
+include "unit-id.hpp"
 
-namespace rn {
+namespace "rn"
 
 # This object needs to specify all of the information necessary
 # for a dragged item to be drawn. We cannot simply use a tile
 # here because we need to know where the item came from so that
 # it can (potentially) be left out when rendering the scene, to
 # create the appearance that the mouse is dragging it.
-sumtype OldWorldDraggableObject {
+sumtype.OldWorldDraggableObject {
   unit {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   market_commodity {
-    type: e_commodity
-  }
+    type 'e_commodity',
+  },
   cargo_commodity {
-    comm: Commodity
-    slot: CargoSlotIndex
-  }
+    comm 'Commodity',
+    slot 'CargoSlotIndex',
+  },
 
-  _features [
+  _features {
     equality
-  ]
+  }
 }
 
-sumtype OldWorldDragSrc {
+sumtype.OldWorldDragSrc {
   dock {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   cargo {
-    slot: CargoSlotIndex
-    quantity: 'maybe<int>'
-  }
+    slot 'CargoSlotIndex',
+    quantity 'maybe<int>',
+  },
   outbound {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   inbound {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   inport {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   market {
-    type: e_commodity
-    quantity: 'maybe<int>'
-  }
+    type 'e_commodity',
+    quantity 'maybe<int>',
+  },
 }
 
-sumtype OldWorldDragDst {
+sumtype.OldWorldDragDst {
   cargo {
-    slot: CargoSlotIndex
-  }
-  dock {}
-  outbound {}
-  inbound {}
-  inport {}
+    slot 'CargoSlotIndex',
+  },
+  dock {},
+  outbound {},
+  inbound {},
+  inport {},
   inport_ship {
-    id: UnitId
-  }
-  market {}
+    id 'UnitId',
+  },
+  market {},
 }
 
-} # namespace rn

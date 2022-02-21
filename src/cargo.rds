@@ -8,24 +8,22 @@
 # Description: RDS definitions for the cargo module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  commodity.hpp
-  unit-id.hpp
+# Revolution Now
+include "commodity.hpp"
+include "unit-id.hpp"
 
-  # C++ standard library
-  <vector>
-]
+# C++ standard library
+include "<vector>"
 
-namespace rn {
+namespace "rn"
 
-sumtype Cargo {
+sumtype.Cargo {
   unit {
-    id: UnitId
-  }
+    id 'UnitId',
+  },
   commodity {
-    obj: Commodity
-  }
+    obj 'Commodity',
+  },
 }
 
 # Here is an example of the way the cargo layout works:
@@ -45,25 +43,19 @@ sumtype Cargo {
 #
 # NOTE: the `empty` state must be first in the list so that it it
 # will be the default-constructed value.
-sumtype CargoSlot {
-  empty {}
-  overflow {}
+sumtype.CargoSlot {
+  empty {},
+  overflow {},
   cargo {
-    contents: Cargo_t
-  }
+    contents 'Cargo_t',
+  },
 }
 
-namespace wrapped {
+namespace "rn.wrapped"
 
-struct CargoHold {
+struct.CargoHold {
   # This will be of fixed length (number of total slots).
-  slots: 'std::vector<CargoSlot_t>'
+  slots 'std::vector<CargoSlot_t>',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} #
-
-} # namespace rn

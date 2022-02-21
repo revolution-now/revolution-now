@@ -8,18 +8,14 @@
 # Description: RDS definitions for the gs-terrain module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  matrix.hpp
+# Revolution Now
+include "matrix.hpp"
 
-  # Rds
-  land-square.rds.hpp
-]
+# Rds
+include "land-square.rds.hpp"
 
-namespace rn {
+namespace "rn"
 
-struct TerrainState {
-  world_map: 'Matrix<LandSquare>'
+struct.TerrainState {
+  world_map 'Matrix<LandSquare>',
 }
-
-} # namespace rn

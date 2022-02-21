@@ -8,41 +8,33 @@
 # Description: RDS definitions for the unit module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  cargo.hpp
-  mv-points.hpp
-  unit-composer.hpp
-  unit-id.hpp
+# Revolution Now
+include "cargo.hpp"
+include "mv-points.hpp"
+include "unit-composer.hpp"
+include "unit-id.hpp"
 
-  # Rds
-  nation.rds.hpp
-  unit.rds.hpp
-]
+# Rds
+include "nation.rds.hpp"
+include "unit.rds.hpp"
 
-namespace rn {
+namespace "rn"
 
-enum e_unit_orders [
+enum.e_unit_orders {
   none,
   sentry,
   fortified,
-]
-
-} #
-
-namespace rn.wrapped {
-
-struct Unit {
-  id:           UnitId
-  composition: 'rn::UnitComposition'
-  orders:       e_unit_orders
-  cargo:       'rn::CargoHold'
-  nation:       e_nation
-  mv_pts:       MovementPoints
-
-  _features: [
-    equality, validation
-  ]
 }
 
-} # namespace rn.wrapped
+namespace "rn.wrapped"
+
+struct.Unit {
+  id 'UnitId',
+  composition 'rn::UnitComposition',
+  orders 'e_unit_orders',
+  cargo 'rn::CargoHold',
+  nation 'e_nation',
+  mv_pts 'MovementPoints',
+
+  _features { equality, validation }
+}

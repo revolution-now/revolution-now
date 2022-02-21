@@ -8,15 +8,11 @@
 # Description: RDS definitions for the gs-land-view module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  viewport.hpp
-]
+# Revolution Now
+include "viewport.hpp"
 
-namespace rn {
+namespace "rn"
 
-struct LandViewState {
-  viewport: SmoothViewport
+struct.LandViewState {
+  viewport 'SmoothViewport',
 }
-
-} # namespace rn

@@ -8,15 +8,13 @@
 # Description: RDS definitions for the land-square module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_surface [
+enum.e_surface {
   water,
   land,
-]
-
-struct LandSquare {
-  surface: e_surface
 }
 
-} # namespace rn
+struct.LandSquare {
+  surface 'e_surface',
+}

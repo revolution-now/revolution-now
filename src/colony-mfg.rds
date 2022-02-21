@@ -8,9 +8,9 @@
 # Description: RDS definitions for the colony-mfg module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_colony_building [
+enum.e_colony_building {
   # Free buildings.
   blacksmiths_house,
   carpenters_shop,
@@ -58,9 +58,9 @@ enum e_colony_building [
 
   # Special buildings.
   custom_house,
-]
+}
 
-enum e_mfg_job [
+enum.e_mfg_job {
   bells,
   crosses,
   hammers,
@@ -71,6 +71,4 @@ enum e_mfg_job [
   tools,
   muskets,
   teacher,
-]
-
-} # namespace rn
+}

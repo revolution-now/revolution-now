@@ -8,10 +8,10 @@
 # Description: RDS definitions for the init module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-# Ordering of these enum values does not matter.
-enum e_init_routine [
+# Ordering of these enum.values does not matter.
+enum.e_init_routine {
   compositor,
   conductor,
   configs,
@@ -33,6 +33,4 @@ enum e_init_routine [
   text,
   ttf,
   tunes,
-]
-
-} # namespace rn
+}

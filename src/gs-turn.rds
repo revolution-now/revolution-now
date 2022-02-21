@@ -8,37 +8,32 @@
 # Description: RDS definitions for the sg-turn module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  unit-id.hpp
+# Revolution Now
+include "unit-id.hpp"
 
-  # Rds
-  nation.rds.hpp
+# Rds
+include "nation.rds.hpp"
 
-  # base
-  base/maybe.hpp
+# base
+include "base/maybe.hpp"
 
-  # C++ standard library
-  <deque>
-  <queue>
-]
+# C++ standard library
+include "<deque>"
+include "<queue>"
 
-namespace rn {
+namespace "rn"
 
-struct NationTurn {
-  nation:        e_nation
-  started:       bool
-  did_colonies:  bool
-  # FIXME: do we need this?
-  did_units:     bool
-  units:        'std::deque<UnitId>'
+struct.NationTurn {
+  nation 'e_nation',
+  started 'bool',
+  did_colonies 'bool',
+  did_units 'bool', # FIXME: do we need this?
+  units 'std::deque<UnitId>',
 }
 
-struct TurnState {
-  started:    bool
-  need_eot:   bool
-  nation:    'base::maybe<NationTurn>'
-  remainder: 'std::queue<e_nation>'
+struct.TurnState {
+  started 'bool',
+  need_eot 'bool',
+  nation 'base::maybe<NationTurn>',
+  remainder 'std::queue<e_nation>',
 }
-
-} # namespace rn

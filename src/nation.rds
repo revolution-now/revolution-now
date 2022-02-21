@@ -8,13 +8,11 @@
 # Description: RDS definitions for the nation module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_nation [
+enum.e_nation {
   dutch,
   french,
   english,
   spanish,
-]
-
-} # namespace rn
+}

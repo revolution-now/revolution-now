@@ -8,18 +8,18 @@
 # Description: RDS definitions for the ustate module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
 # These pertain to units who are owned by either the high seas or
 # by europe view (e.g., in port, on the dock, etc.);
-sumtype UnitOldWorldViewState {
+sumtype.UnitOldWorldViewState {
   # For ships that are venturing to europe. `percent` starts from
   # 0 and goes to 1.0 at arrival. This means that the value
   # should never actually assume a value of 1.0, because as soon
   # as it does, the state is transitioned to in_port.
   outbound {
-    percent: double
-  }
+    percent 'double',
+  },
 
   # For ships that are traveling from europe to the new world.
   # `percent` starts from 0 and goes to 1.0 at arrival. This
@@ -27,17 +27,13 @@ sumtype UnitOldWorldViewState {
   # 1.0, because as soon as it does, the state is transitioned to
   # the map.
   inbound {
-    percent: double
-  }
+    percent 'double',
+  },
 
   # If a ship is in this state then it is in port (shown in the
   # "in port" box) whereas for land units this means that they
   # are on the dock.
-  in_port {}
+  in_port {},
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn

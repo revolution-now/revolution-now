@@ -8,10 +8,8 @@
 # Description: RDS definitions for save-game events data.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-struct EventsState {
-  independence_declared: bool
+struct.EventsState {
+  independence_declared 'bool',
 }
-
-} # namespace rn

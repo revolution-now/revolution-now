@@ -8,15 +8,13 @@
 # Description: RDS definitions for the colview-entities module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  commodity.hpp
-  unit-id.hpp
-]
+# Revolution Now
+include "commodity.hpp"
+include "unit-id.hpp"
 
-namespace rn {
+namespace "rn"
 
-enum e_colview_entity [
+enum.e_colview_entity {
   commodities,
   land,
   title_bar,
@@ -24,19 +22,15 @@ enum e_colview_entity [
   cargo,
   units_at_gate,
   production,
-]
-
-sumtype ColViewObject {
-  unit {
-    id: UnitId
-  }
-  commodity {
-    comm: Commodity
-  }
-
-  _features [
-    equality
-  ]
 }
 
-} # namespace rn
+sumtype.ColViewObject {
+  unit {
+    id 'UnitId',
+  },
+  commodity {
+    comm 'Commodity',
+  },
+
+  _features { equality }
+}

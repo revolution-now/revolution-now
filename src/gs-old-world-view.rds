@@ -8,18 +8,14 @@
 # Description: RDS definitions for the gs-old-world-view module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  unit-id.hpp
+# Revolution Now
+include "unit-id.hpp"
 
-  # base
-  base/maybe.hpp
-]
+# base
+include "base/maybe.hpp"
 
-namespace rn {
+namespace "rn"
 
-struct OldWorldViewState {
-  selected_unit: 'base::maybe<UnitId>'
+struct.OldWorldViewState {
+  selected_unit 'base::maybe<UnitId>',
 }
-
-} # namespace rn

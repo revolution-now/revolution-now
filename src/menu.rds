@@ -8,13 +8,11 @@
 # Description: RDS definitions for the menu module.
 #
 # ===============================================================
-include [
-  menu.hpp
-]
+include "menu.hpp"
 
-namespace rn {
+namespace "rn"
 
-enum e_menu [
+enum.e_menu {
   game,
   view,
   orders,
@@ -24,9 +22,9 @@ enum e_menu [
   window,
   debug,
   pedia,
-]
+}
 
-enum e_menu_item [
+enum.e_menu_item {
   about,
   save,
   load,
@@ -63,6 +61,4 @@ enum e_menu_item [
   old_world_close,
   find_blinking_unit,
   next_turn,
-]
-
-} # namespace rn
+}

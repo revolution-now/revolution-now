@@ -8,14 +8,12 @@
 # Description: RDS definitions for the main-menu module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_main_menu_item [
+enum.e_main_menu_item {
   new_,
   load,
   settings_graphics,
   settings_sound,
   quit,
-]
-
-} # namespace rn
+}

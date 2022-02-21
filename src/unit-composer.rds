@@ -8,32 +8,24 @@
 # Description: RDS definitions for the unit-composer module.
 #
 # ===============================================================
-include [
-  # Rds
-  utype.rds.hpp
+# Rds
+include "utype.rds.hpp"
 
-  # C++ standard library
-  <unordered_map>
-]
+# C++ standard library
+include "<unordered_map>"
 
-namespace rn {
+namespace "rn"
 
-enum e_unit_type_modifier_delta [
+enum.e_unit_type_modifier_delta {
   add,
   del,
-]
-
-} #
-
-namespace rn.wrapped {
-
-struct UnitComposition {
-  type:      'rn::UnitType'
-  inventory: 'std::unordered_map<e_unit_inventory, int>'
-
-  _features: [
-    equality, validation
-  ]
 }
 
-} # namespace rn.wrapped
+namespace "rn.wrapped"
+
+struct.UnitComposition {
+  type 'rn::UnitType',
+  inventory 'std::unordered_map<e_unit_inventory, int>',
+
+  _features { equality, validation }
+}

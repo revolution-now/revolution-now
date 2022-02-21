@@ -8,26 +8,24 @@
 # Description: RDS definitions for the utype module.
 #
 # ===============================================================
-include [
-  # rn
-  commodity.hpp
-  coord.hpp
-  enum-map.hpp
-  mv-points.hpp
-  tiles.hpp
+# rn
+include "commodity.hpp"
+include "coord.hpp"
+include "enum-map.hpp"
+include "mv-points.hpp"
+include "tiles.hpp"
 
-  # base
-  base/maybe.hpp
+# base
+include "base/maybe.hpp"
 
-  # C++ standard library.
-  <string>
-  <unordered_map>
-  <unordered_set>
-]
+# C++ standard library.
+include "<string>"
+include "<unordered_map>"
+include "<unordered_set>"
 
-namespace rn {
+namespace "rn"
 
-enum e_unit_type [
+enum.e_unit_type {
   # Basic colonists.
   petty_criminal,
   indentured_servant,
@@ -93,62 +91,62 @@ enum e_unit_type [
   # Treasure.
   small_treasure,
   large_treasure,
-]
+}
 
-enum e_unit_human [
+enum.e_unit_human {
   no,
   yes,
   from_base,
-]
+}
 
-enum e_unit_type_modifier [
+enum.e_unit_type_modifier {
   blessing,
   horses,
   muskets,
   tools,
   independence,
   strength,
-]
-
-enum e_unit_inventory [
-  gold,
-  tools,
-]
-
-struct UnitInventoryTraits {
-  commodity:        'base::maybe<e_commodity>'
-  min_quantity:     int
-  max_quantity:     int
-  multiple:         int
-  default_quantity: int
-
-  _features: [
-    equality, validation
-  ]
 }
 
-sumtype ModifierAssociation {
+enum.e_unit_inventory {
+  gold,
+  tools,
+}
+
+struct.UnitInventoryTraits {
+  commodity 'base::maybe<e_commodity>',
+  min_quantity 'int',
+  max_quantity 'int',
+  multiple 'int',
+  default_quantity 'int',
+
+  _features {
+    equality, validation
+  }
+}
+
+sumtype.ModifierAssociation {
   # There is no association between the modifier and any com-
   # modity or inventory item.
-  none {}
+  none {},
   # Granting the modifier to a unit will consume a fixed amount
   # of a given commodity.
   commodity {
-    commodity: Commodity
-  }
+    commodity 'Commodity',
+  },
   # Granting the modifier to a unit will require a certain amount
   # of the given commodity in the inventory. That inventory item
   # may or may not be associated with a commodity. Either way,
   # the inventory traits will give constraints on the allowed
   # quantities of this inventory type.
   inventory {
-    type: e_unit_inventory
-  }
+    type 'e_unit_inventory',
+  },
 }
 
-struct UnitTypeModifierTraits {
-  player_can_grant: bool
-  association:      ModifierAssociation_t
+struct.UnitTypeModifierTraits {
+  player_can_grant 'bool',
+  association 'ModifierAssociation_t',
 }
 
 # This is used to represent two different things:
@@ -157,7 +155,7 @@ struct UnitTypeModifierTraits {
 #      less of its type.
 #   2. The expertise that a unit has.
 #
-enum e_unit_activity [
+enum.e_unit_activity {
   # Raw commodities.
   farming,
   fishing,
@@ -187,26 +185,26 @@ enum e_unit_activity [
   # Misc.
   bell_ringing,
   preaching,
-]
+}
 
-sumtype UnitDeathAction {
-  destroy {}
-  capture {}
-  naval {}
+sumtype.UnitDeathAction {
+  destroy {},
+  capture {},
+  naval {},
   demote {
-    lose: 'std::unordered_set<e_unit_type_modifier>'
-  }
+    lose 'std::unordered_set<e_unit_type_modifier>',
+  },
 }
 
 # Unit promotion. Only base types can be promoted, but the de-
 # rived type can sometimes inform how that happens. So both base
 # types and derived types can have this attribute, but some al-
 # ternatives are only allowed for one or the other.
-sumtype UnitPromotion {
+sumtype.UnitPromotion {
   # For base types. The unit type always changes to a fixed type.
   fixed {
-    type: e_unit_type
-  }
+    type 'e_unit_type',
+  },
   # For base types. The unit gains some expertise dictated by the
   # occupation that it is currently assuming.
   #
@@ -225,7 +223,7 @@ sumtype UnitPromotion {
   #   * If a free colonist set as a pioneer wins a battle, it
   #     will become a hardy pioneer.
   #
-  occupation {}
+  occupation {},
   # For derived types. The unit type provides expertise that will
   # be given to a base type if it has the `occupation` promotion
   # flag. If the base type has the `fixed` promotion flag then
@@ -234,8 +232,8 @@ sumtype UnitPromotion {
   # is if an expert farmer is made into a scout and then experi-
   # ences a promotion event; in that case nothing will happen.
   expertise {
-    kind: e_unit_activity
-  }
+    kind 'e_unit_activity',
+  },
   # This one is allowed for either base types or derived types,
   # but in practice it is only used for derived types in the de-
   # fault game rules. A unit type with the `modifier` promotion
@@ -245,37 +243,37 @@ sumtype UnitPromotion {
   # base type cannot accept the modifier then no promotion hap-
   # pens.
   modifier {
-    kind: e_unit_type_modifier
-  }
+    kind 'e_unit_type_modifier',
+  },
 }
 
 # Describes a literal unit type without regard to the concept of
 # base or derived type.
-struct UnitTypeAttributes {
-  type: e_unit_type
+struct.UnitTypeAttributes {
+  type 'e_unit_type',
 
-  name: 'std::string'
+  name 'std::string',
 
   # Rendering
-  tile: e_tile
-  nat_icon_front: bool
-  nat_icon_position: e_direction
+  tile 'e_tile',
+  nat_icon_front 'bool',
+  nat_icon_position 'e_direction',
 
   # Movement
-  ship: bool
-  visibility: int
-  movement_points: MvPoints
+  ship 'bool',
+  visibility 'int',
+  movement_points 'MvPoints',
 
   # Combat
-  attack_points: int
-  defense_points: int
+  attack_points 'int',
+  defense_points 'int',
 
   # Cargo
-  cargo_slots: int
+  cargo_slots 'int',
   # Slots occupied by this unit.
-  cargo_slots_occupies: 'base::maybe<int>'
+  cargo_slots_occupies 'base::maybe<int>',
 
-  on_death: UnitDeathAction_t
+  on_death 'UnitDeathAction_t',
 
   # Describes if/how this unit is a human. This is important to
   # know so that we can e.g. ensure that only human units can
@@ -286,18 +284,18 @@ struct UnitTypeAttributes {
   # unit and so there (again, theoretically) wouldn't be a
   # well-defined value for this field for a derived type. For a
   # base type, it can be either "yes" or "no".
-  human: e_unit_human
+  human 'e_unit_human',
 
   # If this is a derived unit type then it must specify a canon-
-  # ical base type that will be used to construct it when none is
+  # ical base type that will be used to construct.it when none is
   # specified. In some cases there is only one allowed base type
   # (e.g. a veteran dragoon must have a veteran colonist as its
   # base type) in which case it must hold that value.
-  canonical_base: 'base::maybe<e_unit_type>'
+  canonical_base 'base::maybe<e_unit_type>',
 
   # If this unit type has an expertise. This is only for some
   # base types.
-  expertise: 'base::maybe<e_unit_activity>'
+  expertise 'base::maybe<e_unit_activity>',
 
   # Describes how this unit (can be either base or derived) han-
   # dles the clearing of its specialty. If it is a base type then
@@ -305,18 +303,18 @@ struct UnitTypeAttributes {
   # derived types, this can be either null (meaning consult the
   # base type) or a unit type. See the `cleared_expertise` func-
   # tion below for more info on the precise logic used.
-  cleared_expertise: 'base::maybe<e_unit_type>'
+  cleared_expertise 'base::maybe<e_unit_type>',
 
   # Determines how the unit gets promoted or how the unit influ-
-  # ences promotion of a base type. See sumtype comments to ex-
+  # ences promotion of a base type. See sumtype.comments to ex-
   # planation of the meaning of the variant alternatives.
-  promotion: 'base::maybe<UnitPromotion_t>'
+  promotion 'base::maybe<UnitPromotion_t>',
 
   # Tells us how to convert a base unit type into another in re-
   # sponse to the gain of some modifiers, e.g. when a
   # free_colonist is given horses, what unit type does it become?
   # Only base unit types can have this.
-  modifiers: 'std::unordered_map<e_unit_type, std::unordered_set<e_unit_type_modifier>>'
+  modifiers 'std::unordered_map<e_unit_type, std::unordered_set<e_unit_type_modifier>>',
 
   # This gives a list of all of the inventory types that the unit
   # is required to have. Moreover, the unit cannot hold any in-
@@ -326,38 +324,36 @@ struct UnitTypeAttributes {
   # types that have that inventory type must have the associated
   # modifier along all possible paths to the derived unit (from
   # all relevant base types).
-  inventory_types: 'std::unordered_set<e_unit_inventory>'
+  inventory_types 'std::unordered_set<e_unit_inventory>',
 
   # Can this unit type be obtained from a base type plus some
   # modifiers?
-  is_derived: bool
+  is_derived 'bool',
 }
 
-# The constituents of this struct need to be validated together.
-struct UnitCompositionConfig {
+# The constituents of this struct.need to be validated together.
+struct.UnitCompositionConfig {
   # TODO: when adding validate methods, need to ensure that the
   # maps have non-default-constructed values for all keys, since
-  # the enum map no longer does that upon deserialization.
-  inventory_traits: 'ExhaustiveEnumMap<e_unit_inventory, UnitInventoryTraits>'
-  modifier_traits:  'ExhaustiveEnumMap<e_unit_type_modifier, UnitTypeModifierTraits>'
-  unit_types:       'ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>'
+  # the enum.map no longer does that upon deserialization.
+  inventory_traits 'ExhaustiveEnumMap<e_unit_inventory, UnitInventoryTraits>',
+  modifier_traits 'ExhaustiveEnumMap<e_unit_type_modifier, UnitTypeModifierTraits>',
+  unit_types 'ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>',
 
-  _features: [
+  _features {
     equality, validation
-  ]
+  }
 }
 
-} #
 
-namespace rn.wrapped {
+namespace "rn.wrapped"
 
-struct UnitType {
-  base_type: e_unit_type
-  type:      e_unit_type
+struct.UnitType {
+  base_type 'e_unit_type',
+  type 'e_unit_type',
 
-  _features: [
+  _features {
     equality, validation
-  ]
+  }
 }
 
-} # namespace rn.wrapped

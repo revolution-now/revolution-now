@@ -745,156 +745,6 @@ namespace refl {
 } // namespace refl
 
 /****************************************************************
-*                         Enum: e_empty
-*****************************************************************/
-namespace rn {
-
-  enum class e_empty {
-  };
-
-} // namespace rn
-
-namespace refl {
-
-  // Reflection info for enum e_empty.
-  template<>
-  struct traits<rn::e_empty> {
-    using type = rn::e_empty;
-
-    static constexpr type_kind kind        = type_kind::enum_kind;
-    static constexpr std::string_view ns   = "rn";
-    static constexpr std::string_view name = "e_empty";
-
-    static constexpr std::array<std::string_view, 0> value_names{};
-  };
-
-} // namespace refl
-
-/****************************************************************
-*                        Enum: e_single
-*****************************************************************/
-namespace rn {
-
-  enum class e_single {
-    hello
-  };
-
-} // namespace rn
-
-namespace refl {
-
-  // Reflection info for enum e_single.
-  template<>
-  struct traits<rn::e_single> {
-    using type = rn::e_single;
-
-    static constexpr type_kind kind        = type_kind::enum_kind;
-    static constexpr std::string_view ns   = "rn";
-    static constexpr std::string_view name = "e_single";
-
-    static constexpr std::array<std::string_view, 1> value_names{
-      "hello",
-    };
-  };
-
-} // namespace refl
-
-/****************************************************************
-*                          Enum: e_two
-*****************************************************************/
-namespace rn {
-
-  enum class e_two {
-    hello,
-    world
-  };
-
-} // namespace rn
-
-namespace refl {
-
-  // Reflection info for enum e_two.
-  template<>
-  struct traits<rn::e_two> {
-    using type = rn::e_two;
-
-    static constexpr type_kind kind        = type_kind::enum_kind;
-    static constexpr std::string_view ns   = "rn";
-    static constexpr std::string_view name = "e_two";
-
-    static constexpr std::array<std::string_view, 2> value_names{
-      "hello",
-      "world",
-    };
-  };
-
-} // namespace refl
-
-/****************************************************************
-*                         Enum: e_color
-*****************************************************************/
-namespace rn {
-
-  enum class e_color {
-    red,
-    green,
-    blue
-  };
-
-} // namespace rn
-
-namespace refl {
-
-  // Reflection info for enum e_color.
-  template<>
-  struct traits<rn::e_color> {
-    using type = rn::e_color;
-
-    static constexpr type_kind kind        = type_kind::enum_kind;
-    static constexpr std::string_view ns   = "rn";
-    static constexpr std::string_view name = "e_color";
-
-    static constexpr std::array<std::string_view, 3> value_names{
-      "red",
-      "green",
-      "blue",
-    };
-  };
-
-} // namespace refl
-
-/****************************************************************
-*                         Enum: e_hand
-*****************************************************************/
-namespace rn {
-
-  enum class e_hand {
-    left,
-    right
-  };
-
-} // namespace rn
-
-namespace refl {
-
-  // Reflection info for enum e_hand.
-  template<>
-  struct traits<rn::e_hand> {
-    using type = rn::e_hand;
-
-    static constexpr type_kind kind        = type_kind::enum_kind;
-    static constexpr std::string_view ns   = "rn";
-    static constexpr std::string_view name = "e_hand";
-
-    static constexpr std::array<std::string_view, 2> value_names{
-      "left",
-      "right",
-    };
-  };
-
-} // namespace refl
-
-/****************************************************************
 *                      Sum Type: MySumtype
 *****************************************************************/
 namespace rn {
@@ -1201,6 +1051,156 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{};
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                         Enum: e_empty
+*****************************************************************/
+namespace rn {
+
+  enum class e_empty {
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_empty.
+  template<>
+  struct traits<rn::e_empty> {
+    using type = rn::e_empty;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_empty";
+
+    static constexpr std::array<std::string_view, 0> value_names{};
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                        Enum: e_single
+*****************************************************************/
+namespace rn {
+
+  enum class e_single {
+    hello
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_single.
+  template<>
+  struct traits<rn::e_single> {
+    using type = rn::e_single;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_single";
+
+    static constexpr std::array<std::string_view, 1> value_names{
+      "hello",
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                          Enum: e_two
+*****************************************************************/
+namespace rn {
+
+  enum class e_two {
+    hello,
+    world
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_two.
+  template<>
+  struct traits<rn::e_two> {
+    using type = rn::e_two;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_two";
+
+    static constexpr std::array<std::string_view, 2> value_names{
+      "hello",
+      "world",
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                         Enum: e_color
+*****************************************************************/
+namespace rn {
+
+  enum class e_color {
+    red,
+    green,
+    blue
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_color.
+  template<>
+  struct traits<rn::e_color> {
+    using type = rn::e_color;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_color";
+
+    static constexpr std::array<std::string_view, 3> value_names{
+      "red",
+      "green",
+      "blue",
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                         Enum: e_hand
+*****************************************************************/
+namespace rn {
+
+  enum class e_hand {
+    left,
+    right
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_hand.
+  template<>
+  struct traits<rn::e_hand> {
+    using type = rn::e_hand;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_hand";
+
+    static constexpr std::array<std::string_view, 2> value_names{
+      "left",
+      "right",
+    };
   };
 
 } // namespace refl

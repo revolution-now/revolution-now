@@ -8,12 +8,10 @@
 # Description: RDS definitions for the coord module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_direction [
+enum.e_direction {
   nw, n, ne,
    w, c,  e,
   sw, s, se,
-]
-
-} # namespace rn
+}

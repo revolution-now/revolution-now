@@ -8,12 +8,11 @@
 # Description: RDS definitions for the input module.
 #
 # ===============================================================
-namespace rn.input {
+namespace "rn.input"
 
-enum e_drag_phase [
+enum.e_drag_phase {
   begin,
   in_progress,
-  'end',
-]
-
-} # namespace rn.input
+  # 'end' is a Lua keyword, so we have to do this. :-E
+  function() return {name='end'} end,
+}

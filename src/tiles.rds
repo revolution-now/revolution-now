@@ -8,9 +8,9 @@
 # Description: RDS definitions for the tiles module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_tile [
+enum.e_tile {
   water,
   land,
   land_1_side,
@@ -153,6 +153,4 @@ enum e_tile [
   # testing
   checkers,
   checkers_inv,
-]
-
-} # namespace rn
+}

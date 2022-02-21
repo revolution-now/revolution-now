@@ -8,24 +8,18 @@
 # Description: RDS definitions for the sg-colonies module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  colony.hpp
-  colony-id.hpp
+# Revolution Now
+include "colony.hpp"
+include "colony-id.hpp"
 
-  # C++ standard library
-  <unordered_map>
-]
+# C++ standard library
+include "<unordered_map>"
 
-namespace rn.wrapped {
+namespace "rn.wrapped"
 
-struct ColoniesState {
-  next_colony_id:  int
-  colonies:       'std::unordered_map<ColonyId, rn::Colony>'
+struct.ColoniesState {
+  next_colony_id 'int',
+  colonies 'std::unordered_map<ColonyId, rn::Colony>',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn.wrapped

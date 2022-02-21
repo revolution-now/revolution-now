@@ -4,6 +4,8 @@ function( generate_rds_target target )
   # Generate the include files parameters.
   set( rds_generated_files "" )
 
+  set( preamble "${CMAKE_SOURCE_DIR}/src/rds/rdsc/preamble.lua" )
+
   # RDS files currently do not include other RDS files, and so
   # there is no need to track dependencies among them during in-
   # cremental building, unlike C++ header files, so the below
@@ -17,8 +19,9 @@ function( generate_rds_target target )
       COMMENT "building rds definition ${name}"
       COMMAND rdsc
         ${rds}
+        ${preamble}
         ${generated_include}
-      DEPENDS rdsc ${rds}
+      DEPENDS rdsc ${preamble} ${rds}
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     )
     list( APPEND rds_generated_files ${generated_include} )

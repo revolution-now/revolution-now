@@ -8,17 +8,13 @@
 # Description: RDS definitions for the player module.
 #
 # ===============================================================
-include [
-  # Rds
-  nation.rds.hpp
-]
+# Rds
+include "nation.rds.hpp"
 
-namespace rn.wrapped  {
+namespace "rn.wrapped"
 
-struct Player {
-  nation: e_nation
-  human:  bool
-  money:  int
+struct.Player {
+  nation 'e_nation',
+  human 'bool',
+  money 'int',
 }
-
-} # namespace rn.wrapped

@@ -18,6 +18,7 @@
 
 namespace rds {
 
-expr::Rds parse( std::string_view rds_filename );
+expr::Rds parse( std::string_view filename,
+                 std::string_view preamble_file );
 
 }

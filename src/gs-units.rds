@@ -8,54 +8,46 @@
 # Description: RDS definitions for the units save game state.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  colony-id.hpp
-  coord.hpp
-  unit-id.hpp
-  unit.hpp
+# Revolution Now
+include "colony-id.hpp"
+include "coord.hpp"
+include "unit-id.hpp"
+include "unit.hpp"
 
-  # Rds
-  ustate.rds.hpp
+# Rds
+include "ustate.rds.hpp"
 
-  # C++ standard library
-  <unordered_map>
-]
+# C++ standard library
+include "<unordered_map>"
 
-namespace rn {
+namespace "rn"
 
-sumtype UnitOwnership {
-  free {}
+sumtype.UnitOwnership {
+  free {},
   world {
-    coord: Coord
-  }
+    coord 'Coord',
+  },
   cargo {
-    holder: UnitId
-  }
+    holder 'UnitId',
+  },
   old_world {
-    st: UnitOldWorldViewState_t
-  }
+    st 'UnitOldWorldViewState_t',
+  },
   colony {
-    id: ColonyId
-  }
+    id 'ColonyId',
+  },
 }
 
-struct UnitState {
-  unit:      Unit
-  ownership: UnitOwnership_t
+struct.UnitState {
+  unit 'Unit',
+  ownership 'UnitOwnership_t',
 }
 
-} #
+namespace "rn.wrapped"
 
-namespace rn.wrapped {
+struct.UnitsState {
+  next_unit_id 'int',
+  units 'std::unordered_map<UnitId, UnitState>',
 
-struct UnitsState {
-  next_unit_id:  int
-  units:        'std::unordered_map<UnitId, UnitState>'
-
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn.wrapped

@@ -8,19 +8,15 @@
 # Description: RDS definitions for the game-ui-views module.
 #
 # ===============================================================
-include [
-  # Rds
-  unit.rds.hpp
-]
+# Rds
+include "unit.rds.hpp"
 
-namespace rn.ui {
+namespace "rn.ui"
 
 # Holds the state of each unit in the window as the player is se-
 # lecting them and cycling them through the states.
-struct UnitActivationInfo {
-  original_orders: e_unit_orders
-  current_orders:  e_unit_orders
-  is_activated:    bool
+struct.UnitActivationInfo {
+  original_orders 'e_unit_orders',
+  current_orders 'e_unit_orders',
+  is_activated 'bool',
 }
-
-} # namespace rn.ui

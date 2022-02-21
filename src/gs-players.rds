@@ -8,25 +8,19 @@
 # Description: RDS definitions for the sg-players module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  player.hpp
+# Revolution Now
+include "player.hpp"
 
-  # Rds
-  nation.rds.hpp
+# Rds
+include "nation.rds.hpp"
 
-  # C++ standard library
-  <unordered_map>
-]
+# C++ standard library
+include "<unordered_map>"
 
-namespace rn {
+namespace "rn"
 
-struct PlayersState {
-  players: 'std::unordered_map<e_nation, Player>'
+struct.PlayersState {
+  players 'std::unordered_map<e_nation, Player>',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn

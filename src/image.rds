@@ -8,10 +8,8 @@
 # Description: RDS definitions for the image module.
 #
 # ===============================================================
-namespace rn {
+namespace "rn"
 
-enum e_image [
+enum.e_image {
   europe,
-]
-
-} # namespace rn
+}

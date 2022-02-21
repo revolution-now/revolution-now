@@ -8,16 +8,12 @@
 # Description: RDS definitions for the viewport module.
 #
 # ===============================================================
-namespace rn.wrapped {
+namespace "rn.wrapped"
 
-struct SmoothViewport {
-  zoom:     double
-  center_x: double
-  center_y: double
+struct.SmoothViewport {
+  zoom 'double',
+  center_x 'double',
+  center_y 'double',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn.wrapped

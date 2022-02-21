@@ -8,24 +8,22 @@
 # Description: RDS definitions for the compositor module.
 #
 # ===============================================================
-namespace rn.compositor {
+namespace "rn.compositor"
 
 # In general, these sections may overlap.
-enum e_section [
+enum.e_section {
   menu_bar,
   viewport,
   panel,
   console,
   normal,  # non console area.
   total, # The entire renderable window.
-]
+}
 
 # These should be clockwise.
-enum e_composite_location [
+enum.e_composite_location {
   top,
   right,
   bottom,
   left,
-]
-
-} # namespace rn
+}

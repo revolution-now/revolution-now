@@ -9,53 +9,44 @@
 #              state.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  gs-colonies.hpp
-  gs-units.hpp
+# Revolution Now
+include "gs-colonies.hpp"
+include "gs-units.hpp"
 
-  # Rds
-  gs-events.rds.hpp
-  gs-players.rds.hpp
-  gs-turn.rds.hpp
-  gs-old-world-view.rds.hpp
-  gs-land-view.rds.hpp
-  gs-terrain.rds.hpp
-]
+# Rds
+include "gs-events.rds.hpp"
+include "gs-players.rds.hpp"
+include "gs-turn.rds.hpp"
+include "gs-old-world-view.rds.hpp"
+include "gs-land-view.rds.hpp"
+include "gs-terrain.rds.hpp"
 
-namespace rn {
+namespace "rn"
 
-struct FormatVersion {
-  major: int
-  minor: int
-  patch: int
+struct.FormatVersion {
+  major 'int',
+  minor 'int',
+  patch 'int',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
 
-} #
 
-namespace rn.wrapped {
+namespace "rn.wrapped"
 
-struct TopLevelState {
-  version:        'rn::FormatVersion'
-  events:         'rn::EventsState'
-  units:          'rn::UnitsState'
-  players:        'rn::PlayersState'
-  turn:           'rn::TurnState'
-  old_world_view: 'rn::OldWorldViewState'
-  colonies:       'rn::ColoniesState'
-  land_view:      'rn::LandViewState'
+struct.TopLevelState {
+  version 'rn::FormatVersion',
+  events 'rn::EventsState',
+  units 'rn::UnitsState',
+  players 'rn::PlayersState',
+  turn 'rn::TurnState',
+  old_world_view 'rn::OldWorldViewState',
+  colonies 'rn::ColoniesState',
+  land_view 'rn::LandViewState',
   # Use a zzz prefix to make sure that the terrain field will be
   # last in the save file (keys are alphabetized) for convenience
   # because it is so large.
-  zzz_terrain:    'rn::TerrainState'
+  zzz_terrain 'rn::TerrainState',
 
-  _features: [
-    equality, validation
-  ]
+  _features { equality, validation }
 }
-
-} # namespace rn.wrapped

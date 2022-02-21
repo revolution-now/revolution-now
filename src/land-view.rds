@@ -8,21 +8,19 @@
 # Description: Public RDS definitions for the land-view module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  colony-id.hpp
-  unit-id.hpp
+# Revolution Now
+include "colony-id.hpp"
+include "unit-id.hpp"
 
-  # Rds
-  orders.rds.hpp
+# Rds
+include "orders.rds.hpp"
 
-  # C++ standard library
-  <vector>
-]
+# C++ standard library
+include "<vector>"
 
-namespace rn {
+namespace "rn"
 
-sumtype LandViewPlayerInput {
+sumtype.LandViewPlayerInput {
   # Player clicked on a colony. It is important that this be a
   # command sent back to the caller of the land-view module (as
   # opposed to the land-view input processor coroutine just
@@ -34,13 +32,13 @@ sumtype LandViewPlayerInput {
   # back to the turn processor, it can handle that issue and we
   # don't have that problem.
   colony {
-    id: ColonyId
-  }
+    id 'ColonyId',
+  },
 
   # Player has given orders to a unit.
   give_orders {
-    orders: orders_t
-  }
+    orders 'orders_t',
+  },
 
   # Prioritize these units and make them ask for orders now, as-
   # suming that they have not used their turn. This needs to be a
@@ -48,8 +46,6 @@ sumtype LandViewPlayerInput {
   # prioritized before the first of them starts asking for or-
   # ders.
   prioritize {
-    units:  'std::vector<UnitId>'
-  }
+    units 'std::vector<UnitId>',
+  },
 }
-
-} # namespace rn

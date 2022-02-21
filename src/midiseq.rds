@@ -8,12 +8,10 @@
 # Description: RDS definitions for the midiseq module.
 #
 # ===============================================================
-include [
-  # base
-  base/fs.hpp
-]
+# base
+include "base/fs.hpp"
 
-namespace rn.midiseq {
+namespace "rn.midiseq"
 
 # The possible commands that can be sent to the midi thread. Gen-
 # erally, after receiving one of these commands the midi thread
@@ -39,20 +37,17 @@ namespace rn.midiseq {
 #           the volume.  Gain beyond the standard volume would
 #           need to be done with the synthesizer.
 #
-sumtype command {
+sumtype.command {
   play   {
-    file: 'fs::path'
-  }
-  stop   {}
-  pause  {}
-  resume {}
-  off    {}
+    file 'fs::path',
+  },
+  stop   {},
+  pause  {},
+  resume {},
+  off    {},
   volume {
-    value: double
-  }
+    value 'double',
+  },
 
-  _features [
-  ]
+  _features {}
 }
-
-} # namespace rn.midiseq
