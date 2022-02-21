@@ -222,7 +222,7 @@ struct StructWithValidation {
 namespace rn.test {
 
 struct MyTemplateStruct {
-  _template { T, U }
+  _template { T, U },
 
   xxx: T
   yyy: double
