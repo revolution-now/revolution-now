@@ -11,7 +11,6 @@
 #pragma once
 
 // cdr
-#include "cdr/converter.hpp" // TODO: remove
 #include "cdr/repr.hpp"
 
 // base
@@ -20,12 +19,18 @@
 /****************************************************************
 ** Rcl Document Model
 *****************************************************************/
+// Model
+// =====
+//
+// Rcl uses Cdr as its underlying data storage model, and so it
+// can only support things that are supported by Cdr.
+//
 // Syntax
 // ======
 //
 // Rcl is very similar to UCL (see github.com/vstakhov/libucl)
-// though lacks some of fancier features such as macros or lit-
-// eral suffixes (k, ms, etc.).
+// though lacks some of fancier features such as macros, literal
+// suffixes (k, ms, etc.), and merging of like table keys.
 //
 // Sample config:
 //
@@ -60,10 +65,9 @@
 //     ]
 //   }
 //
-//   # Table keys, despite being strings, are ordered according
-//   # to the order they appear in the config file.  When
-//   # iterating through keys, the 'before' key will always
-//   # come before the 'after' key:
+//   # Table keys have no concept of ordering, though when # Rcl
+//   is emitted it will emit the keys in alphabetical # order for
+//   consistency/determinism.
 //   before: 9
 //   after:  8
 //
@@ -72,6 +76,7 @@
 //
 // Table Keys
 // ==========
+//
 // Table keys are normally just identifiers, but they can actu-
 // ally be arbitrary strings (containing spaces, backslashes,
 // double or single quotes, and any weird characters). This is
@@ -106,13 +111,17 @@
 // ===============
 //
 // Once a config file written in the above syntax has been
-// parsed, it will be post processed. There are three phases in
+// parsed, it will be post processed. There are two phases in
 // the post processing:
 //
-// 1. Unflattening: This is applied recursively, and
+// 1. Key Parsing: TODO
+//
+// 2. Unflattening: This is applied recursively, and
 //    transforms an input of the form:
 //
 //      a.b.c = 1
+//
+//      one two three: {}
 //
 //    into:
 //
@@ -122,12 +131,18 @@
 //        }
 //      }
 //
+//      one {
+//        two {
+//          three {}
+//        }
+//      }
+//
 //    This step also parses any quoted/escaped table keys.
 //
 namespace rcl {
 
 /****************************************************************
-** Post-processing Routine
+** doc
 *****************************************************************/
 // The default options are setup to be those required when pro-
 // ducing Rcl via parsing text.
@@ -136,9 +151,6 @@ struct ProcessingOptions {
   bool unflatten_keys = true;
 };
 
-/****************************************************************
-** doc
-*****************************************************************/
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct doc {
