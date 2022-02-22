@@ -829,7 +829,7 @@ class UnitsAtGateColonyView : public ui::View,
                    transformed_unit_composition_from_commodity(
                        unit_from_id( id ), comm ) );
     return ColViewObject::commodity{
-        .comm = comm.with_quantity( xform_res.quantity_used ) };
+        .comm = with_quantity( comm, xform_res.quantity_used ) };
   }
 
   maybe<ColViewObject_t> can_receive_commodity(

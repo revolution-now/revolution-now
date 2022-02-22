@@ -115,8 +115,9 @@ string commodity_number_to_markup( int value ) {
 /****************************************************************
 ** Commodity
 *****************************************************************/
-Commodity Commodity::with_quantity( int new_quantity ) const {
-  Commodity res = *this;
+Commodity with_quantity( Commodity const& in,
+                         int              new_quantity ) {
+  Commodity res = in;
   res.quantity  = new_quantity;
   return res;
 }

@@ -32,6 +32,15 @@ enum.e_commodity {
   muskets,
 }
 
+# This is the object that gets held as cargo either in a unit's
+# cargo or in a colony.
+struct.Commodity {
+  type     'e_commodity',
+  quantity 'int',
+
+  _features { equality, validation }
+}
+
 sumtype.CommodityLabel {
   none {},
   quantity {

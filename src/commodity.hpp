@@ -22,7 +22,6 @@
 #include "commodity.rds.hpp"
 
 // refl
-#include "refl/ext.hpp"
 #include "refl/query-enum.hpp"
 
 // C++ standard library
@@ -59,25 +58,7 @@ maybe<Texture const&> render_commodity_label(
 /****************************************************************
 ** Commodity
 *****************************************************************/
-
-// This is the object that gets held as cargo either in a unit's
-// cargo or in a colony.
-struct Commodity {
-  bool operator==( Commodity const& rhs ) const {
-    return type == rhs.type && quantity == rhs.quantity;
-  }
-  bool operator!=( Commodity const& rhs ) const {
-    return !( *this == rhs );
-  }
-
-  Commodity with_quantity( int new_quantity ) const;
-
-  base::valid_or<std::string> validate() const;
-
-  e_commodity type;
-  int         quantity;
-};
-NOTHROW_MOVE( Commodity );
+Commodity with_quantity( Commodity const& in, int new_quantity );
 
 // These are "low level" functions that should only be called
 // after all the right checks have been made that the cargo can
@@ -128,30 +109,6 @@ void render_commodity_annotated( Texture&         tx,
                                  Coord            pixel_coord );
 
 } // namespace rn
-
-/****************************************************************
-** Reflection
-*****************************************************************/
-namespace refl {
-
-// Reflection info for struct Commodity.
-template<>
-struct traits<rn::Commodity> {
-  using type = rn::Commodity;
-
-  static constexpr type_kind kind      = type_kind::struct_kind;
-  static constexpr std::string_view ns = "rn";
-  static constexpr std::string_view name = "Commodity";
-
-  using template_types = std::tuple<>;
-
-  static constexpr std::tuple fields{
-      refl::StructField{ "type", &rn::Commodity::type },
-      refl::StructField{ "quantity", &rn::Commodity::quantity },
-  };
-};
-
-} // namespace refl
 
 /****************************************************************
 ** Lua
