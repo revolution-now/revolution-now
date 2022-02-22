@@ -32,17 +32,17 @@ struct emitter {
     for( int i = 0; i < level; ++i ) out += "  ";
   }
 
-  void emit( null_t const&, string& out, int ) { out += "null"; }
+  void emit( null_t, string& out, int ) { out += "null"; }
 
-  void emit( double const& o, string& out, int ) {
+  void emit( double o, string& out, int ) {
     to_str( o, out, base::ADL );
   }
 
-  void emit( cdr::integer_type const& o, string& out, int ) {
+  void emit( cdr::integer_type o, string& out, int ) {
     to_str( o, out, base::ADL );
   }
 
-  void emit( bool const& o, string& out, int ) {
+  void emit( bool o, string& out, int ) {
     to_str( o, out, base::ADL );
   }
 

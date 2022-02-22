@@ -31,6 +31,7 @@
 // C++ standard library
 #include <algorithm>
 #include <array>
+#include <unordered_map>
 
 using namespace std;
 

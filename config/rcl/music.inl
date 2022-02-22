@@ -9,6 +9,9 @@
 // base
 #include "../../src/base/fs.hpp"
 
+// C++ standard library
+#include <unordered_map>
+
 namespace rn {
 
 // This is to avoid commas in macro arguments.

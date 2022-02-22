@@ -42,6 +42,7 @@ using ::cdr::testing::conv_from_bt;
 Matrix<int> m_empty( Delta{} );
 
 value cdr_empty = table{
+    "has_coords"_key = false,
     "size"_key =
         table{
             "h"_key = 0,
@@ -51,6 +52,7 @@ value cdr_empty = table{
 };
 
 value cdr_no_data = table{
+    "has_coords"_key = false,
     "size"_key =
         table{
             "h"_key = 1,
@@ -60,6 +62,7 @@ value cdr_no_data = table{
 };
 
 value cdr_inconsistent_size = table{
+    "has_coords"_key = true,
     "size"_key =
         table{
             "h"_key = 0,
@@ -74,6 +77,7 @@ value cdr_inconsistent_size = table{
 };
 
 value const cdr_2x4_missing_default_elem = table{
+    "has_coords"_key = true,
     "size"_key =
         table{
             "h"_key = 2,
@@ -95,24 +99,13 @@ value const cdr_2x4_missing_default_elem = table{
 };
 
 value const cdr_2x4_with_default_elem = table{
+    "has_coords"_key = false,
     "size"_key =
         table{
             "h"_key = 2,
             "w"_key = 4,
         },
-    "data"_key =
-        cdr::list{
-            // clang-format off
-        table{ "key"_key=table{ "x"_key=0, "y"_key=0, }, "val"_key=1 },
-        table{ "key"_key=table{ "x"_key=1, "y"_key=0, }, "val"_key=2 },
-        table{ "key"_key=table{ "x"_key=2, "y"_key=0, }, "val"_key=3 },
-        table{ "key"_key=table{ "x"_key=3, "y"_key=0, }, "val"_key=4 },
-        table{ "key"_key=table{ "x"_key=0, "y"_key=1, }, "val"_key=5 },
-        table{ "key"_key=table{ "x"_key=1, "y"_key=1, }, "val"_key=0 },
-        table{ "key"_key=table{ "x"_key=2, "y"_key=1, }, "val"_key=7 },
-        table{ "key"_key=table{ "x"_key=3, "y"_key=1, }, "val"_key=8 },
-            // clang-format on
-        },
+    "data"_key = cdr::list{ 1, 2, 3, 4, 5, 0, 7, 8 },
 };
 
 Matrix<int> make_m_2x4() {

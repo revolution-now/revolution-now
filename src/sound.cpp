@@ -29,6 +29,9 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 
+// C++ standard library
+#include <unordered_map>
+
 using namespace std;
 
 namespace rn {

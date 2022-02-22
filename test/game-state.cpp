@@ -90,7 +90,8 @@ cdr::value cdr_game_state_default = cdr::table{
                             "h"_key = 0,
                             "w"_key = 0,
                         },
-                    "data"_key = cdr::list{},
+                    "data"_key       = cdr::list{},
+                    "has_coords"_key = false,
                 },
         },
 };

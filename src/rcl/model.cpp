@@ -427,7 +427,7 @@ base::expect<table, string> run_postprocessing(
   table v4 = std::move( v3 );
 #if 0
   for( auto const& p : watch.results() )
-    fmt::print( "{}: {}\n", p.first, p.second );
+    fmt::print( "    {}: {}\n", p.first, p.second );
 #endif
   return v4;
 }
