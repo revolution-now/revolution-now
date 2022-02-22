@@ -232,6 +232,8 @@ struct list {
 
   auto reserve( size_t elems ) { return o_.reserve( elems ); }
 
+  bool empty() const { return o_.empty(); }
+
   bool operator==( list const& ) const = default;
 
   long ssize() const;

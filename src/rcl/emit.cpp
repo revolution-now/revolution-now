@@ -134,7 +134,14 @@ struct emitter {
   };
 
   void emit( list const& o, string& out, int indent ) {
-    if( indent > 0 ) out += "[\n";
+    if( indent > 0 ) {
+      out += '[';
+      if( o.empty() ) {
+        out += "]";
+        return;
+      }
+      out += '\n';
+    }
 
     for( value const& v : o ) {
       do_indent( indent, out );
