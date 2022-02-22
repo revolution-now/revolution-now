@@ -16,6 +16,9 @@
 // base
 #include "base/io.hpp"
 
+// Abseil
+#include "absl/strings/str_split.h"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -28,66 +31,86 @@ using ::testing::data_dir;
 
 TEST_CASE( "[parse] complex doc" ) {
   static string const input = R"(
-    a.c.f = 5
-    a.c.g = true
-    a.c.h = truedat
+    a.c {
+      f = 5
+      g = true
+      h = truedat
+    }
 
-    b.s = 5
-    b.t = 3.5
+    z = {}
+    zz.yy = {}
 
-    c.d.e.f.g.h.i = 9
-    c.d.e.f.g.h.j = 10
+    b {
+      s = 5
+      t = 3.5
+    }
+
+    c.d.e {
+      f.g {
+        h {
+          i = 9
+          j = 10
+        }
+        yes=no
+      }
+      unit: 1
+    }
 
     file: /this/is/a/file/path
     url: "http://domain.com?x=y"
 
     tbl1: { x=1, y: 2, z=3, "hello yo"="world", yes=no }
-    tbl2: { x=1, y: 2, z=3, hello="world", yes=     x  }
+    tbl2: { x=1, y: "2 3", z=3, hello="world wide", yes=     x  }
 
     one {
       " two\a\b\" xxx" = [
          1,
          2,
          {
-           one.two.three = 3
-           one.two.four = 4
-           one.two {
-             hello=1
-             world=2
+           one {
+             two {
+               three = 3
+               four = 4
+               hello=1
+               world=2
+             }
            }
          },
       ]
     }
 
-    c.d.e {
-      unit: 1
-      f.g {
-        yes=no
-      }
+    subtype {
+      "this is.a test[]{}".a = [
+        abc,
+        5,
+        -.03,
+        table,
+        {
+          a {
+            b.c=1
+            d=2
+          }
+        },
+      ]
+      x = 9
     }
-
-    subtype."this is.a test[]{}".a = [
-      abc,
-      5,
-      -.03,
-      table,
-      {
-        a.b.c=1
-        a.d=2
-      },
-    ]
-    subtype.x = 9
 
     aaa.b.c {
       a.b.c [
         {
-          a.b.c {
-            f.g.h.i: 5
-            f.g.h.j: 6
-          }
-          a.b.c {
-            f.g.h.k: 5
-            f.g.h.l: 6
+          a {
+            b.c {
+              f {
+                g {
+                  h {
+                    i: 5
+                    j: 6
+                    k: 5
+                    l: 6
+                  }
+                }
+              }
+            }
           }
         },
       ]
@@ -122,13 +145,9 @@ TEST_CASE( "[parse] space-separated nested table syntax" ) {
     one two {
       a: b
       c: d
-      three four  five {
+      three.four.five {
         six: 6
-      }
-      three {
-        four five: {
-          seven: 7
-        }
+        seven: 7
       }
     }
     list: [
@@ -146,21 +165,6 @@ TEST_CASE( "[parse] space-separated nested table syntax" ) {
   REQUIRE( doc );
 
   string expected =
-      "one {\n"
-      "  two {\n"
-      "    a: b\n"
-      "    c: d\n"
-      "    three {\n"
-      "      four {\n"
-      "        five {\n"
-      "          six: 6\n"
-      "          seven: 7\n"
-      "        }\n"
-      "      }\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "\n"
       "list: [\n"
       "  {\n"
       "    x {\n"
@@ -178,7 +182,23 @@ TEST_CASE( "[parse] space-separated nested table syntax" ) {
       "      }\n"
       "    }\n"
       "  },\n"
-      "]\n";
+      "]\n"
+      "\n"
+      "one {\n"
+      "  two {\n"
+      "    a: b\n"
+      "    c: d\n"
+      "    three {\n"
+      "      four {\n"
+      "        five {\n"
+      "          seven: 7\n"
+      "          six: 6\n"
+      "        }\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+
   REQUIRE( fmt::to_string( doc ) == expected );
 }
 
@@ -189,11 +209,7 @@ TEST_CASE( "[parse] table keys with quotes" ) {
       c: d
       three "fo\\ur  five" {
         "six": 6
-      }
-      three {
-        "fo\\ur  five": {
-          seven: 7
-        }
+        seven: 7
       }
     }
     "this"is a.weird."string" {}
@@ -213,27 +229,6 @@ TEST_CASE( "[parse] table keys with quotes" ) {
   REQUIRE( doc );
 
   string expected =
-      "one {\n"
-      "  \".two'hello world'\" {\n"
-      "    a: b\n"
-      "    c: d\n"
-      "    three {\n"
-      "      \"fo\\\\ur  five\" {\n"
-      "        six: 6\n"
-      "        seven: 7\n"
-      "      }\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "\n"
-      "thisis {\n"
-      "  a {\n"
-      "    weird {\n"
-      "      string {}\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "\n"
       "\" \\\"list\\\"\": [\n"
       "  {\n"
       "    x {\n"
@@ -251,7 +246,41 @@ TEST_CASE( "[parse] table keys with quotes" ) {
       "      }\n"
       "    }\n"
       "  },\n"
-      "]\n";
+      "]\n"
+      "\n"
+      "one {\n"
+      "  \".two'hello world'\" {\n"
+      "    a: b\n"
+      "    c: d\n"
+      "    three {\n"
+      "      \"fo\\\\ur  five\" {\n"
+      "        seven: 7\n"
+      "        six: 6\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "thisis {\n"
+      "  a {\n"
+      "    weird {\n"
+      "      string {}\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+
+  string doc_str = fmt::to_string( doc );
+
+  vector<string> doc_split = absl::StrSplit( doc_str, "\n" );
+  vector<string> expected_split =
+      absl::StrSplit( expected, "\n" );
+
+  for( int i = 0; i < int( doc_split.size() ); ++i ) {
+    if( i >= int( expected_split.size() ) ) break;
+    INFO( fmt::format( "line: {}", i ) );
+    REQUIRE( doc_split[i] == expected_split[i] );
+  }
+
   REQUIRE( fmt::to_string( doc ) == expected );
 }
 

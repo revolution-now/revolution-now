@@ -16,9 +16,6 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // Cdr
 #include "cdr/ext.hpp"
 
@@ -129,10 +126,6 @@ class ND MovementPoints {
   friend maybe<MovementPoints> lua_get(
       lua::cthread L, int idx, lua::tag<MovementPoints> );
   friend void lua_push( lua::cthread L, MovementPoints mv_pts );
-
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<MovementPoints> convert_to(
-      rcl::value const& v, rcl::tag<MovementPoints> );
 
   friend cdr::value to_canonical( cdr::converter&       conv,
                                   MovementPoints const& o,

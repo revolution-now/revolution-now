@@ -13,9 +13,6 @@
 // Revolution Now
 #include "coord.hpp"
 
-// Rcl
-#include "rcl/model.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -349,76 +346,6 @@ TEST_CASE( "[coord] rounded_to_multiple_to_plus_inf" ) {
   expect = Coord{ 0_x, -20_y };
   REQUIRE( coord.rounded_to_multiple_to_plus_inf( delta ) ==
            expect );
-}
-
-TEST_CASE( "[coord] Coord - rcl" ) {
-  using namespace rcl;
-  using KV = table::value_type;
-
-  SECTION( "success" ) {
-    UNWRAP_CHECK( tbl, run_postprocessing( make_table(
-                           KV{ "x", 3 }, KV{ "y", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE( convert_to<Coord>( v ) == Coord{ 3_x, 4_y } );
-  }
-  SECTION( "failure 1" ) {
-    UNWRAP_CHECK( tbl, run_postprocessing( make_table(
-                           KV{ "x", 3 }, KV{ "z", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE( convert_to<Coord>( v ) ==
-             error( "key 'y' not found in table." ) );
-  }
-  SECTION( "failure 2" ) {
-    UNWRAP_CHECK(
-        tbl, run_postprocessing( make_table( KV{ "x", "hello" },
-                                             KV{ "y", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE(
-        convert_to<Coord>( v ) ==
-        error(
-            "failed to convert value of type string to int." ) );
-  }
-}
-
-TEST_CASE( "[coord] Delta - rcl" ) {
-  using namespace rcl;
-  using KV = table::value_type;
-
-  SECTION( "success" ) {
-    UNWRAP_CHECK( tbl, run_postprocessing( make_table(
-                           KV{ "w", 3 }, KV{ "h", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE( convert_to<Delta>( v ) == Delta{ 3_w, 4_h } );
-  }
-  SECTION( "failure 1" ) {
-    UNWRAP_CHECK( tbl, run_postprocessing( make_table(
-                           KV{ "w", 3 }, KV{ "z", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE( convert_to<Delta>( v ) ==
-             error( "key 'h' not found in table." ) );
-  }
-  SECTION( "failure 2" ) {
-    UNWRAP_CHECK(
-        tbl, run_postprocessing( make_table( KV{ "w", "hello" },
-                                             KV{ "h", 4 } ) ) );
-    value v{ std::make_unique<table>( std::move( tbl ) ) };
-
-    // Test.
-    REQUIRE(
-        convert_to<Delta>( v ) ==
-        error(
-            "failed to convert value of type string to int." ) );
-  }
 }
 
 } // namespace

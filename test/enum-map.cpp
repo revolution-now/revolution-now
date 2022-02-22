@@ -14,11 +14,7 @@
 #include "src/enum-map.hpp"
 
 // Rds
-#include "rds/helper/rcl.hpp"
 #include "rds/testing.rds.hpp"
-
-// Rcl
-#include "rcl/ext-std.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -116,51 +112,6 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap equality" ) {
   REQUIRE( m1[e_color::red] == 2 );
   REQUIRE( m1[e_color::green] == 0 );
   REQUIRE( m1[e_color::blue] == 0 );
-}
-
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl" ) {
-  using KV = rcl::table::value_type;
-  rcl::table t =
-      rcl::make_table( KV{ "red", "one" }, KV{ "green", "two" },
-                       KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  ExhaustiveEnumMap<e_color, string> expected{
-      { e_color::red, "one" },
-      { e_color::green, "two" },
-      { e_color::blue, "three" } };
-  REQUIRE( rcl::convert_to<ExhaustiveEnumMap<e_color, string>>(
-               v ) == expected );
-}
-
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl e_empty" ) {
-  rcl::table t = rcl::make_table();
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  ExhaustiveEnumMap<e_empty, string> expected;
-  REQUIRE( ( rcl::convert_to<ExhaustiveEnumMap<e_empty, string>>(
-                 v ) == expected ) );
-}
-
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl bad enum" ) {
-  using KV = rcl::table::value_type;
-  rcl::table t =
-      rcl::make_table( KV{ "red", "one" }, KV{ "greenx", "two" },
-                       KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  REQUIRE(
-      rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v ) ==
-      rcl::error( "key 'green' not found in table." ) );
 }
 
 ExhaustiveEnumMap<e_color, string> const native_colors1{

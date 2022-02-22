@@ -140,6 +140,15 @@ struct converter {
     return v.get<T>();
   }
 
+  // Ensure that the type T is in the `value` variant.
+  template<typename T>
+  result<T&> ensure_type( value& v ) {
+    if( !v.holds<T>() )
+      return err( "expected type {}, instead found type {}.",
+                  type_name( value{ T{} } ), type_name( v ) );
+    return v.get<T>();
+  }
+
   // Ensure that the given list has the given size.
   base::valid_or<error> ensure_list_size( list const& lst,
                                           int expected_size );

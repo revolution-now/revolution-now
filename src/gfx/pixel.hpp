@@ -10,9 +10,6 @@
 *****************************************************************/
 #pragma once
 
-// rcl
-#include "rcl/ext.hpp"
-
 // Cdr
 #include "cdr/ext.hpp"
 
@@ -82,10 +79,6 @@ struct pixel {
   // TODO: these need to cache results.
   pixel highlighted( int iterations = 1 ) const;
   pixel shaded( int iterations = 1 ) const;
-
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<pixel> convert_to( rcl::value const& v,
-                                             rcl::tag<pixel> );
 
   // Implement cdr::ToCanonical.
   friend cdr::value to_canonical( cdr::converter& conv,

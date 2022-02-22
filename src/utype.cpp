@@ -23,14 +23,6 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
-// Rds
-#include "rds/helper/rcl.hpp"
-
-// Rcl
-#include "rcl/ext-base.hpp"
-#include "rcl/ext-builtin.hpp"
-#include "rcl/ext-std.hpp"
-
 // migration
 #include "cdr/ext-base.hpp"    // TODO(migration): remove
 #include "cdr/ext-builtin.hpp" // TODO(migration): remove
@@ -64,29 +56,9 @@ LUA_ENUM( unit_type );
 LUA_ENUM( unit_human );
 
 /****************************************************************
-** ModifierAssociation
-*****************************************************************/
-namespace ModifierAssociation {
-
-rcl::convert_err<ModifierAssociation_t> convert_to(
-    rcl::value const& v, rcl::tag<ModifierAssociation_t> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<ModifierAssociation_t>( v );
-}
-
-} // namespace ModifierAssociation
-
-/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM( unit_type_modifier );
-
-// Rcl
-rcl::convert_err<UnitTypeModifierTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeModifierTraits> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitTypeModifierTraits>( v );
-}
 
 /****************************************************************
 ** e_unit_activity
@@ -140,12 +112,6 @@ maybe<e_commodity> inventory_to_commodity(
       .commodity;
 }
 
-rcl::convert_err<UnitInventoryTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitInventoryTraits> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitInventoryTraits>( v );
-}
-
 valid_or<string> UnitInventoryTraits::validate() const {
   REFL_VALIDATE( min_quantity >= 0,
                  "inventory traits min quantity must be > 0." );
@@ -172,46 +138,6 @@ valid_or<string> UnitInventoryTraits::validate() const {
   return base::valid;
 }
 
-rcl::convert_valid rcl_validate( UnitInventoryTraits const& o ) {
-  if( auto vld = o.validate(); !vld )
-    return rcl::error( vld.error() );
-  return valid;
-}
-
-/****************************************************************
-** UnitDeathAction
-*****************************************************************/
-namespace UnitDeathAction {
-
-// FIXME: Have RDS implement this automatically. It requires
-// first giving RDS support for reflected structs, then for re-
-// flected variants, then write generic convert_to implementa-
-// tions for the reflected structs and reflected variants.
-rcl::convert_err<UnitDeathAction_t> convert_to(
-    rcl::value const& v, rcl::tag<UnitDeathAction_t> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitDeathAction_t>( v );
-}
-
-} // namespace UnitDeathAction
-
-/****************************************************************
-** UnitPromotion
-*****************************************************************/
-namespace UnitPromotion {
-
-// FIXME: Have RDS implement this automatically. It requires
-// first giving RDS support for reflected structs, then for re-
-// flected variants, then write generic convert_to implementa-
-// tions for the reflected structs and reflected variants.
-rcl::convert_err<UnitPromotion_t> convert_to(
-    rcl::value const& v, rcl::tag<UnitPromotion_t> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitPromotion_t>( v );
-}
-
-} // namespace UnitPromotion
-
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
@@ -223,13 +149,6 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
       "descriptor.",
       type );
   return desc;
-}
-
-// Rcl
-rcl::convert_err<UnitTypeAttributes> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitTypeAttributes>( v );
 }
 
 bool can_attack( UnitTypeAttributes const& attr ) {
@@ -686,12 +605,6 @@ LUA_STARTUP( lua::state& st ) {
 /****************************************************************
 ** UnitCompositionConfig
 *****************************************************************/
-rcl::convert_err<UnitCompositionConfig> convert_to(
-    rcl::value const& v, rcl::tag<UnitCompositionConfig> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<UnitCompositionConfig>( v );
-}
-
 valid_or<string> UnitCompositionConfig::validate() const {
   auto& m = unit_types;
   // Validation: any unit type that is derived must not itself
@@ -964,13 +877,6 @@ valid_or<string> UnitCompositionConfig::validate() const {
   }
 
   return base::valid;
-}
-
-rcl::convert_valid rcl_validate(
-    UnitCompositionConfig const& o ) {
-  if( auto vld = o.validate(); !vld )
-    return rcl::error( vld.error() );
-  return valid;
 }
 
 } // namespace rn

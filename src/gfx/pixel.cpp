@@ -244,13 +244,6 @@ cdr::result<pixel> from_canonical( cdr::converter&   conv,
   return *parsed;
 }
 
-// rcl
-rcl::convert_err<pixel> convert_to( rcl::value const& v,
-                                    rcl::tag<pixel> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<pixel>( v );
-}
-
 /****************************************************************
 ** utils
 *****************************************************************/

@@ -11,20 +11,11 @@
 #pragma once
 
 // cdr
-#include "cdr/ext.hpp"
+#include "cdr/converter.hpp" // TODO: remove
+#include "cdr/repr.hpp"
 
 // base
-#include "base/adl-tag.hpp"
 #include "base/expect.hpp"
-#include "base/valid.hpp"
-#include "base/variant.hpp"
-
-// C++ standard library
-#include <memory>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <vector>
 
 /****************************************************************
 ** Rcl Document Model
@@ -122,8 +113,6 @@
 //    transforms an input of the form:
 //
 //      a.b.c = 1
-//      a.b.d = 2
-//      a.c   = 3
 //
 //    into:
 //
@@ -132,247 +121,20 @@
 //          c: 1
 //        }
 //      }
-//
-//      a {
-//        b {
-//          d: 2
-//        }
-//      }
-//
-//      a {
-//        c: 3
-//      }
-//
-//    Note that if there were duplicate keys, those will be pre-
-//    served. They are deduplicated in the next phase.
 //
 //    This step also parses any quoted/escaped table keys.
 //
-// 2. Deduplication of Table Keys.  The unflattening
-//    operation, which is applied recursively, transforms
-//    an input of the form:
-//
-//      a {
-//        b {
-//          c: 1
-//        }
-//      }
-//
-//      a {
-//        b {
-//          d: 2
-//        }
-//      }
-//
-//      a {
-//        c: 3
-//      }
-//
-//    into:
-//
-//      a {
-//        b {
-//          c: 1
-//          d: 2
-//        }
-//        c: 3
-//      }
-//
-//    In other words, it merges duplicate keys whose values are
-//    tables. Any duplicate keys where at least one instance has
-//    a non-table value will cause an error. Order is preserved
-//    during this operation, so that the order that a key is en-
-//    countered during iteration will be determined by where it
-//    first appeared in the config, even if it was subsequently
-//    merged with duplicate keys that occurred later in the con-
-//    fig.
-//
-// 3. Adding table keys (which are now deduplicated) into the
-//    unordered_map for fast access.
-//
 namespace rcl {
-
-struct table;
-struct list;
-
-struct null_t {
-  bool operator==( null_t const& ) const = default;
-};
-inline constexpr null_t null;
-
-/****************************************************************
-** value
-*****************************************************************/
-enum class type {
-  null,
-  boolean,
-  integral,
-  floating,
-  string,
-  table,
-  list
-};
-
-// clang-format off
-using value = base::variant<
-  null_t,
-  double,
-  int,
-  bool,
-  std::string,
-  std::unique_ptr<table>,
-  std::unique_ptr<list>
->;
-// clang-format on
-
-struct type_visitor {
-  type operator()( null_t ) const { return type::null; }
-  type operator()( bool ) const { return type::boolean; }
-  type operator()( int ) const { return type::integral; }
-  type operator()( double ) const { return type::floating; }
-  type operator()( std::string const& ) const {
-    return type::string;
-  }
-  type operator()( std::unique_ptr<table> const& ) const {
-    return type::table;
-  }
-  type operator()( std::unique_ptr<list> const& ) const {
-    return type::list;
-  }
-};
-
-type             type_of( value const& v );
-std::string_view name_of( type t );
-
-/****************************************************************
-** table
-*****************************************************************/
-// This structure cannot be mutable after creation because it re-
-// quires post processing in order to maintain invariants.
-struct table {
-  using value_type = std::pair<std::string, value>;
-
-  // These constructors are only for the convenience of the
-  // parsers; they will not maintain class invariants, so one
-  // should not use a table object after construction from these
-  // constructors. Only tables that are returned by the docu-
-  // ment's factory method should be used, as those will have
-  // their invariants satisfied due to the post processing that
-  // will be applied to them after construction.
-  table() = default;
-  table( std::vector<value_type>&& kvs )
-    : members_( std::move( kvs ) ) {}
-
-  bool has_key( std::string_view key ) const;
-
-  // Key must exist or check-fail!
-  value const& operator[]( std::string_view key ) const;
-
-  int size() const { return members_.size(); }
-
-  // Keys in table, although strings, are ordered. No range
-  // checks, element must exist or check-fail! Note that if you
-  // just need the keys in order, you can iterate over them using
-  // begin/end since they will be delivered in that order.
-  value_type const& operator[]( int n ) const;
-
-  // Consumes this table.
-  table unflatten() &&;
-
-  // Consumes this table.
-  table key_parser() &&;
-
-  // Consumes this table.
-  base::expect<table> dedupe() &&;
-
-  // This should be done after all other post processing has fin-
-  // ished; it will create the mapping in the map_ member (which
-  // is possible after keys are deduplicated) for fast access
-  // subsequently. We don't do this in the constructor because it
-  // would be wasteful to do it before post-processing, since it
-  // would then have to be done again.
-  void map_members() &;
-
-  auto begin() const { return members_.begin(); }
-  auto end() const { return members_.end(); }
-
- private:
-  void unflatten_impl( std::string_view dotted, value&& v );
-  void key_parser_impl( std::string_view dotted, value&& v );
-
-  friend base::valid_or<std::string> merge_values(
-      std::string_view key, value& v_target, value&& v_source );
-
-  // Store this way because 1) when parsing, there can be dupli-
-  // cate keys (though they will be merged during post process-
-  // ing), and 2) keys are ordered, despite being strings.
-  std::vector<value_type> members_;
-
-  // Note: the key/value of this map refers to values inside of
-  // members_. That said, this structure is still safe to std::-
-  // move because it is not self-referential, because the vector
-  // elements are on the heap. Also for this reason, the members_
-  // should NOT be modified after post-processing finishes.
-  std::unordered_map<std::string_view, value*> map_;
-};
-
-/****************************************************************
-** list
-*****************************************************************/
-// This structure cannot be mutable after creation because it re-
-// quires post processing in order to maintain invariants.
-struct list {
-  // These constructors are only for the convenience of the
-  // parsers; they will not maintain class invariants, so one
-  // should not use a list object after construction from these
-  // constructors. Only list that are returned by the document's
-  // factory method should be used, as those will have their in-
-  // variants satisfied due to the post processing that will be
-  // applied to them after construction.
-  list() = default;
-  list( std::vector<value>&& vs )
-    : members_( std::move( vs ) ) {}
-
-  int size() const { return members_.size(); }
-
-  // Will check-fail on invalid index!
-  value const& operator[]( int n ) const;
-
-  // Consumes this list.
-  list unflatten() &&;
-
-  // Consumes this list.
-  list key_parser() &&;
-
-  // Will apply deduplication processing to any elements that are
-  // tables. Returns a new list with the same elements except
-  // that any table elements will have their keys deduplicated.
-  // This is only called as part of post processing after pars-
-  // ing, you do not need to ever call this as a user of this
-  // class.
-  base::expect<list> dedupe_tables() &&;
-
-  // Perform the member-mapping post-processing step on any ele-
-  // ments that are tables.
-  void map_members() &;
-
-  auto begin() const { return members_.begin(); }
-  auto end() const { return members_.end(); }
-
- private:
-  std::vector<value> members_;
-};
 
 /****************************************************************
 ** Post-processing Routine
 *****************************************************************/
-// This should only be run on the top-level table, since it will
-// be applied recursively. In practice, this is only really
-// useful for unit tests, since otherwise the top-level table is
-// placed into a doc, and the doc will run this post-processing.
-base::expect<table> run_postprocessing( table&& tbl );
-
-base::expect<list> run_postprocessing( list&& lst );
+// The default options are setup to be those required when pro-
+// ducing Rcl via parsing text.
+struct ProcessingOptions {
+  bool run_key_parse  = true;
+  bool unflatten_keys = true;
+};
 
 /****************************************************************
 ** doc
@@ -382,19 +144,18 @@ base::expect<list> run_postprocessing( list&& lst );
 struct doc {
   // This will not only create the doc, it will also run a recur-
   // sive post-processing over the table.
-  static base::expect<doc> create( table&& tbl );
+  static base::expect<doc> create(
+      cdr::table&& tbl, ProcessingOptions const& opts );
 
-  table const& top_tbl() const { return *tbl_; }
-  value const& top_val() const { return val_; }
+  cdr::table const& top_tbl() const {
+    return val_.get<cdr::table>();
+  }
+  cdr::value const& top_val() const { return val_; }
 
  private:
-  doc( table&& tbl )
-    : val_( std::make_unique<table>( std::move( tbl ) ) ) {
-    tbl_ = val_.get_if<std::unique_ptr<table>>()->get();
-  }
+  doc( cdr::table&& tbl ) : val_( std::move( tbl ) ) {}
 
-  value        val_;
-  table const* tbl_ = nullptr;
+  cdr::value val_;
 };
 
 void to_str( doc const& o, std::string& out, base::ADL_t );
@@ -433,71 +194,5 @@ bool is_forbidden_leading_unquoted_str_char( char c );
 std::string escape_and_quote_table_key( std::string const& k );
 
 std::string escape_and_quote_string_val( std::string const& k );
-
-/****************************************************************
-** Helpers for Testing
-*****************************************************************/
-template<typename... Vs>
-list make_list( Vs&&... vs ) {
-  std::vector<value> v;
-  ( v.push_back( std::forward<Vs>( vs ) ), ... );
-  return list( std::move( v ) );
-}
-
-template<typename... Vs>
-value make_list_val( Vs&&... vs ) {
-  return value{
-      std::make_unique<list>( make_list( FWD( vs )... ) ) };
-}
-
-template<typename... Kvs>
-table make_table( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  std::vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return table( std::move( v ) );
-}
-
-template<typename... Kvs>
-value make_table_val( Kvs&&... kvs ) {
-  return value{
-      std::make_unique<table>( make_table( FWD( kvs )... ) ) };
-}
-
-template<typename... Kvs>
-base::expect<doc> make_doc( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  std::vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return doc::create( table( std::move( v ) ) );
-}
-
-/****************************************************************
-** Cdr
-*****************************************************************/
-// Convert an rcl::value to a cdr::value.
-cdr::value to_canonical( cdr::converter&   conv,
-                         rcl::value const& o,
-                         cdr::tag_t<rcl::value> );
-
-// Note that we don't provide a from_canonical for rcl::value in
-// the header because we shouldn't be converting individual
-// cdr::values to Rcl, we should only convert one top-level table
-// into an Rcl doc so that it can do all of the post-processing
-// in one pass.
-
-// Convert a cdr::value to an rcl::doc. We're not writing this as
-// a real from_canonical implementation because then we wouldn't
-// really be able to call it with the cdr::converter because the
-// rcl model doesn't satisfy equality-comparable and thus does
-// not satisfy cdr::FromCanonical, and it seems not worth it to
-// give the rcl model operator==. Also, we shouldn't every really
-// have to perform this conversion by way of the converter anyway
-// since the rcl::value is only ever going to be a top-level
-// value. And since we're not using from_canonical, another ben-
-// efit is that we can have it take a cdr::table instead of a
-// cdr::value, which then allows this function to always succeed,
-// hence the return type.
-doc doc_from_cdr( cdr::converter& conv, cdr::table const& tbl );
 
 } // namespace rcl

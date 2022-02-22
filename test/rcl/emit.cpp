@@ -25,18 +25,36 @@ namespace {
 using namespace std;
 
 static string const input = R"(
-  a.c.f = 5
-  a.c.g = true
-  a.c.h = truedat
+  a {
+    c {
+      f = 5
+      g = true
+      h = truedat
+    }
+  }
 
   z = {}
   zz.yy = {}
 
-  b.s = 5
-  b.t = 3.5
+  b {
+    s = 5
+    t = 3.5
+  }
 
-  c.d.e.f.g.h.i = 9
-  c.d.e.f.g.h.j = 10
+  c {
+    d.e {
+      f {
+        g {
+          h {
+            i = 9
+            j = 10
+          }
+          yes=no
+        }
+      }
+      unit: 1
+    }
+  }
 
   file: /this/is/a/file/path
   url: "http://domain.com?x=y"
@@ -49,45 +67,50 @@ static string const input = R"(
        1,
        2,
        {
-         one.two.three = 3
-         one.two.four = 4
-         one.two {
-           hello=1
-           world=2
+         one {
+           two {
+             three = 3
+             four = 4
+             hello=1
+             world=2
+           }
          }
        },
     ]
   }
 
-  c.d.e {
-    unit: 1
-    f.g {
-      yes=no
-    }
+  subtype {
+    "this is.a test[]{}".a = [
+      abc,
+      5,
+      -.03,
+      table,
+      {
+        a {
+          b.c=1
+          d=2
+        }
+      },
+    ]
+    x = 9
   }
-
-  subtype."this is.a test[]{}".a = [
-    abc,
-    5,
-    -.03,
-    table,
-    {
-      a.b.c=1
-      a.d=2
-    },
-  ]
-  subtype.x = 9
 
   aaa.b.c {
     a.b.c [
       {
-        a.b.c {
-          f.g.h.i: 5
-          f.g.h.j: 6
-        }
-        a.b.c {
-          f.g.h.k: 5
-          f.g.h.l: 6
+        a {
+          b.c {
+            f {
+              g {
+                h {
+                  i: 5
+                  j: 6
+                  k: 5
+                  l: 6
+                }
+              }
+            }
+          }
         }
       },
     ]
@@ -123,91 +146,6 @@ TEST_CASE( "[emit] emit no flatten keys" ) {
   }
 }
 
-z {}
-
-zz {
-  yy {}
-}
-
-b {
-  s: 5
-  t: 3.5
-}
-
-c {
-  d {
-    e {
-      f {
-        g {
-          h {
-            i: 9
-            j: 10
-          }
-          yes: no
-        }
-      }
-      unit: 1
-    }
-  }
-}
-
-file: /this/is/a/file/path
-
-url: "http://domain.com?x=y"
-
-tbl1 {
-  x: 1
-  y: 2
-  z: 3
-  "hello yo": world
-  yes: no
-}
-
-tbl2 {
-  x: 1
-  y: "2 3"
-  z: 3
-  hello: world wide
-  yes: x
-}
-
-one {
-  " two\\a\\b\" xxx": [
-    1,
-    2,
-    {
-      one {
-        two {
-          three: 3
-          four: 4
-          hello: 1
-          world: 2
-        }
-      }
-    },
-  ]
-}
-
-subtype {
-  "this is.a test[]{}" {
-    a: [
-      abc,
-      5,
-      -0.03,
-      table,
-      {
-        a {
-          b {
-            c: 1
-          }
-          d: 2
-        }
-      },
-    ]
-  }
-  x: 9
-}
-
 aaa {
   b {
     c {
@@ -239,6 +177,30 @@ aaa {
   }
 }
 
+b {
+  s: 5
+  t: 3.5
+}
+
+c {
+  d {
+    e {
+      f {
+        g {
+          h {
+            i: 9
+            j: 10
+          }
+          yes: no
+        }
+      }
+      unit: 1
+    }
+  }
+}
+
+file: /this/is/a/file/path
+
 list: [
   one,
   two,
@@ -248,9 +210,70 @@ list: [
   null,
 ]
 
+nonnull_val: "null"
+
 null_val: null
 
-nonnull_val: "null"
+one {
+  " two\\a\\b\" xxx": [
+    1,
+    2,
+    {
+      one {
+        two {
+          four: 4
+          hello: 1
+          three: 3
+          world: 2
+        }
+      }
+    },
+  ]
+}
+
+subtype {
+  "this is.a test[]{}" {
+    a: [
+      abc,
+      5,
+      -0.03,
+      table,
+      {
+        a {
+          b {
+            c: 1
+          }
+          d: 2
+        }
+      },
+    ]
+  }
+  x: 9
+}
+
+tbl1 {
+  "hello yo": world
+  x: 1
+  y: 2
+  yes: no
+  z: 3
+}
+
+tbl2 {
+  hello: world wide
+  x: 1
+  y: "2 3"
+  yes: x
+  z: 3
+}
+
+url: "http://domain.com?x=y"
+
+z {}
+
+zz {
+  yy {}
+}
 )";
 
   REQUIRE( emitted == expected );
@@ -278,9 +301,16 @@ TEST_CASE( "[emit] emit flatten keys" ) {
   h: "truedat"
 }
 
-z {}
-
-zz.yy {}
+aaa.b.c.a.b.c: [
+  {
+    a.b.c.f.g.h {
+      i: 5
+      j: 6
+      k: 5
+      l: 6
+    }
+  },
+]
 
 b {
   s: 5
@@ -300,32 +330,27 @@ c.d.e {
 
 file: /this/is/a/file/path
 
-url: "http://domain.com?x=y"
+list: [
+  one,
+  two,
+  3,
+  "false",
+  four,
+  null,
+]
 
-tbl1 {
-  x: 1
-  y: 2
-  z: 3
-  "hello yo": world
-  yes: no
-}
+nonnull_val: "null"
 
-tbl2 {
-  x: 1
-  y: "2 3"
-  z: 3
-  hello: world wide
-  yes: x
-}
+null_val: null
 
 one." two\\a\\b\" xxx": [
   1,
   2,
   {
     one.two {
-      three: 3
       four: 4
       hello: 1
+      three: 3
       world: 2
     }
   },
@@ -347,29 +372,27 @@ subtype {
   x: 9
 }
 
-aaa.b.c.a.b.c: [
-  {
-    a.b.c.f.g.h {
-      i: 5
-      j: 6
-      k: 5
-      l: 6
-    }
-  },
-]
+tbl1 {
+  "hello yo": world
+  x: 1
+  y: 2
+  yes: no
+  z: 3
+}
 
-list: [
-  one,
-  two,
-  3,
-  "false",
-  four,
-  null,
-]
+tbl2 {
+  hello: world wide
+  x: 1
+  y: "2 3"
+  yes: x
+  z: 3
+}
 
-null_val: null
+url: "http://domain.com?x=y"
 
-nonnull_val: "null"
+z {}
+
+zz.yy {}
 )";
 
   REQUIRE( emitted == expected );

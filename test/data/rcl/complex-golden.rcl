@@ -6,85 +6,6 @@ a {
   }
 }
 
-b {
-  s: 5
-  t: 3.5
-}
-
-c {
-  d {
-    e {
-      f {
-        g {
-          h {
-            i: 9
-            j: 10
-          }
-          yes: no
-        }
-      }
-      unit: 1
-    }
-  }
-}
-
-file: /this/is/a/file/path
-
-url: "http://domain.com?x=y"
-
-tbl1 {
-  x: 1
-  y: 2
-  z: 3
-  "hello yo": world
-  yes: no
-}
-
-tbl2 {
-  x: 1
-  y: 2
-  z: 3
-  hello: world
-  yes: x
-}
-
-one {
-  " two\\a\\b\" xxx": [
-    1,
-    2,
-    {
-      one {
-        two {
-          three: 3
-          four: 4
-          hello: 1
-          world: 2
-        }
-      }
-    },
-  ]
-}
-
-subtype {
-  "this is.a test[]{}" {
-    a: [
-      abc,
-      5,
-      -0.03,
-      table,
-      {
-        a {
-          b {
-            c: 1
-          }
-          d: 2
-        }
-      },
-    ]
-  }
-  x: 9
-}
-
 aaa {
   b {
     c {
@@ -116,6 +37,30 @@ aaa {
   }
 }
 
+b {
+  s: 5
+  t: 3.5
+}
+
+c {
+  d {
+    e {
+      f {
+        g {
+          h {
+            i: 9
+            j: 10
+          }
+          yes: no
+        }
+      }
+      unit: 1
+    }
+  }
+}
+
+file: /this/is/a/file/path
+
 list: [
   one,
   two,
@@ -125,6 +70,67 @@ list: [
   null,
 ]
 
+nonnull_val: "null"
+
 null_val: null
 
-nonnull_val: "null"
+one {
+  " two\\a\\b\" xxx": [
+    1,
+    2,
+    {
+      one {
+        two {
+          four: 4
+          hello: 1
+          three: 3
+          world: 2
+        }
+      }
+    },
+  ]
+}
+
+subtype {
+  "this is.a test[]{}" {
+    a: [
+      abc,
+      5,
+      -0.03,
+      table,
+      {
+        a {
+          b {
+            c: 1
+          }
+          d: 2
+        }
+      },
+    ]
+  }
+  x: 9
+}
+
+tbl1 {
+  "hello yo": world
+  x: 1
+  y: 2
+  yes: no
+  z: 3
+}
+
+tbl2 {
+  hello: world wide
+  x: 1
+  y: "2 3"
+  yes: x
+  z: 3
+}
+
+url: "http://domain.com?x=y"
+
+z {}
+
+zz {
+  yy {}
+}

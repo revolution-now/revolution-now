@@ -14,6 +14,7 @@
 #include "luapp/types.hpp"
 
 // Cdr
+#include "cdr/converter.hpp"
 #include "cdr/ext-builtin.hpp"
 
 namespace rn {

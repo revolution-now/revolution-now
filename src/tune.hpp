@@ -20,9 +20,6 @@
 // Rds
 #include "tune.rds.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // base-util
 #include "base-util/pp.hpp"
 
@@ -67,10 +64,6 @@ NOTHROW_MOVE( TuneOptDimensions );
 TuneOptDimensions to_opt_dims(
     TuneDimensions const& dimensions );
 
-// Allows deserializing from an Rcl config file.
-rcl::convert_err<TuneDimensions> convert_to(
-    rcl::value const& v, rcl::tag<TuneDimensions> );
-
 #define K_NUM_DIMENSIONS \
   EVAL( PP_MAP_PLUS( PP_CONST_ONE, TUNE_DIMENSION_LIST ) )
 
@@ -82,10 +75,6 @@ static_assert( sizeof( TuneDimensions ) ==
 static_assert( sizeof( TuneOptDimensions ) ==
                k_num_dimensions *
                    sizeof( maybe<e_tune_tempo> ) );
-
-// Allows deserializing from an Rcl config file.
-rcl::convert_err<Tune> convert_to( rcl::value const& v,
-                                   rcl::tag<Tune> );
 
 // This can only be populated by a music player.
 struct TunePlayerInfo {

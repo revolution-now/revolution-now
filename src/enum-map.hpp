@@ -19,9 +19,6 @@
 #include "cdr/converter.hpp"
 #include "cdr/ext.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // refl
 #include "refl/cdr.hpp"
 #include "refl/ext.hpp"
@@ -133,13 +130,6 @@ struct ExhaustiveEnumMap
     HAS_VALUE_OR_RET(
         conv.end_field_tracking( tbl, used_keys ) );
     return res;
-  }
-
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<ExhaustiveEnumMap> convert_to(
-      rcl::value const& v, rcl::tag<ExhaustiveEnumMap> ) {
-    // TODO(migration): remove
-    return rcl::via_cdr<ExhaustiveEnumMap>( v );
   }
 };
 

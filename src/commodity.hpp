@@ -18,9 +18,6 @@
 #include "tx.hpp"
 #include "unit-id.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // Rds
 #include "commodity.rds.hpp"
 
@@ -81,11 +78,6 @@ struct Commodity {
   int         quantity;
 };
 NOTHROW_MOVE( Commodity );
-
-rcl::convert_err<Commodity> convert_to( rcl::value const& v,
-                                        rcl::tag<Commodity> );
-
-rcl::convert_valid rcl_validate( Commodity const& o );
 
 // These are "low level" functions that should only be called
 // after all the right checks have been made that the cargo can

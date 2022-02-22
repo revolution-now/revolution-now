@@ -31,6 +31,8 @@ struct error {
 
   bool operator==( error const& ) const = default;
 
+  operator std::string const&() const { return what_; }
+
  private:
   friend struct converter;
 

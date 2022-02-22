@@ -88,15 +88,6 @@ void lua_push( lua::cthread L, MovementPoints mv_pts ) {
 }
 
 /****************************************************************
-** Rcl
-*****************************************************************/
-rcl::convert_err<MovementPoints> convert_to(
-    rcl::value const& v, rcl::tag<MovementPoints> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<MovementPoints>( v );
-}
-
-/****************************************************************
 ** Cdr
 *****************************************************************/
 cdr::value to_canonical( cdr::converter&       conv,

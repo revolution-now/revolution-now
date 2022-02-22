@@ -20,12 +20,6 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
-// Rds
-#include "rds/helper/rcl.hpp"
-
-// Rcl
-#include "rcl/ext-builtin.hpp"
-
 // migration
 #include "cdr/ext-base.hpp"    // TODO(migration): remove
 #include "cdr/ext-builtin.hpp" // TODO(migration): remove
@@ -127,21 +121,9 @@ Commodity Commodity::with_quantity( int new_quantity ) const {
   return res;
 }
 
-rcl::convert_err<Commodity> convert_to( rcl::value const& v,
-                                        rcl::tag<Commodity> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<Commodity>( v );
-}
-
 base::valid_or<string> Commodity::validate() const {
   REFL_VALIDATE( quantity >= 0 );
   return base::valid;
-}
-
-rcl::convert_valid rcl_validate( Commodity const& o ) {
-  if( auto vld = o.validate(); !vld )
-    return rcl::error( vld.error() );
-  return valid;
 }
 
 /****************************************************************

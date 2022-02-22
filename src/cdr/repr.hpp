@@ -108,6 +108,8 @@ using MapTo = std::map<std::string, V>;
 // we have to use some templates, wrappers, and indirection to
 // make it work.
 struct table {
+  using value_type = std::pair<std::string const, value>;
+
   table() = default;
 
   // This is a template to break the cyclic dependency.
@@ -143,6 +145,12 @@ struct table {
   base::maybe<value const&> operator[](
       std::string const& key ) const;
 
+  template<typename K, typename V>
+  auto emplace( K&& k, V&& v );
+
+  void insert( value_type const& o );
+  void insert( value_type&& o );
+
   bool contains( std::string const& key ) const;
 
   size_t size() const;
@@ -153,6 +161,9 @@ struct table {
 
   auto begin() const;
   auto end() const;
+
+  auto begin();
+  auto end();
 
   friend void to_str( table const& o, std::string& out,
                       ::base::ADL_t );
@@ -189,6 +200,8 @@ struct table {
 // some cases) that that was causing issues with the to_str con-
 // cepts in that it led to recursive template errors.
 struct list {
+  using value_type = value;
+
   list() = default;
 
   list( std::initializer_list<value> il );
@@ -200,11 +213,11 @@ struct list {
   value&       operator[]( size_t idx ) { return o_[idx]; }
   value const& operator[]( size_t idx ) const { return o_[idx]; }
 
+  auto begin() { return o_.begin(); }
+  auto end() { return o_.end(); }
+
   auto begin() const { return o_.begin(); }
   auto end() const { return o_.end(); }
-
-  auto cbegin() const { return o_.cbegin(); }
-  auto cend() const { return o_.cend(); }
 
   template<typename... T>
   auto emplace_back( T&&... args ) {
@@ -279,9 +292,27 @@ struct table::TableImpl : public MapTo<value> {
   bool operator==( TableImpl const& ) const = default;
 };
 
+inline auto table::begin() { return o_->begin(); }
+
+inline auto table::end() { return o_->end(); }
+
 inline auto table::begin() const { return o_->begin(); }
 
 inline auto table::end() const { return o_->end(); }
+
+template<typename K, typename V>
+auto table::emplace( K&& k, V&& v ) {
+  return o_->emplace( std::forward<K>( k ),
+                      std::forward<V>( v ) );
+}
+
+inline void table::insert( value_type const& o ) {
+  o_->insert( o );
+}
+
+inline void table::insert( value_type&& o ) {
+  o_->insert( std::move( o ) );
+}
 
 /****************************************************************
 ** literals

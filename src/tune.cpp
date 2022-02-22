@@ -255,19 +255,4 @@ TuneId random_tune() {
   return rng::pick_one( same_distance ).first;
 }
 
-/****************************************************************
-** Rcl
-*****************************************************************/
-rcl::convert_err<TuneDimensions> convert_to(
-    rcl::value const& v, rcl::tag<TuneDimensions> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<TuneDimensions>( v );
-}
-
-rcl::convert_err<Tune> convert_to( rcl::value const& v,
-                                   rcl::tag<Tune> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<Tune>( v );
-}
-
 } // namespace rn

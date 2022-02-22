@@ -24,9 +24,6 @@
 // Rds
 #include "utype.rds.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // base
 #include "base/adl-tag.hpp"
 
@@ -47,10 +44,6 @@ LUA_ENUM_DECL( unit_human );
 *****************************************************************/
 LUA_ENUM_DECL( unit_type_modifier );
 
-// This is for deserializing from Rcl config files.
-rcl::convert_err<UnitTypeModifierTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeModifierTraits> );
-
 /****************************************************************
 ** e_unit_activity
 *****************************************************************/
@@ -68,20 +61,12 @@ maybe<e_unit_inventory> commodity_to_inventory(
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type );
 
-rcl::convert_err<UnitInventoryTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitInventoryTraits> );
-
-rcl::convert_valid rcl_validate( UnitInventoryTraits const& o );
-
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
 bool can_attack( UnitTypeAttributes const& attr );
 
 bool is_military_unit( UnitTypeAttributes const& attr );
-
-rcl::convert_err<UnitTypeAttributes> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeAttributes> );
 
 UnitTypeAttributes const& unit_attr( e_unit_type type );
 
@@ -209,16 +194,3 @@ maybe<UnitType> cleared_expertise( UnitType ut );
 namespace lua {
 LUA_USERDATA_TRAITS( ::rn::UnitType, owned_by_lua ){};
 }
-
-namespace rn {
-
-/****************************************************************
-** UnitCompositionConfig
-*****************************************************************/
-rcl::convert_err<UnitCompositionConfig> convert_to(
-    rcl::value const& v, rcl::tag<UnitCompositionConfig> );
-
-rcl::convert_valid rcl_validate(
-    UnitCompositionConfig const& o );
-
-} // namespace rn

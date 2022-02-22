@@ -538,21 +538,6 @@ Scale operator/( Scale const& lhs, Scale const& rhs ) {
 }
 
 /****************************************************************
-** Rcl
-*****************************************************************/
-rcl::convert_err<Delta> convert_to( rcl::value const& v,
-                                    rcl::tag<Delta> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<Delta>( v );
-}
-
-rcl::convert_err<Coord> convert_to( rcl::value const& v,
-                                    rcl::tag<Coord> ) {
-  // TODO(migration): remove
-  return rcl::via_cdr<Coord>( v );
-}
-
-/****************************************************************
 ** Lua
 *****************************************************************/
 maybe<Coord> lua_get( lua::cthread L, int idx,

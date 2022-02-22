@@ -48,7 +48,7 @@ struct heap_value : zero<heap_value<T>, T*> {
 
   // Since this object has value semantics, it must be initial-
   // ized with a valid object.
-  heap_value() : base_t( new T{} ){};
+  heap_value() : base_t( new T{} ) {}
 
   template<typename... Args>
   heap_value( Args&&... args )

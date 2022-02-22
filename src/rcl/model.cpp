@@ -17,15 +17,13 @@
 #include "cdr/converter.hpp"
 
 // base
-#include "base/valid.hpp" // FIXME: remove
+#include "base/macros.hpp" // FIXME: remove
 
-// Abseil
-#include "absl/strings/str_join.h"
-#include "absl/strings/str_split.h"
+// base-util
+#include "base-util/stopwatch.hpp"
 
 // C++ standard library
 #include <sstream>
-#include <unordered_map>
 
 using namespace std;
 
@@ -34,8 +32,84 @@ namespace rcl {
 using ::base::expect;
 using ::base::maybe;
 using ::base::nothing;
-using ::base::valid;
-using ::base::valid_or;
+using ::cdr::list;
+using ::cdr::null_t;
+using ::cdr::table;
+using ::cdr::value;
+
+namespace {
+
+template<typename F, typename V>
+auto fast_visit( F&& f, V&& v ) {
+  switch( v.index() ) {
+    case 0: {
+      auto& o = v.template get<null_t>();
+      return f( std::move( o ) );
+    }
+    case 1: {
+      auto& o = v.template get<double>();
+      return f( std::move( o ) );
+    }
+    case 2: {
+      auto& o = v.template get<cdr::integer_type>();
+      return f( std::move( o ) );
+    }
+    case 3: {
+      auto& o = v.template get<bool>();
+      return f( std::move( o ) );
+    }
+    case 4: {
+      auto& o = v.template get<std::string>();
+      return f( std::move( o ) );
+    }
+    case 5: {
+      auto& o = v.template get<table>();
+      return f( std::move( o ) );
+    }
+    case 6: {
+      auto& o = v.template get<list>();
+      return f( std::move( o ) );
+    }
+  }
+  UNREACHABLE_LOCATION;
+}
+
+template<typename F, typename V>
+auto fast_visit_lvalue( F&& f, V&& v ) {
+  switch( v.index() ) {
+    case 0: {
+      auto& o = v.template get<null_t>();
+      return f( o );
+    }
+    case 1: {
+      auto& o = v.template get<double>();
+      return f( o );
+    }
+    case 2: {
+      auto& o = v.template get<cdr::integer_type>();
+      return f( o );
+    }
+    case 3: {
+      auto& o = v.template get<bool>();
+      return f( o );
+    }
+    case 4: {
+      auto& o = v.template get<std::string>();
+      return f( o );
+    }
+    case 5: {
+      auto& o = v.template get<table>();
+      return f( o );
+    }
+    case 6: {
+      auto& o = v.template get<list>();
+      return f( o );
+    }
+  }
+  UNREACHABLE_LOCATION;
+}
+
+} // namespace
 
 /****************************************************************
 ** Formatting
@@ -105,56 +179,6 @@ string escape_and_quote_string_val( string const& k ) {
 }
 
 /****************************************************************
-** value
-*****************************************************************/
-type type_of( value const& v ) {
-  return std::visit( type_visitor{}, v );
-}
-
-string_view name_of( type t ) {
-  switch( t ) {
-    case type::null: return "null";
-    case type::boolean: return "bool";
-    case type::integral: return "int";
-    case type::floating: return "double";
-    case type::string: return "string";
-    case type::table: return "table";
-    case type::list: return "list";
-  }
-}
-
-/****************************************************************
-** table
-*****************************************************************/
-bool table::has_key( std::string_view key ) const {
-  return map_.contains( key );
-}
-
-value const& table::operator[]( string_view key ) const {
-  auto it = map_.find( key );
-  CHECK( it != map_.end(), "table does not contain key {}",
-         key );
-  value* p = it->second;
-  DCHECK( p );
-  return *p;
-}
-
-table::value_type const& table::operator[]( int n ) const {
-  CHECK( n >= 0 && n < int( members_.size() ),
-         "invalid table index {}", n );
-  return members_[n];
-}
-
-/****************************************************************
-** list
-*****************************************************************/
-value const& list::operator[]( int n ) const {
-  CHECK( n >= 0 && n < int( members_.size() ),
-         "invalid table index {}", n );
-  return members_[n];
-}
-
-/****************************************************************
 ** doc
 *****************************************************************/
 void to_str( doc const& o, string& out, base::ADL_t ) {
@@ -176,16 +200,21 @@ void to_str( doc const& o, string& out, base::ADL_t ) {
 // will be replaced with 0x01 as well.
 namespace {
 
+table key_parser_table( table&& in );
+list  key_parser_list( list&& in );
+
 constexpr char        kKeyDelimiterChar = 0x01;
 constexpr string_view kKeyDelimiterStr  = "\001";
 static_assert( kKeyDelimiterStr[0] == kKeyDelimiterChar );
 
 struct key_parser_visitor {
-  value operator()( null_t ) const { return value{ null }; }
+  value operator()( null_t ) const { return value{ cdr::null }; }
 
   value operator()( bool o ) const { return value{ o }; }
 
-  value operator()( int n ) const { return value{ n }; }
+  value operator()( cdr::integer_type n ) const {
+    return value{ n };
+  }
 
   value operator()( double d ) const { return value{ d }; }
 
@@ -193,24 +222,22 @@ struct key_parser_visitor {
     return value{ std::move( o ) };
   }
 
-  value operator()( unique_ptr<table>&& o ) const {
-    return value{
-        make_unique<table>( std::move( *o ).key_parser() ) };
+  value operator()( table&& o ) const {
+    return value{ key_parser_table( std::move( o ) ) };
   }
 
-  value operator()( unique_ptr<list>&& o ) const {
-    return value{
-        make_unique<list>( std::move( *o ).key_parser() ) };
+  value operator()( list&& o ) const {
+    return value{ key_parser_list( std::move( o ) ) };
   }
 };
 
-} // namespace
-
-void table::key_parser_impl( string_view raw_key, value&& v ) {
+void key_parser_impl( table& in, string&& raw_key, value&& v ) {
   string res;
-  bool   in_quote = false;
-  auto   cur      = raw_key.begin();
-  auto   end      = raw_key.end();
+  if( raw_key.size() > res.capacity() )
+    res.reserve( raw_key.size() * 2 );
+  bool in_quote = false;
+  auto cur      = raw_key.begin();
+  auto end      = raw_key.end();
   while( cur != end ) {
     if( in_quote ) {
       // We are in a quote.
@@ -272,7 +299,8 @@ void table::key_parser_impl( string_view raw_key, value&& v ) {
       // Consolodate consecutive spaces/dots into one delimiter.
       while( cur != end && ( *cur == ' ' || *cur == '.' ) )
         ++cur;
-      res += kKeyDelimiterChar;
+      if( res.size() == 0 || res.back() != kKeyDelimiterChar )
+        res += kKeyDelimiterChar;
       continue;
     }
 
@@ -280,39 +308,44 @@ void table::key_parser_impl( string_view raw_key, value&& v ) {
     res += *cur;
     ++cur;
   }
-  vector<string> keys = absl::StrSplit( res, kKeyDelimiterStr );
-  erase_if( keys, []( string const& s ) { return s.empty(); } );
-  members_.emplace_back(
-      absl::StrJoin( keys, kKeyDelimiterStr ),
-      std::visit( key_parser_visitor{}, std::move( v ) ) );
+  in.emplace( std::move( res ), fast_visit( key_parser_visitor{},
+                                            std::move( v ) ) );
 }
 
-table table::key_parser() && {
+table key_parser_table( table&& in ) {
   table t;
-  for( auto& [k, v] : members_ )
-    t.key_parser_impl( k, std::move( v ) );
+  for( auto& [k, v] : in )
+    key_parser_impl( t, string( k ), std::move( v ) );
   return t;
 }
 
-list list::key_parser() && {
+list key_parser_list( list&& in ) {
   list l;
-  for( value& v : members_ )
-    l.members_.push_back(
-        std::visit( key_parser_visitor{}, std::move( v ) ) );
+  l.reserve( in.size() );
+  for( value& v : in )
+    l.push_back(
+        fast_visit( key_parser_visitor{}, std::move( v ) ) );
   return l;
 }
+
+} // namespace
 
 /****************************************************************
 ** Table Unflattening
 *****************************************************************/
 namespace {
 
+table unflatten_table( table&& in );
+list  unflatten_list( list&& in );
+
 struct unflatten_visitor {
-  value operator()( null_t ) const { return value{ null }; }
+  value operator()( null_t ) const { return value{ cdr::null }; }
 
   value operator()( bool o ) const { return value{ o }; }
 
-  value operator()( int n ) const { return value{ n }; }
+  value operator()( cdr::integer_type n ) const {
+    return value{ n };
+  }
 
   value operator()( double d ) const { return value{ d }; }
 
@@ -320,337 +353,95 @@ struct unflatten_visitor {
     return value{ std::move( o ) };
   }
 
-  value operator()( unique_ptr<table>&& o ) const {
-    return value{
-        make_unique<table>( std::move( *o ).unflatten() ) };
+  value operator()( table&& o ) const {
+    return value{ unflatten_table( std::move( o ) ) };
   }
 
-  value operator()( unique_ptr<list>&& o ) const {
-    return value{
-        make_unique<list>( std::move( *o ).unflatten() ) };
+  value operator()( list&& o ) const {
+    return value{ unflatten_list( std::move( o ) ) };
   }
 };
 
-} // namespace
-
-void table::unflatten_impl( string_view dotted, value&& v ) {
+void unflatten_impl( table& in, string&& dotted, value&& v ) {
   int i = dotted.find_first_of( kKeyDelimiterStr );
   if( i == int( string_view::npos ) ) {
-    members_.emplace_back(
-        string( dotted ),
-        std::visit( unflatten_visitor{}, std::move( v ) ) );
+    in.emplace(
+        std::move( dotted ),
+        fast_visit( unflatten_visitor{}, std::move( v ) ) );
     return;
   }
   DCHECK( i + 1 < int( dotted.size() ) );
-  string key  = string( dotted.substr( 0, i ) );
-  string rest = string( dotted.substr( i + 1 ) );
-  // Add a new one even if there is already a key with the same
-  // name in the table, because our tables allow duplicate keys.
-  pair<string, value>& new_kv = members_.emplace_back();
-  new_kv.first                = key;
-  new_kv.second               = value{ make_unique<table>() };
-  table* tbl = new_kv.second.get<unique_ptr<table>>().get();
-  tbl->unflatten_impl( rest, std::move( v ) );
+  string_view key  = string_view( dotted ).substr( 0, i );
+  string_view rest = string_view( dotted ).substr( i + 1 );
+  auto [it, b] = in.emplace( string( key ), value{ table{} } );
+  table& tbl   = it->second.get<table>();
+  unflatten_impl( tbl, string( rest ), std::move( v ) );
 }
 
-table table::unflatten() && {
+table unflatten_table( table&& in ) {
   table t;
-  for( auto& [k, v] : members_ )
-    t.unflatten_impl( k, std::move( v ) );
+  for( auto& [k, v] : in )
+    unflatten_impl( t, string( k ), std::move( v ) );
   return t;
 }
 
-list list::unflatten() && {
-  list l;
-  for( value& v : members_ )
-    l.members_.push_back(
-        std::visit( unflatten_visitor{}, std::move( v ) ) );
+list unflatten_list( list&& in ) {
+  static const unflatten_visitor vis;
+  list                           l;
+  l.reserve( in.size() );
+  for( value& v : in )
+    l.push_back( fast_visit( vis, std::move( v ) ) );
   return l;
 }
 
-/****************************************************************
-** Table Key Deduplication
-*****************************************************************/
-namespace {
-
-struct dedupe_visitor {
-  expect<value, string> operator()( null_t ) const {
-    return value{ null };
-  }
-
-  expect<value, string> operator()( bool b ) const {
-    return value{ b };
-  }
-
-  expect<value, string> operator()( int n ) const {
-    return value{ n };
-  }
-
-  expect<value, string> operator()( double d ) const {
-    return value{ d };
-  }
-
-  expect<value, string> operator()( string&& o ) const {
-    return value{ std::move( o ) };
-  }
-
-  expect<value, string> operator()(
-      unique_ptr<table>&& o ) const {
-    UNWRAP_RETURN( deduped, std::move( *o ).dedupe() );
-    return value{ make_unique<table>( std::move( deduped ) ) };
-  }
-
-  expect<value, string> operator()(
-      unique_ptr<list>&& o ) const {
-    UNWRAP_RETURN( deduped, std::move( *o ).dedupe_tables() );
-    return value{ make_unique<list>( std::move( deduped ) ) };
-  }
-};
-
 } // namespace
 
-// If the two values are both tables then they will be merged, in
-// the sense that all of the source table's keys (and values)
-// will be moved into the target table. Any duplicate keys that
-// result in the target table will be handled by recursively ap-
-// plying the deduplication/merge logic.
-//
-// If one or both of the values are not tables then this function
-// returns an error. We don't check-fail in that case (or try to
-// enforce it with types by making this function accept table pa-
-// rameters only) because that situation can result from an in-
-// valid config file supplied by the user, and so we need to be
-// able to receive that sort of invalid input and handle it by
-// producing a proper error message for the user.
-//
-// Note: target is an lvalue ref and the source is an rvalue ref.
-valid_or<string> merge_values( string_view key, value& v_target,
-                               value&& v_source ) {
-  using T = unique_ptr<table>;
-  // The two values can only be merged if they are both tables,
-  // so make sure that they are and fail otherwise.
-  maybe<T&> target_tbl = v_target.get_if<T>();
-  maybe<T&> source_tbl = v_source.get_if<T>();
-  if( !target_tbl || !source_tbl )
-    return fmt::format(
-        "key `{}' has a duplicate but not all of its values "
-        "are tables.",
-        key );
-  DCHECK( *target_tbl );
-  DCHECK( *source_tbl );
-
-  // The two tables may have duplicate keys that need to be
-  // merged, but we will just combine the tables anyway, then
-  // dedupe.
-  for( pair<string, value>& kv_source :
-       ( **source_tbl ).members_ )
-    ( **target_tbl )
-        .members_.push_back( std::move( kv_source ) );
-
-  UNWRAP_RETURN( deduped, std::move( **target_tbl ).dedupe() );
-  v_target = make_unique<table>( std::move( deduped ) );
-  return valid;
-}
-
-expect<list, string> list::dedupe_tables() && {
-  list l;
-  for( value& v : members_ ) {
-    UNWRAP_RETURN( deduped, std::visit( dedupe_visitor{},
-                                        std::move( v ) ) );
-    l.members_.push_back( std::move( deduped ) );
-  }
-  return l;
-}
-
-expect<table, string> table::dedupe() && {
-  vector<string>               order;
-  unordered_map<string, value> m;
-  for( auto& [k, v] : members_ ) {
-    // First recursively dedupe the value.
-    UNWRAP_RETURN( deduped_v, std::visit( dedupe_visitor{},
-                                          std::move( v ) ) );
-    // !! Do not use kv.v from here on!
-    if( !m.contains( k ) ) {
-      order.push_back( k );
-      m.emplace( k, std::move( deduped_v ) );
-      continue;
-    }
-    HAS_VALUE_OR_RET(
-        merge_values( k, m[k], std::move( deduped_v ) ) );
-  }
-  DCHECK( order.size() == m.size() );
-  table t;
-  for( string const& k : order )
-    // !! Don't move k here since we need it in both expressions.
-    t.members_.push_back( { k, std::move( m[k] ) } );
-  return t;
-}
-
-/****************************************************************
-** Table Key Mapping
-*****************************************************************/
 namespace {
-
-struct mapping_visitor {
-  void operator()( null_t ) const {}
-  void operator()( bool ) const {}
-  void operator()( int ) const {}
-  void operator()( double ) const {}
-  void operator()( string& ) const {}
-
-  void operator()( unique_ptr<table>& o ) const {
-    DCHECK( o != nullptr );
-    o->map_members();
-  }
-
-  void operator()( unique_ptr<list>& o ) const {
-    DCHECK( o != nullptr );
-    o->map_members();
-  }
-};
-
-} // namespace
-
-void table::map_members() & {
-  for( auto& [key, val] : members_ ) {
-    map_[key] = &val;
-    std::visit( mapping_visitor{}, val );
-  }
-}
-
-void list::map_members() & {
-  for( value& val : members_ )
-    std::visit( mapping_visitor{}, val );
-}
 
 /****************************************************************
 ** Post-processing Routine
 *****************************************************************/
-base::expect<table, string> run_postprocessing( table&& v1 ) {
-  table v2 = std::move( v1 ).key_parser();
-  table v3 = std::move( v2 ).unflatten();
-  // Dedupe must happen after unflattening.
-  UNWRAP_RETURN( v4, std::move( v3 ).dedupe() );
-  // Mapping should be last.
-  v4.map_members();
-  return std::move( v4 );
-}
-
-base::expect<list, string> run_postprocessing( list&& v1 ) {
-  list v2 = std::move( v1 ).key_parser();
-  list v3 = std::move( v2 ).unflatten();
-  // Dedupe must happen after unflattening.
-  UNWRAP_RETURN( v4, std::move( v3 ).dedupe_tables() );
-  // Mapping should be last.
-  v4.map_members();
-  return std::move( v4 );
-}
-
-/****************************************************************
-** Document
-*****************************************************************/
-expect<doc> doc::create( table&& tbl ) {
-  UNWRAP_RETURN( postprocessed,
-                 run_postprocessing( std::move( tbl ) ) );
-  return doc( std::move( postprocessed ) );
-}
-
-/****************************************************************
-** Cdr
-*****************************************************************/
-cdr::value to_canonical( cdr::converter&   conv,
-                         rcl::value const& o,
-                         cdr::tag_t<rcl::value> ) {
-  struct visitor {
-    visitor( cdr::converter& conv ) : conv_{ conv } {}
-
-    cdr::value operator()( null_t ) const { return cdr::null; }
-    cdr::value operator()( bool o ) const { return o; }
-    cdr::value operator()( int o ) const {
-      return static_cast<cdr::integer_type>( o );
-    }
-    cdr::value operator()( double o ) const { return o; }
-    cdr::value operator()( string const& o ) const { return o; }
-
-    cdr::value operator()( unique_ptr<table> const& o ) const {
-      DCHECK( o != nullptr );
-      cdr::table tbl;
-      for( auto const& [k, v] : *o ) tbl[k] = conv_.to( v );
-      return cdr::value( std::move( tbl ) );
-    }
-
-    cdr::value operator()( unique_ptr<list> const& o ) const {
-      DCHECK( o != nullptr );
-      cdr::list lst;
-      for( value const& elem : *o )
-        lst.push_back( conv_.to( elem ) );
-      return cdr::value( std::move( lst ) );
-    }
-
-    cdr::converter& conv_;
-  };
-  return std::visit( visitor{ conv }, o );
-}
-
-namespace {
-
-value value_from_canonical_value( cdr::converter&   conv,
-                                  cdr::value const& v );
-
-unique_ptr<table> table_from_canonical_table(
-    cdr::converter& conv, cdr::table const& tbl ) {
-  vector<pair<string, value>> values;
-  for( auto const& [k, v] : tbl ) {
-    value rcl_v = value_from_canonical_value( conv, v );
-    values.push_back(
-        pair<string, value>{ k, std::move( rcl_v ) } );
+// This should only be run on the top-level table, since it will
+// be applied recursively. In practice, this is only really
+// useful for unit tests, since otherwise the top-level table is
+// placed into a doc, and the doc will run this post-processing.
+base::expect<table, string> run_postprocessing(
+    table&& v1, ProcessingOptions const& opts ) {
+  util::StopWatch watch;
+  table           v2;
+  if( opts.run_key_parse ) {
+    watch.start( "[post-processing] key parser" );
+    v2 = key_parser_table( std::move( v1 ) );
+    watch.stop( "[post-processing] key parser" );
+  } else {
+    v2 = std::move( v1 );
   }
-  return make_unique<table>( std::move( values ) );
-}
-
-unique_ptr<list> list_from_canonical_list(
-    cdr::converter& conv, cdr::list const& lst ) {
-  vector<value> values;
-  for( cdr::value const& elem : lst ) {
-    value rcl_v = value_from_canonical_value( conv, elem );
-    values.push_back( std::move( rcl_v ) );
+  table v3;
+  if( opts.unflatten_keys ) {
+    watch.start( "[post-processing] unflatten" );
+    v3 = unflatten_table( std::move( v2 ) );
+    watch.stop( "[post-processing] unflatten" );
+  } else {
+    v3 = std::move( v2 );
   }
-  return make_unique<list>( std::move( values ) );
-}
-
-value value_from_canonical_value( cdr::converter&   conv,
-                                  cdr::value const& v ) {
-  struct visitor {
-    visitor( cdr::converter& conv ) : conv_{ conv } {}
-
-    value operator()( cdr::null_t ) const { return null; }
-    value operator()( bool o ) const { return o; }
-    value operator()( cdr::integer_type o ) const {
-      return static_cast<int>( o );
-    }
-    value operator()( double o ) const { return o; }
-    value operator()( string const& o ) const { return o; }
-
-    value operator()( cdr::table const& o ) const {
-      return value( table_from_canonical_table( conv_, o ) );
-    }
-
-    value operator()( cdr::list const& o ) const {
-      return value( list_from_canonical_list( conv_, o ) );
-    }
-
-    cdr::converter& conv_;
-  };
-  return std::visit( visitor{ conv }, v.as_base() );
+  table v4 = std::move( v3 );
+#if 0
+  for( auto const& p : watch.results() )
+    fmt::print( "{}: {}\n", p.first, p.second );
+#endif
+  return v4;
 }
 
 } // namespace
 
-doc doc_from_cdr( cdr::converter& conv, cdr::table const& tbl ) {
-  unique_ptr<table> uptr_tbl =
-      table_from_canonical_table( conv, tbl );
-  UNWRAP_CHECK( res, doc::create( std::move( *uptr_tbl ) ) );
-  return std::move( res );
+/****************************************************************
+** Document
+*****************************************************************/
+expect<doc> doc::create( table&&                  tbl,
+                         ProcessingOptions const& opts ) {
+  UNWRAP_RETURN( postprocessed,
+                 run_postprocessing( std::move( tbl ), opts ) );
+  return doc( std::move( postprocessed ) );
 }
 
 } // namespace rcl

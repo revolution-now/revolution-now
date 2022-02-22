@@ -15,6 +15,11 @@
 
 using namespace std;
 
+using ::cdr::list;
+using ::cdr::null_t;
+using ::cdr::table;
+using ::cdr::value;
+
 namespace rcl {
 
 namespace {
@@ -33,7 +38,7 @@ struct emitter {
     to_str( o, out, base::ADL );
   }
 
-  void emit( int const& o, string& out, int ) {
+  void emit( cdr::integer_type const& o, string& out, int ) {
     to_str( o, out, base::ADL );
   }
 
@@ -55,13 +60,13 @@ struct emitter {
     out += '.';
     out += escape_and_quote_table_key( nested_key );
 
-    if( !nested_val.holds<unique_ptr<table>>() ) out += ": ";
-    if( nested_val.holds<unique_ptr<table>>() &&
-        nested_val.get<unique_ptr<table>>()->size() != 1 )
+    if( !nested_val.holds<table>() ) out += ": ";
+    if( nested_val.holds<table>() &&
+        nested_val.get<table>().size() != 1 )
       out += ' ';
 
     std::visit( [&]( auto const& o ) { emit( o, out, indent ); },
-                nested_val );
+                nested_val.as_base() );
   }
 
   // We need flatten_immediate so that we can tell this function
@@ -85,14 +90,13 @@ struct emitter {
     size_t n = o.size();
     for( auto& [k, v] : o ) {
       string_view assign = ": ";
-      if( v.holds<unique_ptr<table>>() ) {
+      if( v.holds<table>() ) {
         assign = " ";
         // Here use the one from the opts, as opposed to
         // flatten_immediate, because we are looking at a key in-
         // side this table, so it is not really the immediate
         // context.
-        if( opts_.flatten_keys &&
-            v.get<unique_ptr<table>>()->size() == 1 )
+        if( opts_.flatten_keys && v.get<table>().size() == 1 )
           assign = "";
       }
       string k_str = escape_and_quote_table_key( k );
@@ -101,7 +105,7 @@ struct emitter {
       out += assign;
       std::visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
-          v );
+          v.as_base() );
       out += '\n';
       if( is_top_level && n-- > 1 ) out += '\n';
     }
@@ -112,14 +116,13 @@ struct emitter {
     }
   }
 
-  void emit( unique_ptr<table> const& o, string& out,
-             int indent ) {
-    emit_table( *o, out, indent, opts_.flatten_keys );
+  void emit( table const& o, string& out, int indent ) {
+    emit_table( o, out, indent, opts_.flatten_keys );
   }
 
   struct list_visitor {
-    void operator()( unique_ptr<table> const& o ) const {
-      parent.emit_table( *o, out, indent,
+    void operator()( table const& o ) const {
+      parent.emit_table( o, out, indent,
                          /*flatten_immediate=*/false );
     }
     void operator()( auto const& o ) const {
@@ -130,13 +133,13 @@ struct emitter {
     int      indent;
   };
 
-  void emit( unique_ptr<list> const& o, string& out,
-             int indent ) {
+  void emit( list const& o, string& out, int indent ) {
     if( indent > 0 ) out += "[\n";
 
-    for( value const& v : *o ) {
+    for( value const& v : o ) {
       do_indent( indent, out );
-      std::visit( list_visitor{ *this, out, indent + 1 }, v );
+      std::visit( list_visitor{ *this, out, indent + 1 },
+                  v.as_base() );
       out += ",\n";
     }
 

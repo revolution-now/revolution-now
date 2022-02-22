@@ -19,11 +19,13 @@
  "\ 'shaders/perf-test',
 let s:stems = [
  \ 'cdr/repr',
- \ 'cdr/ext',
  \ 'refl/ext',
  \ 'refl/cdr',
- \ 'game-state',
+ \ 'rcl/model',
+ \ 'rcl/parse',
+ \ 'rcl/emit',
  \ 'save-game',
+ \ 'game-state',
  \ 'gs-top',
  \ 'gs-events',
  \ 'gs-units',
@@ -150,7 +152,8 @@ command! -nargs=1 Open3 call s:Open3( <f-args> )
 command! -nargs=1 PairOpen call s:Open3( <f-args> )
 
 echo 'opening main...'
-silent edit exe/main.cpp
+" silent edit exe/main.cpp
+silent edit doc/refl.txt
 
 echo 'opening luas...'
 " call s:OpenLuas( s:luas )
