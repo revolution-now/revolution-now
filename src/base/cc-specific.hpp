@@ -33,16 +33,26 @@ std::string demangle( char const* name );
 
 // You need to include <typeinfo> in your module to call this.
 template<typename T>
-std::string demangled_typename() {
-  return demangle( typeid( T ).name() );
+std::string const& demangled_typename() {
+  static std::string const demangled = [] {
+    return demangle( typeid( T ).name() );
+  }();
+  return demangled;
 }
 
 template<typename... Types>
-std::string type_list_to_names() {
-  std::string joiner = ",";
-  auto res = ( ( demangled_typename<Types>() + joiner ) + ... );
-  if( res.size() > 0 ) res.resize( res.size() - joiner.size() );
-  return res;
+std::string const& type_list_to_names() {
+  static std::string const names = [] {
+    std::string res;
+    if constexpr( sizeof...( Types ) > 0 ) {
+      std::string const joiner = ",";
+      res = ( ( demangled_typename<Types>() + joiner ) + ... );
+      if( res.size() > 0 )
+        res.resize( res.size() - joiner.size() );
+    }
+    return res;
+  }();
+  return names;
 }
 
 } // namespace base

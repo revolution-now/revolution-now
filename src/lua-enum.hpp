@@ -12,11 +12,11 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
-
 // luapp
 #include "luapp/ext.hpp"
+
+// refl
+#include "refl/query-enum.hpp"
 
 #define LUA_ENUM_DECL( what )                               \
   base::maybe<e_##what> lua_get( ::lua::cthread L, int idx, \
@@ -28,7 +28,7 @@
                                  ::lua::tag<e_##what> ) {       \
     base::maybe<int> m = ::lua::get<int>( L, idx );             \
     if( !m ) return base::nothing;                              \
-    return enum_traits<e_##what>::from_integral( *m );          \
+    return refl::enum_from_integral<e_##what>( *m );            \
   }                                                             \
                                                                 \
   void lua_push( ::lua::cthread L, e_##what val ) {             \
@@ -44,7 +44,7 @@
            "symbol named `{}` has already been registered.",    \
            name );                                              \
     e[name] = st.table.create();                                \
-    for( e_##what val : enum_traits<e_##what>::values )         \
-      e[name][enum_traits<e_##what>::value_name( val )] = val;  \
+    for( e_##what val : refl::enum_values<e_##what> )           \
+      e[name][refl::enum_value_name<e_##what>( val )] = val;    \
   };                                                            \
   }

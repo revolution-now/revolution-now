@@ -552,7 +552,7 @@ TEST_CASE(
     "commodities available" ) {
   // This will remain full for this test.
   unordered_map<e_commodity, int> comms;
-  for( e_commodity c : enum_traits<e_commodity>::values )
+  for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 100;
 
   UnitComposition                  comp{};
@@ -1379,7 +1379,7 @@ TEST_CASE(
     "commodities available" ) {
   // This will remain full for this test.
   unordered_map<e_commodity, int> comms;
-  for( e_commodity c : enum_traits<e_commodity>::values )
+  for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 40;
 
   UnitComposition                  comp{};
@@ -1901,7 +1901,7 @@ TEST_CASE(
     "commodities available, misc types" ) {
   // This will remain full for this test.
   unordered_map<e_commodity, int> comms;
-  for( e_commodity c : enum_traits<e_commodity>::values )
+  for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 100;
 
   UnitComposition                  comp{};

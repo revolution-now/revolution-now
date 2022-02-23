@@ -25,6 +25,10 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
+
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
@@ -40,56 +44,46 @@ using ::base::FmtVerticalMap;
 /****************************************************************
 ** UnitComposition
 *****************************************************************/
-UnitComposition::UnitComposition( UnitType         type,
-                                  UnitInventoryMap inventory )
-  : type_( type ), inventory_( std::move( inventory ) ) {}
-
-valid_deserial_t UnitComposition::check_invariants_safe() const {
+valid_or<string> wrapped::UnitComposition::validate() const {
   // Validation: make sure that quantities of inventory items are
   // within range.
   for( e_unit_inventory type :
-       enum_values<e_unit_inventory>() ) {
-    maybe<int const&> quantity =
-        base::lookup( inventory_, type );
+       refl::enum_values<e_unit_inventory> ) {
+    maybe<int const&> quantity = base::lookup( inventory, type );
     if( !quantity.has_value() ) continue;
     UnitInventoryTraits const& traits =
         config_units.composition.inventory_traits[type];
-    VERIFY_DESERIAL(
-        *quantity >= traits.min_quantity,
-        fmt::format( "{} inventory must have at least {} items.",
-                     type, traits.min_quantity ) );
-    VERIFY_DESERIAL(
-        *quantity <= traits.max_quantity,
-        fmt::format( "{} inventory must have at most {} items.",
-                     type, traits.max_quantity ) );
-    VERIFY_DESERIAL(
+    REFL_VALIDATE( *quantity >= traits.min_quantity,
+                   "{} inventory must have at least {} items.",
+                   type, traits.min_quantity );
+    REFL_VALIDATE( *quantity <= traits.max_quantity,
+                   "{} inventory must have at most {} items.",
+                   type, traits.max_quantity );
+    REFL_VALIDATE(
         *quantity % traits.multiple == 0,
-        fmt::format(
-            "{} inventory must come in multiples of {} items.",
-            type, traits.multiple ) );
+        "{} inventory must come in multiples of {} items.", type,
+        traits.multiple );
   }
 
   // Validation: make sure that the unit has all of the inventory
   // types that it is supposed to have.
   for( e_unit_inventory inv :
-       config_units.composition.unit_types[type()]
+       config_units.composition.unit_types[type.type()]
            .inventory_types )
-    VERIFY_DESERIAL(
-        inventory_.contains( inv ),
-        fmt::format( "unit requires inventory type `{}' but it "
-                     "was not provided.",
-                     inv ) );
+    REFL_VALIDATE( inventory.contains( inv ),
+                   "unit requires inventory type `{}' but it "
+                   "was not provided.",
+                   inv );
 
   // Validation: make sure that the unit has no more inventory
   // types than it is supposed to.
-  for( auto [inv, q] : inventory_ )
-    VERIFY_DESERIAL(
-        config_units.composition.unit_types[type()]
+  for( auto [inv, q] : inventory )
+    REFL_VALIDATE(
+        config_units.composition.unit_types[type.type()]
             .inventory_types.contains( inv ),
-        fmt::format( "unit has inventory type `{}' but it is "
-                     "not in the list of allowed inventory "
-                     "types for that unit type.",
-                     inv ) );
+        "unit has inventory type `{}' but it is not in the list "
+        "of allowed inventory types for that unit type.",
+        inv );
 
   return base::valid;
 }
@@ -113,29 +107,15 @@ UnitComposition UnitComposition::create( e_unit_type type ) {
 
 maybe<UnitComposition> UnitComposition::create(
     UnitType type, UnitInventoryMap inventory ) {
-  auto res = UnitComposition( type, std::move( inventory ) );
-  if( !res.check_invariants_safe() ) return nothing;
-  return res;
+  auto inner = wrapped::UnitComposition{
+      .type = type, .inventory = std::move( inventory ) };
+  if( !inner.validate() ) return nothing;
+  return UnitComposition( std::move( inner ) );
 }
 
 maybe<UnitComposition> UnitComposition::with_new_type(
     UnitType type ) const {
-  return create( type, inventory_ );
-}
-
-void to_str( UnitComposition const& o, string& out,
-             base::ADL_t ) {
-  out += fmt::format( "UnitComposition{{type={},inventory={}}}",
-                      o.type_, o.inventory_ );
-  // out += "UnitComposition";
-  // out += fmt::format(
-  //     "{}",
-  //     FmtVerticalMap{ unordered_map<string, string>{
-  //         { "type", fmt::to_string( o.type_ ) },
-  //         { "inventory",
-  //           fmt::to_string( FmtVerticalMap{ o.inventory_ } )
-  //           },
-  //     } } );
+  return create( type, o_.inventory );
 }
 
 /****************************************************************
@@ -205,7 +185,7 @@ maybe<int> max_valid_inventory_quantity(
 
 void remove_commodities_from_inventory(
     UnitComposition::UnitInventoryMap& inventory ) {
-  for( auto inv : enum_traits<e_unit_inventory>::values )
+  for( auto inv : refl::enum_values<e_unit_inventory> )
     if( inventory_to_commodity( inv ) ) inventory.erase( inv );
 }
 
@@ -342,8 +322,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
                                                  modifier_deltas;
       unordered_set<e_unit_type_modifier> const& new_mods =
           new_unit_type_obj.unit_type_modifiers();
-      for( auto mod :
-           enum_traits<e_unit_type_modifier>::values ) {
+      for( auto mod : refl::enum_values<e_unit_type_modifier> ) {
         if( old_mods.contains( mod ) &&
             !new_mods.contains( mod ) )
           modifier_deltas[mod] = e_unit_type_modifier_delta::del;
@@ -352,7 +331,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
           modifier_deltas[mod] = e_unit_type_modifier_delta::add;
       }
       unordered_map<e_commodity, int> commodity_deltas;
-      for( auto comm_type : enum_values<e_commodity>() ) {
+      for( auto comm_type : refl::enum_values<e_commodity> ) {
         int orig_quantity =
             base::lookup( commodity_store, comm_type )
                 .value_or( 0 );

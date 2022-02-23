@@ -34,6 +34,7 @@
 # vim-related
 *~
 *.swp
+*.vim
 
 # Something mac-related, not sure what it is
 .DS_Store

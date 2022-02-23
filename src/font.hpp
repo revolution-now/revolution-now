@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "rds/font.hpp"
+#include "font.rds.hpp"
 
 namespace rn {
 

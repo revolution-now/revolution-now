@@ -1,0 +1,20 @@
+# ===============================================================
+# player.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-11.
+#
+# Description: RDS definitions for the player module.
+#
+# ===============================================================
+# Rds
+include "nation.rds.hpp"
+
+namespace "rn.wrapped"
+
+struct.Player {
+  nation 'e_nation',
+  human 'bool',
+  money 'int',
+}

@@ -11,13 +11,18 @@
 #include "testing.hpp"
 
 // Under test.
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
+
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/build-properties.hpp"
 #include "base/fmt.hpp"
 #include "base/fs.hpp"
 #include "base/io.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -74,16 +79,18 @@ TEST_CASE( "[rds] Monostate" ) {
 
 TEST_CASE( "[rds] Maybe" ) {
   Maybe_t<int> maybe;
-  REQUIRE( fmt::format( "{}", maybe ) == "Maybe::nothing<int>" );
+  REQUIRE( fmt::format( "{}", maybe ) ==
+           "rdstest::Maybe::nothing<int>" );
 
   maybe = Maybe::nothing<int>{};
-  REQUIRE( fmt::format( "{}", maybe ) == "Maybe::nothing<int>" );
+  REQUIRE( fmt::format( "{}", maybe ) ==
+           "rdstest::Maybe::nothing<int>" );
 
   auto just = Maybe::just<int>{ 5 };
   static_assert( is_same_v<decltype( just.val ), int> );
   maybe = just;
   REQUIRE( fmt::format( "{}", maybe ) ==
-           "Maybe::just<int>{val=5}" );
+           "rdstest::Maybe::just<int>{val=5}" );
 
   switch( maybe.to_enum() ) {
     case Maybe::e::nothing: //
@@ -97,14 +104,15 @@ TEST_CASE( "[rds] Maybe" ) {
 
   Maybe_t<rn::my_optional<char>> maybe_op_str;
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::nothing<rn::my_optional<char>>" );
+           "rdstest::Maybe::nothing<rn::my_optional<char>>" );
   maybe_op_str = Maybe::just<rn::my_optional<char>>{ { 'c' } };
-  REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::just<rn::my_optional<char>>{val=c}" );
+  REQUIRE(
+      fmt::format( "{}", maybe_op_str ) ==
+      "rdstest::Maybe::just<rn::my_optional<char>>{val=c}" );
 }
 
 TEST_CASE( "[rds] MyVariant1" ) {
-  static_assert( !base::Show<MyVariant1_t> );
+  static_assert( base::Show<MyVariant1_t> );
   MyVariant1_t my1;
   my1    = MyVariant1::happy{ { 'c', 4 } };
   my1    = MyVariant1::excited{};
@@ -154,7 +162,7 @@ TEST_CASE( "[rds] MyVariant2" ) {
     }
   }
   REQUIRE( fmt::format( "{}", my2 ) ==
-           "MyVariant2::third{cost=7}" );
+           "rdstest::MyVariant2::third{cost=7}" );
 }
 
 TEST_CASE( "[rds] MyVariant3" ) {
@@ -229,9 +237,9 @@ TEST_CASE( "[rds] MyVariant4" ) {
       break;
     }
   }
-  REQUIRE(
-      fmt::format( "{}", my4 ) ==
-      "MyVariant4::third{s=hello,var3=MyVariant3::a3{c=e}}" );
+  REQUIRE( fmt::format( "{}", my4 ) ==
+           "rdstest::inner::MyVariant4::third{s=hello,var3="
+           "rdstest::inner::MyVariant3::a3{c=e}}" );
 }
 
 TEST_CASE( "[rds] CompositeTemplateTwo" ) {
@@ -259,13 +267,12 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
       REQUIRE( false );
       break;
   }
-  REQUIRE(
-      fmt::format( "{}", v ) ==
-      "CompositeTemplateTwo::first<rn::my_optional<int>,short>{"
-      "ttp=TemplateTwoParams::third_alternative<rn::my_optional<"
-      "int>,short>{hello=Maybe::just<rn::my_optional<int>>{val="
-      "3},"
-      "u=9}}" );
+  REQUIRE( fmt::format( "{}", v ) ==
+           "rdstest::inner::CompositeTemplateTwo::first<rn::my_"
+           "optional<int>,short>{ttp=rdstest::inner::"
+           "TemplateTwoParams::third_alternative<rn::my_"
+           "optional<int>,short>{hello=rdstest::Maybe::just<rn::"
+           "my_optional<int>>{val=3},u=9}}" );
 }
 
 TEST_CASE( "[rds] Equality" ) {
@@ -284,7 +291,7 @@ TEST_CASE( "[rds] Equality" ) {
 
 TEST_CASE( "[rds] Rds File Golden Comparison" ) {
   auto golden = base::read_text_file_as_string(
-      testing::data_dir() / "rds-testing-golden.hpp" );
+      testing::data_dir() / "rds-testing-golden.rds.hpp" );
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(
@@ -309,7 +316,8 @@ TEST_CASE( "[rds] Associated Enums" ) {
       // Make sure that we can get a non-const reference.
       MyVariant2::second& snd = v.get<MyVariant2::second>();
       REQUIRE( fmt::format( "{}", snd ) ==
-               "MyVariant2::second{flag1=false,flag2=true}" );
+               "rdstest::MyVariant2::second{flag1=false,flag2="
+               "true}" );
       break;
     }
     case MyVariant2::e::third: //
@@ -325,7 +333,7 @@ TEST_CASE( "[rds] Associated Enums" ) {
     case Maybe::e::just: {
       auto& just = maybe.get<Maybe::just<String>>();
       REQUIRE( fmt::format( "{}", just ) ==
-               "Maybe::just<rn::String>{val=hello}" );
+               "rdstest::Maybe::just<rn::String>{val=hello}" );
       break;
     }
   }
@@ -333,99 +341,295 @@ TEST_CASE( "[rds] Associated Enums" ) {
 
 TEST_CASE( "[rds] enums" ) {
   // e_empty
-  static_assert( enum_traits<e_empty>::count == 0 );
-  static_assert( enum_traits<e_empty>::type_name == "e_empty" );
-  static_assert( enum_traits<e_empty>::values.size() == 0 );
-  static_assert( enum_traits<e_empty>::from_integral( 0 ) ==
+  static_assert( refl::enum_count<e_empty> == 0 );
+  static_assert( refl::traits<e_empty>::name == "e_empty" );
+  static_assert( refl::enum_values<e_empty>.size() == 0 );
+  static_assert( refl::enum_from_integral<e_empty>( 0 ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_empty>( 1 ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_empty>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_empty>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_empty>( "hello" ) ==
                  nothing );
 
   // e_single
-  static_assert( enum_traits<e_single>::count == 1 );
-  static_assert( enum_traits<e_single>::type_name ==
-                 "e_single" );
-  static_assert( enum_traits<e_single>::values.size() == 1 );
-  static_assert( enum_traits<e_single>::value_name(
+  static_assert( refl::enum_count<e_single> == 1 );
+  static_assert( refl::traits<e_single>::name == "e_single" );
+  static_assert( refl::enum_values<e_single>.size() == 1 );
+  static_assert( refl::enum_value_name<e_single>(
                      e_single::hello ) == "hello" );
-  static_assert( enum_traits<e_single>::from_integral( 0 ) ==
+  static_assert( refl::enum_from_integral<e_single>( 0 ) ==
                  e_single::hello );
-  static_assert( enum_traits<e_single>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_single>( 1 ) ==
                  nothing );
-  static_assert( enum_traits<e_single>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_single>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_single>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_single>( "hello" ) ==
                  e_single::hello );
-  static_assert( enum_traits<e_single>::from_string(
-                     "hellox" ) == nothing );
+  static_assert( refl::enum_from_string<e_single>( "hellox" ) ==
+                 nothing );
 
   // e_two
-  static_assert( enum_traits<e_two>::count == 2 );
-  static_assert( enum_traits<e_two>::type_name == "e_two" );
-  static_assert( enum_traits<e_two>::values.size() == 2 );
-  static_assert( enum_traits<e_two>::value_name(
-                     e_two::hello ) == "hello" );
-  static_assert( enum_traits<e_two>::value_name(
-                     e_two::world ) == "world" );
-  static_assert( enum_traits<e_two>::from_integral( 0 ) ==
+  static_assert( refl::enum_count<e_two> == 2 );
+  static_assert( refl::traits<e_two>::name == "e_two" );
+  static_assert( refl::enum_values<e_two>.size() == 2 );
+  static_assert( refl::enum_value_name<e_two>( e_two::hello ) ==
+                 "hello" );
+  static_assert( refl::enum_value_name<e_two>( e_two::world ) ==
+                 "world" );
+  static_assert( refl::enum_from_integral<e_two>( 0 ) ==
                  e_two::hello );
-  static_assert( enum_traits<e_two>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 1 ) ==
                  e_two::world );
-  static_assert( enum_traits<e_two>::from_integral( 2 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 2 ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_integral( 10 ) ==
+  static_assert( refl::enum_from_integral<e_two>( 10 ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_two>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_two>( "hello" ) ==
                  e_two::hello );
-  static_assert( enum_traits<e_two>::from_string( "hellox" ) ==
+  static_assert( refl::enum_from_string<e_two>( "hellox" ) ==
                  nothing );
-  static_assert( enum_traits<e_two>::from_string( "world" ) ==
+  static_assert( refl::enum_from_string<e_two>( "world" ) ==
                  e_two::world );
 
   // e_color
-  static_assert( enum_traits<e_color>::count == 3 );
-  static_assert( enum_traits<e_color>::type_name == "e_color" );
-  static_assert( enum_traits<e_color>::values.size() == 3 );
-  static_assert( enum_traits<e_color>::value_name(
-                     e_color::red ) == "red" );
-  static_assert( enum_traits<e_color>::value_name(
+  static_assert( refl::enum_count<e_color> == 3 );
+  static_assert( refl::traits<e_color>::name == "e_color" );
+  static_assert( refl::enum_values<e_color>.size() == 3 );
+  static_assert(
+      refl::enum_value_name<e_color>( e_color::red ) == "red" );
+  static_assert( refl::enum_value_name<e_color>(
                      e_color::blue ) == "blue" );
-  static_assert( enum_traits<e_color>::from_integral( 0 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 0 ) ==
                  e_color::red );
-  static_assert( enum_traits<e_color>::from_integral( 1 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 1 ) ==
                  e_color::green );
-  static_assert( enum_traits<e_color>::from_integral( 2 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 2 ) ==
                  e_color::blue );
-  static_assert( enum_traits<e_color>::from_integral( 3 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 3 ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_integral( 10 ) ==
+  static_assert( refl::enum_from_integral<e_color>( 10 ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "" ) ==
+  static_assert( refl::enum_from_string<e_color>( "" ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "hello" ) ==
+  static_assert( refl::enum_from_string<e_color>( "hello" ) ==
                  nothing );
-  static_assert( enum_traits<e_color>::from_string( "green" ) ==
+  static_assert( refl::enum_from_string<e_color>( "green" ) ==
                  e_color::green );
 }
 
 TEST_CASE( "[rds] structs" ) {
-  static_assert( sizeof( EmptyStruct ) == 1 );
-  MyStruct ms{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
-  };
-  MyTemplateStruct<int, string> mts{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
-  };
+  SECTION( "EmptyStruct" ) {
+    using Tr = refl::traits<EmptyStruct>;
+    static_assert( sizeof( EmptyStruct ) == 1 );
+    static_assert( is_same_v<Tr::type, EmptyStruct> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn" );
+    static_assert( Tr::name == "EmptyStruct" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "MyStruct" ) {
+    using Tr = refl::traits<MyStruct>;
+    static_assert( is_same_v<Tr::type, MyStruct> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn" );
+    static_assert( Tr::name == "MyStruct" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
+    MyStruct ms{
+        .xxx     = 5,
+        .yyy     = 2.3,
+        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "xxx" );
+      REQUIRE( ms.xxx == 5 );
+      ( ms.*acc ) = 6;
+      REQUIRE( ms.xxx == 6 );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "yyy" );
+      REQUIRE( ms.yyy == 2.3 );
+      ( ms.*acc ) = 3.2;
+      REQUIRE( ms.yyy == 3.2 );
+    }
+    { // field 2
+      auto& [name, acc] = std::get<2>( Tr::fields );
+      static_assert( name == "zzz_map" );
+      REQUIRE( ms.zzz_map ==
+               unordered_map<string, string>{
+                   { "hello", "1" }, { "world", "2" } } );
+      ( ms.*acc ) =
+          unordered_map<string, string>{ { "one", "two" } };
+      REQUIRE( ms.zzz_map == unordered_map<string, string>{
+                                 { "one", "two" } } );
+    }
+  }
+  SECTION( "MyTemplateStruct" ) {
+    using Tr = refl::traits<test::MyTemplateStruct<int, string>>;
+    static_assert(
+        is_same_v<Tr::type,
+                  test::MyTemplateStruct<int, string>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::test" );
+    static_assert( Tr::name == "MyTemplateStruct" );
+    static_assert(
+        is_same_v<Tr::template_types, tuple<int, string>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
+    test::MyTemplateStruct<int, string> mts{
+        .xxx     = 5,
+        .yyy     = 2.3,
+        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "xxx" );
+      REQUIRE( mts.xxx == 5 );
+      ( mts.*acc ) = 6;
+      REQUIRE( mts.xxx == 6 );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "yyy" );
+      REQUIRE( mts.yyy == 2.3 );
+      ( mts.*acc ) = 3.2;
+      REQUIRE( mts.yyy == 3.2 );
+    }
+    { // field 2
+      auto& [name, acc] = std::get<2>( Tr::fields );
+      static_assert( name == "zzz_map" );
+      REQUIRE( mts.zzz_map ==
+               unordered_map<string, string>{
+                   { "hello", "1" }, { "world", "2" } } );
+      ( mts.*acc ) =
+          unordered_map<string, string>{ { "one", "two" } };
+      REQUIRE( mts.zzz_map == unordered_map<string, string>{
+                                  { "one", "two" } } );
+    }
+  }
+}
+
+TEST_CASE( "[rds] sumtype reflection" ) {
+  SECTION( "none" ) {
+    using Tr = refl::traits<MySumtype::none>;
+    static_assert( is_same_v<Tr::type, MySumtype::none> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "none" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "some" ) {
+    using Tr = refl::traits<MySumtype::some>;
+    static_assert( is_same_v<Tr::type, MySumtype::some> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "some" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 2 );
+    MySumtype::some ms{
+        .s = "hello",
+        .y = 5,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "s" );
+      REQUIRE( ms.s == "hello" );
+      ( ms.*acc ) = "world";
+      REQUIRE( ms.s == "world" );
+    }
+    { // field 1
+      auto& [name, acc] = std::get<1>( Tr::fields );
+      static_assert( name == "y" );
+      REQUIRE( ms.y == 5 );
+      ( ms.*acc ) = 6;
+      REQUIRE( ms.y == 6 );
+    }
+  }
+  SECTION( "more" ) {
+    using Tr = refl::traits<MySumtype::more>;
+    static_assert( is_same_v<Tr::type, MySumtype::more> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn::MySumtype" );
+    static_assert( Tr::name == "more" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
+    MySumtype::more ms{
+        .d = 2.3,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "d" );
+      REQUIRE( ms.d == 2.3 );
+      ( ms.*acc ) = 3.2;
+      REQUIRE( ms.d == 3.2 );
+    }
+  }
+}
+
+TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
+  SECTION( "nothing" ) {
+    using Tr = refl::traits<rdstest::Maybe::nothing<int>>;
+    static_assert(
+        is_same_v<Tr::type, rdstest::Maybe::nothing<int>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rdstest::Maybe" );
+    static_assert( Tr::name == "nothing" );
+    static_assert( is_same_v<Tr::template_types, tuple<int>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
+  }
+  SECTION( "just" ) {
+    using Tr = refl::traits<rdstest::Maybe::just<int>>;
+    static_assert(
+        is_same_v<Tr::type, rdstest::Maybe::just<int>> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rdstest::Maybe" );
+    static_assert( Tr::name == "just" );
+    static_assert( is_same_v<Tr::template_types, tuple<int>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
+    rdstest::Maybe::just<int> ms{
+        .val = 2,
+    };
+    { // field 0
+      auto& [name, acc] = std::get<0>( Tr::fields );
+      static_assert( name == "val" );
+      REQUIRE( ms.val == 2 );
+      ( ms.*acc ) = 3;
+      REQUIRE( ms.val == 3 );
+    }
+  }
+}
+
+TEST_CASE( "[rds] validate method" ) {
+  static_assert( !refl::ValidatableStruct<EmptyStruct> );
+  static_assert( !refl::ValidatableStruct<EmptyStruct2> );
+  static_assert( !refl::ValidatableStruct<MyStruct> );
+  static_assert( refl::ValidatableStruct<StructWithValidation> );
+  static_assert( !refl::ValidatableStruct<
+                 test::MyTemplateStruct<int, int>> );
+}
+
+TEST_CASE( "[rds] equality_comparable" ) {
+  static_assert( equality_comparable<EmptyStruct> );
+  static_assert( !equality_comparable<EmptyStruct2> );
+  static_assert( equality_comparable<MyStruct> );
+  static_assert( equality_comparable<StructWithValidation> );
+  static_assert(
+      equality_comparable<test::MyTemplateStruct<int, int>> );
 }
 
 } // namespace

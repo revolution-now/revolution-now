@@ -12,22 +12,31 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fb.hpp"
+#include "game-state.hpp"
+#include "gs-top.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "serial.hpp"
-
-// base
-#include "base/cc-specific.hpp"
-#include "base/io.hpp"
-#include "base/meta.hpp"
-#include "base/to-str-ext-std.hpp"
 
 // Revolution Now (config)
 #include "../config/rcl/savegame.inl"
 
-// Flatbuffers
-#include "fb/save-game_generated.h"
+// refl
+#include "refl/cdr.hpp"
+
+// rcl
+#include "rcl/emit.hpp"
+#include "rcl/model.hpp"
+#include "rcl/parse.hpp"
+
+// cdr
+#include "cdr/converter.hpp"
+#include "cdr/ext-base.hpp"
+#include "cdr/ext-builtin.hpp"
+#include "cdr/ext-std.hpp"
+
+// base
+#include "base/io.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/stopwatch.hpp"
@@ -39,39 +48,7 @@ using namespace std;
 
 namespace rn {
 
-using ::rn::serial::FBBuilder;
-using ::rn::serial::FBOffset;
-
-/****************************************************************
-** Save-game module hooks.
-*****************************************************************/
-// These function templates are being forward declared here;
-// there must be one of these defined for each module that is
-// saved. However, we don't include any headers that declare
-// their specializations in order to reduce header dependencies.
-// We just rely on the linker to find each of them for us. If one
-// is missing, we'll get a compiler error, so there should be no
-// possibility for error. When these functions are called in code
-// further below, the compiler can deduce their only template ar-
-// guments, and so then there is no need for the function bodies
-// to be available in headers, and the compiler is happy to just
-// wait for the linker to find them. This is convenient for us
-// because it allows us to not include headers from all of the
-// save game modules in this translation unit.
-template<typename T>
-void savegame_serializer( FBBuilder&   builder,
-                          FBOffset<T>* out_offset );
-template<typename T>
-valid_deserial_t savegame_deserializer( T const* src );
-template<typename T>
-valid_deserial_t savegame_post_validate( T const* );
-template<typename T>
-void default_construct_savegame_state( T const* );
-
 namespace {
-
-constexpr size_t kNumSavegameModules =
-    fb::SaveGame::Traits::fields_number;
 
 fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
@@ -79,78 +56,69 @@ fs::path path_for_slot( int slot ) {
          fmt::format( "slot{:02}", slot );
 }
 
-template<typename T>
-FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
-  FBOffset<T> state;
-  savegame_serializer( fbb, &state );
-  return state;
+void print_time( util::StopWatch const& watch,
+                 string_view            name ) {
+  (void)watch;
+  (void)name;
+  // fmt::print( "{}: {}\n", name, watch.human( name ) );
 }
 
-template<typename... Args>
-auto creation_tuple( FBBuilder& fbb, mp::list<Args...>* ) {
-  return tuple{
-      serialize_to_offset<serial::remove_fb_offset_t<Args>>(
-          fbb )... };
-}
-
-serial::BinaryBlob save_game_to_blob() {
-  FBBuilder fbb;
-  // This gets a tuple whose element types are the types
-  // needed to be passed to the table creation method of
-  // fb::SaveGame.
-  using creation_types =
-      serial::fb_creation_tuple_t<fb::SaveGame>;
-  auto tpl = creation_tuple(
-      fbb, static_cast<creation_types*>( nullptr ) );
-  auto to_apply = [&]( auto const&... args ) {
-    return fb::CreateSaveGame( fbb, args... );
+string save_game_to_rcl( SaveGameOptions const& opts ) {
+  cdr::converter::options const cdr_opts{
+      .write_fields_with_default_value =
+          opts.verbosity == e_savegame_verbosity::full,
   };
-  auto sg = std::apply( to_apply, tpl );
-  fbb.Finish( sg );
-  return serial::BinaryBlob::from_builder( std::move( fbb ) );
-}
-
-template<size_t... Idxs>
-valid_deserial_t savegame_post_validate_impl(
-    std::index_sequence<Idxs...> ) {
-  valid_deserial_t res = valid;
-
-  auto validate_one = [&]<typename T>( T* p ) {
-    // If we've already failed on a past step, don't run anymore.
-    if( !res ) return;
-    lg.debug( "running post-deserialization validation on {}.",
-              base::demangled_typename<T>() );
-    res = savegame_post_validate( p );
+  util::StopWatch watch;
+  watch.start( "[save] total" );
+  watch.start( "  [save] to_canonical" );
+  cdr::value cdr_val = cdr::run_conversion_to_canonical(
+      GameState::top(), cdr_opts );
+  watch.stop( "  [save] to_canonical" );
+  cdr::converter conv( cdr_opts );
+  UNWRAP_CHECK( tbl, conv.ensure_type<cdr::table>( cdr_val ) );
+  rcl::ProcessingOptions proc_opts{ .run_key_parse  = false,
+                                    .unflatten_keys = false };
+  UNWRAP_CHECK(
+      rcl_doc, rcl::doc::create( std::move( tbl ), proc_opts ) );
+  rcl::EmitOptions emit_opts{
+      .flatten_keys = true,
   };
-
-  ( validate_one(
-        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
-    ... );
+  watch.start( "  [save] emit rcl" );
+  string res = rcl::emit( rcl_doc, emit_opts );
+  watch.stop( "  [save] emit rcl" );
+  watch.stop( "[save] total" );
+  print_time( watch, "[save] total" );
+  print_time( watch, "  [save] to_canonical" );
+  print_time( watch, "  [save] emit rcl" );
   return res;
 }
 
-valid_deserial_t load_from_blob(
-    serial::BinaryBlob const& blob ) {
-  auto*           root = blob.root<fb::SaveGame>();
-  util::StopWatch watch;
-  watch.start( "load" );
-  valid_deserial_t res = valid;
-  FOR_CONSTEXPR_IDX( Idx, kNumSavegameModules ) {
-    res = savegame_deserializer( root->get_field<Idx>() );
-    if( !res ) return true;
-    return false;
+// The filename is only used for error reporting.
+valid_or<string> load_game_from_rcl( string_view   filename,
+                                     string const& in,
+                                     SaveGameOptions const& ) {
+  cdr::converter::options const cdr_opts{
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = true,
   };
-  if( !res ) return res;
-  watch.stop( "load" );
-
-  // Post-deserialization validation.
-  watch.start( "validate" );
-  HAS_VALUE_OR_RET( savegame_post_validate_impl(
-      std::make_index_sequence<kNumSavegameModules>() ) );
-  watch.stop( "validate" );
-
-  lg.info( "loading game took: {}, validation took: {}.",
-           watch.human( "load" ), watch.human( "validate" ) );
+  util::StopWatch watch;
+  watch.start( "[load] total" );
+  watch.start( "  [load] rcl parse" );
+  rcl::ProcessingOptions proc_opts{ .run_key_parse  = true,
+                                    .unflatten_keys = true };
+  UNWRAP_RETURN( rcl_doc,
+                 rcl::parse( filename, in, proc_opts ) );
+  watch.stop( "  [load] rcl parse" );
+  watch.start( "  [load] from_canonical" );
+  UNWRAP_RETURN( top,
+                 run_conversion_from_canonical<TopLevelState>(
+                     rcl_doc.top_val(), cdr_opts ) );
+  watch.stop( "  [load] from_canonical" );
+  watch.stop( "[load] total" );
+  print_time( watch, "[load] total" );
+  print_time( watch, "  [load] rcl parse" );
+  print_time( watch, "  [load] from_canonical" );
+  GameState::top() = std::move( top );
   return valid;
 }
 
@@ -159,123 +127,102 @@ valid_deserial_t load_from_blob(
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<fs::path, generic_err> save_game( int slot ) {
+valid_or<std::string> save_game_to_rcl_file(
+    fs::path const& p, SaveGameOptions const& opts ) {
+  lg.info( "saving game to {}.", p );
   // Increase this to get more accurate reading on save times.
   constexpr int   trials = 1;
   util::StopWatch watch;
-  watch.start( "save" );
-  auto serialize_to_blob = [&]() -> serial::BinaryBlob {
-    for( int i = trials; i >= 1; --i ) {
-      serial::BinaryBlob blob = save_game_to_blob();
-      if( i == 1 ) return blob; // has to move
-    }
-    UNREACHABLE_LOCATION;
-  };
-  auto blob = serialize_to_blob();
-  watch.stop( "save" );
-  lg.info( "saving game ({} trials) took: {}", trials,
-           watch.human( "save" ) );
-  auto p = path_for_slot( slot );
-
-  // Serialize to JSON. Must do this before binary for timestamp
-  // reasons.
-  p.replace_extension( ".jsav" );
-  lg.info( "saving game to {}.", p );
+  static string   label = "game save (rcl)";
+  watch.start( label );
+  string rcl_output;
+  for( int i = trials; i >= 1; --i )
+    rcl_output = save_game_to_rcl( opts );
+  watch.stop( label );
+  lg.info( "saving game to rcl ({} trials) took: {}", trials,
+           watch.human( label ) );
   ofstream out( p );
   if( !out.good() )
-    return GENERIC_ERROR( "failed to open {} for writing.", p );
-  out << blob.to_json<fb::SaveGame>( /*quotes=*/false );
+    return fmt::format( "failed to open {} for writing.", p );
+  out << rcl_output;
+  return valid;
+}
 
-  // Serialize to binary.
-  p.replace_extension( ".sav" );
-  lg.info( "saving game to {}.", p );
-  HAS_VALUE_OR_RET( blob.write( p ) );
+valid_or<std::string> load_game_from_rcl_file(
+    fs::path const& p, SaveGameOptions const& opts ) {
+  auto maybe_rcl = base::read_text_file_as_string( p );
+  if( !maybe_rcl )
+    return fmt::format( "failed to read Rcl file" );
+  util::StopWatch watch;
+  watch.start( "loading from rcl" );
+  constexpr int trials = 1;
+  for( int i = trials; i >= 1; --i ) {
+    HAS_VALUE_OR_RET(
+        load_game_from_rcl( p.string(), *maybe_rcl, opts ) );
+  }
+  watch.stop( "loading from rcl" );
+  lg.info( "loading game ({} trials) took: {}", trials,
+           watch.human( "loading from rcl" ) );
+  return valid;
+}
 
+expect<fs::path> save_game( int slot ) {
+  auto p = path_for_slot( slot );
+  p.replace_extension( ".sav.rcl" );
+  // Serialize to rcl. Do this before b64 for timestamp reasons.
+  HAS_VALUE_OR_RET(
+      save_game_to_rcl_file( p, SaveGameOptions{} ) );
+  // Serialize to b64.
+  p.replace_extension( ".sav.b64" );
+  // HAS_VALUE_OR_RET( blob.write( p ) );
   p.replace_extension();
   return p;
 }
 
-expect<fs::path, generic_err> load_game( int slot ) {
-  auto json_path =
-      path_for_slot( slot ).replace_extension( ".jsav" );
-  auto blob_path =
-      path_for_slot( slot ).replace_extension( ".sav" );
+expect<fs::path> load_game( int slot ) {
+  auto rcl_path =
+      path_for_slot( slot ).replace_extension( ".sav.rcl" );
+  auto b64_path =
+      path_for_slot( slot ).replace_extension( ".sav.b64" );
 
-  bool json_exists = fs::exists( json_path );
-  bool blob_exists = fs::exists( blob_path );
+  bool rcl_exists = fs::exists( rcl_path );
+  bool b64_exists = fs::exists( b64_path );
 
-  if( !blob_exists && !json_exists )
-    return GENERIC_ERROR( "save files not found for slot {}.",
-                          slot );
+  if( !rcl_exists && !b64_exists )
+    return fmt::format( "save files not found for slot {}.",
+                        slot );
 
-  // Determine whether to use JSON file or binary file.
-  bool use_json = false;
-  if( json_exists && !blob_exists ) {
+  // Determine whether to use the rcl file or the binary file.
+  bool use_rcl = false;
+  if( rcl_exists && !b64_exists ) {
     lg.warn(
-        "loading game from JSON file {} since binary file does "
+        "loading game from Rcl file {} since binary file does "
         "not exist.",
-        json_path );
-    use_json = true;
-  } else if( !json_exists && blob_exists ) {
-    use_json = false;
+        rcl_path );
+    use_rcl = true;
+  } else if( !rcl_exists && b64_exists ) {
+    use_rcl = false;
   } else {
-    // Both exist, so choose based on timestamps. Detect if JSON
+    // Both exist, so choose based on timestamps. Detect if Rcl
     // file has been edited; if so then we should probably prefer
     // that one.
-    use_json = fs::last_write_time( json_path ) >
-               fs::last_write_time( blob_path );
-    if( use_json )
+    use_rcl = fs::last_write_time( rcl_path ) >
+              fs::last_write_time( b64_path );
+    if( use_rcl )
       lg.warn(
-          "loading game from JSON file {} since it is newer.",
-          json_path );
+          "loading game from Rcl file {} since it is newer.",
+          rcl_path );
   }
 
-  if( use_json ) {
-    auto maybe_json =
-        base::read_text_file_as_string( json_path );
-    if( !maybe_json )
-      return GENERIC_ERROR( "failed to read json file" );
-    UNWRAP_RETURN( blob,
-                   serial::BinaryBlob::from_json(
-                       /*schema_file_name=*/"save-game.fbs",
-                       /*json=*/*maybe_json,
-                       /*root_type=*/"SaveGame" ) );
-    HAS_VALUE_OR_RET( load_from_blob( blob ) );
-    return json_path;
+  if( use_rcl ) {
+    HAS_VALUE_OR_RET(
+        load_game_from_rcl_file( rcl_path, SaveGameOptions{} ) );
+    return rcl_path;
   } else {
-    lg.info( "loading game from {}.", blob_path );
-    UNWRAP_RETURN( blob, serial::BinaryBlob::read( blob_path ) );
-    HAS_VALUE_OR_RET( load_from_blob( blob ) );
-    return blob_path;
+    lg.info( "loading game from {}.", b64_path );
+    NOT_IMPLEMENTED;
+    return b64_path;
   }
 }
-
-valid_deserial_t reset_savegame_state() {
-  FBBuilder fbb;
-  auto      builder = fb::SaveGameBuilder( fbb );
-  auto      sg      = builder.Finish();
-  fbb.Finish( sg );
-  auto blob =
-      serial::BinaryBlob::from_builder( std::move( fbb ) );
-  return load_from_blob( blob );
-}
-
-template<size_t... Idxs>
-void default_construct_savegame_state_impl(
-    std::index_sequence<Idxs...> ) {
-  ( default_construct_savegame_state(
-        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
-    ... );
-}
-
-void default_construct_savegame_state() {
-  default_construct_savegame_state_impl(
-      std::make_index_sequence<kNumSavegameModules>() );
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_save_game() {}
 
 } // namespace rn

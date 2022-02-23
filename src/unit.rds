@@ -1,0 +1,40 @@
+# ===============================================================
+# unit.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the unit module.
+#
+# ===============================================================
+# Revolution Now
+include "cargo.hpp"
+include "mv-points.hpp"
+include "unit-composer.hpp"
+include "unit-id.hpp"
+
+# Rds
+include "nation.rds.hpp"
+include "unit.rds.hpp"
+
+namespace "rn"
+
+enum.e_unit_orders {
+  none,
+  sentry,
+  fortified,
+}
+
+namespace "rn.wrapped"
+
+struct.Unit {
+  id 'UnitId',
+  composition 'rn::UnitComposition',
+  orders 'e_unit_orders',
+  cargo 'rn::CargoHold',
+  nation 'e_nation',
+  mv_pts 'MovementPoints',
+
+  _features { equality, validation }
+}

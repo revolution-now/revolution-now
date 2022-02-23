@@ -39,10 +39,6 @@ CFG( rn,
   OBJ( power,
     FLD( Seconds, time_till_slow_fps )
   )
-
-  OBJ( flatbuffers,
-    FLD( fs::path, include_path )
-  )
 )
 
 }

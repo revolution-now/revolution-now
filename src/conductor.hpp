@@ -18,7 +18,7 @@
 #include "tune.hpp"
 
 // Rds
-#include "rds/conductor.hpp"
+#include "conductor.rds.hpp"
 
 // C++ standard library
 #include <functional>

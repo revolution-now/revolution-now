@@ -1,0 +1,31 @@
+# ===============================================================
+# unit-composer.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-10-05.
+#
+# Description: RDS definitions for the unit-composer module.
+#
+# ===============================================================
+# Rds
+include "utype.rds.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn"
+
+enum.e_unit_type_modifier_delta {
+  add,
+  del,
+}
+
+namespace "rn.wrapped"
+
+struct.UnitComposition {
+  type 'rn::UnitType',
+  inventory 'std::unordered_map<e_unit_inventory, int>',
+
+  _features { equality, validation }
+}

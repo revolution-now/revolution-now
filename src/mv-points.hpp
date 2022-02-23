@@ -14,16 +14,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "fb.hpp"
+#include "maybe.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
+// Cdr
+#include "cdr/ext.hpp"
 
 // luapp
 #include "luapp/ext.hpp"
-
-// Flatbuffers
-#include "fb/mv-points_generated.h"
 
 namespace rn {
 
@@ -31,11 +28,10 @@ namespace rn {
 class ND MovementPoints {
  public:
   MovementPoints() = default;
-  explicit MovementPoints( int p )
-    : points_atoms( p * factor ) {}
+  explicit MovementPoints( int p ) : atoms( p * factor ) {}
 
   MovementPoints& operator=( int p ) {
-    points_atoms = p * factor;
+    atoms = p * factor;
     return *this;
   }
 
@@ -46,103 +42,106 @@ class ND MovementPoints {
       default;
   MovementPoints& operator=( MovementPoints&& other ) = default;
 
-  static MovementPoints _1_3() {
-    return MovementPoints( 0, 1 );
+  static MovementPoints const& _1_3() {
+    static MovementPoints const mp( 0, 1 );
+    return mp;
   };
 
-  static MovementPoints _2_3() {
-    return MovementPoints( 0, 2 );
+  static MovementPoints const& _2_3() {
+    static MovementPoints const mp( 0, 2 );
+    return mp;
   };
 
   bool operator==( MovementPoints const& rhs ) const {
-    return points_atoms == rhs.points_atoms;
+    return atoms == rhs.atoms;
   }
   bool operator==( int rhs ) const {
-    return points_atoms == rhs * factor;
+    return atoms == rhs * factor;
   }
 
   bool operator!=( MovementPoints const& rhs ) const {
-    return points_atoms != rhs.points_atoms;
+    return atoms != rhs.atoms;
   }
   bool operator!=( int rhs ) const {
-    return points_atoms != rhs * factor;
+    return atoms != rhs * factor;
   }
 
   bool operator>( MovementPoints const& rhs ) const {
-    return points_atoms > rhs.points_atoms;
+    return atoms > rhs.atoms;
   }
   bool operator>( int rhs ) const {
-    return points_atoms > rhs * factor;
+    return atoms > rhs * factor;
   }
 
   bool operator<( MovementPoints const& rhs ) const {
-    return points_atoms < rhs.points_atoms;
+    return atoms < rhs.atoms;
   }
   bool operator<( int rhs ) const {
-    return points_atoms < rhs * factor;
+    return atoms < rhs * factor;
   }
 
   bool operator>=( MovementPoints const& rhs ) const {
-    return points_atoms >= rhs.points_atoms;
+    return atoms >= rhs.atoms;
   }
   bool operator>=( int rhs ) const {
-    return points_atoms >= rhs * factor;
+    return atoms >= rhs * factor;
   }
 
   bool operator<=( MovementPoints const& rhs ) const {
-    return points_atoms <= rhs.points_atoms;
+    return atoms <= rhs.atoms;
   }
   bool operator<=( int rhs ) const {
-    return points_atoms <= rhs * factor;
+    return atoms <= rhs * factor;
   }
 
   MovementPoints operator+( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms + rhs.points_atoms );
+    return MovementPoints( 0, atoms + rhs.atoms );
   }
   MovementPoints operator+( int rhs ) const {
-    return MovementPoints( 0, points_atoms + ( rhs * factor ) );
+    return MovementPoints( 0, atoms + ( rhs * factor ) );
   }
 
   MovementPoints operator-( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms - rhs.points_atoms );
+    return MovementPoints( 0, atoms - rhs.atoms );
   }
   MovementPoints operator-( int rhs ) const {
-    return MovementPoints( 0, points_atoms - ( rhs * factor ) );
+    return MovementPoints( 0, atoms - ( rhs * factor ) );
   }
 
   void operator+=( MovementPoints const& rhs ) {
-    points_atoms += rhs.points_atoms;
+    atoms += rhs.atoms;
   }
-  void operator+=( int rhs ) { points_atoms += rhs * factor; }
+  void operator+=( int rhs ) { atoms += rhs * factor; }
 
   void operator-=( MovementPoints const& rhs ) {
-    points_atoms -= rhs.points_atoms;
+    atoms -= rhs.atoms;
   }
-  void operator-=( int rhs ) { points_atoms -= rhs * factor; }
+  void operator-=( int rhs ) { atoms -= rhs * factor; }
 
   friend void to_str( MovementPoints const& o, std::string& out,
                       base::ADL_t );
 
-  valid_deserial_t check_invariants_safe() const;
+  base::valid_or<std::string> validate() const;
 
   friend maybe<MovementPoints> lua_get(
       lua::cthread L, int idx, lua::tag<MovementPoints> );
   friend void lua_push( lua::cthread L, MovementPoints mv_pts );
 
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<MovementPoints> convert_to(
-      rcl::value const& v, rcl::tag<MovementPoints> );
+  friend cdr::value to_canonical( cdr::converter&       conv,
+                                  MovementPoints const& o,
+                                  cdr::tag_t<MovementPoints> );
+
+  friend cdr::result<MovementPoints> from_canonical(
+      cdr::converter& conv, cdr::value const& v,
+      cdr::tag_t<MovementPoints> );
 
  private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );
   static constexpr int factor = 3;
 
-  // clang-format off
-  SERIALIZABLE_STRUCT_MEMBERS( MovementPoints,
   // 2 points would be represented by 2*factor.
-  ( int, points_atoms ));
-  // clang-format on
+  int atoms = 0;
 };
 NOTHROW_MOVE( MovementPoints );
 

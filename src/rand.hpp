@@ -15,8 +15,8 @@
 // Revolution Now
 #include "error.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
+// refl
+#include "refl/query-enum.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -48,10 +48,10 @@ int between( int lower, int upper, e_interval type );
 // of all the possible values.
 template<typename Enum>
 Enum pick_one() {
-  constexpr auto count = enum_traits<Enum>::count;
+  constexpr auto count = refl::enum_count<Enum>;
   static_assert( count > 0 );
   auto idx = between( 0, count, e_interval::half_open );
-  return enum_traits<Enum>::values[idx];
+  return refl::enum_values<Enum>[idx];
 }
 
 // Pick a random enum value out of a set of choices. Use like

@@ -1,0 +1,26 @@
+# ===============================================================
+# sg-players.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: RDS definitions for the sg-players module.
+#
+# ===============================================================
+# Revolution Now
+include "player.hpp"
+
+# Rds
+include "nation.rds.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn"
+
+struct.PlayersState {
+  players 'std::unordered_map<e_nation, Player>',
+
+  _features { equality, validation }
+}

@@ -10,28 +10,27 @@
 *****************************************************************/
 #pragma once
 
-// base
-#include "base/adl-tag.hpp"
-#include "base/expect.hpp"
-#include "base/valid.hpp"
-#include "base/variant.hpp"
+// cdr
+#include "cdr/repr.hpp"
 
-// C++ standard library
-#include <memory>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <vector>
+// base
+#include "base/expect.hpp"
 
 /****************************************************************
 ** Rcl Document Model
 *****************************************************************/
+// Model
+// =====
+//
+// Rcl uses Cdr as its underlying data storage model, and so it
+// can only support things that are supported by Cdr.
+//
 // Syntax
 // ======
 //
 // Rcl is very similar to UCL (see github.com/vstakhov/libucl)
-// though lacks some of fancier features such as macros or lit-
-// eral suffixes (k, ms, etc.).
+// though lacks some of fancier features such as macros, literal
+// suffixes (k, ms, etc.), and merging of like table keys.
 //
 // Sample config:
 //
@@ -66,29 +65,63 @@
 //     ]
 //   }
 //
-//   # Table keys, despite being strings, are ordered according
-//   # to the order they appear in the config file.  When
-//   # iterating through keys, the 'before' key will always
-//   # come before the 'after' key:
+//   # Table keys have no concept of ordering, though when # Rcl
+//   is emitted it will emit the keys in alphabetical # order for
+//   consistency/determinism.
 //   before: 9
 //   after:  8
 //
 // The "top level" of the config is always a table. The above
 // will be parsed, and then post processed.
 //
+// Table Keys
+// ==========
+//
+// Table keys are normally just identifiers, but they can actu-
+// ally be arbitrary strings (containing spaces, backslashes,
+// double or single quotes, and any weird characters). This is
+// done by quoting (in double quotes) and escaping. For example,
+// if you want a table key of:
+//
+//   I can't stop "quoting" and backs\ashing.
+//
+// You would write the key as:
+//
+//   "I can't stop \"quoting\" and backs\\ashing."
+//
+// Quoted sections of keys that are adjacent to non-quoted iden-
+// tifiers will be joined with them, like in shell languages.
+// For example, if you write:
+//
+//   "this"is a.weird."string"
+//
+// It will be translated to:
+//
+//   thisis {
+//     a {
+//       weird {
+//         string {
+//          ...
+//         }
+//       }
+//     }
+//   }
+//
 // Post Processing
 // ===============
 //
 // Once a config file written in the above syntax has been
-// parsed, it will be post processed. There are three phases in
+// parsed, it will be post processed. There are two phases in
 // the post processing:
 //
-// 1. Unflattening: This is applied recursively, and
+// 1. Key Parsing: TODO
+//
+// 2. Unflattening: This is applied recursively, and
 //    transforms an input of the form:
 //
 //      a.b.c = 1
-//      a.b.d = 2
-//      a.c   = 3
+//
+//      one two three: {}
 //
 //    into:
 //
@@ -98,325 +131,80 @@
 //        }
 //      }
 //
-//      a {
-//        b {
-//          d: 2
+//      one {
+//        two {
+//          three {}
 //        }
 //      }
 //
-//      a {
-//        c: 3
-//      }
-//
-//    Note that if there were duplicate keys, those will be pre-
-//    served. They are deduplicated in the next phase.
-//
-// 2. Deduplication of Table Keys.  The unflattening
-//    operation, which is applied recursively, transforms
-//    an input of the form:
-//
-//      a {
-//        b {
-//          c: 1
-//        }
-//      }
-//
-//      a {
-//        b {
-//          d: 2
-//        }
-//      }
-//
-//      a {
-//        c: 3
-//      }
-//
-//    into:
-//
-//      a {
-//        b {
-//          c: 1
-//          d: 2
-//        }
-//        c: 3
-//      }
-//
-//    In other words, it merges duplicate keys whose values are
-//    tables. Any duplicate keys where at least one instance has
-//    a non-table value will cause an error. Order is preserved
-//    during this operation, so that the order that a key is en-
-//    countered during iteration will be determined by where it
-//    first appeared in the config, even if it was subsequently
-//    merged with duplicate keys that occurred later in the con-
-//    fig.
-//
-// 3. Adding table keys (which are now deduplicated) into the
-//    unordered_map for fast access.
+//    This step also parses any quoted/escaped table keys.
 //
 namespace rcl {
-
-struct table;
-struct list;
-
-struct null_t {
-  bool operator==( null_t const& ) const = default;
-};
-inline constexpr null_t null;
-
-/****************************************************************
-** value
-*****************************************************************/
-enum class type {
-  null,
-  boolean,
-  integral,
-  floating,
-  string,
-  table,
-  list
-};
-
-// clang-format off
-using value = base::variant<
-  null_t,
-  double,
-  int,
-  bool,
-  std::string,
-  std::unique_ptr<table>,
-  std::unique_ptr<list>
->;
-// clang-format on
-
-struct type_visitor {
-  type operator()( null_t ) const { return type::null; }
-  type operator()( bool ) const { return type::boolean; }
-  type operator()( int ) const { return type::integral; }
-  type operator()( double ) const { return type::floating; }
-  type operator()( std::string const& ) const {
-    return type::string;
-  }
-  type operator()( std::unique_ptr<table> const& ) const {
-    return type::table;
-  }
-  type operator()( std::unique_ptr<list> const& ) const {
-    return type::list;
-  }
-};
-
-type             type_of( value const& v );
-std::string_view name_of( type t );
-
-/****************************************************************
-** table
-*****************************************************************/
-// This structure cannot be mutable after creation because it re-
-// quires post processing in order to maintain invariants.
-struct table {
-  using value_type = std::pair<std::string, value>;
-
-  // These constructors are only for the convenience of the
-  // parsers; they will not maintain class invariants, so one
-  // should not use a table object after construction from these
-  // constructors. Only tables that are returned by the docu-
-  // ment's factory method should be used, as those will have
-  // their invariants satisfied due to the post processing that
-  // will be applied to them after construction.
-  table() = default;
-  table( std::vector<value_type>&& kvs )
-    : members_( std::move( kvs ) ) {}
-
-  bool has_key( std::string_view key ) const;
-
-  // Key must exist or check-fail!
-  value const& operator[]( std::string_view key ) const;
-
-  int size() const { return members_.size(); }
-
-  // Keys in table, although strings, are ordered. No range
-  // checks, element must exist or check-fail! Note that if you
-  // just need the keys in order, you can iterate over them using
-  // begin/end since they will be delivered in that order.
-  value_type const& operator[]( int n ) const;
-
-  std::string pretty_print( std::string_view indent = "" ) const;
-
-  // Consumes this table.
-  table unflatten() &&;
-
-  // Consumes this table.
-  table despacer() &&;
-
-  // Consumes this table.
-  base::expect<table> dedupe() &&;
-
-  // This should be done after all other post processing has fin-
-  // ished; it will create the mapping in the map_ member (which
-  // is possible after keys are deduplicated) for fast access
-  // subsequently. We don't do this in the constructor because it
-  // would be wasteful to do it before post-processing, since it
-  // would then have to be done again.
-  void map_members() &;
-
-  auto begin() const { return members_.begin(); }
-  auto end() const { return members_.end(); }
-
-  friend void to_str( table const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
-  }
-
- private:
-  void unflatten_impl( std::string_view dotted, value&& v );
-  void despacer_impl( std::string_view dotted, value&& v );
-
-  friend base::valid_or<std::string> merge_values(
-      std::string_view key, value& v_target, value&& v_source );
-
-  // Store this way because 1) when parsing, there can be dupli-
-  // cate keys (though they will be merged during post process-
-  // ing), and 2) keys are ordered, despite being strings.
-  std::vector<value_type> members_;
-
-  // Note: the key/value of this map refers to values inside of
-  // members_. That said, this structure is still safe to std::-
-  // move because it is not self-referential, because the vector
-  // elements are on the heap. Also for this reason, the members_
-  // should NOT be modified after post-processing finishes.
-  std::unordered_map<std::string_view, value*> map_;
-};
-
-/****************************************************************
-** list
-*****************************************************************/
-// This structure cannot be mutable after creation because it re-
-// quires post processing in order to maintain invariants.
-struct list {
-  // These constructors are only for the convenience of the
-  // parsers; they will not maintain class invariants, so one
-  // should not use a list object after construction from these
-  // constructors. Only list that are returned by the document's
-  // factory method should be used, as those will have their in-
-  // variants satisfied due to the post processing that will be
-  // applied to them after construction.
-  list() = default;
-  list( std::vector<value>&& vs )
-    : members_( std::move( vs ) ) {}
-
-  int size() const { return members_.size(); }
-
-  // Will check-fail on invalid index!
-  value const& operator[]( int n ) const;
-
-  std::string pretty_print( std::string_view indent = "" ) const;
-
-  // Consumes this list.
-  list unflatten() &&;
-
-  // Consumes this list.
-  list despacer() &&;
-
-  // Will apply deduplication processing to any elements that are
-  // tables. Returns a new list with the same elements except
-  // that any table elements will have their keys deduplicated.
-  // This is only called as part of post processing after pars-
-  // ing, you do not need to ever call this as a user of this
-  // class.
-  base::expect<list> dedupe_tables() &&;
-
-  // Perform the member-mapping post-processing step on any ele-
-  // ments that are tables.
-  void map_members() &;
-
-  auto begin() const { return members_.begin(); }
-  auto end() const { return members_.end(); }
-
-  friend void to_str( list const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
-  }
-
- private:
-  std::vector<value> members_;
-};
-
-/****************************************************************
-** Post-processing Routine
-*****************************************************************/
-// This should only be run on the top-level table, since it will
-// be applied recursively. In practice, this is only really
-// useful for unit tests, since otherwise the top-level table is
-// placed into a doc, and the doc will run this post-processing.
-base::expect<table> run_postprocessing( table&& tbl );
-
-base::expect<list> run_postprocessing( list&& lst );
 
 /****************************************************************
 ** doc
 *****************************************************************/
+// The default options are setup to be those required when pro-
+// ducing Rcl via parsing text.
+struct ProcessingOptions {
+  bool run_key_parse  = true;
+  bool unflatten_keys = true;
+};
+
 // This structure cannot be mutable after creation because it re-
 // quires post processing in order to maintain invariants.
 struct doc {
   // This will not only create the doc, it will also run a recur-
   // sive post-processing over the table.
-  static base::expect<doc> create( table&& tbl );
+  static base::expect<doc> create(
+      cdr::table&& tbl, ProcessingOptions const& opts );
 
-  std::string pretty_print( std::string_view indent = "" ) const;
-
-  table const& top_tbl() const { return *tbl_; }
-  value const& top_val() const { return val_; }
-
-  friend void to_str( doc const& o, std::string& out,
-                      base::ADL_t ) {
-    out += o.pretty_print();
+  cdr::table const& top_tbl() const {
+    return val_.get<cdr::table>();
   }
+  cdr::value const& top_val() const { return val_; }
 
  private:
-  doc( table&& tbl )
-    : val_( std::make_unique<table>( std::move( tbl ) ) ) {
-    tbl_ = val_.get_if<std::unique_ptr<table>>()->get();
-  }
+  doc( cdr::table&& tbl ) : val_( std::move( tbl ) ) {}
 
-  value        val_;
-  table const* tbl_ = nullptr;
+  cdr::value val_;
 };
 
+void to_str( doc const& o, std::string& out, base::ADL_t );
+
 /****************************************************************
-** Helpers for Testing
+** Helpers for parsing/formatting.
 *****************************************************************/
-template<typename... Vs>
-list make_list( Vs&&... vs ) {
-  std::vector<value> v;
-  ( v.push_back( std::forward<Vs>( vs ) ), ... );
-  return list( std::move( v ) );
-}
+// Any logic used by more than one of the parser, model post
+// processor, or formatter, should be put in this common location
+// so that it can be consistent across those three modules.
 
-template<typename... Vs>
-value make_list_val( Vs&&... vs ) {
-  return value{
-      std::make_unique<list>( make_list( FWD( vs )... ) ) };
-}
+// An table key that does not start with a double quote must
+// start with a character that satisfies this predicate.
+bool is_leading_identifier_char( char c );
 
-template<typename... Kvs>
-table make_table( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  std::vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return table( std::move( v ) );
-}
+// A character in an unquoted segment of a table key must satisfy
+// this predicate if it is not a space or dot.
+bool is_identifier_char( char c );
 
-template<typename... Kvs>
-value make_table_val( Kvs&&... kvs ) {
-  return value{
-      std::make_unique<table>( make_table( FWD( kvs )... ) ) };
-}
+// A string value (i.e., not a table key) that is unquoted must
+// contain only characters that satisfy this predicate.
+//
+// Note: this is not relevant for table keys, which have more
+// strict rules for quoting.
+bool is_forbidden_unquoted_str_char( char c );
 
-template<typename... Kvs>
-base::expect<doc> make_doc( Kvs&&... kvs ) {
-  using KV = table::value_type;
-  std::vector<KV> v;
-  ( v.push_back( std::forward<Kvs>( kvs ) ), ... );
-  return doc::create( table( std::move( v ) ) );
-}
+// Same as above but for the first character of such a string.
+bool is_forbidden_leading_unquoted_str_char( char c );
+
+// This will escape any double quotes or backslashes in the
+// string and put quotes around the result if necessary (i.e.,
+// only if there are any non-identifier characters in the string
+// or if the string starts with a non-identifier-start charac-
+// ter). In other words, it will not put quotes around the result
+// unless it has to.
+std::string escape_and_quote_table_key( std::string const& k );
+
+std::string escape_and_quote_string_val( std::string const& k );
 
 } // namespace rcl

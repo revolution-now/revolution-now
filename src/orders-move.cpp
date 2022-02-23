@@ -18,6 +18,8 @@
 #include "conductor.hpp"
 #include "cstate.hpp"
 #include "fight.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "terrain.hpp"
@@ -25,11 +27,15 @@
 #include "utype.hpp"
 #include "window.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/lambda.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Rds
-#include "rds/land-square.hpp"
+#include "land-square.rds.hpp"
 
 using namespace std;
 
@@ -253,10 +259,11 @@ wait<TravelHandler::e_travel_verdict>
 TravelHandler::analyze_unload() {
   std::vector<UnitId> to_offload;
   auto&               unit = unit_from_id( unit_id );
-  for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
-    auto const& cargo_unit = unit_from_id( cargo_id );
+  for( auto unit_item :
+       unit.cargo().items_of_type<Cargo::unit>() ) {
+    auto const& cargo_unit = unit_from_id( unit_item.id );
     if( !cargo_unit.mv_pts_exhausted() )
-      to_offload.push_back( cargo_id );
+      to_offload.push_back( unit_item.id );
   }
   if( !to_offload.empty() ) {
     if( colony_from_coord( move_src ) ) {
@@ -271,7 +278,7 @@ TravelHandler::analyze_unload() {
     prioritize = to_offload;
     string msg = "Would you like to make landfall?";
     if( to_offload.size() <
-        unit.cargo().items_of_type<UnitId>().size() )
+        unit.cargo().items_of_type<Cargo::unit>().size() )
       msg =
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
@@ -447,9 +454,9 @@ TravelHandler::confirm_travel_impl() {
           auto const& ship_unit = unit_from_id( ship_id );
           CHECK( ship_unit.desc().ship );
           lg.debug( "checking ship cargo: {}",
-                    ship_unit.cargo().debug_string() );
+                    ship_unit.cargo() );
           if( auto const& cargo = ship_unit.cargo();
-              cargo.fits_somewhere( id ) ) {
+              cargo.fits_somewhere( Cargo::unit{ id } ) ) {
             prioritize  = { ship_id };
             target_unit = ship_id;
             co_return e_travel_verdict::board_ship;
@@ -506,8 +513,9 @@ wait<> TravelHandler::perform() {
       // If it's a ship then sentry all its units before it
       // moves.
       if( unit.desc().ship ) {
-        for( UnitId id : unit.cargo().items_of_type<UnitId>() ) {
-          auto& cargo_unit = unit_from_id( id );
+        for( Cargo::unit u :
+             unit.cargo().items_of_type<Cargo::unit>() ) {
+          auto& cargo_unit = unit_from_id( u.id );
           cargo_unit.sentry();
         }
       }
@@ -516,7 +524,8 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      ustate_change_to_cargo_somewhere( *target_unit, id );
+      GameState::units().change_to_cargo_somewhere( *target_unit,
+                                                    id );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -527,7 +536,7 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      ustate_change_to_map( id, move_dst );
+      GameState::units().change_to_map( id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
@@ -552,22 +561,22 @@ wait<> TravelHandler::perform() {
       // Just activate all the units on the ship that have not
       // completed their turns. Note that the ship's movement
       // points are not consumed.
-      for( auto cargo_id :
-           unit.cargo().items_of_type<UnitId>() ) {
-        auto& cargo_unit = unit_from_id( cargo_id );
+      for( auto unit_item :
+           unit.cargo().items_of_type<Cargo::unit>() ) {
+        auto& cargo_unit = unit_from_id( unit_item.id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
           auto direction = old_coord.direction_to( move_dst );
           CHECK( direction.has_value() );
           orders_t orders = orders::move{ *direction };
-          push_unit_orders( cargo_id, orders );
+          push_unit_orders( unit_item.id, orders );
         }
       }
       break;
     case e_travel_verdict::sail_high_seas: {
       UnitOldWorldViewState_t state =
           UnitOldWorldViewState::inbound{ .percent = 0.0 };
-      ustate_change_to_old_world_view( id, state );
+      GameState::units().change_to_old_world_view( id, state );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -765,7 +774,7 @@ AttackHandler::confirm_attack_impl() {
     erase_if( units_at_dst, L( unit_from_id( _ ).desc().ship ) );
     erase_if(
         units_at_dst,
-        L( !unit_from_id( _ ).desc().is_military_unit() ) );
+        L( !is_military_unit( unit_from_id( _ ).desc() ) ) );
   }
 
   // If military units are exhausted then attack the colony.
@@ -805,8 +814,8 @@ AttackHandler::confirm_attack_impl() {
     if( unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = unit.desc().can_attack() ? bh_t::attack
-                                    : bh_t::no_attack;
+      bh = can_attack( unit.desc() ) ? bh_t::attack
+                                     : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;
@@ -829,7 +838,7 @@ AttackHandler::confirm_attack_impl() {
     // Possible results: never, attack, trade.
     if( unit.desc().ship )
       bh = bh_t::trade;
-    else if( unit.desc().is_military_unit() )
+    else if( is_military_unit( unit.desc() ) )
       bh = bh_t::attack;
     else
       bh = bh_t::never;
@@ -838,9 +847,8 @@ AttackHandler::confirm_attack_impl() {
         co_return e_attack_verdict::unit_cannot_attack;
       case bh_t::attack: {
         e_attack_verdict which =
-            unit_from_id( highest_defense_unit )
-                    .desc()
-                    .is_military_unit()
+            is_military_unit(
+                unit_from_id( highest_defense_unit ).desc() )
                 ? e_attack_verdict::colony_defended
                 : e_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit;
@@ -860,8 +868,8 @@ AttackHandler::confirm_attack_impl() {
     if( !unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = unit.desc().can_attack() ? bh_t::attack
-                                    : bh_t::no_attack;
+      bh = can_attack( unit.desc() ) ? bh_t::attack
+                                     : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;
@@ -947,11 +955,11 @@ wait<> AttackHandler::perform() {
   switch( loser.desc().on_death.to_enum() ) {
     using namespace UnitDeathAction;
     case e::destroy: //
-      destroy_unit( loser.id() );
+      GameState::units().destroy_unit( loser.id() );
       break;
     case e::naval: {
       auto num_units_lost =
-          loser.cargo().items_of_type<UnitId>().size();
+          loser.cargo().items_of_type<Cargo::unit>().size();
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
       string msg = fmt::format(
@@ -969,7 +977,7 @@ wait<> AttackHandler::perform() {
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
-      destroy_unit( loser.id() );
+      GameState::units().destroy_unit( loser.id() );
       co_await ui::message_box( msg );
       break;
     }

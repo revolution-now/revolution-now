@@ -14,25 +14,18 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "fb.hpp"
 #include "lua-enum.hpp"
 #include "maybe.hpp"
 #include "typed-int.hpp"
 
-// Rcl
-#include "rcl/ext.hpp"
-
 // Rds
-#include "rds/coord.hpp"
+#include "coord.rds.hpp"
 
 // luapp
 #include "luapp/ext.hpp"
 
 // base
 #include "base/adl-tag.hpp"
-
-// Flatbuffers
-#include "fb/coord_generated.h"
 
 // c++ standard library
 #include <cmath>
@@ -68,18 +61,12 @@ struct ND Scale {
   constexpr bool operator!=( Scale const& rhs ) const {
     return ( sx != rhs.sx ) || ( sy != rhs.sy );
   }
-
-  friend void to_str( Scale const& o, std::string& out,
-                      base::ADL_t );
 };
 NOTHROW_MOVE( Scale );
 
 struct ND Delta {
-  SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );
-
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  W w;
+  H h;
 
   constexpr Delta() = default;
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
@@ -92,9 +79,6 @@ struct ND Delta {
   constexpr bool operator!=( Delta const& other ) const {
     return ( h != other.h ) || ( w != other.w );
   }
-
-  friend void to_str( Delta const& o, std::string& out,
-                      base::ADL_t );
 
   template<typename Dimension>
   auto get() const {
@@ -170,21 +154,14 @@ struct ND Delta {
   Delta clamp( Delta const& delta ) const;
 
   int area() const { return w._ * h._; }
-
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<Delta> convert_to( rcl::value const& v,
-                                             rcl::tag<Delta> );
 };
 NOTHROW_MOVE( Delta );
 
 struct ND Coord {
-  SERIALIZABLE_STRUCT_MEMBERS( Coord, ( Y, y ), ( X, x ) );
+  Y y;
+  X x;
 
  public:
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
-
   Coord() = default;
   Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}
   Coord( Y y_, X x_ ) : y( y_ ), x( x_ ) {}
@@ -216,9 +193,6 @@ struct ND Coord {
     x /= scale.sx;
     y /= scale.sy;
   }
-
-  friend void to_str( Coord const& o, std::string& out,
-                      base::ADL_t );
 
   Coord operator-() const { return { -x, -y }; }
 
@@ -259,22 +233,16 @@ struct ND Coord {
   friend maybe<Coord> lua_get( lua::cthread L, int idx,
                                lua::tag<Coord> );
   friend void lua_push( lua::cthread L, Coord const& coord );
-
-  // This is for deserializing from Rcl config files.
-  friend rcl::convert_err<Coord> convert_to( rcl::value const& v,
-                                             rcl::tag<Coord> );
 };
 NOTHROW_MOVE( Coord );
 
 class RectGridProxyIteratorHelper;
 
 struct ND Rect {
-  SERIALIZABLE_STRUCT_MEMBERS( Rect, ( X, x ), ( Y, y ),
-                               ( W, w ), ( H, h ) );
-
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  X x;
+  Y y;
+  W w;
+  H h;
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
@@ -287,9 +255,6 @@ struct ND Rect {
   bool operator!=( Rect const& rhs ) const {
     return !( *this == rhs );
   }
-
-  friend void to_str( Rect const& o, std::string& out,
-                      base::ADL_t );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -639,6 +604,9 @@ Scale operator/( Scale const& lhs, Scale const& rhs );
 
 } // namespace rn
 
+/****************************************************************
+** std::hash
+*****************************************************************/
 // Here  we  open up the std namespace to add a hash function
 // spe- cialization for a Coord.
 namespace std {
@@ -655,6 +623,83 @@ struct hash<::rn::Coord> {
 };
 
 } // namespace std
+
+/****************************************************************
+** Reflection
+*****************************************************************/
+namespace refl {
+
+// Reflection info for struct Scale.
+template<>
+struct traits<rn::Scale> {
+  using type = rn::Scale;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Scale";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "sx", &rn::Scale::sx },
+      refl::StructField{ "sy", &rn::Scale::sy },
+  };
+};
+
+// Reflection info for struct Delta.
+template<>
+struct traits<rn::Delta> {
+  using type = rn::Delta;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Delta";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "w", &rn::Delta::w },
+      refl::StructField{ "h", &rn::Delta::h },
+  };
+};
+
+// Reflection info for struct Coord.
+template<>
+struct traits<rn::Coord> {
+  using type = rn::Coord;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Coord";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::Coord::x },
+      refl::StructField{ "y", &rn::Coord::y },
+  };
+};
+
+// Reflection info for struct Rect.
+template<>
+struct traits<rn::Rect> {
+  using type = rn::Rect;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "rn";
+  static constexpr std::string_view name = "Rect";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::Rect::x },
+      refl::StructField{ "y", &rn::Rect::y },
+      refl::StructField{ "w", &rn::Rect::w },
+      refl::StructField{ "h", &rn::Rect::h },
+  };
+};
+
+} // namespace refl
 
 /****************************************************************
 ** Lua

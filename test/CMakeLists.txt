@@ -1,11 +1,21 @@
-file( GLOB src_sources       "[a-zA-Z]*.cpp"       )
+# === subdirectories ==============================================
+
+add_subdirectory( rds )
+
+# === this directory ==============================================
+
+# These are subfolders, but CMake doesn't recurse into them, we
+# just take their sources for the target in this folder.
 file( GLOB src_base_sources  "base/[a-zA-Z]*.cpp"  )
-file( GLOB src_rcl_sources   "rcl/[a-zA-Z]*.cpp"   )
-file( GLOB src_luapp_sources "luapp/[a-zA-Z]*.cpp" )
+file( GLOB src_cdr_sources   "cdr/[a-zA-Z]*.cpp"   )
+file( GLOB src_gfx_sources   "gfx/[a-zA-Z]*.cpp"   )
 file( GLOB src_gl_sources    "gl/[a-zA-Z]*.cpp"    )
+file( GLOB src_luapp_sources "luapp/[a-zA-Z]*.cpp" )
 file( GLOB src_mock_sources  "mock/[a-zA-Z]*.cpp"  )
-file( GLOB src_stb_sources   "stb/[a-zA-Z]*.cpp"  )
-file( GLOB src_gfx_sources   "gfx/[a-zA-Z]*.cpp"  )
+file( GLOB src_rcl_sources   "rcl/[a-zA-Z]*.cpp"   )
+file( GLOB src_refl_sources  "refl/[a-zA-Z]*.cpp"  )
+file( GLOB src_sources       "[a-zA-Z]*.cpp"       )
+file( GLOB src_stb_sources   "stb/[a-zA-Z]*.cpp"   )
 
 add_executable(
   unittest
@@ -17,14 +27,26 @@ add_executable(
   ${src_mock_sources}
   ${src_stb_sources}
   ${src_gfx_sources}
+  ${src_cdr_sources}
+  ${src_refl_sources}
 )
 
 set_warning_options( unittest )
 
 target_link_libraries(
-    unittest
-    PRIVATE
-    rn
-    rn-mock
-    Catch2
+  unittest
+  PRIVATE
+  Catch2
+  rn
+  rn-mock
+)
+
+add_dependencies( unittest rds-test )
+get_target_property( RDS_TEST_INCLUDE_DIR rds-test INCLUDE_DIR )
+
+target_include_directories(
+  unittest
+  PUBLIC
+  ${CMAKE_BINARY_DIR}
+  ${RDS_TEST_INCLUDE_DIR}/../
 )

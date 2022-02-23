@@ -11,8 +11,8 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "game-state.hpp"
 #include "lua.hpp"
-#include "save-game.hpp"
 
 using namespace std;
 
@@ -23,13 +23,8 @@ fs::path const& data_dir() {
   return data;
 }
 
-void reset_savegame_state() {
-  CHECK_HAS_VALUE( rn::reset_savegame_state() );
-  rn::lua_reload();
-}
-
 void default_construct_all_game_state() {
-  rn::default_construct_savegame_state();
+  rn::default_construct_game_state();
   rn::lua_reload();
 }
 

@@ -20,11 +20,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
-// Rds
-#include "rds/helper/rcl.hpp"
-
-// Rcl
-#include "rcl/ext-builtin.hpp"
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -111,43 +109,15 @@ string commodity_number_to_markup( int value ) {
 /****************************************************************
 ** Commodity
 *****************************************************************/
-valid_deserial_t Commodity::check_invariants_safe() const {
-  if( quantity <= 0 )
-    return invalid_deserial( fmt::format(
-        "Commodity quantity <= 0 ({})", quantity ) );
-  return valid;
-}
-
-Commodity Commodity::with_quantity( int new_quantity ) const {
-  Commodity res = *this;
+Commodity with_quantity( Commodity const& in,
+                         int              new_quantity ) {
+  Commodity res = in;
   res.quantity  = new_quantity;
   return res;
 }
 
-rcl::convert_err<Commodity> convert_to( rcl::value const& v,
-                                        rcl::tag<Commodity> ) {
-  constexpr string_view kTypeName          = "Commodity";
-  constexpr int         kNumFieldsExpected = 2;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  RCL_CHECK( tbl.size() == kNumFieldsExpected,
-             "table must have precisely {} field(s) for "
-             "conversion to {}.",
-             kNumFieldsExpected, kTypeName );
-  Commodity res;
-  RCL_CONVERT_FIELD( type );
-  RCL_CONVERT_FIELD( quantity );
-  return res;
-}
-
-rcl::convert_valid rcl_validate( Commodity const& o ) {
-  RCL_CHECK( o.quantity >= 0 );
+base::valid_or<string> Commodity::validate() const {
+  REFL_VALIDATE( quantity >= 0 );
   return base::valid;
 }
 
@@ -161,8 +131,8 @@ Delta commodity_tile_size( e_commodity type ) {
 maybe<e_commodity> commodity_from_index( int index ) {
   maybe<e_commodity> res;
   if( index >= 0 &&
-      index < int( enum_traits<e_commodity>::count ) )
-    res = enum_traits<e_commodity>::values[index];
+      index < int( refl::enum_count<e_commodity> ) )
+    res = refl::enum_values<e_commodity>[index];
   return res;
 }
 
@@ -175,10 +145,11 @@ void add_commodity_to_cargo( Commodity const& comm,
                              bool try_other_slots ) {
   if( try_other_slots ) {
     CHECK( unit_from_id( holder ).cargo().try_add_somewhere(
-               comm, slot ),
+               Cargo::commodity{ comm }, slot ),
            "failed to add {} starting at slot {}", comm, slot );
   } else {
-    CHECK( unit_from_id( holder ).cargo().try_add( comm, slot ),
+    CHECK( unit_from_id( holder ).cargo().try_add(
+               Cargo::commodity{ comm }, slot ),
            "failed to add {} at slot {}", comm, slot );
   }
 }
@@ -187,11 +158,11 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
   auto& cargo = unit_from_id( holder ).cargo();
 
   ASSIGN_CHECK_V( cargo_item, cargo[slot], CargoSlot::cargo );
-  ASSIGN_CHECK_V( comm, cargo_item.contents, Commodity );
+  ASSIGN_CHECK_V( comm, cargo_item.contents, Cargo::commodity );
 
-  Commodity res = std::move( comm );
+  Commodity res = std::move( comm.obj );
   cargo[slot]   = CargoSlot_t{ CargoSlot::empty{} };
-  cargo.check_invariants_or_abort();
+  cargo.validate_or_die();
   return res;
 }
 
@@ -200,17 +171,19 @@ int move_commodity_as_much_as_possible(
     maybe<int> max_quantity, bool try_other_dst_slots ) {
   auto const& src_cargo = unit_from_id( src ).cargo();
   auto        maybe_src_comm =
-      src_cargo.slot_holds_cargo_type<Commodity>( src_slot );
+      src_cargo.slot_holds_cargo_type<Cargo::commodity>(
+          src_slot );
   CHECK( maybe_src_comm.has_value() );
 
   auto const& dst_cargo = unit_from_id( dst ).cargo();
   auto        maybe_dst_comm =
-      dst_cargo.slot_holds_cargo_type<Commodity>( dst_slot );
+      dst_cargo.slot_holds_cargo_type<Cargo::commodity>(
+          dst_slot );
   if( maybe_dst_comm.has_value() && !try_other_dst_slots ) {
     CHECK(
-        maybe_dst_comm->type == maybe_src_comm->type,
+        maybe_dst_comm->obj.type == maybe_src_comm->obj.type,
         "src and dst have different commodity types: {} vs {}",
-        maybe_src_comm, maybe_dst_comm );
+        maybe_src_comm->obj, maybe_dst_comm->obj );
   }
 
   // Need to remove first in case src/dst are the same unit.
@@ -229,7 +202,7 @@ int move_commodity_as_much_as_possible(
       max_transfer_quantity =
           std::min( removed.quantity,
                     dst_cargo.max_commodity_per_cargo_slot() -
-                        maybe_dst_comm->quantity );
+                        maybe_dst_comm->obj.quantity );
     } else {
       CHECK( holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
       max_transfer_quantity =

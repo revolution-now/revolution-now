@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "rds/ui-enums.hpp"
+#include "ui-enums.rds.hpp"
 
 namespace rn::ui {
 

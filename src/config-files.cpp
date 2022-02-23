@@ -28,15 +28,18 @@
 #include "gfx/pixel.hpp"
 
 // Rcl
-#include "rcl/ext-base.hpp"
-#include "rcl/ext-builtin.hpp"
-#include "rcl/ext-std.hpp"
-#include "rcl/ext.hpp"
 #include "rcl/model.hpp"
 #include "rcl/parse.hpp"
 
-// Rds
-#include "rds/helper/rcl.hpp"
+// cdr
+#include "cdr/converter.hpp"
+#include "cdr/ext-base.hpp"
+#include "cdr/ext-builtin.hpp"
+#include "cdr/ext-std.hpp"
+#include "cdr/ext.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // Revolution Now (config inl files)
 #include "../config/all-rcl.inl"
@@ -63,10 +66,10 @@ using namespace std::chrono;
     path.push_back( #__name );                             \
     auto dotted = util::join( path, "." );                 \
     used_field_paths.insert( this_file() + "." + dotted ); \
-    rcl::value const& v =                                  \
+    cdr::value const& v =                                  \
         value_from_path( cfg_name(), dotted );             \
-    rcl::convert_err<__type> res =                         \
-        rcl::convert_to<__type>( v );                      \
+    cdr::converter      conv;                              \
+    cdr::result<__type> res = conv.from<__type>( v );      \
     CHECK( res.has_value(),                                \
            "failed to produce type {} from {}.{}: {}",     \
            TO_STRING( __type ), cfg_name(), dotted,        \
@@ -74,7 +77,7 @@ using namespace std::chrono;
     const_cast<__type&>( dest_ptr()->__name ) =            \
         std::move( *res );                                 \
     /* fix weird gcc warning */                            \
-    res = rcl::error( "" );                                \
+    res = conv.err( "" );                                  \
   }                                                        \
   static inline bool const __register_##__name = [] {      \
     populate_functions().push_back( __populate_##__name ); \
@@ -182,24 +185,23 @@ unordered_map<string, rcl::doc> rcl_configs;
 unordered_set<string> used_field_paths;
 unordered_set<string> used_object_paths;
 
-rcl::value const& value_from_path( string const& name,
+cdr::value const& value_from_path( string const& name,
                                    string const& dotted ) {
   auto it = rcl_configs.find( name );
   CHECK( it != rcl_configs.end() );
   // This must be by value since we reassign it.
-  rcl::value const* val = &it->second.top_val();
+  cdr::value const* val = &it->second.top_val();
   for( auto const& s : util::split( dotted, '.' ) ) {
-    auto maybe_tbl = val->get_if<unique_ptr<rcl::table>>();
+    auto maybe_tbl = val->get_if<cdr::table>();
     CHECK(
         maybe_tbl.has_value(),
         "config field path {}.{} does not exist or is invalid.",
         name, dotted );
-    DCHECK( *maybe_tbl );
-    auto& tbl = **maybe_tbl;
-    CHECK( tbl.has_key( s ),
-           "config field path {}.{} does not exist.", name,
-           dotted );
-    val = &tbl[s];
+    auto& tbl = *maybe_tbl;
+    UNWRAP_CHECK_MSG( val_ref, tbl[string( s )],
+                      "config field path {}.{} does not exist.",
+                      name, dotted );
+    val = &val_ref;
   }
   return *val;
 }
@@ -226,12 +228,11 @@ string config_file_for_name( string const& name ) {
 }
 
 void get_all_unused_fields_impl( string const&     parent_path,
-                                 rcl::value const& v,
+                                 cdr::value const& v,
                                  vector<string>&   res ) {
-  base::maybe<unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<unique_ptr<rcl::table>>();
+  base::maybe<cdr::table const&> mtbl = v.get_if<cdr::table>();
   if( !mtbl ) return;
-  rcl::table const& tbl = **mtbl;
+  cdr::table const& tbl = *mtbl;
   for( auto& [k, child_v] : tbl ) {
     string path = parent_path + "." + k;
     if( used_field_paths.contains( path ) )
@@ -249,7 +250,7 @@ void get_all_unused_fields_impl( string const&     parent_path,
 }
 
 vector<string> get_all_unused_fields( string const&     file,
-                                      rcl::value const& v ) {
+                                      cdr::value const& v ) {
   vector<string> res;
   get_all_unused_fields_impl( file, v, res );
   return res;
@@ -308,17 +309,17 @@ vector<gfx::pixel> const& g_palette() {
     base::expect<rcl::doc> doc = rcl::parse_file( file );
     CHECK( doc, "failed to load {}: {}", file, doc.error() );
 
+    cdr::converter conv;
     for( auto& [hue_key, hue_val] : doc->top_tbl() ) {
       if( hue_key == "grey" ) continue;
-      UNWRAP_CHECK( hue_val_tbl,
-                    hue_val.get_if<unique_ptr<rcl::table>>() );
-      for( auto& [sat_key, sat_val] : *hue_val_tbl ) {
+      UNWRAP_CHECK( hue_val_tbl, hue_val.get_if<cdr::table>() );
+      for( auto& [sat_key, sat_val] : hue_val_tbl ) {
         UNWRAP_CHECK( sat_val_tbl,
-                      sat_val.get_if<unique_ptr<rcl::table>>() );
-        for( auto& [lum_key, lum_val] : *sat_val_tbl ) {
+                      sat_val.get_if<cdr::table>() );
+        for( auto& [lum_key, lum_val] : sat_val_tbl ) {
           UNWRAP_CHECK( parsed,
-                        rcl::convert_to<gfx::pixel>( lum_val ) );
-          res.push_back( parsed );
+                        conv.from<gfx::pixel>( lum_val ) );
+          res.push_back( std::move( parsed ) );
         }
       }
     }

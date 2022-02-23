@@ -23,18 +23,16 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
-// Rds
-#include "rds/helper/rcl.hpp"
-
-// Rcl
-#include "rcl/ext-base.hpp"
-#include "rcl/ext-builtin.hpp"
-#include "rcl/ext-std.hpp"
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/keyval.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // C++ standard library
+#include <set>
 #include <unordered_set>
 
 using namespace std;
@@ -52,116 +50,9 @@ LUA_ENUM( unit_type );
 LUA_ENUM( unit_human );
 
 /****************************************************************
-** ModifierAssociation
-*****************************************************************/
-namespace ModifierAssociation {
-
-// FIXME: Have RDS implement this automatically. It requires
-// first giving RDS support for reflected structs, then for re-
-// flected variants, then write generic convert_to implementa-
-// tions for the reflected structs and reflected variants.
-rcl::convert_err<ModifierAssociation_t> convert_to(
-    rcl::value const& v, rcl::tag<ModifierAssociation_t> ) {
-  constexpr string_view kTypeName = "ModifierAssociation_t";
-  constexpr int         kNumFieldsExpected = 1;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have precisely {} field for "
-                     "conversion to {}.",
-                     kNumFieldsExpected, kTypeName ) );
-  auto& [key, val] = *tbl.begin();
-  if( rcl::type_of( val ) != rcl::type::table )
-    return rcl::error( fmt::format(
-        "variant alternative field must have type table." ) );
-  UNWRAP_CHECK( uptr_alternative,
-                val.get_if<unique_ptr<rcl::table>>() );
-  CHECK( uptr_alternative );
-  rcl::table const& alternative = *uptr_alternative;
-  if( key == "none" ) return ModifierAssociation::none{};
-  if( key == "commodity" ) {
-    if( alternative.size() != 1 )
-      return rcl::error(
-          fmt::format( "{} variant alternative {} must have "
-                       "precisely {} field(s).",
-                       kTypeName, "commodity", 1 ) );
-    // commodity
-    if( !alternative.has_key( "commodity" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative {} must have a "
-                       "field named {}.",
-                       kTypeName, "commodity", "commodity" ) );
-    UNWRAP_RETURN( commodity, rcl::convert_to<Commodity>(
-                                  alternative["commodity"] ) );
-    return ModifierAssociation::commodity{
-        .commodity = std::move( commodity ) };
-  }
-  if( key == "inventory" ) {
-    if( alternative.size() != 1 )
-      return rcl::error(
-          fmt::format( "{} variant alternative {} must have "
-                       "precisely {} fields.",
-                       kTypeName, "inventory", 1 ) );
-    // type
-    if( !alternative.has_key( "type" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative {} must have a "
-                       "field named {}.",
-                       kTypeName, "inventory", "type" ) );
-    UNWRAP_RETURN( type, rcl::convert_to<e_unit_inventory>(
-                             alternative["type"] ) );
-    return ModifierAssociation::inventory{
-        .type = std::move( type ) };
-  }
-  return rcl::error(
-      fmt::format( "config field of type {} has invalid variant "
-                   "alternative type name: {}.",
-                   kTypeName, key ) );
-}
-
-} // namespace ModifierAssociation
-
-/****************************************************************
 ** e_unit_type_modifier
 *****************************************************************/
 LUA_ENUM( unit_type_modifier );
-
-// Rcl
-rcl::convert_err<UnitTypeModifierTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeModifierTraits> ) {
-  constexpr string_view kTypeName = "UnitTypeModifierTraits";
-  constexpr int         kNumFieldsExpected = 2;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have precisely {} fields for "
-                     "conversion to {}.",
-                     kNumFieldsExpected, kTypeName ) );
-  UnitTypeModifierTraits res;
-
-  // clang-format off
-  EVAL( PP_MAP_SEMI( RCL_CONVERT_FIELD,
-    player_can_grant,
-    association
-  ) );
-  // clang-format on
-
-  return res;
-}
 
 /****************************************************************
 ** e_unit_activity
@@ -175,7 +66,9 @@ namespace {
 
 unordered_map<e_unit_inventory, e_unit_type_modifier>
 create_inventory_to_modifier_map(
-    UnitTypeModifierTraitsMap const& modifier_traits ) {
+    ExhaustiveEnumMap<e_unit_type_modifier,
+                      UnitTypeModifierTraits> const&
+        modifier_traits ) {
   unordered_map<e_unit_inventory, e_unit_type_modifier> res;
   for( auto const& [mod, val] : modifier_traits ) {
     auto inventory =
@@ -203,8 +96,8 @@ maybe<e_unit_type_modifier> inventory_to_modifier(
 
 maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm ) {
-  return enum_traits<e_unit_inventory>::from_string(
-      enum_name( comm ) );
+  return refl::enum_from_string<e_unit_inventory>(
+      refl::enum_value_name( comm ) );
 }
 
 maybe<e_commodity> inventory_to_commodity(
@@ -213,195 +106,31 @@ maybe<e_commodity> inventory_to_commodity(
       .commodity;
 }
 
-rcl::convert_err<UnitInventoryTraits> convert_to(
-    rcl::value const& v, rcl::tag<UnitInventoryTraits> ) {
-  constexpr string_view kTypeName = "UnitInventoryTraits";
-  constexpr int         kNumFieldsExpected = 5;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  RCL_CHECK( tbl.size() == kNumFieldsExpected,
-             "table must have precisely {} field(s) for "
-             "conversion to {}.",
-             kNumFieldsExpected, kTypeName );
-  UnitInventoryTraits res;
-  RCL_CONVERT_FIELD( commodity );
-  RCL_CONVERT_FIELD( min_quantity );
-  RCL_CONVERT_FIELD( max_quantity );
-  RCL_CONVERT_FIELD( multiple );
-  RCL_CONVERT_FIELD( default_quantity );
-  return res;
-}
-
-rcl::convert_valid rcl_validate( UnitInventoryTraits const& o ) {
-  RCL_CHECK( o.min_quantity >= 0,
-             "inventory traits min quantity must be > 0." );
-  RCL_CHECK( o.min_quantity <= o.max_quantity,
-             "inventory traits min quantity must be <= than max "
-             "quantity." );
-  RCL_CHECK( o.min_quantity <= o.default_quantity,
-             "inventory traits min quantity must be <= than "
-             "default quantity." );
-  RCL_CHECK( o.default_quantity <= o.max_quantity,
-             "inventory traits default quantity must be <= than "
-             "max quantity." );
-  RCL_CHECK( o.multiple > 0,
-             "inventory traits multiple must be > 0." );
-  RCL_CHECK( o.min_quantity % o.multiple == 0,
-             "inventory traits multiple must divide evenly into "
-             "the min quantity." );
-  RCL_CHECK( o.max_quantity % o.multiple == 0,
-             "inventory traits multiple must divide evenly into "
-             "the max quantity." );
-  RCL_CHECK( o.default_quantity % o.multiple == 0,
-             "inventory traits multiple must divide evenly into "
-             "the default quantity." );
+valid_or<string> UnitInventoryTraits::validate() const {
+  REFL_VALIDATE( min_quantity >= 0,
+                 "inventory traits min quantity must be > 0." );
+  REFL_VALIDATE( min_quantity <= max_quantity,
+                 "inventory traits min quantity must be <= than "
+                 "max quantity." );
+  REFL_VALIDATE( min_quantity <= default_quantity,
+                 "inventory traits min quantity must be <= than "
+                 "default quantity." );
+  REFL_VALIDATE( default_quantity <= max_quantity,
+                 "inventory traits default quantity must be <= "
+                 "than max quantity." );
+  REFL_VALIDATE( multiple > 0,
+                 "inventory traits multiple must be > 0." );
+  REFL_VALIDATE( min_quantity % multiple == 0,
+                 "inventory traits multiple must divide evenly "
+                 "into the min quantity." );
+  REFL_VALIDATE( max_quantity % multiple == 0,
+                 "inventory traits multiple must divide evenly "
+                 "into the max quantity." );
+  REFL_VALIDATE( default_quantity % multiple == 0,
+                 "inventory traits multiple must divide evenly "
+                 "into the default quantity." );
   return base::valid;
 }
-
-/****************************************************************
-** UnitDeathAction
-*****************************************************************/
-namespace UnitDeathAction {
-
-// FIXME: Have RDS implement this automatically. It requires
-// first giving RDS support for reflected structs, then for re-
-// flected variants, then write generic convert_to implementa-
-// tions for the reflected structs and reflected variants.
-rcl::convert_err<UnitDeathAction_t> convert_to(
-    rcl::value const& v, rcl::tag<UnitDeathAction_t> ) {
-  constexpr string_view kTypeName          = "UnitDeathAction_t";
-  constexpr int         kNumFieldsExpected = 1;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have precisely {} field for "
-                     "conversion to {}.",
-                     kNumFieldsExpected, kTypeName ) );
-  auto& [key, val] = *tbl.begin();
-  if( rcl::type_of( val ) != rcl::type::table )
-    return rcl::error( fmt::format(
-        "variant alternative field must have type table." ) );
-  UNWRAP_CHECK( uptr_alternative,
-                val.get_if<unique_ptr<rcl::table>>() );
-  CHECK( uptr_alternative );
-  rcl::table const& alternative = *uptr_alternative;
-  if( key == "destroy" ) return UnitDeathAction::destroy{};
-  if( key == "capture" ) return UnitDeathAction::capture{};
-  if( key == "naval" ) return UnitDeathAction::naval{};
-  if( key == "demote" ) {
-    if( alternative.size() != 1 ||
-        !alternative.has_key( "lose" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative field {} must "
-                       "have precisely one field named {}.",
-                       kTypeName, "demote", "lose" ) );
-    UNWRAP_RETURN(
-        lose,
-        rcl::convert_to<unordered_set<e_unit_type_modifier>>(
-            alternative["lose"] ) );
-    return UnitDeathAction::demote{ .lose = std::move( lose ) };
-  }
-  return rcl::error(
-      fmt::format( "config field of type {} has invalid variant "
-                   "alternative type name: {}.",
-                   kTypeName, key ) );
-}
-
-} // namespace UnitDeathAction
-
-/****************************************************************
-** UnitPromotion
-*****************************************************************/
-namespace UnitPromotion {
-
-// FIXME: Have RDS implement this automatically. It requires
-// first giving RDS support for reflected structs, then for re-
-// flected variants, then write generic convert_to implementa-
-// tions for the reflected structs and reflected variants.
-rcl::convert_err<UnitPromotion_t> convert_to(
-    rcl::value const& v, rcl::tag<UnitPromotion_t> ) {
-  constexpr string_view kTypeName          = "UnitPromotion_t";
-  constexpr int         kNumFieldsExpected = 1;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have precisely {} field for "
-                     "conversion to {}.",
-                     kNumFieldsExpected, kTypeName ) );
-  auto& [key, val] = *tbl.begin();
-  if( rcl::type_of( val ) != rcl::type::table )
-    return rcl::error( fmt::format(
-        "variant alternative field must have type table." ) );
-  UNWRAP_CHECK( uptr_alternative,
-                val.get_if<unique_ptr<rcl::table>>() );
-  CHECK( uptr_alternative );
-  rcl::table const& alternative = *uptr_alternative;
-
-  if( key == "fixed" ) {
-    if( alternative.size() != 1 ||
-        !alternative.has_key( "type" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative field {} must "
-                       "have precisely one field named {}.",
-                       kTypeName, "fixed", "type" ) );
-    UNWRAP_RETURN( type, rcl::convert_to<e_unit_type>(
-                             alternative["type"] ) );
-    return UnitPromotion::fixed{ .type = std::move( type ) };
-  }
-
-  if( key == "occupation" ) return UnitPromotion::occupation{};
-
-  if( key == "expertise" ) {
-    if( alternative.size() != 1 ||
-        !alternative.has_key( "kind" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative field {} must "
-                       "have precisely one field named {}.",
-                       kTypeName, "expertise", "kind" ) );
-    UNWRAP_RETURN( kind, rcl::convert_to<e_unit_activity>(
-                             alternative["kind"] ) );
-    return UnitPromotion::expertise{ .kind = std::move( kind ) };
-  }
-
-  if( key == "modifier" ) {
-    if( alternative.size() != 1 ||
-        !alternative.has_key( "kind" ) )
-      return rcl::error(
-          fmt::format( "{} variant alternative field {} must "
-                       "have precisely one field named {}.",
-                       kTypeName, "modifier", "kind" ) );
-    UNWRAP_RETURN( kind, rcl::convert_to<e_unit_type_modifier>(
-                             alternative["kind"] ) );
-    return UnitPromotion::modifier{ .kind = std::move( kind ) };
-  }
-
-  return rcl::error(
-      fmt::format( "config field of type {} has invalid variant "
-                   "alternative type name: {}.",
-                   kTypeName, key ) );
-}
-
-} // namespace UnitPromotion
 
 /****************************************************************
 ** UnitTypeAttributes
@@ -416,51 +145,12 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   return desc;
 }
 
-// Rcl
-rcl::convert_err<UnitTypeAttributes> convert_to(
-    rcl::value const& v, rcl::tag<UnitTypeAttributes> ) {
-  constexpr string_view kTypeName = "UnitTypeAttributes";
-  constexpr int         kNumFieldsExpected = 19;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "table must have precisely {} fields for "
-                     "conversion to {}.",
-                     kNumFieldsExpected, kTypeName ) );
-  UnitTypeAttributes res;
+bool can_attack( UnitTypeAttributes const& attr ) {
+  return attr.attack_points > 0;
+}
 
-  // clang-format off
-  EVAL( PP_MAP_SEMI( RCL_CONVERT_FIELD,
-    name,
-    tile,
-    nat_icon_front,
-    nat_icon_position,
-    ship,
-    human,
-    visibility,
-    movement_points,
-    attack_points,
-    defense_points,
-    cargo_slots,
-    cargo_slots_occupies,
-    on_death,
-    canonical_base,
-    expertise,
-    cleared_expertise,
-    promotion,
-    modifiers,
-    inventory_types
-  ) );
-  // clang-format on
-
-  return res;
+bool is_military_unit( UnitTypeAttributes const& attr ) {
+  return can_attack( attr );
 }
 
 // Lua
@@ -491,8 +181,6 @@ LUA_STARTUP( lua::state& st ) {
   LUA_ADD_MEMBER( cleared_expertise );
   LUA_ADD_MEMBER( type );
   LUA_ADD_MEMBER( is_derived );
-  LUA_ADD_MEMBER( can_attack );
-  LUA_ADD_MEMBER( is_military_unit );
 
   // FIXME: Figure out how to deal with C++ variants in Lua.
   // LUA_ADD_MEMBER( on_death );
@@ -555,34 +243,28 @@ UnitType UnitType::create( e_unit_type type ) {
   }
 }
 
-void to_str( UnitType const& o, string& out, base::ADL_t ) {
-  out += fmt::format( "UnitType{{type={},base={}}}", o.type(),
-                      o.base_type() );
-}
-
-valid_deserial_t UnitType::check_invariants_safe() const {
-  if( !unit_type_modifier_path_exists( base_type_, type_ ) )
-    return invalid_deserial(
-        fmt::format( "no unit type modifier path exists between "
-                     "unit types {} and {}.",
-                     base_type_, type_ ) );
+valid_or<string> wrapped::UnitType::validate() const {
+  REFL_VALIDATE(
+      unit_type_modifier_path_exists( base_type, type ),
+      "no unit type modifier path exists between unit types {} "
+      "and {}.",
+      base_type, type );
   return valid;
 }
 
 void UnitType::check_invariants_or_die() const {
-  CHECK_HAS_VALUE( check_invariants_safe() );
+  CHECK_HAS_VALUE( o_.validate() );
 }
 
 UnitType::UnitType( e_unit_type base_type, e_unit_type type )
-  : base_type_( base_type ), type_( type ) {
+  : o_( wrapped::UnitType{ .base_type = base_type,
+                           .type      = type } ) {
   check_invariants_or_die();
 }
 
 UnitType::UnitType()
   : UnitType( e_unit_type::free_colonist,
-              e_unit_type::free_colonist ) {
-  check_invariants_or_die();
-}
+              e_unit_type::free_colonist ) {}
 
 UnitTypeAttributes const& unit_attr( UnitType type ) {
   return unit_attr( type.type() );
@@ -648,8 +330,8 @@ maybe<UnitType> on_death_demoted_type( UnitType ut ) {
 
 std::unordered_set<e_unit_type_modifier> const&
 UnitType::unit_type_modifiers() {
-  UNWRAP_CHECK(
-      res, unit_type_modifiers_for_path( base_type_, type_ ) );
+  UNWRAP_CHECK( res, unit_type_modifiers_for_path( o_.base_type,
+                                                   o_.type ) );
   return res;
 }
 
@@ -917,61 +599,24 @@ LUA_STARTUP( lua::state& st ) {
 /****************************************************************
 ** UnitCompositionConfig
 *****************************************************************/
-rcl::convert_err<UnitCompositionConfig> convert_to(
-    rcl::value const& v, rcl::tag<UnitCompositionConfig> ) {
-  constexpr string_view kTypeName = "UnitCompositionConfig";
-  constexpr int         kNumFieldsExpected = 3;
-  base::maybe<std::unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<std::unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error( fmt::format(
-        "cannot produce a {} from type {}.", kTypeName,
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  RCL_CHECK( tbl.size() == kNumFieldsExpected,
-             "table must have precisely {} field(s) for "
-             "conversion to {}.",
-             kNumFieldsExpected, kTypeName );
-  UnitCompositionConfig res;
-  RCL_CONVERT_FIELD( inventory_traits );
-  RCL_CONVERT_FIELD( modifier_traits );
-  RCL_CONVERT_FIELD( unit_types );
-
-  // Populate derived fields.
-  unordered_set<e_unit_type> derived_types;
-  for( auto& [type, type_struct] : res.unit_types ) {
-    type_struct.type = type;
-    // Any type that can be obtained by modifying this one is a
-    // derived type.
-    for( auto& modifier : type_struct.modifiers )
-      derived_types.insert( modifier.first );
-  }
-  for( auto& [type, type_struct] : res.unit_types )
-    type_struct.is_derived = derived_types.contains( type );
-
-  return res;
-}
-
-rcl::convert_valid rcl_validate(
-    UnitCompositionConfig const& o ) {
-  auto& m = o.unit_types;
+valid_or<string> UnitCompositionConfig::validate() const {
+  auto& m = unit_types;
   // Validation: any unit type that is derived must not itself
   // have modifiers.
   for( auto& [type, type_struct] : m )
     if( type_struct.is_derived &&
         !type_struct.modifiers.empty() )
-      return rcl::error(
+      return fmt::format(
           "derived type {} cannot have modifiers.", type );
 
   // Validation: For each unit type, make sure that each modifier
   // has a non-empty set of modifiers.
   for( auto& [type, type_struct] : m )
     for( auto& [mtype, mod_set] : type_struct.modifiers )
-      RCL_CHECK( !mod_set.empty(),
-                 "type `{}' has an empty list of modifiers for "
-                 "the modified type `{}'.",
-                 type, mtype );
+      REFL_VALIDATE( !mod_set.empty(),
+                     "type `{}' has an empty list of modifiers "
+                     "for the modified type `{}'.",
+                     type, mtype );
 
   // Validation: For each unit type, make sure that each modifier
   // has a unique set of modifiers.
@@ -983,7 +628,7 @@ rcl::convert_valid rcl_validate(
       set<e_unit_type_modifier> uset( mod_set.begin(),
                                       mod_set.end() );
       if( seen.contains( uset ) )
-        return rcl::error(
+        return fmt::format(
             "unit type {} contains a duplicate set of "
             "modifiers.",
             type );
@@ -1012,7 +657,7 @@ rcl::convert_valid rcl_validate(
       // demotion) are present in the current modifiers list.
       for( e_unit_type_modifier mod : demote->lose ) {
         if( !mod_list.contains( mod ) )
-          return rcl::error(
+          return fmt::format(
               "unit type {} is supposed to lose modifier {} "
               "upon demotion, but its base type ({}) modifier "
               "list does not contain that modifier.",
@@ -1034,7 +679,7 @@ rcl::convert_valid rcl_validate(
       // always be demotable regardless of base type (that is a
       // requirement of the game rules).
       if( !found )
-        return rcl::error(
+        return fmt::format(
             "cannot find a new type to which to demote the type "
             "{} (with base type {}).",
             mtype, type );
@@ -1047,7 +692,7 @@ rcl::convert_valid rcl_validate(
   for( auto& [type, type_struct] : m ) {
     if( type_struct.is_derived ) {
       if( !type_struct.canonical_base.has_value() )
-        return rcl::error(
+        return fmt::format(
             "derived type {} must have a value for its "
             "`canonical_base` field.",
             type );
@@ -1055,7 +700,7 @@ rcl::convert_valid rcl_validate(
       UNWRAP_CHECK( base_desc, base::lookup( m, base_type ) );
       auto& modifiers = base_desc.modifiers;
       if( !modifiers.contains( type ) )
-        return rcl::error(
+        return fmt::format(
             "derived type {} lists the {} type as its canonical "
             "base type, but that base type does not have a path "
             "to the type {}.",
@@ -1064,7 +709,7 @@ rcl::convert_valid rcl_validate(
     } else {
       // Not derived type.
       if( type_struct.canonical_base.has_value() )
-        return rcl::error(
+        return fmt::format(
             "base type {} must have `null` for its "
             "`canonical_base` field.",
             type );
@@ -1075,16 +720,18 @@ rcl::convert_valid rcl_validate(
   // derived types have human == from_base.
   for( auto& [type, type_struct] : m ) {
     if( type_struct.is_derived ) {
-      RCL_CHECK( type_struct.human == e_unit_human::from_base,
-                 "derived type {} must have `from_base` for its "
-                 "`human` field.",
-                 type );
+      REFL_VALIDATE(
+          type_struct.human == e_unit_human::from_base,
+          "derived type {} must have `from_base` for its "
+          "`human` field.",
+          type );
     } else {
       // Not derived type.
-      RCL_CHECK( type_struct.human != e_unit_human::from_base,
-                 "base type {} must not have `from_base` for "
-                 "its `human` field.",
-                 type );
+      REFL_VALIDATE(
+          type_struct.human != e_unit_human::from_base,
+          "base type {} must not have `from_base` for its "
+          "`human` field.",
+          type );
     }
   }
 
@@ -1093,7 +740,7 @@ rcl::convert_valid rcl_validate(
   for( auto& [type, type_struct] : m )
     if( type_struct.is_derived )
       if( type_struct.expertise.has_value() )
-        return rcl::error(
+        return fmt::format(
             "derived type {} has the`expertise` field set, but "
             "that is only for base types.",
             type );
@@ -1110,7 +757,7 @@ rcl::convert_valid rcl_validate(
         activity );
     expertises.insert( activity );
   }
-  for( auto activity : enum_traits<e_unit_activity>::values ) {
+  for( auto activity : refl::enum_values<e_unit_activity> ) {
     CHECK( expertises.contains( activity ),
            "there is no unit type that has expertise {}.",
            activity );
@@ -1124,26 +771,28 @@ rcl::convert_valid rcl_validate(
       case e::fixed: {
         // Validation: this must be a base type and the target
         // type of the promotion must be a base type.
-        auto const& o = type_struct.promotion->get<fixed>();
+        auto const& o_fixed =
+            type_struct.promotion->get<fixed>();
         if( type_struct.is_derived )
-          return rcl::error(
+          return fmt::format(
               "derived type {} cannot have value `fixed` for "
               "its promotion field.",
               type );
-        UNWRAP_CHECK( new_type_desc, base::lookup( m, o.type ) );
+        UNWRAP_CHECK( new_type_desc,
+                      base::lookup( m, o_fixed.type ) );
         if( new_type_desc.is_derived )
-          return rcl::error(
+          return fmt::format(
               "type {} has type {} as its fixed promotion "
               "target, but the {} type cannot be a fixed "
               "promotion target because it is not a base "
               "type.",
-              type, o.type, o.type );
+              type, type, type );
         break;
       }
       case e::occupation: {
         // Validation: this must be a base type.
         if( type_struct.is_derived )
-          return rcl::error(
+          return fmt::format(
               "derived type {} cannot have value `occupation` "
               "for its promotion field.",
               type );
@@ -1152,7 +801,7 @@ rcl::convert_valid rcl_validate(
       case e::expertise: {
         // Validation: this must be a derived type.
         if( !type_struct.is_derived )
-          return rcl::error(
+          return fmt::format(
               "base type {} cannot have value `occupation` for "
               "its promotion field.",
               type );
@@ -1174,7 +823,7 @@ rcl::convert_valid rcl_validate(
   // that structure has not yet been populated at this stage.
   unordered_map<e_unit_inventory, e_unit_type_modifier> const
       inv_to_mod =
-          create_inventory_to_modifier_map( o.modifier_traits );
+          create_inventory_to_modifier_map( modifier_traits );
 
   // Validate that no base types have inventory_types that in-
   // clude any inventory type that has a modifier association.
@@ -1183,7 +832,7 @@ rcl::convert_valid rcl_validate(
       for( e_unit_inventory inv : type_struct.inventory_types ) {
         maybe<e_unit_type_modifier> mod =
             base::lookup( inv_to_mod, inv );
-        RCL_CHECK(
+        REFL_VALIDATE(
             !mod.has_value(),
             "base type `{}' cannot have inventory type `{}' "
             "because it has the modifier assocation `{}'.",
@@ -1209,13 +858,14 @@ rcl::convert_valid rcl_validate(
         if( !mod.has_value() ) continue;
         // This is a modifier-associated inventory type, so make
         // sure that the modifier is in the list.
-        RCL_CHECK( mod_list.contains( *mod ),
-                   "base type `{}' has a modifier conversion "
-                   "to derived type `{}' which in turn has a "
-                   "modifier-associated inventory type `{}', "
-                   "but the associated modifier does not "
-                   "appear in the list in the base type.",
-                   type, mtype, inv_type );
+        REFL_VALIDATE(
+            mod_list.contains( *mod ),
+            "base type `{}' has a modifier conversion to "
+            "derived type `{}' which in turn has a "
+            "modifier-associated inventory type `{}', but the "
+            "associated modifier does not appear in the list in "
+            "the base type.",
+            type, mtype, inv_type );
       }
     }
   }

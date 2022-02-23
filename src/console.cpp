@@ -239,7 +239,7 @@ struct ConsolePlane : public Plane {
       auto maybe_line = term::line( i );
       if( !maybe_line ) break;
       auto color = text_color;
-      if( util::starts_with( *maybe_line, prompt ) )
+      if( maybe_line->starts_with( prompt ) )
         color = color.highlighted( 5 ).with_alpha( cmds_alpha );
       auto const& src_tx = render_text( config_rn.console.font,
                                         color, *maybe_line );

@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "rds/sound.hpp"
+#include "sound.rds.hpp"
 
 namespace rn {
 

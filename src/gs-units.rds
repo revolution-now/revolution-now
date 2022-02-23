@@ -1,0 +1,53 @@
+# ===============================================================
+# sg-units.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: RDS definitions for the units save game state.
+#
+# ===============================================================
+# Revolution Now
+include "colony-id.hpp"
+include "coord.hpp"
+include "unit-id.hpp"
+include "unit.hpp"
+
+# Rds
+include "ustate.rds.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn"
+
+sumtype.UnitOwnership {
+  free {},
+  world {
+    coord 'Coord',
+  },
+  cargo {
+    holder 'UnitId',
+  },
+  old_world {
+    st 'UnitOldWorldViewState_t',
+  },
+  colony {
+    id 'ColonyId',
+  },
+}
+
+struct.UnitState {
+  unit 'Unit',
+  ownership 'UnitOwnership_t',
+}
+
+namespace "rn.wrapped"
+
+struct.UnitsState {
+  next_unit_id 'int',
+  units 'std::unordered_map<UnitId, UnitState>',
+
+  _features { equality, validation }
+}

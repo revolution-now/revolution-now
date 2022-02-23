@@ -1,0 +1,39 @@
+# ===============================================================
+# sg-turn.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: RDS definitions for the sg-turn module.
+#
+# ===============================================================
+# Revolution Now
+include "unit-id.hpp"
+
+# Rds
+include "nation.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<deque>"
+include "<queue>"
+
+namespace "rn"
+
+struct.NationTurn {
+  nation 'e_nation',
+  started 'bool',
+  did_colonies 'bool',
+  did_units 'bool', # FIXME: do we need this?
+  units 'std::deque<UnitId>',
+}
+
+struct.TurnState {
+  started 'bool',
+  need_eot 'bool',
+  nation 'base::maybe<NationTurn>',
+  remainder 'std::queue<e_nation>',
+}

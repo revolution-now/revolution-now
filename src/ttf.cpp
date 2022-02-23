@@ -23,6 +23,10 @@
 #include "../config/rcl/font.inl"
 #include "../config/rcl/palette.inl"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
+
 // base
 #include "base/keyval.hpp"
 
@@ -48,7 +52,7 @@ NOTHROW_MOVE( FontDesc );
 unordered_map<e_font, FontDesc>& loaded_fonts() {
   static unordered_map<e_font, FontDesc> m = [] {
     unordered_map<e_font, FontDesc> res;
-    for( auto font : enum_traits<e_font>::values ) {
+    for( auto font : refl::enum_values<e_font> ) {
       UNWRAP_CHECK( path,
                     base::lookup( config_font.paths, font ) );
       UNWRAP_CHECK( size,

@@ -18,7 +18,10 @@
 #include "window.hpp"
 
 // Rds
-#include "rds/ui-enums.hpp"
+#include "ui-enums.rds.hpp"
+
+// base
+#include "base/string.hpp"
 
 using namespace std;
 
@@ -27,7 +30,7 @@ namespace rn {
 namespace {
 
 valid_or<string> is_valid_colony_name_msg( string_view name ) {
-  if( util::strip( name ) != name )
+  if( base::trim( name ) != name )
     return invalid<string>(
         "Colony name must not start or end with spaces." );
   auto res = is_valid_new_colony_name( name );

@@ -33,9 +33,14 @@
 // gfx
 #include "gfx/pixel.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
+
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -49,8 +54,25 @@ namespace rn {
 
 namespace rl = ::base::rl;
 
-namespace {
+struct MenuCallbacks {
+  std::function<void( void )> on_click;
+  std::function<bool( void )> enabled;
+};
 
+} // namespace rn
+
+// FIXME: need to fix Rds key ordering issue in order to move
+// this into the rds file. Rds currently always emits sumtypes
+// before structs, which leads to an "unefined symbol" error. To
+// fix this we need to get Rds to preserve ordering of constructs
+// and namespaces when emitting code.
+//
+// Rds
+#include "menu-impl.rds.hpp"
+
+namespace rn {
+
+namespace {
 /****************************************************************
 ** Main Data Structures
 *****************************************************************/
@@ -59,7 +81,6 @@ struct Menu {
   bool   right_side;
   char   shortcut;
 };
-NOTHROW_MOVE( Menu );
 
 unordered_map<e_menu, Menu> g_menus{
     { e_menu::game, { "Game", false, 'G' } },
@@ -71,22 +92,6 @@ unordered_map<e_menu, Menu> g_menus{
     { e_menu::window, { "Window", false, 'W' } },
     { e_menu::debug, { "Debug", true, 'D' } },
     { e_menu::pedia, { "Revolopedia", true, 'R' } } };
-
-} // namespace
-
-struct MenuCallbacks {
-  function<void( void )> on_click;
-  function<bool( void )> enabled;
-};
-NOTHROW_MOVE( MenuCallbacks );
-
-} // namespace rn
-
-// Rds
-#include "rds/menu-impl.hpp"
-
-namespace rn {
-namespace {
 
 unordered_map<e_menu_item, MenuItem::menu_clickable*>
                                            g_menu_items;
@@ -261,7 +266,7 @@ bool is_menu_visible_( e_menu menu ) {
 auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
 
 auto visible_menus_() {
-  auto& values = enum_traits<e_menu>::values;
+  auto& values = refl::enum_values<e_menu>;
 
   vector<e_menu> res;
   res.reserve( values.size() );
@@ -274,7 +279,7 @@ auto visible_menus_() {
 auto visible_menus = per_frame_memoize( visible_menus_ );
 
 bool have_some_visible_menus() {
-  auto& values = enum_traits<e_menu>::values;
+  auto& values = refl::enum_values<e_menu>;
   return any_of( values.begin(), values.end(),
                  L( is_menu_visible( _ ) ) );
 }
@@ -345,7 +350,7 @@ unordered_map<e_menu, MenuTextures> g_menu_rendered;
 H const& max_text_height() {
   static H max_height = [] {
     H res{ 0 };
-    for( auto menu : enum_traits<e_menu>::values ) {
+    for( auto menu : refl::enum_values<e_menu> ) {
       CHECK( g_menu_rendered.contains( menu ) );
       auto const& textures = g_menu_rendered[menu];
       res = std::max( res, textures.name.normal.size().h );
@@ -987,7 +992,7 @@ auto& is_enabled_handlers() {
 *****************************************************************/
 void init_menus() {
   // Check that all menus have descriptors.
-  for( auto menu : enum_traits<e_menu>::values ) {
+  for( auto menu : refl::enum_values<e_menu> ) {
     CHECK( g_menus.contains( menu ) );
     CHECK( g_menu_def.contains( menu ) );
   }
@@ -1008,12 +1013,12 @@ void init_menus() {
   }
 
   // Check that g_items_from_menu is populated.
-  for( auto menu : enum_traits<e_menu>::values ) {
+  for( auto menu : refl::enum_values<e_menu> ) {
     CHECK( g_items_from_menu.contains( menu ) );
   }
 
   // Check that all menus have at least one item.
-  for( auto menu : enum_traits<e_menu>::values ) {
+  for( auto menu : refl::enum_values<e_menu> ) {
     CHECK( g_items_from_menu[menu].size() > 0 );
   }
 
@@ -1021,7 +1026,7 @@ void init_menus() {
   // menu header name contains the shortcut key (in either
   // uppercase or lowercase.
   unordered_set<char> keys;
-  for( auto menu : enum_traits<e_menu>::values ) {
+  for( auto menu : refl::enum_values<e_menu> ) {
     char key = tolower( g_menus[menu].shortcut );
     CHECK( !keys.contains( key ),
            "multiple menus have `{}` as a shortcut key", key );
@@ -1034,7 +1039,7 @@ void init_menus() {
   }
 
   // Check that all e_menu_items are in a menu.
-  for( auto item : enum_traits<e_menu_item>::values ) {
+  for( auto item : refl::enum_values<e_menu_item> ) {
     CHECK( g_menu_items.contains( item ) );
     CHECK( g_menu_items[item] != nullptr );
     CHECK( g_item_to_menu.contains( item ) );
@@ -1051,7 +1056,7 @@ void init_menus() {
   }
 
   // Check that all e_menu_items have registered handlers.
-  for( auto item : enum_traits<e_menu_item>::values ) {
+  for( auto item : refl::enum_values<e_menu_item> ) {
     auto const& desc = *g_menu_items[item];
     CHECK( item == desc.item );
     CHECK( desc.name.size() > 0 );
@@ -1084,20 +1089,23 @@ struct MenuPlane : public Plane {
     // of the game to be initialized first to be on the safe/ro-
     // bust side (though theoretically this could probably be
     // done in the init_menu method).
+    //
+    // FIXME: move this stuff out of here into an init_menu
+    // method.
 
     // Render Menu and Menu-item names. These have to be done
     // first because other things need to be calculated from the
     // sizes of the rendered text.
-    for( auto menu_item : enum_traits<e_menu_item>::values )
+    for( auto menu_item : refl::enum_values<e_menu_item> )
       g_menu_item_rendered[menu_item] = render_menu_item_element(
           g_menu_items[menu_item]->name, nothing );
-    for( auto menu : enum_traits<e_menu>::values ) {
+    for( auto menu : refl::enum_values<e_menu> ) {
       g_menu_rendered[menu]      = {};
       g_menu_rendered[menu].name = render_menu_header_element(
           g_menus[menu].name, g_menus[menu].shortcut );
     }
 
-    for( auto menu : enum_traits<e_menu>::values ) {
+    for( auto menu : refl::enum_values<e_menu> ) {
       // The order in which these are done matters,
       // unfortunately, because some of the functions below rely
       // on results from the previous ones.
@@ -1256,7 +1264,7 @@ struct MenuPlane : public Plane {
                 CHECK( have_some_visible_menus() );
                 do {
                   menu = util::find_previous_and_cycle(
-                      enum_traits<e_menu>::values, *menu );
+                      refl::enum_values<e_menu>, *menu );
                 } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =
@@ -1269,7 +1277,7 @@ struct MenuPlane : public Plane {
                 CHECK( have_some_visible_menus() );
                 do {
                   menu = util::find_subsequent_and_cycle(
-                      enum_traits<e_menu>::values, *menu );
+                      refl::enum_values<e_menu>, *menu );
                 } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =

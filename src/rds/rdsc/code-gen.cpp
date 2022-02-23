@@ -40,78 +40,6 @@ namespace {
 
 using ::base::maybe;
 
-// Parameters:
-//   - member_var_name
-constexpr string_view kSumtypeAlternativeMemberSerial = R"xyz(
-    auto s_{member_var_name} = serialize<::rn::serial::fb_serialize_hint_t<
-        decltype( std::declval<fb_target_t>().{member_var_name}() )>>(
-        builder, {member_var_name}, ::rn::serial::ADL{{}} );
-)xyz";
-
-// Parameters:
-//   - member_var_name
-constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
-    HAS_VALUE_OR_RET( deserialize(
-        ::rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
-        &dst->{member_var_name}, ::rn::serial::ADL{{}} ) );
-)xyz";
-
-// Parameters:
-//   - sumtype_name
-//   - alt_name
-//   - members_serialization
-//   - members_deserialization
-//   - members_s_get:
-//       Vertical comma-separated list of "s_<member>.get()"
-constexpr string_view kSumtypeAlternativeSerial = R"xyz(
-  using fb_target_t = fb::{sumtype_name}::{alt_name};
-
-  rn::serial::FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
-      rn::serial::FBBuilder& builder ) const {{
-    using ::rn::serial::serialize;
-    {members_serialization}
-    // We must always serialize this table even if it is
-    // empty/default-valued because, for variants, its presence
-    // indicates that it is the active alternative.
-    return fb::{sumtype_name}::Create{alt_name}( builder
-        {members_s_get}
-    );
-  }}
-
-  static ::rn::valid_deserial_t deserialize_table(
-      fb::{sumtype_name}::{alt_name} const& src,
-      {alt_name}* dst ) {{
-    (void)src;
-    (void)dst;
-    DCHECK( dst );
-    using ::rn::serial::deserialize;
-    {members_deserialization}
-    return ::rn::valid;
-  }}
-
-  ::rn::valid_deserial_t check_invariants_safe() const {{
-    return ::rn::valid;
-  }}
-)xyz";
-
-void remove_common_space_prefix( vector<string>* lines ) {
-  if( lines->empty() ) return;
-  size_t min_spaces = 10000000;
-  for( string_view sv : *lines ) {
-    size_t first = sv.find_first_not_of( ' ' );
-    if( first == string_view::npos ) continue;
-    min_spaces = std::min( first, min_spaces );
-  }
-  for( string& s : *lines ) {
-    if( string_view( s ).find_first_not_of( ' ' ) ==
-        string_view::npos )
-      // Either empty or just spaces.
-      continue;
-    string new_s( s.begin() + min_spaces, s.end() );
-    s = std::move( new_s );
-  }
-}
-
 template<typename Range, typename Projection, typename Default>
 auto max_of( Range&& rng, Projection&& proj, Default value )
     -> invoke_result_t<Projection,
@@ -144,19 +72,10 @@ string all_int_tmpl_params( int count ) {
                           /*space=*/true );
 }
 
-string template_params_type_names(
-    vector<expr::TemplateParam> const& tmpls ) {
-  string params = template_params( tmpls, /*put_typename=*/false,
-                                   /*space=*/true );
-  return "::base::type_list_to_names"s + params + "()";
-}
-
 template<typename T>
 bool item_has_feature( T const& item, expr::e_feature feature ) {
-  if( !item.features.has_value() ) return false;
-  for( auto type : *item.features )
-    if( type == feature ) return true;
-  return false;
+  return item.features.has_value() &&
+         item.features->contains( feature );
 }
 
 string trim_trailing_spaces( string s ) {
@@ -261,14 +180,18 @@ struct CodeGenerator {
   // Braces {} do NOT have to be escaped for this one.
   void line( string_view l ) { line( "{}", l ); }
 
-  template<typename... Args>
-  void frag( string_view fmt_str, Args&&... args ) {
+  template<typename Arg1, typename... Args>
+  void frag( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
     curr_line_ = absl::StrCat(
         *curr_line_, fmt::format( fmt::runtime( fmt_str ),
+                                  std::forward<Arg1>( arg1 ),
                                   forward<Args>( args )... ) );
   }
+
+  // Braces {} do NOT have to be escaped for this one.
+  void frag( string_view l ) { frag( "{}", l ); }
 
   void flush() {
     if( !curr_line_.has_value() ) return;
@@ -306,7 +229,7 @@ struct CodeGenerator {
   void open_ns( string_view ns, string_view leaf = "" ) {
     frag( "namespace {}", ns );
     if( !leaf.empty() ) frag( "::{}", leaf );
-    frag( " {{" );
+    frag( " {" );
     flush();
     newline();
     indent().cancel();
@@ -317,19 +240,6 @@ struct CodeGenerator {
     frag( "}} // namespace {}", ns );
     if( !leaf.empty() ) frag( "::{}", leaf );
     flush();
-  }
-
-  template<typename... Args>
-  void emit_code_block( string_view fmt_str, Args&&... args ) {
-    string formatted     = fmt::format( fmt::runtime( fmt_str ),
-                                        forward<Args>( args )... );
-    vector<string> lines = absl::StrSplit( formatted, "\n" );
-    remove_common_space_prefix( &lines );
-    if( lines.empty() ) return;
-    int i = 0;
-    // Remove the first line if it's empty.
-    if( lines[0].empty() ) i = 1;
-    for( ; i < int( lines.size() ); ++i ) line( lines[i] );
   }
 
   void emit_template_decl(
@@ -348,11 +258,11 @@ struct CodeGenerator {
       frag( "{}::{}", sumtype_name, alt.name );
     else
       frag( "{}::{}<{{}}>", sumtype_name, alt.name );
-    if( !alt.members.empty() ) frag( "{{{{" );
+    if( !alt.members.empty() ) frag( "{{" );
     flush();
     if( !alt.members.empty() ) {
       vector<string> fmt_members;
-      for( expr::AlternativeMember const& member : alt.members )
+      for( expr::StructMember const& member : alt.members )
         fmt_members.push_back(
             fmt::format( "{}={{}}", member.var ) );
       {
@@ -363,47 +273,13 @@ struct CodeGenerator {
     }
   }
 
-  void emit_fmt_for_alternative(
-      string_view                        sumtype_name,
+  void emit_sumtype_alternative(
       vector<expr::TemplateParam> const& tmpls,
-      expr::Alternative const&           alt ) {
-    if( !tmpls.empty() ) emit_template_decl( tmpls );
-    string full_alt_name = fmt::format(
-        "{}::{}{}", sumtype_name, alt.name,
-        template_params( tmpls, /*put_typename=*/false ) );
-    string maybe_o = alt.members.empty() ? "" : " o";
-    line(
-        "inline void to_str( {} const&{}, std::string& out, "
-        "::base::ADL_t ) {{",
-        full_alt_name, maybe_o );
-    {
-      auto _ = indent();
-      line( "out += fmt::format(" );
-      {
-        auto _ = indent();
-        emit_format_str_for_formatting_alternative(
-            alt, tmpls, sumtype_name );
-      }
-      if( !alt.members.empty() || !tmpls.empty() ) frag( ", " );
-      vector<string> fmt_args;
-      if( !tmpls.empty() )
-        fmt_args.push_back(
-            template_params_type_names( tmpls ) );
-      for( expr::AlternativeMember const& member : alt.members )
-        fmt_args.push_back( fmt::format( "o.{}", member.var ) );
-      frag( "{} );", absl::StrJoin( fmt_args, ", " ) );
-      flush();
-    }
-    line( "}" );
-  }
-
-  void emit( vector<expr::TemplateParam> const& tmpls,
-             expr::Alternative const&           alt,
-             string_view sumtype_name, bool emit_equality,
-             bool emit_serialization ) {
+      expr::Alternative const& alt, bool emit_equality,
+      bool emit_validation ) {
     emit_template_decl( tmpls );
     if( alt.members.empty() && !emit_equality &&
-        !emit_serialization ) {
+        !emit_validation ) {
       line( "struct {} {{}};", alt.name );
     } else {
       line( "struct {} {{", alt.name );
@@ -411,8 +287,7 @@ struct CodeGenerator {
         auto cleanup = indent();
         int  max_type_len =
             max_of( alt.members, L( _.type.size() ), 0 );
-        for( expr::AlternativeMember const& alt_mem :
-             alt.members )
+        for( expr::StructMember const& alt_mem : alt.members )
           line( "{: <{}} {};", alt_mem.type, max_type_len,
                 alt_mem.var );
         if( emit_equality ) {
@@ -433,31 +308,12 @@ struct CodeGenerator {
               "default;",
               alt.name );
         }
-        if( emit_serialization ) {
-          string member_serials;
-          string member_deserials;
-          string members_s_get;
-          for( expr::AlternativeMember const& alt_mem :
-               alt.members ) {
-            member_serials += fmt::format(
-                kSumtypeAlternativeMemberSerial,
-                fmt::arg( "member_var_name", alt_mem.var ) );
-            member_deserials += fmt::format(
-                kSumtypeAlternativeMemberDeserial,
-                fmt::arg( "member_var_name", alt_mem.var ) );
-            members_s_get +=
-                fmt::format( ", s_{}.get()", alt_mem.var );
-          }
-
-          emit_code_block(
-              kSumtypeAlternativeSerial,
-              fmt::arg( "sumtype_name", sumtype_name ),
-              fmt::arg( "alt_name", alt.name ),
-              fmt::arg( "members_serialization",
-                        member_serials ),
-              fmt::arg( "members_deserialization",
-                        member_deserials ),
-              fmt::arg( "members_s_get", members_s_get ) );
+        if( emit_validation ) {
+          newline();
+          comment( "Validates invariants among members." );
+          comment( "defined in some translation unit." );
+          line(
+              "base::valid_or<std::string> validate() const;" );
         }
       }
       line( "};" );
@@ -509,122 +365,149 @@ struct CodeGenerator {
       emit_vert_list( e.values, "," );
     }
     line( "};" );
-    // Emit the traits.
     newline();
     close_ns( ns );
+    // Emit the reflection traits.
     newline();
-    open_ns( "rn" );
+    open_ns( "refl" );
     comment( "Reflection info for enum {}.", e.name );
     line( "template<>" );
-    line( "struct enum_traits<{}::{}> {{", ns, e.name );
+    line( "struct traits<{}::{}> {{", ns, e.name );
     {
       auto _ = indent();
       line( "using type = {}::{};", ns, e.name );
-      line( "static constexpr int count = {};",
-            e.values.size() );
+      newline();
       line(
-          "static constexpr std::string_view type_name = "
-          "\"{}\";",
-          e.name );
-      line( "static constexpr std::array<type, {}> values{{",
-            e.values.size() );
-      {
-        auto           _       = indent();
-        vector<string> with_ns = e.values;
-        for( string& s : with_ns ) s = "type::" + s;
-        emit_vert_list( with_ns, "," );
-      }
-      line( "};" );
-      if( !e.values.empty() ) {
-        line(
-            "static constexpr std::string_view value_name( type "
-            "val ) {" );
+          "static constexpr type_kind kind        = "
+          "type_kind::enum_kind;" );
+      line( "static constexpr std::string_view ns   = \"{}\";",
+            ns );
+      line( "static constexpr std::string_view name = \"{}\";",
+            e.name );
+      newline();
+      frag(
+          "static constexpr std::array<std::string_view, {}> "
+          "value_names{{",
+          e.values.size() );
+      if( e.values.empty() ) {
+        frag( "};" );
+        flush();
+      } else {
+        flush();
         {
           auto _ = indent();
-          line( "switch( val ) {" );
-          {
-            auto _ = indent();
-            for( string const& s : e.values )
-              line( "case type::{}: return \"{}\";", s, s );
-          }
-          line( "}" );
+          for( string const& s : e.values ) line( "\"{}\",", s );
         }
-        line( "}" );
+        line( "};" );
       }
-      line( "template<typename Int>" );
-      line(
-          "static constexpr maybe<type> from_integral( Int {}) "
-          "{{",
-          e.values.empty() ? "" : "val " );
-      {
-        auto _ = indent();
-        line( "maybe<type> res;" );
-        if( !e.values.empty() ) {
-          line( "int intval = static_cast<int>( val );" );
-          line( "if( intval < 0 || intval >= {} ) return res;",
-                e.values.size() );
-          line( "res = static_cast<type>( intval );" );
-        }
-        line( "return res;" );
-      }
-      line( "}" );
-      line(
-          "static constexpr maybe<type> from_string( "
-          "std::string_view {}) {{",
-          e.values.empty() ? "" : "name " );
-      {
-        auto _ = indent();
-        line( "return" );
-        {
-          auto _ = indent();
-          for( string const& val : e.values )
-            line( "name == \"{}\" ? maybe<type>( type::{} ) :",
-                  val, val );
-          line( "maybe<type>{};" );
-        }
-      }
-      line( "}" );
     }
     line( "};" );
     newline();
-    close_ns( "rn" );
-    // emit to_str.
-    newline();
-    open_ns( ns );
-    line(
-        "inline void to_str( {}{}, std::string&{}, "
-        "::base::ADL_t ) {{",
-        e.name, e.values.empty() ? "" : " o",
-        e.values.empty() ? "" : " out" );
-    if( !e.values.empty() ) {
+    close_ns( "refl" );
+  }
+
+  void emit_reflection_for_struct(
+      string_view                        ns,
+      vector<expr::TemplateParam> const& tmpl_params,
+      string const&                      name,
+      vector<expr::StructMember> const&  members ) {
+    comment( "Reflection info for struct {}.", name );
+    string tmpl_brackets =
+        tmpl_params.empty()
+            ? "<>"
+            : template_params( tmpl_params,
+                               /*put_typename=*/false );
+    string tmpl_brackets_typename =
+        tmpl_params.empty()
+            ? "<>"
+            : template_params( tmpl_params,
+                               /*put_typename=*/true );
+    line( "template{}", tmpl_brackets_typename );
+    string name_w_tmpl =
+        fmt::format( "{}{}", name,
+                     template_params( tmpl_params,
+                                      /*put_typename=*/false ) );
+    string full_name_w_tmpl =
+        fmt::format( "{}::{}", ns, name_w_tmpl );
+    line( "struct traits<{}> {{", full_name_w_tmpl );
+    {
       auto _ = indent();
-      line( "out += enum_traits<{}>::value_name( o );", e.name );
+      line( "using type = {};", full_name_w_tmpl );
+      newline();
+      line(
+          "static constexpr type_kind kind        = "
+          "type_kind::struct_kind;" );
+      line( "static constexpr std::string_view ns   = \"{}\";",
+            ns );
+      line( "static constexpr std::string_view name = \"{}\";",
+            name );
+      newline();
+      line( "using template_types = std::tuple{};",
+            tmpl_brackets );
+      newline();
+      frag( "static constexpr std::tuple fields{" );
+      if( members.empty() ) {
+        frag( "};" );
+        flush();
+      } else {
+        flush();
+        {
+          auto _ = indent();
+          for( expr::StructMember const& sm : members )
+            line( "refl::StructField{{ \"{}\", &{}::{} }},",
+                  sm.var, full_name_w_tmpl, sm.var );
+        }
+        line( "};" );
+      }
     }
-    line( "}" );
-    newline();
-    close_ns( ns );
+    line( "};" );
   }
 
   void emit( string_view ns, expr::Struct const& strukt ) {
     section( "Struct: "s + strukt.name );
     open_ns( ns );
     emit_template_decl( strukt.tmpl_params );
-    if( strukt.members.empty() ) {
+    bool comparable =
+        item_has_feature( strukt, expr::e_feature::equality );
+    bool has_members = !strukt.members.empty();
+    if( !has_members && !comparable ) {
       line( "struct {} {{}};", strukt.name );
     } else {
       line( "struct {} {{", strukt.name );
       int max_type_len =
           max_of( strukt.members, L( _.type.size() ), 0 );
+      int max_var_len =
+          max_of( strukt.members, L( _.var.size() ), 0 );
       {
         auto _ = indent();
         for( expr::StructMember const& member : strukt.members )
-          line( "{: <{}} {};", member.type, max_type_len,
-                member.var );
+          line( "{: <{}} {: <{}} = {{}};", member.type,
+                max_type_len, member.var, max_var_len );
+        if( comparable ) {
+          if( has_members ) newline();
+          line( "bool operator==( {} const& ) const = default;",
+                strukt.name );
+        }
+        if( item_has_feature( strukt,
+                              expr::e_feature::validation ) ) {
+          newline();
+          comment( "Validates invariants among members." );
+          comment( "defined in some translation unit." );
+          line(
+              "base::valid_or<std::string> validate() const;" );
+        }
       }
       line( "};" );
     }
     newline();
     close_ns( ns );
+    // Emit the reflection traits.
+    newline();
+    open_ns( "refl" );
+    emit_reflection_for_struct( ns, strukt.tmpl_params,
+                                strukt.name, strukt.members );
+    newline();
+    close_ns( "refl" );
   }
 
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
@@ -636,18 +519,11 @@ struct CodeGenerator {
            sumtype.alternatives ) {
         bool emit_equality = item_has_feature(
             sumtype, expr::e_feature::equality );
-        bool emit_serialization = item_has_feature(
-            sumtype, expr::e_feature::serializable );
-        emit( sumtype.tmpl_params, alt, sumtype.name,
-              emit_equality, emit_serialization );
-        if( item_has_feature( sumtype,
-                              expr::e_feature::formattable ) ) {
-          newline();
-          string alt_name = fmt::format( "{}", alt.name );
-          comment( "{}", alt_name );
-          emit_fmt_for_alternative( sumtype.name,
-                                    sumtype.tmpl_params, alt );
-        }
+        bool emit_validation = item_has_feature(
+            sumtype, expr::e_feature::validation );
+        emit_sumtype_alternative( sumtype.tmpl_params, alt,
+                                  emit_equality,
+                                  emit_validation );
         newline();
       }
       emit_enum_for_sumtype( sumtype.alternatives );
@@ -677,9 +553,25 @@ struct CodeGenerator {
     close_ns( ns );
     // Global namespace.
     emit_variant_to_enum_specialization( ns, sumtype );
+    // Emit the reflection traits.
+    if( !sumtype.alternatives.empty() ) {
+      newline();
+      comment( "Reflection traits for alternatives." );
+      open_ns( "refl" );
+      for( expr::Alternative const& alt :
+           sumtype.alternatives ) {
+        string sumtype_ns =
+            fmt::format( "{}::{}", ns, sumtype.name );
+        emit_reflection_for_struct( sumtype_ns,
+                                    sumtype.tmpl_params,
+                                    alt.name, alt.members );
+        newline();
+      }
+      close_ns( "refl" );
+    }
   }
 
-  void emit( expr::Item const& item ) {
+  void emit_item( expr::Item const& item ) {
     string cpp_ns =
         absl::StrReplaceAll( item.ns, { { ".", "::" } } );
     auto visitor = [&]( auto const& v ) { emit( cpp_ns, v ); };
@@ -691,14 +583,6 @@ struct CodeGenerator {
 
   void emit_preamble() {
     line( "#pragma once" );
-    newline();
-  }
-
-  void emit_imports( vector<string> const& imports ) {
-    if( imports.empty() ) return;
-    section( "Imports" );
-    for( string const& import : imports )
-      line( "#include \"rds/{}.hpp\"", import );
     newline();
   }
 
@@ -714,6 +598,20 @@ struct CodeGenerator {
                           []( auto const& ) { return false; } },
             construct );
         if( has_feature ) return true;
+      }
+    }
+    return false;
+  }
+
+  bool rds_has_struct( expr::Rds const& rds ) {
+    for( expr::Item const& item : rds.items ) {
+      for( expr::Construct const& construct : item.constructs ) {
+        bool has_struct = visit(
+            mp::overload{
+                [&]( expr::Struct const& ) { return true; },
+                []( auto const& ) { return false; } },
+            construct );
+        if( has_struct ) return true;
       }
     }
     return false;
@@ -747,16 +645,6 @@ struct CodeGenerator {
     return false;
   }
 
-  bool rds_needs_serial_header( expr::Rds const& rds ) {
-    return rds_has_sumtype_feature(
-        rds, expr::e_feature::serializable );
-  }
-
-  bool rds_needs_fmt_headers( expr::Rds const& rds ) {
-    return rds_has_sumtype_feature(
-        rds, expr::e_feature::formattable );
-  }
-
   void emit_includes( expr::Rds const& rds ) {
     section( "Includes" );
     if( !rds.includes.empty() ) {
@@ -768,35 +656,22 @@ struct CodeGenerator {
 
     comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
-    if( rds_has_sumtype( rds ) )
-      line( "#include \"rds/helper/sumtype-helper.hpp\"" );
-    if( rds_has_enum( rds ) )
-      line( "#include \"rds/helper/enum.hpp\"" );
-    if( rds_needs_serial_header( rds ) ) {
-      line( "#include \"error.hpp\"" );
-      line( "#include \"fb.hpp\"" );
-    }
-    if( rds_has_enum( rds ) ) line( "#include \"maybe.hpp\"" );
     line( "" );
-    comment( "base" );
-    line( "#include \"base/cc-specific.hpp\"" );
-    if( rds_needs_fmt_headers( rds ) ) {
-      line( "#include \"base/to-str.hpp\"" );
-      line( "#include \"base/to-str-ext-std.hpp\"" );
-    }
-    line( "#include \"base/variant.hpp\"" );
+    comment( "refl" );
+    line( "#include \"refl/ext.hpp\"" );
     line( "" );
-    comment( "base-util" );
-    line( "#include \"base-util/mp.hpp\"" );
-    if( rds_needs_fmt_headers( rds ) ) {
-      line( "" );
-      comment( "{{fmt}}" );
-      line( "#include \"fmt/format.h\"" );
+    if( rds_has_sumtype( rds ) ) {
+      comment( "base" );
+      line( "#include \"base/variant.hpp\"" );
     }
+    // line( "" );
+    // comment( "base-util" );
+    // line( "#include \"base-util/mp.hpp\"" );
     line( "" );
     comment( "C++ standard library" );
     if( rds_has_enum( rds ) ) line( "#include <array>" );
     line( "#include <string_view>" );
+    if( rds_has_struct( rds ) ) line( "#include <tuple>" );
     newline();
   }
 
@@ -819,11 +694,10 @@ struct CodeGenerator {
 
   void emit_rds( expr::Rds const& rds ) {
     emit_preamble();
-    emit_imports( rds.imports );
     emit_includes( rds );
     emit_metadata( rds );
 
-    for( expr::Item const& item : rds.items ) emit( item );
+    for( expr::Item const& item : rds.items ) emit_item( item );
   }
 };
 

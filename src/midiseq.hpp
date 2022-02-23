@@ -17,7 +17,7 @@
 #include "time.hpp"
 
 // Rds
-#include "rds/midiseq.hpp"
+#include "midiseq.rds.hpp"
 
 // C++ standard library.
 #include <string>

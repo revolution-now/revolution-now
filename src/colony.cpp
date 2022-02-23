@@ -11,14 +11,23 @@
 #include "colony.hpp"
 
 // Revolution Now
+#include "commodity.hpp"
 #include "error.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "unit-composer.hpp"
 #include "ustate.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
+
 // luapp
 #include "luapp/state.hpp"
+
+// base
+#include "base/string.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -27,14 +36,53 @@ namespace rn {
 namespace {} // namespace
 
 /****************************************************************
-** Public API
+** Colony
 *****************************************************************/
 
-int Colony::population() const { return units_.size(); }
+// This function should only validate those things that don't
+// need access to any game state outside of this one colony ob-
+// ject. E.g., no validating things that require access to the
+// terrain or to unit info; that stuff should go in the top-level
+// validation functions.
+valid_or<string> wrapped::Colony::validate() const {
+  // Colony has non-empty stripped name.
+  REFL_VALIDATE( !base::trim( name ).empty(),
+                 "Colony name is empty (when stripped)." );
+
+  // Colony has at least one colonist.
+  REFL_VALIDATE( units.size() > 0, "Colony {} has no units.",
+                 id );
+
+  // Colony's commodity quantites in correct range.
+  for( auto comm : refl::enum_values<e_commodity> ) {
+    REFL_VALIDATE( commodities[comm] >= 0,
+                   "Colony {} has a negative quantity of {}.",
+                   id, comm );
+  }
+
+  // All colony's units can occupy a colony.
+  // TODO: to do this I think we just check that each unit is a
+  // human and a base type.
+
+  // Colony's building set is self-consistent.
+  // TODO
+
+  // 10. Unit mfg jobs are self-consistent.
+  // TODO
+
+  // 11. Unit land jobs are good.
+  // TODO
+
+  // 12. Colony's production status is self-consistent.
+  // TODO
+  return valid;
+}
+
+int Colony::population() const { return o_.units.size(); }
 
 int Colony::commodity_quantity( e_commodity commodity ) const {
-  auto res = commodities_.find( commodity );
-  if( res == commodities_.end() ) return 0;
+  auto res = o_.commodities.find( commodity );
+  if( res == o_.commodities.end() ) return 0;
   return res->second;
 }
 
@@ -48,28 +96,27 @@ vector<UnitId> Colony::units() const {
   return units_working_in_colony;
 }
 
-void to_str( Colony const& o, string& out, base::ADL_t ) {
-  out += fmt::format(
+string Colony::debug_string() const {
+  return fmt::format(
       "Colony{{name=\"{}\",id={},nation={},coord={},population={"
       "}}}",
-      o.name(), o.id(), o.nation(), o.location(),
-      o.population() );
+      name(), id(), nation(), location(), population() );
 }
 
 void Colony::add_building( e_colony_building building ) {
-  CHECK( !buildings_.contains( building ),
+  CHECK( !o_.buildings.contains( building ),
          "Colony already has a {}.", building );
-  buildings_.insert( building );
+  o_.buildings.insert( building );
 }
 
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
   CHECK( !has_unit( id ), "Unit {} already in colony.", id );
-  units_[id] = job;
+  o_.units[id] = job;
 }
 
 void Colony::remove_unit( UnitId id ) {
   CHECK( has_unit( id ), "Unit {} is not in colony.", id );
-  units_.erase( id );
+  o_.units.erase( id );
 }
 
 void Colony::set_commodity_quantity( e_commodity comm, int q ) {
@@ -78,11 +125,11 @@ void Colony::set_commodity_quantity( e_commodity comm, int q ) {
 }
 
 bool Colony::has_unit( UnitId id ) const {
-  return units_.contains( id );
+  return o_.units.contains( id );
 }
 
 void Colony::set_nation( e_nation new_nation ) {
-  nation_ = new_nation;
+  o_.nation = new_nation;
 }
 
 void Colony::strip_unit_commodities( UnitId unit_id ) {
@@ -96,7 +143,7 @@ void Colony::strip_unit_commodities( UnitId unit_id ) {
   for( auto [type, q] : tranform_res.commodity_deltas ) {
     CHECK( q > 0 );
     lg.debug( "adding {} {} to colony {}.", q, type, name() );
-    commodities_[type] += q;
+    o_.commodities[type] += q;
   }
 }
 

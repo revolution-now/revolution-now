@@ -1,0 +1,22 @@
+# ===============================================================
+# game-ui-views.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-11.
+#
+# Description: RDS definitions for the game-ui-views module.
+#
+# ===============================================================
+# Rds
+include "unit.rds.hpp"
+
+namespace "rn.ui"
+
+# Holds the state of each unit in the window as the player is se-
+# lecting them and cycling them through the states.
+struct.UnitActivationInfo {
+  original_orders 'e_unit_orders',
+  current_orders 'e_unit_orders',
+  is_activated 'bool',
+}

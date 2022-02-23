@@ -17,10 +17,7 @@
 #include "lua-enum.hpp"
 
 // Rds
-#include "rds/colony-mfg.hpp"
-
-// Flatbuffers
-#include "fb/colony-mfg_generated.h"
+#include "colony-mfg.rds.hpp"
 
 namespace rn {
 

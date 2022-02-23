@@ -17,7 +17,7 @@
 #include "maybe.hpp"
 
 // Rds
-#include "rds/init.hpp"
+#include "init.rds.hpp"
 
 // base-util
 #include "base-util/macros.hpp"

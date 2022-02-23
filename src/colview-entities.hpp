@@ -14,16 +14,16 @@
 
 // Revolution Now
 #include "cargo.hpp"
+#include "colony-id.hpp"
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
-#include "id.hpp"
 #include "tx.hpp"
 #include "view.hpp"
 #include "wait.hpp"
 
 // Rds
-#include "rds/colview-entities.hpp"
+#include "colview-entities.rds.hpp"
 
 namespace rn {
 

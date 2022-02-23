@@ -2,13 +2,14 @@
 
 add_subdirectory( base )
 add_subdirectory( rcl )
-add_subdirectory( fb )
 add_subdirectory( luapp )
 add_subdirectory( rds )
 add_subdirectory( gl )
 add_subdirectory( mock ) # should not be depended on by `rn`.
 add_subdirectory( stb )
 add_subdirectory( gfx )
+add_subdirectory( cdr )
+add_subdirectory( refl )
 
 # === this directory ==============================================
 
@@ -39,15 +40,16 @@ target_link_libraries(
     absl::function_ref
     absl::strings
     base-util
-    flatbuffers
     glad::glad # TODO: remove/isolate this.
     lua::lua
     midifile
     rn-base
+    rn-cdr
     rn-gfx
     rn-gl
     rn-rcl
     rn-luapp
+    rn-refl
     rn-stb
     rtmidi
     Threads::Threads
@@ -56,17 +58,16 @@ target_link_libraries(
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_MIXER_LIBRARY} )
 
-add_dependencies( rn rn-flatbuf rn-rds )
-get_target_property( FLATBUFF_INCLUDE_DIR rn-flatbuf INCLUDE_DIR )
-get_target_property( RDS_INCLUDE_DIR rn-rds INCLUDE_DIR )
+generate_rds_target( rn-rds-src )
+add_dependencies( rn rn-rds-src )
+get_target_property( RDS_SRC_INCLUDE_DIR rn-rds-src INCLUDE_DIR )
 
 target_include_directories(
     rn
     PUBLIC
     ${PROJECT_SOURCE_DIR} # top-level folder
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${FLATBUFF_INCLUDE_DIR}
-    ${RDS_INCLUDE_DIR}
+    ${RDS_SRC_INCLUDE_DIR}
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}

@@ -15,20 +15,12 @@
 #include "unit.hpp"
 #include "ustate.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn::ui {
-
-/****************************************************************
-** UnitActivationInfo
-*****************************************************************/
-void to_str( UnitActivationInfo const& o, string& out,
-             base::ADL_t ) {
-  out += fmt::format(
-      "UnitActivationInfo{{original_orders={},current_orders={},"
-      "is_activated={}}}",
-      o.original_orders, o.current_orders, o.is_activated );
-}
 
 /****************************************************************
 ** UnitActivationView

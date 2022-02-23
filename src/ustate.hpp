@@ -22,10 +22,7 @@
 #include "base/function-ref.hpp"
 
 // Rds
-#include "rds/ustate.hpp"
-
-// Flatbuffers
-#include "fb/unit_generated.h"
+#include "ustate.rds.hpp"
 
 // C++ standard library
 #include <functional>
@@ -33,11 +30,16 @@
 
 namespace rn {
 
+/****************************************************************
+** Units
+*****************************************************************/
 std::string debug_string( UnitId id );
 
-ND bool             unit_exists( UnitId id );
+ND bool unit_exists( UnitId id );
+// FIXME: replace this with UnitsState::unit_for.
 ND Unit&            unit_from_id( UnitId id );
-std::vector<UnitId> units_all( maybe<e_nation> n = nothing );
+std::vector<UnitId> units_all();
+std::vector<UnitId> units_all( e_nation n );
 // Apply a function to all units. The function may mutate the
 // units. NOTE: here, the word "map" is meant in the functional
 // programming sense, and not in the sense of the game world map.
@@ -48,31 +50,13 @@ void map_units( e_nation                          nation,
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );
 
-enum class e_unit_state {
-  // The unit is on the map. This includes units that are sta-
-  // tioned in colonies (i.e., not units that are performing jobs
-  // in colonies).
-  world,
-  // The unit is being held as cargo of another unit.
-  cargo,
-  // This means that the unit will be visible when looking at the
-  // Old World view, e.g., it is sailing the high seas or on/in
-  // port.
-  old_world,
-  // Unit is inside a colony; this means that it is actually
-  // doing a job in a colony, not just that it is on the map
-  // square coinciding with the colony location.
-  colony
-};
-
-e_unit_state state_for_unit( UnitId id );
-
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
 // Function for mapping between units and coordinates on the map.
 // These will only give the units that are owned immediately by
 // the map; it will not give units who are cargo of those units.
+// TODO: replace usage of this with UnitsState::from_coord.
 ND std::unordered_set<UnitId> const& units_from_coord(
     Coord const& c );
 
@@ -96,6 +80,8 @@ std::vector<UnitId> surrounding_units( Coord const& coord );
 // Returns the map coordinates for the unit if it is on the map
 // (which does NOT include being cargo of a unit on the map; for
 // that, see `coord_for_unit_indirect`).
+// TODO: replace usages of this with UnitsState::maybe_coord_for,
+// or UnitsState::coord_for.
 maybe<Coord> coord_for_unit( UnitId id );
 
 // These will return the coordinates for a unit if it is owned by
@@ -116,12 +102,6 @@ bool is_unit_on_map( UnitId id );
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/
-// This returns only those units who are workers within the
-// colony, and not units on the map at the location of the
-// colony.
-std::unordered_set<UnitId> const& worker_units_from_colony(
-    ColonyId id );
-
 // This returns all units that are either working in the colony
 // or who are on the map on the colony square.
 std::unordered_set<UnitId> units_at_or_in_colony( ColonyId id );
@@ -143,7 +123,7 @@ maybe<UnitId> is_unit_onboard( UnitId id );
 /****************************************************************
 ** Old World View Ownership
 *****************************************************************/
-valid_or<generic_err> check_old_world_state_invariants(
+base::valid_or<generic_err> check_old_world_state_invariants(
     UnitOldWorldViewState_t const& info );
 
 // If unit is owned by old-world-view then this will return info.
@@ -173,45 +153,10 @@ UnitId create_unit( e_nation nation, UnitType type );
 maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
 
 /****************************************************************
-** Changing Unit Ownership
-*****************************************************************/
-// Changes a unit's ownership from whatever it is (map or other-
-// wise) to the map at the given coordinate. It will always move
-// the unit to the target square without question (checking only
-// that the unit exists). NOTE: this is a low-level function; it
-// does not do any checking, and should not be called directly.
-// E.g., this function will happily move a land unit into water.
-void ustate_change_to_map( UnitId id, Coord const& target );
-
-// Will start at the starting slot and rotate right trying to
-// find a place where the unit can fit.
-void ustate_change_to_cargo_somewhere( UnitId new_holder,
-                                       UnitId held,
-                                       int starting_slot = 0 );
-void ustate_change_to_cargo( UnitId new_holder, UnitId held,
-                             int slot );
-
-void ustate_change_to_old_world_view(
-    UnitId id, UnitOldWorldViewState_t info );
-
-void ustate_change_to_colony( UnitId id, ColonyId col_id,
-                              ColonyJob_t const& job );
-
-/****************************************************************
 ** For Testing / Development Only
 *****************************************************************/
 // Do not call these in normal game code.
 UnitId create_unit_on_map( e_nation nation, UnitComposition comp,
                            Coord coord );
-
-/****************************************************************
-** Do not call directly
-*****************************************************************/
-// Removes unit from any ownership. Used when transitioning own-
-// ership. This is only in the header file because it needs to be
-// listed as the `friend` of some classes.
-namespace internal {
-void ustate_disown_unit( UnitId id );
-}
 
 } // namespace rn

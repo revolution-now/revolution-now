@@ -25,6 +25,9 @@
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {

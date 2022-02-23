@@ -19,6 +19,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gfx.hpp"
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -28,8 +29,15 @@
 #include "views.hpp"
 #include "window.hpp"
 
+// Rds
+#include "gs-events.rds.hpp"
+
 // Revolution Now (config)
 #include "../config/rcl/units.inl"
+
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/maybe-util.hpp"
@@ -93,22 +101,24 @@ ColonyId colony_id() { return g_composition.id; }
 
 Colony& colony() { return colony_from_id( colony_id() ); }
 
-Cargo to_cargo( ColViewObject_t const& o ) {
+Cargo_t to_cargo( ColViewObject_t const& o ) {
   switch( o.to_enum() ) {
     using namespace ColViewObject;
-    case e::unit: return o.get<ColViewObject::unit>().id;
-    case e::commodity: return o.get<commodity>().comm;
+    case e::unit:
+      return Cargo::unit{ o.get<ColViewObject::unit>().id };
+    case e::commodity:
+      return Cargo::commodity{ o.get<commodity>().comm };
   }
 }
 
-ColViewObject_t from_cargo( Cargo const& o ) {
+ColViewObject_t from_cargo( Cargo_t const& o ) {
   return overload_visit<ColViewObject_t>(
       o, //
-      []( UnitId id ) {
-        return ColViewObject::unit{ .id = id };
+      []( Cargo::unit u ) {
+        return ColViewObject::unit{ .id = u.id };
       },
-      []( Commodity const& c ) {
-        return ColViewObject::commodity{ .comm = c };
+      []( Cargo::commodity const& c ) {
+        return ColViewObject::commodity{ .comm = c.obj };
       } );
 }
 
@@ -159,7 +169,7 @@ class MarketCommodities : public ui::View,
  public:
   Delta delta() const override {
     return Delta{
-        block_width_ * SX{ enum_traits<e_commodity>::count },
+        block_width_ * SX{ refl::enum_count<e_commodity> },
         1_h * 32_sy };
   }
 
@@ -183,10 +193,10 @@ class MarketCommodities : public ui::View,
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    auto  comm_it = enum_traits<e_commodity>::values.begin();
-    auto  label   = CommodityLabel::quantity{ 0 };
-    Coord pos     = coord;
-    auto const& colony = colony_from_id( colony_id() );
+    auto        comm_it = refl::enum_values<e_commodity>.begin();
+    auto        label   = CommodityLabel::quantity{ 0 };
+    Coord       pos     = coord;
+    auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, gfx::pixel::black(), rect );
@@ -297,7 +307,7 @@ class MarketCommodities : public ui::View,
     Commodity new_comm = *draggable_;
     new_comm.quantity  = *quantity;
     CHECK( new_comm.quantity > 0 );
-    co_return from_cargo( new_comm );
+    co_return from_cargo( Cargo::commodity{ new_comm } );
   }
 
   MarketCommodities( W block_width )
@@ -418,13 +428,13 @@ class CargoView : public ui::View,
           auto& cargo = v.get<CargoSlot::cargo>();
           overload_visit(
               cargo.contents,
-              [&]( UnitId id ) {
-                render_unit( tx, id, rect.upper_left(),
+              [&]( Cargo::unit u ) {
+                render_unit( tx, u.id, rect.upper_left(),
                              /*with_icon=*/false );
               },
-              [&]( Commodity const& c ) {
+              [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
-                    tx, c,
+                    tx, c.obj,
                     rect.upper_left() +
                         kCommodityInCargoHoldRenderingOffset );
               } );
@@ -470,7 +480,8 @@ class CargoView : public ui::View,
       using namespace ColViewObject;
       case e::unit: {
         UnitId id = o.get<ColViewObject::unit>().id;
-        if( !unit.cargo().fits_somewhere( id ) ) return nothing;
+        if( !unit.cargo().fits_somewhere( Cargo::unit{ id } ) )
+          return nothing;
         return o;
       }
       case e::commodity:
@@ -487,33 +498,34 @@ class CargoView : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override {
     CHECK( holder_ );
-    auto& cargo_hold = unit_from_id( *holder_ ).cargo();
-    Cargo cargo      = to_cargo( o );
+    auto&   cargo_hold = unit_from_id( *holder_ ).cargo();
+    Cargo_t cargo      = to_cargo( o );
     CHECK( cargo_hold.fits_somewhere( cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
-        [this, slot_idx = slot_idx]( UnitId id ) {
-          ustate_change_to_cargo_somewhere(
-              *holder_, id, /*starting_slot=*/slot_idx );
+        [this, slot_idx = slot_idx]( Cargo::unit u ) {
+          GameState::units().change_to_cargo_somewhere(
+              *holder_, u.id, /*starting_slot=*/slot_idx );
         },
-        [this, slot_idx = slot_idx]( Commodity const& c ) {
-          add_commodity_to_cargo( c, *holder_, slot_idx,
+        [this,
+         slot_idx = slot_idx]( Cargo::commodity const& c ) {
+          add_commodity_to_cargo( c.obj, *holder_, slot_idx,
                                   /*try_other_slots=*/true );
         } );
   }
 
   // Returns the rect that bounds the sprite corresponding to the
   // cargo item covered by the given slot.
-  maybe<pair<Cargo, Rect>> cargo_item_with_rect(
+  maybe<pair<Cargo_t, Rect>> cargo_item_with_rect(
       int slot ) const {
     maybe<pair<bool, Rect>> slot_rect =
         slot_rect_from_idx( slot );
     if( !slot_rect.has_value() ) return nothing;
     auto [is_open, rect] = *slot_rect;
     if( !is_open ) return nothing;
-    maybe<pair<Cargo const&, int>> maybe_cargo =
+    maybe<pair<Cargo_t const&, int>> maybe_cargo =
         unit_from_id( *holder_ )
             .cargo()
             .cargo_covering_slot( slot );
@@ -524,8 +536,8 @@ class CargoView : public ui::View,
         cargo,
         overload_visit<Rect>(
             cargo, //
-            [rect = rect]( UnitId ) { return rect; },
-            [rect = rect]( Commodity const& ) {
+            [rect = rect]( Cargo::unit ) { return rect; },
+            [rect = rect]( Cargo::commodity const& ) {
               return Rect::from(
                   rect.upper_left() +
                       kCommodityInCargoHoldRenderingOffset,
@@ -541,7 +553,7 @@ class CargoView : public ui::View,
     if( !slot_info ) return nothing;
     auto [is_open, slot_idx] = *slot_info;
     if( !is_open ) return nothing;
-    maybe<pair<Cargo, Rect>> cargo_with_rect =
+    maybe<pair<Cargo_t, Rect>> cargo_with_rect =
         cargo_item_with_rect( slot_idx );
     if( !cargo_with_rect ) return nothing;
     return ColViewObjectWithBounds{
@@ -574,24 +586,25 @@ class CargoView : public ui::View,
     // trieving it from the slot, because the stored object might
     // have been edited, e.g. the commodity quantity might have
     // been lowered.
-    Cargo cargo_to_remove = to_cargo( draggable_->object );
+    Cargo_t cargo_to_remove = to_cargo( draggable_->object );
     overload_visit(
         cargo_to_remove,
-        []( UnitId held ) {
-          internal::ustate_disown_unit( held );
+        []( Cargo::unit held ) {
+          GameState::units().disown_unit( held.id );
         },
-        [this]( Commodity const& to_remove ) {
+        [this]( Cargo::commodity const& to_remove ) {
           UNWRAP_CHECK(
               existing_cargo,
               unit_from_id( *holder_ )
                   .cargo()
                   .cargo_starting_at_slot( draggable_->slot ) );
-          UNWRAP_CHECK( existing_comm,
-                        existing_cargo.get_if<Commodity>() );
-          Commodity reduced_comm = existing_comm;
-          CHECK( reduced_comm.type == existing_comm.type );
-          CHECK( reduced_comm.type == to_remove.type );
-          reduced_comm.quantity -= to_remove.quantity;
+          UNWRAP_CHECK(
+              existing_comm,
+              existing_cargo.get_if<Cargo::commodity>() );
+          Commodity reduced_comm = existing_comm.obj;
+          CHECK( reduced_comm.type == existing_comm.obj.type );
+          CHECK( reduced_comm.type == to_remove.obj.type );
+          reduced_comm.quantity -= to_remove.obj.quantity;
           CHECK( reduced_comm.quantity >= 0 );
           rm_commodity_from_cargo( *holder_, draggable_->slot );
           if( reduced_comm.quantity > 0 )
@@ -606,17 +619,17 @@ class CargoView : public ui::View,
     CHECK( draggable_ );
     UNWRAP_CHECK( cargo_and_rect,
                   cargo_item_with_rect( draggable_->slot ) );
-    Cargo const& cargo = cargo_and_rect.first;
-    if( !cargo.holds<Commodity>() )
+    Cargo_t const& cargo = cargo_and_rect.first;
+    if( !cargo.holds<Cargo::commodity>() )
       co_return from_cargo( cargo );
     // We have a commodity.
-    Commodity const& comm = cargo.get<Commodity>();
-    int              min  = 1;
-    int              max  = comm.quantity;
-    string           text = fmt::format(
-                  "What quantity of @[H]{}@[] would you like to move? "
-                            "({}-{}):",
-                  commodity_display_name( comm.type ), min, max );
+    Cargo::commodity const& comm = cargo.get<Cargo::commodity>();
+    int                     min  = 1;
+    int                     max  = comm.obj.quantity;
+    string                  text = fmt::format(
+                         "What quantity of @[H]{}@[] would you like to move? "
+                                          "({}-{}):",
+                         commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity =
         co_await ui::int_input_box( { .title = "Choose Quantity",
                                       .msg   = text,
@@ -624,10 +637,10 @@ class CargoView : public ui::View,
                                       .max   = max,
                                       .initial = max } );
     if( !quantity ) co_return nothing;
-    Commodity new_comm = comm;
+    Commodity new_comm = comm.obj;
     new_comm.quantity  = *quantity;
     CHECK( new_comm.quantity > 0 );
-    co_return from_cargo( new_comm );
+    co_return from_cargo( Cargo::commodity{ new_comm } );
   }
 
  private:
@@ -749,7 +762,8 @@ class UnitsAtGateColonyView : public ui::View,
     // At this point, the unit is being dragged on top of another
     // unit that has cargo slots but is not already being held by
     // that unit, so we need to check if the unit fits.
-    if( !target_unit.cargo().fits_somewhere( dragged ) )
+    if( !target_unit.cargo().fits_somewhere(
+            Cargo::unit{ dragged } ) )
       return nothing;
     return ColViewObject::unit{ .id = dragged };
   }
@@ -788,8 +802,9 @@ class UnitsAtGateColonyView : public ui::View,
       Unit const& unit, Commodity const& comm ) {
     vector<UnitTransformationFromCommodityResult> possibilities =
         unit.with_commodity_added( comm );
-    adjust_for_independence_status( possibilities,
-                                    is_independence_declared() );
+    adjust_for_independence_status(
+        possibilities,
+        GameState::events().independence_declared );
 
     erase_if( possibilities, []( auto const& xform_res ) {
       for( auto [mod, _] : xform_res.modifier_deltas )
@@ -814,7 +829,7 @@ class UnitsAtGateColonyView : public ui::View,
                    transformed_unit_composition_from_commodity(
                        unit_from_id( id ), comm ) );
     return ColViewObject::commodity{
-        .comm = comm.with_quantity( xform_res.quantity_used ) };
+        .comm = with_quantity( comm, xform_res.quantity_used ) };
   }
 
   maybe<ColViewObject_t> can_receive_commodity(
@@ -853,11 +868,12 @@ class UnitsAtGateColonyView : public ui::View,
         o, //
         [&]( ColViewObject::unit const& unit ) {
           if( target_unit ) {
-            ustate_change_to_cargo_somewhere(
+            GameState::units().change_to_cargo_somewhere(
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            ustate_change_to_map( unit.id, colony().location() );
+            GameState::units().change_to_map(
+                unit.id, colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -902,7 +918,7 @@ class UnitsAtGateColonyView : public ui::View,
 
   void disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
-    internal::ustate_disown_unit( unit_id );
+    GameState::units().disown_unit( unit_id );
   }
 
  private:
@@ -1224,7 +1240,7 @@ void recomposite( ColonyId id, Delta const& canvas_size ) {
 
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
-      canvas_size.w / SX{ enum_traits<e_commodity>::count };
+      canvas_size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
@@ -1320,7 +1336,7 @@ void recomposite( ColonyId id, Delta const& canvas_size ) {
   invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
-  for( auto e : enum_traits<e_colview_entity>::values ) {
+  for( auto e : refl::enum_values<e_colview_entity> ) {
     CHECK( g_composition.entities.contains( e ),
            "colview entity {} is missing.", e );
   }

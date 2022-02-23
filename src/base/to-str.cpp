@@ -18,6 +18,14 @@ void to_str( int const& o, string& out, ADL_t ) {
   out += to_string( o );
 }
 
+void to_str( uint32_t const& o, string& out, ADL_t ) {
+  out += to_string( o );
+}
+
+void to_str( long const& o, string& out, ADL_t ) {
+  out += to_string( o );
+}
+
 void to_str( char o, string& out, ADL_t ) { out += o; }
 
 void to_str( double o, std::string& out, ADL_t ) {

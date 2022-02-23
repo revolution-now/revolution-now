@@ -10,6 +10,10 @@
 *****************************************************************/
 #include "pixel.hpp"
 
+// cdr
+#include "cdr/converter.hpp"
+#include "cdr/ext-std.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
 
@@ -217,27 +221,26 @@ pixel pixel::wood() {
   return pixel::parse_from_hex( "703F24" ).value();
 }
 
-// rcl
-rcl::convert_err<pixel> convert_to( rcl::value const& v,
-                                    rcl::tag<pixel> ) {
-  maybe<string const&> s = v.get_if<string>();
-  if( !s )
-    return rcl::error( fmt::format(
-        "cannot produce a pixel from type {}. String required.",
-        rcl::name_of( rcl::type_of( v ) ) ) );
-  if( s->size() != 7 && s->size() != 9 )
-    return rcl::error(
+cdr::value to_canonical( cdr::converter&, pixel const& o,
+                         cdr::tag_t<pixel> ) {
+  return o.to_string( /*with_alpha=*/true );
+}
+
+cdr::result<pixel> from_canonical( cdr::converter&   conv,
+                                   cdr::value const& v,
+                                   cdr::tag_t<pixel> ) {
+  UNWRAP_RETURN( hex, conv.from<string>( v ) );
+  if( hex.size() != 7 && hex.size() != 9 )
+    return conv.err(
         "pixel objects must be of the form `#NNNNNN[NN]` with N "
         "in 0-f." );
-  string const& hex = *s;
   if( hex[0] != '#' )
-    return rcl::error( "pixel objects must start with a '#'." );
+    return conv.err( "pixel objects must start with a '#'." );
   string_view digits( &hex[1], hex.length() - 1 );
 
   maybe<pixel> parsed = pixel::parse_from_hex( digits );
   if( !parsed.has_value() )
-    return rcl::error(
-        fmt::format( "failed to parse color: `{}'.", digits ) );
+    return conv.err( "failed to parse color: `{}'.", digits );
   return *parsed;
 }
 

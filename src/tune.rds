@@ -1,0 +1,80 @@
+# ===============================================================
+# tune.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the tune module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_tune_tempo {
+  fast,
+  medium,
+  slow,
+}
+
+enum.e_tune_genre {
+  trad,
+  classical,
+}
+
+enum.e_tune_culture {
+  native,
+  new_world,
+  old_world,
+}
+
+enum.e_tune_inst {
+  fife_and_drum,
+  fiddle,
+  percussive,
+  orchestrated,
+}
+
+enum.e_tune_sentiment {
+  happy,
+  sad,
+  war_triumph,
+  war_lost,
+}
+
+enum.e_tune_key {
+  a, bb, b, c, cs, d, eb, e, f, fs, g, ab
+}
+
+enum.e_tune_tonality {
+  major,
+  minor,
+}
+
+enum.e_tune_epoch {
+  standard,
+  post_revolution,
+}
+
+enum.e_tune_purpose {
+  standard,
+  special_event,
+}
+
+struct.TuneDimensions {
+  tempo 'e_tune_tempo',
+  genre 'e_tune_genre',
+  culture 'e_tune_culture',
+  inst 'e_tune_inst',
+  sentiment 'e_tune_sentiment',
+  key 'e_tune_key',
+  tonality 'e_tune_tonality',
+  epoch 'e_tune_epoch',
+  purpose 'e_tune_purpose',
+}
+
+struct.Tune {
+  display_name 'std::string',
+  stem 'std::string',
+  description 'std::string',
+  dimensions 'TuneDimensions',
+}

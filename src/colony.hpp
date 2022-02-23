@@ -13,21 +13,19 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "colony-id.hpp"
 #include "colony-mfg.hpp"
 #include "commodity.hpp"
 #include "error.hpp"
-#include "fb.hpp"
-#include "id.hpp"
+#include "expect.hpp"
 #include "nation.hpp"
+#include "unit-id.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
 // Rds
-#include "rds/colony.hpp"
-
-// Flatbuffers
-#include "fb/colony_generated.h"
+#include "colony.rds.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -37,25 +35,21 @@ namespace rn {
 
 class Colony {
  public:
-  Colony()  = default; // for serialization framework.
-  ~Colony() = default;
-  Colony( Colony const& ) = delete;
-  Colony( Colony&& )      = default;
-
-  Colony& operator=( Colony const& ) = delete;
-  Colony& operator=( Colony&& ) = default;
+  // This is provided for the serialization framework; a
+  // default-constructed object will likely not be valid.
+  Colony() = default;
 
   bool operator==( Colony const& ) const = default;
 
   /************************* Getters ***************************/
 
-  ColonyId           id() const { return id_; }
-  e_nation           nation() const { return nation_; }
-  std::string const& name() const { return name_; }
-  Coord              location() const { return location_; }
-  int                sentiment() const { return sentiment_; }
-  int prod_hammers() const { return prod_hammers_; }
-  int prod_tools() const { return prod_tools_; }
+  ColonyId           id() const { return o_.id; }
+  e_nation           nation() const { return o_.nation; }
+  std::string const& name() const { return o_.name; }
+  Coord              location() const { return o_.location; }
+  int                sentiment() const { return o_.sentiment; }
+  int prod_hammers() const { return o_.prod_hammers; }
+  int prod_tools() const { return o_.prod_tools; }
   int commodity_quantity( e_commodity commodity ) const;
   // These units will be in unspecified order (order may depend
   // on hash table iteration) so the caller should take care to
@@ -63,11 +57,11 @@ class Colony {
   std::vector<UnitId>                          units() const;
   std::unordered_set<e_colony_building> const& buildings()
       const {
-    return buildings_;
+    return o_.buildings;
   }
   std::unordered_map<UnitId, ColonyJob_t> const& units_jobs()
       const {
-    return units_;
+    return o_.units;
   }
 
   /************************ Modifiers **************************/
@@ -78,8 +72,8 @@ class Colony {
   void set_commodity_quantity( e_commodity comm, int q );
   void set_nation( e_nation new_nation );
 
-  std::unordered_map<e_commodity, int>& commodities() {
-    return commodities_;
+  ExhaustiveEnumMap<e_commodity, int>& commodities() {
+    return o_.commodities;
   }
 
   // Will strip the unit of any commodities (including inventory
@@ -93,52 +87,18 @@ class Colony {
   int  population() const;
   bool has_unit( UnitId id ) const;
 
-  friend void to_str( Colony const& o, std::string& out,
-                      base::ADL_t );
+  std::string debug_string() const;
 
-  // This class itself is not equipped to check all of its own
-  // invariants, since many of them require other game state to
-  // validate.
-  valid_deserial_t check_invariants_safe() const {
-    return valid;
-  }
+  // Implement refl::WrapsReflected.
+  Colony( wrapped::Colony&& o ) : o_( std::move( o ) ) {}
+  wrapped::Colony const&            refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "Colony";
 
  private:
-  friend expect<ColonyId> cstate_create_colony(
-      e_nation nation, Coord const& where,
-      std::string_view name );
+  friend struct ColoniesState;
 
-  using FlatMap_e_commodity_int =
-      std::unordered_map<e_commodity, int>;
-  using FlatMap_UnitId_ColonyJob_t =
-      std::unordered_map<UnitId, ColonyJob_t>;
-  using FlatSet_e_colony_building =
-      std::unordered_set<e_colony_building>;
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, Colony,
-  // Basic info.
-  ( ColonyId,                   id_           ),
-  ( e_nation,                   nation_       ),
-  ( std::string,                name_         ),
-  ( Coord,                      location_     ),
-
-  // Commodities.
-  ( FlatMap_e_commodity_int,    commodities_  ),
-
-  // Serves to both record the units in this colony as well as
-  // their occupations.
-  ( FlatMap_UnitId_ColonyJob_t, units_        ),
-  ( FlatSet_e_colony_building,  buildings_    ),
-
-  // Production
-  ( maybe<e_colony_building>,     production_   ),
-  ( int,                        prod_hammers_ ),
-  ( int,                        prod_tools_   ),
-
-  // Liberty sentiment: [0,100].
-  ( int,                        sentiment_    ));
-  // clang-format on
+  wrapped::Colony o_;
 };
 NOTHROW_MOVE( Colony );
 

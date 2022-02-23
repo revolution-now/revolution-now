@@ -14,12 +14,11 @@
 
 // Revolution Now
 #include "cargo.hpp"
-#include "fb.hpp"
-#include "id.hpp"
 #include "lua-enum.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "unit-composer.hpp"
+#include "unit-id.hpp"
 #include "util.hpp"
 #include "utype.hpp"
 
@@ -27,10 +26,7 @@
 #include "luapp/ext-userdata.hpp"
 
 // Rds
-#include "rds/unit.hpp"
-
-// Flatbuffers
-#include "fb/unit_generated.h"
+#include "unit.rds.hpp"
 
 namespace rn {
 
@@ -40,38 +36,37 @@ namespace rn {
 // objects alive with the same ID) but moving is fine.
 class ND Unit {
  public:
-  Unit()  = default; // for serialization framework.
-  ~Unit() = default;
-
-  MOVABLE_ONLY( Unit );
+  // This is provided for the serialization framework; a
+  // default-constructed object will likely not be valid.
+  Unit() = default;
 
   bool operator==( Unit const& ) const = default;
 
   /************************* Getters ***************************/
 
-  UnitId                    id() const { return id_; }
+  UnitId                    id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
   UnitTypeAttributes& desc_non_const() const;
   bool                is_human() const;
-  e_unit_orders       orders() const { return orders_; }
-  CargoHold const&    cargo() const { return cargo_; }
+  e_unit_orders       orders() const { return o_.orders; }
+  CargoHold const&    cargo() const { return o_.cargo; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
-  CargoHold& cargo() { return cargo_; }
-  e_nation   nation() const { return nation_; }
+  CargoHold& cargo() { return o_.cargo; }
+  e_nation   nation() const { return o_.nation; }
   NationDesc nation_desc() const {
-    return nation_obj( nation_ );
+    return nation_obj( o_.nation );
   }
-  MovementPoints movement_points() const { return mv_pts_; }
+  MovementPoints movement_points() const { return o_.mv_pts; }
   e_unit_type    base_type() const {
-    return composition_.base_type();
+    return o_.composition.base_type();
   }
-  e_unit_type type() const { return composition_.type(); }
-  UnitType type_obj() const { return composition_.type_obj(); }
+  e_unit_type type() const { return o_.composition.type(); }
+  UnitType type_obj() const { return o_.composition.type_obj(); }
   UnitComposition const& composition() const {
-    return composition_;
+    return o_.composition;
   }
 
   /************************* Setters ***************************/
@@ -111,7 +106,7 @@ class ND Unit {
   // So in other words, all units start their turn with movement
   // points greater than zero, and all units finish their turn
   // with movement points equal to zero.
-  bool mv_pts_exhausted() const { return mv_pts_ == 0; }
+  bool mv_pts_exhausted() const { return o_.mv_pts == 0; }
   // Gives up all movement points this turn. This neither can nor
   // should ever be reversed. This can be called in many dif-
   // ferent circumstances, namely whenever we want to end a
@@ -131,13 +126,11 @@ class ND Unit {
   // Marks unit as not having moved this turn.
   void new_turn();
   // Mark a unit as sentry.
-  void sentry() { orders_ = e_unit_orders::sentry; }
+  void sentry() { o_.orders = e_unit_orders::sentry; }
   // Mark a unit as fortified (non-ships only).
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
-  void clear_orders() { orders_ = e_unit_orders::none; }
-
-  valid_deserial_t check_invariants_safe() const;
+  void clear_orders() { o_.orders = e_unit_orders::none; }
 
   /********************** Type Changing ************************/
 
@@ -164,24 +157,19 @@ class ND Unit {
   std::vector<UnitTransformationFromCommodityResult>
   with_commodity_added( Commodity const& commodity ) const;
 
+  // Implement refl::WrapsReflected.
+  Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}
+  wrapped::Unit const&              refl() const { return o_; }
+  static constexpr std::string_view refl_ns   = "rn";
+  static constexpr std::string_view refl_name = "Unit";
+
  private:
-  friend UnitId create_unit( e_nation        nation,
-                             UnitComposition type );
-  friend UnitId create_unit( e_nation nation, UnitType type );
+  friend struct UnitsState;
 
   Unit( e_nation nation, UnitComposition type );
 
-  void check_invariants() const;
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, Unit,
-  ( UnitId,           id_            ),
-  ( UnitComposition,  composition_   ),
-  ( e_unit_orders,    orders_        ),
-  ( CargoHold,        cargo_         ),
-  ( e_nation,         nation_        ),
-  ( MovementPoints,   mv_pts_        ));
-  // clang-format on
+ private:
+  wrapped::Unit o_;
 };
 NOTHROW_MOVE( Unit );
 

@@ -18,8 +18,11 @@
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
 #include "main-menu.hpp"
-#include "rds/turn-impl.hpp"
+#include "turn-impl.rds.hpp"
 #include "window.hpp"
+
+// refl
+#include "refl/query-enum.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -45,15 +48,15 @@ char const* enum_to_str( int );
   case enum_type::val:                 \
     return str;
 
-#define ENUM_TO_STR_IMPL( type, ... )                         \
-  template<>                                                  \
-  char const* enum_to_str<type>( int e ) {                    \
-    DCHECK( enum_traits<type>::from_integral( e ) );          \
-    auto val        = *enum_traits<type>::from_integral( e ); \
-    using enum_type = type;                                   \
-    switch( val ) {                                           \
-      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )         \
-    }                                                         \
+#define ENUM_TO_STR_IMPL( type, ... )                       \
+  template<>                                                \
+  char const* enum_to_str<type>( int e ) {                  \
+    DCHECK( refl::enum_from_integral<type>( e ) );          \
+    auto val        = *refl::enum_from_integral<type>( e ); \
+    using enum_type = type;                                 \
+    switch( val ) {                                         \
+      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )       \
+    }                                                       \
   }
 
 #define TRANSLATION( type, ... ) \

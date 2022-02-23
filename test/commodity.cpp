@@ -453,7 +453,7 @@ TEST_CASE( "[commodity] with_quantity" ) {
   REQUIRE( comm.quantity == 50 );
   REQUIRE( comm.type == e_commodity::cloth );
 
-  Commodity new_comm = comm.with_quantity( 49 );
+  Commodity new_comm = with_quantity( comm, 49 );
   REQUIRE( comm.quantity == 50 );
   REQUIRE( comm.type == e_commodity::cloth );
   REQUIRE( new_comm.quantity == 49 );

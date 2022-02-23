@@ -17,7 +17,7 @@
 #include "wait.hpp"
 
 // Rds
-#include "rds/main-menu.hpp"
+#include "main-menu.rds.hpp"
 
 namespace rn {
 

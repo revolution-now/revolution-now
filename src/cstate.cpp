@@ -11,23 +11,24 @@
 #include "cstate.hpp"
 
 // Revolution Now
+#include "colony-id.hpp"
 #include "colony-mgr.hpp"
 #include "error.hpp"
-#include "fb.hpp"
-#include "id.hpp"
+#include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "sg-macros.hpp"
 
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
-
-// Flatbuffers
-#include "fb/sg-colony_generated.h"
+#include "base/to-str-ext-std.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -36,144 +37,79 @@ using namespace std;
 
 namespace rn {
 
-DECLARE_SAVEGAME_SERIALIZERS( Colony );
-
-namespace {
-
-/****************************************************************
-** Save-Game State
-*****************************************************************/
-struct SAVEGAME_STRUCT( Colony ) {
-  using StorageMap_t = unordered_map<ColonyId, Colony>;
-
-  // Fields that are actually serialized.
-  // clang-format off
-  SAVEGAME_MEMBERS( Colony,
-  ( StorageMap_t, colonies  ));
-  // clang-format on
-
- public:
-  // Fields that are derived from the serialized fields.
-
-  unordered_map<Coord, ColonyId>  colony_from_coord;
-  unordered_map<string, ColonyId> colony_from_name;
-
- private:
-  SAVEGAME_FRIENDS( Colony );
-  SAVEGAME_SYNC() {
-    // Sync all fields that are derived from serialized fields
-    // and then validate (check invariants).
-
-    // Populate colony_from_*.
-    for( auto const& [id, colony] : colonies ) {
-      Coord where = colony.location();
-      VERIFY_DESERIAL(
-          !colony_from_coord.contains( where ),
-          fmt::format( "multiples colonies on tile {}.",
-                       where ) );
-      colony_from_coord[where] = id;
-      string name              = colony.name();
-      VERIFY_DESERIAL(
-          !colony_from_name.contains( name ),
-          fmt::format( "multiples colonies have name {}.",
-                       name ) );
-      colony_from_name[name] = id;
-    }
-
-    return valid;
-  }
-  // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() {
-    for( auto const& [id, colony] : colonies )
-      HAS_VALUE_OR_RET( check_colony_invariants_safe( id ) );
-    return valid;
-  }
-};
-SAVEGAME_IMPL( Colony );
-
-} // namespace
-
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<ColonyId, string> cstate_create_colony(
-    e_nation nation, Coord const& where,
-    std::string_view name ) {
-  if( SG().colony_from_coord.contains( where ) )
-    return fmt::format( "square {} already contains a colony.",
-                        where );
-  if( SG().colony_from_name.contains( string( name ) ) )
-    return fmt::format(
-        "there is already a colony with name {}.", name );
+ColonyId create_colony( e_nation nation, Coord const& where,
+                        std::string_view name ) {
+  ColoniesState& cols_state = GameState::colonies();
+  CHECK( !cols_state.maybe_from_coord( where ).has_value(),
+         "square {} already contains a colony.", where );
+  CHECK( !cols_state.maybe_from_name( name ).has_value(),
+         "there is already a colony with name {}.", name );
 
-  auto col_id = next_colony_id();
-
-  Colony colony;
-  colony.id_           = col_id;
-  colony.nation_       = nation;
-  colony.name_         = string( name );
-  colony.location_     = where;
-  colony.production_   = nothing;
-  colony.prod_hammers_ = 0;
-  colony.prod_tools_   = 0;
-  colony.sentiment_    = 0;
-
-  SG().colony_from_coord[where]         = col_id;
-  SG().colony_from_name[string( name )] = col_id;
-  SG().colonies[col_id]                 = std::move( colony );
-  return col_id;
+  wrapped::Colony refl_colony{
+      .id           = ColonyId{ 0 },
+      .nation       = nation,
+      .name         = string( name ),
+      .location     = where,
+      .commodities  = {},
+      .units        = {},
+      .buildings    = {},
+      .production   = nothing,
+      .prod_hammers = 0,
+      .prod_tools   = 0,
+      .sentiment    = 0,
+  };
+  return cols_state.add_colony(
+      Colony( std::move( refl_colony ) ) );
 }
 
 bool colony_exists( ColonyId id ) {
-  return SG().colonies.contains( id );
+  ColoniesState const& cols_state = GameState::colonies();
+  return cols_state.all().contains( id );
 }
 
 Colony& colony_from_id( ColonyId id ) {
-  auto it = SG().colonies.find( id );
-  CHECK( it != SG().colonies.end(), "colony {} does not exist.",
-         id );
-  return it->second;
+  ColoniesState& cols_state = GameState::colonies();
+  return cols_state.colony_for( id );
 }
 
-vector<ColonyId> colonies_all( maybe<e_nation> n ) {
+vector<ColonyId> colonies_all( e_nation n ) {
+  ColoniesState&   cols_state = GameState::colonies();
   vector<ColonyId> res;
-  for( auto const& [id, colony] : SG().colonies ) {
-    if( !n.has_value() || n == colony.nation() )
+  for( auto const& [id, colony] : cols_state.all() ) {
+    if( n == colony.nation() ) //
       res.push_back( id );
   }
   return res;
 }
 
-// Apply a function to all colonies.
-void map_colonies( base::function_ref<void( Colony& )> func ) {
-  for( auto& p : SG().colonies ) func( p.second );
+vector<ColonyId> colonies_all() {
+  ColoniesState&   cols_state = GameState::colonies();
+  vector<ColonyId> res;
+  for( auto const& [id, colony] : cols_state.all() )
+    res.push_back( id );
+  return res;
 }
 
-// Should not be holding any references to the colony after this.
-void cstate_destroy_colony( ColonyId id ) {
-  Colony& colony = colony_from_id( id );
-  CHECK( SG().colony_from_coord.contains( colony.location() ) );
-  SG().colony_from_coord.erase( colony.location() );
-  CHECK( SG().colony_from_name.contains( colony.name() ) );
-  SG().colony_from_name.erase( colony.name() );
-  // Should be last.
-  SG().colonies.erase( id );
+// Apply a function to all colonies.
+void map_colonies( base::function_ref<void( Colony& )> func ) {
+  ColoniesState& cols_state = GameState::colonies();
+  for( auto& [id, colony] : cols_state.all() )
+    func( cols_state.colony_for( id ) );
 }
 
 maybe<ColonyId> colony_from_coord( Coord const& coord ) {
-  return base::lookup( SG().colony_from_coord, coord );
+  return GameState::colonies().maybe_from_coord( coord );
 }
 
 maybe<ColonyId> colony_from_name( std::string_view name ) {
-  return base::lookup( SG().colony_from_name, string( name ) );
+  return GameState::colonies().maybe_from_name( name );
 }
 
 vector<ColonyId> colonies_in_rect( Rect const& rect ) {
-  vector<ColonyId> res;
-  for( auto coord : rect )
-    if( auto colony = colony_from_coord( coord ); colony )
-      res.push_back( *colony );
-  return res;
+  return GameState::colonies().from_rect( rect );
 }
 
 /****************************************************************
@@ -186,6 +122,12 @@ LUA_FN( colony_from_id, Colony&, ColonyId id ) {
   if( !colony_exists( id ) )
     lua::throw_lua_error( L, "colony {} does not exist.", id );
   return colony_from_id( id );
+}
+
+// TODO: move this?
+LUA_FN( last_colony_id, ColonyId ) {
+  ColoniesState& cols_state = GameState::colonies();
+  return cols_state.last_colony_id();
 }
 
 } // namespace

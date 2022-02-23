@@ -2,31 +2,60 @@
 # TODO
 # ===============================================================
 
-  1. Implement proper unit type handling mechanism.
-  2. Allow transitioning units between types, e.g. giving a free
-     colonist muskets and turning them into a soldier.
-  3. OpenGL
+  1. OpenGL
 
 # ===============================================================
-# Serialization
+# Global State
 # ===============================================================
 
-  1. Move all global save-game data into one giant data structure
-     and get all the SG stuff out of the individual modules.
+  1. Figure out a better way to handle remaining global variables
+     used by the planes. This will probably involve putting the
+     plane objects on the stack, which may be where they should
+     go anyway. Maybe then we would not need plane configs since
+     they could just somehow register themselves into a stack as
+     they are created/destroyed.
+  2. See if it is possible to create the game state on the stack
+     somewhere instead of in a global variable and pass it down
+     as function parameters (possibly only sub components).
 
-  2. Add struct w/ reflection to Rds and redo flatbuffers struct
-     and table serialization to make use of it. This will also
-     allow serializing game data to other formats. Add an Rcl de-
-     serializer for structs using this also. One challenge here
-     will be how to make a struct reflected but also have methods
-     that can be used to maintain invariants. Also, such classes
-     can be nested.
+# ===============================================================
+# Game Saving
+# ===============================================================
 
-  3. Add sumtype reflection to Rds (which will also require that
-     the structs comprising the alternatives be reflected using
-     the mechanism from \#2 above). Then write an Rcl deserial-
-     izer for sumtypes and use it to remove the manual implemen-
-     tations in the utype module.
+  1. Consider how to handle forward/backward compatibility in a
+     generic way with model-based serialization. We could poten-
+     tially have a way to define a schema (in Rcl) that would be
+     used to check the model data as it is being serialized. We
+     could save each version's schema and check all of them.
+  2. Look into data compression for save files. I). Minify rcl as
+     much as possible (maybe just add an option to not indent
+     while emitting rcl). II). Compress with brotli or zstd.
+     III). Export with base64.
+  3. Replay?
+
+# ===============================================================
+# Reflection
+# ===============================================================
+
+  1. Figure out a more general way to handle the validation that
+     is done on the game state. Find a way (and place) to run
+     validation methods recursively over a reflected struct so
+     that the game state can be validated each turn. Run the com-
+     plete validation at the start of each turn. Idea: create a
+     new Foldable concept that can traverse a data structure and
+     produce an accumulated value, possible with early termina-
+     tion.
+  2. Consider adding a generic mechanism for exposing reflected
+     C++ types as Lua userdata (C++-owned).
+
+# ===============================================================
+# Config System
+# ===============================================================
+
+  1. Replace the config *.inl files with an Rds solution con-
+     sisting of a reflected struct defining the config structure
+     for each module. These Rds files can go in the config folder
+     next to the rcl files.
 
 # ===============================================================
 # Type Safety
@@ -42,19 +71,29 @@
 # Lua
 # ===============================================================
 
-  1. Look into using the Teal language, a typed lua.  It looks
-     really good, though some have said that it is not mature...
-       https://github.com/teal-language/tl
-  2. Add support for equality of userdata types in Lua. By de-
+  1. Add routine for converting from a Lua value to Cdr, and
+     therefore to a C++ type. This operation will probably be ex-
+     pensive. This may be a bit tricky because not all lua values
+     can be converted to Cdr, e.g. lua functions. But
+     to_canonical is not failable. Also, it doesn't seem right to
+     make the luapp module depend on Cdr, so probably best to
+     avoid making {to,from}_canonical overloads for lua types,
+     and instead just make a separate API for converting them in
+     the rn library. Another tricky thing will be dealing with
+     empty lists, which in Lua are just empty tables, which are
+     difficult to distinguish from empty tables...
+  2. Add Lua module for generating a game state in Lua.
+  3. Look into using the Teal language, a typed lua. It looks re-
+     ally good, though some have said that it is not mature...
+     https://github.com/teal-language/tl
+  4. Add support for equality of userdata types in Lua. By de-
      fault a usertype should get an __equal metamethod that
      throws a Lua error when attempting to compare with anything,
      unless the cpp type is equality comparable, in which case it
      should get a proper comparison method.
-  3. Create proper Lua API design in order to avoid coupling with
+  5. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  4. Generate Flatbuffers Lua modules so that Lua can read and
-     write game save files.
-  5. Add some other standard containers like vector,
+  6. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================
@@ -151,12 +190,6 @@ Low priority:
         x land unit boarding ship
         x landfall
         - treasure boarding ship
-
-# ===============================================================
-# Game Replay
-# ===============================================================
-
-  - replay?
 
 # ===============================================================
 # Old World View

@@ -31,9 +31,6 @@
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../Catch2.git
-[submodule "extern/flatbuffers"]
-	path = extern/flatbuffers
-	url = ../../dpacbach/flatbuffers.git
 [submodule "extern/stb"]
 	path = extern/stb
 	url = ../../dpacbach/stb

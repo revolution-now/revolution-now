@@ -40,8 +40,9 @@ void abort_with_backtrace_here( SourceLoc /*loc*/ ) { abort(); }
 } // namespace base
 
 int main( int argc, char** argv ) {
-  if( argc != 3 )
-    rds::error_msg( "usage: rdsc <rds-file> <out-file>" );
+  if( argc != 4 )
+    rds::error_msg(
+        "usage: rdsc <rds-file> <preamble-file> <out-file>" );
 
   string_view filename = argv[1];
   if( !filename.ends_with( ".rds" ) )
@@ -49,11 +50,15 @@ int main( int argc, char** argv ) {
         "filename '{}' does not have a .rds extension.",
         filename );
 
-  string_view output_file = argv[2];
+  string_view preamble_file = argv[2];
+  if( !preamble_file.ends_with( ".lua" ) )
+    rds::error_msg( "preamble file must end with '.lua'." );
+
+  string_view output_file = argv[3];
   if( !output_file.ends_with( ".hpp" ) )
     rds::error_msg( "output file must end with '.hpp'." );
 
-  rds::expr::Rds rds = rds::parse( filename );
+  rds::expr::Rds rds = rds::parse( filename, preamble_file );
 
   vector<string> validation_errors = rds::validate( rds );
   if( !validation_errors.empty() ) {

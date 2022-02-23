@@ -18,7 +18,7 @@ void to_str( string_view o, string& out, ADL_t ) {
   out += string( o );
 }
 
-void to_str( string o, string& out, ADL_t ) { out += o; }
+void to_str( string const& o, string& out, ADL_t ) { out += o; }
 
 void to_str( fs::path const& o, string& out, ADL_t ) {
   out += o.string();

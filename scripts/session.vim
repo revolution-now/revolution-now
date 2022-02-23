@@ -1,29 +1,23 @@
 " =========================== Config ============================
 let s:stems = [
- "\ 'screen',
- "\ 'gfx-api',
- "\ 'open-gl',
- "\ 'shaders/experimental',
- "\ 'gl/types',
- "\ 'gl/error',
- "\ 'gl/bindable',
- "\ 'gl/vertex-buffer',
- "\ 'gl/attribs',
- "\ 'gl/vertex-array',
- "\ 'gl/uniform',
- "\ 'gl/shader',
- "\ 'gfx/pixel',
- "\ 'gfx/image',
- "\ 'stb/image',
- "\ 'gl/texture',
- "\ 'open-gl-perf-test',
- "\ 'shaders/perf-test',
- \ 'rds/rdsc/rds-util',
- \ 'rds/rdsc/expr',
- \ 'rds/rdsc/parser',
- \ 'rds/rdsc/post-process',
- \ 'rds/rdsc/code-gen',
- \ 'rds/rdsc/validate',
+ \ 'screen',
+ \ 'gfx-api',
+ \ 'open-gl',
+ \ 'shaders/experimental',
+ \ 'gl/types',
+ \ 'gl/error',
+ \ 'gl/bindable',
+ \ 'gl/vertex-buffer',
+ \ 'gl/attribs',
+ \ 'gl/vertex-array',
+ \ 'gl/uniform',
+ \ 'gl/shader',
+ \ 'gfx/pixel',
+ \ 'gfx/image',
+ \ 'stb/image',
+ \ 'gl/texture',
+ \ 'open-gl-perf-test',
+ \ 'shaders/perf-test',
 \]
 
 let s:luas = [
@@ -42,12 +36,12 @@ let s:quads = [
 function s:Open3( stem )
   echo '  - ' . a:stem
   let l:rds_impl_opened = 0
-  if filereadable( 'src/rds/' . a:stem . '.rds' )
-    exe 'silent tabnew src/rds/' . a:stem . '.rds'
+  if filereadable( 'src/' . a:stem . '.rds' )
+    exe 'silent tabnew src/' . a:stem . '.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
-  elseif filereadable( 'src/rds/' . a:stem . '-impl.rds' )
+  elseif filereadable( 'src/' . a:stem . '-impl.rds' )
     let l:rds_impl_opened = 1
-    exe 'silent tabnew src/rds/' . a:stem . '-impl.rds'
+    exe 'silent tabnew src/' . a:stem . '-impl.rds'
     exe 'silent vsplit src/' . a:stem . '.hpp'
   else
     exe 'silent tabnew src/' . a:stem . '.hpp'
@@ -67,13 +61,10 @@ function s:Open3( stem )
     :TemplateInit cpptest
     set nomodified
   endif
-  " Uncomment these to open Tagbar; slows things down.
-  ":TagbarOpen
-  "3wincmd h
   4wincmd h
   if l:rds_impl_opened == 0
-    if filereadable( 'src/rds/' . a:stem . '-impl.rds' )
-      exe 'silent split src/rds/' . a:stem . '-impl.rds'
+    if filereadable( 'src/' . a:stem . '-impl.rds' )
+      exe 'silent split src/' . a:stem . '-impl.rds'
       wincmd k
     endif
   endif

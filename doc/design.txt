@@ -412,34 +412,6 @@ Objects owned by C++ (#2)
 
   where the reference must be non-const.
 
-Serialization/Game State
-========================
-
-Plan:
-
-  - Create a top level flatbuffers schema with a single table
-    containing one entry for each class of state, denoted S.
-  - Each S will have its structure defined in a separate schema
-    file, and that structure will begin with G_.
-  - The module that needs a given state class S will specialize
-    the above class, e.g., for unit state:
-
-      namespace fb { struct G_UnitState; }
-
-      SaveGameSerializer( FBBuilder& builder,
-                          Offset<fb::G_UnitState>* out_offset );
-
-      expect<> SaveGameSerializer( fb::G_UnitState const* src );
-
-    This has the benefit that the fb::G_UnitState need only be
-    forward declared in the header.
-  - The overall saving and restoring will be managed in a
-    savegame module, and this module can decide whether to put
-    all of the data from all the state classes in a single file,
-    or separate.
-  - The savegame module will find all the specializations and
-    call them.
-
 Drag & Drop with Dialog Box
 ===========================
 

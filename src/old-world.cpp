@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "game-state.hpp"
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
@@ -19,6 +21,9 @@
 
 // luapp
 #include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -151,7 +156,8 @@ void unit_sail_to_old_world( UnitId id ) {
   lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a old_world state here.
-  ustate_change_to_old_world_view( id, target_state );
+  GameState::units().change_to_old_world_view( id,
+                                               target_state );
 }
 
 void unit_sail_to_new_world( UnitId id ) {
@@ -189,7 +195,8 @@ void unit_sail_to_new_world( UnitId id ) {
   lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a old_world state here.
-  ustate_change_to_old_world_view( id, target_state );
+  GameState::units().change_to_old_world_view( id,
+                                               target_state );
 }
 
 void unit_move_to_old_world_dock( UnitId id ) {
@@ -198,7 +205,7 @@ void unit_move_to_old_world_dock( UnitId id ) {
   CHECK( holder && is_unit_in_port( *holder ),
          "cannot move unit to dock unless it is in the cargo of "
          "a ship that is in port." );
-  ustate_change_to_old_world_view(
+  GameState::units().change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   DCHECK( is_unit_on_dock( id ) );
   DCHECK( !is_unit_onboard( id ) );
@@ -214,7 +221,7 @@ e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
               debug_string( id ), outbound.percent );
     if( outbound.percent >= 1.0 ) {
       // FIXME: temporary
-      ustate_change_to_map( id, Coord{} );
+      GameState::units().change_to_map( id, Coord{} );
       unit_from_id( id ).clear_orders();
       lg.debug( "unit has arrived in new world." );
       return e_high_seas_result::arrived_in_new_world;
@@ -227,7 +234,7 @@ e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
     lg.debug( "advancing inbound unit {} to {} percent.",
               debug_string( id ), inbound.percent );
     if( inbound.percent >= 1.0 ) {
-      ustate_change_to_old_world_view(
+      GameState::units().change_to_old_world_view(
           id, UnitOldWorldViewState::in_port{} );
       lg.debug( "unit has arrived in old world." );
       return e_high_seas_result::arrived_in_old_world;
@@ -245,7 +252,7 @@ namespace {
 LUA_FN( create_unit_in_port, UnitId, e_nation nation,
         UnitComposition comp ) {
   auto id = create_unit( nation, std::move( comp ) );
-  ustate_change_to_old_world_view(
+  GameState::units().change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   lg.info( "created a {} in {} port/dock.",
            unit_attr( comp.type() ).name,

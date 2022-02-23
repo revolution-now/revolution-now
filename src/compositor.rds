@@ -1,0 +1,29 @@
+# ===============================================================
+# compositor.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-03-02.
+#
+# Description: RDS definitions for the compositor module.
+#
+# ===============================================================
+namespace "rn.compositor"
+
+# In general, these sections may overlap.
+enum.e_section {
+  menu_bar,
+  viewport,
+  panel,
+  console,
+  normal,  # non console area.
+  total, # The entire renderable window.
+}
+
+# These should be clockwise.
+enum.e_composite_location {
+  top,
+  right,
+  bottom,
+  left,
+}

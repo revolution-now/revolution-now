@@ -16,7 +16,7 @@
 #include "tx.hpp"
 
 // Rds
-#include "rds/image.hpp"
+#include "image.rds.hpp"
 
 namespace rn {
 

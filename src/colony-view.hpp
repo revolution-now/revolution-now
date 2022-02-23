@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "id.hpp"
+#include "colony-id.hpp"
 #include "wait.hpp"
 
 namespace rn {

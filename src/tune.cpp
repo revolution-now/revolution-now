@@ -21,11 +21,8 @@
 // Revolution Now (config)
 #include "../config/rcl/music.inl"
 
-// Rcl
-#include "rcl/ext-std.hpp"
-
-// Rds
-#include "rds/helper/rcl.hpp"
+// refl
+#include "refl/to-str.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -124,8 +121,19 @@ TuneVecDimensions TuneOptDimensions::to_vec_dims() const {
       OPT_TO_VEC, EVAL( TUNE_DIMENSION_LIST ) ) ) };
 }
 
-TuneOptDimensions TuneDimensions::to_opt_dims() const {
-  return { EVAL( TUNE_DIMENSION_LIST ) };
+TuneOptDimensions to_opt_dims(
+    TuneDimensions const& dimensions ) {
+  return {
+      dimensions.tempo,     //
+      dimensions.genre,     //
+      dimensions.culture,   //
+      dimensions.inst,      //
+      dimensions.sentiment, //
+      dimensions.key,       //
+      dimensions.tonality,  //
+      dimensions.epoch,     //
+      dimensions.purpose,   //
+  };
 }
 
 void TunePlayerInfo::log() const {
@@ -198,18 +206,18 @@ vector<TuneId> find_tunes( TuneVecDimensions dimensions,
 vector<TuneId> tunes_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.dimensions.to_opt_dims(), //
-                     /*fuzzy_match=*/true,          //
-                     /*not_like=*/false             //
+  return find_tunes( to_opt_dims( tune.dimensions ), //
+                     /*fuzzy_match=*/true,           //
+                     /*not_like=*/false              //
   );
 }
 
 vector<TuneId> tunes_not_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.dimensions.to_opt_dims(), //
-                     /*fuzzy_match=*/true,          //
-                     /*not_like=*/true              //
+  return find_tunes( to_opt_dims( tune.dimensions ), //
+                     /*fuzzy_match=*/true,           //
+                     /*not_like=*/true               //
   );
 }
 
@@ -239,99 +247,6 @@ TuneId random_tune() {
           .take_while_L( _.second == first_score )
           .to_vector();
   return rng::pick_one( same_distance ).first;
-}
-
-/****************************************************************
-** to_str
-*****************************************************************/
-void to_str( Tune const& o, std::string& out, base::ADL_t ) {
-  out += fmt::format(
-      "Tune{{display_name={}, stem={}, description=\"{}\", "
-      "dimensions={}}}",
-      o.display_name, o.stem, o.description, o.dimensions );
-}
-
-#define TUNE_DIM_TO_STR( name ) \
-  out += fmt::format( TO_STRING( name ) "={}, ", o.name );
-
-void to_str( TuneDimensions const& o, std::string& out,
-             base::ADL_t ) {
-  out += "TuneDimensions{";
-  EVAL( PP_MAP( TUNE_DIM_TO_STR, TUNE_DIMENSION_LIST ) );
-  // Remove trailing comma and space.
-  out.resize( out.size() - 2 );
-  out += "}";
-}
-
-/****************************************************************
-** Rcl
-*****************************************************************/
-#define CONVERT_FIELD( type, name )                 \
-  if( !tbl.has_key( #name ) )                       \
-    return rcl::error( fmt::format(                 \
-        "field '{}' required by {} object but was " \
-        "not found.",                               \
-        #name, kTypeName ) );                       \
-  auto STRING_JOIN( maybe_, name ) =                \
-      rcl::convert_to<type>( tbl[#name] );          \
-  if( !STRING_JOIN( maybe_, name ) )                \
-    return STRING_JOIN( maybe_, name ).error();     \
-  auto&& name = *STRING_JOIN( maybe_, name );
-
-#define CONVERT_DIMENSION_FIELD( name ) \
-  CONVERT_FIELD( PP_JOIN( e_tune_, name ), name )
-
-#define SET_DIMENSION_FIELD( name ) .name = name
-
-rcl::convert_err<TuneDimensions> convert_to(
-    rcl::value const& v, rcl::tag<TuneDimensions> ) {
-  constexpr string_view kTypeName          = "TuneDimensions";
-  constexpr int         kNumFieldsExpected = k_num_dimensions;
-  base::maybe<unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error(
-        fmt::format( "cannot produce a {} object from type {}.",
-                     kTypeName, name_of( type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "expected exactly {} fields for Tune "
-                     "object, but found {}.",
-                     kNumFieldsExpected, tbl.size() ) );
-  EVAL( PP_MAP( CONVERT_DIMENSION_FIELD, TUNE_DIMENSION_LIST ) );
-  return TuneDimensions{ EVAL( PP_MAP_COMMAS(
-      SET_DIMENSION_FIELD, TUNE_DIMENSION_LIST ) ) };
-}
-
-rcl::convert_err<Tune> convert_to( rcl::value const& v,
-                                   rcl::tag<Tune> ) {
-  constexpr string_view kTypeName          = "Tune";
-  constexpr int         kNumFieldsExpected = 4;
-  base::maybe<unique_ptr<rcl::table> const&> mtbl =
-      v.get_if<unique_ptr<rcl::table>>();
-  if( !mtbl )
-    return rcl::error(
-        fmt::format( "cannot produce a {} object from type {}.",
-                     kTypeName, name_of( type_of( v ) ) ) );
-  DCHECK( *mtbl != nullptr );
-  rcl::table const& tbl = **mtbl;
-  if( tbl.size() != kNumFieldsExpected )
-    return rcl::error(
-        fmt::format( "expected exactly {} fields for Tune "
-                     "object, but found {}.",
-                     kNumFieldsExpected, tbl.size() ) );
-  CONVERT_FIELD( string, display_name );
-  CONVERT_FIELD( string, stem );
-  CONVERT_FIELD( string, description );
-  CONVERT_FIELD( TuneDimensions, dimensions );
-  return Tune{
-      .display_name = std::move( display_name ),
-      .stem         = std::move( stem ),
-      .description  = std::move( description ),
-      .dimensions   = std::move( dimensions ),
-  };
 }
 
 } // namespace rn

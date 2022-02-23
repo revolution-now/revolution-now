@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "rds/helper/enum.hpp"
-
 // base
 #include "base/cc-specific.hpp"
 #include "base/fs.hpp"

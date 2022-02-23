@@ -24,6 +24,10 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+#include "refl/to-str.hpp"
+
 // base-util
 #include "base-util/fs.hpp"
 #include "base-util/pp.hpp"
@@ -237,11 +241,11 @@ void init_sprites() {
   ));
   // clang-format on
 
-  for( e_tile e : enum_traits<e_tile>::values ) {
+  for( e_tile e : refl::enum_values<e_tile> ) {
     CHECK( g_sprites.contains( e ),
            "Tile `{}` has not been loaded.", e );
   }
-  auto num_tiles        = enum_traits<e_tile>::count;
+  auto num_tiles        = refl::enum_count<e_tile>;
   auto num_tiles_loaded = g_sprites.size();
   CHECK( int( num_tiles_loaded ) == num_tiles,
          "There are {} tiles but {} were loaded.", num_tiles,

@@ -14,11 +14,17 @@
 #include "src/enum-map.hpp"
 
 // Rds
-#include "rds/helper/rcl.hpp"
-#include "rds/testing.hpp"
+#include "rds/testing.rds.hpp"
 
-// Rcl
-#include "rcl/ext-std.hpp"
+// refl
+#include "refl/to-str.hpp"
+
+// cdr
+#include "src/cdr/ext-std.hpp"
+#include "src/cdr/ext.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -26,12 +32,14 @@
 namespace rn {
 namespace {
 
-using namespace std;
+using namespace ::std;
+using namespace ::cdr::literals;
 
 using ::Catch::Matches;
+using ::cdr::testing::conv_from_bt;
 
 // If this changes then the below tests may need to be updated.
-static_assert( enum_traits<e_color>::count == 3 );
+static_assert( refl::enum_count<e_color> == 3 );
 
 static_assert( is_default_constructible_v<
                ExhaustiveEnumMap<e_color, int>> );
@@ -106,69 +114,87 @@ TEST_CASE( "[enum-map] ExhaustiveEnumMap equality" ) {
   REQUIRE( m1[e_color::blue] == 0 );
 }
 
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl" ) {
-  using KV = rcl::table::value_type;
-  rcl::table t =
-      rcl::make_table( KV{ "red", "one" }, KV{ "green", "two" },
-                       KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
+ExhaustiveEnumMap<e_color, string> const native_colors1{
+    { e_color::red, "one" },
+    /*{ e_color::green, "" },*/
+    { e_color::blue, "three" },
+};
 
-  // Test.
-  ExhaustiveEnumMap<e_color, string> expected{
-      { e_color::red, "one" },
-      { e_color::green, "two" },
-      { e_color::blue, "three" } };
-  REQUIRE( rcl::convert_to<ExhaustiveEnumMap<e_color, string>>(
-               v ) == expected );
+cdr::value const cdr_colors1 = cdr::table{
+    "red"_key   = "one",
+    "green"_key = "",
+    "blue"_key  = "three",
+};
+
+cdr::value const cdr_colors1_extra_field = cdr::table{
+    "red"_key    = "one",
+    "green"_key  = "",
+    "blue"_key   = "three",
+    "purple"_key = "four",
+};
+
+cdr::value const cdr_colors1_wrong_type = cdr::table{
+    "red"_key   = "one",
+    "green"_key = 5,
+    "blue"_key  = "three",
+};
+
+cdr::value const cdr_colors1_missing_field = cdr::table{
+    "red"_key  = "one",
+    "blue"_key = "three",
+};
+
+TEST_CASE( "[enum-map] cdr/strict" ) {
+  using M = ExhaustiveEnumMap<e_color, string>;
+  cdr::converter conv{ {
+      .write_fields_with_default_value  = true,
+      .allow_unrecognized_fields        = false,
+      .default_construct_missing_fields = false,
+  } };
+  SECTION( "to_canonical" ) {
+    REQUIRE( conv.to( native_colors1 ) == cdr_colors1 );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<M>( conv, cdr_colors1 ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( 5 ) ==
+             conv.err( "expected type table, instead found type "
+                       "integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_wrong_type ) ==
+             conv.err( "expected type string, instead found "
+                       "type integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_extra_field ) ==
+             conv.err( "unrecognized key 'purple' in table." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_missing_field ) ==
+             conv.err( "key 'green' not found in table." ) );
+  }
 }
 
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl e_empty" ) {
-  rcl::table t = rcl::make_table();
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  ExhaustiveEnumMap<e_empty, string> expected;
-  REQUIRE( ( rcl::convert_to<ExhaustiveEnumMap<e_empty, string>>(
-                 v ) == expected ) );
-}
-
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl non-exhaustive" ) {
-  using KV     = rcl::table::value_type;
-  rcl::table t = rcl::make_table( KV{ "green", "two" },
-                                  KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  auto res =
-      rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v );
-  REQUIRE( res.has_error() );
-  REQUIRE_THAT(
-      res.error().what,
-      Matches(
-          "table must have precisely 3 field\\(s\\) for "
-          "conversion to ExhaustiveEnumMap.rn::e_color.*" ) );
-}
-
-TEST_CASE( "[enum-map] ExhaustiveEnumMap Rcl bad enum" ) {
-  using KV = rcl::table::value_type;
-  rcl::table t =
-      rcl::make_table( KV{ "red", "one" }, KV{ "greenx", "two" },
-                       KV{ "blue", "three" } );
-  UNWRAP_CHECK( ppt, rcl::run_postprocessing( std::move( t ) ) );
-  rcl::value v{
-      std::make_unique<rcl::table>( std::move( ppt ) ) };
-
-  // Test.
-  REQUIRE(
-      rcl::convert_to<ExhaustiveEnumMap<e_color, string>>( v ) ==
-      rcl::error( "failed to parse string `greenx' into valid "
-                  "e_color enum value." ) );
+TEST_CASE( "[enum-map] cdr/no-defaults" ) {
+  using M = ExhaustiveEnumMap<e_color, string>;
+  cdr::converter conv{ {
+      .write_fields_with_default_value  = false,
+      .allow_unrecognized_fields        = true,
+      .default_construct_missing_fields = true,
+  } };
+  SECTION( "to_canonical" ) {
+    REQUIRE( conv.to( native_colors1 ) ==
+             cdr_colors1_missing_field );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<M>( conv, cdr_colors1 ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( 5 ) ==
+             conv.err( "expected type table, instead found type "
+                       "integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_wrong_type ) ==
+             conv.err( "expected type string, instead found "
+                       "type integer." ) );
+    REQUIRE( conv.from<M>( cdr_colors1_extra_field ) ==
+             native_colors1 );
+    REQUIRE( conv.from<M>( cdr_colors1_missing_field ) ==
+             native_colors1 );
+  }
 }
 
 } // namespace

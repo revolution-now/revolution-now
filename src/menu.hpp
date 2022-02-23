@@ -16,7 +16,7 @@
 #include "typed-int.hpp"
 
 // Rds
-#include "rds/menu.hpp"
+#include "menu.rds.hpp"
 
 // base-util
 #include "base-util/macros.hpp"

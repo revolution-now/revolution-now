@@ -21,21 +21,28 @@
 
 namespace rn {
 
-expect<fs::path, generic_err> save_game( int slot );
-expect<fs::path, generic_err> load_game( int slot );
+enum e_savegame_verbosity {
+  // This will write every field within the data structure when
+  // saving the game, even if those fields have their
+  // default-initialized values. This will produce a larger save
+  // file, but makes all fields visible and explicit.
+  full,
+  // This will suppress writing fields that have their default
+  // values. It produces a smaller save file, but sometimes it
+  // can be harder to read.
+  compact
+};
 
-// This will load an empty game (i.e., will run the sync and
-// validation methods for each state module).
-valid_or<generic_err> reset_savegame_state();
+struct SaveGameOptions {
+  e_savegame_verbosity verbosity = e_savegame_verbosity::full;
+};
 
-// This literally default constructs all save-game data struc-
-// tures. The result will not be an officially valid game state,
-// but it may be ok for some unit tests.
-void default_construct_savegame_state();
+expect<fs::path> save_game( int slot );
+expect<fs::path> load_game( int slot );
 
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_save_game();
+valid_or<std::string> save_game_to_rcl_file(
+    fs::path const& p, SaveGameOptions const& opts );
+valid_or<std::string> load_game_from_rcl_file(
+    fs::path const& p, SaveGameOptions const& opts );
 
 } // namespace rn

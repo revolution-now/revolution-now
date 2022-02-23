@@ -1,0 +1,1 @@
+generate_rds_target( rds-test )

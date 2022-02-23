@@ -14,19 +14,15 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "fb.hpp"
-#include "id.hpp"
 #include "lua-enum.hpp"
 #include "tx.hpp"
-
-// Rcl
-#include "rcl/ext.hpp"
+#include "unit-id.hpp"
 
 // Rds
-#include "rds/commodity.hpp"
+#include "commodity.rds.hpp"
 
-// Flatbuffers
-#include "fb/commodity_generated.h"
+// refl
+#include "refl/query-enum.hpp"
 
 // C++ standard library
 #include <string>
@@ -39,8 +35,7 @@ constexpr Delta const kCommodityInCargoHoldRenderingOffset{
 /****************************************************************
 ** Commodity List
 *****************************************************************/
-constexpr int kNumCommodityTypes =
-    enum_traits<e_commodity>::count;
+constexpr int kNumCommodityTypes = refl::enum_count<e_commodity>;
 
 // Index refers to the ordering in the enum above, starting at 0.
 maybe<e_commodity> commodity_from_index( int index );
@@ -63,40 +58,7 @@ maybe<Texture const&> render_commodity_label(
 /****************************************************************
 ** Commodity
 *****************************************************************/
-
-// This is the object that gets held as cargo either in a unit's
-// cargo or in a colony.
-struct Commodity {
-  bool operator==( Commodity const& rhs ) const {
-    return type == rhs.type && quantity == rhs.quantity;
-  }
-  bool operator!=( Commodity const& rhs ) const {
-    return !( *this == rhs );
-  }
-
-  Commodity with_quantity( int new_quantity ) const;
-
-  valid_deserial_t check_invariants_safe() const;
-
-  friend void to_str( Commodity const& o, std::string& out,
-                      base::ADL_t ) {
-    out += fmt::format( "Commodity{{type={},quantity={}}}",
-                        o.type, o.quantity );
-  }
-
-  // clang-format off
-  SERIALIZABLE_STRUCT_MEMBERS( Commodity,
-    ( e_commodity, type     ),
-    ( int,         quantity )
-  );
-  // clang-format on
-};
-NOTHROW_MOVE( Commodity );
-
-rcl::convert_err<Commodity> convert_to( rcl::value const& v,
-                                        rcl::tag<Commodity> );
-
-rcl::convert_valid rcl_validate( Commodity const& o );
+Commodity with_quantity( Commodity const& in, int new_quantity );
 
 // These are "low level" functions that should only be called
 // after all the right checks have been made that the cargo can
@@ -146,9 +108,13 @@ void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
 
+} // namespace rn
+
 /****************************************************************
 ** Lua
 *****************************************************************/
+namespace rn {
+
 LUA_ENUM_DECL( commodity );
 
 } // namespace rn

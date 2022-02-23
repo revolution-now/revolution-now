@@ -1,0 +1,75 @@
+RELEASE
+========================================================
+
+------- Load Gen -------
+[load] total: 5.927ms
+  [load] rcl parse: 4.347ms
+    [post-processing] key parser: 833us
+    [post-processing] unflatten: 642us
+  [load] from_canonical: 1.579ms
+------- Save Gen -------
+[save] total: 1.692ms
+  [save] to_canonical: 986us
+  [save] emit rcl: 704us
+
+------ Load Compact ------
+[load] total: 3.504ms
+  [load] rcl parse: 2.347ms
+    [post-processing] key parser: 550us
+    [post-processing] unflatten: 601us
+  [load] from_canonical: 1.156ms
+------ Save Compact ------
+[save] total: 1.31ms
+  [save] to_canonical: 735us
+  [save] emit rcl: 293us
+
+
+------ Load Full ------
+[load] total: 31ms
+  [load] rcl parse: 24ms
+    [post-processing] key parser: 5.195ms
+    [post-processing] unflatten: 4.501ms
+  [load] from_canonical: 7.318ms
+------ Save Full ------
+[save] total: 8.252ms
+  [save] to_canonical: 4.710ms
+  [save] emit rcl: 3.539ms
+
+
+DEBUG
+========================================================
+
+------- Load Gen -------
+[load] total: 352ms
+  [load] rcl parse: 220ms
+    [post-processing] key parser: 51ms
+    [post-processing] unflatten: 48ms
+  [load] from_canonical: 131ms
+------- Save Gen -------
+[save] total: 125ms
+  [save] to_canonical: 90ms
+  [save] emit rcl: 35ms
+
+
+------ Load Compact ------
+[load] total: 166ms
+  [load] rcl parse: 93ms
+    [post-processing] key parser: 21ms
+    [post-processing] unflatten: 25ms
+  [load] from_canonical: 72ms
+------ Save Compact ------
+[save] total: 89ms
+  [save] to_canonical: 75ms
+  [save] emit rcl: 14ms
+
+
+------ Load Full ------
+[load] total: 1.833s
+  [load] rcl parse: 1.141s
+    [post-processing] key parser: 251ms
+    [post-processing] unflatten: 227ms
+  [load] from_canonical: 691ms
+------ Save Full ------
+[save] total: 629ms
+  [save] to_canonical: 460ms
+  [save] emit rcl: 169ms

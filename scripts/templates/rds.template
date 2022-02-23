@@ -8,50 +8,51 @@
 # Description: RDS definitions for the {{FILE}} module.
 #
 # ===============================================================
-include [
-  # Revolution Now
-  some-header.hpp
+# Revolution Now
+include "some-header.hpp"
 
-  # Rds
-  rds/orders.hpp
+# Rds
+include "orders.rds.hpp"
 
-  # C++ standard library
-  <string>
-]
+# C++ standard library
+include "<string>"
 
-namespace.rn {
+namespace "rn"
 
 sumtype.MyVariant {
   first {
-    i: 'int'
-    c: 'char'
-  }
-  second {}
+    i 'int',
+    c 'char',
+  },
+  second {},
   third {
-    s: 'std::string'
-  }
-  # No features listed defaults to 'formattable' and 'equality'.
+    s 'std::string',
+  },
 }
 
-sumtype.MyTemplateVariant._template: [T, U]
 sumtype.MyTemplateVariant {
-  first {
-    t: 'T'
-    c: 'char'
-  }
-  second {}
-  third {
-    u: 'U'
-  }
+  _template{ T, U },
 
-  _features: [serializable, equality, formattable]
+  first {
+    t 'T',
+    c 'char',
+  },
+  second {},
+  third {
+    u 'U',
+  },
+
+  _features { equality }
 }
 
-enum.e_menu [
-  hello
-  world
-  test
-  value
-]
+enum.e_menu {
+  hello,
+  world,
+  test,
+  value,
+}
 
-} # namespace rn
+struct MyStruct {
+  x 'double',
+  y 'int',
+}
