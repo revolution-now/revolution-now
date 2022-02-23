@@ -379,6 +379,9 @@ Delta menu_header_delta( e_menu menu ) {
 // These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos_( e_menu target ) {
   CHECK( g_menus.contains( target ) );
+  // FIXME: This fails: to reproduce, load a game, then open the
+  // Game menu and choose quit. As the quit is blinking, quickly
+  // type alt-G then up arrow.
   CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
   W           width_delta{ 0 };
