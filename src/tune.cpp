@@ -21,12 +21,6 @@
 // Revolution Now (config)
 #include "../config/rcl/music.inl"
 
-// migration
-#include "cdr/ext-base.hpp"    // TODO(migration): remove
-#include "cdr/ext-builtin.hpp" // TODO(migration): remove
-#include "cdr/ext-std.hpp"     // TODO(migration): remove
-#include "refl/cdr.hpp"        // TODO(migration): remove
-
 // refl
 #include "refl/to-str.hpp"
 

@@ -333,9 +333,6 @@ struct.UnitTypeAttributes {
 
 # The constituents of this struct.need to be validated together.
 struct.UnitCompositionConfig {
-  # TODO: when adding validate methods, need to ensure that the
-  # maps have non-default-constructed values for all keys, since
-  # the enum.map no longer does that upon deserialization.
   inventory_traits 'ExhaustiveEnumMap<e_unit_inventory, UnitInventoryTraits>',
   modifier_traits 'ExhaustiveEnumMap<e_unit_type_modifier, UnitTypeModifierTraits>',
   unit_types 'ExhaustiveEnumMap<e_unit_type, UnitTypeAttributes>',
