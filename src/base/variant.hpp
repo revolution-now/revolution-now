@@ -46,11 +46,11 @@ class variant : public std::variant<Args...> {
   ***************************************************************/
   using base_t = Base;
 
-  Base const& as_std() const& { return *this; }
-  Base&       as_std() & { return *this; }
+  constexpr Base const& as_std() const& { return *this; }
+  constexpr Base&       as_std() & { return *this; }
 
-  Base const&& as_std() const&& { return *this; }
-  Base&&       as_std() && { return *this; }
+  constexpr Base const&& as_std() const&& { return *this; }
+  constexpr Base&&       as_std() && { return *this; }
 
   /**************************************************************
   ** Take everything from std::variant.
@@ -126,7 +126,7 @@ class variant : public std::variant<Args...> {
   ** holds
   ***************************************************************/
   template<typename T>
-  bool holds() const noexcept {
+  constexpr bool holds() const noexcept {
     auto* p = std::get_if<T>( &this->as_std() );
     return p != nullptr;
   }
