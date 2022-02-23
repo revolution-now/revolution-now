@@ -26,7 +26,12 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+using namespace ::std;
+
 namespace lua {
+
+#define MAKE_EMPTY_SHOWABLE( name ) \
+  void to_str( name const&, string&, base::ADL_t ) {}
 
 struct CppOwned {
   int n = 5;
@@ -55,6 +60,10 @@ struct CppOwnedNonCopyable {
   CppOwnedNonCopyable& operator=( CppOwnedNonCopyable&& ) =
       default;
 };
+void to_str( CppOwnedNonCopyable const&, string& out,
+             base::ADL_t ) {
+  out += "zzz";
+}
 
 LUA_USERDATA_TRAITS( CppOwnedNonCopyable, owned_by_cpp ){};
 static_assert( HasUserdataOwnershipModel<CppOwnedNonCopyable> );
@@ -90,6 +99,10 @@ struct LuaOwnedNonCopyable {
   LuaOwnedNonCopyable& operator=( LuaOwnedNonCopyable&& ) =
       default;
 };
+void to_str( LuaOwnedNonCopyable const&, string& out,
+             base::ADL_t ) {
+  out += "zzz";
+}
 
 LUA_USERDATA_TRAITS( LuaOwnedNonCopyable, owned_by_lua ){};
 static_assert( HasUserdataOwnershipModel<LuaOwnedNonCopyable> );
@@ -99,10 +112,12 @@ static_assert(
     HasValueUserdataOwnershipModel<LuaOwnedNonCopyable> );
 
 struct NoOwnershipModel {};
+MAKE_EMPTY_SHOWABLE( NoOwnershipModel );
 static_assert( !HasTraitsNvalues<NoOwnershipModel> );
 static_assert( !HasUserdataOwnershipModel<NoOwnershipModel> );
 
 struct NoOwnershipModelButHasTraits {};
+MAKE_EMPTY_SHOWABLE( NoOwnershipModelButHasTraits );
 template<>
 struct type_traits<NoOwnershipModelButHasTraits> {
   static constexpr int nvalues = 1;
@@ -218,7 +233,7 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
-      Matches( "lua::CppOwnedNonCopyable&: 0x[0-9a-z]+" ) );
+      Matches( "lua::CppOwnedNonCopyable&@0x[0-9a-z]+: zzz" ) );
 
   decltype( auto ) o2 = as<CppOwnedNonCopyable&>( st["x"] );
   static_assert(
@@ -363,7 +378,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
   userdata ud = as<userdata>( a );
   REQUIRE_THAT(
       fmt::format( "{}", ud ),
-      Matches( "lua::LuaOwnedNonCopyable: 0x[0-9a-z]+" ) );
+      Matches( "lua::LuaOwnedNonCopyable@0x[0-9a-z]+: zzz" ) );
 
   decltype( auto ) o2 = as<LuaOwnedNonCopyable&>( st["x"] );
   static_assert(

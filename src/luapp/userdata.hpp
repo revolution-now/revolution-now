@@ -84,6 +84,15 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
   static_assert( !std::is_pointer_v<T> );
   static constexpr bool showable =
       base::Show<std::remove_const_t<T>>;
+  // FIXME: see comment on corresponding code in the C++-owned
+  // function below for an explanation of this.
+  static_assert(
+      showable ||
+          // Use NonOverloadedCallable to help filter out lamb-
+          // das; this is imperfect, but hopefully should do the
+          // trick.
+          base::NonOverloadedCallable<std::remove_cvref_t<T>>,
+      "see comment above." ); // workaround
 
   static std::string const type_name = userdata_typename<T>();
 
@@ -119,8 +128,17 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
     cthread L ) {
   using T_noref = std::remove_reference_t<T>;
   static_assert( !std::is_pointer_v<T_noref> );
+  // FIXME: this is an ODR violation waiting to happen now that
+  // we have reflected types that only implement to_str if the
+  // translation unit happens to include the right headers. Maybe
+  // the right solution is to make sure to have the Rds generated
+  // files (which is where most reflected types are) include the
+  // refl/to-str. In the mean time, in order to prevent any is-
+  // sues, we will just static_assert that all types are showable
+  // at this point, which should prevent any issues.
   static constexpr bool showable =
       base::Show<std::remove_const_t<T_noref>>;
+  static_assert( showable, "see comment above." ); // workaround
 
   static std::string const type_name = userdata_typename<T>();
 

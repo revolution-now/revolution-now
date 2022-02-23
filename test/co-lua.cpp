@@ -834,6 +834,7 @@ TEST_CASE( "[co-lua] scenario 3" ) {
 #endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 struct MyType {};
+void to_str( MyType const&, string&, base::ADL_t ) {}
 
 } // namespace
 } // namespace rn

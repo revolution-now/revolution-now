@@ -95,6 +95,8 @@ struct HasMemberFunctionsWithCppTypesAsArgs {
     return o;
   }
 };
+void to_str( HasMemberFunctionsWithCppTypesAsArgs const&,
+             string&, base::ADL_t ) {}
 
 LUA_USERDATA_TRAITS( HasMemberFunctionsWithCppTypesAsArgs,
                      owned_by_cpp ){};
@@ -102,6 +104,7 @@ static_assert( HasUserdataOwnershipModel<
                HasMemberFunctionsWithCppTypesAsArgs> );
 
 struct NotValid {};
+void to_str( NotValid const&, string&, base::ADL_t );
 
 namespace {
 

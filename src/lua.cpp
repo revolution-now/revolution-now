@@ -126,6 +126,7 @@ struct MyType {
   int    add( int a, int b ) { return a + b + x; }
 };
 NOTHROW_MOVE( MyType );
+void to_str( MyType const&, string&, base::ADL_t ) {}
 
 } // namespace
 } // namespace rn
