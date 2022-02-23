@@ -1,38 +1,23 @@
 " =========================== Config ============================
- "\ 'screen',
- "\ 'gfx-api',
- "\ 'open-gl',
- "\ 'shaders/experimental',
- "\ 'gl/types',
- "\ 'gl/error',
- "\ 'gl/bindable',
- "\ 'gl/vertex-buffer',
- "\ 'gl/attribs',
- "\ 'gl/vertex-array',
- "\ 'gl/uniform',
- "\ 'gl/shader',
- "\ 'gfx/pixel',
- "\ 'gfx/image',
- "\ 'stb/image',
- "\ 'gl/texture',
- "\ 'open-gl-perf-test',
- "\ 'shaders/perf-test',
 let s:stems = [
- \ 'cdr/repr',
- \ 'refl/ext',
- \ 'refl/cdr',
- \ 'game',
- \ 'save-game',
- \ 'game-state',
- \ 'gs-top',
- \ 'gs-events',
- \ 'gs-units',
- \ 'gs-players',
- \ 'gs-turn',
- \ 'gs-old-world-view',
- \ 'gs-colonies',
- \ 'gs-land-view',
- \ 'gs-terrain',
+ \ 'screen',
+ \ 'gfx-api',
+ \ 'open-gl',
+ \ 'shaders/experimental',
+ \ 'gl/types',
+ \ 'gl/error',
+ \ 'gl/bindable',
+ \ 'gl/vertex-buffer',
+ \ 'gl/attribs',
+ \ 'gl/vertex-array',
+ \ 'gl/uniform',
+ \ 'gl/shader',
+ \ 'gfx/pixel',
+ \ 'gfx/image',
+ \ 'stb/image',
+ \ 'gl/texture',
+ \ 'open-gl-perf-test',
+ \ 'shaders/perf-test',
 \]
 
 let s:luas = [
@@ -150,8 +135,7 @@ command! -nargs=1 Open3 call s:Open3( <f-args> )
 command! -nargs=1 PairOpen call s:Open3( <f-args> )
 
 echo 'opening main...'
-" silent edit exe/main.cpp
-silent edit doc/refl.txt
+silent edit exe/main.cpp
 
 echo 'opening luas...'
 " call s:OpenLuas( s:luas )
