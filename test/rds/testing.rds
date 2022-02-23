@@ -189,6 +189,8 @@ struct.MyStruct {
   xxx 'int',
   yyy 'double',
   zzz_map 'std::unordered_map<std::string, std::string>',
+
+  _features { equality, offsets }
 }
 
 struct.StructWithValidation {

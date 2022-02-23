@@ -110,7 +110,7 @@ namespace refl {
     using template_types = std::tuple<T>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "val", &rdstest::Maybe::just<T>::val },
+      refl::StructField{ "val", &rdstest::Maybe::just<T>::val, /*offset=*/base::nothing },
     };
   };
 
@@ -194,7 +194,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "p", &rdstest::MyVariant1::happy::p },
+      refl::StructField{ "p", &rdstest::MyVariant1::happy::p, /*offset=*/base::nothing },
     };
   };
 
@@ -210,8 +210,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::MyVariant1::sad::hello },
-      refl::StructField{ "ptr", &rdstest::MyVariant1::sad::ptr },
+      refl::StructField{ "hello", &rdstest::MyVariant1::sad::hello, /*offset=*/base::nothing },
+      refl::StructField{ "ptr", &rdstest::MyVariant1::sad::ptr, /*offset=*/base::nothing },
     };
   };
 
@@ -290,8 +290,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "name", &rdstest::MyVariant2::first::name },
-      refl::StructField{ "b", &rdstest::MyVariant2::first::b },
+      refl::StructField{ "name", &rdstest::MyVariant2::first::name, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::MyVariant2::first::b, /*offset=*/base::nothing },
     };
   };
 
@@ -307,8 +307,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "flag1", &rdstest::MyVariant2::second::flag1 },
-      refl::StructField{ "flag2", &rdstest::MyVariant2::second::flag2 },
+      refl::StructField{ "flag1", &rdstest::MyVariant2::second::flag1, /*offset=*/base::nothing },
+      refl::StructField{ "flag2", &rdstest::MyVariant2::second::flag2, /*offset=*/base::nothing },
     };
   };
 
@@ -324,7 +324,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "cost", &rdstest::MyVariant2::third::cost },
+      refl::StructField{ "cost", &rdstest::MyVariant2::third::cost, /*offset=*/base::nothing },
     };
   };
 
@@ -400,7 +400,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var0", &rdstest::inner::MyVariant3::a1::var0 },
+      refl::StructField{ "var0", &rdstest::inner::MyVariant3::a1::var0, /*offset=*/base::nothing },
     };
   };
 
@@ -416,8 +416,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var1", &rdstest::inner::MyVariant3::a2::var1 },
-      refl::StructField{ "var2", &rdstest::inner::MyVariant3::a2::var2 },
+      refl::StructField{ "var1", &rdstest::inner::MyVariant3::a2::var1, /*offset=*/base::nothing },
+      refl::StructField{ "var2", &rdstest::inner::MyVariant3::a2::var2, /*offset=*/base::nothing },
     };
   };
 
@@ -433,7 +433,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "c", &rdstest::inner::MyVariant3::a3::c },
+      refl::StructField{ "c", &rdstest::inner::MyVariant3::a3::c, /*offset=*/base::nothing },
     };
   };
 
@@ -511,10 +511,10 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "i", &rdstest::inner::MyVariant4::first::i },
-      refl::StructField{ "c", &rdstest::inner::MyVariant4::first::c },
-      refl::StructField{ "b", &rdstest::inner::MyVariant4::first::b },
-      refl::StructField{ "op", &rdstest::inner::MyVariant4::first::op },
+      refl::StructField{ "i", &rdstest::inner::MyVariant4::first::i, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::MyVariant4::first::c, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::inner::MyVariant4::first::b, /*offset=*/base::nothing },
+      refl::StructField{ "op", &rdstest::inner::MyVariant4::first::op, /*offset=*/base::nothing },
     };
   };
 
@@ -544,8 +544,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rdstest::inner::MyVariant4::third::s },
-      refl::StructField{ "var3", &rdstest::inner::MyVariant4::third::var3 },
+      refl::StructField{ "s", &rdstest::inner::MyVariant4::third::s, /*offset=*/base::nothing },
+      refl::StructField{ "var3", &rdstest::inner::MyVariant4::third::var3, /*offset=*/base::nothing },
     };
   };
 
@@ -625,8 +625,8 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "t", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::t },
-      refl::StructField{ "c", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::c },
+      refl::StructField{ "t", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::t, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::c, /*offset=*/base::nothing },
     };
   };
 
@@ -656,8 +656,8 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::hello },
-      refl::StructField{ "u", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::u },
+      refl::StructField{ "hello", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::hello, /*offset=*/base::nothing },
+      refl::StructField{ "u", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::u, /*offset=*/base::nothing },
     };
   };
 
@@ -724,7 +724,7 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "ttp", &rdstest::inner::CompositeTemplateTwo::first<T, U>::ttp },
+      refl::StructField{ "ttp", &rdstest::inner::CompositeTemplateTwo::first<T, U>::ttp, /*offset=*/base::nothing },
     };
   };
 
@@ -827,8 +827,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rn::MySumtype::some::s },
-      refl::StructField{ "y", &rn::MySumtype::some::y },
+      refl::StructField{ "s", &rn::MySumtype::some::s, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rn::MySumtype::some::y, /*offset=*/base::nothing },
     };
   };
 
@@ -844,7 +844,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "d", &rn::MySumtype::more::d },
+      refl::StructField{ "d", &rn::MySumtype::more::d, /*offset=*/base::nothing },
     };
   };
 
@@ -942,7 +942,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "user", &rn::OnOffState::on::user },
+      refl::StructField{ "user", &rn::OnOffState::on::user, /*offset=*/base::nothing },
     };
   };
 
@@ -958,7 +958,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::OnOffState::switching_on::percent },
+      refl::StructField{ "percent", &rn::OnOffState::switching_on::percent, /*offset=*/base::nothing },
     };
   };
 
@@ -974,7 +974,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::OnOffState::switching_off::percent },
+      refl::StructField{ "percent", &rn::OnOffState::switching_off::percent, /*offset=*/base::nothing },
     };
   };
 
@@ -1290,9 +1290,9 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "xxx", &rn::MyStruct::xxx },
-      refl::StructField{ "yyy", &rn::MyStruct::yyy },
-      refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map },
+      refl::StructField{ "xxx", &rn::MyStruct::xxx, offsetof( type, xxx ) },
+      refl::StructField{ "yyy", &rn::MyStruct::yyy, offsetof( type, yyy ) },
+      refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map, offsetof( type, zzz_map ) },
     };
   };
 
@@ -1330,8 +1330,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "xxx", &rn::StructWithValidation::xxx },
-      refl::StructField{ "yyy", &rn::StructWithValidation::yyy },
+      refl::StructField{ "xxx", &rn::StructWithValidation::xxx, /*offset=*/base::nothing },
+      refl::StructField{ "yyy", &rn::StructWithValidation::yyy, /*offset=*/base::nothing },
     };
   };
 
@@ -1367,9 +1367,9 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "xxx", &rn::test::MyTemplateStruct<T, U>::xxx },
-      refl::StructField{ "yyy", &rn::test::MyTemplateStruct<T, U>::yyy },
-      refl::StructField{ "zzz_map", &rn::test::MyTemplateStruct<T, U>::zzz_map },
+      refl::StructField{ "xxx", &rn::test::MyTemplateStruct<T, U>::xxx, /*offset=*/base::nothing },
+      refl::StructField{ "yyy", &rn::test::MyTemplateStruct<T, U>::yyy, /*offset=*/base::nothing },
+      refl::StructField{ "zzz_map", &rn::test::MyTemplateStruct<T, U>::zzz_map, /*offset=*/base::nothing },
     };
   };
 

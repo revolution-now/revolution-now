@@ -12,9 +12,11 @@
 
 // base
 #include "base/fmt.hpp"
+#include "base/maybe.hpp"
 #include "base/meta.hpp"
 #include "base/source-loc.hpp"
 #include "base/valid.hpp"
+#include "base/variant.hpp"
 
 // C++ standard library
 #include <array>
@@ -91,11 +93,24 @@ struct StructField {
   // Field type.
   using type = typename accessor_traits_t::ret_type;
 
-  consteval StructField( std::string_view nm, Accessor acc )
-    : name{ nm }, accessor{ acc } {}
+  // FIXME: this should be a maybe<size_t>, but we make it a
+  // variant until gcc supports it.
+  using OffsetType = base::variant<std::monostate, size_t>;
+
+  consteval StructField( std::string_view nm, Accessor acc,
+                         base::maybe<size_t> off )
+    : name{ nm },
+      accessor{ acc },
+      offset( off.has_value() ? OffsetType{ *off }
+                              : OffsetType{} ) {}
 
   std::string_view name;
   Accessor         accessor;
+  // This is optionally present because only "standard layout"
+  // types support using the offsetof macro to get offsets of
+  // fields, and offsetof seems to be the only way to get it, so
+  // therefore having offsets is opt-in.
+  OffsetType offset;
 };
 
 template<typename T>

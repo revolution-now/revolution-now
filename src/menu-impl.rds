@@ -21,6 +21,13 @@ include "<string>"
 
 namespace "rn"
 
+struct.MenuCallbacks {
+  on_click 'std::function<void( void )>',
+  enabled  'std::function<bool( void )>',
+
+  _features {}
+}
+
 sumtype.MenuItem {
   menu_divider {},
   menu_clickable {

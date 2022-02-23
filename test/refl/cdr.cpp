@@ -99,8 +99,10 @@ struct traits<my_ns::Address> {
 
   static constexpr tuple fields{
       refl::StructField{ "street_number",
-                         &my_ns::Address::street_number },
-      refl::StructField{ "state", &my_ns::Address::state },
+                         &my_ns::Address::street_number,
+                         offsetof( type, street_number ) },
+      refl::StructField{ "state", &my_ns::Address::state,
+                         offsetof( type, state ) },
   };
 };
 
@@ -183,11 +185,16 @@ struct traits<my_ns::Person> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::StructField{ "name", &my_ns::Person::name },
-      refl::StructField{ "height", &my_ns::Person::height },
-      refl::StructField{ "male", &my_ns::Person::male },
-      refl::StructField{ "houses", &my_ns::Person::houses },
-      refl::StructField{ "pets", &my_ns::Person::pets },
+      refl::StructField{ "name", &my_ns::Person::name,
+                         offsetof( type, name ) },
+      refl::StructField{ "height", &my_ns::Person::height,
+                         offsetof( type, height ) },
+      refl::StructField{ "male", &my_ns::Person::male,
+                         offsetof( type, male ) },
+      refl::StructField{ "houses", &my_ns::Person::houses,
+                         offsetof( type, houses ) },
+      refl::StructField{ "pets", &my_ns::Person::pets,
+                         offsetof( type, pets ) },
   };
 };
 
@@ -265,9 +272,12 @@ struct traits<my_ns::Rolodex> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::StructField{ "self", &my_ns::Rolodex::self },
-      refl::StructField{ "updated", &my_ns::Rolodex::updated },
-      refl::StructField{ "contacts", &my_ns::Rolodex::contacts },
+      refl::StructField{ "self", &my_ns::Rolodex::self,
+                         offsetof( type, self ) },
+      refl::StructField{ "updated", &my_ns::Rolodex::updated,
+                         offsetof( type, updated ) },
+      refl::StructField{ "contacts", &my_ns::Rolodex::contacts,
+                         offsetof( type, contacts ) },
   };
 };
 

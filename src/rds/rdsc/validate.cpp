@@ -50,6 +50,7 @@ struct Validator {
       for( expr::e_feature feat : features ) {
         switch( feat ) {
           case expr::e_feature::equality: break;
+          case expr::e_feature::offsets: break;
           case expr::e_feature::validation:
             break;
             // case expr::e_feature::some_new_feature:

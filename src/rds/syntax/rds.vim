@@ -83,7 +83,7 @@ syn keyword  rdsSumtypeFeatures _features contained nextgroup=rdsSumtypeFeatures
 syn region   rdsSumtypeFeaturesListBlock start='{' end='}' contained fold contains=rdsSumtypeFeaturesListItem,rdsSumtypeFeaturesListItemErr nextgroup=rdsSumtypeFeaturesListBlockComma skipwhite skipempty
 syn match    rdsSumtypeFeaturesListBlockComma ',' contained nextgroup=rdsSumtypeAlternative,rdsSumtypeTemplate skipwhite skipempty
 syn match    rdsSumtypeFeaturesListItemErr '[^{} ,]\+' contained
-syn match    rdsSumtypeFeaturesListItem '\(equality\|validation\)' contained
+syn match    rdsSumtypeFeaturesListItem '\(equality\|validation\|offsets\)' contained
 
 hi def link  rdsSumtypeDot                    Comment
 hi def link  rdsSumtypeAlternativeVarComma    Comment
@@ -135,7 +135,7 @@ syn keyword  rdsStructFeatures _features contained nextgroup=rdsStructFeaturesLi
 syn region   rdsStructFeaturesListBlock start='{' end='}' contained fold contains=rdsStructFeaturesListItem,rdsStructFeaturesListItemErr nextgroup=rdsStructFeaturesListBlockComma skipwhite skipempty
 syn match    rdsStructFeaturesListBlockComma ',' contained nextgroup=rdsStructVar,rdsStructTemplate skipwhite skipempty
 syn match    rdsStructFeaturesListItemErr '[^{} ,]\+' contained
-syn match    rdsStructFeaturesListItem '\(equality\|validation\)' contained
+syn match    rdsStructFeaturesListItem '\(equality\|validation\|offsets\)' contained
 
 hi def link  rdsStructVarComma               Comment
 hi def link  rdsStructTemplateListItemComma  Comment

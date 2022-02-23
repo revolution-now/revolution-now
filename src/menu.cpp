@@ -26,6 +26,9 @@
 #include "tiles.hpp"
 #include "variant.hpp"
 
+// Rds
+#include "menu-impl.rds.hpp"
+
 // Revolution Now (config)
 #include "../config/rcl/palette.inl"
 #include "../config/rcl/ui.inl"
@@ -53,24 +56,6 @@ using namespace std;
 namespace rn {
 
 namespace rl = ::base::rl;
-
-struct MenuCallbacks {
-  std::function<void( void )> on_click;
-  std::function<bool( void )> enabled;
-};
-
-} // namespace rn
-
-// FIXME: need to fix Rds key ordering issue in order to move
-// this into the rds file. Rds currently always emits sumtypes
-// before structs, which leads to an "unefined symbol" error. To
-// fix this we need to get Rds to preserve ordering of constructs
-// and namespaces when emitting code.
-//
-// Rds
-#include "menu-impl.rds.hpp"
-
-namespace rn {
 
 namespace {
 /****************************************************************

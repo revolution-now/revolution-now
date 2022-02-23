@@ -448,21 +448,23 @@ TEST_CASE( "[rds] structs" ) {
         .zzz_map = { { "hello", "1" }, { "world", "2" } },
     };
     { // field 0
-      auto& [name, acc] = std::get<0>( Tr::fields );
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
       static_assert( name == "xxx" );
       REQUIRE( ms.xxx == 5 );
       ( ms.*acc ) = 6;
       REQUIRE( ms.xxx == 6 );
+      REQUIRE( ( off.index() == 1 && off.get<size_t>() == 0 ) );
     }
     { // field 1
-      auto& [name, acc] = std::get<1>( Tr::fields );
+      auto& [name, acc, off] = std::get<1>( Tr::fields );
       static_assert( name == "yyy" );
       REQUIRE( ms.yyy == 2.3 );
       ( ms.*acc ) = 3.2;
       REQUIRE( ms.yyy == 3.2 );
+      REQUIRE( ( off.index() == 1 && off.get<size_t>() > 0 ) );
     }
     { // field 2
-      auto& [name, acc] = std::get<2>( Tr::fields );
+      auto& [name, acc, off] = std::get<2>( Tr::fields );
       static_assert( name == "zzz_map" );
       REQUIRE( ms.zzz_map ==
                unordered_map<string, string>{
@@ -471,6 +473,7 @@ TEST_CASE( "[rds] structs" ) {
           unordered_map<string, string>{ { "one", "two" } };
       REQUIRE( ms.zzz_map == unordered_map<string, string>{
                                  { "one", "two" } } );
+      REQUIRE( ( off.index() == 1 && off.get<size_t>() > 0 ) );
     }
   }
   SECTION( "MyTemplateStruct" ) {
@@ -491,21 +494,23 @@ TEST_CASE( "[rds] structs" ) {
         .zzz_map = { { "hello", "1" }, { "world", "2" } },
     };
     { // field 0
-      auto& [name, acc] = std::get<0>( Tr::fields );
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
       static_assert( name == "xxx" );
       REQUIRE( mts.xxx == 5 );
       ( mts.*acc ) = 6;
       REQUIRE( mts.xxx == 6 );
+      REQUIRE( off.index() == 0 );
     }
     { // field 1
-      auto& [name, acc] = std::get<1>( Tr::fields );
+      auto& [name, acc, off] = std::get<1>( Tr::fields );
       static_assert( name == "yyy" );
       REQUIRE( mts.yyy == 2.3 );
       ( mts.*acc ) = 3.2;
       REQUIRE( mts.yyy == 3.2 );
+      REQUIRE( off.index() == 0 );
     }
     { // field 2
-      auto& [name, acc] = std::get<2>( Tr::fields );
+      auto& [name, acc, off] = std::get<2>( Tr::fields );
       static_assert( name == "zzz_map" );
       REQUIRE( mts.zzz_map ==
                unordered_map<string, string>{
@@ -514,6 +519,7 @@ TEST_CASE( "[rds] structs" ) {
           unordered_map<string, string>{ { "one", "two" } };
       REQUIRE( mts.zzz_map == unordered_map<string, string>{
                                   { "one", "two" } } );
+      REQUIRE( off.index() == 0 );
     }
   }
 }
@@ -543,18 +549,20 @@ TEST_CASE( "[rds] sumtype reflection" ) {
         .y = 5,
     };
     { // field 0
-      auto& [name, acc] = std::get<0>( Tr::fields );
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
       static_assert( name == "s" );
       REQUIRE( ms.s == "hello" );
       ( ms.*acc ) = "world";
       REQUIRE( ms.s == "world" );
+      REQUIRE( off.index() == 0 );
     }
     { // field 1
-      auto& [name, acc] = std::get<1>( Tr::fields );
+      auto& [name, acc, off] = std::get<1>( Tr::fields );
       static_assert( name == "y" );
       REQUIRE( ms.y == 5 );
       ( ms.*acc ) = 6;
       REQUIRE( ms.y == 6 );
+      REQUIRE( off.index() == 0 );
     }
   }
   SECTION( "more" ) {
@@ -570,11 +578,12 @@ TEST_CASE( "[rds] sumtype reflection" ) {
         .d = 2.3,
     };
     { // field 0
-      auto& [name, acc] = std::get<0>( Tr::fields );
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
       static_assert( name == "d" );
       REQUIRE( ms.d == 2.3 );
       ( ms.*acc ) = 3.2;
       REQUIRE( ms.d == 3.2 );
+      REQUIRE( off.index() == 0 );
     }
   }
 }
@@ -605,11 +614,12 @@ TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
         .val = 2,
     };
     { // field 0
-      auto& [name, acc] = std::get<0>( Tr::fields );
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
       static_assert( name == "val" );
       REQUIRE( ms.val == 2 );
       ( ms.*acc ) = 3;
       REQUIRE( ms.val == 3 );
+      REQUIRE( off.index() == 0 );
     }
   }
 }

@@ -26,6 +26,7 @@ using ::base::nothing;
 maybe<e_feature> feature_from_str( std::string_view feature ) {
   if( feature == "equality" ) return e_feature::equality;
   if( feature == "validation" ) return e_feature::validation;
+  if( feature == "offsets" ) return e_feature::offsets;
   return nothing;
 }
 

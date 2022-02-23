@@ -410,7 +410,8 @@ struct CodeGenerator {
       string_view                        ns,
       vector<expr::TemplateParam> const& tmpl_params,
       string const&                      name,
-      vector<expr::StructMember> const&  members ) {
+      vector<expr::StructMember> const&  members,
+      bool                               wants_offsets ) {
     comment( "Reflection info for struct {}.", name );
     string tmpl_brackets =
         tmpl_params.empty()
@@ -453,9 +454,14 @@ struct CodeGenerator {
         flush();
         {
           auto _ = indent();
-          for( expr::StructMember const& sm : members )
-            line( "refl::StructField{{ \"{}\", &{}::{} }},",
-                  sm.var, full_name_w_tmpl, sm.var );
+          for( expr::StructMember const& sm : members ) {
+            string offset = "/*offset=*/base::nothing";
+            if( wants_offsets )
+              offset =
+                  fmt::format( "offsetof( type, {} )", sm.var );
+            line( "refl::StructField{{ \"{}\", &{}::{}, {} }},",
+                  sm.var, full_name_w_tmpl, sm.var, offset );
+          }
         }
         line( "};" );
       }
@@ -504,8 +510,9 @@ struct CodeGenerator {
     // Emit the reflection traits.
     newline();
     open_ns( "refl" );
-    emit_reflection_for_struct( ns, strukt.tmpl_params,
-                                strukt.name, strukt.members );
+    emit_reflection_for_struct(
+        ns, strukt.tmpl_params, strukt.name, strukt.members,
+        item_has_feature( strukt, expr::e_feature::offsets ) );
     newline();
     close_ns( "refl" );
   }
@@ -562,9 +569,11 @@ struct CodeGenerator {
            sumtype.alternatives ) {
         string sumtype_ns =
             fmt::format( "{}::{}", ns, sumtype.name );
-        emit_reflection_for_struct( sumtype_ns,
-                                    sumtype.tmpl_params,
-                                    alt.name, alt.members );
+        emit_reflection_for_struct(
+            sumtype_ns, sumtype.tmpl_params, alt.name,
+            alt.members,
+            item_has_feature( sumtype,
+                              expr::e_feature::offsets ) );
         newline();
       }
       close_ns( "refl" );

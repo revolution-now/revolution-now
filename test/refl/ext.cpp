@@ -85,8 +85,9 @@ struct traits<my_ns::MyStruct> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      StructField{ "x", &my_ns::MyStruct::x },
-      StructField{ "y", &my_ns::MyStruct::y },
+      StructField{ "x", &my_ns::MyStruct::x, base::nothing },
+      StructField{ "y", &my_ns::MyStruct::y,
+                   offsetof( type, y ) },
   };
 };
 
@@ -101,8 +102,10 @@ struct traits<my_ns::MyTmpStruct<U, V>> {
   using template_types = tuple<U, V>;
 
   static constexpr tuple fields{
-      StructField{ "x", &my_ns::MyTmpStruct<U, V>::x },
-      StructField{ "y", &my_ns::MyTmpStruct<U, V>::y },
+      StructField{ "x", &my_ns::MyTmpStruct<U, V>::x,
+                   offsetof( type, x ) },
+      StructField{ "y", &my_ns::MyTmpStruct<U, V>::y,
+                   offsetof( type, y ) },
   };
 };
 
