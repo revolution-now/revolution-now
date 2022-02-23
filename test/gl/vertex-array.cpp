@@ -17,6 +17,9 @@
 // gl
 #include "src/gl/iface-mock.hpp"
 
+// refl
+#include "refl/ext.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -29,12 +32,36 @@ using namespace ::mock::matchers;
 struct Vertex {
   vec3  v;
   float y;
-
-  static consteval auto attributes() {
-    return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, v ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, y ) };
-  }
 };
+
+} // namespace
+} // namespace gl
+
+namespace refl {
+
+// Reflection info for struct Scale.
+template<>
+struct traits<gl::Vertex> {
+  using type = gl::Vertex;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "Vertex";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "v", &gl::Vertex::v,
+                         offsetof( type, v ) },
+      refl::StructField{ "y", &gl::Vertex::y,
+                         offsetof( type, y ) },
+  };
+};
+
+} // namespace refl
+
+namespace gl {
+namespace {
 
 TEST_CASE( "[vertex-array] creation" ) {
   gl::MockOpenGL mock;

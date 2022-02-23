@@ -16,6 +16,9 @@
 #include "types.hpp"
 #include "vertex-buffer.hpp"
 
+// refl
+#include "refl/ext.hpp"
+
 // base
 #include "base/meta.hpp"
 #include "base/zero.hpp"
@@ -66,24 +69,12 @@ struct VertexArrayNonTyped
 /****************************************************************
 ** VertexField
 *****************************************************************/
-#define VERTEX_ATTRIB_HOLDER( vert_type, field_name )     \
-  gl::VertexField<                                        \
-      decltype( std::declval<vert_type>().field_name )> { \
-    offsetof( vert_type, field_name )                     \
-  }
-
-template<typename FieldType>
-struct VertexField {
-  using field_type          = FieldType;
-  size_t const offset_bytes = 0;
-};
-
 template<typename...>
 struct VertexFieldTypeList;
 
 template<typename... T>
-struct VertexFieldTypeList<mp::list<T...>> {
-  using type = mp::list<typename T::field_type...>;
+struct VertexFieldTypeList<std::tuple<T...>> {
+  using type = mp::list<typename T::type...>;
 };
 
 template<typename... T>
@@ -96,14 +87,14 @@ using VertexFieldTypeList_t =
 template<typename...>
 struct VertexArray;
 
-template<typename... VertexTypes>
+template<refl::ReflectedStruct... VertexTypes>
 struct VertexArray<VertexBuffer<VertexTypes>...>
   : VertexArrayNonTyped {
   // This will be an mp::list of all of the attribute types, in
   // order, from all of the buffers concatenated and flattened.
-  using AttribTypeList = VertexFieldTypeList_t<
-      mp::to_list_t<decltype( std::tuple_cat(
-          VertexTypes::attributes()... ) )>>;
+  using AttribTypeList =
+      VertexFieldTypeList_t<decltype( std::tuple_cat(
+          refl::traits<VertexTypes>::fields... ) )>;
 
   VertexArray() {
     register_attribs_for_all_buffers(
@@ -136,15 +127,19 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
 
     using VertexType = typename std::remove_cvref_t<
         decltype( buffer )>::vertex_type;
-    static constexpr auto   attribs = VertexType::attributes();
-    static constexpr size_t kNumAttribs =
-        std::tuple_size_v<decltype( attribs )>;
+    static constexpr auto const& attribs =
+        refl::traits<VertexType>::fields;
+    static constexpr size_t kNumAttribs = std::tuple_size_v<
+        std::remove_cvref_t<decltype( attribs )>>;
 
     FOR_CONSTEXPR_IDX( AttribIdx, kNumAttribs ) {
-      auto const& attrib = std::get<AttribIdx>( attribs );
-      using AttribType   = typename std::remove_cvref_t<
-          decltype( std::get<AttribIdx>(
-              attribs ) )>::field_type;
+      constexpr auto const& attrib =
+          std::get<AttribIdx>( attribs );
+      using AttribType = typename std::remove_cvref_t<
+          decltype( std::get<AttribIdx>( attribs ) )>::type;
+      constexpr auto& offset = attrib.offset;
+      // Make sure that we have an offset.
+      static_assert( offset.index() == 1 );
       this->register_attrib(
           attrib_idx_start + AttribIdx,
           /*attrib_field_count=*/
@@ -153,7 +148,7 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
           attrib_traits<AttribType>::component_type,
           /*normalized=*/false,
           /*stride=*/sizeof( VertexType ),
-          /*offset=*/attrib.offset_bytes );
+          /*offset=*/offset.template get<size_t>() );
     };
     return kNumAttribs;
   }

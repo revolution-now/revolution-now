@@ -18,6 +18,9 @@
 #include "screen.hpp"
 #include "tx.hpp"
 
+// // Rds
+#include "open-gl-perf-test.rds.hpp"
+
 // gl
 #include "gl/attribs.hpp"
 #include "gl/error.hpp"
@@ -49,20 +52,6 @@ namespace rn {
 namespace {
 
 constexpr int kSpriteScale = 128;
-
-struct Vertex {
-  gl::vec2 pos;
-  gl::vec2 tx_pos;
-  gl::vec3 shading_color;
-  gl::vec2 center;
-
-  static consteval auto attributes() {
-    return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, pos ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, tx_pos ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, shading_color ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, center ) };
-  }
-};
 
 using ProgramAttributes =
     mp::list<gl::vec2, gl::vec2, gl::vec3, gl::vec2>;

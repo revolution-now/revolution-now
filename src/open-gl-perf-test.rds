@@ -1,0 +1,23 @@
+# ===============================================================
+# open-gl-perf-test.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-23.
+#
+# Description: RDS definitions for the open-gl-perf-test module.
+#
+# ===============================================================
+# gl
+include "gl/attribs.hpp"
+
+namespace "rn"
+
+struct.Vertex {
+  pos           'gl::vec2',
+  tx_pos        'gl::vec2',
+  shading_color 'gl::vec3',
+  center        'gl::vec2',
+
+  _features { offsets }
+}

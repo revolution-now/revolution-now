@@ -17,6 +17,9 @@
 // gl
 #include "src/gl/iface-mock.hpp"
 
+// refl
+#include "refl/ext.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -31,12 +34,36 @@ using ::base::unexpected;
 struct Vertex {
   vec3  some_vec3;
   float some_float;
-
-  static consteval auto attributes() {
-    return tuple{ VERTEX_ATTRIB_HOLDER( Vertex, some_vec3 ),
-                  VERTEX_ATTRIB_HOLDER( Vertex, some_float ) };
-  }
 };
+
+} // namespace
+} // namespace gl
+
+namespace refl {
+
+// Reflection info for struct Scale.
+template<>
+struct traits<gl::Vertex> {
+  using type = gl::Vertex;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "Vertex";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "some_vec3", &gl::Vertex::some_vec3,
+                         offsetof( type, some_vec3 ) },
+      refl::StructField{ "some_float", &gl::Vertex::some_float,
+                         offsetof( type, some_float ) },
+  };
+};
+
+} // namespace refl
+
+namespace gl {
+namespace {
 
 using ProgramAttributes = mp::list<gl::vec3, float>;
 
