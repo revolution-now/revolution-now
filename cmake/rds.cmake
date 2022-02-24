@@ -1,6 +1,13 @@
 function( generate_rds_target target )
   file( GLOB rdss "[a-z][a-z0-9-]*.rds" )
 
+  set( has_rds YES PARENT_SCOPE )
+
+  if( "${rdss}" STREQUAL "" )
+    set( has_rds NO PARENT_SCOPE )
+    return()
+  endif()
+
   # Generate the include files parameters.
   set( rds_generated_files "" )
 

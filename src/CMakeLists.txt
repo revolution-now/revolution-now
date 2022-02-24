@@ -10,6 +10,7 @@ add_subdirectory( stb )
 add_subdirectory( gfx )
 add_subdirectory( cdr )
 add_subdirectory( refl )
+add_subdirectory( render )
 
 # === this directory ==============================================
 
@@ -22,56 +23,41 @@ find_sdl2_lib( SDL2_mixer )
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
-file( GLOB sources "[a-zA-Z]*.cpp" )
-
-add_library(
+add_rn_library(
   rn
-  STATIC
-  ${sources}
+  # Dependencies
+  absl::function_ref
+  absl::strings
+  base-util
+  glad::glad # TODO: remove/isolate this.
+  lua::lua
+  midifile
+  rn-base
+  rn-cdr
+  rn-gfx
+  rn-gl
+  rn-rcl
+  rn-luapp
+  rn-refl
+  rn-render
+  rn-stb
+  rtmidi
+  Threads::Threads
+  ${SDL2_LIBRARY}
+  ${SDL2_TTF_LIBRARY}
+  ${SDL2_IMAGE_LIBRARY}
+  ${SDL2_MIXER_LIBRARY}
 )
 
-target_compile_features( rn PUBLIC cxx_std_20 )
-set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
-set_warning_options( rn )
-
-target_link_libraries(
-    rn
-    PUBLIC
-    absl::function_ref
-    absl::strings
-    base-util
-    glad::glad # TODO: remove/isolate this.
-    lua::lua
-    midifile
-    rn-base
-    rn-cdr
-    rn-gfx
-    rn-gl
-    rn-rcl
-    rn-luapp
-    rn-refl
-    rn-stb
-    rtmidi
-    Threads::Threads
-    ${SDL2_LIBRARY}
-    ${SDL2_TTF_LIBRARY}
-    ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_MIXER_LIBRARY} )
-
-generate_rds_target( rn-rds-src )
-add_dependencies( rn rn-rds-src )
-get_target_property( RDS_SRC_INCLUDE_DIR rn-rds-src INCLUDE_DIR )
-
 target_include_directories(
-    rn
-    PUBLIC
-    ${PROJECT_SOURCE_DIR} # top-level folder
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${RDS_SRC_INCLUDE_DIR}
-    ${SDL2_INCLUDE_DIR}
-    ${SDL2_TTF_INCLUDE_DIR}
-    ${SDL2_IMAGE_INCLUDE_DIR}
-    ${SDL2_MIXER_INCLUDE_DIR} )
+  rn
+  AFTER # append to existing.
+  PUBLIC
+  ${SDL2_INCLUDE_DIR}
+  ${SDL2_TTF_INCLUDE_DIR}
+  ${SDL2_IMAGE_INCLUDE_DIR}
+  ${SDL2_MIXER_INCLUDE_DIR}
+)
 
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
@@ -101,5 +87,3 @@ target_compile_definitions(
   rn
   PUBLIC
 )
-
-clang_tidy( rn )

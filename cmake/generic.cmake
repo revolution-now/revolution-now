@@ -149,16 +149,18 @@ function( force_compiler_color_diagnostics )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE )
 endfunction()
 
-# === add_rn_library ==============================================
+# === add_rn_target ===============================================
 
-function( add_rn_library target )
+function( add_rn_target target type )
   file( GLOB sources "[a-zA-Z]*.cpp" )
 
-  add_library(
-    ${target}
-    STATIC
-    ${sources}
-  )
+  if( type STREQUAL "library" )
+    add_library( ${target} STATIC ${sources} )
+  elseif( type STREQUAL "executable" )
+    add_executable( ${target} ${sources} )
+  else()
+    message( FATAL "unrecognized target type: ${type}" )
+  endif()
 
   target_compile_features( ${target} PUBLIC cxx_std_20 )
   set_target_properties( ${target} PROPERTIES CXX_EXTENSIONS OFF )
@@ -170,12 +172,35 @@ function( add_rn_library target )
       ${ARGN}
   )
 
+  # Rds
+  set( rds_target "${target}-rds" )
+  generate_rds_target( ${rds_target} )
+  if( ${has_rds} ) # set in generate_rds_target function.
+    add_dependencies( ${target} ${rds_target} )
+    get_target_property( RDS_INCLUDE_DIR ${rds_target} INCLUDE_DIR )
+  else()
+    set( RDS_INCLUDE_DIR "" )
+  endif()
+
   target_include_directories(
       ${target}
-      PRIVATE
+      PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}
-      ${CMAKE_CURRENT_SOURCE_DIR}/../
+      ${RDS_INCLUDE_DIR}
+      ${CMAKE_SOURCE_DIR}/src/
   )
 
   clang_tidy( ${target} )
+endfunction()
+
+# === add_rn_library ==============================================
+
+function( add_rn_library target )
+  add_rn_target( ${target} library ${ARGN} )
+endfunction()
+
+# === add_rn_executable ===========================================
+
+function( add_rn_executable target )
+  add_rn_target( ${target} executable ${ARGN} )
 endfunction()
