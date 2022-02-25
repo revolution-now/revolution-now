@@ -68,8 +68,8 @@ using namespace std::chrono;
     used_field_paths.insert( this_file() + "." + dotted ); \
     cdr::value const& v =                                  \
         value_from_path( cfg_name(), dotted );             \
-    cdr::converter      conv;                              \
-    cdr::result<__type> res = conv.from<__type>( v );      \
+    cdr::result<__type> res =                              \
+        cdr::run_conversion_from_canonical<__type>( v );   \
     CHECK( res.has_value(),                                \
            "failed to produce type {} from {}.{}: {}",     \
            TO_STRING( __type ), cfg_name(), dotted,        \
@@ -77,6 +77,7 @@ using namespace std::chrono;
     const_cast<__type&>( dest_ptr()->__name ) =            \
         std::move( *res );                                 \
     /* fix weird gcc warning */                            \
+    cdr::converter conv;                                   \
     res = conv.err( "" );                                  \
   }                                                        \
   static inline bool const __register_##__name = [] {      \
