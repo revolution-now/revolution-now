@@ -23,6 +23,7 @@
 #include <chrono>
 #include <deque>
 #include <map>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -39,6 +40,20 @@ void to_str( std::string const& o, std::string& out, ADL_t );
 
 template<Show T>
 void to_str( std::vector<T> o, std::string& out, ADL_t ) {
+  using namespace std::literals::string_literals;
+  to_str( "["s, out, ADL );
+  for( auto const& elem : o ) {
+    to_str( elem, out, ADL );
+    out += ',';
+  }
+  if( !o.empty() )
+    // Remove trailing comma.
+    out.pop_back();
+  to_str( "]"s, out, ADL );
+}
+
+template<Show T>
+void to_str( std::span<T> o, std::string& out, ADL_t ) {
   using namespace std::literals::string_literals;
   to_str( "["s, out, ADL );
   for( auto const& elem : o ) {
