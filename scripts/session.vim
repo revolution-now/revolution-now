@@ -1,11 +1,8 @@
 " =========================== Config ============================
 let s:stems = [
  \ 'screen',
- \ 'gfx-api',
  \ 'open-gl',
  \ 'shaders/experimental',
- \ 'gl/types',
- \ 'gl/error',
  \ 'gl/bindable',
  \ 'gl/vertex-buffer',
  \ 'gl/attribs',
@@ -13,9 +10,12 @@ let s:stems = [
  \ 'gl/uniform',
  \ 'gl/shader',
  \ 'gfx/pixel',
+ \ 'gfx/cartesian',
  \ 'gfx/image',
  \ 'stb/image',
  \ 'gl/texture',
+ \ 'render/rect-pack',
+ \ 'render/iface',
  \ 'open-gl-perf-test',
  \ 'shaders/perf-test',
 \]
