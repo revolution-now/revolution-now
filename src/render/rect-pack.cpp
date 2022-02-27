@@ -37,53 +37,60 @@ struct packer {
     return e_status::good;
   }
 
-  e_status pack_cols( rect const& allowed ) {
-    if( cur_ == end_ ) return e_status::good;
+  e_status pack_cols( rect allowed ) {
+    // Iterate through the columns.
+    while( true ) {
+      if( cur_ == end_ ) return e_status::good;
 
-    // Try to pack the first rect.
-    rect&    first  = **cur_;
-    e_status status = pack_rect( first, allowed );
-    if( status == e_status::failed ) return status;
+      // Try to pack the first rect.
+      rect&    first  = **cur_;
+      e_status status = pack_rect( first, allowed );
+      if( status == e_status::failed ) return status;
 
-    // Move to the remaining space in this column. Note that this
-    // is not a failure if this fails to find a spot for the next
-    // rect since we can always then try the next column.
-    (void)pack_rows(
-        rect{ .origin = { .x = allowed.origin.x,
-                          .y = allowed.origin.y + first.size.h },
-              .size   = { .w = first.size.w,
-                          .h = allowed.size.h - first.size.h } } );
+      // Move to the remaining space in this column. Note that
+      // this is not a failure if this fails to find a spot for
+      // the next rect since we can always then try the next col-
+      // umn.
+      (void)pack_rows( rect{
+          .origin = { .x = allowed.origin.x,
+                      .y = allowed.origin.y + first.size.h },
+          .size   = { .w = first.size.w,
+                      .h = allowed.size.h - first.size.h } } );
 
-    // Move to the next column in this row.
-    return pack_cols(
-        rect{ .origin = { .x = allowed.origin.x + first.size.w,
-                          .y = allowed.origin.y },
-              .size   = { .w = allowed.size.w - first.size.w,
-                          .h = allowed.size.h } } );
+      // Move to the next column in this row.
+      allowed =
+          rect{ .origin = { .x = allowed.origin.x + first.size.w,
+                            .y = allowed.origin.y },
+                .size   = { .w = allowed.size.w - first.size.w,
+                            .h = allowed.size.h } };
+    }
   }
 
-  e_status pack_rows( rect const& allowed ) {
-    if( cur_ == end_ ) return e_status::good;
-    if( allowed.size.negative() ) return e_status::failed;
-    rect& first = **cur_;
+  e_status pack_rows( rect allowed ) {
+    // Iterate through the rows.
+    while( true ) {
+      if( cur_ == end_ ) return e_status::good;
+      if( allowed.size.negative() ) return e_status::failed;
+      rect& first = **cur_;
 
-    // Start the first row, whose height will be the height of
-    // the first rect. Note that this is not a failure if this
-    // fails to find a spot for the next rect since we can always
-    // then try the next
-    (void)pack_cols( rect{
-        .origin = allowed.origin,
-        .size   = {
-              .w = allowed.size.w,
-              .h = std::min( first.size.h, allowed.size.h ) } } );
+      // Start the first row, whose height will be the height of
+      // the first rect. Note that this is not a failure if this
+      // fails to find a spot for the next rect since we can al-
+      // ways then try the next
+      (void)pack_cols(
+          rect{ .origin = allowed.origin,
+                .size   = { .w = allowed.size.w,
+                            .h = std::min( first.size.h,
+                                           allowed.size.h ) } } );
 
-    // Move to the remainder of this allowed region (i.e. subse-
-    // quent rows).
-    return pack_rows(
-        rect{ .origin = { .x = allowed.origin.x,
-                          .y = allowed.origin.y + first.size.h },
-              .size   = { .w = allowed.size.w,
-                          .h = allowed.size.h - first.size.h } } );
+      // Move to the remainder of this allowed region (i.e. sub-
+      // sequent rows).
+      allowed = rect{
+          .origin = { .x = allowed.origin.x,
+                      .y = allowed.origin.y + first.size.h },
+          .size   = { .w = allowed.size.w,
+                      .h = allowed.size.h - first.size.h } };
+    }
   }
 
   e_status pack_rects( rect const& allowed ) {
