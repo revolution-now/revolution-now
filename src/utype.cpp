@@ -66,8 +66,7 @@ namespace {
 
 unordered_map<e_unit_inventory, e_unit_type_modifier>
 create_inventory_to_modifier_map(
-    ExhaustiveEnumMap<e_unit_type_modifier,
-                      UnitTypeModifierTraits> const&
+    EnumMap<e_unit_type_modifier, UnitTypeModifierTraits> const&
         modifier_traits ) {
   unordered_map<e_unit_inventory, e_unit_type_modifier> res;
   for( auto const& [mod, val] : modifier_traits ) {

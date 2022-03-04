@@ -45,8 +45,7 @@ namespace rn {
 // just defer to to the base class implementation, which will
 // usually always be provided because it is a standard container.
 template<refl::ReflectedEnum Enum, typename ValT>
-struct ExhaustiveEnumMap
-  : public std::unordered_map<Enum, ValT> {
+struct EnumMap : public std::unordered_map<Enum, ValT> {
   using base = std::unordered_map<Enum, ValT>;
 
   static constexpr int kSize = refl::enum_count<Enum>;
@@ -61,25 +60,24 @@ struct ExhaustiveEnumMap
   // All other constructors should ultimately call this one,
   // since this is the one that ensures that all keys have a
   // value.
-  ExhaustiveEnumMap( base&& b ) : base( std::move( b ) ) {
+  EnumMap( base&& b ) : base( std::move( b ) ) {
     for( Enum e : refl::enum_values<Enum> )
       if( this->find( e ) == this->end() ) //
         this->emplace( e, ValT{} );
   }
 
-  ExhaustiveEnumMap( base const& b )
-    : ExhaustiveEnumMap( base{ b } ) {}
+  EnumMap( base const& b ) : EnumMap( base{ b } ) {}
 
-  ExhaustiveEnumMap() : ExhaustiveEnumMap( base{} ) {}
+  EnumMap() : EnumMap( base{} ) {}
 
-  ExhaustiveEnumMap(
+  EnumMap(
       std::initializer_list<std::pair<Enum const, ValT>> il )
-    : ExhaustiveEnumMap( base( il.begin(), il.end() ) ) {}
+    : EnumMap( base( il.begin(), il.end() ) ) {}
 
   consteval size_t size() const { return kSize; }
   consteval int    ssize() const { return kSize; }
 
-  bool operator==( ExhaustiveEnumMap const& ) const = default;
+  bool operator==( EnumMap const& ) const = default;
 
   ValT const& operator[]( Enum i ) const { return at( i ); }
 
@@ -95,9 +93,9 @@ struct ExhaustiveEnumMap
     return this->find( i )->second;
   }
 
-  friend cdr::value to_canonical(
-      cdr::converter& conv, ExhaustiveEnumMap const& o,
-      cdr::tag_t<ExhaustiveEnumMap> ) {
+  friend cdr::value to_canonical( cdr::converter& conv,
+                                  EnumMap const&  o,
+                                  cdr::tag_t<EnumMap> ) {
     cdr::table tbl;
     // Here we can use to_field to allow the converter to control
     // default field value behavior because, for this data struc-
@@ -109,12 +107,12 @@ struct ExhaustiveEnumMap
     return tbl;
   }
 
-  friend cdr::result<ExhaustiveEnumMap> from_canonical(
+  friend cdr::result<EnumMap> from_canonical(
       cdr::converter& conv, cdr::value const& v,
-      cdr::tag_t<ExhaustiveEnumMap> ) {
+      cdr::tag_t<EnumMap> ) {
     UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
     std::unordered_set<std::string> used_keys;
-    ExhaustiveEnumMap               res;
+    EnumMap                         res;
     // Here we can use from_field to allow the converter to con-
     // trol default field value behavior because, for this data
     // structure, we know the complete set of possible keys and

@@ -48,7 +48,7 @@ struct.Colony {
   location 'Coord',
 
   # Commodities.
-  commodities 'ExhaustiveEnumMap<e_commodity, int>',
+  commodities 'EnumMap<e_commodity, int>',
 
   # Serves to both record the units in this colony as well as
   # their occupations.

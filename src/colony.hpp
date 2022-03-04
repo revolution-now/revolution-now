@@ -72,7 +72,7 @@ class Colony {
   void set_commodity_quantity( e_commodity comm, int q );
   void set_nation( e_nation new_nation );
 
-  ExhaustiveEnumMap<e_commodity, int>& commodities() {
+  EnumMap<e_commodity, int>& commodities() {
     return o_.commodities;
   }
 
