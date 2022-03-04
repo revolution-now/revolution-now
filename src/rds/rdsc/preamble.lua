@@ -12,8 +12,10 @@
 local setmetatable = setmetatable
 local error = error
 
--- Erase all globals.
-for k, v in pairs( _G ) do if k ~= '_G' then _G[k] = nil end end
+-- Erase all globals. Need to grab a reference to _G first be-
+-- cause at some point in the loop it will be destroyed.
+local _G = _G
+for k, v in pairs( _G ) do _G[k] = nil end
 
 -- require( 'printer' )
 rds = { includes={}, items={} } -- results will be put here.
