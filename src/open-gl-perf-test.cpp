@@ -201,13 +201,16 @@ void render_loop( ::SDL_Window*         window,
   auto& program    = gl_objects.program;
   auto& vert_array = gl_objects.vertex_array;
 
+  // Texture 0 should be the default, but let's just set it
+  // anyway to be sure.
+  GL_CHECK( glActiveTexture( GL_TEXTURE0 ) );
   auto tx_binder = gl_objects.tx.bind();
 
   using namespace ::base::literals;
 
   program["screen_size"_t] = gl::vec2{
       float( screen_delta.w._ ), float( screen_delta.h._ ) };
-  program["tx"_t]   = 0;
+  program["tx"_t]   = 0; // GL_TEXTURE0
   program["tick"_t] = 0;
 
   int num_vertices =
