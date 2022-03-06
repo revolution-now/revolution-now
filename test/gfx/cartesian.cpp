@@ -37,5 +37,246 @@ TEST_CASE( "[gfx/cartesian] coord + size" ) {
   REQUIRE( s + p == point{ .x = 6, .y = 10 } );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
+  rect r;
+
+  REQUIRE( r.nw() == point{} );
+  REQUIRE( r.ne() == point{} );
+  REQUIRE( r.se() == point{} );
+  REQUIRE( r.sw() == point{} );
+
+  r = rect{ .origin = { .x = 3, .y = 4 },
+            .size   = { .w = 1, .h = 3 } };
+  REQUIRE( r.nw() == point{ .x = 3, .y = 4 } );
+  REQUIRE( r.ne() == point{ .x = 4, .y = 4 } );
+  REQUIRE( r.se() == point{ .x = 4, .y = 7 } );
+  REQUIRE( r.sw() == point{ .x = 3, .y = 7 } );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] negative rect::nw, rect::se, etc." ) {
+  rect r;
+
+  REQUIRE( r.nw() == point{} );
+  REQUIRE( r.ne() == point{} );
+  REQUIRE( r.se() == point{} );
+  REQUIRE( r.sw() == point{} );
+
+  r = rect{ .origin = { .x = 3, .y = 4 },
+            .size   = { .w = -1, .h = -3 } };
+  REQUIRE( r.nw() == point{ .x = 2, .y = 1 } );
+  REQUIRE( r.ne() == point{ .x = 3, .y = 1 } );
+  REQUIRE( r.se() == point{ .x = 3, .y = 4 } );
+  REQUIRE( r.sw() == point{ .x = 2, .y = 4 } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::is_inside" ) {
+  rect r1;
+  rect r2{ .origin = { .x = 1, .y = 1 },
+           .size   = { .w = 0, .h = 0 } };
+  rect r3{ .origin = { .x = 1, .y = 2 },
+           .size   = { .w = 1, .h = 0 } };
+  rect r4{ .origin = { .x = 2, .y = 2 },
+           .size   = { .w = 0, .h = 1 } };
+  rect r5{ .origin = { .x = 1, .y = 2 },
+           .size   = { .w = 3, .h = 3 } };
+  rect r6{ .origin = { .x = 0, .y = 2 },
+           .size   = { .w = 4, .h = 3 } };
+  rect r7{ .origin = { .x = 1, .y = 1 },
+           .size   = { .w = 2, .h = 1 } };
+  rect r8{ .origin = { .x = 2, .y = 1 },
+           .size   = { .w = 2, .h = 1 } };
+
+  REQUIRE( r1.is_inside( r1 ) == true );
+  REQUIRE( r1.is_inside( r2 ) == false );
+  REQUIRE( r1.is_inside( r3 ) == false );
+  REQUIRE( r1.is_inside( r4 ) == false );
+  REQUIRE( r1.is_inside( r5 ) == false );
+  REQUIRE( r1.is_inside( r6 ) == false );
+  REQUIRE( r1.is_inside( r7 ) == false );
+  REQUIRE( r1.is_inside( r8 ) == false );
+
+  REQUIRE( r2.is_inside( r1 ) == false );
+  REQUIRE( r2.is_inside( r2 ) == true );
+  REQUIRE( r2.is_inside( r3 ) == false );
+  REQUIRE( r2.is_inside( r4 ) == false );
+  REQUIRE( r2.is_inside( r5 ) == false );
+  REQUIRE( r2.is_inside( r6 ) == false );
+  REQUIRE( r2.is_inside( r7 ) == true );
+  REQUIRE( r2.is_inside( r8 ) == false );
+
+  REQUIRE( r3.is_inside( r1 ) == false );
+  REQUIRE( r3.is_inside( r2 ) == false );
+  REQUIRE( r3.is_inside( r3 ) == true );
+  REQUIRE( r3.is_inside( r4 ) == false );
+  REQUIRE( r3.is_inside( r5 ) == true );
+  REQUIRE( r3.is_inside( r6 ) == true );
+  REQUIRE( r3.is_inside( r7 ) == true );
+  REQUIRE( r3.is_inside( r8 ) == false );
+
+  REQUIRE( r4.is_inside( r1 ) == false );
+  REQUIRE( r4.is_inside( r2 ) == false );
+  REQUIRE( r4.is_inside( r3 ) == false );
+  REQUIRE( r4.is_inside( r4 ) == true );
+  REQUIRE( r4.is_inside( r5 ) == true );
+  REQUIRE( r4.is_inside( r6 ) == true );
+  REQUIRE( r4.is_inside( r7 ) == false );
+  REQUIRE( r4.is_inside( r8 ) == false );
+
+  REQUIRE( r5.is_inside( r1 ) == false );
+  REQUIRE( r5.is_inside( r2 ) == false );
+  REQUIRE( r5.is_inside( r3 ) == false );
+  REQUIRE( r5.is_inside( r4 ) == false );
+  REQUIRE( r5.is_inside( r5 ) == true );
+  REQUIRE( r5.is_inside( r6 ) == true );
+  REQUIRE( r5.is_inside( r7 ) == false );
+  REQUIRE( r5.is_inside( r8 ) == false );
+
+  REQUIRE( r6.is_inside( r1 ) == false );
+  REQUIRE( r6.is_inside( r2 ) == false );
+  REQUIRE( r6.is_inside( r3 ) == false );
+  REQUIRE( r6.is_inside( r4 ) == false );
+  REQUIRE( r6.is_inside( r5 ) == false );
+  REQUIRE( r6.is_inside( r6 ) == true );
+  REQUIRE( r6.is_inside( r7 ) == false );
+  REQUIRE( r6.is_inside( r8 ) == false );
+
+  REQUIRE( r7.is_inside( r1 ) == false );
+  REQUIRE( r7.is_inside( r2 ) == false );
+  REQUIRE( r7.is_inside( r3 ) == false );
+  REQUIRE( r7.is_inside( r4 ) == false );
+  REQUIRE( r7.is_inside( r5 ) == false );
+  REQUIRE( r7.is_inside( r6 ) == false );
+  REQUIRE( r7.is_inside( r7 ) == true );
+  REQUIRE( r7.is_inside( r8 ) == false );
+
+  REQUIRE( r8.is_inside( r1 ) == false );
+  REQUIRE( r8.is_inside( r2 ) == false );
+  REQUIRE( r8.is_inside( r3 ) == false );
+  REQUIRE( r8.is_inside( r4 ) == false );
+  REQUIRE( r8.is_inside( r5 ) == false );
+  REQUIRE( r8.is_inside( r6 ) == false );
+  REQUIRE( r8.is_inside( r7 ) == false );
+  REQUIRE( r8.is_inside( r8 ) == true );
+}
+
+TEST_CASE( "[gfx/cartesian] negaitve rect::is_inside" ) {
+  rect r1;
+  rect r2{ .origin = { .x = 1, .y = 1 },
+           .size   = { .w = -0, .h = -0 } };
+  rect r3{ .origin = { .x = 1, .y = 2 },
+           .size   = { .w = -1, .h = -0 } };
+  rect r4{ .origin = { .x = 2, .y = 2 },
+           .size   = { .w = -0, .h = -1 } };
+  rect r5{ .origin = { .x = 1, .y = 2 },
+           .size   = { .w = -3, .h = -3 } };
+  rect r6{ .origin = { .x = 0, .y = 2 },
+           .size   = { .w = -4, .h = -3 } };
+  rect r7{ .origin = { .x = 1, .y = 1 },
+           .size   = { .w = -2, .h = -1 } };
+  rect r8{ .origin = { .x = 2, .y = 1 },
+           .size   = { .w = -2, .h = -1 } };
+
+  REQUIRE( r1.is_inside( r1 ) == true );
+  REQUIRE( r1.is_inside( r2 ) == false );
+  REQUIRE( r1.is_inside( r3 ) == false );
+  REQUIRE( r1.is_inside( r4 ) == false );
+  REQUIRE( r1.is_inside( r5 ) == true );
+  REQUIRE( r1.is_inside( r6 ) == true );
+  REQUIRE( r1.is_inside( r7 ) == true );
+  REQUIRE( r1.is_inside( r8 ) == true );
+
+  REQUIRE( r2.is_inside( r1 ) == false );
+  REQUIRE( r2.is_inside( r2 ) == true );
+  REQUIRE( r2.is_inside( r3 ) == false );
+  REQUIRE( r2.is_inside( r4 ) == false );
+  REQUIRE( r2.is_inside( r5 ) == true );
+  REQUIRE( r2.is_inside( r6 ) == false );
+  REQUIRE( r2.is_inside( r7 ) == true );
+  REQUIRE( r2.is_inside( r8 ) == true );
+
+  REQUIRE( r3.is_inside( r1 ) == false );
+  REQUIRE( r3.is_inside( r2 ) == false );
+  REQUIRE( r3.is_inside( r3 ) == true );
+  REQUIRE( r3.is_inside( r4 ) == false );
+  REQUIRE( r3.is_inside( r5 ) == true );
+  REQUIRE( r3.is_inside( r6 ) == false );
+  REQUIRE( r3.is_inside( r7 ) == false );
+  REQUIRE( r3.is_inside( r8 ) == false );
+
+  REQUIRE( r4.is_inside( r1 ) == false );
+  REQUIRE( r4.is_inside( r2 ) == false );
+  REQUIRE( r4.is_inside( r3 ) == false );
+  REQUIRE( r4.is_inside( r4 ) == true );
+  REQUIRE( r4.is_inside( r5 ) == false );
+  REQUIRE( r4.is_inside( r6 ) == false );
+  REQUIRE( r4.is_inside( r7 ) == false );
+  REQUIRE( r4.is_inside( r8 ) == false );
+
+  REQUIRE( r5.is_inside( r1 ) == false );
+  REQUIRE( r5.is_inside( r2 ) == false );
+  REQUIRE( r5.is_inside( r3 ) == false );
+  REQUIRE( r5.is_inside( r4 ) == false );
+  REQUIRE( r5.is_inside( r5 ) == true );
+  REQUIRE( r5.is_inside( r6 ) == false );
+  REQUIRE( r5.is_inside( r7 ) == false );
+  REQUIRE( r5.is_inside( r8 ) == false );
+
+  REQUIRE( r6.is_inside( r1 ) == false );
+  REQUIRE( r6.is_inside( r2 ) == false );
+  REQUIRE( r6.is_inside( r3 ) == false );
+  REQUIRE( r6.is_inside( r4 ) == false );
+  REQUIRE( r6.is_inside( r5 ) == false );
+  REQUIRE( r6.is_inside( r6 ) == true );
+  REQUIRE( r6.is_inside( r7 ) == false );
+  REQUIRE( r6.is_inside( r8 ) == false );
+
+  REQUIRE( r7.is_inside( r1 ) == false );
+  REQUIRE( r7.is_inside( r2 ) == false );
+  REQUIRE( r7.is_inside( r3 ) == false );
+  REQUIRE( r7.is_inside( r4 ) == false );
+  REQUIRE( r7.is_inside( r5 ) == true );
+  REQUIRE( r7.is_inside( r6 ) == false );
+  REQUIRE( r7.is_inside( r7 ) == true );
+  REQUIRE( r7.is_inside( r8 ) == false );
+
+  REQUIRE( r8.is_inside( r1 ) == false );
+  REQUIRE( r8.is_inside( r2 ) == false );
+  REQUIRE( r8.is_inside( r3 ) == false );
+  REQUIRE( r8.is_inside( r4 ) == false );
+  REQUIRE( r8.is_inside( r5 ) == false );
+  REQUIRE( r8.is_inside( r6 ) == false );
+  REQUIRE( r8.is_inside( r7 ) == false );
+  REQUIRE( r8.is_inside( r8 ) == true );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::contains" ) {
+  rect r1;
+  rect r2{ .origin = { .x = 1, .y = 1 },
+           .size   = { .w = 2, .h = 1 } };
+
+  REQUIRE( r1.contains( point{} ) == true );
+  REQUIRE( r1.contains( point{ .x = 1, .y = 0 } ) == false );
+  REQUIRE( r1.contains( point{ .x = 0, .y = 1 } ) == false );
+  REQUIRE( r1.contains( point{ .x = 1, .y = 1 } ) == false );
+
+  REQUIRE( r2.contains( point{ .x = 0, .y = 0 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 1, .y = 0 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 2, .y = 0 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 3, .y = 0 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 0, .y = 1 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 1, .y = 1 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 2, .y = 1 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 3, .y = 1 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 0, .y = 2 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 1, .y = 2 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 2, .y = 2 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 3, .y = 2 } ) == true );
+  REQUIRE( r2.contains( point{ .x = 0, .y = 3 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 1, .y = 3 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 2, .y = 3 } ) == false );
+  REQUIRE( r2.contains( point{ .x = 3, .y = 3 } ) == false );
+}
+
 } // namespace
 } // namespace gfx

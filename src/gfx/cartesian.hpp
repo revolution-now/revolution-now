@@ -53,11 +53,28 @@ struct point {
 /****************************************************************
 ** rect
 *****************************************************************/
+// Be careful here since the rect is not guaranteed to be in
+// "normalized" form, i.e. where the `origin` member represents
+// the upper left in the case that the `size` has a negative com-
+// ponent.
 struct rect {
-  point     origin = {}; // upper left.
+  point     origin = {}; // upper left when normalized.
   gfx::size size   = {};
 
   int area() const { return size.area(); }
+
+  // Is inside or touching borders.
+  bool is_inside( rect const& other ) const;
+
+  // Is inside or touching border.
+  bool contains( point const& p ) const;
+
+  rect normalized() const;
+
+  point nw() const;
+  point ne() const;
+  point se() const;
+  point sw() const;
 
   bool operator==( rect const& ) const = default;
 };
