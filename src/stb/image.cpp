@@ -48,7 +48,8 @@ gfx::image load_image( fs::path const& p ) {
       ::stbi_load( p.c_str(), &width_pixels, &height_pixels,
                    &num_channels, gfx::image::kBytesPerPixel );
   if( data == nullptr ) die_with_stbi_error();
-  return gfx::image( width_pixels, height_pixels, data );
+  return gfx::image(
+      gfx::size{ .w = width_pixels, .h = height_pixels }, data );
 }
 
 } // namespace stb

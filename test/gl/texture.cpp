@@ -72,8 +72,8 @@ TEST_CASE( "[texture] construct then set image" ) {
 
   SECTION( "set_image" ) {
     expect_bind();
-    gfx::image img = gfx::empty_image( /*width_pixels=*/7,
-                                       /*height_pixels=*/5 );
+    gfx::image img =
+        gfx::empty_image( gfx::size{ .w = 7, .h = 5 } );
     EXPECT_CALL(
         mock,
         gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 7, 5, 0,
@@ -124,8 +124,8 @@ TEST_CASE( "[texture] construct with image" ) {
                               GL_CLAMP_TO_EDGE ) );
   EXPECT_CALL( mock, gl_DeleteTextures( 1, Pointee( 42 ) ) );
   expect_bind();
-  gfx::image img = gfx::empty_image( /*width_pixels=*/7,
-                                     /*height_pixels=*/5 );
+  gfx::image img =
+      gfx::empty_image( gfx::size{ .w = 7, .h = 5 } );
   EXPECT_CALL(
       mock,
       gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 7, 5, 0, GL_RGBA,
