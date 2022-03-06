@@ -17,15 +17,13 @@ namespace gfx {
 /****************************************************************
 ** image
 *****************************************************************/
-image::image( int width_pixels, int height_pixels,
-              unsigned char* data )
+image::image( size size_pixels, unsigned char* data )
   : base::zero<image, unsigned char*>( data ),
-    width_pixels_( width_pixels ),
-    height_pixels_( height_pixels ) {}
+    size_pixels_( size_pixels ) {}
 
-gfx::pixel image::get( int y, int x ) const {
+gfx::pixel image::get( point p ) const {
   unsigned char const* pixel_start =
-      data() + ( y * width_pixels_ + x ) * kBytesPerPixel;
+      data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel;
   return gfx::pixel(
       /*r=*/pixel_start[0],
       /*g=*/pixel_start[1],
@@ -33,17 +31,17 @@ gfx::pixel image::get( int y, int x ) const {
       /*a=*/pixel_start[3] );
 }
 
-int image::height_pixels() const { return height_pixels_; }
+size image::size_pixels() const { return size_pixels_; }
 
-int image::width_pixels() const { return width_pixels_; }
+int image::height_pixels() const { return size_pixels_.h; }
+
+int image::width_pixels() const { return size_pixels_.w; }
 
 int image::size_bytes() const {
   return total_pixels() * kBytesPerPixel;
 }
 
-int image::total_pixels() const {
-  return width_pixels_ * height_pixels_;
-}
+int image::total_pixels() const { return size_pixels_.area(); }
 
 unsigned char* image::data() const { return resource(); }
 
@@ -75,14 +73,12 @@ void image::free_resource() { ::free( resource() ); }
 /****************************************************************
 ** Helpers
 *****************************************************************/
-image empty_image( int width_pixels, int height_pixels ) {
-  CHECK_GE( width_pixels, 1 );
-  CHECK_GE( height_pixels, 1 );
-  int size_bytes =
-      width_pixels * height_pixels * image::kBytesPerPixel;
+image empty_image( size size_pixels ) {
+  CHECK( !size_pixels.negative() );
+  int size_bytes = size_pixels.area() * image::kBytesPerPixel;
   unsigned char* data = (unsigned char*)::malloc( size_bytes );
   ::memset( data, 0, size_bytes );
-  return image( width_pixels, height_pixels, data );
+  return image( size_pixels, data );
 }
 
 } // namespace gfx

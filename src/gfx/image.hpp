@@ -11,6 +11,7 @@
 #pragma once
 
 // gfx
+#include "cartesian.hpp"
 #include "pixel.hpp"
 
 // base
@@ -31,15 +32,18 @@ struct image : base::zero<image, unsigned char*> {
   // The data pointer passed in is assumed allocated by malloc.
   // This class will take ownership of it and release it with
   // free.
-  image( int width_pixels, int height_pixels,
-         unsigned char* data );
+  image( size size_pixels, unsigned char* data );
 
-  gfx::pixel get( int y, int x ) const;
+  image( image&& ) = default;
+  image& operator=( image&& ) = default;
 
-  int height_pixels() const;
-  int width_pixels() const;
-  int size_bytes() const;
-  int total_pixels() const;
+  gfx::pixel get( point p ) const;
+
+  size size_pixels() const;
+  int  height_pixels() const;
+  int  width_pixels() const;
+  int  size_bytes() const;
+  int  total_pixels() const;
 
   operator std::span<std::byte const>() const;
   operator std::span<char const>() const;
@@ -52,8 +56,10 @@ struct image : base::zero<image, unsigned char*> {
   unsigned char* data() const;
 
  private:
-  int width_pixels_  = 0;
-  int height_pixels_ = 0;
+  image( image const& ) = delete;
+  image& operator=( image const& ) = delete;
+
+  size size_pixels_ = {};
 
   // Implement base::zero.
   friend base::zero<image, unsigned char*>;
@@ -64,6 +70,6 @@ struct image : base::zero<image, unsigned char*> {
 ** Helpers
 *****************************************************************/
 // Returns an image with all pixels set to zero (0,0,0,0).
-image empty_image( int width_pixels, int height_pixels );
+[[nodiscard]] image empty_image( size size_pixels );
 
 } // namespace gfx

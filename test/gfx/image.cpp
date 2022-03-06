@@ -29,8 +29,9 @@ TEST_CASE( "[image] creation" ) {
   data[7 * 1 * 4 + 2] = 3; // blue
   data[7 * 1 * 4 + 3] = 4; // alpha
 
-  image img( 7, 5, data );
+  image img( size{ .w = 7, .h = 5 }, data );
 
+  REQUIRE( img.size_pixels() == size{ .w = 7, .h = 5 } );
   REQUIRE( img.height_pixels() == 5 );
   REQUIRE( img.width_pixels() == 7 );
   REQUIRE( img.size_bytes() == 140 );
@@ -40,8 +41,10 @@ TEST_CASE( "[image] creation" ) {
 
   REQUIRE( img.data() == data );
 
-  REQUIRE( img.get( /*y=*/0, /*x=*/0 ) == pixel( 0, 0, 0, 0 ) );
-  REQUIRE( img.get( /*y=*/1, /*x=*/0 ) == pixel( 1, 2, 3, 4 ) );
+  REQUIRE( img.get( point{ .x = 0, .y = 0 } ) ==
+           pixel( 0, 0, 0, 0 ) );
+  REQUIRE( img.get( point{ .x = 0, .y = 1 } ) ==
+           pixel( 1, 2, 3, 4 ) );
 
   span<byte const> sb = img;
   REQUIRE( int( sb.size() ) == img.size_bytes() );
@@ -84,16 +87,17 @@ TEST_CASE( "[image] creation" ) {
 }
 
 TEST_CASE( "[image] empty_image" ) {
-  image img =
-      empty_image( /*width_pixels=*/7, /*height_pixels=*/5 );
+  image img = empty_image( size{ .w = 7, .h = 5 } );
 
   REQUIRE( img.height_pixels() == 5 );
   REQUIRE( img.width_pixels() == 7 );
   REQUIRE( img.size_bytes() == 140 );
   REQUIRE( img.total_pixels() == 35 );
 
-  REQUIRE( img.get( /*y=*/0, /*x=*/0 ) == pixel( 0, 0, 0, 0 ) );
-  REQUIRE( img.get( /*y=*/1, /*x=*/0 ) == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( img.get( point{ .x = 0, .y = 0 } ) ==
+           pixel( 0, 0, 0, 0 ) );
+  REQUIRE( img.get( point{ .x = 0, .y = 1 } ) ==
+           pixel( 0, 0, 0, 0 ) );
 
   span<byte const> sb = img;
   REQUIRE( int( sb.size() ) == img.size_bytes() );
