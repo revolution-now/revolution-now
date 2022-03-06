@@ -139,6 +139,86 @@ TEST_CASE( "[image] empty_image" ) {
   REQUIRE( sp[7 * 1 + 1] == pixel{ 0, 0, 0, 0 } );
 }
 
+bool compare_image( image const& img, span<pixel const> sp ) {
+  CHECK_EQ( img.size_pixels().area(), int( sp.size() ) );
+  span<pixel const> l       = img;
+  span<pixel const> r       = sp;
+  bool              success = true;
+  for( int i = 0; i < int( l.size() ); ++i ) {
+    if( l[i] != r[i] ) {
+      fmt::print( "index {} differs: l[{}]={}, r[{}]={}\n", i, i,
+                  l[i], i, r[i] );
+      success = false;
+    }
+  }
+  return success;
+}
+
+TEST_CASE( "[image] blit_from" ) {
+  image dst = empty_image( { .w = 4, .h = 4 } );
+  image src = empty_image( { .w = 5, .h = 7 } );
+
+  vector<pixel> expected_dst, expected_src;
+
+  pixel R = pixel{ .r = 255, .g = 0, .b = 0, .a = 255 };
+  pixel G = pixel{ .r = 0, .g = 255, .b = 0, .a = 255 };
+  pixel O = pixel{ .r = 0, .g = 0, .b = 0, .a = 255 };
+
+  for( pixel& p : span<pixel>( dst ) ) p = O;
+  expected_dst = {
+      O, O, O, O, //
+      O, O, O, O, //
+      O, O, O, O, //
+      O, O, O, O, //
+  };
+  REQUIRE( compare_image( dst, expected_dst ) );
+
+  for( pixel& p : span<pixel>( src ) ) p = G;
+  expected_src = {
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+  };
+  REQUIRE( compare_image( src, expected_src ) );
+
+  src[{ .x = 2, .y = 1 }] = R;
+  src[{ .x = 3, .y = 1 }] = R;
+  src[{ .x = 4, .y = 1 }] = R;
+  src[{ .x = 2, .y = 2 }] = R;
+  src[{ .x = 3, .y = 2 }] = R;
+  src[{ .x = 4, .y = 2 }] = R;
+  src[{ .x = 2, .y = 3 }] = R;
+  src[{ .x = 3, .y = 3 }] = R;
+  src[{ .x = 4, .y = 3 }] = R;
+  src[{ .x = 2, .y = 4 }] = R;
+  src[{ .x = 3, .y = 4 }] = R;
+  src[{ .x = 4, .y = 4 }] = R;
+  expected_src            = {
+      G, G, G, G, G, //
+      G, G, R, R, R, //
+      G, G, R, R, R, //
+      G, G, R, R, R, //
+      G, G, R, R, R, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+  };
+  REQUIRE( compare_image( src, expected_src ) );
+
+  dst.blit_from( src,
+                 rect{ .origin = { .x = 2, .y = 1 },
+                       .size   = { .w = 4, .h = 3 } },
+                 point{ .x = -1, .y = 2 } );
+  expected_dst = {
+      O, O, O, O, //
+      O, O, O, O, //
+      R, R, O, O, //
+      R, R, O, O, //
+  };
+  REQUIRE( compare_image( dst, expected_dst ) );
 }
 
 } // namespace

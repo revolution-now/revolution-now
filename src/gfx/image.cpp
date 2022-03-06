@@ -10,9 +10,14 @@
 *****************************************************************/
 #include "image.hpp"
 
+// C++ standard library
+#include <cstring>
+
 using namespace std;
 
 namespace gfx {
+
+using ::base::maybe;
 
 /****************************************************************
 ** image
@@ -44,6 +49,10 @@ gfx::pixel const& image::operator[]( point p ) const {
 gfx::pixel& image::operator[]( point p ) { return at( p ); }
 
 size image::size_pixels() const { return size_pixels_; }
+
+rect image::rect_pixels() const {
+  return rect{ .origin = {}, .size = size_pixels_ };
+}
 
 int image::height_pixels() const { return size_pixels_.h; }
 
@@ -87,7 +96,51 @@ image::operator span<pixel const>() const {
   return span<pixel const>( p, total_pixels() );
 }
 
+image::operator span<pixel>() {
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
+  pixel* p = reinterpret_cast<pixel*>( data() );
+  static_assert( sizeof( pixel ) == kBytesPerPixel );
+  return span<pixel>( p, total_pixels() );
+}
+
 void image::free_resource() { ::free( resource() ); }
+
+unsigned char* image::data_for( point const& p ) const {
+  unsigned char* ptr =
+      data() + kBytesPerPixel * ( p.y * size_pixels_.w + p.x );
+  DCHECK( ptr > data() );
+  DCHECK( ptr < data() + size_bytes() );
+  return ptr;
+}
+
+void image::blit_from( image const& other,
+                       rect const&  src_unclipped,
+                       point const& dst_origin ) {
+  maybe<rect> src =
+      src_unclipped.clipped_by( other.rect_pixels() );
+  if( !src.has_value() ) return;
+  rect dst_unclipped =
+      rect{ .origin = dst_origin, .size = src->size };
+  maybe<rect> dst = dst_unclipped.clipped_by( rect_pixels() );
+  if( !dst.has_value() ) return;
+  size const copied_size =
+      size{ .w = std::min( src->size.w, dst->size.w ),
+            .h = std::min( src->size.h, dst->size.h ) };
+  src->size = copied_size;
+  dst->size = copied_size;
+  if( copied_size.area() == 0 ) return;
+
+  point     src_point = src->origin;
+  point     dst_point = dst->origin;
+  int const num_rows  = copied_size.h;
+  for( int i = 0; i < num_rows; ++i ) {
+    memcpy( data_for( dst_point ), other.data_for( src_point ),
+            kBytesPerPixel * copied_size.w );
+    ++src_point.y;
+    ++dst_point.y;
+  }
+}
 
 /****************************************************************
 ** Helpers
