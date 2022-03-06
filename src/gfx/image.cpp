@@ -21,15 +21,27 @@ image::image( size size_pixels, unsigned char* data )
   : base::zero<image, unsigned char*>( data ),
     size_pixels_( size_pixels ) {}
 
-gfx::pixel image::get( point p ) const {
-  unsigned char const* pixel_start =
-      data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel;
-  return gfx::pixel(
-      /*r=*/pixel_start[0],
-      /*g=*/pixel_start[1],
-      /*b=*/pixel_start[2],
-      /*a=*/pixel_start[3] );
+gfx::pixel const& image::at( point p ) const {
+  DCHECK( rect_pixels().contains( p ) );
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
+  return *reinterpret_cast<pixel const*>(
+      data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel );
 }
+
+gfx::pixel& image::at( point p ) {
+  DCHECK( rect_pixels().contains( p ) );
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
+  return *reinterpret_cast<pixel*>(
+      data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel );
+}
+
+gfx::pixel const& image::operator[]( point p ) const {
+  return at( p );
+}
+
+gfx::pixel& image::operator[]( point p ) { return at( p ); }
 
 size image::size_pixels() const { return size_pixels_; }
 
@@ -50,11 +62,15 @@ image::operator span<byte const>() const {
   // about to do.
   static_assert( sizeof( std::byte ) ==
                  sizeof( unsigned char ) );
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
   byte const* p = reinterpret_cast<byte const*>( data() );
   return span<byte const>( p, size_bytes() );
 }
 
 image::operator span<char const>() const {
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
   char const* p = reinterpret_cast<char const*>( data() );
   return span<char const>( p, size_bytes() );
 }
@@ -64,7 +80,10 @@ image::operator span<unsigned char const>() const {
 }
 
 image::operator span<pixel const>() const {
+  // This reinterpret_cast should be ok because data() has type
+  // `unsigned char*` which is allowed to alias anything.
   pixel const* p = reinterpret_cast<pixel const*>( data() );
+  static_assert( sizeof( pixel ) == kBytesPerPixel );
   return span<pixel const>( p, total_pixels() );
 }
 

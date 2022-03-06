@@ -37,7 +37,11 @@ struct image : base::zero<image, unsigned char*> {
   image( image&& ) = default;
   image& operator=( image&& ) = default;
 
-  gfx::pixel get( point p ) const;
+  gfx::pixel const& at( point p ) const;
+  gfx::pixel&       at( point p );
+
+  gfx::pixel const& operator[]( point p ) const;
+  gfx::pixel&       operator[]( point p );
 
   size size_pixels() const;
   int  height_pixels() const;

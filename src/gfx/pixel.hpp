@@ -33,12 +33,6 @@ struct pixel {
   uint8_t b = 0;
   uint8_t a = 0;
 
-  pixel() = default;
-  pixel( uint8_t r_, uint8_t g_, uint8_t b_ )
-    : r( r_ ), g( g_ ), b( b_ ), a( 255 ) {}
-  pixel( uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_ )
-    : r( r_ ), g( g_ ), b( b_ ), a( a_ ) {}
-
   auto operator<=>( pixel const& ) const = default;
 
   double luminosity() const;
@@ -90,12 +84,24 @@ struct pixel {
                                             cdr::value const& v,
                                             cdr::tag_t<pixel> );
 
-  static pixel red() { return { 255, 0, 0, 255 }; }
-  static pixel yellow() { return { 255, 255, 0, 255 }; }
-  static pixel green() { return { 0, 255, 0, 255 }; }
-  static pixel blue() { return { 0, 0, 255, 255 }; }
-  static pixel white() { return { 255, 255, 255, 255 }; }
-  static pixel black() { return { 0, 0, 0, 255 }; }
+  static pixel red() {
+    return { .r = 255, .g = 0, .b = 0, .a = 255 };
+  }
+  static pixel yellow() {
+    return { .r = 255, .g = 255, .b = 0, .a = 255 };
+  }
+  static pixel green() {
+    return { .r = 0, .g = 255, .b = 0, .a = 255 };
+  }
+  static pixel blue() {
+    return { .r = 0, .g = 0, .b = 255, .a = 255 };
+  }
+  static pixel white() {
+    return { .r = 255, .g = 255, .b = 255, .a = 255 };
+  }
+  static pixel black() {
+    return { .r = 0, .g = 0, .b = 0, .a = 255 };
+  }
   static pixel banana();
   static pixel wood();
 };

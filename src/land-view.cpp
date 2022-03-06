@@ -383,7 +383,7 @@ wait<> animate_depixelation( UnitId            id,
     for( auto point : new_non_pixels ) {
       auto color = depixelate.demoted_pixels.size().area() > 0
                        ? depixelate.demoted_pixels[point]
-                       : gfx::pixel( 0, 0, 0, 0 );
+                       : gfx::pixel{ 0, 0, 0, 0 };
       set_render_draw_color( color );
       depixelate.tx_depixelate_from.set_render_target();
       ::SDL_RenderDrawPoint( g_renderer, point.x._, point.y._ );

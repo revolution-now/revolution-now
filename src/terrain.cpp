@@ -128,7 +128,7 @@ void render_terrain_square( Texture& tx, Coord world_square,
   render_sprite( tx, tile, pixel_coord, 0, 0 );
   if( g_show_grid )
     render_rect(
-        tx, gfx::pixel( 0, 0, 0, 30 ),
+        tx, gfx::pixel{ 0, 0, 0, 30 },
         Rect::from( pixel_coord,
                     g_tile_delta + Delta( 1_w, 1_h ) ) );
 }

@@ -368,10 +368,11 @@ void dump_palette( ColorBuckets const& bucketed,
   inl_out << "  OBJ( grey,\n";
   uint8_t jump = 256 / grey_scale_colors;
   for( uint8_t n = 0; n < grey_scale_colors; ++n ) {
-    auto v = n * jump;
-    auto line =
-        format( "  n{:02X}: \"{}\"\n", v,
-                pixel( v, v, v, 255 ).to_string( false ) );
+    auto v    = n * jump;
+    auto line = format(
+        "  n{:02X}: \"{}\"\n", v,
+        pixel{ uint8_t( v ), uint8_t( v ), uint8_t( v ), 255 }
+            .to_string( false ) );
     rcl_out << line;
     auto fld = format( "    FLD( pixel, n{:02X} )\n", v );
     inl_out << fld;

@@ -41,10 +41,10 @@ TEST_CASE( "[image] creation" ) {
 
   REQUIRE( img.data() == data );
 
-  REQUIRE( img.get( point{ .x = 0, .y = 0 } ) ==
-           pixel( 0, 0, 0, 0 ) );
-  REQUIRE( img.get( point{ .x = 0, .y = 1 } ) ==
-           pixel( 1, 2, 3, 4 ) );
+  REQUIRE( img.at( point{ .x = 0, .y = 0 } ) ==
+           pixel{ 0, 0, 0, 0 } );
+  REQUIRE( img.at( point{ .x = 0, .y = 1 } ) ==
+           pixel{ 1, 2, 3, 4 } );
 
   span<byte const> sb = img;
   REQUIRE( int( sb.size() ) == img.size_bytes() );
@@ -81,9 +81,9 @@ TEST_CASE( "[image] creation" ) {
 
   span<pixel const> sp = img;
   REQUIRE( int( sp.size() ) == img.total_pixels() );
-  REQUIRE( sp[0] == pixel( 0, 0, 0, 0 ) );
-  REQUIRE( sp[7 * 1] == pixel( 1, 2, 3, 4 ) );
-  REQUIRE( sp[7 * 1 + 1] == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( sp[0] == pixel{ 0, 0, 0, 0 } );
+  REQUIRE( sp[7 * 1] == pixel{ 1, 2, 3, 4 } );
+  REQUIRE( sp[7 * 1 + 1] == pixel{ 0, 0, 0, 0 } );
 }
 
 TEST_CASE( "[image] empty_image" ) {
@@ -94,10 +94,10 @@ TEST_CASE( "[image] empty_image" ) {
   REQUIRE( img.size_bytes() == 140 );
   REQUIRE( img.total_pixels() == 35 );
 
-  REQUIRE( img.get( point{ .x = 0, .y = 0 } ) ==
-           pixel( 0, 0, 0, 0 ) );
-  REQUIRE( img.get( point{ .x = 0, .y = 1 } ) ==
-           pixel( 0, 0, 0, 0 ) );
+  REQUIRE( img.at( point{ .x = 0, .y = 0 } ) ==
+           pixel{ 0, 0, 0, 0 } );
+  REQUIRE( img.at( point{ .x = 0, .y = 1 } ) ==
+           pixel{ 0, 0, 0, 0 } );
 
   span<byte const> sb = img;
   REQUIRE( int( sb.size() ) == img.size_bytes() );
@@ -134,9 +134,11 @@ TEST_CASE( "[image] empty_image" ) {
 
   span<pixel const> sp = img;
   REQUIRE( int( sp.size() ) == img.total_pixels() );
-  REQUIRE( sp[0] == pixel( 0, 0, 0, 0 ) );
-  REQUIRE( sp[7 * 1] == pixel( 0, 0, 0, 0 ) );
-  REQUIRE( sp[7 * 1 + 1] == pixel( 0, 0, 0, 0 ) );
+  REQUIRE( sp[0] == pixel{ 0, 0, 0, 0 } );
+  REQUIRE( sp[7 * 1] == pixel{ 0, 0, 0, 0 } );
+  REQUIRE( sp[7 * 1 + 1] == pixel{ 0, 0, 0, 0 } );
+}
+
 }
 
 } // namespace

@@ -38,7 +38,7 @@ TEST_CASE( "[image] load png" ) {
   bool found_nonzero_alpha = false;
   for( int y = 0; y < im.height_pixels(); ++y ) {
     for( int x = 0; x < im.width_pixels(); ++x ) {
-      gfx::pixel p = im.get( gfx::point{ .x = x, .y = y } );
+      gfx::pixel p = im.at( gfx::point{ .x = x, .y = y } );
       if( p.a == 0 )
         found_zero_alpha = true;
       else

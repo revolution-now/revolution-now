@@ -242,7 +242,7 @@ void Window::draw( Texture& tx ) const {
   CHECK( view );
   auto win_size = delta();
   render_fill_rect(
-      tx, gfx::pixel( 0, 0, 0, 64 ),
+      tx, gfx::pixel{ 0, 0, 0, 64 },
       Rect::from( position + Delta{ 4_w, 4_h }, win_size ) );
   render_fill_rect(
       tx, config_palette.orange.sat0.lum1,
