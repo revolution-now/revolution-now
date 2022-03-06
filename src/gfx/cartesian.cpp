@@ -78,6 +78,26 @@ point rect::sw() const {
                 .y = norm.origin.y + norm.size.h };
 }
 
+int rect::top() const {
+  rect norm = normalized();
+  return norm.origin.y;
+}
+
+int rect::bottom() const {
+  rect norm = normalized();
+  return norm.origin.y + norm.size.h;
+}
+
+int rect::left() const {
+  rect norm = normalized();
+  return norm.origin.x;
+}
+
+int rect::right() const {
+  rect norm = normalized();
+  return norm.origin.x + norm.size.w;
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

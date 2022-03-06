@@ -44,6 +44,10 @@ TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
   REQUIRE( r.ne() == point{} );
   REQUIRE( r.se() == point{} );
   REQUIRE( r.sw() == point{} );
+  REQUIRE( r.top() == 0 );
+  REQUIRE( r.bottom() == 0 );
+  REQUIRE( r.right() == 0 );
+  REQUIRE( r.left() == 0 );
 
   r = rect{ .origin = { .x = 3, .y = 4 },
             .size   = { .w = 1, .h = 3 } };
@@ -51,16 +55,15 @@ TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
   REQUIRE( r.ne() == point{ .x = 4, .y = 4 } );
   REQUIRE( r.se() == point{ .x = 4, .y = 7 } );
   REQUIRE( r.sw() == point{ .x = 3, .y = 7 } );
+  REQUIRE( r.top() == 4 );
+  REQUIRE( r.bottom() == 7 );
+  REQUIRE( r.right() == 4 );
+  REQUIRE( r.left() == 3 );
 }
 
 TEST_CASE(
     "[gfx/cartesian] negative rect::nw, rect::se, etc." ) {
   rect r;
-
-  REQUIRE( r.nw() == point{} );
-  REQUIRE( r.ne() == point{} );
-  REQUIRE( r.se() == point{} );
-  REQUIRE( r.sw() == point{} );
 
   r = rect{ .origin = { .x = 3, .y = 4 },
             .size   = { .w = -1, .h = -3 } };
@@ -68,6 +71,10 @@ TEST_CASE(
   REQUIRE( r.ne() == point{ .x = 3, .y = 1 } );
   REQUIRE( r.se() == point{ .x = 3, .y = 4 } );
   REQUIRE( r.sw() == point{ .x = 2, .y = 4 } );
+  REQUIRE( r.top() == 1 );
+  REQUIRE( r.bottom() == 4 );
+  REQUIRE( r.right() == 3 );
+  REQUIRE( r.left() == 2 );
 }
 
 TEST_CASE( "[gfx/cartesian] rect::is_inside" ) {

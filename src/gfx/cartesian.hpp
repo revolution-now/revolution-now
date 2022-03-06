@@ -76,6 +76,11 @@ struct rect {
   point se() const;
   point sw() const;
 
+  int top() const;
+  int bottom() const;
+  int right() const;
+  int left() const;
+
   bool operator==( rect const& ) const = default;
 };
 
