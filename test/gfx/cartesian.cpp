@@ -24,6 +24,8 @@ namespace {
 
 using namespace std;
 
+using ::base::nothing;
+
 TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 2, .h = 8 };
@@ -283,6 +285,54 @@ TEST_CASE( "[gfx/cartesian] rect::contains" ) {
   REQUIRE( r2.contains( point{ .x = 1, .y = 3 } ) == false );
   REQUIRE( r2.contains( point{ .x = 2, .y = 3 } ) == false );
   REQUIRE( r2.contains( point{ .x = 3, .y = 3 } ) == false );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::clipped_by" ) {
+  rect expected, r1, r2;
+
+  r1       = rect{ .origin = { .x = -1, .y = 0 },
+                   .size   = { .w = 3, .h = 3 } };
+  r2       = rect{ .origin = { .x = 1, .y = 1 },
+                   .size   = { .w = 5, .h = 7 } };
+  expected = rect{ .origin = { .x = 1, .y = 1 },
+                   .size   = { .w = 1, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 3 } };
+  r2       = rect{ .origin = { .x = 0, .y = 1 },
+                   .size   = { .w = 5, .h = 7 } };
+  expected = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 3 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1 = rect{ .origin = { .x = 2, .y = 2 },
+             .size   = { .w = 2, .h = 2 } };
+  r2 = rect{ .origin = { .x = 4, .y = 2 },
+             .size   = { .w = 2, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == nothing );
+
+  r1 = rect{ .origin = { .x = 2, .y = 2 },
+             .size   = { .w = 2, .h = 2 } };
+  r2 = rect{ .origin = { .x = 6, .y = 2 },
+             .size   = { .w = 2, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == nothing );
+
+  r1       = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  r2       = rect{ .origin = { .x = 3, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  expected = rect{ .origin = { .x = 3, .y = 2 },
+                   .size   = { .w = 1, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = rect{ .origin = { .x = 0, .y = 0 },
+                   .size   = { .w = 5, .h = 10 } };
+  r2       = rect{ .origin = { .x = 1, .y = 1 },
+                   .size   = { .w = 1, .h = 1 } };
+  expected = rect{ .origin = { .x = 1, .y = 1 },
+                   .size   = { .w = 1, .h = 1 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
 }
 
 } // namespace

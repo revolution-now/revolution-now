@@ -14,6 +14,9 @@ using namespace std;
 
 namespace gfx {
 
+using ::base::maybe;
+using ::base::nothing;
+
 /****************************************************************
 ** size
 *****************************************************************/
@@ -96,6 +99,27 @@ int rect::left() const {
 int rect::right() const {
   rect norm = normalized();
   return norm.origin.x + norm.size.w;
+}
+
+maybe<rect> rect::clipped_by( rect const& other ) const {
+  rect res = this->normalized();
+  if( res.right() > other.right() )
+    res.size.w -= ( res.right() - other.right() );
+  if( res.bottom() > other.bottom() )
+    res.size.h -= ( res.bottom() - other.bottom() );
+  if( res.left() < other.left() ) {
+    int delta = ( other.left() - res.left() );
+    res.origin.x += delta;
+    res.size.w -= delta;
+  }
+  if( res.top() < other.top() ) {
+    int delta = ( other.top() - res.top() );
+    res.origin.y += delta;
+    res.size.h -= delta;
+  }
+  if( res.size.negative() ) return nothing;
+  if( res.size.area() == 0 ) return nothing;
+  return res;
 }
 
 /****************************************************************

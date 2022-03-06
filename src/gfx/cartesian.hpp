@@ -13,6 +13,9 @@
 // refl
 #include "refl/ext.hpp"
 
+// base
+#include "base/maybe.hpp"
+
 // C++ standard library
 #include <algorithm>
 
@@ -68,6 +71,13 @@ struct rect {
 
   // Is inside or touching border.
   bool contains( point const& p ) const;
+
+  // Will clip off any parts of this rect that fall outside of
+  // `other`. If the entire rect falls outside of `other` then it
+  // will return nothing (this includes when they are just
+  // touching borders).
+  [[nodiscard]] base::maybe<rect> clipped_by(
+      rect const& other ) const;
 
   rect normalized() const;
 
