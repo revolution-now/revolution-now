@@ -48,8 +48,10 @@ struct SourceLoc {
 static_assert( std::is_nothrow_move_constructible_v<SourceLoc> );
 static_assert( std::is_nothrow_move_assignable_v<SourceLoc> );
 
-void to_str( base::SourceLoc const& o, std::string& out, ADL_t );
-
 } // namespace base
 
 #endif
+
+namespace base {
+void to_str( base::SourceLoc const& o, std::string& out, ADL_t );
+}
