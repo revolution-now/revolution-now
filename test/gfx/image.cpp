@@ -86,8 +86,8 @@ TEST_CASE( "[image] creation" ) {
   REQUIRE( sp[7 * 1 + 1] == pixel{ 0, 0, 0, 0 } );
 }
 
-TEST_CASE( "[image] empty_image" ) {
-  image img = empty_image( size{ .w = 7, .h = 5 } );
+TEST_CASE( "[image] new_empty_image" ) {
+  image img = new_empty_image( size{ .w = 7, .h = 5 } );
 
   REQUIRE( img.height_pixels() == 5 );
   REQUIRE( img.width_pixels() == 7 );
@@ -139,51 +139,47 @@ TEST_CASE( "[image] empty_image" ) {
   REQUIRE( sp[7 * 1 + 1] == pixel{ 0, 0, 0, 0 } );
 }
 
-bool compare_image( image const& img, span<pixel const> sp ) {
-  CHECK_EQ( img.size_pixels().area(), int( sp.size() ) );
-  span<pixel const> l       = img;
-  span<pixel const> r       = sp;
-  bool              success = true;
-  for( int i = 0; i < int( l.size() ); ++i ) {
-    if( l[i] != r[i] ) {
-      fmt::print( "index {} differs: l[{}]={}, r[{}]={}\n", i, i,
-                  l[i], i, r[i] );
-      success = false;
-    }
-  }
-  return success;
+TEST_CASE( "[image] new_filled_image" ) {
+  static pixel const G =
+      pixel{ .r = 0, .g = 255, .b = 0, .a = 255 };
+  static pixel const O =
+      pixel{ .r = 0, .g = 0, .b = 0, .a = 255 };
+
+  image img1 = new_filled_image( { .w = 4, .h = 4 }, O );
+
+  vector<pixel> expected_img1 = {
+      O, O, O, O, //
+      O, O, O, O, //
+      O, O, O, O, //
+      O, O, O, O, //
+  };
+  REQUIRE( testing::compare_image( img1, expected_img1 ) );
+
+  image         img2 = new_filled_image( { .w = 5, .h = 7 }, G );
+  vector<pixel> expected_img2 = {
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+      G, G, G, G, G, //
+  };
+  REQUIRE( testing::compare_image( img2, expected_img2 ) );
 }
 
 TEST_CASE( "[image] blit_from" ) {
-  image dst = empty_image( { .w = 4, .h = 4 } );
-  image src = empty_image( { .w = 5, .h = 7 } );
+  static pixel const R =
+      pixel{ .r = 255, .g = 0, .b = 0, .a = 255 };
+  static pixel const G =
+      pixel{ .r = 0, .g = 255, .b = 0, .a = 255 };
+  static pixel const O =
+      pixel{ .r = 0, .g = 0, .b = 0, .a = 255 };
+
+  image dst = new_filled_image( { .w = 4, .h = 4 }, O );
+  image src = new_filled_image( { .w = 5, .h = 7 }, G );
 
   vector<pixel> expected_dst, expected_src;
-
-  pixel R = pixel{ .r = 255, .g = 0, .b = 0, .a = 255 };
-  pixel G = pixel{ .r = 0, .g = 255, .b = 0, .a = 255 };
-  pixel O = pixel{ .r = 0, .g = 0, .b = 0, .a = 255 };
-
-  for( pixel& p : span<pixel>( dst ) ) p = O;
-  expected_dst = {
-      O, O, O, O, //
-      O, O, O, O, //
-      O, O, O, O, //
-      O, O, O, O, //
-  };
-  REQUIRE( compare_image( dst, expected_dst ) );
-
-  for( pixel& p : span<pixel>( src ) ) p = G;
-  expected_src = {
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-  };
-  REQUIRE( compare_image( src, expected_src ) );
 
   src[{ .x = 2, .y = 1 }] = R;
   src[{ .x = 3, .y = 1 }] = R;
@@ -197,7 +193,8 @@ TEST_CASE( "[image] blit_from" ) {
   src[{ .x = 2, .y = 4 }] = R;
   src[{ .x = 3, .y = 4 }] = R;
   src[{ .x = 4, .y = 4 }] = R;
-  expected_src            = {
+
+  expected_src = {
       G, G, G, G, G, //
       G, G, R, R, R, //
       G, G, R, R, R, //
@@ -206,7 +203,7 @@ TEST_CASE( "[image] blit_from" ) {
       G, G, G, G, G, //
       G, G, G, G, G, //
   };
-  REQUIRE( compare_image( src, expected_src ) );
+  REQUIRE( testing::compare_image( src, expected_src ) );
 
   dst.blit_from( src,
                  rect{ .origin = { .x = 2, .y = 1 },
@@ -218,7 +215,7 @@ TEST_CASE( "[image] blit_from" ) {
       R, R, O, O, //
       R, R, O, O, //
   };
-  REQUIRE( compare_image( dst, expected_dst ) );
+  REQUIRE( testing::compare_image( dst, expected_dst ) );
 }
 
 } // namespace

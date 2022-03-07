@@ -145,12 +145,49 @@ void image::blit_from( image const& other,
 /****************************************************************
 ** Helpers
 *****************************************************************/
-image empty_image( size size_pixels ) {
+image new_empty_image( size size_pixels ) {
   CHECK( !size_pixels.negative() );
   int size_bytes = size_pixels.area() * image::kBytesPerPixel;
   unsigned char* data = (unsigned char*)::malloc( size_bytes );
   ::memset( data, 0, size_bytes );
   return image( size_pixels, data );
 }
+
+image new_filled_image( size size_pixels, pixel color ) {
+  image res = new_empty_image( size_pixels );
+  for( pixel& p : span<pixel>( res ) ) p = color;
+  return res;
+}
+
+/****************************************************************
+** Testing
+*****************************************************************/
+namespace testing {
+
+bool compare_image( image const& img, span<pixel const> sp ) {
+  CHECK_EQ( img.size_pixels().area(), int( sp.size() ) );
+  span<pixel const> l       = img;
+  span<pixel const> r       = sp;
+  bool              success = true;
+  for( int i = 0; i < int( l.size() ); ++i ) {
+    if( l[i] != r[i] ) {
+      fmt::print( "index {} differs: l[{}]={}, r[{}]={}\n", i, i,
+                  l[i], i, r[i] );
+      success = false;
+    }
+  }
+  return success;
+}
+
+image new_image_from_pixels( size                   dimensions,
+                             std::span<pixel const> sp ) {
+  CHECK( dimensions.area() == int( sp.size() ) );
+  image img = new_empty_image( dimensions );
+  int   i   = 0;
+  for( pixel& p : span<pixel>( img ) ) p = sp[i++];
+  return img;
+}
+
+} // namespace testing
 
 } // namespace gfx

@@ -81,6 +81,23 @@ struct image : base::zero<image, unsigned char*> {
 ** Helpers
 *****************************************************************/
 // Returns an image with all pixels set to zero (0,0,0,0).
-[[nodiscard]] image empty_image( size size_pixels );
+image new_empty_image( size size_pixels );
+
+// Returns an image with all pixels set to color.
+image new_filled_image( size size_pixels, pixel color );
+
+/****************************************************************
+** Testing
+*****************************************************************/
+// Useful for testing.  Generally inefficient.
+namespace testing {
+
+bool compare_image( image const&           img,
+                    std::span<pixel const> sp );
+
+image new_image_from_pixels( size                   dimensions,
+                             std::span<pixel const> sp );
+
+}
 
 } // namespace gfx
