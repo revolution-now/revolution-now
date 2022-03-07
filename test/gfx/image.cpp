@@ -153,7 +153,7 @@ TEST_CASE( "[image] new_filled_image" ) {
       O, O, O, O, //
       O, O, O, O, //
   };
-  REQUIRE( testing::compare_image( img1, expected_img1 ) );
+  REQUIRE( testing::image_equals( img1, expected_img1 ) );
 
   image         img2 = new_filled_image( { .w = 5, .h = 7 }, G );
   vector<pixel> expected_img2 = {
@@ -165,7 +165,7 @@ TEST_CASE( "[image] new_filled_image" ) {
       G, G, G, G, G, //
       G, G, G, G, G, //
   };
-  REQUIRE( testing::compare_image( img2, expected_img2 ) );
+  REQUIRE( testing::image_equals( img2, expected_img2 ) );
 }
 
 TEST_CASE( "[image] blit_from" ) {
@@ -203,7 +203,7 @@ TEST_CASE( "[image] blit_from" ) {
       G, G, G, G, G, //
       G, G, G, G, G, //
   };
-  REQUIRE( testing::compare_image( src, expected_src ) );
+  REQUIRE( testing::image_equals( src, expected_src ) );
 
   dst.blit_from( src,
                  rect{ .origin = { .x = 2, .y = 1 },
@@ -215,7 +215,7 @@ TEST_CASE( "[image] blit_from" ) {
       R, R, O, O, //
       R, R, O, O, //
   };
-  REQUIRE( testing::compare_image( dst, expected_dst ) );
+  REQUIRE( testing::image_equals( dst, expected_dst ) );
 }
 
 } // namespace

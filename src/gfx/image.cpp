@@ -109,7 +109,7 @@ void image::free_resource() { ::free( resource() ); }
 unsigned char* image::data_for( point const p ) const {
   unsigned char* ptr =
       data() + kBytesPerPixel * ( p.y * size_pixels_.w + p.x );
-  DCHECK( ptr > data() );
+  DCHECK( ptr >= data() );
   DCHECK( ptr < data() + size_bytes() );
   return ptr;
 }
@@ -164,15 +164,21 @@ image new_filled_image( size size_pixels, pixel color ) {
 *****************************************************************/
 namespace testing {
 
-bool compare_image( image const& img, span<pixel const> sp ) {
-  CHECK_EQ( img.size_pixels().area(), int( sp.size() ) );
+bool image_equals( image const& img, span<pixel const> sp,
+                   base::SourceLoc loc ) {
+  if( img.size_pixels().area() != int( sp.size() ) ) {
+    fmt::print( "{}:error:images have different sizes: {} != {}",
+                loc, img.size_pixels().area(), sp.size() );
+    return false;
+  }
   span<pixel const> l       = img;
   span<pixel const> r       = sp;
   bool              success = true;
   for( int i = 0; i < int( l.size() ); ++i ) {
     if( l[i] != r[i] ) {
-      fmt::print( "index {} differs: l[{}]={}, r[{}]={}\n", i, i,
-                  l[i], i, r[i] );
+      fmt::print(
+          "{}:error:index {} differs: l[{}]={}, r[{}]={}\n", loc,
+          i, i, l[i], i, r[i] );
       success = false;
     }
   }

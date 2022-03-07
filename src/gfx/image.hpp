@@ -15,6 +15,7 @@
 #include "pixel.hpp"
 
 // base
+#include "base/source-loc.hpp"
 #include "base/zero.hpp"
 
 // C++ standard library
@@ -92,8 +93,9 @@ image new_filled_image( size size_pixels, pixel color );
 // Useful for testing.  Generally inefficient.
 namespace testing {
 
-bool compare_image( image const&           img,
-                    std::span<pixel const> sp );
+bool image_equals(
+    image const& img, std::span<pixel const> sp,
+    base::SourceLoc loc = base::SourceLoc::current() );
 
 image new_image_from_pixels( size                   dimensions,
                              std::span<pixel const> sp );
