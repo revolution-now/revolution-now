@@ -94,12 +94,24 @@ struct packer {
   }
 
   e_status pack_rects( rect const allowed ) {
-    // The stable sort is mostly for unit testing, so that this
-    // producing deterministic results when there are multiple
-    // rects (with different ids) but with the same heights.
+    // We need to sort:
+    //
+    //   1. By height in order for the algorithm to work cor-
+    //      rectly.
+    //   2. By width (for blocks of equal height) in order to
+    //      make it more optimal (though it would still be cor-
+    //      rect without this).
+    //   3. Stably for unit tests so that they can have determin-
+    //      istic output for elements that compare equal.
+    //
     std::stable_sort( cur_, end_,
                       []( rect const* l, rect const* r ) {
-                        return l->size.h > r->size.h;
+                        // Sort by decreasing heights first.
+                        if( l->size.h != r->size.h )
+                          return l->size.h > r->size.h;
+                        // Then if heights are equal, sort by de-
+                        // creasing width.
+                        return l->size.w > r->size.w;
                       } );
     return pack_rows( allowed );
   }

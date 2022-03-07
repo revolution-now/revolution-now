@@ -521,10 +521,10 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
     REQUIRE( input[0].origin == point{ .x = 0, .y = 0 } );
     REQUIRE( input[1].origin == point{ .x = 1, .y = 0 } );
     REQUIRE( input[2].origin == point{ .x = 2, .y = 0 } );
-    REQUIRE( input[3].origin == point{ .x = 2, .y = 1 } );
-    REQUIRE( input[4].origin == point{ .x = 2, .y = 2 } );
-    REQUIRE( input[5].origin == point{ .x = 2, .y = 3 } );
-    REQUIRE( input[6].origin == point{ .x = 3, .y = 3 } );
+    REQUIRE( input[3].origin == point{ .x = 2, .y = 2 } );
+    REQUIRE( input[4].origin == point{ .x = 2, .y = 1 } );
+    REQUIRE( input[5].origin == point{ .x = 4, .y = 2 } );
+    REQUIRE( input[6].origin == point{ .x = 2, .y = 3 } );
     REQUIRE( s == size{ .w = 5, .h = 4 } );
   }
 
@@ -535,10 +535,10 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
     REQUIRE( input[0].origin == point{ .x = 0, .y = 0 } );
     REQUIRE( input[1].origin == point{ .x = 1, .y = 0 } );
     REQUIRE( input[2].origin == point{ .x = 2, .y = 0 } );
-    REQUIRE( input[3].origin == point{ .x = 2, .y = 1 } );
-    REQUIRE( input[4].origin == point{ .x = 2, .y = 2 } );
-    REQUIRE( input[5].origin == point{ .x = 2, .y = 3 } );
-    REQUIRE( input[6].origin == point{ .x = 3, .y = 3 } );
+    REQUIRE( input[3].origin == point{ .x = 2, .y = 2 } );
+    REQUIRE( input[4].origin == point{ .x = 2, .y = 1 } );
+    REQUIRE( input[5].origin == point{ .x = 4, .y = 2 } );
+    REQUIRE( input[6].origin == point{ .x = 2, .y = 3 } );
     REQUIRE( s == size{ .w = 5, .h = 4 } );
   }
 
@@ -561,11 +561,11 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
     REQUIRE( input[0].origin == point{ .x = 0, .y = 0 } );
     REQUIRE( input[1].origin == point{ .x = 1, .y = 0 } );
     REQUIRE( input[2].origin == point{ .x = 0, .y = 4 } );
-    REQUIRE( input[3].origin == point{ .x = 0, .y = 5 } );
-    REQUIRE( input[4].origin == point{ .x = 0, .y = 6 } );
-    REQUIRE( input[5].origin == point{ .x = 3, .y = 6 } );
-    REQUIRE( input[6].origin == point{ .x = 0, .y = 7 } );
-    REQUIRE( s == size{ .w = 4, .h = 8 } );
+    REQUIRE( input[3].origin == point{ .x = 0, .y = 6 } );
+    REQUIRE( input[4].origin == point{ .x = 0, .y = 5 } );
+    REQUIRE( input[5].origin == point{ .x = 2, .y = 6 } );
+    REQUIRE( input[6].origin == point{ .x = 3, .y = 6 } );
+    REQUIRE( s == size{ .w = 4, .h = 7 } );
   }
 
   SECTION( "width 3" ) {
@@ -575,10 +575,10 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
     REQUIRE( input[0].origin == point{ .x = 0, .y = 0 } );
     REQUIRE( input[1].origin == point{ .x = 1, .y = 0 } );
     REQUIRE( input[2].origin == point{ .x = 0, .y = 4 } );
-    REQUIRE( input[3].origin == point{ .x = 0, .y = 5 } );
-    REQUIRE( input[4].origin == point{ .x = 0, .y = 6 } );
-    REQUIRE( input[5].origin == point{ .x = 0, .y = 7 } );
-    REQUIRE( input[6].origin == point{ .x = 1, .y = 7 } );
+    REQUIRE( input[3].origin == point{ .x = 0, .y = 6 } );
+    REQUIRE( input[4].origin == point{ .x = 0, .y = 5 } );
+    REQUIRE( input[5].origin == point{ .x = 2, .y = 6 } );
+    REQUIRE( input[6].origin == point{ .x = 0, .y = 7 } );
     REQUIRE( s == size{ .w = 3, .h = 8 } );
   }
 
