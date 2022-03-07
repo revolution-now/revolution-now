@@ -20,14 +20,14 @@ using ::base::nothing;
 /****************************************************************
 ** size
 *****************************************************************/
-size size::max_with( size const& rhs ) const {
+size size::max_with( size const rhs ) const {
   return size{ std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
 /****************************************************************
 ** point
 *****************************************************************/
-point const& point::origin() {
+point point::origin() {
   static point p = {};
   return p;
 }
@@ -35,12 +35,12 @@ point const& point::origin() {
 /****************************************************************
 ** rect
 *****************************************************************/
-bool rect::contains( point const& p ) const {
+bool rect::contains( point const p ) const {
   return ( p.x >= origin.x ) && ( p.y >= origin.y ) &&
          ( se().x >= p.x ) && ( se().y >= p.y );
 }
 
-bool rect::is_inside( rect const& other ) const {
+bool rect::is_inside( rect const other ) const {
   rect l = normalized();
   rect r = other.normalized();
   return ( l.origin.x >= r.origin.x ) &&
@@ -101,7 +101,7 @@ int rect::right() const {
   return norm.origin.x + norm.size.w;
 }
 
-maybe<rect> rect::clipped_by( rect const& other ) const {
+maybe<rect> rect::clipped_by( rect const other ) const {
   rect res = this->normalized();
   if( res.right() > other.right() )
     res.size.w -= ( res.right() - other.right() );
@@ -125,11 +125,9 @@ maybe<rect> rect::clipped_by( rect const& other ) const {
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
-point operator+( point const& p, size const& s ) {
+point operator+( point const p, size const s ) {
   return point{ .x = p.x + s.w, .y = p.y + s.h };
 }
 
-point operator+( size const& s, point const& p ) {
-  return p + s;
-}
+point operator+( size const s, point const p ) { return p + s; }
 } // namespace gfx

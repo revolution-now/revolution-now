@@ -295,7 +295,7 @@ TEST_CASE( "[render/rect-pack] single square 2x2" ) {
 
 TEST_CASE( "[render/rect-pack] multiple 1" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
@@ -467,7 +467,7 @@ TEST_CASE( "[render/rect-pack] multiple 1" ) {
 
 TEST_CASE( "[render/rect-pack] multiple 2" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
@@ -499,7 +499,7 @@ TEST_CASE( "[render/rect-pack] multiple 2" ) {
 
 TEST_CASE( "[render/rect-pack] multiple 3" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
@@ -597,7 +597,7 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
 
 TEST_CASE( "[render/rect-pack] some vertical bars" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
@@ -673,7 +673,7 @@ TEST_CASE( "[render/rect-pack] some vertical bars" ) {
 
 TEST_CASE( "[render/rect-pack] lots o squares" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
@@ -711,7 +711,7 @@ TEST_CASE( "[render/rect-pack] lots o squares" ) {
 
 TEST_CASE( "[render/rect-pack] lots o bars" ) {
   vector<rect> input;
-  auto         add_rect = [&]( size const& s ) mutable {
+  auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
                 rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };

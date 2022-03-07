@@ -106,7 +106,7 @@ image::operator span<pixel>() {
 
 void image::free_resource() { ::free( resource() ); }
 
-unsigned char* image::data_for( point const& p ) const {
+unsigned char* image::data_for( point const p ) const {
   unsigned char* ptr =
       data() + kBytesPerPixel * ( p.y * size_pixels_.w + p.x );
   DCHECK( ptr > data() );
@@ -115,8 +115,8 @@ unsigned char* image::data_for( point const& p ) const {
 }
 
 void image::blit_from( image const& other,
-                       rect const&  src_unclipped,
-                       point const& dst_origin ) {
+                       rect const   src_unclipped,
+                       point const  dst_origin ) {
   maybe<rect> src =
       src_unclipped.clipped_by( other.rect_pixels() );
   if( !src.has_value() ) return;

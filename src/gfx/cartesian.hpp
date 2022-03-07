@@ -24,6 +24,7 @@ namespace gfx {
 /****************************************************************
 ** size
 *****************************************************************/
+// Note: this type should be passed by value for efficiency.
 struct size {
   int w = 0;
   int h = 0;
@@ -32,7 +33,7 @@ struct size {
 
   int area() const { return w * h; }
 
-  size max_with( size const& rhs ) const;
+  size max_with( size const rhs ) const;
 
   bool operator==( size const& ) const = default;
 };
@@ -40,6 +41,7 @@ struct size {
 /****************************************************************
 ** point
 *****************************************************************/
+// Note: this type should be passed by value for efficiency.
 struct point {
   int x = 0;
   int y = 0;
@@ -48,7 +50,7 @@ struct point {
     return size{ .w = x, .h = y };
   }
 
-  static point const& origin();
+  static point origin();
 
   bool operator==( point const& ) const = default;
 };
@@ -60,6 +62,8 @@ struct point {
 // "normalized" form, i.e. where the `origin` member represents
 // the upper left in the case that the `size` has a negative com-
 // ponent.
+//
+// Note: this type should be passed by value for efficiency.
 struct rect {
   point     origin = {}; // upper left when normalized.
   gfx::size size   = {};
@@ -67,17 +71,17 @@ struct rect {
   int area() const { return size.area(); }
 
   // Is inside or touching borders.
-  bool is_inside( rect const& other ) const;
+  bool is_inside( rect const other ) const;
 
   // Is inside or touching border.
-  bool contains( point const& p ) const;
+  bool contains( point const p ) const;
 
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it
   // will return nothing (this includes when they are just
   // touching borders).
   [[nodiscard]] base::maybe<rect> clipped_by(
-      rect const& other ) const;
+      rect const other ) const;
 
   rect normalized() const;
 
@@ -97,8 +101,8 @@ struct rect {
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
-point operator+( point const& p, size const& s );
-point operator+( size const& s, point const& p );
+point operator+( point const p, size const s );
+point operator+( size const s, point const p );
 
 } // namespace gfx
 

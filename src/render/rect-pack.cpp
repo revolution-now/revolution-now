@@ -25,7 +25,7 @@ using ::gfx::size;
 struct packer {
   enum class [[nodiscard]] e_status{ failed, good };
 
-  e_status pack_rect( rect& what, rect const& allowed ) {
+  e_status pack_rect( rect& what, rect const allowed ) {
     if( allowed.size.h < what.size.h ||
         allowed.size.w < what.size.w )
       return e_status::failed;
@@ -93,7 +93,7 @@ struct packer {
     }
   }
 
-  e_status pack_rects( rect const& allowed ) {
+  e_status pack_rects( rect const allowed ) {
     // The stable sort is mostly for unit testing, so that this
     // producing deterministic results when there are multiple
     // rects (with different ids) but with the same heights.
@@ -111,8 +111,7 @@ struct packer {
 
 } // namespace
 
-maybe<size> pack_rects( span<rect>  rects,
-                        size const& max_size ) {
+maybe<size> pack_rects( span<rect> rects, size const max_size ) {
   vector<rect*> ptrs;
   ptrs.reserve( rects.size() );
   for( rect& r : rects ) ptrs.push_back( &r );

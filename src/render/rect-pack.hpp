@@ -30,6 +30,6 @@ namespace rr {
 // rects. On failure, some of the origins in the input range may
 // still have been partially edited.
 base::maybe<gfx::size> pack_rects( std::span<gfx::rect> rp,
-                                   gfx::size const& max_size );
+                                   gfx::size const max_size );
 
 } // namespace rr

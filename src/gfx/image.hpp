@@ -57,15 +57,15 @@ struct image : base::zero<image, unsigned char*> {
   operator std::span<pixel const>() const;
   operator std::span<pixel>();
 
-  void blit_from( image const& other, rect const& src,
-                  point const& dst_origin );
+  void blit_from( image const& other, rect const src,
+                  point const dst_origin );
 
   static int constexpr kBytesPerPixel = 4;
 
   unsigned char* data() const;
 
  private:
-  unsigned char* data_for( point const& p ) const;
+  unsigned char* data_for( point const p ) const;
 
   image( image const& ) = delete;
   image& operator=( image const& ) = delete;
