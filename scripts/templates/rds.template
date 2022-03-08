@@ -52,7 +52,7 @@ enum.e_menu {
   value,
 }
 
-struct MyStruct {
+struct.MyStruct {
   x 'double',
   y 'int',
 }
