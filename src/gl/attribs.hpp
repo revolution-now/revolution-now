@@ -18,7 +18,7 @@ namespace gl {
 /****************************************************************
 ** Attribute Type
 *****************************************************************/
-enum class e_attrib_type { float_ };
+enum class e_attrib_type { int_, float_ };
 
 int to_GL( e_attrib_type type );
 
@@ -27,7 +27,13 @@ std::string_view to_GL_str( e_attrib_type type );
 /****************************************************************
 ** Attribute Compound Type
 *****************************************************************/
-enum class e_attrib_compound_type { float_, vec2, vec3 };
+enum class e_attrib_compound_type {
+  int_,
+  float_,
+  vec2,
+  vec3,
+  vec4
+};
 
 int to_GL( e_attrib_compound_type type );
 
@@ -40,6 +46,18 @@ std::string_view to_GL_str( e_attrib_compound_type type );
 *****************************************************************/
 template<typename T>
 struct attrib_traits;
+
+/****************************************************************
+** int32_t
+*****************************************************************/
+template<>
+struct attrib_traits<int32_t> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::int_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::int_;
+  inline static int count = 1;
+};
 
 /****************************************************************
 ** float
@@ -57,8 +75,8 @@ struct attrib_traits<float> {
 ** vec2
 *****************************************************************/
 struct vec2 {
-  float x;
-  float y;
+  float x = 0.0f;
+  float y = 0.0f;
 
   bool operator==( vec2 const& ) const = default;
 };
@@ -76,9 +94,9 @@ struct attrib_traits<vec2> {
 ** vec3
 *****************************************************************/
 struct vec3 {
-  float x;
-  float y;
-  float z;
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
 
   bool operator==( vec3 const& ) const = default;
 };
@@ -90,6 +108,48 @@ struct attrib_traits<vec3> {
   inline static e_attrib_compound_type compound_type =
       e_attrib_compound_type::vec3;
   inline static int count = 3;
+};
+
+/****************************************************************
+** vec4
+*****************************************************************/
+struct vec4 {
+  float r = 0.0f;
+  float g = 0.0f;
+  float b = 0.0f;
+  float a = 0.0f;
+
+  bool operator==( vec4 const& ) const = default;
+};
+
+template<>
+struct attrib_traits<vec4> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::float_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::vec4;
+  inline static int count = 4;
+};
+
+/****************************************************************
+** color
+*****************************************************************/
+struct color {
+  float r = 0.0f;
+  float g = 0.0f;
+  float b = 0.0f;
+  float a = 0.0f;
+
+  bool operator==( color const& ) const = default;
+};
+
+template<>
+struct attrib_traits<color> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::float_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::vec4;
+  inline static int count = 4;
 };
 
 } // namespace gl

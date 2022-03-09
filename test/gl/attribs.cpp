@@ -25,11 +25,19 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[attribs] attribute type" ) {
+  REQUIRE( to_GL( e_attrib_type::int_ ) == GL_INT );
   REQUIRE( to_GL( e_attrib_type::float_ ) == GL_FLOAT );
+  REQUIRE( to_GL_str( e_attrib_type::int_ ) == "GL_INT" );
   REQUIRE( to_GL_str( e_attrib_type::float_ ) == "GL_FLOAT" );
 }
 
 TEST_CASE( "[attribs] attribute compound type" ) {
+  // int
+  REQUIRE( to_GL( e_attrib_compound_type::int_ ) == GL_INT );
+  REQUIRE( to_GL_str( e_attrib_compound_type::int_ ) ==
+           "GL_INT" );
+  REQUIRE( from_GL( GL_INT ) == e_attrib_compound_type::int_ );
+
   // float
   REQUIRE( to_GL( e_attrib_compound_type::float_ ) == GL_FLOAT );
   REQUIRE( to_GL_str( e_attrib_compound_type::float_ ) ==
@@ -52,6 +60,62 @@ TEST_CASE( "[attribs] attribute compound type" ) {
            "GL_FLOAT_VEC3" );
   REQUIRE( from_GL( GL_FLOAT_VEC3 ) ==
            e_attrib_compound_type::vec3 );
+
+  // vec4
+  REQUIRE( to_GL( e_attrib_compound_type::vec4 ) ==
+           GL_FLOAT_VEC4 );
+  REQUIRE( to_GL_str( e_attrib_compound_type::vec4 ) ==
+           "GL_FLOAT_VEC4" );
+  REQUIRE( from_GL( GL_FLOAT_VEC4 ) ==
+           e_attrib_compound_type::vec4 );
+}
+
+template<typename T>
+using Tr = attrib_traits<T>;
+
+TEST_CASE( "[attribs] type traits" ) {
+  SECTION( "int32_t" ) {
+    using T = int32_t;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::int_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::int_ );
+    REQUIRE( Tr<T>::count == 1 );
+  }
+  SECTION( "float" ) {
+    using T = float;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::float_ );
+    REQUIRE( Tr<T>::count == 1 );
+  }
+  SECTION( "vec2" ) {
+    using T = vec2;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::vec2 );
+    REQUIRE( Tr<T>::count == 2 );
+  }
+  SECTION( "vec3" ) {
+    using T = vec3;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::vec3 );
+    REQUIRE( Tr<T>::count == 3 );
+  }
+  SECTION( "vec4" ) {
+    using T = vec4;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::vec4 );
+    REQUIRE( Tr<T>::count == 4 );
+  }
+  SECTION( "color" ) {
+    using T = color;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::vec4 );
+    REQUIRE( Tr<T>::count == 4 );
+  }
 }
 
 } // namespace
