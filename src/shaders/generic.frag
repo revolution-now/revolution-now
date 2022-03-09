@@ -45,7 +45,19 @@ vec4 type_silhouette() {
 /****************************************************************
 ** Depixelation.
 *****************************************************************/
-// Produces a hash of the vec2 between [0, 1).
+// Here we will produce a hash of the correct pixel coordinates
+// (in game space, so they will be integers) and use that as a
+// deterministic pseudo-random number for each pixel. Comparing
+// that with the `frag_depixelation` animation state, we can ran-
+// domly hide pixels with increasing probability, effectively
+// creating the "depixelation" animation that happens when a unit
+// or colony is destroyed or defeated in battle.
+//
+// To test this go here: https://www.shadertoy.com/view/NsBBzd.
+
+// Produces a hash of the vec2 in the interval [0, 1). This seems
+// to produce best results when the input vector is in the in-
+// terval ~ [0, 1] approximately.
 float hash_vec2( in vec2 vec ) {
   // Taken from https://stackoverflow.com/a/4275343.
   vec2 magic_vec2 = vec2( 12.9898, 78.233 );
@@ -54,7 +66,9 @@ float hash_vec2( in vec2 vec ) {
 }
 
 vec4 depixelate( in vec4 color ) {
-  float hash = hash_vec2( frag_position % 100 );
+  // We need to divide by 1000.0 to put the input in a good range
+  // for the hash function, otherwise we get repeating patterns.
+  float hash = hash_vec2( position/1000.0 );
   return vec4( color.rgb, hash > frag_depixelate );
 }
 
