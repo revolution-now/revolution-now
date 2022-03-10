@@ -104,6 +104,8 @@ struct rect {
 point operator+( point const p, size const s );
 point operator+( size const s, point const p );
 
+point operator*( point const p, size const s );
+
 } // namespace gfx
 
 /****************************************************************

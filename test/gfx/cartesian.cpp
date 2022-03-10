@@ -39,6 +39,12 @@ TEST_CASE( "[gfx/cartesian] coord + size" ) {
   REQUIRE( s + p == point{ .x = 6, .y = 10 } );
 }
 
+TEST_CASE( "[gfx/cartesian] coord*size" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 2, .h = 8 };
+  REQUIRE( p * s == point{ .x = 8, .y = 16 } );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
   rect r;
 
