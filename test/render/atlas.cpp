@@ -39,13 +39,13 @@ TEST_CASE( "[render/atlas] empty" ) {
   AtlasBuilder builder;
   maybe<Atlas> atlas = builder.build( size{} );
   REQUIRE( atlas.has_value() );
-  REQUIRE( atlas->atlas_lookup.size() == 0 );
-  REQUIRE( atlas->atlas.size_pixels() == size{} );
+  REQUIRE( atlas->dict.size() == 0 );
+  REQUIRE( atlas->img.size_pixels() == size{} );
 
   atlas = builder.build( size{ .w = 5, .h = 5 } );
   REQUIRE( atlas.has_value() );
-  REQUIRE( atlas->atlas_lookup.size() == 0 );
-  REQUIRE( atlas->atlas.size_pixels() == size{} );
+  REQUIRE( atlas->dict.size() == 0 );
+  REQUIRE( atlas->img.size_pixels() == size{} );
 }
 
 TEST_CASE( "[render/atlas] single image" ) {
@@ -99,8 +99,7 @@ TEST_CASE( "[render/atlas] single image" ) {
   maybe<Atlas> atlas = builder.build( size{ .w = 5, .h = 7 } );
   REQUIRE( atlas.has_value() );
 
-  REQUIRE( atlas->atlas.size_pixels() ==
-           size{ .w = 5, .h = 5 } );
+  REQUIRE( atlas->img.size_pixels() == size{ .w = 5, .h = 5 } );
   pixel expected_atlas_pixels[] = {
       R, R, B, G, G, //
       R, R, B, G, G, //
@@ -108,19 +107,19 @@ TEST_CASE( "[render/atlas] single image" ) {
       W, W, _, _, _, //
       W, W, _, _, _, //
   };
-  REQUIRE( image_equals( atlas->atlas, expected_atlas_pixels ) );
+  REQUIRE( image_equals( atlas->img, expected_atlas_pixels ) );
 
-  REQUIRE( atlas->atlas_lookup.size() == 4 );
-  REQUIRE( atlas->atlas_lookup.lookup( 0 ) ==
+  REQUIRE( atlas->dict.size() == 4 );
+  REQUIRE( atlas->dict.lookup( 0 ) ==
            rect{ .origin = { .x = 2, .y = 0 },
                  .size   = { .w = 1, .h = 3 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 1 ) ==
+  REQUIRE( atlas->dict.lookup( 1 ) ==
            rect{ .origin = { .x = 3, .y = 0 },
                  .size   = { .w = 2, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 2 ) ==
+  REQUIRE( atlas->dict.lookup( 2 ) ==
            rect{ .origin = { .x = 0, .y = 3 },
                  .size   = { .w = 2, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 3 ) ==
+  REQUIRE( atlas->dict.lookup( 3 ) ==
            rect{ .origin = { .x = 0, .y = 0 },
                  .size   = { .w = 2, .h = 3 } } );
 }
@@ -204,8 +203,7 @@ TEST_CASE( "[render/atlas] multiple images" ) {
   maybe<Atlas> atlas = builder.build( size{ .w = 11, .h = 10 } );
   REQUIRE( atlas.has_value() );
 
-  REQUIRE( atlas->atlas.size_pixels() ==
-           size{ .w = 9, .h = 5 } );
+  REQUIRE( atlas->img.size_pixels() == size{ .w = 9, .h = 5 } );
   pixel expected_atlas_pixels[] = {
       R, R, R, B, B, B, B, G, G, //
       R, R, R, B, B, B, B, G, G, //
@@ -213,31 +211,31 @@ TEST_CASE( "[render/atlas] multiple images" ) {
       R, _, _, _, W, W, W, W, W, //
       R, _, _, _, _, _, _, G, _, //
   };
-  REQUIRE( image_equals( atlas->atlas, expected_atlas_pixels ) );
+  REQUIRE( image_equals( atlas->img, expected_atlas_pixels ) );
 
-  REQUIRE( atlas->atlas_lookup.size() == 8 );
-  REQUIRE( atlas->atlas_lookup.lookup( 0 ) ==
+  REQUIRE( atlas->dict.size() == 8 );
+  REQUIRE( atlas->dict.lookup( 0 ) ==
            rect{ .origin = { .x = 3, .y = 0 },
                  .size   = { .w = 1, .h = 3 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 1 ) ==
+  REQUIRE( atlas->dict.lookup( 1 ) ==
            rect{ .origin = { .x = 7, .y = 0 },
                  .size   = { .w = 2, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 2 ) ==
+  REQUIRE( atlas->dict.lookup( 2 ) ==
            rect{ .origin = { .x = 7, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 3 ) ==
+  REQUIRE( atlas->dict.lookup( 3 ) ==
            rect{ .origin = { .x = 1, .y = 0 },
                  .size   = { .w = 2, .h = 3 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 4 ) ==
+  REQUIRE( atlas->dict.lookup( 4 ) ==
            rect{ .origin = { .x = 4, .y = 0 },
                  .size   = { .w = 3, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 5 ) ==
+  REQUIRE( atlas->dict.lookup( 5 ) ==
            rect{ .origin = { .x = 7, .y = 4 },
                  .size   = { .w = 1, .h = 1 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 6 ) ==
+  REQUIRE( atlas->dict.lookup( 6 ) ==
            rect{ .origin = { .x = 4, .y = 2 },
                  .size   = { .w = 3, .h = 2 } } );
-  REQUIRE( atlas->atlas_lookup.lookup( 7 ) ==
+  REQUIRE( atlas->dict.lookup( 7 ) ==
            rect{ .origin = { .x = 0, .y = 0 },
                  .size   = { .w = 1, .h = 5 } } );
 }

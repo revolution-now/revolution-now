@@ -77,9 +77,8 @@ maybe<Atlas> AtlasBuilder::build( size max_size ) const {
     }
   }
 
-  return Atlas{
-      .atlas        = std::move( atlas_img ),
-      .atlas_lookup = AtlasMap( std::move( packed_rects ) ) };
+  return Atlas{ .img  = std::move( atlas_img ),
+                .dict = AtlasMap( std::move( packed_rects ) ) };
 }
 
 } // namespace rr

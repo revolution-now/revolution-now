@@ -52,8 +52,8 @@ struct AtlasMap {
 struct Atlas {
   // This image can be released without disturbing the lookup
   // mechanism.
-  gfx::image atlas;
-  AtlasMap   atlas_lookup;
+  gfx::image img;
+  AtlasMap   dict;
 };
 
 /****************************************************************
