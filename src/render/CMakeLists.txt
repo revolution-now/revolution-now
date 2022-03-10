@@ -5,4 +5,5 @@ add_rn_library(
   rn-base
   rn-gfx
   rn-gl
+  rn-stb
 )

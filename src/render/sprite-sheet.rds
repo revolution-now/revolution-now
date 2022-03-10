@@ -1,0 +1,42 @@
+# ===============================================================
+# sprite-sheet.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-10.
+#
+# Description: Rds definitions for the sprite-sheet module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+# base
+include "base/fs.hpp"
+
+# C++ standard library
+include "<string>"
+include "<unordered_map>"
+
+namespace "rr"
+
+# Assumes that there are 16 letters across and 16 rows down, for
+# a total of 256.
+struct.AsciiFontSheetConfig {
+  # Image file.
+  img_path 'fs::path',
+}
+
+struct.SpriteSheetConfig {
+  # Image file.
+  img_path 'fs::path',
+
+  # Size of the individual sprites, which must all be the same
+  # size in this sheet.
+  sprite_size 'gfx::size',
+
+  # Maps sprite name to tile coordinates in the sprite sheet. The
+  # name should be globally unique and the coordinates should be
+  # in units of the tile size, as opposed to pixels.
+  sprites 'std::unordered_map<std::string, gfx::point>',
+}
