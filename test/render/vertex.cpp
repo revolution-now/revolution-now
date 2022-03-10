@@ -54,10 +54,10 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
-TEST_CASE( "[render/vertex] FontVertex" ) {
-  FontVertex           vert( point{ .x = 1, .y = 2 },
-                             point{ .x = 3, .y = 4 },
-                             pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
+TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
+  SilhouetteVertex vert(
+      point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
+      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 2 );
   REQUIRE( gv.visible == 1 );
@@ -77,7 +77,7 @@ TEST_CASE( "[render/vertex] add_vertex" ) {
   SolidVertex  vert2(
        point{ .x = 1, .y = 2 },
        pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
-  FontVertex vert3(
+  SilhouetteVertex vert3(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
 
@@ -89,7 +89,7 @@ TEST_CASE( "[render/vertex] add_vertex" ) {
   SolidVertex& added2 = add_vertex( vec, vert2 );
   REQUIRE( added2 == vert2 );
 
-  FontVertex& added3 = add_vertex( vec, vert3 );
+  SilhouetteVertex& added3 = add_vertex( vec, vert3 );
   REQUIRE( added3 == vert3 );
 }
 

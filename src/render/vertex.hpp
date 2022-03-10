@@ -81,30 +81,39 @@ struct SolidVertex : public VertexBase {
 STATIC_VERTEX_CHECKS( SolidVertex );
 
 /****************************************************************
-** FontVertex
+** SilhouetteVertex
 *****************************************************************/
-// This is a vertex used for shapes that are filled with a font
-// copied from the texture atlas.
-struct FontVertex : public VertexBase {
-  FontVertex( gfx::point position, gfx::point atlas_position,
-              gfx::pixel color );
+// This is a vertex used for shapes that are filled with a sprite
+// copied from the texture atlas but where the specified color is
+// used for all pixels with its alpha multiplied by the alpha of
+// the texture atlas pixel.
+struct SilhouetteVertex : public VertexBase {
+  SilhouetteVertex( gfx::point position,
+                    gfx::point atlas_position,
+                    gfx::pixel color );
 
-  bool operator==( FontVertex const& ) const = default;
+  bool operator==( SilhouetteVertex const& ) const = default;
 };
 
-STATIC_VERTEX_CHECKS( FontVertex );
+STATIC_VERTEX_CHECKS( SilhouetteVertex );
 
 /****************************************************************
 ** Helpers
 *****************************************************************/
 template<typename VertexType>
-VertexType& install_vertex( GenericVertex&    gvert,
-                            VertexType const& vert ) {
-  gvert = vert.generic();
+VertexType& vertex_cast( GenericVertex& gvert ) {
+  STATIC_VERTEX_CHECKS( VertexType );
   // Try to prevent UB by passing through char* which can alias
   // anything.
   char* p = reinterpret_cast<char*>( &gvert );
   return reinterpret_cast<VertexType&>( *p );
+}
+
+template<typename VertexType>
+VertexType& install_vertex( GenericVertex&    gvert,
+                            VertexType const& vert ) {
+  gvert = vert.generic();
+  return vertex_cast<VertexType>( gvert );
 }
 
 // WARNING: the reference returned here will only remain valid

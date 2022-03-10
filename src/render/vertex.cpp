@@ -79,11 +79,11 @@ SolidVertex::SolidVertex( gfx::point position, gfx::pixel color )
 }
 
 /****************************************************************
-** FontVertex
+** SilhouetteVertex
 *****************************************************************/
-FontVertex::FontVertex( gfx::point position,
-                        gfx::point atlas_position,
-                        gfx::pixel color )
+SilhouetteVertex::SilhouetteVertex( gfx::point position,
+                                    gfx::point atlas_position,
+                                    gfx::pixel color )
   : VertexBase(
         proto_vertex( vertex_type::silhouette, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
