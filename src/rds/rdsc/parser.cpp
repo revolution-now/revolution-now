@@ -278,10 +278,6 @@ expr::Rds parse( string_view filename,
       rds.includes.push_back( fmt::format( "\"{}\"", name ) );
   }
 
-  rds.meta = expr::Metadata{
-      .module_name = fs::path( filename ).filename().stem(),
-  };
-
   return rds;
 }
 

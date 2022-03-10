@@ -93,13 +93,7 @@ struct Item {
   std::vector<Construct> constructs;
 };
 
-struct Metadata {
-  // Module name should be stem of the input rds file.
-  std::string module_name;
-};
-
 struct Rds {
-  Metadata                 meta;
   std::vector<std::string> includes;
   std::vector<Item>        items;
 };

@@ -684,27 +684,9 @@ struct CodeGenerator {
     newline();
   }
 
-  void emit_metadata( expr::Rds const& rds ) {
-    section( "Global Vars" );
-    string stem_to_var = absl::StrReplaceAll(
-        rds.meta.module_name, { { "-", "_" } } );
-    open_ns( "rn" );
-    comment(
-        "This will be the naem of this header, not the file "
-        "that it" );
-    comment( "is include in." );
-    line(
-        "inline constexpr std::string_view rds_{}_genfile = "
-        "__FILE__;",
-        stem_to_var );
-    newline();
-    close_ns( "rn" );
-  }
-
   void emit_rds( expr::Rds const& rds ) {
     emit_preamble();
     emit_includes( rds );
-    emit_metadata( rds );
 
     for( expr::Item const& item : rds.items ) emit_item( item );
   }

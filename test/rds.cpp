@@ -295,7 +295,7 @@ TEST_CASE( "[rds] Rds File Golden Comparison" ) {
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(
-          root / fs::path( rds_testing_genfile ) );
+          root / "test" / "rds" / "testing.rds.hpp" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not

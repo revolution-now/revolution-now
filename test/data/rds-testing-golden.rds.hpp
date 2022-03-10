@@ -24,16 +24,6 @@
 #include <string_view>
 #include <tuple>
 
-/****************************************************************
-*                          Global Vars
-*****************************************************************/
-namespace rn {
-
-  // This will be the naem of this header, not the file that it
-  // is include in.
-  inline constexpr std::string_view rds_testing_genfile = __FILE__;
-
-} // namespace rn
 
 /****************************************************************
 *                        Sum Type: Maybe
