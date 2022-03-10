@@ -14,10 +14,11 @@
 #include "gfx/image.hpp"
 
 // base
+#include "base/expect.hpp"
 #include "base/fs.hpp"
 
 namespace stb {
 
-gfx::image load_image( fs::path const& p );
+base::expect<gfx::image> load_image( fs::path const& p );
 
 } // namespace stb

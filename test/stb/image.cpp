@@ -24,8 +24,8 @@ using namespace std;
 using ::testing::data_dir;
 
 TEST_CASE( "[image] load png" ) {
-  gfx::image im =
-      load_image( data_dir() / "images" / "64w_x_32h.png" );
+  UNWRAP_CHECK( im, load_image( data_dir() / "images" /
+                                "64w_x_32h.png" ) );
 
   REQUIRE( im.size_bytes() == 64 * 32 * 4 );
   REQUIRE( im.total_pixels() == 64 * 32 );
@@ -50,6 +50,12 @@ TEST_CASE( "[image] load png" ) {
 finished:
   REQUIRE( found_zero_alpha );
   REQUIRE( found_nonzero_alpha );
+}
+
+TEST_CASE( "[image] load non-existent file" ) {
+  base::expect<gfx::image> img = load_image( "xxx" );
+  REQUIRE( !img.has_value() );
+  REQUIRE( img.error() == "can't fopen" );
 }
 
 } // namespace

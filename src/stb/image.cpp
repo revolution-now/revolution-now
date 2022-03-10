@@ -23,13 +23,11 @@ namespace stb {
 
 namespace {
 
-[[noreturn]] void die_with_stbi_error() {
+string get_stbi_error() {
   char const* msg = stbi_failure_reason();
-  if( msg == nullptr )
-    msg =
-        "stb_image encountered error but did not supply a "
-        "reason.";
-  FATAL( "{}", msg );
+  if( msg != nullptr ) return msg;
+  return "stb_image encountered error but did not supply a "
+         "reason.";
 }
 
 } // namespace
@@ -37,7 +35,7 @@ namespace {
 /****************************************************************
 ** Public API
 *****************************************************************/
-gfx::image load_image( fs::path const& p ) {
+base::expect<gfx::image> load_image( fs::path const& p ) {
   int width_pixels = 0, height_pixels = 0;
   // Normally the value here should be 4, meaning RGBA. But it
   // may be less if the image file does not contain e.g. alpha.
@@ -47,7 +45,7 @@ gfx::image load_image( fs::path const& p ) {
   unsigned char* data =
       ::stbi_load( p.c_str(), &width_pixels, &height_pixels,
                    &num_channels, gfx::image::kBytesPerPixel );
-  if( data == nullptr ) die_with_stbi_error();
+  if( data == nullptr ) return get_stbi_error();
   return gfx::image(
       gfx::size{ .w = width_pixels, .h = height_pixels }, data );
 }

@@ -167,8 +167,9 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK(
       pgrm, ProgramType::create( vert_shader, frag_shader ) );
 
-  gl::Texture tx(
-      stb::load_image( "assets/art/tiles/world.png" ) );
+  UNWRAP_CHECK(
+      tx_img, stb::load_image( "assets/art/tiles/world.png" ) );
+  gl::Texture tx( std::move( tx_img ) );
 
   return OpenGLObjects{ .program      = std::move( pgrm ),
                         .vertex_array = {},
