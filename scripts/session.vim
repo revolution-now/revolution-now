@@ -3,11 +3,9 @@ let s:stems = [
  \ 'screen',
  \ 'open-gl',
  \ 'shaders/experimental',
- \ 'gl/bindable',
  \ 'gl/vertex-buffer',
  \ 'gl/attribs',
  \ 'gl/vertex-array',
- \ 'gl/uniform',
  \ 'gl/shader',
  \ 'gfx/pixel',
  \ 'gfx/cartesian',
@@ -15,6 +13,9 @@ let s:stems = [
  \ 'stb/image',
  \ 'gl/texture',
  \ 'render/rect-pack',
+ \ 'render/atlas',
+ \ 'render/vertex',
+ \ 'render/generic',
  \ 'render/iface',
  \ 'open-gl-perf-test',
  \ 'shaders/perf-test',
@@ -70,7 +71,6 @@ function s:Open3( stem )
   endif
 endfunction
 
-" `stem` is expected to be e.g. 'shaders/xxx' here.
 function s:OpenShaderPair( stem )
   echo '  - ' . a:stem
   exe 'silent tabnew src/' . a:stem . '.vert'
@@ -79,7 +79,7 @@ function s:OpenShaderPair( stem )
 endfunction
 
 function! s:OpenModule( name )
-  if a:name =~ '^shaders/.*'
+  if filereadable( 'src/' . a:name . '.vert' )
     call s:OpenShaderPair( a:name )
     return
   endif

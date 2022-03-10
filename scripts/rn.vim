@@ -95,7 +95,7 @@ function! MyTabLabel( n )
     endif
     if ext == 'vert' || ext == 'frag'
       let path = fnamemodify( path, ':t:r' )
-      return 'shaders/' . path
+      return 'shaders:' . path
     endif
   endfor
   let winnr = tabpagewinnr( a:n )

@@ -66,6 +66,7 @@ float hash_vec2( in vec2 vec ) {
 }
 
 vec4 depixelate( in vec4 color ) {
+  // FIXME: change 1000.0 to largest screen size dimension.
   // We need to divide by 1000.0 to put the input in a good range
   // for the hash function, otherwise we get repeating patterns.
   float hash = hash_vec2( position/1000.0 );
