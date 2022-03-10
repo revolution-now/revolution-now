@@ -1,0 +1,68 @@
+# ===============================================================
+# vertex.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-07.
+#
+# Description: Rds definitions for the vertex module.
+#
+# ===============================================================
+# gl
+include "gl/attribs.hpp"
+
+namespace "rr"
+
+struct.GenericVertex {
+  # The type of object that this vertex is a part of.  Possible
+  # value are:
+  #
+  #  0. Sprite. This triangle will be filled in with a sprite
+  #     from the texture atlas as-is.
+  #
+  #  1. Solid rectangle. This triangle will be filled in with a
+  #     solid color.
+  #
+  #  2. Silhouette. This triangle will be contain a sprite copied
+  #     from the texture atlas, but all of its non-transparent
+  #     pixels will be replaced by a fixed color. Examples of
+  #     uses for this would be fonts and window shadows.
+  #
+  #  The above options should be in order of decreasing probabil-
+  #  ity, that way most shaders can return early most of the time
+  #  and won't spend time testing for unlikely branches.
+  type 'int32_t',
+
+  # bool. If this is zero then the vertex will be discarded. This
+  # can be used e.g. for unit blinking animations.
+  visible 'int32_t',
+
+  # Depixelation. This triangle will have individual pixels ran-
+  # domly removed depending on the stage of the animation, which
+  # is given by the value of this parameter: 0 means fully vis-
+  # ible (no depixelation), 1.0 means fully invisible.
+  depixelate 'float',
+
+  # Position of the vertex in game coordinates, i.e. where one
+  # unit corresponds to one logical pixel and where the origin is
+  # at the upper left of the screen and y increases downward.
+  position 'gl::vec2',
+
+  # For triangles that get filled in with a texture, this will be
+  # the coordinates of the vertex in the texture atlas.
+  atlas_position 'gl::vec2',
+
+  # For solid triangles or silhouettes this will be the color
+  # used. Components should be in [0, 1.0]. For silhouettes,
+  # alpha in this color will be multiplied by the alpha of the
+  # texture pixel.
+  fixed_color 'gl::color',
+
+  # The final pixel color will have its alpha multiplied by this
+  # value (no matter how it was produced). Should be in [0, 1].
+  alpha_multiplier 'float',
+
+  # Need this in all vertex structs since OpenGL needs to have
+  # the offsets of each member of the struct.
+  _features { equality, offsets }
+}
