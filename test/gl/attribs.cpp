@@ -13,6 +13,9 @@
 // Under test.
 #include "src/gl/attribs.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // gl
 #include "src/gl/iface.hpp"
 
@@ -116,6 +119,18 @@ TEST_CASE( "[attribs] type traits" ) {
              e_attrib_compound_type::vec4 );
     REQUIRE( Tr<T>::count == 4 );
   }
+}
+
+TEST_CASE( "[attribs] gfx conversion" ) {
+  REQUIRE( vec2::from_point( gfx::point{ .x = 1, .y = 2 } ) ==
+           vec2{ .x = 1.0, .y = 2.0 } );
+
+  REQUIRE( color::from_pixel( gfx::pixel{
+               .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
+           color{ .r = 0.0f,
+                  .g = 255.0f / 256.0f,
+                  .b = 3.0f / 256.0f,
+                  .a = 4.0f / 256.0f } );
 }
 
 } // namespace

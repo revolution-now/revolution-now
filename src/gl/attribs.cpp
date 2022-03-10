@@ -90,4 +90,26 @@ e_attrib_compound_type from_GL( int type ) {
   }
 }
 
+/****************************************************************
+** vec2
+*****************************************************************/
+vec2 vec2::from_point( gfx::point p ) {
+  return vec2{
+      .x = static_cast<float>( p.x ),
+      .y = static_cast<float>( p.y ),
+  };
+}
+
+/****************************************************************
+** color
+*****************************************************************/
+color color::from_pixel( gfx::pixel p ) {
+  return color{
+      .r = static_cast<float>( p.r ) / 256.0f,
+      .g = static_cast<float>( p.g ) / 256.0f,
+      .b = static_cast<float>( p.b ) / 256.0f,
+      .a = static_cast<float>( p.a ) / 256.0f,
+  };
+}
+
 } // namespace gl

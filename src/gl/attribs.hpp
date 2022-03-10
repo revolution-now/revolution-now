@@ -10,6 +10,13 @@
 *****************************************************************/
 #pragma once
 
+// gfx
+#include "gfx/cartesian.hpp"
+#include "gfx/pixel.hpp"
+
+// refl
+#include "refl/ext.hpp"
+
 // C++ standard library
 #include <string_view>
 
@@ -78,6 +85,8 @@ struct vec2 {
   float x = 0.0f;
   float y = 0.0f;
 
+  static vec2 from_point( gfx::point p );
+
   bool operator==( vec2 const& ) const = default;
 };
 
@@ -140,6 +149,8 @@ struct color {
   float b = 0.0f;
   float a = 0.0f;
 
+  static color from_pixel( gfx::pixel p );
+
   bool operator==( color const& ) const = default;
 };
 
@@ -153,3 +164,52 @@ struct attrib_traits<color> {
 };
 
 } // namespace gl
+
+/****************************************************************
+** Reflection
+*****************************************************************/
+namespace refl {
+
+// Reflection info for struct gl::color.
+template<>
+struct traits<gl::color> {
+  using type = gl::color;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "color";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "r", &gl::color::r,
+                         offsetof( type, r ) },
+      refl::StructField{ "g", &gl::color::g,
+                         offsetof( type, g ) },
+      refl::StructField{ "b", &gl::color::b,
+                         offsetof( type, b ) },
+      refl::StructField{ "a", &gl::color::a,
+                         offsetof( type, a ) },
+  };
+};
+
+// Reflection info for struct gl::vec2.
+template<>
+struct traits<gl::vec2> {
+  using type = gl::vec2;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "vec2";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gl::vec2::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gl::vec2::y,
+                         offsetof( type, y ) },
+  };
+};
+
+} // namespace refl
