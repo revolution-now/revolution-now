@@ -25,6 +25,7 @@ out vec2  frag_atlas_position;
 out vec4  frag_fixed_color;
 out float frag_alpha_multiplier;
 
+// Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
 
 // Forward things to the fragment shader that need to be for-

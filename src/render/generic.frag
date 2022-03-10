@@ -18,6 +18,8 @@ in vec4  frag_fixed_color;
 in float frag_alpha_multiplier;
 
 uniform sampler2D u_atlas;
+// Screen dimensions in the game's logical pixel units.
+uniform vec2 u_screen_size;
 
 out vec4 final_color;
 
@@ -66,10 +68,12 @@ float hash_vec2( in vec2 vec ) {
 }
 
 vec4 depixelate( in vec4 color ) {
-  // FIXME: change 1000.0 to largest screen size dimension.
-  // We need to divide by 1000.0 to put the input in a good range
-  // for the hash function, otherwise we get repeating patterns.
-  float hash = hash_vec2( position/1000.0 );
+  // We need to divide by this screen scale to put the input in a
+  // good range (approximately in the range [0,1]) for the hash
+  // function to yield good results, otherwise we get repeating
+  // patterns.
+  float screen_scale = u_screen_size.x;
+  float hash = hash_vec2( position/screen_scale );
   return vec4( color.rgb, hash > frag_depixelate );
 }
 
