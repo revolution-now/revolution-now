@@ -60,9 +60,7 @@ struct Emitter {
   }
 
  private:
-  void emit( GenericVertex const& vert ) {
-    emit( std::span<GenericVertex const>( &vert, 1 ) );
-  }
+  void emit( GenericVertex const& vert );
 
   void emit( std::span<GenericVertex const> vertices );
 

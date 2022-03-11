@@ -21,6 +21,14 @@ namespace rr {
 /****************************************************************
 ** Emitter
 *****************************************************************/
+void Emitter::emit( GenericVertex const& vert ) {
+  if( pos_ < int( buffer_->size() ) )
+    ( *buffer_ )[pos_] = vert;
+  else
+    buffer_->push_back( vert );
+  ++pos_;
+}
+
 void Emitter::emit( span<GenericVertex const> vertices ) {
   if( vertices.empty() ) return;
 #ifdef TRACK_CAPACITY
