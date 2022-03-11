@@ -28,6 +28,7 @@ namespace {
 
 using namespace std;
 
+using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -673,8 +674,8 @@ TEST_CASE( "[render/painter] mod depixelate" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               unmodded_painter( atlas_map(), emitter );
-  Painter               painter =
-      unmodded_painter.with_mods( { .depixelate = .7 } );
+  Painter               painter = unmodded_painter.with_mods(
+                    { .depixelate = .7, .alpha = nothing } );
 
   point p;
 
@@ -704,8 +705,8 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               unmodded_painter( atlas_map(), emitter );
-  Painter               painter =
-      unmodded_painter.with_mods( { .alpha = .7 } );
+  Painter               painter = unmodded_painter.with_mods(
+                    { .depixelate = nothing, .alpha = .7 } );
 
   rect r;
 
