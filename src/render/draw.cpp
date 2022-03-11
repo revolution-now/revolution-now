@@ -103,19 +103,19 @@ void Painter::draw_point( point p, pixel color ) {
       color );
 }
 
-void Painter::draw_horizontal_line( point start, int width,
+void Painter::draw_horizontal_line( point start, int length,
                                     pixel color ) {
   emit_solid_quad(
-      rect{ .origin = start, .size = { .w = width, .h = 1 } },
+      rect{ .origin = start, .size = { .w = length, .h = 1 } },
       [&, this]( point p ) {
         emit( SolidVertex( p, color ) );
       } );
 }
 
-void Painter::draw_vertical_line( point start, int height,
+void Painter::draw_vertical_line( point start, int length,
                                   pixel color ) {
   emit_solid_quad(
-      rect{ .origin = start, .size = { .w = 1, .h = height } },
+      rect{ .origin = start, .size = { .w = 1, .h = length } },
       [&, this]( point p ) {
         emit( SolidVertex( p, color ) );
       } );
@@ -136,7 +136,7 @@ void Painter::draw_empty_rect( rect r, e_border_mode mode,
       point nw = r.nw();
       point se = r.se();
       nw.x -= 1;
-      se.y -= 1;
+      nw.y -= 1;
       draw_empty_box( rect::from( nw, se ), color );
       break;
     }

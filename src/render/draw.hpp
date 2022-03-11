@@ -47,20 +47,24 @@ struct Painter {
 
   // .......................[[ Lines ]]....................... //
 
-  void draw_horizontal_line( gfx::point start, int width,
+  void draw_horizontal_line( gfx::point start, int length,
                              gfx::pixel color );
 
-  void draw_vertical_line( gfx::point start, int height,
+  void draw_vertical_line( gfx::point start, int length,
                            gfx::pixel color );
 
-  // .......................[[ Rects ]]....................... //
+  // .....................[[ Solid Rect ]].................... //
+
+  void draw_solid_rect( gfx::rect rect, gfx::pixel color );
+
+  // .....................[[ Empty Rect ]].................... //
 
   enum class e_border_mode { inside, outside };
 
+  // FIXME: this expensive, requires 24 vertices. Probably should
+  // have shader support for these builtin.
   void draw_empty_rect( gfx::rect rect, e_border_mode mode,
                         gfx::pixel color );
-
-  void draw_solid_rect( gfx::rect rect, gfx::pixel color );
 
   // ......................[[ Sprites ]]...................... //
 
