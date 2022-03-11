@@ -54,18 +54,18 @@ void emit_texture_quad( rect src, rect dst, F&& f ) {
   int dst_top    = dst.origin.y;
   int dst_bottom = dst.origin.y + dst.size.h;
 
-  f( point{ .x = src_left, .y = src_top },
-     point{ .x = dst_left, .y = dst_top } );
-  f( point{ .x = src_left, .y = src_bottom },
-     point{ .x = dst_left, .y = dst_bottom } );
-  f( point{ .x = src_right, .y = src_bottom },
-     point{ .x = dst_right, .y = dst_bottom } );
-  f( point{ .x = src_left, .y = src_top },
-     point{ .x = dst_left, .y = dst_top } );
-  f( point{ .x = src_right, .y = src_top },
-     point{ .x = dst_right, .y = dst_top } );
-  f( point{ .x = src_right, .y = src_bottom },
-     point{ .x = dst_right, .y = dst_bottom } );
+  f( point{ .x = dst_left, .y = dst_top },
+     point{ .x = src_left, .y = src_top } );
+  f( point{ .x = dst_left, .y = dst_bottom },
+     point{ .x = src_left, .y = src_bottom } );
+  f( point{ .x = dst_right, .y = dst_bottom },
+     point{ .x = src_right, .y = src_bottom } );
+  f( point{ .x = dst_left, .y = dst_top },
+     point{ .x = src_left, .y = src_top } );
+  f( point{ .x = dst_right, .y = dst_top },
+     point{ .x = src_right, .y = src_top } );
+  f( point{ .x = dst_right, .y = dst_bottom },
+     point{ .x = src_right, .y = src_bottom } );
 }
 
 } // namespace

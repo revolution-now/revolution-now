@@ -27,8 +27,8 @@ struct VertexBase;
 ** PainterMods
 *****************************************************************/
 struct PainterMods {
-  base::maybe<double>  depixelate;
-  base::maybe<uint8_t> alpha;
+  base::maybe<double> depixelate;
+  base::maybe<double> alpha;
 };
 
 /****************************************************************
@@ -38,6 +38,7 @@ struct Painter {
   Painter( AtlasMap const& atlas, Emitter& emitter )
     : atlas_( atlas ), emitter_( emitter ), mods_{} {}
 
+  base::maybe<PainterMods const&> mods() const { return mods_; }
   Painter with_mods( PainterMods const& mods );
   Painter without_mods();
 

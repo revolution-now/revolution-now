@@ -559,5 +559,175 @@ TEST_CASE( "[render/draw] draw_empty_rect outter" ) {
   }
 }
 
+TEST_CASE( "[render/draw] draw_sprite" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+
+  point p;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return SpriteVertex( p, atlas_p ).generic();
+  };
+
+  p            = { .x = 20, .y = 30 };
+  int atlas_id = 1;
+  painter.draw_sprite( atlas_id, p );
+  // atlas: { .origin = { .x = 2, .y = 3 },
+  //          .size   = { .w = 4, .h = 5 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 20, .y = 35 }, { .x = 2, .y = 8 } ),
+      Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 24, .y = 30 }, { .x = 6, .y = 3 } ),
+      Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/draw] draw_silhouette" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+
+  point p;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return SilhouetteVertex( p, atlas_p, R ).generic();
+  };
+
+  p            = { .x = 20, .y = 30 };
+  int atlas_id = 2;
+  painter.draw_silhouette( atlas_id, p, R );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/draw] draw_sprite_scale" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+
+  rect r;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return SpriteVertex( p, atlas_p ).generic();
+  };
+
+  r            = rect{ .origin = { .x = 20, .y = 30 },
+                       .size   = { .w = 8, .h = 10 } };
+  int atlas_id = 1;
+  painter.draw_sprite_scale( atlas_id, r );
+  // atlas: { .origin = { .x = 2, .y = 3 },
+  //          .size   = { .w = 4, .h = 5 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 20, .y = 40 }, { .x = 2, .y = 8 } ),
+      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 28, .y = 30 }, { .x = 6, .y = 3 } ),
+      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/draw] draw_silhouette_scale" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+
+  rect r;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return SilhouetteVertex( p, atlas_p, G ).generic();
+  };
+
+  r            = rect{ .origin = { .x = 20, .y = 30 },
+                       .size   = { .w = 8, .h = 10 } };
+  int atlas_id = 1;
+  painter.draw_silhouette_scale( atlas_id, r, G );
+  // atlas: { .origin = { .x = 2, .y = 3 },
+  //          .size   = { .w = 4, .h = 5 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 20, .y = 40 }, { .x = 2, .y = 8 } ),
+      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+      Vert( { .x = 28, .y = 30 }, { .x = 6, .y = 3 } ),
+      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/draw] mod depixelate" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               unmodded_painter( atlas_map(), emitter );
+  Painter               painter =
+      unmodded_painter.with_mods( { .depixelate = .7 } );
+
+  point p;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    auto vert = SilhouetteVertex( p, atlas_p, R );
+    vert.set_depixelation_state( .7 );
+    return vert.generic();
+  };
+
+  p            = { .x = 20, .y = 30 };
+  int atlas_id = 2;
+  painter.draw_silhouette( atlas_id, p, R );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/draw] mod alpha" ) {
+  vector<GenericVertex> v, expected;
+  Emitter               emitter( v );
+  Painter               unmodded_painter( atlas_map(), emitter );
+  Painter               painter =
+      unmodded_painter.with_mods( { .alpha = .7 } );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_alpha( .7 );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 } // namespace
 } // namespace rr
