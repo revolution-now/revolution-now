@@ -62,6 +62,10 @@ rect rect::normalized() const {
   return res;
 }
 
+rect rect::from( point first, point opposite ) {
+  return rect{ .origin = first, .size = ( opposite - first ) };
+}
+
 point rect::nw() const { return normalized().origin; }
 
 point rect::ne() const {
@@ -133,6 +137,10 @@ point operator+( size const s, point const p ) { return p + s; }
 
 point operator*( point const p, size const s ) {
   return point{ .x = p.x * s.w, .y = p.y * s.h };
+}
+
+size operator-( point const p1, point const p2 ) {
+  return size{ .w = p1.x - p2.x, .h = p1.y - p2.y };
 }
 
 } // namespace gfx

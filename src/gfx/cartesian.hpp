@@ -68,6 +68,8 @@ struct rect {
   point     origin = {}; // upper left when normalized.
   gfx::size size   = {};
 
+  static rect from( point first, point opposite );
+
   int area() const { return size.area(); }
 
   // Is inside or touching borders.
@@ -103,6 +105,8 @@ struct rect {
 *****************************************************************/
 point operator+( point const p, size const s );
 point operator+( size const s, point const p );
+
+size operator-( point const p1, point const p2 );
 
 point operator*( point const p, size const s );
 

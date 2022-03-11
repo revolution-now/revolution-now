@@ -32,17 +32,37 @@ TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   REQUIRE( s1.max_with( s2 ) == size{ .w = 4, .h = 8 } );
 }
 
-TEST_CASE( "[gfx/cartesian] coord + size" ) {
+TEST_CASE( "[gfx/cartesian] point + size" ) {
   point p{ .x = 4, .y = 2 };
   size  s{ .w = 2, .h = 8 };
   REQUIRE( p + s == point{ .x = 6, .y = 10 } );
   REQUIRE( s + p == point{ .x = 6, .y = 10 } );
 }
 
-TEST_CASE( "[gfx/cartesian] coord*size" ) {
+TEST_CASE( "[gfx/cartesian] point - point" ) {
+  point p1{ .x = 4, .y = 2 };
+  point p2{ .x = 2, .y = 4 };
+  REQUIRE( p1 - p2 == size{ .w = 2, .h = -2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] point*size" ) {
   point p{ .x = 4, .y = 2 };
   size  s{ .w = 2, .h = 8 };
   REQUIRE( p * s == point{ .x = 8, .y = 16 } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::from" ) {
+  point p1{ .x = 4, .y = 2 };
+  point p2{ .x = 2, .y = 4 };
+  REQUIRE( rect::from( p1, p2 ) ==
+           rect{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = -2, .h = 2 } } );
+  REQUIRE( rect::from( p2, p1 ) ==
+           rect{ .origin = { .x = 2, .y = 4 },
+                 .size   = { .w = 2, .h = -2 } } );
+  REQUIRE( rect::from( p1, p2 ).normalized() ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
 }
 
 TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
