@@ -97,11 +97,11 @@ TEST_CASE( "[render/vertex] depixelation" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 } );
   REQUIRE( vert.depixlation_state() == 0.0 );
-  vert.reset_depixlation_state();
+  vert.reset_depixelation_state();
   REQUIRE( vert.depixlation_state() == 0.0 );
-  vert.set_depixlation_state( .5 );
+  vert.set_depixelation_state( .5 );
   REQUIRE( vert.depixlation_state() == 0.5 );
-  vert.reset_depixlation_state();
+  vert.reset_depixelation_state();
   REQUIRE( vert.depixlation_state() == 0.0 );
 }
 
@@ -115,6 +115,19 @@ TEST_CASE( "[render/vertex] visibility" ) {
   REQUIRE_FALSE( vert.is_visible() );
   vert.set_visible( true );
   REQUIRE( vert.is_visible() );
+}
+
+TEST_CASE( "[render/vertex] alpha" ) {
+  SpriteVertex vert( point{ .x = 1, .y = 2 },
+                     point{ .x = 3, .y = 4 } );
+  vert.reset_alpha();
+  REQUIRE( vert.alpha() == 1.0 );
+  vert.set_alpha( .5 );
+  REQUIRE( vert.alpha() == 0.5 );
+  vert.set_alpha( 0.0 );
+  REQUIRE( vert.alpha() == 0.0 );
+  vert.reset_alpha();
+  REQUIRE( vert.alpha() == 1.0 );
 }
 
 } // namespace

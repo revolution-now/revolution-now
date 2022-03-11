@@ -40,11 +40,11 @@ GenericVertex proto_vertex( vertex_type type,
 /****************************************************************
 ** VertexBase
 *****************************************************************/
-void VertexBase::reset_depixlation_state() {
-  set_depixlation_state( 0.0f );
+void VertexBase::reset_depixelation_state() {
+  set_depixelation_state( 0.0f );
 }
 
-void VertexBase::set_depixlation_state( double percent ) {
+void VertexBase::set_depixelation_state( double percent ) {
   depixelate = static_cast<float>( percent );
 }
 
@@ -59,6 +59,16 @@ bool VertexBase::is_visible() const {
 
 void VertexBase::set_visible( bool in_visible ) {
   visible = in_visible ? 1 : 0;
+}
+
+double VertexBase::alpha() const { return alpha_multiplier; }
+
+bool VertexBase::reset_alpha() {
+  return alpha_multiplier = 1.0f;
+}
+
+void VertexBase::set_alpha( double alpha ) {
+  alpha_multiplier = static_cast<float>( alpha );
 }
 
 /****************************************************************

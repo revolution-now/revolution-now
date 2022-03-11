@@ -46,16 +46,22 @@ struct VertexBase : protected GenericVertex {
   GenericVertex const& generic() const { return *this; }
 
   // *** Depixelation.
-  // Restores the shape to a default (non-depixelated) state.
-  void reset_depixlation_state();
-  // percent is in [0, 1.0] where 0 means totally visible and 1.0
+  // Restores the depixelation state to the default (non depixe-
+  // lated) state.
+  void reset_depixelation_state();
+  // Percent is in [0, 1.0] where 0 means totally visible and 1.0
   // means totally invisible.
-  void   set_depixlation_state( double percent );
+  void   set_depixelation_state( double percent );
   double depixlation_state() const;
 
   // *** Visibility.
   bool is_visible() const;
   void set_visible( bool visible );
+
+  // *** Alpha in [0, 1].
+  double alpha() const;
+  bool   reset_alpha();
+  void   set_alpha( double alpha );
 
   bool operator==( VertexBase const& ) const = default;
 };
