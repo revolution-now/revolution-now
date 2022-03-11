@@ -1,17 +1,17 @@
 /****************************************************************
-**draw.cpp
+**painter.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-03-10.
 *
-* Description: Unit tests for the src/render/draw.* module.
+* Description: Unit tests for the src/render/painter.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/render/draw.hpp"
+#include "src/render/painter.hpp"
 
 // render
 #include "atlas.hpp"
@@ -61,7 +61,7 @@ constexpr pixel G{ .r = 0, .g = 255, .b = 0, .a = 128 };
 constexpr pixel B{ .r = 0, .g = 0, .b = 255, .a = 10 };
 constexpr pixel W{ .r = 255, .g = 255, .b = 255, .a = 255 };
 
-TEST_CASE( "[render/draw] draw_solid_rect" ) {
+TEST_CASE( "[render/painter] draw_solid_rect" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -124,7 +124,7 @@ TEST_CASE( "[render/draw] draw_solid_rect" ) {
   }
 }
 
-TEST_CASE( "[render/draw] draw_horizontal_line" ) {
+TEST_CASE( "[render/painter] draw_horizontal_line" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -197,7 +197,7 @@ TEST_CASE( "[render/draw] draw_horizontal_line" ) {
   }
 }
 
-TEST_CASE( "[render/draw] draw_vertical_line" ) {
+TEST_CASE( "[render/painter] draw_vertical_line" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -270,7 +270,7 @@ TEST_CASE( "[render/draw] draw_vertical_line" ) {
   }
 }
 
-TEST_CASE( "[render/draw] draw_point" ) {
+TEST_CASE( "[render/painter] draw_point" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -303,7 +303,7 @@ TEST_CASE( "[render/draw] draw_point" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] draw_empty_rect inner" ) {
+TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -435,7 +435,7 @@ TEST_CASE( "[render/draw] draw_empty_rect inner" ) {
   }
 }
 
-TEST_CASE( "[render/draw] draw_empty_rect outter" ) {
+TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -559,7 +559,7 @@ TEST_CASE( "[render/draw] draw_empty_rect outter" ) {
   }
 }
 
-TEST_CASE( "[render/draw] draw_sprite" ) {
+TEST_CASE( "[render/painter] draw_sprite" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -586,7 +586,7 @@ TEST_CASE( "[render/draw] draw_sprite" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] draw_silhouette" ) {
+TEST_CASE( "[render/painter] draw_silhouette" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -613,7 +613,7 @@ TEST_CASE( "[render/draw] draw_silhouette" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] draw_sprite_scale" ) {
+TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -641,7 +641,7 @@ TEST_CASE( "[render/draw] draw_sprite_scale" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] draw_silhouette_scale" ) {
+TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -669,7 +669,7 @@ TEST_CASE( "[render/draw] draw_silhouette_scale" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] mod depixelate" ) {
+TEST_CASE( "[render/painter] mod depixelate" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               unmodded_painter( atlas_map(), emitter );
@@ -700,7 +700,7 @@ TEST_CASE( "[render/draw] mod depixelate" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/draw] mod alpha" ) {
+TEST_CASE( "[render/painter] mod alpha" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               unmodded_painter( atlas_map(), emitter );

@@ -1,5 +1,5 @@
 /****************************************************************
-**draw.cpp
+**painter.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: High level drawing commands that emit vertices.
 *
 *****************************************************************/
-#include "draw.hpp"
+#include "painter.hpp"
 
 // render
 #include "atlas.hpp"
