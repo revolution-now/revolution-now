@@ -60,7 +60,7 @@ struct VertexBase : protected GenericVertex {
 
   // *** Alpha in [0, 1].
   double alpha() const;
-  bool   reset_alpha();
+  void   reset_alpha();
   void   set_alpha( double alpha );
 
   bool operator==( VertexBase const& ) const = default;

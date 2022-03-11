@@ -63,9 +63,7 @@ void VertexBase::set_visible( bool in_visible ) {
 
 double VertexBase::alpha() const { return alpha_multiplier; }
 
-bool VertexBase::reset_alpha() {
-  return alpha_multiplier = 1.0f;
-}
+void VertexBase::reset_alpha() { alpha_multiplier = 1.0f; }
 
 void VertexBase::set_alpha( double alpha ) {
   alpha_multiplier = static_cast<float>( alpha );
