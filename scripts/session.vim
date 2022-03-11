@@ -12,6 +12,7 @@ let s:stems = [
  \ 'gfx/image',
  \ 'gl/texture',
  \ 'render/atlas',
+ \ 'render/sprite-sheet',
  \ 'render/vertex',
  \ 'render/generic',
  \ 'render/emitter',
