@@ -80,8 +80,8 @@ base::expect<AsciiFont> load_ascii_font_sheet(
   int       arr_idx = 0;
   for( int y = 0; y < 16; ++y ) {
     for( int x = 0; x < 16; ++x ) {
-      r.origin            = gfx::point{ .x = x, .y = y };
-      int id              = img_builder.add_sprite( r );
+      r.origin = gfx::point{ .x = x, .y = y } * char_size;
+      int id   = img_builder.add_sprite( r );
       ( *arr )[arr_idx++] = id;
     }
   }
