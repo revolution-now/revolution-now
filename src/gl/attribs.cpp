@@ -100,6 +100,13 @@ vec2 vec2::from_point( gfx::point p ) {
   };
 }
 
+vec2 vec2::from_size( gfx::size s ) {
+  return vec2{
+      .x = static_cast<float>( s.w ),
+      .y = static_cast<float>( s.h ),
+  };
+}
+
 /****************************************************************
 ** color
 *****************************************************************/
