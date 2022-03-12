@@ -181,30 +181,30 @@ void paint_things( unordered_map<string, int> const& atlas_ids,
   // clang-format on
 
   painter.draw_solid_rect(
-      rect{ .origin = { .x = 400, .y = 100 },
+      rect{ .origin = { .x = 300, .y = 100 },
             .size   = { .w = 50, .h = 50 } },
       pixel{ .r = 128, .g = 64, .b = 0, .a = 255 } );
   painter.with_mods( { .depixelate = .5, .alpha = .5 } )
       .draw_solid_rect(
-          rect{ .origin = { .x = 425, .y = 125 },
+          rect{ .origin = { .x = 325, .y = 125 },
                 .size   = { .w = 50, .h = 50 } },
           pixel{ .r = 0, .g = 0, .b = 0, .a = 255 } );
 
   UNWRAP_CHECK( water_id, base::lookup( atlas_ids, "water" ) );
   UNWRAP_CHECK( grass_id, base::lookup( atlas_ids, "grass" ) );
-  painter.draw_sprite( water_id, { .x = 400, .y = 200 } );
-  painter.draw_sprite( grass_id, { .x = 464, .y = 200 } );
+  painter.draw_sprite( water_id, { .x = 300, .y = 200 } );
+  painter.draw_sprite( grass_id, { .x = 364, .y = 200 } );
 
   painter.draw_sprite_scale(
-      water_id, rect{ .origin = { .x = 550, .y = 200 },
+      water_id, rect{ .origin = { .x = 450, .y = 200 },
                       .size   = { .w = 128, .h = 64 } } );
 
   painter.with_mods( { .depixelate = .5, .alpha = 1.0 } )
-      .draw_sprite( water_id, { .x = 400, .y = 250 } )
-      .draw_sprite( grass_id, { .x = 464, .y = 250 } );
+      .draw_sprite( water_id, { .x = 300, .y = 250 } )
+      .draw_sprite( grass_id, { .x = 364, .y = 250 } );
 
   pixel     text_color{ .r = 0, .g = 0, .b = 48, .a = 255 };
-  rr::Typer typer( painter, ascii_font, { .x = 400, .y = 300 },
+  rr::Typer typer( painter, ascii_font, { .x = 300, .y = 300 },
                    text_color );
   typer.write( "Color of this text is {}.\nThe End.\n\n-David",
                text_color );
