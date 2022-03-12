@@ -321,6 +321,7 @@ void render_loop( ::SDL_Window*         window,
   lg.info( "Buffer Size:    {:.2}MB",
            double( num_vertices ) * sizeof( rr::GenericVertex ) /
                ( 1024 * 1024 ) );
+  lg.info( "Vertex count:   {}k", num_vertices / 1000 );
   lg.info( "Sprite count:   {}k", num_sprites / 1000 );
   lg.info( "=================================================" );
 }
@@ -362,6 +363,11 @@ void open_gl_perf_test() {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
+  static constexpr bool wait_for_vsync = true;
+
+  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
+    lg.warn( "setting swap interval is not supported." );
+
   /**************************************************************
   ** gl/iface
   ***************************************************************/
@@ -376,11 +382,6 @@ void open_gl_perf_test() {
   /**************************************************************
   ** Render Loop
   ***************************************************************/
-  static constexpr bool wait_for_vsync = true;
-
-  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
-    lg.warn( "setting swap interval is not supported." );
-
   render_loop( window, opengl_info.logging_iface.get() );
 
   /**************************************************************
