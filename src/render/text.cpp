@@ -32,9 +32,9 @@ using ::gfx::size;
 /****************************************************************
 ** Typer
 *****************************************************************/
-Typer::Typer( Painter& painter, AsciiFont const& ascii_font,
+Typer::Typer( Painter painter, AsciiFont const& ascii_font,
               point start, pixel color )
-  : painter_( painter ),
+  : painter_( std::move( painter ) ),
     ascii_font_( ascii_font ),
     line_start_( start ),
     pos_( start ),

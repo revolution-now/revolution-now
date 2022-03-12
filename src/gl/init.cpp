@@ -54,8 +54,9 @@ string DriverInfo::pretty_print() const {
   res += fmt::format( "  * Vendor:      {}.\n", vendor );
   res += fmt::format( "  * Renderer:    {}.\n", renderer );
   res += fmt::format( "  * Version:     {}.\n", version );
-  res +=
-      fmt::format( "  * Max Tx Size: {}.\n", max_texture_size );
+  res += fmt::format( "  * Max Tx Size: {}.", max_texture_size );
+  // !! If adding another line here, add a new line to the end of
+  // the previous one.
   return res;
 }
 
@@ -88,6 +89,10 @@ InitResult init_opengl( InitOptions opts ) {
   GL_CHECK(
       glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ) );
   GL_CHECK( glEnable( GL_BLEND ) );
+
+  // Texture 0 should be the default, but let's just set it
+  // anyway to be sure.
+  GL_CHECK( glActiveTexture( GL_TEXTURE0 ) );
 
   set_viewport( opts.initial_window_physical_pixel_size );
 

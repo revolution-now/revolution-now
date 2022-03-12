@@ -146,4 +146,49 @@ gfx::pixel from_SDL( ::SDL_Color color ) {
   return { color.r, color.g, color.b, color.a };
 }
 
+/****************************************************************
+** OpenGL Specific.
+*****************************************************************/
+::SDL_GLContext init_SDL_for_OpenGL( ::SDL_Window* window ) {
+  // These next lines are needed on macOS to get the window to
+  // appear (???).
+#ifdef __APPLE__
+  ::SDL_PumpEvents();
+  ::SDL_DisplayMode display_mode;
+  ::SDL_GetWindowDisplayMode( window, &display_mode );
+  ::SDL_SetWindowDisplayMode( window, &display_mode );
+#endif
+
+  ::SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,
+                         SDL_GL_CONTEXT_PROFILE_CORE );
+
+  /* Turn on double buffering with a 24bit Z buffer.
+   * You may need to change this to 16 or 32 for your system */
+  ::SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+  ::SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
+
+  /* Create our opengl context and attach it to our window */
+  ::SDL_GLContext opengl_context =
+      ::SDL_GL_CreateContext( window );
+  CHECK( opengl_context );
+
+  static constexpr bool wait_for_vsync = true;
+
+  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
+    lg.warn( "setting swap interval is not supported." );
+  return opengl_context;
+}
+
+void sdl_gl_swap_window( ::SDL_Window* window ) {
+  ::SDL_GL_SwapWindow( window );
+}
+
+void close_SDL_for_OpenGL( ::SDL_GLContext context ) {
+  ::SDL_GL_DeleteContext( context );
+  ::SDL_GL_UnloadLibrary();
+}
+
 } // namespace rn

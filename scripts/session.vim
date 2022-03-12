@@ -9,6 +9,8 @@ let s:stems = [
  \ 'gfx/cartesian',
  \ 'gfx/image',
  \ 'gl/texture',
+ \ 'gl/misc',
+ \ 'gl/init',
  \ 'render/atlas',
  \ 'render/ascii-font',
  \ 'render/sprite-sheet',
@@ -18,10 +20,7 @@ let s:stems = [
  \ 'render/painter',
  \ 'render/text',
  \ 'render/renderer',
- \ 'gl/misc',
- \ 'gl/init',
  \ 'open-gl-perf-test',
- \ 'shaders/perf-test',
 \]
 
 let s:luas = [

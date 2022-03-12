@@ -25,6 +25,9 @@ namespace "rr"
 struct.AsciiFontSheetConfig {
   # Image file.
   img_path 'fs::path',
+
+  # unique name for this font.
+  font_name 'std::string',
 }
 
 struct.SpriteSheetConfig {

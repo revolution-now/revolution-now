@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// render
+#include "painter.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 #include "gfx/pixel.hpp"
@@ -32,7 +35,7 @@ struct AsciiFont;
 // and will advance by the correct number of pixels each time a
 // character or newline is written.
 struct Typer {
-  Typer( Painter& painter, AsciiFont const& ascii_font,
+  Typer( Painter painter, AsciiFont const& ascii_font,
          gfx::point start, gfx::pixel color );
 
   gfx::point current_position_pixels() const { return pos_; }
@@ -68,7 +71,7 @@ struct Typer {
   void newline();
 
  private:
-  Painter&         painter_;
+  Painter          painter_;
   AsciiFont const& ascii_font_;
   // Pixel position of the upper-left of the start of the current
   // line.

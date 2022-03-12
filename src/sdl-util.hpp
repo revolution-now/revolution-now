@@ -46,4 +46,13 @@ Coord      from_SDL( ::SDL_Point const& p );
 gfx::pixel from_SDL( ::SDL_Color color );
 Rect       from_SDL( ::SDL_Rect const& rect );
 
+/****************************************************************
+** OpenGL Specific.
+*****************************************************************/
+::SDL_GLContext init_SDL_for_OpenGL( ::SDL_Window* window );
+
+void sdl_gl_swap_window( ::SDL_Window* window );
+
+void close_SDL_for_OpenGL( ::SDL_GLContext context );
+
 } // namespace rn
