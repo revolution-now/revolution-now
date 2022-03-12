@@ -73,7 +73,7 @@ vec4 depixelate( in vec4 color ) {
   // function to yield good results, otherwise we get repeating
   // patterns.
   float screen_scale = u_screen_size.x;
-  float hash = hash_vec2( frag_position/screen_scale );
+  float hash = hash_vec2( floor( frag_position )/screen_scale );
   return vec4( color.rgb, hash > frag_depixelate );
 }
 
