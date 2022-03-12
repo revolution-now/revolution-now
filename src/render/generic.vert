@@ -18,12 +18,12 @@ layout (location = 4) in vec2  in_atlas_position;
 layout (location = 5) in vec4  in_fixed_color;
 layout (location = 6) in float in_alpha_multiplier;
 
-out int   frag_type;
-out float frag_depixelate;
-out vec2  frag_position;
-out vec2  frag_atlas_position;
-out vec4  frag_fixed_color;
-out float frag_alpha_multiplier;
+flat out int   frag_type;
+flat out float frag_depixelate;
+     out vec2  frag_position;
+     out vec2  frag_atlas_position;
+     out vec4  frag_fixed_color;
+     out float frag_alpha_multiplier;
 
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
@@ -43,7 +43,7 @@ void forwarding() {
 // at the upper left and each subsequent integer corresponds to a
 // logical pixel) to normalized device coordinates (-1, 1) with
 // (-1,-1) at the bottom right and (0,0) at the center.
-vec3 to_ndc( in vec2 game_pos ) {
+vec2 to_ndc( in vec2 game_pos ) {
   vec2 ndc_pos = game_pos.xy / u_screen_size;
   ndc_pos = ndc_pos*2.0 - vec2( 1.0 );
   ndc_pos.y = -ndc_pos.y;

@@ -10,12 +10,12 @@
 *****************************************************************/
 #version 330 core
 
-in int   frag_type;
-in int   frag_depixelate;
-in vec2  frag_position;
-in vec2  frag_atlas_position;
-in vec4  frag_fixed_color;
-in float frag_alpha_multiplier;
+flat in int   frag_type;
+flat in float frag_depixelate;
+     in vec2  frag_position;
+     in vec2  frag_atlas_position;
+     in vec4  frag_fixed_color;
+     in float frag_alpha_multiplier;
 
 uniform sampler2D u_atlas;
 // Screen dimensions in the game's logical pixel units.
@@ -73,7 +73,7 @@ vec4 depixelate( in vec4 color ) {
   // function to yield good results, otherwise we get repeating
   // patterns.
   float screen_scale = u_screen_size.x;
-  float hash = hash_vec2( position/screen_scale );
+  float hash = hash_vec2( frag_position/screen_scale );
   return vec4( color.rgb, hash > frag_depixelate );
 }
 
@@ -81,7 +81,7 @@ vec4 depixelate( in vec4 color ) {
 ** Alpha scaling.
 *****************************************************************/
 vec4 alpha( in vec4 color ) {
-  return vec4( color.rgb, color.a*in_alpha_multiplier );
+  return vec4( color.rgb, color.a*frag_alpha_multiplier );
 }
 
 /****************************************************************
