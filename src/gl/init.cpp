@@ -27,15 +27,14 @@ namespace {
 
 pair<unique_ptr<IOpenGL>, unique_ptr<OpenGLWithLogger>>
 create_and_set_global_instance( bool enable_logger ) {
-  unique_ptr<IOpenGL> iface;
-  iface = make_unique<gl::OpenGLGlad>();
+  unique_ptr<IOpenGL> iface = make_unique<gl::OpenGLGlad>();
+  set_global_gl_implementation( iface.get() );
   unique_ptr<OpenGLWithLogger> logger;
   if( enable_logger ) {
     logger = make_unique<gl::OpenGLWithLogger>( iface.get() );
     logger->enable_logging( true );
-    iface = make_unique<gl::OpenGLWithLogger>( iface.get() );
+    set_global_gl_implementation( logger.get() );
   }
-  set_global_gl_implementation( iface.get() );
   return { std::move( iface ), std::move( logger ) };
 }
 
@@ -51,11 +50,12 @@ string get_str( int what ) {
 *****************************************************************/
 string DriverInfo::pretty_print() const {
   string res;
-  res += fmt::format( "OpenGL loaded:" );
-  res += fmt::format( "  * Vendor:      {}.", vendor );
-  res += fmt::format( "  * Renderer:    {}.", renderer );
-  res += fmt::format( "  * Version:     {}.", version );
-  res += fmt::format( "  * Max Tx Size: {}.", max_texture_size );
+  res += fmt::format( "OpenGL loaded:\n" );
+  res += fmt::format( "  * Vendor:      {}.\n", vendor );
+  res += fmt::format( "  * Renderer:    {}.\n", renderer );
+  res += fmt::format( "  * Version:     {}.\n", version );
+  res +=
+      fmt::format( "  * Max Tx Size: {}.\n", max_texture_size );
   return res;
 }
 
