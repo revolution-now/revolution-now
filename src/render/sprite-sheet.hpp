@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// render
+#include "ascii-font.hpp"
+
 // Rds
 #include "sprite-sheet.rds.hpp"
 
@@ -27,23 +30,6 @@
 namespace rr {
 
 struct AtlasBuilder;
-
-/****************************************************************
-** AsciiFont
-*****************************************************************/
-struct AsciiFont {
-  AsciiFont( std::unique_ptr<std::array<int, 256>> ids,
-             gfx::size                             char_size )
-    : atlas_ids_( std::move( ids ) ), char_size_{ char_size } {}
-
-  gfx::size char_size() const { return char_size_; }
-
-  int atlas_id_for_char( uint8_t c );
-
- private:
-  std::unique_ptr<std::array<int, 256>> atlas_ids_;
-  gfx::size                             char_size_;
-};
 
 /****************************************************************
 ** Loading from images.

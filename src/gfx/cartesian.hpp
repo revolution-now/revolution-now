@@ -106,6 +106,8 @@ struct rect {
 point operator+( point const p, size const s );
 point operator+( size const s, point const p );
 
+void operator+=( point& p, size const s );
+
 size operator-( point const p1, point const p2 );
 
 point operator*( point const p, size const s );

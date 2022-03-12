@@ -38,9 +38,12 @@ struct Painter {
   Painter( AtlasMap const& atlas, Emitter& emitter )
     : atlas_( atlas ), emitter_( emitter ), mods_{} {}
 
-  base::maybe<PainterMods const&> mods() const { return mods_; }
   Painter with_mods( PainterMods const& mods );
   Painter without_mods();
+
+  AtlasMap const& atlas() const { return atlas_; }
+  Emitter&        emitter() const { return emitter_; }
+  base::maybe<PainterMods const&> mods() const { return mods_; }
 
   // .......................[[ Points ]]...................... //
 

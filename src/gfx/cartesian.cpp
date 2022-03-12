@@ -135,6 +135,8 @@ point operator+( point const p, size const s ) {
 
 point operator+( size const s, point const p ) { return p + s; }
 
+void operator+=( point& p, size const s ) { p = p + s; }
+
 point operator*( point const p, size const s ) {
   return point{ .x = p.x * s.w, .y = p.y * s.h };
 }

@@ -39,6 +39,13 @@ TEST_CASE( "[gfx/cartesian] point + size" ) {
   REQUIRE( s + p == point{ .x = 6, .y = 10 } );
 }
 
+TEST_CASE( "[gfx/cartesian] point += size" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 2, .h = 8 };
+  p += s;
+  REQUIRE( p == point{ .x = 6, .y = 10 } );
+}
+
 TEST_CASE( "[gfx/cartesian] point - point" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 2, .y = 4 };
