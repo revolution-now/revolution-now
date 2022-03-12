@@ -40,7 +40,7 @@ struct InitResult {
   std::unique_ptr<IOpenGL> iface = {};
 
   // May be null if there is no logging enabled.
-  OpenGLWithLogger* logging_iface = {};
+  std::unique_ptr<OpenGLWithLogger> logging_iface = {};
 };
 
 struct InitOptions {

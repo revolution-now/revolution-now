@@ -18,6 +18,8 @@ let s:stems = [
  \ 'render/painter',
  \ 'render/text',
  \ 'render/renderer',
+ \ 'gl/misc',
+ \ 'gl/init',
  \ 'open-gl-perf-test',
  \ 'shaders/perf-test',
 \]

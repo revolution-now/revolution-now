@@ -25,20 +25,18 @@ namespace gl {
 
 namespace {
 
-pair<unique_ptr<IOpenGL>, OpenGLWithLogger*>
+pair<unique_ptr<IOpenGL>, unique_ptr<OpenGLWithLogger>>
 create_and_set_global_instance( bool enable_logger ) {
   unique_ptr<IOpenGL> iface;
-  iface                    = make_unique<gl::OpenGLGlad>();
-  OpenGLWithLogger* logger = nullptr;
+  iface = make_unique<gl::OpenGLGlad>();
+  unique_ptr<OpenGLWithLogger> logger;
   if( enable_logger ) {
-    auto with_logging =
-        make_unique<gl::OpenGLWithLogger>( iface.get() );
-    logger = with_logging.get();
-    with_logging->enable_logging( true );
+    logger = make_unique<gl::OpenGLWithLogger>( iface.get() );
+    logger->enable_logging( true );
     iface = make_unique<gl::OpenGLWithLogger>( iface.get() );
   }
   set_global_gl_implementation( iface.get() );
-  return { std::move( iface ), logger };
+  return { std::move( iface ), std::move( logger ) };
 }
 
 string get_str( int what ) {
@@ -99,7 +97,7 @@ InitResult init_opengl( InitOptions opts ) {
   return InitResult{
       .driver_info   = std::move( driver_info ),
       .iface         = std::move( iface ),
-      .logging_iface = logger,
+      .logging_iface = std::move( logger ),
   };
 }
 

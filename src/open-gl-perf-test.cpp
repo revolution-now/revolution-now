@@ -381,7 +381,7 @@ void open_gl_perf_test() {
   if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
     lg.warn( "setting swap interval is not supported." );
 
-  render_loop( window, opengl_info.logging_iface );
+  render_loop( window, opengl_info.logging_iface.get() );
 
   /**************************************************************
   ** SDL Cleanup
