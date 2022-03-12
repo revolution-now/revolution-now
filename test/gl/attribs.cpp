@@ -128,9 +128,9 @@ TEST_CASE( "[attribs] gfx conversion" ) {
   REQUIRE( color::from_pixel( gfx::pixel{
                .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
            color{ .r = 0.0f,
-                  .g = 255.0f / 256.0f,
-                  .b = 3.0f / 256.0f,
-                  .a = 4.0f / 256.0f } );
+                  .g = 255.0f / 255.0f,
+                  .b = 3.0f / 255.0f,
+                  .a = 4.0f / 255.0f } );
 }
 
 } // namespace

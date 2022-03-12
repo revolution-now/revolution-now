@@ -47,10 +47,10 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.depixelate == 0.0f );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{} );
-  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 256.0f,
-                                        .g = 20.0f / 256.0f,
-                                        .b = 30.0f / 256.0f,
-                                        .a = 40.0f / 256.0f } );
+  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
+                                        .g = 20.0f / 255.0f,
+                                        .b = 30.0f / 255.0f,
+                                        .a = 40.0f / 255.0f } );
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
@@ -64,10 +64,10 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   REQUIRE( gv.depixelate == 0.0f );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
-  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 256.0f,
-                                        .g = 20.0f / 256.0f,
-                                        .b = 30.0f / 256.0f,
-                                        .a = 40.0f / 256.0f } );
+  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
+                                        .g = 20.0f / 255.0f,
+                                        .b = 30.0f / 255.0f,
+                                        .a = 40.0f / 255.0f } );
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 

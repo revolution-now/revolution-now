@@ -105,10 +105,10 @@ vec2 vec2::from_point( gfx::point p ) {
 *****************************************************************/
 color color::from_pixel( gfx::pixel p ) {
   return color{
-      .r = static_cast<float>( p.r ) / 256.0f,
-      .g = static_cast<float>( p.g ) / 256.0f,
-      .b = static_cast<float>( p.b ) / 256.0f,
-      .a = static_cast<float>( p.a ) / 256.0f,
+      .r = static_cast<float>( p.r ) / 255.0f,
+      .g = static_cast<float>( p.g ) / 255.0f,
+      .b = static_cast<float>( p.b ) / 255.0f,
+      .a = static_cast<float>( p.a ) / 255.0f,
   };
 }
 
