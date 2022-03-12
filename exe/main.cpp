@@ -6,7 +6,6 @@
 #include "lua-ui.hpp"
 #include "lua.hpp"
 #include "open-gl-perf-test.hpp"
-#include "open-gl.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 
@@ -19,13 +18,7 @@ using namespace rn;
 using namespace std;
 using namespace base;
 
-enum class e_mode {
-  game,
-  ui_test,
-  lua_ui_test,
-  gl_test,
-  gl_perf
-};
+enum class e_mode { game, ui_test, lua_ui_test, gl_perf };
 
 // FIXME: this should be using reflection.
 maybe<e_mode> mode_from_str( string_view key ) {
@@ -34,7 +27,6 @@ maybe<e_mode> mode_from_str( string_view key ) {
           { "game", e_mode::game },
           { "ui_test", e_mode::ui_test },
           { "lua_ui_test", e_mode::lua_ui_test },
-          { "gl_test", e_mode::gl_test },
           { "gl_perf", e_mode::gl_perf },
       },
       key );
@@ -63,12 +55,6 @@ void run( e_mode mode ) {
     case e_mode::lua_ui_test: //
       full_init();
       frame_loop( rn::lua_ui_test() );
-      break;
-    case e_mode::gl_test:
-      run_all_init_routines(
-          e_log_level::debug,
-          { e_init_routine::screen, e_init_routine::lua } );
-      test_open_gl();
       break;
     case e_mode::gl_perf:
       run_all_init_routines(

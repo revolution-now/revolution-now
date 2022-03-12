@@ -1,8 +1,6 @@
 " =========================== Config ============================
 let s:stems = [
  \ 'screen',
- \ 'open-gl',
- \ 'shaders/experimental',
  \ 'gl/vertex-buffer',
  \ 'gl/attribs',
  \ 'gl/vertex-array',
