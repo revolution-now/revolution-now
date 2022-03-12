@@ -1,17 +1,17 @@
 /****************************************************************
-**text.cpp
+**typer.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-03-11.
 *
-* Description: Unit tests for the src/render/text.* module.
+* Description: Unit tests for the src/render/typer.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/render/text.hpp"
+#include "src/render/typer.hpp"
 
 // render
 #include "ascii-font.hpp"
@@ -60,7 +60,7 @@ AtlasMap const& atlas_map() {
   return m;
 }
 
-TEST_CASE( "[render/text] write_char" ) {
+TEST_CASE( "[render/typer] write_char" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );
@@ -147,7 +147,7 @@ TEST_CASE( "[render/text] write_char" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/text] write_char scaled" ) {
+TEST_CASE( "[render/typer] write_char scaled" ) {
   vector<GenericVertex> v, expected;
   Emitter               emitter( v );
   Painter               painter( atlas_map(), emitter );

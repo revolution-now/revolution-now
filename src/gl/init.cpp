@@ -32,7 +32,8 @@ create_and_set_global_instance( bool enable_logger ) {
   unique_ptr<OpenGLWithLogger> logger;
   if( enable_logger ) {
     logger = make_unique<gl::OpenGLWithLogger>( iface.get() );
-    logger->enable_logging( true );
+    // Keep it off by default.
+    logger->enable_logging( false );
     set_global_gl_implementation( logger.get() );
   }
   return { std::move( iface ), std::move( logger ) };
@@ -68,7 +69,7 @@ InitResult init_opengl( InitOptions opts ) {
   CHECK( gladLoadGL(), "Failed to initialize GLAD." );
 
   auto [iface, logger] = create_and_set_global_instance(
-      opts.enable_glfunc_logging );
+      opts.include_glfunc_logging );
 
   int max_texture_size = 0;
   GL_CHECK(

@@ -18,7 +18,7 @@ let s:stems = [
  \ 'render/generic',
  \ 'render/emitter',
  \ 'render/painter',
- \ 'render/text',
+ \ 'render/typer',
  \ 'render/renderer',
  \ 'open-gl-perf-test',
 \]

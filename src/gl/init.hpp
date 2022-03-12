@@ -44,7 +44,9 @@ struct InitResult {
 };
 
 struct InitOptions {
-  bool      enable_glfunc_logging              = false;
+  // Setting this to true will allow for logging, but it will be
+  // off by default.
+  bool      include_glfunc_logging             = false;
   gfx::size initial_window_physical_pixel_size = {};
 };
 

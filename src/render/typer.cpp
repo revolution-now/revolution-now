@@ -1,5 +1,5 @@
 /****************************************************************
-**text.cpp
+**typer.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Rendering ASCII text from sprites.
 *
 *****************************************************************/
-#include "text.hpp"
+#include "typer.hpp"
 
 // render
 #include "ascii-font.hpp"

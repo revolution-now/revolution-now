@@ -18,7 +18,7 @@
 #include "misc.hpp"
 #include "painter.hpp"
 #include "sprite-sheet.hpp"
-#include "text.hpp"
+#include "typer.hpp"
 #include "vertex.hpp"
 
 // gl

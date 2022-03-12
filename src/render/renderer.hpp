@@ -12,7 +12,9 @@
 #pragma once
 
 // render
+#include "painter.hpp"
 #include "sprite-sheet.hpp"
+#include "typer.hpp"
 
 // base
 #include "base/macros.hpp"
@@ -23,12 +25,6 @@
 #include <unordered_map>
 
 namespace rr {
-
-/****************************************************************
-** Forward Decls.
-*****************************************************************/
-struct Painter;
-struct Typer;
 
 /****************************************************************
 ** RendererConfig

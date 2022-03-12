@@ -11,19 +11,16 @@
 #include "open-gl-perf-test.hpp"
 
 // Revolution Now
-#include "base/io.hpp"
 #include "error.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
-#include "tx.hpp"
 
 // render
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
-#include "render/sprite-sheet.hpp"
-#include "render/text.hpp"
+#include "render/typer.hpp"
 
 // gl
 #include "gl/iface-logger.hpp"
@@ -117,55 +114,20 @@ void paint_things( rr::Renderer& renderer ) {
 }
 
 /****************************************************************
-** Testing
+** Loop
 *****************************************************************/
-void render_loop(
-    rr::Renderer&                    renderer,
-    base::function_ref<void( bool )> enable_opengl_logging,
-    base::function_ref<void()>       swap ) {
-  int  num_vertices = 0;
-  auto start_time   = chrono::system_clock::now();
-  long frames       = 0;
-
-  enable_opengl_logging( false );
-
+void render_loop( rr::Renderer&              renderer,
+                  base::function_ref<void()> swap ) {
   while( !input::is_q_down() ) {
-    if( frames == 0 ) {
-      fmt::print( "=== frame 0 ===\n" );
-      enable_opengl_logging( true );
-    }
-
     renderer.begin_pass();
     renderer.clear_screen( pixel{ .r = uint8_t( 0.2 * 255 ),
                                   .g = uint8_t( 0.3 * 255 ),
                                   .b = uint8_t( 0.3 * 255 ),
                                   .a = uint8_t( 255 ) } );
     paint_things( renderer );
-    num_vertices = renderer.end_pass();
+    renderer.end_pass();
     swap();
-
-    ++frames;
-    enable_opengl_logging( false );
   }
-
-  enable_opengl_logging( false );
-  fmt::print( "=== end frames ===\n" );
-
-  auto end_time   = chrono::system_clock::now();
-  auto delta_time = end_time - start_time;
-  auto millis =
-      chrono::duration_cast<chrono::milliseconds>( delta_time );
-  double max_fpms = frames / double( millis.count() );
-  double max_fps  = max_fpms * 1000.0;
-  lg.info( "=================================================" );
-  lg.info( "OpenGL Performance Test" );
-  lg.info( "=================================================" );
-  lg.info( "Total time:     {}.", delta_time );
-  lg.info( "Avg frame rate: {}.", max_fps );
-  lg.info( "Buffer Size:    {:.2}MB",
-           double( num_vertices ) * 48 / ( 1024 * 1024 ) );
-  lg.info( "Vertex count:   {}k", num_vertices / 1000 );
-  lg.info( "=================================================" );
 }
 
 } // namespace
@@ -187,13 +149,9 @@ void open_gl_perf_test() {
   ***************************************************************/
   // The window and context must have been created first.
   gl::InitResult opengl_info = init_opengl( gl::InitOptions{
-      .enable_glfunc_logging              = true,
+      .include_glfunc_logging             = false,
       .initial_window_physical_pixel_size = win_size,
   } );
-
-  auto enable_logging = [&]( bool enable_logging ) {
-    opengl_info.logging_iface->enable_logging( enable_logging );
-  };
 
   lg.info( "{}", opengl_info.driver_info.pretty_print() );
 
@@ -235,8 +193,8 @@ void open_gl_perf_test() {
     rr::Renderer renderer =
         rr::Renderer::create( renderer_config );
 
-    render_loop( renderer, enable_logging,
-                 [&] { ::SDL_GL_SwapWindow( window ); } );
+    render_loop( renderer,
+                 [&] { sdl_gl_swap_window( window ); } );
   }
 
   /**************************************************************
