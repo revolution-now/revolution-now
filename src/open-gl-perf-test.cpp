@@ -32,6 +32,8 @@
 #include "gl/iface-glad.hpp"
 #include "gl/iface-logger.hpp"
 #include "gl/iface.hpp"
+#include "gl/init.hpp"
+#include "gl/misc.hpp"
 #include "gl/shader.hpp"
 #include "gl/texture.hpp"
 #include "gl/uniform.hpp"
@@ -227,7 +229,7 @@ void upload_vertices(
 ** Testing
 *****************************************************************/
 void render_loop( ::SDL_Window*         window,
-                  gl::OpenGLWithLogger* opengl_with_logger ) {
+                  gl::OpenGLWithLogger* opengl ) {
   // == Initialization ==========================================
 
   OpenGLObjects gl_objects = init_opengl();
@@ -236,9 +238,8 @@ void render_loop( ::SDL_Window*         window,
 
   auto screen_delta = main_window_logical_size();
 
-  GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
-  GL_CHECK(
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+  gl::clear(
+      gl::color{ .r = 0.2, .g = 0.3, .b = 0.3, .a = 1.0 } );
 
   int scale       = kSpriteScale;
   int num_sprites = ( screen_delta.w._ + scale ) / scale *
@@ -275,23 +276,20 @@ void render_loop( ::SDL_Window*         window,
 
   // GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
 
-  opengl_with_logger->enable_logging( false );
+  opengl->enable_logging( false );
 
   while( !input::is_q_down() ) {
     if( frames == 0 ) {
       fmt::print( "=== frame 0 ===\n" );
-      opengl_with_logger->enable_logging( true );
+      opengl->enable_logging( true );
     }
     if( frames == 5 ) {
       fmt::print( "=== frame 5 ===\n" );
-      opengl_with_logger->enable_logging( true );
+      opengl->enable_logging( true );
     }
 
-    // Clear screen.
-    // GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
-    GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
-    GL_CHECK(
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+    gl::clear(
+        gl::color{ .r = 0.2, .g = 0.3, .b = 0.3, .a = 1.0 } );
 
     // program["tick"_t] = frames;
 
@@ -303,10 +301,10 @@ void render_loop( ::SDL_Window*         window,
     ::SDL_GL_SwapWindow( window );
 
     ++frames;
-    opengl_with_logger->enable_logging( false );
+    opengl->enable_logging( false );
   }
 
-  opengl_with_logger->enable_logging( false );
+  opengl->enable_logging( false );
   fmt::print( "=== end frames ===\n" );
 
   auto end_time   = chrono::system_clock::now();
@@ -330,18 +328,23 @@ void render_loop( ::SDL_Window*         window,
 } // namespace
 
 void open_gl_perf_test() {
-  gl::OpenGLGlad       opengl_glad;
-  gl::OpenGLWithLogger opengl_with_logger( &opengl_glad );
-  gl::set_global_gl_implementation( &opengl_with_logger );
-
-  opengl_with_logger.enable_logging( true );
-
-  CHECK( ::SDL_GL_LoadLibrary( nullptr ) == 0,
-         "Failed to load OpenGL library." );
-
+  /**************************************************************
+  ** SDL Stuff
+  ***************************************************************/
   ::SDL_Window* window =
       static_cast<::SDL_Window*>( main_os_window_handle() );
-  auto win_size = main_window_physical_size();
+  auto      win_size_delta = main_window_physical_size();
+  gfx::size win_size       = { .w = win_size_delta.w._,
+                               .h = win_size_delta.h._ };
+
+  // These next lines are needed on macOS to get the window to
+  // appear (???).
+#ifdef __APPLE__
+  ::SDL_PumpEvents();
+  ::SDL_DisplayMode display_mode;
+  ::SDL_GetWindowDisplayMode( window, &display_mode );
+  ::SDL_SetWindowDisplayMode( window, &display_mode );
+#endif
 
   ::SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
@@ -359,60 +362,30 @@ void open_gl_perf_test() {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
-  // Doing this any earlier in the process doesn't seem to work.
-  CHECK( gladLoadGLLoader(
-             ( GLADloadproc )::SDL_GL_GetProcAddress ),
-         "Failed to initialize GLAD." );
+  /**************************************************************
+  ** gl/iface
+  ***************************************************************/
+  // The window and context must have been created first.
+  gl::InitResult opengl_info = init_opengl( gl::InitOptions{
+      .enable_glfunc_logging              = true,
+      .initial_window_physical_pixel_size = win_size,
+  } );
 
-  // These next lines are needed on macOS to get the window to
-  // appear (???).
-  ::SDL_PumpEvents();
-  ::SDL_DisplayMode display_mode;
-  ::SDL_GetWindowDisplayMode( window, &display_mode );
-  ::SDL_SetWindowDisplayMode( window, &display_mode );
+  lg.info( "{}", opengl_info.driver_info.pretty_print() );
 
-  int max_texture_size = 0;
-  GL_CHECK(
-      glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size ) );
-
-  lg.info( "OpenGL loaded:" );
-  lg.info( "  * Vendor:      {}.",
-           GL_CHECK( glGetString( GL_VENDOR ) ) );
-  lg.info( "  * Renderer:    {}.",
-           GL_CHECK( glGetString( GL_RENDERER ) ) );
-  lg.info( "  * Version:     {}.",
-           GL_CHECK( glGetString( GL_VERSION ) ) );
-  lg.info( "  * Max Tx Size: {}x{}.", max_texture_size,
-           max_texture_size );
-
-  // GL_CHECK(glEnable( GL_DEPTH_TEST ));
-  // GL_CHECK(glDepthFunc( GL_LEQUAL ));
-
-  // Without this, alpha blending won't happen.
-  GL_CHECK(
-      glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ) );
-  GL_CHECK( glEnable( GL_BLEND ) );
-
-  int viewport_scale = 1;
-
-#ifdef __APPLE__
-  // Ideally need to check if we are >= OSX 10.15 and set this to
-  // two.
-  viewport_scale = 2;
-#endif
-
-  // (0,0) is the lower-left of the rendering region. NOTE: This
-  // needs to be re-called when window is resized.
-  GL_CHECK( glViewport( 0, 0, win_size.w._ * viewport_scale,
-                        win_size.h._ * viewport_scale ) );
-
+  /**************************************************************
+  ** Render Loop
+  ***************************************************************/
   static constexpr bool wait_for_vsync = true;
 
   if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
     lg.warn( "setting swap interval is not supported." );
 
-  render_loop( window, &opengl_with_logger );
+  render_loop( window, opengl_info.logging_iface );
 
+  /**************************************************************
+  ** SDL Cleanup
+  ***************************************************************/
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_GL_UnloadLibrary();
 }
