@@ -138,6 +138,11 @@ GLAD_GL_METHOD( VertexAttribPointer, void,
                   ( GLsizei, stride ),
                   ( const void*, pointer ) ) );
 
+GLAD_GL_METHOD( VertexAttribIPointer, void,
+                ( ( GLuint, index ), ( GLint, size ),
+                  ( GLenum, type ), ( GLsizei, stride ),
+                  ( const void*, pointer ) ) );
+
 GLAD_GL_METHOD( GenTextures, void,
                 ( ( GLsizei, n ), ( GLuint*, textures ) ) );
 

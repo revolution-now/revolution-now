@@ -44,7 +44,7 @@ struct VertexArrayNonTyped
   void register_attrib( int idx, size_t attrib_field_count,
                         e_attrib_type component_type,
                         bool normalized, size_t stride,
-                        size_t offset ) const;
+                        size_t offset, bool is_integral ) const;
 
  private:
   VertexArrayNonTyped( ObjId vbo_id );
@@ -148,7 +148,9 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
           attrib_traits<AttribType>::component_type,
           /*normalized=*/false,
           /*stride=*/sizeof( VertexType ),
-          /*offset=*/offset.template get<size_t>() );
+          /*offset=*/offset.template get<size_t>(),
+          /*is_integral=*/
+          std::is_integral_v<AttribType> );
     };
     return kNumAttribs;
   }

@@ -30,8 +30,9 @@ using namespace std;
 using namespace ::mock::matchers;
 
 struct Vertex {
-  vec3  v;
-  float y;
+  vec3    v;
+  float   y;
+  int32_t i;
 };
 
 } // namespace
@@ -55,6 +56,8 @@ struct traits<gl::Vertex> {
                          offsetof( type, v ) },
       refl::StructField{ "y", &gl::Vertex::y,
                          offsetof( type, y ) },
+      refl::StructField{ "i", &gl::Vertex::i,
+                         offsetof( type, i ) },
   };
 };
 
@@ -67,7 +70,7 @@ TEST_CASE( "[vertex-array] creation" ) {
   gl::MockOpenGL mock;
 
   EXPECT_CALL( mock, gl_GetError() )
-      .times( 20 )
+      .times( 23 )
       .returns( GL_NO_ERROR );
 
   // Construct VertexArrayNonTyped.
@@ -94,7 +97,7 @@ TEST_CASE( "[vertex-array] creation" ) {
   EXPECT_CALL( mock, gl_GetIntegerv( GL_MAX_VERTEX_ATTRIBS,
                                      Not( Null() ) ) )
       .sets_arg<1>( 10 )
-      .times( 2 );
+      .times( 3 );
 
   // Register attribute 0 (vec3).
   EXPECT_CALL( mock,
@@ -113,6 +116,14 @@ TEST_CASE( "[vertex-array] creation" ) {
           /*normalized=*/false, /*stride=*/sizeof( Vertex ),
           /*pointer=*/(void*)offsetof( Vertex, y ) ) );
   EXPECT_CALL( mock, gl_EnableVertexAttribArray( 1 ) );
+
+  // Register attribute 2 (int32_t).
+  EXPECT_CALL( mock,
+               gl_VertexAttribIPointer(
+                   /*index=*/2, /*size=*/1, /*type=*/GL_INT,
+                   /*stride=*/sizeof( Vertex ),
+                   /*pointer=*/(void*)offsetof( Vertex, i ) ) );
+  EXPECT_CALL( mock, gl_EnableVertexAttribArray( 2 ) );
 
   // Unbind vertex buffer.
   EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,

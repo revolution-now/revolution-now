@@ -220,6 +220,11 @@ LOG_AND_CALL_GL_METHOD( gl_VertexAttribPointer, void,
                           ( GLsizei, stride ),
                           ( const void*, pointer ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_VertexAttribIPointer, void,
+                        ( ( GLuint, index ), ( GLint, size ),
+                          ( GLenum, type ), ( GLsizei, stride ),
+                          ( const void*, pointer ) ) );
+
 LOG_AND_CALL_GL_METHOD( gl_GenTextures, void,
                         ( ( GLsizei, n ),
                           ( GLuint*, textures ) ) );

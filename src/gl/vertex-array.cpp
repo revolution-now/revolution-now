@@ -55,7 +55,7 @@ void VertexArrayNonTyped::bind_obj_id( ObjId new_id ) {
 void VertexArrayNonTyped::register_attrib(
     int idx, size_t attrib_field_count,
     e_attrib_type component_type, bool normalized, size_t stride,
-    size_t offset ) const {
+    size_t offset, bool is_integral ) const {
   int kMaxAttributesAllowed;
   GL_CHECK( CALL_GL( gl_GetIntegerv, GL_MAX_VERTEX_ATTRIBS,
                      &kMaxAttributesAllowed ) );
@@ -72,9 +72,18 @@ void VertexArrayNonTyped::register_attrib(
       idx, attrib_field_count, to_GL_str( component_type ),
       normalized, stride, offset );
 #endif
-  GL_CHECK( CALL_GL( gl_VertexAttribPointer, idx,
-                     attrib_field_count, to_GL( component_type ),
-                     gl_normalized, stride, (void*)offset ) );
+  if( is_integral ) {
+    CHECK( attrib_field_count == 1 );
+    // See here: https://gamedev.stackexchange.com/a/109643
+    GL_CHECK( CALL_GL(
+        gl_VertexAttribIPointer, idx, attrib_field_count,
+        to_GL( component_type ), stride, (void*)offset ) );
+  } else {
+    GL_CHECK( CALL_GL( gl_VertexAttribPointer, idx,
+                       attrib_field_count,
+                       to_GL( component_type ), gl_normalized,
+                       stride, (void*)offset ) );
+  }
   GL_CHECK( CALL_GL( gl_EnableVertexAttribArray, idx ) );
 }
 

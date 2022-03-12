@@ -133,6 +133,10 @@ struct IOpenGL {
                                        GLsizei     stride,
                                        void const* pointer ) = 0;
 
+  virtual void gl_VertexAttribIPointer(
+      GLuint index, GLint size, GLenum type, GLsizei stride,
+      void const* pointer ) = 0;
+
   virtual void gl_GenTextures( GLsizei n, GLuint* textures ) = 0;
 
   virtual void gl_DeleteTextures( GLsizei       n,

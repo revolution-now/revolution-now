@@ -110,6 +110,10 @@ struct OpenGLGlad : IOpenGL {
                                GLsizei     stride,
                                void const* pointer ) override;
 
+  void gl_VertexAttribIPointer( GLuint index, GLint size,
+                                GLenum type, GLsizei stride,
+                                void const* pointer ) override;
+
   void gl_GenTextures( GLsizei n, GLuint* textures ) override;
 
   void gl_DeleteTextures( GLsizei       n,
