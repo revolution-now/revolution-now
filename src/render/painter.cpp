@@ -97,28 +97,31 @@ void Painter::add_mods( VertexBase&        vert,
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
 }
 
-void Painter::draw_point( point p, pixel color ) {
+Painter& Painter::draw_point( point p, pixel color ) {
   draw_solid_rect(
       rect{ .origin = p, .size = size{ .w = 1, .h = 1 } },
       color );
+  return *this;
 }
 
-void Painter::draw_horizontal_line( point start, int length,
-                                    pixel color ) {
+Painter& Painter::draw_horizontal_line( point start, int length,
+                                        pixel color ) {
   emit_solid_quad(
       rect{ .origin = start, .size = { .w = length, .h = 1 } },
       [&, this]( point p ) {
         emit( SolidVertex( p, color ) );
       } );
+  return *this;
 }
 
-void Painter::draw_vertical_line( point start, int length,
-                                  pixel color ) {
+Painter& Painter::draw_vertical_line( point start, int length,
+                                      pixel color ) {
   emit_solid_quad(
       rect{ .origin = start, .size = { .w = 1, .h = length } },
       [&, this]( point p ) {
         emit( SolidVertex( p, color ) );
       } );
+  return *this;
 }
 
 void Painter::draw_empty_box( rect r, pixel color ) {
@@ -129,8 +132,8 @@ void Painter::draw_empty_box( rect r, pixel color ) {
   draw_vertical_line( r.nw(), r.size.h + 1, color );
 }
 
-void Painter::draw_empty_rect( rect r, e_border_mode mode,
-                               pixel color ) {
+Painter& Painter::draw_empty_rect( rect r, e_border_mode mode,
+                                   pixel color ) {
   switch( mode ) {
     case e_border_mode::outside: {
       point nw = r.nw();
@@ -141,7 +144,7 @@ void Painter::draw_empty_rect( rect r, e_border_mode mode,
       break;
     }
     case e_border_mode::inside: {
-      if( r.size.w == 0 || r.size.h == 0 ) return;
+      if( r.size.w == 0 || r.size.h == 0 ) return *this;
       // r is expected to be normalized here.
       r = r.normalized();
       draw_empty_box( rect{ .origin = r.nw(),
@@ -151,12 +154,14 @@ void Painter::draw_empty_rect( rect r, e_border_mode mode,
       break;
     }
   }
+  return *this;
 }
 
-void Painter::draw_solid_rect( rect r, pixel color ) {
+Painter& Painter::draw_solid_rect( rect r, pixel color ) {
   emit_solid_quad( r, [&, this]( point p ) {
     emit( SolidVertex( p, color ) );
   } );
+  return *this;
 }
 
 void Painter::draw_sprite_impl( rect src, rect dst ) {
@@ -174,28 +179,32 @@ void Painter::draw_silhouette_impl( rect src, rect dst,
       } );
 }
 
-void Painter::draw_sprite( int atlas_id, point where ) {
+Painter& Painter::draw_sprite( int atlas_id, point where ) {
   rect src = atlas_.lookup( atlas_id );
   draw_sprite_impl( src,
                     rect{ .origin = where, .size = src.size } );
+  return *this;
 }
 
-void Painter::draw_sprite_scale( int atlas_id, rect dst ) {
+Painter& Painter::draw_sprite_scale( int atlas_id, rect dst ) {
   rect src = atlas_.lookup( atlas_id );
   draw_sprite_impl( src, dst );
+  return *this;
 }
 
-void Painter::draw_silhouette( int atlas_id, point where,
-                               pixel color ) {
+Painter& Painter::draw_silhouette( int atlas_id, point where,
+                                   pixel color ) {
   rect src = atlas_.lookup( atlas_id );
   draw_silhouette_impl(
       src, rect{ .origin = where, .size = src.size }, color );
+  return *this;
 }
 
-void Painter::draw_silhouette_scale( int atlas_id, rect dst,
-                                     pixel color ) {
+Painter& Painter::draw_silhouette_scale( int atlas_id, rect dst,
+                                         pixel color ) {
   rect src = atlas_.lookup( atlas_id );
   draw_silhouette_impl( src, dst, color );
+  return *this;
 }
 
 } // namespace rr

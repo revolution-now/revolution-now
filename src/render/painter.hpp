@@ -47,19 +47,19 @@ struct Painter {
 
   // .......................[[ Points ]]...................... //
 
-  void draw_point( gfx::point p, gfx::pixel color );
+  Painter& draw_point( gfx::point p, gfx::pixel color );
 
   // .......................[[ Lines ]]....................... //
 
-  void draw_horizontal_line( gfx::point start, int length,
-                             gfx::pixel color );
+  Painter& draw_horizontal_line( gfx::point start, int length,
+                                 gfx::pixel color );
 
-  void draw_vertical_line( gfx::point start, int length,
-                           gfx::pixel color );
+  Painter& draw_vertical_line( gfx::point start, int length,
+                               gfx::pixel color );
 
   // .....................[[ Solid Rect ]].................... //
 
-  void draw_solid_rect( gfx::rect rect, gfx::pixel color );
+  Painter& draw_solid_rect( gfx::rect rect, gfx::pixel color );
 
   // .....................[[ Empty Rect ]].................... //
 
@@ -67,20 +67,20 @@ struct Painter {
 
   // FIXME: this expensive, requires 24 vertices. Probably should
   // have shader support for these builtin.
-  void draw_empty_rect( gfx::rect rect, e_border_mode mode,
-                        gfx::pixel color );
+  Painter& draw_empty_rect( gfx::rect rect, e_border_mode mode,
+                            gfx::pixel color );
 
   // ......................[[ Sprites ]]...................... //
 
-  void draw_sprite( int atlas_id, gfx::point where );
+  Painter& draw_sprite( int atlas_id, gfx::point where );
 
-  void draw_sprite_scale( int atlas_id, gfx::rect dst );
+  Painter& draw_sprite_scale( int atlas_id, gfx::rect dst );
 
-  void draw_silhouette( int atlas_id, gfx::point where,
-                        gfx::pixel color );
+  Painter& draw_silhouette( int atlas_id, gfx::point where,
+                            gfx::pixel color );
 
-  void draw_silhouette_scale( int atlas_id, gfx::rect dst,
-                              gfx::pixel color );
+  Painter& draw_silhouette_scale( int atlas_id, gfx::rect dst,
+                                  gfx::pixel color );
 
  private:
   // Should always use this one to emit, that way we never forget
