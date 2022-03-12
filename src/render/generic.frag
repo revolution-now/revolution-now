@@ -18,6 +18,7 @@ flat in float frag_depixelate;
      in float frag_alpha_multiplier;
 
 uniform sampler2D u_atlas;
+uniform vec2 u_atlas_size;
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
 
@@ -27,7 +28,7 @@ out vec4 final_color;
 ** Sprites.
 *****************************************************************/
 vec4 type_sprite() {
-  return texture( u_atlas, frag_atlas_position );
+  return texture( u_atlas, frag_atlas_position/u_atlas_size );
 }
 
 /****************************************************************
