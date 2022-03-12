@@ -18,8 +18,13 @@
 #include "screen.hpp"
 #include "tx.hpp"
 
-// // Rds
-#include "open-gl-perf-test.rds.hpp"
+// render
+#include "render/atlas.hpp"
+#include "render/emitter.hpp"
+#include "render/painter.hpp"
+#include "render/sprite-sheet.hpp"
+#include "render/text.hpp"
+#include "render/vertex.hpp"
 
 // gl
 #include "gl/attribs.hpp"
@@ -39,7 +44,11 @@
 // stb
 #include "stb/image.hpp"
 
+// refl
+#include "refl/query-struct.hpp"
+
 // base
+#include "base/keyval.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // SDL
@@ -51,113 +60,49 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
 constexpr int kSpriteScale = 128;
 
 using ProgramAttributes =
-    mp::list<gl::vec2, gl::vec2, gl::vec3, gl::vec2>;
+    refl::member_type_list_t<rr::GenericVertex>;
 
 struct ProgramUniforms {
   static constexpr tuple uniforms{
-      gl::UniformSpec<gl::vec2>( "screen_size" ),
-      gl::UniformSpec<int>( "tick" ),
-      gl::UniformSpec<int>( "tx" ),
+      gl::UniformSpec<int>( "u_atlas" ),
+      gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
+      gl::UniformSpec<gl::vec2>( "u_screen_size" ),
   };
 };
 
 using ProgramType =
     gl::Program<ProgramAttributes, ProgramUniforms>;
 
-using VertexArray_t = gl::VertexArray<gl::VertexBuffer<Vertex>>;
+using VertexArray_t =
+    gl::VertexArray<gl::VertexBuffer<rr::GenericVertex>>;
 
 struct OpenGLObjects {
-  ProgramType   program;
-  VertexArray_t vertex_array;
-  gl::Texture   tx;
+  ProgramType                program;
+  VertexArray_t              vertex_array;
+  rr::AtlasMap               atlas_map;
+  size                       atlas_size;
+  gl::Texture                atlas_tx;
+  unordered_map<string, int> atlas_ids;
+  rr::AsciiFont              basic_font;
 };
 
-int upload_sprites_buffer( OpenGLObjects* gl_objects,
-                           Delta const&   screen_delta ) {
-  Scale sprite_scale = Scale{ kSpriteScale };
-  Delta sprite_delta = Delta{ 1_w, 1_h } * sprite_scale;
-
-  float sheet_w = 256.0;
-  float sheet_h = 192.0;
-
-  float tx_ox = 0.0 / sheet_w;
-  float tx_oy = 32.0 * 4 / sheet_h;
-  float tx_dx = 32.0 / sheet_w;
-  float tx_dy = 32.0 / sheet_h;
-
-  // Important: should only allocate this once, since allocating
-  // a large buffer is apparently expensive.
-  static vector<Vertex> s_vertices = [&] {
-    vector<Vertex> res;
-    int            num_sprites =
-        ( screen_delta.w._ + kSpriteScale ) / kSpriteScale *
-        ( screen_delta.h._ + kSpriteScale ) / kSpriteScale;
-    int num_vertices = num_sprites * 6;
-    res.resize( num_vertices );
-
-    auto rect = Rect::from( {}, screen_delta );
-    int  i    = 0;
-    W    w    = sprite_delta.w;
-    H    h    = sprite_delta.h;
-    for( auto coord : rect.to_grid_noalign( sprite_delta ) ) {
-      Rect  sprite     = Rect::from( coord, sprite_delta );
-      Coord center     = sprite.center();
-      auto  add_vertex = [&]( Coord const& c, float tx_x,
-                             float tx_y, float red ) {
-        res[i++] = {
-            // Coords
-            { .x = float( c.x._ ), .y = float( c.y._ ) },
-            // Texture coords
-            { .x = tx_x, .y = tx_y },
-            // Shading color
-            { .x = red, .y = 0.0, .z = 0.0 },
-            // Sprite Center
-            { .x = float( center.x._ ),
-               .y = float( center.y._ ) },
-        };
-      };
-
-      add_vertex( coord, tx_ox, tx_oy, /*red=*/1.0 );
-      add_vertex( coord + w, tx_ox + tx_dx, tx_oy, /*red=*/0.0 );
-      add_vertex( coord + h, tx_ox, tx_oy + tx_dy, /*red=*/0.0 );
-      add_vertex( coord + w, tx_ox + tx_dx, tx_oy, /*red=*/0.0 );
-      add_vertex( coord + w + h, tx_ox + tx_dx, tx_oy + tx_dy,
-                  /*red=*/0.0 );
-      add_vertex( coord + h, tx_ox, tx_oy + tx_dy, /*red=*/0.0 );
-    };
-    return res;
-  }();
-
-  static auto once [[maybe_unused]] = [&] {
-    gl_objects->vertex_array.buffer<0>().upload_data_replace(
-        s_vertices, gl::e_draw_mode::stat1c );
-    return monostate{};
-  }();
-
-#if 0 // to disable re-uploading.
-  gl_objects->vertex_array.buffer<0>().upload_data_modify(
-      s_vertices, 0 );
-
-  for( int i = 0; i < 10; ++i )
-    gl_objects->vertex_array.buffer<0>().upload_data_modify(
-        span<Vertex const>{ s_vertices }.subspan( i, 1 ), i );
-#endif
-
-  return s_vertices.size();
-}
-
 OpenGLObjects init_opengl() {
-  fs::path shaders = "src/shaders";
+  fs::path shaders = "src/render";
 
   UNWRAP_CHECK( vertex_shader_source,
                 base::read_text_file_as_string(
-                    shaders / "perf-test.vert" ) );
+                    shaders / "generic.vert" ) );
   UNWRAP_CHECK( fragment_shader_source,
                 base::read_text_file_as_string(
-                    shaders / "perf-test.frag" ) );
+                    shaders / "generic.frag" ) );
   UNWRAP_CHECK( vert_shader,
                 gl::Shader::create( gl::e_shader_type::vertex,
                                     vertex_shader_source ) );
@@ -167,16 +112,116 @@ OpenGLObjects init_opengl() {
   UNWRAP_CHECK(
       pgrm, ProgramType::create( vert_shader, frag_shader ) );
 
-  UNWRAP_CHECK(
-      tx_img, stb::load_image( "assets/art/tiles/world.png" ) );
-  gl::Texture tx( std::move( tx_img ) );
+  rr::SpriteSheetConfig world_config{
+      .img_path    = "assets/art/tiles/world.png",
+      .sprite_size = size{ .w = 32, .h = 32 },
+      .sprites =
+          {
+              { "water", point{ .x = 0, .y = 0 } },
+              { "grass", point{ .x = 1, .y = 0 } },
+          },
+  };
 
-  return OpenGLObjects{ .program      = std::move( pgrm ),
-                        .vertex_array = {},
-                        .tx           = std::move( tx ) };
+  rr::AsciiFontSheetConfig font_config{
+      .img_path = "assets/art/fonts/basic-6x8.png",
+  };
+
+  rr::AtlasBuilder           atlas_builder;
+  unordered_map<string, int> atlas_ids;
+
+  CHECK_HAS_VALUE( rr::load_sprite_sheet(
+      atlas_builder, world_config, atlas_ids ) );
+  UNWRAP_CHECK( ascii_font, load_ascii_font_sheet(
+                                atlas_builder, font_config ) );
+
+  UNWRAP_CHECK(
+      atlas, atlas_builder.build( size{ .w = 200, .h = 200 } ) );
+
+  size        atlas_size = atlas.img.size_pixels();
+  gl::Texture atlas_tx( std::move( atlas.img ) );
+
+  return OpenGLObjects{
+      .program      = std::move( pgrm ),
+      .vertex_array = {},
+      .atlas_map    = std::move( atlas.dict ),
+      .atlas_size   = atlas_size,
+      .atlas_tx     = std::move( atlas_tx ),
+      .atlas_ids    = std::move( atlas_ids ),
+      .basic_font   = std::move( ascii_font ),
+  };
 }
 
-} // namespace
+void paint_things( unordered_map<string, int> const& atlas_ids,
+                   rr::AsciiFont const&              ascii_font,
+                   rr::Painter&                      painter ) {
+  painter.draw_point(
+      point{ .x = 50, .y = 50 },
+      pixel{ .r = 255, .g = 0, .b = 0, .a = 255 } );
+
+  // clang-format off
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=100}, .size={.w=0, .h=0}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=120}, .size={.w=1, .h=0}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=140}, .size={.w=0, .h=1}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=160}, .size={.w=1, .h=1}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=180}, .size={.w=2, .h=2}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=200}, .size={.w=3, .h=3}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=220}, .size={.w=4, .h=4}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=240}, .size={.w=5, .h=5}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+  painter.draw_empty_rect( rect{ .origin={.x=200, .y=100}, .size={.w=50,.h=50}}, rr::Painter::e_border_mode::outside, gfx::pixel::red() );
+
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=100}, .size={.w=0, .h=0} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=120}, .size={.w=1, .h=0} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=140}, .size={.w=0, .h=1} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=160}, .size={.w=1, .h=1} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=180}, .size={.w=2, .h=2} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=200}, .size={.w=3, .h=3} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=220}, .size={.w=4, .h=4} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=100, .y=240}, .size={.w=5, .h=5} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  painter.draw_empty_rect( rect{ .origin={.x=200, .y=100}, .size={.w=50, .h=50} }, rr::Painter::e_border_mode::inside, gfx::pixel::white() );
+  // clang-format on
+
+  painter.draw_solid_rect(
+      rect{ .origin = { .x = 400, .y = 100 },
+            .size   = { .w = 50, .h = 50 } },
+      pixel{ .r = 128, .g = 64, .b = 0, .a = 255 } );
+  painter.with_mods( { .depixelate = .5, .alpha = .5 } )
+      .draw_solid_rect(
+          rect{ .origin = { .x = 425, .y = 125 },
+                .size   = { .w = 50, .h = 50 } },
+          pixel{ .r = 0, .g = 0, .b = 0, .a = 255 } );
+
+  UNWRAP_CHECK( water_id, base::lookup( atlas_ids, "water" ) );
+  UNWRAP_CHECK( grass_id, base::lookup( atlas_ids, "grass" ) );
+  painter.draw_sprite( water_id, { .x = 400, .y = 200 } );
+  painter.draw_sprite( grass_id, { .x = 464, .y = 200 } );
+
+  painter.draw_sprite_scale(
+      water_id, rect{ .origin = { .x = 550, .y = 200 },
+                      .size   = { .w = 128, .h = 64 } } );
+
+  painter.with_mods( { .depixelate = .5, .alpha = 1.0 } )
+      .draw_sprite( water_id, { .x = 400, .y = 250 } )
+      .draw_sprite( grass_id, { .x = 464, .y = 250 } );
+
+  pixel     text_color{ .r = 0, .g = 0, .b = 48, .a = 255 };
+  rr::Typer typer( painter, ascii_font, { .x = 400, .y = 300 },
+                   text_color );
+  typer.write( "Color of this text is {}.\nThe End.\n\n-David",
+               text_color );
+}
+
+void upload_vertices(
+    rr::AtlasMap const& m, rr::AsciiFont const& ascii_font,
+    unordered_map<string, int> const& atlas_ids,
+    VertexArray_t&                    vert_arr,
+    vector<rr::GenericVertex>&        buffer ) {
+  buffer.clear();
+  rr::Emitter emitter( buffer );
+  rr::Painter painter( m, emitter );
+  paint_things( atlas_ids, ascii_font, painter );
+  vert_arr.buffer<0>().upload_data_replace(
+      buffer, gl::e_draw_mode::stat1c );
+}
 
 /****************************************************************
 ** Testing
@@ -205,17 +250,23 @@ void render_loop( ::SDL_Window*         window,
   // Texture 0 should be the default, but let's just set it
   // anyway to be sure.
   GL_CHECK( glActiveTexture( GL_TEXTURE0 ) );
-  auto tx_binder = gl_objects.tx.bind();
+  auto tx_binder = gl_objects.atlas_tx.bind();
 
   using namespace ::base::literals;
 
-  program["screen_size"_t] = gl::vec2{
+  program["u_screen_size"_t] = gl::vec2{
       float( screen_delta.w._ ), float( screen_delta.h._ ) };
-  program["tx"_t]   = 0; // GL_TEXTURE0
-  program["tick"_t] = 0;
+  program["u_atlas"_t] = 0; // GL_TEXTURE0
+  program["u_atlas_size"_t] =
+      gl::vec2::from_size( gl_objects.atlas_size );
+  // program["tick"_t] = 0;
 
-  int num_vertices =
-      upload_sprites_buffer( &gl_objects, screen_delta );
+  vector<rr::GenericVertex> vertices;
+
+  upload_vertices( gl_objects.atlas_map, gl_objects.basic_font,
+                   gl_objects.atlas_ids, gl_objects.vertex_array,
+                   vertices );
+  int num_vertices = vertices.size();
   program.run( vert_array, num_vertices );
   ::SDL_GL_SwapWindow( window );
 
@@ -237,13 +288,16 @@ void render_loop( ::SDL_Window*         window,
     }
 
     // Clear screen.
-    GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
+    // GL_CHECK( glClearColor( 0, 0, 0, 1.0 ) );
+    GL_CHECK( glClearColor( 0.2, 0.3, 0.3, 1.0 ) );
     GL_CHECK(
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 
-    program["tick"_t] = frames;
+    // program["tick"_t] = frames;
 
-    upload_sprites_buffer( &gl_objects, screen_delta );
+    upload_vertices( gl_objects.atlas_map, gl_objects.basic_font,
+                     gl_objects.atlas_ids,
+                     gl_objects.vertex_array, vertices );
     // FIXME: vertex array/buffer should know their size.
     program.run( vert_array, num_vertices );
     ::SDL_GL_SwapWindow( window );
@@ -266,12 +320,14 @@ void render_loop( ::SDL_Window*         window,
   lg.info( "=================================================" );
   lg.info( "Total time:     {}.", delta_time );
   lg.info( "Avg frame rate: {}.", max_fps );
-  lg.info( "Buffer Size:    {:.2}MB", double( num_vertices ) *
-                                          sizeof( Vertex ) /
-                                          ( 1024 * 1024 ) );
+  lg.info( "Buffer Size:    {:.2}MB",
+           double( num_vertices ) * sizeof( rr::GenericVertex ) /
+               ( 1024 * 1024 ) );
   lg.info( "Sprite count:   {}k", num_sprites / 1000 );
   lg.info( "=================================================" );
 }
+
+} // namespace
 
 void open_gl_perf_test() {
   gl::OpenGLGlad       opengl_glad;
