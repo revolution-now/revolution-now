@@ -126,6 +126,12 @@ maybe<rect> rect::clipped_by( rect const other ) const {
   return res;
 }
 
+rect rect::with_origin( point const p ) const {
+  rect res   = *this;
+  res.origin = p;
+  return res;
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

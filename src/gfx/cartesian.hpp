@@ -78,6 +78,10 @@ struct rect {
   // Is inside or touching border.
   bool contains( point const p ) const;
 
+  // Returns a new rect with the same size but with origin given
+  // by `p`.
+  rect with_origin( point const p ) const;
+
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it
   // will return nothing (this includes when they are just

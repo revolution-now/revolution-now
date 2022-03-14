@@ -26,12 +26,26 @@ using namespace std;
 
 using ::base::nothing;
 
+/****************************************************************
+** size
+*****************************************************************/
 TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 2, .h = 8 };
   REQUIRE( s1.max_with( s2 ) == size{ .w = 4, .h = 8 } );
 }
 
+/****************************************************************
+** point
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] point::distance_from_origin" ) {
+  point p{ .x = 4, .y = 2 };
+  REQUIRE( p.distance_from_origin() == size{ .w = 4, .h = 2 } );
+}
+
+/****************************************************************
+** Combining Operators
+*****************************************************************/
 TEST_CASE( "[gfx/cartesian] point + size" ) {
   point p{ .x = 4, .y = 2 };
   size  s{ .w = 2, .h = 8 };
@@ -58,6 +72,9 @@ TEST_CASE( "[gfx/cartesian] point*size" ) {
   REQUIRE( p * s == point{ .x = 8, .y = 16 } );
 }
 
+/****************************************************************
+** rect
+*****************************************************************/
 TEST_CASE( "[gfx/cartesian] rect::from" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 2, .y = 4 };
@@ -366,6 +383,15 @@ TEST_CASE( "[gfx/cartesian] rect::clipped_by" ) {
   expected = rect{ .origin = { .x = 1, .y = 1 },
                    .size   = { .w = 1, .h = 1 } };
   REQUIRE( r1.clipped_by( r2 ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_origin" ) {
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  rect expected{ .origin = { .x = 1, .y = 10 },
+                 .size   = { .w = 2, .h = 4 } };
+  REQUIRE( r.with_origin( point{ .x = 1, .y = 10 } ) ==
+           expected );
 }
 
 } // namespace
