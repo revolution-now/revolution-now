@@ -24,6 +24,20 @@ size size::max_with( size const rhs ) const {
   return size{ std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
+size size::operator*( int factor ) const {
+  size res = *this;
+  res.w *= factor;
+  res.h *= factor;
+  return res;
+}
+
+size size::operator/( int factor ) const {
+  size res = *this;
+  res.w /= factor;
+  res.h /= factor;
+  return res;
+}
+
 /****************************************************************
 ** point
 *****************************************************************/

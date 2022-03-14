@@ -35,6 +35,16 @@ TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   REQUIRE( s1.max_with( s2 ) == size{ .w = 4, .h = 8 } );
 }
 
+TEST_CASE( "[gfx/cartesian] size::operator*( int )" ) {
+  size s{ .w = 4, .h = 2 };
+  REQUIRE( s * 10 == size{ .w = 40, .h = 20 } );
+}
+
+TEST_CASE( "[gfx/cartesian] size::operator/( int )" ) {
+  size s{ .w = 4, .h = 2 };
+  REQUIRE( s / 2 == size{ .w = 2, .h = 1 } );
+}
+
 /****************************************************************
 ** point
 *****************************************************************/

@@ -35,6 +35,9 @@ struct size {
 
   size max_with( size const rhs ) const;
 
+  size operator*( int factor ) const;
+  size operator/( int factor ) const;
+
   bool operator==( size const& ) const = default;
 };
 
