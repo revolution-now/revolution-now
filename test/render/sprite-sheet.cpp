@@ -135,6 +135,18 @@ TEST_CASE( "[render/sprite-sheet] load_font_sheet" ) {
   image        img = new_empty_image( size{ .w = 32, .h = 48 } );
   expect<AsciiFont> res =
       load_ascii_font_sheet( builder, std::move( img ) );
+  REQUIRE( builder.rects().size() == 256 );
+  rect src_rect{ .origin = {}, .size = { .w = 2, .h = 3 } };
+  REQUIRE( builder.rects()[0] ==
+           src_rect.with_origin( { .x = 0, .y = 0 } ) );
+  REQUIRE( builder.rects()[1] ==
+           src_rect.with_origin( { .x = 2, .y = 0 } ) );
+  REQUIRE( builder.rects()[15] ==
+           src_rect.with_origin( { .x = 30, .y = 0 } ) );
+  REQUIRE( builder.rects()[16] ==
+           src_rect.with_origin( { .x = 0, .y = 3 } ) );
+  REQUIRE( builder.rects()[255] ==
+           src_rect.with_origin( { .x = 30, .y = 45 } ) );
   if( !res.has_value() ) { INFO( res.error() ); }
   REQUIRE( res.has_value() );
   AsciiFont& font = *res;

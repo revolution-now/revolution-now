@@ -98,6 +98,15 @@ struct AtlasBuilder {
   // All the rects are just appended here, and each rect's ID is
   // just its index in the vector.
   std::vector<gfx::rect> rects_;
+
+ public:
+  // For testing.
+  std::vector<AtlasImage> const& images() const {
+    return images_;
+  }
+
+  // For testing.
+  std::vector<gfx::rect> const& rects() const { return rects_; }
 };
 
 } // namespace rr
