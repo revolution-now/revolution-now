@@ -48,12 +48,24 @@ sub_folder=${file_dir/$dir}
 # Hack for getting the CMake target name in the source folder,
 # since we need that to form the path to the .o file and hence
 # the ninja build rule. This assumes that each CMakeLists.txt
-# file contains a line that says:
+# file contains a statement like:
 #
-#   set_warning_options( <target> )
+#   add_rn_library(
+#     <target-name>
+#     ...
+#   )
 #
-# from which the target name is extracted.
-target="$(cat "$cmake" | sed -rn 's/set_warning_options\( (.*) \)/\1/p')"
+# from which the <target-name> is extracted. If that fails, then
+# try for `add_executable` which should cover the unit testing
+# folder.
+find_target() {
+  local previous_line=$1
+  sed -rn "/$previous_line/{n;p}" | sed -r 's/ *(.*)$/\1/'
+}
+
+target="$(cat "$cmake" | find_target add_rn_library)"
+[[ -z "$target" ]] && \
+  target="$(cat "$cmake" | find_target add_executable)"
 
 obj="$dir/CMakeFiles/$target.dir$sub_folder/$file.o"
 
