@@ -16,7 +16,6 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "frame.hpp"
-#include "gfx.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
@@ -33,6 +32,9 @@
 #include "../config/rcl/palette.inl"
 #include "../config/rcl/ui.inl"
 
+// render
+#include "render/renderer.hpp"
+
 // gfx
 #include "gfx/pixel.hpp"
 
@@ -48,9 +50,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// C++ standard library
-#include <chrono>
-
 using namespace std;
 
 namespace rn {
@@ -65,27 +64,28 @@ struct Menu {
   string name;
   bool   right_side;
   char   shortcut;
+  int    name_width_pixels;
 };
 
 unordered_map<e_menu, Menu> g_menus{
-    { e_menu::game, { "Game", false, 'G' } },
-    { e_menu::view, { "View", false, 'V' } },
-    { e_menu::orders, { "Orders", false, 'O' } },
-    { e_menu::old_world, { "Old World", false, 'L' } },
-    { e_menu::advisors, { "Advisors", false, 'A' } },
-    { e_menu::music, { "Music", false, 'M' } },
-    { e_menu::window, { "Window", false, 'W' } },
-    { e_menu::debug, { "Debug", true, 'D' } },
-    { e_menu::pedia, { "Revolopedia", true, 'R' } } };
+    { e_menu::game, { "Game", false, 'G', {} } },
+    { e_menu::view, { "View", false, 'V', {} } },
+    { e_menu::orders, { "Orders", false, 'O', {} } },
+    { e_menu::old_world, { "Old World", false, 'L', {} } },
+    { e_menu::advisors, { "Advisors", false, 'A', {} } },
+    { e_menu::music, { "Music", false, 'M', {} } },
+    { e_menu::window, { "Window", false, 'W', {} } },
+    { e_menu::debug, { "Debug", true, 'D', {} } },
+    { e_menu::pedia, { "Revolopedia", true, 'R', {} } } };
 
 unordered_map<e_menu_item, MenuItem::menu_clickable*>
                                            g_menu_items;
 unordered_map<e_menu_item, e_menu>         g_item_to_menu;
 unordered_map<e_menu, vector<e_menu_item>> g_items_from_menu;
 
-#define ITEM( item, name )      \
-  MenuItem::menu_clickable {    \
-    e_menu_item::item, name, {} \
+#define ITEM( item, name )          \
+  MenuItem::menu_clickable {        \
+    e_menu_item::item, name, {}, {} \
   }
 
 #define DIVIDER \
@@ -172,32 +172,6 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
 /****************************************************************
 ** Menu State
 *****************************************************************/
-namespace click_anim {
-
-// TODO: make an animation framework that can manage the states
-// of an animation along with durations in Frame.
-
-// For the MacOS single-blink-and-fade style.
-auto constexpr half_period      = kFrameDuration * 6;
-auto constexpr post_off_time    = kFrameDuration * 0;
-auto constexpr num_half_periods = int( 2 );
-bool constexpr start_on         = false;
-auto constexpr fade_time        = kFrameDuration * 22;
-
-// For example, the click could be like this:
-//
-//   click_anim_start_on=true, num_half_periods=4
-//   ----------------------------------------------------
-//   |  on  |  off |  on  |  off | off-time | fade-time |
-//   ----------------------------------------------------
-//
-// where each box is a "half period."
-
-auto period = half_period * 2;
-auto total_duration =
-    half_period * num_half_periods + post_off_time + fade_time;
-} // namespace click_anim
-
 MenuState_t g_menu_state{ MenuState::menus_closed{} };
 
 void log_menu_state() {
@@ -242,37 +216,6 @@ bool is_menu_item_enabled_( e_menu_item item ) {
 auto is_menu_item_enabled =
     per_frame_memoize( is_menu_item_enabled_ );
 
-bool is_menu_visible_( e_menu menu ) {
-  auto& items = g_items_from_menu[menu];
-  return any_of( items.begin(), items.end(),
-                 L( is_menu_item_enabled( _ ) ) );
-}
-
-auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
-
-auto visible_menus_() {
-  auto& values = refl::enum_values<e_menu>;
-
-  vector<e_menu> res;
-  res.reserve( values.size() );
-  for( e_menu v : values )
-    if( is_menu_visible( v ) ) //
-      res.push_back( v );
-  return res;
-}
-
-auto visible_menus = per_frame_memoize( visible_menus_ );
-
-bool have_some_visible_menus() {
-  auto& values = refl::enum_values<e_menu>;
-  return any_of( values.begin(), values.end(),
-                 L( is_menu_visible( _ ) ) );
-}
-
-maybe<e_menu> first_visible_menu() {
-  return rl::all( visible_menus() ).head();
-}
-
 /****************************************************************
 ** Colors
 *****************************************************************/
@@ -288,74 +231,10 @@ auto disabled() {
 } // namespace color::item::foreground
 
 namespace color::menu::foreground {
-auto const& disabled = config_palette.grey.nA4;
+// auto const& disabled = config_palette.grey.nA4;
 } // namespace color::menu::foreground
 
-/****************************************************************
-** Cached Textures
-*****************************************************************/
-struct ItemTextures {
-  Texture normal;
-  Texture highlighted;
-  Texture disabled;
-  // This is the max width of the above textures, just for the
-  // sake of having it precomputed.
-  W width{ 0 };
-};
-NOTHROW_MOVE( ItemTextures );
-
-unordered_map<e_menu_item, ItemTextures> g_menu_item_rendered;
-
-struct MenuTextures {
-  // Each menu may have a different width depending on the sizes
-  // of the elements inside of it, so we will render different
-  // sized dividers for each menu. All dividers in a given menu
-  // will be the same size though.
-  Texture      divider;
-  Texture      item_background_highlight;
-  ItemTextures name;
-  Texture      menu_body;
-  Texture      menu_body_shadow;
-  Texture      menu_background_highlight;
-  Texture      menu_background_hover;
-  W            header_width{ 0 };
-};
-NOTHROW_MOVE( MenuTextures );
-
-unordered_map<e_menu, MenuTextures> g_menu_rendered;
-
-// Must be called after all textures are rendered. It will it-
-// erate through all the rendered text textures (both menu
-// headers and menu items) and will compute the maximum height of
-// all of them. This height will then be used as the height for
-// all text elements in the menus for simplicity.
-//
-// This value is cached because a) it requires querying textures
-// and b) its value is not expected to ever change.
-H const& max_text_height() {
-  static H max_height = [] {
-    H res{ 0 };
-    for( auto menu : refl::enum_values<e_menu> ) {
-      CHECK( g_menu_rendered.contains( menu ) );
-      auto const& textures = g_menu_rendered[menu];
-      res = std::max( res, textures.name.normal.size().h );
-      for( auto item : g_items_from_menu[menu] ) {
-        CHECK( g_menu_item_rendered.contains( item ) );
-        auto const& textures = g_menu_item_rendered[item];
-        // These are probably all the same size, but just in case
-        // they aren't. The 2_sx is because we have padding on
-        // each side of the item.
-        res = std::max( res, textures.normal.size().h );
-        res = std::max( res, textures.highlighted.size().h );
-        res = std::max( res, textures.disabled.size().h );
-      }
-    }
-    CHECK( res > 0_h );
-    lg.debug( "max menu text height: {}", res );
-    return res;
-  }();
-  return max_height;
-}
+H max_text_height() { return H{ 8 }; }
 
 /****************************************************************
 ** Geometry
@@ -371,30 +250,25 @@ Rect menu_bar_rect() {
 H menu_bar_height() { return menu_bar_rect().h; }
 
 Delta menu_header_delta( e_menu menu ) {
-  CHECK( g_menu_rendered.contains( menu ) );
-  return Delta{ g_menu_rendered[menu].header_width,
+  return Delta{ W{ g_menus[menu].name_width_pixels },
                 max_text_height() };
 }
 
 // These cannot be precalculated because menus might be hidden.
-X menu_header_x_pos_( e_menu target ) {
+X menu_header_x_pos( e_menu target ) {
+  // TODO: simplify this since menus are not invisible anymore.
   CHECK( g_menus.contains( target ) );
-  // FIXME: This fails: to reproduce, load a game, then open the
-  // Game menu and choose quit. As the quit is blinking, quickly
-  // type alt-G then up arrow.
-  CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
   W           width_delta{ 0 };
-  auto const& vm = visible_menus();
   if( desc.right_side ) {
-    width_delta = rl::rall( vm )
+    width_delta = rl::rall( refl::enum_values<e_menu> )
                       .remove_if_L( !g_menus[_].right_side )
                       .take_while_incl_L( _ != target )
                       .map_L( menu_header_delta( _ ).w )
                       .intersperse( config_ui.menus.spacing )
                       .accumulate();
   } else {
-    width_delta = rl::all( vm )
+    width_delta = rl::all( refl::enum_values<e_menu> )
                       .remove_if_L( g_menus[_].right_side )
                       .take_while_L( _ != target )
                       .map_L( menu_header_delta( _ ).w +
@@ -408,11 +282,8 @@ X menu_header_x_pos_( e_menu target ) {
                                      : rect.w - width_delta );
 }
 
-auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
-
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
-  CHECK( g_menu_rendered.contains( menu ) );
   auto y_offset =
       ( menu_bar_height() - max_text_height() ) / 2_sy;
   return Rect::from( Coord{ menu_bar_rect().y + y_offset,
@@ -424,10 +295,9 @@ Rect menu_header_rect( e_menu menu ) {
 // which themselves occupy part of a tile.
 W menu_body_width_inner( e_menu menu ) {
   W res{ 0 };
-  for( auto const& item : g_items_from_menu[menu] ) {
-    CHECK( g_menu_item_rendered.contains( item ) );
-    res = std::max( res, g_menu_item_rendered[item].width );
-  }
+  for( auto const& item : g_items_from_menu[menu] )
+    res = std::max( res,
+                    W{ g_menu_items[item]->name_width_pixels } );
   // At this point, res holds the width of the largest rendered
   // text texture in this menu.  Now add padding on each side:
   res += config_ui.menus.padding * 2_sx;
@@ -559,215 +429,101 @@ maybe<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
 /****************************************************************
 ** Rendering Implmementation
 *****************************************************************/
-// For either a menu header or item.
-ItemTextures render_menu_element( string_view const text,
-                                  maybe<char>       shortcut,
-                                  gfx::pixel inactive_color,
-                                  gfx::pixel active_color,
-                                  gfx::pixel disabled_color ) {
-  Texture inactive, active;
-  if( shortcut.has_value() ) {
-    auto shortcut_pos =
-        text.find_first_of( toupper( *shortcut ) );
-    if( shortcut_pos == string_view::npos )
-      shortcut_pos = text.find_first_of( tolower( *shortcut ) );
-    CHECK( shortcut_pos != string_view::npos );
-    string_view first_part( text.begin(), shortcut_pos );
-    char        middle_part = text[shortcut_pos];
-    string_view last_part( text.begin() + shortcut_pos + 1,
-                           text.size() - shortcut_pos - 1 );
-    auto mk_text = string( first_part ) + "@[H]" + middle_part +
-                   "@[]" + string( last_part );
+string_view name_for( e_menu menu ) {
+  return g_menus[menu].name;
+}
 
-    TextMarkupInfo inactive_info{
-        /*normal=*/inactive_color,
-        /*highlight=*/inactive_color.highlighted( 4 ) };
-    TextMarkupInfo active_info{
-        /*normal=*/active_color,
-        /*highlight=*/active_color.highlighted( 3 ) };
-
-    inactive = clone_texture( render_text_markup(
-        config_ui.menus.font, inactive_info, mk_text ) );
-    active   = clone_texture( render_text_markup(
-          config_ui.menus.font, active_info, mk_text ) );
-  } else {
-    inactive = clone_texture( render_text(
-        config_ui.menus.font, inactive_color, text ) );
-    active   = clone_texture( render_text( config_ui.menus.font,
-                                           active_color, text ) );
-  }
-  auto disabled = clone_texture( render_text(
-      config_ui.menus.font, disabled_color, text ) );
-  // Need to do this first before moving.
-  auto width = std::max( { inactive.size().w, active.size().w,
-                           disabled.size().w } );
-  auto res =
-      ItemTextures{ std::move( inactive ), std::move( active ),
-                    std::move( disabled ), width };
-  // Sanity check
-  UNWRAP_CHECK(
-      normal_area,
-      compositor::section( compositor::e_section::normal ) );
-  CHECK( res.width > 0 && res.width < normal_area.w );
-  return res;
+string_view name_for( e_menu_item item ) {
+  return g_menu_items[item]->name;
 }
 
 // For either a menu header or item.
-ItemTextures render_menu_item_element( string const& text,
-                                       maybe<char> /*unused*/ ) {
-  return render_menu_element(
-      text, nothing, //
-      menu_theme_color1, menu_theme_color2,
-      color::item::foreground::disabled() );
+template<typename E>
+void render_menu_element( rr::Renderer& renderer, Coord pos,
+                          E element, gfx::pixel color ) {
+  renderer.typer( "simple", pos, color )
+      .write( name_for( element ) );
 }
 
-// For either a menu header or item.
-ItemTextures render_menu_header_element( string const& text,
-                                         maybe<char> shortcut ) {
-  return render_menu_element(
-      text, shortcut, menu_theme_color1, menu_theme_color2,
-      color::menu::foreground::disabled );
-}
-
-Texture render_divider( e_menu menu ) {
+void render_divider( rr::Renderer& renderer, Coord pos,
+                     e_menu menu ) {
   Delta      delta      = divider_delta( menu );
-  Texture    res        = create_texture_transparent( delta );
   gfx::pixel color_fore = menu_theme_color2.shaded( 3 );
-  render_line( res, color_fore, Coord{} + delta.h / 2 + 2_w,
-               { delta.w - 5_w, 0_h } );
-  return res;
+  pos.y += delta.h / 2;
+  pos.x += 2;
+  renderer.painter().draw_horizontal_line( pos, delta.w._ - 5,
+                                           color_fore );
 }
 
-Texture create_menu_body_texture( e_menu menu ) {
-  return create_texture_transparent( menu_body_delta( menu ) );
+void render_item_background_selected( rr::Renderer& renderer,
+                                      Coord pos, e_menu menu ) {
+  gfx::rect background = gfx::rect{
+      .origin = pos, .size = menu_item_delta( menu ) };
+  renderer.painter().draw_solid_rect( background,
+                                      menu_theme_color1 );
 }
 
-Texture render_item_background( e_menu menu, bool active ) {
-  CHECK( active );
-  auto res = create_texture( menu_item_delta( menu ) );
-  clear_texture_transparent( res );
-  render_sprite( res, e_tile::menu_item_sel_back, Coord{}, 0,
-                 0 );
-  auto sprite_width =
-      lookup_sprite( e_tile::menu_item_sel_back ).size().w;
-  render_sprite( res, e_tile::menu_item_sel_back,
-                 Coord{} + sprite_width, 0, 0 );
-  return res;
-}
-
-Texture render_menu_header_background( e_menu menu, bool active,
-                                       bool hover ) {
-  CHECK( active || hover );
-  // FIXME
-  CHECK( !( active && hover ) );
-  auto res = create_texture( menu_header_delta( menu ) );
-  clear_texture_transparent( res );
+void render_menu_header_background( rr::Renderer& renderer,
+                                    Coord pos, bool active ) {
   if( active )
-    render_sprite( res, e_tile::menu_item_sel_back, Coord{}, 0,
+    render_sprite( renderer, e_tile::menu_item_sel_back, pos, 0,
                    0 );
   else
-    render_sprite( res, e_tile::menu_hdr_sel_back, Coord{}, 0,
+    render_sprite( renderer, e_tile::menu_hdr_sel_back, pos, 0,
                    0 );
-  return res;
 }
 
-Texture& render_open_menu( e_menu             menu,
-                           maybe<e_menu_item> subject,
-                           bool               clicking ) {
-  CHECK( g_menu_rendered.contains( menu ) );
+void render_open_menu( rr::Renderer& renderer, Coord pos,
+                       e_menu             menu,
+                       maybe<e_menu_item> subject ) {
   if( subject.has_value() ) {
     CHECK( g_item_to_menu[*subject] == menu );
   }
-  auto& textures = g_menu_rendered[menu];
-  auto& dst      = textures.menu_body;
-  Coord pos{ 8_x, 8_y };
-
-  clear_texture_transparent( dst );
 
   render_rect_of_sprites_with_border(
-      dst,                              //
-      Coord{},                          //
-      dst.size() / Scale{ 8_sx, 8_sy }, //
-      e_tile::menu_body,                //
-      e_tile::menu_top,                 //
-      e_tile::menu_bottom,              //
-      e_tile::menu_left,                //
-      e_tile::menu_right,               //
-      e_tile::menu_top_left,            //
-      e_tile::menu_top_right,           //
-      e_tile::menu_bottom_left,         //
-      e_tile::menu_bottom_right         //
+      renderer,                                      //
+      pos,                                           //
+      menu_body_delta( menu ) / Scale{ 8_sx, 8_sy }, //
+      e_tile::menu_body,                             //
+      e_tile::menu_top,                              //
+      e_tile::menu_bottom,                           //
+      e_tile::menu_left,                             //
+      e_tile::menu_right,                            //
+      e_tile::menu_top_left,                         //
+      e_tile::menu_top_right,                        //
+      e_tile::menu_bottom_left,                      //
+      e_tile::menu_bottom_right                      //
   );
+
+  pos.x += 8_w;
+  pos.y += 8_h;
 
   for( auto const& item : g_menu_def[menu] ) {
     overload_visit(
         item,
         [&]( MenuItem::menu_divider ) {
-          copy_texture( textures.divider, dst, pos );
+          render_divider( renderer, pos, menu );
           pos += divider_height();
         },
         [&]( MenuItem::menu_clickable const& clickable ) {
-          auto const& rendered =
-              g_menu_item_rendered[clickable.item];
-          Texture const* foreground{ nullptr };
-          Texture const* background{ nullptr };
-          if( clicking && clickable.item == subject ) {
-            /**********************************************
-            ** Click Animation
-            ***********************************************/
-            using namespace std::chrono;
-            using namespace std::literals::chrono_literals;
-            auto now = system_clock::now();
-            CHECK(
-                holds<MenuState::item_click>( g_menu_state ) );
-            auto start =
-                std::get<MenuState::item_click>( g_menu_state )
-                    .start;
-            auto elapsed = now - start;
-            using namespace click_anim;
-            if( elapsed >= total_duration - fade_time ) {
-              // We're in the fade, in which case we should be
-              // highlighted, because it seems to make a better
-              // UX when the selected item is highlighted as
-              // the fading happens.
-              foreground = &rendered.highlighted;
-              background = &textures.item_background_highlight;
-            } else if( elapsed >= total_duration - fade_time -
-                                      post_off_time ) {
-              // We're in a period between the blinking and
-              // fading when the highlight is off, although
-              // this period may have zero length.
-              foreground = &rendered.normal;
-
-            } else if( ( elapsed % period > half_period ) ^
-                       start_on ) {
-              // Blink on
-              foreground = &rendered.highlighted;
-              background = &textures.item_background_highlight;
-            } else {
-              // Blink off
-              foreground = &rendered.normal;
-            }
-          } else {
-            foreground = !is_menu_item_enabled( clickable.item )
-                             ? &rendered.disabled
-                         : ( clickable.item == subject )
-                             ? &rendered.highlighted
-                             : &rendered.normal;
-            if( clickable.item == subject )
-              background = &textures.item_background_highlight;
-          }
-          if( background ) copy_texture( *background, dst, pos );
-          CHECK( foreground );
-          copy_texture( *foreground, dst,
-                        pos + config_ui.menus.padding - 1_h );
+          bool on = ( clickable.item == subject );
+          if( on )
+            render_item_background_selected( renderer, pos,
+                                             menu );
+          gfx::pixel foreground_color =
+              !is_menu_item_enabled( clickable.item )
+                  ? color::item::foreground::disabled()
+              : on ? menu_theme_color2
+                   : menu_theme_color1;
+          render_menu_element(
+              renderer, pos + config_ui.menus.padding - 1_h,
+              clickable.item, foreground_color );
           pos += max_text_height();
         } );
   }
-  return dst;
 }
 
-void render_menu_bar( Texture& tx ) {
+void render_menu_bar( rr::Renderer& renderer ) {
   // Render the "wood" panel. Start from the left edge of the
   // panel so that we get a continuous wood texture between the
   // two. Also, put the y position such that the menu bar gets
@@ -783,61 +539,54 @@ void render_menu_bar( Texture& tx ) {
   auto        wood_width = wood.size().w;
   for( Coord c = start; c.x >= 0_x - wood_width;
        c -= wood_width )
-    render_sprite( tx, e_tile::wood_middle, c, 0, 0 );
+    render_sprite( renderer, e_tile::wood_middle, c, 0, 0 );
   for( Coord c = start; c.x < bar_rect.right_edge();
        c += wood_width )
-    render_sprite( tx, e_tile::wood_middle, c, 0, 0 );
+    render_sprite( renderer, e_tile::wood_middle, c, 0, 0 );
 
-  for( auto menu : visible_menus() ) {
-    CHECK( g_menu_rendered.contains( menu ),
-           "g_menu_rendered.size(): {}",
-           g_menu_rendered.size() );
-    auto const& textures = g_menu_rendered[menu];
-    using Txs = maybe<pair<Texture const*, Texture const*>>;
+  for( auto menu : refl::enum_values<e_menu> ) {
+    auto  rect                  = menu_header_rect( menu );
+    Coord background_upper_left = rect.upper_left();
+    Coord foreground_upper_left =
+        background_upper_left + config_ui.menus.padding - 1_h;
     // Given `menu`, this matcher visits the global menu state
-    // and returns a foreground/background texture pair for that
-    // menu. Use a struct to visit so that we can get recursive
-    // visitation.
+    // and renders the foreground/background for that menu. Use a
+    // struct to visit so that we can get recursive visitation.
     struct {
       // These would be the "lambda captures".
-      e_menu const&       menu;
-      MenuTextures const& textures;
+      e_menu const& menu;
+      Coord const&  background_upper_left;
+      Coord const&  foreground_upper_left;
+      rr::Renderer& renderer;
 
-      Txs operator()( MenuState::menus_hidden ) const {
-        return Txs{};
-      }
-      Txs operator()( MenuState::menus_closed closed ) const {
+      void operator()( MenuState::menus_hidden ) const {}
+      void operator()( MenuState::menus_closed closed ) const {
         if( menu == closed.hover )
-          return Txs{ pair{ &textures.name.normal,
-                            &textures.menu_background_hover } };
-        return Txs{ pair{ &textures.name.normal, nullptr } };
+          render_menu_header_background( renderer,
+                                         background_upper_left,
+                                         /*active=*/false );
+        render_menu_element( renderer, foreground_upper_left,
+                             menu, menu_theme_color1 );
       }
-      Txs operator()( MenuState::item_click const& ic ) const {
+      void operator()( MenuState::item_click const& ic ) const {
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        return ( *this )( MenuState::menu_open{
-            g_item_to_menu[ic.item], /*hover=*/{} } );
+        this->operator()(
+            MenuState::menu_open{ g_item_to_menu[ic.item],
+                                  /*hover=*/{} } );
       }
-      Txs operator()( MenuState::menu_open const& o ) const {
-        if( o.menu == menu ) {
-          return Txs{
-              pair{ &textures.name.highlighted,
-                    &textures.menu_background_highlight } };
-        } else
-          return ( *this )( MenuState::menus_closed{} );
+      void operator()( MenuState::menu_open const& o ) const {
+        if( o.menu != menu )
+          return this->operator()( MenuState::menus_closed{} );
+        render_menu_header_background( renderer,
+                                       background_upper_left,
+                                       /*active=*/true );
+        render_menu_element( renderer, foreground_upper_left,
+                             menu, menu_theme_color2 );
       }
-    } matcher{ menu, textures };
-    if( auto p = std::visit( matcher, g_menu_state );
-        p.has_value() ) {
-      auto rect = menu_header_rect( menu );
-      if( ( *p ).second )
-        copy_texture( *( ( *p ).second ), tx,
-                      rect.upper_left() );
-      CHECK( ( *p ).first );
-      copy_texture(
-          *( ( *p ).first ), tx,
-          rect.upper_left() + config_ui.menus.padding - 1_h );
-    }
+    } matcher{ menu, background_upper_left,
+               foreground_upper_left, renderer };
+    std::visit( matcher, g_menu_state );
   }
 }
 
@@ -856,7 +605,7 @@ maybe<MouseOver_t> click_target( Coord screen_coord ) {
       return res_t{};
     }
     res_t operator()( MenuState::menus_closed ) const {
-      for( auto menu : visible_menus() )
+      for( auto menu : refl::enum_values<e_menu> )
         if( screen_coord.is_inside( menu_header_rect( menu ) ) )
           return res_t{ MouseOver::header{ menu } };
       if( screen_coord.is_inside( menu_bar_rect() ) )
@@ -895,68 +644,21 @@ maybe<MouseOver_t> click_target( Coord screen_coord ) {
 /****************************************************************
 ** Top-level Render Method
 *****************************************************************/
-void render_menus( Texture& tx ) {
-  render_menu_bar( tx );
+void render_menus( rr::Renderer& renderer ) {
+  render_menu_bar( renderer );
   // maybe render open menu.
   overload_visit(
       g_menu_state, []( MenuState::menus_hidden ) {},
       [&]( MenuState::menus_closed ) {},
       [&]( MenuState::item_click const& ic ) {
-        auto  menu   = g_item_to_menu[ic.item];
-        auto& shadow = g_menu_rendered[menu].menu_body_shadow;
-        // Just forward this to the MenuState::menu_open.
+        auto menu = g_item_to_menu[ic.item];
         CHECK( g_item_to_menu.contains( ic.item ) );
-        auto& open_tx =
-            render_open_menu( menu, ic.item, /*clicking=*/true );
-        Coord   pos   = menu_body_rect( menu ).upper_left();
-        uint8_t alpha = 255;
-        auto    now   = chrono::system_clock::now();
-        auto    start_fade =
-            ic.start + ( click_anim::total_duration -
-                         click_anim::fade_time );
-        auto end = ic.start + click_anim::total_duration;
-        if( now >= start_fade ) {
-          if( now < end ) {
-            double percent_completion =
-                double( chrono::duration_cast<
-                            std::chrono::milliseconds>(
-                            now - start_fade )
-                            .count() ) /
-                double( chrono::duration_cast<
-                            std::chrono::milliseconds>(
-                            click_anim::fade_time )
-                            .count() );
-            CHECK( percent_completion >= 0.0 &&
-                       percent_completion <= 1.0,
-                   "percent_completion: {}",
-                   percent_completion );
-            uint8_t alpha_shadow =
-                64 - uint8_t( 64.0 * percent_completion );
-            copy_texture_alpha( shadow, tx,
-                                pos + Delta{ 5_w, 5_h },
-                                alpha_shadow );
-            alpha = 255 - uint8_t( 255.0 * percent_completion );
-            copy_texture_alpha( open_tx, tx, pos, alpha );
-          } else if( now >= end ) {
-            alpha = 0;
-            copy_texture_alpha( open_tx, tx, pos, alpha );
-          }
-        } else {
-          copy_texture_alpha( shadow, tx,
-                              pos + Delta{ 5_w, 5_h }, 64 );
-          copy_texture( open_tx, tx, pos );
-        }
+        Coord pos = menu_body_rect( menu ).upper_left();
+        render_open_menu( renderer, pos, menu, ic.item );
       },
       [&]( MenuState::menu_open const& o ) {
         Coord pos = menu_body_rect( o.menu ).upper_left();
-
-        auto& shadow = g_menu_rendered[o.menu].menu_body_shadow;
-        copy_texture_alpha( shadow, tx, pos + Delta{ 5_w, 5_h },
-                            64 );
-        auto const& open_tx = render_open_menu(
-            o.menu, o.hover, /*clicking=*/false );
-        pos = menu_body_rect( o.menu ).upper_left();
-        copy_texture( open_tx, tx, pos );
+        render_open_menu( renderer, pos, o.menu, o.hover );
       } );
 }
 
@@ -1043,6 +745,15 @@ void init_menus() {
     g_menu_items[item]->callbacks.enabled = func;
   }
 
+  // Populate text widths of menu and menu item names.
+  static constexpr int kCharWidth = 6;
+  for( auto menu : refl::enum_values<e_menu> )
+    g_menus[menu].name_width_pixels =
+        g_menus[menu].name.size() * kCharWidth;
+  for( auto item : refl::enum_values<e_menu_item> )
+    g_menu_items[item]->name_width_pixels =
+        g_menu_items[item]->name.size() * kCharWidth;
+
   // Check that all e_menu_items have registered handlers.
   for( auto item : refl::enum_values<e_menu_item> ) {
     auto const& desc = *g_menu_items[item];
@@ -1055,12 +766,7 @@ void init_menus() {
   }
 }
 
-void cleanup_menus() {
-  // This should free all the textures representing the menu
-  // items.
-  g_menu_rendered.clear();
-  g_menu_item_rendered.clear();
-}
+void cleanup_menus() {}
 
 REGISTER_INIT_ROUTINE( menus );
 
@@ -1070,78 +776,10 @@ REGISTER_INIT_ROUTINE( menus );
 struct MenuPlane : public Plane {
   MenuPlane() = default;
   bool covers_screen() const override { return false; }
-  void initialize() override {
-    // In this method we do things that initialize global state
-    // (not necessarily the menu plane) but we do them here be-
-    // cause the actions are complex enough that we need the rest
-    // of the game to be initialized first to be on the safe/ro-
-    // bust side (though theoretically this could probably be
-    // done in the init_menu method).
-    //
-    // FIXME: move this stuff out of here into an init_menu
-    // method.
-
-    // Render Menu and Menu-item names. These have to be done
-    // first because other things need to be calculated from the
-    // sizes of the rendered text.
-    for( auto menu_item : refl::enum_values<e_menu_item> )
-      g_menu_item_rendered[menu_item] = render_menu_item_element(
-          g_menu_items[menu_item]->name, nothing );
-    for( auto menu : refl::enum_values<e_menu> ) {
-      g_menu_rendered[menu]      = {};
-      g_menu_rendered[menu].name = render_menu_header_element(
-          g_menus[menu].name, g_menus[menu].shortcut );
-    }
-
-    for( auto menu : refl::enum_values<e_menu> ) {
-      // The order in which these are done matters,
-      // unfortunately, because some of the functions below rely
-      // on results from the previous ones.
-      g_menu_rendered[menu].header_width =
-          g_menu_rendered[menu].name.normal.size().w +
-          config_ui.menus.padding * 2_sx;
-      g_menu_rendered[menu].item_background_highlight =
-          render_item_background( menu, /*hightlight=*/true );
-      g_menu_rendered[menu].menu_body =
-          create_menu_body_texture( menu );
-      g_menu_rendered[menu].menu_background_highlight =
-          render_menu_header_background( menu,
-                                         /*highlight=*/true,
-                                         /*hover=*/false );
-      g_menu_rendered[menu].menu_background_hover =
-          render_menu_header_background( menu,
-                                         /*highlight=*/false,
-                                         /*hover=*/true );
-
-      g_menu_rendered[menu].divider = render_divider( menu );
-
-      // This will render to the g_menu_rendered[menu].menu_body
-      // texture an open menu with nothing selected. This is
-      // necessary so that we can then convert it to a shadow. We
-      // only need to render the shadow once, because all that
-      // matters about it is the shape, which will not change
-      // even as the open menu body changes (i.e., items are
-      // highlighted).
-      auto const& to_be_shadowed =
-          render_open_menu( menu, nothing, false );
-      g_menu_rendered[menu].menu_body_shadow =
-          create_shadow_texture( to_be_shadowed );
-    }
-  }
   void advance_state() override {
     if_get( g_menu_state, MenuState::item_click, val ) {
-      auto item  = val.item;
-      auto start = val.start;
-      if( chrono::system_clock::now() - start >=
-          click_anim::total_duration ) {
-        // FIXME
-        // Must set this before calling on_click since the
-        // on_click function itself might enter into a frame loop
-        // that calls this on_frame_end function, then we would
-        // end up calling on_click multiple times.
-        g_menu_state = MenuState::menus_closed{ /*hover=*/{} };
-        g_menu_items[item]->callbacks.on_click();
-      }
+      g_menu_state = MenuState::menus_closed{ /*hover=*/{} };
+      g_menu_items[val.item]->callbacks.on_click();
     }
   }
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
@@ -1153,9 +791,8 @@ struct MenuPlane : public Plane {
                ? Plane::e_accept_drag::motion
                : Plane::e_accept_drag::swallow;
   }
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
-    render_menus( tx );
+  void draw( rr::Renderer& renderer ) const override {
+    render_menus( renderer );
   }
   e_input_handled input( input::event_t const& event ) override {
     return overload_visit(
@@ -1185,7 +822,8 @@ struct MenuPlane : public Plane {
             // Menus are closed and the user has pressed an alt
             // key, so add highlighting to the first menu header
             // that is visible (if any).
-            auto maybe_first_menu = first_visible_menu();
+            auto maybe_first_menu =
+                rl::all( refl::enum_values<e_menu> ).head();
             if( maybe_first_menu.has_value() ) {
               g_menu_state = MenuState::menus_closed{
                   /*hover=*/*maybe_first_menu };
@@ -1214,7 +852,7 @@ struct MenuPlane : public Plane {
           // Check for an alt-shortcut key to open a menu.
           if( key_event.change == input::e_key_change::down &&
               key_event.mod.alt_down ) {
-            for( auto menu : visible_menus() ) {
+            for( auto menu : refl::enum_values<e_menu> ) {
               auto const& menu_desc = g_menus[menu];
               if( key_event.keycode ==
                   tolower( menu_desc.shortcut ) ) {
@@ -1249,11 +887,8 @@ struct MenuPlane : public Plane {
                 return e_input_handled::yes;
               case ::SDLK_KP_4:
               case ::SDLK_LEFT: {
-                CHECK( have_some_visible_menus() );
-                do {
-                  menu = util::find_previous_and_cycle(
-                      refl::enum_values<e_menu>, *menu );
-                } while( !is_menu_visible( *menu ) );
+                menu = util::find_previous_and_cycle(
+                    refl::enum_values<e_menu>, *menu );
                 CHECK( menu );
                 g_menu_state =
                     MenuState::menu_open{ *menu, /*hover=*/{} };
@@ -1262,11 +897,8 @@ struct MenuPlane : public Plane {
               }
               case ::SDLK_KP_6:
               case ::SDLK_RIGHT: {
-                CHECK( have_some_visible_menus() );
-                do {
-                  menu = util::find_subsequent_and_cycle(
-                      refl::enum_values<e_menu>, *menu );
-                } while( !is_menu_visible( *menu ) );
+                menu = util::find_subsequent_and_cycle(
+                    refl::enum_values<e_menu>, *menu );
                 CHECK( menu );
                 g_menu_state =
                     MenuState::menu_open{ *menu, /*hover=*/{} };

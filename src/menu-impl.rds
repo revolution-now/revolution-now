@@ -34,6 +34,7 @@ sumtype.MenuItem {
     item 'e_menu_item',
     name 'std::string',
     callbacks 'MenuCallbacks',
+    name_width_pixels 'int',
   },
 
   _features {}
