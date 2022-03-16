@@ -81,15 +81,18 @@ using VertexArray_t =
 ** Renderer::Impl
 *****************************************************************/
 struct Renderer::Impl {
-  Impl( size logical_screen_size_arg, ProgramType program_arg,
-        VertexArray_t vertex_array_arg, AtlasMap atlas_map_arg,
-        size atlas_size_arg, gl::Texture atlas_tx_arg,
+  Impl( PresentFn present_fn_arg, size logical_screen_size_arg,
+        ProgramType program_arg, VertexArray_t vertex_array_arg,
+        AtlasMap atlas_map_arg, size atlas_size_arg,
+        gl::Texture                      atlas_tx_arg,
         unordered_map<string, int>       atlas_ids_arg,
         unordered_map<string_view, int>  atlas_ids_fast_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg )
-    : logical_screen_size( logical_screen_size_arg ),
+    : present_fn( std
+                  : move( present_fn_arg ) ),
+      logical_screen_size( logical_screen_size_arg ),
       program( std::move( program_arg ) ),
       vertex_array( std::move( vertex_array_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
@@ -103,7 +106,8 @@ struct Renderer::Impl {
       vertices{},
       emitter( vertices ){};
 
-  static Impl* create( RendererConfig const& config ) {
+  static Impl* create( RendererConfig const& config,
+                       PresentFn             present_fn ) {
     using namespace ::base::literals;
     fs::path shaders = "src/render";
 
@@ -175,6 +179,7 @@ struct Renderer::Impl {
     // Note some fields are not explicitly initialized here
     // (there are initialized in the constructor above).
     return new Impl(
+        /*present_fn=*/std::move( present_fn ),
         /*logical_screen_size=*/logical_screen_size,
         /*program=*/std::move( pgrm ),
         /*vertex_array=*/{},
@@ -235,6 +240,7 @@ struct Renderer::Impl {
     return atlas_ids_fast;
   }
 
+  PresentFn                              present_fn;
   size                                   logical_screen_size;
   ProgramType                            program;
   VertexArray_t const                    vertex_array;
@@ -282,6 +288,8 @@ void Renderer::clear_screen( gfx::pixel color ) {
   impl_->clear_screen( color );
 }
 
+void Renderer::present() { impl_->present_fn(); }
+
 void Renderer::set_logical_screen_size( gfx::size new_size ) {
   impl_->set_logical_screen_size( new_size );
 }
@@ -291,8 +299,10 @@ unordered_map<string_view, int> const& Renderer::atlas_ids()
   return impl_->atlas_ids_fn();
 }
 
-Renderer Renderer::create( RendererConfig const& config ) {
-  return Renderer( Impl::create( config ) );
+Renderer Renderer::create( RendererConfig const& config,
+                           PresentFn             present_fn ) {
+  return Renderer(
+      Impl::create( config, std::move( present_fn ) ) );
 }
 
 } // namespace rr

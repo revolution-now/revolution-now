@@ -20,6 +20,7 @@
 #include "base/macros.hpp"
 
 // C++ standard library
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -42,14 +43,16 @@ struct RendererConfig {
 // The video driver must have been fully initialized before using
 // this.
 struct Renderer {
-  static Renderer create( RendererConfig const& config );
+  using PresentFn = std::function<void()>;
+  static Renderer create( RendererConfig const& config,
+                          PresentFn             present_fn );
 
   ~Renderer() noexcept;
 
   // Must be called each time the logical screen size changes.
   void set_logical_screen_size( gfx::size new_size );
 
-  void clear_screen( gfx::pixel color );
+  void clear_screen( gfx::pixel color = gfx::pixel::black() );
 
   // This must be called before any other rendering methods that
   // might generate vertices.
@@ -71,6 +74,8 @@ struct Renderer {
   // this will return its id for use when rendering it.
   std::unordered_map<std::string_view, int> const& atlas_ids()
       const;
+
+  void present();
 
  private:
   NO_COPY_NO_MOVE( Renderer );

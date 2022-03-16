@@ -116,8 +116,7 @@ void paint_things( rr::Renderer& renderer ) {
 /****************************************************************
 ** Loop
 *****************************************************************/
-void render_loop( rr::Renderer&              renderer,
-                  base::function_ref<void()> swap ) {
+void render_loop( rr::Renderer& renderer ) {
   while( !input::is_q_down() ) {
     renderer.begin_pass();
     renderer.clear_screen( pixel{ .r = uint8_t( 0.2 * 255 ),
@@ -126,7 +125,7 @@ void render_loop( rr::Renderer&              renderer,
                                   .a = uint8_t( 255 ) } );
     paint_things( renderer );
     renderer.end_pass();
-    swap();
+    renderer.present();
   }
 }
 
@@ -190,11 +189,10 @@ void open_gl_perf_test() {
   {
     // This renderer needs to be released before the SDL context
     // is cleaned up.
-    rr::Renderer renderer =
-        rr::Renderer::create( renderer_config );
+    rr::Renderer renderer = rr::Renderer::create(
+        renderer_config, [&] { sdl_gl_swap_window( window ); } );
 
-    render_loop( renderer,
-                 [&] { sdl_gl_swap_window( window ); } );
+    render_loop( renderer );
   }
 
   /**************************************************************
