@@ -13,11 +13,13 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "error.hpp"
-#include "gfx.hpp"
 #include "logger.hpp"
 #include "maybe.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -149,11 +151,12 @@ HueBucketKey sat_bucket_key( pixel c ) {
   return to_bucket( to_HSL( c ).s, saturation_buckets );
 }
 
-void render_palette_segment( Texture&             tx,
+void render_palette_segment( rr::Renderer&        renderer,
                              vector<pixel> const& colors,
                              Coord origin, int row_size = 64 ) {
   int idx                  = 0;
   int constexpr block_size = 10;
+  rr::Painter painter      = renderer.painter();
   for( auto color : colors ) {
     X x = origin.x;
     Y y = origin.y;
@@ -161,7 +164,7 @@ void render_palette_segment( Texture&             tx,
     y += Y{ ( idx / row_size ) * block_size };
     W w{ block_size };
     H h{ block_size };
-    render_fill_rect( tx, color, { x, y, w, h } );
+    painter.draw_solid_rect( Rect{ x, y, w, h }, color );
     ++idx;
   }
 }
@@ -417,31 +420,29 @@ vector<pixel> coursen( vector<pixel> const& colors,
   return colors;
 }
 
-void show_palette( Texture& tx, vector<pixel> const& colors ) {
-  clear_texture_black( tx );
-  render_palette_segment( tx, colors, palette_render_origin,
-                          64 );
-  ::SDL_RenderPresent( g_renderer );
+void show_palette( rr::Renderer&        renderer,
+                   vector<pixel> const& colors ) {
+  renderer.clear_screen();
+  render_palette_segment( renderer, colors,
+                          palette_render_origin, 64 );
+  renderer.present();
 }
 
-void show_palette( vector<pixel> const& colors ) {
-  show_palette( Texture::screen(), colors );
-}
-
-void show_palette( Texture& tx, ColorBuckets const& colors ) {
-  clear_texture_black( tx );
+void show_palette( rr::Renderer&       renderer,
+                   ColorBuckets const& colors ) {
+  renderer.clear_screen();
   Coord origin( palette_render_origin );
   H     group_offset{ 10 };
   H     offset{ 10 };
   for( auto const& hue : colors ) {
     for( auto const& sat : hue ) {
       auto no_null = base::cat_maybes( sat );
-      render_palette_segment( tx, no_null, origin );
+      render_palette_segment( renderer, no_null, origin );
       origin.y += offset;
     }
     origin.y += group_offset;
   }
-  ::SDL_RenderPresent( g_renderer );
+  renderer.present();
 }
 
 void show_color_adjustment( pixel center ) {
@@ -453,12 +454,14 @@ void show_color_adjustment( pixel center ) {
   show_palette( colors );
 }
 
+#if 0
 void write_palette_png( fs::path const& png_file ) {
   auto        tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
   auto const& colors = g_palette();
-  show_palette( tx, hsl_bucket( colors ) );
+  show_palette( renderer, hsl_bucket( colors ) );
   tx.save_png( png_file );
 }
+#endif
 
 void update_palette( fs::path const& where ) {
   // int constexpr coursen_to = 4096;
@@ -489,9 +492,9 @@ void update_palette( fs::path const& where ) {
   write_palette_png( pal_file );
 }
 
-void show_config_palette() {
+void show_config_palette( rr::Renderer& renderer ) {
   auto const& colors = g_palette();
-  show_palette( Texture::screen(), hsl_bucket( colors ) );
+  show_palette( renderer, hsl_bucket( colors ) );
 }
 
 string bucket_path( pixel c ) {
