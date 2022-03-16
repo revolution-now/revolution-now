@@ -24,6 +24,9 @@
 // luapp
 #include "luapp/ext.hpp"
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 
@@ -67,6 +70,10 @@ NOTHROW_MOVE( Scale );
 struct ND Delta {
   W w;
   H h;
+
+  operator gfx::size() const {
+    return gfx::size{ .w = w._, .h = h._ };
+  }
 
   constexpr Delta() = default;
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
@@ -166,6 +173,10 @@ struct ND Coord {
   Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}
   Coord( Y y_, X x_ ) : y( y_ ), x( x_ ) {}
 
+  operator gfx::point() const {
+    return gfx::point{ .x = x._, .y = y._ };
+  }
+
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
@@ -246,6 +257,11 @@ struct ND Rect {
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
+
+  operator gfx::rect() const {
+    return gfx::rect{ .origin = { .x = x._, .y = y._ },
+                      .size   = { .w = w._, .h = h._ } };
+  }
 
   bool operator==( Rect const& rhs ) const {
     return ( x == rhs.x ) && ( y == rhs.y ) && ( w == rhs.w ) &&
