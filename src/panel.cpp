@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
-#include "gfx.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "menu.hpp"
@@ -85,10 +84,9 @@ struct PanelPlane : public Plane {
     next_turn_button().enable( false );
   }
 
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
-    tile_sprite( tx, e_tile::wood_middle, rect() );
-    view->draw( tx, origin() );
+  void draw( rr::Renderer& renderer ) const override {
+    tile_sprite( renderer, e_tile::wood_middle, rect() );
+    view->draw( renderer, origin() );
   }
 
   e_input_handled input( input::event_t const& event ) override {
