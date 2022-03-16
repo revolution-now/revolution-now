@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gfx.hpp"
 #include "gs-terrain.hpp"
 #include "init.hpp"
 #include "logger.hpp"
@@ -21,6 +20,9 @@
 #include "macros.hpp"
 #include "matrix.hpp"
 #include "tiles.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -34,59 +36,7 @@ namespace rn {
 
 namespace {
 
-bool g_use_block_cache = false;
-bool g_show_grid       = false;
-
-/****************************************************************
-** Save-Game State
-*****************************************************************/
-constexpr Scale terrain_block_size{ 50_sx, 50_sy };
-
-static_assert( world_size % terrain_block_size == Delta{} );
-
-struct TerrainBlockCache {
-  void redraw_if_needed() {
-    if( !needs_redraw ) return;
-    lg.debug( "redrawing terrain block {}", block_coord );
-    Rect tiles = Rect::from( block_coord, Delta{ 1_w, 1_h } ) *
-                 terrain_block_size;
-    for( auto coord : tiles )
-      render_terrain_square(
-          tx, coord,
-          Coord{} +
-              ( coord - tiles.upper_left() ) * g_tile_scale );
-    needs_redraw = false;
-  }
-
-  bool    needs_redraw{ true };
-  Coord   block_coord;
-  Texture tx;
-};
-NOTHROW_MOVE( TerrainBlockCache );
-
-Matrix<TerrainBlockCache> block_cache( world_size /
-                                       terrain_block_size );
-
-void invalidate_caches() {
-  for( Coord coord : block_cache.rect() )
-    block_cache[coord].needs_redraw = true;
-}
-
-void init_terrain() {
-  lg.debug( "terrain block cache is {}.",
-            g_use_block_cache ? "on" : "off" );
-  for( auto coord : block_cache.rect() ) {
-    TerrainBlockCache cache{
-        /*needs_redraw=*/true, coord,
-        create_texture( Delta{ 1_w, 1_h } * terrain_block_size *
-                        g_tile_scale ) };
-    block_cache[coord] = std::move( cache );
-  }
-}
-
-void cleanup_terrain() { block_cache.clear(); }
-
-REGISTER_INIT_ROUTINE( terrain );
+bool g_show_grid = false;
 
 } // namespace
 
@@ -120,55 +70,31 @@ void generate_terrain() {
   make_squares( { 100_x, 25_y } );
 }
 
-void render_terrain_square( Texture& tx, Coord world_square,
-                            Coord pixel_coord ) {
+// Pass in the painter as well for efficiency.
+void render_terrain_square( rr::Renderer& renderer,
+                            rr::Painter&  painter,
+                            Coord         world_square,
+                            Coord         pixel_coord ) {
   auto   s    = square_at( world_square );
   e_tile tile = s.surface == e_surface::land ? e_tile::land
                                              : e_tile::water;
-  render_sprite( tx, tile, pixel_coord, 0, 0 );
+  render_sprite( renderer, tile, pixel_coord, 0, 0 );
   if( g_show_grid )
-    render_rect(
-        tx, gfx::pixel{ 0, 0, 0, 30 },
+    painter.draw_empty_rect(
         Rect::from( pixel_coord,
-                    g_tile_delta + Delta( 1_w, 1_h ) ) );
+                    g_tile_delta + Delta( 1_w, 1_h ) ),
+        rr::Painter::e_border_mode::inside,
+        gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain_nocache( Rect src_tiles, Texture& dest,
-                             Coord dest_pixel_coord ) {
+void render_terrain( Rect src_tiles, rr::Renderer& renderer,
+                     Coord dest_pixel_coord ) {
   for( auto square : src_tiles )
     render_terrain_square(
-        dest, square,
+        renderer, square,
         dest_pixel_coord +
             ( ( square - src_tiles.upper_left() ) *
               g_tile_scale ) );
-}
-
-void render_terrain_cache( Rect src_tiles, Texture& dest,
-                           Coord dest_pixel_coord ) {
-  Rect blocks = Rect::from(
-      src_tiles.upper_left() / terrain_block_size,
-      src_tiles.lower_right().rounded_to_multiple_to_plus_inf(
-          terrain_block_size ) /
-          terrain_block_size );
-
-  Coord origin = dest_pixel_coord -
-                 g_tile_scale * ( src_tiles.upper_left() %
-                                  terrain_block_size );
-  for( auto block : blocks ) {
-    auto& cache = block_cache[block];
-    cache.redraw_if_needed();
-    auto dest_coord = origin + ( block - blocks.upper_left() ) *
-                                   terrain_block_size *
-                                   g_tile_scale;
-    copy_texture( cache.tx, dest, dest_coord );
-  }
-}
-
-void render_terrain( Rect src_tiles, Texture& dest,
-                     Coord dest_pixel_coord ) {
-  auto f = g_use_block_cache ? render_terrain_cache
-                             : render_terrain_nocache;
-  f( src_tiles, dest, dest_pixel_coord );
 }
 
 Delta world_size_tiles() {
@@ -251,16 +177,9 @@ LUA_FN( toggle_surface, void, Coord const& coord ) {
       terrain_state.world_map[coord].surface == e_surface::land
           ? e_surface::water
           : e_surface::land;
-  invalidate_caches();
 }
 
 LUA_FN( generate_terrain, void ) { generate_terrain(); }
-
-LUA_FN( toggle_block_cache, void ) {
-  g_use_block_cache = !g_use_block_cache;
-  lg.debug( "terrain block cache is {}.",
-            g_use_block_cache ? "on" : "off" );
-}
 
 LUA_FN( toggle_grid, void ) {
   g_show_grid = !g_show_grid;

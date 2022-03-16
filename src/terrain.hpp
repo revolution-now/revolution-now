@@ -15,7 +15,9 @@
 // Revolution Now
 #include "coord.hpp"
 #include "land-square.hpp"
-#include "tx.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 namespace rn {
 
@@ -43,15 +45,11 @@ bool terrain_is_land( Coord coord );
 *****************************************************************/
 // This will fully render a land square with no units or colonies
 // on it.
-void render_terrain_square( Texture& tx, Coord world_square,
-                            Coord pixel_coord );
+void render_terrain_square( rr::Renderer& renderer,
+                            Coord         world_square,
+                            Coord         pixel_coord );
 
-// This function will render the terrain in large blocks and so
-// it will in general overshoot the edges of the destination rec-
-// tangle on the target texture instead of just rendering the
-// minimal set of tiles (in `src_tiles`). This is to simplify the
-// implementation.
-void render_terrain( Rect src_tiles, Texture& dest,
+void render_terrain( Rect src_tiles, rr::Renderer& renderer,
                      Coord dest_pixel_coord );
 
 /****************************************************************
