@@ -16,14 +16,12 @@
 #include "coord.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
-#include "gfx.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "terminal.hpp"
 #include "text.hpp"
-#include "ttf.hpp"
 #include "variant.hpp"
 #include "views.hpp"
 
@@ -74,9 +72,9 @@ struct ConsolePlane : public Plane {
 
   bool covers_screen() const override { return false; }
 
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
+  void draw( rr::Renderer& renderer ) const override {
     if( show_percent_ < .0001 ) return;
+    rr::Painter painter = renderer.painter();
     UNWRAP_CHECK(
         console_rect,
         compositor::section( compositor::e_section::console ) );
@@ -128,10 +126,10 @@ struct ConsolePlane : public Plane {
     Rect text_rect = console_rect;
     text_rect.h -= edit_box_delta.h;
 
-    render_fill_rect( tx, gfx::pixel::wood().shaded( 2 ),
-                      console_rect );
-    render_fill_rect( tx, gfx::pixel::wood().shaded( 4 ),
-                      divider_rect );
+    painter.draw_solid_rect( console_rect,
+                             gfx::pixel::wood().shaded( 2 ) );
+    painter.draw_solid_rect( divider_rect,
+                             gfx::pixel::wood().shaded( 4 ) );
 
     auto text_color =
         gfx::pixel::banana().with_alpha( text_alpha );
@@ -139,115 +137,56 @@ struct ConsolePlane : public Plane {
         gfx::pixel::banana().highlighted( 5 ).with_alpha(
             stats_alpha );
 
-    // auto info_start = Coord{} + 16_h;
-
-    // Coord mouse;
-    //::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
-
-    //{
-    //  auto mouse_coords = fmt::format( "unscaled: {}", mouse );
-    //  auto const& mouse_coords_tx = render_text(
-    //      config_rn.console.font, gfx::pixel::white(),
-    //      mouse_coords
-    //      );
-    //  copy_texture( mouse_coords_tx, tx, info_start );
-    //  info_start += mouse_coords_tx.size().h;
-    //}
-
-    //// mouse.clip( ... );
-    // mouse.x /= g_resolution_scale_factor.sx;
-    // mouse.y /= g_resolution_scale_factor.sy;
-    //{
-    //  auto mouse_coords = fmt::format( "  scaled: {}", mouse );
-    //  auto const& mouse_coords_tx = render_text(
-    //      config_rn.console.font, gfx::pixel::white(),
-    //      mouse_coords
-    //      );
-    //  copy_texture( mouse_coords_tx, tx, info_start );
-    //  info_start += mouse_coords_tx.size().h;
-    //}
-
     auto info_start = text_rect.lower_right() - 1_w;
+
+    static constexpr int kFontHeight = 8;
+
+    auto delta_for = []( string_view text ) {
+      return Delta( W{ int( text.size() ) * 6 },
+                    H{ kFontHeight } );
+    };
 
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
-    auto const& frame_rate_tx = render_text(
-        config_rn.console.font, stats_color, frame_rate );
-    copy_texture( frame_rate_tx, tx,
-                  info_start - frame_rate_tx.size() );
-    info_start -= frame_rate_tx.size().h;
-
-    auto tx_count =
-        fmt::format( "tx count: {}", live_texture_count() );
-    // This needs to use an uncached rendering function so that
-    // it doesn't cause a feedback loop that continually in-
-    // creases the texture count. This is because rendering this
-    // number, in general, causes a new texture to be created.
-    //
-    // Disabled by default since ttf_render_text_line_uncached is
-    // super slow.
-#if 0
-    auto tx_count_tx = ttf_render_text_line_uncached(
-        config_rn.console.font, stats_color, tx_count );
-    copy_texture( tx_count_tx, tx,
-                  info_start - tx_count_tx.size() );
-    info_start -= tx_count_tx.size().h;
-#endif
-
-    // This needs to use an uncached rendering function so that
-    // it doesn't cause a feedback loop that continually in-
-    // creases the texture count. This is because rendering this
-    // number, in general, causes a new texture to be created.
-    //
-    // Disabled by default since ttf_render_text_line_uncached is
-    // super slow.
-#if 0
-    auto text_tx_count =
-        fmt::format( "text cache size: {}", text_cache_size() );
-    auto text_tx_count_tx = ttf_render_text_line_uncached(
-        config_rn.console.font, stats_color, text_tx_count );
-    copy_texture( text_tx_count_tx, tx,
-                  info_start - text_tx_count_tx.size() );
-    info_start -= text_tx_count_tx.size().h;
-#endif
+    Delta frame_rate_size = delta_for( frame_rate );
+    renderer
+        .typer( "simple", info_start - frame_rate_size,
+                stats_color )
+        .write( frame_rate );
+    info_start -= frame_rate_size.h;
 
     // FIXME: better way to get this?
-    auto text_height = frame_rate_tx.size().h;
-
-    auto        dashes = fmt::format( "--------------------" );
-    auto const& dashes_tx = render_text( config_rn.console.font,
-                                         text_color, dashes );
-    copy_texture( dashes_tx, tx, info_start - dashes_tx.size() );
-    info_start -= dashes_tx.size().h;
+    auto text_height = 8;
 
     for( auto const& [name, mv_avg] : event_counts() ) {
       auto formatted = fmt::format(
           "{}/f: {}", name,
           std::lround( mv_avg.average() / avg_frame_rate() ) );
-      auto const& src_tx = render_text( config_rn.console.font,
-                                        stats_color, formatted );
-      copy_texture( src_tx, tx, info_start - src_tx.size() );
-      info_start -= src_tx.size().h;
+      Delta formatted_size = delta_for( formatted );
+      renderer
+          .typer( "simple", info_start - formatted_size,
+                  stats_color )
+          .write( formatted );
+      info_start -= formatted_size.h;
     }
 
     // Render the log
-    int const max_lines = text_rect.h / text_height;
+    int const max_lines = text_rect.h._ / text_height;
     auto      log_px_start =
-        text_rect.lower_left() -
-        ttf_get_font_info( config_rn.console.font ).height;
+        text_rect.lower_left() - H{ kFontHeight };
     for( auto i = 0; i < max_lines; ++i ) {
       auto maybe_line = term::line( i );
       if( !maybe_line ) break;
       auto color = text_color;
       if( maybe_line->starts_with( prompt ) )
         color = color.highlighted( 5 ).with_alpha( cmds_alpha );
-      auto const& src_tx = render_text( config_rn.console.font,
-                                        color, *maybe_line );
-      copy_texture( src_tx, tx, log_px_start );
-      log_px_start -= src_tx.size().h;
+      Delta text_size = delta_for( *maybe_line );
+      renderer.typer( "simple", log_px_start, color )
+          .write( *maybe_line );
+      log_px_start -= text_size.h;
     }
 
-    le_view_.get().draw( tx,
+    le_view_.get().draw( renderer,
                          console_edit_rect.upper_left() - 1_w );
   }
 
