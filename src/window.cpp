@@ -17,7 +17,6 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
-#include "gfx.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
@@ -33,6 +32,9 @@
 // Revolution Now (config)
 #include "../config/rcl/palette.inl"
 #include "../config/rcl/ui.inl"
+
+// render
+#include "render/renderer.hpp"
 
 // base
 #include "base/conv.hpp"
@@ -83,7 +85,7 @@ struct Window {
     return this == &rhs;
   }
 
-  void  draw( Texture& tx ) const;
+  void  draw( rr::Renderer& renderer ) const;
   Delta delta() const;
   Rect  rect() const;
   Coord inside_border() const;
@@ -106,7 +108,7 @@ NOTHROW_MOVE( Window );
 *****************************************************************/
 class WindowManager {
  public:
-  void draw_layout( Texture& tx ) const;
+  void draw_layout( rr::Renderer& renderer ) const;
 
   ND Plane::e_input_handled input( input::event_t const& event );
 
@@ -161,9 +163,8 @@ namespace {
 struct WindowPlane : public Plane {
   WindowPlane() = default;
   bool covers_screen() const override { return false; }
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
-    wm.draw_layout( tx );
+  void draw( rr::Renderer& renderer ) const override {
+    wm.draw_layout( renderer );
   }
   e_input_handled input( input::event_t const& event ) override {
     // Windows are modal, so ignore the result of this function
@@ -238,23 +239,26 @@ Window::~Window() noexcept {
   g_window_plane.wm.remove_window( this );
 }
 
-void Window::draw( Texture& tx ) const {
+void Window::draw( rr::Renderer& renderer ) const {
   CHECK( view );
-  auto win_size = delta();
-  render_fill_rect(
-      tx, gfx::pixel{ 0, 0, 0, 64 },
-      Rect::from( position + Delta{ 4_w, 4_h }, win_size ) );
-  render_fill_rect(
-      tx, config_palette.orange.sat0.lum1,
-      { position.x, position.y, win_size.w, win_size.h } );
+  auto        win_size = delta();
+  rr::Painter painter  = renderer.painter();
+  painter.draw_solid_rect(
+      Rect::from( position + Delta{ 4_w, 4_h }, win_size ),
+      gfx::pixel{ 0, 0, 0, 64 } );
+  painter.draw_solid_rect(
+      Rect{ position.x, position.y, win_size.w, win_size.h },
+      config_palette.orange.sat0.lum1 );
   auto inside_border = position + window_border();
   auto inner_size    = win_size - Scale( 2 ) * window_border();
-  render_fill_rect( tx, config_palette.orange.sat1.lum4,
-                    Rect::from( inside_border, inner_size ) );
+  painter.draw_solid_rect(
+      Rect::from( inside_border, inner_size ),
+      config_palette.orange.sat1.lum4 );
   auto title_start =
       centered( title_view->delta(), title_bar() );
-  title_view->draw( tx, title_start );
-  view->draw( tx, inside_padding() + title_view->delta().h );
+  title_view->draw( renderer, title_start );
+  view->draw( renderer,
+              inside_padding() + title_view->delta().h );
 }
 
 // Includes border
@@ -308,8 +312,9 @@ Coord Window::view_pos() const {
   return inside_padding() + title_view->delta().h;
 }
 
-void WindowManager::draw_layout( Texture& tx ) const {
-  for( Window* window : active_windows() ) window->draw( tx );
+void WindowManager::draw_layout( rr::Renderer& renderer ) const {
+  for( Window* window : active_windows() )
+    window->draw( renderer );
 }
 
 maybe<Window&> WindowManager::window_for_cursor_pos(
