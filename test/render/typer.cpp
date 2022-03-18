@@ -72,7 +72,7 @@ TEST_CASE( "[render/typer] write_char" ) {
 
   typer.write( "ha {}\nYes", "bob" );
   REQUIRE( v.size() == 9 * 6 );
-  REQUIRE( typer.current_position_pixels() ==
+  REQUIRE( typer.position() ==
            point{ .x = 20 + 6, .y = 30 + 4 } );
   REQUIRE( typer.color() == B );
   REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
@@ -160,8 +160,7 @@ TEST_CASE( "[render/typer] write_char scaled" ) {
 
   typer.write( 'h' );
   REQUIRE( v.size() == 1 * 6 );
-  REQUIRE( typer.current_position_pixels() ==
-           point{ .x = 20 + 4, .y = 30 } );
+  REQUIRE( typer.position() == point{ .x = 20 + 4, .y = 30 } );
   REQUIRE( typer.color() == B );
   REQUIRE( typer.scale() == size{ .w = 4, .h = 8 } );
 
@@ -177,6 +176,62 @@ TEST_CASE( "[render/typer] write_char scaled" ) {
   };
   // clang-format on
   REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/typer] dimensions_for_line" ) {
+  vector<GenericVertex> v;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+
+  SECTION( "default scale" ) {
+    REQUIRE( typer.dimensions_for_line( "" ) ==
+             size{ .w = 2 * 0, .h = 4 } );
+    REQUIRE( typer.dimensions_for_line( "h" ) ==
+             size{ .w = 2 * 1, .h = 4 } );
+    REQUIRE( typer.dimensions_for_line( "hello" ) ==
+             size{ .w = 2 * 5, .h = 4 } );
+    REQUIRE( typer.dimensions_for_line( "hello\nhello" ) ==
+             size{ .w = 2 * 11, .h = 4 } );
+  }
+
+  SECTION( "larger scale" ) {
+    typer.set_scale( size{ .w = 4, .h = 8 } );
+    REQUIRE( typer.dimensions_for_line( "" ) ==
+             size{ .w = 4 * 0, .h = 8 } );
+    REQUIRE( typer.dimensions_for_line( "h" ) ==
+             size{ .w = 4 * 1, .h = 8 } );
+    REQUIRE( typer.dimensions_for_line( "hello" ) ==
+             size{ .w = 4 * 5, .h = 8 } );
+    REQUIRE( typer.dimensions_for_line( "hello\nhello" ) ==
+             size{ .w = 4 * 11, .h = 8 } );
+  }
+}
+
+TEST_CASE( "[render/typer] frame position" ) {
+  vector<GenericVertex> v;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+
+  REQUIRE( typer.position() == point{ .x = 20, .y = 30 } );
+  REQUIRE( typer.line_start() == point{ .x = 20, .y = 30 } );
+
+  typer.write( "hello" );
+  REQUIRE( typer.position() ==
+           point{ .x = 20 + 2 * 5, .y = 30 } );
+  REQUIRE( typer.line_start() == point{ .x = 20, .y = 30 } );
+
+  typer.move_frame_by( size{ .w = 10, .h = 30 } );
+  REQUIRE( typer.position() ==
+           point{ .x = 30 + 2 * 5, .y = 60 } );
+  REQUIRE( typer.line_start() == point{ .x = 30, .y = 60 } );
+
+  auto typer2 =
+      typer.with_frame_offset( size{ .w = 5, .h = 3 } );
+  REQUIRE( typer.position() ==
+           point{ .x = 35 + 2 * 5, .y = 63 } );
+  REQUIRE( typer.line_start() == point{ .x = 35, .y = 63 } );
 }
 
 } // namespace

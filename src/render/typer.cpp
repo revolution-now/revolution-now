@@ -64,4 +64,22 @@ void Typer::write( std::string_view line ) {
   for( char c : line ) write( c );
 }
 
+gfx::size Typer::dimensions_for_line(
+    std::string_view msg ) const {
+  gfx::size res = scale();
+  res.w *= msg.length();
+  return res;
+}
+
+void Typer::move_frame_by( gfx::size how_much ) {
+  pos_ += how_much;
+  line_start_ += how_much;
+}
+
+Typer Typer::with_frame_offset( gfx::size how_much ) {
+  Typer res = *this;
+  res.move_frame_by( how_much );
+  return res;
+}
+
 } // namespace rr

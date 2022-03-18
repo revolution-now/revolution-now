@@ -28,6 +28,15 @@ namespace rr {
 struct Painter;
 struct AsciiFont;
 
+// FIXME: need to find a better way of doing this. We should be
+// using the dimensions_for_line method on the rr::Typer, but we
+// can't get access to that in all of the places where we need
+// it.
+inline gfx::size rendered_text_line_size_pixels(
+    std::string_view text ) {
+  return gfx::size{ .w = 6 * int( text.size() ), .h = 8 };
+}
+
 /****************************************************************
 ** Typer
 *****************************************************************/
@@ -38,15 +47,31 @@ struct Typer {
   Typer( Painter painter, AsciiFont const& ascii_font,
          gfx::point start, gfx::pixel color );
 
-  gfx::point current_position_pixels() const { return pos_; }
+  // These are in pixels.
+  gfx::point position() const { return pos_; }
+  gfx::point line_start() const { return line_start_; }
+
   gfx::pixel color() const { return color_; }
   gfx::size  scale() const;
 
-  void set_position_pixels( gfx::point where ) { pos_ = where; }
   void set_color( gfx::pixel color ) { color_ = color; }
   void set_scale( gfx::size scale ) { scale_ = scale; }
 
   void reset_scale() { scale_.reset(); }
+
+  // This will offset the current frame by how_much. That means
+  // that both the current text position (in pixels) as well as
+  // the start of line will be shifted.
+  void move_frame_by( gfx::size how_much );
+
+  // Return a new typer that is the same as this one except with
+  // the current frame position offset by `how_much`.
+  Typer with_frame_offset( gfx::size how_much );
+
+  // The pixel dimensions of the resulting rectangle were the
+  // single-line message to be rendered. If there are newlines in
+  // the string they will be treated as any other character.
+  gfx::size dimensions_for_line( std::string_view msg ) const;
 
   // Writes the character to the current position and advances
   // the cursor. When c is '\n' then this is equivalent to
