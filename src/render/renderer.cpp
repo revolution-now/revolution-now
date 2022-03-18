@@ -90,8 +90,7 @@ struct Renderer::Impl {
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg )
-    : present_fn( std
-                  : move( present_fn_arg ) ),
+    : present_fn( std::move( present_fn_arg ) ),
       logical_screen_size( logical_screen_size_arg ),
       program( std::move( program_arg ) ),
       vertex_array( std::move( vertex_array_arg ) ),
@@ -217,7 +216,7 @@ struct Renderer::Impl {
   Painter painter() { return Painter( atlas_map, emitter ); }
 
   Typer typer( string_view font_name, point start, pixel color,
-               Painter& painter ) {
+               Painter const& painter ) {
     UNWRAP_CHECK( p_ascii_font,
                   base::lookup( ascii_fonts_fast, font_name ) );
     return Typer( painter, *p_ascii_font, start, color );
@@ -274,13 +273,17 @@ int Renderer::end_pass() { return impl_->end_pass(); }
 
 Painter Renderer::painter() { return impl_->painter(); }
 
+Typer Renderer::typer( point start, pixel color ) {
+  return impl_->typer( "simple", start, color );
+}
+
 Typer Renderer::typer( string_view font_name, point start,
                        pixel color ) {
   return impl_->typer( font_name, start, color );
 }
 
 Typer Renderer::typer( string_view font_name, point start,
-                       pixel color, Painter& painter ) {
+                       pixel color, Painter const& painter ) {
   return impl_->typer( font_name, start, color, painter );
 }
 

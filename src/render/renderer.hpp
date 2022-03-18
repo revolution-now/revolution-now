@@ -64,11 +64,13 @@ struct Renderer {
 
   Painter painter();
 
+  Typer typer( gfx::point start, gfx::pixel color );
+
   Typer typer( std::string_view font_name, gfx::point start,
                gfx::pixel color );
 
   Typer typer( std::string_view font_name, gfx::point start,
-               gfx::pixel color, Painter& painter );
+               gfx::pixel color, Painter const& painter );
 
   // Given a globally unique name for a texture in the atlas,
   // this will return its id for use when rendering it.
