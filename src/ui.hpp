@@ -15,9 +15,8 @@
 // Revolution Now
 #include "input.hpp"
 
-namespace rn {
-class Texture;
-}
+// render
+#include "render/renderer.hpp"
 
 namespace rn::ui {
 
@@ -59,7 +58,8 @@ class Object {
     return casted;
   }
 
-  virtual void draw( Texture& tx, Coord coord ) const = 0;
+  virtual void draw( rr::Renderer& renderer,
+                     Coord         coord ) const = 0;
   // This is the physical size of the object in pixels.
   ND virtual Delta delta() const = 0;
   // Given a position, returns a bounding rect.  We need to be

@@ -13,7 +13,6 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "coord.hpp"
-#include "gfx.hpp"
 #include "logger.hpp"
 #include "render.hpp"
 #include "text.hpp"
@@ -37,14 +36,15 @@ namespace rn::ui {
 namespace {} // namespace
 
 /****************************************************************
-** Fundamental Views
+** CompositeView
 *****************************************************************/
-void CompositeView::draw( Texture& tx, Coord coord ) const {
+void CompositeView::draw( rr::Renderer& renderer,
+                          Coord         coord ) const {
   // Draw each of the sub views, by augmenting its origin (which
   // is relative to the origin of the parent by the origin that
   // we have been given.
   for( auto [view, view_coord] : *this )
-    view->draw( tx, coord + ( view_coord - Coord() ) );
+    view->draw( renderer, coord + ( view_coord - Coord() ) );
 }
 
 Delta CompositeView::delta() const {
@@ -128,6 +128,9 @@ PositionedViewConst CompositeView::at( int idx ) const {
   return { view, pos_of( idx ) };
 }
 
+/****************************************************************
+** CompositeSingleView
+*****************************************************************/
 CompositeSingleView::CompositeSingleView( unique_ptr<View> view,
                                           Coord coord )
   : view_( std::move( view ) ), coord_( coord ) {}
@@ -142,6 +145,9 @@ unique_ptr<View>& CompositeSingleView::mutable_at( int idx ) {
   return view_;
 }
 
+/****************************************************************
+** VectorView
+*****************************************************************/
 Coord VectorView::pos_of( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
   return views_[idx].coord();
@@ -153,69 +159,85 @@ unique_ptr<View>& VectorView::mutable_at( int idx ) {
 }
 
 /****************************************************************
-** Simple Views
+** SolidRectView
 *****************************************************************/
-void SolidRectView::draw( Texture& tx, Coord coord ) const {
-  render_fill_rect( tx, color_, rect( coord ) );
+void SolidRectView::draw( rr::Renderer& renderer,
+                          Coord         coord ) const {
+  renderer.painter().draw_solid_rect( rect( coord ), color_ );
 }
 
+/****************************************************************
+** OneLineStringView
+*****************************************************************/
 OneLineStringView::OneLineStringView( string     msg,
-                                      gfx::pixel color,
-                                      bool       shadow )
-  : msg_( move( msg ) ) {
-  if( shadow )
-    tx_ = clone_texture(
-        render_text( font::standard(), color, msg_ ) );
-  else
-    tx_ = clone_texture(
-        render_text( font::standard(), color, msg_ ) );
+                                      gfx::pixel color )
+  : msg_( move( msg ) ), color_( color ) {}
+
+Delta OneLineStringView::delta() const {
+  return Delta::from_gfx(
+      rr::rendered_text_line_size_pixels( msg_ ) );
 }
 
-void OneLineStringView::draw( Texture& tx, Coord coord ) const {
-  copy_texture( this->tx_, tx, coord );
+void OneLineStringView::draw( rr::Renderer& renderer,
+                              Coord         coord ) const {
+  renderer.typer( coord, color_ ).write( msg_ );
 }
 
-TextView::TextView( string_view           msg,
-                    TextMarkupInfo const& m_info,
-                    TextReflowInfo const& r_info ) {
-  tx_ = clone_texture( render_text_markup_reflow(
-      font::standard(), m_info, r_info, msg ) );
+/****************************************************************
+** TextView
+*****************************************************************/
+Delta TextView::delta() const {
+  return Delta::from_gfx(
+      rr::rendered_text_line_size_pixels( msg_ ) );
 }
 
-void TextView::draw( Texture& tx, Coord coord ) const {
-  copy_texture( this->tx_, tx, coord );
+void TextView::draw( rr::Renderer& renderer,
+                     Coord         coord ) const {
+  render_text_markup_reflow( renderer, coord, font::standard(),
+                             markup_info_, reflow_info_, msg_ );
 }
+
+/****************************************************************
+** ButtonBaseView
+*****************************************************************/
+ButtonBaseView::ButtonBaseView( string label )
+  : ButtonBaseView( std::move( label ), e_type::standard ) {}
 
 ButtonBaseView::ButtonBaseView( string label, e_type type )
-  : type_( type ) {
-  auto info = TextMarkupInfo{}; // Should be irrelevant
-  auto size = render_text_markup( font::standard(), info, label )
-                  .size()
-                  .round_up( Scale{ 8 } );
-  auto size_in_blocks = size / Scale{ 8 };
-  size_in_blocks.w += 2_w;
-  render( label, size_in_blocks );
-}
+  : ButtonBaseView(
+        label,
+        Delta::from_gfx(
+            rr::rendered_text_line_size_pixels( label ) )
+                    .round_up( Scale{ 8 } ) /
+                Scale{ 8 } +
+            2_w,
+        type ) {}
 
-ButtonBaseView::ButtonBaseView( string label )
-  : ButtonBaseView( label, e_type::standard ) {}
+ButtonBaseView::ButtonBaseView( string label,
+                                Delta  size_in_blocks )
+  : ButtonBaseView( std::move( label ), size_in_blocks,
+                    e_type::standard ) {}
 
 ButtonBaseView::ButtonBaseView( string label,
                                 Delta  size_in_blocks,
                                 e_type type )
-  : type_( type ) {
-  render( label, size_in_blocks );
-}
+  : ButtonBaseView( std::move( label ),
+                    size_in_blocks * Scale{ 8 }, type,
+                    /*text_size_in_pixels=*/{} ) {}
 
-ButtonBaseView::ButtonBaseView( string label,
-                                Delta  size_in_blocks )
-  : ButtonBaseView( label, size_in_blocks, e_type::standard ) {}
+ButtonBaseView::ButtonBaseView( string    label,
+                                Delta     size_in_pixels,
+                                e_type    type,
+                                gfx::size text_size_in_pixels )
+  : label_( std::move( label ) ),
+    type_( type ),
+    size_in_pixels_( size_in_pixels ),
+    text_size_in_pixels_( text_size_in_pixels ) {}
 
-void ButtonBaseView::draw( Texture& tx, Coord coord ) const {
-  auto do_copy = [&]( auto const& src ) {
-    copy_texture( src, tx, coord );
-  };
+Delta ButtonBaseView::delta() const { return size_in_pixels_; }
 
+void ButtonBaseView::draw( rr::Renderer& renderer,
+                           Coord         coord ) const {
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
   auto time        = system_clock::now().time_since_epoch();
@@ -224,100 +246,133 @@ void ButtonBaseView::draw( Texture& tx, Coord coord ) const {
   bool on          = time % one_second > half_second;
 
   switch( state_ ) {
-    case button_state::disabled: do_copy( disabled_ ); return;
-    case button_state::down: do_copy( pressed_ ); return;
+    case button_state::disabled:
+      render_disabled( renderer, coord );
+      return;
+    case button_state::down:
+      render_pressed( renderer, coord );
+      return;
     case button_state::up:
       if( type_ == e_type::blink && on )
-        do_copy( hover_ );
+        render_hover( renderer, coord );
       else
-        do_copy( unpressed_ );
+        render_unpressed( renderer, coord );
       return;
     case button_state::hover:
       if( type_ == e_type::blink && !on )
-        do_copy( unpressed_ );
+        render_unpressed( renderer, coord );
       else
-        do_copy( hover_ );
+        render_hover( renderer, coord );
       return;
   }
 
   SHOULD_NOT_BE_HERE;
 }
 
-void ButtonBaseView::render( string const& label,
-                             Delta         size_in_blocks ) {
-  auto pixel_size = size_in_blocks * Scale{ 8 };
-  pressed_        = create_texture_transparent( pixel_size );
-  hover_          = create_texture_transparent( pixel_size );
-  unpressed_      = create_texture_transparent( pixel_size );
-  disabled_       = create_texture_transparent( pixel_size );
-
+void ButtonBaseView::render_disabled( rr::Renderer& renderer,
+                                      gfx::point where ) const {
   render_rect_of_sprites_with_border(
-      unpressed_, Coord{}, size_in_blocks, //
+      renderer, Coord::from_gfx( where ),
+      size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
       e_tile::button_up_mr, e_tile::button_up_ul,
       e_tile::button_up_ur, e_tile::button_up_ll,
       e_tile::button_up_lr );
 
-  render_rect_of_sprites_with_border(
-      hover_, Coord{}, size_in_blocks, //
-      e_tile::button_up_mm, e_tile::button_up_um,
-      e_tile::button_up_lm, e_tile::button_up_ml,
-      e_tile::button_up_mr, e_tile::button_up_ul,
-      e_tile::button_up_ur, e_tile::button_up_ll,
-      e_tile::button_up_lr );
+  auto markup_info = TextMarkupInfo{ config_palette.grey.n50,
+                                     /*highlight=*/{} };
 
-  render_rect_of_sprites_with_border(
-      disabled_, Coord{}, size_in_blocks, //
-      e_tile::button_up_mm, e_tile::button_up_um,
-      e_tile::button_up_lm, e_tile::button_up_ml,
-      e_tile::button_up_mr, e_tile::button_up_ul,
-      e_tile::button_up_ur, e_tile::button_up_ll,
-      e_tile::button_up_lr );
+  Coord text_position =
+      centered( Delta::from_gfx( text_size_in_pixels_ ),
+                Rect::from( Coord::from_gfx( where ),
+                            size_in_pixels_ ) ) +
+      1_w - 1_h;
+  render_text_markup( renderer, text_position, font::standard(),
+                      markup_info, label_ );
+}
 
+void ButtonBaseView::render_pressed( rr::Renderer& renderer,
+                                     gfx::point where ) const {
   render_rect_of_sprites_with_border(
-      pressed_, Coord{}, size_in_blocks, //
+      renderer, Coord::from_gfx( where ),
+      size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_down_mm, e_tile::button_down_um,
       e_tile::button_down_lm, e_tile::button_down_ml,
       e_tile::button_down_mr, e_tile::button_down_ul,
       e_tile::button_down_ur, e_tile::button_down_ll,
       e_tile::button_down_lr );
 
-  auto info_normal =
-      TextMarkupInfo{ gfx::pixel::wood().shaded( 3 ),
-                      /*highlight=*/{} };
-  auto info_hover =
-      TextMarkupInfo{ gfx::pixel::banana(), /*highlight=*/{} };
-  auto info_pressed =
+  auto markup_info =
       TextMarkupInfo{ gfx::pixel::banana().shaded( 2 ),
                       /*highlight=*/{} };
-  auto info_disabled = TextMarkupInfo{ config_palette.grey.n50,
-                                       /*highlight=*/{} };
-
-  auto const& tx_normal =
-      render_text_markup( font::standard(), info_normal, label );
-  auto const& tx_pressed = render_text_markup(
-      font::standard(), info_pressed, label );
-  auto const& tx_hover =
-      render_text_markup( font::standard(), info_hover, label );
-  auto const& tx_disabled = render_text_markup(
-      font::standard(), info_disabled, label );
-
-  auto unpressed_coord =
-      centered( tx_normal.size(), unpressed_.rect() ) + 1_w -
-      1_h;
-  auto pressed_coord = unpressed_coord + Delta{ -1_w, 1_h };
-
-  copy_texture( tx_normal, unpressed_, unpressed_coord );
-  copy_texture( tx_hover, hover_, unpressed_coord );
-  copy_texture( tx_pressed, pressed_, pressed_coord );
-  copy_texture( tx_disabled, disabled_, unpressed_coord );
+  Coord text_position =
+      centered( Delta::from_gfx( text_size_in_pixels_ ),
+                Rect::from( Coord::from_gfx( where ),
+                            size_in_pixels_ ) ) +
+      -1_w + 1_h;
+  render_text_markup( renderer, text_position, font::standard(),
+                      markup_info, label_ );
 }
 
-void SpriteView::draw( Texture& tx, Coord coord ) const {
-  render_sprite( tx, tile_, coord, 0, 0 );
+void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
+                                       gfx::point where ) const {
+  render_rect_of_sprites_with_border(
+      renderer, Coord::from_gfx( where ),
+      size_in_pixels_ / Scale{ 8 }, //
+      e_tile::button_up_mm, e_tile::button_up_um,
+      e_tile::button_up_lm, e_tile::button_up_ml,
+      e_tile::button_up_mr, e_tile::button_up_ul,
+      e_tile::button_up_ur, e_tile::button_up_ll,
+      e_tile::button_up_lr );
+
+  auto markup_info =
+      TextMarkupInfo{ gfx::pixel::wood().shaded( 3 ),
+                      /*highlight=*/{} };
+
+  Coord text_position =
+      centered( Delta::from_gfx( text_size_in_pixels_ ),
+                Rect::from( Coord::from_gfx( where ),
+                            size_in_pixels_ ) ) +
+      1_w - 1_h;
+  render_text_markup( renderer, text_position, font::standard(),
+                      markup_info, label_ );
 }
 
+void ButtonBaseView::render_hover( rr::Renderer& renderer,
+                                   gfx::point    where ) const {
+  render_rect_of_sprites_with_border(
+      renderer, Coord::from_gfx( where ),
+      size_in_pixels_ / Scale{ 8 }, //
+      e_tile::button_up_mm, e_tile::button_up_um,
+      e_tile::button_up_lm, e_tile::button_up_ml,
+      e_tile::button_up_mr, e_tile::button_up_ul,
+      e_tile::button_up_ur, e_tile::button_up_ll,
+      e_tile::button_up_lr );
+
+  auto markup_info =
+      TextMarkupInfo{ gfx::pixel::banana(), /*highlight=*/{} };
+
+  Coord text_position =
+      centered( Delta::from_gfx( text_size_in_pixels_ ),
+                Rect::from( Coord::from_gfx( where ),
+                            size_in_pixels_ ) ) +
+      1_w - 1_h;
+  render_text_markup( renderer, text_position, font::standard(),
+                      markup_info, label_ );
+}
+
+/****************************************************************
+** SpriteView
+*****************************************************************/
+void SpriteView::draw( rr::Renderer& renderer,
+                       Coord         coord ) const {
+  render_sprite( renderer, tile_, coord, 0, 0 );
+}
+
+/****************************************************************
+** LineEditorView
+*****************************************************************/
 LineEditorView::LineEditorView( e_font font, W pixels_wide,
                                 OnChangeFunc on_change,
                                 gfx::pixel fg, gfx::pixel bg,
@@ -329,15 +384,21 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     font_{ font },
     on_change_{ std::move( on_change ) },
     line_editor_( string( initial_text ), initial_text.size() ),
-    input_view_{ 1 },
-    background_{},
+    input_view_( 1 ),
     current_rendering_{},
     cursor_width_{} {
-  string      text( 100, 'X' );
-  auto const& X_tx =
-      render_text( font, gfx::pixel::wood(), text );
-  cursor_width_ = X_tx.size().w / SX{ int( text.size() ) };
-  set_pixel_size( Delta{ pixels_wide, X_tx.size().h } );
+  string text( 100, 'X' );
+  Delta  char_delta = Delta::from_gfx(
+       rr::rendered_text_line_size_pixels( text ) );
+
+  cursor_width_ = char_delta.w / SX{ int( text.size() ) };
+
+  Delta pixel_size = Delta{ pixels_wide, char_delta.h };
+  // This doesn't work precisely because 1) the font may not be
+  // fixed width, and 2) cursor_width_ is just an average.
+  input_view_ =
+      LineEditorInputView{ pixel_size.w / cursor_width_ };
+  update_visible_string();
 }
 
 LineEditorView::LineEditorView( int          chars_wide,
@@ -345,9 +406,8 @@ LineEditorView::LineEditorView( int          chars_wide,
                                 OnChangeFunc on_change )
   : LineEditorView(
         font::standard(),
-        render_text( font::standard(), gfx::pixel::wood(),
-                     string( chars_wide, 'X' ) )
-            .size()
+        Delta::from_gfx( rr::rendered_text_line_size_pixels(
+                             string( chars_wide, 'X' ) ) )
             .w,
         std::move( on_change ), gfx::pixel::wood(),
         gfx::pixel::banana(), /*prompt=*/"", initial_text ) {}
@@ -357,45 +417,44 @@ LineEditorView::LineEditorView( int         chars_wide,
   : LineEditorView( chars_wide, initial_text,
                     []( auto const& ) {} ) {}
 
-void LineEditorView::set_pixel_size( Delta const& size ) {
-  render_background( size );
-  // This doesn't work precisely because 1) the font may not be
-  // fixed width, and 2) cursor_width_ is just an average.
-  input_view_ = LineEditorInputView{ size.w / cursor_width_ };
-  update_visible_string();
+Delta LineEditorView::delta() const {
+  return Delta::from_gfx( rr::rendered_text_line_size_pixels(
+             string( input_view_.width(), 'X' ) ) ) +
+         Delta{ 2_w, 2_h };
 }
 
-void LineEditorView::render_background( Delta const& size ) {
-  background_ = Texture::create( size + Delta{ 2_w, 2_h } );
-  background_.fill( bg_ );
+void LineEditorView::render_background( rr::Renderer& renderer,
+                                        Rect const&   r ) const {
+  renderer.painter().draw_solid_rect(
+      Rect::from( r.upper_left(),
+                  r.delta() + Delta{ 2_w, 2_h } ),
+      bg_ );
 }
 
 // Implement Object
-void LineEditorView::draw( Texture& tx, Coord coord ) const {
-  copy_texture( background_, tx, coord );
-  auto        all_chars = prompt_ + current_rendering_;
-  auto const& text_tx   = render_text( font_, fg_, all_chars );
-  auto        bounds    = background_.size();
-  auto        copy_size = min( bounds, text_tx.size() );
-  auto        from_rect = Rect::from( Coord{}, copy_size );
-  auto        to_rect =
-      Rect::from( coord + Delta{ 1_w, 1_h }, copy_size );
-  copy_texture( text_tx, tx, from_rect, to_rect );
+void LineEditorView::draw( rr::Renderer& renderer,
+                           Coord         coord ) const {
+  render_background( renderer, Rect::from( coord, delta() ) );
+  auto      all_chars = prompt_ + current_rendering_;
+  rr::Typer typer =
+      renderer.typer( coord + Delta{ 1_w, 1_h }, fg_ );
+  typer.write( all_chars );
 
   auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
                  int( prompt_.size() );
   CHECK( rel_pos <= int( all_chars.size() ) );
   string string_up_to_cursor( all_chars.begin(),
                               all_chars.begin() + rel_pos );
-  auto   rel_cursor_pixels =
+  W      rel_cursor_pixels =
       rel_pos == 0
-            ? W{ 0 } // render_text might return 1_w in this case.
-            : render_text( font_, fg_, string_up_to_cursor )
-                .size()
+               ? W{ 0 }
+          // The rendered text might have width 1 in this case.
+               : Delta::from_gfx( rr::rendered_text_line_size_pixels(
+                                      string_up_to_cursor ) )
                 .w;
   Rect cursor{ coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,
-               cursor_width_, background_.size().h - 2_h };
-  render_rect( tx, fg_, cursor );
+               cursor_width_, delta().h - 2_h };
+  renderer.painter().draw_solid_rect( cursor, fg_ );
 }
 
 bool LineEditorView::on_key( input::key_event_t const& event ) {
@@ -428,7 +487,7 @@ void LineEditorView::set( std::string_view new_string,
 }
 
 /****************************************************************
-** Derived Views
+** PlainMessageBoxView
 *****************************************************************/
 unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
     string_view msg, wait_promise<> on_close ) {
@@ -465,6 +524,9 @@ bool PlainMessageBoxView::on_key(
   }
 }
 
+/****************************************************************
+** PaddingView
+*****************************************************************/
 PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
                           bool l, bool r, bool u, bool d )
   : CompositeSingleView( std::move( view ),
@@ -498,6 +560,9 @@ bool PaddingView::can_pad_immediate_children() const {
   SHOULD_NOT_BE_HERE;
 }
 
+/****************************************************************
+** ButtonView
+*****************************************************************/
 ButtonView::ButtonView( string label, OnClickFunc on_click )
   : ButtonBaseView( std::move( label ) ),
     on_click_( std::move( on_click ) ) {
@@ -574,6 +639,9 @@ void ButtonView::blink( bool enabled ) {
   }
 }
 
+/****************************************************************
+** OkCancelView
+*****************************************************************/
 constexpr Delta ok_cancel_button_size_blocks{ 2_h, 8_w };
 
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
@@ -603,6 +671,9 @@ unique_ptr<View>& OkCancelView::mutable_at( int idx ) {
   return ( idx == 0 ) ? ok_ : cancel_;
 }
 
+/****************************************************************
+** OkButtonView
+*****************************************************************/
 OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
   : CompositeSingleView( make_unique<ButtonView>(
                              "OK", ok_cancel_button_size_blocks,
@@ -611,6 +682,9 @@ OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
   ok_ref_ = single()->cast<ButtonView>();
 }
 
+/****************************************************************
+** VerticalArrayView
+*****************************************************************/
 VerticalArrayView::VerticalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
@@ -654,6 +728,9 @@ void VerticalArrayView::recompute_child_positions() {
   }
 }
 
+/****************************************************************
+** HorizontalArrayView
+*****************************************************************/
 HorizontalArrayView::HorizontalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
@@ -697,6 +774,9 @@ void HorizontalArrayView::recompute_child_positions() {
   }
 }
 
+/****************************************************************
+** OkCancelAdapterView
+*****************************************************************/
 OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
                                           OnClickFunc on_click )
   : VerticalArrayView(
@@ -711,6 +791,9 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
                 } ) ),
         VerticalArrayView::align::center ) {}
 
+/****************************************************************
+** OptionSelectItemView
+*****************************************************************/
 OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{ e_option_active::inactive },
     background_active_( make_unique<SolidRectView>(
@@ -718,11 +801,9 @@ OptionSelectItemView::OptionSelectItemView( string msg )
     background_inactive_( make_unique<SolidRectView>(
         config_palette.orange.sat0.lum3 ) ),
     foreground_active_( make_unique<OneLineStringView>(
-        msg, config_palette.orange.sat0.lum2,
-        /*shadow=*/true ) ),
+        msg, config_palette.orange.sat0.lum2 ) ),
     foreground_inactive_( make_unique<OneLineStringView>(
-        msg, config_palette.orange.sat1.lum11,
-        /*shadow=*/true ) ) {
+        msg, config_palette.orange.sat1.lum11 ) ) {
   auto delta_active   = foreground_active_->delta();
   auto delta_inactive = foreground_inactive_->delta();
   background_active_->cast<SolidRectView>()->set_delta(
@@ -768,6 +849,9 @@ void OptionSelectItemView::grow_to( W w ) {
       new_delta );
 }
 
+/****************************************************************
+** OptionSelectView
+*****************************************************************/
 OptionSelectView::OptionSelectView(
     vector<string> const& options, int initial_selection )
   : selected_{ initial_selection } {
@@ -851,6 +935,9 @@ string const& OptionSelectView::get_selected() const {
   return get_view( selected_ )->line();
 }
 
+/****************************************************************
+** FakeUnitView
+*****************************************************************/
 FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
                             e_unit_orders orders )
   : CompositeSingleView(
@@ -860,11 +947,16 @@ FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
     nation_( nation ),
     orders_( orders ) {}
 
-void FakeUnitView::draw( Texture& tx, Coord coord ) const {
-  this->CompositeSingleView::draw( tx, coord );
-  render_nationality_icon( tx, type_, nation_, orders_, coord );
+void FakeUnitView::draw( rr::Renderer& renderer,
+                         Coord         coord ) const {
+  this->CompositeSingleView::draw( renderer, coord );
+  render_nationality_icon( renderer, coord, type_, nation_,
+                           orders_ );
 }
 
+/****************************************************************
+** ClickableView
+*****************************************************************/
 ClickableView::ClickableView(
     unique_ptr<View> view, std::function<void( void )> on_click )
   : CompositeSingleView( std::move( view ), Coord{} ),
@@ -877,6 +969,9 @@ bool ClickableView::on_mouse_button(
   return true;
 }
 
+/****************************************************************
+** BorderView
+*****************************************************************/
 BorderView::BorderView( unique_ptr<View> view, gfx::pixel color,
                         int padding, bool on_initially )
   : CompositeSingleView(
@@ -892,12 +987,15 @@ Delta BorderView::delta() const {
                 ( 1_h + H{ padding_ } ) * 2_sy };
 }
 
-void BorderView::draw( Texture& tx, Coord coord ) const {
+void BorderView::draw( rr::Renderer& renderer,
+                       Coord         coord ) const {
   this->CompositeSingleView::draw(
-      tx, coord + Delta{ 1_w + W{ padding_ },
-                         1_h + H{ padding_ } } );
+      renderer, coord + Delta{ 1_w + W{ padding_ },
+                               1_h + H{ padding_ } } );
   if( on_ )
-    render_rect( tx, color_, Rect::from( coord, delta() ) );
+    renderer.painter().draw_empty_rect(
+        Rect::from( coord, delta() ),
+        rr::Painter::e_border_mode::outside, color_ );
 }
 
 } // namespace rn::ui

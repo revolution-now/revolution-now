@@ -18,9 +18,11 @@
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
-#include "tx.hpp"
 #include "view.hpp"
 #include "wait.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // Rds
 #include "colview-entities.rds.hpp"
@@ -175,7 +177,8 @@ ColonySubView& colview_top_level();
 void set_colview_colony( ColonyId id );
 
 void colview_drag_n_drop_draw(
+    rr::Renderer&                       renderer,
     drag::State<ColViewObject_t> const& state,
-    Coord const& canvas_origin, Texture& tx );
+    Coord const&                        canvas_origin );
 
 } // namespace rn

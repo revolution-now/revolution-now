@@ -13,12 +13,13 @@
 // Revolution Now
 #include "compositor.hpp"
 #include "enum.hpp"
-#include "gfx.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
-#include "ttf.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -41,32 +42,33 @@ co::stream<e_main_menu_item> g_selection_stream;
 struct MainMenuPlane : public Plane {
   MainMenuPlane() = default;
   bool covers_screen() const override { return true; }
-  void draw( Texture& tx ) const override {
+  void draw( rr::Renderer& renderer ) const override {
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
-    tile_sprite( tx, e_tile::wood_middle, normal_area );
+    tile_sprite( renderer, e_tile::wood_middle, normal_area );
     H    h         = normal_area.h / 2_sy;
     auto num_items = refl::enum_count<e_main_menu_item>;
-    h -= ttf_get_font_info( font::main_menu() ).height *
+    h -= H{ rr::rendered_text_line_size_pixels( "X" ).h } *
          SY{ int( num_items ) } / 2_sy;
+    rr::Painter painter = renderer.painter();
     for( auto e : refl::enum_values<e_main_menu_item> ) {
-      gfx::pixel  c       = gfx::pixel::banana().shaded( 3 );
-      auto const& text_tx = render_text(
-          font::main_menu(), c, enum_to_display_name( e ) );
-      auto w   = normal_area.w / 2_sx - text_tx.size().w / 2_sx;
-      auto dst = text_tx.rect().shifted_by( Delta{ w, h } );
-      text_tx.copy_to(
-          tx, /*src=*/nothing,
-          /*dst=*/
-          dst.as_if_origin_were( normal_area.upper_left() ) );
-      dst = dst.with_border_added( 2 );
+      gfx::pixel c = gfx::pixel::banana().shaded( 3 );
+      Delta      text_size =
+          Delta::from_gfx( rr::rendered_text_line_size_pixels(
+              enum_to_display_name( e ) ) );
+      auto w   = normal_area.w / 2_sx - text_size.w / 2_sx;
+      auto dst = Rect::from( Coord{}, text_size )
+                     .shifted_by( Delta{ w, h } );
+      dst = dst.as_if_origin_were( normal_area.upper_left() );
+      rr::Typer typer = renderer.typer( dst.upper_left(), c );
+      dst             = dst.with_border_added( 2 );
       dst.x -= 3_w;
       dst.w += 6_w;
       if( e == g_curr_item )
-        render_rect(
-            tx, gfx::pixel::banana(),
-            dst.as_if_origin_were( normal_area.upper_left() ) );
+        painter.draw_empty_rect(
+            dst, rr::Painter::e_border_mode::outside,
+            gfx::pixel::banana() );
       h += dst.delta().h;
     }
   }

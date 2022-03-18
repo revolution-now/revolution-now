@@ -15,8 +15,10 @@
 // Revolution Now
 #include "coord.hpp"
 #include "lua-enum.hpp"
-#include "tx.hpp"
 #include "unit-id.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // Rds
 #include "commodity.rds.hpp"
@@ -52,8 +54,8 @@ maybe<std::string> commodity_label_to_markup(
 
 // Will be rendered as a one-line text string with transparent
 // background. Could return nothing if label is `none`.
-maybe<Texture const&> render_commodity_label(
-    CommodityLabel_t const& label );
+void render_commodity_label( rr::Renderer& renderer, Coord where,
+                             CommodityLabel_t const& label );
 
 /****************************************************************
 ** Commodity
@@ -91,22 +93,22 @@ int move_commodity_as_much_as_possible(
 *****************************************************************/
 Delta commodity_tile_size( e_commodity type );
 
-void render_commodity( Texture& tx, e_commodity type,
-                       Coord pixel_coord );
+void render_commodity( rr::Renderer& renderer, Coord where,
+                       e_commodity type );
 
 // The "annotated" functions will render the label just below the
 // commodity sprite and both will have their centers aligned hor-
-// izontally. Note that the pixel coordinate is the upper left
-// corner of the commodity sprite.
+// izontally. Note that the coordinate is the upper left corner
+// of the commodity sprite.
 
-void render_commodity_annotated( Texture& tx, e_commodity type,
-                                 Coord pixel_coord,
+void render_commodity_annotated( rr::Renderer& renderer,
+                                 Coord where, e_commodity type,
                                  CommodityLabel_t const& label );
 
 // Will use quantity as label.
-void render_commodity_annotated( Texture&         tx,
-                                 Commodity const& comm,
-                                 Coord            pixel_coord );
+void render_commodity_annotated( rr::Renderer&    renderer,
+                                 Coord            where,
+                                 Commodity const& comm );
 
 } // namespace rn
 

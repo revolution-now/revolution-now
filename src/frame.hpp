@@ -17,6 +17,9 @@
 #include "moving-avg.hpp"
 #include "wait.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // C++ standard library
 #include <chrono>
 #include <functional>
@@ -24,7 +27,7 @@
 namespace rn {
 
 // Will spin until the wait is ready.
-void frame_loop( wait<> const& what );
+void frame_loop( rr::Renderer& renderer, wait<> const& what );
 
 double avg_frame_rate();
 

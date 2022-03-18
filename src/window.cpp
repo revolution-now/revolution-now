@@ -231,7 +231,7 @@ Window::Window( string title_, Coord position_ )
     title_view(),
     position( position_ ) {
   title_view = make_unique<OneLineStringView>(
-      title, config_palette.orange.sat1.lum11, /*shadow=*/true );
+      title, config_palette.orange.sat1.lum11 );
   g_window_plane.wm.add_window( this );
 }
 

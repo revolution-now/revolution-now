@@ -115,9 +115,10 @@ void notify_subscribers() {
 
 using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc =
-    base::function_ref<void( InputReceivedFunc )>;
+    base::function_ref<void( rr::Renderer&, InputReceivedFunc )>;
 
-void frame_loop_scheduler( wait<> const&     what,
+void frame_loop_scheduler( rr::Renderer&     renderer,
+                           wait<> const&     what,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
 
@@ -138,7 +139,7 @@ void frame_loop_scheduler( wait<> const&     what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( on_input );
+    body( renderer, on_input );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -152,7 +153,8 @@ void frame_loop_scheduler( wait<> const&     what,
 }
 
 // Called once per frame.
-void frame_loop_body( InputReceivedFunc input_received ) {
+void frame_loop_body( rr::Renderer&     renderer,
+                      InputReceivedFunc input_received ) {
   // ----------------------------------------------------------
   // 1. Notify
 
@@ -196,8 +198,8 @@ void frame_loop_body( InputReceivedFunc input_received ) {
 
   // ----------------------------------------------------------
   // 3. Draw.
-  draw_all_planes();
-  ::SDL_RenderPresent( g_renderer );
+  draw_all_planes( renderer );
+  renderer.present();
 };
 
 void deinit_frame() {
@@ -255,9 +257,9 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( wait<> const& what ) {
+void frame_loop( rr::Renderer& renderer, wait<> const& what ) {
   g_target_fps = config_rn.target_frame_rate;
-  frame_loop_scheduler( what, frame_loop_body );
+  frame_loop_scheduler( renderer, what, frame_loop_body );
   deinit_frame();
 }
 

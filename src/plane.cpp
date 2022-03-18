@@ -14,7 +14,6 @@
 #include "colony-view.hpp"
 #include "console.hpp"
 #include "frame.hpp"
-#include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "land-view.hpp"
@@ -58,23 +57,13 @@ constexpr auto num_planes =
 // The `values` array should be a constexpr.
 vector<e_plane> g_plane_list;
 
-/****************************************************************
-** Plane Textures
-*****************************************************************/
 // Planes are rendered from 0 --> count.
-array<Plane*, num_planes>  planes;
-array<Texture, num_planes> textures;
+array<Plane*, num_planes> planes;
 
 Plane*& plane( e_plane plane ) {
   auto idx = static_cast<int>( plane );
   CHECK( idx < int( planes.size() ) );
   return planes[idx];
-}
-
-Texture& plane_tx( e_plane plane ) {
-  auto idx = static_cast<int>( plane );
-  CHECK( idx < int( planes.size() ) );
-  return textures[idx];
 }
 
 /****************************************************************
@@ -83,7 +72,7 @@ Texture& plane_tx( e_plane plane ) {
 struct InactivePlane : public Plane {
   InactivePlane() {}
   bool covers_screen() const override { return false; }
-  void draw( Texture& /*unused*/ ) const override {}
+  void draw( rr::Renderer& ) const override {}
 };
 
 InactivePlane dummy;
@@ -101,9 +90,8 @@ InactivePlane dummy;
 struct OmniPlane : public Plane {
   OmniPlane() = default;
   bool covers_screen() const override { return false; }
-  void draw( Texture& tx ) const override {
-    tx.fill();
-    render_sprite( tx, e_tile::mouse_arrow1,
+  void draw( rr::Renderer& renderer ) const override {
+    render_sprite( renderer, e_tile::mouse_arrow1,
                    input::current_mouse_position() - 16_w );
   }
   e_input_handled input( input::event_t const& event ) override {
@@ -120,8 +108,8 @@ struct OmniPlane : public Plane {
         handled = e_input_handled::yes;
         switch( key_event.keycode ) {
           case ::SDLK_F12:
-            if( !screenshot() )
-              lg.warn( "failed to take screenshot." );
+            // if( !screenshot() )
+            //   lg.warn( "failed to take screenshot." );
             break;
           case ::SDLK_F11:
             if( is_window_fullscreen() ) {
@@ -208,25 +196,9 @@ void init_planes() {
 
   // Call any custom initialization routines.
   for( auto p : planes ) { p->initialize(); }
-
-  // Initialize the textures. These are intended to be large
-  // enough to cover the entire screen at a scale factor of unity
-  // if necessary (i.e., when in fullscreen mode with smallest
-  // scale) but will also work when the main window is restored
-  // (only part of them will be used). Their coordinates are mea-
-  // sured in logical coordinates (which means, typically, that
-  // they will be smaller than the full screen resolution).
-  for( auto& tx : textures ) {
-    tx = create_screen_physical_sized_texture();
-    clear_texture_transparent( tx );
-  }
 }
 
-void cleanup_planes() {
-  // This actually just destroys the textures, since the planes
-  // will be held by value as global variables elsewhere.
-  for( auto& tx : textures ) tx.free();
-}
+void cleanup_planes() {}
 
 REGISTER_INIT_ROUTINE( planes );
 
@@ -282,8 +254,8 @@ bool is_plane_enabled( e_plane plane ) {
                     plane ) != g_plane_list.end();
 }
 
-void draw_all_planes( Texture& tx ) {
-  clear_texture_black( tx );
+void draw_all_planes( rr::Renderer& renderer ) {
+  renderer.clear_screen( gfx::pixel::black() );
 
   auto reverse_planes_to_draw = relevant_planes().to_vector();
   auto planes_to_draw = rl::rall( reverse_planes_to_draw );
@@ -293,11 +265,7 @@ void draw_all_planes( Texture& tx ) {
   // any planes before it. This is technically not necessary, but
   // saves rendering work by avoiding to render things that would
   // go unseen anyway.
-  for( auto [e, ptr] : planes_to_draw ) {
-    plane_tx( e ).set_render_target();
-    ptr->draw( plane_tx( e ) );
-    copy_texture( plane_tx( e ), tx );
-  }
+  for( auto [e, ptr] : planes_to_draw ) ptr->draw( renderer );
 }
 
 void advance_plane_state() {

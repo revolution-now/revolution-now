@@ -22,6 +22,9 @@
 #include "plane.hpp"
 #include "text.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -55,8 +58,10 @@ void reset_globals() {
 /****************************************************************
 ** Drawing
 *****************************************************************/
-void draw_colony_view( Texture& tx, ColonyId id ) {
-  tx.fill( gfx::pixel::parse_from_hex( "f1cf81" ).value() );
+void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
+  static gfx::pixel background_color =
+      gfx::pixel::parse_from_hex( "f1cf81" ).value();
+  renderer.clear_screen( background_color );
 
   UNWRAP_CHECK( canvas, compositor::section(
                             compositor::e_section::normal ) );
@@ -65,20 +70,15 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
 
   Coord pos = canvas.upper_left();
 
-  auto line = [&]( string_view fmt_str, auto&&... args ) {
-    string text =
-        fmt::format( fmt::runtime( fmt_str ), args... );
-    render_text( font::standard(), gfx::pixel::black(), text )
-        .copy_to( tx, pos );
-    pos += 16_h;
-  };
+  rr::Typer typer = renderer.typer( pos, gfx::pixel::black() );
 
-  line( "" );
-  line( "id: {}", colony.id() );
-  line( "nation: {}", colony.nation() );
-  line( "location: {}", colony.location() );
+  typer.write( "\n" );
+  typer.write( "id: {}\n", colony.id() );
+  typer.write( "nation: {}\n", colony.nation() );
+  typer.write( "location: {}\n", colony.location() );
 
-  colview_top_level().view().draw( tx, canvas.upper_left() );
+  colview_top_level().view().draw( renderer,
+                                   canvas.upper_left() );
 }
 
 /****************************************************************
@@ -494,11 +494,11 @@ struct ColonyPlane : public Plane {
     }
   }
 
-  void draw( Texture& tx ) const override {
-    draw_colony_view( tx, g_colony_id );
+  void draw( rr::Renderer& renderer ) const override {
+    draw_colony_view( renderer, g_colony_id );
     if( g_drag_state.has_value() )
-      colview_drag_n_drop_draw( *g_drag_state,
-                                canvas_.upper_left(), tx );
+      colview_drag_n_drop_draw( renderer, *g_drag_state,
+                                canvas_.upper_left() );
   }
 
   e_input_handled input( input::event_t const& event ) override {

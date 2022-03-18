@@ -20,7 +20,6 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
-#include "gfx.hpp"
 #include "gs-old-world-view.hpp"
 #include "gs-units.hpp"
 #include "image.hpp"
@@ -164,7 +163,7 @@ namespace entity {
 // Each entity is defined by a struct that holds its state and
 // that has the following methods:
 //
-//  void draw( Texture& tx, Delta offset ) const;
+//  void draw( rr::Renderer& renderer, Delta offset ) const;
 //  Rect bounds() const;
 //  static maybe<EntityClass> create( ... );
 //  maybe<pair<T,Rect>> obj_under_cursor( Coord const& );
@@ -200,19 +199,19 @@ class MarketCommodities {
                                        : single_layer_height } );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     auto bds     = bounds();
     auto grid    = bds.to_grid_noalign( sprite_delta );
     auto comm_it = refl::enum_values<e_commodity>.begin();
     auto label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
-      render_rect( tx, gfx::pixel::white(),
+      render_rect( renderer, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
       render_commodity_annotated(
-          tx, *comm_it++,
+          renderer,
           rect.shifted_by( offset ).upper_left() +
               kCommodityInCargoHoldRenderingOffset,
-          label );
+          *comm_it++, label );
       label.buy += 120;
       label.sell += 120;
     }
@@ -296,11 +295,11 @@ class ActiveCargoBox {
     return Rect::from( origin_, size_pixels );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( box_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( tx, gfx::pixel::white(),
+      render_rect( renderer, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
   }
 
@@ -353,14 +352,14 @@ class DockAnchor {
     return Rect::from( location_, Delta{} );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     // This mess just draws an X.
     render_line(
-        tx, gfx::pixel::white(),
+        renderer, gfx::pixel::white(),
         location_ - cross_leg_size + offset,
         cross_leg_size * Scale{ 2 } + Delta{ 1_w, 1_h } );
     render_line(
-        tx, gfx::pixel::white(),
+        renderer, gfx::pixel::white(),
         location_ - cross_leg_size.mirrored_vertically() +
             offset,
         cross_leg_size.mirrored_vertically() * Scale{ 2 } +
@@ -411,7 +410,7 @@ class Backdrop {
  public:
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     copy_texture(
         image( e_image::europe ), tx,
         Rect::from( upper_left_of_render_rect_, size_ ),
@@ -455,8 +454,8 @@ class InPortBox {
                                     Delta{ 1_w, 1_h } );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, gfx::pixel::white(),
+  void draw( rr::Renderer& renderer, Delta offset ) const {
+    render_rect( renderer, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
         render_text( "In Port", gfx::pixel::white() );
@@ -516,8 +515,8 @@ class InboundBox {
                            Delta{ 1_w, 1_h } );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, gfx::pixel::white(),
+  void draw( rr::Renderer& renderer, Delta offset ) const {
+    render_rect( renderer, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
         render_text( "Inbound", gfx::pixel::white() );
@@ -583,8 +582,8 @@ class OutboundBox {
                            Delta{ 1_w, 1_h } );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
-    render_rect( tx, gfx::pixel::white(),
+  void draw( rr::Renderer& renderer, Delta offset ) const {
+    render_rect( renderer, gfx::pixel::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
         render_text( "Outbound", gfx::pixel::white() );
@@ -651,14 +650,14 @@ class Exit {
            Delta{ 2_w, 2_h };
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     auto bds            = bounds().with_inc_size();
     bds                 = bds.shifted_by( Delta{ -2_w, -2_h } );
     auto const& exit_tx = render_text(
         font::standard(), gfx::pixel::red(), "Exit" );
     auto drawing_origin = centered( exit_tx.size(), bds );
     copy_texture( exit_tx, tx, drawing_origin + offset );
-    render_rect( tx, gfx::pixel::white(),
+    render_rect( renderer, gfx::pixel::white(),
                  bds.shifted_by( offset ) );
   }
 
@@ -710,11 +709,11 @@ class Dock {
                         1_h * dock_block_pixels.sy } );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( dock_block_pixels_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( tx, gfx::pixel::white(),
+      render_rect( renderer, gfx::pixel::white(),
                    rect.shifted_by( offset ) );
   }
 
@@ -769,25 +768,26 @@ class UnitCollection {
     return maybe_rect.value_or( bounds_when_no_units_ );
   }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     OldWorldViewState const& owv_state =
         GameState::old_world_view();
     // auto bds = bounds();
-    // render_rect( tx, gfx::pixel::white(), bds.shifted_by(
-    // offset )
+    // render_rect( renderer, gfx::pixel::white(),
+    // bds.shifted_by( offset )
     // );
     for( auto const& unit_with_pos : units_ )
       if( !g_drag_state || g_drag_state->object !=
                                OldWorldDraggableObject_t{
                                    OldWorldDraggableObject::unit{
                                        unit_with_pos.id } } )
-        render_unit( tx, unit_with_pos.id,
+        render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
+                     unit_with_pos.id,
                      /*with_icon=*/false );
     if( owv_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *owv_state.selected_unit ) {
-          render_rect( tx, gfx::pixel::green(),
+          render_rect( renderer, gfx::pixel::green(),
                        Rect::from( coord, g_tile_delta )
                            .shifted_by( offset ) );
           break;
@@ -1008,7 +1008,7 @@ class ActiveCargo {
  public:
   Rect bounds() const { return bounds_; }
 
-  void draw( Texture& tx, Delta offset ) const {
+  void draw( rr::Renderer& renderer, Delta offset ) const {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( ActiveCargoBox::box_delta );
     if( maybe_active_unit_ ) {
@@ -1043,14 +1043,15 @@ class ActiveCargo {
                           OldWorldDraggableObject_t{
                               OldWorldDraggableObject::unit{
                                   u.id } } )
-                    render_unit( tx, u.id, dst_coord,
+                    render_unit( renderer, dst_coord, u.id,
                                  /*with_icon=*/false );
                 },
                 [&]( Cargo::commodity const& c ) {
                   render_commodity_annotated(
-                      tx, c.obj,
+                      renderer,
                       dst_coord +
-                          kCommodityInCargoHoldRenderingOffset );
+                          kCommodityInCargoHoldRenderingOffset,
+                      c.obj );
                 } );
             break;
           }
@@ -1059,12 +1060,12 @@ class ActiveCargo {
       for( auto [idx, rect] :
            rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
         if( idx >= unit.cargo().slots_total() )
-          render_fill_rect( tx, gfx::pixel::white(),
+          render_fill_rect( renderer, gfx::pixel::white(),
                             rect.shifted_by( offset ) );
       }
     } else {
       for( auto rect : range_of_rects( grid ) )
-        render_fill_rect( tx, gfx::pixel::white(),
+        render_fill_rect( renderer, gfx::pixel::white(),
                           rect.shifted_by( offset ) );
     }
   }
@@ -1235,39 +1236,40 @@ void create_entities( Entities* entities ) {
                            entities->ships_in_port );
 }
 
-void draw_entities( Texture& tx, Entities const& entities ) {
+void draw_entities( rr::Renderer&   renderer,
+                    Entities const& entities ) {
   UNWRAP_CHECK(
       normal_area,
       compositor::section( compositor::e_section::normal ) );
   auto offset = normal_area.upper_left().distance_from_origin();
   if( entities.backdrop.has_value() )
-    entities.backdrop->draw( tx, offset );
+    entities.backdrop->draw( renderer, offset );
   if( entities.market_commodities.has_value() )
-    entities.market_commodities->draw( tx, offset );
+    entities.market_commodities->draw( renderer, offset );
   if( entities.active_cargo_box.has_value() )
-    entities.active_cargo_box->draw( tx, offset );
+    entities.active_cargo_box->draw( renderer, offset );
   if( entities.dock_anchor.has_value() )
-    entities.dock_anchor->draw( tx, offset );
+    entities.dock_anchor->draw( renderer, offset );
   if( entities.in_port_box.has_value() )
-    entities.in_port_box->draw( tx, offset );
+    entities.in_port_box->draw( renderer, offset );
   if( entities.inbound_box.has_value() )
-    entities.inbound_box->draw( tx, offset );
+    entities.inbound_box->draw( renderer, offset );
   if( entities.outbound_box.has_value() )
-    entities.outbound_box->draw( tx, offset );
+    entities.outbound_box->draw( renderer, offset );
   if( entities.exit_label.has_value() )
-    entities.exit_label->draw( tx, offset );
+    entities.exit_label->draw( renderer, offset );
   if( entities.dock.has_value() )
-    entities.dock->draw( tx, offset );
+    entities.dock->draw( renderer, offset );
   if( entities.units_on_dock.has_value() )
-    entities.units_on_dock->draw( tx, offset );
+    entities.units_on_dock->draw( renderer, offset );
   if( entities.ships_in_port.has_value() )
-    entities.ships_in_port->draw( tx, offset );
+    entities.ships_in_port->draw( renderer, offset );
   if( entities.ships_inbound.has_value() )
-    entities.ships_inbound->draw( tx, offset );
+    entities.ships_inbound->draw( renderer, offset );
   if( entities.ships_outbound.has_value() )
-    entities.ships_outbound->draw( tx, offset );
+    entities.ships_outbound->draw( renderer, offset );
   if( entities.active_cargo.has_value() )
-    entities.active_cargo->draw( tx, offset );
+    entities.active_cargo->draw( renderer, offset );
 }
 
 /****************************************************************
@@ -1830,7 +1832,8 @@ struct DragPerform {
   }
 };
 
-void drag_n_drop_draw( Texture& tx, Rect const& canvas ) {
+void drag_n_drop_draw( rr::Renderer& renderer,
+                       Rect const&   canvas ) {
   if( !g_drag_state ) return;
   auto& state            = *g_drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
@@ -1848,16 +1851,17 @@ void drag_n_drop_draw( Texture& tx, Rect const& canvas ) {
         auto size =
             lookup_sprite( unit_from_id( o.id ).desc().tile )
                 .size();
-        render_unit( tx, o.id, origin_for( size ),
+        render_unit( renderer, origin_for( size ), o.id,
                      /*with_icon=*/false );
       },
       [&]( market_commodity const& o ) {
         auto size = commodity_tile_size( o.type );
-        render_commodity( tx, o.type, origin_for( size ) );
+        render_commodity( renderer, origin_for( size ), o.type );
       },
       [&]( cargo_commodity const& o ) {
         auto size = commodity_tile_size( o.comm.type );
-        render_commodity( tx, o.comm.type, origin_for( size ) );
+        render_commodity( renderer, origin_for( size ),
+                          o.comm.type );
       } );
   // Render any indicators on top of it.
   switch( state.indicator ) {
@@ -2008,11 +2012,10 @@ struct OldWorldPlane : public Plane {
     }
   }
 
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
-    draw_entities( tx, entities_ );
+  void draw( rr::Renderer& renderer ) const override {
+    draw_entities( renderer, entities_ );
     // Should be last.
-    drag_n_drop_draw( tx, canvas_ );
+    drag_n_drop_draw( renderer, canvas_ );
   }
 
   e_input_handled input(

@@ -18,7 +18,6 @@
 #include "config-files.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gfx.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "render.hpp"
@@ -144,8 +143,10 @@ class TitleBar : public ui::View, public ColonySubView {
                         colony.population() );
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
-    render_fill_rect( tx, gfx::pixel::wood(), rect( coord ) );
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
+    render_fill_rect( renderer, gfx::pixel::wood(),
+                      rect( coord ) );
     Texture const& name = render_text(
         font::standard(), gfx::pixel::banana(), title() );
     name.copy_to( tx, centered( name.size(), rect( coord ) ) );
@@ -192,14 +193,15 @@ class MarketCommodities : public ui::View,
     return res;
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
     auto        comm_it = refl::enum_values<e_commodity>.begin();
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
     auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
-      render_rect( tx, gfx::pixel::black(), rect );
+      render_rect( renderer, gfx::pixel::black(), rect );
       label.value = colony.commodity_quantity( *comm_it );
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
@@ -209,9 +211,9 @@ class MarketCommodities : public ui::View,
       if( *comm_it == draggable_.member( &Commodity::type ) )
         label.value = 0;
       render_commodity_annotated(
-          tx, *comm_it,
+          renderer,
           rect.upper_left() + rendered_commodity_offset(),
-          label );
+          *comm_it, label );
       pos += block_width_;
       comm_it++;
     }
@@ -331,15 +333,16 @@ class PopulationView : public ui::View, public ColonySubView {
     return *this;
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
-    render_rect( tx, gfx::pixel::black(),
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
+    render_rect( renderer, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     auto const& colony = colony_from_id( colony_id() );
     unordered_map<UnitId, ColonyJob_t> const& units_jobs =
         colony.units_jobs();
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
-      render_unit( tx, unit_id, unit_pos, /*with_icon=*/false );
+      render_unit( tx, unit_pos, unit_id, /*with_icon=*/false );
       unit_pos += 24_w;
     }
   }
@@ -402,7 +405,8 @@ class CargoView : public ui::View,
                  Rect::from( slot_upper_left, g_tile_delta ) };
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
     render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     auto unit = holder_.fmap( unit_from_id );
@@ -429,14 +433,15 @@ class CargoView : public ui::View,
           overload_visit(
               cargo.contents,
               [&]( Cargo::unit u ) {
-                render_unit( tx, u.id, rect.upper_left(),
+                render_unit( tx, rect.upper_left(), u.id,
                              /*with_icon=*/false );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
-                    tx, c.obj,
+                    tx,
                     rect.upper_left() +
-                        kCommodityInCargoHoldRenderingOffset );
+                        kCommodityInCargoHoldRenderingOffset,
+                    c.obj );
               } );
           break;
         }
@@ -674,12 +679,13 @@ class UnitsAtGateColonyView : public ui::View,
     return *this;
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
     render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
-      render_unit( tx, unit_id, draw_pos, /*with_icon=*/true );
+      render_unit( tx, draw_pos, unit_id, /*with_icon=*/true );
       if( selected_ == unit_id )
         render_rect( tx, gfx::pixel::green(),
                      Rect::from( draw_pos, g_tile_delta ) );
@@ -1021,7 +1027,8 @@ class ProductionView : public ui::View, public ColonySubView {
     return *this;
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
     render_rect( tx, gfx::pixel::black(),
                  rect( coord ).with_inc_size() );
   }
@@ -1077,7 +1084,8 @@ class LandView : public ui::View, public ColonySubView {
     return *this;
   }
 
-  void draw_land_3x3( Texture& tx, Coord coord ) const {
+  void draw_land_3x3( rr::Renderer& renderer,
+                      Coord         coord ) const {
     auto const& colony       = colony_from_id( colony_id() );
     Coord       world_square = colony.location();
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
@@ -1094,21 +1102,24 @@ class LandView : public ui::View, public ColonySubView {
                            Delta{ 1_w, 1_h };
       auto maybe_col_id = colony_from_coord( render_square );
       if( !maybe_col_id ) continue;
-      render_colony( tx, *maybe_col_id,
+      render_colony( tx,
                      ( local_coord * g_tile_scale )
                              .as_if_origin_were( coord ) -
-                         Delta{ 6_w, 6_h } );
+                         Delta{ 6_w, 6_h },
+                     *maybe_col_id );
     }
   }
 
-  void draw_land_6x6( Texture& tx, Coord coord ) const {
+  void draw_land_6x6( rr::Renderer& renderer,
+                      Coord         coord ) const {
     land_tx_.fill();
     draw_land_3x3( land_tx_, Coord{} );
     auto dst_rect = Rect::from( coord, delta() );
     land_tx_.copy_to( tx, /*src=*/nothing, dst_rect );
   }
 
-  void draw( Texture& tx, Coord coord ) const override {
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override {
     switch( mode_ ) {
       case e_render_mode::_3x3:
         draw_land_3x3( tx, coord );
@@ -1359,7 +1370,7 @@ ColonySubView& colview_top_level() {
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
     drag::State<ColViewObject_t> const& state,
-    Coord const& canvas_origin, Texture& tx ) {
+    Coord const& canvas_origin, rr::Renderer& renderer ) {
   Coord sprite_upper_left = state.where - state.click_offset +
                             canvas_origin.distance_from_origin();
   using namespace ColViewObject;
@@ -1367,11 +1378,12 @@ void colview_drag_n_drop_draw(
   overload_visit(
       state.object,
       [&]( unit const& o ) {
-        render_unit( tx, o.id, sprite_upper_left,
+        render_unit( renderer, sprite_upper_left, o.id,
                      /*with_icon=*/false );
       },
       [&]( commodity const& o ) {
-        render_commodity( tx, o.comm.type, sprite_upper_left );
+        render_commodity( renderer, sprite_upper_left,
+                          o.comm.type );
       } );
   // Render any indicators on top of it.
   switch( state.indicator ) {

@@ -158,8 +158,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
         } );
 
     auto unit_label = make_unique<OneLineStringView>(
-        unit.desc().name, gfx::pixel::banana(),
-        /*shadow=*/true );
+        unit.desc().name, gfx::pixel::banana() );
 
     vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );

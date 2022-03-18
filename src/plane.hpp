@@ -15,7 +15,9 @@
 // Revolution Now
 #include "input.hpp"
 #include "menu.hpp"
-#include "tx.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // Rds
 #include "plane.rds.hpp"
@@ -44,16 +46,7 @@ struct Plane {
   // planes under it will not be rendered.
   bool virtual covers_screen() const = 0;
 
-  // Draw the plane to the given texture; note that this texture
-  // may not need to be referenced explicitly because it will
-  // already be set as the default rendering target before this
-  // function is called. The texture is initialized with zero
-  // alpha everywhere once during initialization, but thereafter
-  // will not be touched; i.e., it will only be modified through
-  // these draw() function calls. That way, this function can
-  // rely on the texture having the same state that it had at the
-  // end of the last such call (if that happens to be useful).
-  void virtual draw( Texture& tx ) const = 0;
+  void virtual draw( rr::Renderer& renderer ) const = 0;
 
   // Called once per frame.
   virtual void advance_state();
@@ -146,7 +139,7 @@ void set_plane_list( std::vector<e_plane> const& planes );
 
 bool is_plane_enabled( e_plane plane );
 
-void draw_all_planes( Texture& tx = Texture::screen() );
+void draw_all_planes( rr::Renderer& renderer );
 
 // This will call the advance_state method on each plane to up-
 // date any state that it has. It will only be called on frames

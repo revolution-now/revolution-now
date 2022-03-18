@@ -17,13 +17,15 @@
 #include "nation.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
-#include "tx.hpp"
 #include "ui-enums.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
 #include "utype.hpp"
 #include "view.hpp"
 #include "wait.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // gfx
 #include "gfx/pixel.hpp"
@@ -42,7 +44,8 @@ namespace rn::ui {
 class CompositeView : public View {
  public:
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -199,7 +202,8 @@ class SolidRectView : public View {
     : color_( color ), delta_( delta ) {}
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
   Delta delta() const override { return delta_; }
 
@@ -212,13 +216,13 @@ class SolidRectView : public View {
 
 class OneLineStringView : public View {
  public:
-  OneLineStringView( std::string msg, gfx::pixel color,
-                     bool shadow );
+  OneLineStringView( std::string msg, gfx::pixel color );
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
-  Delta delta() const override { return tx_.size(); }
+  Delta delta() const override;
 
   std::string const& msg() const { return msg_; }
 
@@ -226,23 +230,30 @@ class OneLineStringView : public View {
 
  protected:
   std::string msg_;
-  Texture     tx_;
+  gfx::pixel  color_;
 };
 
 class TextView : public View {
  public:
   TextView( std::string_view msg, TextMarkupInfo const& m_info,
-            TextReflowInfo const& r_info );
+            TextReflowInfo const& r_info )
+    : msg_( msg ),
+      markup_info_( m_info ),
+      reflow_info_( r_info ) {}
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
+
   // Implement Object
-  Delta delta() const override { return tx_.size(); }
+  Delta delta() const override;
 
   bool needs_padding() const override { return true; }
 
- protected:
-  Texture tx_;
+ private:
+  std::string    msg_;
+  TextMarkupInfo markup_info_;
+  TextReflowInfo reflow_info_;
 };
 
 class ButtonBaseView : public View {
@@ -256,9 +267,10 @@ class ButtonBaseView : public View {
                   e_type type );
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override final;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override final;
   // Implement Object
-  Delta delta() const override final { return pressed_.size(); }
+  Delta delta() const override final;
 
   bool needs_padding() const override { return true; }
 
@@ -275,16 +287,25 @@ class ButtonBaseView : public View {
   e_type type() const { return type_; }
 
  private:
-  void render( std::string const& label, Delta size_in_blocks );
+  // Note this takes size in pixels, not blocks.
+  ButtonBaseView( std::string label, Delta size_in_pixels,
+                  e_type type, gfx::size text_size_in_pixels );
 
-  button_state state_{ button_state::up };
+  void render_disabled( rr::Renderer& renderer,
+                        gfx::point    where ) const;
+  void render_pressed( rr::Renderer& renderer,
+                       gfx::point    where ) const;
+  void render_unpressed( rr::Renderer& renderer,
+                         gfx::point    where ) const;
+  void render_hover( rr::Renderer& renderer,
+                     gfx::point    where ) const;
 
-  e_type type_;
+  button_state state_ = button_state::up;
 
-  Texture pressed_{};
-  Texture hover_{}; // used for blinking when type is `blinking`
-  Texture unpressed_{};
-  Texture disabled_{};
+  std::string label_;
+  e_type      type_;
+  Delta       size_in_pixels_;
+  gfx::size   text_size_in_pixels_;
 };
 
 class SpriteView : public View {
@@ -292,7 +313,8 @@ class SpriteView : public View {
   SpriteView( e_tile tile ) : tile_( tile ) {}
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
   Delta delta() const override {
     return Delta{ 1_w, 1_h } * lookup_sprite( tile_ ).scale;
@@ -316,9 +338,10 @@ class LineEditorView : public View {
                   std::string_view initial_text );
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
-  Delta delta() const override { return background_.size(); }
+  Delta delta() const override;
 
   bool needs_padding() const override { return true; }
 
@@ -333,8 +356,6 @@ class LineEditorView : public View {
     on_change_ = std::move( on_change );
   }
 
-  void set_pixel_size( Delta const& size );
-
   void clear();
   // Leaving off cursor position, it will attempt to keep it
   // where it is, unless it is out of bounds in which case it
@@ -347,7 +368,8 @@ class LineEditorView : public View {
             maybe<int>       cursor_pos = nothing );
 
  private:
-  void render_background( Delta const& size );
+  void render_background( rr::Renderer& renderer,
+                          Rect const&   r ) const;
   void update_visible_string();
 
   std::string         prompt_;
@@ -357,7 +379,6 @@ class LineEditorView : public View {
   OnChangeFunc        on_change_;
   LineEditor          line_editor_;
   LineEditorInputView input_view_;
-  Texture             background_;
   std::string         current_rendering_;
   W                   cursor_width_;
 };
@@ -580,7 +601,8 @@ class FakeUnitView : public CompositeSingleView {
                 e_unit_orders orders );
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement CompositeView
   void notify_children_updated() override {}
 
@@ -618,7 +640,8 @@ class BorderView : public CompositeSingleView {
               int padding, bool on_initially );
 
   // Implement Object
-  void draw( Texture& tx, Coord coord ) const override;
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
   // Implement Object
   Delta delta() const override;
 

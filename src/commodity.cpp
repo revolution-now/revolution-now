@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "gfx.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
@@ -69,29 +68,27 @@ e_tile tile_for_commodity( e_commodity c ) {
   }
 }
 
-maybe<Texture const&> render_commodity_label(
-    string_view label ) {
-  if( !label.empty() ) {
-    TextMarkupInfo info{ /*normal=*/gfx::pixel::white(),
-                         /*highlight=*/gfx::pixel::green() };
-    return render_text_markup( font::small(), info, label );
-  }
-  return nothing;
+void render_commodity_label( rr::Renderer& renderer, Coord where,
+                             string_view label ) {
+  if( label.empty() ) return;
+  TextMarkupInfo info{ /*normal=*/gfx::pixel::white(),
+                       /*highlight=*/gfx::pixel::green() };
+  render_text_markup( renderer, where, font::small(), info,
+                      label );
 }
 
-void render_commodity_impl( Texture& tx, e_commodity type,
-                            Coord                 pixel_coord,
-                            maybe<Texture const&> label ) {
+void render_commodity_impl( rr::Renderer& renderer, Coord where,
+                            e_commodity   type,
+                            maybe<string> label ) {
   auto tile = tile_for_commodity( type );
-  render_sprite( tx, tile, pixel_coord );
-  if( label ) {
-    // Place text below commodity, but centered horizontally.
-    auto comm_size  = lookup_sprite( tile ).size();
-    auto label_size = label->size();
-    auto origin     = pixel_coord + comm_size.h + 2_h -
-                  ( label_size.w - comm_size.w ) / 2_sx;
-    copy_texture( *label, tx, origin );
-  }
+  render_sprite( renderer, tile, where );
+  if( !label ) return;
+  // Place text below commodity, but centered horizontally.
+  Delta comm_size = lookup_sprite( tile ).size();
+  auto label_size = rr::rendered_text_line_size_pixels( *label );
+  auto origin     = where + comm_size.h + 2_h -
+                ( label_size.w - comm_size.w ) / 2_sx;
+  render_commodity_label( renderer, origin, *label );
 }
 
 string commodity_number_to_markup( int value ) {
@@ -256,32 +253,25 @@ maybe<string> commodity_label_to_markup(
   };
 }
 
-maybe<Texture const&> render_commodity_label(
-    CommodityLabel_t const& label ) {
-  auto maybe_text = commodity_label_to_markup( label );
-  if( maybe_text ) return render_commodity_label( *maybe_text );
-  return nothing;
-}
-
-void render_commodity( Texture& tx, e_commodity type,
-                       Coord pixel_coord ) {
-  render_commodity_impl( tx, type, pixel_coord,
+void render_commodity( rr::Renderer& renderer, Coord where,
+                       e_commodity type ) {
+  render_commodity_impl( renderer, where, type,
                          /*label=*/nothing );
 }
 
 void render_commodity_annotated(
-    Texture& tx, e_commodity type, Coord pixel_coord,
+    rr::Renderer& renderer, Coord where, e_commodity type,
     CommodityLabel_t const& label ) {
-  render_commodity_impl( tx, type, pixel_coord,
-                         render_commodity_label( label ) );
+  render_commodity_impl( renderer, where, type,
+                         commodity_label_to_markup( label ) );
 }
 
 // Will use quantity as label.
-void render_commodity_annotated( Texture&         tx,
-                                 Commodity const& comm,
-                                 Coord            pixel_coord ) {
+void render_commodity_annotated( rr::Renderer&    renderer,
+                                 Coord            where,
+                                 Commodity const& comm ) {
   render_commodity_annotated(
-      tx, comm.type, pixel_coord,
+      renderer, where, comm.type,
       CommodityLabel::quantity{ comm.quantity } );
 }
 
