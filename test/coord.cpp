@@ -348,7 +348,7 @@ TEST_CASE( "[coord] rounded_to_multiple_to_plus_inf" ) {
            expect );
 }
 
-TEST_CASE( "[coord] gfx conversions*" ) {
+TEST_CASE( "[coord] to gfx" ) {
   Delta d( W{ 5 }, H{ 6 } );
   Coord c( X{ 5 }, Y{ 6 } );
   Rect  r = Rect::from( Coord( X{ 1 }, Y{ 2 } ),
@@ -358,6 +358,22 @@ TEST_CASE( "[coord] gfx conversions*" ) {
   REQUIRE( c == gfx::point{ .x = 5, .y = 6 } );
   REQUIRE( r == gfx::rect{ .origin = { .x = 1, .y = 2 },
                            .size   = { .w = 5, .h = 6 } } );
+}
+
+TEST_CASE( "[coord] from gfx" ) {
+  Delta d( W{ 5 }, H{ 6 } );
+  Coord c( X{ 5 }, Y{ 6 } );
+  Rect  r = Rect::from( Coord( X{ 1 }, Y{ 2 } ),
+                        Delta( W{ 5 }, H{ 6 } ) );
+
+  gfx::size  d_gfx{ .w = 5, .h = 6 };
+  gfx::point c_gfx{ .x = 5, .y = 6 };
+  gfx::rect  r_gfx = gfx::rect{ .origin = { .x = 1, .y = 2 },
+                                .size   = { .w = 5, .h = 6 } };
+
+  REQUIRE( Delta::from_gfx( d_gfx ) == d );
+  REQUIRE( Coord::from_gfx( c_gfx ) == c );
+  REQUIRE( Rect::from_gfx( r_gfx ) == r );
 }
 
 } // namespace

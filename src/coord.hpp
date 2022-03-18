@@ -75,6 +75,10 @@ struct ND Delta {
     return gfx::size{ .w = w._, .h = h._ };
   }
 
+  static Delta from_gfx( gfx::size s ) {
+    return Delta( W{ s.w }, H{ s.h } );
+  }
+
   constexpr Delta() = default;
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
   constexpr Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
@@ -177,6 +181,10 @@ struct ND Coord {
     return gfx::point{ .x = x._, .y = y._ };
   }
 
+  static Coord from_gfx( gfx::point p ) {
+    return Coord( X{ p.x }, Y{ p.y } );
+  }
+
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
@@ -261,6 +269,11 @@ struct ND Rect {
   operator gfx::rect() const {
     return gfx::rect{ .origin = { .x = x._, .y = y._ },
                       .size   = { .w = w._, .h = h._ } };
+  }
+
+  static Rect from_gfx( gfx::rect r ) {
+    return Rect::from( Coord( X{ r.origin.x }, Y{ r.origin.y } ),
+                       Delta( W{ r.size.w }, H{ r.size.h } ) );
   }
 
   bool operator==( Rect const& rhs ) const {
