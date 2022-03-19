@@ -85,7 +85,12 @@ void paint_things( rr::Renderer& renderer ) {
       rect{ .origin = { .x = 300, .y = 100 },
             .size   = { .w = 50, .h = 50 } },
       pixel{ .r = 128, .g = 64, .b = 0, .a = 255 } );
-  painter.with_mods( { .depixelate = .5, .alpha = .5 } )
+  painter
+      .with_mods(
+          { .depixelate =
+                rr::DepixelateInfo{ .stage               = .5,
+                                    .target_pixel_offset = {} },
+            .alpha = .5 } )
       .draw_solid_rect(
           rect{ .origin = { .x = 325, .y = 125 },
                 .size   = { .w = 50, .h = 50 } },
@@ -102,7 +107,12 @@ void paint_things( rr::Renderer& renderer ) {
       water_id, rect{ .origin = { .x = 450, .y = 200 },
                       .size   = { .w = 128, .h = 64 } } );
 
-  painter.with_mods( { .depixelate = .5, .alpha = 1.0 } )
+  painter
+      .with_mods(
+          { .depixelate =
+                rr::DepixelateInfo{ .stage               = .5,
+                                    .target_pixel_offset = {} },
+            .alpha = 1.0 } )
       .draw_sprite( water_id, { .x = 300, .y = 250 } )
       .draw_sprite( grass_id, { .x = 364, .y = 250 } );
 

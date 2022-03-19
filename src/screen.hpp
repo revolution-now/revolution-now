@@ -15,14 +15,8 @@
 // Revolution Now
 #include "coord.hpp"
 #include "error.hpp"
-#include "tx.hpp"
-
-struct SDL_Renderer;
 
 namespace rn {
-
-extern ::SDL_Renderer* g_renderer;
-extern Texture         g_texture_viewport;
 
 extern Scale g_resolution_scale_factor;
 
@@ -56,8 +50,6 @@ DisplayMode current_display_mode();
 
 // Should not need this often.
 Delta whole_screen_physical_size();
-
-Delta max_texture_size();
 
 void    hide_window();
 ND bool is_window_fullscreen();

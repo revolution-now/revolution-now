@@ -145,6 +145,9 @@ enum.e_tile {
   colony_basic,
   colony_stockade,
 
+  # Images
+  old_world_background,
+
   # Mouse
   mouse_planks,
   mouse_musket,

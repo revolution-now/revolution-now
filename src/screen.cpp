@@ -13,11 +13,9 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "error.hpp"
-#include "gfx.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
-#include "terrain.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // Revolution Now (config)
@@ -40,9 +38,7 @@ using namespace std;
 
 namespace rn {
 
-::SDL_Window*   g_window   = nullptr;
-::SDL_Renderer* g_renderer = nullptr;
-Texture         g_texture_viewport;
+::SDL_Window* g_window = nullptr;
 
 Scale g_resolution_scale_factor{ 0 };
 Scale g_optimal_resolution_scale_factor{ 0 };
@@ -337,8 +333,6 @@ void on_logical_resolution_changed() {
   main_window_physical_size_cache = nothing;
 
   auto logical_size = main_window_logical_size();
-  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
-                              logical_size.h._ );
   lg.debug( "logical resolution changed to {}", logical_size );
 
   auto physical_size = main_window_physical_size();
@@ -354,49 +348,9 @@ void on_renderer_scale_factor_changed() {
   on_logical_resolution_changed();
 }
 
-void init_renderer() {
-  g_renderer = SDL_CreateRenderer(
-      g_window, -1,
-      SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE |
-          SDL_RENDERER_PRESENTVSYNC );
-
-  CHECK( g_renderer, "failed to create renderer" );
-
-  // This will do what is necessary when the scale factor is
-  // reset (or, in this case, set for the first time).
-  on_renderer_scale_factor_changed();
-
-  // I think in theory we should not need this because we should
-  // have already computed a logical_size that allowed for in-
-  // teger scaling, but just in case we do the calculations wrong
-  // this might help to flag that.
-  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
-
-  ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                ::SDL_BLENDMODE_BLEND );
-
-  // Now we calculate the necessary size of the viewport texture.
-  // This needs to be large enough to accomodate a zoomed-out
-  // view in which the entire world is visible.
-  //
-  // FIXME: move this out of here or, even better, get rid of it
-  // altogether.
-  auto delta = world_size * Scale{ 32 };
-  lg.debug( "g_texture_viewport proposed size: {}", delta );
-  lg.debug( "g_texture_viewport memory usage estimate: {}MB",
-            Texture::mem_usage_mb( delta ) );
-  g_texture_viewport = create_texture( delta );
-}
-
-void cleanup_renderer() {
-  if( g_renderer != nullptr )
-    ::SDL_DestroyRenderer( g_renderer );
-}
-
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen );
-REGISTER_INIT_ROUTINE( renderer );
 
 void* main_os_window_handle() { return (void*)g_window; }
 
@@ -497,13 +451,6 @@ void restore_window() { ::SDL_RestoreWindow( g_window ); }
 void on_main_window_resized() {
   lg.debug( "main window resizing." );
   on_logical_resolution_changed();
-}
-
-Delta max_texture_size() {
-  ::SDL_RendererInfo info;
-  ::SDL_GetRendererInfo( g_renderer, &info );
-  return Delta{ W{ info.max_texture_width },
-                H{ info.max_texture_height } };
 }
 
 } // namespace rn

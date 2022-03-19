@@ -145,11 +145,15 @@ class TitleBar : public ui::View, public ColonySubView {
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
-    render_fill_rect( renderer, gfx::pixel::wood(),
-                      rect( coord ) );
-    Texture const& name = render_text(
-        font::standard(), gfx::pixel::banana(), title() );
-    name.copy_to( tx, centered( name.size(), rect( coord ) ) );
+    rr::Painter painter = renderer.painter();
+    painter.draw_solid_rect( rect( coord ), gfx::pixel::wood() );
+    renderer
+        .typer( centered( Delta::from_gfx(
+                              rr::rendered_text_line_size_pixels(
+                                  title() ) ),
+                          rect( coord ) ),
+                gfx::pixel::banana() )
+        .write( title() );
   }
 
   static unique_ptr<TitleBar> create( Delta size ) {
@@ -195,13 +199,16 @@ class MarketCommodities : public ui::View,
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
+    rr::Painter painter = renderer.painter();
     auto        comm_it = refl::enum_values<e_commodity>.begin();
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
     auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
-      render_rect( renderer, gfx::pixel::black(), rect );
+      painter.draw_empty_rect(
+          rect, rr::Painter::e_border_mode::inside,
+          gfx::pixel::black() );
       label.value = colony.commodity_quantity( *comm_it );
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
@@ -335,14 +342,17 @@ class PopulationView : public ui::View, public ColonySubView {
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
-    render_rect( renderer, gfx::pixel::black(),
-                 rect( coord ).with_inc_size() );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::black() );
     auto const& colony = colony_from_id( colony_id() );
     unordered_map<UnitId, ColonyJob_t> const& units_jobs =
         colony.units_jobs();
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
-      render_unit( tx, unit_pos, unit_id, /*with_icon=*/false );
+      render_unit( renderer, unit_pos, unit_id,
+                   /*with_icon=*/false );
       unit_pos += 24_w;
     }
   }
@@ -407,23 +417,27 @@ class CargoView : public ui::View,
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
-    render_rect( tx, gfx::pixel::black(),
-                 rect( coord ).with_inc_size() );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::black() );
     auto unit = holder_.fmap( unit_from_id );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
       UNWRAP_CHECK( info, slot_rect_from_idx( idx ) );
       auto [is_open, relative_rect] = info;
       Rect rect = relative_rect.as_if_origin_were( coord );
       if( !is_open ) {
-        render_fill_rect( tx, gfx::pixel::wood(), rect );
+        painter.draw_solid_rect( rect, gfx::pixel::wood() );
         continue;
       }
 
       // FIXME: need to deduplicate this logic with that in
       // the Old World view.
-      render_fill_rect( tx, gfx::pixel::wood().highlighted( 4 ),
-                        rect );
-      render_rect( tx, gfx::pixel::wood(), rect );
+      painter.draw_solid_rect(
+          rect, gfx::pixel::wood().highlighted( 4 ) );
+      painter.draw_empty_rect(
+          rect, rr::Painter::e_border_mode::inside,
+          gfx::pixel::wood() );
       CargoHold const& hold = unit->cargo();
       switch( auto& v = hold[idx]; v.to_enum() ) {
         case CargoSlot::e::empty: break;
@@ -433,12 +447,12 @@ class CargoView : public ui::View,
           overload_visit(
               cargo.contents,
               [&]( Cargo::unit u ) {
-                render_unit( tx, rect.upper_left(), u.id,
+                render_unit( renderer, rect.upper_left(), u.id,
                              /*with_icon=*/false );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
-                    tx,
+                    renderer,
                     rect.upper_left() +
                         kCommodityInCargoHoldRenderingOffset,
                     c.obj );
@@ -681,14 +695,19 @@ class UnitsAtGateColonyView : public ui::View,
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
-    render_rect( tx, gfx::pixel::black(),
-                 rect( coord ).with_inc_size() );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
-      render_unit( tx, draw_pos, unit_id, /*with_icon=*/true );
+      render_unit( renderer, draw_pos, unit_id,
+                   /*with_icon=*/true );
       if( selected_ == unit_id )
-        render_rect( tx, gfx::pixel::green(),
-                     Rect::from( draw_pos, g_tile_delta ) );
+        painter.draw_empty_rect(
+            Rect::from( draw_pos, g_tile_delta ),
+            rr::Painter::e_border_mode::inside,
+            gfx::pixel::green() );
     }
   }
 
@@ -1029,8 +1048,10 @@ class ProductionView : public ui::View, public ColonySubView {
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
-    render_rect( tx, gfx::pixel::black(),
-                 rect( coord ).with_inc_size() );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::black() );
   }
 
   static unique_ptr<ProductionView> create( Delta size ) {
@@ -1092,7 +1113,7 @@ class LandView : public ui::View, public ColonySubView {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
                            Delta{ 1_w, 1_h };
-      render_terrain_square( tx, render_square,
+      render_terrain_square( renderer, render_square,
                              ( local_coord * g_tile_scale )
                                  .as_if_origin_were( coord ) );
     }
@@ -1102,7 +1123,7 @@ class LandView : public ui::View, public ColonySubView {
                            Delta{ 1_w, 1_h };
       auto maybe_col_id = colony_from_coord( render_square );
       if( !maybe_col_id ) continue;
-      render_colony( tx,
+      render_colony( renderer,
                      ( local_coord * g_tile_scale )
                              .as_if_origin_were( coord ) -
                          Delta{ 6_w, 6_h },
@@ -1112,41 +1133,35 @@ class LandView : public ui::View, public ColonySubView {
 
   void draw_land_6x6( rr::Renderer& renderer,
                       Coord         coord ) const {
-    land_tx_.fill();
-    draw_land_3x3( land_tx_, Coord{} );
-    auto dst_rect = Rect::from( coord, delta() );
-    land_tx_.copy_to( tx, /*src=*/nothing, dst_rect );
+    draw_land_3x3( renderer, coord );
   }
 
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
+    rr::Painter painter = renderer.painter();
     switch( mode_ ) {
       case e_render_mode::_3x3:
-        draw_land_3x3( tx, coord );
+        draw_land_3x3( renderer, coord );
         break;
       case e_render_mode::_5x5:
-        render_fill_rect( tx, gfx::pixel::wood(),
-                          rect( coord ) );
-        draw_land_3x3( tx, coord + g_tile_delta );
+        painter.draw_solid_rect( rect( coord ),
+                                 gfx::pixel::wood() );
+        draw_land_3x3( renderer, coord + g_tile_delta );
         break;
       case e_render_mode::_6x6:
-        draw_land_6x6( tx, coord );
+        draw_land_6x6( renderer, coord );
         break;
     }
   }
 
   static unique_ptr<LandView> create( e_render_mode mode ) {
-    return make_unique<LandView>(
-        mode,
-        Texture::create( Delta{ 3_w, 3_h } * g_tile_scale ) );
+    return make_unique<LandView>( mode );
   }
 
-  LandView( e_render_mode mode, Texture land_tx )
-    : mode_( mode ), land_tx_( std::move( land_tx ) ) {}
+  LandView( e_render_mode mode ) : mode_( mode ) {}
 
  private:
-  e_render_mode   mode_;
-  mutable Texture land_tx_;
+  e_render_mode mode_;
 };
 
 /****************************************************************
@@ -1369,8 +1384,9 @@ ColonySubView& colview_top_level() {
 // FIXME: a lot of this needs to be de-duped with the corre-
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
+    rr::Renderer&                       renderer,
     drag::State<ColViewObject_t> const& state,
-    Coord const& canvas_origin, rr::Renderer& renderer ) {
+    Coord const&                        canvas_origin ) {
   Coord sprite_upper_left = state.where - state.click_offset +
                             canvas_origin.distance_from_origin();
   using namespace ColViewObject;
@@ -1390,21 +1406,23 @@ void colview_drag_n_drop_draw(
     using e = drag::e_status_indicator;
     case e::none: break;
     case e::bad: {
-      auto const& status_tx =
-          render_text( "X", gfx::pixel::red() );
-      copy_texture( status_tx, tx, sprite_upper_left );
+      rr::Typer typer =
+          renderer.typer( sprite_upper_left, gfx::pixel::red() );
+      typer.write( "X" );
       break;
     }
     case e::good: {
-      auto const& status_tx =
-          render_text( "+", gfx::pixel::green() );
-      copy_texture( status_tx, tx, sprite_upper_left );
+      rr::Typer typer = renderer.typer( sprite_upper_left,
+                                        gfx::pixel::green() );
+      typer.write( "+" );
       if( state.user_requests_input ) {
-        auto const& mod_tx =
-            render_text( "?", gfx::pixel::green() );
         auto mod_pos = state.where;
-        mod_pos.y -= mod_tx.size().h;
-        copy_texture( mod_tx, tx, mod_pos - state.click_offset );
+        mod_pos.y -=
+            H{ rr::rendered_text_line_size_pixels( "?" ).h };
+        mod_pos -= state.click_offset;
+        auto typer_mod =
+            renderer.typer( mod_pos, gfx::pixel::green() );
+        typer.write( "?" );
       }
       break;
     }

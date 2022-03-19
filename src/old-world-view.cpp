@@ -200,13 +200,16 @@ class MarketCommodities {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    auto bds     = bounds();
-    auto grid    = bds.to_grid_noalign( sprite_delta );
-    auto comm_it = refl::enum_values<e_commodity>.begin();
-    auto label   = CommodityLabel::buy_sell{ 100, 200 };
+    rr::Painter painter = renderer.painter();
+    auto        bds     = bounds();
+    auto        grid    = bds.to_grid_noalign( sprite_delta );
+    auto        comm_it = refl::enum_values<e_commodity>.begin();
+    auto        label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
-      render_rect( renderer, gfx::pixel::white(),
-                   rect.shifted_by( offset ) );
+      painter.draw_empty_rect(
+          rect.shifted_by( offset ),
+          rr::Painter::e_border_mode::inside,
+          gfx::pixel::white() );
       render_commodity_annotated(
           renderer,
           rect.shifted_by( offset ).upper_left() +
@@ -296,11 +299,14 @@ class ActiveCargoBox {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( box_delta );
+    rr::Painter painter = renderer.painter();
+    auto        bds     = bounds();
+    auto        grid    = bds.to_grid_noalign( box_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( renderer, gfx::pixel::white(),
-                   rect.shifted_by( offset ) );
+      painter.draw_empty_rect(
+          rect.shifted_by( offset ),
+          rr::Painter::e_border_mode::inside,
+          gfx::pixel::white() );
   }
 
   ActiveCargoBox( ActiveCargoBox&& ) = default;
@@ -343,8 +349,7 @@ class ActiveCargoBox {
 NOTHROW_MOVE( ActiveCargoBox );
 
 class DockAnchor {
-  static constexpr Delta cross_leg_size{ 5_w, 5_h };
-  static constexpr H     above_active_cargo_box{ 32_h };
+  static constexpr H above_active_cargo_box{ 32_h };
 
  public:
   Rect bounds() const {
@@ -353,17 +358,16 @@ class DockAnchor {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
+    rr::Painter painter = renderer.painter();
     // This mess just draws an X.
-    render_line(
-        renderer, gfx::pixel::white(),
-        location_ - cross_leg_size + offset,
-        cross_leg_size * Scale{ 2 } + Delta{ 1_w, 1_h } );
-    render_line(
-        renderer, gfx::pixel::white(),
-        location_ - cross_leg_size.mirrored_vertically() +
-            offset,
-        cross_leg_size.mirrored_vertically() * Scale{ 2 } +
-            Delta{ 1_w, -1_h } );
+    gfx::size char_size =
+        rr::rendered_text_line_size_pixels( "X" );
+    auto loc =
+        Rect::from( Coord{}, Delta::from_gfx( char_size ) )
+            .centered_on( location_ )
+            .upper_left() +
+        offset;
+    renderer.typer( loc, gfx::pixel::white() ).write( "X" );
   }
 
   DockAnchor( DockAnchor&& ) = default;
@@ -411,10 +415,10 @@ class Backdrop {
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    copy_texture(
-        image( e_image::europe ), tx,
-        Rect::from( upper_left_of_render_rect_, size_ ),
-        Coord{} + offset );
+    rr::Painter painter = renderer.painter();
+    render_sprite_section(
+        renderer, e_tile::old_world_background, Coord{} + offset,
+        Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
   Backdrop( Backdrop&& ) = default;
@@ -424,12 +428,11 @@ class Backdrop {
       Delta const&             size,
       maybe<DockAnchor> const& maybe_dock_anchor ) {
     maybe<Backdrop> res;
-    if( maybe_dock_anchor ) {
+    if( maybe_dock_anchor )
       res =
           Backdrop{ -( maybe_dock_anchor->bounds().upper_left() -
                        image_distance_from_anchor ),
                     size };
-    }
     return res;
   }
 
@@ -455,13 +458,14 @@ class InPortBox {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    render_rect( renderer, gfx::pixel::white(),
-                 bounds().shifted_by( offset ) );
-    auto const& label_tx =
-        render_text( "In Port", gfx::pixel::white() );
-    copy_texture(
-        label_tx, tx,
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( bounds().shifted_by( offset ),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::white() );
+    rr::Typer typer = renderer.typer(
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        gfx::pixel::white() );
+    typer.write( "In Port" );
   }
 
   InPortBox( InPortBox&& ) = default;
@@ -516,13 +520,14 @@ class InboundBox {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    render_rect( renderer, gfx::pixel::white(),
-                 bounds().shifted_by( offset ) );
-    auto const& label_tx =
-        render_text( "Inbound", gfx::pixel::white() );
-    copy_texture(
-        label_tx, tx,
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( bounds().shifted_by( offset ),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::white() );
+    rr::Typer typer = renderer.typer(
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        gfx::pixel::white() );
+    typer.write( "Inbound" );
   }
 
   InboundBox( InboundBox&& ) = default;
@@ -583,13 +588,14 @@ class OutboundBox {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    render_rect( renderer, gfx::pixel::white(),
-                 bounds().shifted_by( offset ) );
-    auto const& label_tx =
-        render_text( "Outbound", gfx::pixel::white() );
-    copy_texture(
-        label_tx, tx,
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( bounds().shifted_by( offset ),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::white() );
+    rr::Typer typer = renderer.typer(
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        gfx::pixel::white() );
+    typer.write( "outbound" );
   }
 
   OutboundBox( OutboundBox&& ) = default;
@@ -651,14 +657,18 @@ class Exit {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    auto bds            = bounds().with_inc_size();
+    rr::Painter painter = renderer.painter();
+    auto        bds     = bounds().with_inc_size();
     bds                 = bds.shifted_by( Delta{ -2_w, -2_h } );
-    auto const& exit_tx = render_text(
-        font::standard(), gfx::pixel::red(), "Exit" );
-    auto drawing_origin = centered( exit_tx.size(), bds );
-    copy_texture( exit_tx, tx, drawing_origin + offset );
-    render_rect( renderer, gfx::pixel::white(),
-                 bds.shifted_by( offset ) );
+    static string text  = "Exit";
+    Delta         text_size = Delta::from_gfx(
+                rr::rendered_text_line_size_pixels( text ) );
+    rr::Typer typer = renderer.typer(
+        centered( text_size, bds ) + offset, gfx::pixel::red() );
+    typer.write( text );
+    painter.draw_empty_rect( bds.shifted_by( offset ),
+                             rr::Painter::e_border_mode::inside,
+                             gfx::pixel::white() );
   }
 
   Exit( Exit&& ) = default;
@@ -710,11 +720,14 @@ class Dock {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    auto bds  = bounds();
+    rr::Painter painter = renderer.painter();
+    auto        bds     = bounds();
     auto grid = bds.to_grid_noalign( dock_block_pixels_delta );
     for( auto rect : range_of_rects( grid ) )
-      render_rect( renderer, gfx::pixel::white(),
-                   rect.shifted_by( offset ) );
+      painter.draw_empty_rect(
+          rect.shifted_by( offset ),
+          rr::Painter::e_border_mode::inside,
+          gfx::pixel::white() );
   }
 
   Dock( Dock&& ) = default;
@@ -769,12 +782,12 @@ class UnitCollection {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
+    rr::Painter              painter = renderer.painter();
     OldWorldViewState const& owv_state =
         GameState::old_world_view();
     // auto bds = bounds();
-    // render_rect( renderer, gfx::pixel::white(),
-    // bds.shifted_by( offset )
-    // );
+    // painter.draw_empty_rect( bds.shifted_by( offset ),
+    // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
     for( auto const& unit_with_pos : units_ )
       if( !g_drag_state || g_drag_state->object !=
                                OldWorldDraggableObject_t{
@@ -787,9 +800,11 @@ class UnitCollection {
     if( owv_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *owv_state.selected_unit ) {
-          render_rect( renderer, gfx::pixel::green(),
-                       Rect::from( coord, g_tile_delta )
-                           .shifted_by( offset ) );
+          painter.draw_empty_rect(
+              Rect::from( coord, g_tile_delta )
+                  .shifted_by( offset ),
+              rr::Painter::e_border_mode::inside,
+              gfx::pixel::green() );
           break;
         }
       }
@@ -1009,7 +1024,8 @@ class ActiveCargo {
   Rect bounds() const { return bounds_; }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    auto bds  = bounds();
+    rr::Painter painter = renderer.painter();
+    auto        bds     = bounds();
     auto grid = bds.to_grid_noalign( ActiveCargoBox::box_delta );
     if( maybe_active_unit_ ) {
       auto&       unit = unit_from_id( *maybe_active_unit_ );
@@ -1060,13 +1076,13 @@ class ActiveCargo {
       for( auto [idx, rect] :
            rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
         if( idx >= unit.cargo().slots_total() )
-          render_fill_rect( renderer, gfx::pixel::white(),
-                            rect.shifted_by( offset ) );
+          painter.draw_solid_rect( rect.shifted_by( offset ),
+                                   gfx::pixel::white() );
       }
     } else {
       for( auto rect : range_of_rects( grid ) )
-        render_fill_rect( renderer, gfx::pixel::white(),
-                          rect.shifted_by( offset ) );
+        painter.draw_solid_rect( rect.shifted_by( offset ),
+                                 gfx::pixel::white() );
     }
   }
 
@@ -1868,23 +1884,25 @@ void drag_n_drop_draw( rr::Renderer& renderer,
     using e = drag::e_status_indicator;
     case e::none: break;
     case e::bad: {
-      auto const& status_tx =
-          render_text( "X", gfx::pixel::red() );
-      copy_texture( status_tx, tx,
-                    origin_for( status_tx.size() ) );
+      Delta char_size = Delta::from_gfx(
+          rr::rendered_text_line_size_pixels( "X" ) );
+      rr::Typer typer = renderer.typer( origin_for( char_size ),
+                                        gfx::pixel::red() );
+      typer.write( "X" );
       break;
     }
     case e::good: {
-      auto const& status_tx =
-          render_text( "+", gfx::pixel::green() );
-      copy_texture( status_tx, tx,
-                    origin_for( status_tx.size() ) );
+      Delta char_size = Delta::from_gfx(
+          rr::rendered_text_line_size_pixels( "+" ) );
+      rr::Typer typer = renderer.typer( origin_for( char_size ),
+                                        gfx::pixel::green() );
+      typer.write( "+" );
       if( state.user_requests_input ) {
-        auto const& mod_tx =
-            render_text( "?", gfx::pixel::green() );
         auto mod_pos = to_screen_coords( state.where );
-        mod_pos.y -= mod_tx.size().h;
-        copy_texture( mod_tx, tx, mod_pos - state.click_offset );
+        mod_pos.y -= char_size.h;
+        rr::Typer typer_mod = renderer.typer(
+            mod_pos - state.click_offset, gfx::pixel::green() );
+        typer_mod.write( "?" );
       }
       break;
     }
