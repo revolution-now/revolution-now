@@ -13,34 +13,19 @@
 // Revolution Now
 #include "error.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "render.hpp"
 #include "renderer.hpp"
-#include "screen.hpp"
-#include "sdl-util.hpp"
-
-// render
-#include "render/painter.hpp"
-#include "render/renderer.hpp"
-#include "render/typer.hpp"
+#include "terrain.hpp"
+#include "text.hpp"
 
 // gl
 #include "gl/init.hpp"
 
-// base
-#include "base/function-ref.hpp"
-#include "base/keyval.hpp"
-#include "base/to-str-ext-std.hpp"
-
-using namespace std;
+using namespace ::std;
+using namespace ::gfx;
 
 namespace rn {
-
 namespace {
-
-using ::gfx::pixel;
-using ::gfx::point;
-using ::gfx::rect;
-using ::gfx::size;
 
 #define OUTSIDE( x__, y__, w__, h__ )         \
   painter.draw_empty_rect(                    \
@@ -56,6 +41,9 @@ using ::gfx::size;
 
 void paint_things( rr::Renderer& renderer ) {
   rr::Painter painter = renderer.painter();
+
+  renderer.clear_screen(
+      pixel{ .r = 50, .g = 75, .b = 75, .a = 255 } );
 
   painter.draw_point(
       point{ .x = 50, .y = 50 },
@@ -85,6 +73,7 @@ void paint_things( rr::Renderer& renderer ) {
       rect{ .origin = { .x = 300, .y = 100 },
             .size   = { .w = 50, .h = 50 } },
       pixel{ .r = 128, .g = 64, .b = 0, .a = 255 } );
+
   painter
       .with_mods(
           { .depixelate =
@@ -96,53 +85,48 @@ void paint_things( rr::Renderer& renderer ) {
                 .size   = { .w = 50, .h = 50 } },
           pixel{ .r = 0, .g = 0, .b = 0, .a = 255 } );
 
-  UNWRAP_CHECK( water_id,
-                base::lookup( renderer.atlas_ids(), "water" ) );
-  UNWRAP_CHECK( grass_id,
-                base::lookup( renderer.atlas_ids(), "land" ) );
-  painter.draw_sprite( water_id, { .x = 300, .y = 200 } );
-  painter.draw_sprite( grass_id, { .x = 364, .y = 200 } );
+  render_terrain_square( painter, Coord{ 300_x, 200_y },
+                         Coord{ 0_x, 0_y } );
+  render_terrain_square( painter, Coord{ 364_x, 200_y },
+                         Coord{ 1_x, 1_y } );
 
-  painter.draw_sprite_scale(
-      water_id, rect{ .origin = { .x = 450, .y = 200 },
-                      .size   = { .w = 128, .h = 64 } } );
+  render_terrain_square( painter,
+                         Rect{ 450_x, 200_y, 128_w, 64_h },
+                         Coord{ 0_x, 0_y } );
 
-  painter
-      .with_mods(
-          { .depixelate =
-                rr::DepixelateInfo{ .stage               = .5,
-                                    .target_pixel_offset = {} },
-            .alpha = 1.0 } )
-      .draw_sprite( water_id, { .x = 300, .y = 250 } )
-      .draw_sprite( grass_id, { .x = 364, .y = 250 } );
-
-  pixel     text_color{ .r = 0, .g = 0, .b = 48, .a = 255 };
-  rr::Typer typer = renderer.typer(
-      "simple", { .x = 300, .y = 300 }, text_color );
-  typer.write( "Color of this text is {}.\nThe End.\n\n-David",
-               text_color );
-}
-
-/****************************************************************
-** Loop
-*****************************************************************/
-void render_loop( rr::Renderer& renderer ) {
-  while( !input::is_q_down() ) {
-    renderer.begin_pass();
-    renderer.clear_screen( pixel{ .r = uint8_t( 0.2 * 255 ),
-                                  .g = uint8_t( 0.3 * 255 ),
-                                  .b = uint8_t( 0.3 * 255 ),
-                                  .a = uint8_t( 255 ) } );
-    paint_things( renderer );
-    renderer.end_pass();
-    renderer.present();
+  {
+    auto popper =
+        renderer.push_mods( []( rr::RendererMods& mods ) {
+          mods.painter_mods.depixelate = rr::DepixelateInfo{
+              .stage = .5, .target_pixel_offset = {} };
+        } );
+    rr::Painter painter_depixel = renderer.painter();
+    render_terrain_square( painter_depixel,
+                           Coord{ 300_x, 250_y },
+                           Coord{ 0_x, 0_y } );
+    render_terrain_square( painter_depixel,
+                           Coord{ 364_x, 250_y },
+                           Coord{ 1_x, 1_y } );
   }
+
+  render_unit( renderer, Coord{ 250_x, 250_y }, 6_id,
+               /*with_icon=*/true );
+
+  pixel text_color = { .r = 0, .g = 0, .b = 48, .a = 255 };
+  render_text(
+      renderer, { .x = 300, .y = 300 }, e_font::_6x6, text_color,
+      fmt::format(
+          "Color of this text is {}.\nThe End.\n\n-David",
+          text_color ) );
 }
 
 } // namespace
 
 void open_gl_perf_test() {
-  render_loop( global_renderer_use_only_when_needed() );
+  rr::Renderer& renderer =
+      global_renderer_use_only_when_needed();
+  while( !input::is_q_down() )
+    renderer.render_pass( paint_things );
 }
 
 } // namespace rn

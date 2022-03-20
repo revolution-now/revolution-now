@@ -346,4 +346,12 @@ gfx::size Renderer::atlas_img_size() const {
   return impl_->atlas_size;
 }
 
+void Renderer::render_pass(
+    base::function_ref<void( Renderer& )> drawer ) {
+  begin_pass();
+  drawer( *this );
+  end_pass();
+  present();
+}
+
 } // namespace rr

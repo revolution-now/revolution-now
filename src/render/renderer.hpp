@@ -17,6 +17,7 @@
 #include "typer.hpp"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/macros.hpp"
 
 // C++ standard library
@@ -68,6 +69,18 @@ struct Renderer {
   void set_logical_screen_size( gfx::size new_size );
 
   void clear_screen( gfx::pixel color = gfx::pixel::black() );
+
+  // This is the one to call to do a full render pass; it
+  //
+  //   1. Calls begin_pass.
+  //   2. Clears the buffer to black.
+  //   3. Calls your function with *this.
+  //   4. Calls end_pass.
+  //   5. Presents.
+  //
+  // It takes the function that does the drawing.
+  void render_pass(
+      base::function_ref<void( Renderer& )> drawer );
 
   // This must be called before any other rendering methods that
   // might generate vertices.
