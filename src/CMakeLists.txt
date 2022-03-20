@@ -15,7 +15,6 @@ add_subdirectory( render )
 # === this directory ==============================================
 
 find_sdl2_lib( SDL2       )
-find_sdl2_lib( SDL2_image )
 find_sdl2_lib( SDL2_mixer )
 
 # We need threading.
@@ -43,7 +42,6 @@ add_rn_library(
   rtmidi
   Threads::Threads
   ${SDL2_LIBRARY}
-  ${SDL2_IMAGE_LIBRARY}
   ${SDL2_MIXER_LIBRARY}
 )
 
@@ -52,7 +50,6 @@ target_include_directories(
   AFTER # append to existing.
   PUBLIC
   ${SDL2_INCLUDE_DIR}
-  ${SDL2_IMAGE_INCLUDE_DIR}
   ${SDL2_MIXER_INCLUDE_DIR}
 )
 

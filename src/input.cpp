@@ -28,6 +28,9 @@
 // Revolution Now (config)
 #include "../config/rcl/input.inl"
 
+// SDL
+#include "SDL.h"
+
 // C++ standard library
 #include <algorithm>
 #include <array>

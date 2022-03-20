@@ -115,7 +115,12 @@ void main() {
   if( frag_depixelate > 0.0 ) {
     // Depixelate to nothing by default.
     vec4 target_color = vec4( 0.0 );
-    if( length( frag_atlas_target_offset ) > 0 ) {
+    // Check if we are depixelating to another sprite. This re-
+    // quires that we have the offset to the other sprite and
+    // also requires that this is a texture to begin with so that
+    // it won't affect the nationality flag. This logic may need
+    // to be improved at some point.
+    if( frag_type == 0 && length( frag_atlas_target_offset ) > 0 ) {
       // Depixelate to another sprite, so get the position and
       // color of the pixel in the other texture that we're de-
       // pixelating to.

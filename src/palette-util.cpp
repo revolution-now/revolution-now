@@ -35,7 +35,6 @@
 
 // SDL
 #include "SDL.h"
-#include "SDL_image.h"
 
 // c++ standard library
 #include <algorithm>
@@ -225,8 +224,11 @@ void hsl_bucketed_sort( vector<pixel>& colors ) {
   util::stable_sort_by_key( colors, hue_bucket_key );
 }
 
-vector<pixel> extract_palette( fs::path const& glob,
-                               maybe<int>      target ) {
+vector<pixel> extract_palette( fs::path const& /*glob*/,
+                               maybe<int> /*target*/ ) {
+  TODO(
+      "this needs to be reimplemented to use new STB library" );
+#if 0
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
   CHECK( !files.empty(), "need at least one file" );
@@ -297,6 +299,7 @@ vector<pixel> extract_palette( fs::path const& glob,
 
   CHECK( !colors.empty(), "no colors remaining" );
   return res;
+#endif
 }
 
 ColorBuckets hsl_bucket( vector<pixel> const& colors ) {

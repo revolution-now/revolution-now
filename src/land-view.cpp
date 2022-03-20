@@ -390,8 +390,7 @@ void render_land_view( rr::Renderer& renderer ) {
 /****************************************************************
 ** Animations
 *****************************************************************/
-wait<> animate_depixelation( UnitId            id,
-                             e_depixelate_anim dp_anim ) {
+wait<> animate_depixelation( UnitId id ) {
   CHECK( !g_unit_animations.contains( id ) );
   UnitAnimation::depixelate& depixelate =
       g_unit_animations[id].emplace<UnitAnimation::depixelate>();
@@ -401,18 +400,6 @@ wait<> animate_depixelation( UnitId            id,
   } );
   depixelate.stage  = 0.0;
   depixelate.target = unit_from_id( id ).demoted_type();
-
-  // // Render the target unit with no nationality icon, then
-  // // render the nationality icon of the unit being depixe-
-  // // lated so that it doesn't appear to change during the an-
-  // // imation.
-  // if( !from_unit.desc().nat_icon_front ) {
-  //   render_unit( renderer, Coord{}, demoted_type );
-  //   render_nationality_icon( renderer, Coord{}, id );
-  // } else {
-  //   render_nationality_icon( renderer, Coord{}, id );
-  //   render_unit( renderer, Coord{}, demoted_type );
-  // }
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
@@ -1069,8 +1056,7 @@ wait<> landview_animate_move( UnitId      id,
 }
 
 wait<> landview_animate_attack( UnitId attacker, UnitId defender,
-                                bool              attacker_wins,
-                                e_depixelate_anim dp_anim ) {
+                                bool attacker_wins ) {
   co_await landview_ensure_visible( defender );
   co_await landview_ensure_visible( attacker );
   auto new_state = LandViewUnitActionState::unit_attack{
@@ -1088,8 +1074,8 @@ wait<> landview_animate_attack( UnitId attacker, UnitId defender,
 
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
-  co_await animate_depixelation(
-      attacker_wins ? defender : attacker, dp_anim );
+  co_await animate_depixelation( attacker_wins ? defender
+                                               : attacker );
 }
 
 // FIXME: Would be nice to make this animation a bit more sophis-
