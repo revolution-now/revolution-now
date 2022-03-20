@@ -112,7 +112,7 @@ TEST_CASE( "[render/vertex] depixelation" ) {
   vert.set_depixelation_state(
       1.0,
       /*target_atlas_offset=*/gfx::size{ .w = 9, .h = 10 } );
-  REQUIRE( vert.depixelation_stage() == 0.5 );
+  REQUIRE( vert.depixelation_stage() == 1.0 );
   REQUIRE( vert.generic().atlas_target_offset ==
            gl::vec2{ .x = 9, .y = 10 } );
   vert.reset_depixelation_state();

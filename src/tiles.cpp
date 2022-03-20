@@ -73,7 +73,7 @@ REGISTER_INIT_ROUTINE( sprites );
 
 Delta sprite_size( e_tile tile ) {
   return Delta::from_gfx(
-      config_tile.sheets.sprite_size( tile ) );
+      config_tile_sheet.sheets.sprite_size( tile ) );
 }
 
 gfx::size depixelation_offset( rr::Painter& painter,

@@ -104,6 +104,7 @@ enum.e_tile {
   menu_bar_1,
   menu_bar_2,
 
+  # Buttons
   button_up_ul,
   button_up_um,
   button_up_ur,

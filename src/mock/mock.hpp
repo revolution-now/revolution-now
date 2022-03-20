@@ -125,8 +125,10 @@ void throw_unexpected_error( std::string_view msg );
 
 template<typename T>
 struct exhaust_checker {
-  T* p_;
-  exhaust_checker( T* p ) : p_( p ) {}
+  std::string queue_name_;
+  T*          p_;
+  exhaust_checker( std::string_view queue_name, T* p )
+    : queue_name_( queue_name ), p_( p ) {}
   ~exhaust_checker() {
     // This is so that if there is already an exception in pro-
     // gress, e.g. from an unexpected mock function call, we will
@@ -139,11 +141,15 @@ struct exhaust_checker {
     if( std::uncaught_exceptions() == 0 ) {
       int unfinished = 0;
       while( !p_->empty() ) {
-        if( !p_->front().finished() ) ++unfinished;
+        if( !p_->front().finished() )
+          unfinished += p_->front().times_remaining();
         p_->pop();
       }
       BASE_CHECK( !unfinished,
-                  "not all expected calls have been called." );
+                  "not all expected calls of the function '{}' "
+                  "have been called.  It was expected to have "
+                  "been called {} more times.",
+                  queue_name_, unfinished );
     }
   }
 };
@@ -269,6 +275,7 @@ struct Responder<RetT, std::tuple<Args...>,
   }
 
   bool finished() const { return times_expected_ == 0; }
+  int  times_remaining() const { return times_expected_; }
 
   void clear_expectations() { times_expected_ = 0; }
 
@@ -343,7 +350,8 @@ struct ResponderQueue {
   std::string   fn_name_ = {};
   std::queue<R> answers_ = {};
 
-  exhaust_checker<std::queue<R>> checker_ = &answers_;
+  exhaust_checker<std::queue<R>> checker_ = { fn_name_,
+                                              &answers_ };
 
   // Because checker_ contains a pointer to answers_ that means
   // that these objects are self-referential and should not be

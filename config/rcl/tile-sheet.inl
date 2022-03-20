@@ -9,7 +9,7 @@
 
 namespace rn {
 
-CFG( tile,
+CFG( tile_sheet,
   FLD( TileSheetsConfig, sheets )
 )
 

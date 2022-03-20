@@ -229,9 +229,9 @@ TEST_CASE( "[render/typer] frame position" ) {
 
   auto typer2 =
       typer.with_frame_offset( size{ .w = 5, .h = 3 } );
-  REQUIRE( typer.position() ==
+  REQUIRE( typer2.position() ==
            point{ .x = 35 + 2 * 5, .y = 63 } );
-  REQUIRE( typer.line_start() == point{ .x = 35, .y = 63 } );
+  REQUIRE( typer2.line_start() == point{ .x = 35, .y = 63 } );
 }
 
 } // namespace
