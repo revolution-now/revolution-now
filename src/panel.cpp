@@ -85,7 +85,8 @@ struct PanelPlane : public Plane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    tile_sprite( renderer, e_tile::wood_middle, rect() );
+    rr::Painter painter = renderer.painter();
+    tile_sprite( painter, e_tile::wood_middle, rect() );
     view->draw( renderer, origin() );
   }
 

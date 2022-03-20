@@ -31,11 +31,22 @@ namespace rr {
 ** RendererConfig
 *****************************************************************/
 struct RendererConfig {
-  gfx::size                         logical_screen_size = {};
-  gfx::size                         max_atlas_size      = {};
-  std::vector<SpriteSheetConfig>    sprite_sheets       = {};
-  std::vector<AsciiFontSheetConfig> font_sheets         = {};
+  gfx::size                             logical_screen_size = {};
+  gfx::size                             max_atlas_size      = {};
+  std::vector<SpriteSheetConfig> const& sprite_sheets;
+  std::vector<AsciiFontSheetConfig> const& font_sheets;
 };
+
+/****************************************************************
+** RendererMods
+*****************************************************************/
+struct RendererMods {
+  PainterMods painter_mods = {};
+};
+
+template<typename Func>
+concept ModEditFunc =
+    std::is_invocable_r_v<void, Func, RendererMods&>;
 
 /****************************************************************
 ** Renderer
@@ -43,9 +54,13 @@ struct RendererConfig {
 // The video driver must have been fully initialized before using
 // this.
 struct Renderer {
+  // The renderer must take ownership of this function.
   using PresentFn = std::function<void()>;
-  static Renderer create( RendererConfig const& config,
-                          PresentFn             present_fn );
+
+  // Return a unique_ptr because the Renderer is neither copyable
+  // nor movable, and so that makes it easier to work with.
+  static std::unique_ptr<Renderer> create(
+      RendererConfig const& config, PresentFn present_fn );
 
   ~Renderer() noexcept;
 
@@ -79,9 +94,34 @@ struct Renderer {
 
   void present();
 
+  RendererMods const& mods() const;
+
+ private:
+  // Mods.
+
+  void mods_push_back( RendererMods&& mods );
+  void mods_pop();
+
+  struct [[nodiscard]] mod_popper {
+    mod_popper( Renderer& r ) : r_( r ) {}
+    ~mod_popper() noexcept { r_.mods_pop(); }
+    NO_COPY_NO_MOVE( mod_popper );
+
+   private:
+    Renderer& r_;
+  };
+
+ public:
+  template<ModEditFunc Func>
+  mod_popper push_mods( Func&& func ) {
+    RendererMods new_mods = mods();
+    func( new_mods );
+    mods_push_back( std::move( new_mods ) );
+    return mod_popper{ *this };
+  }
+
  private:
   NO_COPY_NO_MOVE( Renderer );
-
   struct Impl;
 
   Renderer( Impl* impl );

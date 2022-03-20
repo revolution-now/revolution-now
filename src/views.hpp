@@ -317,7 +317,7 @@ class SpriteView : public View {
              Coord         coord ) const override;
   // Implement Object
   Delta delta() const override {
-    return Delta{ 1_w, 1_h } * lookup_sprite( tile_ ).scale;
+    return Delta{ 1_w, 1_h } * sprite_size( tile_ ).to_scale();
   }
 
  private:

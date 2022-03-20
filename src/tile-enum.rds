@@ -1,11 +1,11 @@
 # ===============================================================
-# tiles.rds
+# tile-enum.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2021-02-28.
+# Created by dsicilia on 2022-03-19.
 #
-# Description: RDS definitions for the tiles module.
+# Description: Rds definitions for the tile-enum module.
 #
 # ===============================================================
 namespace "rn"

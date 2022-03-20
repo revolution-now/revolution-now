@@ -352,7 +352,7 @@ class PopulationView : public ui::View, public ColonySubView {
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
       render_unit( renderer, unit_pos, unit_id,
-                   /*with_icon=*/false );
+                   /*with_icon=*/false, /*zoom=*/1.0 );
       unit_pos += 24_w;
     }
   }
@@ -448,7 +448,7 @@ class CargoView : public ui::View,
               cargo.contents,
               [&]( Cargo::unit u ) {
                 render_unit( renderer, rect.upper_left(), u.id,
-                             /*with_icon=*/false );
+                             /*with_icon=*/false, /*zoom=*/1.0 );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
@@ -702,7 +702,7 @@ class UnitsAtGateColonyView : public ui::View,
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
       render_unit( renderer, draw_pos, unit_id,
-                   /*with_icon=*/true );
+                   /*with_icon=*/true, /*zoom=*/1.0 );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ),
@@ -1107,15 +1107,17 @@ class LandView : public ui::View, public ColonySubView {
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord         coord ) const {
+    rr::Painter painter      = renderer.painter();
     auto const& colony       = colony_from_id( colony_id() );
     Coord       world_square = colony.location();
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
                            Delta{ 1_w, 1_h };
-      render_terrain_square( renderer, render_square,
+      render_terrain_square( painter,
                              ( local_coord * g_tile_scale )
-                                 .as_if_origin_were( coord ) );
+                                 .as_if_origin_were( coord ),
+                             render_square );
     }
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
       auto render_square = world_square +
@@ -1123,11 +1125,11 @@ class LandView : public ui::View, public ColonySubView {
                            Delta{ 1_w, 1_h };
       auto maybe_col_id = colony_from_coord( render_square );
       if( !maybe_col_id ) continue;
-      render_colony( renderer,
+      render_colony( painter,
                      ( local_coord * g_tile_scale )
                              .as_if_origin_were( coord ) -
                          Delta{ 6_w, 6_h },
-                     *maybe_col_id );
+                     *maybe_col_id, /*zoom=*/1.0 );
     }
   }
 
@@ -1395,7 +1397,7 @@ void colview_drag_n_drop_draw(
       state.object,
       [&]( unit const& o ) {
         render_unit( renderer, sprite_upper_left, o.id,
-                     /*with_icon=*/false );
+                     /*with_icon=*/false, /*zoom=*/1.0 );
       },
       [&]( commodity const& o ) {
         render_commodity( renderer, sprite_upper_left,

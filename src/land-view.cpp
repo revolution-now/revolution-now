@@ -20,11 +20,9 @@
 #include "coord.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gfx.hpp"
 #include "gs-land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "matrix.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
@@ -35,13 +33,15 @@
 #include "terrain.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
-#include "tx.hpp"
 #include "unit-id.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -107,223 +107,270 @@ SmoothViewport& viewport() {
 /****************************************************************
 ** Land-View Rendering
 *****************************************************************/
-Coord to_pixel_coord( Rect const& covered, Coord tile_coord ) {
-  Coord pixel_coord =
-      Coord{} + ( tile_coord - covered.upper_left() );
-  pixel_coord *= g_tile_scale;
-  return pixel_coord;
-};
-
-void render_units_on_square(
-    Rect const& covered, Coord coord,
-    base::function_ref<bool( UnitId )> skip ) {
-  Coord pixel_coord = to_pixel_coord( covered, coord );
-  // TODO: When there are multiple units on a square, just
-  // render one (which one?) and then render multiple flags (s-
-  // tacked) to indicate that visually.
-  for( auto id : units_from_coord( coord ) ) {
-    if( skip( id ) ) continue;
-    render_unit( g_texture_viewport, id, pixel_coord,
-                 /*with_icon=*/true );
+struct LandViewRenderer {
+  // Given a tile, compute the screen rect where it should be
+  // rendered, all things considered.
+  //
+  // upper_left_screen_pixel is the screen coordinate where the
+  // upper left corner of the land view will be rendered. Note
+  // that it could be negative in order to produce partial tiles.
+  Rect render_rect_for_tile( Coord tile ) {
+    Delta delta_in_tiles  = tile - covered.upper_left();
+    Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
+    delta_in_pixels = delta_in_pixels.multiply_and_round( zoom );
+    Delta single_tile_delta_in_pixels =
+        g_tile_delta.multiply_and_round( zoom );
+    return Rect::from( upper_left_screen_pixel + delta_in_pixels,
+                       single_tile_delta_in_pixels );
   }
-}
 
-void render_units_on_square( Rect const& covered, Coord coord ) {
-  render_units_on_square( covered, coord,
-                          []( UnitId ) { return false; } );
-}
-
-void render_units_default( Rect const& covered ) {
-  for( auto coord : covered ) {
-    if( colony_from_coord( coord ).has_value() ) continue;
-    render_units_on_square( covered, coord );
+  void render_terrain() {
+    rr::Painter painter = renderer.painter();
+    for( Coord square : covered )
+      render_terrain_square(
+          painter, render_rect_for_tile( square ), square );
   }
-}
 
-void render_units_blink( Rect const& covered, UnitId id,
-                         bool visible ) {
-  UnitId blinker_id = id;
-  Coord  blink_coord =
-      coord_for_unit_indirect_or_die( blinker_id );
-  for( auto coord : covered ) {
-    if( coord == blink_coord ) continue;
-    if( colony_from_coord( coord ).has_value() ) continue;
-    render_units_on_square( covered, coord );
+  using UnitSkipFunc = base::function_ref<bool( UnitId )>;
+
+  void render_units_on_square( Coord tile, UnitSkipFunc skip ) {
+    // TODO: When there are multiple units on a square, just
+    // render one (which one?) and then render multiple flags
+    // (stacked) to indicate that visually.
+    Coord loc = render_rect_for_tile( tile ).upper_left();
+    for( UnitId id : units_from_coord( tile ) ) {
+      if( skip( id ) ) continue;
+      render_unit( renderer, loc, id,
+                   /*with_icon=*/true, zoom );
+    }
   }
-  // Now render the blinking unit.
-  Coord pixel_coord = to_pixel_coord( covered, blink_coord );
-  if( visible )
-    render_unit( g_texture_viewport, blinker_id, pixel_coord,
-                 /*with_icon=*/true );
-}
 
-void render_units_during_slide(
-    Rect const& covered, UnitId id, maybe<UnitId> target_unit,
-    UnitAnimation::slide const& slide ) {
-  UnitId mover_id   = id;
-  Coord mover_coord = coord_for_unit_indirect_or_die( mover_id );
-  maybe<Coord> target_unit_coord =
-      target_unit.bind( coord_for_unit_multi_ownership );
-  // First render all units other than the sliding unit and
-  // other than units on colony squares.
-  for( auto coord : covered ) {
-    bool has_colony = colony_from_coord( coord ).has_value();
-    if( has_colony && coord != target_unit_coord ) continue;
-    auto skip = [&]( UnitId id ) {
-      // Always draw the target unit, if any.
-      if( id == target_unit ) return false;
-      // On the square containing the unit being attacked, only
-      // draw the unit being attacked (if any).
-      if( coord == target_unit_coord ) return true;
-      if( has_colony ) return true;
-      if( id == mover_id ) return true;
-      return false;
-    };
-    render_units_on_square( covered, coord, skip );
+  void render_units_on_square( Coord tile ) {
+    render_units_on_square( tile,
+                            []( UnitId ) { return false; } );
   }
-  // Now render the sliding unit.
-  Delta delta = slide.target - mover_coord;
-  CHECK( -1 <= delta.w && delta.w <= 1 );
-  CHECK( -1 <= delta.h && delta.h <= 1 );
-  delta *= g_tile_scale;
-  Delta pixel_delta{ W( int( delta.w._ * slide.percent ) ),
-                     H( int( delta.h._ * slide.percent ) ) };
-  Coord pixel_coord = to_pixel_coord( covered, mover_coord );
-  pixel_coord += pixel_delta;
-  render_unit( g_texture_viewport, mover_id, pixel_coord,
-               /*with_icon=*/true );
-}
 
-void render_units_during_depixelate(
-    Rect const& covered, UnitId depixelate_id,
-    UnitAnimation::depixelate const& dp_anim ) {
-  // Need the multi_ownership version because we could be depixe-
-  // lating a colonist that is owned by a colony, which happens
-  // when the colony is captured.
-  UNWRAP_CHECK( depixelate_coord, coord_for_unit_multi_ownership(
-                                      depixelate_id ) );
-  // First render all units other than the depixelating unit and
-  // other than units on colony squares.
-  for( auto coord : covered ) {
-    if( coord == depixelate_coord ) continue;
-    if( colony_from_coord( coord ).has_value() ) continue;
-    render_units_on_square( covered, coord,
-                            /*skip=*/[&]( UnitId id ) {
-                              return id == depixelate_id;
-                            } );
+  void render_units_default() {
+    for( Coord tile : covered ) {
+      if( colony_from_coord( tile ).has_value() ) continue;
+      render_units_on_square( tile );
+    }
   }
-  // Now render the depixelating unit.
-  ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                ::SDL_BLENDMODE_BLEND );
-  Coord pixel_coord =
-      to_pixel_coord( covered, depixelate_coord );
-  copy_texture( dp_anim.tx_depixelate_from, g_texture_viewport,
-                pixel_coord );
-}
 
-void render_colonies( Rect const& covered ) {
-  for( auto coord : covered ) {
-    Coord tile_coord = to_pixel_coord( covered, coord );
+  void render_units_blink( UnitId id, bool visible ) {
+    UnitId blinker_id = id;
+    Coord  blink_coord =
+        coord_for_unit_indirect_or_die( blinker_id );
+    for( auto coord : covered ) {
+      if( coord == blink_coord ) continue;
+      if( colony_from_coord( coord ).has_value() ) continue;
+      render_units_on_square( coord );
+    }
+    // Now render the blinking unit.
+    Coord loc = render_rect_for_tile( blink_coord ).upper_left();
+    if( visible )
+      render_unit( renderer, loc, blinker_id, /*with_icon=*/true,
+                   zoom );
+  }
+
+  void render_units_during_slide(
+      UnitId id, maybe<UnitId> target_unit,
+      UnitAnimation::slide const& slide ) {
+    UnitId mover_id = id;
+    Coord  mover_coord =
+        coord_for_unit_indirect_or_die( mover_id );
+    maybe<Coord> target_unit_coord =
+        target_unit.bind( coord_for_unit_multi_ownership );
+    // First render all units other than the sliding unit and
+    // other than units on colony squares.
+    for( auto coord : covered ) {
+      bool has_colony = colony_from_coord( coord ).has_value();
+      if( has_colony && coord != target_unit_coord ) continue;
+      auto skip = [&]( UnitId id ) {
+        // Always draw the target unit, if any.
+        if( id == target_unit ) return false;
+        // On the square containing the unit being attacked, only
+        // draw the unit being attacked (if any).
+        if( coord == target_unit_coord ) return true;
+        if( has_colony ) return true;
+        if( id == mover_id ) return true;
+        return false;
+      };
+      render_units_on_square( coord, skip );
+    }
+    // Now render the sliding unit.
+    Delta tile_delta = slide.target - mover_coord;
+    CHECK( -1 <= tile_delta.w && tile_delta.w <= 1 );
+    CHECK( -1 <= tile_delta.h && tile_delta.h <= 1 );
+    tile_delta *= g_tile_scale;
+    Delta pixel_delta =
+        tile_delta.multiply_and_round( slide.percent );
+    Coord pixel_coord =
+        render_rect_for_tile( mover_coord ).upper_left();
+    pixel_coord += pixel_delta;
+    render_unit( renderer, pixel_coord, mover_id,
+                 /*with_icon=*/true, zoom );
+  }
+
+  void render_units_during_depixelate(
+      UnitId                           depixelate_id,
+      UnitAnimation::depixelate const& dp_anim ) {
+    // Need the multi_ownership version because we could be
+    // depixe- lating a colonist that is owned by a colony, which
+    // happens when the colony is captured.
+    UNWRAP_CHECK(
+        depixelate_tile,
+        coord_for_unit_multi_ownership( depixelate_id ) );
+    // First render all units other than units on colony squares
+    // and unites on the same tile as the depixelating unit.
+    for( Coord tile : covered ) {
+      if( tile == depixelate_tile ) continue;
+      if( colony_from_coord( tile ).has_value() ) continue;
+      render_units_on_square( tile );
+    }
+    // Now render the depixelating unit.
+    Coord loc =
+        render_rect_for_tile(
+            coord_for_unit_indirect_or_die( depixelate_id ) )
+            .upper_left();
+    auto popper =
+        renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
+          gfx::size target = {};
+          if( dp_anim.target.has_value() ) {
+            e_tile from_tile =
+                unit_from_id( depixelate_id ).desc().tile;
+            e_tile to_tile = unit_attr( *dp_anim.target ).tile;
+            target = depixelation_offset( from_tile, to_tile );
+          }
+          new_mods.painter_mods.depixelate = rr::DepixelateInfo{
+              .stage               = dp_anim.stage,
+              .target_pixel_offset = target,
+          };
+        } );
+    render_unit( renderer, loc, depixelate_id,
+                 /*with_icon=*/true, zoom );
+  }
+
+  void render_colonies() {
+    rr::Painter painter = renderer.painter();
     // FIXME: since colony icons spill over the usual 32x32 tile
     // we need to render colonies that are beyond the `covered`
     // rect.
-    if( auto col_id = colony_from_coord( coord );
-        col_id.has_value() ) {
+    for( Coord tile : covered ) {
+      maybe<ColonyId> col_id = colony_from_coord( tile );
+      if( !col_id.has_value() ) continue;
       Colony const& colony = colony_from_id( *col_id );
-      Coord         colony_sprite_upper_left =
-          tile_coord - Delta{ 6_w, 6_h };
-      render_colony( g_texture_viewport, *col_id,
-                     colony_sprite_upper_left );
+
+      Coord tile_coord =
+          render_rect_for_tile( tile ).upper_left();
+      Coord colony_sprite_upper_left =
+          tile_coord -
+          Delta{ 6_w, 6_h }.multiply_and_round( zoom );
+      render_colony( painter, colony_sprite_upper_left, *col_id,
+                     zoom );
       Coord name_coord =
           tile_coord +
-          config_land_view.colonies.colony_name_offset;
-      copy_texture(
-          render_text_markup(
-              config_land_view.colonies.colony_name_font,
-              TextMarkupInfo{
-                  .shadowed_text_color   = gfx::pixel::white(),
-                  .shadowed_shadow_color = gfx::pixel::black() },
-              fmt::format( "@[S]{}@[]", colony.name() ) ),
-          g_texture_viewport, name_coord );
+          config_land_view.colonies.colony_name_offset
+              .multiply_and_round( zoom );
+      render_text_markup(
+          renderer, name_coord,
+          config_land_view.colonies.colony_name_font,
+          TextMarkupInfo{
+              .shadowed_text_color   = gfx::pixel::white(),
+              .shadowed_shadow_color = gfx::pixel::black() },
+          fmt::format( "@[S]{}@[]", colony.name() ) );
     }
   }
-}
 
-// Units (rendering strategy depends on land view state).
-void render_units( Rect const& covered ) {
-  // The land view state should be set first, then the animation
-  // state; though occasionally we are in a frame where the land
-  // view state has changed but the animation state has not been
-  // set yet.
-  if( g_unit_animations.empty() ) {
-    render_units_default( covered );
-    return;
-  }
+  // Units (rendering strategy depends on land view state).
+  void render_units() {
+    // The land view state should be set first, then the anima-
+    // tion state; though occasionally we are in a frame where
+    // the land view state has changed but the animation state
+    // has not been set yet.
+    if( g_unit_animations.empty() ) {
+      render_units_default();
+      return;
+    }
 
-  switch( g_landview_state.to_enum() ) {
-    using namespace LandViewUnitActionState;
-    case e::none: {
-      // In this case the global unit animations should always be
-      // empty, in which case the if statement above should have
-      // caught it.
-      SHOULD_NOT_BE_HERE;
-    }
-    case e::unit_input: {
-      auto& o = g_landview_state.get<unit_input>();
-      CHECK( g_unit_animations.size() == 1 );
-      UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                             o.unit_id ) );
-      ASSIGN_CHECK_V( blink_anim, animation,
-                      UnitAnimation::blink );
-      render_units_blink( covered, o.unit_id,
-                          blink_anim.visible );
-      break;
-    }
-    case e::unit_move: {
-      auto& o = g_landview_state.get<unit_move>();
-      CHECK( g_unit_animations.size() == 1 );
-      UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                             o.unit_id ) );
-      ASSIGN_CHECK_V( slide_anim, animation,
-                      UnitAnimation::slide );
-      render_units_during_slide( covered, o.unit_id,
-                                 /*target_unit=*/nothing,
-                                 slide_anim );
-      break;
-    }
-    case e::unit_attack: {
-      auto& o = g_landview_state.get<unit_attack>();
-      CHECK( g_unit_animations.size() == 1 );
-      UnitId anim_id = g_unit_animations.begin()->first;
-      UnitAnimation_t const& animation =
-          g_unit_animations.begin()->second;
-      if( auto slide_anim =
-              animation.get_if<UnitAnimation::slide>() ) {
-        CHECK( anim_id == o.attacker );
-        render_units_during_slide( covered, o.attacker,
-                                   o.defender, *slide_anim );
+    switch( g_landview_state.to_enum() ) {
+      using namespace LandViewUnitActionState;
+      case e::none: {
+        // In this case the global unit animations should always
+        // be empty, in which case the if statement above should
+        // have caught it.
+        SHOULD_NOT_BE_HERE;
+      }
+      case e::unit_input: {
+        auto& o = g_landview_state.get<unit_input>();
+        CHECK( g_unit_animations.size() == 1 );
+        UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
+                                               o.unit_id ) );
+        ASSIGN_CHECK_V( blink_anim, animation,
+                        UnitAnimation::blink );
+        render_units_blink( o.unit_id, blink_anim.visible );
         break;
       }
-      if( auto dp_anim =
-              animation.get_if<UnitAnimation::depixelate>() ) {
-        render_units_during_depixelate( covered, anim_id,
-                                        *dp_anim );
+      case e::unit_move: {
+        auto& o = g_landview_state.get<unit_move>();
+        CHECK( g_unit_animations.size() == 1 );
+        UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
+                                               o.unit_id ) );
+        ASSIGN_CHECK_V( slide_anim, animation,
+                        UnitAnimation::slide );
+        render_units_during_slide( o.unit_id,
+                                   /*target_unit=*/nothing,
+                                   slide_anim );
         break;
       }
-      FATAL(
-          "Unit animation not found for either slide or "
-          "depixelate." );
-      break;
+      case e::unit_attack: {
+        auto& o = g_landview_state.get<unit_attack>();
+        CHECK( g_unit_animations.size() == 1 );
+        UnitId anim_id = g_unit_animations.begin()->first;
+        UnitAnimation_t const& animation =
+            g_unit_animations.begin()->second;
+        if( auto slide_anim =
+                animation.get_if<UnitAnimation::slide>() ) {
+          CHECK( anim_id == o.attacker );
+          render_units_during_slide( o.attacker, o.defender,
+                                     *slide_anim );
+          break;
+        }
+        if( auto dp_anim =
+                animation.get_if<UnitAnimation::depixelate>() ) {
+          render_units_during_depixelate( anim_id, *dp_anim );
+          break;
+        }
+        FATAL(
+            "Unit animation not found for either slide or "
+            "depixelate." );
+        break;
+      }
     }
   }
-}
 
-void render_land_view() {
-  g_texture_viewport.set_render_target();
-  auto covered = viewport().covered_tiles();
-  render_terrain( covered, g_texture_viewport, Coord{} );
-  render_colonies( covered );
-  render_units( covered );
+  rr::Renderer& renderer;
+  Rect const    covered                 = {};
+  Coord const   upper_left_screen_pixel = {};
+  double const  zoom                    = 1.0;
+};
+
+void render_land_view( rr::Renderer& renderer ) {
+  Coord corner = viewport().rendering_dest_rect().upper_left();
+  if( corner != Coord{} )
+    corner -=
+        viewport().covered_pixels().upper_left() % g_tile_scale;
+
+  LandViewRenderer lv_renderer{
+      .renderer                = renderer,
+      .covered                 = viewport().covered_tiles(),
+      .upper_left_screen_pixel = corner,
+      .zoom                    = viewport().get_zoom(),
+  };
+
+  lv_renderer.render_terrain();
+  lv_renderer.render_colonies();
+  lv_renderer.render_units();
 }
 
 /****************************************************************
@@ -338,56 +385,25 @@ wait<> animate_depixelation( UnitId            id,
     UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
     g_unit_animations.erase( it );
   } );
-  depixelate.pixels.assign( g_tile_rect.begin(),
-                            g_tile_rect.end() );
-  rng::shuffle( depixelate.pixels );
-  depixelate.tx_depixelate_from = create_texture( g_tile_delta );
-  clear_texture_transparent( depixelate.tx_depixelate_from );
-  render_unit( depixelate.tx_depixelate_from, id, Coord{},
-               /*with_icon=*/true );
-  // Now, if we are depixelating to another unit then we will set
-  // that process up.
-  if( dp_anim == e_depixelate_anim::demote ) {
-    UNWRAP_CHECK( demoted_type,
-                  unit_from_id( id ).demoted_type() );
-    auto tx = Texture::create( g_tile_delta );
-    clear_texture_transparent( tx );
-    auto& from_unit = unit_from_id( id );
-    // Render the target unit with no nationality icon, then
-    // render the nationality icon of the unit being depixe-
-    // lated so that it doesn't appear to change during the an-
-    // imation.
-    if( !from_unit.desc().nat_icon_front ) {
-      render_unit( tx, demoted_type, Coord{} );
-      render_nationality_icon( tx, id, Coord{} );
-    } else {
-      render_nationality_icon( tx, id, Coord{} );
-      render_unit( tx, demoted_type, Coord{} );
-    }
-    depixelate.demoted_pixels = tx.pixels();
-  }
+  depixelate.stage  = 0.0;
+  depixelate.target = unit_from_id( id ).demoted_type();
+
+  // // Render the target unit with no nationality icon, then
+  // // render the nationality icon of the unit being depixe-
+  // // lated so that it doesn't appear to change during the an-
+  // // imation.
+  // if( !from_unit.desc().nat_icon_front ) {
+  //   render_unit( renderer, Coord{}, demoted_type );
+  //   render_nationality_icon( renderer, Coord{}, id );
+  // } else {
+  //   render_nationality_icon( renderer, Coord{}, id );
+  //   render_unit( renderer, Coord{}, demoted_type );
+  // }
+
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( !depixelate.pixels.empty() ) {
+  while( depixelate.stage < 1.0 ) {
     co_await throttle();
-    int to_depixelate =
-        std::min( config_rn.depixelate_pixels_per_frame,
-                  int( depixelate.pixels.size() ) );
-    vector<Coord> new_non_pixels;
-    for( int i = 0; i < to_depixelate; ++i ) {
-      auto next_coord = depixelate.pixels.back();
-      depixelate.pixels.pop_back();
-      new_non_pixels.push_back( next_coord );
-    }
-    ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                  ::SDL_BLENDMODE_NONE );
-    for( auto point : new_non_pixels ) {
-      auto color = depixelate.demoted_pixels.size().area() > 0
-                       ? depixelate.demoted_pixels[point]
-                       : gfx::pixel{ 0, 0, 0, 0 };
-      set_render_draw_color( color );
-      depixelate.tx_depixelate_from.set_render_target();
-      ::SDL_RenderDrawPoint( g_renderer, point.x._, point.y._ );
-    }
+    depixelate.stage += config_rn.depixelate_per_frame;
   }
 }
 
@@ -711,12 +727,8 @@ struct LandViewPlane : public Plane {
                               world_size_tiles() );
   }
   void advance_state() override { advance_viewport_state(); }
-  void draw( Texture& tx ) const override {
-    render_land_view();
-    clear_texture_black( tx );
-    copy_texture_stretch( g_texture_viewport, tx,
-                          viewport().rendering_src_rect(),
-                          viewport().rendering_dest_rect() );
+  void draw( rr::Renderer& renderer ) const override {
+    render_land_view( renderer );
   }
   maybe<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {

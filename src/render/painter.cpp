@@ -20,6 +20,7 @@ namespace rr {
 
 namespace {
 
+using ::base::maybe;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -93,7 +94,9 @@ Painter Painter::without_mods() {
 void Painter::add_mods( VertexBase&        vert,
                         PainterMods const& mods ) {
   if( mods.depixelate.has_value() )
-    vert.set_depixelation_state( *mods.depixelate );
+    vert.set_depixelation_state(
+        mods.depixelate->stage,
+        mods.depixelate->target_pixel_offset );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
 }
 
@@ -153,6 +156,12 @@ Painter& Painter::draw_empty_rect( rect r, e_border_mode mode,
                       color );
       break;
     }
+    case e_border_mode::in_out: {
+      r = r.normalized();
+      ++r.size.w;
+      ++r.size.h;
+      return draw_empty_rect( r, e_border_mode::inside, color );
+    }
   }
   return *this;
 }
@@ -205,6 +214,13 @@ Painter& Painter::draw_silhouette_scale( int atlas_id, rect dst,
   rect src = atlas_.lookup( atlas_id );
   draw_silhouette_impl( src, dst, color );
   return *this;
+}
+
+gfx::size Painter::depixelation_offset( int from_atlas_id,
+                                        int to_atlas_id ) const {
+  rect src = atlas_.lookup( from_atlas_id );
+  rect dst = atlas_.lookup( to_atlas_id );
+  return dst.origin - src.origin;
 }
 
 } // namespace rr

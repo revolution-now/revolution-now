@@ -17,7 +17,6 @@ enum.e_init_routine {
   configs,
   old_world_view,
   lua,
-  images,
   menus,
   midiplayer,
   midiseq,
@@ -29,8 +28,5 @@ enum.e_init_routine {
   sdl,
   sound,
   sprites,
-  terrain,
-  text,
-  ttf,
   tunes,
 }

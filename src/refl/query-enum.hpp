@@ -26,9 +26,6 @@ template<ReflectedEnum E>
 constexpr int enum_count = traits<E>::value_names.size();
 
 template<ReflectedEnum E>
-constexpr std::string_view enum_type_name = "e_single";
-
-template<ReflectedEnum E>
 inline constexpr auto enum_values = [] {
   std::array<E, enum_count<E>> arr{};
   for( int i = 0; i < enum_count<E>; ++i )

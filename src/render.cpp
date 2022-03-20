@@ -37,17 +37,23 @@ namespace {
 constexpr Delta nationality_icon_size( 13_h, 13_w );
 
 // Unit only, no nationality icon.
-void render_unit_no_icon( rr::Renderer& renderer, Coord where,
-                          e_unit_type unit_type ) {
+void render_unit_no_icon( rr::Painter& painter, Coord where,
+                          e_unit_type unit_type, double zoom ) {
   auto const& desc = unit_attr( unit_type );
-  render_sprite( renderer, desc.tile, where, 0, 0 );
+  render_sprite(
+      painter,
+      Rect::from( where,
+                  g_tile_delta.multiply_and_round( zoom ) ),
+      desc.tile );
 }
 
 void render_colony_flag( rr::Painter& painter, Coord coord,
-                         gfx::pixel color ) {
-  auto cloth_rect = Rect::from( coord, Delta{ 8_w, 6_h } );
+                         gfx::pixel color, double zoom ) {
+  auto cloth_rect = Rect::from(
+      coord, Delta{ 8_w, 6_h }.multiply_and_round( zoom ) );
   painter.draw_solid_rect( cloth_rect, color );
-  painter.draw_vertical_line( cloth_rect.upper_right(), 12,
+  painter.draw_vertical_line( cloth_rect.upper_right(),
+                              lround( 12 * zoom ),
                               gfx::pixel::wood().shaded( 4 ) );
 }
 
@@ -56,9 +62,9 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
 *****************************************************************/
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_nation nation,
-                              char c ) {
-  Delta       delta    = nationality_icon_size;
-  Rect        rect     = Rect::from( where, delta );
+                              char c, double zoom ) {
+  Delta delta = nationality_icon_size.multiply_and_round( zoom );
+  Rect  rect  = Rect::from( where, delta );
   auto const& nation_o = nation_obj( nation );
 
   auto color      = nation_o.flag_color;
@@ -82,27 +88,30 @@ void render_nationality_icon( rr::Renderer&             renderer,
                               Coord                     where,
                               UnitTypeAttributes const& desc,
                               e_nation                  nation,
-                              e_unit_orders orders ) {
+                              e_unit_orders             orders,
+                              double                    zoom ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
-  auto position = desc.nat_icon_position;
+  auto  position = desc.nat_icon_position;
+  Delta delta{};
   switch( position ) {
     case e_direction::nw: break;
     case e_direction::ne:
-      where +=
+      delta +=
           ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
       break;
     case e_direction::se:
-      where += ( ( Delta{ 1_w, 1_h } * g_tile_scale ) -
+      delta += ( ( Delta{ 1_w, 1_h } * g_tile_scale ) -
                  nationality_icon_size );
       break;
     case e_direction::sw:
-      where +=
+      delta +=
           ( ( 1_h * g_tile_height ) - nationality_icon_size.h );
       break;
       // By default we keep it in the northwest corner.
     default: break;
   };
+  where += delta.multiply_and_round( zoom );
 
   char c{ '-' }; // gcc seems to want us to initialize this
   switch( orders ) {
@@ -110,7 +119,7 @@ void render_nationality_icon( rr::Renderer&             renderer,
     case e_unit_orders::sentry: c = 'S'; break;
     case e_unit_orders::fortified: c = 'F'; break;
   };
-  render_nationality_icon( renderer, where, nation, c );
+  render_nationality_icon( renderer, where, nation, c, zoom );
 }
 
 } // namespace
@@ -118,52 +127,63 @@ void render_nationality_icon( rr::Renderer&             renderer,
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_unit_type type,
                               e_nation      nation,
-                              e_unit_orders orders ) {
+                              e_unit_orders orders,
+                              double        zoom ) {
   render_nationality_icon( renderer, where, unit_attr( type ),
-                           nation, orders );
+                           nation, orders, zoom );
 }
 
 void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, UnitId id ) {
+                              Coord where, UnitId id,
+                              double zoom ) {
   auto const& unit = unit_from_id( id );
   render_nationality_icon( renderer, where, unit.desc(),
-                           unit.nation(), unit.orders() );
+                           unit.nation(), unit.orders(), zoom );
 }
 
 void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
-                  bool with_icon ) {
-  auto const& unit = unit_from_id( id );
+                  bool with_icon, double zoom ) {
+  rr::Painter painter = renderer.painter();
+  auto const& unit    = unit_from_id( id );
   if( with_icon ) {
     // Should the icon be in front of the unit or in back.
     if( !unit.desc().nat_icon_front ) {
-      render_nationality_icon( renderer, where, id );
-      render_unit_no_icon( renderer, where, unit.desc().type );
+      render_nationality_icon( renderer, where, id, zoom );
+      render_unit_no_icon( painter, where, unit.desc().type,
+                           zoom );
     } else {
-      render_unit_no_icon( renderer, where, unit.desc().type );
-      render_nationality_icon( renderer, where, id );
+      render_unit_no_icon( painter, where, unit.desc().type,
+                           zoom );
+      render_nationality_icon( renderer, where, id, zoom );
     }
   } else {
-    render_unit_no_icon( renderer, where, unit.desc().type );
+    render_unit_no_icon( painter, where, unit.desc().type,
+                         zoom );
   }
 }
 
-void render_unit( rr::Renderer& renderer, Coord where,
-                  e_unit_type unit_type ) {
-  render_unit_no_icon( renderer, where, unit_type );
+void render_unit( rr::Painter& painter, Coord where,
+                  e_unit_type unit_type, double zoom ) {
+  render_unit_no_icon( painter, where, unit_type, zoom );
 }
 
-void render_colony( rr::Renderer& renderer, Coord where,
-                    ColonyId id ) {
+void render_colony( rr::Painter& painter, Coord where,
+                    ColonyId id, double zoom ) {
   auto const& colony = colony_from_id( id );
   auto        tile   = colony_from_id( id ).buildings().contains(
                            e_colony_building::stockade )
                            ? e_tile::colony_stockade
                            : e_tile::colony_basic;
-  render_sprite( renderer, tile, where, 0, 0 );
-  auto const& nation  = nation_obj( colony.nation() );
-  rr::Painter painter = renderer.painter();
-  render_colony_flag( painter, where + Delta{ 8_w, 8_h },
-                      nation.flag_color );
+  render_sprite(
+      painter,
+      Rect::from( where,
+                  g_tile_delta.multiply_and_round( zoom ) ),
+      tile );
+  auto const& nation = nation_obj( colony.nation() );
+  render_colony_flag(
+      painter,
+      where + Delta{ 8_w, 8_h }.multiply_and_round( zoom ),
+      nation.flag_color, zoom );
 }
 
 } // namespace rn

@@ -31,7 +31,6 @@ struct.FormatVersion {
   _features { equality, validation }
 }
 
-
 namespace "rn.wrapped"
 
 struct.TopLevelState {

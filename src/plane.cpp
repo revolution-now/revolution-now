@@ -14,7 +14,6 @@
 #include "colony-view.hpp"
 #include "console.hpp"
 #include "frame.hpp"
-#include "image.hpp"
 #include "init.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -91,7 +90,8 @@ struct OmniPlane : public Plane {
   OmniPlane() = default;
   bool covers_screen() const override { return false; }
   void draw( rr::Renderer& renderer ) const override {
-    render_sprite( renderer, e_tile::mouse_arrow1,
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, e_tile::mouse_arrow1,
                    input::current_mouse_position() - 16_w );
   }
   e_input_handled input( input::event_t const& event ) override {
@@ -182,7 +182,6 @@ void init_planes() {
   plane( e_plane::main_menu ) = main_menu_plane();
   plane( e_plane::land_view ) = land_view_plane();
   plane( e_plane::panel )     = panel_plane();
-  plane( e_plane::image )     = image_plane();
   plane( e_plane::colony )    = colony_plane();
   plane( e_plane::old_world ) = old_world_plane();
   plane( e_plane::window )    = window_plane();

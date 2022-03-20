@@ -26,20 +26,26 @@ namespace rn {
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
-                  bool with_icon );
-void render_unit( rr::Renderer& renderer, Coord where,
-                  e_unit_type unit_type );
 
-void render_colony( rr::Renderer& renderer, Coord where,
-                    ColonyId id );
+// Render an actual unit.
+void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
+                  bool with_icon, double zoom );
+
+// Render an abstract unit of a given type.
+void render_unit( rr::Painter& painter, Coord where,
+                  e_unit_type unit_type, double zoom );
+
+void render_colony( rr::Painter& painter, Coord where,
+                    ColonyId id, double zoom );
 
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_unit_type type,
                               e_nation      nation,
-                              e_unit_orders orders );
+                              e_unit_orders orders,
+                              double        zoom );
 
 void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, UnitId id );
+                              Coord where, UnitId id,
+                              double zoom );
 
 } // namespace rn

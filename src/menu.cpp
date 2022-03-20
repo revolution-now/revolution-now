@@ -463,25 +463,24 @@ void render_item_background_selected( rr::Renderer& renderer,
                                       menu_theme_color1 );
 }
 
-void render_menu_header_background( rr::Renderer& renderer,
+void render_menu_header_background( rr::Painter& painter,
                                     Coord pos, bool active ) {
   if( active )
-    render_sprite( renderer, e_tile::menu_item_sel_back, pos, 0,
-                   0 );
+    render_sprite( painter, e_tile::menu_item_sel_back, pos );
   else
-    render_sprite( renderer, e_tile::menu_hdr_sel_back, pos, 0,
-                   0 );
+    render_sprite( painter, e_tile::menu_hdr_sel_back, pos );
 }
 
 void render_open_menu( rr::Renderer& renderer, Coord pos,
                        e_menu             menu,
                        maybe<e_menu_item> subject ) {
+  rr::Painter painter = renderer.painter();
   if( subject.has_value() ) {
     CHECK( g_item_to_menu[*subject] == menu );
   }
 
   render_rect_of_sprites_with_border(
-      renderer,                                      //
+      painter,                                       //
       pos,                                           //
       menu_body_delta( menu ) / Scale{ 8_sx, 8_sy }, //
       e_tile::menu_body,                             //
@@ -534,15 +533,16 @@ void render_menu_bar( rr::Renderer& renderer ) {
           .value_or( Rect{} )
           .upper_left();
   auto        bar_rect   = menu_bar_rect();
-  auto const& wood       = lookup_sprite( e_tile::wood_middle );
-  Coord       start      = panel_upper_left - wood.size().h;
-  auto        wood_width = wood.size().w;
+  Delta       wood_size  = sprite_size( e_tile::wood_middle );
+  Coord       start      = panel_upper_left - wood_size.h;
+  auto        wood_width = wood_size.w;
+  rr::Painter painter    = renderer.painter();
   for( Coord c = start; c.x >= 0_x - wood_width;
        c -= wood_width )
-    render_sprite( renderer, e_tile::wood_middle, c, 0, 0 );
+    render_sprite( painter, e_tile::wood_middle, c );
   for( Coord c = start; c.x < bar_rect.right_edge();
        c += wood_width )
-    render_sprite( renderer, e_tile::wood_middle, c, 0, 0 );
+    render_sprite( painter, e_tile::wood_middle, c );
 
   for( auto menu : refl::enum_values<e_menu> ) {
     auto  rect                  = menu_header_rect( menu );
@@ -561,8 +561,9 @@ void render_menu_bar( rr::Renderer& renderer ) {
 
       void operator()( MenuState::menus_hidden ) const {}
       void operator()( MenuState::menus_closed closed ) const {
+        rr::Painter painter = renderer.painter();
         if( menu == closed.hover )
-          render_menu_header_background( renderer,
+          render_menu_header_background( painter,
                                          background_upper_left,
                                          /*active=*/false );
         render_menu_element( renderer, foreground_upper_left,
@@ -578,7 +579,8 @@ void render_menu_bar( rr::Renderer& renderer ) {
       void operator()( MenuState::menu_open const& o ) const {
         if( o.menu != menu )
           return this->operator()( MenuState::menus_closed{} );
-        render_menu_header_background( renderer,
+        rr::Painter painter = renderer.painter();
+        render_menu_header_background( painter,
                                        background_upper_left,
                                        /*active=*/true );
         render_menu_element( renderer, foreground_upper_left,
@@ -746,7 +748,7 @@ void init_menus() {
   }
 
   // Populate text widths of menu and menu item names.
-  static constexpr int kCharWidth = 6;
+  int kCharWidth = rr::rendered_text_line_size_pixels( "X" ).w;
   for( auto menu : refl::enum_values<e_menu> )
     g_menus[menu].name_width_pixels =
         g_menus[menu].name.size() * kCharWidth;

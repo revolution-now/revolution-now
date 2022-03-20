@@ -53,6 +53,9 @@ AtlasMap const& atlas_map() {
       /*id=5*/
       { .origin = { .x = 6, .y = 7 },
         .size   = { .w = 8, .h = 9 } },
+      /*id=6*/
+      { .origin = { .x = 7, .y = 10 },
+        .size   = { .w = 8, .h = 9 } },
   } );
   return m;
 }
@@ -64,8 +67,9 @@ constexpr pixel W{ .r = 255, .g = 255, .b = 255, .a = 255 };
 
 TEST_CASE( "[render/painter] draw_solid_rect" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   rect r;
 
@@ -127,8 +131,9 @@ TEST_CASE( "[render/painter] draw_solid_rect" ) {
 
 TEST_CASE( "[render/painter] draw_horizontal_line" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   point p;
   int   length = 0;
@@ -200,8 +205,9 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
 
 TEST_CASE( "[render/painter] draw_vertical_line" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   point p;
   int   length = 0;
@@ -273,8 +279,9 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
 
 TEST_CASE( "[render/painter] draw_point" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   point p;
 
@@ -306,8 +313,9 @@ TEST_CASE( "[render/painter] draw_point" ) {
 
 TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   rect                   r;
   Painter::e_border_mode mode = Painter::e_border_mode::inside;
@@ -436,10 +444,62 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
   }
 }
 
+TEST_CASE( "[render/painter] draw_empty_rect in_out" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  rect                   r;
+  Painter::e_border_mode mode = Painter::e_border_mode::in_out;
+
+  auto Vert = [&]( point p ) {
+    return SolidVertex( p, B ).generic();
+  };
+
+  SECTION( "10x10 square" ) {
+    r = rect{ .origin = { .x = 20, .y = 30 },
+              .size   = { .w = 10, .h = 10 } };
+    painter.draw_empty_rect( r, mode, B );
+    expected = {
+        // Horizontal line from (20,30) with length 10.
+        Vert( { .x = 20, .y = 30 } ),
+        Vert( { .x = 20, .y = 31 } ),
+        Vert( { .x = 30, .y = 31 } ),
+        Vert( { .x = 20, .y = 30 } ),
+        Vert( { .x = 30, .y = 30 } ),
+        Vert( { .x = 30, .y = 31 } ),
+        // Vertical line from (30,30) with length 11.
+        Vert( { .x = 30, .y = 30 } ),
+        Vert( { .x = 30, .y = 41 } ),
+        Vert( { .x = 31, .y = 41 } ),
+        Vert( { .x = 30, .y = 30 } ),
+        Vert( { .x = 31, .y = 30 } ),
+        Vert( { .x = 31, .y = 41 } ),
+        // Horizontal line from (20,40) with length 10.
+        Vert( { .x = 20, .y = 40 } ),
+        Vert( { .x = 20, .y = 41 } ),
+        Vert( { .x = 30, .y = 41 } ),
+        Vert( { .x = 20, .y = 40 } ),
+        Vert( { .x = 30, .y = 40 } ),
+        Vert( { .x = 30, .y = 41 } ),
+        // Vertical line from (20,30) with length 11.
+        Vert( { .x = 20, .y = 30 } ),
+        Vert( { .x = 20, .y = 41 } ),
+        Vert( { .x = 21, .y = 41 } ),
+        Vert( { .x = 20, .y = 30 } ),
+        Vert( { .x = 21, .y = 30 } ),
+        Vert( { .x = 21, .y = 41 } ),
+    };
+    REQUIRE( v == expected );
+  }
+}
+
 TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   rect                   r;
   Painter::e_border_mode mode = Painter::e_border_mode::outside;
@@ -562,8 +622,9 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
 
 TEST_CASE( "[render/painter] draw_sprite" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   point p;
 
@@ -589,8 +650,9 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
 
 TEST_CASE( "[render/painter] draw_silhouette" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   point p;
 
@@ -616,8 +678,9 @@ TEST_CASE( "[render/painter] draw_silhouette" ) {
 
 TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   rect r;
 
@@ -644,8 +707,9 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
 
 TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
 
   rect r;
 
@@ -670,12 +734,17 @@ TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/painter] mod depixelate" ) {
+TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               unmodded_painter( atlas_map(), emitter );
-  Painter               painter = unmodded_painter.with_mods(
-                    { .depixelate = .7, .alpha = nothing } );
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate =
+            DepixelateInfo{ .stage               = .7,
+                            .target_pixel_offset = {} },
+        .alpha = nothing } );
 
   point p;
 
@@ -701,12 +770,50 @@ TEST_CASE( "[render/painter] mod depixelate" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] mod depixelate to target" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate =
+            DepixelateInfo{
+                .stage               = .7,
+                .target_pixel_offset = { .w = 5, .h = 6 } },
+        .alpha = nothing } );
+
+  point p;
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    auto vert = SilhouetteVertex( p, atlas_p, R );
+    vert.set_depixelation_state( .7, size{ .w = 5, .h = 6 } );
+    return vert.generic();
+  };
+
+  p            = { .x = 20, .y = 30 };
+  int atlas_id = 2;
+  painter.draw_silhouette( atlas_id, p, R );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] mod alpha" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               unmodded_painter( atlas_map(), emitter );
-  Painter               painter = unmodded_painter.with_mods(
-                    { .depixelate = nothing, .alpha = .7 } );
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate = nothing, .alpha = .7 } );
 
   rect r;
 
@@ -728,6 +835,20 @@ TEST_CASE( "[render/painter] mod alpha" ) {
       Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] depixelation_offset" ) {
+  vector<GenericVertex> v;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  // id=1: { .origin = { .x = 2, .y = 3 },
+  //         .size   = { .w = 4, .h = 5 } },
+  // id=6: { .origin = { .x = 7, .y = 10 },
+  //         .size   = { .w = 8, .h = 9 } },
+  REQUIRE( painter.depixelation_offset( 1, 6 ) ==
+           size{ .w = 5, .h = 7 } );
 }
 
 } // namespace

@@ -21,6 +21,7 @@ namespace {
 
 using namespace std;
 
+using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
 
@@ -33,6 +34,7 @@ TEST_CASE( "[render/vertex] SpriteVertex" ) {
   REQUIRE( gv.depixelate == 0.0f );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{} );
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
@@ -47,6 +49,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.depixelate == 0.0f );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{} );
+  REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
                                         .b = 30.0f / 255.0f,
@@ -64,6 +67,7 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   REQUIRE( gv.depixelate == 0.0f );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
                                         .b = 30.0f / 255.0f,
@@ -96,13 +100,24 @@ TEST_CASE( "[render/vertex] add_vertex" ) {
 TEST_CASE( "[render/vertex] depixelation" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 } );
-  REQUIRE( vert.depixlation_state() == 0.0 );
+  REQUIRE( vert.depixelation_stage() == 0.0 );
+  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   vert.reset_depixelation_state();
-  REQUIRE( vert.depixlation_state() == 0.0 );
-  vert.set_depixelation_state( .5 );
-  REQUIRE( vert.depixlation_state() == 0.5 );
+  REQUIRE( vert.depixelation_stage() == 0.0 );
+  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
+  vert.set_depixelation_state(
+      .5, /*target_atlas_offset=*/gfx::size{} );
+  REQUIRE( vert.depixelation_stage() == 0.5 );
+  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
+  vert.set_depixelation_state(
+      1.0,
+      /*target_atlas_offset=*/gfx::size{ .w = 9, .h = 10 } );
+  REQUIRE( vert.depixelation_stage() == 0.5 );
+  REQUIRE( vert.generic().atlas_target_offset ==
+           gl::vec2{ .x = 9, .y = 10 } );
   vert.reset_depixelation_state();
-  REQUIRE( vert.depixlation_state() == 0.0 );
+  REQUIRE( vert.depixelation_stage() == 0.0 );
+  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
 }
 
 TEST_CASE( "[render/vertex] visibility" ) {

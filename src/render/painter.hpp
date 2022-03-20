@@ -26,9 +26,18 @@ struct VertexBase;
 /****************************************************************
 ** PainterMods
 *****************************************************************/
+struct DepixelateInfo {
+  double stage = 0.0;
+  // If the sprite is depixelating to a different sprite then
+  // this will be the offset from the source pixel to the target
+  // pixel in the atlas. Otherwise, the depixelation just goes to
+  // full transparency.
+  gfx::size target_pixel_offset = {};
+};
+
 struct PainterMods {
-  base::maybe<double> depixelate;
-  base::maybe<double> alpha;
+  base::maybe<DepixelateInfo> depixelate = {};
+  base::maybe<double>         alpha      = {};
 };
 
 /****************************************************************
@@ -37,6 +46,12 @@ struct PainterMods {
 struct Painter {
   Painter( AtlasMap const& atlas, Emitter& emitter )
     : atlas_( atlas ), emitter_( emitter ), mods_{} {}
+
+  Painter( AtlasMap const& atlas, Emitter& emitter,
+           PainterMods mods )
+    : atlas_( atlas ),
+      emitter_( emitter ),
+      mods_( std::move( mods ) ) {}
 
   Painter with_mods( PainterMods const& mods );
   Painter without_mods();
@@ -63,7 +78,10 @@ struct Painter {
 
   // .....................[[ Empty Rect ]].................... //
 
-  enum class e_border_mode { inside, outside };
+  // in_out means that the border will be on the inside on the
+  // top and left while it will be on the outside on the bottom
+  // and right.
+  enum class e_border_mode { inside, outside, in_out };
 
   // FIXME: this expensive, requires 24 vertices. Probably should
   // have shader support for these builtin.
@@ -81,6 +99,9 @@ struct Painter {
 
   Painter& draw_silhouette_scale( int atlas_id, gfx::rect dst,
                                   gfx::pixel color );
+
+  gfx::size depixelation_offset( int from_atlas_id,
+                                 int to_atlas_id ) const;
 
  private:
   // Should always use this one to emit, that way we never forget

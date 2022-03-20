@@ -1,6 +1,6 @@
 // This file should ONLY be included by config-files.cpp.
 
-#include "rcl/art.inl"
+#include "rcl/tile-sheet.inl"
 #include "rcl/font.inl"
 #include "rcl/input.inl"
 #include "rcl/land-view.inl"
@@ -13,7 +13,7 @@
 #include "rcl/ui.inl"
 #include "rcl/units.inl"
 
-#undef ART_INL
+#undef TILE_SHEET_INL
 #undef FONT_INL
 #undef INPUT_INL
 #undef LAND_VIEW_INL

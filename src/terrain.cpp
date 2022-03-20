@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "game-state.hpp"
 #include "gs-terrain.hpp"
-#include "init.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
@@ -71,30 +70,23 @@ void generate_terrain() {
 }
 
 // Pass in the painter as well for efficiency.
-void render_terrain_square( rr::Renderer& renderer,
-                            rr::Painter&  painter,
-                            Coord         world_square,
-                            Coord         pixel_coord ) {
-  auto   s    = square_at( world_square );
-  e_tile tile = s.surface == e_surface::land ? e_tile::land
-                                             : e_tile::water;
-  render_sprite( renderer, tile, pixel_coord, 0, 0 );
+void render_terrain_square( rr::Painter& painter, Rect where,
+                            Coord world_square ) {
+  e_tile tile =
+      square_at( world_square ).surface == e_surface::land
+          ? e_tile::land
+          : e_tile::water;
+  render_sprite( painter, where, tile );
   if( g_show_grid )
-    painter.draw_empty_rect(
-        Rect::from( pixel_coord,
-                    g_tile_delta + Delta( 1_w, 1_h ) ),
-        rr::Painter::e_border_mode::inside,
-        gfx::pixel{ 0, 0, 0, 30 } );
+    painter.draw_empty_rect( where,
+                             rr::Painter::e_border_mode::in_out,
+                             gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain( Rect src_tiles, rr::Renderer& renderer,
-                     Coord dest_pixel_coord ) {
-  for( auto square : src_tiles )
-    render_terrain_square(
-        renderer, square,
-        dest_pixel_coord +
-            ( ( square - src_tiles.upper_left() ) *
-              g_tile_scale ) );
+void render_terrain_square( rr::Painter& painter, Coord where,
+                            Coord world_square ) {
+  render_terrain_square(
+      painter, Rect::from( where, g_tile_delta ), world_square );
 }
 
 Delta world_size_tiles() {

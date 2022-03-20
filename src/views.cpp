@@ -271,8 +271,9 @@ void ButtonBaseView::draw( rr::Renderer& renderer,
 
 void ButtonBaseView::render_disabled( rr::Renderer& renderer,
                                       gfx::point where ) const {
+  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      renderer, Coord::from_gfx( where ),
+      painter, Coord::from_gfx( where ),
       size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -294,8 +295,9 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
 
 void ButtonBaseView::render_pressed( rr::Renderer& renderer,
                                      gfx::point where ) const {
+  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      renderer, Coord::from_gfx( where ),
+      painter, Coord::from_gfx( where ),
       size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_down_mm, e_tile::button_down_um,
       e_tile::button_down_lm, e_tile::button_down_ml,
@@ -317,8 +319,9 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
 
 void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
                                        gfx::point where ) const {
+  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      renderer, Coord::from_gfx( where ),
+      painter, Coord::from_gfx( where ),
       size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -341,8 +344,9 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
 
 void ButtonBaseView::render_hover( rr::Renderer& renderer,
                                    gfx::point    where ) const {
+  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      renderer, Coord::from_gfx( where ),
+      painter, Coord::from_gfx( where ),
       size_in_pixels_ / Scale{ 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -367,7 +371,8 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
 *****************************************************************/
 void SpriteView::draw( rr::Renderer& renderer,
                        Coord         coord ) const {
-  render_sprite( renderer, tile_, coord, 0, 0 );
+  rr::Painter painter = renderer.painter();
+  render_sprite( painter, tile_, coord );
 }
 
 /****************************************************************
@@ -951,7 +956,7 @@ void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   this->CompositeSingleView::draw( renderer, coord );
   render_nationality_icon( renderer, coord, type_, nation_,
-                           orders_ );
+                           orders_, /*zoom=*/1.0 );
 }
 
 /****************************************************************

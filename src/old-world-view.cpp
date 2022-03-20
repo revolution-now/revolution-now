@@ -417,7 +417,7 @@ class Backdrop {
   void draw( rr::Renderer& renderer, Delta offset ) const {
     rr::Painter painter = renderer.painter();
     render_sprite_section(
-        renderer, e_tile::old_world_background, Coord{} + offset,
+        painter, e_tile::old_world_background, Coord{} + offset,
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
@@ -796,7 +796,7 @@ class UnitCollection {
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
-                     /*with_icon=*/false );
+                     /*with_icon=*/false, /*zoom=*/1.0 );
     if( owv_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *owv_state.selected_unit ) {
@@ -1060,7 +1060,8 @@ class ActiveCargo {
                               OldWorldDraggableObject::unit{
                                   u.id } } )
                     render_unit( renderer, dst_coord, u.id,
-                                 /*with_icon=*/false );
+                                 /*with_icon=*/false,
+                                 /*zoom=*/1.0 );
                 },
                 [&]( Cargo::commodity const& c ) {
                   render_commodity_annotated(
@@ -1865,10 +1866,9 @@ void drag_n_drop_draw( rr::Renderer& renderer,
       state.object,
       [&]( unit const& o ) {
         auto size =
-            lookup_sprite( unit_from_id( o.id ).desc().tile )
-                .size();
+            sprite_size( unit_from_id( o.id ).desc().tile );
         render_unit( renderer, origin_for( size ), o.id,
-                     /*with_icon=*/false );
+                     /*with_icon=*/false, /*zoom=*/1.0 );
       },
       [&]( market_commodity const& o ) {
         auto size = commodity_tile_size( o.type );

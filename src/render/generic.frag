@@ -14,6 +14,7 @@ flat in int   frag_type;
 flat in float frag_depixelate;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
+flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 
@@ -25,10 +26,17 @@ uniform vec2 u_screen_size;
 out vec4 final_color;
 
 /****************************************************************
+** Helpers
+*****************************************************************/
+vec4 atlas_lookup( in vec2 atlas_pixel_pos ) {
+  return texture( u_atlas, atlas_pixel_pos/u_atlas_size );
+}
+
+/****************************************************************
 ** Sprites.
 *****************************************************************/
 vec4 type_sprite() {
-  return texture( u_atlas, frag_atlas_position/u_atlas_size );
+  return atlas_lookup( frag_atlas_position );
 }
 
 /****************************************************************
@@ -68,14 +76,17 @@ float hash_vec2( in vec2 vec ) {
   return fract( sin( dot( vec, magic_vec2 ) )*magic_float );
 }
 
-vec4 depixelate( in vec4 color ) {
+float hash_position() {
   // We need to divide by this screen scale to put the input in a
   // good range (approximately in the range [0,1]) for the hash
   // function to yield good results, otherwise we get repeating
   // patterns.
   float screen_scale = u_screen_size.x;
-  float hash = hash_vec2( floor( frag_position )/screen_scale );
-  return vec4( color.rgb, hash > frag_depixelate );
+  return hash_vec2( floor( frag_position )/screen_scale );
+}
+
+vec4 depixelate_to( in vec4 c1, in vec4 c2 ) {
+  return ( hash_position() > frag_depixelate ) ? c1 : c2;
 }
 
 /****************************************************************
@@ -101,7 +112,19 @@ void main() {
 
   // Post processing.
 
-  if( frag_depixelate > 0.0 ) color = depixelate( color );
+  if( frag_depixelate > 0.0 ) {
+    // Depixelate to nothing by default.
+    vec4 target_color = vec4( 0.0 );
+    if( length( frag_atlas_target_offset ) > 0 ) {
+      // Depixelate to another sprite, so get the position and
+      // color of the pixel in the other texture that we're de-
+      // pixelating to.
+      target_color = atlas_lookup( frag_atlas_position +
+                                   frag_atlas_target_offset );
+    }
+    color = depixelate_to( color, target_color );
+  }
+
   if( frag_alpha_multiplier < 1.0 ) color = alpha( color );
 
   final_color = color;

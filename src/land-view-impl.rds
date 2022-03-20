@@ -10,19 +10,11 @@
 # ===============================================================
 # Revolution Now
 include "coord.hpp"
-include "matrix.hpp"
 include "physics.hpp"
-include "tx.hpp"
 include "unit-id.hpp"
 
 # Rds
 include "orders.rds.hpp"
-
-# gfx
-include "gfx/pixel.hpp"
-
-# C++ standard library
-include "<vector>"
 
 namespace "rn"
 
@@ -64,9 +56,9 @@ sumtype.UnitAnimation {
     percent_vel 'DissipativeVelocity',
   },
   depixelate {
-    tx_depixelate_from 'Texture',
-    pixels 'std::vector<Coord>',
-    demoted_pixels 'Matrix<gfx::pixel>',
+    stage 'double',
+    # If we're depixelating to another unit.
+    target 'maybe<e_unit_type>',
   },
 
   _features { equality }

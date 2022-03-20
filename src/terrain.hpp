@@ -45,12 +45,12 @@ bool terrain_is_land( Coord coord );
 *****************************************************************/
 // This will fully render a land square with no units or colonies
 // on it.
-void render_terrain_square( rr::Renderer& renderer,
-                            Coord         world_square,
-                            Coord         pixel_coord );
+void render_terrain_square( rr::Painter& painter, Coord where,
+                            Coord world_square );
 
-void render_terrain( Rect src_tiles, rr::Renderer& renderer,
-                     Coord dest_pixel_coord );
+// This one allows stretching the tile.
+void render_terrain_square( rr::Painter& painter, Rect where,
+                            Coord world_square );
 
 /****************************************************************
 ** Testing

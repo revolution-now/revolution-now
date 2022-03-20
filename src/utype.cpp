@@ -164,7 +164,7 @@ LUA_STARTUP( lua::state& st ) {
   // of sol::readonly to make them appear constant to luapp.
 
   LUA_ADD_MEMBER( name );
-  LUA_ADD_MEMBER( tile );
+  // LUA_ADD_MEMBER( tile );
   LUA_ADD_MEMBER( nat_icon_front );
   LUA_ADD_MEMBER( nat_icon_position );
   LUA_ADD_MEMBER( ship );

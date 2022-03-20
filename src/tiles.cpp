@@ -14,23 +14,17 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
-#include "lua.hpp"
+#include "renderer.hpp"
 
 // Revolution Now (config)
-#include "../config/rcl/art.inl"
-
-// luapp
-#include "luapp/rtable.hpp"
-#include "luapp/state.hpp"
-#include "luapp/types.hpp"
+#include "../config/rcl/tile-sheet.inl"
 
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
-// base-util
-#include "base-util/fs.hpp"
-#include "base-util/pp.hpp"
+// base
+#include "base/keyval.hpp"
 
 // C++ standard library
 #include <string>
@@ -44,237 +38,56 @@ namespace rn {
 
 namespace {
 
-struct tile_map {
-  struct one_tile {
-    int index;
-    X   x;
-    Y   y;
-    int tile, rot, flip_x;
-  };
-  vector<one_tile> tiles;
-};
-NOTHROW_MOVE( tile_map );
-
-// Need pointer stability for these.
-unordered_map<fs::path, Texture>     g_images;
-unordered_map<e_tile, sprite>        g_sprites;
-unordered_map<std::string, tile_map> tile_maps;
-
-Texture const& load_image( fs::path const& p ) {
-  if( !g_images.contains( p ) )
-    g_images.emplace( p, Texture::load_image( p ) );
-  return g_images[p];
-}
-
-sprite create_sprite( Texture const& texture, Coord coord,
-                      Delta size ) {
-  auto scale = size.to_scale();
-  Rect rect{ coord.x * scale.sx, coord.y * scale.sy, size.w,
-             size.h };
-  return { &texture, rect, scale };
-}
-
-#define SET_SPRITE( category, tile_name )         \
-  g_sprites[e_tile::tile_name] = create_sprite(   \
-      tile_set_texture,                           \
-      config_art.tiles.category.coords.tile_name, \
-      config_art.tiles.category.size );
-
-#define LOAD_SPRITES( name, ... )                            \
-  {                                                          \
-    auto& tile_set_texture =                                 \
-        load_image( config_art.tiles.name.img );             \
-    PP_MAP_TUPLE( SET_SPRITE,                                \
-                  PP_MAP_PREPEND_TUPLE(                      \
-                      name, PP_MAP_COMMAS( SINGLETON_TUPLE,  \
-                                           __VA_ARGS__ ) ) ) \
-  }
+vector<maybe<int>> cache;
 
 void init_sprites() {
-  // clang-format off
-  EVAL( PP_MAP_TUPLE(LOAD_SPRITES,
-  (  /*-------------------*/world,/*-------------------*/
-       water,
-       land,
-       land_1_side,
-       land_2_sides,
-       land_3_sides,
-       land_4_sides,
-       land_corner,
-       fog,
-       fog_1_side,
-       fog_corner,
-       terrain_grass,
-       panel,
-       panel_edge_left,
-       panel_slate,
-       panel_slate_1_side,
-       panel_slate_2_sides,
-  ),
-  (  /*-------------------*/wood,/*-------------------*/
-       wood_middle,
-       wood_left_edge,
-  ),
-  (  /*-------------------*/units,/*-------------------*/
-       petty_criminal,
-       indentured_servant,
-       free_colonist,
-       soldier,
-       dragoon,
-       pioneer,
-       missionary,
-       scout,
-       expert_farmer,
-       expert_fisherman,
-       expert_sugar_planter,
-       expert_tobacco_planter,
-       expert_cotton_planter,
-       expert_fur_trapper,
-       expert_lumberjack,
-       expert_ore_miner,
-       expert_silver_miner,
-       master_carpenter,
-       master_rum_distiller,
-       master_tobacconist,
-       master_weaver,
-       master_fur_trader,
-       master_blacksmith,
-       master_gunsmith,
-       elder_statesman,
-       firebrand_preacher,
-       hardy_colonist,
-       jesuit_colonist,
-       seasoned_colonist,
-       veteran_colonist,
-       veteran_soldier,
-       veteran_dragoon,
-       continental_army,
-       continental_cavalry,
-       regular,
-       cavalry,
-       hardy_pioneer,
-       jesuit_missionary,
-       seasoned_scout,
-       artillery,
-       damaged_artillery,
-       caravel,
-       merchantman,
-       galleon,
-       privateer,
-       frigate,
-       man_o_war,
-       wagon_train,
-       small_treasure,
-       large_treasure,
-  ),
-  (  /*-------------------*/menu,/*-------------------*/
-       menu_top_left,
-       menu_body,
-       menu_top,
-       menu_left,
-       menu_bottom,
-       menu_bottom_left,
-       menu_right,
-       menu_top_right,
-       menu_bottom_right,
-  ),
-  (  /*-------------------*/menu16,/*-------------------*/
-       menu_bar_0,
-       menu_bar_1,
-       menu_bar_2,
-  ),
-  (  /*-------------------*/menu_sel,/*-------------------*/
-       menu_item_sel_back,
-       menu_hdr_sel_back,
-  ),
-  (  /*-------------------*/button,/*-------------------*/
-       button_up_ul,
-       button_up_um,
-       button_up_ur,
-       button_up_ml,
-       button_up_mm,
-       button_up_mr,
-       button_up_ll,
-       button_up_lm,
-       button_up_lr,
-       button_down_ul,
-       button_down_um,
-       button_down_ur,
-       button_down_ml,
-       button_down_mm,
-       button_down_mr,
-       button_down_ll,
-       button_down_lm,
-       button_down_lr,
-  ),
-  (  /*-------------------*/commodities,/*-------------------*/
-       commodity_food,
-       commodity_sugar,
-       commodity_tobacco,
-       commodity_cotton,
-       commodity_fur,
-       commodity_lumber,
-       commodity_ore,
-       commodity_silver,
-       commodity_horses,
-       commodity_rum,
-       commodity_cigars,
-       commodity_cloth,
-       commodity_coats,
-       commodity_trade_goods,
-       commodity_tools,
-       commodity_muskets,
-  ),
-  (  /*-------------------*/colony,/*-------------------*/
-       colony_basic,
-       colony_stockade,
-  ),
-  (  /*-------------------*/mouse,/*-------------------*/
-       mouse_planks,
-       mouse_musket,
-       mouse_arrow1,
-  ),
-  (  /*-------------------*/testing,/*-------------------*/
-       checkers,
-       checkers_inv,
-  )
-  ));
-  // clang-format on
-
-  for( e_tile e : refl::enum_values<e_tile> ) {
-    CHECK( g_sprites.contains( e ),
-           "Tile `{}` has not been loaded.", e );
+  rr::Renderer& renderer =
+      global_renderer_use_only_when_needed();
+  cache.resize( refl::enum_count<e_tile> );
+  auto& atlas_ids = renderer.atlas_ids();
+  int   i         = 0;
+  for( e_tile tile : refl::enum_values<e_tile> ) {
+    UNWRAP_CHECK( atlas_id,
+                  base::lookup( atlas_ids, refl::enum_value_name(
+                                               tile ) ) );
+    cache[i++] = atlas_id;
   }
-  auto num_tiles        = refl::enum_count<e_tile>;
-  auto num_tiles_loaded = g_sprites.size();
-  CHECK( int( num_tiles_loaded ) == num_tiles,
-         "There are {} tiles but {} were loaded.", num_tiles,
-         num_tiles_loaded );
 }
 
-void cleanup_sprites() {
-  for( auto& p : g_images ) p.second.free();
-}
+void cleanup_sprites() { cache.clear(); }
 
 } // namespace
 
-//
 REGISTER_INIT_ROUTINE( sprites );
 
-sprite const& lookup_sprite( e_tile tile ) {
-  auto where = g_sprites.find( tile );
-  CHECK( where != g_sprites.end(), "failed to find sprite {}",
-         std::to_string( static_cast<int>( tile ) ) );
-  return where->second;
+Delta sprite_size( e_tile tile ) {
+  return Delta::from_gfx(
+      config_tile.sheets.sprite_size( tile ) );
 }
 
-void render_sprite( rr::Renderer& renderer, e_tile tile,
-                    Y pixel_row, X pixel_col, int rot,
-                    int flip_x ) {
-  auto where = g_sprites.find( tile );
+gfx::size depixelation_offset( e_tile from_tile,
+                               e_tile to_tile ) {
+  // TODO
+}
+
+void render_sprite( rr::Painter& painter, Rect where,
+                    e_tile tile ) {
+  // TODO
+}
+
+void render_sprite_section( rr::Painter& painter, e_tile tile,
+                            Coord pixel_coord, Rect source ) {
+  // TODO
+}
+
+void render_sprite( rr::Painter& painter, e_tile tile,
+                    Coord coord ) {
+  Y    pixel_row = coord.y;
+  X    pixel_col = coord.x;
+  auto where     = g_sprites.find( tile );
   CHECK( where != g_sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
-  sprite const& sp = where->second;
+  Sprite const& sp = where->second;
 
   Rect dst;
   dst.x = pixel_col;
@@ -292,12 +105,12 @@ void render_sprite( rr::Renderer& renderer, e_tile tile,
   sp.texture->copy_to( tx, sp.source, dst, angle, flip );
 }
 
-void render_sprite_clip( rr::Renderer& renderer, e_tile tile,
-                         Coord pixel_coord, Rect const& clip ) {
+void render_sprite_section( rr::Painter& painter, e_tile tile,
+                            Coord pixel_coord, Rect clip ) {
   auto where = g_sprites.find( tile );
   CHECK( where != g_sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
-  sprite const& sp = where->second;
+  Sprite const& sp = where->second;
 
   Rect dst;
   dst.x = pixel_coord.x;
@@ -312,33 +125,7 @@ void render_sprite_clip( rr::Renderer& renderer, e_tile tile,
   sp.texture->copy_to( tx, new_src, dst, 0.0, e_flip::none );
 }
 
-void render_sprite( rr::Renderer& renderer, e_tile tile,
-                    Coord pixel_coord, int rot, int flip_x ) {
-  render_sprite( renderer, tile, pixel_coord.y, pixel_coord.x,
-                 rot, flip_x );
-}
-
-void render_sprite( rr::Renderer& renderer, e_tile tile,
-                    Coord pixel_coord ) {
-  render_sprite( renderer, tile, pixel_coord.y, pixel_coord.x, 0,
-                 0 );
-}
-
-void render_sprite_grid( rr::Renderer& renderer, e_tile tile,
-                         Y tile_row, X tile_col, int rot,
-                         int flip_x ) {
-  auto const& sprite = lookup_sprite( tile );
-  render_sprite( renderer, tile, tile_row * sprite.scale.sy,
-                 tile_col * sprite.scale.sx, rot, flip_x );
-}
-
-void render_sprite_grid( rr::Renderer& renderer, e_tile tile,
-                         Coord coord, int rot, int flip_x ) {
-  render_sprite_grid( renderer, tile, coord.y, coord.x, rot,
-                      flip_x );
-}
-
-void tile_sprite( rr::Renderer& renderer, e_tile tile,
+void tile_sprite( rr::Painter& painter, e_tile tile,
                   Rect const& rect ) {
   auto& info = lookup_sprite( tile );
   auto  mod  = rect.delta() % info.scale;
@@ -350,29 +137,29 @@ void tile_sprite( rr::Renderer& renderer, e_tile tile,
       rect.upper_left(), rect.delta() - Delta{ 1_w, 1_h } );
   for( auto coord :
        Rect::from( Coord{}, smaller_rect.delta() / info.scale ) )
-    render_sprite( renderer, tile,
-                   rect.upper_left() +
-                       coord.distance_from_origin() * info.scale,
-                   /*rot=*/0, /*flip=*/0 );
+    render_sprite(
+        painter, tile,
+        rect.upper_left() +
+            coord.distance_from_origin() * info.scale );
   for( H h = 0_h; h < smaller_rect.h / info.scale.sy; ++h ) {
     auto pixel_coord =
         rect.upper_right() - mod.w + h * info.scale.sy;
-    render_sprite_clip(
-        renderer, tile, pixel_coord,
+    render_sprite_section(
+        painter, tile, pixel_coord,
         Rect::from( Coord{},
                     mod.with_height( 1_h * info.scale.sy ) ) );
   }
   for( W w = 0_w; w < smaller_rect.w / info.scale.sx; ++w ) {
     auto pixel_coord =
         rect.lower_left() - mod.h + w * info.scale.sx;
-    render_sprite_clip(
-        renderer, tile, pixel_coord,
+    render_sprite_section(
+        painter, tile, pixel_coord,
         Rect::from( Coord{},
                     mod.with_width( 1_w * info.scale.sx ) ) );
   }
   auto pixel_coord = rect.lower_right() - mod;
-  render_sprite_clip( renderer, tile, pixel_coord,
-                      Rect::from( Coord{}, mod ) );
+  render_sprite_section( painter, tile, pixel_coord,
+                         Rect::from( Coord{}, mod ) );
 }
 
 e_tile index_to_tile( int index ) {
@@ -380,18 +167,18 @@ e_tile index_to_tile( int index ) {
 }
 
 void render_rect_of_sprites_with_border(
-    rr::Renderer& renderer,    // where to draw it
-    Coord         dest_origin, // pixel coord of upper left
-    Delta         size_tiles,  // tile coords, including border
-    e_tile        middle,      //
-    e_tile        top,         //
-    e_tile        bottom,      //
-    e_tile        left,        //
-    e_tile        right,       //
-    e_tile        top_left,    //
-    e_tile        top_right,   //
-    e_tile        bottom_left, //
-    e_tile        bottom_right //
+    rr::Painter& painter,     // where to draw it
+    Coord        dest_origin, // pixel coord of upper left
+    Delta        size_tiles,  // tile coords, including border
+    e_tile       middle,      //
+    e_tile       top,         //
+    e_tile       bottom,      //
+    e_tile       left,        //
+    e_tile       right,       //
+    e_tile       top_left,    //
+    e_tile       top_right,   //
+    e_tile       bottom_left, //
+    e_tile       bottom_right //
 ) {
   auto const& sprite_middle = lookup_sprite( middle );
   CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );
@@ -411,85 +198,41 @@ void render_rect_of_sprites_with_border(
 
   Rect dst_tile_rect = Rect::from( Coord{}, size_tiles );
   for( auto coord : dst_tile_rect.edges_removed() )
-    render_sprite( dst, middle, to_pixels( coord ), 0, 0 );
+    render_sprite( painter, middle, to_pixels( coord ) );
 
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite( dst, top, to_pixels( { 0_y, x } ), 0, 0 );
+    render_sprite( painter, top, to_pixels( { 0_y, x } ) );
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
     render_sprite(
-        dst, bottom,
-        to_pixels(
-            { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x } ),
-        0, 0 );
+        painter, bottom,
+        to_pixels( { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
+                     x } ) );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite( dst, left, to_pixels( { y, 0_x } ), 0, 0 );
+    render_sprite( painter, left, to_pixels( { y, 0_x } ) );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
     render_sprite(
-        dst, right,
-        to_pixels(
-            { y, 0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
-        0, 0 );
+        painter, right,
+        to_pixels( { y, 0_x + ( dst_tile_rect.right_edge() -
+                                1_w ) } ) );
 
-  render_sprite( dst, top_left, to_pixels( { 0_y, 0_x } ), 0,
-                 0 );
+  render_sprite( painter, top_left, to_pixels( { 0_y, 0_x } ) );
   render_sprite(
-      dst, top_right,
-      to_pixels(
-          { 0_y, 0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
-      0, 0 );
+      painter, top_right,
+      to_pixels( { 0_y, 0_x + ( dst_tile_rect.right_edge() -
+                                1_w ) } ) );
   render_sprite(
-      dst, bottom_left,
-      to_pixels(
-          { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x } ),
-      0, 0 );
+      painter, bottom_left,
+      to_pixels( { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
+                   0_x } ) );
   render_sprite(
-      dst, bottom_right,
+      painter, bottom_right,
       to_pixels(
           { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-            0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
-      0, 0 );
+            0_x + ( dst_tile_rect.right_edge() - 1_w ) } ) );
 }
-
-// void render_tile_map( std::string_view name ) {
-//  auto where = tile_maps.find( string( name ) );
-//  CHECK( where != tile_maps.end(),
-//    "failed to find tile_map "s + string( name ) );
-//  auto tm = where->second;
-//  for( auto const& tile : tm.tiles )
-//    render_sprite_grid( index_to_tile( tile.tile ), tile.y,
-//                        tile.x, tile.rot, tile.flip_x );
-//}
-
-// tile_map load_tile_map( char const* path ) {
-//  ifstream in( path );
-//  CHECK( in.good(),
-//    "failed to open file "s + string( path ) );
-//
-//  tile_map tm;
-//
-//  string comments;
-//  getline( in, comments );
-//
-//  while( true ) {
-//    int index, tile, rot, flip_x;
-//    X   x;
-//    Y   y;
-//    in >> index >> x >> y >> tile >> rot >> flip_x;
-//    if( in.eof() || !in.good() ) break;
-//    if( tile < 0 ) continue;
-//    tm.tiles.push_back( {index, x, y, tile, rot, flip_x} );
-//  }
-//  return tm;
-//}
-
-void load_tile_maps() {
-  // tile_maps["panel"] = load_tile_map( "assets/art/panel.tm" );
-}
-
-LUA_ENUM( tile );
 
 } // namespace rn

@@ -2,7 +2,7 @@ player_nation: english
 
 target_frame_rate: 61
 
-depixelate_pixels_per_frame: 10
+depixelate_per_frame: 0.01
 
 ideal_tile_angular_size: 0.030 # radians
 

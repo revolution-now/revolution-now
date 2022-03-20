@@ -62,121 +62,97 @@ auto& init_routine_run_map() {
 bool g_init_has_started{ false };
 
 unordered_map<e_init_routine, vector<e_init_routine>>
-    g_init_deps{
-        { e_init_routine::configs, {} },
-        { e_init_routine::rng,
-          {
-              e_init_routine::configs //
-          } },
-        { e_init_routine::sdl,
-          {
-              e_init_routine::configs //
-          } },
-        { e_init_routine::ttf,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl      //
-          } },
-        { e_init_routine::text,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::ttf      //
-          } },
-        { e_init_routine::screen,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl      //
-          } },
-        { e_init_routine::lua,
-          {
-              e_init_routine::configs //
-          } },
-        { e_init_routine::renderer,
-          {
-              e_init_routine::configs, //
-              e_init_routine::screen   //
-          } },
-        { e_init_routine::sprites,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::renderer //
-          } },
-        { e_init_routine::planes,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::ttf,     //
-              e_init_routine::screen,  //
-              e_init_routine::sprites, //
-              e_init_routine::renderer //
-          } },
-        { e_init_routine::sound,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl      //
-          } },
-        { e_init_routine::images,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::renderer //
-          } },
-        { e_init_routine::compositor,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::screen   //
-          } },
-        { e_init_routine::old_world_view,
-          {
-              e_init_routine::configs, //
-              e_init_routine::sdl,     //
-              e_init_routine::screen   //
-          } },
-        { e_init_routine::menus,
-          {
-              e_init_routine::configs //
-          } },
-        { e_init_routine::terrain,
-          {
-              e_init_routine::configs,  //
-              e_init_routine::renderer, // for block cache
-              e_init_routine::sprites,  // for block cache
-              e_init_routine::sdl       //
-          } },
-        { e_init_routine::tunes,
-          {
-              e_init_routine::configs, //
-              e_init_routine::rng,     //
-          } },
-        { e_init_routine::midiseq,
-          {
-              e_init_routine::configs, //
-          } },
-        { e_init_routine::midiplayer,
-          {
-              e_init_routine::midiseq, //
-              e_init_routine::tunes,   //
-              e_init_routine::configs, //
-          } },
-        { e_init_routine::oggplayer,
-          {
-              e_init_routine::sdl,     //
-              e_init_routine::sound,   //
-              e_init_routine::tunes,   //
-              e_init_routine::configs, //
-          } },
-        { e_init_routine::conductor,
-          {
-              e_init_routine::tunes,      //
-              e_init_routine::midiplayer, //
-              e_init_routine::oggplayer,  //
-              // *** Should depend on all future music
-              // players added.
-              e_init_routine::configs, //
-          } } };
+    g_init_deps{ { e_init_routine::configs, {} },
+                 { e_init_routine::rng,
+                   {
+                       e_init_routine::configs //
+                   } },
+                 { e_init_routine::sdl,
+                   {
+                       e_init_routine::configs //
+                   } },
+                 { e_init_routine::screen,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl      //
+                   } },
+                 { e_init_routine::lua,
+                   {
+                       e_init_routine::configs //
+                   } },
+                 { e_init_routine::renderer,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl,     //
+                       e_init_routine::screen   //
+                   } },
+                 { e_init_routine::sprites,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl,     //
+                       e_init_routine::renderer //
+                   } },
+                 { e_init_routine::planes,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl,     //
+                       e_init_routine::screen,  //
+                       e_init_routine::sprites, //
+                       e_init_routine::renderer //
+                   } },
+                 { e_init_routine::sound,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl      //
+                   } },
+                 { e_init_routine::compositor,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl,     //
+                       e_init_routine::screen   //
+                   } },
+                 { e_init_routine::old_world_view,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::sdl,     //
+                       e_init_routine::screen   //
+                   } },
+                 { e_init_routine::menus,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::renderer //
+                   } },
+                 { e_init_routine::tunes,
+                   {
+                       e_init_routine::configs, //
+                       e_init_routine::rng,     //
+                   } },
+                 { e_init_routine::midiseq,
+                   {
+                       e_init_routine::configs, //
+                   } },
+                 { e_init_routine::midiplayer,
+                   {
+                       e_init_routine::midiseq, //
+                       e_init_routine::tunes,   //
+                       e_init_routine::configs, //
+                   } },
+                 { e_init_routine::oggplayer,
+                   {
+                       e_init_routine::sdl,     //
+                       e_init_routine::sound,   //
+                       e_init_routine::tunes,   //
+                       e_init_routine::configs, //
+                   } },
+                 { e_init_routine::conductor,
+                   {
+                       e_init_routine::tunes,      //
+                       e_init_routine::midiplayer, //
+                       e_init_routine::oggplayer,  //
+                       // *** Should depend on all future music
+                       // players added.
+                       e_init_routine::configs, //
+                   } } };
 
 } // namespace
 

@@ -342,7 +342,6 @@ struct.UnitCompositionConfig {
   }
 }
 
-
 namespace "rn.wrapped"
 
 struct.UnitType {

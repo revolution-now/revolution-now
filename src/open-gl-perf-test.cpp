@@ -167,19 +167,23 @@ void open_gl_perf_test() {
   /**************************************************************
   ** Renderer Config
   ***************************************************************/
-  rr::SpriteSheetConfig world_config{
-      .img_path    = "assets/art/tiles/world.png",
-      .sprite_size = size{ .w = 32, .h = 32 },
-      .sprites =
-          {
-              { "water", point{ .x = 0, .y = 0 } },
-              { "grass", point{ .x = 1, .y = 0 } },
-          },
+  vector<rr::SpriteSheetConfig> world_configs{
+      {
+          .img_path    = "assets/art/tiles/world.png",
+          .sprite_size = size{ .w = 32, .h = 32 },
+          .sprites =
+              {
+                  { "water", point{ .x = 0, .y = 0 } },
+                  { "grass", point{ .x = 1, .y = 0 } },
+              },
+      },
   };
 
-  rr::AsciiFontSheetConfig font_config{
-      .img_path  = "assets/art/fonts/basic-6x8.png",
-      .font_name = "simple",
+  vector<rr::AsciiFontSheetConfig> font_configs{
+      {
+          .img_path  = "assets/art/fonts/basic-6x8.png",
+          .font_name = "simple",
+      },
   };
 
   Delta logical_screen_size = main_window_logical_size();
@@ -189,8 +193,9 @@ void open_gl_perf_test() {
           size{ .w = logical_screen_size.w._,
                 .h = logical_screen_size.h._ },
       .max_atlas_size = { .w = 200, .h = 200 },
-      .sprite_sheets  = { std::move( world_config ) },
-      .font_sheets    = { std::move( font_config ) },
+      // These are taken by reference.
+      .sprite_sheets = world_configs,
+      .font_sheets   = font_configs,
   };
 
   /**************************************************************
@@ -199,10 +204,10 @@ void open_gl_perf_test() {
   {
     // This renderer needs to be released before the SDL context
     // is cleaned up.
-    rr::Renderer renderer = rr::Renderer::create(
+    unique_ptr<rr::Renderer> renderer = rr::Renderer::create(
         renderer_config, [&] { sdl_gl_swap_window( window ); } );
 
-    render_loop( renderer );
+    render_loop( *renderer );
   }
 
   /**************************************************************

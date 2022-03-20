@@ -52,6 +52,15 @@ struct.GenericVertex {
   # the coordinates of the vertex in the texture atlas.
   atlas_position 'gl::vec2',
 
+  # When depixelation is on (i.e., depixelate > 0.0), and if this
+  # coordinate is other than zero, then it will be interpreted as
+  # an offset from the atlas_position to another position in the
+  # texture atlas where the target color should be taken. Effec-
+  # tively, this allows a sprite to "depixelate" into another
+  # sprite, as opposed to depixelating to nothing as is the de-
+  # fault when this offset is zero.
+  atlas_target_offset 'gl::vec2',
+
   # For solid triangles or silhouettes this will be the color
   # used. Components should be in [0, 1.0]. For silhouettes,
   # alpha in this color will be multiplied by the alpha of the

@@ -38,6 +38,9 @@
 #include "base/io.hpp"
 #include "base/keyval.hpp"
 
+// C++ standard library
+#include <stack>
+
 using namespace std;
 
 namespace rr {
@@ -90,7 +93,8 @@ struct Renderer::Impl {
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg )
-    : present_fn( std::move( present_fn_arg ) ),
+    : mod_stack{},
+      present_fn( std::move( present_fn_arg ) ),
       logical_screen_size( logical_screen_size_arg ),
       program( std::move( program_arg ) ),
       vertex_array( std::move( vertex_array_arg ) ),
@@ -103,7 +107,9 @@ struct Renderer::Impl {
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       vertices{},
-      emitter( vertices ){};
+      emitter( vertices ) {
+    mod_stack.push( RendererMods{} );
+  };
 
   static Impl* create( RendererConfig const& config,
                        PresentFn             present_fn ) {
@@ -213,7 +219,10 @@ struct Renderer::Impl {
     return num_vertices;
   }
 
-  Painter painter() { return Painter( atlas_map, emitter ); }
+  Painter painter() {
+    return Painter( atlas_map, emitter,
+                    mod_stack.top().painter_mods );
+  }
 
   Typer typer( string_view font_name, point start, pixel color,
                Painter const& painter ) {
@@ -239,6 +248,21 @@ struct Renderer::Impl {
     return atlas_ids_fast;
   }
 
+  RendererMods const& mods() const {
+    DCHECK( !mod_stack.empty() );
+    return mod_stack.top();
+  }
+
+  void mods_push_back( RendererMods&& mods ) {
+    mod_stack.push( std::move( mods ) );
+  }
+
+  void mods_pop() {
+    DCHECK( mod_stack.size() > 1 );
+    mod_stack.pop();
+  }
+
+  stack<RendererMods>                    mod_stack;
   PresentFn                              present_fn;
   size                                   logical_screen_size;
   ProgramType                            program;
@@ -302,10 +326,20 @@ unordered_map<string_view, int> const& Renderer::atlas_ids()
   return impl_->atlas_ids_fn();
 }
 
-Renderer Renderer::create( RendererConfig const& config,
-                           PresentFn             present_fn ) {
-  return Renderer(
-      Impl::create( config, std::move( present_fn ) ) );
+unique_ptr<Renderer> Renderer::create(
+    RendererConfig const& config, PresentFn present_fn ) {
+  return unique_ptr<Renderer>( new Renderer(
+      Impl::create( config, std::move( present_fn ) ) ) );
 }
+
+RendererMods const& Renderer::mods() const {
+  return impl_->mods();
+}
+
+void Renderer::mods_push_back( RendererMods&& mods ) {
+  impl_->mods_push_back( std::move( mods ) );
+}
+
+void Renderer::mods_pop() { impl_->mods_pop(); }
 
 } // namespace rr

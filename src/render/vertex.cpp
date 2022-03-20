@@ -16,6 +16,9 @@ namespace rr {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 enum class vertex_type {
   sprite     = 0,
   solid      = 1,
@@ -25,17 +28,18 @@ enum class vertex_type {
 GenericVertex proto_vertex( vertex_type type,
                             gfx::point  position ) {
   return GenericVertex{
-      .type             = static_cast<int32_t>( type ),
-      .visible          = 1,
-      .depixelate       = 0.0f,
-      .position         = gl::vec2::from_point( position ),
-      .atlas_position   = {}, // Caller maybe fills in.
-      .fixed_color      = {}, // Caller maybe fills in.
-      .alpha_multiplier = 1.0f,
+      .type                = static_cast<int32_t>( type ),
+      .visible             = 1,
+      .depixelate          = 0.0f,
+      .position            = gl::vec2::from_point( position ),
+      .atlas_position      = {},
+      .atlas_target_offset = {},
+      .fixed_color         = {},
+      .alpha_multiplier    = 1.0f,
   };
 }
 
-}
+} // namespace
 
 /****************************************************************
 ** VertexBase
@@ -44,11 +48,14 @@ void VertexBase::reset_depixelation_state() {
   set_depixelation_state( 0.0f );
 }
 
-void VertexBase::set_depixelation_state( double percent ) {
+void VertexBase::set_depixelation_state(
+    double percent, gfx::size target_atlas_offset ) {
   depixelate = static_cast<float>( percent );
+  atlas_target_offset =
+      gl::vec2::from_size( target_atlas_offset );
 }
 
-double VertexBase::depixlation_state() const {
+double VertexBase::depixelation_stage() const {
   return depixelate;
 }
 

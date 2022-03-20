@@ -43,15 +43,15 @@ struct MainMenuPlane : public Plane {
   MainMenuPlane() = default;
   bool covers_screen() const override { return true; }
   void draw( rr::Renderer& renderer ) const override {
+    rr::Painter painter = renderer.painter();
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
-    tile_sprite( renderer, e_tile::wood_middle, normal_area );
+    tile_sprite( painter, e_tile::wood_middle, normal_area );
     H    h         = normal_area.h / 2_sy;
     auto num_items = refl::enum_count<e_main_menu_item>;
     h -= H{ rr::rendered_text_line_size_pixels( "X" ).h } *
          SY{ int( num_items ) } / 2_sy;
-    rr::Painter painter = renderer.painter();
     for( auto e : refl::enum_values<e_main_menu_item> ) {
       gfx::pixel c = gfx::pixel::banana().shaded( 3 );
       Delta      text_size =

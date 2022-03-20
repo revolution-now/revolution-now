@@ -1,0 +1,24 @@
+# ===============================================================
+# tile-sheet.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-19.
+#
+# Description: Rds definitions for the tile-sheet module.
+#
+# ===============================================================
+# render
+include "render/sprite-sheet.hpp"
+
+# C++ standard library.
+include "<vector>"
+
+namespace "rn.wrapped"
+
+struct.TileSheetsConfig {
+  font_sheets 'std::vector<rr::AsciiFontSheetConfig>',
+  sprite_sheets 'std::vector<rr::SpriteSheetConfig>',
+
+  _features { equality, validation }
+}

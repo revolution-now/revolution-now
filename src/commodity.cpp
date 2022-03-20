@@ -80,11 +80,12 @@ void render_commodity_label( rr::Renderer& renderer, Coord where,
 void render_commodity_impl( rr::Renderer& renderer, Coord where,
                             e_commodity   type,
                             maybe<string> label ) {
-  auto tile = tile_for_commodity( type );
-  render_sprite( renderer, tile, where );
+  auto        tile    = tile_for_commodity( type );
+  rr::Painter painter = renderer.painter();
+  render_sprite( painter, tile, where );
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
-  Delta comm_size = lookup_sprite( tile ).size();
+  Delta comm_size = sprite_size( tile );
   auto label_size = rr::rendered_text_line_size_pixels( *label );
   auto origin     = where + comm_size.h + 2_h -
                 ( label_size.w - comm_size.w ) / 2_sx;
@@ -122,7 +123,7 @@ base::valid_or<string> Commodity::validate() const {
 ** Public API
 *****************************************************************/
 Delta commodity_tile_size( e_commodity type ) {
-  return lookup_sprite( tile_for_commodity( type ) ).size();
+  return sprite_size( tile_for_commodity( type ) );
 }
 
 maybe<e_commodity> commodity_from_index( int index ) {
