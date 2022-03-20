@@ -17,9 +17,6 @@
 #include "moving-avg.hpp"
 #include "wait.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // C++ standard library
 #include <chrono>
 #include <functional>
