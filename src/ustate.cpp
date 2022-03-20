@@ -310,6 +310,11 @@ maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
   return nothing;
 }
 
+Coord coord_for_unit_multi_ownership_or_die( UnitId id ) {
+  UNWRAP_CHECK( res, coord_for_unit_multi_ownership( id ) );
+  return res;
+}
+
 /****************************************************************
 ** For Testing / Development Only
 *****************************************************************/

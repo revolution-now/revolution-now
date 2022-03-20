@@ -419,8 +419,8 @@ Rect SmoothViewport::fully_covered_tiles() const {
 }
 
 Rect SmoothViewport::covered_pixels() const {
-  X x_start{ static_cast<int>( lround( start_x() ) ) };
-  Y y_start{ static_cast<int>( lround( start_y() ) ) };
+  X x_start{ static_cast<int>( start_x() ) };
+  Y y_start{ static_cast<int>( start_y() ) };
   X x_end{ static_cast<int>( lround( end_x() ) ) };
   Y y_end{ static_cast<int>( lround( end_y() ) ) };
 

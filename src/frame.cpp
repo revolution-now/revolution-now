@@ -203,8 +203,8 @@ void frame_loop_body( rr::Renderer&     renderer,
 
   // ----------------------------------------------------------
   // 3. Draw.
-  draw_all_planes( renderer );
-  renderer.present();
+  renderer.set_logical_screen_size( main_window_logical_size() );
+  renderer.render_pass( draw_all_planes );
 };
 
 void deinit_frame() {

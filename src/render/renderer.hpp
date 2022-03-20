@@ -82,14 +82,6 @@ struct Renderer {
   void render_pass(
       base::function_ref<void( Renderer& )> drawer );
 
-  // This must be called before any other rendering methods that
-  // might generate vertices.
-  void begin_pass();
-
-  // This will end the rendering pass and upload the vertex data
-  // to the GPU.  Returns the number of vertices uploaded.
-  int end_pass();
-
   Painter painter();
 
   Typer typer( gfx::point start, gfx::pixel color );
@@ -136,6 +128,14 @@ struct Renderer {
   }
 
  private:
+  // This must be called before any other rendering methods that
+  // might generate vertices.
+  void begin_pass();
+
+  // This will end the rendering pass and upload the vertex data
+  // to the GPU.  Returns the number of vertices uploaded.
+  int end_pass();
+
   NO_COPY_NO_MOVE( Renderer );
   struct Impl;
 

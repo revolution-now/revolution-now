@@ -109,6 +109,7 @@ struct Renderer::Impl {
       vertices{},
       emitter( vertices ) {
     mod_stack.push( RendererMods{} );
+    emitter.log_capacity_changes( false );
   };
 
   static Impl* create( RendererConfig const& config,

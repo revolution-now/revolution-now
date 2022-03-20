@@ -780,8 +780,13 @@ struct MenuPlane : public Plane {
   bool covers_screen() const override { return false; }
   void advance_state() override {
     if_get( g_menu_state, MenuState::item_click, val ) {
-      g_menu_state = MenuState::menus_closed{ /*hover=*/{} };
-      g_menu_items[val.item]->callbacks.on_click();
+      // We must cache this item before changing the menu state
+      // since `val` will be invalidated once we do so.
+      e_menu_item item = val.item;
+      g_menu_state     = MenuState::menus_closed{ /*hover=*/{} };
+      DCHECK( g_menu_items[item], "g_menu_items[{}] is nullptr.",
+              val.item );
+      g_menu_items[item]->callbacks.on_click();
     }
   }
   Plane::e_accept_drag can_drag( input::e_mouse_button button,

@@ -151,6 +151,7 @@ UnitId create_unit( e_nation nation, UnitType type );
 // ownership, cargo ownership (where holder is on map), colony
 // ownership.
 maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
+Coord        coord_for_unit_multi_ownership_or_die( UnitId id );
 
 /****************************************************************
 ** For Testing / Development Only

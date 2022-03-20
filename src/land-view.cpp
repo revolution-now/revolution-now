@@ -226,10 +226,10 @@ struct LandViewRenderer {
       render_units_on_square( tile );
     }
     // Now render the depixelating unit.
-    Coord loc =
-        render_rect_for_tile(
-            coord_for_unit_indirect_or_die( depixelate_id ) )
-            .upper_left();
+    Coord loc = render_rect_for_tile(
+                    coord_for_unit_multi_ownership_or_die(
+                        depixelate_id ) )
+                    .upper_left();
     rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
     gfx::size target = {};
@@ -353,16 +353,17 @@ struct LandViewRenderer {
 };
 
 void render_land_view( rr::Renderer& renderer ) {
-  Coord corner = viewport().rendering_dest_rect().upper_left();
-  Delta hidden =
+  double zoom   = viewport().get_zoom();
+  Coord  corner = viewport().rendering_dest_rect().upper_left();
+  Delta  hidden =
       viewport().covered_pixels().upper_left() % g_tile_scale;
   if( hidden != Delta{} ) {
-    DCHECK( hidden.w > 0_w );
-    DCHECK( hidden.h > 0_h );
+    DCHECK( hidden.w >= 0_w );
+    DCHECK( hidden.h >= 0_h );
     // Move the rendering start slightly off screen (in the
     // upper-left direction) by an amount that is within the span
     // of one tile to partially show that tile row/column.
-    corner -= hidden;
+    corner -= hidden.multiply_and_round( zoom );
   }
 
   LandViewRenderer lv_renderer{
@@ -799,7 +800,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
