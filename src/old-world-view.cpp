@@ -358,7 +358,6 @@ class DockAnchor {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
     // This mess just draws an X.
     gfx::size char_size =
         rr::rendered_text_line_size_pixels( "X" );

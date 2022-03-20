@@ -212,8 +212,8 @@ struct LandViewRenderer {
   void render_units_during_depixelate(
       UnitId                           depixelate_id,
       UnitAnimation::depixelate const& dp_anim ) {
-    // Need the multi_ownership version because we could be
-    // depixe- lating a colonist that is owned by a colony, which
+    // Need the multi_ownership version because we could be de-
+    // pixelating a colonist that is owned by a colony, which
     // happens when the colony is captured.
     UNWRAP_CHECK(
         depixelate_tile,
@@ -231,16 +231,18 @@ struct LandViewRenderer {
             coord_for_unit_indirect_or_die( depixelate_id ) )
             .upper_left();
     rr::Painter painter = renderer.painter();
-    auto        popper =
+    // Check if we are depixelating to another unit.
+    gfx::size target = {};
+    if( dp_anim.type == e_depixelate_anim::demote ) {
+      CHECK( dp_anim.target.has_value() );
+      e_tile from_tile =
+          unit_from_id( depixelate_id ).desc().tile;
+      e_tile to_tile = unit_attr( *dp_anim.target ).tile;
+      target =
+          depixelation_offset( painter, from_tile, to_tile );
+    }
+    auto popper =
         renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
-          gfx::size target = {};
-          if( dp_anim.target.has_value() ) {
-            e_tile from_tile =
-                unit_from_id( depixelate_id ).desc().tile;
-            e_tile to_tile = unit_attr( *dp_anim.target ).tile;
-            target = depixelation_offset( painter, from_tile,
-                                          to_tile );
-          }
           new_mods.painter_mods.depixelate = rr::DepixelateInfo{
               .stage               = dp_anim.stage,
               .target_pixel_offset = target,
@@ -390,7 +392,8 @@ void render_land_view( rr::Renderer& renderer ) {
 /****************************************************************
 ** Animations
 *****************************************************************/
-wait<> animate_depixelation( UnitId id ) {
+wait<> animate_depixelation( UnitId            id,
+                             e_depixelate_anim dp_anim ) {
   CHECK( !g_unit_animations.contains( id ) );
   UnitAnimation::depixelate& depixelate =
       g_unit_animations[id].emplace<UnitAnimation::depixelate>();
@@ -398,6 +401,7 @@ wait<> animate_depixelation( UnitId id ) {
     UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
     g_unit_animations.erase( it );
   } );
+  depixelate.type   = dp_anim;
   depixelate.stage  = 0.0;
   depixelate.target = unit_from_id( id ).demoted_type();
 
@@ -1056,7 +1060,8 @@ wait<> landview_animate_move( UnitId      id,
 }
 
 wait<> landview_animate_attack( UnitId attacker, UnitId defender,
-                                bool attacker_wins ) {
+                                bool              attacker_wins,
+                                e_depixelate_anim dp_anim ) {
   co_await landview_ensure_visible( defender );
   co_await landview_ensure_visible( attacker );
   auto new_state = LandViewUnitActionState::unit_attack{
@@ -1074,8 +1079,8 @@ wait<> landview_animate_attack( UnitId attacker, UnitId defender,
 
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
-  co_await animate_depixelation( attacker_wins ? defender
-                                               : attacker );
+  co_await animate_depixelation(
+      attacker_wins ? defender : attacker, dp_anim );
 }
 
 // FIXME: Would be nice to make this animation a bit more sophis-

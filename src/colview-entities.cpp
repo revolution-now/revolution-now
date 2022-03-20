@@ -1424,7 +1424,7 @@ void colview_drag_n_drop_draw(
         mod_pos -= state.click_offset;
         auto typer_mod =
             renderer.typer( mod_pos, gfx::pixel::green() );
-        typer.write( "?" );
+        typer_mod.write( "?" );
       }
       break;
     }

@@ -62,7 +62,8 @@ struct MainMenuPlane : public Plane {
                      .shifted_by( Delta{ w, h } );
       dst = dst.as_if_origin_were( normal_area.upper_left() );
       rr::Typer typer = renderer.typer( dst.upper_left(), c );
-      dst             = dst.with_border_added( 2 );
+      typer.write( enum_to_display_name( e ) );
+      dst = dst.with_border_added( 2 );
       dst.x -= 3_w;
       dst.w += 6_w;
       if( e == g_curr_item )
