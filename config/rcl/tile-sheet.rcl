@@ -3,7 +3,7 @@ sheets {
   font_sheets [
     {
       font_name: simple
-      img_path: assets/art/fonts/basic_6x8.png
+      img_path: assets/art/fonts/basic-6x8.png
     }
   ]
 

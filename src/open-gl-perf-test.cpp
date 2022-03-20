@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "renderer.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
@@ -98,7 +99,7 @@ void paint_things( rr::Renderer& renderer ) {
   UNWRAP_CHECK( water_id,
                 base::lookup( renderer.atlas_ids(), "water" ) );
   UNWRAP_CHECK( grass_id,
-                base::lookup( renderer.atlas_ids(), "grass" ) );
+                base::lookup( renderer.atlas_ids(), "land" ) );
   painter.draw_sprite( water_id, { .x = 300, .y = 200 } );
   painter.draw_sprite( grass_id, { .x = 364, .y = 200 } );
 
@@ -141,78 +142,7 @@ void render_loop( rr::Renderer& renderer ) {
 } // namespace
 
 void open_gl_perf_test() {
-  /**************************************************************
-  ** SDL Stuff
-  ***************************************************************/
-  ::SDL_Window* window =
-      static_cast<::SDL_Window*>( main_os_window_handle() );
-  auto win_size_delta = main_window_physical_size();
-  size win_size       = { .w = win_size_delta.w._,
-                          .h = win_size_delta.h._ };
-
-  ::SDL_GLContext opengl_context = init_SDL_for_OpenGL( window );
-
-  /**************************************************************
-  ** gl/iface
-  ***************************************************************/
-  // The window and context must have been created first.
-  gl::InitResult opengl_info = init_opengl( gl::InitOptions{
-      .include_glfunc_logging             = false,
-      .initial_window_physical_pixel_size = win_size,
-  } );
-
-  lg.info( "{}", opengl_info.driver_info.pretty_print() );
-
-  /**************************************************************
-  ** Renderer Config
-  ***************************************************************/
-  vector<rr::SpriteSheetConfig> world_configs{
-      {
-          .img_path    = "assets/art/tiles/world.png",
-          .sprite_size = size{ .w = 32, .h = 32 },
-          .sprites =
-              {
-                  { "water", point{ .x = 0, .y = 0 } },
-                  { "grass", point{ .x = 1, .y = 0 } },
-              },
-      },
-  };
-
-  vector<rr::AsciiFontSheetConfig> font_configs{
-      {
-          .img_path  = "assets/art/fonts/basic-6x8.png",
-          .font_name = "simple",
-      },
-  };
-
-  Delta logical_screen_size = main_window_logical_size();
-
-  rr::RendererConfig renderer_config = {
-      .logical_screen_size =
-          size{ .w = logical_screen_size.w._,
-                .h = logical_screen_size.h._ },
-      .max_atlas_size = { .w = 200, .h = 200 },
-      // These are taken by reference.
-      .sprite_sheets = world_configs,
-      .font_sheets   = font_configs,
-  };
-
-  /**************************************************************
-  ** Render Loop
-  ***************************************************************/
-  {
-    // This renderer needs to be released before the SDL context
-    // is cleaned up.
-    unique_ptr<rr::Renderer> renderer = rr::Renderer::create(
-        renderer_config, [&] { sdl_gl_swap_window( window ); } );
-
-    render_loop( *renderer );
-  }
-
-  /**************************************************************
-  ** SDL Cleanup
-  ***************************************************************/
-  close_SDL_for_OpenGL( opengl_context );
+  render_loop( global_renderer_use_only_when_needed() );
 }
 
 } // namespace rn

@@ -87,6 +87,8 @@ struct Renderer {
   Typer typer( std::string_view font_name, gfx::point start,
                gfx::pixel color, Painter const& painter );
 
+  gfx::size atlas_img_size() const;
+
   // Given a globally unique name for a texture in the atlas,
   // this will return its id for use when rendering it.
   std::unordered_map<std::string_view, int> const& atlas_ids()

@@ -60,9 +60,7 @@ void run( e_mode mode ) {
       break;
     }
     case e_mode::gl_perf: {
-      run_all_init_routines(
-          e_log_level::debug,
-          { e_init_routine::screen, e_init_routine::lua } );
+      full_init();
       open_gl_perf_test();
       break;
     }

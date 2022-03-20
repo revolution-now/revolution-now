@@ -55,7 +55,8 @@ finished:
 TEST_CASE( "[image] load non-existent file" ) {
   base::expect<gfx::image> img = load_image( "xxx" );
   REQUIRE( !img.has_value() );
-  REQUIRE( img.error() == "can't fopen" );
+  REQUIRE( img.error() ==
+           "failed to open file xxx: can't fopen." );
 }
 
 } // namespace

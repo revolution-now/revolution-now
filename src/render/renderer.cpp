@@ -342,4 +342,8 @@ void Renderer::mods_push_back( RendererMods&& mods ) {
 
 void Renderer::mods_pop() { impl_->mods_pop(); }
 
+gfx::size Renderer::atlas_img_size() const {
+  return impl_->atlas_size;
+}
+
 } // namespace rr

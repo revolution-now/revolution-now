@@ -17,6 +17,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace stb {
@@ -45,7 +48,9 @@ base::expect<gfx::image> load_image( fs::path const& p ) {
   unsigned char* data =
       ::stbi_load( p.c_str(), &width_pixels, &height_pixels,
                    &num_channels, gfx::image::kBytesPerPixel );
-  if( data == nullptr ) return get_stbi_error();
+  if( data == nullptr )
+    return fmt::format( "failed to open file {}: {}.", p,
+                        get_stbi_error() );
   return gfx::image(
       gfx::size{ .w = width_pixels, .h = height_pixels }, data );
 }
