@@ -32,7 +32,7 @@ void log_capacity_change( bool on, int capacity_before,
         double( capacity_after ) / double( capacity_before ) );
 }
 #else
-void log_capacity_change( int /*capacity_before*/,
+void log_capacity_change( bool /*on*/, int /*capacity_before*/,
                           int /*capacity_after*/ ) {}
 #endif
 
