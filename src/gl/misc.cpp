@@ -39,9 +39,10 @@ void set_viewport( gfx::rect dimensions ) {
       1;
 #endif
 
-  GL_CHECK( glViewport( dimensions.origin.x, dimensions.origin.y,
-                        dimensions.size.w * kViewportScale,
-                        dimensions.size.h * kViewportScale ) );
+  GL_CHECK( CALL_GL( gl_Viewport, dimensions.origin.x,
+                     dimensions.origin.y,
+                     dimensions.size.w * kViewportScale,
+                     dimensions.size.h * kViewportScale ) );
 }
 
 void set_viewport( gfx::size dimensions ) {

@@ -164,4 +164,8 @@ GLAD_GL_METHOD( TexImage2D, void,
                   ( GLenum, format ), ( GLenum, type ),
                   ( void const*, pixels ) ) );
 
+GLAD_GL_METHOD( Viewport, void,
+                ( ( GLint, x ), ( GLint, y ), ( GLsizei, width ),
+                  ( GLsizei, height ) ) );
+
 } // namespace gl

@@ -154,6 +154,9 @@ struct IOpenGL {
                               GLint border, GLenum format,
                               GLenum      type,
                               void const* pixels ) = 0;
+
+  virtual void gl_Viewport( GLint x, GLint y, GLsizei width,
+                            GLsizei height ) = 0;
 };
 
 /****************************************************************

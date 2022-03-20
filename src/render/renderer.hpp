@@ -68,6 +68,9 @@ struct Renderer {
   // Must be called each time the logical screen size changes.
   void set_logical_screen_size( gfx::size new_size );
 
+  // Must be called each time the logical screen size changes.
+  void set_physical_screen_size( gfx::size new_size );
+
   void clear_screen( gfx::pixel color = gfx::pixel::black() );
 
   // This is the one to call to do a full render pass; it

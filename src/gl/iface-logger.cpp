@@ -249,4 +249,9 @@ LOG_AND_CALL_GL_METHOD( gl_TexImage2D, void,
                           ( GLenum, format ), ( GLenum, type ),
                           ( void const*, pixels ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_Viewport, void,
+                        ( ( GLint, x ), ( GLint, y ),
+                          ( GLsizei, width ),
+                          ( GLsizei, height ) ) );
+
 } // namespace gl

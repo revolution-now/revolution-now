@@ -103,6 +103,9 @@ struct MockOpenGL : IOpenGL {
   MOCK_GL_METHOD( void, gl_TexImage2D,
                   (GLenum, GLint, GLint, GLsizei, GLsizei, GLint,
                    GLenum, GLenum, void const*));
+
+  MOCK_GL_METHOD( void, gl_Viewport,
+                  ( GLint, GLint, GLsizei, GLsizei ) );
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );

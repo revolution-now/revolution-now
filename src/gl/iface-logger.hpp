@@ -139,6 +139,9 @@ struct OpenGLWithLogger : IOpenGL {
                       GLsizei height, GLint border,
                       GLenum format, GLenum type,
                       void const* pixels ) override;
+
+  void gl_Viewport( GLint x, GLint y, GLsizei width,
+                    GLsizei height ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLWithLogger> );

@@ -204,6 +204,8 @@ void frame_loop_body( rr::Renderer&     renderer,
   // ----------------------------------------------------------
   // 3. Draw.
   renderer.set_logical_screen_size( main_window_logical_size() );
+  renderer.set_physical_screen_size(
+      main_window_physical_size() );
   renderer.render_pass( draw_all_planes );
 };
 

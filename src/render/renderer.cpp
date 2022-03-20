@@ -41,7 +41,8 @@
 // C++ standard library
 #include <stack>
 
-using namespace std;
+using namespace ::std;
+using namespace ::base::literals;
 
 namespace rr {
 
@@ -84,10 +85,9 @@ using VertexArray_t =
 ** Renderer::Impl
 *****************************************************************/
 struct Renderer::Impl {
-  Impl( PresentFn present_fn_arg, size logical_screen_size_arg,
-        ProgramType program_arg, VertexArray_t vertex_array_arg,
-        AtlasMap atlas_map_arg, size atlas_size_arg,
-        gl::Texture                      atlas_tx_arg,
+  Impl( PresentFn present_fn_arg, ProgramType program_arg,
+        VertexArray_t vertex_array_arg, AtlasMap atlas_map_arg,
+        size atlas_size_arg, gl::Texture atlas_tx_arg,
         unordered_map<string, int>       atlas_ids_arg,
         unordered_map<string_view, int>  atlas_ids_fast_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
@@ -95,7 +95,6 @@ struct Renderer::Impl {
             ascii_fonts_fast_arg )
     : mod_stack{},
       present_fn( std::move( present_fn_arg ) ),
-      logical_screen_size( logical_screen_size_arg ),
       program( std::move( program_arg ) ),
       vertex_array( std::move( vertex_array_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
@@ -114,7 +113,6 @@ struct Renderer::Impl {
 
   static Impl* create( RendererConfig const& config,
                        PresentFn             present_fn ) {
-    using namespace ::base::literals;
     fs::path shaders = "src/render";
 
     UNWRAP_CHECK( vertex_shader_source,
@@ -134,9 +132,8 @@ struct Renderer::Impl {
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
 
-    size logical_screen_size = config.logical_screen_size;
     pgrm["u_screen_size"_t] =
-        gl::vec2::from_size( logical_screen_size );
+        gl::vec2::from_size( config.logical_screen_size );
 
     AtlasBuilder               atlas_builder;
     unordered_map<string, int> atlas_ids;
@@ -186,7 +183,6 @@ struct Renderer::Impl {
     // (there are initialized in the constructor above).
     return new Impl(
         /*present_fn=*/std::move( present_fn ),
-        /*logical_screen_size=*/logical_screen_size,
         /*program=*/std::move( pgrm ),
         /*vertex_array=*/{},
         /*atlas_map=*/std::move( atlas.dict ),
@@ -213,8 +209,6 @@ struct Renderer::Impl {
     vertex_array.buffer<0>().upload_data_replace(
         vertices, gl::e_draw_mode::stat1c );
     using namespace ::base::literals;
-    program["u_screen_size"_t] =
-        gl::vec2::from_size( logical_screen_size );
     program.run( vertex_array, num_vertices );
 
     return num_vertices;
@@ -242,7 +236,11 @@ struct Renderer::Impl {
   void clear_screen( gfx::pixel color ) { gl::clear( color ); }
 
   void set_logical_screen_size( size new_size ) {
-    logical_screen_size = new_size;
+    program["u_screen_size"_t] = gl::vec2::from_size( new_size );
+  }
+
+  void set_physical_screen_size( size new_size ) {
+    gl::set_viewport( rect{ .origin = {}, .size = new_size } );
   }
 
   unordered_map<string_view, int> const& atlas_ids_fn() const {
@@ -263,18 +261,17 @@ struct Renderer::Impl {
     mod_stack.pop();
   }
 
-  stack<RendererMods>                    mod_stack;
-  PresentFn                              present_fn;
-  size                                   logical_screen_size;
-  ProgramType                            program;
-  VertexArray_t const                    vertex_array;
-  AtlasMap const                         atlas_map;
-  size const                             atlas_size;
-  gl::Texture const                      atlas_tx;
-  TextureBinder                          atlas_tx_binder;
-  unordered_map<string, int> const       atlas_ids;
-  unordered_map<string_view, int> const  atlas_ids_fast;
-  unordered_map<string, AsciiFont> const ascii_fonts;
+  stack<RendererMods>                          mod_stack;
+  PresentFn                                    present_fn;
+  ProgramType                                  program;
+  VertexArray_t const                          vertex_array;
+  AtlasMap const                               atlas_map;
+  size const                                   atlas_size;
+  gl::Texture const                            atlas_tx;
+  TextureBinder                                atlas_tx_binder;
+  unordered_map<string, int> const             atlas_ids;
+  unordered_map<string_view, int> const        atlas_ids_fast;
+  unordered_map<string, AsciiFont> const       ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   vector<GenericVertex>                        vertices;
   Emitter                                      emitter;
@@ -320,6 +317,10 @@ void Renderer::present() { impl_->present_fn(); }
 
 void Renderer::set_logical_screen_size( gfx::size new_size ) {
   impl_->set_logical_screen_size( new_size );
+}
+
+void Renderer::set_physical_screen_size( gfx::size new_size ) {
+  impl_->set_physical_screen_size( new_size );
 }
 
 unordered_map<string_view, int> const& Renderer::atlas_ids()
