@@ -352,9 +352,16 @@ struct LandViewRenderer {
 
 void render_land_view( rr::Renderer& renderer ) {
   Coord corner = viewport().rendering_dest_rect().upper_left();
-  if( corner != Coord{} )
-    corner -=
-        viewport().covered_pixels().upper_left() % g_tile_scale;
+  Delta hidden =
+      viewport().covered_pixels().upper_left() % g_tile_scale;
+  if( hidden != Delta{} ) {
+    DCHECK( hidden.w > 0_w );
+    DCHECK( hidden.h > 0_h );
+    // Move the rendering start slightly off screen (in the
+    // upper-left direction) by an amount that is within the span
+    // of one tile to partially show that tile row/column.
+    corner -= hidden;
+  }
 
   LandViewRenderer lv_renderer{
       .renderer = renderer,
