@@ -27,7 +27,7 @@
 namespace rn {
 
 // Will spin until the wait is ready.
-void frame_loop( rr::Renderer& renderer, wait<> const& what );
+void frame_loop( wait<> const& what );
 
 double avg_frame_rate();
 

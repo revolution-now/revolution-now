@@ -6,7 +6,6 @@
 #include "lua-ui.hpp"
 #include "lua.hpp"
 #include "open-gl-perf-test.hpp"
-#include "renderer.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 
@@ -47,23 +46,17 @@ void run( e_mode mode ) {
     case e_mode::game: {
       full_init();
       print_bar( '-', "[ Starting Game ]" );
-      rr::Renderer& renderer =
-          global_renderer_use_only_when_needed();
-      frame_loop( renderer, revolution_now() );
+      frame_loop( revolution_now() );
       break;
     }
     case e_mode::ui_test: {
       full_init();
-      rr::Renderer& renderer =
-          global_renderer_use_only_when_needed();
-      frame_loop( renderer, ui_test() );
+      frame_loop( ui_test() );
       break;
     }
     case e_mode::lua_ui_test: {
       full_init();
-      rr::Renderer& renderer =
-          global_renderer_use_only_when_needed();
-      frame_loop( renderer, rn::lua_ui_test() );
+      frame_loop( rn::lua_ui_test() );
       break;
     }
     case e_mode::gl_perf: {
