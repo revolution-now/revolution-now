@@ -117,10 +117,8 @@ struct LandViewRenderer {
   Rect render_rect_for_tile( Coord tile ) {
     Delta delta_in_tiles  = tile - covered.upper_left();
     Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
-    delta_in_pixels = delta_in_pixels.multiply_and_round( zoom );
-    Delta single_tile_delta_in_pixels =
-        g_tile_delta.multiply_and_round( zoom );
-    return Rect::from( upper_left_screen_pixel + delta_in_pixels,
+    Delta single_tile_delta_in_pixels = g_tile_delta;
+    return Rect::from( Coord{} + delta_in_pixels,
                        single_tile_delta_in_pixels );
   }
 
@@ -140,8 +138,7 @@ struct LandViewRenderer {
     Coord loc = render_rect_for_tile( tile ).upper_left();
     for( UnitId id : units_from_coord( tile ) ) {
       if( skip( id ) ) continue;
-      render_unit( renderer, loc, id,
-                   /*with_icon=*/true, zoom );
+      render_unit( renderer, loc, id, /*with_icon=*/true );
     }
   }
 
@@ -169,8 +166,8 @@ struct LandViewRenderer {
     // Now render the blinking unit.
     Coord loc = render_rect_for_tile( blink_coord ).upper_left();
     if( visible )
-      render_unit( renderer, loc, blinker_id, /*with_icon=*/true,
-                   zoom );
+      render_unit( renderer, loc, blinker_id,
+                   /*with_icon=*/true );
   }
 
   void render_units_during_slide(
@@ -209,7 +206,7 @@ struct LandViewRenderer {
         render_rect_for_tile( mover_coord ).upper_left();
     pixel_coord += pixel_delta;
     render_unit( renderer, pixel_coord, mover_id,
-                 /*with_icon=*/true, zoom );
+                 /*with_icon=*/true );
   }
 
   void render_units_during_depixelate(
@@ -248,7 +245,7 @@ struct LandViewRenderer {
           };
         } );
     render_unit( renderer, loc, depixelate_id,
-                 /*with_icon=*/true, zoom );
+                 /*with_icon=*/true );
   }
 
   void render_colonies() {
@@ -264,14 +261,12 @@ struct LandViewRenderer {
       Coord tile_coord =
           render_rect_for_tile( tile ).upper_left();
       Coord colony_sprite_upper_left =
-          tile_coord -
-          Delta{ 6_w, 6_h }.multiply_and_round( zoom );
-      render_colony( painter, colony_sprite_upper_left, *col_id,
-                     zoom );
+          tile_coord - Delta{ 6_w, 6_h };
+      render_colony( painter, colony_sprite_upper_left,
+                     *col_id );
       Coord name_coord =
           tile_coord +
-          config_land_view.colonies.colony_name_offset
-              .multiply_and_round( zoom );
+          config_land_view.colonies.colony_name_offset;
       render_text_markup(
           renderer, name_coord,
           config_land_view.colonies.colony_name_font,
@@ -350,9 +345,7 @@ struct LandViewRenderer {
   }
 
   rr::Renderer& renderer;
-  Rect const    covered                 = {};
-  Coord const   upper_left_screen_pixel = {};
-  double const  zoom                    = 1.0;
+  Rect const    covered = {};
 };
 
 void render_land_view( rr::Renderer& renderer ) {
@@ -362,12 +355,24 @@ void render_land_view( rr::Renderer& renderer ) {
         viewport().covered_pixels().upper_left() % g_tile_scale;
 
   LandViewRenderer lv_renderer{
-      .renderer                = renderer,
-      .covered                 = viewport().covered_tiles(),
-      .upper_left_screen_pixel = corner,
-      .zoom                    = viewport().get_zoom(),
+      .renderer = renderer,
+      .covered  = viewport().covered_tiles(),
   };
 
+  auto popper =
+      renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
+        rr::PainterMods& painter_mods = new_mods.painter_mods;
+        if( !painter_mods.repos.has_value() )
+          painter_mods.repos.emplace();
+        rr::RepositionInfo& repo_info = *painter_mods.repos;
+        repo_info.scale               = viewport().get_zoom();
+        repo_info.translation = corner.distance_from_origin();
+      } );
+
+  // The below functions will always render at normal scale and
+  // starting at 0,0 on the screen, and then the renderer mods
+  // that we've install above will automatically do the shifting
+  // and scaling.
   lv_renderer.render_terrain();
   lv_renderer.render_colonies();
   lv_renderer.render_units();

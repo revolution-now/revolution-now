@@ -956,7 +956,7 @@ void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   this->CompositeSingleView::draw( renderer, coord );
   render_nationality_icon( renderer, coord, type_, nation_,
-                           orders_, /*zoom=*/1.0 );
+                           orders_ );
 }
 
 /****************************************************************

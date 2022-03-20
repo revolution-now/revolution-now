@@ -98,6 +98,10 @@ void Painter::add_mods( VertexBase&        vert,
         mods.depixelate->stage,
         mods.depixelate->target_pixel_offset );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
+  if( mods.repos.has_value() ) {
+    vert.scale_position( mods.repos->scale );
+    vert.translate_position( mods.repos->translation );
+  }
 }
 
 Painter& Painter::draw_point( point p, pixel color ) {

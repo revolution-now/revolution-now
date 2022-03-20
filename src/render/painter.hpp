@@ -35,9 +35,19 @@ struct DepixelateInfo {
   gfx::size target_pixel_offset = {};
 };
 
+// These options allow specifying a global rescaling and transla-
+// tion that will be done to all vertices. First a rescaling is
+// done around the origin (in screen coords), and then the trans-
+// lation.
+struct RepositionInfo {
+  double    scale       = 1.0;
+  gfx::size translation = {};
+};
+
 struct PainterMods {
   base::maybe<DepixelateInfo> depixelate = {};
   base::maybe<double>         alpha      = {};
+  base::maybe<RepositionInfo> repos      = {};
 };
 
 /****************************************************************

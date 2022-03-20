@@ -145,5 +145,31 @@ TEST_CASE( "[render/vertex] alpha" ) {
   REQUIRE( vert.alpha() == 1.0 );
 }
 
+TEST_CASE( "[render/vertex] scale_position" ) {
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 } );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 6, .y = 12 } );
+  vert.scale_position( .5 );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 3, .y = 6 } );
+  vert.scale_position( .55 );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 2, .y = 3 } );
+  vert.scale_position( .5 );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 1, .y = 2 } );
+}
+
+TEST_CASE( "[render/vertex] translate_position" ) {
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 } );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 6, .y = 12 } );
+  vert.translate_position( gfx::size{ .w = 2, .h = -4 } );
+  REQUIRE( vert.generic().position ==
+           gl::vec2{ .x = 8, .y = 8 } );
+}
+
 } // namespace
 } // namespace rr

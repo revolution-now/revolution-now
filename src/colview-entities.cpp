@@ -352,7 +352,7 @@ class PopulationView : public ui::View, public ColonySubView {
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
       render_unit( renderer, unit_pos, unit_id,
-                   /*with_icon=*/false, /*zoom=*/1.0 );
+                   /*with_icon=*/false );
       unit_pos += 24_w;
     }
   }
@@ -448,7 +448,7 @@ class CargoView : public ui::View,
               cargo.contents,
               [&]( Cargo::unit u ) {
                 render_unit( renderer, rect.upper_left(), u.id,
-                             /*with_icon=*/false, /*zoom=*/1.0 );
+                             /*with_icon=*/false );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
@@ -702,7 +702,7 @@ class UnitsAtGateColonyView : public ui::View,
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
       render_unit( renderer, draw_pos, unit_id,
-                   /*with_icon=*/true, /*zoom=*/1.0 );
+                   /*with_icon=*/true );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ),
@@ -1129,7 +1129,7 @@ class LandView : public ui::View, public ColonySubView {
                      ( local_coord * g_tile_scale )
                              .as_if_origin_were( coord ) -
                          Delta{ 6_w, 6_h },
-                     *maybe_col_id, /*zoom=*/1.0 );
+                     *maybe_col_id );
     }
   }
 
@@ -1397,7 +1397,7 @@ void colview_drag_n_drop_draw(
       state.object,
       [&]( unit const& o ) {
         render_unit( renderer, sprite_upper_left, o.id,
-                     /*with_icon=*/false, /*zoom=*/1.0 );
+                     /*with_icon=*/false );
       },
       [&]( commodity const& o ) {
         render_commodity( renderer, sprite_upper_left,

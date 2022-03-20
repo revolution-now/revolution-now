@@ -744,7 +744,8 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
       { .depixelate =
             DepixelateInfo{ .stage               = .7,
                             .target_pixel_offset = {} },
-        .alpha = nothing } );
+        .alpha = nothing,
+        .repos = {} } );
 
   point p;
 
@@ -781,7 +782,8 @@ TEST_CASE( "[render/painter] mod depixelate to target" ) {
             DepixelateInfo{
                 .stage               = .7,
                 .target_pixel_offset = { .w = 5, .h = 6 } },
-        .alpha = nothing } );
+        .alpha = nothing,
+        .repos = {} } );
 
   point p;
 
@@ -813,7 +815,7 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
   Painter painter = unmodded_painter.with_mods(
-      { .depixelate = nothing, .alpha = .7 } );
+      { .depixelate = nothing, .alpha = .7, .repos = {} } );
 
   rect r;
 
@@ -833,6 +835,40 @@ TEST_CASE( "[render/painter] mod alpha" ) {
       Vert( { .x = 20, .y = 30 } ),
       Vert( { .x = 120, .y = 30 } ),
       Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] mod reposition" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate = {},
+        .alpha      = {},
+        .repos      = RepositionInfo{
+                 .scale       = 2.0,
+                 .translation = size{ .w = 5, .h = 3 },
+        } } );
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    // Don't apply the mods here since it seems better to explic-
+    // itly apply them in the `expected` below.
+    return vert.generic();
+  };
+
+  rect r = rect{ .origin = { .x = 20, .y = 30 },
+                 .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 45, .y = 63 } ),
+      Vert( { .x = 45, .y = 463 } ),
+      Vert( { .x = 245, .y = 463 } ),
+      Vert( { .x = 45, .y = 63 } ),
+      Vert( { .x = 245, .y = 63 } ),
+      Vert( { .x = 245, .y = 463 } ),
   };
   REQUIRE( v == expected );
 }

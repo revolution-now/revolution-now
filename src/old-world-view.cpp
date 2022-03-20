@@ -796,7 +796,7 @@ class UnitCollection {
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
-                     /*with_icon=*/false, /*zoom=*/1.0 );
+                     /*with_icon=*/false );
     if( owv_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *owv_state.selected_unit ) {
@@ -1060,8 +1060,7 @@ class ActiveCargo {
                               OldWorldDraggableObject::unit{
                                   u.id } } )
                     render_unit( renderer, dst_coord, u.id,
-                                 /*with_icon=*/false,
-                                 /*zoom=*/1.0 );
+                                 /*with_icon=*/false );
                 },
                 [&]( Cargo::commodity const& c ) {
                   render_commodity_annotated(
@@ -1868,7 +1867,7 @@ void drag_n_drop_draw( rr::Renderer& renderer,
         auto size =
             sprite_size( unit_from_id( o.id ).desc().tile );
         render_unit( renderer, origin_for( size ), o.id,
-                     /*with_icon=*/false, /*zoom=*/1.0 );
+                     /*with_icon=*/false );
       },
       [&]( market_commodity const& o ) {
         auto size = commodity_tile_size( o.type );

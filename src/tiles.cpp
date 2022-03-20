@@ -41,6 +41,8 @@ namespace {
 vector<maybe<int>> cache;
 
 void init_sprites() {
+  // FIXME: need to find a better way to get the renderer to gen-
+  // erate the atlas ID cache.
   rr::Renderer& renderer =
       global_renderer_use_only_when_needed();
   cache.resize( refl::enum_count<e_tile> );

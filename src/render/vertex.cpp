@@ -76,6 +76,16 @@ void VertexBase::set_alpha( double alpha ) {
   alpha_multiplier = static_cast<float>( alpha );
 }
 
+void VertexBase::scale_position( double scale ) {
+  position.x = lround( position.x * scale );
+  position.y = lround( position.y * scale );
+}
+
+void VertexBase::translate_position( gfx::size translation ) {
+  position.x += translation.w;
+  position.y += translation.h;
+}
+
 /****************************************************************
 ** SpriteVertex
 *****************************************************************/
