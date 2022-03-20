@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // gfx
 #include "gfx/pixel.hpp"
 
@@ -108,10 +111,12 @@ void dump_palette( ColorBuckets const& colors,
                    fs::path const& schema, fs::path const& rcl );
 
 // Display an array of colors.
-void show_palette( std::vector<gfx::pixel> const& colors );
+void show_palette( rr::Renderer&                  renderer,
+                   std::vector<gfx::pixel> const& colors );
 
 // Preview color shading and highlighting.  This will render
 // a color gradient to the screen.
-void show_color_adjustment( gfx::pixel center );
+void show_color_adjustment( rr::Renderer& renderer,
+                            gfx::pixel    center );
 
 } // namespace rn

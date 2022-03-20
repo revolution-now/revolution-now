@@ -44,8 +44,13 @@ inline constexpr Delta g_tile_delta =
 *****************************************************************/
 Delta sprite_size( e_tile tile );
 
-gfx::size depixelation_offset( e_tile from_tile,
-                               e_tile to_tile );
+// Computes the delta inside the texture atlas required to go
+// from a vertex of from_tile to the corresponding vertex of
+// to_tile. This only makes sense if the two tiles have the same
+// size (it will check fail if they don't).
+gfx::size depixelation_offset( rr::Painter& painter,
+                               e_tile       from_tile,
+                               e_tile       to_tile );
 
 /****************************************************************
 ** Rendering Tiles

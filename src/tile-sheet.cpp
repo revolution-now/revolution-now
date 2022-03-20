@@ -111,9 +111,7 @@ valid_or<string> wrapped::TileSheetsConfig::validate() const {
 ** TileSheetsConfig
 *****************************************************************/
 TileSheetsConfig::TileSheetsConfig()
-  : TileSheetsConfig( wrapped::TileSheetsConfig{} ) {
-  validate_or_die();
-}
+  : TileSheetsConfig( wrapped::TileSheetsConfig{} ) {}
 
 TileSheetsConfig::TileSheetsConfig(
     wrapped::TileSheetsConfig&& o )
@@ -127,10 +125,20 @@ TileSheetsConfig::TileSheetsConfig(
       sizes_[tile] = sheet.sprite_size;
     }
   }
+  validate_or_die();
 }
 
 gfx::size TileSheetsConfig::sprite_size( e_tile tile ) const {
   return sizes_[tile];
+}
+
+valid_or<string> TileSheetsConfig::validate() const {
+  // No additional validation for now.
+  return valid;
+}
+
+void TileSheetsConfig::validate_or_die() const {
+  CHECK_HAS_VALUE( validate() );
 }
 
 } // namespace rn

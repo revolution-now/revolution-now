@@ -445,23 +445,23 @@ void show_palette( rr::Renderer&       renderer,
   renderer.present();
 }
 
-void show_color_adjustment( pixel center ) {
+void show_color_adjustment( rr::Renderer& renderer,
+                            pixel         center ) {
   vector<pixel> colors;
   for( int i = 10; i >= 0; --i )
     colors.push_back( center.shaded( i ) );
   for( int i = 0; i <= 10; ++i )
     colors.push_back( center.highlighted( i ) );
-  show_palette( colors );
+  show_palette( renderer, colors );
 }
 
-#if 0
-void write_palette_png( fs::path const& png_file ) {
-  auto        tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
-  auto const& colors = g_palette();
-  show_palette( renderer, hsl_bucket( colors ) );
-  tx.save_png( png_file );
+void write_palette_png( fs::path const& /*png_file*/ ) {
+  NOT_IMPLEMENTED;
+  // auto tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
+  // auto const& colors = g_palette();
+  // show_palette( renderer, hsl_bucket( colors ) );
+  // tx.save_png( png_file );
 }
-#endif
 
 void update_palette( fs::path const& where ) {
   // int constexpr coursen_to = 4096;

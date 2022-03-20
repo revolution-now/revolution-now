@@ -230,14 +230,16 @@ struct LandViewRenderer {
         render_rect_for_tile(
             coord_for_unit_indirect_or_die( depixelate_id ) )
             .upper_left();
-    auto popper =
+    rr::Painter painter = renderer.painter();
+    auto        popper =
         renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
           gfx::size target = {};
           if( dp_anim.target.has_value() ) {
             e_tile from_tile =
                 unit_from_id( depixelate_id ).desc().tile;
             e_tile to_tile = unit_attr( *dp_anim.target ).tile;
-            target = depixelation_offset( from_tile, to_tile );
+            target = depixelation_offset( painter, from_tile,
+                                          to_tile );
           }
           new_mods.painter_mods.depixelate = rr::DepixelateInfo{
               .stage               = dp_anim.stage,

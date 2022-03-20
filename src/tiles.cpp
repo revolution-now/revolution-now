@@ -19,6 +19,9 @@
 // Revolution Now (config)
 #include "../config/rcl/tile-sheet.inl"
 
+// render
+#include "render/atlas.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -38,7 +41,7 @@ namespace rn {
 
 namespace {
 
-vector<maybe<int>> cache;
+vector<int> cache;
 
 void init_sprites() {
   // FIXME: need to find a better way to get the renderer to gen-
@@ -58,6 +61,12 @@ void init_sprites() {
 
 void cleanup_sprites() { cache.clear(); }
 
+int atlas_lookup( e_tile tile ) {
+  int idx = static_cast<int>( tile );
+  DCHECK( idx < int( cache.size() ) );
+  return cache[idx];
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( sprites );
@@ -67,100 +76,73 @@ Delta sprite_size( e_tile tile ) {
       config_tile.sheets.sprite_size( tile ) );
 }
 
-gfx::size depixelation_offset( e_tile from_tile,
-                               e_tile to_tile ) {
-  // TODO
+gfx::size depixelation_offset( rr::Painter& painter,
+                               e_tile       from_tile,
+                               e_tile       to_tile ) {
+  gfx::size from_tile_size = sprite_size( from_tile );
+  gfx::size to_tile_size   = sprite_size( to_tile );
+  CHECK( sprite_size( from_tile ) == sprite_size( to_tile ),
+         "depixelation offsets can only be computed between "
+         "sprites of the same size; sprite {} has size {} and "
+         "sprite {} has size {}.",
+         from_tile, from_tile_size, to_tile, to_tile_size );
+  int                 from_id = atlas_lookup( from_tile );
+  int                 to_id   = atlas_lookup( to_tile );
+  rr::AtlasMap const& atlas   = painter.atlas();
+  return atlas.lookup( to_id ).origin -
+         atlas.lookup( from_id ).origin;
 }
 
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile ) {
-  // TODO
-}
-
-void render_sprite_section( rr::Painter& painter, e_tile tile,
-                            Coord pixel_coord, Rect source ) {
-  // TODO
+  painter.draw_sprite_scale( atlas_lookup( tile ), where );
 }
 
 void render_sprite( rr::Painter& painter, e_tile tile,
-                    Coord coord ) {
-  Y    pixel_row = coord.y;
-  X    pixel_col = coord.x;
-  auto where     = g_sprites.find( tile );
-  CHECK( where != g_sprites.end(), "failed to find sprite {}",
-         std::to_string( static_cast<int>( tile ) ) );
-  Sprite const& sp = where->second;
-
-  Rect dst;
-  dst.x = pixel_col;
-  dst.y = pixel_row;
-  dst.w = W{ 1 } * sp.scale.sx;
-  dst.h = H{ 1 } * sp.scale.sy;
-
-  constexpr double right_angle = 90.0; // degrees
-
-  double angle = rot * right_angle;
-
-  auto flip =
-      ( flip_x != 0 ) ? e_flip::horizontal : e_flip::none;
-
-  sp.texture->copy_to( tx, sp.source, dst, angle, flip );
+                    Coord where ) {
+  painter.draw_sprite( atlas_lookup( tile ), where );
 }
 
 void render_sprite_section( rr::Painter& painter, e_tile tile,
-                            Coord pixel_coord, Rect clip ) {
-  auto where = g_sprites.find( tile );
-  CHECK( where != g_sprites.end(), "failed to find sprite {}",
-         std::to_string( static_cast<int>( tile ) ) );
-  Sprite const& sp = where->second;
-
-  Rect dst;
-  dst.x = pixel_coord.x;
-  dst.y = pixel_coord.y;
-
-  auto new_src = sp.source.clamp( clip.shifted_by(
-      sp.source.upper_left().distance_from_origin() ) );
-
-  dst.w = new_src.w;
-  dst.h = new_src.h;
-
-  sp.texture->copy_to( tx, new_src, dst, 0.0, e_flip::none );
+                            Coord where, Rect /*source*/ ) {
+  // FIXME: need to implement this properly. For now just do a
+  // normal sprite rendering.
+  painter.draw_sprite( atlas_lookup( tile ), where );
 }
 
 void tile_sprite( rr::Painter& painter, e_tile tile,
                   Rect const& rect ) {
-  auto& info = lookup_sprite( tile );
-  auto  mod  = rect.delta() % info.scale;
+  Delta info       = sprite_size( tile );
+  Scale info_scale = info.to_scale();
+  auto  mod        = rect.delta() % info_scale;
   if( mod.w == 0_w && rect.delta().w != 0_w )
-    mod.w = 1_w * info.scale.sx;
+    mod.w = 1_w * info_scale.sx;
   if( mod.h == 0_h && rect.delta().h != 0_h )
-    mod.h = 1_h * info.scale.sy;
+    mod.h = 1_h * info_scale.sy;
   auto smaller_rect = Rect::from(
       rect.upper_left(), rect.delta() - Delta{ 1_w, 1_h } );
   for( auto coord :
-       Rect::from( Coord{}, smaller_rect.delta() / info.scale ) )
+       Rect::from( Coord{}, smaller_rect.delta() / info_scale ) )
     render_sprite(
         painter, tile,
         rect.upper_left() +
-            coord.distance_from_origin() * info.scale );
-  for( H h = 0_h; h < smaller_rect.h / info.scale.sy; ++h ) {
-    auto pixel_coord =
-        rect.upper_right() - mod.w + h * info.scale.sy;
+            coord.distance_from_origin() * info_scale );
+  for( H h = 0_h; h < smaller_rect.h / info_scale.sy; ++h ) {
+    auto where = rect.upper_right() - mod.w + h * info_scale.sy;
     render_sprite_section(
-        painter, tile, pixel_coord,
+        painter, tile, where,
         Rect::from( Coord{},
-                    mod.with_height( 1_h * info.scale.sy ) ) );
+                    mod.with_height( 1_h * info_scale.sy ) ) );
   }
-  for( W w = 0_w; w < smaller_rect.w / info.scale.sx; ++w ) {
-    auto pixel_coord =
-        rect.lower_left() - mod.h + w * info.scale.sx;
+  for( W w = 0_w; w < smaller_rect.w / info_scale.sx; ++w ) {
+    auto where = rect.lower_left() - mod.h + w * info_scale.sx;
     render_sprite_section(
-        painter, tile, pixel_coord,
+        painter, tile, where,
         Rect::from( Coord{},
-                    mod.with_width( 1_w * info.scale.sx ) ) );
+                    mod.with_width( 1_w * info_scale.sx ) ) );
   }
-  auto pixel_coord = rect.lower_right() - mod;
-  render_sprite_section( painter, tile, pixel_coord,
+  auto where = rect.lower_right() - mod;
+  render_sprite_section( painter, tile, where,
                          Rect::from( Coord{}, mod ) );
 }
 
@@ -182,14 +164,14 @@ void render_rect_of_sprites_with_border(
     e_tile       bottom_left, //
     e_tile       bottom_right //
 ) {
-  auto const& sprite_middle = lookup_sprite( middle );
-  CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );
+  Delta sprite_middle = sprite_size( middle );
+  CHECK( sprite_middle.w._ == sprite_middle.h._ );
   for( auto tile : { middle, top, bottom, left, right, top_left,
                      top_right, bottom_left, bottom_right } ) {
-    CHECK( lookup_sprite( tile ).scale == sprite_middle.scale );
+    CHECK( sprite_size( tile ) == sprite_middle );
   }
 
-  auto scale = sprite_middle.scale;
+  auto scale = sprite_middle.to_scale();
 
   auto to_pixels = [&]( Coord coord ) {
     coord = scale * coord;
