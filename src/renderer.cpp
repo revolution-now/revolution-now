@@ -17,6 +17,9 @@
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
+// gl
+#include "gl/init.hpp"
+
 // Revolution Now (config)
 #include "../config/rcl/tile-sheet.inl"
 
@@ -29,12 +32,37 @@ namespace rn {
 
 namespace {
 
+/****************************************************************
+** Global State
+*****************************************************************/
 unique_ptr<rr::Renderer> g_renderer;
+::SDL_GLContext          g_gl_context = nullptr;
 
+/****************************************************************
+** Initialization
+*****************************************************************/
 void init_renderer() {
+  // =========== SDL Stuff
+
   ::SDL_Window* window =
       static_cast<::SDL_Window*>( main_os_window_handle() );
-  Delta logical_screen_size = main_window_logical_size();
+  Delta logical_screen_size  = main_window_logical_size();
+  Delta physical_screen_size = main_window_physical_size();
+
+  g_gl_context = init_SDL_for_OpenGL( window );
+  CHECK( g_gl_context != nullptr );
+
+  // =========== gl/iface
+
+  // The window and context must have been created first.
+  gl::InitResult opengl_info = gl::init_opengl( gl::InitOptions{
+      .include_glfunc_logging             = false,
+      .initial_window_physical_pixel_size = physical_screen_size,
+  } );
+
+  lg.info( "{}", opengl_info.driver_info.pretty_print() );
+
+  // =========== Renderer Config
 
   rr::RendererConfig renderer_config = {
       .logical_screen_size = logical_screen_size,
@@ -51,7 +79,16 @@ void init_renderer() {
       renderer_config, [&] { sdl_gl_swap_window( window ); } );
 }
 
-void cleanup_renderer() { g_renderer.reset(); }
+void cleanup_renderer() {
+  // These must be done in this order.
+
+  // =========== Renderer Cleanup
+  g_renderer.reset();
+
+  // =========== SDL Cleanup
+  close_SDL_for_OpenGL( g_gl_context );
+  g_gl_context = nullptr;
+}
 
 } // namespace
 

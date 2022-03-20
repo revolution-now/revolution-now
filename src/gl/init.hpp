@@ -11,6 +11,7 @@
 #pragma once
 
 // gl
+#include "iface-logger.hpp"
 #include "iface.hpp"
 
 // gfx
@@ -30,8 +31,6 @@ struct DriverInfo {
 
   std::string pretty_print() const;
 };
-
-struct OpenGLWithLogger;
 
 struct InitResult {
   DriverInfo driver_info = {};

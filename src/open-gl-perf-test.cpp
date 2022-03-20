@@ -23,7 +23,6 @@
 #include "render/typer.hpp"
 
 // gl
-#include "gl/iface-logger.hpp"
 #include "gl/init.hpp"
 
 // base
