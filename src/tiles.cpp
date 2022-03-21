@@ -104,10 +104,9 @@ void render_sprite( rr::Painter& painter, e_tile tile,
 }
 
 void render_sprite_section( rr::Painter& painter, e_tile tile,
-                            Coord where, Rect /*source*/ ) {
-  // FIXME: need to implement this properly. For now just do a
-  // normal sprite rendering.
-  painter.draw_sprite( atlas_lookup( tile ), where );
+                            Coord where, Rect source ) {
+  painter.draw_sprite_section( atlas_lookup( tile ), where,
+                               source );
 }
 
 void tile_sprite( rr::Painter& painter, e_tile tile,

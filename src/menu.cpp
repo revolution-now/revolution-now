@@ -237,7 +237,7 @@ namespace color::menu::foreground {
 H max_text_height() { return H{ 8 }; }
 
 /****************************************************************
-** Geometry
+** Placement Geometry
 *****************************************************************/
 // The long, thin rectangle around the menu bar. This does not
 // include the space that would be occupied by open menu bodies.
@@ -250,11 +250,11 @@ Rect menu_bar_rect() {
 H menu_bar_height() { return menu_bar_rect().h; }
 
 Delta menu_header_delta( e_menu menu ) {
-  return Delta{ W{ g_menus[menu].name_width_pixels },
-                max_text_height() };
+  return Delta{ W{ g_menus[menu].name_width_pixels +
+                   config_ui.menus.padding * 2_sx },
+                menu_bar_height() };
 }
 
-// These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos( e_menu target ) {
   // TODO: simplify this since menus are not invisible anymore.
   CHECK( g_menus.contains( target ) );
@@ -284,11 +284,21 @@ X menu_header_x_pos( e_menu target ) {
 
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
-  auto y_offset =
-      ( menu_bar_height() - max_text_height() ) / 2_sy;
-  return Rect::from( Coord{ menu_bar_rect().y + y_offset,
-                            menu_header_x_pos( menu ) },
-                     menu_header_delta( menu ) );
+  return Rect::from(
+      Coord{ menu_bar_rect().y, menu_header_x_pos( menu ) },
+      menu_header_delta( menu ) );
+}
+
+Delta menu_header_text_size( e_menu menu ) {
+  return Delta{ W{ g_menus[menu].name_width_pixels },
+                max_text_height() };
+}
+
+Rect menu_header_text_rect( e_menu menu ) {
+  Delta text_size = menu_header_text_size( menu );
+  return Rect::from(
+      centered( text_size, menu_header_rect( menu ) ),
+      text_size );
 }
 
 // This is the width of the menu body not including the borders,
@@ -464,11 +474,17 @@ void render_item_background_selected( rr::Renderer& renderer,
 }
 
 void render_menu_header_background( rr::Painter& painter,
-                                    Coord pos, bool active ) {
+                                    e_menu menu, bool active ) {
+  // TODO: use render_sprite_section here.
+  Rect  header  = menu_header_rect( menu );
+  Coord where   = header.upper_left();
+  Rect  section = Rect::from( Coord{}, header.delta() );
   if( active )
-    render_sprite( painter, e_tile::menu_item_sel_back, pos );
+    render_sprite_section( painter, e_tile::menu_item_sel_back,
+                           where, section );
   else
-    render_sprite( painter, e_tile::menu_hdr_sel_back, pos );
+    render_sprite_section( painter, e_tile::menu_hdr_sel_back,
+                           where, section );
 }
 
 void render_open_menu( rr::Renderer& renderer, Coord pos,
@@ -548,7 +564,7 @@ void render_menu_bar( rr::Renderer& renderer ) {
     auto  rect                  = menu_header_rect( menu );
     Coord background_upper_left = rect.upper_left();
     Coord foreground_upper_left =
-        background_upper_left + config_ui.menus.padding - 1_h;
+        menu_header_text_rect( menu ).upper_left();
     // Given `menu`, this matcher visits the global menu state
     // and renders the foreground/background for that menu. Use a
     // struct to visit so that we can get recursive visitation.
@@ -563,8 +579,7 @@ void render_menu_bar( rr::Renderer& renderer ) {
       void operator()( MenuState::menus_closed closed ) const {
         rr::Painter painter = renderer.painter();
         if( menu == closed.hover )
-          render_menu_header_background( painter,
-                                         background_upper_left,
+          render_menu_header_background( painter, menu,
                                          /*active=*/false );
         render_menu_element( renderer, foreground_upper_left,
                              menu, menu_theme_color1 );
@@ -580,8 +595,7 @@ void render_menu_bar( rr::Renderer& renderer ) {
         if( o.menu != menu )
           return this->operator()( MenuState::menus_closed{} );
         rr::Painter painter = renderer.painter();
-        render_menu_header_background( painter,
-                                       background_upper_left,
+        render_menu_header_background( painter, menu,
                                        /*active=*/true );
         render_menu_element( renderer, foreground_upper_left,
                              menu, menu_theme_color2 );
