@@ -24,6 +24,7 @@ CFG( ui,
 
   OBJ( menus,
     FLD( rn::W,  first_menu_start )
+    FLD( rn::H,  item_vertical_padding )
     FLD( rn::W,  padding )
     FLD( rn::W,  spacing )
     FLD( rn::W,  body_min_width )

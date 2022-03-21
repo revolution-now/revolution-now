@@ -237,7 +237,7 @@ namespace color::menu::foreground {
 H max_text_height() { return H{ 8 }; }
 
 /****************************************************************
-** Placement Geometry
+** Menu Bar
 *****************************************************************/
 // The long, thin rectangle around the menu bar. This does not
 // include the space that would be occupied by open menu bodies.
@@ -249,6 +249,9 @@ Rect menu_bar_rect() {
 
 H menu_bar_height() { return menu_bar_rect().h; }
 
+/****************************************************************
+** Menu Headers
+*****************************************************************/
 Delta menu_header_delta( e_menu menu ) {
   return Delta{ W{ g_menus[menu].name_width_pixels +
                    config_ui.menus.padding * 2_sx },
@@ -301,6 +304,9 @@ Rect menu_header_text_rect( e_menu menu ) {
       text_size );
 }
 
+/****************************************************************
+** Menu Body
+*****************************************************************/
 // This is the width of the menu body not including the borders,
 // which themselves occupy part of a tile.
 W menu_body_width_inner( e_menu menu ) {
@@ -320,7 +326,22 @@ W menu_body_width_inner( e_menu menu ) {
   return res;
 }
 
-H divider_height() { return max_text_height() / 2; }
+H menu_item_height() {
+  return max_text_height() +
+         config_ui.menus.item_vertical_padding * 2_sy;
+}
+
+Delta menu_item_delta( e_menu menu ) {
+  return Delta{ menu_body_width_inner( menu ),
+                menu_item_height() };
+}
+
+H divider_height() { return menu_item_height() / 2; }
+
+Delta divider_delta( e_menu menu ) {
+  return Delta{ divider_height(),
+                menu_body_width_inner( menu ) };
+}
 
 // This is the width of the menu body not including the borders,
 // which themselves occupy part of a tile.
@@ -334,7 +355,7 @@ H menu_body_height_inner( e_menu menu ) {
           h += divider_height();
         },
         [&]( MenuItem::menu_clickable const& ) {
-          h += max_text_height();
+          h += menu_item_height();
         } );
   }
   // round up to nearest multiple of 8, since that is the menu
@@ -351,16 +372,6 @@ Delta menu_body_delta_inner( e_menu menu ) {
 Delta menu_body_delta( e_menu menu ) {
   return Delta{ 8_w, 8_h } + Delta{ 8_w, 8_h } +
          menu_body_delta_inner( menu );
-}
-
-Delta menu_item_delta( e_menu menu ) {
-  return Delta{ menu_body_width_inner( menu ),
-                max_text_height() };
-}
-
-Delta divider_delta( e_menu menu ) {
-  return Delta{ divider_height(),
-                menu_body_width_inner( menu ) };
 }
 
 Rect menu_body_rect_inner( e_menu menu ) {
@@ -412,7 +423,7 @@ maybe<e_menu_item> cursor_to_item( e_menu menu, H h ) {
           pos += divider_height();
         },
         [&]( MenuItem::menu_clickable const& ) {
-          pos += max_text_height();
+          pos += menu_item_height();
         } );
     if( pos > h ) {
       switch( item.to_enum() ) {
@@ -475,7 +486,6 @@ void render_item_background_selected( rr::Renderer& renderer,
 
 void render_menu_header_background( rr::Painter& painter,
                                     e_menu menu, bool active ) {
-  // TODO: use render_sprite_section here.
   Rect  header  = menu_header_rect( menu );
   Coord where   = header.upper_left();
   Rect  section = Rect::from( Coord{}, header.delta() );
@@ -513,6 +523,7 @@ void render_open_menu( rr::Renderer& renderer, Coord pos,
   pos.x += 8_w;
   pos.y += 8_h;
 
+  H const item_height = menu_item_height();
   for( auto const& item : g_menu_def[menu] ) {
     overload_visit(
         item,
@@ -531,9 +542,12 @@ void render_open_menu( rr::Renderer& renderer, Coord pos,
               : on ? menu_theme_color2
                    : menu_theme_color1;
           render_menu_element(
-              renderer, pos + config_ui.menus.padding - 1_h,
+              renderer,
+              pos + config_ui.menus.padding +
+                  ( ( item_height - max_text_height() ) / 2_sy +
+                    1_h ),
               clickable.item, foreground_color );
-          pos += max_text_height();
+          pos += item_height;
         } );
   }
 }
@@ -937,12 +951,12 @@ struct MenuPlane : public Plane {
                   state.hover = util::find_subsequent_and_cycle(
                       g_items_from_menu[*menu], *state.hover );
                   if( state.hover == start )
-                    // This is just a safe guard in case somehow
-                    // there are no menu items enabled at this
-                    // point, even though that should never
-                    // happen (it would cause an infinite loop).
+                    // One or no menu items enabled.
                     break;
                 } while( !is_menu_item_enabled( *state.hover ) );
+                if( !is_menu_item_enabled( *state.hover ) )
+                  // No menu items enabled.
+                  return e_input_handled::yes;
                 g_menu_state = state;
                 log_menu_state();
                 return e_input_handled::yes;
@@ -958,12 +972,12 @@ struct MenuPlane : public Plane {
                   state.hover = util::find_previous_and_cycle(
                       g_items_from_menu[*menu], *state.hover );
                   if( state.hover == start )
-                    // This is just a safe guard in case somehow
-                    // there are no menu items enabled at this
-                    // point, even though that should never
-                    // happen (it would cause an infinite loop).
+                    // One or no menu items enabled.
                     break;
                 } while( !is_menu_item_enabled( *state.hover ) );
+                if( !is_menu_item_enabled( *state.hover ) )
+                  // No menu items enabled.
+                  return e_input_handled::yes;
                 g_menu_state = state;
                 log_menu_state();
                 return e_input_handled::yes;
