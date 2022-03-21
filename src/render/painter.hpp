@@ -104,6 +104,13 @@ struct Painter {
 
   Painter& draw_sprite_scale( int atlas_id, gfx::rect dst );
 
+  // This allows drawing a section of a sprite. The `section`
+  // rect has its origin relative to the upper left corner of the
+  // sprite. Any parts of the section that fall outside of the
+  // sprite will be clipped.
+  Painter& draw_sprite_section( int atlas_id, gfx::point where,
+                                gfx::rect section );
+
   Painter& draw_silhouette( int atlas_id, gfx::point where,
                             gfx::pixel color );
 

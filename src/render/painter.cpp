@@ -205,6 +205,20 @@ Painter& Painter::draw_sprite_scale( int atlas_id, rect dst ) {
   return *this;
 }
 
+Painter& Painter::draw_sprite_section(
+    int atlas_id, gfx::point where, gfx::rect const section ) {
+  rect const  atlas_src = atlas_.lookup( atlas_id );
+  maybe<rect> src =
+      rect{ .origin = atlas_src.origin +
+                      section.origin.distance_from_origin(),
+            .size = section.size }
+          .clipped_by( atlas_src );
+  if( !src.has_value() ) return *this;
+  draw_sprite_impl( *src,
+                    rect{ .origin = where, .size = src->size } );
+  return *this;
+}
+
 Painter& Painter::draw_silhouette( int atlas_id, point where,
                                    pixel color ) {
   rect src = atlas_.lookup( atlas_id );

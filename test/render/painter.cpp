@@ -705,6 +705,35 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] draw_sprite_section" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return SpriteVertex( p, atlas_p ).generic();
+  };
+
+  point p{ .x = 20, .y = 30 };
+  rect  section{ .origin = { .x = 1, .y = 2 },
+                 .size   = { .w = 10, .h = 10 } };
+
+  int atlas_id = 1;
+  painter.draw_sprite_section( atlas_id, p, section );
+  // atlas: { .origin = { .x = 2, .y = 3 },
+  //          .size   = { .w = 4, .h = 5 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
+      Vert( { .x = 20, .y = 33 }, { .x = 3, .y = 8 } ),
+      Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
+      Vert( { .x = 23, .y = 30 }, { .x = 6, .y = 5 } ),
+      Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
   vector<GenericVertex> v, expected;
 
