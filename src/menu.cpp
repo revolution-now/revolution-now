@@ -255,7 +255,7 @@ H menu_bar_height() { return menu_bar_rect().h; }
 Delta menu_header_delta( e_menu menu ) {
   return Delta{ W{ g_menus[menu].name_width_pixels +
                    config_ui.menus.padding * 2_sx },
-                menu_bar_height() };
+                menu_bar_height() - 4_h };
 }
 
 X menu_header_x_pos( e_menu target ) {
@@ -287,9 +287,9 @@ X menu_header_x_pos( e_menu target ) {
 
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
-  return Rect::from(
-      Coord{ menu_bar_rect().y, menu_header_x_pos( menu ) },
-      menu_header_delta( menu ) );
+  return Rect::from( Coord{ menu_bar_rect().y + 2_h,
+                            menu_header_x_pos( menu ) },
+                     menu_header_delta( menu ) );
 }
 
 Delta menu_header_text_size( e_menu menu ) {
@@ -544,8 +544,7 @@ void render_open_menu( rr::Renderer& renderer, Coord pos,
           render_menu_element(
               renderer,
               pos + config_ui.menus.padding +
-                  ( ( item_height - max_text_height() ) / 2_sy +
-                    1_h ),
+                  ( ( item_height - max_text_height() ) / 2_sy ),
               clickable.item, foreground_color );
           pos += item_height;
         } );
