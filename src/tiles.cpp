@@ -103,6 +103,11 @@ void render_sprite( rr::Painter& painter, e_tile tile,
   painter.draw_sprite( atlas_lookup( tile ), where );
 }
 
+void render_sprite( rr::Painter& painter, Coord where,
+                    e_tile tile ) {
+  painter.draw_sprite( atlas_lookup( tile ), where );
+}
+
 void render_sprite_section( rr::Painter& painter, e_tile tile,
                             Coord where, Rect source ) {
   painter.draw_sprite_section( atlas_lookup( tile ), where,

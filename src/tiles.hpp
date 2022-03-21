@@ -55,6 +55,9 @@ gfx::size depixelation_offset( rr::Painter& painter,
 /****************************************************************
 ** Rendering Tiles
 *****************************************************************/
+void render_sprite( rr::Painter& painter, Coord where,
+                    e_tile tile );
+
 void render_sprite( rr::Painter& painter, e_tile tile,
                     Coord pixel_coord );
 

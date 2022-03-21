@@ -163,8 +163,7 @@ void render_colony( rr::Painter& painter, Coord where,
                            e_colony_building::stockade )
                            ? e_tile::colony_stockade
                            : e_tile::colony_basic;
-  render_sprite( painter, Rect::from( where, g_tile_delta ),
-                 tile );
+  render_sprite( painter, where, tile );
   auto const& nation = nation_obj( colony.nation() );
   render_colony_flag( painter, where + Delta{ 8_w, 8_h },
                       nation.flag_color );
