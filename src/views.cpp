@@ -425,24 +425,26 @@ LineEditorView::LineEditorView( int         chars_wide,
 Delta LineEditorView::delta() const {
   return Delta::from_gfx( rr::rendered_text_line_size_pixels(
              string( input_view_.width(), 'X' ) ) ) +
-         Delta{ 2_w, 2_h };
+         Delta{ 4_w, 4_h };
 }
 
 void LineEditorView::render_background( rr::Renderer& renderer,
                                         Rect const&   r ) const {
   renderer.painter().draw_solid_rect(
-      Rect::from( r.upper_left(),
-                  r.delta() + Delta{ 2_w, 2_h } ),
-      bg_ );
+      Rect::from( r.upper_left(), r.delta() ), bg_ );
 }
 
 // Implement Object
 void LineEditorView::draw( rr::Renderer& renderer,
                            Coord         coord ) const {
-  render_background( renderer, Rect::from( coord, delta() ) );
+  render_background( renderer, rect( coord ) );
   auto      all_chars = prompt_ + current_rendering_;
+  gfx::size text_size =
+      rr::rendered_text_line_size_pixels( current_rendering_ );
+  Y text_pos_y =
+      centered( Delta::from_gfx( text_size ), rect( coord ) ).y;
   rr::Typer typer =
-      renderer.typer( coord + Delta{ 1_w, 1_h }, fg_ );
+      renderer.typer( Coord( text_pos_y, coord.x + 1_w ), fg_ );
   typer.write( all_chars );
 
   auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
