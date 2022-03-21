@@ -155,10 +155,24 @@ void render_markup( rr::Typer& typer, MarkedUpText const& mk,
   }
 
   if( mk.style.shadow ) {
-    rr::Typer shadowed_typer =
-        typer.with_frame_offset( gfx::size{ .w = 1, .h = 1 } );
-    render_impl( shadowed_typer, info.shadowed_shadow_color,
-                 mk.text );
+    {
+      rr::Typer typer_shadow =
+          typer.with_frame_offset( gfx::size{ .w = 1, .h = 0 } );
+      render_impl( typer_shadow, info.shadowed_shadow_color,
+                   mk.text );
+    }
+    {
+      rr::Typer typer_shadow =
+          typer.with_frame_offset( gfx::size{ .w = 0, .h = 1 } );
+      render_impl( typer_shadow, info.shadowed_shadow_color,
+                   mk.text );
+    }
+    {
+      rr::Typer typer_shadow =
+          typer.with_frame_offset( gfx::size{ .w = 1, .h = 1 } );
+      render_impl( typer_shadow, info.shadowed_shadow_color,
+                   mk.text );
+    }
     render_impl( typer, info.shadowed_text_color, mk.text );
     return;
   }
