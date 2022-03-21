@@ -136,7 +136,7 @@ maybe<rect> rect::clipped_by( rect const other ) const {
     res.size.h -= delta;
   }
   if( res.size.negative() ) return nothing;
-  if( res.size.area() == 0 ) return nothing;
+  // Note that res.size.area() could be zero here.
   return res;
 }
 

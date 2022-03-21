@@ -87,8 +87,10 @@ struct rect {
 
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it
-  // will return nothing (this includes when they are just
-  // touching borders).
+  // will return nothing. If the borders are just touching then
+  // it will return a rect with zero area by whose length covers
+  // that portion of overlapped border (i.e., it will be a
+  // "line").
   [[nodiscard]] base::maybe<rect> clipped_by(
       rect const other ) const;
 

@@ -366,11 +366,29 @@ TEST_CASE( "[gfx/cartesian] rect::clipped_by" ) {
                    .size   = { .w = 2, .h = 3 } };
   REQUIRE( r1.clipped_by( r2 ) == expected );
 
-  r1 = rect{ .origin = { .x = 2, .y = 2 },
-             .size   = { .w = 2, .h = 2 } };
-  r2 = rect{ .origin = { .x = 4, .y = 2 },
-             .size   = { .w = 2, .h = 2 } };
-  REQUIRE( r1.clipped_by( r2 ) == nothing );
+  r1       = rect{ .origin = { .x = 0, .y = 0 },
+                   .size   = { .w = 2, .h = 2 } };
+  r2       = rect{ .origin = { .x = 1, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  expected = rect{ .origin = { .x = 1, .y = 2 },
+                   .size   = { .w = 1, .h = 0 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  r2       = rect{ .origin = { .x = 2, .y = 0 },
+                   .size   = { .w = 2, .h = 2 } };
+  expected = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 0 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = rect{ .origin = { .x = 2, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  r2       = rect{ .origin = { .x = 4, .y = 2 },
+                   .size   = { .w = 2, .h = 2 } };
+  expected = rect{ .origin = { .x = 4, .y = 2 },
+                   .size   = { .w = 0, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
 
   r1 = rect{ .origin = { .x = 2, .y = 2 },
              .size   = { .w = 2, .h = 2 } };
