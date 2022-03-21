@@ -1107,6 +1107,11 @@ class LandView : public ui::View, public ColonySubView {
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord         coord ) const {
+    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
+                         coord.distance_from_origin() );
+
+    // FIXME: Should not be duplicating land-view rendering code
+    // here.
     rr::Painter painter      = renderer.painter();
     auto const& colony       = colony_from_id( colony_id() );
     Coord       world_square = colony.location();
@@ -1114,9 +1119,7 @@ class LandView : public ui::View, public ColonySubView {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
                            Delta{ 1_w, 1_h };
-      render_terrain_square( painter,
-                             ( local_coord * g_tile_scale )
-                                 .as_if_origin_were( coord ),
+      render_terrain_square( painter, local_coord * g_tile_scale,
                              render_square );
     }
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
@@ -1125,17 +1128,20 @@ class LandView : public ui::View, public ColonySubView {
                            Delta{ 1_w, 1_h };
       auto maybe_col_id = colony_from_coord( render_square );
       if( !maybe_col_id ) continue;
-      render_colony( painter,
-                     ( local_coord * g_tile_scale )
-                             .as_if_origin_were( coord ) -
-                         Delta{ 6_w, 6_h },
-                     *maybe_col_id );
+      render_colony(
+          painter,
+          local_coord * g_tile_scale - Delta{ 6_w, 6_h },
+          *maybe_col_id );
     }
   }
 
   void draw_land_6x6( rr::Renderer& renderer,
                       Coord         coord ) const {
-    draw_land_3x3( renderer, coord );
+    {
+      SCOPED_RENDERER_MOD( painter_mods.repos.scale, 2.0 );
+      draw_land_3x3( renderer, coord );
+    }
+    // Further drawing should not be scaled.
   }
 
   void draw( rr::Renderer& renderer,

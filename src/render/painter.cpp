@@ -93,15 +93,15 @@ Painter Painter::without_mods() {
 
 void Painter::add_mods( VertexBase&        vert,
                         PainterMods const& mods ) {
-  if( mods.depixelate.has_value() )
-    vert.set_depixelation_state(
-        mods.depixelate->stage,
-        mods.depixelate->target_pixel_offset );
+  if( mods.depixelate.stage.has_value() )
+    vert.set_depixelation_stage( *mods.depixelate.stage );
+  if( mods.depixelate.target.has_value() )
+    vert.set_depixelation_target( *mods.depixelate.target );
+  if( mods.repos.scale.has_value() )
+    vert.scale_position( *mods.repos.scale );
+  if( mods.repos.translation.has_value() )
+    vert.translate_position( *mods.repos.translation );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
-  if( mods.repos.has_value() ) {
-    vert.scale_position( mods.repos->scale );
-    vert.translate_position( mods.repos->translation );
-  }
 }
 
 Painter& Painter::draw_point( point p, pixel color ) {

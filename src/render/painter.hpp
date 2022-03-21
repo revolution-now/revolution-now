@@ -26,13 +26,17 @@ struct VertexBase;
 /****************************************************************
 ** PainterMods
 *****************************************************************/
+// Only the leaf mod traits should be wrapped in maybe's instead
+// of the structs grouping them because it makes it easier to
+// perform focused updates on individual fields.
 struct DepixelateInfo {
-  double stage = 0.0;
+  base::maybe<double> stage = {};
+
   // If the sprite is depixelating to a different sprite then
   // this will be the offset from the source pixel to the target
   // pixel in the atlas. Otherwise, the depixelation just goes to
   // full transparency.
-  gfx::size target_pixel_offset = {};
+  base::maybe<gfx::size> target = {};
 };
 
 // These options allow specifying a global rescaling and transla-
@@ -40,14 +44,14 @@ struct DepixelateInfo {
 // done around the origin (in screen coords), and then the trans-
 // lation.
 struct RepositionInfo {
-  double    scale       = 1.0;
-  gfx::size translation = {};
+  base::maybe<double>    scale       = {};
+  base::maybe<gfx::size> translation = {};
 };
 
 struct PainterMods {
-  base::maybe<DepixelateInfo> depixelate = {};
-  base::maybe<double>         alpha      = {};
-  base::maybe<RepositionInfo> repos      = {};
+  DepixelateInfo      depixelate = {};
+  base::maybe<double> alpha      = {};
+  RepositionInfo      repos      = {};
 };
 
 /****************************************************************

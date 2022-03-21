@@ -72,10 +72,10 @@ void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
 
   rr::Typer typer = renderer.typer( pos, gfx::pixel::black() );
 
-  typer.write( "\n" );
-  typer.write( "id: {}\n", colony.id() );
-  typer.write( "nation: {}\n", colony.nation() );
-  typer.write( "location: {}\n", colony.location() );
+  typer.write( "\n\n" );
+  typer.write( "id: {}\n\n", colony.id() );
+  typer.write( "nation: {}\n\n", colony.nation() );
+  typer.write( "location: {}\n\n", colony.location() );
 
   colview_top_level().view().draw( renderer,
                                    canvas.upper_left() );

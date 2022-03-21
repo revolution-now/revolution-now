@@ -29,6 +29,23 @@
 namespace rr {
 
 /****************************************************************
+** Macros
+*****************************************************************/
+// This makes it easier to do a scoped change of the renderer
+// mods.  Use it like so:
+//
+// {
+//   SCOPED_RENDERER_MOD( painter_mods.repos.translation, 5 );
+//   ...
+// }
+//
+#define SCOPED_RENDERER_MOD( leaf_path, mod )               \
+  auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
+      renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
+        mods.leaf_path = mod;                               \
+      } );
+
+/****************************************************************
 ** RendererConfig
 *****************************************************************/
 struct RendererConfig {

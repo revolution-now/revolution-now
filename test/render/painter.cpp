@@ -771,8 +771,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage               = .7,
-                            .target_pixel_offset = {} },
+            DepixelateInfo{ .stage = .7, .target = {} },
         .alpha = nothing,
         .repos = {} } );
 
@@ -780,7 +779,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   auto Vert = [&]( point p, point atlas_p ) {
     auto vert = SilhouetteVertex( p, atlas_p, R );
-    vert.set_depixelation_state( .7 );
+    vert.set_depixelation_stage( .7 );
     return vert.generic();
   };
 
@@ -808,9 +807,8 @@ TEST_CASE( "[render/painter] mod depixelate to target" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{
-                .stage               = .7,
-                .target_pixel_offset = { .w = 5, .h = 6 } },
+            DepixelateInfo{ .stage  = .7,
+                            .target = size{ .w = 5, .h = 6 } },
         .alpha = nothing,
         .repos = {} } );
 
@@ -818,7 +816,8 @@ TEST_CASE( "[render/painter] mod depixelate to target" ) {
 
   auto Vert = [&]( point p, point atlas_p ) {
     auto vert = SilhouetteVertex( p, atlas_p, R );
-    vert.set_depixelation_state( .7, size{ .w = 5, .h = 6 } );
+    vert.set_depixelation_stage( .7 );
+    vert.set_depixelation_target( size{ .w = 5, .h = 6 } );
     return vert.generic();
   };
 
@@ -844,7 +843,7 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
   Painter painter = unmodded_painter.with_mods(
-      { .depixelate = nothing, .alpha = .7, .repos = {} } );
+      { .depixelate = {}, .alpha = .7, .repos = {} } );
 
   rect r;
 

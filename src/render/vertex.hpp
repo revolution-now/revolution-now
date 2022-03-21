@@ -46,19 +46,16 @@ struct VertexBase : protected GenericVertex {
   GenericVertex const& generic() const { return *this; }
 
   // *** Depixelation.
-  // Restores the depixelation state to the default (non depixe-
-  // lated) state.
-  void reset_depixelation_state();
   // Percent is in [0, 1.0] where 0 means totally visible and 1.0
-  // means totally invisible. If the sprite is depixelating to a
-  // different sprite then the second argument will be the offset
-  // in the texture atlas to go from this vertex to the corre-
-  // sponding vertex on the target sprite. Otherwise, if the
-  // second argument is zero, then we just depixelate to nothing.
-  void set_depixelation_state(
-      double    percent,
-      gfx::size target_atlas_offset = gfx::size{} );
+  // means totally invisible.
+  void   set_depixelation_stage( double percent );
   double depixelation_stage() const;
+  // If the sprite is depixelating to a different sprite then the
+  // second argument will be the offset in the texture atlas to
+  // go from this vertex to the corresponding vertex on the
+  // target sprite. Otherwise, if the second argument is zero,
+  // then we just depixelate to nothing.
+  void set_depixelation_target( gfx::size target_atlas_offset );
 
   // *** Visibility.
   bool is_visible() const;

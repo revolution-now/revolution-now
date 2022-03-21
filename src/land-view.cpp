@@ -241,13 +241,11 @@ struct LandViewRenderer {
       target =
           depixelation_offset( painter, from_tile, to_tile );
     }
-    auto popper =
-        renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
-          new_mods.painter_mods.depixelate = rr::DepixelateInfo{
-              .stage               = dp_anim.stage,
-              .target_pixel_offset = target,
-          };
-        } );
+
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                         dp_anim.stage );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
+                         target );
     render_unit( renderer, loc, depixelate_id,
                  /*with_icon=*/true );
   }
@@ -371,15 +369,9 @@ void render_land_view( rr::Renderer& renderer ) {
       .covered  = viewport().covered_tiles(),
   };
 
-  auto popper =
-      renderer.push_mods( [&]( rr::RendererMods& new_mods ) {
-        rr::PainterMods& painter_mods = new_mods.painter_mods;
-        if( !painter_mods.repos.has_value() )
-          painter_mods.repos.emplace();
-        rr::RepositionInfo& repo_info = *painter_mods.repos;
-        repo_info.scale               = viewport().get_zoom();
-        repo_info.translation = corner.distance_from_origin();
-      } );
+  SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
+  SCOPED_RENDERER_MOD( painter_mods.repos.translation,
+                       corner.distance_from_origin() );
 
   // The below functions will always render at normal scale and
   // starting at 0,0 on the screen, and then the renderer mods

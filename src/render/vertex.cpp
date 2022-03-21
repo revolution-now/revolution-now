@@ -44,19 +44,18 @@ GenericVertex proto_vertex( vertex_type type,
 /****************************************************************
 ** VertexBase
 *****************************************************************/
-void VertexBase::reset_depixelation_state() {
-  set_depixelation_state( 0.0f );
-}
-
-void VertexBase::set_depixelation_state(
-    double percent, gfx::size target_atlas_offset ) {
+void VertexBase::set_depixelation_stage( double percent ) {
   depixelate = static_cast<float>( percent );
-  atlas_target_offset =
-      gl::vec2::from_size( target_atlas_offset );
 }
 
 double VertexBase::depixelation_stage() const {
   return depixelate;
+}
+
+void VertexBase::set_depixelation_target(
+    gfx::size target_atlas_offset ) {
+  atlas_target_offset =
+      gl::vec2::from_size( target_atlas_offset );
 }
 
 bool VertexBase::is_visible() const {
