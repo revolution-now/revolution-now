@@ -1,11 +1,11 @@
 /****************************************************************
-**open-gl-perf-test.hpp
+**open-gl-test.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-10-22.
 *
-* Description: OpenGL performance testing.
+* Description: OpenGL testing.
 *
 *****************************************************************/
 #pragma once
@@ -17,6 +17,6 @@ namespace rn {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void open_gl_perf_test();
+void open_gl_test();
 
 } // namespace rn

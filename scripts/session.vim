@@ -1,22 +1,9 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'screen',
- \ 'renderer',
- \ 'frame',
- \ 'plane',
- \ 'tile-enum',
- \ 'tile-sheet',
- \ 'tiles',
- \ 'init',
- \ 'land-view',
- \ 'render',
- \ 'terrain',
- \ 'viewport',
- \ 'render/vertex',
- \ 'render/generic',
+ \ 'open-gl-test',
  \ 'render/painter',
  \ 'render/renderer',
- \ 'open-gl-perf-test',
+ \ 'land-view',
 \]
 
 let s:luas = [

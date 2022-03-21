@@ -5,7 +5,7 @@
 #include "logger.hpp"
 #include "lua-ui.hpp"
 #include "lua.hpp"
-#include "open-gl-perf-test.hpp"
+#include "open-gl-test.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 
@@ -18,7 +18,7 @@ using namespace rn;
 using namespace std;
 using namespace base;
 
-enum class e_mode { game, ui_test, lua_ui_test, gl_perf };
+enum class e_mode { game, ui_test, lua_ui_test, gl_test };
 
 // FIXME: this should be using reflection.
 maybe<e_mode> mode_from_str( string_view key ) {
@@ -27,7 +27,7 @@ maybe<e_mode> mode_from_str( string_view key ) {
           { "game", e_mode::game },
           { "ui_test", e_mode::ui_test },
           { "lua_ui_test", e_mode::lua_ui_test },
-          { "gl_perf", e_mode::gl_perf },
+          { "gl_test", e_mode::gl_test },
       },
       key );
 }
@@ -59,9 +59,9 @@ void run( e_mode mode ) {
       frame_loop( rn::lua_ui_test() );
       break;
     }
-    case e_mode::gl_perf: {
+    case e_mode::gl_test: {
       full_init();
-      open_gl_perf_test();
+      open_gl_test();
       break;
     }
   }
@@ -71,7 +71,7 @@ int main( int argc, char** argv ) {
   ProgramArguments args = base::parse_args_or_die_with_usage(
       vector<string>( argv + 1, argv + argc ) );
 
-  auto mode = e_mode::gl_perf;
+  auto mode = e_mode::game;
   if( args.key_val_args.contains( "mode" ) ) {
     UNWRAP_CHECK_MSG( m,
                       mode_from_str( args.key_val_args["mode"] ),
