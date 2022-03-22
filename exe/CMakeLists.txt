@@ -1,10 +1,7 @@
-add_executable( exe main.cpp )
-set_warning_options( exe )
-
-target_link_libraries(
-    exe
-    PUBLIC
-    rn
+add_rn_executable(
+  exe
+  # Dependencies
+  rn
 )
 
 # The `midi-convert` target will convert (incrementally) any .rg
@@ -16,5 +13,3 @@ if( NOT ENABLE_ADDRESS_SANITIZER )
   add_dependencies( exe midi-convert )
   add_dependencies( exe ogg-convert )
 endif()
-
-clang_tidy( exe )

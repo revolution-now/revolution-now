@@ -1,0 +1,18 @@
+# ===============================================================
+# main.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-21.
+#
+# Description: Rds definitions for the main module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_mode {
+  game,
+  test_ui,
+  test_lua_ui,
+  gl_test
+}

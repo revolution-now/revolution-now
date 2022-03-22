@@ -9,31 +9,21 @@
 #include "screen.hpp"
 #include "util.hpp"
 
+// Rds
+#include "main.rds.hpp"
+
 // base
 #include "base/cli-args.hpp"
 #include "base/error.hpp"
 #include "base/keyval.hpp"
 
-using namespace rn;
 using namespace std;
 using namespace base;
 
-enum class e_mode { game, ui_test, lua_ui_test, gl_test };
+namespace rn {
 
-// FIXME: this should be using reflection.
-maybe<e_mode> mode_from_str( string_view key ) {
-  return base::lookup(
-      unordered_map<string_view, e_mode>{
-          { "game", e_mode::game },
-          { "ui_test", e_mode::ui_test },
-          { "lua_ui_test", e_mode::lua_ui_test },
-          { "gl_test", e_mode::gl_test },
-      },
-      key );
-}
-
-wait<> ui_test() { return make_wait<>(); }
-wait<> lua_ui_test() { return rn::lua_ui_test(); }
+wait<> test_ui() { return make_wait<>(); }
+wait<> test_lua_ui() { return rn::lua_ui_test(); }
 
 void full_init() {
   run_all_init_routines( e_log_level::debug );
@@ -49,14 +39,14 @@ void run( e_mode mode ) {
       frame_loop( revolution_now() );
       break;
     }
-    case e_mode::ui_test: {
+    case e_mode::test_ui: {
       full_init();
-      frame_loop( ui_test() );
+      frame_loop( test_ui() );
       break;
     }
-    case e_mode::lua_ui_test: {
+    case e_mode::test_lua_ui: {
       full_init();
-      frame_loop( rn::lua_ui_test() );
+      frame_loop( rn::test_lua_ui() );
       break;
     }
     case e_mode::gl_test: {
@@ -67,6 +57,10 @@ void run( e_mode mode ) {
   }
 }
 
+} // namespace rn
+
+using namespace ::rn;
+
 int main( int argc, char** argv ) {
   ProgramArguments args = base::parse_args_or_die_with_usage(
       vector<string>( argv + 1, argv + argc ) );
@@ -74,7 +68,8 @@ int main( int argc, char** argv ) {
   auto mode = e_mode::game;
   if( args.key_val_args.contains( "mode" ) ) {
     UNWRAP_CHECK_MSG( m,
-                      mode_from_str( args.key_val_args["mode"] ),
+                      refl::enum_from_string<e_mode>(
+                          args.key_val_args["mode"] ),
                       "invalid program mode: `{}'.",
                       args.key_val_args["mode"] );
     mode = m;
