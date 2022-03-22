@@ -283,7 +283,7 @@ TravelHandler::analyze_unload() {
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
     ui::e_confirm answer = co_await ui::yes_no( msg );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -954,9 +954,17 @@ wait<> AttackHandler::perform() {
 
   switch( loser.desc().on_death.to_enum() ) {
     using namespace UnitDeathAction;
-    case e::destroy: //
+    case e::destroy: {
+      e_unit_type loser_type   = loser.type();
+      e_nation    loser_nation = loser.nation();
       GameState::units().destroy_unit( loser.id() );
+      if( loser_type == e_unit_type::scout ||
+          loser_type == e_unit_type::seasoned_scout )
+        co_await ui::message_box(
+            "@[H]{}@[] scout has been lost!",
+            nation_obj( loser_nation ).adjective );
       break;
+    }
     case e::naval: {
       auto num_units_lost =
           loser.cargo().items_of_type<Cargo::unit>().size();
