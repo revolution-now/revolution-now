@@ -210,7 +210,7 @@ ButtonBaseView::ButtonBaseView( string label, e_type type )
             rr::rendered_text_line_size_pixels( label ) )
                     .round_up( Scale{ 8 } ) /
                 Scale{ 8 } +
-            2_w,
+            2_w + 1_h,
         type ) {}
 
 ButtonBaseView::ButtonBaseView( string label,
@@ -221,18 +221,11 @@ ButtonBaseView::ButtonBaseView( string label,
 ButtonBaseView::ButtonBaseView( string label,
                                 Delta  size_in_blocks,
                                 e_type type )
-  : ButtonBaseView( std::move( label ),
-                    size_in_blocks * Scale{ 8 }, type,
-                    /*text_size_in_pixels=*/{} ) {}
-
-ButtonBaseView::ButtonBaseView( string    label,
-                                Delta     size_in_pixels,
-                                e_type    type,
-                                gfx::size text_size_in_pixels )
   : label_( std::move( label ) ),
     type_( type ),
-    size_in_pixels_( size_in_pixels ),
-    text_size_in_pixels_( text_size_in_pixels ) {}
+    size_in_pixels_( size_in_blocks * Scale{ 8 } ),
+    text_size_in_pixels_(
+        rr::rendered_text_line_size_pixels( label_ ) ) {}
 
 Delta ButtonBaseView::delta() const { return size_in_pixels_; }
 

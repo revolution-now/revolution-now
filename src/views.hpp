@@ -98,7 +98,7 @@ class CompositeView : public View {
     auto                 operator*() { return cview->at( idx ); }
     void                 operator++() { ++idx; }
     bool                 operator!=( citer const& rhs ) {
-      return rhs.idx != idx;
+                      return rhs.idx != idx;
     }
   };
 
@@ -287,10 +287,6 @@ class ButtonBaseView : public View {
   e_type type() const { return type_; }
 
  private:
-  // Note this takes size in pixels, not blocks.
-  ButtonBaseView( std::string label, Delta size_in_pixels,
-                  e_type type, gfx::size text_size_in_pixels );
-
   void render_disabled( rr::Renderer& renderer,
                         gfx::point    where ) const;
   void render_pressed( rr::Renderer& renderer,
