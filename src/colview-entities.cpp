@@ -207,7 +207,7 @@ class MarketCommodities : public ui::View,
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       painter.draw_empty_rect(
-          rect, rr::Painter::e_border_mode::inside,
+          rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::black() );
       label.value = colony.commodity_quantity( *comm_it );
       // When we drag a commodity we want the effect to be that
@@ -418,8 +418,8 @@ class CargoView : public ui::View,
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( rect( coord ).with_inc_size(),
-                             rr::Painter::e_border_mode::inside,
+    painter.draw_empty_rect( rect( coord ),
+                             rr::Painter::e_border_mode::in_out,
                              gfx::pixel::black() );
     auto unit = holder_.fmap( unit_from_id );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
@@ -427,7 +427,9 @@ class CargoView : public ui::View,
       auto [is_open, relative_rect] = info;
       Rect rect = relative_rect.as_if_origin_were( coord );
       if( !is_open ) {
-        painter.draw_solid_rect( rect, gfx::pixel::wood() );
+        painter.draw_solid_rect(
+            rect.shifted_by( Delta( 1_w, 0_h ) ),
+            gfx::pixel::wood() );
         continue;
       }
 
@@ -436,7 +438,7 @@ class CargoView : public ui::View,
       painter.draw_solid_rect(
           rect, gfx::pixel::wood().highlighted( 4 ) );
       painter.draw_empty_rect(
-          rect, rr::Painter::e_border_mode::inside,
+          rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::wood() );
       CargoHold const& hold = unit->cargo();
       switch( auto& v = hold[idx]; v.to_enum() ) {
@@ -705,8 +707,9 @@ class UnitsAtGateColonyView : public ui::View,
                    /*with_icon=*/true );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
-            Rect::from( draw_pos, g_tile_delta ),
-            rr::Painter::e_border_mode::inside,
+            Rect::from( draw_pos, g_tile_delta ) -
+                Delta( 1_w, 1_h ),
+            rr::Painter::e_border_mode::in_out,
             gfx::pixel::green() );
     }
   }
@@ -999,7 +1002,7 @@ class UnitsAtGateColonyView : public ui::View,
   void update() override {
     auto const& colony   = colony_from_id( colony_id() );
     auto const& units    = units_from_coord( colony.location() );
-    auto        unit_pos = Coord{} + 16_h;
+    auto        unit_pos = Coord{} + 16_h + 1_w;
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
     for( auto unit_id : units ) {

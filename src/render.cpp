@@ -34,7 +34,7 @@ namespace rn {
 
 namespace {
 
-constexpr Delta nationality_icon_size( 13_h, 13_w );
+constexpr Delta nationality_icon_size( 14_h, 14_w );
 
 // Unit only, no nationality icon.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
@@ -63,19 +63,18 @@ void render_nationality_icon( rr::Renderer& renderer,
   auto const& nation_o = nation_obj( nation );
 
   auto color      = nation_o.flag_color;
-  auto dark       = color.shaded( 4 );
+  auto dark       = color.shaded( 2 );
   auto text_color = color.shaded( 7 );
 
   rr::Painter painter = renderer.painter();
 
   painter.draw_solid_rect( rect, color );
   painter.draw_empty_rect(
-      rect, rr::Painter::e_border_mode::outside, dark );
+      rect, rr::Painter::e_border_mode::inside, dark );
 
   Delta char_size = Delta::from_gfx(
       rr::rendered_text_line_size_pixels( string( 1, c ) ) );
-  render_text( renderer,
-               centered( char_size, rect ) + Delta{ 1_w, 0_h },
+  render_text( renderer, centered( char_size, rect ),
                font::nat_icon(), text_color, string( 1, c ) );
 }
 

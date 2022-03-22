@@ -86,8 +86,23 @@ void render_commodity_impl( rr::Renderer& renderer, Coord where,
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
   Delta comm_size = sprite_size( tile );
-  auto label_size = rr::rendered_text_line_size_pixels( *label );
-  auto origin     = where + comm_size.h + 2_h -
+
+  // vvv FIXME FIXME FIXME FIXME
+  // Hack since we can't compute the rendered text size of `la-
+  // bel` because it may contain markup chars. Need to find a
+  // better way to do this.
+  auto const char_size =
+      rr::rendered_text_line_size_pixels( "X" );
+  // If the length is longer than two then it contains markup.
+  gfx::size label_size = char_size;
+
+  label_size.w = ( ( label->find( '@' ) != string::npos )
+                       ? 3
+                       : label->size() ) *
+                 char_size.w;
+  // ^^^ FIXME FIXME FIXME FIXME
+
+  auto origin = where + comm_size.h + 2_h -
                 ( label_size.w - comm_size.w ) / 2_sx;
   render_commodity_label( renderer, origin, *label );
 }

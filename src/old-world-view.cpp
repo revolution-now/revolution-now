@@ -208,7 +208,7 @@ class MarketCommodities {
     for( auto rect : range_of_rects( grid ) ) {
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
-          rr::Painter::e_border_mode::inside,
+          rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
       render_commodity_annotated(
           renderer,
@@ -232,14 +232,16 @@ class MarketCommodities {
           /*doubled_=*/false,
           /*origin_=*/Coord{
               /*x=*/rect.center().x - single_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - single_layer_height } };
+              /*y=*/rect.bottom_edge() - single_layer_height -
+                  1_h } };
     } else if( rect.w >= double_layer_width &&
                rect.h >= double_layer_height ) {
       res = MarketCommodities{
           /*doubled_=*/true,
           /*origin_=*/Coord{
               /*x=*/rect.center().x - double_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - double_layer_height } };
+              /*y=*/rect.bottom_edge() - double_layer_height -
+                  1_h } };
 
     } else {
       // cannot draw.
@@ -305,7 +307,7 @@ class ActiveCargoBox {
     for( auto rect : range_of_rects( grid ) )
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
-          rr::Painter::e_border_mode::inside,
+          rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
   }
 
@@ -326,15 +328,13 @@ class ActiveCargoBox {
       if( market_commodities.doubled_ ) {
         res = ActiveCargoBox(
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h +
-                    1_h,
+                market_commodities.origin_.y - size_pixels.h,
                 rect.center().x - size_pixels.w / 2_sx } );
       } else {
         // Possibly just for now do this.
         res = ActiveCargoBox(
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h +
-                    1_h,
+                market_commodities.origin_.y - size_pixels.h,
                 rect.center().x - size_pixels.w / 2_sx } );
       }
     }
@@ -647,26 +647,25 @@ class OutboundBox {
 NOTHROW_MOVE( OutboundBox );
 
 class Exit {
-  static constexpr Delta exit_block_pixels{ 24_w, 24_h };
+  static constexpr Delta exit_block_pixels{ 26_w, 26_h };
 
  public:
   Rect bounds() const {
-    return Rect::from( origin_, exit_block_pixels ) +
-           Delta{ 2_w, 2_h };
+    return Rect::from( origin_, exit_block_pixels );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    auto        bds     = bounds().with_inc_size();
-    bds                 = bds.shifted_by( Delta{ -2_w, -2_h } );
-    static string text  = "Exit";
+    rr::Painter   painter   = renderer.painter();
+    auto          bds       = bounds();
+    static string text      = "Exit";
     Delta         text_size = Delta::from_gfx(
                 rr::rendered_text_line_size_pixels( text ) );
     rr::Typer typer = renderer.typer(
-        centered( text_size, bds ) + offset, gfx::pixel::red() );
+        centered( text_size, bds + Delta( 1_w, 1_h ) ) + offset,
+        gfx::pixel::red() );
     typer.write( text );
     painter.draw_empty_rect( bds.shifted_by( offset ),
-                             rr::Painter::e_border_mode::inside,
+                             rr::Painter::e_border_mode::in_out,
                              gfx::pixel::white() );
   }
 
@@ -680,12 +679,12 @@ class Exit {
     if( maybe_market_commodities ) {
       auto origin =
           maybe_market_commodities->bounds().lower_right() -
-          Delta{ 1_w, 1_h } - exit_block_pixels.h;
+          exit_block_pixels.h;
       auto lr_delta = origin + exit_block_pixels - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h ) {
         origin =
             maybe_market_commodities->bounds().upper_right() -
-            1_w - exit_block_pixels;
+            exit_block_pixels;
       }
       res = Exit{ origin };
       lr_delta =
@@ -725,7 +724,7 @@ class Dock {
     for( auto rect : range_of_rects( grid ) )
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
-          rr::Painter::e_border_mode::inside,
+          rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
   }
 
@@ -801,8 +800,9 @@ class UnitCollection {
         if( id == *owv_state.selected_unit ) {
           painter.draw_empty_rect(
               Rect::from( coord, g_tile_delta )
-                  .shifted_by( offset ),
-              rr::Painter::e_border_mode::inside,
+                      .shifted_by( offset ) -
+                  Delta( 1_w, 1_h ),
+              rr::Painter::e_border_mode::in_out,
               gfx::pixel::green() );
           break;
         }
@@ -1852,7 +1852,7 @@ void drag_n_drop_draw( rr::Renderer& renderer,
   if( !g_drag_state ) return;
   auto& state            = *g_drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
