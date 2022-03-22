@@ -98,9 +98,9 @@ void Painter::add_mods( VertexBase&        vert,
   if( mods.depixelate.target.has_value() )
     vert.set_depixelation_target( *mods.depixelate.target );
   if( mods.repos.scale.has_value() )
-    vert.scale_position( *mods.repos.scale );
+    vert.set_scaling( *mods.repos.scale );
   if( mods.repos.translation.has_value() )
-    vert.translate_position( *mods.repos.translation );
+    vert.set_translation( *mods.repos.translation );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
 }
 

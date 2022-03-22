@@ -71,6 +71,14 @@ struct.GenericVertex {
   # value (no matter how it was produced). Should be in [0, 1].
   alpha_multiplier 'float',
 
+  # This is a rescaling; the `position` attribute will be multi-
+  # plied by this value. A value of 1.0 is a no-op.
+  scaling 'float',
+
+  # This is a translation; the `position` attribute will be added
+  # to this value after scaling. A value of 0.0 is a no-op.
+  translation 'gl::vec2',
+
   # Need this in all vertex structs since OpenGL needs to have
   # the offsets of each member of the struct.
   _features { equality, offsets }

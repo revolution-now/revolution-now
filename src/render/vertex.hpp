@@ -67,8 +67,8 @@ struct VertexBase : protected GenericVertex {
   void   set_alpha( double alpha );
 
   // *** Repositioning.
-  void scale_position( double scale );
-  void translate_position( gfx::size translation );
+  void set_scaling( double scale );
+  void set_translation( gfx::size translation );
 
   bool operator==( VertexBase const& ) const = default;
 };

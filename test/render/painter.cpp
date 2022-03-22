@@ -882,8 +882,8 @@ TEST_CASE( "[render/painter] mod reposition" ) {
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
-    // Don't apply the mods here since it seems better to explic-
-    // itly apply them in the `expected` below.
+    vert.set_scaling( 2.0 );
+    vert.set_translation( size{ .w = 5, .h = 3 } );
     return vert.generic();
   };
 
@@ -891,12 +891,12 @@ TEST_CASE( "[render/painter] mod reposition" ) {
                  .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 45, .y = 63 } ),
-      Vert( { .x = 45, .y = 463 } ),
-      Vert( { .x = 245, .y = 463 } ),
-      Vert( { .x = 45, .y = 63 } ),
-      Vert( { .x = 245, .y = 63 } ),
-      Vert( { .x = 245, .y = 463 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }

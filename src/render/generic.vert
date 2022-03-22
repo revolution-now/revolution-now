@@ -18,6 +18,8 @@ layout (location = 4) in vec2  in_atlas_position;
 layout (location = 5) in vec2  in_atlas_target_offset;
 layout (location = 6) in vec4  in_fixed_color;
 layout (location = 7) in float in_alpha_multiplier;
+layout (location = 8) in float in_scaling;
+layout (location = 9) in vec2  in_translation;
 
 flat out int   frag_type;
 flat out float frag_depixelate;
@@ -66,5 +68,9 @@ void main() {
     return;
   }
 
-  gl_Position = vec4( to_ndc( in_position ), 0.0, 1.0 );
+  vec2 adjusted_position = in_position;
+  adjusted_position *= in_scaling;
+  adjusted_position += in_translation;
+
+  gl_Position = vec4( to_ndc( adjusted_position ), 0.0, 1.0 );
 }

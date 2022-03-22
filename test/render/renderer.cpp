@@ -37,7 +37,7 @@ using namespace ::mock::matchers;
 // If you change the GenericVertex or associated shaders then you
 // may have to adjust these to make the tests pass.
 
-// (type, name, is_integral)
+// (type, name, is_integral).  The precise names don't matter.
 vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_type", true },                        //
     { GL_INT, "in_visible", true },                     //
@@ -47,6 +47,8 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //
     { GL_FLOAT_VEC4, "in_fixed_color", false },         //
     { GL_FLOAT, "in_alpha_multiplier", false },         //
+    { GL_FLOAT, "in_scaling", false },                  //
+    { GL_FLOAT_VEC2, "in_translation", false },         //
 };
 
 /****************************************************************

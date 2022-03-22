@@ -36,6 +36,8 @@ GenericVertex proto_vertex( vertex_type type,
       .atlas_target_offset = {},
       .fixed_color         = {},
       .alpha_multiplier    = 1.0f,
+      .scaling             = 1.0,
+      .translation         = {},
   };
 }
 
@@ -75,14 +77,10 @@ void VertexBase::set_alpha( double alpha ) {
   alpha_multiplier = static_cast<float>( alpha );
 }
 
-void VertexBase::scale_position( double scale ) {
-  position.x = lround( position.x * scale );
-  position.y = lround( position.y * scale );
-}
+void VertexBase::set_scaling( double scale ) { scaling = scale; }
 
-void VertexBase::translate_position( gfx::size translation ) {
-  position.x += translation.w;
-  position.y += translation.h;
+void VertexBase::set_translation( gfx::size trans ) {
+  translation = gl::vec2::from_size( trans );
 }
 
 /****************************************************************
