@@ -33,7 +33,7 @@ wait<LandViewPlayerInput_t> landview_eot_get_next_input();
 
 wait<> landview_animate_move( UnitId id, e_direction direction );
 
-enum class e_depixelate_anim { none, death, demote };
+enum class e_depixelate_anim { death, demote };
 
 wait<> landview_animate_attack( UnitId attacker, UnitId defender,
                                 bool              attacker_wins,

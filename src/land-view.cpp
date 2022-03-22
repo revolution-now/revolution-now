@@ -232,22 +232,34 @@ struct LandViewRenderer {
                     .upper_left();
     rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
-    gfx::size target = {};
-    if( dp_anim.type == e_depixelate_anim::demote ) {
-      CHECK( dp_anim.target.has_value() );
-      e_tile from_tile =
-          unit_from_id( depixelate_id ).desc().tile;
-      e_tile to_tile = unit_attr( *dp_anim.target ).tile;
-      target =
-          depixelation_offset( painter, from_tile, to_tile );
+    switch( dp_anim.type ) {
+      case e_depixelate_anim::death: {
+        // Render and depixelate both the unit and the flag.
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                             dp_anim.stage );
+        render_unit( renderer, loc, depixelate_id,
+                     /*with_icon=*/true );
+        break;
+      }
+      case e_depixelate_anim::demote: {
+        CHECK( dp_anim.target.has_value() );
+        e_tile from_tile =
+            unit_from_id( depixelate_id ).desc().tile;
+        e_tile    to_tile = unit_attr( *dp_anim.target ).tile;
+        gfx::size target =
+            depixelation_offset( painter, from_tile, to_tile );
+        // Render the flag first so that we don't subject it to
+        // the depixelation.
+        render_nationality_icon( renderer, loc, depixelate_id );
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                             dp_anim.stage );
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
+                             target );
+        render_unit( renderer, loc, depixelate_id,
+                     /*with_icon=*/false );
+        break;
+      }
     }
-
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                         dp_anim.stage );
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
-                         target );
-    render_unit( renderer, loc, depixelate_id,
-                 /*with_icon=*/true );
   }
 
   void render_colonies() {

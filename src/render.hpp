@@ -38,11 +38,17 @@ void render_unit( rr::Painter& painter, Coord where,
 void render_colony( rr::Painter& painter, Coord where,
                     ColonyId id );
 
+// Note that the coordinate provided here is the coordinate of
+// the unit whose flag is being drawn, not the flag position it-
+// self (which could be shifted to another corner).
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_unit_type type,
                               e_nation      nation,
                               e_unit_orders orders );
 
+// Note that the coordinate provided here is the coordinate of
+// the unit whose flag is being drawn, not the flag position it-
+// self (which could be shifted to another corner).
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, UnitId id );
 
