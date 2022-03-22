@@ -82,7 +82,7 @@ struct MarkupStyle {
 NOTHROW_MOVE( MarkupStyle );
 
 struct MarkedUpText {
-  string_view text{};
+  string      text{};
   MarkupStyle style{};
 };
 NOTHROW_MOVE( MarkedUpText );
@@ -111,8 +111,7 @@ vector<vector<MarkedUpText>> parse_text( string_view text ) {
       auto at_sign = find( start, end, '@' );
       if( at_sign - start > 0 )
         line_mkup.push_back(
-            { string_view( start, at_sign - start ),
-              curr_style } );
+            { string( start, at_sign - start ), curr_style } );
       if( at_sign == end ) break;
       CHECK( end - at_sign > 1, "internal parser error" );
       CHECK( *at_sign == '@', "internal parser error" );
@@ -243,10 +242,8 @@ void render_lines_markup(
 //     6) Re-flow the marked up line from #3 into lines of length
 //        corresponding to the wrapped lines from #5, resulting
 //        in a vector<vector<MarkedUpText>>.
-//     7) Render marked up lines.
 
-void render_text_markup_reflow_impl(
-    rr::Typer& typer, TextMarkupInfo const& markup_info,
+vector<vector<MarkedUpText>> text_markup_reflow_impl(
     TextReflowInfo const& reflow_info, string_view text ) {
   // (1)
   auto words = util::split_strip_any( text, " \t\r\n" );
@@ -295,8 +292,10 @@ void render_text_markup_reflow_impl(
       CHECK( remaining_after_consume >= 0 );
       CHECK( remaining_after_consume <= chunk_size );
       MarkedUpText new_mk_text = mk_text[mk_pos];
-      new_mk_text.text.remove_prefix( mk_char_pos );
-      new_mk_text.text.remove_suffix( remaining_after_consume );
+      string_view  sv          = new_mk_text.text;
+      sv.remove_prefix( mk_char_pos );
+      sv.remove_suffix( remaining_after_consume );
+      new_mk_text.text = string( sv );
       reflowed_line.push_back( new_mk_text );
       target_size -= to_consume;
       CHECK( target_size >= 0 );
@@ -329,8 +328,7 @@ void render_text_markup_reflow_impl(
   CHECK( mk_char_pos == 0 );
   CHECK( reflowed.size() == wrapped.size() );
 
-  // (7)
-  render_lines_markup( typer, reflowed, markup_info );
+  return reflowed;
 }
 
 } // namespace
@@ -367,10 +365,45 @@ void render_text_markup_reflow(
     TextMarkupInfo const& markup_info,
     TextReflowInfo const& reflow_info, string_view text ) {
   (void)font; // TODO
+  vector<vector<MarkedUpText>> markedup_reflowed =
+      text_markup_reflow_impl( reflow_info, text );
   // The color will be set later.
   rr::Typer typer = renderer.typer( where, gfx::pixel{} );
-  render_text_markup_reflow_impl( typer, markup_info,
-                                  reflow_info, text );
+  render_lines_markup( typer, markedup_reflowed, markup_info );
+}
+
+string remove_markup( string_view text ) {
+  string res;
+  // The result will always be the same or smaller.
+  res.reserve( text.size() );
+  int pos = 0;
+  while( pos < int( text.size() ) ) {
+    char c = text[pos++];
+    if( c != '@' ) {
+      res.push_back( c );
+      continue;
+    }
+    while( pos < int( text.size() ) && text[pos++] != ']' ) {}
+  }
+  return res;
+}
+
+Delta rendered_text_size( TextReflowInfo const& reflow_info,
+                          string_view           text ) {
+  vector<vector<MarkedUpText>> lines =
+      text_markup_reflow_impl( reflow_info, text );
+  gfx::size const kCharSize =
+      rr::rendered_text_line_size_pixels( "X" );
+  Delta res;
+  res.h = H{ kCharSize.h * int( lines.size() ) };
+  for( vector<MarkedUpText> const& line : lines ) {
+    W line_width{};
+    for( MarkedUpText const& segment : line )
+      line_width +=
+          W{ int( segment.text.size() ) * kCharSize.w };
+    res.w = std::max( res.w, line_width );
+  }
+  return res;
 }
 
 } // namespace rn

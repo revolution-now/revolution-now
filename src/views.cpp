@@ -169,14 +169,15 @@ void SolidRectView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** OneLineStringView
 *****************************************************************/
+// NOTE: If you add reflow info to this constructor, don't forget
+// to add it into the calculation of the text size as well.
 OneLineStringView::OneLineStringView( string     msg,
                                       gfx::pixel color )
-  : msg_( move( msg ) ), color_( color ) {}
+  : msg_( move( msg ) ),
+    text_size_( rendered_text_size( /*reflow_info=*/{}, msg_ ) ),
+    color_( color ) {}
 
-Delta OneLineStringView::delta() const {
-  return Delta::from_gfx(
-      rr::rendered_text_line_size_pixels( msg_ ) );
-}
+Delta OneLineStringView::delta() const { return text_size_; }
 
 void OneLineStringView::draw( rr::Renderer& renderer,
                               Coord         coord ) const {
@@ -186,10 +187,15 @@ void OneLineStringView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** TextView
 *****************************************************************/
-Delta TextView::delta() const {
-  return Delta::from_gfx(
-      rr::rendered_text_line_size_pixels( msg_ ) );
-}
+TextView::TextView( std::string_view      msg,
+                    TextMarkupInfo const& m_info,
+                    TextReflowInfo const& r_info )
+  : msg_( msg ),
+    text_size_{ rendered_text_size( r_info, msg ) },
+    markup_info_( m_info ),
+    reflow_info_( r_info ) {}
+
+Delta TextView::delta() const { return text_size_; }
 
 void TextView::draw( rr::Renderer& renderer,
                      Coord         coord ) const {
@@ -206,8 +212,7 @@ ButtonBaseView::ButtonBaseView( string label )
 ButtonBaseView::ButtonBaseView( string label, e_type type )
   : ButtonBaseView(
         label,
-        Delta::from_gfx(
-            rr::rendered_text_line_size_pixels( label ) )
+        rendered_text_size( /*reflow_info=*/{}, label )
                     .round_up( Scale{ 8 } ) /
                 Scale{ 8 } +
             2_w + 1_h,
@@ -225,7 +230,7 @@ ButtonBaseView::ButtonBaseView( string label,
     type_( type ),
     size_in_pixels_( size_in_blocks * Scale{ 8 } ),
     text_size_in_pixels_(
-        rr::rendered_text_line_size_pixels( label_ ) ) {}
+        rendered_text_size( /*reflow_info=*/{}, label_ ) ) {}
 
 Delta ButtonBaseView::delta() const { return size_in_pixels_; }
 
@@ -278,7 +283,7 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
                                      /*highlight=*/{} };
 
   Coord text_position =
-      centered( Delta::from_gfx( text_size_in_pixels_ ),
+      centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
       1_w - 1_h;
@@ -302,7 +307,7 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
       TextMarkupInfo{ gfx::pixel::banana().shaded( 2 ),
                       /*highlight=*/{} };
   Coord text_position =
-      centered( Delta::from_gfx( text_size_in_pixels_ ),
+      centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
       -1_w + 1_h;
@@ -327,7 +332,7 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
                       /*highlight=*/{} };
 
   Coord text_position =
-      centered( Delta::from_gfx( text_size_in_pixels_ ),
+      centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
       1_w - 1_h;
@@ -351,7 +356,7 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
       TextMarkupInfo{ gfx::pixel::banana(), /*highlight=*/{} };
 
   Coord text_position =
-      centered( Delta::from_gfx( text_size_in_pixels_ ),
+      centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
       1_w - 1_h;
@@ -949,9 +954,9 @@ FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
 
 void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
-  this->CompositeSingleView::draw( renderer, coord );
   render_nationality_icon( renderer, coord, type_, nation_,
                            orders_ );
+  this->CompositeSingleView::draw( renderer, coord );
 }
 
 /****************************************************************

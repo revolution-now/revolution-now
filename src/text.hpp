@@ -59,7 +59,7 @@ void render_text_markup( rr::Renderer& renderer,
                          std::string_view      text );
 
 struct TextReflowInfo {
-  int max_cols;
+  int max_cols = std::numeric_limits<int>::max();
 };
 
 // This will totally re-flow the text with regard to all spacing,
@@ -70,5 +70,12 @@ void render_text_markup_reflow( rr::Renderer& renderer,
                                 TextMarkupInfo const& m_info,
                                 TextReflowInfo const& r_info,
                                 std::string_view      text );
+
+std::string remove_markup( std::string_view text );
+
+// This is not cheap, so ideally it should be called once and the
+// result stored, as opposed to calling it every frame.
+Delta rendered_text_size( TextReflowInfo const& reflow_info,
+                          std::string_view      text );
 
 } // namespace rn

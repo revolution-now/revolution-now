@@ -230,16 +230,14 @@ class OneLineStringView : public View {
 
  protected:
   std::string msg_;
+  Delta       text_size_; // rendered pixel size.
   gfx::pixel  color_;
 };
 
 class TextView : public View {
  public:
   TextView( std::string_view msg, TextMarkupInfo const& m_info,
-            TextReflowInfo const& r_info )
-    : msg_( msg ),
-      markup_info_( m_info ),
-      reflow_info_( r_info ) {}
+            TextReflowInfo const& r_info );
 
   // Implement Object
   void draw( rr::Renderer& renderer,
@@ -252,6 +250,7 @@ class TextView : public View {
 
  private:
   std::string    msg_;
+  Delta          text_size_; // rendered pixel size.
   TextMarkupInfo markup_info_;
   TextReflowInfo reflow_info_;
 };
@@ -301,7 +300,7 @@ class ButtonBaseView : public View {
   std::string label_;
   e_type      type_;
   Delta       size_in_pixels_;
-  gfx::size   text_size_in_pixels_;
+  Delta       text_size_in_pixels_;
 };
 
 class SpriteView : public View {
