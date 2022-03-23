@@ -24,44 +24,14 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
-// refl
-#include "refl/query-enum.hpp"
-
-// C++ standard library
-#include <cctype>
-
-#define MAKE_NATION( __name )                               \
-  m[e_nation::__name] = NationDesc {                        \
-    TO_STRING( __name ), config_nation.__name.country_name, \
-        config_nation.__name.adjective,                     \
-        config_nation.__name.article,                       \
-        config_nation.__name.flag_color                     \
-  }
-
 using namespace std;
 
 namespace rn {
 
 namespace {} // namespace
 
-NationDesc const& nation_obj( e_nation nation ) {
-  static unordered_map<e_nation, NationDesc> nations = [] {
-    unordered_map<e_nation, NationDesc> m;
-    MAKE_NATION( dutch );
-    MAKE_NATION( french );
-    MAKE_NATION( english );
-    MAKE_NATION( spanish );
-    CHECK( m.size() == refl::enum_count<e_nation> );
-    return m;
-  }();
-  return nations[nation];
-}
-
-string NationDesc::name_proper() const {
-  string res = name_lowercase;
-  CHECK( !res.empty() );
-  res[0] = std::toupper( res[0] );
-  return res;
+Nationality const& nation_obj( e_nation nation ) {
+  return config_nation.nations[nation];
 }
 
 maybe<e_nation> nation_from_coord( Coord coord ) {

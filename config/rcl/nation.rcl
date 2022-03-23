@@ -1,27 +1,43 @@
-dutch {
-  country_name: "The Netherlands"
-  adjective:    "Dutch"
-  article:      "a"
-  flag_color:   "#FF7100"
-}
+nations {
 
-french {
-  country_name: "France"
-  adjective:    "French"
-  article:      "a"
-  flag_color:   "#5555FF"
-}
+  dutch {
+    enum_val:        dutch
+    display_name:    Dutch
+    country_name:    The Netherlands
+    adjective:       Dutch
+    new_world_name:  New Netherlands
+    article:         a
+    flag_color:     "#FF7100"
+  }
 
-english {
-  country_name: "England"
-  adjective:    "English"
-  article:      "an"
-  flag_color:   "#FF0000"
-}
+  french {
+    enum_val:        french
+    display_name:    French
+    country_name:    France
+    adjective:       French
+    new_world_name:  New France
+    article:         a
+    flag_color:     "#5555FF"
+  }
 
-spanish {
-  country_name: "Spain"
-  adjective:    "Spanish"
-  article:      "a"
-  flag_color:   "#FFFE54"
+  english {
+    enum_val:        english
+    display_name:    English
+    country_name:    England
+    adjective:       English
+    new_world_name:  New England
+    article:         an
+    flag_color:     "#FF0000"
+  }
+
+  spanish {
+    enum_val:        spanish
+    display_name:    Spanish
+    country_name:    Spain
+    adjective:       Spanish
+    new_world_name:  New Spain
+    article:         a
+    flag_color:     "#FFFE54"
+  }
+
 }

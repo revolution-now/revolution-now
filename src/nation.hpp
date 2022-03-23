@@ -17,9 +17,6 @@
 #include "lua-enum.hpp"
 #include "maybe.hpp"
 
-// gfx
-#include "gfx/pixel.hpp"
-
 // Rds
 #include "nation.rds.hpp"
 
@@ -27,22 +24,11 @@
 #include "refl/query-enum.hpp"
 
 // C++ standard library
-#include <string>
+#include <array>
 
 namespace rn {
 
-struct NationDesc {
-  std::string name_lowercase;
-  std::string country_name;
-  std::string adjective;
-  std::string article;
-  gfx::pixel  flag_color;
-
-  std::string name_proper() const;
-};
-NOTHROW_MOVE( NationDesc );
-
-NationDesc const& nation_obj( e_nation nation );
+Nationality const& nation_obj( e_nation nation );
 
 maybe<e_nation> nation_from_coord( Coord coord );
 

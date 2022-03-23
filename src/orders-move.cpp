@@ -283,7 +283,7 @@ TravelHandler::analyze_unload() {
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
     ui::e_confirm answer = co_await ui::yes_no( msg );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -693,12 +693,12 @@ struct AttackHandler : public OrdersHandler {
           conductor::e_request::fife_drum_happy,
           conductor::e_request_probability::always );
       UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
-      Colony const&     colony = colony_from_id( colony_id );
-      NationDesc const& attacker_nation =
+      Colony const&      colony = colony_from_id( colony_id );
+      Nationality const& attacker_nation =
           nation_obj( unit_from_id( unit_id ).nation() );
       co_await ui::message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
-          attacker_nation.name_proper(), colony.name() );
+          attacker_nation.display_name, colony.name() );
       co_await show_colony_view( colony_id );
     }
   }
@@ -942,7 +942,7 @@ wait<> AttackHandler::perform() {
       // TODO: what if there are trade routes that involve this
       // colony?
       lg.info( "the {} have captured the colony of {}.",
-               nation_obj( attacker.nation() ).name_proper(),
+               nation_obj( attacker.nation() ).display_name,
                colony_from_id( colony_id ).name() );
       co_return;
     }

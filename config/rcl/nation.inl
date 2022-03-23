@@ -4,35 +4,21 @@
 #ifndef NATION_INL
 #define NATION_INL
 
-#include "palette.inl"
+// Revolution Now
+#include "enum-map.hpp"
+
+// Rds
+#include "nation.rds.hpp"
+
+// C++ standard library
+#include <string>
 
 namespace rn {
 
+using NationalityMap = EnumMap<e_nation, Nationality>;
+
 CFG( nation,
-  OBJ( dutch,
-    FLD( std::string,   country_name )
-    FLD( std::string,   adjective )
-    FLD( std::string,   article )
-    FLD( gfx::pixel,    flag_color )
-  )
-  OBJ( french,
-    FLD( std::string,   country_name )
-    FLD( std::string,   adjective )
-    FLD( std::string,   article )
-    FLD( gfx::pixel,    flag_color )
-  )
-  OBJ( english,
-    FLD( std::string,   country_name )
-    FLD( std::string,   adjective )
-    FLD( std::string,   article )
-    FLD( gfx::pixel,    flag_color )
-  )
-  OBJ( spanish,
-    FLD( std::string,   country_name )
-    FLD( std::string,   adjective )
-    FLD( std::string,   article )
-    FLD( gfx::pixel,    flag_color )
-  )
+  FLD( NationalityMap, nations )
 )
 
 }

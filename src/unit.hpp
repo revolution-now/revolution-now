@@ -54,9 +54,9 @@ class ND Unit {
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
-  CargoHold& cargo() { return o_.cargo; }
-  e_nation   nation() const { return o_.nation; }
-  NationDesc nation_desc() const {
+  CargoHold&  cargo() { return o_.cargo; }
+  e_nation    nation() const { return o_.nation; }
+  Nationality nation_desc() const {
     return nation_obj( o_.nation );
   }
   MovementPoints movement_points() const { return o_.mv_pts; }
