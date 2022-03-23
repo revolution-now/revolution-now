@@ -32,6 +32,10 @@ using namespace std;
 
 using ::testing::data_dir;
 
+// Change this to 1 and then run the tests to regenerate the
+// files, but then make sure to change it back to zero!
+#define REGENERATE_FILES 0 // !!! DO NOT COMMIT
+
 // Currently these are only implemented in release mode because
 // they are slow, since the world is large. TODO: once we can
 // generate a test world with smaller size we should enable this
@@ -45,19 +49,38 @@ void print_line( string_view what ) {
 #  endif
 }
 
+void generate_save_file( fs::path const&        dst,
+                         SaveGameOptions const& options ) {
+  default_construct_game_state();
+  run_lua_startup_main();
+  TopLevelState backup = std::move( GameState::top() );
+  default_construct_game_state();
+  run_lua_startup_main();
+  if( fs::exists( dst ) ) fs::remove( dst );
+  CHECK( !fs::exists( dst ) );
+  REQUIRE( save_game_to_rcl_file( dst, options ) );
+}
+
 TEST_CASE( "[save-game] no default values (compact)" ) {
   static fs::path const src =
       data_dir() / "saves/compact.sav.rcl";
+
+  static SaveGameOptions const opts{
+      .verbosity = e_savegame_verbosity::compact,
+  };
+
+#  if REGENERATE_FILES
+  generate_save_file( src, opts );
+#  else
+  (void)generate_save_file;
+#  endif
+
   CHECK( fs::exists( src ) );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-compact.sav.rcl";
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
-
-  SaveGameOptions opts{
-      .verbosity = e_savegame_verbosity::compact,
-  };
 
   // Make a round trip.
   print_line( "Load Compact" );
@@ -77,16 +100,23 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 
 TEST_CASE( "[save-game] default values (full)" ) {
   static fs::path const src = data_dir() / "saves/full.sav.rcl";
+
+  static SaveGameOptions const opts{
+      .verbosity = e_savegame_verbosity::full,
+  };
+
+#  if REGENERATE_FILES
+  generate_save_file( src, opts );
+#  else
+  (void)generate_save_file;
+#  endif
+
   CHECK( fs::exists( src ) );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-full.sav.rcl";
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
-
-  SaveGameOptions opts{
-      .verbosity = e_savegame_verbosity::full,
-  };
 
   // Make a round trip.
   print_line( "Load Full" );
@@ -161,6 +191,15 @@ TEST_CASE(
 }
 
 #endif
+
+TEST_CASE( "[save-game] no regen" ) {
+  // This will flag if we forget to turn off file regeneration.
+  // It may cause issues though if we turn on random test order-
+  // ing.
+#if REGENERATE_FILES
+  REQUIRE( false );
+#endif
+}
 
 } // namespace
 } // namespace rn

@@ -123,7 +123,7 @@ local function create_some_colonies()
 end
 
 function M.main()
-  terrain.generate_terrain()
+  world_map.generate_terrain()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
     e.nation.french
