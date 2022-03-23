@@ -2,7 +2,44 @@
 # TODO
 # ===============================================================
 
-  1. OpenGL
+  1.  Implement road and irrigation rendering.
+  2.  Implement roads and irrigation building.
+  3.  Implement terrain type rendering.
+  4.  Implement world generation.
+  5.  Implement terrain visibility.
+  6.  Draw remainder of unit types.
+  7.  Implement colony land production.
+  8.  Implement selecting colonist profession in colony view.
+  9.  Implement mini map.
+  10. Implement stats in panel.
+  11. Implement gold.
+  12. Implement old world prices and price changes.
+  13. Allow purchases things from old world.
+  14. Implement that immigrants appear on the doc.
+  15. Create colony building art.
+  16. Render colony buildings in colony.
+  17. Implement colony building workers.
+  18. Implement colony production (from lumber/tools).
+  19. Implement wagon train trade routes.
+
+# ===============================================================
+# OpenGL
+# ===============================================================
+
+  1. See doc/gl-perf-notes.txt. Need to implement reusable
+     buffers so that we don't have to recreate the land-view
+     buffer each frame. There are two choices: 1) we can upload
+     the buffer to GPU memory and modify it with GPU commands.
+     This may work despite the high latency (~100 buffer updates
+     max per frame) of updating buffers since it is rare that we
+     will need to update map vertices; it certainly does not have
+     to be done every frame. This gives maximum performance, e.g.
+     2000 fps. 2) We could maintain the buffer on the CPU side
+     and just upload it each frame. The performance of this is
+     not quite as good as (1), but it is still very good, e.g.
+     800 fps. Going with the second option might be a good
+     starting point, then if more performance is needed an/or it
+     is feasible, we can completely move it onto the GPU.
 
 # ===============================================================
 # Global State
