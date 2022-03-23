@@ -32,6 +32,16 @@
      while emitting rcl). II). Compress with brotli or zstd.
      III). Export with base64.
   3. Replay?
+  4. When saving the game, consider not saving any of the land
+     data. Instead, just save the seed used to generate it, and
+     allow the user the option to save in that format. That would
+     produce 1) extremely small save files, and 2) extremely fast
+     save times. That would be at the expense of 1) slower load
+     times, since the land would have to be regenerated, and 2)
+     version sensitivity in loading save files. At the very
+     least, this method could be used for autosave files and for
+     replay save files, since presumably those only need to be
+     reopened by the same version of the game.
 
 # ===============================================================
 # Reflection
