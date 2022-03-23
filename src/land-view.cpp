@@ -215,9 +215,8 @@ struct LandViewRenderer {
     // Need the multi_ownership version because we could be de-
     // pixelating a colonist that is owned by a colony, which
     // happens when the colony is captured.
-    UNWRAP_CHECK(
-        depixelate_tile,
-        coord_for_unit_multi_ownership( depixelate_id ) );
+    Coord depixelate_tile =
+        coord_for_unit_multi_ownership_or_die( depixelate_id );
     // First render all units other than units on colony squares
     // and unites on the same tile as the depixelating unit.
     for( Coord tile : covered ) {
@@ -226,10 +225,8 @@ struct LandViewRenderer {
       render_units_on_square( tile );
     }
     // Now render the depixelating unit.
-    Coord loc = render_rect_for_tile(
-                    coord_for_unit_multi_ownership_or_die(
-                        depixelate_id ) )
-                    .upper_left();
+    Coord loc =
+        render_rect_for_tile( depixelate_tile ).upper_left();
     rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
     switch( dp_anim.type ) {
@@ -411,7 +408,7 @@ wait<> animate_depixelation( UnitId            id,
   depixelate.target = unit_from_id( id ).demoted_type();
 
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage < 1.0 ) {
+  while( depixelate.stage <= 1.0 ) {
     co_await throttle();
     depixelate.stage += config_rn.depixelate_per_frame;
   }
@@ -804,7 +801,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-                   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
