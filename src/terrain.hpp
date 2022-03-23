@@ -3,9 +3,9 @@
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-27.
+* Created by dsicilia on 2022-03-23.
 *
-* Description: Representation of the physical world.
+# Description: Describes possible terrain types.
 *
 *****************************************************************/
 #pragma once
@@ -13,48 +13,16 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
-#include "land-square.hpp"
+#include "terrain.hpp"
 
-// render
-#include "render/renderer.hpp"
+// Rds
+#include "terrain.rds.hpp"
 
 namespace rn {
 
-inline constexpr auto world_size = Delta{ 200_w, 100_h };
+bool is_land( e_terrain terrain );
+bool is_water( e_terrain terrain );
 
-// FIXME: temporary.
-void generate_terrain();
-
-Delta world_size_tiles();
-Delta world_size_pixels();
-Rect  world_rect_tiles();
-Rect  world_rect_pixels();
-
-bool square_exists( Y y, X x );
-bool square_exists( Coord coord );
-
-LandSquare const&        square_at( Coord coord );
-maybe<LandSquare const&> maybe_square_at( Coord coord );
-
-// Throws if coord is not on map.
-bool terrain_is_land( Coord coord );
-
-/****************************************************************
-** Rendering
-*****************************************************************/
-// This will fully render a land square with no units or colonies
-// on it.
-void render_terrain_square( rr::Painter& painter, Coord where,
-                            Coord world_square );
-
-// This one allows stretching the tile.
-void render_terrain_square( rr::Painter& painter, Rect where,
-                            Coord world_square );
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void generate_unittest_terrain();
+e_surface surface_type( e_terrain terrain );
 
 } // namespace rn

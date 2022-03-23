@@ -1,0 +1,52 @@
+# ===============================================================
+# map-square.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-03-02.
+#
+# Description: RDS definitions for the map-square module.
+#
+# ===============================================================
+# Rds
+include "nation.rds.hpp"
+include "terrain.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<unordered_set>"
+
+namespace "rn"
+
+# Important: since there are so many of these, it is best to set
+# it up so that the most common values of the fields will be
+# their default values so that they can be omitted from the save
+# file.
+struct.MapSquare {
+  # Which nations have explored this square.
+  visibility 'std::unordered_set<e_nation>',
+
+  # Land or ocean.
+  terrain 'e_terrain',
+
+  # What kind of river do we have, if any.
+  river 'base::maybe<e_river>',
+
+  # Any natural resources over the square.
+  resource 'base::maybe<e_natural_resource>',
+
+  # This can only be done on certain squares, and also can't
+  # co-exist with a forest terrain type.
+  irrigation 'bool',
+
+  # This can exist on any land square.
+  road 'bool',
+
+  # Only on ocean squares. The only difference between this and
+  # regular ocean squares is that when a ship enters a sea lane
+  # square the game will ask if they want to sail to the old
+  # world.
+  sea_lane 'bool',
+}

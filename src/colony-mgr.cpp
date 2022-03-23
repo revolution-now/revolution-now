@@ -22,9 +22,9 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
-#include "terrain.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
+#include "world-map.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -74,7 +74,7 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( colony_from_coord( *maybe_coord ) )
     return invalid( Res_t::colony_exists_here );
 
-  if( !terrain_is_land( *maybe_coord ) )
+  if( !is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
   return valid;

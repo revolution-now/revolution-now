@@ -1,5 +1,5 @@
 /****************************************************************
-**land-square.hpp
+**map-square.hpp
 *
 * Project: Revolution Now
 *
@@ -13,6 +13,13 @@
 #include "core-config.hpp"
 
 // Rds
-#include "land-square.rds.hpp"
+#include "map-square.rds.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+bool is_land( MapSquare const& square );
+bool is_water( MapSquare const& square );
+
+e_surface surface_type( MapSquare const& square );
+
+} // namespace rn

@@ -22,10 +22,11 @@
 #include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
-#include "terrain.hpp"
+#include "map-square.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
+#include "world-map.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -33,9 +34,6 @@
 // base
 #include "base/lambda.hpp"
 #include "base/to-str-ext-std.hpp"
-
-// Rds
-#include "land-square.rds.hpp"
 
 using namespace std;
 
@@ -316,7 +314,7 @@ TravelHandler::confirm_travel_impl() {
   auto& unit = unit_from_id( id );
   CHECK( !unit.mv_pts_exhausted() );
 
-  auto surface = square.surface;
+  auto surface = surface_type( square );
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
@@ -752,7 +750,7 @@ AttackHandler::confirm_attack_impl() {
 
   auto& square = square_at( attack_dst );
 
-  auto surface      = square.surface;
+  auto surface      = surface_type( square );
   auto relationship = e_unit_relationship::foreign;
   auto category     = e_entity_category::unit;
   if( colony_from_coord( attack_dst ).has_value() )

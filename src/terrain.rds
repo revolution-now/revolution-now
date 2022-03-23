@@ -1,0 +1,65 @@
+# ===============================================================
+# terrain.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-23.
+#
+# Description: Describes possible terrain types.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_surface {
+  water,
+  land
+}
+
+enum.e_terrain {
+  # Water only has one terrain type.
+  ocean,
+
+  # Ground types.
+  arctic,
+  desert,
+  grassland,
+  hills,
+  marsh,
+  mountains,
+  plains,
+  prairie,
+  savannah,
+  swamp,
+  tundra,
+
+  # Forest types. Each of these, when cleared, map to one of the
+  # above base types.
+  boreal,
+  broadleaf,
+  conifer,
+  mixed,
+  rain,
+  scrub,
+  tropical,
+  wetland,
+}
+
+enum.e_river {
+  minor,
+  major,
+}
+
+enum.e_natural_resource {
+  beaver,
+  cotton,
+  deer,
+  fish,
+  minerals,
+  oasis,
+  ore,
+  silver,
+  sugar,
+  tobacco,
+  tree,
+  wheat,
+}

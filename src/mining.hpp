@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "land-square.hpp"
+#include "map-square.hpp"
 #include "utype.hpp"
 
 namespace rn {
@@ -42,9 +42,5 @@ struct UnitLandProductionInfo {
   // tity` is zero then this holds the reason.
   e_land_production_reason reason;
 };
-
-UnitLandProductionInfo production_for_landsquare(
-    LandSquare const& land_square, e_commodity commodity,
-    e_unit_type utype );
 
 } // namespace rn

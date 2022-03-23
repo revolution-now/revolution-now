@@ -4,6 +4,14 @@ let s:stems = [
  \ 'render/painter',
  \ 'render/renderer',
  \ 'land-view',
+ \ 'terrain',
+ \ 'map-square',
+ \ 'mining',
+ \ 'world-map',
+ \ 'gs-terrain',
+ \ 'render-terrain',
+ \ 'orders-move',
+ \ 'orders-build',
 \]
 
 let s:luas = [

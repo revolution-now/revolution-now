@@ -27,10 +27,10 @@
 #include "physics.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
+#include "render-terrain.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "sound.hpp"
-#include "terrain.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "unit-id.hpp"
@@ -39,6 +39,7 @@
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+#include "world-map.hpp"
 
 // render
 #include "render/renderer.hpp"

@@ -21,27 +21,8 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[mining] temporary" ) {
-  UnitLandProductionInfo info;
-
-  LandSquare  square;
-  e_unit_type utype;
-  e_commodity comm;
-
-  square = LandSquare{ .surface = e_surface::water };
-  utype  = e_unit_type::free_colonist;
-  comm   = e_commodity::food;
-  info   = production_for_landsquare( square, comm, utype );
-  REQUIRE( info.quantity == 0 );
-  REQUIRE( info.reason ==
-           e_land_production_reason::void_of_commodity );
-
-  square = LandSquare{ .surface = e_surface::land };
-  utype  = e_unit_type::free_colonist;
-  comm   = e_commodity::food;
-  info   = production_for_landsquare( square, comm, utype );
-  REQUIRE( info.quantity == 4 );
-  REQUIRE( info.reason == e_land_production_reason::ok );
+TEST_CASE( "[mining] some test" ) {
+  //
 }
 
 } // namespace

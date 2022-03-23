@@ -16,9 +16,9 @@
 #include "game-state.hpp"
 #include "gs-units.hpp"
 #include "lua.hpp"
-#include "terrain.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
+#include "world-map.hpp"
 
 // refl
 #include "refl/to-str.hpp"

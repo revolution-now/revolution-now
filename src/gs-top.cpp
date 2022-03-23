@@ -63,8 +63,7 @@ valid_or<string> validate_interaction(
   for( auto const& [colony_id, colony] : colonies.all() ) {
     // Colony is on land.
     REFL_VALIDATE(
-        terrain.world_map[colony.location()].surface ==
-            e_surface::land,
+        is_land( terrain.world_map[colony.location()] ),
         "Colony {} is not on land.", colony.debug_string() );
   }
   return base::valid;
