@@ -76,6 +76,7 @@ wait<> main_menu() {
 ** Top-Level Application Flow.
 *****************************************************************/
 wait<> revolution_now() {
+  main_menu_input_stream().send( e_main_menu_item::new_ );
   return co::erase( co::try_<quit_app_interrupt>( main_menu ) );
 }
 
