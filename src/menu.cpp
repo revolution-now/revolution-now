@@ -71,7 +71,6 @@ unordered_map<e_menu, Menu> g_menus{
     { e_menu::game, { "Game", false, 'G', {} } },
     { e_menu::view, { "View", false, 'V', {} } },
     { e_menu::orders, { "Orders", false, 'O', {} } },
-    { e_menu::old_world, { "Old World", false, 'L', {} } },
     { e_menu::advisors, { "Advisors", false, 'A', {} } },
     { e_menu::music, { "Music", false, 'M', {} } },
     { e_menu::window, { "Window", false, 'W', {} } },
@@ -111,22 +110,20 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       } },
     { e_menu::view,
       {
-          ITEM( zoom_in, "Zoom In" ),                      //
-          ITEM( zoom_out, "Zoom Out" ),                    //
-          /***********/ DIVIDER, /***********/             //
-          ITEM( restore_zoom, "Zoom Default" ),            //
-          /***********/ DIVIDER, /***********/             //
-          ITEM( find_blinking_unit, "Find Blinking Unit" ) //
+          ITEM( zoom_in, "Zoom In" ),                       //
+          ITEM( zoom_out, "Zoom Out" ),                     //
+          /***********/ DIVIDER, /***********/              //
+          ITEM( restore_zoom, "Zoom Default" ),             //
+          /***********/ DIVIDER, /***********/              //
+          ITEM( find_blinking_unit, "Find Blinking Unit" ), //
+          /***********/ DIVIDER, /***********/              //
+          ITEM( old_world_view, "Go to Old World" ),        //
+          ITEM( old_world_close, "Close Old WOrld" )        //
       } },
     { e_menu::orders,
       {
           ITEM( sentry, "Sentry" ),  //
           ITEM( fortify, "Fortify" ) //
-      } },
-    { e_menu::old_world,
-      {
-          ITEM( old_world_view, "View" ),  //
-          ITEM( old_world_close, "Close" ) //
       } },
     { e_menu::advisors,
       {

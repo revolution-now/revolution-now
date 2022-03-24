@@ -16,7 +16,6 @@ enum.e_menu {
   game,
   view,
   orders,
-  old_world,
   advisors,
   music,
   window,
