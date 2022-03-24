@@ -21,6 +21,17 @@ include "<string>"
 
 namespace "rn"
 
+enum.e_menu {
+  game,
+  view,
+  orders,
+  advisors,
+  music,
+  window,
+  debug,
+  pedia,
+}
+
 struct.MenuCallbacks {
   on_click 'std::function<void( void )>',
   enabled  'std::function<bool( void )>',

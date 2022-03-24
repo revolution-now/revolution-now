@@ -12,17 +12,6 @@ include "menu.hpp"
 
 namespace "rn"
 
-enum.e_menu {
-  game,
-  view,
-  orders,
-  advisors,
-  music,
-  window,
-  debug,
-  pedia,
-}
-
 enum.e_menu_item {
   about,
   save,
