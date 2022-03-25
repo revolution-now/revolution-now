@@ -142,6 +142,17 @@ enum.e_tile {
   commodity_tools,
   commodity_muskets,
 
+  # Roads
+  road_island,
+  road_nw,
+  road_n,
+  road_ne,
+  road_e,
+  road_se,
+  road_s,
+  road_sw,
+  road_w,
+
   # Colonies
   colony_basic,
   colony_stockade,
