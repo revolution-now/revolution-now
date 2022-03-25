@@ -74,7 +74,9 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
     zoom_point_seek_{},
     viewport_rect_pixels_{},
     world_size_tiles_{} {
-  fix_invariants();
+  // We don't call fix_invariants here because that method de-
+  // pends on some of the other (non-serialized) state being set,
+  // such as world_size_tiles_.
 }
 
 base::valid_or<string> wrapped::SmoothViewport::validate()
