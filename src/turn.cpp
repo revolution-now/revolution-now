@@ -29,7 +29,6 @@
 #include "sound.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
-#include "viewport.hpp"
 #include "window.hpp"
 
 // Rds

@@ -103,7 +103,8 @@ void TopLevelState::validate_or_die() const {
 TopLevelState::TopLevelState( wrapped::TopLevelState&& o )
   : o_( std::move( o ) ) {
   // Populate any transient fields.
-  // n/a.
+  o_.land_view.viewport.set_max_viewable_size_tiles(
+      o_.zzz_terrain.world_map.size() );
 }
 
 TopLevelState::TopLevelState()

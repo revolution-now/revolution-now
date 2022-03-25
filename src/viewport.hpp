@@ -29,14 +29,9 @@ class SmoothViewport {
  public:
   bool operator==( SmoothViewport const& ) const = default;
 
-  // Note: this constructor will not itself put the object in a
-  // state that is ready to be used. After construction, but be-
-  // fore using the object, you must call `advance_state` on it
-  // at least once.
   SmoothViewport();
 
-  void advance_state( Rect const&  viewport_rect_pixels,
-                      Delta const& world_size_tiles );
+  void advance_state( Rect const& viewport_rect_pixels );
 
   // Tiles touched by the viewport (tiles at the edge may only be
   // partially visible).
@@ -83,6 +78,13 @@ class SmoothViewport {
   // Given a screen pixel coordinate this will determine whether
   // it is in the viewport.
   bool screen_coord_in_viewport( Coord pixel_coord ) const;
+
+  // This should be called once when constructing a new game
+  // world.
+  void set_max_viewable_size_tiles( Delta size );
+
+  // Immediate change.
+  void center_on_tile( Coord const& coords );
 
   void set_x_push( e_push_direction );
   void set_y_push( e_push_direction );
@@ -162,7 +164,6 @@ class SmoothViewport {
   void pan( double down_up, double left_right, bool scale );
   void center_on_tile_x( Coord const& coords );
   void center_on_tile_y( Coord const& coords );
-  void center_on_tile( Coord const& coords );
 
   bool is_tile_fully_visible( Coord const& coords ) const;
 

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "game-state.hpp"
+#include "gs-land-view.hpp"
 #include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "tiles.hpp"
@@ -55,6 +56,11 @@ void generate_terrain() {
   make_squares( { 60_x, 10_y } );
   make_squares( { 40_x, 40_y } );
   make_squares( { 100_x, 25_y } );
+
+  // FIXME find a better way to do this.
+  LandViewState& land_view_state = GameState::land_view();
+  land_view_state.viewport.set_max_viewable_size_tiles(
+      world_size );
 }
 
 Delta world_size_tiles() {

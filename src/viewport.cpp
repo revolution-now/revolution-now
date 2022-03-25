@@ -74,9 +74,7 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
     zoom_point_seek_{},
     viewport_rect_pixels_{},
     world_size_tiles_{} {
-  // !! NOTE: invariants will not be satisifed here; must call
-  // advance_state() at least once after constructor to put the
-  // object in a ready state.
+  fix_invariants();
 }
 
 base::valid_or<string> wrapped::SmoothViewport::validate()
@@ -93,13 +91,10 @@ base::valid_or<string> wrapped::SmoothViewport::validate()
 void SmoothViewport::advance( e_push_direction x_push,
                               e_push_direction y_push,
                               e_push_direction zoom_push ) {
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  double zoom_factor07 = pow( get_zoom(), 0.7 );
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  double zoom_factor07  = pow( get_zoom(), 0.7 );
   double zoom_factor15  = pow( get_zoom(), 1.5 );
   double pan_accel      = pan_accel_init();
   double pan_accel_drag = pan_accel_drag_init();
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   pan_accel_drag = pan_accel_drag / pow( get_zoom(), .75 );
   pan_accel =
       pan_accel_drag +
@@ -197,14 +192,8 @@ bool advance_target_seeking( T target_T, double& val,
 }
 
 void SmoothViewport::advance_state(
-    Rect const&  viewport_rect_pixels,
-    Delta const& world_size_tiles ) {
-  // These could change each frame theoretically, breaking the
-  // invariants, so we need to recompute them each frame. That
-  // said, this should only happen rarely, when e.g. the user re-
-  // sizes or rescales the window.
+    Rect const& viewport_rect_pixels ) {
   viewport_rect_pixels_ = viewport_rect_pixels;
-  world_size_tiles_     = world_size_tiles;
   fix_invariants();
 
   advance( x_push_, y_push_, zoom_push_ );
@@ -336,6 +325,10 @@ double SmoothViewport::height_tiles() const {
   int upper = round_up_to_nearest_int_multiple(
       end_y(), g_tile_height._ );
   return ( upper - lower ) / g_tile_height._;
+}
+
+void SmoothViewport::set_max_viewable_size_tiles( Delta size ) {
+  world_size_tiles_ = size;
 }
 
 // These are to avoid a direct dependency on the screen module

@@ -639,8 +639,7 @@ void advance_viewport_state() {
       viewport_rect_pixels,
       compositor::section( compositor::e_section::viewport ) );
 
-  viewport().advance_state( viewport_rect_pixels,
-                            world_size_tiles() );
+  viewport().advance_state( viewport_rect_pixels );
 
   // TODO: should only do the following when the viewport has
   // input focus.
@@ -722,17 +721,10 @@ struct LandViewPlane : public Plane {
     g_raw_input_stream.reset();
     g_translated_input_stream.reset();
     g_needs_scroll_to_unit_on_input = true;
-
-    UNWRAP_CHECK(
-        viewport_rect_pixels,
-        compositor::section( compositor::e_section::viewport ) );
-    // This call is needed after construction to initialize the
-    // invariants. It is expected that the parameters of this
-    // function will not depend on any other deserialized data,
-    // but only on data available after the init routines run.
-    // FIXME: try to get rid of this.
-    viewport().advance_state( viewport_rect_pixels,
-                              world_size_tiles() );
+    // This is done to initialize the viewport with info about
+    // the viewport size that cannot be known while it is being
+    // constructed.
+    advance_viewport_state();
   }
   void advance_state() override { advance_viewport_state(); }
   void draw( rr::Renderer& renderer ) const override {
@@ -1115,6 +1107,10 @@ LUA_FN( blinking_unit, maybe<UnitId> ) {
 
 LUA_FN( center_on_blinking_unit, void ) {
   (void)center_on_blinking_unit_if_any();
+}
+
+LUA_FN( center_on_tile, void, Coord center ) {
+  viewport().center_on_tile( center );
 }
 
 } // namespace
