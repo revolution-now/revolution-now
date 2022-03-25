@@ -53,9 +53,6 @@ void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
   default_construct_game_state();
   run_lua_startup_main();
-  TopLevelState backup = std::move( GameState::top() );
-  default_construct_game_state();
-  run_lua_startup_main();
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
   REQUIRE( save_game_to_rcl_file( dst, options ) );
