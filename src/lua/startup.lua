@@ -11,6 +11,11 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+local function location( coord )
+  local start = { x=19, y=9 }
+  return Coord{ x=coord.x + start.x, y=coord.y + start.y }
+end
+
 local function unit_type( type, base_type )
   if base_type == nil then
     return unit_composer.UnitComposition.create_with_type_obj(
@@ -44,7 +49,7 @@ end
 local function create_some_units_on_land( nation2 )
   -- Dutch ------------------------------------------------------
   local nation = e.nation.dutch
-  local coord = Coord{ y=6, x=2 }
+  local coord = location{ y=6, x=2 }
   local dragoon = unit_type( e.unit_type.dragoon,
                              e.unit_type.petty_criminal )
   local soldier = unit_type( e.unit_type.soldier )
@@ -54,37 +59,37 @@ local function create_some_units_on_land( nation2 )
       ustate.create_unit_on_map( nation, dragoon, coord )
   unit:fortify();
 
-  coord = Coord{ y=6, x=3 }
+  coord = location{ y=6, x=3 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
   unit:sentry();
 
-  coord = Coord{ y=6, x=6 }
+  coord = location{ y=6, x=6 }
   ustate.create_unit_on_map( nation,
                              unit_type( e.unit_type.privateer ),
                              coord )
 
-  coord = Coord{ y=2, x=4 }
+  coord = location{ y=2, x=4 }
   ustate.create_unit_on_map( nation,
                              unit_type( e.unit_type.dragoon ),
                              coord )
 
-  coord = Coord{ y=6, x=4 }
+  coord = location{ y=6, x=4 }
   ustate.create_unit_on_map( nation, pioneer, coord )
 
-  coord = Coord{ y=7, x=4 }
+  coord = location{ y=7, x=4 }
   ustate.create_unit_on_map( nation, treasure, coord )
 
   -- French -----------------------------------------------------
   local nation = e.nation.french
-  coord = Coord{ y=7, x=2 }
+  coord = location{ y=7, x=2 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
   unit:fortify();
 
-  coord = Coord{ y=7, x=3 }
+  coord = location{ y=7, x=3 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
   unit:sentry();
 
-  coord = Coord{ y=7, x=6 }
+  coord = location{ y=7, x=6 }
   unit = ustate.create_unit_on_map( nation, unit_type(
                                         e.unit_type.privateer ),
                                     coord )
@@ -94,7 +99,7 @@ end
 local function create_some_colonies()
   -- Dutch ------------------------------------------------------
   local nation = e.nation.dutch
-  local coord = Coord{ y=2, x=4 }
+  local coord = location{ y=2, x=4 }
   local unit = ustate.create_unit_on_map( nation, unit_type(
                                               e.unit_type
                                                   .free_colonist ),
@@ -109,7 +114,7 @@ local function create_some_colonies()
 
   -- French -----------------------------------------------------
   local nation = e.nation.french
-  coord = Coord{ y=4, x=4 }
+  coord = location{ y=4, x=4 }
   unit = ustate.create_unit_on_map( nation, unit_type(
                                         e.unit_type.free_colonist ),
                                     coord )
@@ -132,6 +137,7 @@ function M.main()
   create_some_units_in_old_world()
   create_some_units_on_land()
   create_some_colonies()
+  land_view.center_on_tile{ x=22, y=16 }
 end
 
 return M

@@ -11,8 +11,8 @@ colonies {
         }
         id: 1
         location {
-          x: 4
-          y: 2
+          x: 23
+          y: 11
         }
         name: New London
         units: [
@@ -37,8 +37,8 @@ colonies {
         }
         id: 2
         location {
-          x: 4
-          y: 4
+          x: 23
+          y: 13
         }
         name: New York
         nation: french
@@ -52,6 +52,12 @@ colonies {
     },
   ]
   next_colony_id: 3
+}
+
+land_view.viewport {
+  center_x: 720
+  center_y: 528
+  zoom: 1
 }
 
 players.players {
@@ -159,8 +165,8 @@ units {
       key: 6
       val {
         ownership.world.coord {
-          x: 2
-          y: 6
+          x: 21
+          y: 15
         }
         unit {
           composition.type.type: dragoon
@@ -174,8 +180,8 @@ units {
       key: 7
       val {
         ownership.world.coord {
-          x: 3
-          y: 6
+          x: 22
+          y: 15
         }
         unit {
           composition.type {
@@ -192,8 +198,8 @@ units {
       key: 8
       val {
         ownership.world.coord {
-          x: 6
-          y: 6
+          x: 25
+          y: 15
         }
         unit {
           cargo.slots: [
@@ -213,8 +219,8 @@ units {
       key: 9
       val {
         ownership.world.coord {
-          x: 4
-          y: 2
+          x: 23
+          y: 11
         }
         unit {
           composition.type {
@@ -230,8 +236,8 @@ units {
       key: 10
       val {
         ownership.world.coord {
-          x: 4
-          y: 6
+          x: 23
+          y: 15
         }
         unit {
           composition {
@@ -250,8 +256,8 @@ units {
       key: 11
       val {
         ownership.world.coord {
-          x: 4
-          y: 7
+          x: 23
+          y: 16
         }
         unit {
           composition {
@@ -270,8 +276,8 @@ units {
       key: 12
       val {
         ownership.world.coord {
-          x: 2
-          y: 7
+          x: 21
+          y: 16
         }
         unit {
           composition.type {
@@ -289,8 +295,8 @@ units {
       key: 13
       val {
         ownership.world.coord {
-          x: 3
-          y: 7
+          x: 22
+          y: 16
         }
         unit {
           composition.type {
@@ -308,8 +314,8 @@ units {
       key: 14
       val {
         ownership.world.coord {
-          x: 6
-          y: 7
+          x: 25
+          y: 16
         }
         unit {
           cargo.slots: [
