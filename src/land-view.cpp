@@ -29,6 +29,7 @@
 #include "rand.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
+#include "road.hpp"
 #include "screen.hpp"
 #include "sound.hpp"
 #include "text.hpp"
@@ -289,6 +290,15 @@ struct LandViewRenderer {
     }
   }
 
+  void render_roads() {
+    rr::Painter painter = renderer.painter();
+    for( Coord world_tile : covered ) {
+      Coord tile_coord =
+          render_rect_for_tile( world_tile ).upper_left();
+      render_road_if_present( painter, tile_coord, world_tile );
+    }
+  }
+
   // Units (rendering strategy depends on land view state).
   void render_units() {
     // The land view state should be set first, then the anima-
@@ -388,6 +398,7 @@ void render_land_view( rr::Renderer& renderer ) {
   // that we've install above will automatically do the shifting
   // and scaling.
   lv_renderer.render_terrain();
+  lv_renderer.render_roads();
   lv_renderer.render_colonies();
   lv_renderer.render_units();
 }

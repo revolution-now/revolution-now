@@ -33,8 +33,8 @@ Rect  world_rect_pixels();
 bool square_exists( Y y, X x );
 bool square_exists( Coord coord );
 
-MapSquare const&        square_at( Coord coord );
-maybe<MapSquare const&> maybe_square_at( Coord coord );
+MapSquare const& square_at( Coord coord );
+MapSquare&       mutable_square_at( Coord coord );
 
 // Throws if coord is not on map.
 bool is_land( Coord coord );

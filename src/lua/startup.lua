@@ -16,6 +16,18 @@ local function location( coord )
   return Coord{ x=coord.x + start.x, y=coord.y + start.y }
 end
 
+local function create_some_roads()
+  local tiles = {
+    location{ x=1, y=1 }, --
+    location{ x=2, y=1 }, --
+    location{ x=2, y=2 }, --
+    location{ x=2, y=2 }, --
+    location{ x=3, y=2 }, --
+    location{ x=1, y=4 } --
+  }
+  for _, tile in ipairs( tiles ) do road.set_road( tile ) end
+end
+
 local function unit_type( type, base_type )
   if base_type == nil then
     return unit_composer.UnitComposition.create_with_type_obj(
@@ -137,6 +149,7 @@ function M.main()
   create_some_units_in_old_world()
   create_some_units_on_land()
   create_some_colonies()
+  create_some_roads()
   land_view.center_on_tile{ x=22, y=16 }
 end
 

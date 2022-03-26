@@ -40,9 +40,9 @@ valid_or<e_found_colony_err> unit_can_found_colony(
 // same map square as the colony.
 void change_colony_nation( ColonyId id, e_nation new_nation );
 
-// Before collaing this, it should already have been the case
-// that `can_found_colony` was called to validate; so it should
-// work, and thus if it doesn't, it will check-fail.
+// Before calling this, it should already have been the case that
+// `can_found_colony` was called to validate; so it should work,
+// and thus if it doesn't, it will check-fail.
 ColonyId found_colony_unsafe( UnitId           founder,
                               std::string_view name );
 

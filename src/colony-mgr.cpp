@@ -22,6 +22,7 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
+#include "road.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 #include "world-map.hpp"
@@ -96,7 +97,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   auto  nation = unit.nation();
   UNWRAP_CHECK( where, coord_for_unit_indirect( founder ) );
 
-  // 1. Create colony object.
+  // Create colony object.
   ColonyId col_id = create_colony( nation, where, name );
   Colony&  col    = colony_from_id( col_id );
 
@@ -104,19 +105,22 @@ ColonyId found_colony_unsafe( UnitId           founder,
   // ties into the colony.
   col.strip_unit_commodities( founder );
 
-  // 2. Find initial job for founder. (TODO)
+  // Find initial job for founder. (TODO)
   ColonyJob_t job =
       ColonyJob::mfg{ .mfg_job = e_mfg_job::bells };
 
-  // 3. Move unit into it.
+  // Move unit into it.
   GameState::units().change_to_colony( founder, col_id, job );
 
-  // 5. Done.
+  // Add road onto colony square.
+  set_road( where );
+
+  // Done.
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
            desc.adjective, where );
 
-  // 6. Let Lua do anything that it needs to the colony.
+  // Let Lua do anything that it needs to the colony.
   CHECK_HAS_VALUE(
       lua_global_state()["colony_mgr"]["on_founded_colony"]
           .pcall( col ) );

@@ -27,6 +27,16 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+maybe<MapSquare&> maybe_square_at( Coord coord ) {
+  TerrainState& terrain_state = GameState::terrain();
+  if( !square_exists( coord.y, coord.x ) ) return nothing;
+  return terrain_state.world_map[coord.y][coord.x];
+}
+
+} // namespace
+
 void generate_terrain() {
   TerrainState&   terrain_state = GameState::terrain();
   MapSquare const L =
@@ -92,13 +102,13 @@ bool square_exists( Coord coord ) {
   return square_exists( coord.y, coord.x );
 }
 
-maybe<MapSquare const&> maybe_square_at( Coord coord ) {
-  TerrainState& terrain_state = GameState::terrain();
-  if( !square_exists( coord.y, coord.x ) ) return nothing;
-  return terrain_state.world_map[coord.y][coord.x];
+MapSquare const& square_at( Coord coord ) {
+  auto res = maybe_square_at( coord );
+  CHECK( res, "square {} does not exist!", coord );
+  return *res;
 }
 
-MapSquare const& square_at( Coord coord ) {
+MapSquare& mutable_square_at( Coord coord ) {
   auto res = maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
