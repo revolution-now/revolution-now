@@ -37,6 +37,7 @@ enum.e_menu_item {
   scale_down,
   scale_optimal,
   sentry,
+  road,
   fortify,
   military_advisor,
   economics_advisor,

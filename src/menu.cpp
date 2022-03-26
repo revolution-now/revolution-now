@@ -122,8 +122,9 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       } },
     { e_menu::orders,
       {
-          ITEM( sentry, "Sentry" ),  //
-          ITEM( fortify, "Fortify" ) //
+          ITEM( sentry, "Sentry" ),   //
+          ITEM( road, "Build Road" ), //
+          ITEM( fortify, "Fortify" )  //
       } },
     { e_menu::advisors,
       {
