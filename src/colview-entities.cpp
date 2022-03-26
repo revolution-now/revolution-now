@@ -997,6 +997,11 @@ class UnitsAtGateColonyView : public ui::View,
         case e_unit_orders::fortified: unit.fortify(); break;
       }
     } else if( mode == kStripUnit ) {
+      // Clear orders just in case it is a pioneer building a
+      // road; that would put the pioneer into an inconsistent
+      // state.
+      if( unit.orders() == e_unit_orders::road )
+        unit.clear_orders();
       colony().strip_unit_commodities( id );
     }
   }
