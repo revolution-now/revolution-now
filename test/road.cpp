@@ -290,26 +290,5 @@ TEST_CASE( "[src/road] perform_road_work with cancel" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/road] lua bindings" ) {
-  lua::state& st = lua_global_state();
-
-  auto script = R"(
-    local x = 5+6
-  )";
-  REQUIRE( st.script.run_safe( script ) == valid );
-
-  script  = R"(
-    local x =
-  )";
-  auto xp = st.script.run_safe( script );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
-
-  script = R"(
-    return 5+8.5
-  )";
-  REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
-}
-
 } // namespace
 } // namespace rn

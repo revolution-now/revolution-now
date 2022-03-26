@@ -111,6 +111,18 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
   return units_state.add_unit( Unit( std::move( refl_unit ) ) );
 }
 
+Unit create_free_unit( e_nation nation, UnitComposition comp ) {
+  wrapped::Unit refl_unit{
+      .id          = UnitId{ 0 }, // will be set later.
+      .composition = std::move( comp ),
+      .orders      = e_unit_orders::none,
+      .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
+      .nation = nation,
+      .mv_pts = unit_attr( comp.type() ).movement_points,
+  };
+  return Unit( std::move( refl_unit ) );
+}
+
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitType type ) {
   return create_unit( units_state, nation,

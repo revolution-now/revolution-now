@@ -164,4 +164,9 @@ UnitId create_unit_on_map( UnitsState& units_state,
                            e_nation nation, UnitComposition comp,
                            Coord coord );
 
+// Create unit with no ownership. Note that the unit will always
+// have id=0, since a unit does not get assigned an ID until it
+// is added into a UnitsState with some ownership.
+Unit create_free_unit( e_nation nation, UnitComposition comp );
+
 } // namespace rn
