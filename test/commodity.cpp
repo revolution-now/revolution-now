@@ -26,7 +26,7 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible single "
     "ship" ) {
   auto ship = create_unit(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitType::create( e_unit_type::merchantman ) );
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -291,10 +291,10 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible two "
     "ships" ) {
   auto ship1 = create_unit(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitType::create( e_unit_type::merchantman ) );
   auto ship2 = create_unit(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitType::create( e_unit_type::merchantman ) );
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/100 };

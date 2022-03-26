@@ -142,7 +142,8 @@ wait<> evolve_colony_one_turn( ColonyId id ) {
     // a unit is created on the map.
     UnitType colonist =
         UnitType::create( e_unit_type::free_colonist );
-    auto unit_id = create_unit( colony.nation(), colonist );
+    auto unit_id = create_unit( GameState::units(),
+                                colony.nation(), colonist );
     GameState::units().change_to_map( unit_id,
                                       colony.location() );
     co_await landview_ensure_visible( colony.location() );

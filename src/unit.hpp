@@ -138,7 +138,8 @@ class ND Unit {
   void new_turn();
   // Mark a unit as sentry.
   void sentry() { o_.orders = e_unit_orders::sentry; }
-  // Unit is building a road.
+  // Unit is building a road. Note: after calling this don't
+  // forget to call set_turns_worked with zero.
   void build_road();
   // Mark a unit as fortified (non-ships only).
   void fortify();

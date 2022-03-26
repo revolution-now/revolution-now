@@ -78,7 +78,7 @@ struct UnitsState {
 
   // The id of this unit must be zero (i.e., you can't select the
   // ID); a new ID will be generated for this unit and returned.
-  UnitId add_unit( Unit&& unit );
+  [[nodiscard]] UnitId add_unit( Unit&& unit );
 
   // Should not be holding any references to the unit after this.
   void destroy_unit( UnitId id );

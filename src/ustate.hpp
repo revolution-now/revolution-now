@@ -16,6 +16,7 @@
 // Revolution Now
 #include "colony.hpp"
 #include "error.hpp"
+#include "game-state.hpp"
 #include "unit.hpp"
 
 // base
@@ -138,8 +139,10 @@ std::vector<UnitId> units_in_old_world_view();
 ** Creation
 *****************************************************************/
 // Creates a unit with no ownership.
-UnitId create_unit( e_nation nation, UnitComposition comp );
-UnitId create_unit( e_nation nation, UnitType type );
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    UnitComposition comp );
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    UnitType type );
 
 /****************************************************************
 ** Multi
@@ -157,7 +160,8 @@ Coord        coord_for_unit_multi_ownership_or_die( UnitId id );
 ** For Testing / Development Only
 *****************************************************************/
 // Do not call these in normal game code.
-UnitId create_unit_on_map( e_nation nation, UnitComposition comp,
+UnitId create_unit_on_map( UnitsState& units_state,
+                           e_nation nation, UnitComposition comp,
                            Coord coord );
 
 } // namespace rn

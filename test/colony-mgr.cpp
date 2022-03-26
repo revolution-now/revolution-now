@@ -45,20 +45,20 @@ void init_game_world_for_test() {
 
 UnitId create_colonist_on_map( Coord where ) {
   return create_unit_on_map(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ),
       where );
 }
 
 UnitId create_colonist() {
   return create_unit(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
 }
 
 UnitId create_dragoon_on_map( Coord where ) {
   return create_unit_on_map(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitComposition::create(
           UnitType::create( e_unit_type::dragoon,
                             e_unit_type::petty_criminal )
@@ -68,21 +68,21 @@ UnitId create_dragoon_on_map( Coord where ) {
 
 UnitId create_hardy_pioneer_on_map( Coord where ) {
   return create_unit_on_map(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitComposition::create( e_unit_type::hardy_pioneer ),
       where );
 }
 
 UnitId create_ship( Coord where ) {
   return create_unit_on_map(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitComposition::create( e_unit_type::merchantman ),
       where );
 }
 
 UnitId create_wagon( Coord where ) {
   return create_unit_on_map(
-      e_nation::english,
+      GameState::units(), e_nation::english,
       UnitComposition::create( e_unit_type::wagon_train ),
       where );
 }

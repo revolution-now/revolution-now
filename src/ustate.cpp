@@ -98,7 +98,8 @@ void map_units( e_nation                    nation,
   }
 }
 
-UnitId create_unit( e_nation nation, UnitComposition comp ) {
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    UnitComposition comp ) {
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
@@ -107,12 +108,13 @@ UnitId create_unit( e_nation nation, UnitComposition comp ) {
       .nation = nation,
       .mv_pts = unit_attr( comp.type() ).movement_points,
   };
-  auto& gs_units = GameState::units();
-  return gs_units.add_unit( Unit( std::move( refl_unit ) ) );
+  return units_state.add_unit( Unit( std::move( refl_unit ) ) );
 }
 
-UnitId create_unit( e_nation nation, UnitType type ) {
-  return create_unit( nation, UnitComposition::create( type ) );
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    UnitType type ) {
+  return create_unit( units_state, nation,
+                      UnitComposition::create( type ) );
 }
 
 /****************************************************************
@@ -318,12 +320,12 @@ Coord coord_for_unit_multi_ownership_or_die( UnitId id ) {
 /****************************************************************
 ** For Testing / Development Only
 *****************************************************************/
-UnitId create_unit_on_map( e_nation nation, UnitComposition comp,
+UnitId create_unit_on_map( UnitsState& units_state,
+                           e_nation nation, UnitComposition comp,
                            Coord coord ) {
-  auto& gs_units = GameState::units();
-  Unit& unit     = gs_units.unit_for(
-          create_unit( nation, std::move( comp ) ) );
-  gs_units.change_to_map( unit.id(), coord );
+  Unit& unit = units_state.unit_for(
+      create_unit( units_state, nation, std::move( comp ) ) );
+  units_state.change_to_map( unit.id(), coord );
   return unit.id();
 }
 
@@ -334,7 +336,9 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
-  auto id = create_unit_on_map( nation, comp, coord );
+  UnitsState& units_state = GameState::units();
+  auto        id =
+      create_unit_on_map( units_state, nation, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   auto& gs_units = GameState::units();

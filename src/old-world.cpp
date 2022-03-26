@@ -251,7 +251,8 @@ namespace {
 
 LUA_FN( create_unit_in_port, UnitId, e_nation nation,
         UnitComposition comp ) {
-  auto id = create_unit( nation, std::move( comp ) );
+  auto id = create_unit( GameState::units(), nation,
+                         std::move( comp ) );
   GameState::units().change_to_old_world_view(
       id, UnitOldWorldViewState::in_port{} );
   lg.info( "created a {} in {} port/dock.",

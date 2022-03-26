@@ -59,14 +59,16 @@ bool has_road( TerrainState const& terrain_state, Coord tile ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-void perform_road_work( TerrainState& terrain_state,
-                        Unit&         unit ) {
-  Coord location = GameState::units().coord_for( unit.id() );
+void perform_road_work( UnitsState const& units_state,
+                        TerrainState&     terrain_state,
+                        Unit&             unit ) {
+  Coord location = units_state.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::road );
   CHECK( unit.type() == e_unit_type::pioneer ||
              unit.type() == e_unit_type::hardy_pioneer,
          "unit type {} should not be building a road.",
          unit.type() );
+  CHECK_GT( unit.movement_points(), 0 );
   auto log = [&]( string_view status ) {
     lg.debug( "road work {} for unit {} with {} tools left.",
               status, debug_string( unit ),

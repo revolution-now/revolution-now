@@ -459,7 +459,8 @@ wait<bool> advance_unit( UnitId id ) {
   Unit& unit = GameState::units().unit_for( id );
 
   if( unit.orders() == e_unit_orders::road ) {
-    perform_road_work( GameState::terrain(), unit );
+    perform_road_work( GameState::units(), GameState::terrain(),
+                       unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await landview_ensure_visible( id );

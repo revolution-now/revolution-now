@@ -42,8 +42,9 @@ bool has_road( TerrainState const& terrain_state, Coord tile );
 // you will know that the unit finished building the road when
 // its orders are cleared. If the unit has the remainder of its
 // tools removed by this function then the unit will be demoted.
-void perform_road_work( TerrainState& terrain_state,
-                        Unit&         unit );
+void perform_road_work( UnitsState const& units_state,
+                        TerrainState&     terrain_state,
+                        Unit&             unit );
 
 bool can_build_road( Unit const& unit );
 
