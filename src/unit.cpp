@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "game-state.hpp"
 #include "lua.hpp"
+#include "road.hpp"
 #include "ustate.hpp"
 
 // luapp
@@ -84,6 +85,13 @@ void Unit::consume_mv_points( MovementPoints points ) {
   o_.mv_pts -= points;
   CHECK( o_.mv_pts >= 0 );
   CHECK_HAS_VALUE( o_.validate() );
+}
+
+void Unit::set_turns_worked( int turns ) {
+  CHECK( type() == e_unit_type::pioneer ||
+         type() == e_unit_type::hardy_pioneer );
+  CHECK( turns >= 0 );
+  o_.turns_worked = turns;
 }
 
 void Unit::fortify() {
@@ -162,6 +170,47 @@ Unit::with_commodity_added( Commodity const& commodity ) const {
   return unit_receive_commodity( o_.composition, commodity );
 }
 
+vector<UnitTransformationFromCommodityResult>
+Unit::with_commodity_removed(
+    Commodity const& commodity ) const {
+  return unit_lose_commodity( o_.composition, commodity );
+}
+
+void Unit::build_road() {
+  CHECK( can_build_road( *this ) );
+  o_.orders = e_unit_orders::road;
+}
+
+void Unit::consume_20_tools() {
+  vector<UnitTransformationFromCommodityResult> results =
+      with_commodity_removed( Commodity{
+          .type = e_commodity::tools, .quantity = 20 } );
+  vector<UnitTransformationFromCommodityResult> valid_results;
+  for( auto const& result : results ) {
+    // It would be e.g. -80 because one valid transformation is
+    // that we could subtract more than 20 tools, give the
+    // blessing mod, and turn the unit into a missionary. But we
+    // are not looking for that here.
+    if( result.quantity_used != -20 ) continue;
+    if( result.modifier_deltas.empty() ||
+        result.modifier_deltas ==
+            unordered_map<e_unit_type_modifier,
+                          e_unit_type_modifier_delta>{
+                { e_unit_type_modifier::tools,
+                  e_unit_type_modifier_delta::del } } ) {
+      valid_results.push_back( result );
+    }
+  }
+  CHECK( valid_results.size() == 1,
+         "could not find viable target unit after tools "
+         "removed. results: {}",
+         results );
+  // This won't always change the type; e.g. it might just re-
+  // place the type with the same type but with fewer tools in
+  // the inventory.
+  change_type( valid_results[0].new_comp );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -190,6 +239,7 @@ LUA_STARTUP( lua::state& st ) {
   u["change_nation"] = &U::change_nation;
   u["change_type"]   = &U::change_type;
   u["sentry"]        = &U::sentry;
+  u["build_road"]    = &U::build_road;
   u["fortify"]       = &U::fortify;
   u["clear_orders"]  = &U::clear_orders;
 

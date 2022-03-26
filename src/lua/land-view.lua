@@ -18,7 +18,8 @@ local orders = {
   sentry=function() return { sentry={} } end,
   disband=function() return { disband={} } end,
   wait=function() return { wait={} } end,
-  build=function() return { build={} } end
+  build=function() return { build={} } end,
+  road=function() return { road={} } end
 }
 
 local key_map = {
@@ -38,7 +39,8 @@ local key_map = {
   ['s']=orders.sentry(),
   ['d']=orders.disband(),
   ['w']=orders.wait(),
-  ['b']=orders.build()
+  ['b']=orders.build(),
+  ['r']=orders.road()
 }
 
 -- Will accept a key press from the user in the land view and

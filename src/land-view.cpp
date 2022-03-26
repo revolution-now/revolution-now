@@ -295,7 +295,8 @@ struct LandViewRenderer {
     for( Coord world_tile : covered ) {
       Coord tile_coord =
           render_rect_for_tile( world_tile ).upper_left();
-      render_road_if_present( painter, tile_coord, world_tile );
+      render_road_if_present( painter, tile_coord, terrain_state,
+                              world_tile );
     }
   }
 
@@ -366,11 +367,13 @@ struct LandViewRenderer {
     }
   }
 
-  rr::Renderer& renderer;
-  Rect const    covered = {};
+  TerrainState const& terrain_state;
+  rr::Renderer&       renderer;
+  Rect const          covered = {};
 };
 
-void render_land_view( rr::Renderer& renderer ) {
+void render_land_view( rr::Renderer&       renderer,
+                       TerrainState const& terrain_state ) {
   double zoom   = viewport().get_zoom();
   Coord  corner = viewport().rendering_dest_rect().upper_left();
   Delta  hidden =
@@ -385,8 +388,9 @@ void render_land_view( rr::Renderer& renderer ) {
   }
 
   LandViewRenderer lv_renderer{
-      .renderer = renderer,
-      .covered  = viewport().covered_tiles(),
+      .terrain_state = terrain_state,
+      .renderer      = renderer,
+      .covered       = viewport().covered_tiles(),
   };
 
   SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
@@ -710,6 +714,8 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
     orders = orders::sentry{};
   else if( tbl["disband"] )
     orders = orders::disband{};
+  else if( tbl["road"] )
+    orders = orders::road{};
   else if( tbl["move"] ) {
     e_direction d = tbl["move"]["d"].as<e_direction>();
     orders        = orders::move{ .d = d };
@@ -739,7 +745,8 @@ struct LandViewPlane : public Plane {
   }
   void advance_state() override { advance_viewport_state(); }
   void draw( rr::Renderer& renderer ) const override {
-    render_land_view( renderer );
+    TerrainState const& terrain_state = GameState::terrain();
+    render_land_view( renderer, terrain_state );
   }
   maybe<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {

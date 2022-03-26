@@ -22,6 +22,7 @@
 #include "logger.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
+#include "road.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "ustate.hpp"
@@ -991,6 +992,7 @@ class UnitsAtGateColonyView : public ui::View,
              !unit.desc().ship );
       switch( new_orders ) {
         case e_unit_orders::none: unit.clear_orders(); break;
+        case e_unit_orders::road: unit.clear_orders(); break;
         case e_unit_orders::sentry: unit.sentry(); break;
         case e_unit_orders::fortified: unit.fortify(); break;
       }
@@ -1113,11 +1115,13 @@ class LandView : public ui::View, public ColonySubView {
     SCOPED_RENDERER_MOD( painter_mods.repos.translation,
                          coord.distance_from_origin() );
 
+    TerrainState const& terrain_state = GameState::terrain();
     // FIXME: Should not be duplicating land-view rendering code
     // here.
     rr::Painter painter      = renderer.painter();
     auto const& colony       = colony_from_id( colony_id() );
     Coord       world_square = colony.location();
+    // Render terrain.
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
@@ -1125,6 +1129,16 @@ class LandView : public ui::View, public ColonySubView {
       render_terrain_square( painter, local_coord * g_tile_scale,
                              render_square );
     }
+    // Render roads.
+    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+      auto render_square = world_square +
+                           local_coord.distance_from_origin() -
+                           Delta{ 1_w, 1_h };
+      render_road_if_present( painter,
+                              local_coord * g_tile_scale,
+                              terrain_state, render_square );
+    }
+    // Render colonies.
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -

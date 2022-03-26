@@ -18,6 +18,7 @@
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
 #include "orders-move.hpp"
+#include "orders-road.hpp"
 #include "ustate.hpp"
 
 // base

@@ -17,6 +17,7 @@
 #include "colony-view.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
+#include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
@@ -25,6 +26,7 @@
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
+#include "road.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
@@ -217,13 +219,13 @@ void finish_turn( UnitId id ) {
 
 bool should_remove_unit_from_queue( UnitId id ) {
   Unit& unit = unit_from_id( id );
+  if( finished_turn( id ) ) return true;
   switch( unit.orders() ) {
     case e_unit_orders::fortified: return true;
     case e_unit_orders::sentry: return true;
-    case e_unit_orders::none: break;
+    case e_unit_orders::road: return false;
+    case e_unit_orders::none: return false;
   }
-  if( finished_turn( id ) ) return true;
-  return false;
 }
 
 // See if `unit` needs to be unsentry'd due to surrounding for-
@@ -454,20 +456,18 @@ wait<> query_unit_input( UnitId id ) {
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
-  // - if it is it in `goto` mode focus on it and advance it
-  //
-  // - if it is in the old world then ignore it, or possibly re-
-  //   mind the user it is there.
-  //
-  // - if it is performing an action, such as building a road,
-  //   advance the state. If it finishes then mark it as active
-  //   so that it will wait for orders in the next step.
-  //
-  // - if it is in an indian village then advance it, and mark it
-  //   active if it is finished.
-  //
-  // - if unit is waiting for orders then focus on it, make it
-  //   blink, and wait for orders.
+  Unit& unit = GameState::units().unit_for( id );
+
+  if( unit.orders() == e_unit_orders::road ) {
+    perform_road_work( GameState::terrain(), unit );
+    if( unit.composition()[e_unit_inventory::tools] == 0 ) {
+      CHECK( unit.orders() == e_unit_orders::none );
+      co_await landview_ensure_visible( id );
+      co_await ui::message_box_basic(
+          "Our pioneer has exhausted all of its tools." );
+    }
+    co_return( unit.orders() != e_unit_orders::road );
+  }
 
   if( is_unit_in_port( id ) ) {
     finish_turn( id );

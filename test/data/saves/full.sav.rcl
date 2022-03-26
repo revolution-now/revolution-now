@@ -148,6 +148,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -168,6 +169,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -201,6 +203,7 @@ units {
           mv_pts.atoms: 15
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -228,6 +231,7 @@ units {
           mv_pts.atoms: 24
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -261,6 +265,7 @@ units {
           mv_pts.atoms: 15
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -284,6 +289,7 @@ units {
           mv_pts.atoms: 12
           nation: dutch
           orders: fortified
+          turns_worked: 0
         }
       }
     },
@@ -307,6 +313,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: sentry
+          turns_worked: 0
         }
       }
     },
@@ -337,6 +344,7 @@ units {
           mv_pts.atoms: 24
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -360,6 +368,7 @@ units {
           mv_pts.atoms: 12
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -383,6 +392,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -406,6 +416,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -429,6 +440,7 @@ units {
           mv_pts.atoms: 3
           nation: french
           orders: fortified
+          turns_worked: 0
         }
       }
     },
@@ -452,6 +464,7 @@ units {
           mv_pts.atoms: 3
           nation: french
           orders: sentry
+          turns_worked: 0
         }
       }
     },
@@ -482,6 +495,7 @@ units {
           mv_pts.atoms: 24
           nation: french
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -502,6 +516,7 @@ units {
           mv_pts.atoms: 3
           nation: dutch
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -522,6 +537,7 @@ units {
           mv_pts.atoms: 3
           nation: french
           orders: none
+          turns_worked: 0
         }
       }
     },
@@ -18720,7 +18736,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -18729,7 +18745,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -20529,7 +20545,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -20538,7 +20554,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -20547,7 +20563,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -24120,7 +24136,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -24147,7 +24163,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -27729,7 +27745,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -29529,7 +29545,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -31329,7 +31345,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []
@@ -33129,7 +33145,7 @@ zzz_terrain.world_map {
       irrigation: false
       resource: null
       river: null
-      road: false
+      road: true
       sea_lane: false
       terrain: grassland
       visibility: []

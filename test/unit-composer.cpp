@@ -45,6 +45,16 @@ void sort_by_new_type(
   } );
 }
 
+TEST_CASE( "[unit-composer] operator[]" ) {
+  auto ut       = UnitType::create( e_unit_type::pioneer );
+  auto maybe_uc = UnitComposition::create(
+      ut, /*inventory=*/{ { e_unit_inventory::tools, 80 } } );
+  REQUIRE( maybe_uc.has_value() );
+  UnitComposition const& uc = *maybe_uc;
+  REQUIRE( uc[e_unit_inventory::tools] == 80 );
+  REQUIRE( uc[e_unit_inventory::gold] == 0 );
+}
+
 TEST_CASE( "[unit-composer] pioneer tool count" ) {
   auto ut = UnitType::create( e_unit_type::pioneer );
   auto uc = UnitComposition::create( ut, /*inventory=*/{} );

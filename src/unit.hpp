@@ -119,6 +119,17 @@ class ND Unit {
   // their turn.
   void consume_mv_points( MovementPoints points );
 
+  /******************** Roads / Plowing ************************/
+
+  int turns_worked() const { return o_.turns_worked; }
+
+  void set_turns_worked( int turns );
+
+  // The unit must have at least 20 tools, which will be sub-
+  // tracted. If the unit ends up with zero tools then the type
+  // will be demoted.
+  void consume_20_tools();
+
   /************************* Orders ****************************/
 
   // Returns true if the unit's orders are other than `none`.
@@ -127,6 +138,8 @@ class ND Unit {
   void new_turn();
   // Mark a unit as sentry.
   void sentry() { o_.orders = e_unit_orders::sentry; }
+  // Unit is building a road.
+  void build_road();
   // Mark a unit as fortified (non-ships only).
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
@@ -156,6 +169,10 @@ class ND Unit {
   // change_type with the UnitComposition that it contains.
   std::vector<UnitTransformationFromCommodityResult>
   with_commodity_added( Commodity const& commodity ) const;
+
+  // Similar to the above, but removing.
+  std::vector<UnitTransformationFromCommodityResult>
+  with_commodity_removed( Commodity const& commodity ) const;
 
   // Implement refl::WrapsReflected.
   Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}

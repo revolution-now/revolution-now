@@ -118,6 +118,10 @@ maybe<UnitComposition> UnitComposition::with_new_type(
   return create( type, o_.inventory );
 }
 
+int UnitComposition::operator[]( e_unit_inventory inv ) const {
+  return base::lookup( o_.inventory, inv ).value_or( 0 );
+}
+
 /****************************************************************
 ** Commodity Conversion
 *****************************************************************/

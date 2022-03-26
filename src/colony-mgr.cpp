@@ -113,7 +113,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   GameState::units().change_to_colony( founder, col_id, job );
 
   // Add road onto colony square.
-  set_road( where );
+  set_road( GameState::terrain(), where );
 
   // Done.
   auto& desc = nation_obj( nation );

@@ -1,17 +1,17 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'open-gl-test',
  \ 'render/painter',
  \ 'render/renderer',
  \ 'land-view',
  \ 'terrain',
  \ 'map-square',
- \ 'mining',
  \ 'world-map',
  \ 'gs-terrain',
  \ 'render-terrain',
  \ 'orders-move',
- \ 'orders-build',
+ \ 'orders-road',
+ \ 'road',
+ \ 'unit',
 \]
 
 let s:luas = [

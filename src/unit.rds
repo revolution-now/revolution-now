@@ -24,6 +24,7 @@ enum.e_unit_orders {
   none,
   sentry,
   fortified,
+  road,
 }
 
 namespace "rn.wrapped"
@@ -35,6 +36,12 @@ struct.Unit {
   cargo 'rn::CargoHold',
   nation 'e_nation',
   mv_pts 'MovementPoints',
+
+  # If the unit is building a road or plowing, this is the number
+  # of turns it has work (does not include the turn where they
+  # are first assigned the job). This number is only relevant
+  # when the unit has orders to build a road or plow.
+  turns_worked 'int',
 
   _features { equality, validation }
 }

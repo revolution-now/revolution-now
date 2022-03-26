@@ -923,14 +923,20 @@ zzz_terrain.world_map {
         x: 20
         y: 10
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
         x: 21
         y: 10
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1042,21 +1048,30 @@ zzz_terrain.world_map {
         x: 21
         y: 11
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
         x: 22
         y: 11
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
         x: 23
         y: 11
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1259,7 +1274,10 @@ zzz_terrain.world_map {
         x: 20
         y: 13
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1280,7 +1298,10 @@ zzz_terrain.world_map {
         x: 23
         y: 13
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1490,7 +1511,10 @@ zzz_terrain.world_map {
         x: 21
         y: 15
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1602,7 +1626,10 @@ zzz_terrain.world_map {
         x: 21
         y: 16
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1714,7 +1741,10 @@ zzz_terrain.world_map {
         x: 21
         y: 17
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {
@@ -1826,7 +1856,10 @@ zzz_terrain.world_map {
         x: 21
         y: 18
       }
-      val.terrain: grassland
+      val {
+        road: true
+        terrain: grassland
+      }
     },
     {
       key {

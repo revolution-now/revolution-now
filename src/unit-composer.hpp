@@ -55,6 +55,9 @@ class UnitComposition {
     return o_.inventory;
   }
 
+  // Returns zero if the unit has no such inventory type.
+  int operator[]( e_unit_inventory inv ) const;
+
   // Implement refl::WrapsReflected.
   UnitComposition( wrapped::UnitComposition&& o )
     : o_( std::move( o ) ) {}
