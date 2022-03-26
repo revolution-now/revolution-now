@@ -2,27 +2,26 @@
 # TODO
 # ===============================================================
 
-  1.  Add unit tests for new road-related functions.
-  2.  Implement proper movement points with roads.
-  3.  Implement road and irrigation rendering.
-  4.  Implement roads and irrigation building.
-  5.  Implement terrain type rendering.
-  6.  Implement world generation.
-  7.  Implement terrain visibility.
-  8.  Draw remainder of unit types.
-  9.  Implement colony land production.
-  10. Implement selecting colonist profession in colony view.
-  11. Implement mini map.
-  12. Implement stats in panel.
-  13. Implement gold.
-  14. Implement old world prices and price changes.
-  15. Allow purchases things from old world.
-  16. Implement that immigrants appear on the doc.
-  17. Create colony building art.
-  18. Render colony buildings in colony.
-  19. Implement colony building workers.
-  20. Implement colony production (from lumber/tools).
-  21. Implement wagon train trade routes.
+  1.  Implement proper movement points with roads.
+  2.  Implement road and irrigation rendering.
+  3.  Implement roads and irrigation building.
+  4.  Implement terrain type rendering.
+  5.  Implement world generation.
+  6.  Implement terrain visibility.
+  7.  Draw remainder of unit types.
+  8.  Implement colony land production.
+  9.  Implement selecting colonist profession in colony view.
+  10. Implement mini map.
+  11. Implement stats in panel.
+  12. Implement gold.
+  13. Implement old world prices and price changes.
+  14. Allow purchases things from old world.
+  15. Implement that immigrants appear on the doc.
+  16. Create colony building art.
+  17. Render colony buildings in colony.
+  18. Implement colony building workers.
+  19. Implement colony production (from lumber/tools).
+  20. Implement wagon train trade routes.
 
 # ===============================================================
 # OpenGL
