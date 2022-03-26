@@ -81,6 +81,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -111,6 +112,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -141,6 +143,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -174,6 +177,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            4               # TODO: check this
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -198,6 +202,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -224,6 +229,7 @@ composition {
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
+      road_turns:            null
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -248,6 +254,7 @@ composition {
       attack_points:         2
       defense_points:        2
       on_death               demote{ lose=[muskets] }
+      road_turns:            null
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -272,6 +279,7 @@ composition {
       attack_points:         3
       defense_points:        3
       on_death               demote{ lose=[horses] }
+      road_turns:            null
       canonical_base:        free_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -299,6 +307,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -329,6 +338,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -359,6 +369,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -389,6 +400,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -419,6 +431,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -449,6 +462,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -479,6 +493,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -509,6 +524,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -539,6 +555,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -569,6 +586,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -599,6 +617,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -629,6 +648,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -659,6 +679,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -689,6 +710,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -719,6 +741,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -749,6 +772,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -779,6 +803,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -809,6 +834,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -839,6 +865,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -869,6 +896,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -899,6 +927,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -929,6 +958,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -964,6 +994,7 @@ composition {
       attack_points:         3
       defense_points:        3
       on_death               demote{ lose=[muskets] }
+      road_turns:            null
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -988,6 +1019,7 @@ composition {
       attack_points:         4
       defense_points:        4
       on_death               demote{ lose=[horses] }
+      road_turns:            null
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1012,6 +1044,7 @@ composition {
       attack_points:         4
       defense_points:        4
       on_death               demote{ lose=[muskets, independence] }
+      road_turns:            null
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1036,6 +1069,7 @@ composition {
       attack_points:         5
       defense_points:        5
       on_death               demote{ lose=[horses] }
+      road_turns:            null
       canonical_base:        veteran_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1060,6 +1094,7 @@ composition {
       attack_points:         5
       defense_points:        5
       on_death               destroy{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1084,6 +1119,7 @@ composition {
       attack_points:         6
       defense_points:        6
       on_death               destroy{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1108,6 +1144,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            1                 # TODO: check this
       canonical_base:        hardy_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1132,6 +1169,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        jesuit_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1158,6 +1196,7 @@ composition {
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
+      road_turns:            null
       canonical_base:        seasoned_colonist
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1185,6 +1224,7 @@ composition {
       attack_points:         5
       defense_points:        3
       on_death               destroy{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1211,6 +1251,7 @@ composition {
       attack_points:         7
       defense_points:        5
       on_death               demote{ lose=[strength] }
+      road_turns:            null
       canonical_base:        damaged_artillery
       cargo_slots:           0
       cargo_slots_occupies:  1
@@ -1238,6 +1279,7 @@ composition {
       attack_points:         2
       defense_points:        2
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1262,6 +1304,7 @@ composition {
       attack_points:         0
       defense_points:        5
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           4
       cargo_slots_occupies:  null
@@ -1286,6 +1329,7 @@ composition {
       attack_points:         0
       defense_points:        10
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           6
       cargo_slots_occupies:  null
@@ -1310,6 +1354,7 @@ composition {
       attack_points:         8
       defense_points:        8
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1334,6 +1379,7 @@ composition {
       attack_points:         16
       defense_points:        16
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           4
       cargo_slots_occupies:  null
@@ -1358,6 +1404,7 @@ composition {
       attack_points:         24
       defense_points:        24
       on_death               naval{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           6
       cargo_slots_occupies:  null
@@ -1385,6 +1432,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           2
       cargo_slots_occupies:  null
@@ -1413,6 +1461,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  4
@@ -1437,6 +1486,7 @@ composition {
       attack_points:         0
       defense_points:        1
       on_death               capture{}
+      road_turns:            null
       canonical_base:        null
       cargo_slots:           0
       cargo_slots_occupies:  6
