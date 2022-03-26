@@ -29,8 +29,14 @@ namespace rn {
 
 namespace {
 
-maybe<MapSquare&> maybe_square_at( Coord coord ) {
-  TerrainState& terrain_state = GameState::terrain();
+maybe<MapSquare&> maybe_square_at( TerrainState& terrain_state,
+                                   Coord         coord ) {
+  if( !square_exists( coord.y, coord.x ) ) return nothing;
+  return terrain_state.world_map[coord.y][coord.x];
+}
+
+maybe<MapSquare const&> maybe_square_at(
+    TerrainState const& terrain_state, Coord coord ) {
   if( !square_exists( coord.y, coord.x ) ) return nothing;
   return terrain_state.world_map[coord.y][coord.x];
 }
@@ -102,20 +108,43 @@ bool square_exists( Coord coord ) {
   return square_exists( coord.y, coord.x );
 }
 
-MapSquare const& square_at( Coord coord ) {
-  auto res = maybe_square_at( coord );
+bool square_exists( TerrainState const& terrain_state,
+                    Coord               coord ) {
+  if( coord.x < 0_x || coord.y < 0_y ) return false;
+  return coord.is_inside(
+      Rect::from( Coord{}, terrain_state.world_map.size() ) );
+}
+
+MapSquare const& square_at( TerrainState const& terrain_state,
+                            Coord               coord ) {
+  auto res = maybe_square_at( terrain_state, coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
 }
 
-MapSquare& mutable_square_at( Coord coord ) {
-  auto res = maybe_square_at( coord );
+MapSquare& square_at( TerrainState& terrain_state,
+                      Coord         coord ) {
+  auto res = maybe_square_at( terrain_state, coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
+}
+
+MapSquare const& square_at( Coord coord ) {
+  TerrainState const& terrain_state = GameState::terrain();
+  return square_at( terrain_state, coord );
+}
+
+MapSquare& mutable_square_at( Coord coord ) {
+  TerrainState& terrain_state = GameState::terrain();
+  return square_at( terrain_state, coord );
 }
 
 bool is_land( Coord coord ) {
   return is_land( square_at( coord ) );
+}
+
+bool is_land( TerrainState const& terrain_state, Coord coord ) {
+  return is_land( square_at( terrain_state, coord ) );
 }
 
 /****************************************************************
