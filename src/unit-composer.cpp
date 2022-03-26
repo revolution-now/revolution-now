@@ -373,9 +373,10 @@ UnitTransformationResult strip_to_base_type(
   return std::move( general_results[0] );
 }
 
+// Commodity quantity can be positive or negative.
 vector<UnitTransformationFromCommodityResult>
-unit_receive_commodity( UnitComposition const& comp,
-                        Commodity const&       commodity ) {
+unit_delta_commodity( UnitComposition const& comp,
+                      Commodity const&       commodity ) {
   vector<UnitTransformationResult> general_results =
       possible_unit_transformations(
           comp, { { commodity.type, commodity.quantity } } );
@@ -395,18 +396,30 @@ unit_receive_commodity( UnitComposition const& comp,
     // At this point we know that the transformation requires
     // changing only a single commodity, and that commodity is
     // the one in question here. Now make sure that the quantity
-    // change is negative, because this function is only con-
-    // cerned with *giving* a unit a commodity.
-    if( quantity_delta > 0 ) continue;
-    // quantity_delta is negative, meaning that it is being sub-
-    // tracted from the commoodity store, which means that we
-    // need to give it to the unit, which is what we want.
+    // change is in the direction that we're asking.
+    if( ( quantity_delta > 0 ) == ( commodity.quantity > 0 ) )
+      continue;
     res.push_back( UnitTransformationFromCommodityResult{
         .new_comp        = utr.new_comp,
         .modifier_deltas = utr.modifier_deltas,
         .quantity_used   = -quantity_delta } );
   }
   return res;
+}
+
+vector<UnitTransformationFromCommodityResult>
+unit_receive_commodity( UnitComposition const& comp,
+                        Commodity const&       commodity ) {
+  CHECK_GT( commodity.quantity, 0 );
+  return unit_delta_commodity( comp, commodity );
+}
+
+std::vector<UnitTransformationFromCommodityResult>
+unit_lose_commodity( UnitComposition const& comp,
+                     Commodity const&       commodity ) {
+  CHECK_GT( commodity.quantity, 0 );
+  return unit_delta_commodity(
+      comp, with_quantity( commodity, -commodity.quantity ) );
 }
 
 namespace {

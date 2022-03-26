@@ -2607,5 +2607,110 @@ TEST_CASE( "[unit-composer] strip_to_base_type " ) {
   REQUIRE( res == expected );
 }
 
+TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
+  UnitComposition                               comp{};
+  Commodity                                     comm;
+  vector<UnitTransformationFromCommodityResult> res;
+  vector<UnitTransformationFromCommodityResult> expected;
+
+  // hardy_pioneer with 20 tools - 20 tools.
+  comp = UnitComposition::create(
+             UnitType::create( e_unit_type::hardy_pioneer ),
+             /*inventory=*/{ { e_unit_inventory::tools, 20 } } )
+             .value();
+  comm = { .type = e_commodity::tools, .quantity = 20 };
+  res  = unit_lose_commodity( comp, comm );
+
+  expected = {
+      UnitTransformationFromCommodityResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::missionary,
+                              e_unit_type::hardy_colonist )
+                              .value(),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::tools,
+                  e_unit_type_modifier_delta::del },
+                { e_unit_type_modifier::blessing,
+                  e_unit_type_modifier_delta::add } },
+          .quantity_used = -20,
+      },
+      UnitTransformationFromCommodityResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::hardy_colonist,
+                              e_unit_type::hardy_colonist )
+                              .value(),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::tools,
+                  e_unit_type_modifier_delta::del } },
+          .quantity_used = -20,
+      },
+  };
+  sort_by_new_type( res );
+  sort_by_new_type( expected );
+  REQUIRE( FmtVerticalJsonList{ res } ==
+           FmtVerticalJsonList{ expected } );
+
+  // hardy_pioneer with 80 tools - 20 tools.
+  comp = UnitComposition::create(
+             UnitType::create( e_unit_type::hardy_pioneer ),
+             /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+             .value();
+  comm     = { .type = e_commodity::tools, .quantity = 20 };
+  res      = unit_lose_commodity( comp, comm );
+  expected = {
+      UnitTransformationFromCommodityResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::missionary,
+                              e_unit_type::hardy_colonist )
+                              .value(),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::tools,
+                  e_unit_type_modifier_delta::del },
+                { e_unit_type_modifier::blessing,
+                  e_unit_type_modifier_delta::add } },
+          .quantity_used = -80,
+      },
+      UnitTransformationFromCommodityResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::hardy_colonist,
+                              e_unit_type::hardy_colonist )
+                              .value(),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::tools,
+                  e_unit_type_modifier_delta::del } },
+          .quantity_used = -80,
+      },
+      UnitTransformationFromCommodityResult{
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/UnitType::create(
+                      e_unit_type::hardy_pioneer,
+                      e_unit_type::hardy_colonist )
+                      .value(),
+                  /*inventory=*/{ { e_unit_inventory::tools,
+                                    60 } } )
+                  .value(),
+          .modifier_deltas = {},
+          .quantity_used   = -20,
+      },
+  };
+  sort_by_new_type( res );
+  sort_by_new_type( expected );
+  REQUIRE( FmtVerticalJsonList{ res } ==
+           FmtVerticalJsonList{ expected } );
+}
+
 } // namespace
 } // namespace rn

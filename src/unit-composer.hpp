@@ -139,6 +139,12 @@ std::vector<UnitTransformationFromCommodityResult>
 unit_receive_commodity( UnitComposition const& comp,
                         Commodity const&       commodity );
 
+// Can a commodity be taken from the unit, and if so what unit
+// type will it become?
+std::vector<UnitTransformationFromCommodityResult>
+unit_lose_commodity( UnitComposition const& comp,
+                     Commodity const&       commodity );
+
 void adjust_for_independence_status(
     std::vector<UnitTransformationResult>& input,
     bool independence_declared );
