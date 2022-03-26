@@ -163,6 +163,32 @@
            fmt::format( __VA_ARGS__ ) );          \
   }
 
+// Greater than
+#define CHECK_GT( ... ) \
+  PP_N_OR_MORE_ARGS_2( CHECK_GT, __VA_ARGS__ )
+
+#define CHECK_GT_SINGLE( a, b )                                 \
+  {                                                             \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
+    CHECK( STRING_JOIN( __a, __LINE__ ) >                       \
+               STRING_JOIN( __b, __LINE__ ),                    \
+           "{} is not > than {}", STRING_JOIN( __a, __LINE__ ), \
+           STRING_JOIN( __b, __LINE__ ) );                      \
+  }
+
+#define CHECK_GT_MULTI( a, b, ... )               \
+  {                                               \
+    auto const& STRING_JOIN( __a, __LINE__ ) = a; \
+    auto const& STRING_JOIN( __b, __LINE__ ) = b; \
+    CHECK( STRING_JOIN( __a, __LINE__ ) >         \
+               STRING_JOIN( __b, __LINE__ ),      \
+           "{} is not > than {}: {}",             \
+           STRING_JOIN( __a, __LINE__ ),          \
+           STRING_JOIN( __b, __LINE__ ),          \
+           fmt::format( __VA_ARGS__ ) );          \
+  }
+
 /****************************************************************
 ** Check that a wrapped type has a value.
 *****************************************************************/
