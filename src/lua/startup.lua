@@ -23,7 +23,11 @@ local function create_some_roads()
     location{ x=2, y=2 }, --
     location{ x=2, y=2 }, --
     location{ x=3, y=2 }, --
-    location{ x=1, y=4 } --
+    location{ x=1, y=4 }, --
+    location{ x=2, y=6 }, --
+    location{ x=2, y=7 }, --
+    location{ x=2, y=8 }, --
+    location{ x=2, y=9 } --
   }
   for _, tile in ipairs( tiles ) do road.set_road( tile ) end
 end
