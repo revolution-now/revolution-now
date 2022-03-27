@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "mv-points.hpp"
+
 // Rds
 #include "map-square.rds.hpp"
 
@@ -21,5 +24,8 @@ bool is_land( MapSquare const& square );
 bool is_water( MapSquare const& square );
 
 e_surface surface_type( MapSquare const& square );
+
+MovementPoints movement_points_required(
+    MapSquare const& src_square, MapSquare const& dst_square );
 
 } // namespace rn
