@@ -1,0 +1,27 @@
+# ===============================================================
+# config-terrain.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-03-27.
+#
+# Description: Rds definitions for the config-terrain module.
+#
+# ===============================================================
+# Revolution Now
+include "enum-map.hpp"
+include "mv-points.hpp"
+
+# Rds
+include "terrain.rds.hpp"
+
+namespace "rn"
+
+struct.TerrainTypeInfo {
+  surface 'e_surface',
+  mv_points_required 'MovementPoints',
+}
+
+struct.TerrainConfig {
+  types 'EnumMap<e_terrain, TerrainTypeInfo>',
+}

@@ -10,12 +10,17 @@
 *****************************************************************/
 #include "terrain.hpp"
 
+// Revolution Now
+#include "config-files.hpp"
+#include "config-terrain.hpp"
+
 using namespace std;
 
 namespace rn {
 
 bool is_land( e_terrain terrain ) {
-  return terrain != e_terrain::ocean;
+  return config_terrain.terrain.types[terrain].surface ==
+         e_surface::land;
 }
 
 bool is_water( e_terrain terrain ) {

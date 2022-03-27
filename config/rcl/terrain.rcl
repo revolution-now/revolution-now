@@ -1,0 +1,108 @@
+terrain {
+  types {
+    ocean {
+      surface:            water
+      mv_points_required: 1
+    }
+
+    # Ground types.
+
+    arctic {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    desert {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    grassland {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    hills {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    marsh {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    mountains {
+      surface:            land
+      mv_points_required: 3
+    }
+
+    plains {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    prairie {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    savannah {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    swamp {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    tundra {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    # Forest types. Each of these, when cleared, map to one of the
+    # above base types.
+
+    boreal {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    broadleaf {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    conifer {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    mixed {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    rain {
+      surface:            land
+      mv_points_required: 3
+    }
+
+    scrub {
+      surface:            land
+      mv_points_required: 1
+    }
+
+    tropical {
+      surface:            land
+      mv_points_required: 2
+    }
+
+    wetland {
+      surface:            land
+      mv_points_required: 3
+    }
+  }
+}

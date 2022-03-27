@@ -10,6 +10,7 @@
 #include "rcl/rn.inl"
 #include "rcl/savegame.inl"
 #include "rcl/sound.inl"
+#include "rcl/terrain.inl"
 #include "rcl/ui.inl"
 #include "rcl/units.inl"
 
@@ -23,5 +24,6 @@
 #undef RN_INL
 #undef SAVEGAME_INL
 #undef SOUND_INL
+#undef TERRAIN_INL
 #undef UI_INL
 #undef UNITS_INL

@@ -2,26 +2,25 @@
 # TODO
 # ===============================================================
 
-  1.  Implement proper movement points with roads.
-  2.  Implement road and irrigation rendering.
-  3.  Implement roads and irrigation building.
-  4.  Implement terrain type rendering.
-  5.  Implement world generation.
-  6.  Implement terrain visibility.
-  7.  Draw remainder of unit types.
-  8.  Implement colony land production.
-  9.  Implement selecting colonist profession in colony view.
-  10. Implement mini map.
-  11. Implement stats in panel.
-  12. Implement gold.
-  13. Implement old world prices and price changes.
-  14. Allow purchases things from old world.
-  15. Implement that immigrants appear on the doc.
-  16. Create colony building art.
-  17. Render colony buildings in colony.
-  18. Implement colony building workers.
-  19. Implement colony production (from lumber/tools).
-  20. Implement wagon train trade routes.
+  1.  Implement irrigation rendering.
+  2.  Implement irrigation building.
+  3.  Implement terrain type rendering.
+  4.  Implement world generation.
+  5.  Implement terrain visibility.
+  6.  Draw remainder of unit types.
+  7.  Implement colony land production.
+  8.  Implement selecting colonist profession in colony view.
+  9.  Implement mini map.
+  10. Implement stats in panel.
+  11. Implement gold.
+  12. Implement old world prices and price changes.
+  13. Allow purchases things from old world.
+  14. Implement that immigrants appear on the doc.
+  15. Create colony building art.
+  16. Render colony buildings in colony.
+  17. Implement colony building workers.
+  18. Implement colony production (from lumber/tools).
+  19. Implement wagon train trade routes.
 
 # ===============================================================
 # OpenGL
