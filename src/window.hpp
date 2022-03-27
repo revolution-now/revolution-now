@@ -79,6 +79,13 @@ ValidatorFunc make_int_validator( maybe<int> min,
 *****************************************************************/
 wait<e_ok_cancel> ok_cancel( std::string_view msg );
 
+template<base::Show... Args>
+wait<e_ok_cancel> ok_cancel( std::string_view fmt_str,
+                             Args&&... args ) {
+  return ok_cancel( fmt::format(
+      fmt::runtime( fmt_str ), std::forward<Args>( args )... ) );
+}
+
 struct IntInputBoxOptions {
   std::string_view title   = "";
   std::string_view msg     = "";

@@ -144,6 +144,7 @@ struct TravelHandler : public OrdersHandler {
     land_forbidden,
     water_forbidden,
     board_ship_full,
+    not_enough_movement_points,
     // Allowed moves
     map_to_map,
     board_ship,
@@ -165,6 +166,7 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::map_edge:
       case e_travel_verdict::land_forbidden:
       case e_travel_verdict::water_forbidden: //
+      case e_travel_verdict::not_enough_movement_points:
         co_return false;
       case e_travel_verdict::board_ship_full:
         co_await ui::message_box(
@@ -303,6 +305,7 @@ wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
+  UnitsState const&   units_state   = GameState::units();
   TerrainState const& terrain_state = GameState::terrain();
 
   UnitId id = unit_id;
@@ -312,12 +315,23 @@ TravelHandler::confirm_travel_impl() {
   if( !move_dst.is_inside( world_rect_tiles() ) )
     co_return e_travel_verdict::map_edge;
 
-  auto& square = square_at( move_dst );
+  auto& src_square = square_at( terrain_state, move_src );
+  auto& dst_square = square_at( terrain_state, move_dst );
 
-  auto& unit = unit_from_id( id );
+  Unit const&    unit = units_state.unit_for( id );
+  MovementPoints points_required =
+      movement_points_required( src_square, dst_square );
+  if( unit.movement_points() < points_required ) {
+    co_await ui::message_box(
+        "Unit requires @[H]{}@[] movement point(s) to enter "
+        "this square, but only has @[H]{}@[].",
+        points_required, unit.movement_points() );
+    co_return e_travel_verdict::not_enough_movement_points;
+  }
+
   CHECK( !unit.mv_pts_exhausted() );
 
-  auto surface = surface_type( square );
+  auto surface = surface_type( dst_square );
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
@@ -508,10 +522,11 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::map_edge:
     case e_travel_verdict::land_forbidden:
     case e_travel_verdict::water_forbidden:
-    case e_travel_verdict::board_ship_full: //
+    case e_travel_verdict::board_ship_full:            //
+    case e_travel_verdict::not_enough_movement_points: //
       SHOULD_NOT_BE_HERE;
     // Allowed moves.
-    case e_travel_verdict::map_to_map:
+    case e_travel_verdict::map_to_map: {
       // If it's a ship then sentry all its units before it
       // moves.
       if( unit.desc().ship ) {
@@ -522,8 +537,13 @@ wait<> TravelHandler::perform() {
         }
       }
       move_unit_from_map_to_map( id, move_dst );
-      unit.consume_mv_points( MvPoints( 1 ) );
+      // Get how many movement points to subtract.
+      TerrainState const& terrain_state = GameState::terrain();
+      unit.consume_mv_points( movement_points_required(
+          square_at( terrain_state, move_src ),
+          square_at( terrain_state, move_dst ) ) );
       break;
+    }
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
       GameState::units().change_to_cargo_somewhere( *target_unit,
@@ -604,6 +624,7 @@ struct AttackHandler : public OrdersHandler {
     : unit_id( unit_id_ ), direction( d ) {}
 
   enum class e_attack_verdict {
+    cancelled,
     // Allowed moves
     colony_undefended,
     colony_defended,
@@ -620,6 +641,7 @@ struct AttackHandler : public OrdersHandler {
     verdict = co_await confirm_attack_impl();
 
     switch( verdict ) {
+      case e_attack_verdict::cancelled: co_return false;
       // Non-allowed (errors)
       case e_attack_verdict::land_unit_attack_ship:
         co_await ui::message_box(
@@ -744,6 +766,15 @@ AttackHandler::confirm_attack_impl() {
 
   if( is_unit_onboard( id ) )
     co_return e_attack_verdict::attack_from_ship;
+
+  if( unit.movement_points() < 1 ) {
+    if( co_await ui::ok_cancel(
+            "This unit only has @[H]{}@[] movement points and "
+            "so will not be fighting at full strength.  "
+            "Continue?",
+            unit.movement_points() ) == ui::e_ok_cancel::cancel )
+      co_return e_attack_verdict::cancelled;
+  }
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
@@ -921,6 +952,7 @@ wait<> AttackHandler::perform() {
 
   switch( verdict ) {
     // Non-allowed (errors)
+    case e_attack_verdict::cancelled:
     case e_attack_verdict::land_unit_attack_ship:
     case e_attack_verdict::ship_attack_land_unit:
     case e_attack_verdict::unit_cannot_attack:
