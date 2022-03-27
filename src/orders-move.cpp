@@ -322,6 +322,11 @@ TravelHandler::confirm_travel_impl() {
   MovementPoints points_required =
       movement_points_required( src_square, dst_square );
   if( unit.movement_points() < points_required ) {
+    // FIXME: add a checkbox to this dialog that allows the user
+    // to suppress it; in that case, an attempt to move onto a
+    // square with not enough movement points will simply end
+    // that unit's turn by forfeighting its movement points, and
+    // it appears that will mirror the original game's behavior.
     co_await ui::message_box(
         "Unit requires @[H]{}@[] movement point(s) to enter "
         "this square, but only has @[H]{}@[].",
