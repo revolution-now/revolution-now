@@ -141,9 +141,9 @@ void Unit::change_type( UnitComposition new_comp ) {
 }
 
 string debug_string( Unit const& unit ) {
-  return fmt::format( "unit{{id: {}, nation: {}, type: \"{}\"}}",
-                      unit.id(), unit.nation(),
-                      unit.desc().name );
+  return fmt::format(
+      "unit{{id={},nation={},type={},points={}}}", unit.id(),
+      unit.nation(), unit.desc().name, unit.movement_points() );
 }
 
 void Unit::demote_from_lost_battle() {

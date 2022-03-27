@@ -41,10 +41,12 @@ void to_str( MovementPoints const& o, std::string& out,
              base::ADL_t ) {
   if( o.atoms % o.factor == 0 )
     out += fmt::format( "{}", o.atoms / o.factor );
-  else
-    out += fmt::format( "{}+{}/{}", o.atoms / o.factor,
-                        o.atoms % o.factor,
+  else {
+    if( o.atoms / o.factor > 0 )
+      out += fmt::format( "{}+", o.atoms / o.factor );
+    out += fmt::format( "{}/{}", o.atoms % o.factor,
                         MovementPoints::factor );
+  }
 }
 
 base::valid_or<string> MovementPoints::validate() const {
