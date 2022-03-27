@@ -289,8 +289,9 @@ TravelHandler::analyze_unload() {
   }
 }
 
-// FIXME: temporary
-bool is_high_seas( Coord c ) { return c == Coord{}; }
+bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
+  return square_at( terrain_state, c ).sea_lane;
+}
 
 wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
   ui::e_confirm confirmed = co_await ui::yes_no(
@@ -302,6 +303,8 @@ wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
+  TerrainState const& terrain_state = GameState::terrain();
+
   UnitId id = unit_id;
   move_src  = coord_for_unit_indirect_or_die( id );
   move_dst  = move_src.moved( direction );
@@ -411,7 +414,8 @@ TravelHandler::confirm_travel_impl() {
     using bh_t = unit_behavior::water::neutral::empty::e_vals;
     // Possible results: never, always, high_seas.
     bh_t bh = unit.desc().ship ? bh_t::always : bh_t::never;
-    if( unit.desc().ship && is_high_seas( move_dst ) )
+    if( unit.desc().ship &&
+        is_high_seas( terrain_state, move_dst ) )
       bh = bh_t::high_seas;
     switch( bh ) {
       case bh_t::never:
@@ -428,7 +432,7 @@ TravelHandler::confirm_travel_impl() {
     // Possible results: always, never, move_onto_ship,
     //                   high_seas.
     if( unit.desc().ship ) {
-      if( is_high_seas( move_dst ) )
+      if( is_high_seas( terrain_state, move_dst ) )
         bh = bh_t::high_seas;
       else
         bh = bh_t::always;
