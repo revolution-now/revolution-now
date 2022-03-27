@@ -56,6 +56,10 @@ void generate_terrain() {
   for( auto const& coord : terrain_state.world_map.rect() )
     world_map[coord] = O;
 
+  for( Y y = 0_y;
+       y < terrain_state.world_map.rect().bottom_edge(); ++y )
+    world_map[Coord( y, 0_x )].sea_lane = true;
+
   auto make_squares = [&]( Coord origin ) {
     for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
       for( X x = origin.x; x < origin.x + 4_w; ++x )
