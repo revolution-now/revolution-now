@@ -132,8 +132,10 @@ wait<> evolve_colony_one_turn( ColonyId id ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
+#if 0
   commodities[e_commodity::food] +=
       rng::between( 3, 7, rng::e_interval::closed );
+#endif
   if( commodities[e_commodity::food] >= 200 ) {
     commodities[e_commodity::food] -= 200;
     // FIXME: When creating a new unit on the map, decide whether
