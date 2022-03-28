@@ -327,6 +327,28 @@ TravelHandler::confirm_travel_impl() {
     // square with not enough movement points will simply end
     // that unit's turn by forfeighting its movement points, and
     // it appears that will mirror the original game's behavior.
+    //
+    // That said, it is a bit more complicated. A unit that
+    // hasn't yet moved at all needs to be able to move onto any
+    // square even if they don't have enough movement points. If
+    // this weren't the case then e.g. a free colonist would
+    // never be able to move onto mountains, which normally re-
+    // quires three movement points. A further complication is
+    // that it appears that the game will allow a unit to exceed
+    // their total movement points as long as they don't go more
+    // than 1/3 into the red. For example, if a free colonist
+    // moves one square a long a road, they will have 2/3 move-
+    // ment points left. At this point, it appears that the game
+    // will allow them to move onto a square that requires one
+    // movement point, but not more than that (it will automati-
+    // cally end their turn upon an attempt). E.g., if a free
+    // colonist has 2/3 movement points they cannot move onto a
+    // forrest (2) or mountains (3). Likewise, if a free colonist
+    // has 1/3 movement points they will not be allowed to move
+    // onto grassland (which requires one point) since that would
+    // put them at 2/3 in the red. I think these things are done
+    // for a better user experience, even if they don't make a
+    // lot of sense.
     co_await ui::message_box(
         "Unit requires @[H]{}@[] movement point(s) to enter "
         "this square, but only has @[H]{}@[].",
