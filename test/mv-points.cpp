@@ -58,5 +58,15 @@ TEST_CASE( "[mv-points] cdr" ) {
   }
 }
 
+TEST_CASE( "[mv-points] negative" ) {
+  MovementPoints negative1( -3 );
+  MovementPoints negative2 = -MovementPoints::_2_3();
+  REQUIRE( negative1 + negative2 ==
+           MovementPoints( -4 ) + MovementPoints::_1_3() );
+  MovementPoints positive = MovementPoints::_1_3();
+  REQUIRE( negative1 + positive ==
+           MovementPoints( -2 ) - MovementPoints::_2_3() );
+}
+
 } // namespace
 } // namespace rn

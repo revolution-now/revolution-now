@@ -32,11 +32,6 @@ namespace rn {
 
 namespace {} // namespace
 
-MovementPoints::MovementPoints( int integral, int atoms_arg ) {
-  atoms = ( ( integral + ( atoms_arg / factor ) ) * factor ) +
-          ( atoms_arg % factor );
-}
-
 void to_str( MovementPoints const& o, std::string& out,
              base::ADL_t ) {
   if( o.atoms % o.factor == 0 )

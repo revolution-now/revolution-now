@@ -4,24 +4,22 @@
 
   1.  Add simple sprites for all terrain types.
   2.  Implement terrain type rendering.
-  3.  Fix movement points UX issue where units run out of move-
-      ment points and can't move onto mountains.
-  4.  Implement world generation.
-  5.  Implement terrain visibility.
-  6.  Draw remainder of unit types.
-  7.  Implement colony land production.
-  8.  Implement selecting colonist profession in colony view.
-  9.  Implement mini map.
-  10. Implement stats in panel.
-  11. Implement gold.
-  12. Implement old world prices and price changes.
-  13. Allow purchases things from old world.
-  14. Implement that immigrants appear on the doc.
-  15. Create colony building art.
-  16. Render colony buildings in colony.
-  17. Implement colony building workers.
-  18. Implement colony production (from lumber/tools).
-  19. Implement wagon train trade routes.
+  3.  Implement world generation.
+  4.  Implement terrain visibility.
+  5.  Draw remainder of unit types.
+  6.  Implement colony land production.
+  7.  Implement selecting colonist profession in colony view.
+  8.  Implement mini map.
+  9.  Implement stats in panel.
+  10. Implement gold.
+  11. Implement old world prices and price changes.
+  12. Allow purchases things from old world.
+  13. Implement that immigrants appear on the doc.
+  14. Create colony building art.
+  15. Render colony buildings in colony.
+  16. Implement colony building workers.
+  17. Implement colony production (from lumber/tools).
+  18. Implement wagon train trade routes.
 
 # ===============================================================
 # OpenGL
@@ -204,6 +202,11 @@ Low priority:
 # ===============================================================
 # Basic Game Mechanics
 # ===============================================================
+
+  - Review this long document that explains many aspects of
+    the game mechanism that may not have been officially stated:
+      * https://civilization.fandom.com/wiki/Colonization_tips
+      * http://t-a-w.blogspot.com/2007/05/colonization-tips.html
 
   - Fix handling of multiple units on a square with combat.
   - Finish ship combat

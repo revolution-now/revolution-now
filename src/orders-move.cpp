@@ -23,6 +23,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "mv-calc.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
@@ -128,6 +129,37 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
   static_assert(                                          \
       is_same_v<void, decltype( CALL_BEHAVIOR(            \
                           surface, relationship, entity ) )> )
+
+/****************************************************************
+** Movement Points Calculator
+*****************************************************************/
+wait<maybe<MovementPoints>> check_movement_points(
+    Unit const& unit, MapSquare const& src_square,
+    MapSquare const& dst_square ) {
+  MovementPointsAnalysis analysis =
+      expense_movement_points( unit, src_square, dst_square );
+  if( analysis.allowed() ) {
+    if( analysis.using_start_of_turn_exemption() )
+      lg.debug( "move allowed by start-of-turn exemption." );
+    if( analysis.using_overdraw_allowance() )
+      lg.debug( "move allowed by overdraw allowance." );
+    co_return analysis.points_to_subtract();
+  }
+  // FIXME: add a checkbox to this dialog that allows the user to
+  // suppress it; in that case, an attempt to move onto a square
+  // with not enough movement points will simply end that unit's
+  // turn by forfeighting its movement points, and it appears
+  // that will mirror the original game's behavior.
+  co_await ui::message_box(
+      "Unit requires @[H]{}@[] movement point(s) to enter this "
+      "square, but only has @[H]{}@[]+{} = @[H]{}@[] available "
+      "to use.",
+      analysis.needs, analysis.has,
+      MovementPointsAnalysis::kOverdrawAllowance,
+      analysis.has +
+          MovementPointsAnalysis::kOverdrawAllowance );
+  co_return nothing;
+}
 
 /****************************************************************
 ** TravelHandler
@@ -253,6 +285,8 @@ struct TravelHandler : public OrdersHandler {
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.
   maybe<UnitId> target_unit = nothing;
+
+  MovementPoints mv_points_to_subtract_ = {};
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -315,46 +349,15 @@ TravelHandler::confirm_travel_impl() {
   if( !move_dst.is_inside( world_rect_tiles() ) )
     co_return e_travel_verdict::map_edge;
 
-  auto& src_square = square_at( terrain_state, move_src );
-  auto& dst_square = square_at( terrain_state, move_dst );
-
-  Unit const&    unit = units_state.unit_for( id );
-  MovementPoints points_required =
-      movement_points_required( src_square, dst_square );
-  if( unit.movement_points() < points_required ) {
-    // FIXME: add a checkbox to this dialog that allows the user
-    // to suppress it; in that case, an attempt to move onto a
-    // square with not enough movement points will simply end
-    // that unit's turn by forfeighting its movement points, and
-    // it appears that will mirror the original game's behavior.
-    //
-    // That said, it is a bit more complicated. A unit that
-    // hasn't yet moved at all needs to be able to move onto any
-    // square even if they don't have enough movement points. If
-    // this weren't the case then e.g. a free colonist would
-    // never be able to move onto mountains, which normally re-
-    // quires three movement points. A further complication is
-    // that it appears that the game will allow a unit to exceed
-    // their total movement points as long as they don't go more
-    // than 1/3 into the red. For example, if a free colonist
-    // moves one square a long a road, they will have 2/3 move-
-    // ment points left. At this point, it appears that the game
-    // will allow them to move onto a square that requires one
-    // movement point, but not more than that (it will automati-
-    // cally end their turn upon an attempt). E.g., if a free
-    // colonist has 2/3 movement points they cannot move onto a
-    // forrest (2) or mountains (3). Likewise, if a free colonist
-    // has 1/3 movement points they will not be allowed to move
-    // onto grassland (which requires one point) since that would
-    // put them at 2/3 in the red. I think these things are done
-    // for a better user experience, even if they don't make a
-    // lot of sense.
-    co_await ui::message_box(
-        "Unit requires @[H]{}@[] movement point(s) to enter "
-        "this square, but only has @[H]{}@[].",
-        points_required, unit.movement_points() );
+  auto&       src_square = square_at( terrain_state, move_src );
+  auto&       dst_square = square_at( terrain_state, move_dst );
+  Unit const& unit       = units_state.unit_for( id );
+  maybe<MovementPoints> to_subtract =
+      co_await check_movement_points( unit, src_square,
+                                      dst_square );
+  if( !to_subtract.has_value() )
     co_return e_travel_verdict::not_enough_movement_points;
-  }
+  mv_points_to_subtract_ = *to_subtract;
 
   CHECK( !unit.mv_pts_exhausted() );
 
@@ -435,6 +438,8 @@ TravelHandler::confirm_travel_impl() {
     bh_t bh = bh_t::always;
     switch( bh ) {
       case bh_t::always:
+        // TODO: when a wagon train enters a colony it ends its
+        // turn.
         if( unit.desc().ship )
           co_return e_travel_verdict::ship_into_port;
         // `holder` will be a valid value if the unit is cargo of
@@ -564,11 +569,8 @@ wait<> TravelHandler::perform() {
         }
       }
       move_unit_from_map_to_map( id, move_dst );
-      // Get how many movement points to subtract.
-      TerrainState const& terrain_state = GameState::terrain();
-      unit.consume_mv_points( movement_points_required(
-          square_at( terrain_state, move_src ),
-          square_at( terrain_state, move_dst ) ) );
+      CHECK_GT( mv_points_to_subtract_, 0 );
+      unit.consume_mv_points( mv_points_to_subtract_ );
       break;
     }
     case e_travel_verdict::board_ship: {
