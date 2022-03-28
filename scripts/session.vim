@@ -2,16 +2,14 @@
 let s:stems = [
  \ 'render/painter',
  \ 'render/renderer',
- \ 'land-view',
  \ 'terrain',
+ \ 'config-terrain',
  \ 'map-square',
  \ 'world-map',
  \ 'gs-terrain',
  \ 'render-terrain',
+ \ 'land-view',
  \ 'orders-move',
- \ 'orders-road',
- \ 'road',
- \ 'unit',
 \]
 
 let s:luas = [
