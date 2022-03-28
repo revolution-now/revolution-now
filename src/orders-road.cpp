@@ -45,6 +45,16 @@ struct RoadHandler : public OrdersHandler {
           "build roads." );
       co_return false;
     }
+    UnitOwnership_t const& ownership =
+        units_state.ownership_of( unit_id );
+    if( !ownership.is<UnitOwnership::world>() ) {
+      // This can happen if a pioneer is on a ship asking for or-
+      // ders and it is given road-building orders.
+      co_await ui::message_box_basic(
+          "Roads can only be built while directly on a land "
+          "tile." );
+      co_return false;
+    }
     Coord world_square = units_state.coord_for( unit_id );
     TerrainState const& terrain_state = GameState::terrain();
     CHECK( is_land( terrain_state, world_square ) );
