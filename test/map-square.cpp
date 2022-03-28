@@ -40,12 +40,14 @@ TEST_CASE( "[map-square] movement_points_required" ) {
   MapSquare grassland{ .terrain = e_terrain::grassland };
   MapSquare mountains{ .terrain = e_terrain::mountains };
 
-  MapSquare ocean_with_road{ .terrain = e_terrain::ocean,
-                             .road    = true };
   MapSquare grassland_with_road{ .terrain = e_terrain::grassland,
                                  .road    = true };
   MapSquare mountains_with_road{ .terrain = e_terrain::mountains,
                                  .road    = true };
+  MapSquare grassland_with_river{
+      .terrain = e_terrain::grassland, .river = e_river::minor };
+  MapSquare mountains_with_river{
+      .terrain = e_terrain::mountains, .river = e_river::minor };
 
   reference_wrapper<MapSquare> src = ocean;
   reference_wrapper<MapSquare> dst = ocean;
@@ -145,6 +147,21 @@ TEST_CASE( "[map-square] movement_points_required" ) {
 
   src      = mountains_with_road;
   dst      = mountains_with_road;
+  expected = MovementPoints::_1_3();
+  REQUIRE( f( src, dst ) == expected );
+
+  src      = grassland_with_road;
+  dst      = grassland_with_river;
+  expected = 1;
+  REQUIRE( f( src, dst ) == expected );
+
+  src      = grassland_with_river;
+  dst      = grassland_with_road;
+  expected = 1;
+  REQUIRE( f( src, dst ) == expected );
+
+  src      = grassland_with_river;
+  dst      = grassland_with_river;
   expected = MovementPoints::_1_3();
   REQUIRE( f( src, dst ) == expected );
 }

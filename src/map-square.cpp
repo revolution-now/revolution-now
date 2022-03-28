@@ -37,10 +37,11 @@ MovementPoints movement_points_required(
     return MovementPoints( 1 );
   // Both squares are land.
 
-  bool src_road_or_river = src_square.road || src_square.river;
-  bool dst_road_or_river = dst_square.road || dst_square.river;
-  bool road_or_river = src_road_or_river && dst_road_or_river;
-  if( road_or_river ) return MovementPoints::_1_3();
+  if( src_square.road && dst_square.road )
+    return MovementPoints::_1_3();
+
+  if( src_square.river && dst_square.river )
+    return MovementPoints::_1_3();
 
   // We're moving from land to land without a road/river on both
   // squares, so it comes down to the terrain. In the game, the
