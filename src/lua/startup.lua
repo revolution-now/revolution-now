@@ -32,6 +32,18 @@ local function create_some_roads()
   for _, tile in ipairs( tiles ) do road.set_road( tile ) end
 end
 
+local function create_some_plows()
+  local tiles = {
+    location{ x=1, y=3 }, --
+    location{ x=2, y=2 }, --
+    location{ x=2, y=3 }, --
+    location{ x=2, y=5 }, --
+    location{ x=2, y=5 }, --
+    location{ x=3, y=5 } --
+  }
+  for _, tile in ipairs( tiles ) do plow.plow_square( tile ) end
+end
+
 local function unit_type( type, base_type )
   if base_type == nil then
     return unit_composer.UnitComposition.create_with_type_obj(
@@ -154,6 +166,7 @@ function M.main()
   create_some_units_on_land()
   create_some_colonies()
   create_some_roads()
+  create_some_plows()
   land_view.center_on_tile{ x=22, y=16 }
 end
 

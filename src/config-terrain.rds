@@ -20,6 +20,7 @@ namespace "rn"
 struct.TerrainTypeInfo {
   surface 'e_surface',
   mv_points_required 'MovementPoints',
+  plowed 'PlowAction_t',
 }
 
 struct.TerrainConfig {

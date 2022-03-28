@@ -31,4 +31,21 @@ e_surface surface_type( e_terrain terrain ) {
   return is_land( terrain ) ? e_surface::land : e_surface::water;
 }
 
+bool can_plow( e_terrain terrain ) {
+  return !config_terrain.terrain.types[terrain]
+              .plowed.is<PlowAction::none>();
+}
+
+maybe<e_terrain> cleared_forest( e_terrain terrain ) {
+  UNWRAP_RETURN( cleared,
+                 config_terrain.terrain.types[terrain]
+                     .plowed.get_if<PlowAction::cleared>() );
+  return cleared.to;
+}
+
+bool can_irrigate( e_terrain terrain ) {
+  return config_terrain.terrain.types[terrain]
+      .plowed.holds<PlowAction::irrigates>();
+}
+
 } // namespace rn

@@ -29,6 +29,7 @@ sumtype.orders {
   forfeight {},
   build     {},
   road      {},
+  plow      {},
   fortify   {},
   sentry    {},
   disband   {},

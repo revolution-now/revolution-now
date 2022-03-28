@@ -26,6 +26,7 @@
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
+#include "plow.hpp"
 #include "road.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
@@ -224,6 +225,7 @@ bool should_remove_unit_from_queue( UnitId id ) {
     case e_unit_orders::fortified: return true;
     case e_unit_orders::sentry: return true;
     case e_unit_orders::road: return false;
+    case e_unit_orders::plow: return false;
     case e_unit_orders::none: return false;
   }
 }
@@ -468,6 +470,18 @@ wait<bool> advance_unit( UnitId id ) {
           "Our pioneer has exhausted all of its tools." );
     }
     co_return( unit.orders() != e_unit_orders::road );
+  }
+
+  if( unit.orders() == e_unit_orders::plow ) {
+    perform_plow_work( GameState::units(), GameState::terrain(),
+                       unit );
+    if( unit.composition()[e_unit_inventory::tools] == 0 ) {
+      CHECK( unit.orders() == e_unit_orders::none );
+      co_await landview_ensure_visible( id );
+      co_await ui::message_box_basic(
+          "Our pioneer has exhausted all of its tools." );
+    }
+    co_return( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( id ) ) {

@@ -94,6 +94,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -139,6 +140,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -185,6 +187,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -230,6 +233,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 4 );
     REQUIRE( desc.defense_points == 4 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -268,6 +272,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 1 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -303,6 +308,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == 4 );
+    REQUIRE( desc.plow_turns == 4 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -339,6 +345,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.road_turns == nothing );
+    REQUIRE( desc.plow_turns == nothing );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 6 );
     REQUIRE( desc.on_death ==

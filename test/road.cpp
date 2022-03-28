@@ -16,8 +16,6 @@
 // Revolution Now
 #include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
-#include "src/lua.hpp"
-#include "src/luapp/state.hpp"
 #include "src/ustate.hpp"
 
 // Must be last.

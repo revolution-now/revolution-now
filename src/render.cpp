@@ -112,6 +112,7 @@ void render_nationality_icon( rr::Renderer&             renderer,
     case e_unit_orders::sentry: c = 'S'; break;
     case e_unit_orders::fortified: c = 'F'; break;
     case e_unit_orders::road: c = 'R'; break;
+    case e_unit_orders::plow: c = 'P'; break;
   };
   render_nationality_icon( renderer, where, nation, c );
 }

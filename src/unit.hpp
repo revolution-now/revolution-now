@@ -141,6 +141,10 @@ class ND Unit {
   // Unit is building a road. Note: after calling this don't
   // forget to call set_turns_worked with zero.
   void build_road();
+  // Unit is plowing, which means either clearing a forest or ir-
+  // rigating. Note: after calling this don't forget to call
+  // set_turns_worked with zero.
+  void plow();
   // Mark a unit as fortified (non-ships only).
   void fortify();
   // Clear a unit's orders (they will then wait for orders).

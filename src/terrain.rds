@@ -63,3 +63,18 @@ enum.e_natural_resource {
   tree,
   wheat,
 }
+
+# This describes what happens to a terrain type when the play ap-
+# plies the "plow" action with a pioneer.
+sumtype.PlowAction {
+  # Cannot be subject to the plow action.
+  none {},
+
+  # Clears a forest and changes terrain type.
+  cleared {
+    to 'e_terrain',
+  },
+
+  # Adds irrigation.
+  irrigates {},
+}

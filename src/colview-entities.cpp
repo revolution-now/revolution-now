@@ -20,6 +20,7 @@
 #include "game-state.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
+#include "plow.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "road.hpp"
@@ -993,14 +994,16 @@ class UnitsAtGateColonyView : public ui::View,
       switch( new_orders ) {
         case e_unit_orders::none: unit.clear_orders(); break;
         case e_unit_orders::road: unit.clear_orders(); break;
+        case e_unit_orders::plow: unit.clear_orders(); break;
         case e_unit_orders::sentry: unit.sentry(); break;
         case e_unit_orders::fortified: unit.fortify(); break;
       }
     } else if( mode == kStripUnit ) {
       // Clear orders just in case it is a pioneer building a
-      // road; that would put the pioneer into an inconsistent
-      // state.
-      if( unit.orders() == e_unit_orders::road )
+      // road or plowing; that would put the pioneer into an in-
+      // consistent state.
+      if( unit.orders() == e_unit_orders::road ||
+          unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
       colony().strip_unit_commodities( id );
     }
@@ -1133,6 +1136,15 @@ class LandView : public ui::View, public ColonySubView {
                            Delta{ 1_w, 1_h };
       render_terrain_square( painter, local_coord * g_tile_scale,
                              render_square );
+    }
+    // Render irrigation.
+    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+      auto render_square = world_square +
+                           local_coord.distance_from_origin() -
+                           Delta{ 1_w, 1_h };
+      render_plow_if_present( painter,
+                              local_coord * g_tile_scale,
+                              terrain_state, render_square );
     }
     // Render roads.
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {

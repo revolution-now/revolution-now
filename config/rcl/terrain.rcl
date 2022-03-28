@@ -3,6 +3,7 @@ terrain {
     ocean {
       surface:            water
       mv_points_required: 1
+      plowed.none         {}
     }
 
     # Ground types.
@@ -10,56 +11,67 @@ terrain {
     arctic {
       surface:            land
       mv_points_required: 2
+      plowed.none         {}
     }
 
     desert {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     grassland {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     hills {
       surface:            land
       mv_points_required: 2
+      plowed.none         {}
     }
 
     marsh {
       surface:            land
       mv_points_required: 2
+      plowed.irrigates    {}
     }
 
     mountains {
       surface:            land
       mv_points_required: 3
+      plowed.none         {}
     }
 
     plains {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     prairie {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     savannah {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     swamp {
       surface:            land
       mv_points_required: 2
+      plowed.irrigates    {}
     }
 
     tundra {
       surface:            land
       mv_points_required: 1
+      plowed.irrigates    {}
     }
 
     # Forest types. Each of these, when cleared, map to one of the
@@ -68,41 +80,49 @@ terrain {
     boreal {
       surface:            land
       mv_points_required: 2
+      plowed.cleared      { to=tundra }
     }
 
     broadleaf {
       surface:            land
       mv_points_required: 2
+      plowed.cleared      { to=prairie }
     }
 
     conifer {
       surface:            land
       mv_points_required: 2
+      plowed.cleared      { to=grassland }
     }
 
     mixed {
       surface:            land
       mv_points_required: 2
+      plowed.cleared      { to=plains }
     }
 
     rain {
       surface:            land
       mv_points_required: 3
+      plowed.cleared      { to=swamp }
     }
 
     scrub {
       surface:            land
       mv_points_required: 1
+      plowed.cleared      { to=desert }
     }
 
     tropical {
       surface:            land
       mv_points_required: 2
+      plowed.cleared      { to=savannah }
     }
 
     wetland {
       surface:            land
       mv_points_required: 3
+      plowed.cleared      { to=marsh }
     }
   }
 }

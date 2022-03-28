@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "game-state.hpp"
 #include "lua.hpp"
+#include "plow.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
 
@@ -181,6 +182,11 @@ void Unit::build_road() {
   o_.orders = e_unit_orders::road;
 }
 
+void Unit::plow() {
+  CHECK( can_plow( *this ) );
+  o_.orders = e_unit_orders::plow;
+}
+
 void Unit::consume_20_tools() {
   vector<UnitTransformationFromCommodityResult> results =
       with_commodity_removed( Commodity{
@@ -240,6 +246,7 @@ LUA_STARTUP( lua::state& st ) {
   u["change_type"]   = &U::change_type;
   u["sentry"]        = &U::sentry;
   u["build_road"]    = &U::build_road;
+  u["plow"]          = &U::plow;
   u["fortify"]       = &U::fortify;
   u["clear_orders"]  = &U::clear_orders;
 

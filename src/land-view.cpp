@@ -26,6 +26,7 @@
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
+#include "plow.hpp"
 #include "rand.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
@@ -300,6 +301,16 @@ struct LandViewRenderer {
     }
   }
 
+  void render_plows() {
+    rr::Painter painter = renderer.painter();
+    for( Coord world_tile : covered ) {
+      Coord tile_coord =
+          render_rect_for_tile( world_tile ).upper_left();
+      render_plow_if_present( painter, tile_coord, terrain_state,
+                              world_tile );
+    }
+  }
+
   // Units (rendering strategy depends on land view state).
   void render_units() {
     // The land view state should be set first, then the anima-
@@ -402,6 +413,7 @@ void render_land_view( rr::Renderer&       renderer,
   // that we've install above will automatically do the shifting
   // and scaling.
   lv_renderer.render_terrain();
+  lv_renderer.render_plows();
   lv_renderer.render_roads();
   lv_renderer.render_colonies();
   lv_renderer.render_units();
@@ -716,6 +728,8 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
     orders = orders::disband{};
   else if( tbl["road"] )
     orders = orders::road{};
+  else if( tbl["plow"] )
+    orders = orders::plow{};
   else if( tbl["move"] ) {
     e_direction d = tbl["move"]["d"].as<e_direction>();
     orders        = orders::move{ .d = d };

@@ -25,6 +25,7 @@ enum.e_unit_orders {
   sentry,
   fortified,
   road,
+  plow,
 }
 
 namespace "rn.wrapped"
