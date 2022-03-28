@@ -794,6 +794,9 @@ AttackHandler::confirm_attack_impl() {
   if( is_unit_onboard( id ) )
     co_return e_attack_verdict::attack_from_ship;
 
+  if( !can_attack( unit.desc() ) )
+    co_return e_attack_verdict::unit_cannot_attack;
+
   if( unit.movement_points() < 1 ) {
     if( co_await ui::ok_cancel(
             "This unit only has @[H]{}@[] movement points and "
