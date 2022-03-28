@@ -56,6 +56,13 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/irrigation.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        irrigation:          { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/tiles/wood-128x64.png
       sprite_size: { w: 128, h: 64 }
       sprites {

@@ -153,6 +153,9 @@ enum.e_tile {
   road_sw,
   road_w,
 
+  # Irrigation
+  irrigation,
+
   # Colonies
   colony_basic,
   colony_stockade,
