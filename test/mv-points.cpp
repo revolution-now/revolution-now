@@ -13,6 +13,10 @@
 // Under test.
 #include "src/mv-points.hpp"
 
+// Revolution Now
+#include "src/lua.hpp"
+#include "src/luapp/state.hpp"
+
 // cdr
 #include "src/cdr/converter.hpp"
 #include "src/cdr/ext-builtin.hpp"
@@ -29,6 +33,7 @@ namespace {
 using namespace ::std;
 using namespace ::cdr::literals;
 
+using ::base::valid;
 using ::cdr::testing::conv_from_bt;
 
 TEST_CASE( "[mv-points] cdr" ) {
@@ -66,6 +71,23 @@ TEST_CASE( "[mv-points] negative" ) {
   MovementPoints positive = MovementPoints::_1_3();
   REQUIRE( negative1 + positive ==
            MovementPoints( -2 ) - MovementPoints::_2_3() );
+}
+
+TEST_CASE( "[mv-points] lua conversion" ) {
+  lua::state& st = lua_global_state();
+
+  auto script = R"(
+    function f( mv_points )
+      assert( mv_points.atoms == 12 )
+      assert( tostring( mv_points ) == 'MovementPoints{atoms=12}' )
+      mv_points.atoms = 9
+      return mv_points
+    end
+  )";
+  REQUIRE( st.script.run_safe( script ) == valid );
+
+  REQUIRE( st["f"].pcall<MovementPoints>(
+               MovementPoints( 4 ) ) == MovementPoints( 3 ) );
 }
 
 } // namespace

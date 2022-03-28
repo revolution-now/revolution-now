@@ -58,8 +58,8 @@ maybe<MovementPoints> lua_get( lua::cthread L, int idx,
   if( !maybe_t.has_value() ) return nothing;
   lua::table& t = *maybe_t;
   if( t["atoms"] == lua::nil ) return nothing;
-  MovementPoints mv_pts( lua::as<int>( t["atoms"] ) );
-  return mv_pts;
+  int atoms = lua::as<int>( t["atoms"] );
+  return MovementPoints( atoms / 3, atoms % 3 );
 }
 
 void lua_push( lua::cthread L, MovementPoints mv_pts ) {
