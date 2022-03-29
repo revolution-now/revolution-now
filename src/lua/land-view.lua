@@ -29,6 +29,7 @@ local key_map = {
   ['i']=orders.move( e.direction.n ),
   ['o']=orders.move( e.direction.ne ),
   ['j']=orders.move( e.direction.w ),
+  ['h']=orders.move( e.direction.w ),
   ['l']=orders.move( e.direction.e ),
   ['m']=orders.move( e.direction.sw ),
   ['n']=orders.move( e.direction.sw ),

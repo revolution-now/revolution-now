@@ -81,17 +81,23 @@ local function create_some_units_on_land( nation2 )
   local dragoon = unit_type( e.unit_type.dragoon,
                              e.unit_type.petty_criminal )
   local soldier = unit_type( e.unit_type.soldier )
+  local veteran_dragoon =
+      unit_type( e.unit_type.veteran_dragoon )
   local pioneer = unit_type( e.unit_type.pioneer )
   local treasure = unit_type( e.unit_type.large_treasure )
   local unit =
       ustate.create_unit_on_map( nation, dragoon, coord )
-  unit:fortify();
+  -- unit:fortify();
 
   coord = location{ y=6, x=3 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
-  unit:sentry();
+  -- unit:sentry();
 
   coord = location{ y=6, x=6 }
+  ustate.create_unit_on_map( nation,
+                             unit_type( e.unit_type.privateer ),
+                             coord )
+  coord = location{ y=5, x=6 }
   ustate.create_unit_on_map( nation,
                              unit_type( e.unit_type.privateer ),
                              coord )
@@ -111,17 +117,25 @@ local function create_some_units_on_land( nation2 )
   local nation = e.nation.french
   coord = location{ y=7, x=2 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
-  unit:fortify();
+  coord = location{ y=8, x=2 }
+  unit = ustate.create_unit_on_map( nation, veteran_dragoon,
+                                    coord )
+  -- unit:fortify();
 
   coord = location{ y=7, x=3 }
   unit = ustate.create_unit_on_map( nation, soldier, coord )
-  unit:sentry();
+  coord = location{ y=8, x=3 }
+  unit = ustate.create_unit_on_map( nation, dragoon, coord )
+  -- unit:sentry();
 
   coord = location{ y=7, x=6 }
   unit = ustate.create_unit_on_map( nation, unit_type(
                                         e.unit_type.privateer ),
                                     coord )
-  unit:clear_orders();
+  coord = location{ y=8, x=6 }
+  unit = ustate.create_unit_on_map( nation, unit_type(
+                                        e.unit_type.privateer ),
+                                    coord )
 end
 
 local function create_some_colonies()

@@ -104,8 +104,8 @@ sheets {
         jesuit_colonist:        { y: 0, x: 0 }
         seasoned_colonist:      { y: 0, x: 0 }
         veteran_colonist:       { y: 0, x: 0 }
-        veteran_soldier:        { y: 0, x: 0 }
-        veteran_dragoon:        { y: 0, x: 0 }
+        veteran_soldier:        { y: 2, x: 3 }
+        veteran_dragoon:        { y: 2, x: 2 }
         continental_army:       { y: 0, x: 0 }
         continental_cavalry:    { y: 0, x: 0 }
         regular:                { y: 0, x: 0 }
