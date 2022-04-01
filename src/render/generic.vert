@@ -44,6 +44,15 @@ void forwarding() {
   frag_alpha_multiplier    = in_alpha_multiplier;
 }
 
+// Any input that refers to screen (game) coordinates needs to be
+// adjusted by this function.
+vec2 adjust_screen_position( in vec2 position ) {
+  vec2 adjusted_position = position;
+  adjusted_position *= in_scaling;
+  adjusted_position += in_translation;
+  return adjusted_position;
+}
+
 // Convert a coordinate in game coordinates (meaning that 0,0 is
 // at the upper left and each subsequent integer corresponds to a
 // logical pixel) to normalized device coordinates (-1, 1) with
@@ -68,9 +77,7 @@ void main() {
     return;
   }
 
-  vec2 adjusted_position = in_position;
-  adjusted_position *= in_scaling;
-  adjusted_position += in_translation;
+  vec2 adjusted_position = adjust_screen_position( in_position );
 
   gl_Position = vec4( to_ndc( adjusted_position ), 0.0, 1.0 );
 }
