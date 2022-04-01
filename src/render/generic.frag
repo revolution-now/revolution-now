@@ -11,12 +11,13 @@
 #version 330 core
 
 flat in int   frag_type;
-flat in float frag_depixelate;
+flat in vec3  frag_depixelate;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
 flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
+flat in float frag_scaling;
 
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
@@ -82,11 +83,21 @@ float hash_position() {
   // function to yield good results, otherwise we get repeating
   // patterns.
   float screen_scale = u_screen_size.x;
-  return hash_vec2( floor( frag_position )/screen_scale );
+  // The position that we will hash will be 1) a position that is
+  // relative to an anchor position so that the sprite will de-
+  // pixelate deterministically even if it is moving on screen
+  // while doing so, and 2) unscaled so that just in case the
+  // sprite is scaled we will still depixelate the sprite's
+  // pixels (which may be larger or smaller than the logical
+  // pixels if we are zoomed).
+  vec2 anchor = frag_depixelate.xy;
+  vec2 hash_position = (frag_position-anchor)/frag_scaling;
+  return hash_vec2( floor( hash_position )/screen_scale );
 }
 
 vec4 depixelate_to( in vec4 c1, in vec4 c2 ) {
-  return ( hash_position() > frag_depixelate ) ? c1 : c2;
+  float animation_stage = frag_depixelate.z;
+  return ( hash_position() > animation_stage ) ? c1 : c2;
 }
 
 /****************************************************************
@@ -112,7 +123,7 @@ void main() {
 
   // Post processing.
 
-  if( frag_depixelate > 0.0 ) {
+  if( frag_depixelate.z > 0.0 ) {
     // Depixelate to nothing by default.
     vec4 target_color = vec4( 0.0 );
     // Check if we are depixelating to another sprite. This re-

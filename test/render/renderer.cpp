@@ -41,7 +41,7 @@ using namespace ::mock::matchers;
 vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_type", true },                        //
     { GL_INT, "in_visible", true },                     //
-    { GL_FLOAT, "in_depixelate", false },               //
+    { GL_FLOAT_VEC3, "in_depixelate", false },          //
     { GL_FLOAT_VEC2, "in_position", false },            //
     { GL_FLOAT_VEC2, "in_atlas_position", false },      //
     { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //

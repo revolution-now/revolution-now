@@ -30,7 +30,7 @@ GenericVertex proto_vertex( vertex_type type,
   return GenericVertex{
       .type                = static_cast<int32_t>( type ),
       .visible             = 1,
-      .depixelate          = 0.0f,
+      .depixelate          = gl::vec3{},
       .position            = gl::vec2::from_point( position ),
       .atlas_position      = {},
       .atlas_target_offset = {},
@@ -47,11 +47,20 @@ GenericVertex proto_vertex( vertex_type type,
 ** VertexBase
 *****************************************************************/
 void VertexBase::set_depixelation_stage( double percent ) {
-  depixelate = static_cast<float>( percent );
+  depixelate.z = static_cast<float>( percent );
 }
 
 double VertexBase::depixelation_stage() const {
-  return depixelate;
+  return depixelate.z;
+}
+
+void VertexBase::set_depixelation_anchor( gfx::point anchor ) {
+  depixelate.x = anchor.x;
+  depixelate.y = anchor.y;
+}
+
+gl::vec2 VertexBase::depixelation_anchor() const {
+  return gl::vec2{ .x = depixelate.x, .y = depixelate.y };
 }
 
 void VertexBase::set_depixelation_target(

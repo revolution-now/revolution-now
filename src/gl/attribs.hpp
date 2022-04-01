@@ -213,4 +213,25 @@ struct traits<gl::vec2> {
   };
 };
 
+// Reflection info for struct gl::vec3.
+template<>
+struct traits<gl::vec3> {
+  using type = gl::vec3;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "vec3";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gl::vec3::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gl::vec3::y,
+                         offsetof( type, y ) },
+      refl::StructField{ "z", &gl::vec3::z,
+                         offsetof( type, z ) },
+  };
+};
+
 } // namespace refl

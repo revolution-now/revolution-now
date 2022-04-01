@@ -37,6 +37,15 @@ struct DepixelateInfo {
   // pixel in the atlas. Otherwise, the depixelation just goes to
   // full transparency.
   base::maybe<gfx::size> target = {};
+
+  // This should be set for any sprite that might move around on
+  // screen as it is depixelating, e.g. a unit is depixelating
+  // and the player scrolls the map. It will ensure that the ani-
+  // mation proceeds deterministically as the sprite moves. The
+  // value that this requires is a bit arbitrary, it just has to
+  // move with the sprite. So using the upper left corner of the
+  // sprite seems to be a good idea.
+  base::maybe<gfx::point> anchor = {};
 };
 
 // These options allow specifying a global rescaling and transla-

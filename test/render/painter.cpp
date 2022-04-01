@@ -771,7 +771,9 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage = .7, .target = {} },
+            DepixelateInfo{ .stage  = .7,
+                            .target = {},
+                            .anchor = point{ .x = 1, .y = 2 } },
         .alpha = nothing,
         .repos = {} } );
 
@@ -780,6 +782,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   auto Vert = [&]( point p, point atlas_p ) {
     auto vert = SilhouetteVertex( p, atlas_p, R );
     vert.set_depixelation_stage( .7 );
+    vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
   };
 

@@ -95,6 +95,8 @@ void Painter::add_mods( VertexBase&        vert,
                         PainterMods const& mods ) {
   if( mods.depixelate.stage.has_value() )
     vert.set_depixelation_stage( *mods.depixelate.stage );
+  if( mods.depixelate.anchor.has_value() )
+    vert.set_depixelation_anchor( *mods.depixelate.anchor );
   if( mods.depixelate.target.has_value() )
     vert.set_depixelation_target( *mods.depixelate.target );
   if( mods.repos.scale.has_value() )
