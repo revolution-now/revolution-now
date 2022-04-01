@@ -230,6 +230,7 @@ struct LandViewRenderer {
     // Now render the depixelating unit.
     Coord loc =
         render_rect_for_tile( depixelate_tile ).upper_left();
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, loc );
     rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
     switch( dp_anim.type ) {
