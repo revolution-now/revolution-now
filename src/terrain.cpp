@@ -11,7 +11,6 @@
 #include "terrain.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "config-terrain.hpp"
 
 using namespace std;
@@ -19,8 +18,7 @@ using namespace std;
 namespace rn {
 
 bool is_land( e_terrain terrain ) {
-  return config_terrain.terrain.types[terrain].surface ==
-         e_surface::land;
+  return terrain != e_terrain::ocean;
 }
 
 bool is_water( e_terrain terrain ) {
@@ -32,20 +30,46 @@ e_surface surface_type( e_terrain terrain ) {
 }
 
 bool can_plow( e_terrain terrain ) {
-  return !config_terrain.terrain.types[terrain]
-              .plowed.is<PlowAction::none>();
+  auto const& info = config_terrain.terrain.types[terrain];
+  return info.can_irrigate || info.cleared_forest;
 }
 
-maybe<e_terrain> cleared_forest( e_terrain terrain ) {
-  UNWRAP_RETURN( cleared,
-                 config_terrain.terrain.types[terrain]
-                     .plowed.get_if<PlowAction::cleared>() );
-  return cleared.to;
+maybe<e_ground_terrain> cleared_forest( e_terrain terrain ) {
+  return config_terrain.terrain.types[terrain].cleared_forest;
 }
 
 bool can_irrigate( e_terrain terrain ) {
-  return config_terrain.terrain.types[terrain]
-      .plowed.holds<PlowAction::irrigates>();
+  return config_terrain.terrain.types[terrain].can_irrigate;
+}
+
+maybe<e_ground_terrain> to_ground_terrain( e_terrain terrain ) {
+  switch( terrain ) {
+    case e_terrain::arctic: return e_ground_terrain::arctic;
+    case e_terrain::boreal: return nothing;
+    case e_terrain::broadleaf: return nothing;
+    case e_terrain::conifer: return nothing;
+    case e_terrain::desert: return e_ground_terrain::desert;
+    case e_terrain::grassland:
+      return e_ground_terrain::grassland;
+    case e_terrain::hills: return nothing;
+    case e_terrain::marsh: return e_ground_terrain::marsh;
+    case e_terrain::mixed: return nothing;
+    case e_terrain::mountains: return nothing;
+    case e_terrain::ocean: return nothing;
+    case e_terrain::plains: return e_ground_terrain::plains;
+    case e_terrain::prairie: return e_ground_terrain::prairie;
+    case e_terrain::rain: return nothing;
+    case e_terrain::savannah: return e_ground_terrain::savannah;
+    case e_terrain::scrub: return nothing;
+    case e_terrain::swamp: return e_ground_terrain::swamp;
+    case e_terrain::tropical: return nothing;
+    case e_terrain::tundra: return e_ground_terrain::tundra;
+    case e_terrain::wetland: return nothing;
+  }
+}
+
+bool has_forest( e_terrain terrain ) {
+  return cleared_forest( terrain ).has_value();
 }
 
 } // namespace rn

@@ -10,38 +10,27 @@
 # ===============================================================
 namespace "rn"
 
-enum.e_surface {
-  water,
-  land
-}
-
-enum.e_terrain {
-  # Water only has one terrain type.
-  ocean,
-
-  # Ground types.
+enum.e_ground_terrain {
   arctic,
   desert,
   grassland,
-  hills,
   marsh,
-  mountains,
   plains,
   prairie,
   savannah,
   swamp,
   tundra,
+}
 
-  # Forest types. Each of these, when cleared, map to one of the
-  # above base types.
-  boreal,
-  broadleaf,
-  conifer,
-  mixed,
-  rain,
-  scrub,
-  tropical,
-  wetland,
+enum.e_surface {
+  water,
+  land
+}
+
+enum.e_land_overlay {
+  forest,
+  hills,
+  mountains,
 }
 
 enum.e_river {
@@ -64,17 +53,30 @@ enum.e_natural_resource {
   wheat,
 }
 
-# This describes what happens to a terrain type when the play ap-
-# plies the "plow" action with a pioneer.
-sumtype.PlowAction {
-  # Cannot be subject to the plow action.
-  none {},
+# Effective terrain. This is the one that is most directly rele-
+# vant for game mechanics. Each square will have precisely one
+# value for this enum. This one is not needed for rendering, but
+# is useful for resource and movement calculations, since those
+# quantities (in particular, for forested types) cannot simply be
+# derived by knowing the ground terrain and forest status.
+enum.e_terrain {
+  # Water only has one terrain type.
+  ocean,
 
-  # Clears a forest and changes terrain type.
-  cleared {
-    to 'e_terrain',
-  },
+  # Ground    Forested
+  desert,     scrub,
+  grassland,  conifer,
+  marsh,      wetland,
+  plains,     mixed,
+  prairie,    broadleaf,
+  savannah,   tropical,
+  swamp,      rain,
+  tundra,     boreal,
 
-  # Adds irrigation.
-  irrigates {},
+  # This one can't be forested.
+  arctic,
+
+  # Hills/Mountains.
+  hills,
+  mountains,
 }

@@ -35,5 +35,66 @@ TEST_CASE( "[terrain] is_land, is_water" ) {
   REQUIRE( surface_type( terrain ) == e_surface::land );
 }
 
+TEST_CASE( "[terrain] can_plow" ) {
+  REQUIRE( can_plow( e_terrain::grassland ) );
+  REQUIRE( can_plow( e_terrain::conifer ) );
+  REQUIRE( can_plow( e_terrain::tundra ) );
+  REQUIRE( can_plow( e_terrain::boreal ) );
+  REQUIRE_FALSE( can_plow( e_terrain::ocean ) );
+  REQUIRE_FALSE( can_plow( e_terrain::hills ) );
+  REQUIRE_FALSE( can_plow( e_terrain::mountains ) );
+  REQUIRE_FALSE( can_plow( e_terrain::arctic ) );
+}
+
+TEST_CASE( "[terrain] cleared_forest" ) {
+  REQUIRE( cleared_forest( e_terrain::grassland ) == nothing );
+  REQUIRE( cleared_forest( e_terrain::conifer ) ==
+           e_ground_terrain::grassland );
+  REQUIRE( cleared_forest( e_terrain::tundra ) == nothing );
+  REQUIRE( cleared_forest( e_terrain::boreal ) ==
+           e_ground_terrain::tundra );
+  REQUIRE( cleared_forest( e_terrain::ocean ) == nothing );
+  REQUIRE( cleared_forest( e_terrain::hills ) == nothing );
+  REQUIRE( cleared_forest( e_terrain::mountains ) == nothing );
+  REQUIRE( cleared_forest( e_terrain::arctic ) == nothing );
+}
+
+TEST_CASE( "[terrain] has_forest" ) {
+  REQUIRE_FALSE( has_forest( e_terrain::grassland ) );
+  REQUIRE( has_forest( e_terrain::conifer ) );
+  REQUIRE_FALSE( has_forest( e_terrain::tundra ) );
+  REQUIRE( has_forest( e_terrain::boreal ) );
+  REQUIRE_FALSE( has_forest( e_terrain::ocean ) );
+  REQUIRE_FALSE( has_forest( e_terrain::hills ) );
+  REQUIRE_FALSE( has_forest( e_terrain::mountains ) );
+  REQUIRE_FALSE( has_forest( e_terrain::arctic ) );
+}
+
+TEST_CASE( "[terrain] can_irrigate" ) {
+  REQUIRE( can_irrigate( e_terrain::grassland ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::conifer ) );
+  REQUIRE( can_irrigate( e_terrain::tundra ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::boreal ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::ocean ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::hills ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::mountains ) );
+  REQUIRE_FALSE( can_irrigate( e_terrain::arctic ) );
+}
+
+TEST_CASE( "[terrain] to_ground_terrain" ) {
+  REQUIRE( to_ground_terrain( e_terrain::grassland ) ==
+           e_ground_terrain::grassland );
+  REQUIRE( to_ground_terrain( e_terrain::conifer ) == nothing );
+  REQUIRE( to_ground_terrain( e_terrain::tundra ) ==
+           e_ground_terrain::tundra );
+  REQUIRE( to_ground_terrain( e_terrain::boreal ) == nothing );
+  REQUIRE( to_ground_terrain( e_terrain::ocean ) == nothing );
+  REQUIRE( to_ground_terrain( e_terrain::hills ) == nothing );
+  REQUIRE( to_ground_terrain( e_terrain::mountains ) ==
+           nothing );
+  REQUIRE( to_ground_terrain( e_terrain::arctic ) ==
+           e_ground_terrain::arctic );
+}
+
 } // namespace
 } // namespace rn
