@@ -25,14 +25,24 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[src/mv-calc] expense" ) {
-  MapSquare const ocean{ .terrain = e_terrain::ocean };
-  MapSquare const grassland{ .terrain = e_terrain::grassland };
-  MapSquare const mountains{ .terrain = e_terrain::mountains };
+  MapSquare ocean = map_square_for_terrain( e_terrain::ocean );
+  MapSquare grassland =
+      map_square_for_terrain( e_terrain::grassland );
+  MapSquare mountains =
+      map_square_for_terrain( e_terrain::mountains );
+  MapSquare grassland_with_road =
+      map_square_for_terrain( e_terrain::grassland );
+  grassland_with_road.road = true;
+  MapSquare mountains_with_road =
+      map_square_for_terrain( e_terrain::mountains );
+  mountains_with_road.road = true;
 
-  MapSquare const grassland_with_road{
-      .terrain = e_terrain::grassland, .road = true };
-  MapSquare const mountains_with_road{
-      .terrain = e_terrain::mountains, .road = true };
+  MapSquare grassland_with_road_and_river =
+      map_square_for_terrain( e_terrain::grassland );
+  grassland_with_road_and_river.road = true;
+  MapSquare mountains_with_river =
+      map_square_for_terrain( e_terrain::mountains );
+  mountains_with_river.river = e_river::major;
 
   Unit privateer = create_free_unit(
       e_nation::english,
@@ -71,8 +81,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   Unit forked_colonist_1 = free_colonist;
 
   // Free colonist, road to road.
-  src      = grassland_with_road;
-  dst      = grassland_with_road;
+  src      = grassland_with_road_and_river;
+  dst      = grassland_with_road_and_river;
   unit     = free_colonist;
   expected = MovementPointsAnalysis{
       .has                         = MovementPoints( 1 ),
@@ -92,8 +102,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   Unit forked_colonist_2_3 = free_colonist;
 
   // Continue with original colonist.
-  src      = grassland_with_road;
-  dst      = grassland_with_road;
+  src      = grassland_with_road_and_river;
+  dst      = grassland_with_road_and_river;
   unit     = free_colonist;
   expected = MovementPointsAnalysis{
       .has                         = MovementPoints::_2_3(),
@@ -113,8 +123,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   Unit forked_colonist_1_3 = free_colonist;
 
   // Continue with original colonist.
-  src      = grassland_with_road;
-  dst      = grassland_with_road;
+  src      = grassland_with_road_and_river;
+  dst      = grassland_with_road_and_river;
   unit     = free_colonist;
   expected = MovementPointsAnalysis{
       .has                         = MovementPoints::_1_3(),
@@ -130,7 +140,7 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   REQUIRE( unit.get().movement_points() == 0 );
 
   // Continue with the 1/3 colonist.
-  src      = grassland_with_road;
+  src      = grassland_with_road_and_river;
   dst      = grassland;
   unit     = forked_colonist_1_3;
   expected = MovementPointsAnalysis{
@@ -147,7 +157,7 @@ TEST_CASE( "[src/mv-calc] expense" ) {
            MovementPoints::_1_3() );
 
   // Continue with the 2/3 colonist.
-  src      = grassland_with_road;
+  src      = grassland_with_road_and_river;
   dst      = grassland;
   unit     = forked_colonist_2_3;
   expected = MovementPointsAnalysis{
