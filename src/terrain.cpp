@@ -72,4 +72,19 @@ bool has_forest( e_terrain terrain ) {
   return cleared_forest( terrain ).has_value();
 }
 
+e_terrain from_ground_terrain( e_ground_terrain ground ) {
+  switch( ground ) {
+    case e_ground_terrain::arctic: return e_terrain::arctic;
+    case e_ground_terrain::desert: return e_terrain::desert;
+    case e_ground_terrain::grassland:
+      return e_terrain::grassland;
+    case e_ground_terrain::marsh: return e_terrain::marsh;
+    case e_ground_terrain::plains: return e_terrain::plains;
+    case e_ground_terrain::prairie: return e_terrain::prairie;
+    case e_ground_terrain::savannah: return e_terrain::savannah;
+    case e_ground_terrain::swamp: return e_terrain::swamp;
+    case e_ground_terrain::tundra: return e_terrain::tundra;
+  }
+}
+
 } // namespace rn

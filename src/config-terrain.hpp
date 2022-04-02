@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "config-files.hpp"
+
 // config
 #include "../../config/rcl/terrain.inl"
 

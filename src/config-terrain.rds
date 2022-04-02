@@ -18,11 +18,23 @@ include "terrain.rds.hpp"
 namespace "rn"
 
 struct.TerrainTypeInfo {
+  # Is this land or water.
   surface 'e_surface',
-  mv_points_required 'MovementPoints',
-  plowed 'PlowAction_t',
+  movement_cost 'MovementPoints',
+  # If the square has a forest then it will be assumed that the
+  # forest can be cleared. If it doesn't have a forest then this
+  # bool will specify whether it can be irrigated.
+  can_irrigate 'bool',
+  # If a forest is added to this terrain (when possible) it be-
+  # comes the following.
+  with_forest 'base::maybe<e_terrain>',
+  cleared_forest 'base::maybe<e_ground_terrain>',
+
+  _features { equality, validation }
 }
 
 struct.TerrainConfig {
   types 'EnumMap<e_terrain, TerrainTypeInfo>',
+
+  _features { equality, validation }
 }

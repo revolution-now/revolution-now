@@ -96,5 +96,14 @@ TEST_CASE( "[terrain] to_ground_terrain" ) {
            e_ground_terrain::arctic );
 }
 
+TEST_CASE( "[terrain] from_ground_terrain" ) {
+  REQUIRE( from_ground_terrain( e_ground_terrain::grassland ) ==
+           e_terrain::grassland );
+  REQUIRE( from_ground_terrain( e_ground_terrain::tundra ) ==
+           e_terrain::tundra );
+  REQUIRE( from_ground_terrain( e_ground_terrain::arctic ) ==
+           e_terrain::arctic );
+}
+
 } // namespace
 } // namespace rn

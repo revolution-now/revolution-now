@@ -1,128 +1,172 @@
 terrain {
   types {
     ocean {
-      surface:            water
-      mv_points_required: 1
-      plowed.none         {}
+      surface:        water
+      movement_cost:  1
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: null
     }
 
-    # Ground types.
+    # This is the one non-forestable base terrain type.
 
     arctic {
-      surface:            land
-      mv_points_required: 2
-      plowed.none         {}
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: null
     }
 
+    # Forestable base terrain types.
+
     desert {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    scrub
+      cleared_forest: null
     }
 
     grassland {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
-    }
-
-    hills {
-      surface:            land
-      mv_points_required: 2
-      plowed.none         {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    conifer
+      cleared_forest: null
     }
 
     marsh {
-      surface:            land
-      mv_points_required: 2
-      plowed.irrigates    {}
-    }
-
-    mountains {
-      surface:            land
-      mv_points_required: 3
-      plowed.none         {}
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   true
+      with_forest:    wetland
+      cleared_forest: null
     }
 
     plains {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    mixed
+      cleared_forest: null
     }
 
     prairie {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    broadleaf
+      cleared_forest: null
     }
 
     savannah {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    tropical
+      cleared_forest: null
     }
 
     swamp {
-      surface:            land
-      mv_points_required: 2
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   true
+      with_forest:    rain
+      cleared_forest: null
     }
 
     tundra {
-      surface:            land
-      mv_points_required: 1
-      plowed.irrigates    {}
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   true
+      with_forest:    boreal
+      cleared_forest: null
     }
 
     # Forest types. Each of these, when cleared, map to one of the
     # above base types.
 
     boreal {
-      surface:            land
-      mv_points_required: 2
-      plowed.cleared      { to=tundra }
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: tundra
     }
 
     broadleaf {
-      surface:            land
-      mv_points_required: 2
-      plowed.cleared      { to=prairie }
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: prairie
     }
 
     conifer {
-      surface:            land
-      mv_points_required: 2
-      plowed.cleared      { to=grassland }
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: grassland
     }
 
     mixed {
-      surface:            land
-      mv_points_required: 2
-      plowed.cleared      { to=plains }
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: plains
     }
 
     rain {
-      surface:            land
-      mv_points_required: 3
-      plowed.cleared      { to=swamp }
+      surface:        land
+      movement_cost:  3
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: swamp
     }
 
     scrub {
-      surface:            land
-      mv_points_required: 1
-      plowed.cleared      { to=desert }
+      surface:        land
+      movement_cost:  1
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: desert
     }
 
     tropical {
-      surface:            land
-      mv_points_required: 2
-      plowed.cleared      { to=savannah }
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: savannah
     }
 
     wetland {
-      surface:            land
-      mv_points_required: 3
-      plowed.cleared      { to=marsh }
+      surface:        land
+      movement_cost:  3
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: marsh
+    }
+
+    # Hills/Mountains.
+
+    hills {
+      surface:        land
+      movement_cost:  2
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: null
+    }
+
+    mountains {
+      surface:        land
+      movement_cost:  3
+      can_irrigate:   false
+      with_forest:    null
+      cleared_forest: null
     }
   }
 }
