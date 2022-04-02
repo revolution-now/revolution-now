@@ -176,7 +176,7 @@ local PLN = e.ground_terrain.plains
 local PRA = e.ground_terrain.prairie
 local SAV = e.ground_terrain.savannah
 local SWA = e.ground_terrain.swamp
-local TUNDRA = e.ground_terrain.tundra
+local TUN = e.ground_terrain.tundra
 
 local HLL = e.land_overlay.hills
 local MTN = e.land_overlay.mountains
@@ -186,12 +186,12 @@ local ___ = 'none'
 
 local ground_tiles = {
   { SWA, ARC, PRA, ARC, ___, ___, GRA, ARC, PLN, ARC },
-  { SWA, SWA, PRA, PLN, ___, ___, GRA, DST, PLN, MSH },
-  { SWA, SAV, PRA, PRA, ___, ___, DST, DST, PLN, MSH },
-  { MSH, SWA, PLN, PLN, ___, ___, ARC, MSH, MSG, PLN },
+  { TUN, SWA, PRA, PLN, ___, ___, GRA, DST, PLN, MSH },
+  { TUN, SAV, PRA, PRA, ___, ___, DST, DST, PLN, TUN },
+  { MSH, SWA, PLN, PLN, ___, ___, PLN, MSH, MSG, PLN },
   { MSH, SWA, SAV, PRA, ___, ___, PRA, GRA, DST, PLN },
-  { SAV, PRA, PRA, ARC, ___, ___, PRA, MSG, MSH, SWA },
-  { SAV, PLN, PLN, ARC, ___, ___, DST, PLN, PLN, SWA },
+  { SAV, PRA, PRA, PLN, ___, ___, PRA, MSG, MSH, SWA },
+  { SAV, PLN, PLN, PRA, ___, ___, DST, PLN, PLN, SWA },
   { SWA, GRA, PRA, MSH, ___, ___, PRA, DST, SAV, PLN },
   { SWA, GRA, GRA, MSH, ___, ___, DST, DST, SAV, PLN },
   { ARC, SAV, ARC, PLN, ___, ___, ARC, DST, ARC, MSH }

@@ -34,8 +34,16 @@ namespace rn {
 
 namespace {
 
-bool   g_show_grid    = false;
-double g_tile_overlap = 1.0;
+bool g_show_grid = false;
+
+double g_tile_overlap_scaling       = .8;
+double g_tile_overlap_width_percent = .2;
+
+double g_tile_overlap_stage_one_alpha = .85;
+double g_tile_overlap_stage_one_stage = .70;
+
+double g_tile_overlap_stage_two_alpha = .5;
+double g_tile_overlap_stage_two_stage = .85;
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
@@ -168,18 +176,28 @@ void render_terrain_land_square(
   render_sprite( painter, where, tile );
   {
 #if 1
-    SCOPED_RENDERER_MOD( painter_mods.alpha, .5 );
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage, .80 );
+    SCOPED_RENDERER_MOD( painter_mods.alpha,
+                         g_tile_overlap_stage_two_alpha );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                         g_tile_overlap_stage_two_stage );
     render_adjacent_overlap(
         terrain_state, renderer, where, world_square,
-        /*chop_percent=*/1.0 - .2 * g_tile_overlap );
+        /*chop_percent=*/
+        clamp( 1.0 - g_tile_overlap_width_percent *
+                         g_tile_overlap_scaling,
+               0.0, 1.0 ) );
 #endif
 #if 1
-    SCOPED_RENDERER_MOD( painter_mods.alpha, .85 );
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage, .60 );
+    SCOPED_RENDERER_MOD( painter_mods.alpha,
+                         g_tile_overlap_stage_one_alpha );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                         g_tile_overlap_stage_one_stage );
     render_adjacent_overlap(
         terrain_state, renderer, where, world_square,
-        /*chop_percent=*/1.0 - .1 * g_tile_overlap );
+        /*chop_percent=*/
+        clamp( 1.0 - ( g_tile_overlap_width_percent / 2.0 ) *
+                         g_tile_overlap_scaling,
+               0.0, 1.0 ) );
 #endif
   }
   if( square.overlay.has_value() ) {
@@ -219,9 +237,9 @@ LUA_FN( toggle_grid, void ) {
 }
 
 LUA_FN( set_tile_chop_multiplier, void, double mult ) {
-  g_tile_overlap = std::clamp( mult, 0.0, 1.0 );
+  g_tile_overlap_scaling = std::clamp( mult, 0.0, 2.0 );
   lg.debug( "setting tile overlap multiplier to {}.",
-            g_tile_overlap );
+            g_tile_overlap_scaling );
 }
 
 } // namespace

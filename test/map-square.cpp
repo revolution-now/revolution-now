@@ -189,7 +189,6 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
       .surface  = e_surface::water,
-      .ground   = e_ground_terrain::savannah,
       .resource = e_natural_resource::fish,
       .sea_lane = true,
   };
@@ -246,7 +245,6 @@ TEST_CASE( "[map-square] can_plow" ) {
 
   square = MapSquare{
       .surface  = e_surface::water,
-      .ground   = e_ground_terrain::savannah,
       .resource = e_natural_resource::fish,
   };
   expected = false;
@@ -299,7 +297,6 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
       .surface  = e_surface::water,
-      .ground   = e_ground_terrain::savannah,
       .resource = e_natural_resource::fish,
   };
   expected = false;
@@ -382,7 +379,6 @@ TEST_CASE( "[map-square] can_irrigate" ) {
 
   square = MapSquare{
       .surface  = e_surface::water,
-      .ground   = e_ground_terrain::savannah,
       .resource = e_natural_resource::fish,
   };
   expected = false;

@@ -29,16 +29,26 @@ struct.MapSquare {
   # Is this land or water.
   surface 'e_surface',
 
-  # The value of this is meaningful for any square that is either
-  # land or borders land. For water tiles that are surrounded by
-  # water (entirely) the value is inconsequential, and so it will
-  # typically be set to the first enum value so that it can just
-  # assume its default value. For hills, mountains, and coastal
-  # tiles, this has a meaningful value but only for rendering
-  # purposes, not for game mechanics purposes. An example would
-  # be that mountains still need a terrain type to render at the
-  # base of their mountains so as to make them continuous with
-  # surrounding squares.
+  # All land tiles must specify a value for this. For water
+  # squares it is ignored, but should probably just assume its
+  # default value.
+  #
+  # Hills and mountains also need a value for this, but just for
+  # rendering purposes (it has no bearing on game mechanics). For
+  # hills and mountains, for some reason, the original game does
+  # not derive this from surrounding squares, not sure why. It
+  # could be that adjacent water tiles need that information (see
+  # next paragraph) so it is useful to have it recorded instead
+  # of derived on the fly.
+  #
+  # Water tiles that border land will need a ground type for ren-
+  # dering purposes, but the original game appears to derive
+  # those from adjacent squares instead of allowing them to be
+  # specified manually. Experiments with the map editor seem to
+  # show that first priority is given to the land square to the
+  # left of the water tile, then if there is no land there it
+  # will check the one below, and so on in clockwise fashion
+  # (left, bottom, right, top).
   ground 'e_ground_terrain',
 
   # Forest, hills, or mountains.

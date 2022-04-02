@@ -2,7 +2,7 @@
 # TODO
 # ===============================================================
 
-  1.  Improve sprites for ground tiles.
+  1.  Make map editor.
   2.  Add basic auto unit outlining in fragment shader so that
       the units will be visible.
   3.  Implement world generation.
