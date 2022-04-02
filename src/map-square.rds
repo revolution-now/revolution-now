@@ -8,15 +8,13 @@
 # Description: RDS definitions for the map-square module.
 #
 # ===============================================================
+# Revolution Now
+include "maybe.hpp"
+include "enum-map.hpp"
+
 # Rds
 include "nation.rds.hpp"
 include "terrain.rds.hpp"
-
-# base
-include "base/maybe.hpp"
-
-# C++ standard library
-include "<unordered_set>"
 
 namespace "rn"
 
@@ -26,16 +24,34 @@ namespace "rn"
 # file.
 struct.MapSquare {
   # Which nations have explored this square.
-  visibility 'std::unordered_set<e_nation>',
+  visibility 'EnumMap<e_nation, bool>',
 
-  # Land or ocean.
-  terrain 'e_terrain',
+  # Is this land or water.
+  surface 'e_surface',
 
-  # What kind of river do we have, if any.
-  river 'base::maybe<e_river>',
+  # The value of this is meaningful for any square that is either
+  # land or borders land. For water tiles that are surrounded by
+  # water (entirely) the value is inconsequential, and so it will
+  # typically be set to the first enum value so that it can just
+  # assume its default value. For hills, mountains, and coastal
+  # tiles, this has a meaningful value but only for rendering
+  # purposes, not for game mechanics purposes. An example would
+  # be that mountains still need a terrain type to render at the
+  # base of their mountains so as to make them continuous with
+  # surrounding squares.
+  ground 'e_ground_terrain',
 
-  # Any natural resources over the square.
-  resource 'base::maybe<e_natural_resource>',
+  # Forest, hills, or mountains.
+  overlay 'maybe<e_land_overlay>',
+
+  # Note that forest squares can have rivers too, but not moun-
+  # tains or hills.
+  river 'maybe<e_river>',
+
+  # This is any special resource that a square has, beyond what
+  # can normally be produced by its terrain type. It will be rep-
+  # resented as its own icon on top of the square.
+  resource 'maybe<e_natural_resource>',
 
   # This can only be done on certain squares, and also can't
   # co-exist with a forest terrain type.
@@ -49,4 +65,9 @@ struct.MapSquare {
   # square the game will ask if they want to sail to the old
   # world.
   sea_lane 'bool',
+
+  # In the original game this was a giant gold coin over the
+  # square that you could enter to risk either getting some kind
+  # of reward or making the natives unhappy.
+  lost_city_rumor 'bool',
 }

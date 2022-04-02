@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "mv-points.hpp"
+#include "terrain.hpp"
 
 // Rds
 #include "map-square.rds.hpp"
@@ -27,5 +28,28 @@ e_surface surface_type( MapSquare const& square );
 
 MovementPoints movement_points_required(
     MapSquare const& src_square, MapSquare const& dst_square );
+
+e_terrain effective_terrain( MapSquare const& square );
+
+// This includes either clearing a forest or irrigating.
+bool can_plow( MapSquare const& square );
+
+bool has_forest( MapSquare const& square );
+
+// Will check-fail if the square has no forest.
+void clear_forest( MapSquare& square );
+
+// This includes *only* irrigation and not forest-clearing.
+// Will return false if the square already has irrigation.
+bool can_irrigate( MapSquare const& square );
+
+// This will apply irrigation (not forest-clearing) to the square
+// and will check-fail if it cannot be irrigated or if there is
+// already irrigation there.
+void irrigate( MapSquare& square );
+
+// This is mainly for testing. It will create a minimal valid
+// MapSquare object that has the given effective terrain type.
+MapSquare map_square_for_terrain( e_terrain terrain );
 
 } // namespace rn
