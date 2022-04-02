@@ -675,7 +675,6 @@ void advance_viewport_state() {
 
   // Returns true if key is pressed.
   auto state = [__state]( ::SDL_Scancode code ) {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     return __state[code] != 0;
   };
 
@@ -827,8 +826,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          return __state[code] != 0;
+                   return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
         // from lowercase.
