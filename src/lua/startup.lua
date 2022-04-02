@@ -38,7 +38,6 @@ local function create_some_plows()
     location{ x=2, y=2 }, --
     location{ x=2, y=3 }, --
     location{ x=2, y=5 }, --
-    location{ x=2, y=5 }, --
     location{ x=3, y=5 } --
   }
   for _, tile in ipairs( tiles ) do plow.plow_square( tile ) end
