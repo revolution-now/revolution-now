@@ -38,7 +38,7 @@ void prepare_world( TerrainState& terrain_state,
   terrain_state.world_map = WorldMap( Delta( 1_w, 1_h ) );
   WorldMap& world_map     = terrain_state.world_map;
   world_map[kSquare] =
-      MapSquare{ .terrain = e_terrain::grassland };
+      map_square_for_terrain( e_terrain::grassland );
   UnitComposition comp = UnitComposition::create( unit_type );
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
