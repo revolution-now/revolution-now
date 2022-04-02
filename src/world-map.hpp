@@ -55,6 +55,7 @@ bool is_land( TerrainState const& terrain_state, Coord coord );
 /****************************************************************
 ** Testing
 *****************************************************************/
+// FIXME: remove
 void generate_unittest_terrain();
 
 } // namespace rn
