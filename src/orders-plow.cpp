@@ -64,7 +64,8 @@ struct PlowHandler : public OrdersHandler {
     if( !can_plow( terrain_state, world_square ) ) {
       co_await ui::message_box(
           "@[H]{}@[] tiles cannot be plowed or cleared.",
-          square_at( terrain_state, world_square ).terrain );
+          effective_terrain(
+              square_at( terrain_state, world_square ) ) );
       co_return false;
     }
     if( has_irrigation( terrain_state, world_square ) ) {
