@@ -39,7 +39,7 @@ void prepare_world( TerrainState& terrain_state,
                     e_unit_type unit_type ) {
   terrain_state.world_map = WorldMap( Delta( 1_w, 1_h ) );
   WorldMap& world_map     = terrain_state.world_map;
-  world_map[kSquare]      = MapSquare{ .terrain = terrain };
+  world_map[kSquare]      = map_square_for_terrain( terrain );
   UnitComposition comp    = UnitComposition::create( unit_type );
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
@@ -47,7 +47,7 @@ void prepare_world( TerrainState& terrain_state,
   units_state.change_to_map( id, kSquare );
 }
 
-TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
+TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   TerrainState terrain_state;
   UnitsState   units_state;
   prepare_world( terrain_state, units_state, e_terrain::conifer,
@@ -64,13 +64,13 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   unit.consume_20_tools();
   unit.consume_20_tools();
   unit.consume_20_tools();
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
 
   // Before starting plowing work.
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) ==
-           e_terrain::grassland );
-  REQUIRE( can_irrigate( square.terrain ) == false );
+  REQUIRE( has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == false );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -84,9 +84,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) ==
-           e_terrain::grassland );
-  REQUIRE( can_irrigate( square.terrain ) == false );
+  REQUIRE( has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == false );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -104,9 +103,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
     perform_plow_work( units_state, terrain_state, unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
-    REQUIRE( cleared_forest( square.terrain ) ==
-             e_terrain::grassland );
-    REQUIRE( can_irrigate( square.terrain ) == false );
+    REQUIRE( has_forest( square ) );
+    REQUIRE( can_irrigate( square ) == false );
     REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
     REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -121,8 +119,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   perform_plow_work( units_state, terrain_state, unit );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -136,8 +134,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -153,8 +151,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
     perform_plow_work( units_state, terrain_state, unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
-    REQUIRE( cleared_forest( square.terrain ) == nothing );
-    REQUIRE( can_irrigate( square.terrain ) == true );
+    REQUIRE( !has_forest( square ) );
+    REQUIRE( can_irrigate( square ) == true );
     REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
     REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -169,8 +167,8 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   perform_plow_work( units_state, terrain_state, unit );
   REQUIRE( can_plow( unit ) == false );
   REQUIRE( can_plow( terrain_state, kSquare ) == false );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == false );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -180,7 +178,7 @@ TEST_CASE( "[test/plow] plow_square with 40 tools" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[test/plow] plow_square with cancellation" ) {
+TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   TerrainState terrain_state;
   UnitsState   units_state;
   prepare_world( terrain_state, units_state,
@@ -197,12 +195,13 @@ TEST_CASE( "[test/plow] plow_square with cancellation" ) {
   unit.consume_20_tools();
   unit.consume_20_tools();
   unit.consume_20_tools();
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
 
   // Before starting plowing work.
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -216,8 +215,8 @@ TEST_CASE( "[test/plow] plow_square with cancellation" ) {
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -235,8 +234,9 @@ TEST_CASE( "[test/plow] plow_square with cancellation" ) {
     perform_plow_work( units_state, terrain_state, unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
-    REQUIRE( cleared_forest( square.terrain ) == nothing );
-    REQUIRE( can_irrigate( square.terrain ) == true );
+    REQUIRE( !has_forest( square ) );
+    REQUIRE( can_irrigate( square ) == true );
+    REQUIRE( can_irrigate( square ) == true );
     REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
     REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -254,8 +254,8 @@ TEST_CASE( "[test/plow] plow_square with cancellation" ) {
   perform_plow_work( units_state, terrain_state, unit );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == false );
-  REQUIRE( cleared_forest( square.terrain ) == nothing );
-  REQUIRE( can_irrigate( square.terrain ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == false );
   REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
   REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );

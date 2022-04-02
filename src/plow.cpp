@@ -29,11 +29,22 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+void clear_irrigation( TerrainState& terrain_state,
+                       Coord         tile ) {
+  MapSquare& square = square_at( terrain_state, tile );
+  square.irrigation = false;
+}
+
+} // namespace
 
 /****************************************************************
 ** Plowing State
@@ -41,34 +52,31 @@ namespace {} // namespace
 void plow_square( TerrainState& terrain_state, Coord tile ) {
   CHECK( is_land( terrain_state, tile ) );
   MapSquare& square = square_at( terrain_state, tile );
-  if( maybe<e_terrain> cleared =
-          cleared_forest( square.terrain );
-      cleared.has_value() ) {
-    square.terrain = *cleared;
+  if( has_forest( square ) ) {
+    clear_forest( square );
     return;
   }
-  if( can_irrigate( square.terrain ) ) {
-    square.irrigation = true;
+  CHECK( !square.irrigation,
+         "tile {} already has irrigation and thus cannot be "
+         "plowed.",
+         tile );
+  if( can_irrigate( square ) ) {
+    irrigate( square );
     return;
   }
-  FATAL( "terrain type {} cannot be plowed.", square.terrain );
+  FATAL( "terrain type {} cannot be plowed: square={}",
+         effective_terrain( square ), square );
 }
 
 bool can_plow( TerrainState const& terrain_state, Coord tile ) {
   MapSquare const& square = square_at( terrain_state, tile );
-  return can_plow( square.terrain ) && !square.irrigation;
+  return can_plow( square );
 }
 
 bool can_irrigate( TerrainState const& terrain_state,
                    Coord               tile ) {
   MapSquare const& square = square_at( terrain_state, tile );
-  return can_irrigate( square.terrain ) && !square.irrigation;
-}
-
-void clear_irrigation( TerrainState& terrain_state,
-                       Coord         tile ) {
-  MapSquare& square = square_at( terrain_state, tile );
-  square.irrigation = false;
+  return can_irrigate( square );
 }
 
 bool has_irrigation( TerrainState const& terrain_state,
@@ -112,9 +120,6 @@ void perform_plow_work( UnitsState const& units_state,
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
     // We're finished plowing.
-    // TODO: if we are clearing a forest then we should add a
-    // certain amount of lumber to a nearby colony (see strategy
-    // guide for formula).
     plow_square( terrain_state, location );
     unit.clear_orders();
     unit.set_turns_worked( 0 );

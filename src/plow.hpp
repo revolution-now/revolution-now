@@ -38,8 +38,6 @@ bool can_plow( TerrainState const& terrain_state, Coord tile );
 bool can_irrigate( TerrainState const& terrain_state,
                    Coord               tile );
 
-void clear_irrigation( TerrainState& terrain_state, Coord tile );
-
 bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile );
 
