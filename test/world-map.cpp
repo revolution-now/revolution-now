@@ -40,22 +40,22 @@ TEST_CASE( "[terrain] generate unit testing land" ) {
   REQUIRE_FALSE( square_exists( { 10_x, 0_y } ) );
   REQUIRE_FALSE( square_exists( { 10_x, 10_y } ) );
 
-  REQUIRE( square_at( { 0_x, 0_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 0_x, 0_y } ) ) ==
            e_terrain::ocean );
-  REQUIRE( square_at( { 1_x, 1_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 1_x, 1_y } ) ) ==
            e_terrain::ocean );
-  REQUIRE( square_at( { 8_x, 8_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 8_x, 8_y } ) ) ==
            e_terrain::ocean );
-  REQUIRE( square_at( { 9_x, 9_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 9_x, 9_y } ) ) ==
            e_terrain::ocean );
 
-  REQUIRE( square_at( { 1_x, 1_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 1_x, 1_y } ) ) ==
            e_terrain::ocean );
-  REQUIRE( square_at( { 2_x, 2_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 2_x, 2_y } ) ) ==
            e_terrain::grassland );
-  REQUIRE( square_at( { 7_x, 7_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 7_x, 7_y } ) ) ==
            e_terrain::grassland );
-  REQUIRE( square_at( { 5_x, 6_y } ).terrain ==
+  REQUIRE( effective_terrain( square_at( { 5_x, 6_y } ) ) ==
            e_terrain::grassland );
 
   REQUIRE_FALSE( is_land( { 0_x, 0_y } ) );

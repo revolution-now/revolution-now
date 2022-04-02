@@ -41,13 +41,20 @@ maybe<MapSquare const&> maybe_square_at(
   return terrain_state.world_map[coord.y][coord.x];
 }
 
+MapSquare make_land_square() {
+  return map_square_for_terrain( e_terrain::grassland );
+}
+
+MapSquare make_ocean_square() {
+  return map_square_for_terrain( e_terrain::ocean );
+}
+
 } // namespace
 
 void generate_terrain() {
   TerrainState&   terrain_state = GameState::terrain();
-  MapSquare const L =
-      MapSquare{ .terrain = e_terrain::grassland };
-  MapSquare const O = MapSquare{ .terrain = e_terrain::ocean };
+  MapSquare const L             = make_land_square();
+  MapSquare const O             = make_ocean_square();
 
   auto& world_map = terrain_state.world_map;
   // FIXME
@@ -154,10 +161,10 @@ bool is_land( TerrainState const& terrain_state, Coord coord ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
+// FIXME: remove
 void generate_unittest_terrain() {
-  MapSquare const L =
-      MapSquare{ .terrain = e_terrain::grassland };
-  MapSquare const O = MapSquare{ .terrain = e_terrain::ocean };
+  MapSquare const L = make_land_square();
+  MapSquare const O = make_ocean_square();
 
   TerrainState& terrain_state = GameState::terrain();
   auto&         world_map     = terrain_state.world_map;
@@ -177,11 +184,9 @@ void generate_unittest_terrain() {
 namespace {
 
 LUA_FN( toggle_surface, void, Coord coord ) {
-  static MapSquare const L =
-      MapSquare{ .terrain = e_terrain::grassland };
-  static MapSquare const O =
-      MapSquare{ .terrain = e_terrain::ocean };
-  TerrainState& terrain_state = GameState::terrain();
+  MapSquare const L             = make_land_square();
+  MapSquare const O             = make_ocean_square();
+  TerrainState&   terrain_state = GameState::terrain();
   CHECK( coord.is_inside( terrain_state.world_map.rect() ),
          "coordinate {} is out of bounds.", coord );
   terrain_state.world_map[coord] = is_land( coord ) ? O : L;
