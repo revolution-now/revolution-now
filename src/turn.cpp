@@ -469,7 +469,7 @@ wait<bool> advance_unit( UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -478,10 +478,14 @@ wait<bool> advance_unit( UnitId id ) {
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await landview_ensure_visible( id );
+      // TODO: if we were clearing a forest then we should pick a
+      // colony in the vicinity and add a certain amount of
+      // lumber to it (see strategy guide for formula) and give a
+      // message to the user.
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( id ) ) {
