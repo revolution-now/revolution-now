@@ -37,6 +37,16 @@ string lua_testing_file( string const& filename ) {
   return data_dir() / "lua" / filename;
 }
 
+/****************************************************************
+** Static Checks
+*****************************************************************/
+static_assert( noexcept( std::declval<c_api>().pcall( 0, 0 ) ) );
+// Must allow exceptions to propagate through call.
+static_assert( !noexcept( std::declval<c_api>().call( 0, 0 ) ) );
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 LUA_TEST_CASE( "[lua-c-api] create and destroy" ) {}
 
 LUA_TEST_CASE( "[lua-c-api] openlibs" ) {

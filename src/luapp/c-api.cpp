@@ -339,7 +339,7 @@ void c_api::pcallk( int nargs, int nresults, LuaKContext ctx,
   CHECK( status == LUA_OK );
 }
 
-void c_api::call( int nargs, int nresults ) noexcept {
+void c_api::call( int nargs, int nresults ) {
   CHECK( nargs >= 0 );
   CHECK( nresults >= 0 || nresults == LUA_MULTRET );
   // Function object plus args should be on the stack at least.

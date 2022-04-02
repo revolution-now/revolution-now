@@ -79,8 +79,12 @@ struct c_api {
   // Returns the LUA_MULTRET constant.
   static int multret() noexcept;
 
-  // Calls (-nargs-1)( ... )
-  void call( int nargs, int nresults ) noexcept;
+  // Calls (-nargs-1)( ... ). Note that this should not be noex-
+  // cept because there are times when the lua code that this
+  // calls will directly or indirectly then call C++ code which
+  // will through a Lua exception, and that exception needs to
+  // propagate.
+  void call( int nargs, int nresults );
 
   // If this function returns `valid` then `nresults` from the
   // function will be pushed onto the stack. If it returns an
