@@ -2,8 +2,9 @@
 # TODO
 # ===============================================================
 
-  1.  Add simple sprites for all terrain types.
-  2.  Implement terrain type rendering.
+  1.  Improve sprites for ground tiles.
+  2.  Add basic auto unit outlining in fragment shader so that
+      the units will be visible.
   3.  Implement world generation.
   4.  Implement terrain visibility.
   5.  Draw remainder of unit types.

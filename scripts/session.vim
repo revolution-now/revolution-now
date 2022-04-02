@@ -8,8 +8,6 @@ let s:stems = [
  \ 'world-map',
  \ 'gs-terrain',
  \ 'render-terrain',
- \ 'land-view',
- \ 'orders-move',
 \]
 
 let s:luas = [
