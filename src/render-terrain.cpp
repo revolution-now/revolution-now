@@ -97,7 +97,8 @@ void render_terrain_ocean_square( rr::Painter&     painter,
 void render_adjacent_overlap( TerrainState const& terrain_state,
                               rr::Renderer&       renderer,
                               Coord where, Coord world_square,
-                              double chop_percent ) {
+                              double chop_percent,
+                              Delta  anchor_offset ) {
   maybe<MapSquare const&> west =
       maybe_square_at( terrain_state, world_square - 1_w );
   maybe<MapSquare const&> north =
@@ -119,7 +120,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.w -= chop_w;
     src.x += chop_w;
     dst.x += 0_w;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
+                         dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter painter = renderer.painter();
     render_sprite_section(
@@ -132,7 +134,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.h -= chop_h;
     src.y += chop_h;
     dst.y += 0_h;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
+                         dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter painter = renderer.painter();
     render_sprite_section(
@@ -145,7 +148,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.h -= chop_h;
     src.y += 0_h;
     dst.y += chop_h;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
+                         dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter painter = renderer.painter();
     render_sprite_section(
@@ -158,7 +162,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.w -= chop_w;
     src.x += 0_w;
     dst.x += chop_w;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
+                         dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter painter = renderer.painter();
     render_sprite_section(
@@ -185,7 +190,8 @@ void render_terrain_land_square(
         /*chop_percent=*/
         clamp( 1.0 - g_tile_overlap_width_percent *
                          g_tile_overlap_scaling,
-               0.0, 1.0 ) );
+               0.0, 1.0 ),
+        /*anchor_offset=*/Delta{} );
 #endif
 #if 1
     SCOPED_RENDERER_MOD( painter_mods.alpha,
@@ -197,7 +203,8 @@ void render_terrain_land_square(
         /*chop_percent=*/
         clamp( 1.0 - ( g_tile_overlap_width_percent / 2.0 ) *
                          g_tile_overlap_scaling,
-               0.0, 1.0 ) );
+               0.0, 1.0 ),
+        /*anchor_offset=*/g_tile_delta );
 #endif
   }
   if( square.overlay.has_value() ) {
