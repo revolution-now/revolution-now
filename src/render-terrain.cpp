@@ -34,7 +34,8 @@ namespace rn {
 
 namespace {
 
-bool g_show_grid = false;
+bool   g_show_grid    = false;
+double g_tile_overlap = 1.0;
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
@@ -53,6 +54,10 @@ e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   }
 }
 
+e_tile tile_for_ground_terrain( MapSquare const& square ) {
+  return tile_for_ground_terrain( square.ground );
+}
+
 e_tile overlay_tile( MapSquare const& square ) {
   DCHECK( square.overlay.has_value() );
   switch( *square.overlay ) {
@@ -69,7 +74,7 @@ e_tile overlay_tile( MapSquare const& square ) {
 }
 
 void render_terrain_ocean_square( rr::Painter&     painter,
-                                  Rect             where,
+                                  Coord            where,
                                   MapSquare const& square ) {
   DCHECK( square.surface == e_surface::water );
   e_tile tile = square.sea_lane ? e_tile::terrain_ocean_sea_lane
@@ -77,47 +82,130 @@ void render_terrain_ocean_square( rr::Painter&     painter,
   render_sprite( painter, where, tile );
 }
 
+// Note that in this function the anchor needs to be different
+// for each segment other wise overlaping segments (in the cor-
+// ners) will depixelate the exact same pixels and only one will
+// be visible.
+void render_adjacent_overlap( TerrainState const& terrain_state,
+                              rr::Renderer&       renderer,
+                              Coord where, Coord world_square,
+                              double chop_percent ) {
+  maybe<MapSquare const&> west =
+      maybe_square_at( terrain_state, world_square - 1_w );
+  maybe<MapSquare const&> north =
+      maybe_square_at( terrain_state, world_square - 1_h );
+  maybe<MapSquare const&> east =
+      maybe_square_at( terrain_state, world_square + 1_w );
+  maybe<MapSquare const&> south =
+      maybe_square_at( terrain_state, world_square + 1_h );
+
+  int chop_pixels =
+      std::lround( g_tile_delta.w._ * chop_percent );
+  W chop_w = W{ chop_pixels };
+  H chop_h = H{ chop_pixels };
+
+  if( west.has_value() && west->surface == e_surface::land ) {
+    // Render east part of western tile.
+    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Coord dst = where;
+    src.w -= chop_w;
+    src.x += chop_w;
+    dst.x += 0_w;
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    // Need a new painter since we changed the mods.
+    rr::Painter painter = renderer.painter();
+    render_sprite_section(
+        painter, tile_for_ground_terrain( *west ), dst, src );
+  }
+  if( north.has_value() && north->surface == e_surface::land ) {
+    // Render bottom part of north tile.
+    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Coord dst = where;
+    src.h -= chop_h;
+    src.y += chop_h;
+    dst.y += 0_h;
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    // Need a new painter since we changed the mods.
+    rr::Painter painter = renderer.painter();
+    render_sprite_section(
+        painter, tile_for_ground_terrain( *north ), dst, src );
+  }
+  if( south.has_value() && south->surface == e_surface::land ) {
+    // Render northern part of southern tile.
+    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Coord dst = where;
+    src.h -= chop_h;
+    src.y += 0_h;
+    dst.y += chop_h;
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    // Need a new painter since we changed the mods.
+    rr::Painter painter = renderer.painter();
+    render_sprite_section(
+        painter, tile_for_ground_terrain( *south ), dst, src );
+  }
+  if( east.has_value() && east->surface == e_surface::land ) {
+    // Render west part of eastern tile.
+    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Coord dst = where;
+    src.w -= chop_w;
+    src.x += 0_w;
+    dst.x += chop_w;
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, dst );
+    // Need a new painter since we changed the mods.
+    rr::Painter painter = renderer.painter();
+    render_sprite_section(
+        painter, tile_for_ground_terrain( *east ), dst, src );
+  }
+}
+
 // Pass in the painter as well for efficiency.
-void render_terrain_land_square( rr::Painter&     painter,
-                                 Rect             where,
-                                 MapSquare const& square ) {
+void render_terrain_land_square(
+    TerrainState const& terrain_state, rr::Painter& painter,
+    rr::Renderer& renderer, Coord where, Coord world_square,
+    MapSquare const& square ) {
   DCHECK( square.surface == e_surface::land );
-  e_tile tile = tile_for_ground_terrain( square.ground );
+  e_tile tile = tile_for_ground_terrain( square );
   render_sprite( painter, where, tile );
+  {
+#if 1
+    SCOPED_RENDERER_MOD( painter_mods.alpha, .5 );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage, .80 );
+    render_adjacent_overlap(
+        terrain_state, renderer, where, world_square,
+        /*chop_percent=*/1.0 - .2 * g_tile_overlap );
+#endif
+#if 1
+    SCOPED_RENDERER_MOD( painter_mods.alpha, .85 );
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage, .60 );
+    render_adjacent_overlap(
+        terrain_state, renderer, where, world_square,
+        /*chop_percent=*/1.0 - .1 * g_tile_overlap );
+#endif
+  }
   if( square.overlay.has_value() ) {
     e_tile overlay = overlay_tile( square );
     render_sprite( painter, where, overlay );
   }
-  if( g_show_grid )
-    painter.draw_empty_rect( where,
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel{ 0, 0, 0, 30 } );
 }
 
 } // namespace
 
 // Pass in the painter as well for efficiency.
 void render_terrain_square( TerrainState const& terrain_state,
-                            rr::Painter& painter, Rect where,
+                            rr::Renderer& renderer, Coord where,
                             Coord world_square ) {
+  rr::Painter      painter = renderer.painter();
   MapSquare const& square =
       square_at( terrain_state, world_square );
   if( square.surface == e_surface::water )
     render_terrain_ocean_square( painter, where, square );
   else
-    render_terrain_land_square( painter, where, square );
+    render_terrain_land_square( terrain_state, painter, renderer,
+                                where, world_square, square );
   if( g_show_grid )
-    painter.draw_empty_rect( where,
+    painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel{ 0, 0, 0, 30 } );
-}
-
-void render_terrain_square( TerrainState const& terrain_state,
-                            rr::Painter& painter, Coord where,
-                            Coord world_square ) {
-  render_terrain_square( terrain_state, painter,
-                         Rect::from( where, g_tile_delta ),
-                         world_square );
 }
 
 /****************************************************************
@@ -128,6 +216,12 @@ namespace {
 LUA_FN( toggle_grid, void ) {
   g_show_grid = !g_show_grid;
   lg.debug( "terrain grid is {}.", g_show_grid ? "on" : "off" );
+}
+
+LUA_FN( set_tile_chop_multiplier, void, double mult ) {
+  g_tile_overlap = std::clamp( mult, 0.0, 1.0 );
+  lg.debug( "setting tile overlap multiplier to {}.",
+            g_tile_overlap );
 }
 
 } // namespace

@@ -189,8 +189,8 @@ local ground_tiles = {
   { SWA, SWA, PRA, PLN, ___, ___, GRA, DST, PLN, MSH },
   { SWA, SAV, PRA, PRA, ___, ___, DST, DST, PLN, MSH },
   { MSH, SWA, PLN, PLN, ___, ___, ARC, MSH, MSG, PLN },
-  { MSH, SWA, SAV, PRA, ___, ___, ARC, GRA, DST, PLN },
-  { SAV, PRA, PRA, ARC, ___, ___, DST, MSG, MSH, SWA },
+  { MSH, SWA, SAV, PRA, ___, ___, PRA, GRA, DST, PLN },
+  { SAV, PRA, PRA, ARC, ___, ___, PRA, MSG, MSH, SWA },
   { SAV, PLN, PLN, ARC, ___, ___, DST, PLN, PLN, SWA },
   { SWA, GRA, PRA, MSH, ___, ___, PRA, DST, SAV, PLN },
   { SWA, GRA, GRA, MSH, ___, ___, DST, DST, SAV, PLN },
@@ -199,15 +199,15 @@ local ground_tiles = {
 
 local overlay_tiles = {
   { ___, ___, ___, ___, ___, ___, ___, ___, ___, ___ },
-  { ___, MTN, ___, ___, ___, ___, ___, ___, ___, ___ },
-  { ___, MTN, ___, ___, ___, ___, FOR, FOR, FOR, ___ },
-  { ___, MTN, ___, FOR, ___, ___, ___, FOR, ___, ___ },
-  { ___, ___, FOR, FOR, ___, ___, ___, ___, ___, ___ },
+  { ___, ___, MTN, ___, ___, ___, ___, ___, ___, ___ },
+  { ___, ___, MTN, ___, ___, ___, FOR, FOR, FOR, ___ },
+  { ___, MTN, FOR, FOR, ___, ___, ___, FOR, ___, ___ },
+  { ___, ___, ___, FOR, ___, ___, ___, ___, ___, ___ },
   { FOR, ___, ___, ___, ___, ___, ___, HLL, ___, ___ },
   { ___, ___, ___, ___, ___, ___, ___, HLL, MTN, ___ },
   { ___, HLL, HLL, HLL, ___, ___, ___, ___, ___, ___ },
   { ___, ___, ___, ___, ___, ___, ___, ___, ___, ___ },
-  { FOR, ___, ___, ___, ___, ___, ___, MTN, MTN, MTN }
+  { ___, FOR, ___, ___, ___, ___, ___, MTN, MTN, MTN }
 }
 
 local function set_ground_tiles()
@@ -246,11 +246,11 @@ function M.main()
     e.nation.french
   } )
 
-  -- create_some_units_in_old_world()
-  -- create_some_units_on_land()
-  -- create_some_colonies()
-  -- create_some_roads()
-  -- create_some_plows()
+  create_some_units_in_old_world()
+  create_some_units_on_land()
+  create_some_colonies()
+  create_some_roads()
+  create_some_plows()
   set_terrain_tiles()
   land_view.center_on_tile{ x=23, y=15 }
 end

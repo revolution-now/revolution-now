@@ -46,6 +46,11 @@ MapSquare const& square_at( TerrainState const& terrain_state,
                             Coord               coord );
 MapSquare& square_at( TerrainState& terrain_state, Coord coord );
 
+maybe<MapSquare const&> maybe_square_at(
+    TerrainState const& terrain_state, Coord coord );
+maybe<MapSquare&> maybe_square_at( TerrainState& terrain_state,
+                                   Coord         coord );
+
 // Throws if coord is not on map.
 // FIXME: deprecated, prefer those that take TerrainState.
 bool is_land( Coord coord );

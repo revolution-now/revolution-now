@@ -17,7 +17,7 @@
 #include "game-state.hpp"
 
 // render
-#include "render/painter.hpp"
+#include "render/renderer.hpp"
 
 namespace rn {
 
@@ -27,12 +27,7 @@ namespace rn {
 // This will fully render a map square with no units or colonies
 // on it.
 void render_terrain_square( TerrainState const& terrain_state,
-                            rr::Painter& painter, Coord where,
-                            Coord world_square );
-
-// This one allows stretching the tile.
-void render_terrain_square( TerrainState const& terrain_state,
-                            rr::Painter& painter, Rect where,
+                            rr::Renderer& renderer, Coord where,
                             Coord world_square );
 
 } // namespace rn

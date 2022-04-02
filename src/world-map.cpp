@@ -32,18 +32,6 @@ namespace rn {
 
 namespace {
 
-maybe<MapSquare&> maybe_square_at( TerrainState& terrain_state,
-                                   Coord         coord ) {
-  if( !square_exists( terrain_state, coord ) ) return nothing;
-  return terrain_state.world_map[coord.y][coord.x];
-}
-
-maybe<MapSquare const&> maybe_square_at(
-    TerrainState const& terrain_state, Coord coord ) {
-  if( !square_exists( terrain_state, coord ) ) return nothing;
-  return terrain_state.world_map[coord.y][coord.x];
-}
-
 MapSquare make_land_square() {
   return map_square_for_terrain( e_terrain::grassland );
 }
@@ -151,6 +139,18 @@ MapSquare const& square_at( Coord coord ) {
 MapSquare& mutable_square_at( Coord coord ) {
   TerrainState& terrain_state = GameState::terrain();
   return square_at( terrain_state, coord );
+}
+
+maybe<MapSquare&> maybe_square_at( TerrainState& terrain_state,
+                                   Coord         coord ) {
+  if( !square_exists( terrain_state, coord ) ) return nothing;
+  return terrain_state.world_map[coord.y][coord.x];
+}
+
+maybe<MapSquare const&> maybe_square_at(
+    TerrainState const& terrain_state, Coord coord ) {
+  if( !square_exists( terrain_state, coord ) ) return nothing;
+  return terrain_state.world_map[coord.y][coord.x];
 }
 
 bool is_land( Coord coord ) {

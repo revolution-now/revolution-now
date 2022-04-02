@@ -126,11 +126,10 @@ struct LandViewRenderer {
   }
 
   void render_terrain() {
-    rr::Painter painter = renderer.painter();
     for( Coord square : covered )
-      render_terrain_square( terrain_state, painter,
-                             render_rect_for_tile( square ),
-                             square );
+      render_terrain_square(
+          terrain_state, renderer,
+          render_rect_for_tile( square ).upper_left(), square );
   }
 
   using UnitSkipFunc = base::function_ref<bool( UnitId )>;
