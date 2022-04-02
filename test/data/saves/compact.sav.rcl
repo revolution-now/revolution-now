@@ -17,7 +17,7 @@ colonies {
         name: New London
         units: [
           {
-            key: 15
+            key: 19
             val.mfg {}
           },
         ]
@@ -44,7 +44,7 @@ colonies {
         nation: french
         units: [
           {
-            key: 16
+            key: 20
             val.mfg {}
           },
         ]
@@ -77,7 +77,7 @@ players.players {
 }
 
 units {
-  next_unit_id: 17
+  next_unit_id: 21
   units: [
     {
       key: 1
@@ -172,7 +172,6 @@ units {
           composition.type.type: dragoon
           id: 6
           mv_pts.atoms: 12
-          orders: fortified
         }
       }
     },
@@ -190,7 +189,6 @@ units {
           }
           id: 7
           mv_pts.atoms: 3
-          orders: sentry
         }
       }
     },
@@ -219,6 +217,27 @@ units {
       key: 9
       val {
         ownership.world.coord {
+          x: 25
+          y: 14
+        }
+        unit {
+          cargo.slots: [
+            {},
+            {},
+          ]
+          composition.type {
+            base_type: privateer
+            type: privateer
+          }
+          id: 9
+          mv_pts.atoms: 24
+        }
+      }
+    },
+    {
+      key: 10
+      val {
+        ownership.world.coord {
           x: 23
           y: 11
         }
@@ -227,13 +246,13 @@ units {
             base_type: free_colonist
             type: dragoon
           }
-          id: 9
+          id: 10
           mv_pts.atoms: 12
         }
       }
     },
     {
-      key: 10
+      key: 11
       val {
         ownership.world.coord {
           x: 23
@@ -247,13 +266,13 @@ units {
               type: pioneer
             }
           }
-          id: 10
+          id: 11
           mv_pts.atoms: 3
         }
       }
     },
     {
-      key: 11
+      key: 12
       val {
         ownership.world.coord {
           x: 23
@@ -267,13 +286,13 @@ units {
               type: large_treasure
             }
           }
-          id: 11
+          id: 12
           mv_pts.atoms: 3
         }
       }
     },
     {
-      key: 12
+      key: 13
       val {
         ownership.world.coord {
           x: 21
@@ -284,15 +303,32 @@ units {
             base_type: free_colonist
             type: soldier
           }
-          id: 12
+          id: 13
           mv_pts.atoms: 3
           nation: french
-          orders: fortified
         }
       }
     },
     {
-      key: 13
+      key: 14
+      val {
+        ownership.world.coord {
+          x: 21
+          y: 17
+        }
+        unit {
+          composition.type {
+            base_type: veteran_colonist
+            type: veteran_dragoon
+          }
+          id: 14
+          mv_pts.atoms: 12
+          nation: french
+        }
+      }
+    },
+    {
+      key: 15
       val {
         ownership.world.coord {
           x: 22
@@ -303,15 +339,29 @@ units {
             base_type: free_colonist
             type: soldier
           }
-          id: 13
+          id: 15
           mv_pts.atoms: 3
           nation: french
-          orders: sentry
         }
       }
     },
     {
-      key: 14
+      key: 16
+      val {
+        ownership.world.coord {
+          x: 22
+          y: 17
+        }
+        unit {
+          composition.type.type: dragoon
+          id: 16
+          mv_pts.atoms: 12
+          nation: french
+        }
+      }
+    },
+    {
+      key: 17
       val {
         ownership.world.coord {
           x: 25
@@ -326,28 +376,50 @@ units {
             base_type: privateer
             type: privateer
           }
-          id: 14
+          id: 17
           mv_pts.atoms: 24
           nation: french
         }
       }
     },
     {
-      key: 15
+      key: 18
+      val {
+        ownership.world.coord {
+          x: 25
+          y: 17
+        }
+        unit {
+          cargo.slots: [
+            {},
+            {},
+          ]
+          composition.type {
+            base_type: privateer
+            type: privateer
+          }
+          id: 18
+          mv_pts.atoms: 24
+          nation: french
+        }
+      }
+    },
+    {
+      key: 19
       val {
         ownership.colony.id: 1
         unit {
-          id: 15
+          id: 19
           mv_pts.atoms: 3
         }
       }
     },
     {
-      key: 16
+      key: 20
       val {
         ownership.colony.id: 2
         unit {
-          id: 16
+          id: 20
           mv_pts.atoms: 3
           nation: french
         }
@@ -359,564 +431,847 @@ units {
 zzz_terrain.world_map {
   data: [
     {
+      val.sea_lane: true
+    },
+    {
+      key.y: 1
+      val.sea_lane: true
+    },
+    {
       key {
         x: 1
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 1
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 2
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 2
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 3
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 3
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 4
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 4
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 5
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 5
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 6
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 6
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 7
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 7
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 8
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 8
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 9
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 9
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 10
+      val.sea_lane: true
     },
     {
       key {
         x: 1
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 2
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 3
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 4
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 7
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 8
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 9
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 10
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -924,8 +1279,9 @@ zzz_terrain.world_map {
         y: 10
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -934,8 +1290,9 @@ zzz_terrain.world_map {
         y: 10
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -943,105 +1300,154 @@ zzz_terrain.world_map {
         x: 22
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 10
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 11
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1049,8 +1455,10 @@ zzz_terrain.world_map {
         y: 11
       }
       val {
+        ground: grassland
+        irrigation: true
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1059,8 +1467,9 @@ zzz_terrain.world_map {
         y: 11
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1069,8 +1478,9 @@ zzz_terrain.world_map {
         y: 11
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1078,196 +1488,290 @@ zzz_terrain.world_map {
         x: 26
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 11
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 12
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        irrigation: true
+        surface: land
+      }
     },
     {
       key {
         x: 21
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        irrigation: true
+        surface: land
+      }
     },
     {
       key {
         x: 22
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 12
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 13
+      val.sea_lane: true
     },
     {
       key {
@@ -1275,8 +1779,9 @@ zzz_terrain.world_map {
         y: 13
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1284,14 +1789,20 @@ zzz_terrain.world_map {
         x: 21
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 22
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1299,8 +1810,9 @@ zzz_terrain.world_map {
         y: 13
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1308,203 +1820,300 @@ zzz_terrain.world_map {
         x: 26
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 13
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 14
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 21
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        irrigation: true
+        surface: land
+      }
     },
     {
       key {
         x: 22
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        irrigation: true
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 14
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 15
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1512,8 +2121,9 @@ zzz_terrain.world_map {
         y: 15
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1521,105 +2131,154 @@ zzz_terrain.world_map {
         x: 22
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 15
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 16
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1627,8 +2286,9 @@ zzz_terrain.world_map {
         y: 16
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1636,105 +2296,154 @@ zzz_terrain.world_map {
         x: 22
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 16
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 17
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1742,8 +2451,9 @@ zzz_terrain.world_map {
         y: 17
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1751,105 +2461,154 @@ zzz_terrain.world_map {
         x: 22
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 17
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 18
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
@@ -1857,8 +2616,9 @@ zzz_terrain.world_map {
         y: 18
       }
       val {
+        ground: grassland
         road: true
-        terrain: grassland
+        surface: land
       }
     },
     {
@@ -1866,2450 +2626,3824 @@ zzz_terrain.world_map {
         x: 22
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 18
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 19
+      val.sea_lane: true
     },
     {
       key {
         x: 20
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 21
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 22
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 23
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 26
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 27
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 28
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 29
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 60
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 61
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 62
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 63
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 66
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 67
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 68
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 69
         y: 19
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 20
+      val.sea_lane: true
+    },
+    {
+      key.y: 21
+      val.sea_lane: true
+    },
+    {
+      key.y: 22
+      val.sea_lane: true
+    },
+    {
+      key.y: 23
+      val.sea_lane: true
+    },
+    {
+      key.y: 24
+      val.sea_lane: true
+    },
+    {
+      key.y: 25
+      val.sea_lane: true
     },
     {
       key {
         x: 100
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 25
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 26
+      val.sea_lane: true
     },
     {
       key {
         x: 100
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 26
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 27
+      val.sea_lane: true
     },
     {
       key {
         x: 100
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 27
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 28
+      val.sea_lane: true
     },
     {
       key {
         x: 100
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 28
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 29
+      val.sea_lane: true
     },
     {
       key {
         x: 100
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 29
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 30
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 100
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 30
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 31
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 100
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 31
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 32
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 100
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 32
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 33
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 100
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 33
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 34
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 100
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 101
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 102
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 103
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 106
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 107
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 108
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 109
         y: 34
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 35
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 35
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 36
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 36
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 37
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 37
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 38
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 38
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 39
+      val.sea_lane: true
     },
     {
       key {
         x: 10
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 11
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 12
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 13
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 16
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 17
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 18
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 19
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 70
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 71
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 72
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 73
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 76
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 77
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 78
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 79
         y: 39
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 40
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 40
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 41
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 41
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 42
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 42
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 43
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 43
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 44
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 44
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 45
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 45
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 46
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 46
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 47
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 47
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 48
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 48
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 49
+      val.sea_lane: true
     },
     {
       key {
         x: 40
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 41
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 42
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 43
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 46
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 47
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 48
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
     },
     {
       key {
         x: 49
         y: 49
       }
-      val.terrain: grassland
+      val {
+        ground: grassland
+        surface: land
+      }
+    },
+    {
+      key.y: 50
+      val.sea_lane: true
+    },
+    {
+      key.y: 51
+      val.sea_lane: true
+    },
+    {
+      key.y: 52
+      val.sea_lane: true
+    },
+    {
+      key.y: 53
+      val.sea_lane: true
+    },
+    {
+      key.y: 54
+      val.sea_lane: true
+    },
+    {
+      key.y: 55
+      val.sea_lane: true
+    },
+    {
+      key.y: 56
+      val.sea_lane: true
+    },
+    {
+      key.y: 57
+      val.sea_lane: true
+    },
+    {
+      key.y: 58
+      val.sea_lane: true
+    },
+    {
+      key.y: 59
+      val.sea_lane: true
+    },
+    {
+      key.y: 60
+      val.sea_lane: true
+    },
+    {
+      key.y: 61
+      val.sea_lane: true
+    },
+    {
+      key.y: 62
+      val.sea_lane: true
+    },
+    {
+      key.y: 63
+      val.sea_lane: true
+    },
+    {
+      key.y: 64
+      val.sea_lane: true
+    },
+    {
+      key.y: 65
+      val.sea_lane: true
+    },
+    {
+      key.y: 66
+      val.sea_lane: true
+    },
+    {
+      key.y: 67
+      val.sea_lane: true
+    },
+    {
+      key.y: 68
+      val.sea_lane: true
+    },
+    {
+      key.y: 69
+      val.sea_lane: true
+    },
+    {
+      key.y: 70
+      val.sea_lane: true
+    },
+    {
+      key.y: 71
+      val.sea_lane: true
+    },
+    {
+      key.y: 72
+      val.sea_lane: true
+    },
+    {
+      key.y: 73
+      val.sea_lane: true
+    },
+    {
+      key.y: 74
+      val.sea_lane: true
+    },
+    {
+      key.y: 75
+      val.sea_lane: true
+    },
+    {
+      key.y: 76
+      val.sea_lane: true
+    },
+    {
+      key.y: 77
+      val.sea_lane: true
+    },
+    {
+      key.y: 78
+      val.sea_lane: true
+    },
+    {
+      key.y: 79
+      val.sea_lane: true
+    },
+    {
+      key.y: 80
+      val.sea_lane: true
+    },
+    {
+      key.y: 81
+      val.sea_lane: true
+    },
+    {
+      key.y: 82
+      val.sea_lane: true
+    },
+    {
+      key.y: 83
+      val.sea_lane: true
+    },
+    {
+      key.y: 84
+      val.sea_lane: true
+    },
+    {
+      key.y: 85
+      val.sea_lane: true
+    },
+    {
+      key.y: 86
+      val.sea_lane: true
+    },
+    {
+      key.y: 87
+      val.sea_lane: true
+    },
+    {
+      key.y: 88
+      val.sea_lane: true
+    },
+    {
+      key.y: 89
+      val.sea_lane: true
+    },
+    {
+      key.y: 90
+      val.sea_lane: true
+    },
+    {
+      key.y: 91
+      val.sea_lane: true
+    },
+    {
+      key.y: 92
+      val.sea_lane: true
+    },
+    {
+      key.y: 93
+      val.sea_lane: true
+    },
+    {
+      key.y: 94
+      val.sea_lane: true
+    },
+    {
+      key.y: 95
+      val.sea_lane: true
+    },
+    {
+      key.y: 96
+      val.sea_lane: true
+    },
+    {
+      key.y: 97
+      val.sea_lane: true
+    },
+    {
+      key.y: 98
+      val.sea_lane: true
+    },
+    {
+      key.y: 99
+      val.sea_lane: true
     },
   ]
   has_coords: true
