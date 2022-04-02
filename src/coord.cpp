@@ -75,6 +75,11 @@ Rect Rect::with_border_added( int thickness ) const {
   return { x - wd, y - hd, w + wd + wd, h + hd + hd };
 }
 
+Rect Rect::with_new_origin( Coord new_origin ) const {
+  return Rect::from( Coord{ x, y }.with_new_origin( new_origin ),
+                     Delta( w, h ) );
+}
+
 Rect Rect::as_if_origin_were( Coord const& coord ) const {
   return this->shifted_by( coord.distance_from_origin() );
 }

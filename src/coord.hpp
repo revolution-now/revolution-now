@@ -357,6 +357,9 @@ struct ND Rect {
     return Rect{ coord.x, coord.y, w, h };
   }
 
+  // Returns this rect with respect to a new origin.
+  Rect with_new_origin( Coord new_origin ) const;
+
   Rect as_if_origin_were( Coord const& coord ) const;
 
   Rect with_inc_size() const {

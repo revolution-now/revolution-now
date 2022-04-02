@@ -376,4 +376,12 @@ TEST_CASE( "[coord] from gfx" ) {
   REQUIRE( Rect::from_gfx( r_gfx ) == r );
 }
 
+TEST_CASE( "[coord] Rect::with_new_origin" ) {
+  Rect rect = Rect::from( Coord( 4_x, 5_y ), Delta( 2_w, 3_h ) );
+  Coord new_origin( 1_x, 3_y );
+  Rect  expected =
+      Rect::from( Coord( 3_x, 2_y ), Delta( 2_w, 3_h ) );
+  REQUIRE( rect.with_new_origin( new_origin ) == expected );
+}
+
 } // namespace
