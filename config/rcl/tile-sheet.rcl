@@ -16,23 +16,32 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/terrain.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_ocean:               { y: 0, x: 4 }
+        terrain_ocean_sea_lane:      { y: 0, x: 5 }
+
+        terrain_arctic:              { y: 1, x: 4 }
+        terrain_desert:              { y: 1, x: 5 }
+        terrain_grassland:           { y: 2, x: 4 }
+        terrain_marsh:               { y: 2, x: 5 }
+        terrain_plains:              { y: 3, x: 4 }
+        terrain_prairie:             { y: 3, x: 5 }
+        terrain_savannah:            { y: 4, x: 4 }
+        terrain_swamp:               { y: 4, x: 5 }
+        terrain_tundra:              { y: 5, x: 4 }
+
+        terrain_mountain_island:     { y: 6, x: 4 }
+        terrain_hills_island:        { y: 6, x: 5 }
+        terrain_forest_island:       { y: 7, x: 4 }
+        terrain_forest_scrub_island: { y: 7, x: 5 }
+      }
+    }
+    {
       img_path: assets/art/tiles/world.png
       sprite_size: { w: 32, h: 32 }
       sprites {
-        water:               { y: 0, x: 0 }
-        land:                { y: 0, x: 1 }
-        land_1_side:         { y: 0, x: 2 }
-        land_2_sides:        { y: 0, x: 3 }
-        land_3_sides:        { y: 0, x: 4 }
-        land_4_sides:        { y: 0, x: 5 }
-        land_corner:         { y: 0, x: 6 }
-
-        fog:                 { y: 1, x: 0 }
-        fog_1_side:          { y: 1, x: 1 }
-        fog_corner:          { y: 1, x: 2 }
-
-        terrain_grass:       { y: 2, x: 0 }
-
         panel:               { y: 3, x: 0 }
         panel_edge_left:     { y: 3, x: 1 }
         panel_slate:         { y: 3, x: 2 }

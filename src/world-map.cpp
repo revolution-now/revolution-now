@@ -23,6 +23,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -193,6 +196,13 @@ LUA_FN( toggle_surface, void, Coord coord ) {
 }
 
 LUA_FN( generate_terrain, void ) { generate_terrain(); }
+
+LUA_FN( at, MapSquare&, Coord tile ) {
+  TerrainState& terrain_state = GameState::terrain();
+  LUA_CHECK( st, square_exists( terrain_state, tile ),
+             "There is no tile at coordinate {}.", tile );
+  return square_at( terrain_state, tile );
+}
 
 } // namespace
 

@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "game-state.hpp"
 
 // render
 #include "render/painter.hpp"
@@ -25,11 +26,13 @@ namespace rn {
 *****************************************************************/
 // This will fully render a map square with no units or colonies
 // on it.
-void render_terrain_square( rr::Painter& painter, Coord where,
+void render_terrain_square( TerrainState const& terrain_state,
+                            rr::Painter& painter, Coord where,
                             Coord world_square );
 
 // This one allows stretching the tile.
-void render_terrain_square( rr::Painter& painter, Rect where,
+void render_terrain_square( TerrainState const& terrain_state,
+                            rr::Painter& painter, Rect where,
                             Coord world_square );
 
 } // namespace rn

@@ -11,30 +11,68 @@
 namespace "rn"
 
 enum.e_tile {
-  water,
-  land,
-  land_1_side,
-  land_2_sides,
-  land_3_sides,
-  land_4_sides,
-  land_corner,
+  # =============================================================
+  # Ocean
+  # =============================================================
+  terrain_ocean,
+  terrain_ocean_sea_lane,
 
-  fog,
-  fog_1_side,
-  fog_corner,
+  # =============================================================
+  # Ground types.
+  # =============================================================
+  terrain_arctic,
+  terrain_desert,
+  terrain_grassland,
+  terrain_marsh,
+  terrain_plains,
+  terrain_prairie,
+  terrain_savannah,
+  terrain_swamp,
+  terrain_tundra,
 
-  terrain_grass,
+  # =============================================================
+  # Mountain Overlays
+  # =============================================================
+  # Currently just an island mountain tile.
+  terrain_mountain_island,
 
+  # =============================================================
+  # Hill Overlays
+  # =============================================================
+  # Currently just an island hill tile.
+  terrain_hills_island,
+
+  # =============================================================
+  # Forest Overlays
+  # =============================================================
+  # Currently the "scrub" forest (i.e., the "forest" in the de-
+  # sert) is the only one that gets its own rendering. All the
+  # others just use the same generic forest tile.
+  #
+  # Separately, both of these forest tiles will eventually need
+  # to have multiple versions for edges and corners, but for now
+  # we just have an island version of each.
+  terrain_forest_island,
+  terrain_forest_scrub_island,
+
+  # =============================================================
+  # Info Panel
+  # =============================================================
   panel,
   panel_edge_left,
   panel_slate,
   panel_slate_1_side,
   panel_slate_2_sides,
 
+  # =============================================================
+  # Wood
+  # =============================================================
   wood_middle,
   wood_left_edge,
 
+  # =============================================================
   # Units
+  # =============================================================
   petty_criminal,
   indentured_servant,
   free_colonist,
@@ -86,7 +124,9 @@ enum.e_tile {
   small_treasure,
   large_treasure,
 
+  # =============================================================
   # Menu
+  # =============================================================
   menu_top_left,
   menu_body,
   menu_top,
@@ -104,7 +144,9 @@ enum.e_tile {
   menu_bar_1,
   menu_bar_2,
 
+  # =============================================================
   # Buttons
+  # =============================================================
   button_up_ul,
   button_up_um,
   button_up_ur,
@@ -124,7 +166,9 @@ enum.e_tile {
   button_down_lm,
   button_down_lr,
 
+  # =============================================================
   # Commodities
+  # =============================================================
   commodity_food,
   commodity_sugar,
   commodity_tobacco,
@@ -142,7 +186,9 @@ enum.e_tile {
   commodity_tools,
   commodity_muskets,
 
+  # =============================================================
   # Roads
+  # =============================================================
   road_island,
   road_nw,
   road_n,
@@ -153,22 +199,32 @@ enum.e_tile {
   road_sw,
   road_w,
 
+  # =============================================================
   # Irrigation
+  # =============================================================
   irrigation,
 
+  # =============================================================
   # Colonies
+  # =============================================================
   colony_basic,
   colony_stockade,
 
+  # =============================================================
   # Images
+  # =============================================================
   old_world_background,
 
-  # Mouse
+  # =============================================================
+  # Mouse Cursors
+  # =============================================================
   mouse_planks,
   mouse_musket,
   mouse_arrow1,
 
-  # testing
+  # =============================================================
+  # Testing
+  # =============================================================
   checkers,
   checkers_inv,
 }

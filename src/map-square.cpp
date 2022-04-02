@@ -12,10 +12,19 @@
 
 // Revolution Now
 #include "config-terrain.hpp"
+#include "lua.hpp"
 #include "terrain.hpp"
+
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -119,5 +128,29 @@ MapSquare map_square_for_terrain( e_terrain terrain ) {
   return MapSquare{ .surface = e_surface::land,
                     .ground  = ground };
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::MapSquare;
+
+  auto u = st.usertype.create<rn::MapSquare>();
+
+  // u["visibility"]      = &U::visibility;
+  u["surface"]         = &U::surface;
+  u["ground"]          = &U::ground;
+  u["overlay"]         = &U::overlay;
+  u["river"]           = &U::river;
+  u["resource"]        = &U::resource;
+  u["irrigation"]      = &U::irrigation;
+  u["road"]            = &U::road;
+  u["sea_lane"]        = &U::sea_lane;
+  u["lost_city_rumor"] = &U::lost_city_rumor;
+};
+
+} // namespace
 
 } // namespace rn

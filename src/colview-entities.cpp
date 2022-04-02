@@ -1134,7 +1134,8 @@ class LandView : public ui::View, public ColonySubView {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
                            Delta{ 1_w, 1_h };
-      render_terrain_square( painter, local_coord * g_tile_scale,
+      render_terrain_square( terrain_state, painter,
+                             local_coord * g_tile_scale,
                              render_square );
     }
     // Render irrigation.

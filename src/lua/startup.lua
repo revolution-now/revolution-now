@@ -168,6 +168,77 @@ local function create_some_colonies()
   colony:set_commodity_quantity( e.commodity.horses, 100 )
 end
 
+local ARC = e.ground_terrain.arctic
+local DST = e.ground_terrain.desert
+local GRA = e.ground_terrain.grassland
+local MSH = e.ground_terrain.marsh
+local PLN = e.ground_terrain.plains
+local PRA = e.ground_terrain.prairie
+local SAV = e.ground_terrain.savannah
+local SWA = e.ground_terrain.swamp
+local TUNDRA = e.ground_terrain.tundra
+
+local HLL = e.land_overlay.hills
+local MTN = e.land_overlay.mountains
+local FOR = e.land_overlay.forest
+
+local ___ = 'none'
+
+local ground_tiles = {
+  { SWA, ARC, PRA, ARC, ___, ___, GRA, ARC, PLN, ARC },
+  { SWA, SWA, PRA, PLN, ___, ___, GRA, DST, PLN, MSH },
+  { SWA, SAV, PRA, PRA, ___, ___, DST, DST, PLN, MSH },
+  { MSH, SWA, PLN, PLN, ___, ___, ARC, MSH, MSG, PLN },
+  { MSH, SWA, SAV, PRA, ___, ___, ARC, GRA, DST, PLN },
+  { SAV, PRA, PRA, ARC, ___, ___, DST, MSG, MSH, SWA },
+  { SAV, PLN, PLN, ARC, ___, ___, DST, PLN, PLN, SWA },
+  { SWA, GRA, PRA, MSH, ___, ___, PRA, DST, SAV, PLN },
+  { SWA, GRA, GRA, MSH, ___, ___, DST, DST, SAV, PLN },
+  { ARC, SAV, ARC, PLN, ___, ___, ARC, DST, ARC, MSH }
+}
+
+local overlay_tiles = {
+  { ___, ___, ___, ___, ___, ___, ___, ___, ___, ___ },
+  { ___, MTN, ___, ___, ___, ___, ___, ___, ___, ___ },
+  { ___, MTN, ___, ___, ___, ___, FOR, FOR, FOR, ___ },
+  { ___, MTN, ___, FOR, ___, ___, ___, FOR, ___, ___ },
+  { ___, ___, FOR, FOR, ___, ___, ___, ___, ___, ___ },
+  { FOR, ___, ___, ___, ___, ___, ___, HLL, ___, ___ },
+  { ___, ___, ___, ___, ___, ___, ___, HLL, MTN, ___ },
+  { ___, HLL, HLL, HLL, ___, ___, ___, ___, ___, ___ },
+  { ___, ___, ___, ___, ___, ___, ___, ___, ___, ___ },
+  { FOR, ___, ___, ___, ___, ___, ___, MTN, MTN, MTN }
+}
+
+local function set_ground_tiles()
+  for y, row in ipairs( ground_tiles ) do
+    for x, terrain in ipairs( row ) do
+      if terrain ~= 'none' then
+        local c = Coord{ x=x, y=y }
+        local square = world_map.at( location( c ) )
+        square.ground = terrain
+      end
+    end
+  end
+end
+
+local function set_overlay_tiles()
+  for y, row in ipairs( overlay_tiles ) do
+    for x, overlay in ipairs( row ) do
+      if terrain ~= 'none' then
+        local c = Coord{ x=x, y=y }
+        local square = world_map.at( location( c ) )
+        square.overlay = overlay
+      end
+    end
+  end
+end
+
+local function set_terrain_tiles()
+  set_ground_tiles()
+  set_overlay_tiles()
+end
+
 function M.main()
   world_map.generate_terrain()
   player.set_players( {
@@ -175,12 +246,13 @@ function M.main()
     e.nation.french
   } )
 
-  create_some_units_in_old_world()
-  create_some_units_on_land()
-  create_some_colonies()
-  create_some_roads()
-  create_some_plows()
-  land_view.center_on_tile{ x=22, y=16 }
+  -- create_some_units_in_old_world()
+  -- create_some_units_on_land()
+  -- create_some_colonies()
+  -- create_some_roads()
+  -- create_some_plows()
+  set_terrain_tiles()
+  land_view.center_on_tile{ x=23, y=15 }
 end
 
 return M

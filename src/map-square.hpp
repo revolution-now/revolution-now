@@ -19,6 +19,9 @@
 // Rds
 #include "map-square.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 namespace rn {
 
 bool is_land( MapSquare const& square );
@@ -53,3 +56,10 @@ void irrigate( MapSquare& square );
 MapSquare map_square_for_terrain( e_terrain terrain );
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::MapSquare, owned_by_cpp ){};
+}
