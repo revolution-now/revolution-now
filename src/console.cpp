@@ -78,6 +78,9 @@ struct ConsolePlane : public Plane {
     UNWRAP_CHECK(
         console_rect,
         compositor::section( compositor::e_section::console ) );
+    bool const mouse_over_console =
+        is_mouse_over_rect( console_rect );
+    bool const render_edit_box = mouse_over_console;
 
     Rect divider_rect = console_rect;
 
@@ -124,7 +127,7 @@ struct ConsolePlane : public Plane {
         Rect::from( console_rect.lower_left() - edit_box_delta.h,
                     edit_box_delta );
     Rect text_rect = console_rect;
-    text_rect.h -= edit_box_delta.h;
+    if( render_edit_box ) text_rect.h -= edit_box_delta.h;
 
     painter.draw_solid_rect( console_rect,
                              gfx::pixel::wood().shaded( 2 ) );
@@ -137,8 +140,7 @@ struct ConsolePlane : public Plane {
         gfx::pixel::banana().highlighted( 5 ).with_alpha(
             stats_alpha );
 
-    auto info_start = text_rect.lower_right() - 1_w;
-
+    // FIXME: better way to get this?
     static constexpr int kFontHeight = 8;
 
     auto delta_for = []( string_view text ) {
@@ -146,32 +148,8 @@ struct ConsolePlane : public Plane {
                     H{ kFontHeight } );
     };
 
-    auto frame_rate =
-        fmt::format( "fps: {:.1f}", avg_frame_rate() );
-    Delta frame_rate_size = delta_for( frame_rate );
-    renderer
-        .typer( "simple", info_start - frame_rate_size,
-                stats_color )
-        .write( frame_rate );
-    info_start -= frame_rate_size.h;
-
-    // FIXME: better way to get this?
-    auto text_height = 8;
-
-    for( auto const& [name, mv_avg] : event_counts() ) {
-      auto formatted = fmt::format(
-          "{}/f: {}", name,
-          std::lround( mv_avg.average() / avg_frame_rate() ) );
-      Delta formatted_size = delta_for( formatted );
-      renderer
-          .typer( "simple", info_start - formatted_size,
-                  stats_color )
-          .write( formatted );
-      info_start -= formatted_size.h;
-    }
-
     // Render the log
-    int const max_lines = text_rect.h._ / text_height;
+    int const max_lines = text_rect.h._ / kFontHeight;
     auto      log_px_start =
         text_rect.lower_left() - H{ kFontHeight };
     for( auto i = 0; i < max_lines; ++i ) {
@@ -186,8 +164,40 @@ struct ConsolePlane : public Plane {
       log_px_start -= text_size.h;
     }
 
-    le_view_.get().draw( renderer,
-                         console_edit_rect.upper_left() - 1_w );
+    if( render_edit_box )
+      le_view_.get().draw(
+          renderer, console_edit_rect.upper_left() - 1_w );
+
+    auto info_start = text_rect.lower_right() - 1_w;
+
+    auto frame_rate =
+        fmt::format( "fps: {:.1f}", avg_frame_rate() );
+    // TODO: this needs to be cached in a proper way (it's static
+    // because it is expensive to shade).
+    static gfx::pixel shaded_wood =
+        gfx::pixel::wood().shaded( 2 );
+    Delta frame_rate_size = delta_for( frame_rate );
+    painter.draw_solid_rect(
+        gfx::rect{ .origin = info_start - frame_rate_size,
+                   .size   = frame_rate_size },
+        shaded_wood );
+    renderer
+        .typer( "simple", info_start - frame_rate_size,
+                stats_color )
+        .write( frame_rate );
+    info_start -= frame_rate_size.h;
+
+    for( auto const& [name, mv_avg] : event_counts() ) {
+      auto formatted = fmt::format(
+          "{}/f: {}", name,
+          std::lround( mv_avg.average() / avg_frame_rate() ) );
+      Delta formatted_size = delta_for( formatted );
+      renderer
+          .typer( "simple", info_start - formatted_size,
+                  stats_color )
+          .write( formatted );
+      info_start -= formatted_size.h;
+    }
   }
 
   e_input_handled input( input::event_t const& event ) override {
@@ -206,6 +216,7 @@ struct ConsolePlane : public Plane {
       return e_input_handled::yes;
     }
     if( !show_ ) return e_input_handled::no;
+    if( !is_mouse_over_console() ) return e_input_handled::no;
     if( key_event.keycode == ::SDLK_l &&
         key_event.mod.ctrl_down ) {
       term::clear();
@@ -270,6 +281,17 @@ struct ConsolePlane : public Plane {
   }
 
   double console_height() const { return show_percent_ * .33; }
+
+  bool is_mouse_over_rect( Rect rect ) const {
+    return input::current_mouse_position().is_inside( rect );
+  }
+
+  bool is_mouse_over_console() const {
+    maybe<Rect> rect =
+        compositor::section( compositor::e_section::console );
+    if( !rect.has_value() ) return false;
+    return is_mouse_over_rect( *rect );
+  }
 
   bool                         show_{ false };
   double                       show_percent_{ 0.0 };
