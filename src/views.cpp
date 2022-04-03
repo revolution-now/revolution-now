@@ -936,6 +936,24 @@ bool OptionSelectView::on_key(
   return false;
 }
 
+maybe<int> OptionSelectView::item_under_point(
+    Coord coord ) const {
+  int i = 0;
+  for( PositionedViewConst puc : *this ) {
+    if( coord.is_inside( puc.rect() ) ) return i;
+    ++i;
+  }
+  return nothing;
+}
+
+bool OptionSelectView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  maybe<int> item = item_under_point( event.pos );
+  if( !item.has_value() ) return false;
+  set_selected( *item );
+  return true;
+}
+
 string const& OptionSelectView::get_selected() const {
   return get_view( selected_ )->line();
 }
@@ -978,6 +996,19 @@ bool ClickableView::on_mouse_button(
   if( event.buttons == input::e_mouse_button_event::left_up )
     on_click_();
   return true;
+}
+
+/****************************************************************
+** OnInputView
+*****************************************************************/
+OnInputView::OnInputView( unique_ptr<View>     view,
+                          OnInputView::OnInput on_input )
+  : CompositeSingleView( std::move( view ), Coord{} ),
+    on_input_( std::move( on_input ) ) {}
+
+bool OnInputView::input( input::event_t const& event ) {
+  if( on_input_( event ) ) return true;
+  return this->CompositeSingleView::input( event );
 }
 
 /****************************************************************

@@ -119,6 +119,12 @@ struct OmniPlane : public Plane {
               toggle_fullscreen();
             }
             break;
+          case ::SDLK_MINUS:
+            if( key_event.mod.ctrl_down ) dec_resolution_scale();
+            break;
+          case ::SDLK_EQUALS:
+            if( key_event.mod.ctrl_down ) inc_resolution_scale();
+            break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
             handled = e_input_handled::no;

@@ -91,8 +91,8 @@ struct Window {
   Coord inside_border() const;
   Rect  inside_border_rect() const;
   Coord inside_padding() const;
-  // Rect  inside_padding_rect() const;
-  Rect title_bar() const;
+  Rect  inside_padding_rect() const;
+  Rect  title_bar() const;
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
@@ -228,7 +228,7 @@ Delta const& window_padding() {
 Window::Window( string title_, Coord position_ )
   : title( move( title_ ) ),
     view{},
-    title_view(),
+    title_view{},
     position( position_ ) {
   title_view = make_unique<OneLineStringView>(
       title, config_palette.orange.sat1.lum11 );
@@ -241,35 +241,44 @@ Window::~Window() noexcept {
 
 void Window::draw( rr::Renderer& renderer ) const {
   CHECK( view );
-  auto        win_size = delta();
-  rr::Painter painter  = renderer.painter();
-  painter.draw_solid_rect(
-      Rect::from( position + Delta{ 4_w, 4_h }, win_size ),
-      gfx::pixel{ 0, 0, 0, 64 } );
-  painter.draw_solid_rect(
-      Rect{ position.x, position.y, win_size.w, win_size.h },
-      config_palette.orange.sat0.lum1 );
-  auto inside_border = position + window_border();
-  auto inner_size    = win_size - Scale( 2 ) * window_border();
-  painter.draw_solid_rect(
-      Rect::from( inside_border, inner_size ),
-      config_palette.orange.sat1.lum4 );
+  rr::Painter painter = renderer.painter();
+  Rect        r       = rect();
+  // Render shadow behind window.
+  painter.draw_solid_rect( r + Delta{ 4_w, 4_h },
+                           gfx::pixel{ 0, 0, 0, 64 } );
+  painter.draw_solid_rect( inside_border_rect(),
+                           config_palette.orange.sat0.lum3 );
+  // Render window border, highlights on top and right.
+  painter.draw_horizontal_line(
+      r.lower_left(), r.w._, config_palette.orange.sat0.lum2 );
+  painter.draw_vertical_line( r.upper_left(), r.h._,
+                              config_palette.orange.sat0.lum2 );
+  painter.draw_horizontal_line(
+      r.upper_left(), r.w._, config_palette.orange.sat0.lum4 );
+  painter.draw_vertical_line( r.upper_right(), r.h._,
+                              config_palette.orange.sat0.lum4 );
+  painter.draw_point( r.upper_left(),
+                      config_palette.orange.sat0.lum3 );
+  painter.draw_point( r.lower_right(),
+                      config_palette.orange.sat0.lum3 );
+
   auto title_start =
       centered( title_view->delta(), title_bar() );
   title_view->draw( renderer, title_start );
-  view->draw( renderer,
-              inside_padding() + title_view->delta().h );
+  view->draw( renderer, view_pos() );
 }
 
 // Includes border
 Delta Window::delta() const {
   CHECK( view );
   Delta res;
-  res.w = std::max(
-      title_view->delta().w,
-      W( view->delta().w + window_padding().w * 2_sx ) );
+  res.w = std::max( title_view->delta().w, view->delta().w );
   res.h += title_view->delta().h + view->delta().h +
            window_padding().h * 2_sy;
+  // Padding inside window border.
+  res.w += config_ui.window.window_padding * 2;
+  // Padding under title bar.
+  res.h += config_ui.window.ui_padding;
   // multiply by two since there is top/bottom or left/right.
   res += Scale( 2 ) * window_border();
   return res;
@@ -283,33 +292,39 @@ Coord Window::inside_border() const {
   return position + window_border();
 }
 
+Rect Window::inside_border_rect() const {
+  return Rect::from( position + window_border(),
+                     delta() - window_border() );
+}
+
 Coord Window::inside_padding() const {
   return position + window_border() + window_padding();
 }
 
-// Rect Window::inside_padding_rect() const {
-//  auto res = rect();
-//  res.x += window_border().w;
-//  res.y += window_border().h;
-//  res.w -= window_border().w * 2_sx;
-//  res.h -= window_border().h * 2_sy;
-//  res.x += window_padding().w;
-//  res.y += window_padding().h;
-//  res.w -= window_padding().w * 2_sx;
-//  res.h -= window_padding().h * 2_sy;
-//  return res;
-//}
+Rect Window::inside_padding_rect() const {
+  auto res = rect();
+  res.x += window_border().w;
+  res.y += window_border().h;
+  res.w -= window_border().w * 2_sx;
+  res.h -= window_border().h * 2_sy;
+  res.x += window_padding().w;
+  res.y += window_padding().h;
+  res.w -= window_padding().w * 2_sx;
+  res.h -= window_padding().h * 2_sy;
+  return res;
+}
 
 Rect Window::title_bar() const {
   CHECK( view );
-  auto title_bar_rect = title_view->rect( inside_border() );
+  auto title_bar_rect = title_view->rect( inside_padding() );
   title_bar_rect.w =
       std::max( title_bar_rect.w, view->delta().w );
   return title_bar_rect;
 }
 
 Coord Window::view_pos() const {
-  return inside_padding() + title_view->delta().h;
+  return inside_padding() + title_view->delta().h +
+         H{ config_ui.window.ui_padding };
 }
 
 void WindowManager::draw_layout( rr::Renderer& renderer ) const {
@@ -463,9 +478,10 @@ ValidatorFunc make_int_validator( maybe<int> min,
 // We need to have pointer stability on the returned window since
 // its address needs to go into callbacks.
 [[nodiscard]] unique_ptr<Window> async_window_builder(
-    std::string_view title, unique_ptr<View> view ) {
+    std::string_view title, unique_ptr<View> view,
+    bool auto_pad ) {
   auto win = make_unique<Window>( string( title ), Coord{} );
-  autopad( view, /*use_fancy=*/false );
+  if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   win->center_window();
   return win;
@@ -515,7 +531,8 @@ template<typename ResultT>
   view_vec.emplace_back( std::move( ok_cancel_view ) );
   auto view = make_unique<VerticalArrayView>(
       std::move( view_vec ), VerticalArrayView::align::center );
-  return async_window_builder( title, std::move( view ) );
+  return async_window_builder( title, std::move( view ),
+                               /*auto_pad=*/true );
 }
 
 using GetOkBoxSubjectViewFunc = unique_ptr<View>(
@@ -553,7 +570,8 @@ template<typename ResultT>
   view_vec.emplace_back( std::move( ok_button_view ) );
   auto view = make_unique<VerticalArrayView>(
       std::move( view_vec ), VerticalArrayView::align::center );
-  return async_window_builder( title, std::move( view ) );
+  return async_window_builder( title, std::move( view ),
+                               /*auto_pad=*/true );
 }
 
 [[nodiscard]] unique_ptr<Window> ok_cancel_impl(
@@ -680,36 +698,55 @@ wait<maybe<string>> str_input_box( string_view title,
 wait<string> select_box( string_view    title,
                          vector<string> options ) {
   lg.info( "question: \"{}\"", title );
-  auto view = make_unique<OptionSelectView>(
+  auto selector_view = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
-  auto* p_selector = view.get();
-
-  // p_selector->grow_to( win->inside_padding_rect().w );
+  auto* p_selector_view = selector_view.get();
 
   wait_promise<string> p;
 
-  auto on_result_prime = [=]( string const& result ) {
-    lg.info( "selected: {}", result );
-    p.set_value( result );
+  auto on_input = [&]( input::event_t const& event ) {
+    bool selected = false;
+    switch( event.to_enum() ) {
+      case input::e_input_event::key_event: {
+        auto const& key_event = event.as<input::key_event_t>();
+        if( key_event.keycode != ::SDLK_RETURN &&
+            key_event.keycode != ::SDLK_KP_ENTER &&
+            key_event.keycode != ::SDLK_KP_5 )
+          return false; // not handled.
+        if( key_event.change != input::e_key_change::down )
+          return true;
+        // An enter-like key is being released, so take action.
+        selected = true;
+        break;
+      }
+      case input::e_input_event::mouse_button_event: {
+        auto const& button_event =
+            event.as<input::mouse_button_event_t>();
+        if( button_event.buttons !=
+            input::e_mouse_button_event::left_up )
+          break;
+        selected = true;
+        break;
+      }
+      default: break;
+    }
+    if( selected ) {
+      string result = p_selector_view->get_selected();
+      lg.info( "selected: {}", result );
+      p.set_value( result );
+    }
+    bool handled = selected;
+    return handled;
   };
 
-  // We can capture by reference here because the function will
-  // be called before this scope exits.
-  auto get_view_fn =
-      [&]( function<void( bool )> /*enable_ok_button*/ ) {
-        return std::move( view );
-      };
+  auto on_input_view = make_unique<OnInputView>(
+      std::move( selector_view ), std::move( on_input ) );
 
-  unique_ptr<Window> win = ok_box_window_builder<string>(
-      /*title=*/title,
-      /*get_result=*/
-      [p_selector] { return p_selector->get_selected(); },
-      /*validator=*/
-      []( auto const& ) { return true; }, // always
-                                          // true.
-      /*on_result=*/std::move( on_result_prime ),
-      /*get_view_fn=*/get_view_fn //
-  );
+  unique_ptr<View>   view = std::move( on_input_view );
+  unique_ptr<Window> win  = async_window_builder(
+       title, std::move( view ), /*auto_pad=*/false );
+
+  p_selector_view->grow_to( win->inside_padding_rect().w );
 
   // Need to co_await instead of returning so that the window
   // stays alive while we wait.
@@ -724,7 +761,8 @@ wait<> message_box_basic( string_view msg ) {
   wait_promise<>     p;
   unique_ptr<Window> win = async_window_builder(
       /*title=*/"note",
-      PlainMessageBoxView::create( string( msg ), p ) );
+      PlainMessageBoxView::create( string( msg ), p ),
+      /*auto_pad=*/true );
   co_await p.wait();
 }
 

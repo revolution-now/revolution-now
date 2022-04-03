@@ -53,9 +53,8 @@ namespace rn {
 //
 // Note that it is not a question of performance as to which to
 // choose or keep, it is just correctness and code complexity.
-void autopad( std::unique_ptr<ui::View>& view, bool use_fancy );
-void autopad( std::unique_ptr<ui::View>& view, bool use_fancy,
-              int pixels );
+void autopad( ui::View& view, bool use_fancy );
+void autopad( ui::View& view, bool use_fancy, int pixels );
 
 void test_autopad();
 

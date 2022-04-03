@@ -98,7 +98,7 @@ class CompositeView : public View {
     auto                 operator*() { return cview->at( idx ); }
     void                 operator++() { ++idx; }
     bool                 operator!=( citer const& rhs ) {
-                      return rhs.idx != idx;
+      return rhs.idx != idx;
     }
   };
 
@@ -571,7 +571,12 @@ class OptionSelectView : public VectorView {
   // Implement CompositeView
   void notify_children_updated() override {}
 
+  // Implement ui::Object.
   bool on_key( input::key_event_t const& event ) override;
+
+  // Implement ui::Object.
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
 
   std::string const& get_selected() const;
 
@@ -583,6 +588,8 @@ class OptionSelectView : public VectorView {
   bool needs_padding() const override { return true; }
 
  private:
+  maybe<int> item_under_point( Coord coord ) const;
+
   OptionSelectItemView*       get_view( int item );
   OptionSelectItemView const* get_view( int item ) const;
   void                        set_selected( int item );
@@ -626,6 +633,22 @@ class ClickableView : public CompositeSingleView {
 
  private:
   OnClick on_click_;
+};
+
+class OnInputView : public CompositeSingleView {
+ public:
+  using OnInput = std::function<bool( input::event_t const& )>;
+
+  OnInputView( std::unique_ptr<View> view, OnInput on_input );
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  // Implement UI.
+  bool input( input::event_t const& e ) override;
+
+ private:
+  OnInput on_input_;
 };
 
 class BorderView : public CompositeSingleView {
