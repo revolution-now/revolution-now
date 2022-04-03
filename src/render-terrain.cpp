@@ -179,6 +179,25 @@ void render_terrain_land_square(
   DCHECK( square.surface == e_surface::land );
   e_tile tile = tile_for_ground_terrain( square );
   render_sprite( painter, where, tile );
+  // This will ensure good pseudo (deterministic) randomization
+  // of the dithering from one tile to another.
+  //
+  // It's value is kind of arbitrary, but it should satisfy these
+  // requirements:
+  //
+  //   1. Its value must not depend on `where`, i.e., the screen
+  //      coordinate where we are rendering, otherwise the effect
+  //      would appear to change as the map is scrolled.
+  //   2. It should be different for each square (or at least ap-
+  //      proximately.
+  //   3. It should be different for the two overlap stages below
+  //      (this is most important of the three).
+  //   4. It should be in the range of screen coordinates because
+  //      that is what the hash function in the fragment shader
+  //      is calibrated for.
+  //
+  Delta const anchor_offset =
+      Scale{ 10 } * ( world_square % Scale{ 10 } );
   {
 #if 1
     SCOPED_RENDERER_MOD( painter_mods.alpha,
@@ -191,7 +210,7 @@ void render_terrain_land_square(
         clamp( 1.0 - g_tile_overlap_width_percent *
                          g_tile_overlap_scaling,
                0.0, 1.0 ),
-        /*anchor_offset=*/Delta{} );
+        anchor_offset );
 #endif
 #if 1
     SCOPED_RENDERER_MOD( painter_mods.alpha,
@@ -204,7 +223,7 @@ void render_terrain_land_square(
         clamp( 1.0 - ( g_tile_overlap_width_percent / 2.0 ) *
                          g_tile_overlap_scaling,
                0.0, 1.0 ),
-        /*anchor_offset=*/g_tile_delta );
+        anchor_offset + g_tile_delta );
 #endif
   }
   if( square.overlay.has_value() ) {
