@@ -56,6 +56,9 @@ MovementPointsAnalysis expense_movement_points(
     Unit const& unit, MapSquare const& src_square,
     MapSquare const& dst_square ) {
   MovementPoints const has = unit.movement_points();
+  // TODO: if there is a colony on the square then the unit can
+  // probably always move into it (but might be worth checking
+  // this).
   MovementPoints const needs =
       movement_points_required( src_square, dst_square );
   bool const has_start_of_turn_exemption =
