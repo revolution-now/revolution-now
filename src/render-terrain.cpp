@@ -62,10 +62,6 @@ e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   }
 }
 
-e_tile tile_for_ground_terrain( MapSquare const& square ) {
-  return tile_for_ground_terrain( square.ground );
-}
-
 e_ground_terrain ground_terrain_for_square(
     TerrainState const& terrain_state, MapSquare const& square,
     Coord world_square ) {

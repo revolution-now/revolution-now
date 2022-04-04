@@ -121,10 +121,16 @@ struct OmniPlane : public Plane {
             }
             break;
           case ::SDLK_MINUS:
-            if( key_event.mod.ctrl_down ) dec_resolution_scale();
+            if( key_event.mod.ctrl_down )
+              dec_resolution_scale();
+            else
+              handled = e_input_handled::no;
             break;
           case ::SDLK_EQUALS:
-            if( key_event.mod.ctrl_down ) inc_resolution_scale();
+            if( key_event.mod.ctrl_down )
+              inc_resolution_scale();
+            else
+              handled = e_input_handled::no;
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
