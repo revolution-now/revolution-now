@@ -1,0 +1,33 @@
+# ===============================================================
+# map-edit.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-04-03.
+#
+# Description: Rds definitions for the map-edit module.
+#
+# ===============================================================
+namespace "rn.editor"
+
+enum.e_toolbar_item {
+  ocean,
+  sea_lane,
+
+  ground_arctic,
+  ground_desert,
+  ground_grassland,
+  ground_marsh,
+  ground_plains,
+  ground_prairie,
+  ground_savannah,
+  ground_swamp,
+  ground_tundra,
+
+  mountain,
+  hills,
+  forest,
+
+  irrigation,
+  road,
+}

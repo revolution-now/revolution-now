@@ -51,4 +51,5 @@ enum.e_menu_item {
   old_world_close,
   find_blinking_unit,
   next_turn,
+  map_editor,
 }

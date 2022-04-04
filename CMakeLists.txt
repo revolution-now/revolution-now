@@ -86,6 +86,11 @@ add_custom_target( game
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
                    USES_TERMINAL )
 
+add_custom_target( map
+                   COMMAND exe --mode=map_editor
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                   USES_TERMINAL )
+
 add_custom_target( gl_test
                    COMMAND exe --mode=gl_test
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}

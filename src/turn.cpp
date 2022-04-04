@@ -20,6 +20,7 @@
 #include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
+#include "map-edit.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"
@@ -68,7 +69,8 @@ enum class e_menu_actions {
   save,
   load,
   revolution,
-  old_world_view
+  old_world_view,
+  map_editor,
 };
 
 bool                       g_menu_commands_accepted = false;
@@ -153,6 +155,8 @@ wait<> menu_load_handler() {
     throw game_load_interrupt{};
 }
 
+wait<> menu_map_editor_handler() { return map_editor(); }
+
 #define DEFAULT_TURN_MENU_ITEM_HANDLER( item )             \
   MENU_ITEM_HANDLER(                                       \
       item,                                                \
@@ -164,6 +168,7 @@ DEFAULT_TURN_MENU_ITEM_HANDLER( save );
 DEFAULT_TURN_MENU_ITEM_HANDLER( load );
 DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
 DEFAULT_TURN_MENU_ITEM_HANDLER( old_world_view );
+DEFAULT_TURN_MENU_ITEM_HANDLER( map_editor );
 
 #define CASE_MENU_HANDLER( item ) \
   case e_menu_actions::item: return menu_##item##_handler();
@@ -175,6 +180,7 @@ wait<> handle_menu_item( e_menu_actions action ) {
     CASE_MENU_HANDLER( load );
     CASE_MENU_HANDLER( revolution );
     CASE_MENU_HANDLER( old_world_view );
+    CASE_MENU_HANDLER( map_editor );
   }
 }
 
@@ -469,7 +475,7 @@ wait<bool> advance_unit( UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::road );
+    co_return( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -485,7 +491,7 @@ wait<bool> advance_unit( UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::plow );
+    co_return( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( id ) ) {

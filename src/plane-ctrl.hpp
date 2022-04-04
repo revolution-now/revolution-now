@@ -19,7 +19,8 @@ enum class e_plane_config {
   land_view,
   colony,
   old_world,
-  black
+  black,
+  map_editor,
 };
 
 struct ScopedPlanePush {

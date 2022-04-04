@@ -112,17 +112,11 @@ SmoothViewport& viewport() {
 *****************************************************************/
 struct LandViewRenderer {
   // Given a tile, compute the screen rect where it should be
-  // rendered, all things considered.
-  //
-  // upper_left_screen_pixel is the screen coordinate where the
-  // upper left corner of the land view will be rendered. Note
-  // that it could be negative in order to produce partial tiles.
+  // rendered.
   Rect render_rect_for_tile( Coord tile ) {
     Delta delta_in_tiles  = tile - covered.upper_left();
     Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
-    Delta single_tile_delta_in_pixels = g_tile_delta;
-    return Rect::from( Coord{} + delta_in_pixels,
-                       single_tile_delta_in_pixels );
+    return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
   }
 
   void render_terrain() {
@@ -826,7 +820,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-                   return __state[code] != 0;
+          return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
         // from lowercase.

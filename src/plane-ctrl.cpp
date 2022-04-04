@@ -70,6 +70,14 @@ vector<e_plane> const& planes_from_config(
       };
       return planes;
     }
+    case e_plane_config::map_editor: {
+      static vector<e_plane> const planes{
+          e_plane::map_edit, //
+          e_plane::menu,     //
+          e_plane::window,   //
+      };
+      return planes;
+    }
   }
 }
 

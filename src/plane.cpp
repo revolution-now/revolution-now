@@ -18,6 +18,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "main-menu.hpp"
+#include "map-edit.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "panel.hpp"
@@ -186,6 +187,7 @@ void init_planes() {
   planes.fill( &dummy );
 
   plane( e_plane::main_menu ) = main_menu_plane();
+  plane( e_plane::map_edit )  = map_editor_plane();
   plane( e_plane::land_view ) = land_view_plane();
   plane( e_plane::panel )     = panel_plane();
   plane( e_plane::colony )    = colony_plane();

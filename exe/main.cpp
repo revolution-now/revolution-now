@@ -5,6 +5,7 @@
 #include "logger.hpp"
 #include "lua-ui.hpp"
 #include "lua.hpp"
+#include "map-edit.hpp"
 #include "open-gl-test.hpp"
 #include "screen.hpp"
 #include "util.hpp"
@@ -37,6 +38,12 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Game ]" );
       frame_loop( revolution_now() );
+      break;
+    }
+    case e_mode::map_editor: {
+      full_init();
+      print_bar( '-', "[ Starting Map Editor ]" );
+      frame_loop( map_editor() );
       break;
     }
     case e_mode::test_ui: {

@@ -2,25 +2,28 @@
 # TODO
 # ===============================================================
 
-  1.  Make map editor.
-  2.  Add basic auto unit outlining in fragment shader so that
+  1.  Add land edge tiles to renderer.
+  2.  Add overlay connector tiles.
+  3.  Render rivers.
+  4.  Render natrual resource tiles.
+  5.  Implement world generation.
+  6.  Implement terrain visibility.
+  7.  Draw remainder of unit types.
+  8.  Implement colony land production.
+  9.  Implement selecting colonist profession in colony view.
+  10. Implement mini map.
+  11. Implement stats in panel.
+  12. Implement gold.
+  13. Implement old world prices and price changes.
+  14. Allow purchases things from old world.
+  15. Implement that immigrants appear on the doc.
+  16. Add basic auto unit outlining in fragment shader so that
       the units will be visible.
-  3.  Implement world generation.
-  4.  Implement terrain visibility.
-  5.  Draw remainder of unit types.
-  6.  Implement colony land production.
-  7.  Implement selecting colonist profession in colony view.
-  8.  Implement mini map.
-  9.  Implement stats in panel.
-  10. Implement gold.
-  11. Implement old world prices and price changes.
-  12. Allow purchases things from old world.
-  13. Implement that immigrants appear on the doc.
-  14. Create colony building art.
-  15. Render colony buildings in colony.
-  16. Implement colony building workers.
-  17. Implement colony production (from lumber/tools).
-  18. Implement wagon train trade routes.
+  17. Create colony building art.
+  18. Render colony buildings in colony.
+  19. Implement colony building workers.
+  20. Implement colony production (from lumber/tools).
+  21. Implement wagon train trade routes.
 
 # ===============================================================
 # OpenGL

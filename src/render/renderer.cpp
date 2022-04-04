@@ -92,7 +92,8 @@ struct Renderer::Impl {
         unordered_map<string_view, int>  atlas_ids_fast_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
-            ascii_fonts_fast_arg )
+                  ascii_fonts_fast_arg,
+        gfx::size logical_screen_size_arg )
     : mod_stack{},
       present_fn( std::move( present_fn_arg ) ),
       program( std::move( program_arg ) ),
@@ -106,7 +107,8 @@ struct Renderer::Impl {
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       vertices{},
-      emitter( vertices ) {
+      emitter( vertices ),
+      logical_screen_size( logical_screen_size_arg ) {
     mod_stack.push( RendererMods{} );
     emitter.log_capacity_changes( false );
   };
@@ -132,8 +134,9 @@ struct Renderer::Impl {
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
 
+    gfx::size logical_screen_size = config.logical_screen_size;
     pgrm["u_screen_size"_t] =
-        gl::vec2::from_size( config.logical_screen_size );
+        gl::vec2::from_size( logical_screen_size );
 
     AtlasBuilder               atlas_builder;
     unordered_map<string, int> atlas_ids;
@@ -191,7 +194,8 @@ struct Renderer::Impl {
         /*atlas_ids=*/std::move( atlas_ids ),
         /*atlas_ids_fast=*/std::move( atlas_ids_fast ),
         /*ascii_fonts=*/std::move( ascii_fonts ),
-        /*ascii_fonts_fast=*/std::move( ascii_fonts_fast ) );
+        /*ascii_fonts_fast=*/std::move( ascii_fonts_fast ),
+        /*logical_screen_size=*/logical_screen_size );
   }
 
   void begin_pass() {
@@ -275,6 +279,7 @@ struct Renderer::Impl {
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   vector<GenericVertex>                        vertices;
   Emitter                                      emitter;
+  gfx::size logical_screen_size;
 };
 
 /****************************************************************
@@ -317,6 +322,10 @@ void Renderer::present() { impl_->present_fn(); }
 
 void Renderer::set_logical_screen_size( gfx::size new_size ) {
   impl_->set_logical_screen_size( new_size );
+}
+
+gfx::size Renderer::logical_screen_size() const {
+  return impl_->logical_screen_size;
 }
 
 void Renderer::set_physical_screen_size( gfx::size new_size ) {

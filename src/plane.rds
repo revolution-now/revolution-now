@@ -11,6 +11,7 @@
 namespace "rn"
 
 enum.e_plane {
+  map_edit,  # map editor.
   land_view, # land, units, colonies, etc.
   panel,     # the info panel on the right
   colony,    # colony view

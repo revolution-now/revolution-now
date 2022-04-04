@@ -159,7 +159,8 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       } },
     { e_menu::debug,
       {
-          ITEM( toggle_console, "Toggle Console" ) //
+          ITEM( toggle_console, "Toggle Console" ), //
+          ITEM( map_editor, "Enter Map Editor" )    //
       } },
     { e_menu::pedia,
       {
