@@ -124,47 +124,58 @@ wait<> click_on_tile( Coord tile, e_action action ) {
   TerrainState& terrain_state = GameState::terrain();
   switch( *g_selected_tool ) {
     case editor::e_toolbar_item::ocean:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::ocean );
       break;
     case editor::e_toolbar_item::sea_lane:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::ocean );
       terrain_state.world_map[tile].sea_lane = true;
       break;
     case editor::e_toolbar_item::ground_arctic:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::arctic );
       break;
     case editor::e_toolbar_item::ground_desert:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::desert );
       break;
     case editor::e_toolbar_item::ground_grassland:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::grassland );
       break;
     case editor::e_toolbar_item::ground_marsh:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::marsh );
       break;
     case editor::e_toolbar_item::ground_plains:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::plains );
       break;
     case editor::e_toolbar_item::ground_prairie:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::prairie );
       break;
     case editor::e_toolbar_item::ground_savannah:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::savannah );
       break;
     case editor::e_toolbar_item::ground_swamp:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::swamp );
       break;
     case editor::e_toolbar_item::ground_tundra:
+      if( action == e_action::remove ) break;
       terrain_state.world_map[tile] =
           map_square_for_terrain( e_terrain::tundra );
       break;
@@ -227,24 +238,22 @@ wait<bool> handle_event( input::key_event_t const& event ) {
   co_return false;
 }
 
-// Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
     input::mouse_button_event_t const& event ) {
-  if( event.buttons != input::e_mouse_button_event::left_up &&
-      event.buttons != input::e_mouse_button_event::right_up )
-    co_return false;
+  bool left =
+      event.buttons == input::e_mouse_button_event::left_down;
+  bool right =
+      event.buttons == input::e_mouse_button_event::right_down;
+  if( !left && !right ) co_return false;
   Coord click_pos = event.pos;
   if( auto maybe_tile =
           viewport().screen_pixel_to_world_tile( click_pos ) ) {
     lg.debug( "clicked on tile: {}.", *maybe_tile );
-    e_action action =
-        event.buttons == input::e_mouse_button_event::left_up
-            ? e_action::add
-            : e_action::remove;
+    e_action action = left ? e_action::add : e_action::remove;
     co_await click_on_tile( *maybe_tile, action );
     co_return false;
   }
-  if( click_pos.is_inside( toolbar_rect() ) ) {
+  if( left && click_pos.is_inside( toolbar_rect() ) ) {
     co_await click_on_toolbar(
         Coord{} + ( click_pos - toolbar_rect().upper_left() ) /
                       g_tile_scale );
