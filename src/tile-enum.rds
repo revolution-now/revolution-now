@@ -17,6 +17,41 @@ enum.e_tile {
   terrain_ocean,
   terrain_ocean_sea_lane,
 
+  terrain_ocean_island,
+
+  terrain_ocean_up,
+  terrain_ocean_right,
+  terrain_ocean_down,
+  terrain_ocean_left,
+
+  terrain_ocean_up_right,
+  terrain_ocean_right_down,
+  terrain_ocean_down_left,
+  terrain_ocean_left_up,
+
+  terrain_ocean_up_down,
+  terrain_ocean_left_right,
+
+  terrain_ocean_up_right_down_o_o,
+  terrain_ocean_up_right_down_c_o,
+  terrain_ocean_up_right_down_o_c,
+  terrain_ocean_up_right_down_c_c,
+
+  terrain_ocean_right_down_left_o_o,
+  terrain_ocean_right_down_left_o_c,
+  terrain_ocean_right_down_left_c_o,
+  terrain_ocean_right_down_left_c_c,
+
+  terrain_ocean_down_left_up_o_o,
+  terrain_ocean_down_left_up_o_c,
+  terrain_ocean_down_left_up_c_o,
+  terrain_ocean_down_left_up_c_c,
+
+  terrain_ocean_left_up_right_o_o,
+  terrain_ocean_left_up_right_c_o,
+  terrain_ocean_left_up_right_o_c,
+  terrain_ocean_left_up_right_c_c,
+
   # =============================================================
   # Ground types.
   # =============================================================
