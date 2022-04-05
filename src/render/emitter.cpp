@@ -43,6 +43,7 @@ void log_capacity_change( bool /*on*/, int /*capacity_before*/,
 *****************************************************************/
 void Emitter::emit( GenericVertex const& vert ) {
   int capacity_before = buffer_->capacity();
+  DCHECK( pos_ <= int( buffer_->size() ) );
   if( pos_ < int( buffer_->size() ) )
     ( *buffer_ )[pos_] = vert;
   else
@@ -51,6 +52,11 @@ void Emitter::emit( GenericVertex const& vert ) {
   int capacity_after = buffer_->capacity();
   log_capacity_change( log_capacity_changes_, capacity_before,
                        capacity_after );
+}
+
+void Emitter::set_position( int new_pos ) {
+  pos_ = new_pos;
+  DCHECK( pos_ <= int( buffer_->size() ) );
 }
 
 void Emitter::emit( span<GenericVertex const> vertices ) {

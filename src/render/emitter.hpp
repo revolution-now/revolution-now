@@ -36,6 +36,8 @@ struct Emitter {
       pos_( pos ),
       log_capacity_changes_( false ) {}
 
+  void set_position( int new_pos );
+
   template<VertexType V>
   void emit( V const& vert ) {
     emit( vert.generic() );

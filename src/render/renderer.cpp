@@ -205,6 +205,7 @@ struct Renderer::Impl {
     vertices.clear();
     DCHECK( vertices.capacity() == capacity_before_clear );
     DCHECK( vertices.empty() );
+    emitter.set_position( 0 );
   }
 
   int end_pass() {
