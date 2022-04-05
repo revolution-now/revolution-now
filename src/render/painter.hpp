@@ -130,6 +130,10 @@ struct Painter {
   Painter& draw_silhouette_scale( int atlas_id, gfx::rect dst,
                                   gfx::pixel color );
 
+  Painter& draw_stencil( int atlas_id, int replacement_atlas_id,
+                         gfx::point where,
+                         gfx::pixel key_color );
+
   gfx::size depixelation_offset( int from_atlas_id,
                                  int to_atlas_id ) const;
 
@@ -150,6 +154,10 @@ struct Painter {
 
   void draw_silhouette_impl( gfx::rect src, gfx::rect dst,
                              gfx::pixel color );
+
+  void draw_stencil_impl( gfx::rect src, gfx::rect dst,
+                          gfx::size  replacement_atlas_offset,
+                          gfx::pixel key_color );
 
   AtlasMap const&          atlas_;
   Emitter&                 emitter_;

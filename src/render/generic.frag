@@ -55,6 +55,20 @@ vec4 type_silhouette() {
 }
 
 /****************************************************************
+** Stencils.
+*****************************************************************/
+vec4 type_stencil() {
+  vec4 candidate = atlas_lookup( frag_atlas_position );
+  if( candidate.rgb != frag_fixed_color.rgb )
+    return candidate;
+  // We have the key color, so replace it with a pixel from the
+  // alternate sprite.
+  vec4 target_color = atlas_lookup( frag_atlas_position +
+                                    frag_atlas_target_offset );
+  return vec4( target_color.rgb, target_color.a*candidate.a );
+}
+
+/****************************************************************
 ** Depixelation.
 *****************************************************************/
 // Here we will produce a hash of the correct pixel coordinates
@@ -119,6 +133,7 @@ void main() {
     case 0: color = type_sprite();     break;
     case 1: color = type_solid();      break;
     case 2: color = type_silhouette(); break;
+    case 3: color = type_stencil();    break;
   }
 
   // Post processing.

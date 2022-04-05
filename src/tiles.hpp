@@ -72,6 +72,16 @@ void render_sprite( rr::Painter& painter, Rect where,
 void render_sprite_section( rr::Painter& painter, e_tile tile,
                             Coord pixel_coord, Rect source );
 
+/****************************************************************
+** Stencils
+*****************************************************************/
+void render_sprite_stencil( rr::Painter& painter, Coord where,
+                            e_tile tile, e_tile replacement_tile,
+                            gfx::pixel key_color );
+
+/****************************************************************
+** Tiling
+*****************************************************************/
 // Here the word "tile" is used to mean "repeat the sprite in a
 // tiled pattern within the rectangle".
 void tile_sprite( rr::Painter& painter, e_tile tile,

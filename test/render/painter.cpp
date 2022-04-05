@@ -676,6 +676,41 @@ TEST_CASE( "[render/painter] draw_silhouette" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] draw_stencil" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  point p;
+  // This is the offset between the origins of the point and re-
+  // placement point.
+  gfx::size offset{ .w = 1, .h = 1 };
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return StencilVertex( p, atlas_p, offset, R ).generic();
+  };
+
+  p                  = { .x = 20, .y = 30 };
+  int atlas_id       = 2;
+  int replacement_id = 3;
+  painter.draw_stencil( atlas_id, replacement_id, p, R );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  // replacement:
+  //        { .origin = { .x = 4, .y = 5 },
+  //          .size   = { .w = 6, .h = 7 } },
+  expected = {
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   vector<GenericVertex> v, expected;
 

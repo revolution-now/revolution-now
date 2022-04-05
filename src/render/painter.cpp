@@ -194,6 +194,17 @@ void Painter::draw_silhouette_impl( rect src, rect dst,
       } );
 }
 
+void Painter::draw_stencil_impl(
+    rect src, rect dst, gfx::size replacement_atlas_offset,
+    gfx::pixel key_color ) {
+  emit_texture_quad(
+      src, dst, [&, this]( point pos, point atlas_pos ) {
+        emit( StencilVertex( pos, atlas_pos,
+                             replacement_atlas_offset,
+                             key_color ) );
+      } );
+}
+
 Painter& Painter::draw_sprite( int atlas_id, point where ) {
   rect src = atlas_.lookup( atlas_id );
   draw_sprite_impl( src,
@@ -233,6 +244,20 @@ Painter& Painter::draw_silhouette_scale( int atlas_id, rect dst,
                                          pixel color ) {
   rect src = atlas_.lookup( atlas_id );
   draw_silhouette_impl( src, dst, color );
+  return *this;
+}
+
+Painter& Painter::draw_stencil( int        atlas_id,
+                                int        replacement_atlas_id,
+                                gfx::point where,
+                                gfx::pixel key_color ) {
+  rect      src = atlas_.lookup( atlas_id );
+  rect      dst = rect{ .origin = where, .size = src.size };
+  rect      replacement = atlas_.lookup( replacement_atlas_id );
+  gfx::size replacement_atlas_offset =
+      replacement.origin - src.origin;
+  draw_stencil_impl( src, dst, replacement_atlas_offset,
+                     key_color );
   return *this;
 }
 

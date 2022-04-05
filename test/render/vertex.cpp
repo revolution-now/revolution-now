@@ -24,6 +24,7 @@ using namespace std;
 using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
+using ::gfx::size;
 
 TEST_CASE( "[render/vertex] SpriteVertex" ) {
   SpriteVertex         vert( point{ .x = 1, .y = 2 },
@@ -68,6 +69,26 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
+  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
+                                        .g = 20.0f / 255.0f,
+                                        .b = 30.0f / 255.0f,
+                                        .a = 40.0f / 255.0f } );
+  REQUIRE( gv.alpha_multiplier == 1.0f );
+}
+
+TEST_CASE( "[render/vertex] StencilVertex" ) {
+  StencilVertex vert(
+      point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
+      size{ .w = 2, .h = 3 },
+      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
+  GenericVertex const& gv = vert.generic();
+  REQUIRE( gv.type == 3 );
+  REQUIRE( gv.visible == 1 );
+  REQUIRE( gv.depixelate == gl::vec3{} );
+  REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
+  REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_target_offset ==
+           gl::vec2{ .x = 2, .y = 3 } );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
                                         .b = 30.0f / 255.0f,

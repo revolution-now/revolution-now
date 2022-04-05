@@ -124,6 +124,23 @@ struct SilhouetteVertex : public VertexBase {
 STATIC_VERTEX_CHECKS( SilhouetteVertex );
 
 /****************************************************************
+** StencilVertex
+*****************************************************************/
+// This is a vertex used for shapes that are filled with a sprite
+// copied from the texture atlas but where any colors in the
+// sprite matching a key color are replaced by pixels from an al-
+// ternate sprite with alpha multiplication.
+struct StencilVertex : public VertexBase {
+  StencilVertex( gfx::point position, gfx::point atlas_position,
+                 gfx::size  atlas_target_offset,
+                 gfx::pixel key_color );
+
+  bool operator==( StencilVertex const& ) const = default;
+};
+
+STATIC_VERTEX_CHECKS( StencilVertex );
+
+/****************************************************************
 ** Helpers
 *****************************************************************/
 template<VertexType V>

@@ -28,6 +28,12 @@ struct.GenericVertex {
   #     pixels will be replaced by a fixed color. Examples of
   #     uses for this would be fonts and window shadows.
   #
+  #  3. Stencil. This triangle is a sprite that will be drawn as
+  #     such (respecting transparency), but all pixels in the
+  #     sprite that are a key color will be replaced by pixels of
+  #     an alternate sprite (specified in the atlas via the
+  #     atlas_target_offset) with alpha multiplication.
+  #
   #  The above options should be in order of decreasing probabil-
   #  ity, that way most shaders can return early most of the time
   #  and won't spend time testing for unlikely branches.
@@ -81,12 +87,20 @@ struct.GenericVertex {
   # tively, this allows a sprite to "depixelate" into another
   # sprite, as opposed to depixelating to nothing as is the de-
   # fault when this offset is zero.
+  #
+  # For stencil types this points to the alternate texture in the
+  # atlas that will be used for pixels of the key color. That
+  # means that we don't support triangles that are both stencils
+  # and that are depixelating to an alternate texture, but that
+  # shouldn't really be needed.
   atlas_target_offset 'gl::vec2',
 
   # For solid triangles or silhouettes this will be the color
   # used. Components should be in [0, 1.0]. For silhouettes,
   # alpha in this color will be multiplied by the alpha of the
   # texture pixel.
+  #
+  # For stencils this will be the key color.
   fixed_color 'gl::color',
 
   # The final pixel color will have its alpha multiplied by this

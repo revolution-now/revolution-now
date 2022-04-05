@@ -23,6 +23,7 @@ enum class vertex_type {
   sprite     = 0,
   solid      = 1,
   silhouette = 2,
+  stencil    = 3,
 };
 
 GenericVertex proto_vertex( vertex_type type,
@@ -119,6 +120,21 @@ SilhouetteVertex::SilhouetteVertex( gfx::point position,
         proto_vertex( vertex_type::silhouette, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
   this->fixed_color    = gl::color::from_pixel( color );
+}
+
+/****************************************************************
+** StencilVertex
+*****************************************************************/
+StencilVertex::StencilVertex( gfx::point position,
+                              gfx::point atlas_position,
+                              gfx::size  atlas_target_offset,
+                              gfx::pixel key_color )
+  : VertexBase(
+        proto_vertex( vertex_type::stencil, position ) ) {
+  this->atlas_position = gl::vec2::from_point( atlas_position );
+  this->atlas_target_offset =
+      gl::vec2::from_size( atlas_target_offset );
+  this->fixed_color = gl::color::from_pixel( key_color );
 }
 
 } // namespace rr

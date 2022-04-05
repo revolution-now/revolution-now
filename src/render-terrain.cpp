@@ -496,7 +496,9 @@ void render_terrain_ocean_square(
   render_terrain_ground( terrain_state, painter, renderer, where,
                          world_square, ground );
 
-  render_sprite( painter, where, water_tile );
+  render_sprite_stencil( painter, where, water_tile,
+                         e_tile::terrain_ocean,
+                         gfx::pixel::black() );
 }
 
 // Pass in the painter as well for efficiency.

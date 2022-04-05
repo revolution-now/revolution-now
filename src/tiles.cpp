@@ -114,6 +114,14 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
                                source );
 }
 
+void render_sprite_stencil( rr::Painter& painter, Coord where,
+                            e_tile tile, e_tile replacement_tile,
+                            gfx::pixel key_color ) {
+  painter.draw_stencil( atlas_lookup( tile ),
+                        atlas_lookup( replacement_tile ), where,
+                        key_color );
+}
+
 void tile_sprite( rr::Painter& painter, e_tile tile,
                   Rect const& rect ) {
   Delta info       = sprite_size( tile );
