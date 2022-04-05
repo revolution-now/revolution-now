@@ -428,26 +428,110 @@ void render_terrain_ocean_square(
       }
       break;
     }
-    case 0b0110:
+    case 0b0110: {
       // land on left and top.
       DCHECK( left.has_value() );
-      water_tile = e_tile::terrain_ocean_right_down;
+      bool down_open  = is_land_if_exists( e_direction::sw );
+      bool right_open = is_land_if_exists( e_direction::ne );
+      switch( to_mask( down_open, right_open ) ) {
+        case 0b00:
+          // down closed, right closed.
+          water_tile = e_tile::terrain_ocean_right_down_c_c;
+          break;
+        case 0b01:
+          // down closed, right open.
+          water_tile = e_tile::terrain_ocean_right_down_o_c;
+          break;
+        case 0b10:
+          // down open, right closed.
+          water_tile = e_tile::terrain_ocean_right_down_c_o;
+          break;
+        case 0b11:
+          // down open, right open.
+          water_tile = e_tile::terrain_ocean_right_down_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b0011:
+    }
+    case 0b0011: {
       // land on top and right.
       DCHECK( up.has_value() );
-      water_tile = e_tile::terrain_ocean_down_left;
+      bool left_open = is_land_if_exists( e_direction::nw );
+      bool down_open = is_land_if_exists( e_direction::se );
+      switch( to_mask( left_open, down_open ) ) {
+        case 0b00:
+          // left closed, down closed.
+          water_tile = e_tile::terrain_ocean_down_left_c_c;
+          break;
+        case 0b01:
+          // left closed, down open.
+          water_tile = e_tile::terrain_ocean_down_left_c_o;
+          break;
+        case 0b10:
+          // left open, down closed.
+          water_tile = e_tile::terrain_ocean_down_left_o_c;
+          break;
+        case 0b11:
+          // left open, down open.
+          water_tile = e_tile::terrain_ocean_down_left_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b1001:
+    }
+    case 0b1001: {
       // land on right and bottom.
       DCHECK( right.has_value() );
-      water_tile = e_tile::terrain_ocean_left_up;
+      bool left_open = is_land_if_exists( e_direction::sw );
+      bool top_open  = is_land_if_exists( e_direction::ne );
+      switch( to_mask( left_open, top_open ) ) {
+        case 0b00:
+          // left closed, top closed.
+          water_tile = e_tile::terrain_ocean_left_up_c_c;
+          break;
+        case 0b01:
+          // left closed, top open.
+          water_tile = e_tile::terrain_ocean_left_up_c_o;
+          break;
+        case 0b10:
+          // left open, top closed.
+          water_tile = e_tile::terrain_ocean_left_up_o_c;
+          break;
+        case 0b11:
+          // left open, top open.
+          water_tile = e_tile::terrain_ocean_left_up_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b1100:
+    }
+    case 0b1100: {
       // land on bottom and left.
       DCHECK( down.has_value() );
-      water_tile = e_tile::terrain_ocean_up_right;
+      bool up_open    = is_land_if_exists( e_direction::nw );
+      bool right_open = is_land_if_exists( e_direction::se );
+      switch( to_mask( up_open, right_open ) ) {
+        case 0b00:
+          // up closed, right closed.
+          water_tile = e_tile::terrain_ocean_up_right_c_c;
+          break;
+        case 0b01:
+          // up closed, right open.
+          water_tile = e_tile::terrain_ocean_up_right_c_o;
+          break;
+        case 0b10:
+          // up open, right closed.
+          water_tile = e_tile::terrain_ocean_up_right_o_c;
+          break;
+        case 0b11:
+          // up open, right open.
+          water_tile = e_tile::terrain_ocean_up_right_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
+    }
     case 0b1010:
       // land on left and right.
       DCHECK( left.has_value() );
@@ -458,26 +542,110 @@ void render_terrain_ocean_square(
       DCHECK( up.has_value() );
       water_tile = e_tile::terrain_ocean_left_right;
       break;
-    case 0b1000:
+    case 0b1000: {
       // land on right, bottom, left.
       DCHECK( left.has_value() );
-      water_tile = e_tile::terrain_ocean_up;
+      bool left_open  = is_land_if_exists( e_direction::nw );
+      bool right_open = is_land_if_exists( e_direction::ne );
+      switch( to_mask( left_open, right_open ) ) {
+        case 0b00:
+          // left closed, right closed.
+          water_tile = e_tile::terrain_ocean_up_c_c;
+          break;
+        case 0b01:
+          // left closed, right open.
+          water_tile = e_tile::terrain_ocean_up_c_o;
+          break;
+        case 0b10:
+          // left open, right closed.
+          water_tile = e_tile::terrain_ocean_up_o_c;
+          break;
+        case 0b11:
+          // left open, right open.
+          water_tile = e_tile::terrain_ocean_up_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b0100:
+    }
+    case 0b0100: {
       // land on bottom, left, top.
       DCHECK( left.has_value() );
-      water_tile = e_tile::terrain_ocean_right;
+      bool top_open  = is_land_if_exists( e_direction::ne );
+      bool down_open = is_land_if_exists( e_direction::se );
+      switch( to_mask( top_open, down_open ) ) {
+        case 0b00:
+          // top closed, bottom closed.
+          water_tile = e_tile::terrain_ocean_right_c_c;
+          break;
+        case 0b01:
+          // top closed, bottom open.
+          water_tile = e_tile::terrain_ocean_right_c_o;
+          break;
+        case 0b10:
+          // top open, bottom closed.
+          water_tile = e_tile::terrain_ocean_right_o_c;
+          break;
+        case 0b11:
+          // top open, bottom open.
+          water_tile = e_tile::terrain_ocean_right_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b0010:
+    }
+    case 0b0010: {
       // land on left, top, right.
       DCHECK( left.has_value() );
-      water_tile = e_tile::terrain_ocean_down;
+      bool left_open  = is_land_if_exists( e_direction::sw );
+      bool right_open = is_land_if_exists( e_direction::se );
+      switch( to_mask( left_open, right_open ) ) {
+        case 0b00:
+          // left closed, right closed.
+          water_tile = e_tile::terrain_ocean_down_c_c;
+          break;
+        case 0b01:
+          // left closed, right open.
+          water_tile = e_tile::terrain_ocean_down_c_o;
+          break;
+        case 0b10:
+          // left open, right closed.
+          water_tile = e_tile::terrain_ocean_down_o_c;
+          break;
+        case 0b11:
+          // left open, right open.
+          water_tile = e_tile::terrain_ocean_down_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
-    case 0b0001:
+    }
+    case 0b0001: {
       // land on top, right, bottom.
       DCHECK( up.has_value() );
-      water_tile = e_tile::terrain_ocean_left;
+      bool top_open  = is_land_if_exists( e_direction::nw );
+      bool down_open = is_land_if_exists( e_direction::sw );
+      switch( to_mask( top_open, down_open ) ) {
+        case 0b00:
+          // top closed, bottom closed.
+          water_tile = e_tile::terrain_ocean_left_c_c;
+          break;
+        case 0b01:
+          // top closed, bottom open.
+          water_tile = e_tile::terrain_ocean_left_c_o;
+          break;
+        case 0b10:
+          // top open, bottom closed.
+          water_tile = e_tile::terrain_ocean_left_o_c;
+          break;
+        case 0b11:
+          // top open, bottom open.
+          water_tile = e_tile::terrain_ocean_left_o_o;
+          break;
+        default: SHOULD_NOT_BE_HERE;
+      }
       break;
+    }
     case 0b0000:
       // land on all sides.
       DCHECK( left.has_value() );
