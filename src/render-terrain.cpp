@@ -62,7 +62,7 @@ e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   }
 }
 
-e_ground_terrain ground_terrain_for_square(
+maybe<e_ground_terrain> ground_terrain_for_square(
     TerrainState const& terrain_state, MapSquare const& square,
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
@@ -87,9 +87,31 @@ e_ground_terrain ground_terrain_for_square(
   if( down.has_value() && down->surface == e_surface::land )
     return down->ground;
 
-  // FIXME: figure out why control flow gets here.
-  // SHOULD_NOT_BE_HERE;
-  return e_ground_terrain::arctic;
+  maybe<MapSquare const&> up_left =
+      maybe_square_at( terrain_state, world_square - 1_w - 1_h );
+  if( up_left.has_value() &&
+      up_left->surface == e_surface::land )
+    return up_left->ground;
+
+  maybe<MapSquare const&> up_right =
+      maybe_square_at( terrain_state, world_square - 1_h + 1_w );
+  if( up_right.has_value() &&
+      up_right->surface == e_surface::land )
+    return up_right->ground;
+
+  maybe<MapSquare const&> down_right =
+      maybe_square_at( terrain_state, world_square + 1_w + 1_h );
+  if( down_right.has_value() &&
+      down_right->surface == e_surface::land )
+    return down_right->ground;
+
+  maybe<MapSquare const&> down_left =
+      maybe_square_at( terrain_state, world_square + 1_h - 1_w );
+  if( down_left.has_value() &&
+      down_left->surface == e_surface::land )
+    return down_left->ground;
+
+  return nothing;
 }
 
 e_tile overlay_tile( MapSquare const& square ) {
@@ -140,12 +162,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
                          dst + anchor_offset );
     // Need a new painter since we changed the mods.
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter,
-        tile_for_ground_terrain( ground_terrain_for_square(
-            terrain_state, *west, world_square - 1_w ) ),
-        dst, src );
+    rr::Painter             painter = renderer.painter();
+    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+         terrain_state, *west, world_square - 1_w );
+    if( ground )
+      render_sprite_section( painter,
+                             tile_for_ground_terrain( *ground ),
+                             dst, src );
   }
   if( north.has_value() ) {
     // Render bottom part of north tile.
@@ -157,12 +180,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
                          dst + anchor_offset );
     // Need a new painter since we changed the mods.
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter,
-        tile_for_ground_terrain( ground_terrain_for_square(
-            terrain_state, *north, world_square - 1_h ) ),
-        dst, src );
+    rr::Painter             painter = renderer.painter();
+    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+         terrain_state, *north, world_square - 1_h );
+    if( ground )
+      render_sprite_section( painter,
+                             tile_for_ground_terrain( *ground ),
+                             dst, src );
   }
   if( south.has_value() ) {
     // Render northern part of southern tile.
@@ -174,12 +198,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
                          dst + anchor_offset );
     // Need a new painter since we changed the mods.
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter,
-        tile_for_ground_terrain( ground_terrain_for_square(
-            terrain_state, *south, world_square + 1_h ) ),
-        dst, src );
+    rr::Painter             painter = renderer.painter();
+    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+         terrain_state, *south, world_square + 1_h );
+    if( ground )
+      render_sprite_section( painter,
+                             tile_for_ground_terrain( *ground ),
+                             dst, src );
   }
   if( east.has_value() ) {
     // Render west part of eastern tile.
@@ -191,12 +216,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
                          dst + anchor_offset );
     // Need a new painter since we changed the mods.
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter,
-        tile_for_ground_terrain( ground_terrain_for_square(
-            terrain_state, *east, world_square + 1_w ) ),
-        dst, src );
+    rr::Painter             painter = renderer.painter();
+    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+         terrain_state, *east, world_square + 1_w );
+    if( ground )
+      render_sprite_section( painter,
+                             tile_for_ground_terrain( *ground ),
+                             dst, src );
   }
 }
 
@@ -754,8 +780,9 @@ void render_terrain_ocean_square(
   // We have at least one bordering land square, so we need to
   // render a ground tile first because there will be a bit of
   // land visible on this tile.
-  e_ground_terrain ground = ground_terrain_for_square(
-      terrain_state, square, world_square );
+  UNWRAP_CHECK( ground,
+                ground_terrain_for_square( terrain_state, square,
+                                           world_square ) );
   render_terrain_ground( terrain_state, painter, renderer, where,
                          world_square, ground );
 
