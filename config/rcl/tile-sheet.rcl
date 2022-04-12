@@ -44,6 +44,14 @@ sheets {
       sprites {
         terrain_ocean_island:          { y: 0, x: 0 }
 
+        terrain_ocean_canal_up_left:    { y: 1, x: 0 }
+        terrain_ocean_canal_up_right:   { y: 1, x: 1 }
+        terrain_ocean_canal_down_right: { y: 1, x: 2 }
+        terrain_ocean_canal_down_left:  { y: 1, x: 3 }
+
+        terrain_ocean_canal_corner_up_right:   { y: 1, x: 4 }
+        terrain_ocean_canal_corner_up_left:    { y: 1, x: 5 }
+
         terrain_ocean_up_right_down_o_o:     { y: 2, x: 0 }
         terrain_ocean_up_right_down_c_o:     { y: 2, x: 1 }
         terrain_ocean_up_right_down_o_c:     { y: 2, x: 2 }

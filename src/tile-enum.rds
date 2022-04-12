@@ -19,6 +19,14 @@ enum.e_tile {
 
   terrain_ocean_island,
 
+  terrain_ocean_canal_up_left,
+  terrain_ocean_canal_up_right,
+  terrain_ocean_canal_down_right,
+  terrain_ocean_canal_down_left,
+
+  terrain_ocean_canal_corner_up_right,
+  terrain_ocean_canal_corner_up_left,
+
   terrain_ocean_up_right_down_o_o,
   terrain_ocean_up_right_down_c_o,
   terrain_ocean_up_right_down_o_c,

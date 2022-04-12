@@ -280,6 +280,35 @@ void render_terrain_ground( TerrainState const& terrain_state,
         anchor_offset + g_tile_delta );
 #endif
   }
+
+  maybe<MapSquare const&> left =
+      maybe_square_at( terrain_state, world_square - 1_w );
+  maybe<MapSquare const&> up =
+      maybe_square_at( terrain_state, world_square - 1_h );
+  maybe<MapSquare const&> right =
+      maybe_square_at( terrain_state, world_square + 1_w );
+  maybe<MapSquare const&> up_left =
+      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
+  maybe<MapSquare const&> up_right =
+      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
+
+  // This should be done at the end.
+  if( up_right.has_value() &&
+      up_right->surface == e_surface::land &&
+      up->surface == e_surface::water &&
+      right->surface == e_surface::water )
+    render_sprite_stencil(
+        painter, where,
+        e_tile::terrain_ocean_canal_corner_up_right,
+        e_tile::terrain_ocean, gfx::pixel::black() );
+  if( up_left.has_value() &&
+      up_left->surface == e_surface::land &&
+      up->surface == e_surface::water &&
+      left->surface == e_surface::water )
+    render_sprite_stencil(
+        painter, where,
+        e_tile::terrain_ocean_canal_corner_up_left,
+        e_tile::terrain_ocean, gfx::pixel::black() );
 }
 
 // Pass in the painter as well for efficiency.
@@ -793,6 +822,45 @@ void render_terrain_ocean_square(
     render_sprite_stencil( painter, where, *second_water_tile,
                            e_tile::terrain_ocean,
                            gfx::pixel::black() );
+
+  // This needs to be done at the end.
+  maybe<MapSquare const&> up_left =
+      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
+  maybe<MapSquare const&> up_right =
+      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
+  maybe<MapSquare const&> down_right =
+      maybe_square_at( terrain_state, world_square + 1_h + 1_w );
+  maybe<MapSquare const&> down_left =
+      maybe_square_at( terrain_state, world_square - 1_w + 1_h );
+
+  if( up_left.has_value() &&
+      up_left->surface == e_surface::water &&
+      left->surface == e_surface::land &&
+      up->surface == e_surface::land )
+    render_sprite_stencil(
+        painter, where, e_tile::terrain_ocean_canal_up_left,
+        e_tile::terrain_ocean, gfx::pixel::black() );
+  if( up_right.has_value() &&
+      up_right->surface == e_surface::water &&
+      up->surface == e_surface::land &&
+      right->surface == e_surface::land )
+    render_sprite_stencil(
+        painter, where, e_tile::terrain_ocean_canal_up_right,
+        e_tile::terrain_ocean, gfx::pixel::black() );
+  if( down_right.has_value() &&
+      down_right->surface == e_surface::water &&
+      down->surface == e_surface::land &&
+      right->surface == e_surface::land )
+    render_sprite_stencil(
+        painter, where, e_tile::terrain_ocean_canal_down_right,
+        e_tile::terrain_ocean, gfx::pixel::black() );
+  if( down_left.has_value() &&
+      down_left->surface == e_surface::water &&
+      down->surface == e_surface::land &&
+      left->surface == e_surface::land )
+    render_sprite_stencil(
+        painter, where, e_tile::terrain_ocean_canal_down_left,
+        e_tile::terrain_ocean, gfx::pixel::black() );
 }
 
 // Pass in the painter as well for efficiency.
