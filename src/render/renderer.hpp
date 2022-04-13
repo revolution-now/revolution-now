@@ -92,6 +92,8 @@ struct Renderer {
 
   void clear_screen( gfx::pixel color = gfx::pixel::black() );
 
+  void set_color_cycle_stage( int stage );
+
   // This is the one to call to do a full render pass; it
   //
   //   1. Calls begin_pass.

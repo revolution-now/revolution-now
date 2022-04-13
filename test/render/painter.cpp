@@ -905,6 +905,39 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] mod cycling" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate = {},
+        .alpha      = {},
+        .repos      = {},
+        .cycling    = { .enabled = true } } );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_color_cycle( true );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] mod reposition" ) {
   vector<GenericVertex> v, expected;
 

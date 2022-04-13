@@ -115,8 +115,8 @@ void notify_subscribers() {
 }
 
 using InputReceivedFunc = base::function_ref<void()>;
-using FrameLoopBodyFunc =
-    base::function_ref<void( rr::Renderer&, InputReceivedFunc )>;
+using FrameLoopBodyFunc = base::function_ref<void(
+    rr::Renderer&, InputReceivedFunc, Time_t const& )>;
 
 void frame_loop_scheduler( wait<> const&     what,
                            FrameLoopBodyFunc body ) {
@@ -144,7 +144,7 @@ void frame_loop_scheduler( wait<> const&     what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( renderer, on_input );
+    body( renderer, on_input, start );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -159,7 +159,8 @@ void frame_loop_scheduler( wait<> const&     what,
 
 // Called once per frame.
 void frame_loop_body( rr::Renderer&     renderer,
-                      InputReceivedFunc input_received ) {
+                      InputReceivedFunc input_received,
+                      Time_t const&     curr_time ) {
   // ----------------------------------------------------------
   // 1. Notify
 
@@ -203,6 +204,11 @@ void frame_loop_body( rr::Renderer&     renderer,
 
   // ----------------------------------------------------------
   // 3. Draw.
+  long color_cycle_stage =
+      chrono::duration_cast<chrono::milliseconds>(
+          curr_time.time_since_epoch() ) /
+      chrono::milliseconds( 600 );
+  renderer.set_color_cycle_stage( color_cycle_stage );
   renderer.set_logical_screen_size( main_window_logical_size() );
   renderer.set_physical_screen_size(
       main_window_physical_size() );

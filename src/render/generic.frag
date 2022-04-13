@@ -18,11 +18,13 @@ flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 flat in float frag_scaling;
+flat in int   frag_color_cycle;
 
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
+uniform int u_color_cycle_stage;
 
 out vec4 final_color;
 
@@ -122,6 +124,46 @@ vec4 alpha( in vec4 color ) {
 }
 
 /****************************************************************
+** Color Cycling
+*****************************************************************/
+// When color cycling is enabled for a triangle it means that
+// this shader will, after computing the final color, look it up
+// in the source array. If not present then the color will be
+// emitted as is. If it is present then the color will be re-
+// placed with a color in the destination array, at an index de-
+// termined by the current color cycling stage. Should probably
+// replace these with uniforms.
+const vec3 color_cycle_src[5] = vec3[](
+  vec3( 50 ), vec3( 100 ), vec3( 150 ), vec3( 200 ), vec3( 250 )
+);
+
+const vec3 S = vec3( 90, 122, 148 ); // surf color.
+const vec4 X = vec4( 0 );            // clear.
+
+const vec4 color_cycle_dst[10] = vec4[](
+  vec4( S, 230 ), vec4( S, 115 ), vec4( S, 50 ),
+  X, X, X, X, X, X, X
+);
+
+vec4 color_cycle( in vec4 color ) {
+  // We have a color in the range [0,1] but the src and dst
+  // colors are specified as [0,255]. So to make the comparison
+  // between the two immune to rounding errors we will convert
+  // the [0,1] color to [0,255] with rounding.
+  vec3 rgb_ubyte = round( color.rgb*255.0 );
+  for( int i = 0; i < color_cycle_src.length(); ++i ) {
+    if( color_cycle_src[i] == rgb_ubyte ) {
+      int dst_idx = (i + u_color_cycle_stage)
+                  % color_cycle_dst.length();
+      vec4 dst = color_cycle_dst[dst_idx]/255.0;
+      // Overwrite the color but with alpha mixing.
+      return vec4( dst.rgb, dst.a*color.a );
+    }
+  }
+  return color;
+}
+
+/****************************************************************
 ** main
 *****************************************************************/
 void main() {
@@ -136,8 +178,7 @@ void main() {
     case 3: color = type_stencil();    break;
   }
 
-  // Post processing.
-
+  // Depixelation.
   if( frag_depixelate.z > 0.0 ) {
     // Depixelate to nothing by default.
     vec4 target_color = vec4( 0.0 );
@@ -156,6 +197,10 @@ void main() {
     color = depixelate_to( color, target_color );
   }
 
+  // Color cycling.
+  if( frag_color_cycle != 0 ) color = color_cycle( color );
+
+  // Alpha.
   if( frag_alpha_multiplier < 1.0 ) color = alpha( color );
 
   final_color = color;

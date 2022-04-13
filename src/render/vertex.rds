@@ -115,6 +115,11 @@ struct.GenericVertex {
   # to this value after scaling. A value of 0.0 is a no-op.
   translation 'gl::vec2',
 
+  # When this is zero color cycling is off. When it is non-zero
+  # then color cycling is on, and the cycling animation stage
+  # will be taken from the corresponding uniform.
+  color_cycle 'int32_t',
+
   # Need this in all vertex structs since OpenGL needs to have
   # the offsets of each member of the struct.
   _features { equality, offsets }

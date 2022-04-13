@@ -57,10 +57,15 @@ struct RepositionInfo {
   base::maybe<gfx::size> translation = {};
 };
 
+struct ColorCyclingInfo {
+  bool enabled = false;
+};
+
 struct PainterMods {
   DepixelateInfo      depixelate = {};
   base::maybe<double> alpha      = {};
   RepositionInfo      repos      = {};
+  ColorCyclingInfo    cycling    = {};
 };
 
 /****************************************************************

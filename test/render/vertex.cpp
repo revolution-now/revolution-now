@@ -194,5 +194,15 @@ TEST_CASE( "[render/vertex] translation" ) {
            gl::vec2{ .x = 2, .y = -4 } );
 }
 
+TEST_CASE( "[render/vertex] color_cycle" ) {
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 } );
+  REQUIRE( vert.generic().color_cycle == 0 );
+  vert.set_color_cycle( true );
+  REQUIRE( vert.generic().color_cycle == 1 );
+  vert.set_color_cycle( false );
+  REQUIRE( vert.generic().color_cycle == 0 );
+}
+
 } // namespace
 } // namespace rr

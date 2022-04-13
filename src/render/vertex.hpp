@@ -75,6 +75,9 @@ struct VertexBase : protected GenericVertex {
   void set_scaling( double scale );
   void set_translation( gfx::size translation );
 
+  // *** Color Cycling.
+  void set_color_cycle( bool enabled );
+
   bool operator==( VertexBase const& ) const = default;
 };
 

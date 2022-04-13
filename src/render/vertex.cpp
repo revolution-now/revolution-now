@@ -39,6 +39,7 @@ GenericVertex proto_vertex( vertex_type type,
       .alpha_multiplier    = 1.0f,
       .scaling             = 1.0,
       .translation         = {},
+      .color_cycle         = 0, // "false"
   };
 }
 
@@ -91,6 +92,10 @@ void VertexBase::set_scaling( double scale ) { scaling = scale; }
 
 void VertexBase::set_translation( gfx::size trans ) {
   translation = gl::vec2::from_size( trans );
+}
+
+void VertexBase::set_color_cycle( bool enabled ) {
+  color_cycle = enabled ? 1 : 0;
 }
 
 /****************************************************************

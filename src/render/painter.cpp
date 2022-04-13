@@ -104,6 +104,7 @@ void Painter::add_mods( VertexBase&        vert,
   if( mods.repos.translation.has_value() )
     vert.set_translation( *mods.repos.translation );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
+  vert.set_color_cycle( mods.cycling.enabled );
 }
 
 Painter& Painter::draw_point( point p, pixel color ) {

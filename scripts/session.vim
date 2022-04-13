@@ -1,5 +1,7 @@
 " =========================== Config ============================
 let s:stems = [
+ \ 'render/vertex',
+ \ 'render/generic',
  \ 'render/painter',
  \ 'render/renderer',
  \ 'terrain',
@@ -8,7 +10,6 @@ let s:stems = [
  \ 'world-map',
  \ 'gs-terrain',
  \ 'render-terrain',
- \ 'map-edit',
 \]
 
 let s:luas = [

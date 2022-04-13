@@ -10,16 +10,17 @@
 *****************************************************************/
 #version 330 core
 
-layout (location = 0) in int   in_type;
-layout (location = 1) in int   in_visible;
-layout (location = 2) in vec3  in_depixelate;
-layout (location = 3) in vec2  in_position;
-layout (location = 4) in vec2  in_atlas_position;
-layout (location = 5) in vec2  in_atlas_target_offset;
-layout (location = 6) in vec4  in_fixed_color;
-layout (location = 7) in float in_alpha_multiplier;
-layout (location = 8) in float in_scaling;
-layout (location = 9) in vec2  in_translation;
+layout (location = 0)  in int   in_type;
+layout (location = 1)  in int   in_visible;
+layout (location = 2)  in vec3  in_depixelate;
+layout (location = 3)  in vec2  in_position;
+layout (location = 4)  in vec2  in_atlas_position;
+layout (location = 5)  in vec2  in_atlas_target_offset;
+layout (location = 6)  in vec4  in_fixed_color;
+layout (location = 7)  in float in_alpha_multiplier;
+layout (location = 8)  in float in_scaling;
+layout (location = 9)  in vec2  in_translation;
+layout (location = 10) in int   in_color_cycle;
 
 flat out int   frag_type;
 flat out vec3  frag_depixelate;
@@ -29,6 +30,7 @@ flat out vec2  frag_atlas_target_offset;
      out vec4  frag_fixed_color;
      out float frag_alpha_multiplier;
 flat out float frag_scaling;
+flat out int   frag_color_cycle;
 
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
@@ -55,6 +57,7 @@ void forwarding() {
   frag_fixed_color         = in_fixed_color;
   frag_alpha_multiplier    = in_alpha_multiplier;
   frag_scaling             = in_scaling;
+  frag_color_cycle         = in_color_cycle;
 }
 
 // Convert a coordinate in game coordinates (meaning that 0,0 is

@@ -67,6 +67,7 @@ struct ProgramUniforms {
       gl::UniformSpec<int>( "u_atlas" ),
       gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
       gl::UniformSpec<gl::vec2>( "u_screen_size" ),
+      gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
   };
 };
 
@@ -364,6 +365,10 @@ void Renderer::render_pass(
   drawer( *this );
   end_pass();
   present();
+}
+
+void Renderer::set_color_cycle_stage( int stage ) {
+  impl_->program["u_color_cycle_stage"_t] = stage;
 }
 
 } // namespace rr

@@ -49,6 +49,7 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_FLOAT, "in_alpha_multiplier", false },         //
     { GL_FLOAT, "in_scaling", false },                  //
     { GL_FLOAT_VEC2, "in_translation", false },         //
+    { GL_INT, "in_color_cycle", true },                 //
 };
 
 /****************************************************************
@@ -58,7 +59,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
   int const num_get_errors = //
-      56                     //
+      59                     //
       + kExpectedAttributes.size();
 
   EXPECT_CALL( mock, gl_GetError() )
@@ -124,6 +125,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_GetUniformLocation(
                          9, Eq<string>( "u_screen_size" ) ) )
       .returns( 90 );
+  EXPECT_CALL( mock,
+               gl_GetUniformLocation(
+                   9, Eq<string>( "u_color_cycle_stage" ) ) )
+      .returns( 91 );
 
   // Validate the program.
   EXPECT_CALL( mock, gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -162,6 +167,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
   EXPECT_CALL( mock,
                gl_Uniform2f( 90, 0.0, 0.0 ) ); // u_screen_size
+  EXPECT_CALL( mock, gl_UseProgram( 9 ) );
+  EXPECT_CALL( mock,
+               gl_Uniform1i( 91, 0 ) ); // u_color_cycle_stage
 
   // Set the u_atlas texture to zero.
   // NOTE: this is omitted even though the renderer does it be-

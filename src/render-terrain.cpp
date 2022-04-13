@@ -368,6 +368,7 @@ void render_terrain_ocean_square(
 
   e_tile        water_tile        = {};
   maybe<e_tile> second_water_tile = {};
+  maybe<e_tile> surf_tile         = {};
 
   auto is_land_if_exists = [&]( e_direction d ) {
     maybe<MapSquare const&> s = maybe_square_at(
@@ -493,18 +494,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // down closed, right closed.
           water_tile = e_tile::terrain_ocean_right_down_c_c;
+          surf_tile  = e_tile::terrain_surf_right_down_c_c;
           break;
         case 0b01:
           // down closed, right open.
           water_tile = e_tile::terrain_ocean_right_down_o_c;
+          surf_tile  = e_tile::terrain_surf_right_down_o_c;
           break;
         case 0b10:
           // down open, right closed.
           water_tile = e_tile::terrain_ocean_right_down_c_o;
+          surf_tile  = e_tile::terrain_surf_right_down_c_o;
           break;
         case 0b11:
           // down open, right open.
           water_tile = e_tile::terrain_ocean_right_down_o_o;
+          surf_tile  = e_tile::terrain_surf_right_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -519,18 +524,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, down closed.
           water_tile = e_tile::terrain_ocean_down_left_c_c;
+          surf_tile  = e_tile::terrain_surf_down_left_c_c;
           break;
         case 0b01:
           // left closed, down open.
           water_tile = e_tile::terrain_ocean_down_left_c_o;
+          surf_tile  = e_tile::terrain_surf_down_left_c_o;
           break;
         case 0b10:
           // left open, down closed.
           water_tile = e_tile::terrain_ocean_down_left_o_c;
+          surf_tile  = e_tile::terrain_surf_down_left_o_c;
           break;
         case 0b11:
           // left open, down open.
           water_tile = e_tile::terrain_ocean_down_left_o_o;
+          surf_tile  = e_tile::terrain_surf_down_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -545,18 +554,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, top closed.
           water_tile = e_tile::terrain_ocean_left_up_c_c;
+          surf_tile  = e_tile::terrain_surf_left_up_c_c;
           break;
         case 0b01:
           // left closed, top open.
           water_tile = e_tile::terrain_ocean_left_up_c_o;
+          surf_tile  = e_tile::terrain_surf_left_up_c_o;
           break;
         case 0b10:
           // left open, top closed.
           water_tile = e_tile::terrain_ocean_left_up_o_c;
+          surf_tile  = e_tile::terrain_surf_left_up_o_c;
           break;
         case 0b11:
           // left open, top open.
           water_tile = e_tile::terrain_ocean_left_up_o_o;
+          surf_tile  = e_tile::terrain_surf_left_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -571,18 +584,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // up closed, right closed.
           water_tile = e_tile::terrain_ocean_up_right_c_c;
+          surf_tile  = e_tile::terrain_surf_up_right_c_c;
           break;
         case 0b01:
           // up closed, right open.
           water_tile = e_tile::terrain_ocean_up_right_c_o;
+          surf_tile  = e_tile::terrain_surf_up_right_c_o;
           break;
         case 0b10:
           // up open, right closed.
           water_tile = e_tile::terrain_ocean_up_right_o_c;
+          surf_tile  = e_tile::terrain_surf_up_right_o_c;
           break;
         case 0b11:
           // up open, right open.
           water_tile = e_tile::terrain_ocean_up_right_o_o;
+          surf_tile  = e_tile::terrain_surf_up_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -822,6 +839,11 @@ void render_terrain_ocean_square(
     render_sprite_stencil( painter, where, *second_water_tile,
                            e_tile::terrain_ocean,
                            gfx::pixel::black() );
+  if( surf_tile.has_value() ) {
+    SCOPED_RENDERER_MOD( painter_mods.cycling.enabled, true );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, where, *surf_tile );
+  }
 
   // This needs to be done at the end.
   maybe<MapSquare const&> up_left =
