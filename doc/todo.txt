@@ -2,9 +2,9 @@
 # TODO
 # ===============================================================
 
-  1.  Add land edge tiles to renderer.
-  2.  Add overlay connector tiles.
-  3.  Render rivers.
+  1.  Add overlay connector tiles.
+  2.  Render rivers, with color cycling.
+  3.  Add color cycling to sea lane tile.
   4.  Render natrual resource tiles.
   5.  Implement world generation.
   6.  Implement terrain visibility.
