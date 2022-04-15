@@ -300,7 +300,8 @@ void render_terrain_ground( TerrainState const& terrain_state,
     render_sprite_stencil(
         painter, where,
         e_tile::terrain_ocean_canal_corner_up_right,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
   if( up_left.has_value() &&
       up_left->surface == e_surface::land &&
       up->surface == e_surface::water &&
@@ -308,7 +309,8 @@ void render_terrain_ground( TerrainState const& terrain_state,
     render_sprite_stencil(
         painter, where,
         e_tile::terrain_ocean_canal_corner_up_left,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
 }
 
 // Pass in the painter as well for efficiency.
@@ -323,6 +325,42 @@ void render_terrain_land_square(
     e_tile overlay = overlay_tile( square );
     render_sprite( painter, where, overlay );
   }
+}
+
+void render_beach_corners( rr::Painter& painter, Coord where,
+                           maybe<MapSquare const&> up,
+                           maybe<MapSquare const&> right,
+                           maybe<MapSquare const&> down,
+                           maybe<MapSquare const&> left,
+                           maybe<MapSquare const&> up_left,
+                           maybe<MapSquare const&> up_right,
+                           maybe<MapSquare const&> down_right,
+                           maybe<MapSquare const&> down_left ) {
+  // Render beach corners.
+  if( up_left.has_value() &&
+      up_left->surface == e_surface::land &&
+      left->surface == e_surface::water &&
+      up->surface == e_surface::water )
+    render_sprite( painter, where,
+                   e_tile::terrain_beach_corner_up_left );
+  if( up_right.has_value() &&
+      up_right->surface == e_surface::land &&
+      up->surface == e_surface::water &&
+      right->surface == e_surface::water )
+    render_sprite( painter, where,
+                   e_tile::terrain_beach_corner_up_right );
+  if( down_right.has_value() &&
+      down_right->surface == e_surface::land &&
+      down->surface == e_surface::water &&
+      right->surface == e_surface::water )
+    render_sprite( painter, where,
+                   e_tile::terrain_beach_corner_down_right );
+  if( down_left.has_value() &&
+      down_left->surface == e_surface::land &&
+      down->surface == e_surface::water &&
+      left->surface == e_surface::water )
+    render_sprite( painter, where,
+                   e_tile::terrain_beach_corner_down_left );
 }
 
 } // namespace
@@ -341,6 +379,14 @@ void render_terrain_ocean_square(
       maybe_square_at( terrain_state, world_square + 1_h );
   maybe<MapSquare const&> left =
       maybe_square_at( terrain_state, world_square - 1_w );
+  maybe<MapSquare const&> up_left =
+      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
+  maybe<MapSquare const&> up_right =
+      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
+  maybe<MapSquare const&> down_right =
+      maybe_square_at( terrain_state, world_square + 1_h + 1_w );
+  maybe<MapSquare const&> down_left =
+      maybe_square_at( terrain_state, world_square - 1_w + 1_h );
 
   // Treat off-map tiles as water for rendering purposes.
   bool water_up = !up || up->surface == e_surface::water;
@@ -363,6 +409,9 @@ void render_terrain_ocean_square(
                       : e_tile::terrain_ocean;
 
     render_sprite( painter, where, tile );
+    render_beach_corners( painter, where, up, right, down, left,
+                          up_left, up_right, down_right,
+                          down_left );
     return;
   }
 
@@ -923,44 +972,43 @@ void render_terrain_ocean_square(
     render_sprite( painter, where, *surf_tile );
   }
 
-  // This needs to be done at the end.
-  maybe<MapSquare const&> up_left =
-      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
-  maybe<MapSquare const&> up_right =
-      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
-  maybe<MapSquare const&> down_right =
-      maybe_square_at( terrain_state, world_square + 1_h + 1_w );
-  maybe<MapSquare const&> down_left =
-      maybe_square_at( terrain_state, world_square - 1_w + 1_h );
-
+  // Render canals.
   if( up_left.has_value() &&
       up_left->surface == e_surface::water &&
       left->surface == e_surface::land &&
       up->surface == e_surface::land )
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_up_left,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
   if( up_right.has_value() &&
       up_right->surface == e_surface::water &&
       up->surface == e_surface::land &&
       right->surface == e_surface::land )
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_up_right,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
   if( down_right.has_value() &&
       down_right->surface == e_surface::water &&
       down->surface == e_surface::land &&
       right->surface == e_surface::land )
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_down_right,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
   if( down_left.has_value() &&
       down_left->surface == e_surface::water &&
       down->surface == e_surface::land &&
       left->surface == e_surface::land )
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_down_left,
-        e_tile::terrain_ocean, gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background,
+        gfx::pixel::black() );
+
+  render_beach_corners( painter, where, up, right, down, left,
+                        up_left, up_right, down_right,
+                        down_left );
 }
 
 // Pass in the painter as well for efficiency.

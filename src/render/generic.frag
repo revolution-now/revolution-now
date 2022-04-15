@@ -137,12 +137,13 @@ const vec3 color_cycle_src[5] = vec3[](
   vec3( 50 ), vec3( 100 ), vec3( 150 ), vec3( 200 ), vec3( 250 )
 );
 
-const vec3 S = vec3( 90, 122, 148 ); // surf color.
+// const vec3 S = vec3( 90, 122, 148 ); // surf color.
+const vec3 S = vec3( 97, 128, 153 ); // surf color.
 const vec4 X = vec4( 0 );            // clear.
 
-const vec4 color_cycle_dst[10] = vec4[](
+const vec4 color_cycle_dst[9] = vec4[](
   vec4( S, 230 ), vec4( S, 115 ), vec4( S, 50 ),
-  X, X, X, X, X, X, X
+  X, X, X, X, X, X
 );
 
 vec4 color_cycle( in vec4 color ) {

@@ -52,6 +52,8 @@ sheets {
         terrain_ocean_canal_corner_up_right:   { y: 1, x: 4 }
         terrain_ocean_canal_corner_up_left:    { y: 1, x: 5 }
 
+        terrain_ocean_canal_background: { y: 0, x: 5 }
+
         terrain_ocean_up_right_down_o_o:     { y: 2, x: 0 }
         terrain_ocean_up_right_down_c_o:     { y: 2, x: 1 }
         terrain_ocean_up_right_down_o_c:     { y: 2, x: 2 }
@@ -163,6 +165,11 @@ sheets {
       sprite_size: { w: 32, h: 32 }
       sprites {
         terrain_beach_island:          { y: 0, x: 0 }
+
+        terrain_beach_corner_up_left:     { y: 0, x: 1 }
+        terrain_beach_corner_up_right:    { y: 0, x: 2 }
+        terrain_beach_corner_down_right:  { y: 0, x: 3 }
+        terrain_beach_corner_down_left:   { y: 0, x: 4 }
 
         terrain_beach_up_right_down_o_o:     { y: 2, x: 0 }
         terrain_beach_up_right_down_c_o:     { y: 2, x: 1 }
