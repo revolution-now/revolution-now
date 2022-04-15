@@ -39,7 +39,7 @@ sheets {
       }
     }
     {
-      img_path: assets/art/tiles/coast.png
+      img_path: assets/art/tiles/coast-stencils.png
       sprite_size: { w: 32, h: 32 }
       sprites {
         terrain_ocean_island:          { y: 0, x: 0 }
@@ -134,7 +134,7 @@ sheets {
       }
     }
     {
-      img_path: assets/art/tiles/surf.png
+      img_path: assets/art/tiles/coast-surf.png
       sprite_size: { w: 32, h: 32 }
       sprites {
         terrain_surf_up_right_o_o:   { y: 6, x: 0 }
@@ -156,6 +156,93 @@ sheets {
         terrain_surf_left_up_c_o:    { y: 7, x: 5 }
         terrain_surf_left_up_o_c:    { y: 7, x: 6 }
         terrain_surf_left_up_c_c:    { y: 7, x: 7 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/coast-beach.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_beach_island:          { y: 0, x: 0 }
+
+        terrain_beach_up_right_down_o_o:     { y: 2, x: 0 }
+        terrain_beach_up_right_down_c_o:     { y: 2, x: 1 }
+        terrain_beach_up_right_down_o_c:     { y: 2, x: 2 }
+        terrain_beach_up_right_down_c_c:     { y: 2, x: 3 }
+
+        terrain_beach_right_down_left_o_o:   { y: 2, x: 4 }
+        terrain_beach_right_down_left_o_c:   { y: 2, x: 5 }
+        terrain_beach_right_down_left_c_o:   { y: 2, x: 6 }
+        terrain_beach_right_down_left_c_c:   { y: 2, x: 7 }
+
+        terrain_beach_down_left_up_o_o:      { y: 3, x: 0 }
+        terrain_beach_down_left_up_o_c:      { y: 3, x: 1 }
+        terrain_beach_down_left_up_c_o:      { y: 3, x: 2 }
+        terrain_beach_down_left_up_c_c:      { y: 3, x: 3 }
+
+        terrain_beach_left_up_right_o_o:     { y: 3, x: 4 }
+        terrain_beach_left_up_right_c_o:     { y: 3, x: 5 }
+        terrain_beach_left_up_right_o_c:     { y: 3, x: 6 }
+        terrain_beach_left_up_right_c_c:     { y: 3, x: 7 }
+
+        terrain_beach_up_o_o:      { y: 4, x: 0 }
+        terrain_beach_up_c_o:      { y: 4, x: 1 }
+        terrain_beach_up_o_c:      { y: 4, x: 2 }
+        terrain_beach_up_c_c:      { y: 4, x: 3 }
+
+        terrain_beach_right_o_o:   { y: 4, x: 4 }
+        terrain_beach_right_c_o:   { y: 4, x: 5 }
+        terrain_beach_right_o_c:   { y: 4, x: 6 }
+        terrain_beach_right_c_c:   { y: 4, x: 7 }
+
+        terrain_beach_down_o_o:    { y: 5, x: 0 }
+        terrain_beach_down_c_o:    { y: 5, x: 1 }
+        terrain_beach_down_o_c:    { y: 5, x: 2 }
+        terrain_beach_down_c_c:    { y: 5, x: 3 }
+
+        terrain_beach_left_o_o:    { y: 5, x: 4 }
+        terrain_beach_left_c_o:    { y: 5, x: 5 }
+        terrain_beach_left_o_c:    { y: 5, x: 6 }
+        terrain_beach_left_c_c:    { y: 5, x: 7 }
+
+        terrain_beach_up_right_o_o:   { y: 6, x: 0 }
+        terrain_beach_up_right_c_o:   { y: 6, x: 1 }
+        terrain_beach_up_right_o_c:   { y: 6, x: 2 }
+        terrain_beach_up_right_c_c:   { y: 6, x: 3 }
+
+        terrain_beach_right_down_o_o: { y: 6, x: 4 }
+        terrain_beach_right_down_c_o: { y: 6, x: 5 }
+        terrain_beach_right_down_o_c: { y: 6, x: 6 }
+        terrain_beach_right_down_c_c: { y: 6, x: 7 }
+
+        terrain_beach_down_left_o_o:  { y: 7, x: 0 }
+        terrain_beach_down_left_c_o:  { y: 7, x: 1 }
+        terrain_beach_down_left_o_c:  { y: 7, x: 2 }
+        terrain_beach_down_left_c_c:  { y: 7, x: 3 }
+
+        terrain_beach_left_up_o_o:    { y: 7, x: 4 }
+        terrain_beach_left_up_c_o:    { y: 7, x: 5 }
+        terrain_beach_left_up_o_c:    { y: 7, x: 6 }
+        terrain_beach_left_up_c_c:    { y: 7, x: 7 }
+
+        terrain_beach_up_down_up_o_o:        { y: 8, x: 0 }
+        terrain_beach_up_down_up_c_o:        { y: 8, x: 1 }
+        terrain_beach_up_down_up_o_c:        { y: 8, x: 2 }
+        terrain_beach_up_down_up_c_c:        { y: 8, x: 3 }
+
+        terrain_beach_up_down_down_o_o:      { y: 8, x: 4 }
+        terrain_beach_up_down_down_c_o:      { y: 8, x: 5 }
+        terrain_beach_up_down_down_o_c:      { y: 8, x: 6 }
+        terrain_beach_up_down_down_c_c:      { y: 8, x: 7 }
+
+        terrain_beach_left_right_left_o_o:   { y: 9, x: 0 }
+        terrain_beach_left_right_left_c_o:   { y: 9, x: 1 }
+        terrain_beach_left_right_left_o_c:   { y: 9, x: 2 }
+        terrain_beach_left_right_left_c_c:   { y: 9, x: 3 }
+
+        terrain_beach_left_right_right_o_o:  { y: 9, x: 4 }
+        terrain_beach_left_right_right_c_o:  { y: 9, x: 5 }
+        terrain_beach_left_right_right_o_c:  { y: 9, x: 6 }
+        terrain_beach_left_right_right_c_c:  { y: 9, x: 7 }
       }
     }
     {

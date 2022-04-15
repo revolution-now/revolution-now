@@ -367,7 +367,9 @@ void render_terrain_ocean_square(
   }
 
   e_tile        water_tile        = {};
+  e_tile        beach_tile        = {};
   maybe<e_tile> second_water_tile = {};
+  maybe<e_tile> second_beach_tile = {};
   maybe<e_tile> surf_tile         = {};
 
   auto is_land_if_exists = [&]( e_direction d ) {
@@ -390,18 +392,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // top closed, bottom closed.
           water_tile = e_tile::terrain_ocean_up_right_down_c_c;
+          beach_tile = e_tile::terrain_beach_up_right_down_c_c;
           break;
         case 0b01:
           // top closed, bottom open.
           water_tile = e_tile::terrain_ocean_up_right_down_c_o;
+          beach_tile = e_tile::terrain_beach_up_right_down_c_o;
           break;
         case 0b10:
           // top open, bottom closed.
           water_tile = e_tile::terrain_ocean_up_right_down_o_c;
+          beach_tile = e_tile::terrain_beach_up_right_down_o_c;
           break;
         case 0b11:
           // top open, bottom open.
           water_tile = e_tile::terrain_ocean_up_right_down_o_o;
+          beach_tile = e_tile::terrain_beach_up_right_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -416,18 +422,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, right closed.
           water_tile = e_tile::terrain_ocean_right_down_left_c_c;
+          beach_tile = e_tile::terrain_beach_right_down_left_c_c;
           break;
         case 0b01:
           // left closed, right open.
           water_tile = e_tile::terrain_ocean_right_down_left_c_o;
+          beach_tile = e_tile::terrain_beach_right_down_left_c_o;
           break;
         case 0b10:
           // left open, right closed.
           water_tile = e_tile::terrain_ocean_right_down_left_o_c;
+          beach_tile = e_tile::terrain_beach_right_down_left_o_c;
           break;
         case 0b11:
           // left open, right open.
           water_tile = e_tile::terrain_ocean_right_down_left_o_o;
+          beach_tile = e_tile::terrain_beach_right_down_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -442,18 +452,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // top closed, bottom closed.
           water_tile = e_tile::terrain_ocean_down_left_up_c_c;
+          beach_tile = e_tile::terrain_beach_down_left_up_c_c;
           break;
         case 0b01:
           // top closed, bottom open.
           water_tile = e_tile::terrain_ocean_down_left_up_c_o;
+          beach_tile = e_tile::terrain_beach_down_left_up_c_o;
           break;
         case 0b10:
           // top open, bottom closed.
           water_tile = e_tile::terrain_ocean_down_left_up_o_c;
+          beach_tile = e_tile::terrain_beach_down_left_up_o_c;
           break;
         case 0b11:
           // top open, bottom open.
           water_tile = e_tile::terrain_ocean_down_left_up_o_o;
+          beach_tile = e_tile::terrain_beach_down_left_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -468,18 +482,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, right closed.
           water_tile = e_tile::terrain_ocean_left_up_right_c_c;
+          beach_tile = e_tile::terrain_beach_left_up_right_c_c;
           break;
         case 0b01:
           // left closed, right open.
           water_tile = e_tile::terrain_ocean_left_up_right_c_o;
+          beach_tile = e_tile::terrain_beach_left_up_right_c_o;
           break;
         case 0b10:
           // left open, right closed.
           water_tile = e_tile::terrain_ocean_left_up_right_o_c;
+          beach_tile = e_tile::terrain_beach_left_up_right_o_c;
           break;
         case 0b11:
           // left open, right open.
           water_tile = e_tile::terrain_ocean_left_up_right_o_o;
+          beach_tile = e_tile::terrain_beach_left_up_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -494,21 +512,25 @@ void render_terrain_ocean_square(
         case 0b00:
           // down closed, right closed.
           water_tile = e_tile::terrain_ocean_right_down_c_c;
+          beach_tile = e_tile::terrain_beach_right_down_c_c;
           surf_tile  = e_tile::terrain_surf_right_down_c_c;
           break;
         case 0b01:
           // down closed, right open.
           water_tile = e_tile::terrain_ocean_right_down_o_c;
+          beach_tile = e_tile::terrain_beach_right_down_o_c;
           surf_tile  = e_tile::terrain_surf_right_down_o_c;
           break;
         case 0b10:
           // down open, right closed.
           water_tile = e_tile::terrain_ocean_right_down_c_o;
+          beach_tile = e_tile::terrain_beach_right_down_c_o;
           surf_tile  = e_tile::terrain_surf_right_down_c_o;
           break;
         case 0b11:
           // down open, right open.
           water_tile = e_tile::terrain_ocean_right_down_o_o;
+          beach_tile = e_tile::terrain_beach_right_down_o_o;
           surf_tile  = e_tile::terrain_surf_right_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
@@ -524,21 +546,25 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, down closed.
           water_tile = e_tile::terrain_ocean_down_left_c_c;
+          beach_tile = e_tile::terrain_beach_down_left_c_c;
           surf_tile  = e_tile::terrain_surf_down_left_c_c;
           break;
         case 0b01:
           // left closed, down open.
           water_tile = e_tile::terrain_ocean_down_left_c_o;
+          beach_tile = e_tile::terrain_beach_down_left_c_o;
           surf_tile  = e_tile::terrain_surf_down_left_c_o;
           break;
         case 0b10:
           // left open, down closed.
           water_tile = e_tile::terrain_ocean_down_left_o_c;
+          beach_tile = e_tile::terrain_beach_down_left_o_c;
           surf_tile  = e_tile::terrain_surf_down_left_o_c;
           break;
         case 0b11:
           // left open, down open.
           water_tile = e_tile::terrain_ocean_down_left_o_o;
+          beach_tile = e_tile::terrain_beach_down_left_o_o;
           surf_tile  = e_tile::terrain_surf_down_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
@@ -554,21 +580,25 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, top closed.
           water_tile = e_tile::terrain_ocean_left_up_c_c;
+          beach_tile = e_tile::terrain_beach_left_up_c_c;
           surf_tile  = e_tile::terrain_surf_left_up_c_c;
           break;
         case 0b01:
           // left closed, top open.
           water_tile = e_tile::terrain_ocean_left_up_c_o;
+          beach_tile = e_tile::terrain_beach_left_up_c_o;
           surf_tile  = e_tile::terrain_surf_left_up_c_o;
           break;
         case 0b10:
           // left open, top closed.
           water_tile = e_tile::terrain_ocean_left_up_o_c;
+          beach_tile = e_tile::terrain_beach_left_up_o_c;
           surf_tile  = e_tile::terrain_surf_left_up_o_c;
           break;
         case 0b11:
           // left open, top open.
           water_tile = e_tile::terrain_ocean_left_up_o_o;
+          beach_tile = e_tile::terrain_beach_left_up_o_o;
           surf_tile  = e_tile::terrain_surf_left_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
@@ -584,21 +614,25 @@ void render_terrain_ocean_square(
         case 0b00:
           // up closed, right closed.
           water_tile = e_tile::terrain_ocean_up_right_c_c;
+          beach_tile = e_tile::terrain_beach_up_right_c_c;
           surf_tile  = e_tile::terrain_surf_up_right_c_c;
           break;
         case 0b01:
           // up closed, right open.
           water_tile = e_tile::terrain_ocean_up_right_c_o;
+          beach_tile = e_tile::terrain_beach_up_right_c_o;
           surf_tile  = e_tile::terrain_surf_up_right_c_o;
           break;
         case 0b10:
           // up open, right closed.
           water_tile = e_tile::terrain_ocean_up_right_o_c;
+          beach_tile = e_tile::terrain_beach_up_right_o_c;
           surf_tile  = e_tile::terrain_surf_up_right_o_c;
           break;
         case 0b11:
           // up open, right open.
           water_tile = e_tile::terrain_ocean_up_right_o_o;
+          beach_tile = e_tile::terrain_beach_up_right_o_o;
           surf_tile  = e_tile::terrain_surf_up_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
@@ -614,18 +648,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // up left closed, up right closed.
           water_tile = e_tile::terrain_ocean_up_down_up_c_c;
+          beach_tile = e_tile::terrain_beach_up_down_up_c_c;
           break;
         case 0b01:
           // up left closed, up right open.
           water_tile = e_tile::terrain_ocean_up_down_up_c_o;
+          beach_tile = e_tile::terrain_beach_up_down_up_c_o;
           break;
         case 0b10:
           // up left open, up right closed.
           water_tile = e_tile::terrain_ocean_up_down_up_o_c;
+          beach_tile = e_tile::terrain_beach_up_down_up_o_c;
           break;
         case 0b11:
           // up left open, up right open.
           water_tile = e_tile::terrain_ocean_up_down_up_o_o;
+          beach_tile = e_tile::terrain_beach_up_down_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -637,21 +675,29 @@ void render_terrain_ocean_square(
           // down left closed, down right closed.
           second_water_tile =
               e_tile::terrain_ocean_up_down_down_c_c;
+          second_beach_tile =
+              e_tile::terrain_beach_up_down_down_c_c;
           break;
         case 0b01:
           // down left closed, down right open.
           second_water_tile =
               e_tile::terrain_ocean_up_down_down_c_o;
+          second_beach_tile =
+              e_tile::terrain_beach_up_down_down_c_o;
           break;
         case 0b10:
           // down left open, down right closed.
           second_water_tile =
               e_tile::terrain_ocean_up_down_down_o_c;
+          second_beach_tile =
+              e_tile::terrain_beach_up_down_down_o_c;
           break;
         case 0b11:
           // down left open, down right open.
           second_water_tile =
               e_tile::terrain_ocean_up_down_down_o_o;
+          second_beach_tile =
+              e_tile::terrain_beach_up_down_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -666,18 +712,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // up left closed, down left closed.
           water_tile = e_tile::terrain_ocean_left_right_left_c_c;
+          beach_tile = e_tile::terrain_beach_left_right_left_c_c;
           break;
         case 0b01:
           // up left closed, down left open.
           water_tile = e_tile::terrain_ocean_left_right_left_c_o;
+          beach_tile = e_tile::terrain_beach_left_right_left_c_o;
           break;
         case 0b10:
           // up left open, down left closed.
           water_tile = e_tile::terrain_ocean_left_right_left_o_c;
+          beach_tile = e_tile::terrain_beach_left_right_left_o_c;
           break;
         case 0b11:
           // up left open, down left open.
           water_tile = e_tile::terrain_ocean_left_right_left_o_o;
+          beach_tile = e_tile::terrain_beach_left_right_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -689,21 +739,29 @@ void render_terrain_ocean_square(
           // up right closed, down right closed.
           second_water_tile =
               e_tile::terrain_ocean_left_right_right_c_c;
+          second_beach_tile =
+              e_tile::terrain_beach_left_right_right_c_c;
           break;
         case 0b01:
           // up right closed, down right open.
           second_water_tile =
               e_tile::terrain_ocean_left_right_right_c_o;
+          second_beach_tile =
+              e_tile::terrain_beach_left_right_right_c_o;
           break;
         case 0b10:
           // up right open, down right closed.
           second_water_tile =
               e_tile::terrain_ocean_left_right_right_o_c;
+          second_beach_tile =
+              e_tile::terrain_beach_left_right_right_o_c;
           break;
         case 0b11:
           // up right open, down right open.
           second_water_tile =
               e_tile::terrain_ocean_left_right_right_o_o;
+          second_beach_tile =
+              e_tile::terrain_beach_left_right_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -718,18 +776,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, right closed.
           water_tile = e_tile::terrain_ocean_up_c_c;
+          beach_tile = e_tile::terrain_beach_up_c_c;
           break;
         case 0b01:
           // left closed, right open.
           water_tile = e_tile::terrain_ocean_up_c_o;
+          beach_tile = e_tile::terrain_beach_up_c_o;
           break;
         case 0b10:
           // left open, right closed.
           water_tile = e_tile::terrain_ocean_up_o_c;
+          beach_tile = e_tile::terrain_beach_up_o_c;
           break;
         case 0b11:
           // left open, right open.
           water_tile = e_tile::terrain_ocean_up_o_o;
+          beach_tile = e_tile::terrain_beach_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -744,18 +806,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // top closed, bottom closed.
           water_tile = e_tile::terrain_ocean_right_c_c;
+          beach_tile = e_tile::terrain_beach_right_c_c;
           break;
         case 0b01:
           // top closed, bottom open.
           water_tile = e_tile::terrain_ocean_right_c_o;
+          beach_tile = e_tile::terrain_beach_right_c_o;
           break;
         case 0b10:
           // top open, bottom closed.
           water_tile = e_tile::terrain_ocean_right_o_c;
+          beach_tile = e_tile::terrain_beach_right_o_c;
           break;
         case 0b11:
           // top open, bottom open.
           water_tile = e_tile::terrain_ocean_right_o_o;
+          beach_tile = e_tile::terrain_beach_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -770,18 +836,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // left closed, right closed.
           water_tile = e_tile::terrain_ocean_down_c_c;
+          beach_tile = e_tile::terrain_beach_down_c_c;
           break;
         case 0b01:
           // left closed, right open.
           water_tile = e_tile::terrain_ocean_down_c_o;
+          beach_tile = e_tile::terrain_beach_down_c_o;
           break;
         case 0b10:
           // left open, right closed.
           water_tile = e_tile::terrain_ocean_down_o_c;
+          beach_tile = e_tile::terrain_beach_down_o_c;
           break;
         case 0b11:
           // left open, right open.
           water_tile = e_tile::terrain_ocean_down_o_o;
+          beach_tile = e_tile::terrain_beach_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -796,18 +866,22 @@ void render_terrain_ocean_square(
         case 0b00:
           // top closed, bottom closed.
           water_tile = e_tile::terrain_ocean_left_c_c;
+          beach_tile = e_tile::terrain_beach_left_c_c;
           break;
         case 0b01:
           // top closed, bottom open.
           water_tile = e_tile::terrain_ocean_left_c_o;
+          beach_tile = e_tile::terrain_beach_left_c_o;
           break;
         case 0b10:
           // top open, bottom closed.
           water_tile = e_tile::terrain_ocean_left_o_c;
+          beach_tile = e_tile::terrain_beach_left_o_c;
           break;
         case 0b11:
           // top open, bottom open.
           water_tile = e_tile::terrain_ocean_left_o_o;
+          beach_tile = e_tile::terrain_beach_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
@@ -817,6 +891,7 @@ void render_terrain_ocean_square(
       // land on all sides.
       DCHECK( left.has_value() );
       water_tile = e_tile::terrain_ocean_island;
+      beach_tile = e_tile::terrain_beach_island;
       break;
     default: {
       FATAL( "invalid ocean mask: {}", mask );
@@ -839,6 +914,9 @@ void render_terrain_ocean_square(
     render_sprite_stencil( painter, where, *second_water_tile,
                            e_tile::terrain_ocean,
                            gfx::pixel::black() );
+  render_sprite( painter, where, beach_tile );
+  if( second_beach_tile.has_value() )
+    render_sprite( painter, where, *second_beach_tile );
   if( surf_tile.has_value() ) {
     SCOPED_RENDERER_MOD( painter_mods.cycling.enabled, true );
     rr::Painter painter = renderer.painter();
