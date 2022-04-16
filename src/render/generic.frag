@@ -157,6 +157,10 @@ vec4 color_cycle( in vec4 color ) {
       int dst_idx = (i + u_color_cycle_stage)
                   % color_cycle_dst.length();
       vec4 dst = color_cycle_dst[dst_idx]/255.0;
+      // This next line serves no purpose but seems to be needed
+      // to work around a strange issue (driver bug?) on Mac OS
+      // causing strange visual artifacts to appear.
+      (dst.a != 0 ? dst.a : dst.a);
       // Overwrite the color but with alpha mixing.
       return vec4( dst.rgb, dst.a*color.a );
     }
