@@ -361,6 +361,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       wheel_event.pos = mouse;
       wheel_event.wheel_delta =
           static_cast<int>( sdl_event.wheel.y );
+      if( sdl_event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED )
+        wheel_event.wheel_delta = -wheel_event.wheel_delta;
       event = wheel_event;
       break;
     }
