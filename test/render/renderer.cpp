@@ -52,15 +52,112 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_color_cycle", true },                 //
 };
 
+void expect_bind_vertex_array( gl::MockOpenGL& mock ) {
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( 2 )
+      .returns( GL_NO_ERROR );
+
+  // Bind.
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 20 );
+  EXPECT_CALL( mock, gl_BindVertexArray( 21 ) );
+}
+
+void expect_unbind_vertex_array( gl::MockOpenGL& mock ) {
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( 3 )
+      .returns( GL_NO_ERROR );
+
+  // Unbind.
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 21 );
+  EXPECT_CALL( mock, gl_BindVertexArray( 20 ) );
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 20 );
+}
+
+void expect_create_vertex_array( gl::MockOpenGL& mock ) {
+  int const num_get_errors = //
+      9                      //
+      + kExpectedAttributes.size();
+
+  EXPECT_CALL( mock, gl_GetError() )
+      .times( num_get_errors )
+      .returns( GL_NO_ERROR );
+
+  // Construct VertexArrayNonTyped.
+  EXPECT_CALL( mock, gl_GenVertexArrays( 1, Not( Null() ) ) )
+      .sets_arg<1>( 21 );
+
+  // Construct vertex buffer.
+  EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
+      .sets_arg<1>( 41 );
+
+  expect_bind_vertex_array( mock );
+
+  // Bind vertex buffer.
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 40 );
+  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
+
+  // Call to get max allowed attributes.
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_MAX_VERTEX_ATTRIBS,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 100 )
+      .times( kExpectedAttributes.size() );
+
+  int i = 0;
+  for( auto& [type, name, is_int] : kExpectedAttributes ) {
+    EXPECT_CALL( mock, gl_GetError() )
+        .times( 2 )
+        .returns( GL_NO_ERROR );
+    // Register attribute i.
+    if( is_int ) {
+      EXPECT_CALL( mock, gl_VertexAttribIPointer(
+                             /*index=*/i, /*size=*/_,
+                             /*type=*/_, /*stride=*/
+                             sizeof( GenericVertex ),
+                             /*pointer=*/_ ) );
+    } else {
+      // Register attribute i.
+      EXPECT_CALL( mock, gl_VertexAttribPointer(
+                             /*index=*/i, /*size=*/_, /*type=*/_,
+                             /*normalized=*/false, /*stride=*/
+                             sizeof( GenericVertex ),
+                             /*pointer=*/_ ) );
+    }
+    EXPECT_CALL( mock, gl_EnableVertexAttribArray( i ) );
+    ++i;
+  }
+
+  // Unbind vertex buffer.
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 41 );
+  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 40 ) );
+  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                     Not( Null() ) ) )
+      .sets_arg<1>( 40 );
+
+  // Unbind vertex array.
+  expect_unbind_vertex_array( mock );
+
+  // Some cleanup.
+  EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 41 ) ) );
+  EXPECT_CALL( mock, gl_DeleteVertexArrays( 1, Pointee( 21 ) ) );
+}
+
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = //
-      59                     //
-      + kExpectedAttributes.size();
+  int const num_get_errors = 45;
 
   EXPECT_CALL( mock, gl_GetError() )
       .times( num_get_errors )
@@ -93,6 +190,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // Delete the shaders.
   EXPECT_CALL( mock, gl_DeleteShader( 6 ) );
   EXPECT_CALL( mock, gl_DeleteShader( 5 ) );
+
+  // Bind dummy vertex array.
+  expect_create_vertex_array( mock );
+  expect_bind_vertex_array( mock );
 
   // Create shader program.
 
@@ -171,6 +272,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock,
                gl_Uniform1i( 91, 0 ) ); // u_color_cycle_stage
 
+  // Unbind dummy vertex array.
+  expect_unbind_vertex_array( mock );
+
   // Set the u_atlas texture to zero.
   // NOTE: this is omitted even though the renderer does it be-
   // cause we are setting the same value that was already set
@@ -228,81 +332,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
   EXPECT_CALL( mock, gl_Uniform2f( 89, 64, 32 ) );
 
-  // Construct VertexArrayNonTyped.
-  EXPECT_CALL( mock, gl_GenVertexArrays( 1, Not( Null() ) ) )
-      .sets_arg<1>( 21 );
-
-  // Construct vertex buffer.
-  EXPECT_CALL( mock, gl_GenBuffers( 1, Not( Null() ) ) )
-      .sets_arg<1>( 41 );
-
-  // Bind vertex array.
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 20 );
-  EXPECT_CALL( mock, gl_BindVertexArray( 21 ) );
-
-  // Bind vertex buffer.
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 40 );
-  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
-
-  // Call to get max allowed attributes.
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_MAX_VERTEX_ATTRIBS,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 100 )
-      .times( kExpectedAttributes.size() );
-
-  int i = 0;
-  for( auto& [type, name, is_int] : kExpectedAttributes ) {
-    EXPECT_CALL( mock, gl_GetError() )
-        .times( 2 )
-        .returns( GL_NO_ERROR );
-    // Register attribute i.
-    if( is_int ) {
-      EXPECT_CALL( mock, gl_VertexAttribIPointer(
-                             /*index=*/i, /*size=*/_,
-                             /*type=*/_, /*stride=*/
-                             sizeof( GenericVertex ),
-                             /*pointer=*/_ ) );
-    } else {
-      // Register attribute i.
-      EXPECT_CALL( mock, gl_VertexAttribPointer(
-                             /*index=*/i, /*size=*/_, /*type=*/_,
-                             /*normalized=*/false, /*stride=*/
-                             sizeof( GenericVertex ),
-                             /*pointer=*/_ ) );
-    }
-    EXPECT_CALL( mock, gl_EnableVertexAttribArray( i ) );
-    ++i;
-  }
-
-  // Unbind vertex buffer.
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 41 );
-  EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 40 ) );
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 40 );
-
-  // Unbind vertex array.
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 21 );
-  EXPECT_CALL( mock, gl_BindVertexArray( 20 ) );
-  EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
-                                     Not( Null() ) ) )
-      .sets_arg<1>( 20 );
-
   // We bind the atlas texture on construction of the renderer
   // one final time.
   expect_bind();
-
-  // Some more cleanup.
-  EXPECT_CALL( mock, gl_DeleteBuffers( 1, Pointee( 41 ) ) );
-  EXPECT_CALL( mock, gl_DeleteVertexArrays( 1, Pointee( 21 ) ) );
 
   // *** The test.
 

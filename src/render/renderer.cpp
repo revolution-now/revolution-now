@@ -130,8 +130,18 @@ struct Renderer::Impl {
     UNWRAP_CHECK( frag_shader, gl::Shader::create(
                                    gl::e_shader_type::fragment,
                                    fragment_shader_source ) );
-    UNWRAP_CHECK(
-        pgrm, ProgramType::create( vert_shader, frag_shader ) );
+
+    // Some OpenGL drivers, during shader program validation,
+    // seem to require a vertex array to be bound to include in
+    // the validation process.
+    gl::VertexArray<gl::VertexBuffer<GenericVertex>>
+         vertex_array;
+    auto pgrm = [&] {
+      auto va_binder = vertex_array.bind();
+      UNWRAP_CHECK( pgrm, ProgramType::create( vert_shader,
+                                               frag_shader ) );
+      return std::move( pgrm );
+    }();
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
 
@@ -188,7 +198,7 @@ struct Renderer::Impl {
     return new Impl(
         /*present_fn=*/std::move( present_fn ),
         /*program=*/std::move( pgrm ),
-        /*vertex_array=*/{},
+        /*vertex_array=*/std::move( vertex_array ),
         /*atlas_map=*/std::move( atlas.dict ),
         /*atlas_size=*/atlas_size,
         /*atlas_tx=*/std::move( atlas_tx ),

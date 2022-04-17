@@ -31,13 +31,7 @@ void clear( color floats ) {
 }
 
 void set_viewport( gfx::rect dimensions ) {
-  static constexpr int kViewportScale =
-#ifdef __APPLE__
-      // Ideally do this only if we are >= OSX 10.15.
-      2;
-#else
-      1;
-#endif
+  static constexpr int kViewportScale = 1;
 
   GL_CHECK( CALL_GL( gl_Viewport, dimensions.origin.x,
                      dimensions.origin.y,
