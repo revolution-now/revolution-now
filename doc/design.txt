@@ -1,4 +1,218 @@
 =================================================================
+Landscape Buffer
+=================================================================
+
+We need to have a giant vertex buffer for land rendering. It will
+contain everything represented in MapSquare pre-rendered (i.e.,
+no units or colonies). It will be re-uploaded to the GPU each
+frame (initially, although that may be optimized later). It will
+get its own draw call which will always be first (since the
+land-view plane is always first) and then all of the rest of the
+drawing will be batched into a second draw call.
+
+Overlap and Tile Draw Ordering
+------------------------------
+
+Before talking about the structure of the buffer, we need to es-
+tablish some requirements that will make things much simpler and
+give us a lot of flexibility. Specifically, we will impose that
+the map squares and associated rendering have the following prop-
+erties (which they currently do anyway):
+
+  1. Changing anything on one tile cannot necessitate any changes
+     to any other tiles except for those that are immediately ad-
+     jacent.
+  2. When the renderer renders a tile, it must render everything
+     that will appear on that tile, even things that spill over
+     from adjacent tiles. This is necessary otherwise the end re-
+     sult of rendering would depend on the order in which the
+     tiles are rendered which cannot work in general. Further-
+     more, when rendering a tile, nothing will be rendered out-
+     side of that tile, even things that should spill over. For
+     simplicity, the renderer may violate this for rendering
+     colonies and villages, but those are not relevant here be-
+     cause they will not be in the fixed buffer.
+
+(1) means that when e.g. we add a road to a tile, clear a forest
+on a tile, or change a tile in the map editor, the number of
+tiles that must be updated as a result are bounded. (2) means
+that the end result of rendering the tiles in the buffer will be
+independent of the order in which they are rendered. Crucially,
+this means that when a tile is updated, we can just re-render the
+tile (and adjacent tiles) by appending to the end of the buffer
+and overwriting them.
+
+Updating the Buffer
+-------------------
+
+When something on the land is updated, such as clearing a forest
+or adding a road, the buffer must be updated. Given the con-
+straints that we've imposed on tile rendering, there are a couple
+of ways that we could make this happen:
+
+  1. We can overwrite the vertices for the tiles in the buffer.
+     There are two ways this could be done:
+       a. Allocate a fixed number of vertices for each tile (the
+          maximum number that any tile would need).
+       b. Allocate only the number of vertices that each tile
+          needs.
+  2. We can leave the vertices as they are and append new ver-
+     tices to the end of the buffer, effectively overwriting the
+     tiles. When a certain threshold of tiles are redrawn we can
+     redraw the entire buffer to save memory, although this may
+     never really be necessary.
+  3. Hybrid approach. In this approach we first render the tiles
+     that have changed, count how many vertices there are, then
+     we have a custom "allocator" that can manage allocations of
+     vertices in the buffer (allowing us to free old ones and al-
+     locate new ones, reusing space where possible).
+
+Option 1.a would be simple in that it would be easy to know the
+start/end vertex positions of a tile in the buffer, and it would
+be easy to overwrite them. Also, the buffer would never grow.
+Disadvantage would be that it would use a lot more memory than
+needed.
+
+Option 1.b would have the advantage that it would use the least
+amount of memory up front, but has the disadvantage that we'd
+have to both store a map of the starting position/length of each
+tile's vertices in the buffer, then when overwriting them we'd
+have to potentially shift subsequent vertices up/down down in
+memory and/or reallocate the buffer, which is not desirable.
+
+Option 2 has the disadvantage that it will use more memory, and
+will keep increasing as updates are made, and that therefore we
+may have to have some mechanism of redrawing the map when the
+number of vertices gets too large. But the advantage is that it
+is super simple: we don't need to know the position of any ver-
+tices in the buffer, we don't need to update any existing ver-
+tices in the buffer, and we only need to append onto the end.
+During the course of a real game, it is likely that the game will
+be saved and reloaded multiple times during the course of a game
+(and the map will be redrawn from scratch each time it is reload-
+ed), and so it may not even be necessary to redraw the map from
+scratch. Option2 also has the advantage that it will use very
+little memory when most of the map is not visible. A disadvantage
+here is that it may not be possible to store the vertex buffer on
+the GPU
+
+Option 3 is complex since we have to design an allocator and keep
+track of the start/end positions of tiles' vertices in the
+buffer. The advantage theoretically is that it would tend to use
+less memory as tiles are updated. Howver, in practice that might
+not even be the case, since most of the time when tiles are up-
+dated they either get revealed or they gain something on them
+(such as a road) which will increase the number of vertices.
+Therefore, for most of the game, it seems that gaps in the buffer
+probably won't even be able to be reused, instead having to be
+tacked onto the end.
+
+Regarding storage of vertex buffer on the GPU: One potential ad-
+vantage of 1.a is that, if the vertex buffer is stored on the
+GPU, it could be easily updated with localized updates. Though
+that may not be so important, since it is also fast to update the
+entire buffer (which would have to happen with all of the other
+options), especially given that it doesn't have to happen often.
+
+It seems that the only desirable options would be either Option
+1.a or Option 2. Since Option 2 is the simplest, we will just go
+with that initially. The remainder will assume that we are going
+with that approach.
+
+Memory Usage Estimate
+---------------------
+
+In the case of a large map (200x200), we will have 40000 squares.
+It is estimated that we will need at most 20 quads per square
+(though most squares won't use them all, so this is an upper
+bound on memory usage). Each quad has 6 vertices, and each vertex
+is on the order of 100 bytes. So therefore we need this much
+CPU/GPU memory at most:
+
+  mem = (200*200) * 20 quads * 6 vertices * 100 bytes
+      = 480,000,000 bytes
+      = 457 MB
+
+For a map size that the original game used (58x72) we have:
+
+  mem = (58*72) * 20 quads * 6 vertices * 100 bytes
+      = 50,000,000 bytes
+      = 48 MB
+
+at most.
+
+How to handle visibility?
+-------------------------
+
+If a tile and its surroundings are not visible, then the vertex
+buffer will simply contain a rendering of the cover (dark blue in
+the original game, but could also be black), and thus will only
+use 6 vertices. When a tile or one of its surroundings becomes
+visible, those tiles still simply be redrawn at the end of the
+buffer, completely covering up the cover tile.
+
+When to redraw the buffer from scratch?
+---------------------------------------
+
+Initially we will assume that it won't be necessary to do this,
+because, outside of the map editor, there is an upper bound on
+how large the buffer could get even if every tile is made visible
+and e.g. given a road. In that case, the above estimates would
+probably be accurate. Furthermore, in practice, it is likely
+that, during the course of a game, that the game will saved and
+restored a few times, and each of those would cause the map to be
+redrawn (and hence space-optimized) from scratch. So we will pro-
+ceed assuming that it will not be necessary to ever totally re-
+draw the map from scratch. If it does become necessary then it
+shouldn't be too hard to add in a heuristic for when to do that.
+
+rr::Renderer Changes
+--------------------
+
+The renderer will gain a second vertex buffer (actually, a vertex
+array) called the landscape. It will be append-only in the sense
+that it will not be cleared each frame. Instead, there will be a
+special method to clear it which will only be called when a new
+map is loaded at the start of a game. The interface will provide
+a mod that can be used to select that buffer.
+
+When ending a rendering pass, the landscape buffer will be up-
+loaded (each frame). Later, we can add an optimization, e.g. a
+dirty bit, which signals that the land scape buffer was modified
+and that it needs to be re-uploaded. Note that when uploading it,
+we need to use glBufferData since the size may have changed.
+
+GenericVertex/Shader Changes
+----------------------------
+
+We need to introduce a concept of a camera to the rendering en-
+gine. There will be a single camera in the engine, and it will be
+set as two uniforms: position and scale. Also, there will be a
+new GenericVertex attribute that marks a vertex as needing to be
+translated/scaled according to the camera. Each frame, the camera
+position will be updated.
+
+The renderer API then needs to have a new method for setting the
+camera position/scaling, and then land-view rendering needs to be
+changed to just enable the camera for the vertices instead of po-
+sition/scaling. Finally, the vertex shader needs to be updated to
+do the relevant shifting/scaling.
+
+Buffer Update Mechanism
+-----------------------
+
+We will need a mechanism for ensuring that any changes to a Map-
+Square always trigger a redraw of the relevant vertices.
+
+Idea: Change the interface in the world-map module to only return
+const references to squares. Then add a new module called
+map-updater that provides an interface for providing a mutable
+square and then calling the appropriate redraw mechanisms auto-
+matically. It is beneficial to have this as a separate module be-
+cause the vast majority of code that needs access to the map
+squares will not need to update them.
+
+=================================================================
 Coroutine-based GUI windows and widgets
 =================================================================
        ________________________________________________
