@@ -1,14 +1,14 @@
-=================================================================
 Landscape Buffer
 =================================================================
 
-We need to have a giant vertex buffer for land rendering. It will
-contain everything represented in MapSquare pre-rendered (i.e.,
-no units or colonies). It will be re-uploaded to the GPU each
-frame (initially, although that may be optimized later). It will
-get its own draw call which will always be first (since the
-land-view plane is always first) and then all of the rest of the
-drawing will be batched into a second draw call.
+We need to have a giant vertex buffer for land rendering, which
+we will refer to as the Landscape buffer. It will contain every-
+thing represented in MapSquare pre-rendered (i.e., no units or
+colonies). It will be re-uploaded to the GPU each frame (ini-
+tially, although that may be optimized later). It will get its
+own draw call which will always be first (since the land-view
+plane is always first) and then all of the rest of the drawing
+will be batched into a second draw call.
 
 Overlap and Tile Draw Ordering
 ------------------------------
@@ -31,7 +31,7 @@ erties (which they currently do anyway):
      side of that tile, even things that should spill over. For
      simplicity, the renderer may violate this for rendering
      colonies and villages, but those are not relevant here be-
-     cause they will not be in the fixed buffer.
+     cause they will not be in the landscape buffer.
 
 (1) means that when e.g. we add a road to a tile, clear a forest
 on a tile, or change a tile in the map editor, the number of
@@ -71,7 +71,10 @@ Option 1.a would be simple in that it would be easy to know the
 start/end vertex positions of a tile in the buffer, and it would
 be easy to overwrite them. Also, the buffer would never grow.
 Disadvantage would be that it would use a lot more memory than
-needed.
+needed, and it might be a pain to maintain the value representing
+the necessary number of vertices as the renderer evolves (and
+we'd have to figure out what to do if that number is unexpectedly
+exceeded).
 
 Option 1.b would have the advantage that it would use the least
 amount of memory up front, but has the disadvantage that we'd
@@ -93,8 +96,12 @@ be saved and reloaded multiple times during the course of a game
 ed), and so it may not even be necessary to redraw the map from
 scratch. Option2 also has the advantage that it will use very
 little memory when most of the map is not visible. A disadvantage
-here is that it may not be possible to store the vertex buffer on
-the GPU
+here regarding the possibility of keeping the buffer on the GPU
+would be that whenever the map is changed, the size of the buffer
+will expand, and so the entire buffer will have to be re-uploaded
+to the GPU with glBufferData instead of updated small segments of
+it, but this may not turn out to be a problem since it doesn't
+happen each frame.
 
 Option 3 is complex since we have to design an allocator and keep
 track of the start/end positions of tiles' vertices in the
@@ -148,7 +155,7 @@ If a tile and its surroundings are not visible, then the vertex
 buffer will simply contain a rendering of the cover (dark blue in
 the original game, but could also be black), and thus will only
 use 6 vertices. When a tile or one of its surroundings becomes
-visible, those tiles still simply be redrawn at the end of the
+visible, those tiles will simply be redrawn at the end of the
 buffer, completely covering up the cover tile.
 
 When to redraw the buffer from scratch?
@@ -156,8 +163,8 @@ When to redraw the buffer from scratch?
 
 Initially we will assume that it won't be necessary to do this,
 because, outside of the map editor, there is an upper bound on
-how large the buffer could get even if every tile is made visible
-and e.g. given a road. In that case, the above estimates would
+how large the buffer could get even if every tile is e.g. made
+visible and given a road. In that case, the above estimates would
 probably be accurate. Furthermore, in practice, it is likely
 that, during the course of a game, that the game will saved and
 restored a few times, and each of those would cause the map to be
@@ -187,16 +194,17 @@ GenericVertex/Shader Changes
 
 We need to introduce a concept of a camera to the rendering en-
 gine. There will be a single camera in the engine, and it will be
-set as two uniforms: position and scale. Also, there will be a
-new GenericVertex attribute that marks a vertex as needing to be
-translated/scaled according to the camera. Each frame, the camera
-position will be updated.
+set as a vec3 uniform, specifying the positino of the camera rel-
+ative to the upper-left corner of the landscape. Also, there will
+be a new GenericVertex attribute that marks a vertex as needing
+to be translated/scaled according to the camera. Each frame, the
+camera position will be updated.
 
 The renderer API then needs to have a new method for setting the
-camera position/scaling, and then land-view rendering needs to be
-changed to just enable the camera for the vertices instead of po-
-sition/scaling. Finally, the vertex shader needs to be updated to
-do the relevant shifting/scaling.
+camera position, and then land-view rendering needs to be changed
+to just enable the camera for the vertices instead of position/s-
+caling. Finally, the vertex shader needs to be updated to do the
+relevant shifting/scaling.
 
 Buffer Update Mechanism
 -----------------------

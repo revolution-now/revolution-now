@@ -4,60 +4,47 @@
 
   1.  Create new branch landscape-buffer.
   2.  Add camera to vertex and shaders along with renderer mod to
-      enable it.
+      enable it. It should be a single vec3. Third component can
+      be the zoom.
   3.  Change land-view to use camera instead of position/scaling
-      and to update the camera each frame.
-  4.  Add landscape buffer to Renderer with associated API (in-
-      cluding mods to enable it).
-  5.  Rework map square access (creating map-updater module) to
+      for the landscape rendering portion and to update the
+      camera each frame.
+  4.  Make similar changes to map editor.
+  5.  Add landscape buffer to Renderer with associated API (in-
+      cluding mods to enable it). Add some logging to keep track
+      of the size of the landscape buffer.
+  6.  Rework map square access (creating map-updater module) to
       re-render updated map squares into the landscape buffer.
-  6.  Add method to render-terrain module to pre-render the world
+  7.  Add method to render-terrain module to pre-render the world
       into the landscape buffer. Find a place to call this method
       at the start of each game and make sure to clear the land-
       scape buffer first at that time.
-  7.  Try adding dirty bit to landscape buffer to only re-upload
+  8.  Try adding dirty bit to landscape buffer to only re-upload
       it when it is updated to see if it improves the frame rate.
-  8.  Add overlay connector tiles.
-  9.  Render rivers, with color cycling.
-  10. Add color cycling to sea lane tile.
-  11. Render natural resource tiles.
-  12. Implement world generation.
-  13. Implement terrain visibility.
-  14. Implement mini map.
-  15. Draw remainder of unit types.
-  16. Implement colony land production.
-  17. Implement selecting colonist profession in colony view.
-  18. Implement stats in panel.
-  19. Implement gold.
-  20. Implement old world prices and price changes.
-  21. Allow purchasing things from old world.
-  22. Implement that immigrants appear on the doc.
-  23. Add basic auto unit outlining in fragment shader so that
+  9.  Investigate whether it is necessary to periodically redraw
+      the landscape buffer from scratch.
+  10. Add overlay connector tiles.
+  11. Render rivers, with color cycling.
+  12. Add color cycling to sea lane tile.
+  13. Render natural resource tiles.
+  14. Implement world generation.
+  15. Implement terrain visibility.
+  16. Implement mini map.
+  17. Draw remainder of unit types.
+  18. Implement colony land production.
+  19. Implement selecting colonist profession in colony view.
+  20. Implement stats in panel.
+  21. Implement gold.
+  22. Implement old world prices and price changes.
+  23. Allow purchasing things from old world.
+  24. Implement that immigrants appear on the doc.
+  25. Add basic auto unit outlining in fragment shader so that
       the units will be visible.
-  24. Create colony building art.
-  25. Render colony buildings in colony.
-  26. Implement colony building workers.
-  27. Implement colony production (from lumber/tools).
-  28. Implement wagon train trade routes.
-
-# ===============================================================
-# OpenGL
-# ===============================================================
-
-  1. See doc/gl-perf-notes.txt. Need to implement reusable
-     buffers so that we don't have to recreate the land-view
-     buffer each frame. There are two choices: 1) we can upload
-     the buffer to GPU memory and modify it with GPU commands.
-     This may work despite the high latency (~100 buffer updates
-     max per frame) of updating buffers since it is rare that we
-     will need to update map vertices; it certainly does not have
-     to be done every frame. This gives maximum performance, e.g.
-     2000 fps. 2) We could maintain the buffer on the CPU side
-     and just upload it each frame. The performance of this is
-     not quite as good as (1), but it is still very good, e.g.
-     800 fps. Going with the second option might be a good
-     starting point, then if more performance is needed an/or it
-     is feasible, we can completely move it onto the GPU.
+  26. Create colony building art.
+  27. Render colony buildings in colony.
+  28. Implement colony building workers.
+  29. Implement colony production (from lumber/tools).
+  30. Implement wagon train trade routes.
 
 # ===============================================================
 # Global State
