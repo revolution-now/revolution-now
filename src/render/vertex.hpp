@@ -78,6 +78,9 @@ struct VertexBase : protected GenericVertex {
   // *** Color Cycling.
   void set_color_cycle( bool enabled );
 
+  // *** Camera.
+  void set_use_camera( bool enabled );
+
   bool operator==( VertexBase const& ) const = default;
 };
 

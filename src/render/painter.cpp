@@ -103,6 +103,7 @@ void Painter::add_mods( VertexBase&        vert,
     vert.set_scaling( *mods.repos.scale );
   if( mods.repos.translation.has_value() )
     vert.set_translation( *mods.repos.translation );
+  vert.set_use_camera( mods.repos.use_camera );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
   vert.set_color_cycle( mods.cycling.enabled );
 }

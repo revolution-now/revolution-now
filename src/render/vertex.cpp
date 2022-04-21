@@ -40,6 +40,7 @@ GenericVertex proto_vertex( vertex_type type,
       .scaling             = 1.0,
       .translation         = {},
       .color_cycle         = 0, // "false"
+      .use_camera          = 0, // "false"
   };
 }
 
@@ -96,6 +97,10 @@ void VertexBase::set_translation( gfx::size trans ) {
 
 void VertexBase::set_color_cycle( bool enabled ) {
   color_cycle = enabled ? 1 : 0;
+}
+
+void VertexBase::set_use_camera( bool enabled ) {
+  use_camera = enabled ? 1 : 0;
 }
 
 /****************************************************************

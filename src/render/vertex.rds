@@ -120,6 +120,15 @@ struct.GenericVertex {
   # will be taken from the corresponding uniform.
   color_cycle 'int32_t',
 
+  # This is a boolean which, when true, will subject the vertices
+  # to the "camera" uniform, which means translation of position
+  # and zoom, in the vertex shader. This is different from the
+  # `translation` and `scale` attributes above in that those
+  # allow different values per vertex. If both the camera is en-
+  # abled and the per-vertex scale/translation are specified,
+  # then the latter is applied first, then the former.
+  use_camera 'int32_t',
+
   # Need this in all vertex structs since OpenGL needs to have
   # the offsets of each member of the struct.
   _features { equality, offsets }

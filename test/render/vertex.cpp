@@ -204,5 +204,15 @@ TEST_CASE( "[render/vertex] color_cycle" ) {
   REQUIRE( vert.generic().color_cycle == 0 );
 }
 
+TEST_CASE( "[render/vertex] use_camera" ) {
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 } );
+  REQUIRE( vert.generic().use_camera == 0 );
+  vert.set_use_camera( true );
+  REQUIRE( vert.generic().use_camera == 1 );
+  vert.set_use_camera( false );
+  REQUIRE( vert.generic().use_camera == 0 );
+}
+
 } // namespace
 } // namespace rr

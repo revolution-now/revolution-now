@@ -21,6 +21,7 @@ layout (location = 7)  in float in_alpha_multiplier;
 layout (location = 8)  in float in_scaling;
 layout (location = 9)  in vec2  in_translation;
 layout (location = 10) in int   in_color_cycle;
+layout (location = 11) in int   in_use_camera;
 
 flat out int   frag_type;
 flat out vec3  frag_depixelate;
@@ -33,14 +34,20 @@ flat out float frag_scaling;
 flat out int   frag_color_cycle;
 
 // Screen dimensions in the game's logical pixel units.
-uniform vec2 u_screen_size;
+uniform vec2  u_screen_size;
+uniform vec2  u_camera_translation;
+uniform float u_camera_zoom;
 
 // Any input that refers to screen (game) coordinates needs to be
 // adjusted by this function.
-vec2 translate_scale( in vec2 position ) {
+vec2 shift_and_scale( in vec2 position ) {
   vec2 adjusted_position = position;
   adjusted_position *= in_scaling;
   adjusted_position += in_translation;
+  if( in_use_camera != 0 ) {
+    adjusted_position *= u_camera_zoom;
+    adjusted_position += u_camera_translation;
+  }
   return adjusted_position;
 }
 
@@ -50,8 +57,8 @@ vec2 translate_scale( in vec2 position ) {
 void forwarding() {
   frag_type                = in_type;
   frag_depixelate.z        = in_depixelate.z;
-  frag_depixelate.xy       = translate_scale( in_depixelate.xy );
-  frag_position            = translate_scale( in_position );
+  frag_depixelate.xy       = shift_and_scale( in_depixelate.xy );
+  frag_position            = shift_and_scale( in_position );
   frag_atlas_position      = in_atlas_position;
   frag_atlas_target_offset = in_atlas_target_offset;
   frag_fixed_color         = in_fixed_color;
@@ -84,7 +91,7 @@ void main() {
     return;
   }
 
-  vec2 adjusted_position = translate_scale( in_position );
+  vec2 adjusted_position = shift_and_scale( in_position );
 
   gl_Position = vec4( to_ndc( adjusted_position ), 0.0, 1.0 );
 }

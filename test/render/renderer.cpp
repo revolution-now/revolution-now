@@ -50,6 +50,7 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_FLOAT, "in_scaling", false },                  //
     { GL_FLOAT_VEC2, "in_translation", false },         //
     { GL_INT, "in_color_cycle", true },                 //
+    { GL_INT, "in_use_camera", true },                  //
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {
@@ -157,7 +158,7 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = 45;
+  int const num_get_errors = 51;
 
   EXPECT_CALL( mock, gl_GetError() )
       .times( num_get_errors )
@@ -230,6 +231,13 @@ TEST_CASE( "[render/renderer] workflows" ) {
                gl_GetUniformLocation(
                    9, Eq<string>( "u_color_cycle_stage" ) ) )
       .returns( 91 );
+  EXPECT_CALL( mock,
+               gl_GetUniformLocation(
+                   9, Eq<string>( "u_camera_translation" ) ) )
+      .returns( 92 );
+  EXPECT_CALL( mock, gl_GetUniformLocation(
+                         9, Eq<string>( "u_camera_zoom" ) ) )
+      .returns( 93 );
 
   // Validate the program.
   EXPECT_CALL( mock, gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -271,6 +279,12 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_UseProgram( 9 ) );
   EXPECT_CALL( mock,
                gl_Uniform1i( 91, 0 ) ); // u_color_cycle_stage
+  EXPECT_CALL( mock, gl_UseProgram( 9 ) );
+  EXPECT_CALL(
+      mock,
+      gl_Uniform2f( 92, 0.0, 0.0 ) ); // u_camera_translation
+  EXPECT_CALL( mock, gl_UseProgram( 9 ) );
+  EXPECT_CALL( mock, gl_Uniform1f( 93, 0.0 ) ); // u_camera_zoom
 
   // Unbind dummy vertex array.
   expect_unbind_vertex_array( mock );

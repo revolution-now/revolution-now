@@ -55,6 +55,7 @@ struct DepixelateInfo {
 struct RepositionInfo {
   base::maybe<double>    scale       = {};
   base::maybe<gfx::size> translation = {};
+  bool                   use_camera  = false;
 };
 
 struct ColorCyclingInfo {

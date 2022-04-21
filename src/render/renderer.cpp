@@ -68,6 +68,8 @@ struct ProgramUniforms {
       gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
       gl::UniformSpec<gl::vec2>( "u_screen_size" ),
       gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
+      gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
+      gl::UniformSpec<float>( "u_camera_zoom" ),
   };
 };
 
