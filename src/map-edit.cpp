@@ -406,15 +406,17 @@ void render_map( rr::Renderer&       renderer,
     corner -= hidden.multiply_and_round( zoom );
   }
 
+  // TODO: change this once we start rendering the entire land-
+  // scape buffer.
+  renderer.set_camera( corner.distance_from_origin(), zoom );
+
   MapEditorLandRenderer land_renderer{
       .terrain_state = terrain_state,
       .renderer      = renderer,
       .covered       = viewport().covered_tiles(),
   };
 
-  SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
-  SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                       corner.distance_from_origin() );
+  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
 
   // The below functions will always render at normal scale and
   // starting at 0,0 on the screen, and then the renderer mods

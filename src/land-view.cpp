@@ -393,25 +393,35 @@ void render_land_view( rr::Renderer&       renderer,
     corner -= hidden.multiply_and_round( zoom );
   }
 
+  // TODO: change this once we start rendering the entire land-
+  // scape buffer.
+  renderer.set_camera( corner.distance_from_origin(), zoom );
+
   LandViewRenderer lv_renderer{
       .terrain_state = terrain_state,
       .renderer      = renderer,
       .covered       = viewport().covered_tiles(),
   };
 
-  SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
-  SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                       corner.distance_from_origin() );
+  // The below render_* functions will always render at normal
+  // scale and starting at 0,0 on the screen, and then the ren-
+  // derer mods that we've install above will automatically do
+  // the shifting and scaling.
 
-  // The below functions will always render at normal scale and
-  // starting at 0,0 on the screen, and then the renderer mods
-  // that we've install above will automatically do the shifting
-  // and scaling.
-  lv_renderer.render_terrain();
-  lv_renderer.render_plows();
-  lv_renderer.render_roads();
-  lv_renderer.render_colonies();
-  lv_renderer.render_units();
+  {
+    SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
+    lv_renderer.render_terrain();
+    lv_renderer.render_plows();
+    lv_renderer.render_roads();
+  }
+
+  {
+    SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
+    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
+                         corner.distance_from_origin() );
+    lv_renderer.render_colonies();
+    lv_renderer.render_units();
+  }
 }
 
 /****************************************************************
