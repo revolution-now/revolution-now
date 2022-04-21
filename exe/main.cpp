@@ -7,6 +7,7 @@
 #include "lua.hpp"
 #include "map-edit.hpp"
 #include "open-gl-test.hpp"
+#include "renderer.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 
@@ -32,28 +33,36 @@ void full_init() {
   run_lua_startup_main();
 }
 
+rr::Renderer& renderer() {
+  // This should be the only place where this function is called,
+  // save for one or two other (hopefully temporary) hacks.
+  return global_renderer_use_only_when_needed();
+}
+
 void run( e_mode mode ) {
   switch( mode ) {
     case e_mode::game: {
       full_init();
       print_bar( '-', "[ Starting Game ]" );
-      frame_loop( revolution_now() );
+      frame_loop( revolution_now(), renderer() );
       break;
     }
     case e_mode::map_editor: {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
-      frame_loop( map_editor() );
+      frame_loop( map_editor( MapUpdater( GameState::terrain(),
+                                          renderer() ) ),
+                  renderer() );
       break;
     }
     case e_mode::test_ui: {
       full_init();
-      frame_loop( test_ui() );
+      frame_loop( test_ui(), renderer() );
       break;
     }
     case e_mode::test_lua_ui: {
       full_init();
-      frame_loop( rn::test_lua_ui() );
+      frame_loop( rn::test_lua_ui(), renderer() );
       break;
     }
     case e_mode::gl_test: {

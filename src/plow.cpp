@@ -16,6 +16,8 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "terrain.hpp"
 #include "tiles.hpp"
 
@@ -38,10 +40,22 @@ namespace rn {
 
 namespace {
 
-void clear_irrigation( TerrainState& terrain_state,
-                       Coord         tile ) {
-  MapSquare& square = terrain_state.mutable_square_at( tile );
-  square.irrigation = false;
+void clear_irrigation( IMapUpdater const& map_updater,
+                       Coord              tile ) {
+  map_updater.modify_map_square( tile, []( MapSquare& square ) {
+    square.irrigation = false;
+  } );
+}
+
+void irrigate( IMapUpdater const& map_updater, Coord tile ) {
+  map_updater.modify_map_square(
+      tile, []( MapSquare& square ) { irrigate( square ); } );
+}
+
+void clear_forest( IMapUpdater const& map_updater, Coord tile ) {
+  map_updater.modify_map_square( tile, []( MapSquare& square ) {
+    clear_forest( square );
+  } );
 }
 
 } // namespace
@@ -49,11 +63,12 @@ void clear_irrigation( TerrainState& terrain_state,
 /****************************************************************
 ** Plowing State
 *****************************************************************/
-void plow_square( TerrainState& terrain_state, Coord tile ) {
+void plow_square( TerrainState const& terrain_state,
+                  IMapUpdater const& map_updater, Coord tile ) {
   CHECK( terrain_state.is_land( tile ) );
-  MapSquare& square = terrain_state.mutable_square_at( tile );
+  MapSquare const& square = terrain_state.square_at( tile );
   if( has_forest( square ) ) {
-    clear_forest( square );
+    clear_forest( map_updater, tile );
     return;
   }
   CHECK( !square.irrigation,
@@ -61,7 +76,7 @@ void plow_square( TerrainState& terrain_state, Coord tile ) {
          "plowed.",
          tile );
   if( can_irrigate( square ) ) {
-    irrigate( square );
+    irrigate( map_updater, tile );
     return;
   }
   FATAL( "terrain type {} cannot be plowed: square={}",
@@ -88,9 +103,10 @@ bool has_irrigation( TerrainState const& terrain_state,
 /****************************************************************
 ** Unit State
 *****************************************************************/
-void perform_plow_work( UnitsState const& units_state,
-                        TerrainState&     terrain_state,
-                        Unit&             unit ) {
+void perform_plow_work( UnitsState const&   units_state,
+                        TerrainState const& terrain_state,
+                        IMapUpdater const&  map_updater,
+                        Unit&               unit ) {
   Coord location = units_state.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::plow );
   CHECK( unit.type() == e_unit_type::pioneer ||
@@ -120,7 +136,7 @@ void perform_plow_work( UnitsState const& units_state,
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
     // We're finished plowing.
-    plow_square( terrain_state, location );
+    plow_square( terrain_state, map_updater, location );
     unit.clear_orders();
     unit.set_turns_worked( 0 );
     unit.consume_20_tools();
@@ -153,14 +169,23 @@ void render_plow_if_present( rr::Painter& painter, Coord where,
 namespace {
 
 LUA_FN( plow_square, void, Coord tile ) {
-  TerrainState const& terrain_state = GameState::terrain();
+  TerrainState& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( tile ) )
     st.error( "cannot plow on water tile {}.", tile );
-  plow_square( GameState::terrain(), tile );
+  plow_square(
+      terrain_state,
+      MapUpdater( terrain_state,
+                  // FIXME
+                  global_renderer_use_only_when_needed() ),
+      tile );
 }
 
 LUA_FN( clear_irrigation, void, Coord tile ) {
-  clear_irrigation( GameState::terrain(), tile );
+  clear_irrigation(
+      MapUpdater( GameState::terrain(),
+                  // FIXME
+                  global_renderer_use_only_when_needed() ),
+      tile );
 }
 
 } // namespace

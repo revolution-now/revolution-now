@@ -122,12 +122,14 @@ unordered_map<e_commodity, int> const
 
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  ColonyId col_id = found_colony_unsafe( id, "colony" );
-  Colony&  col    = colony_from_id( col_id );
+  ColonyId col_id =
+      found_colony_unsafe( id, map_updater, "colony" );
+  Colony& col = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(
@@ -139,6 +141,7 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
 
 TEST_CASE( "[colony-mgr] create colony strips unit" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   SECTION( "dragoon" ) {
     Coord  coord   = { 2_x, 2_y };
@@ -146,7 +149,8 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     Unit&  founder = unit_from_id( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( id ).valid() );
-    ColonyId col_id = found_colony_unsafe( id, "colony" );
+    ColonyId col_id =
+        found_colony_unsafe( id, map_updater, "colony" );
     REQUIRE( founder.type() == e_unit_type::petty_criminal );
     Colony& col = colony_from_id( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -187,7 +191,8 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     Unit&  founder = unit_from_id( id );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit_can_found_colony( id ).valid() );
-    ColonyId col_id = found_colony_unsafe( id, "colony" );
+    ColonyId col_id =
+        found_colony_unsafe( id, map_updater, "colony" );
     REQUIRE( founder.type() == e_unit_type::hardy_colonist );
     Colony& col = colony_from_id( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -218,12 +223,14 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
 TEST_CASE(
     "[colony-mgr] create colony on existing colony fails" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  ColonyId col_id = found_colony_unsafe( id, "colony 1" );
-  Colony&  col    = colony_from_id( col_id );
+  ColonyId col_id =
+      found_colony_unsafe( id, map_updater, "colony 1" );
+  Colony& col = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(
@@ -240,12 +247,14 @@ TEST_CASE(
 TEST_CASE(
     "[colony-mgr] create colony with existing name fails" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist_on_map( coord );
   REQUIRE( unit_can_found_colony( id ).valid() );
-  ColonyId col_id = found_colony_unsafe( id, "colony" );
-  Colony&  col    = colony_from_id( col_id );
+  ColonyId col_id =
+      found_colony_unsafe( id, map_updater, "colony" );
+  Colony& col = colony_from_id( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(

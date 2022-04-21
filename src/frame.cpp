@@ -119,13 +119,9 @@ using FrameLoopBodyFunc = base::function_ref<void(
     rr::Renderer&, InputReceivedFunc, Time_t const& )>;
 
 void frame_loop_scheduler( wait<> const&     what,
+                           rr::Renderer&     renderer,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
-
-  // This should be the only place where this function is called,
-  // save for one or two other (hopefully temporary) hacks.
-  rr::Renderer& renderer =
-      global_renderer_use_only_when_needed();
 
   constexpr auto slow_frame_length = 1000000us / 5;
 
@@ -270,9 +266,9 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( wait<> const& what ) {
+void frame_loop( wait<> const& what, rr::Renderer& renderer ) {
   g_target_fps = config_rn.target_frame_rate;
-  frame_loop_scheduler( what, frame_loop_body );
+  frame_loop_scheduler( what, renderer, frame_loop_body );
   deinit_frame();
 }
 

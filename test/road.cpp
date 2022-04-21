@@ -50,8 +50,9 @@ void prepare_world( TerrainState& terrain_state,
 }
 
 TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
@@ -85,7 +86,8 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, unit );
+    perform_road_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( has_road( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
@@ -97,7 +99,8 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, unit );
+  perform_road_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( has_road( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
@@ -107,8 +110,9 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
 }
 
 TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
@@ -148,7 +152,8 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, unit );
+    perform_road_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( has_road( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
@@ -159,7 +164,8 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, unit );
+  perform_road_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( has_road( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( unit.turns_worked() == 0 );
@@ -170,8 +176,9 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
 
 TEST_CASE(
     "[src/road] perform_road_work hardy_pioneer 20 tools" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state,
                  e_unit_type::hardy_pioneer );
 
@@ -211,7 +218,8 @@ TEST_CASE(
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, unit );
+    perform_road_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( has_road( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
@@ -222,7 +230,8 @@ TEST_CASE(
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, unit );
+  perform_road_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( has_road( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
   REQUIRE( unit.turns_worked() == 0 );
@@ -232,8 +241,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "[src/road] perform_road_work with cancel" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
@@ -267,7 +277,8 @@ TEST_CASE( "[src/road] perform_road_work with cancel" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, unit );
+    perform_road_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( has_road( terrain_state, kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
@@ -278,11 +289,12 @@ TEST_CASE( "[src/road] perform_road_work with cancel" ) {
   }
 
   // Effectively cancel it by putting a road on the tile.
-  set_road( terrain_state, kSquare );
+  set_road( map_updater, kSquare );
 
   // Cancelled.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, unit );
+  perform_road_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( has_road( terrain_state, kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );

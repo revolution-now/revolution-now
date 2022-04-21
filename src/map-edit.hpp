@@ -13,14 +13,18 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "map-updater.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "map-edit.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 namespace rn {
 
-wait<> map_editor();
+wait<> map_editor( IMapUpdater const& map_updater );
 
 struct Plane;
 Plane* map_editor_plane();

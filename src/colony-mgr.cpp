@@ -82,8 +82,9 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   return valid;
 }
 
-ColonyId found_colony_unsafe( UnitId           founder,
-                              std::string_view name ) {
+ColonyId found_colony_unsafe( UnitId             founder,
+                              IMapUpdater const& map_updater,
+                              std::string_view   name ) {
   if( auto res = is_valid_new_colony_name( name ); !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
@@ -114,7 +115,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   GameState::units().change_to_colony( founder, col_id, job );
 
   // Add road onto colony square.
-  set_road( GameState::terrain(), where );
+  set_road( map_updater, where );
 
   // Done.
   auto& desc = nation_obj( nation );
@@ -183,6 +184,10 @@ namespace {
 // from Lua at startup, where it works fine. The safer way to do
 // that would be to have a single function that both creates a
 // unit and the colony together.
+//
+// FIXME: this currently does not update the rendered map because
+// it breaks unit tests where there is no global renderer -- that
+// needs to be fixed.
 LUA_FN( found_colony, ColonyId, UnitId founder,
         std::string const& name ) {
   if( auto res = is_valid_new_colony_name( name ); !res )
@@ -191,7 +196,10 @@ LUA_FN( found_colony, ColonyId, UnitId founder,
               enum_to_display_name( res.error() ) );
   if( auto res = unit_can_found_colony( founder ); !res )
     st.error( "cannot found colony here." );
-  return found_colony_unsafe( founder, name );
+  return found_colony_unsafe(
+      founder,
+      // FIXME
+      NonRenderingMapUpdater( GameState::terrain() ), name );
 }
 
 } // namespace

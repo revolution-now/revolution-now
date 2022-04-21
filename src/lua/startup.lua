@@ -215,7 +215,7 @@ local function set_ground_tiles()
     for x, terrain in ipairs( row ) do
       if terrain ~= 'none' then
         local c = Coord{ x=x, y=y }
-        local square = world_map.at( location( c ) )
+        local square = map_gen.at( location( c ) )
         square.ground = terrain
       end
     end
@@ -227,7 +227,7 @@ local function set_overlay_tiles()
     for x, overlay in ipairs( row ) do
       if terrain ~= 'none' then
         local c = Coord{ x=x, y=y }
-        local square = world_map.at( location( c ) )
+        local square = map_gen.at( location( c ) )
         square.overlay = overlay
       end
     end
@@ -240,7 +240,7 @@ local function set_terrain_tiles()
 end
 
 function M.main()
-  world_map.generate_terrain()
+  map_gen.generate_terrain()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
     e.nation.french

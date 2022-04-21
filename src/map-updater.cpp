@@ -19,21 +19,33 @@ using namespace std;
 
 namespace rn {
 
-void modify_map_square(
-    TerrainState& terrain_state, Coord tile,
-    rr::Renderer&                          renderer,
-    base::function_ref<void( MapSquare& )> mutator ) {
-  mutator( terrain_state.mutable_square_at( tile ) );
+/****************************************************************
+** MapUpdater
+*****************************************************************/
+void MapUpdater::modify_map_square(
+    Coord                                  tile,
+    base::function_ref<void( MapSquare& )> mutator ) const {
+  mutator( terrain_state_.mutable_square_at( tile ) );
 
+  auto& renderer = renderer_;
   SCOPED_RENDERER_MOD( buffer_mods.buffer,
                        rr::e_render_target_buffer::landscape );
 
   // Re-render the square and all adjacent squares.
   for( e_direction d : refl::enum_values<e_direction> )
-    if( terrain_state.square_exists( tile.moved( d ) ) )
-      render_terrain_square( terrain_state, renderer,
+    if( terrain_state_.square_exists( tile.moved( d ) ) )
+      render_terrain_square( terrain_state_, renderer_,
                              tile * g_tile_scale,
                              tile.moved( d ) );
+}
+
+/****************************************************************
+** NonRenderingMapUpdater
+*****************************************************************/
+void NonRenderingMapUpdater::modify_map_square(
+    Coord                                  tile,
+    base::function_ref<void( MapSquare& )> mutator ) const {
+  mutator( terrain_state_.mutable_square_at( tile ) );
 }
 
 } // namespace rn

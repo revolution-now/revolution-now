@@ -14,7 +14,9 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "map-updater.hpp"
 #include "maybe.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "window.hpp"
 
 // Rds
@@ -87,7 +89,12 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    colony_id = found_colony_unsafe( unit_id, *colony_name );
+    // FIXME
+    MapUpdater map_updater(
+        GameState::terrain(),
+        global_renderer_use_only_when_needed() );
+    colony_id = found_colony_unsafe( unit_id, map_updater,
+                                     *colony_name );
     co_return;
   }
 

@@ -15,6 +15,7 @@
 // Revolution Now
 #include "coord.hpp"
 #include "game-state.hpp"
+#include "map-updater.hpp"
 #include "unit.hpp"
 
 // render
@@ -26,8 +27,8 @@ namespace rn {
 ** Road State
 *****************************************************************/
 // Must be a land square or check fail.
-void set_road( TerrainState& terrain_state, Coord tile );
-void clear_road( TerrainState& terrain_state, Coord tile );
+void set_road( IMapUpdater const& map_updater, Coord tile );
+void clear_road( IMapUpdater const& map_updater, Coord tile );
 bool has_road( TerrainState const& terrain_state, Coord tile );
 
 /****************************************************************
@@ -42,9 +43,10 @@ bool has_road( TerrainState const& terrain_state, Coord tile );
 // you will know that the unit finished building the road when
 // its orders are cleared. If the unit has the remainder of its
 // tools removed by this function then the unit will be demoted.
-void perform_road_work( UnitsState const& units_state,
-                        TerrainState&     terrain_state,
-                        Unit&             unit );
+void perform_road_work( UnitsState const&   units_state,
+                        TerrainState const& terrain_state,
+                        IMapUpdater const&  map_updater,
+                        Unit&               unit );
 
 bool can_build_road( Unit const& unit );
 

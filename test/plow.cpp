@@ -51,8 +51,9 @@ void prepare_world( TerrainState& terrain_state,
 }
 
 TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state, e_terrain::conifer,
                  e_unit_type::pioneer );
 
@@ -103,7 +104,8 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, unit );
+    perform_plow_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
     REQUIRE( has_forest( square ) );
@@ -119,7 +121,8 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished clearing.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, unit );
+  perform_plow_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == true );
   REQUIRE( !has_forest( square ) );
@@ -151,7 +154,8 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, unit );
+    perform_plow_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
     REQUIRE( !has_forest( square ) );
@@ -167,7 +171,8 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished irrigating.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, unit );
+  perform_plow_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( can_plow( unit ) == false );
   REQUIRE( can_plow( terrain_state, kSquare ) == false );
   REQUIRE( !has_forest( square ) );
@@ -182,8 +187,9 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 }
 
 TEST_CASE( "[src/plow] plow_square with cancellation" ) {
-  TerrainState terrain_state;
-  UnitsState   units_state;
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
   prepare_world( terrain_state, units_state,
                  e_terrain::grassland, e_unit_type::pioneer );
 
@@ -234,7 +240,8 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, unit );
+    perform_plow_work( units_state, terrain_state, map_updater,
+                       unit );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( terrain_state, kSquare ) == true );
     REQUIRE( !has_forest( square ) );
@@ -250,11 +257,12 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   }
 
   // Effectively cancel it by putting a road on the tile.
-  plow_square( terrain_state, kSquare );
+  plow_square( terrain_state, map_updater, kSquare );
 
   // Finished clearing.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, unit );
+  perform_plow_work( units_state, terrain_state, map_updater,
+                     unit );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( terrain_state, kSquare ) == false );
   REQUIRE( !has_forest( square ) );

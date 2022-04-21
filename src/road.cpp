@@ -15,6 +15,8 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "map-updater.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // render
@@ -39,15 +41,14 @@ namespace {} // namespace
 /****************************************************************
 ** Road State
 *****************************************************************/
-void set_road( TerrainState& terrain_state, Coord tile ) {
-  CHECK( terrain_state.is_land( tile ) );
-  MapSquare& square = terrain_state.mutable_square_at( tile );
-  square.road       = true;
+void set_road( IMapUpdater const& map_updater, Coord tile ) {
+  map_updater.modify_map_square(
+      tile, []( MapSquare& square ) { square.road = true; } );
 }
 
-void clear_road( TerrainState& terrain_state, Coord tile ) {
-  MapSquare& square = terrain_state.mutable_square_at( tile );
-  square.road       = false;
+void clear_road( IMapUpdater const& map_updater, Coord tile ) {
+  map_updater.modify_map_square(
+      tile, []( MapSquare& square ) { square.road = false; } );
 }
 
 bool has_road( TerrainState const& terrain_state, Coord tile ) {
@@ -58,9 +59,10 @@ bool has_road( TerrainState const& terrain_state, Coord tile ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-void perform_road_work( UnitsState const& units_state,
-                        TerrainState&     terrain_state,
-                        Unit&             unit ) {
+void perform_road_work( UnitsState const&   units_state,
+                        TerrainState const& terrain_state,
+                        IMapUpdater const&  map_updater,
+                        Unit&               unit ) {
   Coord location = units_state.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::road );
   CHECK( unit.type() == e_unit_type::pioneer ||
@@ -91,7 +93,7 @@ void perform_road_work( UnitsState const& units_state,
   CHECK_LE( turns_worked, road_turns );
   if( turns_worked == road_turns ) {
     // We're finished building the road.
-    set_road( terrain_state, location );
+    set_road( map_updater, location );
     unit.clear_orders();
     unit.set_turns_worked( 0 );
     unit.consume_20_tools();
@@ -150,11 +152,16 @@ LUA_FN( set_road, void, Coord tile ) {
   TerrainState const& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( tile ) )
     st.error( "cannot put road on water tile {}.", tile );
-  set_road( GameState::terrain(), tile );
+  set_road( MapUpdater( GameState::terrain(),
+                        global_renderer_use_only_when_needed() ),
+            tile );
 }
 
 LUA_FN( clear_road, void, Coord tile ) {
-  clear_road( GameState::terrain(), tile );
+  clear_road(
+      MapUpdater( GameState::terrain(),
+                  global_renderer_use_only_when_needed() ),
+      tile );
 }
 
 } // namespace

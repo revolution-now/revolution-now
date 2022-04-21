@@ -21,6 +21,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
+#include "map-updater.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"
@@ -28,6 +29,7 @@
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
 #include "plow.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
@@ -155,7 +157,14 @@ wait<> menu_load_handler() {
     throw game_load_interrupt{};
 }
 
-wait<> menu_map_editor_handler() { return map_editor(); }
+wait<> menu_map_editor_handler() {
+  // FIXME: hack
+  rr::Renderer& renderer =
+      global_renderer_use_only_when_needed();
+  // Need to co_await so that the map_updater stays alive.
+  co_await map_editor(
+      MapUpdater( GameState::terrain(), renderer ) );
+}
 
 #define DEFAULT_TURN_MENU_ITEM_HANDLER( item )             \
   MENU_ITEM_HANDLER(                                       \
@@ -462,13 +471,14 @@ wait<> query_unit_input( UnitId id ) {
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( UnitId id ) {
+wait<bool> advance_unit( IMapUpdater const& map_updater,
+                         UnitId             id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   Unit& unit = GameState::units().unit_for( id );
 
   if( unit.orders() == e_unit_orders::road ) {
     perform_road_work( GameState::units(), GameState::terrain(),
-                       unit );
+                       map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await landview_ensure_visible( id );
@@ -480,7 +490,7 @@ wait<bool> advance_unit( UnitId id ) {
 
   if( unit.orders() == e_unit_orders::plow ) {
     perform_plow_work( GameState::units(), GameState::terrain(),
-                       unit );
+                       map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await landview_ensure_visible( id );
@@ -534,7 +544,8 @@ wait<bool> advance_unit( UnitId id ) {
   co_return true;
 }
 
-wait<> units_turn_one_pass( deque<UnitId>& q ) {
+wait<> units_turn_one_pass( IMapUpdater const& map_updater,
+                            deque<UnitId>&     q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -548,7 +559,7 @@ wait<> units_turn_one_pass( deque<UnitId>& q ) {
       continue;
     }
 
-    bool should_ask = co_await advance_unit( id );
+    bool should_ask = co_await advance_unit( map_updater, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -570,7 +581,7 @@ wait<> units_turn_one_pass( deque<UnitId>& q ) {
   }
 }
 
-wait<> units_turn() {
+wait<> units_turn( IMapUpdater const& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   auto& q  = st.units;
@@ -595,7 +606,7 @@ wait<> units_turn() {
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( q );
+    co_await units_turn_one_pass( map_updater, q );
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( st.nation );
@@ -626,7 +637,7 @@ wait<> colonies_turn() {
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
-wait<> nation_turn() {
+wait<> nation_turn( IMapUpdater const& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
 
@@ -643,7 +654,7 @@ wait<> nation_turn() {
   }
 
   if( !st.did_units ) {
-    co_await units_turn();
+    co_await units_turn( map_updater );
     st.did_units = true;
   }
   CHECK( st.units.empty() );
@@ -652,7 +663,7 @@ wait<> nation_turn() {
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-wait<> next_turn_impl() {
+wait<> next_turn_impl( IMapUpdater const& map_updater ) {
   landview_start_new_turn();
   auto& st = GameState::turn();
 
@@ -666,14 +677,14 @@ wait<> next_turn_impl() {
 
   // Body.
   if( st.nation.has_value() ) {
-    co_await nation_turn();
+    co_await nation_turn( map_updater );
     st.nation.reset();
   }
 
   while( !st.remainder.empty() ) {
     st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
-    co_await nation_turn();
+    co_await nation_turn( map_updater );
     st.nation.reset();
   }
 
@@ -690,7 +701,11 @@ wait<> next_turn_impl() {
 *****************************************************************/
 wait<> next_turn() {
   ScopedPlanePush pusher( e_plane_config::land_view );
-  co_await next_turn_impl();
+  // FIXME
+  MapUpdater map_updater(
+      GameState::terrain(),
+      global_renderer_use_only_when_needed() );
+  co_await next_turn_impl( map_updater );
 }
 
 } // namespace rn

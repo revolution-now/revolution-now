@@ -21,10 +21,12 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
 #include "render-terrain.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 #include "viewport.hpp"
@@ -119,109 +121,94 @@ wait<> click_on_toolbar( Coord tile ) {
 *****************************************************************/
 enum class e_action { add, remove };
 
-wait<> click_on_tile( Coord tile, e_action action ) {
+wait<> click_on_tile( IMapUpdater const& map_updater, Coord tile,
+                      e_action action ) {
   if( !g_selected_tool.has_value() ) co_return;
   TerrainState& terrain_state = GameState::terrain();
+  MapSquare     new_square    = terrain_state.square_at( tile );
   switch( *g_selected_tool ) {
     case editor::e_toolbar_item::ocean:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::ocean );
+      new_square = map_square_for_terrain( e_terrain::ocean );
       break;
     case editor::e_toolbar_item::sea_lane:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::ocean );
-      terrain_state.mutable_world_map()[tile].sea_lane = true;
+      new_square = map_square_for_terrain( e_terrain::ocean );
+      new_square.sea_lane = true;
       break;
     case editor::e_toolbar_item::ground_arctic:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::arctic );
+      new_square = map_square_for_terrain( e_terrain::arctic );
       break;
     case editor::e_toolbar_item::ground_desert:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::desert );
+      new_square = map_square_for_terrain( e_terrain::desert );
       break;
     case editor::e_toolbar_item::ground_grassland:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
+      new_square =
           map_square_for_terrain( e_terrain::grassland );
       break;
     case editor::e_toolbar_item::ground_marsh:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::marsh );
+      new_square = map_square_for_terrain( e_terrain::marsh );
       break;
     case editor::e_toolbar_item::ground_plains:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::plains );
+      new_square = map_square_for_terrain( e_terrain::plains );
       break;
     case editor::e_toolbar_item::ground_prairie:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::prairie );
+      new_square = map_square_for_terrain( e_terrain::prairie );
       break;
     case editor::e_toolbar_item::ground_savannah:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::savannah );
+      new_square = map_square_for_terrain( e_terrain::savannah );
       break;
     case editor::e_toolbar_item::ground_swamp:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::swamp );
+      new_square = map_square_for_terrain( e_terrain::swamp );
       break;
     case editor::e_toolbar_item::ground_tundra:
       if( action == e_action::remove ) break;
-      terrain_state.mutable_world_map()[tile] =
-          map_square_for_terrain( e_terrain::tundra );
+      new_square = map_square_for_terrain( e_terrain::tundra );
       break;
     case editor::e_toolbar_item::mountain:
       if( action == e_action::add )
-        terrain_state.mutable_world_map()[tile].overlay =
-            e_land_overlay::mountains;
-      else if( terrain_state.mutable_world_map()[tile].overlay ==
-               e_land_overlay::mountains )
-        terrain_state.mutable_world_map()[tile].overlay =
-            nothing;
+        new_square.overlay = e_land_overlay::mountains;
+      else if( new_square.overlay == e_land_overlay::mountains )
+        new_square.overlay = nothing;
       break;
     case editor::e_toolbar_item::hills:
       if( action == e_action::add )
-        terrain_state.mutable_world_map()[tile].overlay =
-            e_land_overlay::hills;
-      else if( terrain_state.mutable_world_map()[tile].overlay ==
-               e_land_overlay::hills )
-        terrain_state.mutable_world_map()[tile].overlay =
-            nothing;
+        new_square.overlay = e_land_overlay::hills;
+      else if( new_square.overlay == e_land_overlay::hills )
+        new_square.overlay = nothing;
       break;
     case editor::e_toolbar_item::forest:
       if( action == e_action::add )
-        terrain_state.mutable_world_map()[tile].overlay =
-            e_land_overlay::forest;
-      else if( terrain_state.mutable_world_map()[tile].overlay ==
-               e_land_overlay::forest )
-        terrain_state.mutable_world_map()[tile].overlay =
-            nothing;
+        new_square.overlay = e_land_overlay::forest;
+      else if( new_square.overlay == e_land_overlay::forest )
+        new_square.overlay = nothing;
       break;
     case editor::e_toolbar_item::irrigation:
-      terrain_state.mutable_world_map()[tile].irrigation =
-          ( action == e_action::add );
+      new_square.irrigation = ( action == e_action::add );
       break;
     case editor::e_toolbar_item::road:
-      terrain_state.mutable_world_map()[tile].road =
-          ( action == e_action::add );
+      new_square.road = ( action == e_action::add );
       break;
   }
+  map_updater.modify_map_square(
+      tile,
+      [&]( MapSquare& to_edit ) { to_edit = new_square; } );
 }
 
 /****************************************************************
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( input::key_event_t const& event ) {
+wait<bool> handle_event( IMapUpdater const&,
+                         input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
@@ -242,6 +229,7 @@ wait<bool> handle_event( input::key_event_t const& event ) {
 }
 
 wait<bool> handle_event(
+    IMapUpdater const&                 map_updater,
     input::mouse_button_event_t const& event ) {
   bool left =
       event.buttons == input::e_mouse_button_event::left_down;
@@ -253,7 +241,7 @@ wait<bool> handle_event(
           viewport().screen_pixel_to_world_tile( click_pos ) ) {
     lg.debug( "clicked on tile: {}.", *maybe_tile );
     e_action action = left ? e_action::add : e_action::remove;
-    co_await click_on_tile( *maybe_tile, action );
+    co_await click_on_tile( map_updater, *maybe_tile, action );
     co_return false;
   }
   if( left && click_pos.is_inside( toolbar_rect() ) ) {
@@ -266,6 +254,7 @@ wait<bool> handle_event(
 }
 
 wait<bool> handle_event(
+    IMapUpdater const&,
     input::mouse_wheel_event_t const& event ) {
   if( viewport().screen_coord_in_viewport( event.pos ) ) {
     if( event.wheel_delta < 0 )
@@ -282,7 +271,9 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( auto const& ) { co_return false; }
+wait<bool> handle_event( IMapUpdater const&, auto const& ) {
+  co_return false;
+}
 
 // Remove all input events from the queue corresponding to normal
 // user input, but save the ones that we always need to process,
@@ -305,13 +296,13 @@ void clear_non_essential_events() {
     g_input.send( std::move( e ) );
 }
 
-wait<> run_map_editor() {
+wait<> run_map_editor( IMapUpdater const& map_updater ) {
   while( true ) {
     input::event_t event = co_await g_input.next();
     auto [exit, suspended] =
         co_await co::detect_suspend( std::visit(
-            []( auto const& event ) {
-              return handle_event( event );
+            [&]( auto const& event ) {
+              return handle_event( map_updater, event );
             },
             event ) );
     if( suspended ) clear_non_essential_events();
@@ -462,6 +453,10 @@ struct MapEditorPlane : public Plane {
     // the viewport size that cannot be known while it is being
     // constructed.
     advance_viewport_state();
+    // FIXME: hack
+    map_updater_ = make_unique<MapUpdater>(
+        GameState::terrain(),
+        global_renderer_use_only_when_needed() );
   }
 
   void advance_state() override { advance_viewport_state(); }
@@ -512,7 +507,8 @@ struct MapEditorPlane : public Plane {
         if( auto maybe_tile =
                 viewport().screen_pixel_to_world_tile(
                     d->current ) ) {
-          co_await click_on_tile( *maybe_tile, e_action::add );
+          co_await click_on_tile( *map_updater_, *maybe_tile,
+                                  e_action::add );
         }
       }
     }
@@ -555,7 +551,8 @@ struct MapEditorPlane : public Plane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  Rect canvas_;
+  Rect                          canvas_;
+  unique_ptr<IMapUpdater const> map_updater_ = nullptr;
 };
 
 MapEditorPlane g_map_editor_plane;
@@ -565,11 +562,11 @@ MapEditorPlane g_map_editor_plane;
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> map_editor() {
+wait<> map_editor( IMapUpdater const& map_updater ) {
   reset_globals();
   ScopedPlanePush pusher( e_plane_config::map_editor );
   lg.info( "entering map editor." );
-  co_await run_map_editor();
+  co_await run_map_editor( map_updater );
   lg.info( "leaving map editor." );
 }
 

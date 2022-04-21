@@ -15,6 +15,7 @@
 // Revolution Now
 #include "coord.hpp"
 #include "game-state.hpp"
+#include "map-updater.hpp"
 #include "unit.hpp"
 
 // render
@@ -29,7 +30,8 @@ namespace rn {
 // it will clear it, otherwise it will add irrigation. If neither
 // of those are possible then it will check-fail, so you should
 // call can_plow on this square first.
-void plow_square( TerrainState& terrain_state, Coord tile );
+void plow_square( TerrainState const& terrain_state,
+                  IMapUpdater const& map_updater, Coord tile );
 
 // Can we either clear a forest on the square or add irrigation.
 bool can_plow( TerrainState const& terrain_state, Coord tile );
@@ -53,9 +55,10 @@ bool has_irrigation( TerrainState const& terrain_state,
 // the unit finished plowing when its orders are cleared. If the
 // unit has the remainder of its tools removed by this function
 // then the unit will be demoted.
-void perform_plow_work( UnitsState const& units_state,
-                        TerrainState&     terrain_state,
-                        Unit&             unit );
+void perform_plow_work( UnitsState const&   units_state,
+                        TerrainState const& terrain_state,
+                        IMapUpdater const&  map_updater,
+                        Unit&               unit );
 
 bool can_plow( Unit const& unit );
 
