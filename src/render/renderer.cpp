@@ -251,8 +251,10 @@ struct Renderer::Impl {
     switch( mods().buffer_mods.buffer ) {
       case e_render_target_buffer::normal:
         modded_emitter = &emitter;
+        break;
       case e_render_target_buffer::landscape:
         modded_emitter = &landscape_emitter;
+        break;
     }
     return *modded_emitter;
   }
