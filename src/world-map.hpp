@@ -19,7 +19,7 @@
 
 namespace rn {
 
-inline constexpr auto world_size = Delta{ 200_w, 100_h };
+inline constexpr auto world_size = Delta{ 200_w, 200_h };
 
 // FIXME: temporary.
 void generate_terrain();
