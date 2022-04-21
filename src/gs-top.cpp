@@ -11,6 +11,9 @@
 *****************************************************************/
 #include "gs-top.hpp"
 
+// Revolution Now
+#include "map-square.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -63,7 +66,7 @@ valid_or<string> validate_interaction(
   for( auto const& [colony_id, colony] : colonies.all() ) {
     // Colony is on land.
     REFL_VALIDATE(
-        is_land( terrain.world_map[colony.location()] ),
+        is_land( terrain.world_map()[colony.location()] ),
         "Colony {} is not on land.", colony.debug_string() );
   }
   return base::valid;
@@ -104,7 +107,7 @@ TopLevelState::TopLevelState( wrapped::TopLevelState&& o )
   : o_( std::move( o ) ) {
   // Populate any transient fields.
   o_.land_view.viewport.set_max_viewable_size_tiles(
-      o_.zzz_terrain.world_map.size() );
+      o_.zzz_terrain.world_map().size() );
 }
 
 TopLevelState::TopLevelState()

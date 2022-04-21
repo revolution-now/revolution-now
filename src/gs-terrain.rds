@@ -10,13 +10,12 @@
 # ===============================================================
 # Revolution Now
 include "matrix.hpp"
-include "world-map.hpp"
 
 # Rds
 include "map-square.rds.hpp"
 
-namespace "rn"
+namespace "rn.wrapped"
 
 struct.TerrainState {
-  world_map 'WorldMap',
+  world_map 'Matrix<MapSquare>',
 }

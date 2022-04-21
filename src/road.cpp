@@ -16,7 +16,6 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "tiles.hpp"
-#include "world-map.hpp"
 
 // render
 #include "render/painter.hpp"
@@ -41,18 +40,18 @@ namespace {} // namespace
 ** Road State
 *****************************************************************/
 void set_road( TerrainState& terrain_state, Coord tile ) {
-  CHECK( is_land( terrain_state, tile ) );
-  MapSquare& square = square_at( terrain_state, tile );
+  CHECK( terrain_state.is_land( tile ) );
+  MapSquare& square = terrain_state.mutable_square_at( tile );
   square.road       = true;
 }
 
 void clear_road( TerrainState& terrain_state, Coord tile ) {
-  MapSquare& square = square_at( terrain_state, tile );
+  MapSquare& square = terrain_state.mutable_square_at( tile );
   square.road       = false;
 }
 
 bool has_road( TerrainState const& terrain_state, Coord tile ) {
-  MapSquare const& square = square_at( terrain_state, tile );
+  MapSquare const& square = terrain_state.square_at( tile );
   return square.road;
 }
 
@@ -132,7 +131,7 @@ void render_road_if_present( rr::Painter& painter, Coord where,
   bool road_in_surroundings = false;
   for( auto [direction, tile] : road_tiles ) {
     Coord shifted = world_tile.moved( direction );
-    if( !square_exists( terrain_state, shifted ) ||
+    if( !terrain_state.square_exists( shifted ) ||
         !has_road( terrain_state, shifted ) )
       continue;
     road_in_surroundings = true;
@@ -149,7 +148,7 @@ namespace {
 
 LUA_FN( set_road, void, Coord tile ) {
   TerrainState const& terrain_state = GameState::terrain();
-  if( !is_land( terrain_state, tile ) )
+  if( !terrain_state.is_land( tile ) )
     st.error( "cannot put road on water tile {}.", tile );
   set_road( GameState::terrain(), tile );
 }

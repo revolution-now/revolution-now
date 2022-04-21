@@ -125,90 +125,93 @@ wait<> click_on_tile( Coord tile, e_action action ) {
   switch( *g_selected_tool ) {
     case editor::e_toolbar_item::ocean:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::ocean );
       break;
     case editor::e_toolbar_item::sea_lane:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::ocean );
-      terrain_state.world_map[tile].sea_lane = true;
+      terrain_state.mutable_world_map()[tile].sea_lane = true;
       break;
     case editor::e_toolbar_item::ground_arctic:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::arctic );
       break;
     case editor::e_toolbar_item::ground_desert:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::desert );
       break;
     case editor::e_toolbar_item::ground_grassland:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::grassland );
       break;
     case editor::e_toolbar_item::ground_marsh:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::marsh );
       break;
     case editor::e_toolbar_item::ground_plains:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::plains );
       break;
     case editor::e_toolbar_item::ground_prairie:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::prairie );
       break;
     case editor::e_toolbar_item::ground_savannah:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::savannah );
       break;
     case editor::e_toolbar_item::ground_swamp:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::swamp );
       break;
     case editor::e_toolbar_item::ground_tundra:
       if( action == e_action::remove ) break;
-      terrain_state.world_map[tile] =
+      terrain_state.mutable_world_map()[tile] =
           map_square_for_terrain( e_terrain::tundra );
       break;
     case editor::e_toolbar_item::mountain:
       if( action == e_action::add )
-        terrain_state.world_map[tile].overlay =
+        terrain_state.mutable_world_map()[tile].overlay =
             e_land_overlay::mountains;
-      else if( terrain_state.world_map[tile].overlay ==
+      else if( terrain_state.mutable_world_map()[tile].overlay ==
                e_land_overlay::mountains )
-        terrain_state.world_map[tile].overlay = nothing;
+        terrain_state.mutable_world_map()[tile].overlay =
+            nothing;
       break;
     case editor::e_toolbar_item::hills:
       if( action == e_action::add )
-        terrain_state.world_map[tile].overlay =
+        terrain_state.mutable_world_map()[tile].overlay =
             e_land_overlay::hills;
-      else if( terrain_state.world_map[tile].overlay ==
+      else if( terrain_state.mutable_world_map()[tile].overlay ==
                e_land_overlay::hills )
-        terrain_state.world_map[tile].overlay = nothing;
+        terrain_state.mutable_world_map()[tile].overlay =
+            nothing;
       break;
     case editor::e_toolbar_item::forest:
       if( action == e_action::add )
-        terrain_state.world_map[tile].overlay =
+        terrain_state.mutable_world_map()[tile].overlay =
             e_land_overlay::forest;
-      else if( terrain_state.world_map[tile].overlay ==
+      else if( terrain_state.mutable_world_map()[tile].overlay ==
                e_land_overlay::forest )
-        terrain_state.world_map[tile].overlay = nothing;
+        terrain_state.mutable_world_map()[tile].overlay =
+            nothing;
       break;
     case editor::e_toolbar_item::irrigation:
-      terrain_state.world_map[tile].irrigation =
+      terrain_state.mutable_world_map()[tile].irrigation =
           ( action == e_action::add );
       break;
     case editor::e_toolbar_item::road:
-      terrain_state.world_map[tile].road =
+      terrain_state.mutable_world_map()[tile].road =
           ( action == e_action::add );
       break;
   }

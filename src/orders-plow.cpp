@@ -16,9 +16,9 @@
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
+#include "map-square.hpp"
 #include "plow.hpp"
 #include "window.hpp"
-#include "world-map.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -60,12 +60,12 @@ struct PlowHandler : public OrdersHandler {
     }
     Coord world_square = units_state.coord_for( unit_id );
     TerrainState const& terrain_state = GameState::terrain();
-    CHECK( is_land( terrain_state, world_square ) );
+    CHECK( terrain_state.is_land( world_square ) );
     if( !can_plow( terrain_state, world_square ) ) {
       co_await ui::message_box(
           "@[H]{}@[] tiles cannot be plowed or cleared.",
           effective_terrain(
-              square_at( terrain_state, world_square ) ) );
+              terrain_state.square_at( world_square ) ) );
       co_return false;
     }
     if( has_irrigation( terrain_state, world_square ) ) {

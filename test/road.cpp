@@ -16,6 +16,7 @@
 // Revolution Now
 #include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
+#include "src/map-square.hpp"
 #include "src/ustate.hpp"
 
 // Must be last.
@@ -35,8 +36,10 @@ Coord const kSquare( 0_x, 0_y );
 void prepare_world( TerrainState& terrain_state,
                     UnitsState&   units_state,
                     e_unit_type   unit_type ) {
-  terrain_state.world_map = WorldMap( Delta( 1_w, 1_h ) );
-  WorldMap& world_map     = terrain_state.world_map;
+  terrain_state.mutable_world_map() =
+      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+  Matrix<MapSquare>& world_map =
+      terrain_state.mutable_world_map();
   world_map[kSquare] =
       map_square_for_terrain( e_terrain::grassland );
   UnitComposition comp = UnitComposition::create( unit_type );

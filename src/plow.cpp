@@ -15,9 +15,9 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "map-square.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
-#include "world-map.hpp"
 
 // render
 #include "render/painter.hpp"
@@ -40,7 +40,7 @@ namespace {
 
 void clear_irrigation( TerrainState& terrain_state,
                        Coord         tile ) {
-  MapSquare& square = square_at( terrain_state, tile );
+  MapSquare& square = terrain_state.mutable_square_at( tile );
   square.irrigation = false;
 }
 
@@ -50,8 +50,8 @@ void clear_irrigation( TerrainState& terrain_state,
 ** Plowing State
 *****************************************************************/
 void plow_square( TerrainState& terrain_state, Coord tile ) {
-  CHECK( is_land( terrain_state, tile ) );
-  MapSquare& square = square_at( terrain_state, tile );
+  CHECK( terrain_state.is_land( tile ) );
+  MapSquare& square = terrain_state.mutable_square_at( tile );
   if( has_forest( square ) ) {
     clear_forest( square );
     return;
@@ -69,19 +69,19 @@ void plow_square( TerrainState& terrain_state, Coord tile ) {
 }
 
 bool can_plow( TerrainState const& terrain_state, Coord tile ) {
-  MapSquare const& square = square_at( terrain_state, tile );
+  MapSquare const& square = terrain_state.square_at( tile );
   return can_plow( square );
 }
 
 bool can_irrigate( TerrainState const& terrain_state,
                    Coord               tile ) {
-  MapSquare const& square = square_at( terrain_state, tile );
+  MapSquare const& square = terrain_state.square_at( tile );
   return can_irrigate( square );
 }
 
 bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile ) {
-  MapSquare const& square = square_at( terrain_state, tile );
+  MapSquare const& square = terrain_state.square_at( tile );
   return square.irrigation;
 }
 
@@ -154,7 +154,7 @@ namespace {
 
 LUA_FN( plow_square, void, Coord tile ) {
   TerrainState const& terrain_state = GameState::terrain();
-  if( !is_land( terrain_state, tile ) )
+  if( !terrain_state.is_land( tile ) )
     st.error( "cannot plow on water tile {}.", tile );
   plow_square( GameState::terrain(), tile );
 }

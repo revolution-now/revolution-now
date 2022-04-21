@@ -17,7 +17,6 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "tiles.hpp"
-#include "world-map.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -68,45 +67,45 @@ maybe<e_ground_terrain> ground_terrain_for_square(
   if( square.surface == e_surface::land ) return square.ground;
   // We have a water so get it from the surroundings.
   maybe<MapSquare const&> left =
-      maybe_square_at( terrain_state, world_square - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_w );
   if( left.has_value() && left->surface == e_surface::land )
     return left->ground;
 
   maybe<MapSquare const&> up =
-      maybe_square_at( terrain_state, world_square - 1_h );
+      terrain_state.maybe_square_at( world_square - 1_h );
   if( up.has_value() && up->surface == e_surface::land )
     return up->ground;
 
   maybe<MapSquare const&> right =
-      maybe_square_at( terrain_state, world_square + 1_w );
+      terrain_state.maybe_square_at( world_square + 1_w );
   if( right.has_value() && right->surface == e_surface::land )
     return right->ground;
 
   maybe<MapSquare const&> down =
-      maybe_square_at( terrain_state, world_square + 1_h );
+      terrain_state.maybe_square_at( world_square + 1_h );
   if( down.has_value() && down->surface == e_surface::land )
     return down->ground;
 
   maybe<MapSquare const&> up_left =
-      maybe_square_at( terrain_state, world_square - 1_w - 1_h );
+      terrain_state.maybe_square_at( world_square - 1_w - 1_h );
   if( up_left.has_value() &&
       up_left->surface == e_surface::land )
     return up_left->ground;
 
   maybe<MapSquare const&> up_right =
-      maybe_square_at( terrain_state, world_square - 1_h + 1_w );
+      terrain_state.maybe_square_at( world_square - 1_h + 1_w );
   if( up_right.has_value() &&
       up_right->surface == e_surface::land )
     return up_right->ground;
 
   maybe<MapSquare const&> down_right =
-      maybe_square_at( terrain_state, world_square + 1_w + 1_h );
+      terrain_state.maybe_square_at( world_square + 1_w + 1_h );
   if( down_right.has_value() &&
       down_right->surface == e_surface::land )
     return down_right->ground;
 
   maybe<MapSquare const&> down_left =
-      maybe_square_at( terrain_state, world_square + 1_h - 1_w );
+      terrain_state.maybe_square_at( world_square + 1_h - 1_w );
   if( down_left.has_value() &&
       down_left->surface == e_surface::land )
     return down_left->ground;
@@ -139,13 +138,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
                               double chop_percent,
                               Delta  anchor_offset ) {
   maybe<MapSquare const&> west =
-      maybe_square_at( terrain_state, world_square - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_w );
   maybe<MapSquare const&> north =
-      maybe_square_at( terrain_state, world_square - 1_h );
+      terrain_state.maybe_square_at( world_square - 1_h );
   maybe<MapSquare const&> east =
-      maybe_square_at( terrain_state, world_square + 1_w );
+      terrain_state.maybe_square_at( world_square + 1_w );
   maybe<MapSquare const&> south =
-      maybe_square_at( terrain_state, world_square + 1_h );
+      terrain_state.maybe_square_at( world_square + 1_h );
 
   int chop_pixels =
       std::lround( g_tile_delta.w._ * chop_percent );
@@ -282,15 +281,15 @@ void render_terrain_ground( TerrainState const& terrain_state,
   }
 
   maybe<MapSquare const&> left =
-      maybe_square_at( terrain_state, world_square - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_w );
   maybe<MapSquare const&> up =
-      maybe_square_at( terrain_state, world_square - 1_h );
+      terrain_state.maybe_square_at( world_square - 1_h );
   maybe<MapSquare const&> right =
-      maybe_square_at( terrain_state, world_square + 1_w );
+      terrain_state.maybe_square_at( world_square + 1_w );
   maybe<MapSquare const&> up_left =
-      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_h - 1_w );
   maybe<MapSquare const&> up_right =
-      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
+      terrain_state.maybe_square_at( world_square + 1_w - 1_h );
 
   // This should be done at the end.
   if( up_right.has_value() &&
@@ -372,21 +371,21 @@ void render_terrain_ocean_square(
   DCHECK( square.surface == e_surface::water );
 
   maybe<MapSquare const&> up =
-      maybe_square_at( terrain_state, world_square - 1_h );
+      terrain_state.maybe_square_at( world_square - 1_h );
   maybe<MapSquare const&> right =
-      maybe_square_at( terrain_state, world_square + 1_w );
+      terrain_state.maybe_square_at( world_square + 1_w );
   maybe<MapSquare const&> down =
-      maybe_square_at( terrain_state, world_square + 1_h );
+      terrain_state.maybe_square_at( world_square + 1_h );
   maybe<MapSquare const&> left =
-      maybe_square_at( terrain_state, world_square - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_w );
   maybe<MapSquare const&> up_left =
-      maybe_square_at( terrain_state, world_square - 1_h - 1_w );
+      terrain_state.maybe_square_at( world_square - 1_h - 1_w );
   maybe<MapSquare const&> up_right =
-      maybe_square_at( terrain_state, world_square + 1_w - 1_h );
+      terrain_state.maybe_square_at( world_square + 1_w - 1_h );
   maybe<MapSquare const&> down_right =
-      maybe_square_at( terrain_state, world_square + 1_h + 1_w );
+      terrain_state.maybe_square_at( world_square + 1_h + 1_w );
   maybe<MapSquare const&> down_left =
-      maybe_square_at( terrain_state, world_square - 1_w + 1_h );
+      terrain_state.maybe_square_at( world_square - 1_w + 1_h );
 
   // Treat off-map tiles as water for rendering purposes.
   bool water_up = !up || up->surface == e_surface::water;
@@ -422,8 +421,8 @@ void render_terrain_ocean_square(
   maybe<e_tile> surf_tile         = {};
 
   auto is_land_if_exists = [&]( e_direction d ) {
-    maybe<MapSquare const&> s = maybe_square_at(
-        terrain_state, world_square.moved( d ) );
+    maybe<MapSquare const&> s =
+        terrain_state.maybe_square_at( world_square.moved( d ) );
     return s.has_value() && s->surface == e_surface::land;
   };
 
@@ -1017,7 +1016,7 @@ void render_terrain_square( TerrainState const& terrain_state,
                             Coord world_square ) {
   rr::Painter      painter = renderer.painter();
   MapSquare const& square =
-      square_at( terrain_state, world_square );
+      terrain_state.square_at( world_square );
   if( square.surface == e_surface::water )
     render_terrain_ocean_square( renderer, painter, where,
                                  terrain_state, square,

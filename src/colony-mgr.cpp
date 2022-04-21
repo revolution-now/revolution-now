@@ -17,6 +17,7 @@
 #include "cstate.hpp"
 #include "enum.hpp"
 #include "game-state.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -25,7 +26,6 @@
 #include "road.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
-#include "world-map.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -76,7 +76,7 @@ valid_or<e_found_colony_err> unit_can_found_colony(
     return invalid( Res_t::colony_exists_here );
 
   TerrainState const& terrain_state = GameState::terrain();
-  if( !is_land( terrain_state, *maybe_coord ) )
+  if( !terrain_state.is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
   return valid;

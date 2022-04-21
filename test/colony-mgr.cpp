@@ -14,11 +14,12 @@
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "lua.hpp"
+#include "map-square.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
-#include "world-map.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -37,6 +38,31 @@ namespace {
 
 using namespace std;
 using namespace rn;
+
+MapSquare make_land_square() {
+  return map_square_for_terrain( e_terrain::grassland );
+}
+
+MapSquare make_ocean_square() {
+  return map_square_for_terrain( e_terrain::ocean );
+}
+
+// FIXME: remove
+void generate_unittest_terrain() {
+  MapSquare const L = make_land_square();
+  MapSquare const O = make_ocean_square();
+
+  TerrainState& terrain_state = GameState::terrain();
+  auto&         world_map = terrain_state.mutable_world_map();
+  world_map               = Matrix<MapSquare>( 10_w, 10_h );
+
+  Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
+
+  for( auto const& coord : terrain_state.world_map().rect() ) {
+    world_map[coord] = O;
+    if( coord.is_inside( land_rect ) ) world_map[coord] = L;
+  }
+}
 
 void init_game_world_for_test() {
   testing::default_construct_all_game_state();

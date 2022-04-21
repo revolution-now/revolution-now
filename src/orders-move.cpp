@@ -19,6 +19,7 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -27,7 +28,6 @@
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
-#include "world-map.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -326,7 +326,7 @@ TravelHandler::analyze_unload() {
 }
 
 bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
-  return square_at( terrain_state, c ).sea_lane;
+  return terrain_state.square_at( c ).sea_lane;
 }
 
 wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
@@ -346,11 +346,11 @@ TravelHandler::confirm_travel_impl() {
   move_src  = coord_for_unit_indirect_or_die( id );
   move_dst  = move_src.moved( direction );
 
-  if( !move_dst.is_inside( world_rect_tiles() ) )
+  if( !move_dst.is_inside( terrain_state.world_rect_tiles() ) )
     co_return e_travel_verdict::map_edge;
 
-  auto&       src_square = square_at( terrain_state, move_src );
-  auto&       dst_square = square_at( terrain_state, move_dst );
+  auto&       src_square = terrain_state.square_at( move_src );
+  auto&       dst_square = terrain_state.square_at( move_dst );
   Unit const& unit       = units_state.unit_for( id );
   maybe<MovementPoints> to_subtract =
       co_await check_movement_points( unit, src_square,
@@ -813,10 +813,11 @@ AttackHandler::confirm_attack_impl() {
   auto dst_nation = nation_from_coord( attack_dst );
   CHECK( dst_nation.has_value() &&
          *dst_nation != unit.nation() );
-  CHECK( attack_dst.is_inside( world_rect_tiles() ) );
-
   TerrainState const& terrain_state = GameState::terrain();
-  auto& square = square_at( terrain_state, attack_dst );
+  CHECK(
+      attack_dst.is_inside( terrain_state.world_rect_tiles() ) );
+
+  auto& square = terrain_state.square_at( attack_dst );
 
   auto surface      = surface_type( square );
   auto relationship = e_unit_relationship::foreign;
@@ -1091,7 +1092,8 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
-  if( !dst.is_inside( world_rect_tiles() ) )
+  TerrainState const& terrain_state = GameState::terrain();
+  if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
     return make_unique<TravelHandler>( id, d );

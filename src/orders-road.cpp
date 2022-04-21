@@ -18,7 +18,6 @@
 #include "logger.hpp"
 #include "road.hpp"
 #include "window.hpp"
-#include "world-map.hpp"
 
 using namespace std;
 
@@ -57,7 +56,7 @@ struct RoadHandler : public OrdersHandler {
     }
     Coord world_square = units_state.coord_for( unit_id );
     TerrainState const& terrain_state = GameState::terrain();
-    CHECK( is_land( terrain_state, world_square ) );
+    CHECK( terrain_state.is_land( world_square ) );
     if( has_road( terrain_state, world_square ) ) {
       co_await ui::message_box_basic(
           "There is already a road on this square." );

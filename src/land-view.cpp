@@ -41,7 +41,6 @@
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
-#include "world-map.hpp"
 
 // render
 #include "render/renderer.hpp"

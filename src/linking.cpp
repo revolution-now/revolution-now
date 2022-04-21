@@ -16,6 +16,7 @@
 #include "conductor.hpp"
 #include "error.hpp"
 #include "lua-ui.hpp"
+#include "map-gen.hpp"
 #include "player.hpp"
 #include "sound.hpp"
 #include "turn.hpp"
@@ -33,6 +34,7 @@ void linker_dont_discard_me() {
   conductor::linker_dont_discard_module_conductor();
   linker_dont_discard_module_co_lua();
   linker_dont_discard_module_lua_ui();
+  linker_dont_discard_module_map_gen();
   // Add more here as needed.
 }
 

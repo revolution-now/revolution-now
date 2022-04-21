@@ -7,7 +7,7 @@ let s:stems = [
  \ 'terrain',
  \ 'config-terrain',
  \ 'map-square',
- \ 'world-map',
+ \ 'map-gen',
  \ 'gs-terrain',
  \ 'render-terrain',
 \]
