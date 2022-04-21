@@ -16,6 +16,8 @@
 #include "gs-terrain.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "plow.hpp"
+#include "road.hpp"
 #include "tiles.hpp"
 
 // render
@@ -1013,7 +1015,7 @@ void render_terrain_ocean_square(
 // Pass in the painter as well for efficiency.
 void render_terrain_square( TerrainState const& terrain_state,
                             rr::Renderer& renderer, Coord where,
-                            Coord world_square ) {
+                            Coord const world_square ) {
   rr::Painter      painter = renderer.painter();
   MapSquare const& square =
       terrain_state.square_at( world_square );
@@ -1024,6 +1026,10 @@ void render_terrain_square( TerrainState const& terrain_state,
   else
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
+  render_plow_if_present( painter, where, terrain_state,
+                          world_square );
+  render_road_if_present( painter, where, terrain_state,
+                          world_square );
   if( g_show_grid )
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,

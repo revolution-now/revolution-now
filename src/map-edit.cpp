@@ -369,26 +369,6 @@ struct MapEditorLandRenderer {
           render_rect_for_tile( square ).upper_left(), square );
   }
 
-  void render_roads() {
-    rr::Painter painter = renderer.painter();
-    for( Coord world_tile : covered ) {
-      Coord tile_coord =
-          render_rect_for_tile( world_tile ).upper_left();
-      render_road_if_present( painter, tile_coord, terrain_state,
-                              world_tile );
-    }
-  }
-
-  void render_plows() {
-    rr::Painter painter = renderer.painter();
-    for( Coord world_tile : covered ) {
-      Coord tile_coord =
-          render_rect_for_tile( world_tile ).upper_left();
-      render_plow_if_present( painter, tile_coord, terrain_state,
-                              world_tile );
-    }
-  }
-
   TerrainState const& terrain_state;
   rr::Renderer&       renderer;
   Rect const          covered = {};
@@ -426,8 +406,6 @@ void render_map( rr::Renderer&       renderer,
   // that we've install above will automatically do the shifting
   // and scaling.
   land_renderer.render_terrain();
-  land_renderer.render_plows();
-  land_renderer.render_roads();
 }
 
 /****************************************************************

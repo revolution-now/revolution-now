@@ -26,7 +26,6 @@
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
-#include "plow.hpp"
 #include "rand.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
@@ -285,26 +284,6 @@ struct LandViewRenderer {
     }
   }
 
-  void render_roads() {
-    rr::Painter painter = renderer.painter();
-    for( Coord world_tile : covered ) {
-      Coord tile_coord =
-          render_rect_for_tile( world_tile ).upper_left();
-      render_road_if_present( painter, tile_coord, terrain_state,
-                              world_tile );
-    }
-  }
-
-  void render_plows() {
-    rr::Painter painter = renderer.painter();
-    for( Coord world_tile : covered ) {
-      Coord tile_coord =
-          render_rect_for_tile( world_tile ).upper_left();
-      render_plow_if_present( painter, tile_coord, terrain_state,
-                              world_tile );
-    }
-  }
-
   // Units (rendering strategy depends on land view state).
   void render_units() {
     // The land view state should be set first, then the anima-
@@ -410,8 +389,6 @@ void render_land_view( rr::Renderer&       renderer,
   {
     SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
     lv_renderer.render_terrain();
-    lv_renderer.render_plows();
-    lv_renderer.render_roads();
   }
 
   {
