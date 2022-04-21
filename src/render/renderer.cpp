@@ -89,8 +89,10 @@ using VertexArray_t =
 *****************************************************************/
 struct Renderer::Impl {
   Impl( PresentFn present_fn_arg, ProgramType program_arg,
-        VertexArray_t vertex_array_arg, AtlasMap atlas_map_arg,
-        size atlas_size_arg, gl::Texture atlas_tx_arg,
+        VertexArray_t vertex_array_arg,
+        VertexArray_t landscape_vertex_array_arg,
+        AtlasMap atlas_map_arg, size atlas_size_arg,
+        gl::Texture                      atlas_tx_arg,
         unordered_map<string, int>       atlas_ids_arg,
         unordered_map<string_view, int>  atlas_ids_fast_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
@@ -101,6 +103,8 @@ struct Renderer::Impl {
       present_fn( std::move( present_fn_arg ) ),
       program( std::move( program_arg ) ),
       vertex_array( std::move( vertex_array_arg ) ),
+      landscape_vertex_array(
+          std::move( landscape_vertex_array_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
       atlas_size( std::move( atlas_size_arg ) ),
       atlas_tx( std::move( atlas_tx_arg ) ),
@@ -110,10 +114,13 @@ struct Renderer::Impl {
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       vertices{},
+      landscape_vertices{},
       emitter( vertices ),
+      landscape_emitter( landscape_vertices ),
       logical_screen_size( logical_screen_size_arg ) {
     mod_stack.push( RendererMods{} );
     emitter.log_capacity_changes( false );
+    landscape_emitter.log_capacity_changes( false );
   };
 
   static Impl* create( RendererConfig const& config,
@@ -133,12 +140,14 @@ struct Renderer::Impl {
                                    gl::e_shader_type::fragment,
                                    fragment_shader_source ) );
 
-    // Some OpenGL drivers, during shader program validation,
-    // seem to require a vertex array to be bound to include in
-    // the validation process.
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>
-         vertex_array;
+        vertex_array;
+    gl::VertexArray<gl::VertexBuffer<GenericVertex>>
+         landscape_vertex_array;
     auto pgrm = [&] {
+      // Some OpenGL drivers, during shader program validation,
+      // seem to require a vertex array to be bound to include in
+      // the validation process.
       auto va_binder = vertex_array.bind();
       UNWRAP_CHECK( pgrm, ProgramType::create( vert_shader,
                                                frag_shader ) );
@@ -201,6 +210,8 @@ struct Renderer::Impl {
         /*present_fn=*/std::move( present_fn ),
         /*program=*/std::move( pgrm ),
         /*vertex_array=*/std::move( vertex_array ),
+        /*landscape_vertex_array=*/
+        std::move( landscape_vertex_array ),
         /*atlas_map=*/std::move( atlas.dict ),
         /*atlas_size=*/atlas_size,
         /*atlas_tx=*/std::move( atlas_tx ),
@@ -219,21 +230,35 @@ struct Renderer::Impl {
     DCHECK( vertices.capacity() == capacity_before_clear );
     DCHECK( vertices.empty() );
     emitter.set_position( 0 );
+    // We don't reset the position of the landscape emitter.
   }
 
   int end_pass() {
-    int num_vertices = vertices.size();
     // Upload the vertices to the GPU.
     vertex_array.buffer<0>().upload_data_replace(
         vertices, gl::e_draw_mode::stat1c );
-    using namespace ::base::literals;
-    program.run( vertex_array, num_vertices );
+    landscape_vertex_array.buffer<0>().upload_data_replace(
+        landscape_vertices, gl::e_draw_mode::stat1c );
+    // Go.
+    program.run( landscape_vertex_array,
+                 landscape_vertices.size() );
+    program.run( vertex_array, vertices.size() );
+    return vertices.size() + landscape_vertices.size();
+  }
 
-    return num_vertices;
+  Emitter& curr_emitter() {
+    Emitter* modded_emitter = nullptr;
+    switch( mods().buffer_mods.buffer ) {
+      case e_render_target_buffer::normal:
+        modded_emitter = &emitter;
+      case e_render_target_buffer::landscape:
+        modded_emitter = &landscape_emitter;
+    }
+    return *modded_emitter;
   }
 
   Painter painter() {
-    return Painter( atlas_map, emitter,
+    return Painter( atlas_map, curr_emitter(),
                     mod_stack.top().painter_mods );
   }
 
@@ -279,21 +304,24 @@ struct Renderer::Impl {
     mod_stack.pop();
   }
 
-  stack<RendererMods>                          mod_stack;
-  PresentFn                                    present_fn;
-  ProgramType                                  program;
-  VertexArray_t const                          vertex_array;
-  AtlasMap const                               atlas_map;
-  size const                                   atlas_size;
-  gl::Texture const                            atlas_tx;
-  TextureBinder                                atlas_tx_binder;
-  unordered_map<string, int> const             atlas_ids;
-  unordered_map<string_view, int> const        atlas_ids_fast;
-  unordered_map<string, AsciiFont> const       ascii_fonts;
+  stack<RendererMods>                    mod_stack;
+  PresentFn                              present_fn;
+  ProgramType                            program;
+  VertexArray_t const                    vertex_array;
+  VertexArray_t const                    landscape_vertex_array;
+  AtlasMap const                         atlas_map;
+  size const                             atlas_size;
+  gl::Texture const                      atlas_tx;
+  TextureBinder                          atlas_tx_binder;
+  unordered_map<string, int> const       atlas_ids;
+  unordered_map<string_view, int> const  atlas_ids_fast;
+  unordered_map<string, AsciiFont> const ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   vector<GenericVertex>                        vertices;
-  Emitter                                      emitter;
-  gfx::size logical_screen_size;
+  vector<GenericVertex> landscape_vertices;
+  Emitter               emitter;
+  Emitter               landscape_emitter;
+  gfx::size             logical_screen_size;
 };
 
 /****************************************************************

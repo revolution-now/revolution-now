@@ -58,8 +58,18 @@ struct RendererConfig {
 /****************************************************************
 ** RendererMods
 *****************************************************************/
+enum class e_render_target_buffer {
+  normal,
+  landscape,
+};
+
+struct BufferInfo {
+  e_render_target_buffer buffer = e_render_target_buffer::normal;
+};
+
 struct RendererMods {
   PainterMods painter_mods = {};
+  BufferInfo  buffer_mods  = {};
 };
 
 template<typename Func>

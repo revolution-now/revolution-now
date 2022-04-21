@@ -192,8 +192,11 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_DeleteShader( 6 ) );
   EXPECT_CALL( mock, gl_DeleteShader( 5 ) );
 
-  // Bind dummy vertex array.
+  // Create the normal and landscape vertex arrays.
   expect_create_vertex_array( mock );
+  expect_create_vertex_array( mock );
+
+  // Bind dummy vertex array.
   expect_bind_vertex_array( mock );
 
   // Create shader program.

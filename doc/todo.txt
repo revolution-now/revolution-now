@@ -2,43 +2,40 @@
 # TODO
 # ===============================================================
 
-  1.  Add landscape buffer to Renderer with associated API (in-
-      cluding mods to enable it). Add some logging to keep track
-      of the size of the landscape buffer.
-  2.  Rework map square access (creating map-updater module) to
+  1.  Rework map square access (creating map-updater module) to
       re-render updated map squares into the landscape buffer.
-  3.  Add method to render-terrain module to pre-render the world
+  2.  Add method to render-terrain module to pre-render the world
       into the landscape buffer. Find a place to call this method
       at the start of each game and make sure to clear the land-
       scape buffer first at that time.
-  4.  Update land-view (and map-editor) rendering methods to set
+  3.  Update land-view (and map-editor) rendering methods to set
       the camera properly.
-  5.  Try adding dirty bit to landscape buffer to only re-upload
+  4.  Try adding dirty bit to landscape buffer to only re-upload
       it when it is updated to see if it improves the frame rate.
-  6.  Investigate whether it is necessary to periodically redraw
+  5.  Investigate whether it is necessary to periodically redraw
       the landscape buffer from scratch.
-  7.  Add overlay connector tiles.
-  8.  Render rivers, with color cycling.
-  9.  Add color cycling to sea lane tile.
-  10. Render natural resource tiles.
-  11. Implement world generation.
-  12. Implement terrain visibility.
-  13. Implement mini map.
-  14. Draw remainder of unit types.
-  15. Implement colony land production.
-  16. Implement selecting colonist profession in colony view.
-  17. Implement stats in panel.
-  18. Implement gold.
-  19. Implement old world prices and price changes.
-  20. Allow purchasing things from old world.
-  21. Implement that immigrants appear on the doc.
-  22. Add basic auto unit outlining in fragment shader so that
+  6.  Add overlay connector tiles.
+  7.  Render rivers, with color cycling.
+  8.  Add color cycling to sea lane tile.
+  9.  Render natural resource tiles.
+  10. Implement world generation.
+  11. Implement terrain visibility.
+  12. Implement mini map.
+  13. Draw remainder of unit types.
+  14. Implement colony land production.
+  15. Implement selecting colonist profession in colony view.
+  16. Implement stats in panel.
+  17. Implement gold.
+  18. Implement old world prices and price changes.
+  19. Allow purchasing things from old world.
+  20. Implement that immigrants appear on the doc.
+  21. Add basic auto unit outlining in fragment shader so that
       the units will be visible.
-  23. Create colony building art.
-  24. Render colony buildings in colony.
-  25. Implement colony building workers.
-  26. Implement colony production (from lumber/tools).
-  27. Implement wagon train trade routes.
+  22. Create colony building art.
+  23. Render colony buildings in colony.
+  24. Implement colony building workers.
+  25. Implement colony production (from lumber/tools).
+  26. Implement wagon train trade routes.
 
 # ===============================================================
 # Global State
