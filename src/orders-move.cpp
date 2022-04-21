@@ -815,7 +815,8 @@ AttackHandler::confirm_attack_impl() {
          *dst_nation != unit.nation() );
   CHECK( attack_dst.is_inside( world_rect_tiles() ) );
 
-  auto& square = square_at( attack_dst );
+  TerrainState const& terrain_state = GameState::terrain();
+  auto& square = square_at( terrain_state, attack_dst );
 
   auto surface      = surface_type( square );
   auto relationship = e_unit_relationship::foreign;

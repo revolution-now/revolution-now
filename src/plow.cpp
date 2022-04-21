@@ -153,7 +153,8 @@ void render_plow_if_present( rr::Painter& painter, Coord where,
 namespace {
 
 LUA_FN( plow_square, void, Coord tile ) {
-  if( !is_land( tile ) )
+  TerrainState const& terrain_state = GameState::terrain();
+  if( !is_land( terrain_state, tile ) )
     st.error( "cannot plow on water tile {}.", tile );
   plow_square( GameState::terrain(), tile );
 }

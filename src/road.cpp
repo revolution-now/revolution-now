@@ -148,7 +148,8 @@ void render_road_if_present( rr::Painter& painter, Coord where,
 namespace {
 
 LUA_FN( set_road, void, Coord tile ) {
-  if( !is_land( tile ) )
+  TerrainState const& terrain_state = GameState::terrain();
+  if( !is_land( terrain_state, tile ) )
     st.error( "cannot put road on water tile {}.", tile );
   set_road( GameState::terrain(), tile );
 }

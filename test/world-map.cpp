@@ -21,49 +21,8 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[terrain] generate unit testing land" ) {
-  generate_unittest_terrain();
-
-  REQUIRE( world_size_tiles() == Delta{ 10_w, 10_h } );
-  REQUIRE( world_size_pixels() == Delta{ 320_w, 320_h } );
-  REQUIRE( world_rect_tiles() == Rect{ 0_x, 0_y, 10_w, 10_h } );
-  REQUIRE( world_rect_pixels() ==
-           Rect{ 0_x, 0_y, 320_w, 320_h } );
-
-  REQUIRE( square_exists( { 0_x, 0_y } ) );
-  REQUIRE( square_exists( { 0_x, 9_y } ) );
-  REQUIRE( square_exists( { 9_x, 0_y } ) );
-  REQUIRE( square_exists( { 9_x, 9_y } ) );
-
-  REQUIRE_FALSE( square_exists( { -1_x, -1_y } ) );
-  REQUIRE_FALSE( square_exists( { 0_x, 10_y } ) );
-  REQUIRE_FALSE( square_exists( { 10_x, 0_y } ) );
-  REQUIRE_FALSE( square_exists( { 10_x, 10_y } ) );
-
-  REQUIRE( effective_terrain( square_at( { 0_x, 0_y } ) ) ==
-           e_terrain::ocean );
-  REQUIRE( effective_terrain( square_at( { 1_x, 1_y } ) ) ==
-           e_terrain::ocean );
-  REQUIRE( effective_terrain( square_at( { 8_x, 8_y } ) ) ==
-           e_terrain::ocean );
-  REQUIRE( effective_terrain( square_at( { 9_x, 9_y } ) ) ==
-           e_terrain::ocean );
-
-  REQUIRE( effective_terrain( square_at( { 1_x, 1_y } ) ) ==
-           e_terrain::ocean );
-  REQUIRE( effective_terrain( square_at( { 2_x, 2_y } ) ) ==
-           e_terrain::grassland );
-  REQUIRE( effective_terrain( square_at( { 7_x, 7_y } ) ) ==
-           e_terrain::grassland );
-  REQUIRE( effective_terrain( square_at( { 5_x, 6_y } ) ) ==
-           e_terrain::grassland );
-
-  REQUIRE_FALSE( is_land( { 0_x, 0_y } ) );
-  REQUIRE_FALSE( is_land( { 1_x, 0_y } ) );
-  REQUIRE_FALSE( is_land( { 1_x, 1_y } ) );
-  REQUIRE_FALSE( is_land( { 1_x, 8_y } ) );
-  REQUIRE_FALSE( is_land( { 9_x, 8_y } ) );
-  REQUIRE( is_land( { 4_x, 3_y } ) );
+TEST_CASE( "[terrain] some test" ) {
+  // TODO
 }
 
 } // namespace

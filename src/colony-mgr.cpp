@@ -75,7 +75,8 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( colony_from_coord( *maybe_coord ) )
     return invalid( Res_t::colony_exists_here );
 
-  if( !is_land( *maybe_coord ) )
+  TerrainState const& terrain_state = GameState::terrain();
+  if( !is_land( terrain_state, *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
   return valid;
