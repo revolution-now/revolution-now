@@ -2,32 +2,29 @@
 # TODO
 # ===============================================================
 
-  1.  Figure out how to deal with map updaters required by Lua
-      functions, or maybe just global state in general.
-  2.  See if it is simple to not render the landscape buffer when
-      the land-view plane is not visible.
-  3.  Add overlay connector tiles.
-  4.  Render rivers, with color cycling.
-  5.  Add color cycling to sea lane tile.
-  6.  Render natural resource tiles.
-  7.  Implement world generation.
-  8.  Implement terrain visibility.
-  9.  Implement mini map.
-  10. Draw remainder of unit types.
-  11. Implement colony land production.
-  12. Implement selecting colonist profession in colony view.
-  13. Implement stats in panel.
-  14. Implement gold.
-  15. Implement old world prices and price changes.
-  16. Allow purchasing things from old world.
-  17. Implement that immigrants appear on the doc.
-  18. Add basic auto unit outlining in fragment shader so that
+  1.  Finish beach/land border art.
+  2.  Add overlay connector tiles.
+  3.  Render rivers, with color cycling.
+  4.  Add color cycling to sea lane tile.
+  5.  Render natural resource tiles.
+  6.  Implement world generation.
+  7.  Implement terrain visibility.
+  8.  Implement mini map.
+  9.  Draw remainder of unit types.
+  10. Implement colony land production.
+  11. Implement selecting colonist profession in colony view.
+  12. Implement stats in panel.
+  13. Implement gold.
+  14. Implement old world prices and price changes.
+  15. Allow purchasing things from old world.
+  16. Implement that immigrants appear on the doc.
+  17. Add basic auto unit outlining in fragment shader so that
       the units will be visible.
-  19. Create colony building art.
-  20. Render colony buildings in colony.
-  21. Implement colony building workers.
-  22. Implement colony production (from lumber/tools).
-  23. Implement wagon train trade routes.
+  18. Create colony building art.
+  19. Render colony buildings in colony.
+  20. Implement colony building workers.
+  21. Implement colony production (from lumber/tools).
+  22. Implement wagon train trade routes.
 
 # ===============================================================
 # Global State
