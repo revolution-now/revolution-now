@@ -119,6 +119,7 @@ struct Renderer {
       base::function_ref<void( Renderer& )> drawer );
 
   void clear_buffer( e_render_target_buffer buffer );
+  void render_buffer( e_render_target_buffer buffer );
 
   long   buffer_vertex_count( e_render_target_buffer buffer );
   double buffer_size_mb( e_render_target_buffer buffer );

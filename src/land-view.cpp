@@ -353,6 +353,9 @@ void render_land_view( rr::Renderer& renderer ) {
                            .landscape_buffer_render_upper_left()
                            .distance_from_origin(),
                        zoom );
+  // Should do this after setting the camera.
+  renderer.render_buffer(
+      rr::e_render_target_buffer::landscape );
 
   Coord corner = viewport().rendering_dest_rect().upper_left();
   Delta hidden =

@@ -407,6 +407,9 @@ struct MapEditorPlane : public Plane {
             .landscape_buffer_render_upper_left()
             .distance_from_origin(),
         viewport().get_zoom() );
+    // Should do this after setting the camera.
+    renderer.render_buffer(
+        rr::e_render_target_buffer::landscape );
     render_sidebar( renderer );
     render_toolbar( renderer );
   }

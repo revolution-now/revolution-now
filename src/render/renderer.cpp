@@ -235,22 +235,8 @@ struct Renderer::Impl {
   }
 
   int end_pass() {
-    // Landscape buffer.
-    if( landscape_dirty ) {
-      landscape_vertex_array.buffer<0>().upload_data_replace(
-          landscape_vertices, gl::e_draw_mode::stat1c );
-      landscape_dirty = false;
-    }
-    // Still need to run even if landscape has not been modified
-    // because the camera uniforms may have changed.
-    program.run( landscape_vertex_array,
-                 landscape_vertices.size() );
-
-    // Normal buffer.
-    vertex_array.buffer<0>().upload_data_replace(
-        vertices, gl::e_draw_mode::stat1c );
-    program.run( vertex_array, vertices.size() );
-    return vertices.size() + landscape_vertices.size();
+    render_buffer( e_render_target_buffer::normal );
+    return vertices.size();
   }
 
   Emitter& curr_emitter() {
@@ -328,6 +314,30 @@ struct Renderer::Impl {
         landscape_vertices.clear();
         landscape_emitter.set_position( 0 );
         break;
+    }
+  }
+
+  void render_buffer( e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal: {
+        vertex_array.buffer<0>().upload_data_replace(
+            vertices, gl::e_draw_mode::stat1c );
+        program.run( vertex_array, vertices.size() );
+        break;
+      }
+      case e_render_target_buffer::landscape: {
+        if( landscape_dirty ) {
+          landscape_vertex_array.buffer<0>().upload_data_replace(
+              landscape_vertices, gl::e_draw_mode::stat1c );
+          landscape_dirty = false;
+        }
+        // Still need to run even if landscape has not been modi-
+        // fied because the camera uniforms may have changed.
+        program.run( landscape_vertex_array,
+                     landscape_vertices.size() );
+
+        break;
+      }
     }
   }
 
@@ -447,6 +457,10 @@ void Renderer::set_camera( gfx::size translation, double zoom ) {
 
 void Renderer::clear_buffer( e_render_target_buffer buffer ) {
   impl_->clear_buffer( buffer );
+}
+
+void Renderer::render_buffer( e_render_target_buffer buffer ) {
+  impl_->render_buffer( buffer );
 }
 
 long Renderer::buffer_vertex_count(
