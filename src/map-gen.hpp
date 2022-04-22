@@ -18,7 +18,7 @@
 
 namespace rn {
 
-void generate_terrain( IMapUpdater const& map_updater );
+void generate_terrain( IMapUpdater& map_updater );
 
 void linker_dont_discard_module_map_gen();
 

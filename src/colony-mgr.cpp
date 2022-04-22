@@ -82,9 +82,9 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   return valid;
 }
 
-ColonyId found_colony_unsafe( UnitId             founder,
-                              IMapUpdater const& map_updater,
-                              std::string_view   name ) {
+ColonyId found_colony_unsafe( UnitId           founder,
+                              IMapUpdater&     map_updater,
+                              std::string_view name ) {
   if( auto res = is_valid_new_colony_name( name ); !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
@@ -196,10 +196,10 @@ LUA_FN( found_colony, ColonyId, UnitId founder,
               enum_to_display_name( res.error() ) );
   if( auto res = unit_can_found_colony( founder ); !res )
     st.error( "cannot found colony here." );
-  return found_colony_unsafe(
-      founder,
-      // FIXME
-      NonRenderingMapUpdater( GameState::terrain() ), name );
+  TerrainState& terrain_state = GameState::terrain();
+  // FIXME: needs to render.
+  NonRenderingMapUpdater map_updater( terrain_state );
+  return found_colony_unsafe( founder, map_updater, name );
 }
 
 } // namespace

@@ -31,7 +31,7 @@ namespace rn {
 // of those are possible then it will check-fail, so you should
 // call can_plow on this square first.
 void plow_square( TerrainState const& terrain_state,
-                  IMapUpdater const& map_updater, Coord tile );
+                  IMapUpdater& map_updater, Coord tile );
 
 // Can we either clear a forest on the square or add irrigation.
 bool can_plow( TerrainState const& terrain_state, Coord tile );
@@ -57,8 +57,7 @@ bool has_irrigation( TerrainState const& terrain_state,
 // then the unit will be demoted.
 void perform_plow_work( UnitsState const&   units_state,
                         TerrainState const& terrain_state,
-                        IMapUpdater const&  map_updater,
-                        Unit&               unit );
+                        IMapUpdater& map_updater, Unit& unit );
 
 bool can_plow( Unit const& unit );
 

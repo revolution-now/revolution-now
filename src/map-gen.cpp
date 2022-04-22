@@ -79,7 +79,7 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
 
 } // namespace
 
-void generate_terrain( IMapUpdater const& map_updater ) {
+void generate_terrain( IMapUpdater& map_updater ) {
   map_updater.modify_entire_map( generate_terrain_impl );
 }
 
@@ -91,9 +91,9 @@ void linker_dont_discard_module_map_gen() {}
 namespace {
 
 LUA_FN( generate_terrain, void ) {
-  generate_terrain(
-      // FIXME: this should render, but it breaks unit tests.
-      NonRenderingMapUpdater( GameState::terrain() ) );
+  // FIXME: this should render, but it breaks unit tests.
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  generate_terrain( map_updater );
 }
 
 LUA_FN( at, MapSquare&, Coord tile ) {

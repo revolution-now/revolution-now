@@ -53,7 +53,7 @@ lua::state& lua_global_state();
 *****************************************************************/
 void run_lua_startup_routines();
 void load_lua_modules();
-void run_lua_startup_main( IMapUpdater const& map_updater );
+void run_lua_startup_main( IMapUpdater& map_updater );
 
 void lua_reload();
 

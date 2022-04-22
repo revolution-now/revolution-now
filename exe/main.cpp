@@ -36,8 +36,8 @@ rr::Renderer& renderer() {
 void full_init() {
   run_all_init_routines( e_log_level::debug );
   lua_reload();
-  run_lua_startup_main(
-      MapUpdater( GameState::terrain(), renderer() ) );
+  MapUpdater map_updater( GameState::terrain(), renderer() );
+  run_lua_startup_main( map_updater );
 }
 
 void run( e_mode mode ) {
@@ -51,9 +51,8 @@ void run( e_mode mode ) {
     case e_mode::map_editor: {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
-      frame_loop( map_editor( MapUpdater( GameState::terrain(),
-                                          renderer() ) ),
-                  renderer() );
+      MapUpdater map_updater( GameState::terrain(), renderer() );
+      frame_loop( map_editor( map_updater ), renderer() );
       break;
     }
     case e_mode::test_ui: {

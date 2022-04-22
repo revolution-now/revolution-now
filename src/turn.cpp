@@ -161,9 +161,9 @@ wait<> menu_map_editor_handler() {
   // FIXME: hack
   rr::Renderer& renderer =
       global_renderer_use_only_when_needed();
+  MapUpdater map_updater( GameState::terrain(), renderer );
   // Need to co_await so that the map_updater stays alive.
-  co_await map_editor(
-      MapUpdater( GameState::terrain(), renderer ) );
+  co_await map_editor( map_updater );
 }
 
 #define DEFAULT_TURN_MENU_ITEM_HANDLER( item )             \
@@ -471,8 +471,7 @@ wait<> query_unit_input( UnitId id ) {
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( IMapUpdater const& map_updater,
-                         UnitId             id ) {
+wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   Unit& unit = GameState::units().unit_for( id );
 
@@ -544,8 +543,8 @@ wait<bool> advance_unit( IMapUpdater const& map_updater,
   co_return true;
 }
 
-wait<> units_turn_one_pass( IMapUpdater const& map_updater,
-                            deque<UnitId>&     q ) {
+wait<> units_turn_one_pass( IMapUpdater&   map_updater,
+                            deque<UnitId>& q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -581,7 +580,7 @@ wait<> units_turn_one_pass( IMapUpdater const& map_updater,
   }
 }
 
-wait<> units_turn( IMapUpdater const& map_updater ) {
+wait<> units_turn( IMapUpdater& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   auto& q  = st.units;
@@ -637,7 +636,7 @@ wait<> colonies_turn() {
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
-wait<> nation_turn( IMapUpdater const& map_updater ) {
+wait<> nation_turn( IMapUpdater& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
 
@@ -663,7 +662,7 @@ wait<> nation_turn( IMapUpdater const& map_updater ) {
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-wait<> next_turn_impl( IMapUpdater const& map_updater ) {
+wait<> next_turn_impl( IMapUpdater& map_updater ) {
   landview_start_new_turn();
   auto& st = GameState::turn();
 

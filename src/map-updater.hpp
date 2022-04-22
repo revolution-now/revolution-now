@@ -45,15 +45,14 @@ struct IMapUpdater {
   // This function should be used whenever a map square
   // (specifically, a MapSquare object) must be updated as it
   // will handler re-rendering the surrounding squares.
-  virtual void modify_map_square(
-      Coord tile, SquareUpdateFunc mutator ) const = 0;
+  virtual void modify_map_square( Coord            tile,
+                                  SquareUpdateFunc mutator ) = 0;
 
   // This function should be used when generating the map.
-  virtual void modify_entire_map(
-      MapUpdateFunc mutator ) const = 0;
+  virtual void modify_entire_map( MapUpdateFunc mutator ) = 0;
 
   // Will redraw the entire map.
-  virtual void just_redraw_map() const = 0;
+  virtual void just_redraw_map() = 0;
 };
 
 /****************************************************************
@@ -62,21 +61,24 @@ struct IMapUpdater {
 struct MapUpdater : IMapUpdater {
   MapUpdater( TerrainState& terrain_state,
               rr::Renderer& renderer )
-    : terrain_state_( terrain_state ), renderer_( renderer ) {}
+    : terrain_state_( terrain_state ),
+      renderer_( renderer ),
+      tiles_updated_( 0 ) {}
 
   // Implement IMapUpdater.
-  void modify_map_square(
-      Coord tile, SquareUpdateFunc mutator ) const override;
+  void modify_map_square( Coord            tile,
+                          SquareUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) const override;
+  void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void just_redraw_map() const override;
+  void just_redraw_map() override;
 
  private:
   TerrainState& terrain_state_;
   rr::Renderer& renderer_;
+  int           tiles_updated_;
 };
 
 /****************************************************************
@@ -87,14 +89,13 @@ struct NonRenderingMapUpdater : IMapUpdater {
     : terrain_state_( terrain_state ) {}
 
   // Implement IMapUpdater.
-  void modify_map_square( Coord,
-                          SquareUpdateFunc ) const override;
+  void modify_map_square( Coord, SquareUpdateFunc ) override;
 
   // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) const override;
+  void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void just_redraw_map() const override;
+  void just_redraw_map() override;
 
  private:
   TerrainState& terrain_state_;

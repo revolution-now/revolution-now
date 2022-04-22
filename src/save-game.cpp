@@ -96,9 +96,10 @@ string save_game_to_rcl( SaveGameOptions const& opts ) {
 }
 
 // The filename is only used for error reporting.
-valid_or<string> load_game_from_rcl(
-    IMapUpdater const& map_updater, string_view filename,
-    string const& in, SaveGameOptions const& ) {
+valid_or<string> load_game_from_rcl( IMapUpdater&  map_updater,
+                                     string_view   filename,
+                                     string const& in,
+                                     SaveGameOptions const& ) {
   cdr::converter::options const cdr_opts{
       .allow_unrecognized_fields        = false,
       .default_construct_missing_fields = true,
@@ -152,7 +153,7 @@ valid_or<std::string> save_game_to_rcl_file(
 }
 
 valid_or<std::string> load_game_from_rcl_file(
-    IMapUpdater const& map_updater, fs::path const& p,
+    IMapUpdater& map_updater, fs::path const& p,
     SaveGameOptions const& opts ) {
   auto maybe_rcl = base::read_text_file_as_string( p );
   if( !maybe_rcl )
@@ -183,8 +184,8 @@ expect<fs::path> save_game( int slot ) {
   return p;
 }
 
-expect<fs::path> load_game( IMapUpdater const& map_updater,
-                            int                slot ) {
+expect<fs::path> load_game( IMapUpdater& map_updater,
+                            int          slot ) {
   auto rcl_path =
       path_for_slot( slot ).replace_extension( ".sav.rcl" );
   auto b64_path =

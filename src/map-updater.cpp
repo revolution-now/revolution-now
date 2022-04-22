@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "gs-terrain.hpp"
+#include "logger.hpp"
 #include "render-terrain.hpp"
 #include "tiles.hpp"
 
@@ -24,8 +25,16 @@ namespace rn {
 *****************************************************************/
 void MapUpdater::modify_map_square(
     Coord                                  tile,
-    base::function_ref<void( MapSquare& )> mutator ) const {
+    base::function_ref<void( MapSquare& )> mutator ) {
+  MapSquare old_square = terrain_state_.square_at( tile );
   mutator( terrain_state_.mutable_square_at( tile ) );
+  MapSquare new_square = terrain_state_.square_at( tile );
+  if( new_square == old_square )
+    // Return before beginning the rendering, that way we a)
+    // won't add more vertices to the landscape buffer and b) we
+    // won't trigger the buffer to get re-uploaded to the GPU.
+    // This really helps with efficiency in the map editor.
+    return;
 
   auto& renderer = renderer_;
   SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
@@ -44,17 +53,28 @@ void MapUpdater::modify_map_square(
     render_terrain_square( terrain_state_, renderer_,
                            moved * g_tile_scale, moved );
   }
+
+  ++tiles_updated_;
+  // If we've updated 50 tiles then we've redrawn 50*5*5=1250
+  // squares, so probably a good time to just redraw the entire
+  // thing. In fact we need to do this because otherwise the or-
+  // dering of the renderered tiles in the buffer (and/or the
+  // fact that they overlap but are in different places in the
+  // buffer) appears to significantly slow down rendering. This
+  // will renormalize the buffer.
+  if( tiles_updated_ == 50 ) just_redraw_map();
 }
 
 void MapUpdater::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> mutator )
-    const {
+    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
   mutator( terrain_state_.mutable_world_map() );
-  render_terrain( terrain_state_, renderer_ );
+  just_redraw_map();
 }
 
-void MapUpdater::just_redraw_map() const {
+void MapUpdater::just_redraw_map() {
   render_terrain( terrain_state_, renderer_ );
+  // Reset this since we just redrew the map.
+  tiles_updated_ = 0;
 }
 
 /****************************************************************
@@ -62,16 +82,15 @@ void MapUpdater::just_redraw_map() const {
 *****************************************************************/
 void NonRenderingMapUpdater::modify_map_square(
     Coord                                  tile,
-    base::function_ref<void( MapSquare& )> mutator ) const {
+    base::function_ref<void( MapSquare& )> mutator ) {
   mutator( terrain_state_.mutable_square_at( tile ) );
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> mutator )
-    const {
+    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
   mutator( terrain_state_.mutable_world_map() );
 }
 
-void NonRenderingMapUpdater::just_redraw_map() const {}
+void NonRenderingMapUpdater::just_redraw_map() {}
 
 } // namespace rn

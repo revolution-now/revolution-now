@@ -174,7 +174,7 @@ void load_lua_modules() {
     require( path.stem() );
 }
 
-void run_lua_startup_main( IMapUpdater const& map_updater ) {
+void run_lua_startup_main( IMapUpdater& map_updater ) {
   CHECK_HAS_VALUE( g_lua["startup"]["main"].pcall() );
   // FIXME
   map_updater.just_redraw_map();

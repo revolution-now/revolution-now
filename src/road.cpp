@@ -40,12 +40,12 @@ namespace {} // namespace
 /****************************************************************
 ** Road State
 *****************************************************************/
-void set_road( IMapUpdater const& map_updater, Coord tile ) {
+void set_road( IMapUpdater& map_updater, Coord tile ) {
   map_updater.modify_map_square(
       tile, []( MapSquare& square ) { square.road = true; } );
 }
 
-void clear_road( IMapUpdater const& map_updater, Coord tile ) {
+void clear_road( IMapUpdater& map_updater, Coord tile ) {
   map_updater.modify_map_square(
       tile, []( MapSquare& square ) { square.road = false; } );
 }
@@ -60,8 +60,7 @@ bool has_road( TerrainState const& terrain_state, Coord tile ) {
 *****************************************************************/
 void perform_road_work( UnitsState const&   units_state,
                         TerrainState const& terrain_state,
-                        IMapUpdater const&  map_updater,
-                        Unit&               unit ) {
+                        IMapUpdater& map_updater, Unit& unit ) {
   Coord location = units_state.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::road );
   CHECK( unit.type() == e_unit_type::pioneer ||
@@ -148,18 +147,19 @@ void render_road_if_present( rr::Painter& painter, Coord where,
 namespace {
 
 LUA_FN( set_road, void, Coord tile ) {
-  TerrainState const& terrain_state = GameState::terrain();
+  TerrainState& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( tile ) )
     st.error( "cannot put road on water tile {}.", tile );
   // FIXME: needs to render.
-  set_road( NonRenderingMapUpdater( GameState::terrain() ),
-            tile );
+  NonRenderingMapUpdater map_updater( terrain_state );
+  set_road( map_updater, tile );
 }
 
 LUA_FN( clear_road, void, Coord tile ) {
-  clear_road(
-      // FIXME: needs to render.
-      NonRenderingMapUpdater( GameState::terrain() ), tile );
+  TerrainState& terrain_state = GameState::terrain();
+  // FIXME: needs to render.
+  NonRenderingMapUpdater map_updater( terrain_state );
+  clear_road( map_updater, tile );
 }
 
 } // namespace

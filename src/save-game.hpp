@@ -39,13 +39,12 @@ struct SaveGameOptions {
 };
 
 expect<fs::path> save_game( int slot );
-expect<fs::path> load_game( IMapUpdater const& map_updater,
-                            int                slot );
+expect<fs::path> load_game( IMapUpdater& map_updater, int slot );
 
 valid_or<std::string> save_game_to_rcl_file(
     fs::path const& p, SaveGameOptions const& opts );
 valid_or<std::string> load_game_from_rcl_file(
-    IMapUpdater const& map_updater, fs::path const& p,
+    IMapUpdater& map_updater, fs::path const& p,
     SaveGameOptions const& opts );
 
 } // namespace rn

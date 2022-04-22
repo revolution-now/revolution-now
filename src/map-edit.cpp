@@ -120,7 +120,7 @@ wait<> click_on_toolbar( Coord tile ) {
 *****************************************************************/
 enum class e_action { add, remove };
 
-wait<> click_on_tile( IMapUpdater const& map_updater, Coord tile,
+wait<> click_on_tile( IMapUpdater& map_updater, Coord tile,
                       e_action action ) {
   if( !g_selected_tool.has_value() ) co_return;
   TerrainState& terrain_state = GameState::terrain();
@@ -206,7 +206,7 @@ wait<> click_on_tile( IMapUpdater const& map_updater, Coord tile,
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( IMapUpdater const&,
+wait<bool> handle_event( IMapUpdater&,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
@@ -228,7 +228,7 @@ wait<bool> handle_event( IMapUpdater const&,
 }
 
 wait<bool> handle_event(
-    IMapUpdater const&                 map_updater,
+    IMapUpdater&                       map_updater,
     input::mouse_button_event_t const& event ) {
   bool left =
       event.buttons == input::e_mouse_button_event::left_down;
@@ -253,8 +253,7 @@ wait<bool> handle_event(
 }
 
 wait<bool> handle_event(
-    IMapUpdater const&,
-    input::mouse_wheel_event_t const& event ) {
+    IMapUpdater&, input::mouse_wheel_event_t const& event ) {
   if( viewport().screen_coord_in_viewport( event.pos ) ) {
     if( event.wheel_delta < 0 )
       viewport().set_zoom_push( e_push_direction::negative,
@@ -270,7 +269,7 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( IMapUpdater const&, auto const& ) {
+wait<bool> handle_event( IMapUpdater&, auto const& ) {
   co_return false;
 }
 
@@ -295,7 +294,7 @@ void clear_non_essential_events() {
     g_input.send( std::move( e ) );
 }
 
-wait<> run_map_editor( IMapUpdater const& map_updater ) {
+wait<> run_map_editor( IMapUpdater& map_updater ) {
   while( true ) {
     input::event_t event = co_await g_input.next();
     auto [exit, suspended] =
@@ -498,8 +497,8 @@ struct MapEditorPlane : public Plane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  Rect                          canvas_;
-  unique_ptr<IMapUpdater const> map_updater_ = nullptr;
+  Rect                    canvas_;
+  unique_ptr<IMapUpdater> map_updater_ = nullptr;
 };
 
 MapEditorPlane g_map_editor_plane;
@@ -509,7 +508,7 @@ MapEditorPlane g_map_editor_plane;
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> map_editor( IMapUpdater const& map_updater ) {
+wait<> map_editor( IMapUpdater& map_updater ) {
   reset_globals();
   ScopedPlanePush pusher( e_plane_config::map_editor );
   lg.info( "entering map editor." );

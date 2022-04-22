@@ -2,16 +2,15 @@
 # TODO
 # ===============================================================
 
-  1.  Investigate why map editor is slow when zoomed in on newly
-      added land. Try adding a map-editor button to force a
-      re-rendering of the terrain.
-  2.  See if it is simple to not render the landscape buffer when
+  1.  We need to have a single map updater object used through
+      the code so that it knows when to redraw the map. For the
+      planes, they should be getting it and storing it from the
+      initialize method. There should ideally only be one place
+      at the top level where the map updater is created.
+  2.  Figure out how to deal with map updaters required by Lua
+      functions, or maybe just global state in general.
+  3.  See if it is simple to not render the landscape buffer when
       the land-view plane is not visible.
-  3.  Investigate whether it is necessary to periodically redraw
-      the landscape buffer from scratch, not just for saving mem-
-      ory, but also for rendering efficiency. It seems like when
-      we are zoomed in on tiles that were changed, the rendering
-      gets slow.
   4.  Add overlay connector tiles.
   5.  Render rivers, with color cycling.
   6.  Add color cycling to sea lane tile.

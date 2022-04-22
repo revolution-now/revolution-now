@@ -24,7 +24,7 @@
 
 namespace rn {
 
-wait<> map_editor( IMapUpdater const& map_updater );
+wait<> map_editor( IMapUpdater& map_updater );
 
 struct Plane;
 Plane* map_editor_plane();
