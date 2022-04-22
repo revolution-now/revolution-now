@@ -28,15 +28,22 @@ void MapUpdater::modify_map_square(
   mutator( terrain_state_.mutable_square_at( tile ) );
 
   auto& renderer = renderer_;
+  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
   SCOPED_RENDERER_MOD( buffer_mods.buffer,
                        rr::e_render_target_buffer::landscape );
 
-  // Re-render the square and all adjacent squares.
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( terrain_state_.square_exists( tile.moved( d ) ) )
-      render_terrain_square( terrain_state_, renderer_,
-                             tile * g_tile_scale,
-                             tile.moved( d ) );
+  // Re-render the square and all adjacent squares. Actually, we
+  // need to do two levels of adjacency because some water tiles
+  // can derive their ground terrain from their neighbors, and
+  // those in turn can affect their neighbors. Though changes of
+  // this kind only happen in the map editor.
+  Rect to_update = Rect::from( tile - Delta( 2_w, 2_h ),
+                               tile + Delta( 3_w, 3_h ) );
+  for( Coord moved : to_update ) {
+    if( !terrain_state_.square_exists( moved ) ) continue;
+    render_terrain_square( terrain_state_, renderer_,
+                           moved * g_tile_scale, moved );
+  }
 }
 
 void MapUpdater::modify_entire_map(

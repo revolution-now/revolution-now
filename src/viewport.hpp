@@ -65,6 +65,12 @@ class SmoothViewport {
   // the available area.
   Rect rendering_dest_rect() const;
 
+  // This will provide the upper left corning where the GPU
+  // should start rendering the landscape buffer (which could be
+  // off screen) in order to make the covered area visible on
+  // screen.
+  Coord landscape_buffer_render_upper_left() const;
+
   // Given a screen pixel coordinate this will return the world
   // coordinate.
   maybe<Coord> screen_pixel_to_world_pixel(

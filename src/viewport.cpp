@@ -456,6 +456,39 @@ Rect SmoothViewport::rendering_dest_rect() const {
   return dest;
 }
 
+Coord SmoothViewport::landscape_buffer_render_upper_left()
+    const {
+  Coord res;
+  if( rendering_dest_rect().upper_left().x <=
+      viewport_rect_pixels_.upper_left().x ) {
+    res.x = X{ int( lround( -covered_pixels()
+                                 .upper_left()
+                                 .distance_from_origin()
+                                 .w._ *
+                            get_zoom() ) ) };
+    res.x += viewport_rect_pixels_.upper_left()
+                 .distance_from_origin()
+                 .w;
+  } else {
+    res.x = rendering_dest_rect().upper_left().x;
+  }
+
+  if( rendering_dest_rect().upper_left().y <=
+      viewport_rect_pixels_.upper_left().y ) {
+    res.y = Y{ int( lround( -covered_pixels()
+                                 .upper_left()
+                                 .distance_from_origin()
+                                 .h._ *
+                            get_zoom() ) ) };
+    res.y += viewport_rect_pixels_.upper_left()
+                 .distance_from_origin()
+                 .h;
+  } else {
+    res.y = rendering_dest_rect().upper_left().y;
+  }
+  return res;
+}
+
 maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
     Coord pixel_coord ) const {
   Rect visible_on_screen = rendering_dest_rect();

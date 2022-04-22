@@ -25,7 +25,6 @@
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
-#include "render-terrain.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
@@ -344,61 +343,6 @@ void render_sidebar( rr::Renderer& renderer ) {
       gfx::pixel{ .r = 0x33, .g = 0x22, .b = 0x22, .a = 0xff } );
 }
 
-struct MapEditorLandRenderer {
-  // Given a tile, compute the screen rect where it should be
-  // rendered.
-  Rect render_rect_for_tile( Coord tile ) {
-    Delta delta_in_tiles  = tile - covered.upper_left();
-    Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
-    return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
-  }
-
-  void render_terrain() {
-    for( Coord square : covered )
-      render_terrain_square(
-          terrain_state, renderer,
-          render_rect_for_tile( square ).upper_left(), square );
-  }
-
-  TerrainState const& terrain_state;
-  rr::Renderer&       renderer;
-  Rect const          covered = {};
-};
-
-void render_map( rr::Renderer&       renderer,
-                 TerrainState const& terrain_state ) {
-  double zoom   = viewport().get_zoom();
-  Coord  corner = viewport().rendering_dest_rect().upper_left();
-  Delta  hidden =
-      viewport().covered_pixels().upper_left() % g_tile_scale;
-  if( hidden != Delta{} ) {
-    DCHECK( hidden.w >= 0_w );
-    DCHECK( hidden.h >= 0_h );
-    // Move the rendering start slightly off screen (in the
-    // upper-left direction) by an amount that is within the span
-    // of one tile to partially show that tile row/column.
-    corner -= hidden.multiply_and_round( zoom );
-  }
-
-  // TODO: change this once we start rendering the entire land-
-  // scape buffer.
-  renderer.set_camera( corner.distance_from_origin(), zoom );
-
-  MapEditorLandRenderer land_renderer{
-      .terrain_state = terrain_state,
-      .renderer      = renderer,
-      .covered       = viewport().covered_tiles(),
-  };
-
-  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
-
-  // The below functions will always render at normal scale and
-  // starting at 0,0 on the screen, and then the renderer mods
-  // that we've install above will automatically do the shifting
-  // and scaling.
-  land_renderer.render_terrain();
-}
-
 /****************************************************************
 ** Viewport
 *****************************************************************/
@@ -462,8 +406,11 @@ struct MapEditorPlane : public Plane {
   void advance_state() override { advance_viewport_state(); }
 
   void draw( rr::Renderer& renderer ) const override {
-    TerrainState const& terrain_state = GameState::terrain();
-    render_map( renderer, terrain_state );
+    renderer.set_camera(
+        viewport()
+            .landscape_buffer_render_upper_left()
+            .distance_from_origin(),
+        viewport().get_zoom() );
     render_sidebar( renderer );
     render_toolbar( renderer );
   }

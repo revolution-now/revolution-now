@@ -117,7 +117,8 @@ struct Renderer::Impl {
       landscape_vertices{},
       emitter( vertices ),
       landscape_emitter( landscape_vertices ),
-      logical_screen_size( logical_screen_size_arg ) {
+      logical_screen_size( logical_screen_size_arg ),
+      landscape_dirty( true ) {
     mod_stack.push( RendererMods{} );
     emitter.log_capacity_changes( false );
     landscape_emitter.log_capacity_changes( false );
@@ -234,14 +235,20 @@ struct Renderer::Impl {
   }
 
   int end_pass() {
-    // Upload the vertices to the GPU.
-    vertex_array.buffer<0>().upload_data_replace(
-        vertices, gl::e_draw_mode::stat1c );
-    landscape_vertex_array.buffer<0>().upload_data_replace(
-        landscape_vertices, gl::e_draw_mode::stat1c );
-    // Go.
+    // Landscape buffer.
+    if( landscape_dirty ) {
+      landscape_vertex_array.buffer<0>().upload_data_replace(
+          landscape_vertices, gl::e_draw_mode::stat1c );
+      landscape_dirty = false;
+    }
+    // Still need to run even if landscape has not been modified
+    // because the camera uniforms may have changed.
     program.run( landscape_vertex_array,
                  landscape_vertices.size() );
+
+    // Normal buffer.
+    vertex_array.buffer<0>().upload_data_replace(
+        vertices, gl::e_draw_mode::stat1c );
     program.run( vertex_array, vertices.size() );
     return vertices.size() + landscape_vertices.size();
   }
@@ -299,6 +306,9 @@ struct Renderer::Impl {
 
   void mods_push_back( RendererMods&& mods ) {
     mod_stack.push( std::move( mods ) );
+    if( mods.buffer_mods.buffer ==
+        e_render_target_buffer::landscape )
+      landscape_dirty = true;
   }
 
   void mods_pop() {
@@ -316,6 +326,7 @@ struct Renderer::Impl {
         break;
       case e_render_target_buffer::landscape:
         landscape_vertices.clear();
+        landscape_emitter.set_position( 0 );
         break;
     }
   }
@@ -338,6 +349,7 @@ struct Renderer::Impl {
   Emitter               emitter;
   Emitter               landscape_emitter;
   gfx::size             logical_screen_size;
+  bool                  landscape_dirty;
 };
 
 /****************************************************************

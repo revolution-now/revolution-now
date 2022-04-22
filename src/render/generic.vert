@@ -64,6 +64,8 @@ void forwarding() {
   frag_fixed_color         = in_fixed_color;
   frag_alpha_multiplier    = in_alpha_multiplier;
   frag_scaling             = in_scaling;
+  if( in_use_camera != 0 )
+    frag_scaling *= u_camera_zoom;
   frag_color_cycle         = in_color_cycle;
 }
 

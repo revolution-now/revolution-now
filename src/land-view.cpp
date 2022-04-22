@@ -27,7 +27,6 @@
 #include "physics.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
-#include "render-terrain.hpp"
 #include "render.hpp"
 #include "road.hpp"
 #include "screen.hpp"
@@ -115,13 +114,6 @@ struct LandViewRenderer {
     Delta delta_in_tiles  = tile - covered.upper_left();
     Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
     return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
-  }
-
-  void render_terrain() {
-    for( Coord square : covered )
-      render_terrain_square(
-          terrain_state, renderer,
-          render_rect_for_tile( square ).upper_left(), square );
   }
 
   using UnitSkipFunc = base::function_ref<bool( UnitId )>;
@@ -351,16 +343,19 @@ struct LandViewRenderer {
     }
   }
 
-  TerrainState const& terrain_state;
-  rr::Renderer&       renderer;
-  Rect const          covered = {};
+  rr::Renderer& renderer;
+  Rect const    covered = {};
 };
 
-void render_land_view( rr::Renderer&       renderer,
-                       TerrainState const& terrain_state ) {
-  double zoom   = viewport().get_zoom();
-  Coord  corner = viewport().rendering_dest_rect().upper_left();
-  Delta  hidden =
+void render_land_view( rr::Renderer& renderer ) {
+  double zoom = viewport().get_zoom();
+  renderer.set_camera( viewport()
+                           .landscape_buffer_render_upper_left()
+                           .distance_from_origin(),
+                       zoom );
+
+  Coord corner = viewport().rendering_dest_rect().upper_left();
+  Delta hidden =
       viewport().covered_pixels().upper_left() % g_tile_scale;
   if( hidden != Delta{} ) {
     DCHECK( hidden.w >= 0_w );
@@ -371,33 +366,20 @@ void render_land_view( rr::Renderer&       renderer,
     corner -= hidden.multiply_and_round( zoom );
   }
 
-  // TODO: change this once we start rendering the entire land-
-  // scape buffer.
-  renderer.set_camera( corner.distance_from_origin(), zoom );
-
   LandViewRenderer lv_renderer{
-      .terrain_state = terrain_state,
-      .renderer      = renderer,
-      .covered       = viewport().covered_tiles(),
+      .renderer = renderer,
+      .covered  = viewport().covered_tiles(),
   };
 
   // The below render_* functions will always render at normal
   // scale and starting at 0,0 on the screen, and then the ren-
   // derer mods that we've install above will automatically do
   // the shifting and scaling.
-
-  {
-    SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
-    lv_renderer.render_terrain();
-  }
-
-  {
-    SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
-    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                         corner.distance_from_origin() );
-    lv_renderer.render_colonies();
-    lv_renderer.render_units();
-  }
+  SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
+  SCOPED_RENDERER_MOD( painter_mods.repos.translation,
+                       corner.distance_from_origin() );
+  lv_renderer.render_colonies();
+  lv_renderer.render_units();
 }
 
 /****************************************************************
@@ -739,8 +721,7 @@ struct LandViewPlane : public Plane {
   }
   void advance_state() override { advance_viewport_state(); }
   void draw( rr::Renderer& renderer ) const override {
-    TerrainState const& terrain_state = GameState::terrain();
-    render_land_view( renderer, terrain_state );
+    render_land_view( renderer );
   }
   maybe<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {
@@ -806,7 +787,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-          return __state[code] != 0;
+                   return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
         // from lowercase.
