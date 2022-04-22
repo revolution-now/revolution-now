@@ -13,6 +13,7 @@ namespace rn {
 CFG( rn,
   FLD( e_nation, player_nation )
   FLD( int,      target_frame_rate )
+  FLD( bool,     wait_for_vsync )
   FLD( double,   depixelate_per_frame )
   FLD( double,   ideal_tile_angular_size )
 

@@ -1,6 +1,7 @@
 player_nation: english
 
 target_frame_rate: 61
+wait_for_vsync: true
 
 depixelate_per_frame: 0.01
 

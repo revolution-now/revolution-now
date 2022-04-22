@@ -11,9 +11,13 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
+
+// Revolution Now (config)
+#include "../config/rcl/rn.inl" // FIXME
 
 using namespace std;
 
@@ -175,7 +179,7 @@ gfx::pixel from_SDL( ::SDL_Color color ) {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
-  static constexpr bool wait_for_vsync = true;
+  bool wait_for_vsync = config_rn.wait_for_vsync;
 
   if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
     lg.warn( "setting swap interval is not supported." );
