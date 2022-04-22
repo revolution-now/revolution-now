@@ -391,15 +391,12 @@ struct MapEditorPlane : public Plane {
 
   bool covers_screen() const override { return true; }
 
-  void initialize() override {
+  void initialize( IMapUpdater& map_updater ) override {
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
     advance_viewport_state();
-    // FIXME: hack
-    map_updater_ = make_unique<MapUpdater>(
-        GameState::terrain(),
-        global_renderer_use_only_when_needed() );
+    map_updater_ = &map_updater;
   }
 
   void advance_state() override { advance_viewport_state(); }
@@ -497,8 +494,8 @@ struct MapEditorPlane : public Plane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  Rect                    canvas_;
-  unique_ptr<IMapUpdater> map_updater_ = nullptr;
+  Rect         canvas_;
+  IMapUpdater* map_updater_ = nullptr;
 };
 
 MapEditorPlane g_map_editor_plane;

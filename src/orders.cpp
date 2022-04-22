@@ -38,12 +38,13 @@ namespace {
 unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 
 unique_ptr<OrdersHandler> handle_orders( UnitId,
-                                         orders::wait const& ) {
+                                         orders::wait const&,
+                                         IMapUpdater* ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId, orders::forfeight const& ) {
+    UnitId, orders::forfeight const&, IMapUpdater* ) {
   SHOULD_NOT_BE_HERE;
 }
 
@@ -66,9 +67,11 @@ maybe<orders_t> pop_unit_orders( UnitId id ) {
 }
 
 std::unique_ptr<OrdersHandler> orders_handler(
-    UnitId id, orders_t const& orders ) {
+    UnitId id, orders_t const& orders,
+    IMapUpdater* map_updater ) {
   CHECK( !unit_from_id( id ).mv_pts_exhausted() );
-  return visit( orders, LC( handle_orders( id, _ ) ) );
+  return visit( orders,
+                LC( handle_orders( id, _, map_updater ) ) );
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {

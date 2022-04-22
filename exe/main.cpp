@@ -27,46 +27,42 @@ namespace rn {
 wait<> test_ui() { return make_wait<>(); }
 wait<> test_lua_ui() { return rn::lua_ui_test(); }
 
-rr::Renderer& renderer() {
-  // This should be the only place where this function is called,
-  // save for one or two other (hopefully temporary) hacks.
-  return global_renderer_use_only_when_needed();
-}
-
-void full_init() {
+void full_init( IMapUpdater& map_updater ) {
   run_all_init_routines( e_log_level::debug );
   lua_reload();
-  MapUpdater map_updater( GameState::terrain(), renderer() );
   run_lua_startup_main( map_updater );
 }
 
 void run( e_mode mode ) {
+  rr::Renderer& renderer =
+      global_renderer_use_only_when_needed();
+  MapUpdater map_updater( GameState::terrain(), renderer );
   switch( mode ) {
     case e_mode::game: {
-      full_init();
+      full_init( map_updater );
       print_bar( '-', "[ Starting Game ]" );
-      frame_loop( revolution_now(), renderer() );
+      frame_loop( revolution_now(), renderer );
       break;
     }
     case e_mode::map_editor: {
-      full_init();
+      full_init( map_updater );
       print_bar( '-', "[ Starting Map Editor ]" );
-      MapUpdater map_updater( GameState::terrain(), renderer() );
-      frame_loop( map_editor( map_updater ), renderer() );
+      MapUpdater map_updater( GameState::terrain(), renderer );
+      frame_loop( map_editor( map_updater ), renderer );
       break;
     }
     case e_mode::test_ui: {
-      full_init();
-      frame_loop( test_ui(), renderer() );
+      full_init( map_updater );
+      frame_loop( test_ui(), renderer );
       break;
     }
     case e_mode::test_lua_ui: {
-      full_init();
-      frame_loop( rn::test_lua_ui(), renderer() );
+      full_init( map_updater );
+      frame_loop( rn::test_lua_ui(), renderer );
       break;
     }
     case e_mode::gl_test: {
-      full_init();
+      full_init( map_updater );
       open_gl_test();
       break;
     }

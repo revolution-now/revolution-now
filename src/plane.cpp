@@ -207,8 +207,8 @@ void init_planes() {
   // object even if it is the dummy above.
   for( auto p : planes ) { CHECK( p ); }
 
-  // Call any custom initialization routines.
-  for( auto p : planes ) { p->initialize(); }
+  // Note: the planes' `initialize` methods won't be called yet
+  // until we're ready to start a game.
 }
 
 void cleanup_planes() {}
@@ -220,7 +220,7 @@ REGISTER_INIT_ROUTINE( planes );
 /****************************************************************
 ** Plane Default Implementations
 *****************************************************************/
-void Plane::initialize() {}
+void Plane::initialize( IMapUpdater& ) {}
 
 Plane& Plane::get( e_plane p ) { return *plane( p ); }
 
@@ -285,8 +285,8 @@ void advance_plane_state() {
   for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }
 
-void reinitialize_planes() {
-  for( auto p : planes ) { p->initialize(); }
+void reinitialize_planes( IMapUpdater& map_updater ) {
+  for( auto p : planes ) { p->initialize( map_updater ); }
 }
 
 Plane::e_input_handled send_input_to_planes(

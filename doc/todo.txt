@@ -2,37 +2,32 @@
 # TODO
 # ===============================================================
 
-  1.  We need to have a single map updater object used through
-      the code so that it knows when to redraw the map. For the
-      planes, they should be getting it and storing it from the
-      initialize method. There should ideally only be one place
-      at the top level where the map updater is created.
-  2.  Figure out how to deal with map updaters required by Lua
+  1.  Figure out how to deal with map updaters required by Lua
       functions, or maybe just global state in general.
-  3.  See if it is simple to not render the landscape buffer when
+  2.  See if it is simple to not render the landscape buffer when
       the land-view plane is not visible.
-  4.  Add overlay connector tiles.
-  5.  Render rivers, with color cycling.
-  6.  Add color cycling to sea lane tile.
-  7.  Render natural resource tiles.
-  8.  Implement world generation.
-  9.  Implement terrain visibility.
-  10. Implement mini map.
-  11. Draw remainder of unit types.
-  12. Implement colony land production.
-  13. Implement selecting colonist profession in colony view.
-  14. Implement stats in panel.
-  15. Implement gold.
-  16. Implement old world prices and price changes.
-  17. Allow purchasing things from old world.
-  18. Implement that immigrants appear on the doc.
-  19. Add basic auto unit outlining in fragment shader so that
+  3.  Add overlay connector tiles.
+  4.  Render rivers, with color cycling.
+  5.  Add color cycling to sea lane tile.
+  6.  Render natural resource tiles.
+  7.  Implement world generation.
+  8.  Implement terrain visibility.
+  9.  Implement mini map.
+  10. Draw remainder of unit types.
+  11. Implement colony land production.
+  12. Implement selecting colonist profession in colony view.
+  13. Implement stats in panel.
+  14. Implement gold.
+  15. Implement old world prices and price changes.
+  16. Allow purchasing things from old world.
+  17. Implement that immigrants appear on the doc.
+  18. Add basic auto unit outlining in fragment shader so that
       the units will be visible.
-  20. Create colony building art.
-  21. Render colony buildings in colony.
-  22. Implement colony building workers.
-  23. Implement colony production (from lumber/tools).
-  24. Implement wagon train trade routes.
+  19. Create colony building art.
+  20. Render colony buildings in colony.
+  21. Implement colony building workers.
+  22. Implement colony production (from lumber/tools).
+  23. Implement wagon train trade routes.
 
 # ===============================================================
 # Global State

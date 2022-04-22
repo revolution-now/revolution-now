@@ -103,7 +103,7 @@ struct PlowHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::plow const& /*plow*/ ) {
+    UnitId id, orders::plow const& /*plow*/, IMapUpdater* ) {
   return make_unique<PlowHandler>( id );
 }
 

@@ -45,7 +45,8 @@ valid_or<string> is_valid_colony_name_msg( string_view name ) {
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  BuildHandler( IMapUpdater* map_updater, UnitId unit_id_ )
+    : map_updater_( map_updater ), unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
     if( auto valid = unit_can_found_colony( unit_id ); !valid ) {
@@ -89,11 +90,7 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    // FIXME
-    MapUpdater map_updater(
-        GameState::terrain(),
-        global_renderer_use_only_when_needed() );
-    colony_id = found_colony_unsafe( unit_id, map_updater,
+    colony_id = found_colony_unsafe( unit_id, *map_updater_,
                                      *colony_name );
     co_return;
   }
@@ -102,6 +99,7 @@ struct BuildHandler : public OrdersHandler {
     return show_colony_view( colony_id );
   }
 
+  IMapUpdater*  map_updater_;
   UnitId        unit_id;
   maybe<string> colony_name;
   ColonyId      colony_id;
@@ -113,8 +111,9 @@ struct BuildHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::build const& /*build*/ ) {
-  return make_unique<BuildHandler>( id );
+    UnitId       id, orders::build const& /*build*/,
+    IMapUpdater* map_updater ) {
+  return make_unique<BuildHandler>( map_updater, id );
 }
 
 } // namespace rn

@@ -279,14 +279,15 @@ void unsentry_surroundings( UnitId src_id ) {
 *****************************************************************/
 namespace eot {
 
-wait<> process_player_input( e_menu_actions action ) {
+wait<> process_player_input( e_menu_actions action,
+                             IMapUpdater& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
   return handle_menu_item( action );
 }
 
-wait<> process_player_input(
-    LandViewPlayerInput_t const& input ) {
+wait<> process_player_input( LandViewPlayerInput_t const& input,
+                             IMapUpdater& ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -297,12 +298,12 @@ wait<> process_player_input(
   }
 }
 
-wait<> process_player_input( button_click_t ) {
+wait<> process_player_input( button_click_t, IMapUpdater& ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
 
-wait<> process_inputs() {
+wait<> process_inputs( IMapUpdater& map_updater ) {
   landview_reset_input_buffers();
   while( true ) {
     auto wait_for_button = co::fmap(
@@ -319,31 +320,33 @@ wait<> process_inputs() {
         landview_eot_get_next_input(),      //
         std::move( wait_for_button )        //
     );
-    co_await rn::visit( command,
-                        L( process_player_input( _ ) ) );
+    co_await rn::visit(
+        command, LC( process_player_input( _, map_updater ) ) );
     if( command.holds<button_click_t>() ) co_return;
   }
 }
 
 } // namespace eot
 
-wait<> end_of_turn() {
+wait<> end_of_turn( IMapUpdater& map_updater ) {
   SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
-  return eot::process_inputs();
+  return eot::process_inputs( map_updater );
 }
 
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-wait<> process_player_input( UnitId, e_menu_actions action ) {
+wait<> process_player_input( UnitId, e_menu_actions action,
+                             IMapUpdater& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   return handle_menu_item( action );
 }
 
-wait<> process_player_input(
-    UnitId id, LandViewPlayerInput_t const& input ) {
+wait<> process_player_input( UnitId                       id,
+                             LandViewPlayerInput_t const& input,
+                             IMapUpdater& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   auto& q  = st.units;
@@ -387,7 +390,7 @@ wait<> process_player_input(
       }
 
       unique_ptr<OrdersHandler> handler =
-          orders_handler( id, orders );
+          orders_handler( id, orders, &map_updater );
       CHECK( handler );
       Coord old_loc    = coord_for_unit_indirect_or_die( id );
       auto  run_result = co_await handler->run();
@@ -455,11 +458,11 @@ wait<LandViewPlayerInput_t> landview_player_input( UnitId id ) {
   co_return response;
 }
 
-wait<> query_unit_input( UnitId id ) {
+wait<> query_unit_input( UnitId id, IMapUpdater& map_updater ) {
   auto command = co_await co::first(
       wait_for_menu_selection(), landview_player_input( id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
-    return process_player_input( id, action );
+    return process_player_input( id, action, map_updater );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -573,7 +576,7 @@ wait<> units_turn_one_pass( IMapUpdater&   map_updater,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id );
+    co_await query_unit_input( id, map_updater );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
@@ -688,7 +691,7 @@ wait<> next_turn_impl( IMapUpdater& map_updater ) {
   }
 
   // Ending.
-  if( st.need_eot ) co_await end_of_turn();
+  if( st.need_eot ) co_await end_of_turn( map_updater );
 
   st = new_turn();
 }
@@ -698,12 +701,8 @@ wait<> next_turn_impl( IMapUpdater& map_updater ) {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> next_turn() {
+wait<> next_turn( IMapUpdater& map_updater ) {
   ScopedPlanePush pusher( e_plane_config::land_view );
-  // FIXME
-  MapUpdater map_updater(
-      GameState::terrain(),
-      global_renderer_use_only_when_needed() );
   co_await next_turn_impl( map_updater );
 }
 

@@ -17,7 +17,10 @@
 
 namespace rn {
 
+struct IMapUpdater;
+
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::disband const& disband );
+    UnitId id, orders::disband const& disband,
+    IMapUpdater* map_updater );
 
 } // namespace rn

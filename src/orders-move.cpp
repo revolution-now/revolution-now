@@ -1117,8 +1117,9 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::move const& mv ) {
+unique_ptr<OrdersHandler> handle_orders( UnitId              id,
+                                         orders::move const& mv,
+                                         IMapUpdater* ) {
   return dispatch( id, mv.d );
 }
 

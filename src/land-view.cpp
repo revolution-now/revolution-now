@@ -706,7 +706,7 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
-  void initialize() override {
+  void initialize( IMapUpdater& ) override {
     // Initialize general global data.
     g_unit_animations.clear();
     g_landview_state  = LandViewUnitActionState::none{};
@@ -787,7 +787,7 @@ struct LandViewPlane : public Plane {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
-                   return __state[code] != 0;
+          return __state[code] != 0;
         };
         // This is because we need to distinguish uppercase
         // from lowercase.

@@ -42,12 +42,13 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> turn_loop() {
-  while( true ) co_await next_turn();
+wait<> turn_loop( IMapUpdater& map_updater ) {
+  while( true ) co_await next_turn( map_updater );
 }
 
-wait<> run_loaded_game() {
-  return co::erase( co::try_<game_quit_interrupt>( turn_loop ) );
+wait<> run_loaded_game( IMapUpdater& map_updater ) {
+  return co::erase( co::try_<game_quit_interrupt>(
+      [&] { return turn_loop( map_updater ); } ) );
 }
 
 } // namespace
@@ -57,23 +58,29 @@ wait<> run_loaded_game() {
 *****************************************************************/
 wait<> run_existing_game() {
   lua_reload();
+  // Leave this here because it depends on the terrain which,
+  // when we eventually move away from global game state, may not
+  // exist higher than us in the call stack.
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
-  reinitialize_planes();
+  reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game();
+  co_await run_loaded_game( map_updater );
 }
 
 wait<> run_new_game() {
   lua_reload();
   default_construct_game_state();
+  // Leave this here because it depends on the terrain which,
+  // when we eventually move away from global game state, may not
+  // exist higher than us in the call stack.
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   run_lua_startup_main( map_updater );
-  reinitialize_planes();
+  reinitialize_planes( map_updater );
 
   // 1. Take user through game setup/configuration.
 
@@ -87,7 +94,7 @@ wait<> run_new_game() {
 
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game();
+  co_await run_loaded_game( map_updater );
 }
 
 } // namespace rn

@@ -58,7 +58,7 @@ struct PanelPlane : public Plane {
     return *p_view.view->cast<ui::ButtonView>();
   }
 
-  void initialize() override {
+  void initialize( IMapUpdater& ) override {
     vector<ui::OwningPositionedView> view_vec;
 
     auto button_view =

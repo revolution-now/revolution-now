@@ -52,7 +52,7 @@ constexpr W kDividerWidth  = 2_w;
 struct ConsolePlane : public Plane {
   ConsolePlane() = default;
 
-  void initialize() override {
+  void initialize( IMapUpdater& ) override {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(

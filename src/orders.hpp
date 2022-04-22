@@ -85,7 +85,10 @@ struct OrdersHandler {
   }
 };
 
+struct IMapUpdater;
+
 std::unique_ptr<OrdersHandler> orders_handler(
-    UnitId id, orders_t const& orders );
+    UnitId id, orders_t const& orders,
+    IMapUpdater* map_updater );
 
 } // namespace rn

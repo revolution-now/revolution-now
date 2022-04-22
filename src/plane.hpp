@@ -30,6 +30,8 @@
 
 namespace rn {
 
+struct IMapUpdater;
+
 struct Plane {
   NO_COPY_NO_MOVE( Plane );
 
@@ -40,7 +42,7 @@ struct Plane {
 
   // Will be called on all planes (whether enabled or not) before
   // any other methods are called on it. Default does nothing.
-  void virtual initialize();
+  void virtual initialize( IMapUpdater& map_updater );
 
   // Will rendering this plane cover all pixels?  If so, then
   // planes under it will not be rendered.
@@ -146,7 +148,7 @@ void draw_all_planes( rr::Renderer& renderer );
 // that are enabled and visible.
 void advance_plane_state();
 
-void reinitialize_planes();
+void reinitialize_planes( IMapUpdater& map_updater );
 
 // Returns true if one of the planes handled the input, false
 // otherwise. At most one plane will handle the input.

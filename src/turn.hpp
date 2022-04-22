@@ -23,6 +23,8 @@ namespace rn {
 struct game_quit_interrupt : std::exception {};
 struct game_load_interrupt : std::exception {};
 
-wait<> next_turn();
+struct IMapUpdater;
+
+wait<> next_turn( IMapUpdater& map_updater );
 
 } // namespace rn

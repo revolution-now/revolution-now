@@ -17,10 +17,12 @@
 
 namespace rn {
 
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const& fortify );
+struct IMapUpdater;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const& sentry );
+    UnitId id, orders::fortify const& fortify, IMapUpdater* );
+
+std::unique_ptr<OrdersHandler> handle_orders(
+    UnitId id, orders::sentry const& sentry, IMapUpdater* );
 
 } // namespace rn
