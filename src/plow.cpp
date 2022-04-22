@@ -17,7 +17,6 @@
 #include "lua.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "terrain.hpp"
 #include "tiles.hpp"
 
@@ -172,20 +171,15 @@ LUA_FN( plow_square, void, Coord tile ) {
   TerrainState& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( tile ) )
     st.error( "cannot plow on water tile {}.", tile );
-  plow_square(
-      terrain_state,
-      MapUpdater( terrain_state,
-                  // FIXME
-                  global_renderer_use_only_when_needed() ),
-      tile );
+  plow_square( terrain_state,
+               // FIXME: needs to render.
+               NonRenderingMapUpdater( terrain_state ), tile );
 }
 
 LUA_FN( clear_irrigation, void, Coord tile ) {
   clear_irrigation(
-      MapUpdater( GameState::terrain(),
-                  // FIXME
-                  global_renderer_use_only_when_needed() ),
-      tile );
+      // FIXME: needs to render.
+      NonRenderingMapUpdater( GameState::terrain() ), tile );
 }
 
 } // namespace

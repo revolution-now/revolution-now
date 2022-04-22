@@ -16,7 +16,6 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // render
@@ -152,16 +151,15 @@ LUA_FN( set_road, void, Coord tile ) {
   TerrainState const& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( tile ) )
     st.error( "cannot put road on water tile {}.", tile );
-  set_road( MapUpdater( GameState::terrain(),
-                        global_renderer_use_only_when_needed() ),
+  // FIXME: needs to render.
+  set_road( NonRenderingMapUpdater( GameState::terrain() ),
             tile );
 }
 
 LUA_FN( clear_road, void, Coord tile ) {
   clear_road(
-      MapUpdater( GameState::terrain(),
-                  global_renderer_use_only_when_needed() ),
-      tile );
+      // FIXME: needs to render.
+      NonRenderingMapUpdater( GameState::terrain() ), tile );
 }
 
 } // namespace
