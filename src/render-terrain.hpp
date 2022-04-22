@@ -30,4 +30,9 @@ void render_terrain_square( TerrainState const& terrain_state,
                             rr::Renderer& renderer, Coord where,
                             Coord world_square );
 
+// Render the entire map to the landscape buffer. Should only be
+// called once after the map is generated.
+void render_terrain( TerrainState const& terrain_state,
+                     rr::Renderer&       renderer );
+
 } // namespace rn

@@ -13,9 +13,12 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "game-state.hpp"
+#include "gs-terrain.hpp"
 #include "gs-top.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "render-terrain.hpp"
+#include "renderer.hpp" // FIXME: remove
 
 // Revolution Now (config)
 #include "../config/rcl/savegame.inl"
@@ -119,6 +122,8 @@ valid_or<string> load_game_from_rcl( string_view   filename,
   print_time( watch, "  [load] rcl parse" );
   print_time( watch, "  [load] from_canonical" );
   GameState::top() = std::move( top );
+  render_terrain( GameState::terrain(),
+                  global_renderer_use_only_when_needed() );
   return valid;
 }
 

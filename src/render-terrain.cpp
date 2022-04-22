@@ -1036,6 +1036,24 @@ void render_terrain_square( TerrainState const& terrain_state,
                              gfx::pixel{ 0, 0, 0, 30 } );
 }
 
+void render_terrain( TerrainState const& terrain_state,
+                     rr::Renderer&       renderer ) {
+  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
+  auto const kLandscapeBuf =
+      rr::e_render_target_buffer::landscape;
+  renderer.clear_buffer( kLandscapeBuf );
+  SCOPED_RENDERER_MOD( buffer_mods.buffer, kLandscapeBuf );
+  lg.info( "proceeding to render landscape." );
+  for( Coord square : terrain_state.world_rect_tiles() )
+    render_terrain_square( terrain_state, renderer,
+                           square * g_tile_scale, square );
+  lg.info(
+      "finished rendering landscape with {} vertices, occupying "
+      "{} MB.",
+      renderer.buffer_vertex_count( kLandscapeBuf ),
+      renderer.buffer_size_mb( kLandscapeBuf ) );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

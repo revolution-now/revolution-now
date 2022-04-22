@@ -15,6 +15,7 @@
 #include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+#include "renderer.hpp" // FIXME: remove
 
 // luapp
 #include "luapp/state.hpp"
@@ -41,29 +42,25 @@ MapSquare make_ocean_square() {
   return map_square_for_terrain( e_terrain::ocean );
 }
 
-} // namespace
-
-void generate_terrain( TerrainState& terrain_state ) {
+void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
   MapSquare const L = make_land_square();
   MapSquare const O = make_ocean_square();
 
-  auto& world_map = terrain_state.mutable_world_map();
   // FIXME
   world_map = Matrix<MapSquare>( world_size );
 
-  for( auto const& coord : terrain_state.world_map().rect() )
+  for( auto const& coord : world_map.rect() )
     world_map[coord] = O;
 
-  for( Y y = 0_y;
-       y < terrain_state.world_map().rect().bottom_edge(); ++y )
+  for( Y y = 0_y; y < world_map.rect().bottom_edge(); ++y )
     world_map[Coord( y, 0_x )].sea_lane = true;
 
   auto make_squares = [&]( Coord origin ) {
     for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
       for( X x = origin.x; x < origin.x + 4_w; ++x )
-        terrain_state.mutable_world_map()[y][x] = L;
+        world_map[y][x] = L;
       for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
-        terrain_state.mutable_world_map()[y][x] = L;
+        world_map[y][x] = L;
     }
   };
 
@@ -81,6 +78,12 @@ void generate_terrain( TerrainState& terrain_state ) {
       world_size );
 }
 
+} // namespace
+
+void generate_terrain( IMapUpdater const& map_updater ) {
+  map_updater.modify_entire_map( generate_terrain_impl );
+}
+
 void linker_dont_discard_module_map_gen() {}
 
 /****************************************************************
@@ -89,7 +92,9 @@ void linker_dont_discard_module_map_gen() {}
 namespace {
 
 LUA_FN( generate_terrain, void ) {
-  generate_terrain( GameState::terrain() );
+  generate_terrain(
+      MapUpdater( GameState::terrain(),
+                  global_renderer_use_only_when_needed() ) );
 }
 
 LUA_FN( at, MapSquare&, Coord tile ) {

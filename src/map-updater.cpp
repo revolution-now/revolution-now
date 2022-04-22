@@ -39,6 +39,13 @@ void MapUpdater::modify_map_square(
                              tile.moved( d ) );
 }
 
+void MapUpdater::modify_entire_map(
+    base::function_ref<void( Matrix<MapSquare>& )> mutator )
+    const {
+  mutator( terrain_state_.mutable_world_map() );
+  render_terrain( terrain_state_, renderer_ );
+}
+
 /****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
@@ -46,6 +53,12 @@ void NonRenderingMapUpdater::modify_map_square(
     Coord                                  tile,
     base::function_ref<void( MapSquare& )> mutator ) const {
   mutator( terrain_state_.mutable_square_at( tile ) );
+}
+
+void NonRenderingMapUpdater::modify_entire_map(
+    base::function_ref<void( Matrix<MapSquare>& )> mutator )
+    const {
+  mutator( terrain_state_.mutable_world_map() );
 }
 
 } // namespace rn

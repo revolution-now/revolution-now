@@ -306,6 +306,20 @@ struct Renderer::Impl {
     mod_stack.pop();
   }
 
+  void clear_buffer( e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal:
+        // We don't currently have a use for this, because the
+        // normal buffer gets automatically cleared at the start
+        // of each render pass.
+        SHOULD_NOT_BE_HERE;
+        break;
+      case e_render_target_buffer::landscape:
+        landscape_vertices.clear();
+        break;
+    }
+  }
+
   stack<RendererMods>                    mod_stack;
   PresentFn                              present_fn;
   ProgramType                            program;
@@ -417,6 +431,26 @@ void Renderer::set_camera( gfx::size translation, double zoom ) {
   impl_->program["u_camera_translation"_t] =
       gl::vec2::from_size( translation );
   impl_->program["u_camera_zoom"_t] = zoom;
+}
+
+void Renderer::clear_buffer( e_render_target_buffer buffer ) {
+  impl_->clear_buffer( buffer );
+}
+
+long Renderer::buffer_vertex_count(
+    e_render_target_buffer buffer ) {
+  switch( buffer ) {
+    case e_render_target_buffer::normal:
+      return impl_->vertices.size();
+    case e_render_target_buffer::landscape:
+      return impl_->landscape_vertices.size();
+  }
+}
+
+double Renderer::buffer_size_mb(
+    e_render_target_buffer buffer ) {
+  return buffer_vertex_count( buffer ) *
+         sizeof( GenericVertex ) / ( 1024.0 * 1024.0 );
 }
 
 } // namespace rr

@@ -16,6 +16,7 @@
 #include "coord.hpp"
 #include "game-state.hpp"
 #include "map-square.hpp"
+#include "matrix.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -34,15 +35,22 @@ namespace rn {
 // map squares, and we want to be able to test those without
 // having to worry about a dependency on the renderer.
 struct IMapUpdater {
-  using UpdateFunc = base::function_ref<void( MapSquare& )>;
+  using SquareUpdateFunc =
+      base::function_ref<void( MapSquare& )>;
+  using MapUpdateFunc =
+      base::function_ref<void( Matrix<MapSquare>& )>;
 
   virtual ~IMapUpdater() = default;
 
   // This function should be used whenever a map square
   // (specifically, a MapSquare object) must be updated as it
   // will handler re-rendering the surrounding squares.
-  virtual void modify_map_square( Coord      tile,
-                                  UpdateFunc mutator ) const = 0;
+  virtual void modify_map_square(
+      Coord tile, SquareUpdateFunc mutator ) const = 0;
+
+  // This function should be used when generating the map.
+  virtual void modify_entire_map(
+      MapUpdateFunc mutator ) const = 0;
 };
 
 /****************************************************************
@@ -54,8 +62,11 @@ struct MapUpdater : IMapUpdater {
     : terrain_state_( terrain_state ), renderer_( renderer ) {}
 
   // Implement IMapUpdater.
-  void modify_map_square( Coord      tile,
-                          UpdateFunc mutator ) const override;
+  void modify_map_square(
+      Coord tile, SquareUpdateFunc mutator ) const override;
+
+  // Implement IMapUpdater.
+  void modify_entire_map( MapUpdateFunc mutator ) const override;
 
  private:
   TerrainState& terrain_state_;
@@ -70,7 +81,11 @@ struct NonRenderingMapUpdater : IMapUpdater {
     : terrain_state_( terrain_state ) {}
 
   // Implement IMapUpdater.
-  void modify_map_square( Coord, UpdateFunc ) const override;
+  void modify_map_square( Coord,
+                          SquareUpdateFunc ) const override;
+
+  // Implement IMapUpdater.
+  void modify_entire_map( MapUpdateFunc mutator ) const override;
 
  private:
   TerrainState& terrain_state_;
