@@ -18,7 +18,6 @@
 #include "logger.hpp"
 #include "macros.hpp"
 #include "render-terrain.hpp"
-#include "renderer.hpp" // FIXME: remove
 
 // Revolution Now (config)
 #include "../config/rcl/savegame.inl"
@@ -97,9 +96,9 @@ string save_game_to_rcl( SaveGameOptions const& opts ) {
 }
 
 // The filename is only used for error reporting.
-valid_or<string> load_game_from_rcl( string_view   filename,
-                                     string const& in,
-                                     SaveGameOptions const& ) {
+valid_or<string> load_game_from_rcl(
+    IMapUpdater const& map_updater, string_view filename,
+    string const& in, SaveGameOptions const& ) {
   cdr::converter::options const cdr_opts{
       .allow_unrecognized_fields        = false,
       .default_construct_missing_fields = true,
@@ -122,8 +121,7 @@ valid_or<string> load_game_from_rcl( string_view   filename,
   print_time( watch, "  [load] rcl parse" );
   print_time( watch, "  [load] from_canonical" );
   GameState::top() = std::move( top );
-  render_terrain( GameState::terrain(),
-                  global_renderer_use_only_when_needed() );
+  map_updater.just_redraw_map();
   return valid;
 }
 
@@ -154,7 +152,8 @@ valid_or<std::string> save_game_to_rcl_file(
 }
 
 valid_or<std::string> load_game_from_rcl_file(
-    fs::path const& p, SaveGameOptions const& opts ) {
+    IMapUpdater const& map_updater, fs::path const& p,
+    SaveGameOptions const& opts ) {
   auto maybe_rcl = base::read_text_file_as_string( p );
   if( !maybe_rcl )
     return fmt::format( "failed to read Rcl file" );
@@ -162,8 +161,8 @@ valid_or<std::string> load_game_from_rcl_file(
   watch.start( "loading from rcl" );
   constexpr int trials = 1;
   for( int i = trials; i >= 1; --i ) {
-    HAS_VALUE_OR_RET(
-        load_game_from_rcl( p.string(), *maybe_rcl, opts ) );
+    HAS_VALUE_OR_RET( load_game_from_rcl(
+        map_updater, p.string(), *maybe_rcl, opts ) );
   }
   watch.stop( "loading from rcl" );
   lg.info( "loading game ({} trials) took: {}", trials,
@@ -184,7 +183,8 @@ expect<fs::path> save_game( int slot ) {
   return p;
 }
 
-expect<fs::path> load_game( int slot ) {
+expect<fs::path> load_game( IMapUpdater const& map_updater,
+                            int                slot ) {
   auto rcl_path =
       path_for_slot( slot ).replace_extension( ".sav.rcl" );
   auto b64_path =
@@ -220,8 +220,8 @@ expect<fs::path> load_game( int slot ) {
   }
 
   if( use_rcl ) {
-    HAS_VALUE_OR_RET(
-        load_game_from_rcl_file( rcl_path, SaveGameOptions{} ) );
+    HAS_VALUE_OR_RET( load_game_from_rcl_file(
+        map_updater, rcl_path, SaveGameOptions{} ) );
     return rcl_path;
   } else {
     lg.info( "loading game from {}.", b64_path );

@@ -52,7 +52,8 @@ void print_line( string_view what ) {
 void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
   default_construct_game_state();
-  run_lua_startup_main();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  run_lua_startup_main( map_updater );
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
   REQUIRE( save_game_to_rcl_file( dst, options ) );
@@ -65,6 +66,8 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   static SaveGameOptions const opts{
       .verbosity = e_savegame_verbosity::compact,
   };
+
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
 #  if REGENERATE_FILES
   generate_save_file( src, opts );
@@ -81,7 +84,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 
   // Make a round trip.
   print_line( "Load Compact" );
-  REQUIRE( load_game_from_rcl_file( src, opts ) );
+  REQUIRE( load_game_from_rcl_file( map_updater, src, opts ) );
   print_line( "Save Compact" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
 
@@ -102,6 +105,8 @@ TEST_CASE( "[save-game] default values (full)" ) {
       .verbosity = e_savegame_verbosity::full,
   };
 
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+
 #  if REGENERATE_FILES
   generate_save_file( src, opts );
 #  else
@@ -117,7 +122,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
 
   // Make a round trip.
   print_line( "Load Full" );
-  REQUIRE( load_game_from_rcl_file( src, opts ) );
+  REQUIRE( load_game_from_rcl_file( map_updater, src, opts ) );
   print_line( "Save Full" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
 
@@ -133,10 +138,11 @@ TEST_CASE( "[save-game] default values (full)" ) {
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
   default_construct_game_state();
-  run_lua_startup_main();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
-  run_lua_startup_main();
+  run_lua_startup_main( map_updater );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-world-gen-full.sav.rcl";
@@ -151,7 +157,7 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( dst, opts ) );
+  REQUIRE( load_game_from_rcl_file( map_updater, dst, opts ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
@@ -161,10 +167,11 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
   default_construct_game_state();
-  run_lua_startup_main();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
-  run_lua_startup_main();
+  run_lua_startup_main( map_updater );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst =
@@ -180,7 +187,7 @@ TEST_CASE(
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( dst, opts ) );
+  REQUIRE( load_game_from_rcl_file( map_updater, dst, opts ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.

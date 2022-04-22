@@ -51,6 +51,9 @@ struct IMapUpdater {
   // This function should be used when generating the map.
   virtual void modify_entire_map(
       MapUpdateFunc mutator ) const = 0;
+
+  // Will redraw the entire map.
+  virtual void just_redraw_map() const = 0;
 };
 
 /****************************************************************
@@ -67,6 +70,9 @@ struct MapUpdater : IMapUpdater {
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) const override;
+
+  // Implement IMapUpdater.
+  void just_redraw_map() const override;
 
  private:
   TerrainState& terrain_state_;
@@ -86,6 +92,9 @@ struct NonRenderingMapUpdater : IMapUpdater {
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) const override;
+
+  // Implement IMapUpdater.
+  void just_redraw_map() const override;
 
  private:
   TerrainState& terrain_state_;

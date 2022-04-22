@@ -46,6 +46,10 @@ void MapUpdater::modify_entire_map(
   render_terrain( terrain_state_, renderer_ );
 }
 
+void MapUpdater::just_redraw_map() const {
+  render_terrain( terrain_state_, renderer_ );
+}
+
 /****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
@@ -60,5 +64,7 @@ void NonRenderingMapUpdater::modify_entire_map(
     const {
   mutator( terrain_state_.mutable_world_map() );
 }
+
+void NonRenderingMapUpdater::just_redraw_map() const {}
 
 } // namespace rn

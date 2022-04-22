@@ -27,16 +27,17 @@ namespace rn {
 wait<> test_ui() { return make_wait<>(); }
 wait<> test_lua_ui() { return rn::lua_ui_test(); }
 
-void full_init() {
-  run_all_init_routines( e_log_level::debug );
-  lua_reload();
-  run_lua_startup_main();
-}
-
 rr::Renderer& renderer() {
   // This should be the only place where this function is called,
   // save for one or two other (hopefully temporary) hacks.
   return global_renderer_use_only_when_needed();
+}
+
+void full_init() {
+  run_all_init_routines( e_log_level::debug );
+  lua_reload();
+  run_lua_startup_main(
+      MapUpdater( GameState::terrain(), renderer() ) );
 }
 
 void run( e_mode mode ) {

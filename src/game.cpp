@@ -16,7 +16,9 @@
 #include "game-state.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "map-updater.hpp"
 #include "plane.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "save-game.hpp"
 #include "turn.hpp"
 
@@ -55,7 +57,10 @@ wait<> run_loaded_game() {
 *****************************************************************/
 wait<> run_existing_game() {
   lua_reload();
-  CHECK_HAS_VALUE( load_game( 0 ) );
+  MapUpdater map_updater(
+      GameState::terrain(),
+      global_renderer_use_only_when_needed() );
+  CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
   reinitialize_planes();
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
@@ -64,7 +69,10 @@ wait<> run_existing_game() {
 wait<> run_new_game() {
   lua_reload();
   default_construct_game_state();
-  run_lua_startup_main();
+  MapUpdater map_updater(
+      GameState::terrain(),
+      global_renderer_use_only_when_needed() );
+  run_lua_startup_main( map_updater );
   reinitialize_planes();
 
   // 1. Take user through game setup/configuration.

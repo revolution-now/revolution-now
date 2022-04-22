@@ -15,7 +15,6 @@
 #include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
-#include "renderer.hpp" // FIXME: remove
 
 // luapp
 #include "luapp/state.hpp"
@@ -93,8 +92,8 @@ namespace {
 
 LUA_FN( generate_terrain, void ) {
   generate_terrain(
-      MapUpdater( GameState::terrain(),
-                  global_renderer_use_only_when_needed() ) );
+      // FIXME: this should render, but it breaks unit tests.
+      NonRenderingMapUpdater( GameState::terrain() ) );
 }
 
 LUA_FN( at, MapSquare&, Coord tile ) {

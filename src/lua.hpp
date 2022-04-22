@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "map-updater.hpp"
+
 // base
 #include "base/cc-specific.hpp"
 #include "base/fs.hpp"
@@ -50,7 +53,7 @@ lua::state& lua_global_state();
 *****************************************************************/
 void run_lua_startup_routines();
 void load_lua_modules();
-void run_lua_startup_main();
+void run_lua_startup_main( IMapUpdater const& map_updater );
 
 void lua_reload();
 
