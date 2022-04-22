@@ -61,7 +61,10 @@ void reset_globals() {
 void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
   static gfx::pixel background_color =
       gfx::pixel::parse_from_hex( "f1cf81" ).value();
-  renderer.clear_screen( background_color );
+  renderer.painter().draw_solid_rect(
+      gfx::rect{ .origin = {},
+                 .size   = renderer.logical_screen_size() },
+      background_color );
 
   UNWRAP_CHECK( canvas, compositor::section(
                             compositor::e_section::normal ) );
