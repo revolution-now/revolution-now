@@ -170,23 +170,6 @@ struct ConsolePlane : public Plane {
 
     auto info_start = text_rect.lower_right() - 1_w;
 
-    auto frame_rate =
-        fmt::format( "fps: {:.1f}", avg_frame_rate() );
-    // TODO: this needs to be cached in a proper way (it's static
-    // because it is expensive to shade).
-    static gfx::pixel shaded_wood =
-        gfx::pixel::wood().shaded( 2 );
-    Delta frame_rate_size = delta_for( frame_rate );
-    painter.draw_solid_rect(
-        gfx::rect{ .origin = info_start - frame_rate_size,
-                   .size   = frame_rate_size },
-        shaded_wood );
-    renderer
-        .typer( "simple", info_start - frame_rate_size,
-                stats_color )
-        .write( frame_rate );
-    info_start -= frame_rate_size.h;
-
     for( auto const& [name, mv_avg] : event_counts() ) {
       auto formatted = fmt::format(
           "{}/f: {}", name,

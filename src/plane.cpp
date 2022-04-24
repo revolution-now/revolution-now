@@ -66,6 +66,31 @@ Plane*& plane( e_plane plane ) {
   return planes[idx];
 }
 
+void render_framerate( rr::Renderer& renderer ) {
+  rr::Painter painter    = renderer.painter();
+  Coord       info_start = Coord::from_gfx(
+            gfx::point{} + renderer.logical_screen_size() );
+  // Render frame rate.
+  string frame_rate =
+      fmt::format( "fps: {:.1f}", avg_frame_rate() );
+  // TODO: this needs to be cached in a proper way (it's static
+  // because it is expensive to shade).
+  static gfx::pixel shaded_wood = gfx::pixel::wood().shaded( 2 );
+  auto              delta_for   = []( string_view text ) {
+    return Delta::from_gfx(
+                       rr::rendered_text_line_size_pixels( text ) );
+  };
+  Delta frame_rate_size = delta_for( frame_rate );
+  painter.draw_solid_rect(
+      gfx::rect{ .origin = info_start - frame_rate_size,
+                 .size   = frame_rate_size },
+      shaded_wood );
+  renderer
+      .typer( "simple", info_start - frame_rate_size,
+              gfx::pixel::banana() )
+      .write( frame_rate );
+}
+
 /****************************************************************
 ** The InactivePlane Plane
 *****************************************************************/
@@ -82,19 +107,23 @@ InactivePlane dummy;
 *****************************************************************/
 // This plane is intended to be:
 //
-//   1) Always present
-//   2) Always invisible
-//   3) Always on top
-//   4) Catching any global events (such as special key presses)
+//   1) Always present.
+//   2) Always (mostly) invisible.
+//   3) Always on top.
+//   4) Catching any global events (such as special key presses).
 //
 struct OmniPlane : public Plane {
   OmniPlane() = default;
+
   bool covers_screen() const override { return false; }
+
   void draw( rr::Renderer& renderer ) const override {
     rr::Painter painter = renderer.painter();
+    render_framerate( renderer );
     render_sprite( painter, e_tile::mouse_arrow1,
                    input::current_mouse_position() - 16_w );
   }
+
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
     switch( event.to_enum() ) {
