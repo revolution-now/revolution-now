@@ -136,6 +136,31 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/coast-sand.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_sand_up_right_o_o:   { y: 6, x: 0 }
+        terrain_sand_up_right_c_o:   { y: 6, x: 1 }
+        terrain_sand_up_right_o_c:   { y: 6, x: 2 }
+        terrain_sand_up_right_c_c:   { y: 6, x: 3 }
+
+        terrain_sand_right_down_o_o: { y: 6, x: 4 }
+        terrain_sand_right_down_c_o: { y: 6, x: 5 }
+        terrain_sand_right_down_o_c: { y: 6, x: 6 }
+        terrain_sand_right_down_c_c: { y: 6, x: 7 }
+
+        terrain_sand_down_left_o_o:  { y: 7, x: 0 }
+        terrain_sand_down_left_c_o:  { y: 7, x: 1 }
+        terrain_sand_down_left_o_c:  { y: 7, x: 2 }
+        terrain_sand_down_left_c_c:  { y: 7, x: 3 }
+
+        terrain_sand_left_up_o_o:    { y: 7, x: 4 }
+        terrain_sand_left_up_c_o:    { y: 7, x: 5 }
+        terrain_sand_left_up_o_c:    { y: 7, x: 6 }
+        terrain_sand_left_up_c_c:    { y: 7, x: 7 }
+      }
+    }
+    {
       img_path: assets/art/tiles/coast-border.png
       sprite_size: { w: 32, h: 32 }
       sprites {

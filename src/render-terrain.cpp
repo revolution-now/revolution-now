@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "plow.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 
@@ -430,6 +431,7 @@ void render_terrain_ocean_square(
   maybe<e_tile> second_beach_tile  = {};
   maybe<e_tile> second_border_tile = {};
   maybe<e_tile> surf_tile          = {};
+  maybe<e_tile> sand_tile          = {};
 
   auto is_land_if_exists = [&]( e_direction d ) {
     maybe<MapSquare const&> s =
@@ -587,6 +589,9 @@ void render_terrain_ocean_square(
       DCHECK( left.has_value() );
       bool down_open  = is_land_if_exists( e_direction::sw );
       bool right_open = is_land_if_exists( e_direction::ne );
+      bool open_water = !is_land_if_exists( e_direction::se );
+      bool apply_sand =
+          is_land_if_exists( e_direction::nw ) && open_water;
       switch( to_mask( down_open, right_open ) ) {
         case 0b00:
           // down closed, right closed.
@@ -594,6 +599,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_right_down_c_c;
           border_tile = e_tile::terrain_border_right_down_c_c;
           surf_tile   = e_tile::terrain_surf_right_down_c_c;
+          sand_tile   = e_tile::terrain_sand_right_down_c_c;
           break;
         case 0b01:
           // down closed, right open.
@@ -601,6 +607,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_right_down_o_c;
           border_tile = e_tile::terrain_border_right_down_o_c;
           surf_tile   = e_tile::terrain_surf_right_down_o_c;
+          sand_tile   = e_tile::terrain_sand_right_down_o_c;
           break;
         case 0b10:
           // down open, right closed.
@@ -608,6 +615,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_right_down_c_o;
           border_tile = e_tile::terrain_border_right_down_c_o;
           surf_tile   = e_tile::terrain_surf_right_down_c_o;
+          sand_tile   = e_tile::terrain_sand_right_down_c_o;
           break;
         case 0b11:
           // down open, right open.
@@ -615,16 +623,22 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_right_down_o_o;
           border_tile = e_tile::terrain_border_right_down_o_o;
           surf_tile   = e_tile::terrain_surf_right_down_o_o;
+          sand_tile   = e_tile::terrain_sand_right_down_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
+      if( !apply_sand ) sand_tile.reset();
+      if( !open_water ) surf_tile.reset();
       break;
     }
     case 0b0011: {
       // land on top and right.
       DCHECK( up.has_value() );
-      bool left_open = is_land_if_exists( e_direction::nw );
-      bool down_open = is_land_if_exists( e_direction::se );
+      bool left_open  = is_land_if_exists( e_direction::nw );
+      bool down_open  = is_land_if_exists( e_direction::se );
+      bool open_water = !is_land_if_exists( e_direction::sw );
+      bool apply_sand =
+          is_land_if_exists( e_direction::ne ) && open_water;
       switch( to_mask( left_open, down_open ) ) {
         case 0b00:
           // left closed, down closed.
@@ -632,6 +646,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_down_left_c_c;
           border_tile = e_tile::terrain_border_down_left_c_c;
           surf_tile   = e_tile::terrain_surf_down_left_c_c;
+          sand_tile   = e_tile::terrain_sand_down_left_c_c;
           break;
         case 0b01:
           // left closed, down open.
@@ -639,6 +654,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_down_left_c_o;
           border_tile = e_tile::terrain_border_down_left_c_o;
           surf_tile   = e_tile::terrain_surf_down_left_c_o;
+          sand_tile   = e_tile::terrain_sand_down_left_c_o;
           break;
         case 0b10:
           // left open, down closed.
@@ -646,6 +662,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_down_left_o_c;
           border_tile = e_tile::terrain_border_down_left_o_c;
           surf_tile   = e_tile::terrain_surf_down_left_o_c;
+          sand_tile   = e_tile::terrain_sand_down_left_o_c;
           break;
         case 0b11:
           // left open, down open.
@@ -653,16 +670,22 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_down_left_o_o;
           border_tile = e_tile::terrain_border_down_left_o_o;
           surf_tile   = e_tile::terrain_surf_down_left_o_o;
+          sand_tile   = e_tile::terrain_sand_down_left_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
+      if( !apply_sand ) sand_tile.reset();
+      if( !open_water ) surf_tile.reset();
       break;
     }
     case 0b1001: {
       // land on right and bottom.
       DCHECK( right.has_value() );
-      bool left_open = is_land_if_exists( e_direction::sw );
-      bool top_open  = is_land_if_exists( e_direction::ne );
+      bool left_open  = is_land_if_exists( e_direction::sw );
+      bool top_open   = is_land_if_exists( e_direction::ne );
+      bool open_water = !is_land_if_exists( e_direction::nw );
+      bool apply_sand =
+          is_land_if_exists( e_direction::se ) && open_water;
       switch( to_mask( left_open, top_open ) ) {
         case 0b00:
           // left closed, top closed.
@@ -670,6 +693,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_left_up_c_c;
           border_tile = e_tile::terrain_border_left_up_c_c;
           surf_tile   = e_tile::terrain_surf_left_up_c_c;
+          sand_tile   = e_tile::terrain_sand_left_up_c_c;
           break;
         case 0b01:
           // left closed, top open.
@@ -677,6 +701,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_left_up_c_o;
           border_tile = e_tile::terrain_border_left_up_c_o;
           surf_tile   = e_tile::terrain_surf_left_up_c_o;
+          sand_tile   = e_tile::terrain_sand_left_up_c_o;
           break;
         case 0b10:
           // left open, top closed.
@@ -684,6 +709,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_left_up_o_c;
           border_tile = e_tile::terrain_border_left_up_o_c;
           surf_tile   = e_tile::terrain_surf_left_up_o_c;
+          sand_tile   = e_tile::terrain_sand_left_up_o_c;
           break;
         case 0b11:
           // left open, top open.
@@ -691,9 +717,12 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_left_up_o_o;
           border_tile = e_tile::terrain_border_left_up_o_o;
           surf_tile   = e_tile::terrain_surf_left_up_o_o;
+          sand_tile   = e_tile::terrain_sand_left_up_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
+      if( !apply_sand ) sand_tile.reset();
+      if( !open_water ) surf_tile.reset();
       break;
     }
     case 0b1100: {
@@ -701,6 +730,9 @@ void render_terrain_ocean_square(
       DCHECK( down.has_value() );
       bool up_open    = is_land_if_exists( e_direction::nw );
       bool right_open = is_land_if_exists( e_direction::se );
+      bool open_water = !is_land_if_exists( e_direction::ne );
+      bool apply_sand =
+          is_land_if_exists( e_direction::sw ) && open_water;
       switch( to_mask( up_open, right_open ) ) {
         case 0b00:
           // up closed, right closed.
@@ -708,6 +740,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_up_right_c_c;
           border_tile = e_tile::terrain_border_up_right_c_c;
           surf_tile   = e_tile::terrain_surf_up_right_c_c;
+          sand_tile   = e_tile::terrain_sand_up_right_c_c;
           break;
         case 0b01:
           // up closed, right open.
@@ -715,6 +748,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_up_right_c_o;
           border_tile = e_tile::terrain_border_up_right_c_o;
           surf_tile   = e_tile::terrain_surf_up_right_c_o;
+          sand_tile   = e_tile::terrain_sand_up_right_c_o;
           break;
         case 0b10:
           // up open, right closed.
@@ -722,6 +756,7 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_up_right_o_c;
           border_tile = e_tile::terrain_border_up_right_o_c;
           surf_tile   = e_tile::terrain_surf_up_right_o_c;
+          sand_tile   = e_tile::terrain_sand_up_right_o_c;
           break;
         case 0b11:
           // up open, right open.
@@ -729,9 +764,12 @@ void render_terrain_ocean_square(
           beach_tile  = e_tile::terrain_beach_up_right_o_o;
           border_tile = e_tile::terrain_border_up_right_o_o;
           surf_tile   = e_tile::terrain_surf_up_right_o_o;
+          sand_tile   = e_tile::terrain_sand_up_right_o_o;
           break;
         default: SHOULD_NOT_BE_HERE;
       }
+      if( !apply_sand ) sand_tile.reset();
+      if( !open_water ) surf_tile.reset();
       break;
     }
     case 0b1010: {
@@ -1066,6 +1104,14 @@ void render_terrain_ocean_square(
     render_sprite( painter, where, *surf_tile );
   }
 
+  // It's ok to draw canals after this because this won't be on a
+  // tile with canals.
+  if( sand_tile.has_value() ) {
+    SCOPED_RENDERER_MOD( painter_mods.alpha, .9 );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, where, *sand_tile );
+  }
+
   // Render canals.
   if( up_left.has_value() &&
       up_left->surface == e_surface::water &&
@@ -1173,6 +1219,10 @@ namespace {
 LUA_FN( toggle_grid, void ) {
   g_show_grid = !g_show_grid;
   lg.debug( "terrain grid is {}.", g_show_grid ? "on" : "off" );
+  MapUpdater map_updater(
+      GameState::terrain(),
+      global_renderer_use_only_when_needed() );
+  map_updater.just_redraw_map();
 }
 
 LUA_FN( set_tile_chop_multiplier, void, double mult ) {
