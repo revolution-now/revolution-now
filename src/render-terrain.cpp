@@ -116,13 +116,134 @@ maybe<e_ground_terrain> ground_terrain_for_square(
   return nothing;
 }
 
+void render_forest( TerrainState const& terrain_state,
+                    rr::Painter& painter, Coord where,
+                    Coord world_square ) {
+  maybe<MapSquare const&> here =
+      terrain_state.maybe_square_at( world_square );
+  DCHECK( here.has_value() );
+  DCHECK( here->surface == e_surface::land );
+  if( here->ground == e_ground_terrain::desert ) {
+    render_sprite( painter, where,
+                   e_tile::terrain_forest_scrub_island );
+    return;
+  }
+
+  // Returns true if the the tile exists, it is land, it is
+  // non-desert, and it has a forest.
+  auto is_forest = [&]( e_direction d ) {
+    maybe<MapSquare const&> s =
+        terrain_state.maybe_square_at( world_square.moved( d ) );
+    return s.has_value() && s->surface == e_surface::land &&
+           s->overlay == e_land_overlay::forest &&
+           s->ground != e_ground_terrain::desert;
+  };
+
+  bool has_left  = is_forest( e_direction::w );
+  bool has_up    = is_forest( e_direction::n );
+  bool has_right = is_forest( e_direction::e );
+  bool has_down  = is_forest( e_direction::s );
+
+  // 0000abcd:
+  // a=forest up, b=forest right, c=forest down, d=forest left.
+  int mask = ( has_up ? ( 1 << 3 ) : 0 ) |
+             ( has_right ? ( 1 << 2 ) : 0 ) |
+             ( has_down ? ( 1 << 1 ) : 0 ) |
+             ( has_left ? ( 1 << 0 ) : 0 );
+
+  e_tile forest_tile = {};
+
+  switch( mask ) {
+    case 0b0001: {
+      // forest on left.
+      forest_tile = e_tile::terrain_forest_left;
+      break;
+    }
+    case 0b1000: {
+      // forest on top.
+      forest_tile = e_tile::terrain_forest_up;
+      break;
+    }
+    case 0b0100: {
+      // forest on right.
+      forest_tile = e_tile::terrain_forest_right;
+      break;
+    }
+    case 0b0010: {
+      // forest on bottom.
+      forest_tile = e_tile::terrain_forest_down;
+      break;
+    }
+    case 0b1001: {
+      // forest on left and top.
+      forest_tile = e_tile::terrain_forest_left_up;
+      break;
+    }
+    case 0b1100: {
+      // forest on top and right.
+      forest_tile = e_tile::terrain_forest_up_right;
+      break;
+    }
+    case 0b0110: {
+      // forest on right and bottom.
+      forest_tile = e_tile::terrain_forest_right_down;
+      break;
+    }
+    case 0b0011: {
+      // forest on bottom and left.
+      forest_tile = e_tile::terrain_forest_down_left;
+      break;
+    }
+    case 0b0101: {
+      // forest on left and right.
+      forest_tile = e_tile::terrain_forest_left_right;
+      break;
+    }
+    case 0b1010: {
+      // forest on top and bottom.
+      forest_tile = e_tile::terrain_forest_up_down;
+      break;
+    }
+    case 0b0111: {
+      // forest on right, bottom, left.
+      forest_tile = e_tile::terrain_forest_right_down_left;
+      break;
+    }
+    case 0b1011: {
+      // forest on bottom, left, top.
+      forest_tile = e_tile::terrain_forest_down_left_up;
+      break;
+    }
+    case 0b1101: {
+      // forest on left, top, right.
+      forest_tile = e_tile::terrain_forest_left_up_right;
+      break;
+    }
+    case 0b1110: {
+      // forest on top, right, bottom.
+      forest_tile = e_tile::terrain_forest_up_right_down;
+      break;
+    }
+    case 0b1111:
+      // forest on all sides.
+      forest_tile = e_tile::terrain_forest_all;
+      break;
+    case 0b0000:
+      // forest on no sides.
+      forest_tile = e_tile::terrain_forest_island;
+      break;
+    default: {
+      FATAL( "invalid forest mask: {}", mask );
+    }
+  }
+  render_sprite( painter, where, forest_tile );
+}
+
 e_tile overlay_tile( MapSquare const& square ) {
   DCHECK( square.overlay.has_value() );
   switch( *square.overlay ) {
     case e_land_overlay::forest: {
-      if( square.ground == e_ground_terrain::desert )
-        return e_tile::terrain_forest_scrub_island;
-      return e_tile::terrain_forest_island;
+      SHOULD_NOT_BE_HERE;
     }
     case e_land_overlay::hills:
       return e_tile::terrain_hills_island;
@@ -330,7 +451,9 @@ void render_terrain_land_square(
   DCHECK( square.surface == e_surface::land );
   render_terrain_ground( terrain_state, painter, renderer, where,
                          world_square, square.ground );
-  if( square.overlay.has_value() ) {
+  if( square.overlay == e_land_overlay::forest ) {
+    render_forest( terrain_state, painter, where, world_square );
+  } else if( square.overlay.has_value() ) {
     e_tile overlay = overlay_tile( square );
     render_sprite( painter, where, overlay );
   }

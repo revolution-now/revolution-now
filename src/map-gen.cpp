@@ -15,6 +15,7 @@
 #include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+#include "rand.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -31,7 +32,8 @@ namespace rn {
 
 namespace {
 
-inline constexpr auto world_size = Delta{ 200_w, 200_h };
+// inline constexpr auto world_size = Delta{ 200_w, 200_h };
+inline constexpr auto world_size = Delta{ 58_w, 72_h };
 
 MapSquare make_land_square() {
   return map_square_for_terrain( e_terrain::grassland );
@@ -51,6 +53,16 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
   for( auto const& coord : world_map.rect() )
     world_map[coord] = O;
 
+  for( auto const& coord : world_map.rect() ) {
+    if( rng::flip_coin() ) continue;
+    world_map[coord]        = L;
+    world_map[coord].ground = rng::pick_one<e_ground_terrain>();
+    if( rng::flip_coin() )
+      world_map[coord].overlay = e_land_overlay::forest;
+    if( rng::flip_coin() )
+      world_map[coord].overlay = e_land_overlay::forest;
+  }
+
   for( Y y = 0_y; y < world_map.rect().bottom_edge(); ++y )
     world_map[Coord( y, 0_x )].sea_lane = true;
 
@@ -66,10 +78,10 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
   make_squares( { 1_x, 1_y } );
   make_squares( { 20_x, 10_y } );
   make_squares( { 10_x, 30_y } );
-  make_squares( { 70_x, 30_y } );
-  make_squares( { 60_x, 10_y } );
-  make_squares( { 40_x, 40_y } );
-  make_squares( { 100_x, 25_y } );
+  // make_squares( { 70_x, 30_y } );
+  // make_squares( { 60_x, 10_y } );
+  // make_squares( { 40_x, 40_y } );
+  // make_squares( { 100_x, 25_y } );
 
   // FIXME find a better way to do this.
   LandViewState& land_view_state = GameState::land_view();

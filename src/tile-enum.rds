@@ -313,12 +313,28 @@ enum.e_tile {
   # Currently the "scrub" forest (i.e., the "forest" in the de-
   # sert) is the only one that gets its own rendering. All the
   # others just use the same generic forest tile.
-  #
-  # Separately, both of these forest tiles will eventually need
-  # to have multiple versions for edges and corners, but for now
-  # we just have an island version of each.
-  terrain_forest_island,
   terrain_forest_scrub_island,
+
+  terrain_forest_island,
+  terrain_forest_all,
+
+  terrain_forest_left,
+  terrain_forest_up,
+  terrain_forest_right,
+  terrain_forest_down,
+
+  terrain_forest_left_up,
+  terrain_forest_up_right,
+  terrain_forest_right_down,
+  terrain_forest_down_left,
+
+  terrain_forest_left_right,
+  terrain_forest_up_down,
+
+  terrain_forest_left_up_right,
+  terrain_forest_up_right_down,
+  terrain_forest_right_down_left,
+  terrain_forest_down_left_up,
 
   # =============================================================
   # Info Panel
