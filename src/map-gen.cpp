@@ -99,7 +99,15 @@ void ascii_map_gen() {
   TerrainState&          terrain_state = GameState::terrain();
   NonRenderingMapUpdater map_updater( terrain_state );
   generate_terrain( map_updater );
+  auto bar = [] {
+    fmt::print( "+" );
+    for( X x = 0_x; x < 0_x + world_size.w; ++x )
+      fmt::print( "-" );
+    fmt::print( "+\n" );
+  };
+  bar();
   for( Y y = 0_y; y < 0_y + world_size.h; y += 2_h ) {
+    fmt::print( "|" );
     for( X x = 0_x; x < 0_x + world_size.w; ++x ) {
       bool land_top =
           ( terrain_state.world_map()[y][x].surface ==
@@ -119,8 +127,9 @@ void ascii_map_gen() {
       }
       fmt::print( "{}", c );
     }
-    fmt::print( "\n" );
+    fmt::print( "|\n" );
   }
+  bar();
 }
 
 void linker_dont_discard_module_map_gen() {}

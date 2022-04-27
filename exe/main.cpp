@@ -47,6 +47,7 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Game ]" );
       frame_loop( revolution_now(), renderer() );
+      print_bar( '-', "[ Shutting Down ]" );
       break;
     }
     case e_mode::map_editor: {
@@ -105,7 +106,6 @@ int main( int argc, char** argv ) {
     run( mode );
   } catch( exception_exit const& ) {}
   hide_window();
-  print_bar( '-', "[ Shutting Down ]" );
   run_all_cleanup_routines();
   return 0;
 }
