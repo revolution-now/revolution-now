@@ -95,6 +95,34 @@ void generate_terrain( IMapUpdater& map_updater ) {
   map_updater.modify_entire_map( generate_terrain_impl );
 }
 
+void ascii_map_gen() {
+  TerrainState&          terrain_state = GameState::terrain();
+  NonRenderingMapUpdater map_updater( terrain_state );
+  generate_terrain( map_updater );
+  for( Y y = 0_y; y < 0_y + world_size.h; y += 2_h ) {
+    for( X x = 0_x; x < 0_x + world_size.w; ++x ) {
+      bool land_top =
+          ( terrain_state.world_map()[y][x].surface ==
+            e_surface::land );
+      bool land_bottom =
+          ( terrain_state.world_map()[y + 1_h][x].surface ==
+            e_surface::land );
+      int mask = ( ( land_top ? 1 : 0 ) << 1 ) |
+                 ( land_bottom ? 1 : 0 );
+      string c = " ";
+      switch( mask ) {
+        case 0b00: c = " "; break;
+        case 0b01: c = "▄"; break;
+        case 0b10: c = "▀"; break;
+        case 0b11: c = "█"; break;
+        default: SHOULD_NOT_BE_HERE;
+      }
+      fmt::print( "{}", c );
+    }
+    fmt::print( "\n" );
+  }
+}
+
 void linker_dont_discard_module_map_gen() {}
 
 /****************************************************************

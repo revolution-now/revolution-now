@@ -6,6 +6,7 @@
 #include "lua-ui.hpp"
 #include "lua.hpp"
 #include "map-edit.hpp"
+#include "map-gen.hpp"
 #include "open-gl-test.hpp"
 #include "renderer.hpp"
 #include "screen.hpp"
@@ -26,6 +27,16 @@ namespace rn {
 
 wait<> test_ui() { return make_wait<>(); }
 wait<> test_lua_ui() { return rn::lua_ui_test(); }
+
+void run_map_gen_loop() {
+  while( true ) {
+    ascii_map_gen();
+    fmt::print( "Press enter to regenerate...\n" );
+    string s;
+    cin >> s;
+    if( s == "q" || s == "quit" ) break;
+  }
+}
 
 rr::Renderer& renderer() {
   // This should be the only place where this function is called,
@@ -53,6 +64,14 @@ void run( e_mode mode ) {
       print_bar( '-', "[ Starting Map Editor ]" );
       MapUpdater map_updater( GameState::terrain(), renderer() );
       frame_loop( map_editor( map_updater ), renderer() );
+      break;
+    }
+    case e_mode::map_gen: {
+      run_all_init_routines(
+          e_log_level::debug,
+          { e_init_routine::configs, e_init_routine::lua,
+            e_init_routine::rng } );
+      run_map_gen_loop();
       break;
     }
     case e_mode::test_ui: {

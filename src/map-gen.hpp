@@ -20,6 +20,8 @@ namespace rn {
 
 void generate_terrain( IMapUpdater& map_updater );
 
+void ascii_map_gen();
+
 void linker_dont_discard_module_map_gen();
 
 } // namespace rn

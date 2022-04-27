@@ -13,6 +13,7 @@ namespace "rn"
 enum.e_mode {
   game,
   map_editor,
+  map_gen,
   test_ui,
   test_lua_ui,
   gl_test
