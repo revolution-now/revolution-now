@@ -28,16 +28,6 @@ namespace rn {
 wait<> test_ui() { return make_wait<>(); }
 wait<> test_lua_ui() { return rn::lua_ui_test(); }
 
-void run_map_gen_loop() {
-  while( true ) {
-    ascii_map_gen();
-    fmt::print( "Press enter to regenerate...\n" );
-    string s;
-    cin >> s;
-    if( s == "q" || s == "quit" ) break;
-  }
-}
-
 rr::Renderer& renderer() {
   // This should be the only place where this function is called,
   // save for one or two other (hopefully temporary) hacks.
@@ -68,10 +58,10 @@ void run( e_mode mode ) {
     }
     case e_mode::map_gen: {
       run_all_init_routines(
-          e_log_level::debug,
+          e_log_level::warn,
           { e_init_routine::configs, e_init_routine::lua,
             e_init_routine::rng } );
-      run_map_gen_loop();
+      ascii_map_gen();
       break;
     }
     case e_mode::test_ui: {
