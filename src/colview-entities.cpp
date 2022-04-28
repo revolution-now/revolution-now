@@ -33,8 +33,8 @@
 // Rds
 #include "gs-events.rds.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/units.inl"
+// Config
+#include "config/units.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

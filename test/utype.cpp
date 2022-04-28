@@ -18,8 +18,8 @@
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/units.inl"
+// Config
+#include "config/units.rds.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

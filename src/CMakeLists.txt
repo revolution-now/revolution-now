@@ -33,6 +33,7 @@ add_rn_library(
   midifile
   rn-base
   rn-cdr
+  rn-config
   rn-gfx
   rn-gl
   rn-rcl

@@ -12,7 +12,6 @@
 #include "rcl/sound.inl"
 #include "rcl/terrain.inl"
 #include "rcl/ui.inl"
-#include "rcl/units.inl"
 
 #undef TILE_SHEET_INL
 #undef FONT_INL
@@ -26,4 +25,3 @@
 #undef SOUND_INL
 #undef TERRAIN_INL
 #undef UI_INL
-#undef UNITS_INL

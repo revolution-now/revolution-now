@@ -16,8 +16,8 @@
 #include "config-files.hpp"
 #include "lua.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/units.inl"
+// Config
+#include "config/units.rds.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
