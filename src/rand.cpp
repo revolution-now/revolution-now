@@ -70,6 +70,12 @@ int between( int lower, int upper, e_interval type ) {
   return uniform_dist( engine() );
 }
 
+int random_int() {
+  return between( numeric_limits<int>::min(),
+                  numeric_limits<int>::max(),
+                  e_interval::closed );
+}
+
 void reseed( uint32_t seed ) {
   CHECK( maybe_engine().has_value(),
          "engine has not been seeded for the first time." );

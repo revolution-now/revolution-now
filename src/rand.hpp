@@ -44,6 +44,9 @@ enum class e_interval { half_open, closed };
 // then lower must be < upper.
 int between( int lower, int upper, e_interval type );
 
+// Could be negative.
+int random_int();
+
 // Given a reflected enum type it will return a random value out
 // of all the possible values.
 template<typename Enum>
