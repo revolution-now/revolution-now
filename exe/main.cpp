@@ -62,6 +62,9 @@ void run( e_mode mode ) {
           e_log_level::warn,
           { e_init_routine::configs, e_init_routine::lua,
             e_init_routine::rng } );
+      lua_reload();
+      NonRenderingMapUpdater map_updater( GameState::terrain() );
+      run_lua_startup_main( map_updater );
       ascii_map_gen();
       break;
     }

@@ -147,6 +147,9 @@ LUA_FN( generate_terrain, void ) {
 
 LUA_FN( at, MapSquare&, Coord tile ) {
   TerrainState& terrain_state = GameState::terrain();
+  // FIXME: this generates a formatting error because `tile` for-
+  // mats into a string with curly braces which somehow need to
+  // be escaped.
   LUA_CHECK( st, terrain_state.square_exists( tile ),
              "There is no tile at coordinate {}.", tile );
   return terrain_state.mutable_square_at( tile );

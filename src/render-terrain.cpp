@@ -1317,16 +1317,14 @@ void render_terrain( TerrainState const& terrain_state,
       rr::e_render_target_buffer::landscape;
   renderer.clear_buffer( kLandscapeBuf );
   SCOPED_RENDERER_MOD( buffer_mods.buffer, kLandscapeBuf );
-  lg.info( "proceeding to render landscape." );
   auto start_time = chrono::system_clock::now();
   for( Coord square : terrain_state.world_rect_tiles() )
     render_terrain_square( terrain_state, renderer,
                            square * g_tile_scale, square );
   auto end_time = chrono::system_clock::now();
   lg.info(
-      "finished rendering landscape.  Took {}ms with {} "
-      "vertices, occupying "
-      "{:.2f} MB.",
+      "rendered landscape: {}ms with {} vertices, occupying "
+      "{:.2f}MB.",
       chrono::duration_cast<chrono::milliseconds>( end_time -
                                                    start_time )
           .count(),
