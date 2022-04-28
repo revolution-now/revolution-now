@@ -229,6 +229,21 @@ void add_struct( string_view ns, string_view name,
   rds.items.push_back( std::move( item ) );
 }
 
+/****************************************************************
+** Config
+*****************************************************************/
+void add_config( string_view ns, string_view name,
+                 expr::Rds& rds ) {
+  expr::Item item;
+  item.ns = ns;
+
+  expr::Config config;
+  config.name = name;
+
+  item.constructs.push_back( std::move( config ) );
+  rds.items.push_back( std::move( item ) );
+}
+
 } // namespace
 
 /****************************************************************
@@ -264,6 +279,8 @@ expr::Rds parse( string_view filename,
       add_sumtype( ns, name, obj, rds );
     else if( type == "struct" )
       add_struct( ns, name, obj, rds );
+    else if( type == "config" )
+      add_config( ns, name, rds );
     else {
       FATAL( "unknown type: {}", type );
     }

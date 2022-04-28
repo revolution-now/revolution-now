@@ -16,6 +16,9 @@
 #include "init.hpp"
 #include "logger.hpp"
 
+// config
+#include "config/gfx.rds.hpp"
+
 // Revolution Now (config)
 #include "../config/rcl/rn.inl" // FIXME
 
@@ -179,7 +182,7 @@ gfx::pixel from_SDL( ::SDL_Color color ) {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
-  bool wait_for_vsync = config_rn.wait_for_vsync;
+  bool wait_for_vsync = config_gfx.wait_for_vsync;
 
   if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
     lg.warn( "setting swap interval is not supported." );

@@ -57,6 +57,13 @@ struct Sumtype {
 };
 
 /****************************************************************
+** config
+*****************************************************************/
+struct Config {
+  std::string name;
+};
+
+/****************************************************************
 ** enum
 *****************************************************************/
 struct Enum {
@@ -82,7 +89,8 @@ struct Struct {
 using Construct = base::variant< //
     Enum,                        //
     Sumtype,                     //
-    Struct                       //
+    Struct,                      //
+    Config                       //
     >;
 
 std::string to_str( Construct const& construct,

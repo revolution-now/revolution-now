@@ -1,0 +1,26 @@
+# ===============================================================
+# gfx.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-04-28.
+#
+# Description: General graphics-related config info.
+#
+# ===============================================================
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
+namespace "rn"
+
+struct.config_gfx_t {
+  # The game will attempt to maintain a frame rate no higher than
+  # this value, though it could be lower if the engine or machine
+  # cannot keep up.
+  target_frame_rate 'int',
+
+  # This will sync frame updates with the monitors update cycles.
+  wait_for_vsync 'bool',
+}
+
+config.gfx {}

@@ -28,6 +28,9 @@
 #include "time.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/gfx.rds.hpp"
+
 // Revolution Now (config)
 #include "../config/rcl/rn.inl"
 
@@ -267,7 +270,7 @@ uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( wait<> const& what, rr::Renderer& renderer ) {
-  g_target_fps = config_rn.target_frame_rate;
+  g_target_fps = config_gfx.target_frame_rate;
   frame_loop_scheduler( what, renderer, frame_loop_body );
   deinit_frame();
 }

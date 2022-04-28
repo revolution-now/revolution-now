@@ -642,5 +642,9 @@ TEST_CASE( "[rds] equality_comparable" ) {
       equality_comparable<test::MyTemplateStruct<int, int>> );
 }
 
+TEST_CASE( "[rds] config" ) {
+  REQUIRE( test::config_testing.some_field == 5 );
+}
+
 } // namespace
 } // namespace rn

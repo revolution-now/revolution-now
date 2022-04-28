@@ -11,6 +11,7 @@ add_subdirectory( gfx )
 add_subdirectory( cdr )
 add_subdirectory( refl )
 add_subdirectory( render )
+add_subdirectory( config )
 
 # === this directory ==============================================
 
@@ -38,6 +39,7 @@ add_rn_library(
   rn-luapp
   rn-refl
   rn-render
+  rn-rds-util
   rn-stb
   rtmidi
   Threads::Threads

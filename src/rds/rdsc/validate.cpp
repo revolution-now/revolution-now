@@ -65,6 +65,16 @@ struct Validator {
     perform_on_item_type<expr::Sumtype>(
         rds, LC( validate_sumtype( _ ) ) );
   }
+
+  void validate_configs( expr::Rds const& rds ) {
+    int config_count = 0;
+    perform_on_item_type<expr::Config>(
+        rds, [&]( expr::Config const& ) { ++config_count; } );
+    if( config_count > 1 )
+      error(
+          "at most one config instantiation is allowed per Rds "
+          "file." );
+  }
 };
 
 } // namespace
@@ -72,6 +82,7 @@ struct Validator {
 vector<string> validate( expr::Rds const& rds ) {
   Validator validator;
   validator.validate_sumtypes( rds );
+  validator.validate_configs( rds );
   return move( validator.errors_ );
 }
 

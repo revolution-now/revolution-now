@@ -36,6 +36,7 @@ end
 local cmd = {
   include=function( what ) push( rds.includes, what ) end,
   namespace=function( what ) ns = what end,
+  config=tbl_keyword( 'config' ),
   sumtype=tbl_keyword( 'sumtype' ),
   enum=tbl_keyword( 'enum' ),
   struct=tbl_keyword( 'struct' )

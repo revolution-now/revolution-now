@@ -11,6 +11,9 @@
 # Revolution Now
 include "maybe.hpp"
 
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
 # C++ standard library
 include "<string>"
 include "<vector>"
@@ -210,3 +213,9 @@ struct.MyTemplateStruct {
   yyy 'double',
   zzz_map 'std::unordered_map<std::string, U>',
 }
+
+struct.config_testing_t {
+  some_field 'int',
+}
+
+config.testing {}

@@ -6,6 +6,7 @@
 *****************************************************************/
 // Includes specified in rds file.
 #include "maybe.hpp"
+#include "cdr/ext-builtin.hpp"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -18,6 +19,9 @@
 
 // base
 #include "base/variant.hpp"
+// Rds helpers.
+#include "rds/config-helper.hpp"
+
 
 // C++ standard library
 #include <array>
@@ -1364,3 +1368,57 @@ namespace refl {
   };
 
 } // namespace refl
+
+/****************************************************************
+*                   Struct: config_testing_t
+*****************************************************************/
+namespace rn::test {
+
+  struct config_testing_t {
+    int some_field = {};
+
+    bool operator==( config_testing_t const& ) const = default;
+  };
+
+} // namespace rn::test
+
+namespace refl {
+
+  // Reflection info for struct config_testing_t.
+  template<>
+  struct traits<rn::test::config_testing_t> {
+    using type = rn::test::config_testing_t;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn::test";
+    static constexpr std::string_view name = "config_testing_t";
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "some_field", &rn::test::config_testing_t::some_field, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                        Config: testing
+*****************************************************************/
+namespace rn::test {
+
+  namespace detail {
+
+    inline config_testing_t __config_testing = {};
+
+  } // namespace detail
+
+  inline config_testing_t const& config_testing = detail::__config_testing;
+
+} // namespace rn::test
+
+namespace rds::detail {
+
+  inline auto __config_testing_registration = register_config( "testing", &rn::test::detail::__config_testing );
+
+} // namespace rds::detail

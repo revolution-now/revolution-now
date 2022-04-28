@@ -19,7 +19,7 @@ local print_sumtype = function( name, tbl )
         print( '    ' .. var().name .. ',' )
       else
         -- Normal alternative.
-        print( '    ' .. var.name .. " '" .. var.obj .. "'," )
+        print( '    ' .. var.name .. ' \'' .. var.obj .. '\',' )
       end
     end
     print( '  },' )
@@ -37,10 +37,14 @@ end
 
 local print_struct = function( name, tbl )
   print( 'struct.' .. name .. ' {' )
-    for _, var_tbl in ipairs( tbl ) do
-      print( '  ' .. var_tbl.name .. " '" .. var_tbl.obj .. "'," )
-    end
+  for _, var_tbl in ipairs( tbl ) do
+    print( '  ' .. var_tbl.name .. ' \'' .. var_tbl.obj .. '\',' )
+  end
   print( '}' )
+end
+
+local print_config = function( name, tbl )
+  print( 'config.' .. name .. ' {}' )
 end
 
 local print_namespace = function( name )
@@ -52,15 +56,14 @@ local print_include = function( name )
 end
 
 local printers = {
-  sumtype = print_sumtype,
-  enum = print_enum,
-  struct = print_struct,
+  sumtype=print_sumtype,
+  enum=print_enum,
+  struct=print_struct,
+  config=print_config
 }
 
 function print_rds()
-  for _, item in ipairs( rds.includes ) do
-    print_include( item )
-  end
+  for _, item in ipairs( rds.includes ) do print_include( item ) end
   local ns
   for _, item in ipairs( rds.items ) do
     if ns ~= item.ns then

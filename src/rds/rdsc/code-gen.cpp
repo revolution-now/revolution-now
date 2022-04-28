@@ -580,6 +580,31 @@ struct CodeGenerator {
     }
   }
 
+  void emit( string_view ns, expr::Config const& config ) {
+    string_view name = config.name;
+    section( "Config: "s + config.name );
+    open_ns( ns );
+    open_ns( "detail" );
+    line( "inline config_{}_t __config_{} = {{}};", name, name );
+    newline();
+    close_ns( "detail" );
+    newline();
+    line(
+        "inline config_{}_t const& config_{} = "
+        "detail::__config_{};",
+        name, name, name );
+    newline();
+    close_ns( ns );
+    newline();
+    open_ns( "rds::detail" );
+    line(
+        "inline auto __config_{}_registration = "
+        "register_config( \"{}\", &{}::detail::__config_{} );",
+        name, name, ns, name );
+    newline();
+    close_ns( "rds::detail" );
+  }
+
   void emit_item( expr::Item const& item ) {
     string cpp_ns =
         absl::StrReplaceAll( item.ns, { { ".", "::" } } );
@@ -612,43 +637,15 @@ struct CodeGenerator {
     return false;
   }
 
-  bool rds_has_struct( expr::Rds const& rds ) {
+  template<typename T>
+  bool rds_has_construct( expr::Rds const& rds ) {
     for( expr::Item const& item : rds.items ) {
       for( expr::Construct const& construct : item.constructs ) {
-        bool has_struct = visit(
-            mp::overload{
-                [&]( expr::Struct const& ) { return true; },
-                []( auto const& ) { return false; } },
+        bool has_construct = visit(
+            mp::overload{ [&]( T const& ) { return true; },
+                          []( auto const& ) { return false; } },
             construct );
-        if( has_struct ) return true;
-      }
-    }
-    return false;
-  }
-
-  bool rds_has_sumtype( expr::Rds const& rds ) {
-    for( expr::Item const& item : rds.items ) {
-      for( expr::Construct const& construct : item.constructs ) {
-        bool has_sumtype = visit(
-            mp::overload{
-                [&]( expr::Sumtype const& ) { return true; },
-                []( auto const& ) { return false; } },
-            construct );
-        if( has_sumtype ) return true;
-      }
-    }
-    return false;
-  }
-
-  bool rds_has_enum( expr::Rds const& rds ) {
-    for( expr::Item const& item : rds.items ) {
-      for( expr::Construct const& construct : item.constructs ) {
-        bool has_enum =
-            visit( mp::overload{
-                       [&]( expr::Enum const& ) { return true; },
-                       []( auto const& ) { return false; } },
-                   construct );
-        if( has_enum ) return true;
+        if( has_construct ) return true;
       }
     }
     return false;
@@ -669,18 +666,27 @@ struct CodeGenerator {
     comment( "refl" );
     line( "#include \"refl/ext.hpp\"" );
     line( "" );
-    if( rds_has_sumtype( rds ) ) {
+    if( rds_has_construct<expr::Sumtype>( rds ) ) {
       comment( "base" );
       line( "#include \"base/variant.hpp\"" );
     }
+
+    if( rds_has_construct<expr::Config>( rds ) ) {
+      comment( "Rds helpers." );
+      line( "#include \"rds/config-helper.hpp\"" );
+      line( "" );
+    }
+
     // line( "" );
     // comment( "base-util" );
     // line( "#include \"base-util/mp.hpp\"" );
     line( "" );
     comment( "C++ standard library" );
-    if( rds_has_enum( rds ) ) line( "#include <array>" );
+    if( rds_has_construct<expr::Enum>( rds ) )
+      line( "#include <array>" );
     line( "#include <string_view>" );
-    if( rds_has_struct( rds ) ) line( "#include <tuple>" );
+    if( rds_has_construct<expr::Struct>( rds ) )
+      line( "#include <tuple>" );
     newline();
   }
 

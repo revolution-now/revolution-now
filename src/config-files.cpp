@@ -44,6 +44,9 @@
 // Revolution Now (config inl files)
 #include "../config/all-rcl.inl"
 
+// rds
+#include "rds/config-helper.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
@@ -258,6 +261,17 @@ vector<string> get_all_unused_fields( string const&     file,
 }
 
 void init_configs() {
+  rds::PopulatorsMap const& populators =
+      rds::config_populators();
+  for( auto const& [name, populator] : populators ) {
+    string file = config_file_for_name( name );
+    replace( file.begin(), file.end(), '_', '-' );
+    base::expect<rcl::doc> doc = rcl::parse_file( file );
+    CHECK( doc, "failed to load {}: {}", file, doc.error() );
+    lg.debug( "running config populator for {}.", name );
+    CHECK_HAS_VALUE( populator( doc->top_val() ) );
+  }
+
   lg.info( "reading config files." );
   for( auto const& f : load_functions() ) f();
   for( auto [rcl_name, file] : config_files() ) {
@@ -283,6 +297,7 @@ void init_configs() {
   }
   // Make sure this can load.
   (void)g_palette();
+
   // Should be last.
   g_configs_loaded = true;
 }

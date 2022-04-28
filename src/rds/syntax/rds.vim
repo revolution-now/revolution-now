@@ -158,3 +158,16 @@ hi def link  rdsStructFeaturesListItem    Tag
 hi def link  rdsStructTemplate            Keyword
 hi def link  rdsStructTemplateListItemErr Error
 hi def link  rdsStructTemplateListItem    Tag
+
+" ===============================================================
+" Config
+" ===============================================================
+syn keyword  rdsConfigKeyword config nextgroup=rdsConfigDot skipwhite skipempty
+
+syn match    rdsConfigDot '\.' nextgroup=rdsConfigName
+syn match    rdsConfigName '[a-zA-Z_][a-zA-Z0-9_]\+' nextgroup=rdsConfigTableBlock skipwhite skipempty
+syn region   rdsConfigTableBlock start='{' end='}' contained fold
+
+hi def link  rdsConfigKeyword                Keyword
+hi def link  rdsConfigDot                    Comment
+hi def link  rdsConfigName                   None
