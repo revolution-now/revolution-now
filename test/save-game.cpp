@@ -17,6 +17,7 @@
 #include "src/game-state.hpp"
 #include "src/gs-top.hpp"
 #include "src/lua.hpp"
+#include "src/rand.hpp"
 
 // base
 #include "base/io.hpp"
@@ -51,6 +52,7 @@ void print_line( string_view what ) {
 
 void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
+  rng::reseed( 0 );
   default_construct_game_state();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
@@ -137,10 +139,12 @@ TEST_CASE( "[save-game] default values (full)" ) {
 }
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
+  rng::reseed( 0 );
   default_construct_game_state();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
+  rng::reseed( 0 );
   default_construct_game_state();
   run_lua_startup_main( map_updater );
 
@@ -166,10 +170,12 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
+  rng::reseed( 0 );
   default_construct_game_state();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
+  rng::reseed( 0 );
   default_construct_game_state();
   run_lua_startup_main( map_updater );
 
