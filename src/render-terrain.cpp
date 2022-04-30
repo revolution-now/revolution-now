@@ -1346,6 +1346,13 @@ LUA_FN( toggle_grid, void ) {
   map_updater.just_redraw_map();
 }
 
+LUA_FN( render_terrain, void ) {
+  MapUpdater map_updater(
+      GameState::terrain(),
+      global_renderer_use_only_when_needed() );
+  map_updater.just_redraw_map();
+}
+
 LUA_FN( set_tile_chop_multiplier, void, double mult ) {
   g_tile_overlap_scaling = std::clamp( mult, 0.0, 2.0 );
   lg.debug( "setting tile overlap multiplier to {}.",

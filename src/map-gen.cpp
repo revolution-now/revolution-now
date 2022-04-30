@@ -35,57 +35,13 @@ namespace {
 // inline constexpr auto world_size = Delta{ 200_w, 200_h };
 inline constexpr auto world_size = Delta{ 58_w, 72_h };
 
-MapSquare make_land_square() {
-  return map_square_for_terrain( e_terrain::grassland );
-}
-
-MapSquare make_ocean_square() {
-  return map_square_for_terrain( e_terrain::ocean );
-}
-
 void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
-  MapSquare const L = make_land_square();
-  MapSquare const O = make_ocean_square();
-
   // FIXME
   world_map = Matrix<MapSquare>( world_size );
 
-  for( auto const& coord : world_map.rect() )
-    world_map[coord] = O;
-
-  for( auto const& coord : world_map.rect() ) {
-    if( rng::flip_coin() && rng::flip_coin() ) continue;
-    world_map[coord]        = L;
-    world_map[coord].ground = rng::pick_one<e_ground_terrain>();
-    if( rng::flip_coin() )
-      world_map[coord].overlay = e_land_overlay::forest;
-    if( rng::flip_coin() )
-      world_map[coord].overlay = e_land_overlay::forest;
-    if( rng::flip_coin() )
-      world_map[coord].overlay = e_land_overlay::forest;
-    if( rng::flip_coin() )
-      world_map[coord].overlay = e_land_overlay::forest;
-  }
-
-  for( Y y = 0_y; y < world_map.rect().bottom_edge(); ++y )
-    world_map[Coord( y, 0_x )].sea_lane = true;
-
-  auto make_squares = [&]( Coord origin ) {
-    for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
-      for( X x = origin.x; x < origin.x + 4_w; ++x )
-        world_map[y][x] = L;
-      for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
-        world_map[y][x] = L;
-    }
-  };
-
-  make_squares( { 1_x, 1_y } );
-  make_squares( { 20_x, 10_y } );
-  make_squares( { 10_x, 30_y } );
-  // make_squares( { 70_x, 30_y } );
-  // make_squares( { 60_x, 10_y } );
-  // make_squares( { 40_x, 40_y } );
-  // make_squares( { 100_x, 25_y } );
+  lua::state& st = lua_global_state();
+  st["math"]["randomseed"]( rng::random_int() );
+  st["map_gen"]["generate"]();
 
   // FIXME find a better way to do this.
   LandViewState& land_view_state = GameState::land_view();
@@ -157,6 +113,14 @@ LUA_FN( at, MapSquare&, Coord tile ) {
   LUA_CHECK( st, terrain_state.square_exists( tile ),
              "There is no tile at coordinate {}.", tile );
   return terrain_state.mutable_square_at( tile );
+}
+
+LUA_FN( world_size, lua::table ) {
+  TerrainState& terrain_state = GameState::terrain();
+  lua::table    res           = st.table.create();
+  res["w"] = terrain_state.world_map().size().w;
+  res["h"] = terrain_state.world_map().size().h;
+  return res;
 }
 
 } // namespace

@@ -7,10 +7,12 @@ let s:stems = [
  \ 'terrain',
  \ 'config-terrain',
  \ 'map-square',
- \ 'map-gen',
  \ 'map-updater',
  \ 'gs-terrain',
+ \ 'land-view',
+ \ 'map-edit',
  \ 'render-terrain',
+ \ 'map-gen',
 \]
 
 let s:luas = [
