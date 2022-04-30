@@ -54,9 +54,13 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
     world_map[coord] = O;
 
   for( auto const& coord : world_map.rect() ) {
-    if( rng::flip_coin() ) continue;
+    if( rng::flip_coin() && rng::flip_coin() ) continue;
     world_map[coord]        = L;
     world_map[coord].ground = rng::pick_one<e_ground_terrain>();
+    if( rng::flip_coin() )
+      world_map[coord].overlay = e_land_overlay::forest;
+    if( rng::flip_coin() )
+      world_map[coord].overlay = e_land_overlay::forest;
     if( rng::flip_coin() )
       world_map[coord].overlay = e_land_overlay::forest;
     if( rng::flip_coin() )
