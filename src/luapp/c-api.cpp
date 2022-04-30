@@ -848,9 +848,11 @@ lua_valid c_api::loadfile( const char* filename ) {
   int res = luaL_loadfile( L, filename );
   switch( res ) {
     case LUA_OK: return base::valid;
-    case LUA_ERRSYNTAX:
-      return lua_invalid(
-          "syntax error during precompilation." );
+    case LUA_ERRSYNTAX: {
+      string err = pop_tostring();
+      return lua_invalid( fmt::format(
+          "syntax error during precompilation: {}", err ) );
+    }
     case LUA_ERRMEM:
       return lua_invalid(
           "memory allocation (out-of-memory) error." );
