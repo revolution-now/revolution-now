@@ -246,13 +246,16 @@ function M.main()
     e.nation.french
   } )
 
-  create_some_units_in_old_world()
-  create_some_units_on_land()
-  create_some_colonies()
-  create_some_roads()
-  create_some_plows()
-  set_terrain_tiles()
-  land_view.center_on_tile{ x=23, y=15 }
+  -- create_some_units_in_old_world()
+  -- create_some_units_on_land()
+  -- create_some_colonies()
+  -- create_some_roads()
+  -- create_some_plows()
+  -- set_terrain_tiles()
+  -- land_view.center_on_tile{ x=23, y=15 }
+
+  map_gen.generate()
+  land_view.set_zoom( .17 )
 end
 
 return M
