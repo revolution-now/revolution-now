@@ -1,7 +1,6 @@
 // This file should ONLY be included by config-files.cpp.
 
 #include "rcl/tile-sheet.inl"
-#include "rcl/input.inl"
 #include "rcl/land-view.inl"
 #include "rcl/music.inl"
 #include "rcl/nation.inl"
@@ -13,7 +12,6 @@
 #include "rcl/ui.inl"
 
 #undef TILE_SHEET_INL
-#undef INPUT_INL
 #undef LAND_VIEW_INL
 #undef MUSIC_INL
 #undef NATION_INL

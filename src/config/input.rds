@@ -1,0 +1,29 @@
+# ===============================================================
+# input.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-03.
+#
+# Description: Config info for player input (keyboard, mouse).
+#
+# ===============================================================
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
+namespace "rn"
+
+struct.config_mouse {
+  drag_buffer 'int',
+}
+
+struct.config_keyboard {
+  use_capslock_as_ctrl 'bool',
+}
+
+struct.config_input_t {
+  mouse 'config_mouse',
+  keyboard 'config_keyboard',
+}
+
+config.input {}

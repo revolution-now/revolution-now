@@ -11,11 +11,13 @@
 #include "input.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "logger.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 #include "variant.hpp"
+
+// config
+#include "config/input.rds.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -24,9 +26,6 @@
 
 // Rds
 #include "input-impl.rds.hpp"
-
-// Revolution Now (config)
-#include "../config/rcl/input.inl"
 
 // SDL
 #include "SDL.h"
@@ -74,7 +73,7 @@ unordered_map<::SDL_Keycode, e_direction> nav_keys{
 
 bool is_in_drag_zone( Coord current, Coord origin ) {
   auto delta = current - origin;
-  auto buf   = config_input.controls.drag_buffer;
+  auto buf   = config_input.mouse.drag_buffer;
   return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
 }
 
