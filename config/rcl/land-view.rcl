@@ -1,4 +1,2 @@
-colonies {
-  colony_name_font: _7_12_serif_16pt
-  colony_name_offset: { w: 2, h: 33 }
-}
+colony_name_font: _7_12_serif_16pt
+colony_name_offset: { w: 2, h: 33 }

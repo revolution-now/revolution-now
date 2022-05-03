@@ -1,0 +1,30 @@
+# ===============================================================
+# land-view.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-03.
+#
+# Description: Config info for the land-view module.
+#
+# ===============================================================
+# Revolution Now
+include "font.hpp"
+include "coord.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+# include "cdr/ext-builtin.hpp"
+# include "cdr/ext-std.hpp"
+# include "cdr/ext-base.hpp"
+
+namespace "rn"
+
+struct.config_land_view_t {
+  colony_name_font 'e_font',
+  colony_name_offset 'Delta',
+}
+
+config.land_view {}

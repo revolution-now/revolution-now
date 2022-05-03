@@ -42,6 +42,9 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// config
+#include "config/land-view.rds.hpp"
+
 // render
 #include "render/renderer.hpp"
 
@@ -65,7 +68,6 @@
 #include "land-view-impl.rds.hpp"
 
 // Revolution Now (config)
-#include "../config/rcl/land-view.inl"
 #include "../config/rcl/rn.inl"
 
 // C++ standard library
@@ -266,11 +268,10 @@ struct LandViewRenderer {
       render_colony( painter, colony_sprite_upper_left,
                      *col_id );
       Coord name_coord =
-          tile_coord +
-          config_land_view.colonies.colony_name_offset;
+          tile_coord + config_land_view.colony_name_offset;
       render_text_markup(
           renderer, name_coord,
-          config_land_view.colonies.colony_name_font,
+          config_land_view.colony_name_font,
           TextMarkupInfo{
               .shadowed_text_color   = gfx::pixel::white(),
               .shadowed_shadow_color = gfx::pixel::black() },
