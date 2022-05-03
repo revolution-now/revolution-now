@@ -10,12 +10,6 @@
 *****************************************************************/
 #include "font.hpp"
 
-// Revolution Now
-#include "config-files.hpp"
-
-// Revolution Now (config)
-#include "../config/rcl/font.inl"
-
 using namespace std;
 
 namespace rn {
@@ -27,10 +21,12 @@ namespace {} // namespace
 *****************************************************************/
 namespace font {
 
-e_font standard() { return config_font.game_default; }
-e_font nat_icon() { return config_font.nat_icon; }
-e_font small() { return config_font.small_font; }
-e_font main_menu() { return config_font.main_menu; }
+// Until we add an OpenGL-compatible font system these are
+// meaningless.
+e_font standard() { return e_font::_6x6; }
+e_font nat_icon() { return e_font::_6x6; }
+e_font small() { return e_font::_6x6; }
+e_font main_menu() { return e_font::_6x6; }
 
 } // namespace font
 
