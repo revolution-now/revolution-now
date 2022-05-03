@@ -1,29 +1,60 @@
 # ===============================================================
-# TODO
+# TODOs
 # ===============================================================
+
+# Land rendering:
 
   1.  Add overlay connector tiles.
   2.  Render rivers, with color cycling.
   3.  Add color cycling to sea lane tile.
-  4.  Render natural resource tiles.
-  5.  Implement world generation.
-  6.  Implement terrain visibility.
-  7.  Implement mini map.
-  8.  Draw remainder of unit types.
-  9.  Implement colony land production.
-  10. Implement selecting colonist profession in colony view.
-  11. Implement stats in panel.
-  12. Implement gold.
-  13. Implement old world prices and price changes.
-  14. Allow purchasing things from old world.
-  15. Implement that immigrants appear on the doc.
-  16. Add basic auto unit outlining in fragment shader so that
-      the units will be visible.
-  17. Create colony building art.
-  18. Render colony buildings in colony.
-  19. Implement colony building workers.
-  20. Implement colony production (from lumber/tools).
-  21. Implement wagon train trade routes.
+  4.  Fix beach tiles.
+  5.  Consider adding connectors to diagonally adjacent forest
+      island tiles.
+  6.  Fix that colony position seems to wiggle slightly as the
+      map is scrolled.
+  7.  Render natural resource tiles and lost_city_rumor.
+  8.  Implement world generation.
+  9.  Implement terrain visibility.
+  10. On large maps the current method of updating tiles is to
+      laggy due to the time taken to upload it to the GPU, and
+      this is bad because it could happen often. To fix this,
+      split the landscape buffer into two -- the main buffer and
+      the adjunct buffer, and there will be two draw calls per
+      frame. When tiles are added they are added to the adjunct
+      buffer and so only that has to be uploaded. When the map is
+      redrawn, the adjunct buffer will be empty.
+
+# Minimap:
+
+  1. Implement mini map.
+
+# Colony land production:
+
+  1. Draw expert_farmer.
+  2. Implement colony land production.
+  3. Implement selecting colonist profession in colony view.
+
+# Side panel stats:
+
+  1. Implement stats in panel.
+
+# Old world:
+
+  1. Implement gold.
+  2. Allow purchasing things from old world.
+  3. Implement that immigrants appear on the doc.
+  4. Implement old world prices and price changes.
+  5. Add basic auto unit outlining so that the units will be vis-
+     ible. In the original game, the outline/shadow has a dif-
+     ferent color depending on context (e.g., it is black when on
+     land, but it is grey when working in a building).
+
+# Colony buildings and production:
+
+  1. Create colony building art.
+  2. Render colony buildings in colony.
+  3. Implement colony building workers.
+  4. Implement colony production (from lumber/tools).
 
 # ===============================================================
 # Global State
