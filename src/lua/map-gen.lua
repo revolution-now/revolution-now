@@ -130,7 +130,9 @@ local function forest_cover()
     for x = 0, size.w-1 do
       local square = map_gen.at( { x=x, y=y } )
       if square.surface == e.surface.land then
-        square.overlay = e.land_overlay.forest
+        if math.random( 1, 4 ) <= 3 then
+          square.overlay = e.land_overlay.forest
+        end
       end
     end
   end
