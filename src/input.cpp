@@ -391,6 +391,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
+void set_mouse_position( Coord new_pos ) {
+  new_pos.x *= g_resolution_scale_factor.sx;
+  new_pos.y *= g_resolution_scale_factor.sy;
+  // Apparently we can use nullptr for the window and it will use
+  // the "focused" one, which seems to work for us.
+  ::SDL_WarpMouseInWindow( /*window=*/nullptr, new_pos.x._,
+                           new_pos.y._ );
+}
+
 /****************************************************************
 ** SDL Event Queue
 *****************************************************************/

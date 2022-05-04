@@ -114,6 +114,13 @@ struct mouse_move_event_t : public mouse_event_base_t {
 // processing mouse positions by receiving mouse events.
 Coord current_mouse_position();
 
+// This will move the mouse to the given position in the window
+// in logical screen coordinates (those used by the game). Note
+// that it will do so by generating a mouse motion even, so the
+// mouse position won't immediately change until that event is
+// polled through the usual mechanism.
+void set_mouse_position( Coord new_pos );
+
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/
