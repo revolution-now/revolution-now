@@ -637,6 +637,8 @@ void advance_viewport_state() {
 
   viewport().advance_state( viewport_rect_pixels );
 
+  viewport().fix_zoom_rounding();
+
   // TODO: should only do the following when the viewport has
   // input focus.
   auto const* __state = ::SDL_GetKeyboardState( nullptr );

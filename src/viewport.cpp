@@ -541,6 +541,11 @@ void SmoothViewport::scale_zoom( double factor ) {
   fix_invariants();
 }
 
+void SmoothViewport::fix_zoom_rounding() {
+  o_.zoom = double( lround( o_.zoom * 1000.0 ) ) / 1000.0;
+  fix_invariants();
+}
+
 double SmoothViewport::get_zoom() const { return o_.zoom; }
 
 void SmoothViewport::pan( double down_up, double left_right,
