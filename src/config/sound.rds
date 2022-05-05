@@ -1,0 +1,47 @@
+# ===============================================================
+# sound.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-05.
+#
+# Description: Config info for sound.
+#
+# ===============================================================
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.config_sound_general {
+  channels 'int',
+  frequency 'int',
+  chunk_size 'int',
+}
+
+struct.config_sound_sfx_volume {
+    move 'int',
+    attacker_lost 'int',
+    attacker_won 'int',
+}
+
+struct.config_sound_sfx {
+  move 'std::string',
+  attacker_lost 'std::string',
+  attacker_won 'std::string',
+  volume 'config_sound_sfx_volume',
+}
+
+struct.config_sound_t {
+  general 'config_sound_general',
+  sfx 'config_sound_sfx',
+}
+
+config.sound {}

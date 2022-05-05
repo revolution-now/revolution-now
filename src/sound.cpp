@@ -11,15 +11,14 @@
 #include "sound.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/sound.inl"
+// config
+#include "config/sound.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
