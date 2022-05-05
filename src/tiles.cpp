@@ -11,13 +11,12 @@
 #include "tiles.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "renderer.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/tile-sheet.inl"
+// config
+#include "config/tile-sheet.rds.hpp"
 
 // render
 #include "render/atlas.hpp"

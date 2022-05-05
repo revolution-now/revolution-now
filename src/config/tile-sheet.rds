@@ -1,0 +1,24 @@
+# ===============================================================
+# tile-sheet.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-05.
+#
+# Description: Sprite locations.
+#
+# ===============================================================
+# Revolution Now
+include "tile-sheet.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+namespace "rn"
+
+struct.config_tile_sheet_t {
+  sheets 'TileSheetsConfig',
+}
+
+config.tile_sheet {}

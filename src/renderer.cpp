@@ -11,15 +11,14 @@
 #include "renderer.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "maybe.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/tile-sheet.inl"
+// config
+#include "config/tile-sheet.rds.hpp"
 
 // gl
 #include "gl/init.hpp"
@@ -105,6 +104,7 @@ void cleanup_renderer() {
 
 } // namespace
 
+//
 //
 REGISTER_INIT_ROUTINE( renderer );
 
