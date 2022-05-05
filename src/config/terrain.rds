@@ -13,7 +13,8 @@ include "enum-map.hpp"
 include "mv-points.hpp"
 
 # Rds
-include "terrain.rds.hpp"
+include "../terrain.rds.hpp" # Need ../ so that we don't include
+                             # ourselves.
 
 # refl
 include "refl/cdr.hpp"
@@ -42,6 +43,8 @@ struct.TerrainTypeInfo {
 
 struct.config_terrain_t {
   types 'EnumMap<e_terrain, TerrainTypeInfo>',
+
+  _features { equality, validation }
 }
 
 config.terrain {}

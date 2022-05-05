@@ -12,7 +12,8 @@
 #include "terrain.hpp"
 
 // Rds
-#include "config-terrain.rds.hpp"
+#include "../terrain.rds.hpp"
+#include "terrain.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"
@@ -74,7 +75,7 @@ base::valid_or<string> TerrainTypeInfo::validate() const {
   return base::valid;
 }
 
-base::valid_or<string> TerrainConfig::validate() const {
+base::valid_or<string> config_terrain_t::validate() const {
   // with_forest -> cleared_forest roundtrip.
   for( auto const& [terrain, info] : types ) {
     if( !info.with_forest.has_value() ) continue;
