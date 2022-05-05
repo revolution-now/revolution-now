@@ -11,7 +11,6 @@
 #include "save-game.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "game-state.hpp"
 #include "gs-terrain.hpp"
 #include "gs-top.hpp"
@@ -19,8 +18,8 @@
 #include "macros.hpp"
 #include "render-terrain.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/savegame.inl"
+// config
+#include "config/savegame.rds.hpp"
 
 // refl
 #include "refl/cdr.hpp"
