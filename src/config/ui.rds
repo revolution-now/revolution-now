@@ -1,0 +1,55 @@
+# ===============================================================
+# ui.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-05.
+#
+# Description: Config info for UI stuff.
+#
+# ===============================================================
+# Revolution Now
+include "font.hpp"
+include "typed-int.hpp"
+
+# gfx
+include "gfx/pixel.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
+namespace "rn"
+
+struct.config_ui_window {
+  border_width 'int',
+  window_padding 'int',
+  border_color 'gfx::pixel',
+  ui_padding 'int',
+}
+
+struct.config_ui_dialog_text {
+  normal 'gfx::pixel',
+  highlighted 'gfx::pixel',
+  columns 'int',
+}
+
+struct.config_ui_menus {
+  first_menu_start 'rn::W',
+  item_vertical_padding 'rn::H',
+  padding 'rn::W',
+  spacing 'rn::W',
+  body_min_width 'rn::W',
+  font 'e_font',
+  menu_bar_height 'rn::H',
+}
+
+struct.config_ui_t {
+  window 'config_ui_window',
+  dialog_text 'config_ui_dialog_text',
+  menus 'config_ui_menus',
+}
+
+config.ui {}

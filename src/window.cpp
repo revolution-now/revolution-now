@@ -29,9 +29,9 @@
 #include "util.hpp"
 #include "views.hpp"
 
-// Revolution Now (config)
+// config
 #include "../config/rcl/palette.inl"
-#include "../config/rcl/ui.inl"
+#include "config/ui.rds.hpp"
 
 // render
 #include "render/renderer.hpp"

@@ -18,9 +18,9 @@
 #include "text.hpp"
 #include "util.hpp"
 
-// Revolution Now (config)
+// config
 #include "../config/rcl/palette.inl"
-#include "../config/rcl/ui.inl"
+#include "config/ui.rds.hpp"
 
 // base
 #include "base/lambda.hpp"

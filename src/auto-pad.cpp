@@ -11,12 +11,11 @@
 #include "auto-pad.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "logger.hpp"
 #include "matrix.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/ui.inl"
+// config
+#include "config/ui.rds.hpp"
 
 using namespace std;
 

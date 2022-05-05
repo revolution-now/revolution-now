@@ -11,14 +11,13 @@
 #include "compositor.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/ui.inl"
+// config
+#include "config/ui.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
