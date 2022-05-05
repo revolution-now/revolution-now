@@ -1,11 +1,11 @@
 # ===============================================================
-# config-terrain.rds
+# terrain.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2022-03-27.
+# Created by dsicilia on 2022-05-05.
 #
-# Description: Rds definitions for the config-terrain module.
+# Description: Config info for terrain.
 #
 # ===============================================================
 # Revolution Now
@@ -14,6 +14,13 @@ include "mv-points.hpp"
 
 # Rds
 include "terrain.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-base.hpp"
 
 namespace "rn"
 
@@ -33,8 +40,8 @@ struct.TerrainTypeInfo {
   _features { equality, validation }
 }
 
-struct.TerrainConfig {
+struct.config_terrain_t {
   types 'EnumMap<e_terrain, TerrainTypeInfo>',
-
-  _features { equality, validation }
 }
+
+config.terrain {}

@@ -1,172 +1,170 @@
-terrain {
-  types {
-    ocean {
-      surface:        water
-      movement_cost:  1
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: null
-    }
+types {
+  ocean {
+    surface:        water
+    movement_cost:  1
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: null
+  }
 
-    # This is the one non-forestable base terrain type.
+  # This is the one non-forestable base terrain type.
 
-    arctic {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: null
-    }
+  arctic {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: null
+  }
 
-    # Forestable base terrain types.
+  # Forestable base terrain types.
 
-    desert {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    scrub
-      cleared_forest: null
-    }
+  desert {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    scrub
+    cleared_forest: null
+  }
 
-    grassland {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    conifer
-      cleared_forest: null
-    }
+  grassland {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    conifer
+    cleared_forest: null
+  }
 
-    marsh {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   true
-      with_forest:    wetland
-      cleared_forest: null
-    }
+  marsh {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   true
+    with_forest:    wetland
+    cleared_forest: null
+  }
 
-    plains {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    mixed
-      cleared_forest: null
-    }
+  plains {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    mixed
+    cleared_forest: null
+  }
 
-    prairie {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    broadleaf
-      cleared_forest: null
-    }
+  prairie {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    broadleaf
+    cleared_forest: null
+  }
 
-    savannah {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    tropical
-      cleared_forest: null
-    }
+  savannah {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    tropical
+    cleared_forest: null
+  }
 
-    swamp {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   true
-      with_forest:    rain
-      cleared_forest: null
-    }
+  swamp {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   true
+    with_forest:    rain
+    cleared_forest: null
+  }
 
-    tundra {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   true
-      with_forest:    boreal
-      cleared_forest: null
-    }
+  tundra {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   true
+    with_forest:    boreal
+    cleared_forest: null
+  }
 
-    # Forest types. Each of these, when cleared, map to one of the
-    # above base types.
+  # Forest types. Each of these, when cleared, map to one of the
+  # above base types.
 
-    boreal {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: tundra
-    }
+  boreal {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: tundra
+  }
 
-    broadleaf {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: prairie
-    }
+  broadleaf {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: prairie
+  }
 
-    conifer {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: grassland
-    }
+  conifer {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: grassland
+  }
 
-    mixed {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: plains
-    }
+  mixed {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: plains
+  }
 
-    rain {
-      surface:        land
-      movement_cost:  3
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: swamp
-    }
+  rain {
+    surface:        land
+    movement_cost:  3
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: swamp
+  }
 
-    scrub {
-      surface:        land
-      movement_cost:  1
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: desert
-    }
+  scrub {
+    surface:        land
+    movement_cost:  1
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: desert
+  }
 
-    tropical {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: savannah
-    }
+  tropical {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: savannah
+  }
 
-    wetland {
-      surface:        land
-      movement_cost:  3
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: marsh
-    }
+  wetland {
+    surface:        land
+    movement_cost:  3
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: marsh
+  }
 
-    # Hills/Mountains.
+  # Hills/Mountains.
 
-    hills {
-      surface:        land
-      movement_cost:  2
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: null
-    }
+  hills {
+    surface:        land
+    movement_cost:  2
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: null
+  }
 
-    mountains {
-      surface:        land
-      movement_cost:  3
-      can_irrigate:   false
-      with_forest:    null
-      cleared_forest: null
-    }
+  mountains {
+    surface:        land
+    movement_cost:  3
+    can_irrigate:   false
+    with_forest:    null
+    cleared_forest: null
   }
 }

@@ -11,8 +11,10 @@
 #include "terrain.hpp"
 
 // Revolution Now
-#include "config-terrain.hpp"
 #include "lua.hpp"
+
+// config
+#include "config/terrain.rds.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -34,16 +36,16 @@ e_surface surface_type( e_terrain terrain ) {
 }
 
 bool can_plow( e_terrain terrain ) {
-  auto const& info = config_terrain.terrain.types[terrain];
+  auto const& info = config_terrain.types[terrain];
   return info.can_irrigate || info.cleared_forest;
 }
 
 maybe<e_ground_terrain> cleared_forest( e_terrain terrain ) {
-  return config_terrain.terrain.types[terrain].cleared_forest;
+  return config_terrain.types[terrain].cleared_forest;
 }
 
 bool can_irrigate( e_terrain terrain ) {
-  return config_terrain.terrain.types[terrain].can_irrigate;
+  return config_terrain.types[terrain].can_irrigate;
 }
 
 maybe<e_ground_terrain> to_ground_terrain( e_terrain terrain ) {

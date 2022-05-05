@@ -11,9 +11,11 @@
 #include "map-square.hpp"
 
 // Revolution Now
-#include "config-terrain.hpp"
 #include "lua.hpp"
 #include "terrain.hpp"
+
+// config
+#include "config/terrain.rds.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -51,7 +53,7 @@ e_terrain effective_terrain( MapSquare const& square ) {
     case e_land_overlay::mountains: return e_terrain::mountains;
     case e_land_overlay::forest: {
       maybe<e_terrain> forested =
-          config_terrain.terrain
+          config_terrain
               .types[from_ground_terrain( square.ground )]
               .with_forest;
       DCHECK( forested );
@@ -77,8 +79,7 @@ MovementPoints movement_points_required(
   // only terrain that is relevant in this situation is that of
   // the terrain in the target square.
   return MovementPoints(
-      config_terrain.terrain
-          .types[effective_terrain( dst_square )]
+      config_terrain.types[effective_terrain( dst_square )]
           .movement_cost );
 }
 
@@ -94,8 +95,7 @@ void clear_forest( MapSquare& square ) {
 
 bool can_irrigate( MapSquare const& square ) {
   return !square.irrigation &&
-         config_terrain.terrain
-             .types[effective_terrain( square )]
+         config_terrain.types[effective_terrain( square )]
              .can_irrigate;
 }
 
