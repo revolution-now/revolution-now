@@ -14,7 +14,6 @@
 #include "src/utype.hpp"
 
 // Revolution Now
-#include "src/config-files.hpp"
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 

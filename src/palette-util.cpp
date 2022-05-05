@@ -11,7 +11,6 @@
 #include "palette-util.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "logger.hpp"
 #include "maybe.hpp"
@@ -493,11 +492,6 @@ void update_palette( fs::path const& where ) {
   lg.info( "writing palette png image to {}",
            pal_file.string() );
   write_palette_png( pal_file );
-}
-
-void show_config_palette( rr::Renderer& renderer ) {
-  auto const& colors = g_palette();
-  show_palette( renderer, hsl_bucket( colors ) );
 }
 
 string bucket_path( pixel c ) {

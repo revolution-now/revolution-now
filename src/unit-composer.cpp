@@ -13,7 +13,6 @@
 #include "unit-composer.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "lua.hpp"
 
 // Config

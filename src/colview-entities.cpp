@@ -15,7 +15,6 @@
 #include "colony.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-units.hpp"

@@ -13,7 +13,6 @@
 // Revolution Now
 #include "anim.hpp"
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "error.hpp"
 #include "frame.hpp"
 #include "init.hpp"
@@ -29,7 +28,6 @@
 #include "menu-impl.rds.hpp"
 
 // config
-#include "../config/rcl/palette.inl"
 #include "config/ui.rds.hpp"
 
 // render
@@ -224,14 +222,16 @@ auto const& menu_theme_color2 = gfx::pixel::wood();
 
 namespace color::item::foreground {
 auto disabled() {
-  auto color = config_palette.grey.n88;
-  color.a    = 200;
+  static auto color =
+      gfx::pixel{ .r = 0x88, .g = 0x88, .b = 0x88, .a = 255 };
+  color.a = 200;
   return color;
 }
 } // namespace color::item::foreground
 
 namespace color::menu::foreground {
-// auto const& disabled = config_palette.grey.nA4;
+// auto const& disabled = gfx::pixel{ .r=0xA4, .g=0xA4, .b=0xA4,
+// .a=255 };
 } // namespace color::menu::foreground
 
 H max_text_height() { return H{ 8 }; }

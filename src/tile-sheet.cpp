@@ -11,7 +11,6 @@
 #include "tile-sheet.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "expect.hpp"
 #include "maybe.hpp"
 #include "tile-enum.hpp"

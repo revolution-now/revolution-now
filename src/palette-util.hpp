@@ -93,12 +93,6 @@ std::vector<gfx::pixel> coursen(
 // update.
 void update_palette( fs::path const& where );
 
-// Will load/parse the rcl config palette file and will
-// sort/bucket the colors and display them on the screen. NOTE:
-// SDL graphics must have been initialized before calling this
-// function.
-void show_config_palette( rr::Renderer& renderer );
-
 // Will load the rcl config palette and render it to a png
 // file divided into hue/saturation buckets.
 void write_palette_png( fs::path const& png_file );

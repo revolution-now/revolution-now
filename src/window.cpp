@@ -14,7 +14,6 @@
 #include "auto-pad.hpp"
 #include "co-wait.hpp"
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
 #include "input.hpp"
@@ -30,7 +29,6 @@
 #include "views.hpp"
 
 // config
-#include "../config/rcl/palette.inl"
 #include "config/ui.rds.hpp"
 
 // render
@@ -231,7 +229,8 @@ Window::Window( string title_, Coord position_ )
     title_view{},
     position( position_ ) {
   title_view = make_unique<OneLineStringView>(
-      title, config_palette.orange.sat1.lum11 );
+      title,
+      gfx::pixel{ .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } );
   g_window_plane.wm.add_window( this );
 }
 
@@ -246,21 +245,28 @@ void Window::draw( rr::Renderer& renderer ) const {
   // Render shadow behind window.
   painter.draw_solid_rect( r + Delta{ 4_w, 4_h },
                            gfx::pixel{ 0, 0, 0, 64 } );
-  painter.draw_solid_rect( inside_border_rect(),
-                           config_palette.orange.sat0.lum3 );
+  painter.draw_solid_rect(
+      inside_border_rect(),
+      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
   // Render window border, highlights on top and right.
   painter.draw_horizontal_line(
-      r.lower_left(), r.w._, config_palette.orange.sat0.lum2 );
-  painter.draw_vertical_line( r.upper_left(), r.h._,
-                              config_palette.orange.sat0.lum2 );
+      r.lower_left(), r.w._,
+      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
+  painter.draw_vertical_line(
+      r.upper_left(), r.h._,
+      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
   painter.draw_horizontal_line(
-      r.upper_left(), r.w._, config_palette.orange.sat0.lum4 );
-  painter.draw_vertical_line( r.upper_right(), r.h._,
-                              config_palette.orange.sat0.lum4 );
-  painter.draw_point( r.upper_left(),
-                      config_palette.orange.sat0.lum3 );
-  painter.draw_point( r.lower_right(),
-                      config_palette.orange.sat0.lum3 );
+      r.upper_left(), r.w._,
+      gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
+  painter.draw_vertical_line(
+      r.upper_right(), r.h._,
+      gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
+  painter.draw_point(
+      r.upper_left(),
+      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+  painter.draw_point(
+      r.lower_right(),
+      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
 
   auto title_start =
       centered( title_view->delta(), title_bar() );

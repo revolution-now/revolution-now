@@ -11,7 +11,6 @@
 #include "views.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "coord.hpp"
 #include "logger.hpp"
 #include "render.hpp"
@@ -19,7 +18,6 @@
 #include "util.hpp"
 
 // config
-#include "../config/rcl/palette.inl"
 #include "config/ui.rds.hpp"
 
 // base
@@ -279,8 +277,9 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
       e_tile::button_up_ur, e_tile::button_up_ll,
       e_tile::button_up_lr );
 
-  auto markup_info = TextMarkupInfo{ config_palette.grey.n50,
-                                     /*highlight=*/{} };
+  auto markup_info = TextMarkupInfo{
+      gfx::pixel{ .r = 0x50, .g = 0x50, .b = 0x50, .a = 255 },
+      /*highlight=*/{} };
 
   Coord text_position =
       centered( text_size_in_pixels_,
@@ -801,14 +800,18 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
 *****************************************************************/
 OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{ e_option_active::inactive },
-    background_active_( make_unique<SolidRectView>(
-        config_palette.yellow.sat1.lum11 ) ),
-    background_inactive_( make_unique<SolidRectView>(
-        config_palette.orange.sat0.lum3 ) ),
+    background_active_( make_unique<SolidRectView>( gfx::pixel{
+        .r = 0x24, .g = 0x21, .b = 0x0C, .a = 255 } ) ),
+    background_inactive_( make_unique<SolidRectView>( gfx::pixel{
+        .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } ) ),
     foreground_active_( make_unique<OneLineStringView>(
-        msg, config_palette.orange.sat0.lum2 ) ),
+        msg,
+        gfx::pixel{
+            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } ) ),
     foreground_inactive_( make_unique<OneLineStringView>(
-        msg, config_palette.orange.sat1.lum11 ) ) {
+        msg,
+        gfx::pixel{
+            .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } ) ) {
   auto delta_active   = foreground_active_->delta();
   auto delta_inactive = foreground_inactive_->delta();
   background_active_->cast<SolidRectView>()->set_delta(
