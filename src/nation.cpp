@@ -11,13 +11,12 @@
 #include "nation.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "cstate.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/nation.inl"
+// config
+#include "config/nation.rds.hpp"
 
 // luapp
 #include "luapp/rtable.hpp"
