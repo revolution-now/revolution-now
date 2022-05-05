@@ -12,7 +12,8 @@
 include "enum-map.hpp"
 
 # Rds
-include "nation.rds.hpp"
+include "../nation.rds.hpp" # need ../ here so we don't include
+                            # ourselves.
 
 # refl
 include "refl/cdr.hpp"

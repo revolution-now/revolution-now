@@ -11,15 +11,14 @@
 #include "screen.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "tiles.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/rn.inl"
+// config
+#include "config/rn.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"

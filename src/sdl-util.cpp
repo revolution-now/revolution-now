@@ -11,16 +11,12 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
-
-// Revolution Now (config)
-#include "../config/rcl/rn.inl" // FIXME
 
 using namespace std;
 
@@ -108,6 +104,7 @@ void init_sdl() {
 
 void cleanup_sdl() { ::SDL_Quit(); }
 
+//
 //
 //
 REGISTER_INIT_ROUTINE( sdl );

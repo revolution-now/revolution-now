@@ -16,7 +16,6 @@
 #include "co-wait.hpp"
 #include "colony-id.hpp"
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "coord.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
@@ -44,6 +43,7 @@
 
 // config
 #include "config/land-view.rds.hpp"
+#include "config/rn.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -66,9 +66,6 @@
 
 // Rds
 #include "land-view-impl.rds.hpp"
-
-// Revolution Now (config)
-#include "../config/rcl/rn.inl"
 
 // C++ standard library
 #include <chrono>

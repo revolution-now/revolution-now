@@ -1,0 +1,65 @@
+# ===============================================================
+# rn.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-05.
+#
+# Description: General/miscellaneous config info.
+#
+# ===============================================================
+# Revolution Now
+include "font.hpp"
+include "time.hpp"
+
+# Rds
+include "nation.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.config_rn_main_window {
+  title 'std::string',
+}
+
+struct.config_rn_viewport {
+  pan_speed 'double',
+  zoom_min 'double',
+  zoom_speed 'double',
+  zoom_accel_coeff 'double',
+  zoom_accel_drag_coeff 'double',
+  pan_accel_init_coeff 'double',
+  pan_accel_drag_init_coeff 'double',
+
+  can_reveal_space_around_map 'bool',
+}
+
+struct.config_rn_console {
+  font 'e_font',
+}
+
+struct.config_rn_power {
+  time_till_slow_fps 'Seconds',
+}
+
+struct.config_rn_t {
+  player_nation 'e_nation',
+  depixelate_per_frame 'double',
+  ideal_tile_angular_size 'double',
+
+  main_window 'config_rn_main_window',
+  viewport    'config_rn_viewport',
+  console     'config_rn_console',
+  power       'config_rn_power',
+}
+
+config.rn {}

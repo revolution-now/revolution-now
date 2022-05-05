@@ -14,7 +14,6 @@
 #include "co-runner.hpp"
 #include "co-wait.hpp"
 #include "compositor.hpp" // FIXME: temporary
-#include "config-files.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "lua-wait.hpp"
@@ -30,9 +29,7 @@
 
 // config
 #include "config/gfx.rds.hpp"
-
-// Revolution Now (config)
-#include "../config/rcl/rn.inl"
+#include "config/rn.rds.hpp"
 
 // luapp
 #include "luapp/state.hpp"

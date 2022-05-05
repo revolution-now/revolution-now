@@ -12,13 +12,12 @@
 #include "viewport.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "math.hpp"
 #include "tiles.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/rn.inl"
+// config
+#include "config/rn.rds.hpp"
 
 using namespace std;
 

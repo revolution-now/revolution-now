@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "coord.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
@@ -25,8 +24,8 @@
 #include "variant.hpp"
 #include "views.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/rn.inl"
+// config
+#include "config/rn.rds.hpp"
 
 using namespace std;
 
