@@ -38,6 +38,9 @@ class SmoothViewport {
   Rect covered_tiles() const;
   Rect fully_covered_tiles() const;
 
+  bool is_fully_visible_x() const;
+  bool is_fully_visible_y() const;
+
   // Will give us a rect of world pixels covered by the viewport.
   Rect covered_pixels() const;
 
@@ -76,6 +79,9 @@ class SmoothViewport {
   maybe<Coord> screen_pixel_to_world_pixel(
       Coord pixel_coord ) const;
 
+  maybe<Coord> world_pixel_to_screen_pixel(
+      Coord world_pixel ) const;
+
   // Given a screen pixel coordinate this will return the world
   // tile coordinate.
   maybe<Coord> screen_pixel_to_world_tile(
@@ -108,6 +114,7 @@ class SmoothViewport {
 
   // Return current zoom.
   double get_zoom() const;
+  void   set_zoom( double new_zoom );
 
   // Move the center of the viewport by the given change in
   // screen coordinates. This means that the delta will be scaled

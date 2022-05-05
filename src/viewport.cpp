@@ -246,6 +246,13 @@ void SmoothViewport::set_zoom_push(
         screen_pixel_to_world_pixel( *maybe_seek_screen_coord );
 }
 
+void SmoothViewport::set_zoom( double new_zoom ) {
+  set_zoom_push( e_push_direction::none,
+                 /*maybe_seek_screen_coord=*/nothing );
+  o_.zoom = new_zoom;
+  fix_invariants();
+}
+
 void SmoothViewport::smooth_zoom_target( double target ) {
   smooth_zoom_target_ = target;
 }
@@ -394,6 +401,16 @@ Rect SmoothViewport::covered_tiles() const {
       .clamp( this->world_rect_tiles() );
 }
 
+bool SmoothViewport::is_fully_visible_x() const {
+  Rect covered = covered_tiles();
+  return covered.x == 0_x && covered.w == world_rect_tiles().w;
+}
+
+bool SmoothViewport::is_fully_visible_y() const {
+  Rect covered = covered_tiles();
+  return covered.y == 0_y && covered.h == world_rect_tiles().h;
+}
+
 // Tiles that are fully visible. The rect returned here will be
 // within the covered_tiles in general.
 Rect SmoothViewport::fully_covered_tiles() const {
@@ -503,10 +520,10 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
     return nothing;
   }
 
-  double percent_x =
-      double( from_visible_start.w._ ) / visible_on_screen.w._;
-  double percent_y =
-      double( from_visible_start.h._ ) / visible_on_screen.h._;
+  double percent_x = double( from_visible_start.w._ + .5 ) /
+                     visible_on_screen.w._;
+  double percent_y = double( from_visible_start.h._ + .5 ) /
+                     visible_on_screen.h._;
 
   DCHECK( percent_x >= 0 );
   DCHECK( percent_y >= 0 );
@@ -514,14 +531,30 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   auto viewport_or_world =
       get_bounds().clamp( this->world_rect_pixels() );
 
-  auto res =
-      Coord{ X{ int( viewport_or_world.x._ +
-                     percent_x * viewport_or_world.w._ ) },
-             Y{ int( viewport_or_world.y._ +
-                     percent_y * viewport_or_world.h._ ) } };
+  auto res = Coord{
+      X{ int( lround( viewport_or_world.x._ +
+                      percent_x * viewport_or_world.w._ ) ) },
+      Y{ int( lround( viewport_or_world.y._ +
+                      percent_y * viewport_or_world.h._ ) ) } };
 
   DCHECK( res.x >= 0_x && res.y >= 0_y );
   return res;
+}
+
+maybe<Coord> SmoothViewport::world_pixel_to_screen_pixel(
+    Coord world_pixel ) const {
+  Rect covered_pixels = this->covered_pixels();
+  if( !world_pixel.is_inside( covered_pixels ) ) return nothing;
+  double x_percent =
+      double( ( world_pixel.x - covered_pixels.x )._ ) /
+      covered_pixels.w._;
+  double y_percent =
+      double( ( world_pixel.y - covered_pixels.y )._ ) /
+      covered_pixels.h._;
+  Rect dst = rendering_dest_rect();
+  dst.w._ *= x_percent;
+  dst.h._ *= y_percent;
+  return dst.lower_right();
 }
 
 maybe<Coord> SmoothViewport::screen_pixel_to_world_tile(
