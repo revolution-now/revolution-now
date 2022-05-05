@@ -11,15 +11,14 @@
 #include "tune.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "rand.hpp"
 #include "time.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/music.inl"
+// config
+#include "config/music.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"

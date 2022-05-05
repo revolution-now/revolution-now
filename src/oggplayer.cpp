@@ -11,12 +11,11 @@
 #include "oggplayer.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/music.inl"
+// config
+#include "config/music.rds.hpp"
 
 // SDL
 #include "SDL.h"

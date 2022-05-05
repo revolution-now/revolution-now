@@ -105,6 +105,7 @@ void cleanup_renderer() {
 
 } // namespace
 
+//
 REGISTER_INIT_ROUTINE( renderer );
 
 /****************************************************************

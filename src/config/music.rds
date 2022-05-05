@@ -1,0 +1,52 @@
+# ===============================================================
+# music.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-05.
+#
+# Description: Config info for tunes/music.
+#
+# ===============================================================
+# Revolution Now
+include "time.hpp"
+
+# Rds
+include "conductor.rds.hpp"
+include "tune.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# base
+include "base/fs.hpp"
+
+# C++ standard library
+include "<string>"
+include "<unordered_map>"
+include "<vector>"
+
+namespace "rn"
+
+struct.config_music_t {
+  midi_folder 'fs::path',
+  ogg_folder 'fs::path',
+
+  first_choice_music_player 'e_music_player',
+  second_choice_music_player 'e_music_player',
+
+  threshold_previous_tune_secs 'Seconds',
+
+  tunes 'std::vector<Tune>',
+
+  special_event_tunes 'std::unordered_map<e_special_music_event, std::string>',
+
+  autoplay 'bool',
+  initial_volume 'double',
+}
+
+config.music {}

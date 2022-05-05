@@ -11,7 +11,6 @@
 #include "conductor.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "logger.hpp"
@@ -23,8 +22,8 @@
 #include "time.hpp"
 #include "window.hpp"
 
-// Revolution Now (config)
-#include "../config/rcl/music.inl"
+// config
+#include "config/music.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
