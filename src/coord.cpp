@@ -563,6 +563,30 @@ void lua_push( lua::cthread L, Coord const& coord ) {
   lua::push( L, st["Coord"]( t ) );
 }
 
+maybe<Delta> lua_get( lua::cthread L, int idx,
+                      lua::tag<Delta> ) {
+  auto st = lua::state::view( L );
+
+  maybe<lua::table> maybe_t = lua::get<lua::table>( L, idx );
+  if( !maybe_t.has_value() ) return nothing;
+  lua::table& t = *maybe_t;
+  if( t["w"] == lua::nil || t["h"] == lua::nil ) return nothing;
+  Delta delta{ lua::as<W>( t["w"] ), lua::as<H>( t["h"] ) };
+  return delta;
+}
+
+void lua_push( lua::cthread L, Delta const& delta ) {
+  auto st = lua::state::view( L );
+
+  lua::table t = st.table.create();
+  t["w"]       = delta.w;
+  t["h"]       = delta.h;
+
+  // Delegate to the Lua factory function because it puts some
+  // metatables in there for us.
+  lua::push( L, st["Delta"]( t ) );
+}
+
 LUA_ENUM( direction );
 
 } // namespace rn

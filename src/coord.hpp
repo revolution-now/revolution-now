@@ -165,6 +165,10 @@ struct ND Delta {
   Delta clamp( Delta const& delta ) const;
 
   int area() const { return w._ * h._; }
+
+  friend maybe<Delta> lua_get( lua::cthread L, int idx,
+                               lua::tag<Delta> );
+  friend void lua_push( lua::cthread L, Delta const& delta );
 };
 NOTHROW_MOVE( Delta );
 
