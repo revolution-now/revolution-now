@@ -75,17 +75,36 @@ void ascii_map_gen() {
           ( world_map[y][x].surface == e_surface::land );
       bool land_bottom =
           ( world_map[y + 1_h][x].surface == e_surface::land );
-      int mask = ( ( land_top ? 1 : 0 ) << 1 ) |
-                 ( land_bottom ? 1 : 0 );
-      string c = " ";
-      switch( mask ) {
-        case 0b00: c = " "; break;
-        case 0b01: c = "▄"; break;
-        case 0b10: c = "▀"; break;
-        case 0b11: c = "█"; break;
-        default: SHOULD_NOT_BE_HERE;
+      if( land_top || land_bottom ) {
+        int mask = ( ( land_top ? 1 : 0 ) << 1 ) |
+                   ( land_bottom ? 1 : 0 );
+        string c = " ";
+        switch( mask ) {
+          case 0b01: c = "▄"; break;
+          case 0b10: c = "▀"; break;
+          case 0b11: c = "█"; break;
+          default: SHOULD_NOT_BE_HERE;
+        }
+        fmt::print( "{}", c );
+        continue;
       }
-      fmt::print( "{}", c );
+
+      bool sea_lane_top     = world_map[y][x].sea_lane;
+      bool seal_lane_bottom = world_map[y + 1_h][x].sea_lane;
+      if( sea_lane_top || seal_lane_bottom ) {
+        int mask = ( ( sea_lane_top ? 1 : 0 ) << 1 ) |
+                   ( seal_lane_bottom ? 1 : 0 );
+        string c = " ";
+        switch( mask ) {
+          case 0b01: c = "╦"; break;
+          case 0b10: c = "╩"; break;
+          case 0b11: c = "╬"; break;
+          default: SHOULD_NOT_BE_HERE;
+        }
+        fmt::print( "{}", c );
+        continue;
+      }
+      fmt::print( "{}", " " );
     }
     fmt::print( "|\n" );
   }
