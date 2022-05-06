@@ -23,6 +23,7 @@
 #include <chrono>
 #include <deque>
 #include <map>
+#include <queue>
 #include <span>
 #include <string>
 #include <string_view>
@@ -39,7 +40,7 @@ void to_str( std::string_view o, std::string& out, ADL_t );
 void to_str( std::string const& o, std::string& out, ADL_t );
 
 template<Show T>
-void to_str( std::vector<T> o, std::string& out, ADL_t ) {
+void to_str( std::vector<T> const& o, std::string& out, ADL_t ) {
   using namespace std::literals::string_literals;
   to_str( "["s, out, ADL );
   for( auto const& elem : o ) {
@@ -50,6 +51,14 @@ void to_str( std::vector<T> o, std::string& out, ADL_t ) {
     // Remove trailing comma.
     out.pop_back();
   to_str( "]"s, out, ADL );
+}
+
+template<Show T>
+void to_str( std::queue<T> const& o, std::string& out, ADL_t ) {
+  using namespace std::literals::string_literals;
+  to_str( "<std::queue<T>:", out, ADL );
+  to_str( o.size(), out, ADL );
+  to_str( ">"s, out, ADL );
 }
 
 template<Show T>
