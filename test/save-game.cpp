@@ -19,6 +19,9 @@
 #include "src/lua.hpp"
 #include "src/rand.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // base
 #include "base/io.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -50,10 +53,16 @@ void print_line( string_view what ) {
 #  endif
 }
 
+void reset_seeds() {
+  rng::reseed( 0 );
+  lua::state& st = lua_global_state();
+  st["math"]["randomseed"]( 0 );
+}
+
 void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
-  rng::reseed( 0 );
   default_construct_game_state();
+  reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
   if( fs::exists( dst ) ) fs::remove( dst );
@@ -139,13 +148,13 @@ TEST_CASE( "[save-game] default values (full)" ) {
 }
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
-  rng::reseed( 0 );
   default_construct_game_state();
+  reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
-  rng::reseed( 0 );
   default_construct_game_state();
+  reset_seeds();
   run_lua_startup_main( map_updater );
 
   // FIXME: find a better way to get a random temp folder.
@@ -170,13 +179,13 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
-  rng::reseed( 0 );
   default_construct_game_state();
+  reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   run_lua_startup_main( map_updater );
   TopLevelState backup = std::move( GameState::top() );
-  rng::reseed( 0 );
   default_construct_game_state();
+  reset_seeds();
   run_lua_startup_main( map_updater );
 
   // FIXME: find a better way to get a random temp folder.

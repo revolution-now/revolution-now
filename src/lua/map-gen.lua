@@ -11,6 +11,8 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+local WORLD_SIZE = { w=58, h=72 }
+
 local function foo()
   -- local function.
 end
@@ -47,6 +49,7 @@ local function random_direction()
 end
 
 local function reset_terrain()
+  map_gen.reset_terrain( WORLD_SIZE )
   local size = map_gen.world_size()
   for y = 0, size.h - 1 do
     for x = 0, size.w - 1 do --
@@ -79,7 +82,7 @@ local function surrounding_squares( square )
     { x=square.x + 1, y=square.y + 0 }, --
     { x=square.x - 1, y=square.y + 1 }, --
     { x=square.x + 0, y=square.y + 1 }, --
-    { x=square.x + 1, y=square.y + 1 }, --
+    { x=square.x + 1, y=square.y + 1 } --
   }
   local exists = {}
   local size = map_gen.world_size()
@@ -126,8 +129,8 @@ end
 
 local function forest_cover()
   local size = map_gen.world_size()
-  for y = 0, size.h-1 do
-    for x = 0, size.w-1 do
+  for y = 0, size.h - 1 do
+    for x = 0, size.w - 1 do
       local square = map_gen.at( { x=x, y=y } )
       if square.surface == e.surface.land then
         if math.random( 1, 4 ) <= 3 then

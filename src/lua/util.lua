@@ -25,6 +25,19 @@ function Coord( arg )
 end
 
 -- FIXME: global
+function Delta( arg )
+  return setmetatable( { w=arg.w, h=arg.h }, {
+    __tostring=function( self )
+      return 'Delta{w=' .. tostring( self.w ) .. ',h=' ..
+                 tostring( self.h ) .. '}'
+    end,
+    __eq=function( lhs, rhs )
+      return lhs.w == rhs.w and lhs.h == rhs.h
+    end
+  } )
+end
+
+-- FIXME: global
 function assert_eq( lhs, rhs )
   if lhs ~= rhs then
     error( 'assertion failed: ' .. tostring( lhs ) .. ' != ' ..

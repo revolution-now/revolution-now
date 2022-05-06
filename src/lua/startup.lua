@@ -240,11 +240,13 @@ local function set_terrain_tiles()
 end
 
 function M.main()
-  map_gen.generate_terrain()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
     e.nation.french
   } )
+
+  map_gen.generate_terrain()
+  land_view.set_zoom( .17 )
 
   -- create_some_units_in_old_world()
   -- create_some_units_on_land()
@@ -253,9 +255,6 @@ function M.main()
   -- create_some_plows()
   -- set_terrain_tiles()
   -- land_view.center_on_tile{ x=23, y=15 }
-
-  map_gen.generate()
-  land_view.set_zoom( .17 )
 end
 
 return M

@@ -32,21 +32,22 @@ namespace rn {
 
 namespace {
 
-// inline constexpr auto world_size = Delta{ 200_w, 200_h };
-inline constexpr auto world_size = Delta{ 58_w, 72_h };
+void reset_terrain( IMapUpdater& map_updater, Delta size ) {
+  map_updater.modify_entire_map(
+      [&]( Matrix<MapSquare>& world_map ) {
+        world_map = Matrix<MapSquare>( size );
+      } );
+}
 
 void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
-  // FIXME
-  world_map = Matrix<MapSquare>( world_size );
-
   lua::state& st = lua_global_state();
-  st["math"]["randomseed"]( rng::random_int() );
+  // st["math"]["randomseed"]( rng::random_int() );
   st["map_gen"]["generate"]();
 
   // FIXME find a better way to do this.
   LandViewState& land_view_state = GameState::land_view();
   land_view_state.viewport.set_max_viewable_size_tiles(
-      world_size );
+      world_map.size() );
 }
 
 } // namespace
@@ -59,22 +60,21 @@ void ascii_map_gen() {
   TerrainState&          terrain_state = GameState::terrain();
   NonRenderingMapUpdater map_updater( terrain_state );
   generate_terrain( map_updater );
-  auto bar = [] {
+  Matrix<MapSquare> const& world_map = terrain_state.world_map();
+  auto                     bar       = [&] {
     fmt::print( "+" );
-    for( X x = 0_x; x < 0_x + world_size.w; ++x )
+    for( X x = 0_x; x < 0_x + world_map.size().w; ++x )
       fmt::print( "-" );
     fmt::print( "+\n" );
   };
   bar();
-  for( Y y = 0_y; y < 0_y + world_size.h; y += 2_h ) {
+  for( Y y = 0_y; y < 0_y + world_map.size().h; y += 2_h ) {
     fmt::print( "|" );
-    for( X x = 0_x; x < 0_x + world_size.w; ++x ) {
+    for( X x = 0_x; x < 0_x + world_map.size().w; ++x ) {
       bool land_top =
-          ( terrain_state.world_map()[y][x].surface ==
-            e_surface::land );
+          ( world_map[y][x].surface == e_surface::land );
       bool land_bottom =
-          ( terrain_state.world_map()[y + 1_h][x].surface ==
-            e_surface::land );
+          ( world_map[y + 1_h][x].surface == e_surface::land );
       int mask = ( ( land_top ? 1 : 0 ) << 1 ) |
                  ( land_bottom ? 1 : 0 );
       string c = " ";
@@ -103,6 +103,12 @@ LUA_FN( generate_terrain, void ) {
   // FIXME: this should render, but it breaks unit tests.
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   generate_terrain( map_updater );
+}
+
+LUA_FN( reset_terrain, void, Delta size ) {
+  // FIXME: this should render, but it breaks unit tests.
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  reset_terrain( map_updater, size );
 }
 
 LUA_FN( at, MapSquare&, Coord tile ) {
