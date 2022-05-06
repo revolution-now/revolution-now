@@ -73,11 +73,11 @@ class ND DissipativeVelocity {
   }
 
  private:
-  double min_velocity_;
-  double max_velocity_;
-  double velocity_;
-  double accel_;
-  double drag_accel_;
+  double min_velocity_ = {};
+  double max_velocity_ = {};
+  double velocity_     = {};
+  double accel_        = {};
+  double drag_accel_   = {};
 };
 NOTHROW_MOVE( DissipativeVelocity );
 
