@@ -22,6 +22,10 @@ void to_str( uint32_t const& o, string& out, ADL_t ) {
   out += to_string( o );
 }
 
+void to_str( size_t const& o, string& out, ADL_t ) {
+  out += to_string( o );
+}
+
 void to_str( long const& o, string& out, ADL_t ) {
   out += to_string( o );
 }
