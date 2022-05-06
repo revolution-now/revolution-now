@@ -14,6 +14,7 @@
 #include "co-lua.hpp"
 #include "colony-mfg.hpp"
 #include "conductor.hpp"
+#include "config-files.hpp"
 #include "error.hpp"
 #include "lua-ui.hpp"
 #include "map-gen.hpp"
@@ -35,6 +36,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_co_lua();
   linker_dont_discard_module_lua_ui();
   linker_dont_discard_module_map_gen();
+  linker_dont_discard_module_config_files();
   // Add more here as needed.
 }
 
