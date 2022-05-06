@@ -27,7 +27,7 @@ namespace rn {
 // This viewport also knows where it is located on screen.
 class SmoothViewport {
  public:
-  bool operator==( SmoothViewport const& ) const = default;
+  bool operator==( SmoothViewport const& ) const;
 
   SmoothViewport();
 

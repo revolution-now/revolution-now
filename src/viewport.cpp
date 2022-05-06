@@ -704,4 +704,12 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   return smooth_center_->promise.wait();
 }
 
+bool SmoothViewport::operator==(
+    SmoothViewport const& rhs ) const {
+  // Don't include transient fields here since they won't be de-
+  // serialized, thus if we include them in the comparison then
+  // this object won't have equality before/after saving/loading.
+  return o_ == rhs.o_;
+}
+
 } // namespace rn
