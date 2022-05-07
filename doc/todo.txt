@@ -23,6 +23,10 @@
       frame. When tiles are added they are added to the adjunct
       buffer and so only that has to be uploaded. When the map is
       redrawn, the adjunct buffer will be empty.
+  11. Fix that a land unit entering a water square when it has
+      partial movement points left presents the player with a
+      message that it doesn't have enough movement points left,
+      when it should not be able to enter that square anyway.
 
 # Minimap:
 
