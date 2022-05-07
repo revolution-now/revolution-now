@@ -801,7 +801,7 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
 OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{ e_option_active::inactive },
     background_active_( make_unique<SolidRectView>( gfx::pixel{
-        .r = 0x24, .g = 0x21, .b = 0x0C, .a = 255 } ) ),
+        .r = 0xDB, .g = 0xC9, .b = 0x5A, .a = 255 } ) ),
     background_inactive_( make_unique<SolidRectView>( gfx::pixel{
         .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } ) ),
     foreground_active_( make_unique<OneLineStringView>(
