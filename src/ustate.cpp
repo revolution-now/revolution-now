@@ -357,6 +357,23 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
   return gs_units.unit_for( id );
 }
 
+LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
+  UnitsState& units_state = GameState::units();
+  lg.info( "adding unit {} to cargo of unit {}.",
+           debug_string( held ), debug_string( holder ) );
+  units_state.change_to_cargo_somewhere( holder, held );
+}
+
+LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
+        UnitComposition& comp, UnitId holder ) {
+  UnitsState& units_state = GameState::units();
+  UnitId      unit_id = create_unit( units_state, nation, comp );
+  lg.info( "created unit {}.", debug_string( unit_id ),
+           debug_string( holder ) );
+  units_state.change_to_cargo_somewhere( holder, unit_id );
+  return units_state.unit_for( unit_id );
+}
+
 LUA_FN( unit_from_id, Unit&, UnitId id ) {
   return unit_from_id( id );
 }

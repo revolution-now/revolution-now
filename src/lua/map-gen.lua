@@ -13,8 +13,9 @@ local M = {}
 
 local WORLD_SIZE = { w=58, h=72 }
 
-local function foo()
-  -- local function.
+function M.initial_ship_pos()
+  local size = map_gen.world_size()
+  return { y=size.h / 2, x=size.w - 3 }
 end
 
 local function set_land( coord )
