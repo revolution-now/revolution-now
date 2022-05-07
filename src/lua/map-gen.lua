@@ -18,11 +18,17 @@ function M.initial_ship_pos()
   return { y=size.h / 2, x=size.w - 3 }
 end
 
+local function random_list_elem( lst )
+  return lst[math.random( 1, #lst )]
+end
+
 local function set_land( coord )
   local square = map_gen.at( coord )
   square.surface = e.surface.land
-  square.ground = math.random( e.ground_terrain.desert,
-                               e.ground_terrain.tundra )
+  square.ground = random_list_elem{
+    e.ground_terrain.plains, e.ground_terrain.grassland,
+    e.ground_terrain.prairie, e.ground_terrain.marsh
+  }
 end
 
 local function set_water( coord )
@@ -338,7 +344,7 @@ function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
   local buffer = 10
-  local initial_square = { x=size.w-buffer*2, y=size.h/2 }
+  local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
   local initial_area = math.random( 50, 200 )
   generate_continent( initial_square, initial_area )
   for i = 1, 2 do
