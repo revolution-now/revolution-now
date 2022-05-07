@@ -21,7 +21,8 @@ end
 local function set_land( coord )
   local square = map_gen.at( coord )
   square.surface = e.surface.land
-  square.ground = e.ground_terrain.plains
+  square.ground = math.random( e.ground_terrain.desert,
+                               e.ground_terrain.tundra )
 end
 
 local function set_water( coord )
