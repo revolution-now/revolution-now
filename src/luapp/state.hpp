@@ -11,8 +11,8 @@
 #pragma once
 
 // luapp
-#include "call.hpp"
 #include "as.hpp"
+#include "call.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
 #include "rfunction.hpp"
