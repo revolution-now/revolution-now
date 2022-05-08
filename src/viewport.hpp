@@ -108,9 +108,15 @@ class SmoothViewport {
   void set_zoom_push( e_push_direction,
                       maybe<Coord> maybe_seek_screen_coord );
 
-  void smooth_zoom_target( double target );
+  void smooth_zoom_target(
+      double target, maybe<Coord> maybe_seek_screen_coord = {} );
   void stop_auto_zoom();
   void stop_auto_panning();
+
+  // Pixel in screen coords indicating the point toward which we
+  // should scroll to whether zooming or not. This will override
+  // zoom_point_seek_.
+  void set_point_seek( Coord screen_pixel );
 
   // Return current zoom.
   double get_zoom() const;
@@ -144,6 +150,8 @@ class SmoothViewport {
  private:
   void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
+
+  void advance_zoom_point_seek( DissipativeVelocity const& vel );
 
   template<typename C>
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
@@ -216,11 +224,17 @@ class SmoothViewport {
   };
   // If this has a value then the viewport will attempt to scroll
   // to match it.
-  maybe<SmoothCenter> smooth_center_{};
+  maybe<SmoothCenter> coro_smooth_center_{};
 
   // Coord in world pixel coordinates indicating the point toward
-  // which we should focus as we zoom.
+  // which we should focus as we zoom (though only while zoom-
+  // ing, and only if point_seek_ is not specified).
   maybe<Coord> zoom_point_seek_{};
+
+  // Coord in world pixel coordinates indicating the point toward
+  // which we should scroll to whether zooming or not. This will
+  // override zoom_point_seek_.
+  maybe<Coord> point_seek_{};
 
   Rect  viewport_rect_pixels_{};
   Delta world_size_tiles_{};

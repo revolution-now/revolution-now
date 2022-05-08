@@ -231,6 +231,11 @@
   }                                                            \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
+#define UNWRAP_BREAK( a, e )                             \
+  auto&& STRING_JOIN( __e, __LINE__ ) = e;               \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) break; \
+  auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
+
 #define UNWRAP_CHECK_MSG( a, e, ... )                  \
   auto&& STRING_JOIN( __e, __LINE__ ) = e;             \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {    \

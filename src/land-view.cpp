@@ -903,14 +903,18 @@ struct LandViewPlane : public Plane {
         auto& val = event.get<input::mouse_button_event_t>();
         if( val.buttons != input::e_mouse_button_event::left_up )
           break;
-        if( auto maybe_tile =
-                viewport().screen_pixel_to_world_tile(
-                    val.pos ) ) {
-          lg.debug( "clicked on tile: {}.", *maybe_tile );
+        UNWRAP_BREAK(
+            world_tile,
+            viewport().screen_pixel_to_world_tile( val.pos ) );
+        handled = e_input_handled::yes;
+        lg.debug( "clicked on tile: {}.", world_tile );
+        if( val.mod.shf_down ) {
+          viewport().smooth_zoom_target( 1.0 );
+          viewport().set_point_seek( val.pos );
+        } else {
           g_raw_input_stream.send(
               RawInput( LandViewRawInput::tile_click{
-                  .coord = *maybe_tile } ) );
-          handled = e_input_handled::yes;
+                  .coord = world_tile } ) );
         }
         break;
       }

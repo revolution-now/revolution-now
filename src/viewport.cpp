@@ -69,8 +69,9 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
         config_rn.viewport.zoom_accel_drag_coeff *
             config_rn.viewport.zoom_speed ),
     smooth_zoom_target_{},
-    smooth_center_{},
+    coro_smooth_center_{},
     zoom_point_seek_{},
+    point_seek_{},
     viewport_rect_pixels_{},
     world_size_tiles_{} {
   // We don't call fix_invariants here because that method de-
@@ -87,6 +88,49 @@ base::valid_or<string> wrapped::SmoothViewport::validate()
   REFL_VALIDATE( center_y >= 0.0,
                  "y center must be larger than 0" );
   return base::valid;
+}
+
+void SmoothViewport::set_point_seek( Coord screen_pixel ) {
+  maybe<Coord> world_pixel =
+      screen_pixel_to_world_pixel( screen_pixel );
+  if( !world_pixel ) return;
+  point_seek_      = world_pixel;
+  zoom_point_seek_ = nothing;
+}
+
+void SmoothViewport::advance_zoom_point_seek(
+    DissipativeVelocity const& actual_zoom_vel ) {
+  maybe<Coord>        point_to_seek;
+  DissipativeVelocity vel_to_use = actual_zoom_vel;
+  if( point_seek_.has_value() ) {
+    // We want to let the actual zoom velocity dictate the pan-
+    // ning velocity while zooming in order for the animation to
+    // look nice, but if the zooming has stopped then we still
+    // need a boost to make sure that we reach the target.
+    if( vel_to_use.to_double() < .3 )
+      vel_to_use.set_velocity( .3 );
+    point_to_seek = point_seek_;
+  } else if( zoom_point_seek_.has_value() ) {
+    // If we're only panning while zooming then don't manually
+    // adjust the zoom velocity if it is zero since otherwise we
+    // wouldn't stop panning even as the zooming stops.
+    point_to_seek = zoom_point_seek_;
+  } else {
+    return;
+  }
+  auto log_zoom_change = log( 1.0 + vel_to_use.to_double() );
+  // .98 found empirically, makes it slightly better, where "bet-
+  // ter" means that the same pixel stays under the cursor as the
+  // zooming happens.
+  auto delta_x =
+      .98 * ( ( point_to_seek->x - center_rounded().x )._ *
+              log_zoom_change );
+  auto delta_y =
+      .98 * ( ( point_to_seek->y - center_rounded().y )._ *
+              log_zoom_change );
+  o_.center_x += delta_x;
+  o_.center_y += delta_y;
+  fix_invariants();
 }
 
 void SmoothViewport::advance( e_push_direction x_push,
@@ -116,22 +160,6 @@ void SmoothViewport::advance( e_push_direction x_push,
   pan( 0, x_vel_.to_double(), false );
   pan( y_vel_.to_double(), 0, false );
   scale_zoom( 1.0 + zoom_vel_.to_double() );
-
-  if( zoom_point_seek_ ) {
-    auto log_zoom_change = log( 1.0 + zoom_vel_.to_double() );
-    // .98 found empirically, makes it slightly better, where
-    // "better" means that the same pixel stays under the cursor
-    // as the zooming happens.
-    auto delta_x =
-        .98 * ( ( zoom_point_seek_->x - center_rounded().x )._ *
-                log_zoom_change );
-    auto delta_y =
-        .98 * ( ( zoom_point_seek_->y - center_rounded().y )._ *
-                log_zoom_change );
-    o_.center_x += delta_x;
-    o_.center_y += delta_y;
-    fix_invariants();
-  }
 }
 
 template<typename T>
@@ -197,17 +225,21 @@ void SmoothViewport::advance_state(
   viewport_rect_pixels_ = viewport_rect_pixels;
   fix_invariants();
 
+  double const old_zoom = o_.zoom;
+
   advance( x_push_, y_push_, zoom_push_ );
 
-  if( smooth_center_ ) {
-    advance_target_seeking( smooth_center_->x_target,
+  if( coro_smooth_center_ ) {
+    advance_target_seeking( coro_smooth_center_->x_target,
                             o_.center_x, x_vel_,
                             translation_seeking_parameters );
-    advance_target_seeking( smooth_center_->y_target,
+    advance_target_seeking( coro_smooth_center_->y_target,
                             o_.center_y, y_vel_,
                             translation_seeking_parameters );
-    if( is_tile_fully_visible( smooth_center_->tile_target ) )
-      smooth_center_->promise.set_value_emplace_if_not_set();
+    if( is_tile_fully_visible(
+            coro_smooth_center_->tile_target ) )
+      coro_smooth_center_->promise
+          .set_value_emplace_if_not_set();
   }
 
   if( smooth_zoom_target_ ) {
@@ -216,6 +248,25 @@ void SmoothViewport::advance_state(
                                 zoom_seeking_parameters ) )
       smooth_zoom_target_ = nothing;
   }
+
+  // Now if the player is requesting that the viewport pan to a
+  // particular point on the map while zooming (the key here is
+  // "while zoom"; regular panning is handled above) then we will
+  // advance that here. The way it works is that the panning ve-
+  // locity at any given time is tied to the zooming velocity so
+  // that the animation looks natural. So we need to get the
+  // zooming velocity. But we can't just use zoom_vel_ as is,
+  // since that does not always hold the actual zoom velocity, it
+  // only holds the zoom velocity from the push/acceleration
+  // mechanism, and will not reflect changes to zoom made by the
+  // "smooth zoom target" mechanism above. Therefore we just com-
+  // pute the effective zoom velocity (which, unlike cartesian
+  // coordinates, is not the difference but the ratio).
+  double const        new_zoom           = o_.zoom;
+  DissipativeVelocity effective_zoom_vel = zoom_vel_;
+  // new_zoom = old_zoom * (1 + zoom_vel);
+  effective_zoom_vel.set_velocity( new_zoom / old_zoom - 1.0 );
+  advance_zoom_point_seek( effective_zoom_vel );
 
   x_push_    = e_push_direction::none;
   y_push_    = e_push_direction::none;
@@ -237,9 +288,8 @@ void SmoothViewport::set_zoom_push(
   zoom_push_ = push;
 
   zoom_point_seek_ = nothing;
-  // If the caller has specified a coordinate and if that
-  // coordinate is in the viewport then record it so that the
-  // viewport center can tend to that point as the zoom happens.
+  point_seek_      = nothing;
+
   if( maybe_seek_screen_coord )
     zoom_point_seek_ =
         screen_pixel_to_world_pixel( *maybe_seek_screen_coord );
@@ -252,17 +302,24 @@ void SmoothViewport::set_zoom( double new_zoom ) {
   fix_invariants();
 }
 
-void SmoothViewport::smooth_zoom_target( double target ) {
+void SmoothViewport::smooth_zoom_target(
+    double target, maybe<Coord> maybe_seek_screen_coord ) {
   smooth_zoom_target_ = target;
+
+  if( maybe_seek_screen_coord )
+    zoom_point_seek_ =
+        screen_pixel_to_world_pixel( *maybe_seek_screen_coord );
 }
 void SmoothViewport::stop_auto_zoom() {
   smooth_zoom_target_ = nothing;
 }
 
 void SmoothViewport::stop_auto_panning() {
-  if( !smooth_center_ ) return;
-  smooth_center_->promise.set_value_emplace_if_not_set();
-  smooth_center_ = nothing;
+  if( coro_smooth_center_ ) {
+    coro_smooth_center_->promise.set_value_emplace_if_not_set();
+    coro_smooth_center_ = nothing;
+  }
+  point_seek_ = nothing;
 }
 
 // Computes the critical zoom point below which (i.e., if you
@@ -696,12 +753,12 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
-  smooth_center_ = SmoothCenter{
+  coro_smooth_center_ = SmoothCenter{
       .x_target = XD{ double( ( coord.x * g_tile_width )._ ) },
       .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
       .tile_target = coord,
       .promise     = {} };
-  return smooth_center_->promise.wait();
+  return coro_smooth_center_->promise.wait();
 }
 
 bool SmoothViewport::operator==(

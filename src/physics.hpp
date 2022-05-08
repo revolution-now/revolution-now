@@ -57,6 +57,7 @@ class ND DissipativeVelocity {
 
   void set_bounds( double min_velocity, double max_velocity );
   void set_accelerations( double accel, double drag_accel );
+  void set_velocity( double velocity );
 
   bool operator==( DissipativeVelocity const& rhs ) const {
     return ( min_velocity_ == rhs.min_velocity_ ) && //

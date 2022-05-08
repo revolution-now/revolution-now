@@ -42,6 +42,12 @@ void DissipativeVelocity::set_accelerations(
          accel_, drag_accel_ );
 }
 
+void DissipativeVelocity::set_velocity( double velocity ) {
+  velocity_ = velocity;
+  velocity_ =
+      std::clamp( velocity_, min_velocity_, max_velocity_ );
+}
+
 DissipativeVelocity::DissipativeVelocity(
     double min_velocity, double max_velocity,
     double initial_velocity, double acceleration,
