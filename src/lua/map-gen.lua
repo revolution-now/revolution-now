@@ -13,6 +13,10 @@ local M = {}
 
 local WORLD_SIZE = { w=58, h=72 }
 
+local function debug_log( msg )
+  -- io.write( msg )
+end
+
 function M.initial_ship_pos()
   local size = map_gen.world_size()
   return { y=size.h / 2, x=size.w - 3 }
@@ -387,7 +391,7 @@ local function create_sea_lanes()
       end
     end
   end
-  io.write( 'starting row: ' .. tostring( closest_row ) .. '\n' )
+  debug_log( 'starting row: ' .. tostring( closest_row ) .. '\n' )
   -- Now get the sea lane width where we are starting.
   local sea_lane_width = function( y )
     local width = 0
@@ -398,8 +402,8 @@ local function create_sea_lanes()
     return width
   end
   local curr_sea_lane_width = sea_lane_width( closest_row )
-  io.write( 'curr width: ' .. tostring( curr_sea_lane_width ) ..
-                '\n' )
+  debug_log( 'curr width: ' .. tostring( curr_sea_lane_width ) ..
+                 '\n' )
   -- Now start at the row that we found and go upward.
   for y = closest_row - 1, 0, -1 do
     if not is_sea_lane{ x=0, y=y } then
