@@ -11,21 +11,99 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- Constants
+-----------------------------------------------------------------
 local WORLD_SIZE = { w=58, h=72 }
 
+-----------------------------------------------------------------
+-- Utils
+-----------------------------------------------------------------
 local function debug_log( msg )
   -- io.write( msg )
 end
 
-function M.initial_ship_pos()
-  local size = map_gen.world_size()
-  return { y=size.h / 2, x=size.w - 3 }
+-- Enforces that n is in [min, max].
+local function clamp( n, min, max )
+  if n < min then return min end
+  if n > max then return max end
+  return n
+end
+
+local function append( tbl, elem ) tbl[#tbl + 1] = elem end
+
+-----------------------------------------------------------------
+-- Random Numbers
+-----------------------------------------------------------------
+local function random_elem( tbl, len )
+  local idx = math.random( 1, len )
+  local j = 1
+  for key, elem in pairs( tbl ) do
+    if j == idx then return key, elem end
+    j = j + 1
+  end
+end
+
+local function random_bool()
+  if math.random( 1, 2 ) == 1 then
+    return true
+  else
+    return false
+  end
 end
 
 local function random_list_elem( lst )
   return lst[math.random( 1, #lst )]
 end
 
+local function random_point_in_rect( rect )
+  local size = { w=rect.w, h=rect.h }
+  local x = math.random( 0, rect.w - 1 ) + rect.x
+  local y = math.random( 0, rect.h - 1 ) + rect.y
+  return { x=x, y=y }
+end
+
+local function random_direction()
+  local x = math.random( 0, 1 )
+  local y = math.random( 0, 1 )
+  return { x=x, y=y }
+end
+
+-----------------------------------------------------------------
+-- Coordinate Map
+-----------------------------------------------------------------
+local function square_key( square )
+  return square.y * 10000 + square.x
+end
+
+-----------------------------------------------------------------
+-- Algorithms
+-----------------------------------------------------------------
+-- This will call the function on each square of the map, passing
+-- in the coordinate and the square object which the function may
+-- use. Note that the coordinates are zero based.
+local function on_all( f )
+  local size = map_gen.world_size()
+  for y = 0, size.h - 1 do
+    for x = 0, size.w - 1 do --
+      local coord = { x=x, y=y }
+      local square = map_gen.at( coord )
+      f( coord, square )
+    end
+  end
+end
+
+-----------------------------------------------------------------
+-- Unit Placement
+-----------------------------------------------------------------
+function M.initial_ship_pos()
+  local size = map_gen.world_size()
+  return { y=size.h / 2, x=size.w - 3 }
+end
+
+-----------------------------------------------------------------
+-- Terrain Modification
+-----------------------------------------------------------------
 local function set_land( coord )
   local square = map_gen.at( coord )
   square.surface = e.surface.land
@@ -63,67 +141,15 @@ local function set_sea_lane( coord )
   square.sea_lane = true
 end
 
-local function random_point_in_rect( rect )
-  local size = { w=rect.w, h=rect.h }
-  local x = math.random( 0, rect.w - 1 ) + rect.x
-  local y = math.random( 0, rect.h - 1 ) + rect.y
-  return { x=x, y=y }
-end
-
-local function random_square()
-  local size = map_gen.world_size()
-  return random_point_in_rect( { x=0, y=0, w=size.w, h=size.h } )
-end
-
-local function random_direction()
-  local x = math.random( 0, 1 )
-  local y = math.random( 0, 1 )
-  return { x=x, y=y }
-end
-
--- This will call the function on each square of the map, passing
--- in the coordinate and the square object which the function may
--- use. Note that the coordinates are zero based.
-local function on_all( f )
-  local size = map_gen.world_size()
-  for y = 0, size.h - 1 do
-    for x = 0, size.w - 1 do --
-      local coord = { x=x, y=y }
-      local square = map_gen.at( coord )
-      f( coord, square )
-    end
-  end
-end
-
 -- This will create a new empty map set all squares to water.
 local function reset_terrain()
   map_gen.reset_terrain( WORLD_SIZE )
   on_all( function( coord ) set_water( coord ) end )
 end
 
-local function square_key( square )
-  return square.y * 10000 + square.x
-end
-
-local function append( tbl, elem ) tbl[#tbl + 1] = elem end
-
-local function random_elem( tbl, len )
-  local idx = math.random( 1, len )
-  local j = 1
-  for key, elem in pairs( tbl ) do
-    if j == idx then return key, elem end
-    j = j + 1
-  end
-end
-
-local function random_bool()
-  if math.random( 1, 2 ) == 1 then
-    return true
-  else
-    return false
-  end
-end
-
+-----------------------------------------------------------------
+-- Square Surroundings
+-----------------------------------------------------------------
 local function surrounding_squares_7x7( square )
   local possible = {}
   for y = square.y - 3, square.y + 3 do
@@ -143,43 +169,6 @@ local function surrounding_squares_7x7_right_edge( square )
   for y = square.y - 3, square.y + 3 do
     append( possible, { x=square.x + 3, y=y } )
   end
-  return possible
-end
-
-local function surrounding_squares_5x5( square )
-  local possible = {
-    -- Cardinal
-    { x=square.x + 0, y=square.y - 1 }, --
-    { x=square.x - 1, y=square.y + 0 }, --
-    { x=square.x + 1, y=square.y + 0 }, --
-    { x=square.x + 0, y=square.y + 1 }, --
-    -- Diagonal
-    { x=square.x - 1, y=square.y - 1 }, --
-    { x=square.x + 1, y=square.y - 1 }, --
-    { x=square.x - 1, y=square.y + 1 }, --
-    { x=square.x + 1, y=square.y + 1 }, --
-    -- 2 up
-    { x=square.x - 1, y=square.y - 2 }, --
-    { x=square.x + 0, y=square.y - 2 }, --
-    { x=square.x + 1, y=square.y - 2 }, --
-    -- 2 down
-    { x=square.x - 1, y=square.y + 2 }, --
-    { x=square.x + 0, y=square.y + 2 }, --
-    { x=square.x + 1, y=square.y + 2 }, --
-    -- 2 left
-    { x=square.x - 2, y=square.y - 1 }, --
-    { x=square.x - 2, y=square.y + 0 }, --
-    { x=square.x - 2, y=square.y + 1 }, --
-    -- 2 right
-    { x=square.x + 2, y=square.y - 1 }, --
-    { x=square.x + 2, y=square.y + 0 }, --
-    { x=square.x + 2, y=square.y + 1 }, --
-    -- 4 corners
-    { x=square.x - 2, y=square.y - 2 }, --
-    { x=square.x + 2, y=square.y - 2 }, --
-    { x=square.x - 2, y=square.y + 2 }, --
-    { x=square.x + 2, y=square.y + 2 } --
-  }
   return possible
 end
 
@@ -217,6 +206,9 @@ local function filter_existing_squares( squares )
   return exists
 end
 
+-----------------------------------------------------------------
+-- Continent Generation
+-----------------------------------------------------------------
 local function generate_continent( seed_square, area )
   local square = seed_square
   local border_squares = {}
@@ -254,6 +246,9 @@ local function generate_continent( seed_square, area )
   end
 end
 
+-----------------------------------------------------------------
+-- Forest Generation
+-----------------------------------------------------------------
 local function forest_cover()
   local size = map_gen.world_size()
   on_all( function( coord )
@@ -268,6 +263,9 @@ local function forest_cover()
   end )
 end
 
+-----------------------------------------------------------------
+-- Map Edges
+-----------------------------------------------------------------
 -- Will clear a frame around the edge of the map to make sure
 -- that land doesn't get too close to the map edge and we still
 -- have room for sea lane squares.
@@ -284,35 +282,6 @@ local function clear_buffer_area( buffer_size )
   end )
 end
 
-local function land_edges_on_row( y )
-  local width = map_gen.world_size().w
-  local left, right
-  for x = 0, width - 1 do
-    if map_gen.at( { x=x, y=y } ).surface == e.surface.land then
-      left = x
-      break
-    end
-  end
-  for x = 0, width - 1 do
-    local reversed = width - x - 1
-    if map_gen.at( { x=reversed, y=y } ).surface ==
-        e.surface.land then
-      right = reversed
-      break
-    end
-  end
-  if left then assert( right ) end
-  if right then assert( left ) end
-  return left, right
-end
-
--- Enforces that n is in [min, max].
-local function clamp( n, min, max )
-  if n < min then return min end
-  if n > max then return max end
-  return n
-end
-
 local function create_arctic_along_row( y )
   local size = map_gen.world_size()
   -- Note that we don't include the edges.
@@ -327,6 +296,9 @@ local function create_arctic()
   create_arctic_along_row( size.h - 1 )
 end
 
+-----------------------------------------------------------------
+-- Sea Lane Generation
+-----------------------------------------------------------------
 local function create_sea_lanes()
   local size = map_gen.world_size()
 
@@ -437,6 +409,9 @@ local function create_sea_lanes()
   for y = 0, size.h - 1 do set_sea_lane{ x=size.w - 1, y=y } end
 end
 
+-----------------------------------------------------------------
+-- Map Generator
+-----------------------------------------------------------------
 function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
