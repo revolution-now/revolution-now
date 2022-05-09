@@ -255,8 +255,10 @@ local function forest_cover()
   on_all( function( coord )
     local square = map_gen.at( coord )
     if square.surface == e.surface.land then
-      if math.random( 1, 4 ) <= 3 then
-        square.overlay = e.land_overlay.forest
+      if square.ground ~= e.ground_terrain.arctic then
+        if math.random( 1, 4 ) <= 3 then
+          square.overlay = e.land_overlay.forest
+        end
       end
     end
   end )
