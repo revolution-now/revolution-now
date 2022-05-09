@@ -62,14 +62,22 @@ local function random_direction()
   return { x=x, y=y }
 end
 
-local function reset_terrain()
-  map_gen.reset_terrain( WORLD_SIZE )
+-- This will call the function on each square of the map, passing
+-- in the coordinate which the function may use. Note that the
+-- coordinates are zero based.
+local function on_all( f )
   local size = map_gen.world_size()
   for y = 0, size.h - 1 do
     for x = 0, size.w - 1 do --
-      set_water{ x=x, y=y }
+      f{ x=x, y=y }
     end
   end
+end
+
+-- This will create a new empty map set all squares to water.
+local function reset_terrain()
+  map_gen.reset_terrain( WORLD_SIZE )
+  on_all( function( coord ) set_water( coord ) end )
 end
 
 local function square_key( square )
@@ -205,16 +213,14 @@ end
 
 local function forest_cover()
   local size = map_gen.world_size()
-  for y = 0, size.h - 1 do
-    for x = 0, size.w - 1 do
-      local square = map_gen.at( { x=x, y=y } )
-      if square.surface == e.surface.land then
-        if math.random( 1, 4 ) <= 3 then
-          square.overlay = e.land_overlay.forest
-        end
+  on_all( function( coord )
+    local square = map_gen.at( coord )
+    if square.surface == e.surface.land then
+      if math.random( 1, 4 ) <= 3 then
+        square.overlay = e.land_overlay.forest
       end
     end
-  end
+  end )
 end
 
 -- Will clear a frame around the edge of the map to make sure
@@ -222,15 +228,15 @@ end
 -- have room for sea lane squares.
 local function clear_buffer_area( buffer_size )
   local size = map_gen.world_size()
-  for y = 0, size.h - 1 do
-    for x = 0, size.w - 1 do --
-      if y < buffer_size or y > size.h - buffer_size or x <
-          buffer_size or x > size.w - buffer_size then
-        set_water{ x=x, y=y }
-        -- set_sea_lane{ x=x, y=y }
-      end
+  on_all( function( coord )
+    local y = coord.y
+    local x = coord.x
+    if y < buffer_size or y > size.h - buffer_size or x <
+        buffer_size or x > size.w - buffer_size then
+      set_water{ x=x, y=y }
+      -- set_sea_lane{ x=x, y=y }
     end
-  end
+  end )
 end
 
 local function land_edges_on_row( y )
@@ -325,19 +331,17 @@ local function create_sea_lanes( max_width )
 
   -- Now find all land squares and make sure that there are no
   -- sea lane squares in their vicinity.
-  for y = 0, size.h - 1 do
-    for x = 0, size.w - 1 do
-      local square = map_gen.at{ x=x, y=y }
-      if square.surface == e.surface.land then
-        local surrounding = surrounding_squares_5x5{ x=x, y=y }
-        surrounding = filter_existing_squares( surrounding )
-        for _, s in ipairs( surrounding ) do
-          local square = map_gen.at( s )
-          if square.sea_lane then set_water( s ) end
-        end
+  on_all( function( coord )
+    local square = map_gen.at( coord )
+    if square.surface == e.surface.land then
+      local surrounding = surrounding_squares_5x5( coord )
+      surrounding = filter_existing_squares( surrounding )
+      for _, s in ipairs( surrounding ) do
+        local square = map_gen.at( s )
+        if square.sea_lane then set_water( s ) end
       end
     end
-  end
+  end )
 end
 
 function M.generate()
