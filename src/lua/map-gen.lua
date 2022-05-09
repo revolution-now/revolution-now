@@ -356,15 +356,16 @@ local function create_sea_lanes()
   end )
 
   -- Clear out any sea lane along the three rows at the top of
-  -- the map and the bottom of the map.
-  for y = 0, 2 do
+  -- the map and the bottom of the map (not including the arctic
+  -- rows).
+  for y = 0, 3 do
     for x = 0, size.w - 1 do
       local coord = { x=x, y=y }
       local square = map_gen.at( coord )
       if square.sea_lane then set_water( coord ) end
     end
   end
-  for y = size.h - 3, size.h - 1 do
+  for y = size.h - 4, size.h - 1 do
     for x = 0, size.w - 1 do
       local coord = { x=x, y=y }
       local square = map_gen.at( coord )

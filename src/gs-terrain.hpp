@@ -44,6 +44,20 @@ struct TerrainState {
   MapSquare const&        square_at( Coord coord ) const;
   maybe<MapSquare const&> maybe_square_at( Coord coord ) const;
 
+  // This essentially returns what square_at does, except it also
+  // returns valid values for any squares outside of the map, in
+  // which case it will return arctic squares for the top and
+  // bottom and sea lane squares for the left and right sides.
+  // This is very useful for rendering for two reasons: 1) the
+  // renderer doesn't have to make special cases for tiles on the
+  // map edge, and 2) it helps to replicate the behavior of the
+  // original game where tiles at the map edge are rendered as if
+  // there are more tiles off of the map.
+  //
+  // The word "total" in the name refers to the fact that, unlike
+  // `square_at`, this is a total function.
+  MapSquare const& total_square_at( Coord coord ) const;
+
   // Throws if coord is not on map.
   bool is_land( Coord coord ) const;
 

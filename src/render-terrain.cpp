@@ -69,49 +69,40 @@ maybe<e_ground_terrain> ground_terrain_for_square(
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
   // We have a water so get it from the surroundings.
-  maybe<MapSquare const&> left =
-      terrain_state.maybe_square_at( world_square - 1_w );
-  if( left.has_value() && left->surface == e_surface::land )
-    return left->ground;
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+  if( left.surface == e_surface::land ) return left.ground;
 
-  maybe<MapSquare const&> up =
-      terrain_state.maybe_square_at( world_square - 1_h );
-  if( up.has_value() && up->surface == e_surface::land )
-    return up->ground;
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  if( up.surface == e_surface::land ) return up.ground;
 
-  maybe<MapSquare const&> right =
-      terrain_state.maybe_square_at( world_square + 1_w );
-  if( right.has_value() && right->surface == e_surface::land )
-    return right->ground;
+  MapSquare const& right =
+      terrain_state.total_square_at( world_square + 1_w );
+  if( right.surface == e_surface::land ) return right.ground;
 
-  maybe<MapSquare const&> down =
-      terrain_state.maybe_square_at( world_square + 1_h );
-  if( down.has_value() && down->surface == e_surface::land )
-    return down->ground;
+  MapSquare const& down =
+      terrain_state.total_square_at( world_square + 1_h );
+  if( down.surface == e_surface::land ) return down.ground;
 
-  maybe<MapSquare const&> up_left =
-      terrain_state.maybe_square_at( world_square - 1_w - 1_h );
-  if( up_left.has_value() &&
-      up_left->surface == e_surface::land )
-    return up_left->ground;
+  MapSquare const& up_left =
+      terrain_state.total_square_at( world_square - 1_w - 1_h );
+  if( up_left.surface == e_surface::land ) return up_left.ground;
 
-  maybe<MapSquare const&> up_right =
-      terrain_state.maybe_square_at( world_square - 1_h + 1_w );
-  if( up_right.has_value() &&
-      up_right->surface == e_surface::land )
-    return up_right->ground;
+  MapSquare const& up_right =
+      terrain_state.total_square_at( world_square - 1_h + 1_w );
+  if( up_right.surface == e_surface::land )
+    return up_right.ground;
 
-  maybe<MapSquare const&> down_right =
-      terrain_state.maybe_square_at( world_square + 1_w + 1_h );
-  if( down_right.has_value() &&
-      down_right->surface == e_surface::land )
-    return down_right->ground;
+  MapSquare const& down_right =
+      terrain_state.total_square_at( world_square + 1_w + 1_h );
+  if( down_right.surface == e_surface::land )
+    return down_right.ground;
 
-  maybe<MapSquare const&> down_left =
-      terrain_state.maybe_square_at( world_square + 1_h - 1_w );
-  if( down_left.has_value() &&
-      down_left->surface == e_surface::land )
-    return down_left->ground;
+  MapSquare const& down_left =
+      terrain_state.total_square_at( world_square + 1_h - 1_w );
+  if( down_left.surface == e_surface::land )
+    return down_left.ground;
 
   return nothing;
 }
@@ -119,11 +110,10 @@ maybe<e_ground_terrain> ground_terrain_for_square(
 void render_forest( TerrainState const& terrain_state,
                     rr::Painter& painter, Coord where,
                     Coord world_square ) {
-  maybe<MapSquare const&> here =
-      terrain_state.maybe_square_at( world_square );
-  DCHECK( here.has_value() );
-  DCHECK( here->surface == e_surface::land );
-  if( here->ground == e_ground_terrain::desert ) {
+  MapSquare const& here =
+      terrain_state.total_square_at( world_square );
+  DCHECK( here.surface == e_surface::land );
+  if( here.ground == e_ground_terrain::desert ) {
     render_sprite( painter, where,
                    e_tile::terrain_forest_scrub_island );
     return;
@@ -132,11 +122,11 @@ void render_forest( TerrainState const& terrain_state,
   // Returns true if the the tile exists, it is land, it is
   // non-desert, and it has a forest.
   auto is_forest = [&]( e_direction d ) {
-    maybe<MapSquare const&> s =
-        terrain_state.maybe_square_at( world_square.moved( d ) );
-    return s.has_value() && s->surface == e_surface::land &&
-           s->overlay == e_land_overlay::forest &&
-           s->ground != e_ground_terrain::desert;
+    MapSquare const& s =
+        terrain_state.total_square_at( world_square.moved( d ) );
+    return s.surface == e_surface::land &&
+           s.overlay == e_land_overlay::forest &&
+           s.ground != e_ground_terrain::desert;
   };
 
   bool has_left  = is_forest( e_direction::w );
@@ -261,21 +251,21 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
                               Coord where, Coord world_square,
                               double chop_percent,
                               Delta  anchor_offset ) {
-  maybe<MapSquare const&> west =
-      terrain_state.maybe_square_at( world_square - 1_w );
-  maybe<MapSquare const&> north =
-      terrain_state.maybe_square_at( world_square - 1_h );
-  maybe<MapSquare const&> east =
-      terrain_state.maybe_square_at( world_square + 1_w );
-  maybe<MapSquare const&> south =
-      terrain_state.maybe_square_at( world_square + 1_h );
+  MapSquare const& west =
+      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& north =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& east =
+      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& south =
+      terrain_state.total_square_at( world_square + 1_h );
 
   int chop_pixels =
       std::lround( g_tile_delta.w._ * chop_percent );
   W chop_w = W{ chop_pixels };
   H chop_h = H{ chop_pixels };
 
-  if( west.has_value() ) {
+  {
     // Render east part of western tile.
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
@@ -287,13 +277,14 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, *west, world_square - 1_w );
+         terrain_state, west, world_square - 1_w );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
-  if( north.has_value() ) {
+
+  {
     // Render bottom part of north tile.
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
@@ -305,13 +296,14 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, *north, world_square - 1_h );
+         terrain_state, north, world_square - 1_h );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
-  if( south.has_value() ) {
+
+  {
     // Render northern part of southern tile.
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
@@ -323,13 +315,14 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, *south, world_square + 1_h );
+         terrain_state, south, world_square + 1_h );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
-  if( east.has_value() ) {
+
+  {
     // Render west part of eastern tile.
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
@@ -341,7 +334,7 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, *east, world_square + 1_w );
+         terrain_state, east, world_square + 1_w );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -404,22 +397,21 @@ void render_terrain_ground( TerrainState const& terrain_state,
 #endif
   }
 
-  maybe<MapSquare const&> left =
-      terrain_state.maybe_square_at( world_square - 1_w );
-  maybe<MapSquare const&> up =
-      terrain_state.maybe_square_at( world_square - 1_h );
-  maybe<MapSquare const&> right =
-      terrain_state.maybe_square_at( world_square + 1_w );
-  maybe<MapSquare const&> up_left =
-      terrain_state.maybe_square_at( world_square - 1_h - 1_w );
-  maybe<MapSquare const&> up_right =
-      terrain_state.maybe_square_at( world_square + 1_w - 1_h );
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& right =
+      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& up_left =
+      terrain_state.total_square_at( world_square - 1_h - 1_w );
+  MapSquare const& up_right =
+      terrain_state.total_square_at( world_square + 1_w - 1_h );
 
   // This should be done at the end.
-  if( up_right.has_value() &&
-      up_right->surface == e_surface::land &&
-      up->surface == e_surface::water &&
-      right->surface == e_surface::water ) {
+  if( up_right.surface == e_surface::land &&
+      up.surface == e_surface::water &&
+      right.surface == e_surface::water ) {
     render_sprite_stencil(
         painter, where,
         e_tile::terrain_ocean_canal_corner_up_right,
@@ -429,10 +421,9 @@ void render_terrain_ground( TerrainState const& terrain_state,
         painter, where,
         e_tile::terrain_border_canal_corner_up_right );
   }
-  if( up_left.has_value() &&
-      up_left->surface == e_surface::land &&
-      up->surface == e_surface::water &&
-      left->surface == e_surface::water ) {
+  if( up_left.surface == e_surface::land &&
+      up.surface == e_surface::water &&
+      left.surface == e_surface::water ) {
     render_sprite_stencil(
         painter, where,
         e_tile::terrain_ocean_canal_corner_up_left,
@@ -459,38 +450,31 @@ void render_terrain_land_square(
   }
 }
 
-void render_beach_corners( rr::Painter& painter, Coord where,
-                           maybe<MapSquare const&> up,
-                           maybe<MapSquare const&> right,
-                           maybe<MapSquare const&> down,
-                           maybe<MapSquare const&> left,
-                           maybe<MapSquare const&> up_left,
-                           maybe<MapSquare const&> up_right,
-                           maybe<MapSquare const&> down_right,
-                           maybe<MapSquare const&> down_left ) {
+void render_beach_corners(
+    rr::Painter& painter, Coord where, MapSquare const& up,
+    MapSquare const& right, MapSquare const& down,
+    MapSquare const& left, MapSquare const& up_left,
+    MapSquare const& up_right, MapSquare const& down_right,
+    MapSquare const& down_left ) {
   // Render beach corners.
-  if( up_left.has_value() &&
-      up_left->surface == e_surface::land &&
-      left->surface == e_surface::water &&
-      up->surface == e_surface::water )
+  if( up_left.surface == e_surface::land &&
+      left.surface == e_surface::water &&
+      up.surface == e_surface::water )
     render_sprite( painter, where,
                    e_tile::terrain_beach_corner_up_left );
-  if( up_right.has_value() &&
-      up_right->surface == e_surface::land &&
-      up->surface == e_surface::water &&
-      right->surface == e_surface::water )
+  if( up_right.surface == e_surface::land &&
+      up.surface == e_surface::water &&
+      right.surface == e_surface::water )
     render_sprite( painter, where,
                    e_tile::terrain_beach_corner_up_right );
-  if( down_right.has_value() &&
-      down_right->surface == e_surface::land &&
-      down->surface == e_surface::water &&
-      right->surface == e_surface::water )
+  if( down_right.surface == e_surface::land &&
+      down.surface == e_surface::water &&
+      right.surface == e_surface::water )
     render_sprite( painter, where,
                    e_tile::terrain_beach_corner_down_right );
-  if( down_left.has_value() &&
-      down_left->surface == e_surface::land &&
-      down->surface == e_surface::water &&
-      left->surface == e_surface::water )
+  if( down_left.surface == e_surface::land &&
+      down.surface == e_surface::water &&
+      left.surface == e_surface::water )
     render_sprite( painter, where,
                    e_tile::terrain_beach_corner_down_left );
 }
@@ -503,29 +487,28 @@ void render_terrain_ocean_square(
     Coord world_square ) {
   DCHECK( square.surface == e_surface::water );
 
-  maybe<MapSquare const&> up =
-      terrain_state.maybe_square_at( world_square - 1_h );
-  maybe<MapSquare const&> right =
-      terrain_state.maybe_square_at( world_square + 1_w );
-  maybe<MapSquare const&> down =
-      terrain_state.maybe_square_at( world_square + 1_h );
-  maybe<MapSquare const&> left =
-      terrain_state.maybe_square_at( world_square - 1_w );
-  maybe<MapSquare const&> up_left =
-      terrain_state.maybe_square_at( world_square - 1_h - 1_w );
-  maybe<MapSquare const&> up_right =
-      terrain_state.maybe_square_at( world_square + 1_w - 1_h );
-  maybe<MapSquare const&> down_right =
-      terrain_state.maybe_square_at( world_square + 1_h + 1_w );
-  maybe<MapSquare const&> down_left =
-      terrain_state.maybe_square_at( world_square - 1_w + 1_h );
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& right =
+      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& down =
+      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& up_left =
+      terrain_state.total_square_at( world_square - 1_h - 1_w );
+  MapSquare const& up_right =
+      terrain_state.total_square_at( world_square + 1_w - 1_h );
+  MapSquare const& down_right =
+      terrain_state.total_square_at( world_square + 1_h + 1_w );
+  MapSquare const& down_left =
+      terrain_state.total_square_at( world_square - 1_w + 1_h );
 
   // Treat off-map tiles as water for rendering purposes.
-  bool water_up = !up || up->surface == e_surface::water;
-  bool water_right =
-      !right || right->surface == e_surface::water;
-  bool water_down = !down || down->surface == e_surface::water;
-  bool water_left = !left || left->surface == e_surface::water;
+  bool water_up    = up.surface == e_surface::water;
+  bool water_right = right.surface == e_surface::water;
+  bool water_down  = down.surface == e_surface::water;
+  bool water_left  = left.surface == e_surface::water;
 
   // 0000abcd:
   // a=water up, b=water right, c=water down, d=water left.
@@ -557,9 +540,9 @@ void render_terrain_ocean_square(
   maybe<e_tile> sand_tile          = {};
 
   auto is_land_if_exists = [&]( e_direction d ) {
-    maybe<MapSquare const&> s =
-        terrain_state.maybe_square_at( world_square.moved( d ) );
-    return s.has_value() && s->surface == e_surface::land;
+    MapSquare const& s =
+        terrain_state.total_square_at( world_square.moved( d ) );
+    return s.surface == e_surface::land;
   };
 
   auto to_mask = []( bool l, bool r ) {
@@ -1208,12 +1191,14 @@ void render_terrain_ocean_square(
   render_terrain_ground( terrain_state, painter, renderer, where,
                          world_square, ground );
 
+  e_tile ocean_background = square.sea_lane
+                                ? e_tile::terrain_ocean_sea_lane
+                                : e_tile::terrain_ocean;
   render_sprite_stencil( painter, where, water_tile,
-                         e_tile::terrain_ocean,
-                         gfx::pixel::black() );
+                         ocean_background, gfx::pixel::black() );
   if( second_water_tile.has_value() )
     render_sprite_stencil( painter, where, *second_water_tile,
-                           e_tile::terrain_ocean,
+                           ocean_background,
                            gfx::pixel::black() );
   render_sprite( painter, where, beach_tile );
   render_sprite( painter, where, border_tile );
@@ -1236,10 +1221,9 @@ void render_terrain_ocean_square(
   }
 
   // Render canals.
-  if( up_left.has_value() &&
-      up_left->surface == e_surface::water &&
-      left->surface == e_surface::land &&
-      up->surface == e_surface::land ) {
+  if( up_left.surface == e_surface::water &&
+      left.surface == e_surface::land &&
+      up.surface == e_surface::land ) {
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_up_left,
         e_tile::terrain_ocean_canal_background,
@@ -1247,10 +1231,9 @@ void render_terrain_ocean_square(
     render_sprite( painter, where,
                    e_tile::terrain_border_canal_up_left );
   }
-  if( up_right.has_value() &&
-      up_right->surface == e_surface::water &&
-      up->surface == e_surface::land &&
-      right->surface == e_surface::land ) {
+  if( up_right.surface == e_surface::water &&
+      up.surface == e_surface::land &&
+      right.surface == e_surface::land ) {
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_up_right,
         e_tile::terrain_ocean_canal_background,
@@ -1258,10 +1241,9 @@ void render_terrain_ocean_square(
     render_sprite( painter, where,
                    e_tile::terrain_border_canal_up_right );
   }
-  if( down_right.has_value() &&
-      down_right->surface == e_surface::water &&
-      down->surface == e_surface::land &&
-      right->surface == e_surface::land ) {
+  if( down_right.surface == e_surface::water &&
+      down.surface == e_surface::land &&
+      right.surface == e_surface::land ) {
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_down_right,
         e_tile::terrain_ocean_canal_background,
@@ -1269,10 +1251,9 @@ void render_terrain_ocean_square(
     render_sprite( painter, where,
                    e_tile::terrain_border_canal_down_right );
   }
-  if( down_left.has_value() &&
-      down_left->surface == e_surface::water &&
-      down->surface == e_surface::land &&
-      left->surface == e_surface::land ) {
+  if( down_left.surface == e_surface::water &&
+      down.surface == e_surface::land &&
+      left.surface == e_surface::land ) {
     render_sprite_stencil(
         painter, where, e_tile::terrain_ocean_canal_down_left,
         e_tile::terrain_ocean_canal_background,

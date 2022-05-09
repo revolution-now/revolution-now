@@ -79,6 +79,26 @@ maybe<MapSquare const&> TerrainState::maybe_square_at(
   return world_map()[coord.y][coord.x];
 }
 
+MapSquare const& TerrainState::total_square_at(
+    Coord coord ) const {
+  static MapSquare const kArctic =
+      MapSquare{ .surface = e_surface::land,
+                 .ground  = e_ground_terrain::arctic };
+  static MapSquare const kSeaLane =
+      MapSquare{ .surface  = e_surface::water,
+                 .ground   = {},
+                 .sea_lane = true };
+  Rect rect = world_rect_tiles();
+  if( coord.x < rect.left_edge() ||
+      coord.x >= rect.right_edge() )
+    return kSeaLane;
+  if( coord.y < rect.top_edge() ||
+      coord.y >= rect.bottom_edge() )
+    return kArctic;
+  // This should never fail since coord should now be on the map.
+  return square_at( coord );
+}
+
 MapSquare const& TerrainState::square_at( Coord coord ) const {
   maybe<MapSquare const&> res = maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
