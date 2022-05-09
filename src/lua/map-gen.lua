@@ -38,6 +38,21 @@ local function set_water( coord )
   square.sea_lane = false
 end
 
+local function is_square_water( square )
+  return square.surface == e.surface.water
+end
+
+local function set_arctic( coord )
+  local square = map_gen.at( coord )
+  square.surface = e.surface.land
+  square.ground = e.ground_terrain.arctic
+end
+
+local function is_sea_lane( coord )
+  local square = map_gen.at( coord )
+  return square.sea_lane
+end
+
 local function set_sea_lane( coord )
   set_water( coord )
   local square = map_gen.at( coord )
@@ -63,13 +78,15 @@ local function random_direction()
 end
 
 -- This will call the function on each square of the map, passing
--- in the coordinate which the function may use. Note that the
--- coordinates are zero based.
+-- in the coordinate and the square object which the function may
+-- use. Note that the coordinates are zero based.
 local function on_all( f )
   local size = map_gen.world_size()
   for y = 0, size.h - 1 do
     for x = 0, size.w - 1 do --
-      f{ x=x, y=y }
+      local coord = { x=x, y=y }
+      local square = map_gen.at( coord )
+      f( coord, square )
     end
   end
 end
@@ -101,6 +118,28 @@ local function random_bool()
   else
     return false
   end
+end
+
+local function surrounding_squares_7x7( square )
+  local possible = {}
+  for y = square.y - 3, square.y + 3 do
+    for x = square.x - 3, square.x + 3 do
+      if x ~= square.x or y ~= square.y then
+        append( possible, { x=x, y=y } )
+      end
+    end
+  end
+  return possible
+end
+
+-- This will give the tiles along the right edge of the 7x7 block
+-- of tiles centered on `square`.
+local function surrounding_squares_7x7_right_edge( square )
+  local possible = {}
+  for y = square.y - 3, square.y + 3 do
+    append( possible, { x=square.x + 3, y=y } )
+  end
+  return possible
 end
 
 local function surrounding_squares_5x5( square )
@@ -268,80 +307,127 @@ local function clamp( n, min, max )
   return n
 end
 
-local function create_sea_lanes( max_width )
+local function create_arctic_along_row( y )
   local size = map_gen.world_size()
-  local sea_lane_width = 0
-
-  local sea_lane_buffer_max = 8
-  local sea_lane_buffer = 5
-  local sea_lane_buffer_min = 3
-
-  local sea_lane_width_max = max_width
-  local sea_lane_width_min = 1
-
-  -- First the left side of the map.
-  local left, right
-  for y = 0, size.h - 1 do
-    left, right = land_edges_on_row( y )
-    if left then break end
+  -- Note that we don't include the edges.
+  for x = 1, size.w - 2 do
+    if math.random( 1, 2 ) == 1 then set_arctic{ x=x, y=y } end
   end
-  sea_lane_width = left - sea_lane_buffer
-  sea_lane_width = clamp( sea_lane_width, sea_lane_width_min,
-                          sea_lane_width_max )
-  for y = 0, size.h - 1 do
-    left = land_edges_on_row( y )
-    if left then
-      if math.abs( left - sea_lane_width ) > sea_lane_buffer_max or
-          math.abs( left - sea_lane_width ) < sea_lane_buffer_min then
-        sea_lane_width = left - sea_lane_buffer
-        sea_lane_width = clamp( sea_lane_width,
-                                sea_lane_width_min,
-                                sea_lane_width_max )
-      end
-    end
-    for x = 0, sea_lane_width do set_sea_lane{ x=x, y=y } end
-  end
+end
 
-  -- Now the right side of the map.
-  local left, right
-  for y = 0, size.h - 1 do
-    left, right = land_edges_on_row( y )
-    if right then break end
-  end
-  sea_lane_width = size.w - right
-  sea_lane_width = clamp( sea_lane_width, sea_lane_width_min,
-                          sea_lane_width_max )
-  for y = 0, size.h - 1 do
-    left, right = land_edges_on_row( y )
-    if right then
-      if math.abs( size.w - right - sea_lane_width ) >
-          sea_lane_buffer_max or
-          math.abs( size.w - right - sea_lane_width ) <
-          sea_lane_buffer_min then
-        sea_lane_width = size.w - right - sea_lane_buffer
-        sea_lane_width = clamp( sea_lane_width,
-                                sea_lane_width_min,
-                                sea_lane_width_max )
-      end
-    end
-    for x = size.w - sea_lane_width - 1, size.w - 1 do
-      set_sea_lane{ x=x, y=y }
-    end
-  end
+local function create_arctic()
+  local size = map_gen.world_size()
+  create_arctic_along_row( 0 )
+  create_arctic_along_row( size.h - 1 )
+end
+
+local function create_sea_lanes()
+  local size = map_gen.world_size()
+
+  -- First set all water tiles to sea lane.
+  on_all( function( coord, square )
+    if is_square_water( square ) then square.sea_lane = true end
+  end )
 
   -- Now find all land squares and make sure that there are no
-  -- sea lane squares in their vicinity.
+  -- sea lane squares in their vicinity (7x7 square). And for
+  -- each of those water squares, clear all sea lane squares
+  -- along the entire row to the left of it until the map edge.
   on_all( function( coord )
     local square = map_gen.at( coord )
     if square.surface == e.surface.land then
-      local surrounding = surrounding_squares_5x5( coord )
-      surrounding = filter_existing_squares( surrounding )
-      for _, s in ipairs( surrounding ) do
-        local square = map_gen.at( s )
-        if square.sea_lane then set_water( s ) end
+      local block_edge = surrounding_squares_7x7_right_edge(
+                             coord )
+      block_edge = filter_existing_squares( block_edge )
+      for _, s in ipairs( block_edge ) do
+        for x = 0, s.x do
+          local coord = { x=x, y=s.y }
+          local square = map_gen.at( coord )
+          if square.sea_lane then set_water( coord ) end
+        end
       end
     end
   end )
+
+  -- Clear out any sea lane along the three rows at the top of
+  -- the map and the bottom of the map.
+  for y = 0, 2 do
+    for x = 0, size.w - 1 do
+      local coord = { x=x, y=y }
+      local square = map_gen.at( coord )
+      if square.sea_lane then set_water( coord ) end
+    end
+  end
+  for y = size.h - 3, size.h - 1 do
+    for x = 0, size.w - 1 do
+      local coord = { x=x, y=y }
+      local square = map_gen.at( coord )
+      if square.sea_lane then set_water( coord ) end
+    end
+  end
+
+  -- At this point, some rows (that contain no land tiles) will
+  -- be all sea lane. So we will start at the center of the map
+  -- and move upward (downward) to find them and we will set
+  -- their sea lane width (i.e., the width on the right side of
+  -- the map) to what it was below (above) that row.
+  --
+  -- Run through all rows and find the row that is not entirely
+  -- sea lane that is closest to the center of the map.
+  local closest_row = 0 -- row zero has been cleared of sea lane.
+  local y_mid = size.h / 2
+  for y = 0, size.h - 1 do
+    if not is_sea_lane{ x=0, y=y } then
+      if math.abs( y - y_mid ) < math.abs( closest_row - y_mid ) then
+        -- We've found a non-sea-lane row that is closer to the
+        -- middle then what we've found so far.
+        closest_row = y
+      end
+    end
+  end
+  io.write( 'starting row: ' .. tostring( closest_row ) .. '\n' )
+  -- Now get the sea lane width where we are starting.
+  local sea_lane_width = function( y )
+    local width = 0
+    for x = size.w - 1, 0, -1 do
+      if not is_sea_lane{ x=x, y=y } then break end
+      width = width + 1
+    end
+    return width
+  end
+  local curr_sea_lane_width = sea_lane_width( closest_row )
+  io.write( 'curr width: ' .. tostring( curr_sea_lane_width ) ..
+                '\n' )
+  -- Now start at the row that we found and go upward.
+  for y = closest_row - 1, 0, -1 do
+    if not is_sea_lane{ x=0, y=y } then
+      curr_sea_lane_width = sea_lane_width( y )
+    else
+      -- Clear the sea lane and make it have the width of the row
+      -- below it.
+      for x = 0, size.w - 1 - curr_sea_lane_width do
+        map_gen.at{ x=x, y=y }.sea_lane = false
+      end
+    end
+  end
+  -- Now start at the row that we found and go downward.
+  for y = closest_row + 1, size.h - 1 do
+    if not is_sea_lane{ x=0, y=y } then
+      curr_sea_lane_width = sea_lane_width( y )
+    else
+      -- Clear the sea lane and make it have the width of the row
+      -- below it.
+      for x = 0, size.w - 1 - curr_sea_lane_width do
+        map_gen.at{ x=x, y=y }.sea_lane = false
+      end
+    end
+  end
+
+  -- Finally put one tile of sea lane on the left edge and one on
+  -- the right edge (it will be missing on the left edge, and may
+  -- be missing on the right edge at this point).
+  for y = 0, size.h - 1 do set_sea_lane{ x=0, y=y } end
+  for y = 0, size.h - 1 do set_sea_lane{ x=size.w - 1, y=y } end
 end
 
 function M.generate()
@@ -362,9 +448,12 @@ function M.generate()
     local area = math.random( 10, 300 )
     generate_continent( square, area )
   end
-  forest_cover()
   clear_buffer_area( buffer / 2 )
-  create_sea_lanes( buffer )
+  -- Need to do this before creating fish resources.
+  create_sea_lanes()
+  create_arctic()
+
+  forest_cover()
 end
 
 return M
