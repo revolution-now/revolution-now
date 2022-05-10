@@ -410,32 +410,76 @@ local function create_sea_lanes()
 end
 
 -----------------------------------------------------------------
+-- Resource Generation
+-----------------------------------------------------------------
+local function distribute_prime_ground_resources()
+  local shifts = { 0, 4, 9, 12 }
+  local resources = {
+    [0]=true,
+    [7]=true,
+    [17]=true,
+    [24]=true,
+    [34]=true,
+    [41]=true,
+    [47]=true,
+    [58]=true
+  }
+  local const_offset = 0
+
+  local has_resource = function( coord )
+    local y = coord.y + 1
+    local x = coord.x + 1
+    local idx = (y + const_offset) % 64
+    local shift = shifts[idx % 4 + 1]
+    local lookup = (idx // 4 + shift) % 16
+    local rotation = 12 * lookup
+    local resource_idx = (x + rotation) % 64
+    return resources[resource_idx] ~= nil
+  end
+
+  on_all( function( coord, square )
+    if has_resource( coord ) then
+      -- FIXME: forest is temporary.
+      square.overlay = e.land_overlay.forest
+    end
+  end )
+end
+
+-----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
 function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
-  local buffer = 10
-  local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
-  local initial_area = math.random( 50, 200 )
-  generate_continent( initial_square, initial_area )
-  for i = 1, 2 do
-    local square = random_point_in_rect(
-                       {
-          x=buffer,
-          y=buffer,
-          w=size.w - buffer * 2,
-          h=size.h - buffer * 2
-        } )
-    local area = math.random( 10, 300 )
-    generate_continent( square, area )
-  end
-  clear_buffer_area( buffer / 2 )
-  -- Need to do this before creating fish resources.
-  create_sea_lanes()
-  create_arctic()
 
-  forest_cover()
+  -- local buffer = 10
+  -- local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
+  -- local initial_area = math.random( 50, 200 )
+  -- generate_continent( initial_square, initial_area )
+  -- for i = 1, 2 do
+  --   local square = random_point_in_rect(
+  --                      {
+  --         x=buffer,
+  --         y=buffer,
+  --         w=size.w - buffer * 2,
+  --         h=size.h - buffer * 2
+  --       } )
+  --   local area = math.random( 10, 300 )
+  --   generate_continent( square, area )
+  -- end
+  -- clear_buffer_area( buffer / 2 )
+  -- -- Need to do this before creating fish resources.
+  -- create_sea_lanes()
+  -- create_arctic()
+  --
+  -- forest_cover()
+
+  on_all( function( coord, square )
+    square.surface = e.surface.land
+    square.ground = e.ground_terrain.plains
+  end )
+
+  distribute_prime_ground_resources()
 end
 
 return M
