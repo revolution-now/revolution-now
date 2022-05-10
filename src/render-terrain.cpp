@@ -552,7 +552,6 @@ void render_terrain_ocean_square(
   switch( mask ) {
     case 0b1110: {
       // land on left.
-      DCHECK( left.has_value() );
       bool top_open  = is_land_if_exists( e_direction::nw );
       bool down_open = is_land_if_exists( e_direction::sw );
       switch( to_mask( top_open, down_open ) ) {
@@ -586,7 +585,6 @@ void render_terrain_ocean_square(
     }
     case 0b0111: {
       // land on top.
-      DCHECK( up.has_value() );
       bool left_open  = is_land_if_exists( e_direction::nw );
       bool right_open = is_land_if_exists( e_direction::ne );
       switch( to_mask( left_open, right_open ) ) {
@@ -624,7 +622,6 @@ void render_terrain_ocean_square(
     }
     case 0b1011: {
       // land on right.
-      DCHECK( right.has_value() );
       bool top_open  = is_land_if_exists( e_direction::ne );
       bool down_open = is_land_if_exists( e_direction::se );
       switch( to_mask( top_open, down_open ) ) {
@@ -658,7 +655,6 @@ void render_terrain_ocean_square(
     }
     case 0b1101: {
       // land on bottom.
-      DCHECK( down.has_value() );
       bool left_open  = is_land_if_exists( e_direction::sw );
       bool right_open = is_land_if_exists( e_direction::se );
       switch( to_mask( left_open, right_open ) ) {
@@ -692,7 +688,6 @@ void render_terrain_ocean_square(
     }
     case 0b0110: {
       // land on left and top.
-      DCHECK( left.has_value() );
       bool down_open  = is_land_if_exists( e_direction::sw );
       bool right_open = is_land_if_exists( e_direction::ne );
       bool open_water = !is_land_if_exists( e_direction::se );
@@ -739,7 +734,6 @@ void render_terrain_ocean_square(
     }
     case 0b0011: {
       // land on top and right.
-      DCHECK( up.has_value() );
       bool left_open  = is_land_if_exists( e_direction::nw );
       bool down_open  = is_land_if_exists( e_direction::se );
       bool open_water = !is_land_if_exists( e_direction::sw );
@@ -786,7 +780,6 @@ void render_terrain_ocean_square(
     }
     case 0b1001: {
       // land on right and bottom.
-      DCHECK( right.has_value() );
       bool left_open  = is_land_if_exists( e_direction::sw );
       bool top_open   = is_land_if_exists( e_direction::ne );
       bool open_water = !is_land_if_exists( e_direction::nw );
@@ -833,7 +826,6 @@ void render_terrain_ocean_square(
     }
     case 0b1100: {
       // land on bottom and left.
-      DCHECK( down.has_value() );
       bool up_open    = is_land_if_exists( e_direction::nw );
       bool right_open = is_land_if_exists( e_direction::se );
       bool open_water = !is_land_if_exists( e_direction::ne );
@@ -880,7 +872,6 @@ void render_terrain_ocean_square(
     }
     case 0b1010: {
       // land on left and right.
-      DCHECK( left.has_value() );
       bool up_left_open  = is_land_if_exists( e_direction::nw );
       bool up_right_open = is_land_if_exists( e_direction::ne );
       switch( to_mask( up_left_open, up_right_open ) ) {
@@ -956,7 +947,6 @@ void render_terrain_ocean_square(
     }
     case 0b0101: {
       // land on top and bottom.
-      DCHECK( up.has_value() );
       bool up_left_open   = is_land_if_exists( e_direction::nw );
       bool down_left_open = is_land_if_exists( e_direction::sw );
       switch( to_mask( up_left_open, down_left_open ) ) {
@@ -1036,7 +1026,6 @@ void render_terrain_ocean_square(
     }
     case 0b1000: {
       // land on right, bottom, left.
-      DCHECK( left.has_value() );
       bool left_open  = is_land_if_exists( e_direction::nw );
       bool right_open = is_land_if_exists( e_direction::ne );
       switch( to_mask( left_open, right_open ) ) {
@@ -1070,7 +1059,6 @@ void render_terrain_ocean_square(
     }
     case 0b0100: {
       // land on bottom, left, top.
-      DCHECK( left.has_value() );
       bool top_open  = is_land_if_exists( e_direction::ne );
       bool down_open = is_land_if_exists( e_direction::se );
       switch( to_mask( top_open, down_open ) ) {
@@ -1104,7 +1092,6 @@ void render_terrain_ocean_square(
     }
     case 0b0010: {
       // land on left, top, right.
-      DCHECK( left.has_value() );
       bool left_open  = is_land_if_exists( e_direction::sw );
       bool right_open = is_land_if_exists( e_direction::se );
       switch( to_mask( left_open, right_open ) ) {
@@ -1138,7 +1125,6 @@ void render_terrain_ocean_square(
     }
     case 0b0001: {
       // land on top, right, bottom.
-      DCHECK( up.has_value() );
       bool top_open  = is_land_if_exists( e_direction::nw );
       bool down_open = is_land_if_exists( e_direction::sw );
       switch( to_mask( top_open, down_open ) ) {
@@ -1172,7 +1158,6 @@ void render_terrain_ocean_square(
     }
     case 0b0000:
       // land on all sides.
-      DCHECK( left.has_value() );
       water_tile  = e_tile::terrain_ocean_island;
       beach_tile  = e_tile::terrain_beach_island;
       border_tile = e_tile::terrain_border_island;
