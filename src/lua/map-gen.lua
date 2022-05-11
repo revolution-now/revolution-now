@@ -14,7 +14,9 @@ local M = {}
 -----------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------
-local WORLD_SIZE = { w=58, h=72 }
+-- The maps in the original game are 58x72, but the tiles on the
+-- edges are not visible, so effectively we have 56x70.
+local WORLD_SIZE = { w=56, h=70 }
 
 -----------------------------------------------------------------
 -- Utils
