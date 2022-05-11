@@ -1125,6 +1125,8 @@ LUA_FN( set_zoom, void, double zoom ) {
   viewport().smooth_zoom_target( zoom );
 }
 
+LUA_FN( get_zoom, double ) { return viewport().get_zoom(); }
+
 } // namespace
 
 } // namespace rn
