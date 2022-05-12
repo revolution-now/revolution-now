@@ -788,19 +788,7 @@ struct LandViewPlane : public Plane {
       case input::e_input_event::win_event: //
         break;
       case input::e_input_event::key_event: {
-        auto& val = event.get<input::key_event_t>();
-        // TODO: Need to put this in the input module.
-        auto const* __state = ::SDL_GetKeyboardState( nullptr );
-        auto        state   = [__state]( ::SDL_Scancode code ) {
-          return __state[code] != 0;
-        };
-        // This is because we need to distinguish uppercase
-        // from lowercase.
-        if( state( ::SDL_SCANCODE_LSHIFT ) ||
-            state( ::SDL_SCANCODE_RSHIFT ) )
-          break;
-
-        auto& key_event = val;
+        auto& key_event = event.get<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
@@ -818,43 +806,57 @@ struct LandViewPlane : public Plane {
         }
         switch( key_event.keycode ) {
           case ::SDLK_z:
-            if( viewport().get_zoom() < 1.0 )
-              viewport().smooth_zoom_target( 1.0 );
-            else if( viewport().get_zoom() < 1.5 )
-              viewport().smooth_zoom_target( 2.0 );
-            else
-              viewport().smooth_zoom_target( 1.0 );
+            if( key_event.mod.shf_down ) {
+              if( viewport().get_zoom() < .5 )
+                viewport().smooth_zoom_target( 1.0 );
+              else
+                viewport().smooth_zoom_target( .17 );
+            } else {
+              if( viewport().get_zoom() < 1.0 )
+                viewport().smooth_zoom_target( 1.0 );
+              else if( viewport().get_zoom() < 1.5 )
+                viewport().smooth_zoom_target( 2.0 );
+              else
+                viewport().smooth_zoom_target( 1.0 );
+            }
             break;
           case ::SDLK_w:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::wait{} } ) );
             break;
           case ::SDLK_s:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::sentry{} } ) );
             break;
           case ::SDLK_f:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::fortify{} } ) );
             break;
           case ::SDLK_b:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::build{} } ) );
             break;
           case ::SDLK_c:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::center{} ) );
             break;
           case ::SDLK_d:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::disband{} } ) );
             break;
           case ::SDLK_g: {
+            if( key_event.mod.shf_down ) break;
             MapUpdater map_updater(
                 GameState::terrain(),
                 global_renderer_use_only_when_needed() );
@@ -863,11 +865,13 @@ struct LandViewPlane : public Plane {
           }
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
+            if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::forfeight{} } ) );
             break;
           default:
+            if( key_event.mod.shf_down ) break;
             handled = e_input_handled::no;
             if( key_event.direction ) {
               g_raw_input_stream.send(
