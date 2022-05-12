@@ -146,7 +146,7 @@ end
 -- This will create a new empty map set all squares to water.
 local function reset_terrain()
   map_gen.reset_terrain( WORLD_SIZE )
-  on_all( function( coord ) set_water( coord ) end )
+  on_all( set_water )
 end
 
 -----------------------------------------------------------------
@@ -251,6 +251,7 @@ end
 -----------------------------------------------------------------
 -- Forest Generation
 -----------------------------------------------------------------
+-- TODO: tweak the density of forest to match the original game.
 local function forest_cover()
   local size = map_gen.world_size()
   on_all( function( coord )
@@ -414,6 +415,49 @@ end
 -----------------------------------------------------------------
 -- Resource Generation
 -----------------------------------------------------------------
+-- FIXME: this one does not match the original game's distribu-
+-- tion, though it does have approximately the same overall den-
+-- sity. It could stand to be tweaked a bit because the distribu-
+-- tion is not totally even. It is currently implemented fol-
+-- lowing a similar structure to the prime resource distribution
+-- algorithm (which is known exactly) but with the numbers
+-- tweaked; that may not be a valid assumption.
+local function distribute_lost_city_rumors()
+  local shifts = { 0, 4, 9, 12 }
+  local resources = { [0]=true, [17]=true, [34]=true, [64]=true }
+  local const_offset = math.random( 0, 63 )
+  local const_shift = 0
+  local single_rotation = 15
+  local width = 128
+
+  local has_rumor = function( coord )
+    local y = coord.y + 1
+    local x = coord.x + 1
+    local idx = (y + const_offset) % width
+    local shift = shifts[idx % 4 + 1]
+    local lookup = (idx // 4 + shift) % 16
+    local rotation = single_rotation * lookup
+    local resource_idx = (x - const_shift + rotation) % width
+    return resources[resource_idx] ~= nil
+  end
+
+  local count = 0
+  on_all( function( coord, square )
+    if has_rumor( coord ) then
+      count = count + 1
+      if square.surface == e.surface.land then
+        -- FIXME: road is temporary.
+        square.road = true
+      end
+    end
+  end )
+
+  local size = map_gen.world_size()
+  log.debug( 'lost city rumor density: ' ..
+                 tostring( count / (size.w * size.h) ) )
+end
+
+-- This algorithm matches the original game's precisely.
 local function distribute_prime_ground_resources()
   local shifts = { 0, 4, 9, 12 }
   local resources = {
@@ -426,25 +470,36 @@ local function distribute_prime_ground_resources()
     [47]=true,
     [58]=true
   }
-  local const_offset = 0
+  local const_offset = math.random( 0, 63 )
+  local const_shift = 1
+  local single_rotation = 12
+  local width = 64
 
   local has_resource = function( coord )
     local y = coord.y + 1
     local x = coord.x + 1
-    local idx = (y + const_offset) % 64
+    local idx = (y + const_offset) % width
     local shift = shifts[idx % 4 + 1]
     local lookup = (idx // 4 + shift) % 16
-    local rotation = 12 * lookup
-    local resource_idx = (x + rotation) % 64
+    local rotation = single_rotation * lookup
+    local resource_idx = (x - const_shift + rotation) % width
     return resources[resource_idx] ~= nil
   end
 
+  local count = 0
   on_all( function( coord, square )
     if has_resource( coord ) then
-      -- FIXME: forest is temporary.
-      square.overlay = e.land_overlay.forest
+      count = count + 1
+      if square.surface == e.surface.land then
+        -- FIXME: plow is temporary.
+        square.irrigation = true
+      end
     end
   end )
+
+  local size = map_gen.world_size()
+  log.debug( 'prime resources density: ' ..
+                 tostring( count / (size.w * size.h) ) )
 end
 
 -----------------------------------------------------------------
@@ -454,34 +509,35 @@ function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
 
-  -- local buffer = 10
-  -- local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
-  -- local initial_area = math.random( 50, 200 )
-  -- generate_continent( initial_square, initial_area )
-  -- for i = 1, 2 do
-  --   local square = random_point_in_rect(
-  --                      {
-  --         x=buffer,
-  --         y=buffer,
-  --         w=size.w - buffer * 2,
-  --         h=size.h - buffer * 2
-  --       } )
-  --   local area = math.random( 10, 300 )
-  --   generate_continent( square, area )
-  -- end
-  -- clear_buffer_area( buffer / 2 )
-  -- -- Need to do this before creating fish resources.
-  -- create_sea_lanes()
-  -- create_arctic()
-  --
-  -- forest_cover()
+  local buffer = 10
+  local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
+  local initial_area = math.random( 50, 200 )
+  generate_continent( initial_square, initial_area )
+  for i = 1, 2 do
+    local square = random_point_in_rect(
+                       {
+          x=buffer,
+          y=buffer,
+          w=size.w - buffer * 2,
+          h=size.h - buffer * 2
+        } )
+    local area = math.random( 10, 300 )
+    generate_continent( square, area )
+  end
+  clear_buffer_area( buffer / 2 )
+  -- Need to do this before creating fish resources.
+  create_sea_lanes()
+  create_arctic()
 
-  on_all( function( coord, square )
-    square.surface = e.surface.land
-    square.ground = e.ground_terrain.plains
-  end )
+  forest_cover()
+
+  -- on_all( function( coord, square )
+  --   square.surface = e.surface.land
+  --   square.ground = e.ground_terrain.grassland
+  -- end )
 
   distribute_prime_ground_resources()
+  distribute_lost_city_rumors()
 end
 
 return M
