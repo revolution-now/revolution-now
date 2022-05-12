@@ -100,7 +100,37 @@ end
 -----------------------------------------------------------------
 function M.initial_ship_pos()
   local size = map_gen.world_size()
-  return { y=size.h / 2, x=size.w - 3 }
+  local y = size.h / 2
+  local x = size.w - 1
+  while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
+  return { x=x, y=y }
+end
+
+local function unit_type( type, base_type )
+  if base_type == nil then
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create( type ) )
+  else
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create_with_base( type, base_type ) )
+  end
+end
+
+local function create_initial_ships()
+  -- Dutch ------------------------------------------------------
+  local nation = e.nation.dutch
+  local coord = map_gen.initial_ship_pos()
+  local merchantman = unit_type( e.unit_type.merchantman )
+  local soldier = unit_type( e.unit_type.soldier )
+  local pioneer = unit_type( e.unit_type.pioneer )
+
+  local merchantman_unit = ustate.create_unit_on_map( nation,
+                                                      merchantman,
+                                                      coord )
+  ustate.create_unit_in_cargo( nation, soldier,
+                               merchantman_unit:id() )
+  ustate.create_unit_in_cargo( nation, pioneer,
+                               merchantman_unit:id() )
 end
 
 -----------------------------------------------------------------
@@ -111,7 +141,9 @@ local function set_land( coord )
   square.surface = e.surface.land
   square.ground = random_list_elem{
     e.ground_terrain.plains, e.ground_terrain.grassland,
-    e.ground_terrain.prairie, e.ground_terrain.marsh
+    e.ground_terrain.prairie, e.ground_terrain.marsh,
+    e.ground_terrain.savannah, e.ground_terrain.desert,
+    e.ground_terrain.swamp
   }
 end
 
@@ -310,6 +342,13 @@ local function create_sea_lanes()
     if is_square_water( square ) then square.sea_lane = true end
   end )
 
+  -- Now clear out the sea lane tiles in the west half of the map
+  -- because we don't want sea lane to extend too far west. TODO:
+  -- see what the original game does in this regard.
+  on_all( function( coord, square )
+    if coord.x < size.w / 2 then square.sea_lane = false end
+  end )
+
   -- Now find all land squares and make sure that there are no
   -- sea lane squares in their vicinity (7x7 square). And for
   -- each of those water squares, clear all sea lane squares
@@ -398,7 +437,7 @@ local function create_sea_lanes()
       curr_sea_lane_width = sea_lane_width( y )
     else
       -- Clear the sea lane and make it have the width of the row
-      -- below it.
+      -- above it.
       for x = 0, size.w - 1 - curr_sea_lane_width do
         map_gen.at{ x=x, y=y }.sea_lane = false
       end
@@ -445,7 +484,8 @@ local function distribute_lost_city_rumors()
   on_all( function( coord, square )
     if has_rumor( coord ) then
       count = count + 1
-      if square.surface == e.surface.land then
+      if square.surface == e.surface.land and square.ground ~=
+          e.ground_terrain.arctic then
         -- FIXME: road is temporary.
         square.road = true
       end
@@ -480,8 +520,8 @@ local function distribute_prime_ground_resources()
     local x = coord.x + 1
     local idx = (y + const_offset) % width
     local shift = shifts[idx % 4 + 1]
-    local lookup = (idx // 4 + shift) % 16
-    local rotation = single_rotation * lookup
+    local num_rotations = (idx // 4 + shift) % 16
+    local rotation = single_rotation * num_rotations
     local resource_idx = (x - const_shift + rotation) % width
     return resources[resource_idx] ~= nil
   end
@@ -490,7 +530,8 @@ local function distribute_prime_ground_resources()
   on_all( function( coord, square )
     if has_resource( coord ) then
       count = count + 1
-      if square.surface == e.surface.land then
+      if square.surface == e.surface.land and square.ground ~=
+          e.ground_terrain.arctic then
         -- FIXME: plow is temporary.
         square.irrigation = true
       end
@@ -538,6 +579,8 @@ function M.generate()
 
   distribute_prime_ground_resources()
   distribute_lost_city_rumors()
+
+  create_initial_ships()
 end
 
 return M

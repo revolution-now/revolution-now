@@ -137,24 +137,6 @@ local function create_some_units_on_land( nation2 )
                                     coord )
 end
 
-local function create_initial_ship()
-  local world_size = map_gen.world_size()
-  -- Dutch ------------------------------------------------------
-  local nation = e.nation.dutch
-  local coord = map_gen.initial_ship_pos()
-  local merchantman = unit_type( e.unit_type.merchantman )
-  local soldier = unit_type( e.unit_type.soldier )
-  local pioneer = unit_type( e.unit_type.pioneer )
-
-  local merchantman_unit = ustate.create_unit_on_map( nation,
-                                                      merchantman,
-                                                      coord )
-  ustate.create_unit_in_cargo( nation, soldier,
-                               merchantman_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer,
-                               merchantman_unit:id() )
-end
-
 local function create_some_colonies()
   -- Dutch ------------------------------------------------------
   local nation = e.nation.dutch
@@ -273,8 +255,6 @@ function M.main()
   -- create_some_plows()
   -- set_terrain_tiles()
   -- land_view.center_on_tile{ x=23, y=15 }
-
-  -- create_initial_ship()
 end
 
 return M
