@@ -458,9 +458,8 @@ end
 -----------------------------------------------------------------
 local function distribute_lost_city_rumors()
   local size = map_gen.world_size()
-  local const_offset = 108 -- math.random( 0, 256 )
-  local coords = dist.compute_lost_city_rumors( size,
-                                                const_offset )
+  local y_offset = math.random( 0, 256 )
+  local coords = dist.compute_lost_city_rumors( size, y_offset )
 
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
@@ -475,12 +474,30 @@ local function distribute_lost_city_rumors()
                  tostring( #coords / (size.w * size.h) ) )
 end
 
--- This algorithm matches the original game's precisely.
 local function distribute_prime_ground_resources()
   local size = map_gen.world_size()
-  local const_offset = 0 -- math.random( 0, 256 )
+  local y_offset = math.random( 0, 256 )
   local coords = dist.compute_prime_ground_resources( size,
-                                                      const_offset )
+                                                      y_offset )
+
+  for _, coord in ipairs( coords ) do
+    local square = map_gen.at( coord )
+    if square.surface == e.surface.land and square.ground ~=
+        e.ground_terrain.arctic then
+      -- FIXME: forest is temporary.
+      square.overlay = e.land_overlay.forest
+    end
+  end
+
+  log.debug( 'prime resources density: ' ..
+                 tostring( #coords / (size.w * size.h) ) )
+end
+
+local function distribute_prime_forest_resources()
+  local size = map_gen.world_size()
+  local y_offset = math.random( 0, 256 )
+  local coords = dist.compute_prime_forest_resources( size,
+                                                      y_offset )
 
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
@@ -531,6 +548,7 @@ function M.generate()
 
   distribute_prime_ground_resources()
   distribute_lost_city_rumors()
+  distribute_prime_forest_resources()
 
   create_initial_ships()
 end
