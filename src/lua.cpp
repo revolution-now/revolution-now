@@ -47,13 +47,6 @@ auto& registration_functions() {
   return fns;
 }
 
-bool is_valid_lua_identifier( string_view name ) {
-  // Good enough for now.
-  return !util::contains( name, " " ) &&
-         !util::contains( name, "-" ) &&
-         !util::contains( name, "." );
-}
-
 lua::table require( string const& unsanitized_name ) {
   lua::state& st  = lua_global_state();
   lua::table  ext = lua::table::create_or_get( st["ext"] );
@@ -66,13 +59,12 @@ lua::table require( string const& unsanitized_name ) {
     return ext[name].as<lua::table>();
   }
   lg.info( "loading lua module \"{}\".", name );
-  LUA_CHECK( st, is_valid_lua_identifier( name ),
-             "module name `{}` is not a valid lua identifier.",
-             name );
   // Set the module to something while we're loading in order to
   // detect and break cyclic dependencies.
-  ext[name]          = "loading";
-  fs::path file_name = "src/lua/" + unsanitized_name + ".lua";
+  ext[name] = "loading";
+  string with_slashes =
+      absl::StrReplaceAll( unsanitized_name, { { ".", "/" } } );
+  fs::path file_name = "src/lua/" + with_slashes + ".lua";
   LUA_CHECK( st, fs::exists( file_name ),
              "file {} does not exist.", file_name );
   lua::table module_table =
@@ -93,7 +85,7 @@ void reset_lua_state() {
   CHECK( g_lua["log"] == lua::nil );
   lua::table log = lua::table::create_or_get( g_lua["log"] );
   log["info"]    = []( string const& msg ) {
-    lg.info( "{}", msg );
+       lg.info( "{}", msg );
   };
   log["debug"] = []( string const& msg ) {
     lg.debug( "{}", msg );

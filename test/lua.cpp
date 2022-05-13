@@ -328,15 +328,15 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-      return lua::as<string>( o ) + "!";
+          return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-      return fmt::format( "a double: {}", *maybe_double );
+          return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-      return fmt::format( "a bool: {}", *maybe_bool );
+          return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-      return "?";
+          return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==
@@ -356,6 +356,24 @@ TEST_CASE( "[lua] new_usertype" ) {
     assert( u.x == 5 )
     assert( u:get() == "c" )
     assert( u:add( 4, 5 ) == 9+5 )
+  )";
+  REQUIRE( st.script.run_safe( script ) == valid );
+}
+
+TEST_CASE( "[lua] run lua tests" ) {
+  // This needs to be a standalone clean state since we don't
+  // want e.g. globals to be frozen or other things that the game
+  // normally does to the Lua environment. Also, these tests are
+  // intended to be standalone tests that don't need the game en-
+  // vironment to be run; in fact they can be run using the
+  // normal `lua` command line tool. We're running them here just
+  // to make sure that they get run regularly.
+  lua::state st;
+  st.lib.open_all();
+  auto script = R"(
+    package.path = 'src/lua/?.lua'
+    local main = require( 'test.runner' )
+    main( true )
   )";
   REQUIRE( st.script.run_safe( script ) == valid );
 }
