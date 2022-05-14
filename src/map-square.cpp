@@ -145,6 +145,7 @@ LUA_STARTUP( lua::state& st ) {
   u["overlay"]         = &U::overlay;
   u["river"]           = &U::river;
   u["resource"]        = &U::resource;
+  u["diminished"]      = &U::resource;
   u["irrigation"]      = &U::irrigation;
   u["road"]            = &U::road;
   u["sea_lane"]        = &U::sea_lane;

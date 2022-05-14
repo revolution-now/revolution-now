@@ -66,6 +66,14 @@ struct.MapSquare {
   # and/or one type of overlay).
   resource 'maybe<e_natural_resource>',
 
+  # For those natural resource types that can be depleted, this
+  # will be true when it is partially depleted. If a resource is
+  # completely depleted then this field will be irrelevant be-
+  # cause the `resource` field will just be set to nothing. So
+  # again this is only for when a resource is still present but
+  # partially depleted, e.g. a silver mine.
+  diminished 'bool',
+
   # This can only be done on certain squares, and also can't
   # co-exist with a forest terrain type.
   irrigation 'bool',
