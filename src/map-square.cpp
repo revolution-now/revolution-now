@@ -129,6 +129,13 @@ MapSquare map_square_for_terrain( e_terrain terrain ) {
                     .ground  = ground };
 }
 
+maybe<e_natural_resource> effective_resource(
+    MapSquare const& square ) {
+  if( square.overlay == e_land_overlay::forest )
+    return square.forest_resource;
+  return square.ground_resource;
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -144,8 +151,8 @@ LUA_STARTUP( lua::state& st ) {
   u["ground"]          = &U::ground;
   u["overlay"]         = &U::overlay;
   u["river"]           = &U::river;
-  u["resource"]        = &U::resource;
-  u["diminished"]      = &U::resource;
+  u["ground_resource"] = &U::ground_resource;
+  u["forest_resource"] = &U::forest_resource;
   u["irrigation"]      = &U::irrigation;
   u["road"]            = &U::road;
   u["sea_lane"]        = &U::sea_lane;

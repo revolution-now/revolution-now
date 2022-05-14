@@ -47,6 +47,7 @@ enum.e_natural_resource {
   oasis,
   ore,
   silver,
+  silver_depleted,
   sugar,
   tobacco,
   tree,

@@ -58,21 +58,25 @@ struct.MapSquare {
   # tains or hills.
   river 'maybe<e_river>',
 
-  # This is any special resource that a square has, beyond what
-  # can normally be produced by its terrain type. It will be rep-
-  # resented as its own icon on top of the square. According to
-  # the rules of the original game, each resource type can only
-  # appear on one type of square (one type of ground terrain
-  # and/or one type of overlay).
-  resource 'maybe<e_natural_resource>',
-
-  # For those natural resource types that can be depleted, this
-  # will be true when it is partially depleted. If a resource is
-  # completely depleted then this field will be irrelevant be-
-  # cause the `resource` field will just be set to nothing. So
-  # again this is only for when a resource is still present but
-  # partially depleted, e.g. a silver mine.
-  diminished 'bool',
+  # This is any special resource that a square has that increases
+  # production of a certain commodity beyond what can normally be
+  # produced by its terrain type. It will be represented as its
+  # own icon on top of the square. According to the rules of the
+  # original game, each resource type can only appear on one type
+  # of square (one type of ground terrain and/or one type of
+  # overlay). When a square is forested then theoretically both
+  # of these can be set; in that case, only the forest_resource
+  # will be visible and will be in effect. If that forest is then
+  # cleared, the forest_resource will be removed and the
+  # ground_resource will appear. If only a ground_resource is
+  # present on a square with a forest then it won't be visible
+  # until the forest is cleared. Note that, according to the re-
+  # source distribution algorithm used in the original game, a
+  # given square will have at most one of these set (that is not
+  # how the original game represented it data wise, but it has
+  # the same result with more flexibility for modding).
+  ground_resource 'maybe<e_natural_resource>',
+  forest_resource 'maybe<e_natural_resource>',
 
   # This can only be done on certain squares, and also can't
   # co-exist with a forest terrain type.

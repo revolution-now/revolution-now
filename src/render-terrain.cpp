@@ -1258,76 +1258,43 @@ void render_lost_city_rumor( rr::Painter& painter, Coord where,
     render_sprite( painter, where, e_tile::lost_city_rumor );
 }
 
+e_tile resource_tile( e_natural_resource resource ) {
+  switch( resource ) {
+    case e_natural_resource::beaver: //
+      return e_tile::resource_beaver;
+    case e_natural_resource::deer: //
+      return e_tile::resource_deer;
+    case e_natural_resource::tree: //
+      return e_tile::resource_tree;
+    case e_natural_resource::minerals: //
+      return e_tile::resource_minerals;
+    case e_natural_resource::oasis: //
+      return e_tile::resource_oasis;
+    case e_natural_resource::cotton: //
+      return e_tile::resource_cotton;
+    case e_natural_resource::fish: //
+      return e_tile::resource_fish;
+    case e_natural_resource::ore: //
+      return e_tile::resource_ore;
+    case e_natural_resource::silver: //
+      return e_tile::resource_silver;
+    case e_natural_resource::silver_depleted: //
+      return e_tile::resource_silver_depleted;
+    case e_natural_resource::sugar: //
+      return e_tile::resource_sugar;
+    case e_natural_resource::tobacco: //
+      return e_tile::resource_tobacco;
+    case e_natural_resource::wheat: //
+      return e_tile::resource_wheat;
+  }
+}
+
 void render_resources( rr::Painter& painter, Coord where,
                        MapSquare const& square ) {
-  if( !square.resource.has_value() ) return;
-
-  maybe<e_tile> resource_tile;
-
-  if( square.overlay == e_land_overlay::forest ) {
-    switch( *square.resource ) {
-      case e_natural_resource::beaver:
-        resource_tile = e_tile::resource_beaver;
-        break;
-      case e_natural_resource::deer:
-        resource_tile = e_tile::resource_deer;
-        break;
-      case e_natural_resource::tree:
-        resource_tile = e_tile::resource_tree;
-        break;
-      case e_natural_resource::minerals:
-        resource_tile = e_tile::resource_minerals;
-        break;
-      case e_natural_resource::oasis:
-        resource_tile = e_tile::resource_oasis;
-        break;
-      case e_natural_resource::cotton:
-      case e_natural_resource::fish:
-      case e_natural_resource::ore:
-      case e_natural_resource::silver:
-      case e_natural_resource::sugar:
-      case e_natural_resource::tobacco:
-      case e_natural_resource::wheat: break;
-    }
-  } else {
-    switch( *square.resource ) {
-      case e_natural_resource::beaver:
-      case e_natural_resource::deer:
-      case e_natural_resource::tree: break;
-      case e_natural_resource::minerals:
-        resource_tile = e_tile::resource_minerals;
-        break;
-      case e_natural_resource::cotton:
-        resource_tile = e_tile::resource_cotton;
-        break;
-      case e_natural_resource::fish:
-        resource_tile = e_tile::resource_fish;
-        break;
-      case e_natural_resource::oasis:
-        resource_tile = e_tile::resource_oasis;
-        break;
-      case e_natural_resource::ore:
-        resource_tile = e_tile::resource_ore;
-        break;
-      case e_natural_resource::silver:
-        resource_tile = e_tile::resource_silver;
-        if( square.diminished )
-          resource_tile = e_tile::resource_silver_depleted;
-        break;
-      case e_natural_resource::sugar:
-        resource_tile = e_tile::resource_sugar;
-        break;
-      case e_natural_resource::tobacco:
-        resource_tile = e_tile::resource_tobacco;
-        break;
-      case e_natural_resource::wheat:
-        resource_tile = e_tile::resource_wheat;
-        break;
-    }
-  }
-
-  if( resource_tile.has_value() )
-    render_sprite( painter, where, *resource_tile );
+  maybe<e_natural_resource> resource =
+      effective_resource( square );
+  if( !resource.has_value() ) return;
+  render_sprite( painter, where, resource_tile( *resource ) );
 }
 
 // Pass in the painter as well for efficiency.

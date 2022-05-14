@@ -546,29 +546,29 @@ end
 local function add_ground_prime_resource( coord, square )
   if square.surface == e.surface.water then
     if can_place_fish( coord ) then
-      square.resource = e.natural_resource.fish
+      square.ground_resource = e.natural_resource.fish
     end
     return
   end
   if square.overlay == e.land_overlay.hills then
-    square.resource = e.natural_resource.ore
+    square.ground_resource = e.natural_resource.ore
     return
   end
   if square.overlay == e.land_overlay.mountains then
-    square.resource = e.natural_resource.silver
+    square.ground_resource = e.natural_resource.silver
     return
   end
   -- We apply the ground resource whether or not the tile has
   -- forest (see above).
   local resource = RESOURCES_GROUND[square.ground]
-  if resource then square.resource = resource end
+  if resource then square.ground_resource = resource end
 end
 
 local function add_forest_prime_resource( coord, square )
   assert( square.overlay == e.land_overlay.forest )
   assert( square.surface ~= e.surface.water )
   local resource = RESOURCES_FOREST[square.ground]
-  if resource then square.resource = resource end
+  if resource then square.forest_resource = resource end
 end
 
 local function distribute_prime_ground_resources( y_offset )

@@ -188,9 +188,9 @@ TEST_CASE( "[map-square] effective_terrain" ) {
   e_terrain expected;
 
   square = MapSquare{
-      .surface  = e_surface::water,
-      .resource = e_natural_resource::fish,
-      .sea_lane = true,
+      .surface         = e_surface::water,
+      .ground_resource = e_natural_resource::fish,
+      .sea_lane        = true,
   };
   expected = e_terrain::ocean;
   REQUIRE( effective_terrain( square ) == expected );
@@ -244,8 +244,8 @@ TEST_CASE( "[map-square] can_plow" ) {
   bool      expected;
 
   square = MapSquare{
-      .surface  = e_surface::water,
-      .resource = e_natural_resource::fish,
+      .surface         = e_surface::water,
+      .ground_resource = e_natural_resource::fish,
   };
   expected = false;
   REQUIRE( can_plow( square ) == expected );
@@ -296,8 +296,8 @@ TEST_CASE( "[map-square] has_forest" ) {
   bool      expected;
 
   square = MapSquare{
-      .surface  = e_surface::water,
-      .resource = e_natural_resource::fish,
+      .surface         = e_surface::water,
+      .forest_resource = e_natural_resource::fish,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
@@ -347,10 +347,10 @@ TEST_CASE( "[map-square] clear_forest" ) {
   MapSquare square, expected;
 
   square = expected = MapSquare{
-      .surface  = e_surface::land,
-      .ground   = e_ground_terrain::savannah,
-      .overlay  = e_land_overlay::forest,
-      .resource = e_natural_resource::beaver,
+      .surface         = e_surface::land,
+      .ground          = e_ground_terrain::savannah,
+      .overlay         = e_land_overlay::forest,
+      .forest_resource = e_natural_resource::beaver,
   };
   expected.overlay = nothing;
   REQUIRE( effective_terrain( expected ) ==
@@ -378,8 +378,8 @@ TEST_CASE( "[map-square] can_irrigate" ) {
   bool      expected;
 
   square = MapSquare{
-      .surface  = e_surface::water,
-      .resource = e_natural_resource::fish,
+      .surface         = e_surface::water,
+      .ground_resource = e_natural_resource::fish,
   };
   expected = false;
   REQUIRE( can_irrigate( square ) == expected );
@@ -504,6 +504,59 @@ TEST_CASE( "[map-square] map_square_for_terrain" ) {
       .overlay = e_land_overlay::mountains,
   };
   REQUIRE( square == expected );
+}
+
+TEST_CASE( "[map-square] effective_resource" ) {
+  MapSquare          square;
+  e_natural_resource expected;
+
+  square = MapSquare{};
+  REQUIRE( effective_resource( square ) == nothing );
+
+  square = MapSquare{
+      .overlay = e_land_overlay::forest,
+  };
+  expected = e_natural_resource::fish;
+  REQUIRE( effective_resource( square ) == expected );
+
+  square = MapSquare{
+      .ground_resource = e_natural_resource::fish,
+  };
+  expected = e_natural_resource::fish;
+  REQUIRE( effective_resource( square ) == expected );
+
+  square = MapSquare{
+      .overlay         = e_land_overlay::forest,
+      .ground_resource = e_natural_resource::cotton,
+  };
+  REQUIRE( effective_resource( square ) == nothing );
+
+  square = MapSquare{
+      .forest_resource = e_natural_resource::beaver,
+  };
+  REQUIRE( effective_resource( square ) == nothing );
+
+  square = MapSquare{
+      .overlay         = e_land_overlay::forest,
+      .forest_resource = e_natural_resource::beaver,
+  };
+  expected = e_natural_resource::beaver;
+  REQUIRE( effective_resource( square ) == expected );
+
+  square = MapSquare{
+      .ground_resource = e_natural_resource::cotton,
+      .forest_resource = e_natural_resource::beaver,
+  };
+  expected = e_natural_resource::cotton;
+  REQUIRE( effective_resource( square ) == expected );
+
+  square = MapSquare{
+      .overlay         = e_land_overlay::forest,
+      .ground_resource = e_natural_resource::cotton,
+      .forest_resource = e_natural_resource::beaver,
+  };
+  expected = e_natural_resource::beaver;
+  REQUIRE( effective_resource( square ) == expected );
 }
 
 } // namespace

@@ -55,6 +55,13 @@ void irrigate( MapSquare& square );
 // MapSquare object that has the given effective terrain type.
 MapSquare map_square_for_terrain( e_terrain terrain );
 
+// This function contains the logic that determines what resource
+// is present and active on the square given the ground_resource
+// and forest_resource together with the forest status of the
+// square.
+maybe<e_natural_resource> effective_resource(
+    MapSquare const& square );
+
 } // namespace rn
 
 /****************************************************************
