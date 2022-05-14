@@ -477,10 +477,10 @@ end
 -----------------------------------------------------------------
 -- Lost City Rumors
 -----------------------------------------------------------------
-local function distribute_lost_city_rumors()
+local function distribute_lost_city_rumors( placement_seed )
   local size = map_gen.world_size()
-  local y_offset = math.random( 0, 256 )
-  local coords = dist.compute_lost_city_rumors( size, y_offset )
+  local coords = dist.compute_lost_city_rumors( size,
+                                                placement_seed )
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
     if square.surface == e.surface.land and square.ground ~=
@@ -602,14 +602,43 @@ local function distribute_prime_forest_resources( y_offset )
                  tostring( #coords / (size.w * size.h) ) )
 end
 
-local function distribute_prime_resources()
-  -- These need to both have the same offset so that we can make
+local function distribute_prime_resources( placement_seed )
+  -- These need to both have the same seed so that we can make
   -- sure that they remain four tiles apart (horizontally), which
   -- they will due to their hard coded x_offsets, in order to
   -- mirror the original game's placement logic.
-  local y_offset = math.random( 0, 256 )
-  distribute_prime_ground_resources( y_offset )
-  distribute_prime_forest_resources( y_offset )
+  distribute_prime_ground_resources( placement_seed )
+  distribute_prime_forest_resources( placement_seed )
+end
+
+local function set_random_placement_seed()
+  local placement_seed = math.random( 0, 256 )
+  map_gen.terrain_state():set_placement_seed( placement_seed )
+  return placement_seed
+end
+
+-- This will clear all resources and lost city rumors and redis-
+-- tribute them (with a random seed). This is useful when cre-
+-- ating a map with the map editor where you'd like to have the
+-- standard distribution algorithm applied after the map is fin-
+-- ished.
+function M.redistribute_resources( placement_seed )
+  on_all( function( coord, square )
+    square.lost_city_rumor = false
+    square.ground_resource = nil
+    square.forest_resource = nil
+  end )
+  placement_seed = placement_seed or set_random_placement_seed()
+  distribute_prime_resources( placement_seed )
+  distribute_lost_city_rumors( placement_seed )
+  render_terrain.render_terrain()
+end
+
+-- This will recompute the distribution of resources but with the
+-- same placement seed.
+function M.refresh_resources()
+  M.redistribute_resources(
+      map_gen.terrain_state():placement_seed() )
 end
 
 -----------------------------------------------------------------
@@ -668,12 +697,13 @@ function M.generate()
     end
   end )
 
-  distribute_prime_resources()
-  distribute_lost_city_rumors()
+  local placement_seed = set_random_placement_seed()
+  distribute_prime_resources( placement_seed )
+  distribute_lost_city_rumors( placement_seed )
 
   create_indian_villages()
 
-  -- create_initial_ships()
+  create_initial_ships()
 end
 
 return M

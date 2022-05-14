@@ -16,6 +16,9 @@
 #include "coord.hpp"
 #include "expect.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // Rds
 #include "gs-terrain.rds.hpp"
 
@@ -43,6 +46,11 @@ struct TerrainState {
 
   MapSquare const&        square_at( Coord coord ) const;
   maybe<MapSquare const&> maybe_square_at( Coord coord ) const;
+
+  int  placement_seed() const { return o_.placement_seed; }
+  void set_placement_seed( int seed ) {
+    o_.placement_seed = seed;
+  }
 
   // This essentially returns what square_at does, except it also
   // returns valid values for any squares outside of the map, in
@@ -79,3 +87,10 @@ struct TerrainState {
 };
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::TerrainState, owned_by_cpp ){};
+}

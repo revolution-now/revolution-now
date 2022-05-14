@@ -140,6 +140,10 @@ LUA_FN( at, MapSquare&, Coord tile ) {
   return terrain_state.mutable_square_at( tile );
 }
 
+LUA_FN( terrain_state, TerrainState& ) {
+  return GameState::terrain();
+}
+
 LUA_FN( world_size, lua::table ) {
   TerrainState& terrain_state = GameState::terrain();
   lua::table    res           = st.table.create();

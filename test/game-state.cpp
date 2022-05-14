@@ -83,6 +83,7 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "zzz_terrain"_key =
         cdr::table{
+            "placement_seed"_key = 0,
             "world_map"_key =
                 cdr::table{
                     "size"_key =

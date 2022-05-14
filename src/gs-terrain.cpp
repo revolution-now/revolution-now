@@ -12,7 +12,12 @@
 
 // Revolution Now
 #include "game-state.hpp"
+#include "lua.hpp"
 #include "map-square.hpp"
+
+// luapp
+#include "luapp/state.hpp"
+#include "luapp/types.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -114,5 +119,21 @@ MapSquare& TerrainState::mutable_square_at( Coord coord ) {
 bool TerrainState::is_land( Coord coord ) const {
   return rn::is_land( square_at( coord ) );
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::TerrainState;
+
+  auto u = st.usertype.create<U>();
+
+  u["placement_seed"]     = &U::placement_seed;
+  u["set_placement_seed"] = &U::set_placement_seed;
+};
+
+} // namespace
 
 } // namespace rn

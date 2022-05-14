@@ -516,8 +516,7 @@ TEST_CASE( "[map-square] effective_resource" ) {
   square = MapSquare{
       .overlay = e_land_overlay::forest,
   };
-  expected = e_natural_resource::fish;
-  REQUIRE( effective_resource( square ) == expected );
+  REQUIRE( effective_resource( square ) == nothing );
 
   square = MapSquare{
       .ground_resource = e_natural_resource::fish,

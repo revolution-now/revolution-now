@@ -17,5 +17,6 @@ include "map-square.rds.hpp"
 namespace "rn.wrapped"
 
 struct.TerrainState {
+  placement_seed 'int',
   world_map 'Matrix<MapSquare>',
 }
