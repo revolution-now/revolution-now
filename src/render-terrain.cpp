@@ -1252,6 +1252,84 @@ void render_terrain_ocean_square(
                         down_left );
 }
 
+void render_lost_city_rumor( rr::Painter& painter, Coord where,
+                             MapSquare const& square ) {
+  if( square.lost_city_rumor )
+    render_sprite( painter, where, e_tile::lost_city_rumor );
+}
+
+void render_resources( rr::Painter& painter, Coord where,
+                       MapSquare const& square ) {
+  if( !square.resource.has_value() ) return;
+
+  maybe<e_tile> resource_tile;
+
+  if( square.overlay == e_land_overlay::forest ) {
+    switch( *square.resource ) {
+      case e_natural_resource::beaver:
+        resource_tile = e_tile::resource_beaver;
+        break;
+      case e_natural_resource::deer:
+        resource_tile = e_tile::resource_deer;
+        break;
+      case e_natural_resource::tree:
+        resource_tile = e_tile::resource_tree;
+        break;
+      case e_natural_resource::minerals:
+        resource_tile = e_tile::resource_minerals;
+        break;
+      case e_natural_resource::oasis:
+        resource_tile = e_tile::resource_oasis;
+        break;
+      case e_natural_resource::cotton:
+      case e_natural_resource::fish:
+      case e_natural_resource::ore:
+      case e_natural_resource::silver:
+      case e_natural_resource::sugar:
+      case e_natural_resource::tobacco:
+      case e_natural_resource::wheat: break;
+    }
+  } else {
+    switch( *square.resource ) {
+      case e_natural_resource::beaver:
+      case e_natural_resource::deer:
+      case e_natural_resource::tree: break;
+      case e_natural_resource::minerals:
+        resource_tile = e_tile::resource_minerals;
+        break;
+      case e_natural_resource::cotton:
+        resource_tile = e_tile::resource_cotton;
+        break;
+      case e_natural_resource::fish:
+        resource_tile = e_tile::resource_fish;
+        break;
+      case e_natural_resource::oasis:
+        resource_tile = e_tile::resource_oasis;
+        break;
+      case e_natural_resource::ore:
+        resource_tile = e_tile::resource_ore;
+        break;
+      case e_natural_resource::silver:
+        resource_tile = e_tile::resource_silver;
+        if( square.diminished )
+          resource_tile = e_tile::resource_silver_depleted;
+        break;
+      case e_natural_resource::sugar:
+        resource_tile = e_tile::resource_sugar;
+        break;
+      case e_natural_resource::tobacco:
+        resource_tile = e_tile::resource_tobacco;
+        break;
+      case e_natural_resource::wheat:
+        resource_tile = e_tile::resource_wheat;
+        break;
+    }
+  }
+
+  if( resource_tile.has_value() )
+    render_sprite( painter, where, *resource_tile );
+}
+
 // Pass in the painter as well for efficiency.
 void render_terrain_square( TerrainState const& terrain_state,
                             rr::Renderer& renderer, Coord where,
@@ -1266,10 +1344,12 @@ void render_terrain_square( TerrainState const& terrain_state,
   else
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
+  render_resources( painter, where, square );
   render_plow_if_present( painter, where, terrain_state,
                           world_square );
   render_road_if_present( painter, where, terrain_state,
                           world_square );
+  render_lost_city_rumor( painter, where, square );
   if( g_show_grid )
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,

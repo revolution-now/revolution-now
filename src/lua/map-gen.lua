@@ -198,6 +198,18 @@ local function surrounding_squares_7x7( square )
   return possible
 end
 
+local function surrounding_squares_5x5( square )
+  local possible = {}
+  for y = square.y - 2, square.y + 2 do
+    for x = square.x - 2, square.x + 2 do
+      if x ~= square.x or y ~= square.y then
+        append( possible, { x=x, y=y } )
+      end
+    end
+  end
+  return possible
+end
+
 -- This will give the tiles along the right edge of the 7x7 block
 -- of tiles centered on `square`.
 local function surrounding_squares_7x7_right_edge( square )
@@ -510,6 +522,19 @@ local RESOURCES_FOREST = {
   [e.ground_terrain.tundra]=e.natural_resource.deer
 }
 
+-- Checks if there is at least one land square within two tiles
+-- from the square.
+local function can_place_fish( coord )
+  local squares = filter_existing_squares(
+                      surrounding_squares_5x5( coord ) )
+  for _, coord in ipairs( squares ) do
+    if map_gen.at( coord ).surface == e.surface.land then
+      return true
+    end
+  end
+  return false
+end
+
 -- This includes water, hills, and mountains, i.e. everything but
 -- forests. That said, it will still potentially be called on
 -- forested tiles, and in that case it adds a non-forested re-
@@ -520,7 +545,9 @@ local RESOURCES_FOREST = {
 -- the forest is cleared).
 local function add_ground_prime_resource( coord, square )
   if square.surface == e.surface.water then
-    square.resource = e.natural_resource.fish
+    if can_place_fish( coord ) then
+      square.resource = e.natural_resource.fish
+    end
     return
   end
   if square.overlay == e.land_overlay.hills then
@@ -544,9 +571,8 @@ local function add_forest_prime_resource( coord, square )
   if resource then square.resource = resource end
 end
 
-local function distribute_prime_ground_resources()
+local function distribute_prime_ground_resources( y_offset )
   local size = map_gen.world_size()
-  local y_offset = math.random( 0, 256 )
   local coords = dist.compute_prime_ground_resources( size,
                                                       y_offset )
   for _, coord in ipairs( coords ) do
@@ -557,9 +583,8 @@ local function distribute_prime_ground_resources()
                  tostring( #coords / (size.w * size.h) ) )
 end
 
-local function distribute_prime_forest_resources()
+local function distribute_prime_forest_resources( y_offset )
   local size = map_gen.world_size()
-  local y_offset = math.random( 0, 256 )
   local coords = dist.compute_prime_forest_resources( size,
                                                       y_offset )
   for _, coord in ipairs( coords ) do
@@ -575,6 +600,16 @@ local function distribute_prime_forest_resources()
   end
   log.debug( 'prime forest resources density: ' ..
                  tostring( #coords / (size.w * size.h) ) )
+end
+
+local function distribute_prime_resources()
+  -- These need to both have the same offset so that we can make
+  -- sure that they remain four tiles apart (horizontally), which
+  -- they will due to their hard coded x_offsets, in order to
+  -- mirror the original game's placement logic.
+  local y_offset = math.random( 0, 256 )
+  distribute_prime_ground_resources( y_offset )
+  distribute_prime_forest_resources( y_offset )
 end
 
 -----------------------------------------------------------------
@@ -633,8 +668,7 @@ function M.generate()
     end
   end )
 
-  distribute_prime_ground_resources()
-  distribute_prime_forest_resources()
+  distribute_prime_resources()
   distribute_lost_city_rumors()
 
   create_indian_villages()

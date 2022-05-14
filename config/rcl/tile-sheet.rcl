@@ -16,6 +16,26 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/resources.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        resource_beaver:            { y: 0, x: 0 }
+        resource_cotton:            { y: 0, x: 1 }
+        resource_deer:              { y: 0, x: 2 }
+        resource_fish:              { y: 0, x: 3 }
+        resource_minerals:          { y: 0, x: 4 }
+        resource_oasis:             { y: 0, x: 5 }
+        resource_ore:               { y: 0, x: 6 }
+        resource_silver:            { y: 0, x: 7 }
+        resource_silver_depleted:   { y: 0, x: 8 }
+        resource_sugar:             { y: 0, x: 9 }
+        resource_tobacco:           { y: 1, x: 0 }
+        resource_tree:              { y: 1, x: 1 }
+        resource_wheat:             { y: 1, x: 2 }
+        lost_city_rumor:            { y: 1, x: 3 }
+      }
+    }
+    {
       img_path: assets/art/tiles/terrain.png
       sprite_size: { w: 32, h: 32 }
       sprites {

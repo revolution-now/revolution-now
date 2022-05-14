@@ -337,6 +337,28 @@ enum.e_tile {
   terrain_forest_down_left_up,
 
   # =============================================================
+  # Resources
+  # =============================================================
+  resource_beaver,
+  resource_cotton,
+  resource_deer,
+  resource_fish,
+  resource_minerals,
+  resource_oasis,
+  resource_ore,
+  resource_silver,
+  resource_silver_depleted,
+  resource_sugar,
+  resource_tobacco,
+  resource_tree,
+  resource_wheat,
+
+  # =============================================================
+  # Lost City Rumor
+  # =============================================================
+  lost_city_rumor,
+
+  # =============================================================
   # Info Panel
   # =============================================================
   panel,
