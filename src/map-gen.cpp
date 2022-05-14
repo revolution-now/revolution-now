@@ -13,6 +13,7 @@
 // Revolution Now
 #include "gs-land-view.hpp"
 #include "gs-terrain.hpp"
+#include "logger.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
 #include "rand.hpp"
@@ -42,7 +43,13 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
 void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
   lua::state& st = lua_global_state();
   // st["math"]["randomseed"]( rng::random_int() );
+  auto start = chrono::system_clock::now();
   st["map_gen"]["generate"]();
+  auto end = chrono::system_clock::now();
+  lg.info(
+      "map generation took {}ms",
+      chrono::duration_cast<chrono::milliseconds>( end - start )
+          .count() );
 
   // FIXME find a better way to do this.
   LandViewState& land_view_state = GameState::land_view();
