@@ -454,24 +454,94 @@ local function create_sea_lanes()
 end
 
 -----------------------------------------------------------------
--- Resource Generation
+-- Villages
+-----------------------------------------------------------------
+local function create_indian_villages()
+  -- Note that indian villages never seem to be placed on top of
+  -- the lost city rumors, though they can be placed on top of
+  -- natural resources.
+end
+
+-----------------------------------------------------------------
+-- Lost City Rumors
 -----------------------------------------------------------------
 local function distribute_lost_city_rumors()
   local size = map_gen.world_size()
   local y_offset = math.random( 0, 256 )
   local coords = dist.compute_lost_city_rumors( size, y_offset )
-
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
     if square.surface == e.surface.land and square.ground ~=
         e.ground_terrain.arctic then
-      -- FIXME: forest is temporary.
-      square.overlay = e.land_overlay.forest
+      square.lost_city_rumor = true
     end
   end
-
   log.debug( 'lost city rumor density: ' ..
                  tostring( #coords / (size.w * size.h) ) )
+end
+
+-----------------------------------------------------------------
+-- Prime Resource Generation
+-----------------------------------------------------------------
+local RESOURCES_GROUND = {
+  [e.ground_terrain.arctic]=nil,
+  [e.ground_terrain.desert]=e.natural_resource.oasis,
+  [e.ground_terrain.grassland]=e.natural_resource.tobacco,
+  [e.ground_terrain.marsh]=e.natural_resource.minerals,
+  [e.ground_terrain.plains]=e.natural_resource.wheat,
+  [e.ground_terrain.prairie]=e.natural_resource.cotton,
+  [e.ground_terrain.savannah]=e.natural_resource.sugar,
+  [e.ground_terrain.swamp]=e.natural_resource.minerals,
+  [e.ground_terrain.tundra]=e.natural_resource.minerals
+}
+
+-- If a forest tile has a prime resource then this table will
+-- give the resource that it would have based on the ground tile
+-- in accordance with the original game's rules.
+local RESOURCES_FOREST = {
+  [e.ground_terrain.arctic]=nil,
+  [e.ground_terrain.desert]=e.natural_resource.oasis,
+  [e.ground_terrain.grassland]=e.natural_resource.tree,
+  [e.ground_terrain.marsh]=e.natural_resource.minerals,
+  [e.ground_terrain.plains]=e.natural_resource.beaver,
+  [e.ground_terrain.prairie]=e.natural_resource.deer,
+  [e.ground_terrain.savannah]=e.natural_resource.tree,
+  [e.ground_terrain.swamp]=e.natural_resource.minerals,
+  [e.ground_terrain.tundra]=e.natural_resource.deer
+}
+
+-- This includes water, hills, and mountains, i.e. everything but
+-- forests. That said, it will still potentially be called on
+-- forested tiles, and in that case it adds a non-forested re-
+-- source. This is to mirror the original game's behavior where a
+-- forested tile can have a ground resource (placed there by the
+-- fixed pattern) which then appears only after the forest is
+-- cleared (the ground resource has no effect on production until
+-- the forest is cleared).
+local function add_ground_prime_resource( coord, square )
+  if square.surface == e.surface.water then
+    square.resource = e.natural_resource.fish
+    return
+  end
+  if square.overlay == e.land_overlay.hills then
+    square.resource = e.natural_resource.ore
+    return
+  end
+  if square.overlay == e.land_overlay.mountains then
+    square.resource = e.natural_resource.silver
+    return
+  end
+  -- We apply the ground resource whether or not the tile has
+  -- forest (see above).
+  local resource = RESOURCES_GROUND[square.ground]
+  if resource then square.resource = resource end
+end
+
+local function add_forest_prime_resource( coord, square )
+  assert( square.overlay == e.land_overlay.forest )
+  assert( square.surface ~= e.surface.water )
+  local resource = RESOURCES_FOREST[square.ground]
+  if resource then square.resource = resource end
 end
 
 local function distribute_prime_ground_resources()
@@ -479,17 +549,11 @@ local function distribute_prime_ground_resources()
   local y_offset = math.random( 0, 256 )
   local coords = dist.compute_prime_ground_resources( size,
                                                       y_offset )
-
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land and square.ground ~=
-        e.ground_terrain.arctic then
-      -- FIXME: forest is temporary.
-      square.overlay = e.land_overlay.forest
-    end
+    add_ground_prime_resource( coord, square )
   end
-
-  log.debug( 'prime resources density: ' ..
+  log.debug( 'prime ground resources density: ' ..
                  tostring( #coords / (size.w * size.h) ) )
 end
 
@@ -498,17 +562,18 @@ local function distribute_prime_forest_resources()
   local y_offset = math.random( 0, 256 )
   local coords = dist.compute_prime_forest_resources( size,
                                                       y_offset )
-
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land and square.ground ~=
-        e.ground_terrain.arctic then
-      -- FIXME: forest is temporary.
-      square.overlay = e.land_overlay.forest
+    if square.surface == e.surface.land and square.overlay ==
+        e.land_overlay.forest then
+      -- Our distribution algorithm will never place a forest
+      -- prime resource on the same square as a ground prime re-
+      -- source, so so don't have to worry about them conflict-
+      -- ing.
+      add_forest_prime_resource( coord, square )
     end
   end
-
-  log.debug( 'prime resources density: ' ..
+  log.debug( 'prime forest resources density: ' ..
                  tostring( #coords / (size.w * size.h) ) )
 end
 
@@ -519,38 +584,62 @@ function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
 
-  local buffer = 10
-  local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
-  local initial_area = math.random( 50, 200 )
-  generate_continent( initial_square, initial_area )
-  for i = 1, 2 do
-    local square = random_point_in_rect(
-                       {
-          x=buffer,
-          y=buffer,
-          w=size.w - buffer * 2,
-          h=size.h - buffer * 2
-        } )
-    local area = math.random( 10, 300 )
-    generate_continent( square, area )
-  end
-  clear_buffer_area( buffer / 2 )
-  -- Need to do this before creating fish resources.
-  create_sea_lanes()
-  create_arctic()
+  -- local buffer = 10
+  -- local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
+  -- local initial_area = math.random( 50, 200 )
+  -- generate_continent( initial_square, initial_area )
+  -- for i = 1, 2 do
+  --   local square = random_point_in_rect(
+  --                      {
+  --         x=buffer,
+  --         y=buffer,
+  --         w=size.w - buffer * 2,
+  --         h=size.h - buffer * 2
+  --       } )
+  --   local area = math.random( 10, 300 )
+  --   generate_continent( square, area )
+  -- end
+  -- clear_buffer_area( buffer / 2 )
+  -- -- Need to do this before creating fish resources.
+  -- create_sea_lanes()
+  -- create_arctic()
+  --
+  -- forest_cover()
 
-  forest_cover()
-
-  -- on_all( function( coord, square )
-  --   square.surface = e.surface.land
-  --   square.ground = e.ground_terrain.grassland
-  -- end )
+  on_all( function( coord, square )
+    local main = { x=coord.x, y=coord.y - 2 }
+    if main.x > 5 and main.x < 50 and main.y > 5 and main.y < 60 then
+      square.surface = e.surface.land
+      square.ground = (main.y // 6) % 9 -- e.ground_terrain.plains
+      if main.x // 5 % 2 == 1 then
+        square.overlay = e.land_overlay.forest
+      end
+      if main.x >= 40 and main.x <= 44 then
+        if main.y // 6 % 2 == 1 then
+          square.overlay = e.land_overlay.hills
+        else
+          square.overlay = e.land_overlay.mountains
+        end
+      end
+    else
+      square.surface = e.surface.water
+    end
+    if coord.y < 4 or coord.y > 65 then
+      square.surface = e.surface.land
+      square.ground = math.random( 0, 8 )
+      if math.random( 1, 5 ) == 1 then
+        square.overlay = math.random( 0, 3 )
+      end
+    end
+  end )
 
   distribute_prime_ground_resources()
-  distribute_lost_city_rumors()
   distribute_prime_forest_resources()
+  distribute_lost_city_rumors()
 
-  create_initial_ships()
+  create_indian_villages()
+
+  -- create_initial_ships()
 end
 
 return M

@@ -60,7 +60,10 @@ struct.MapSquare {
 
   # This is any special resource that a square has, beyond what
   # can normally be produced by its terrain type. It will be rep-
-  # resented as its own icon on top of the square.
+  # resented as its own icon on top of the square. According to
+  # the rules of the original game, each resource type can only
+  # appear on one type of square (one type of ground terrain
+  # and/or one type of overlay).
   resource 'maybe<e_natural_resource>',
 
   # This can only be done on certain squares, and also can't

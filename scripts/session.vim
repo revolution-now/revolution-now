@@ -5,7 +5,7 @@ let s:stems = [
  \ 'render/painter',
  \ 'render/renderer',
  \ 'terrain',
- \ 'config-terrain',
+ \ 'config/terrain',
  \ 'map-square',
  \ 'map-updater',
  \ 'gs-terrain',
