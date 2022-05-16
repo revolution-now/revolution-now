@@ -583,6 +583,11 @@ wait<> raw_input_translator() {
 
     switch( raw_input.input.to_enum() ) {
       using namespace LandViewRawInput;
+      case e::next_turn: {
+        g_translated_input_stream.send( PlayerInput(
+            LandViewPlayerInput::next_turn{}, raw_input.when ) );
+        break;
+      }
       case e::orders: {
         g_translated_input_stream.send( PlayerInput(
             LandViewPlayerInput::give_orders{
@@ -865,10 +870,17 @@ struct LandViewPlane : public Plane {
           }
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::forfeight{} } ) );
+            if( g_landview_state.holds<
+                    LandViewUnitActionState::unit_input>() ) {
+              if( key_event.mod.shf_down ) break;
+              g_raw_input_stream.send(
+                  RawInput( LandViewRawInput::orders{
+                      .orders = orders::forfeight{} } ) );
+            } else if( g_landview_state.holds<
+                           LandViewUnitActionState::none>() ) {
+              g_raw_input_stream.send(
+                  RawInput( LandViewRawInput::next_turn{} ) );
+            }
             break;
           default:
             if( key_event.mod.shf_down ) break;

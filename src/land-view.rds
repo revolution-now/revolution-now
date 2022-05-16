@@ -48,4 +48,8 @@ sumtype.LandViewPlayerInput {
   prioritize {
     units 'std::vector<UnitId>',
   },
+
+  # When at the end of a turn, this will advance to the next
+  # turn. It is equivalent to clicking on "end of turn".
+  next_turn {},
 }

@@ -82,12 +82,12 @@ co::stream<e_menu_actions> g_menu_actions;
 // Globals relevant to end of turn.
 namespace eot {
 
-struct button_click_t {};
+struct next_turn_t {};
 
 using UserInput = base::variant< //
     e_menu_actions,              //
     LandViewPlayerInput_t,       //
-    button_click_t               //
+    next_turn_t                  //
     >;
 
 } // namespace eot
@@ -298,7 +298,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
   }
 }
 
-wait<> process_player_input( button_click_t, IMapUpdater& ) {
+wait<> process_player_input( next_turn_t, IMapUpdater& ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
@@ -307,7 +307,7 @@ wait<> process_inputs( IMapUpdater& map_updater ) {
   landview_reset_input_buffers();
   while( true ) {
     auto wait_for_button = co::fmap(
-        [] λ( button_click_t{} ), wait_for_eot_button_click() );
+        [] λ( next_turn_t{} ), wait_for_eot_button_click() );
     // The reason that we want to use co::first here instead of
     // interleaving the three streams is because as soon as one
     // becomes ready (and we start processing it) we want all the
@@ -322,7 +322,12 @@ wait<> process_inputs( IMapUpdater& map_updater ) {
     );
     co_await rn::visit(
         command, LC( process_player_input( _, map_updater ) ) );
-    if( command.holds<button_click_t>() ) co_return;
+    if( command.holds<next_turn_t>() ||
+        command.get_if<LandViewPlayerInput_t>()
+            .fmap( L( _.template holds<
+                      LandViewPlayerInput::next_turn>() ) )
+            .is_value_truish() )
+      co_return;
   }
 }
 
@@ -352,6 +357,11 @@ wait<> process_player_input( UnitId                       id,
   auto& q  = st.units;
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
+    case e::next_turn: {
+      // The land view should never send us a 'next turn' command
+      // when we are not at the end of a turn.
+      SHOULD_NOT_BE_HERE;
+    }
     case e::colony: {
       co_await show_colony_view( input.get<colony>().id );
       break;
