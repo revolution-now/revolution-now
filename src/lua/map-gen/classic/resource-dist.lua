@@ -29,8 +29,9 @@ local M = {}
 local function col1_distribution_algo( config, coord )
   local ROTATION = 12
   -- Note: this modulus seems to be optional.
-  local idx = coord.y + config.y_offset % config.board_size
+  local idx = (coord.y + config.y_offset) % config.board_size
   -- Note: this modulus seems to be optional.
+  assert( #config.shifts == 4 )
   local rotations = ((idx // 4) + config.shifts[idx % 4 + 1]) %
                         (config.board_size // 4)
   local column = coord.x - config.x_offset + ROTATION * rotations

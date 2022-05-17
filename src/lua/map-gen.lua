@@ -593,8 +593,8 @@ local function distribute_prime_forest_resources( y_offset )
         e.land_overlay.forest then
       -- Our distribution algorithm will never place a forest
       -- prime resource on the same square as a ground prime re-
-      -- source, so so don't have to worry about them conflict-
-      -- ing.
+      -- source, but theoretically that would not be a problem if
+      -- it happened.
       add_forest_prime_resource( coord, square )
     end
   end
