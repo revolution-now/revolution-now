@@ -243,8 +243,7 @@ void UnitsState::disown_unit( UnitId id ) {
   ownership = UnitOwnership::free{};
 }
 
-void UnitsState::change_to_map( UnitId       id,
-                                Coord const& target ) {
+void UnitsState::change_to_map( UnitId id, Coord target ) {
   disown_unit( id );
   units_from_coords_[target].insert( id );
   ownership_of( id ) = UnitOwnership::world{ /*coord=*/target };

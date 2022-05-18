@@ -96,7 +96,7 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> post() const override {
-    return show_colony_view( colony_id );
+    return show_colony_view( colony_id, *map_updater_ );
   }
 
   IMapUpdater*  map_updater_;

@@ -19,6 +19,7 @@
 #include "game-state.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
+#include "on-map.hpp"
 #include "plow.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
@@ -716,13 +717,17 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   static unique_ptr<UnitsAtGateColonyView> create(
-      CargoView* cargo_view, Delta size ) {
-    return make_unique<UnitsAtGateColonyView>( cargo_view,
-                                               size );
+      CargoView* cargo_view, Delta size,
+      IMapUpdater& map_updater ) {
+    return make_unique<UnitsAtGateColonyView>( cargo_view, size,
+                                               map_updater );
   }
 
-  UnitsAtGateColonyView( CargoView* cargo_view, Delta size )
-    : cargo_view_( cargo_view ), size_( size ) {
+  UnitsAtGateColonyView( CargoView* cargo_view, Delta size,
+                         IMapUpdater& map_updater )
+    : cargo_view_( cargo_view ),
+      size_( size ),
+      map_updater_( map_updater ) {
     update();
   }
 
@@ -901,8 +906,8 @@ class UnitsAtGateColonyView : public ui::View,
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            GameState::units().change_to_map(
-                unit.id, colony().location() );
+            unit_to_map_square( GameState::units(), map_updater_,
+                                unit.id, colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1043,6 +1048,7 @@ class UnitsAtGateColonyView : public ui::View,
   CargoView*    cargo_view_;
   Delta         size_;
   maybe<UnitId> dragging_;
+  IMapUpdater&  map_updater_;
 };
 
 class ProductionView : public ui::View, public ColonySubView {
@@ -1282,7 +1288,8 @@ struct CompositeColSubView : public ui::InvisibleView,
   vector<ColonySubView*> ptrs_;
 };
 
-void recomposite( ColonyId id, Delta const& canvas_size ) {
+void recomposite( ColonyId id, Delta const& canvas_size,
+                  IMapUpdater& map_updater ) {
   lg.trace( "recompositing colony view." );
   CHECK( colony_exists( id ) );
   g_composition.id          = id;
@@ -1356,7 +1363,8 @@ void recomposite( ColonyId id, Delta const& canvas_size ) {
   auto units_at_gate_view = UnitsAtGateColonyView::create(
       p_cargo_view,
       middle_strip_size.with_width( middle_strip_size.w / 3_sx )
-          .with_height( middle_strip_size.h - 32_h ) );
+          .with_height( middle_strip_size.h - 32_h ),
+      map_updater );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
@@ -1470,11 +1478,13 @@ void colview_drag_n_drop_draw(
     }
   }
 }
-void set_colview_colony( ColonyId id ) {
+
+void set_colview_colony( ColonyId     id,
+                         IMapUpdater& map_updater ) {
   auto new_id = id;
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( new_id, normal.delta() );
+  recomposite( new_id, normal.delta(), map_updater );
 }
 
 } // namespace rn

@@ -49,6 +49,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
                               std::string_view name );
 
 // Evolve the colony by one turn.
-wait<> evolve_colony_one_turn( ColonyId id );
+wait<> evolve_colony_one_turn( ColonyId     id,
+                               IMapUpdater& map_updater );
 
 } // namespace rn

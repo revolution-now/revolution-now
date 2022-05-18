@@ -27,6 +27,8 @@
 
 namespace rn {
 
+struct IMapUpdater;
+
 struct UnitsState {
   UnitsState();
   bool operator==( UnitsState const& ) const = default;
@@ -83,15 +85,28 @@ struct UnitsState {
   // Should not be holding any references to the unit after this.
   void destroy_unit( UnitId id );
 
+ private:
   // Changes a unit's ownership from whatever it is (map or oth-
   // erwise) to the map at the given coordinate. It will always
   // move the unit to the target square without question
-  // (checking only that the unit exists). NOTE: this is a
-  // low-level function; it does not do any checking, and should
-  // not be called directly. E.g., this function will happily
-  // move a land unit into water.
-  void change_to_map( UnitId id, Coord const& target );
+  // (checking only that the unit exists).
+  //
+  // NOTE: This is a low-level function; it does not do any
+  // checking, and should not be called directly. E.g., this
+  // function will happily move a land unit into water.
+  // Furthermore, it will not carry out any of the other actions
+  // that need to be done when a unit moves onto a new square. In
+  // practice, it should only be called by the higher level
+  // function in in the on-map module.
+  void change_to_map( UnitId id, Coord target );
 
+  // This is the function that calls the above.
+  friend void unit_to_map_square( UnitsState&  unit_state,
+                                  IMapUpdater& map_updater,
+                                  UnitId       id,
+                                  Coord        world_square );
+
+ public:
   // Will start at the starting slot and rotate right trying to
   // find a place where the unit can fit.
   void change_to_cargo_somewhere( UnitId new_holder, UnitId held,

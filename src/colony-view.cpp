@@ -18,6 +18,7 @@
 #include "cstate.hpp"
 #include "dragdrop.hpp"
 #include "logger.hpp"
+#include "map-updater.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"
@@ -394,7 +395,8 @@ wait<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( input::key_event_t const& event ) {
+wait<bool> handle_event( input::key_event_t const& event,
+                         IMapUpdater& map_updater ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
@@ -408,7 +410,8 @@ wait<bool> handle_event( input::key_event_t const& event ) {
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    input::mouse_button_event_t const& event ) {
+    input::mouse_button_event_t const& event,
+    IMapUpdater&                       map_updater ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
   Coord click_pos = event.pos;
@@ -416,20 +419,24 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( input::win_event_t const& event ) {
+wait<bool> handle_event( input::win_event_t const& event,
+                         IMapUpdater& map_updater ) {
   if( event.type == input::e_win_event_type::resized )
     // Force a re-composite.
-    set_colview_colony( g_colony_id );
+    set_colview_colony( g_colony_id, map_updater );
   co_return false;
 }
 
-wait<bool> handle_event(
-    input::mouse_drag_event_t const& event ) {
+wait<bool> handle_event( input::mouse_drag_event_t const& event,
+                         IMapUpdater& map_updater ) {
   co_await drag_drop_routine( event );
   co_return false;
 }
 
-wait<bool> handle_event( auto const& ) { co_return false; }
+wait<bool> handle_event( auto const&,
+                         IMapUpdater& map_updater ) {
+  co_return false;
+}
 
 // Remove all input events from the queue corresponding to normal
 // user input, but save the ones that we always need to process,
@@ -452,11 +459,12 @@ void clear_non_essential_events() {
     g_input.send( std::move( e ) );
 }
 
-wait<> run_colview() {
+wait<> run_colview( IMapUpdater& map_updater ) {
   while( true ) {
-    input::event_t event   = co_await g_input.next();
-    auto [exit, suspended] = co_await co::detect_suspend(
-        std::visit( L( handle_event( _ ) ), event ) );
+    input::event_t event = co_await g_input.next();
+    auto [exit, suspended] =
+        co_await co::detect_suspend( std::visit(
+            LC( handle_event( _, map_updater ) ), event ) );
     if( suspended ) clear_non_essential_events();
     if( exit ) co_return;
   }
@@ -535,15 +543,16 @@ ColonyPlane g_colony_plane;
 *****************************************************************/
 Plane* colony_plane() { return &g_colony_plane; }
 
-wait<> show_colony_view( ColonyId id ) {
+wait<> show_colony_view( ColonyId     id,
+                         IMapUpdater& map_updater ) {
   CHECK( colony_exists( id ) );
   reset_globals();
   g_colony_id = id;
-  set_colview_colony( id );
+  set_colview_colony( id, map_updater );
   ScopedPlanePush pusher( e_plane_config::colony );
   lg.info( "viewing colony {}.",
            colony_from_id( id ).debug_string() );
-  co_await run_colview();
+  co_await run_colview( map_updater );
   lg.info( "leaving colony view." );
 }
 

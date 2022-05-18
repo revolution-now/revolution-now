@@ -25,6 +25,7 @@
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
+#include "on-map.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
@@ -165,8 +166,11 @@ wait<maybe<MovementPoints>> check_movement_points(
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
-  TravelHandler( UnitId unit_id_, e_direction d )
-    : unit_id( unit_id_ ), direction( d ) {}
+  TravelHandler( UnitId unit_id_, e_direction d,
+                 IMapUpdater& map_updater )
+    : unit_id( unit_id_ ),
+      direction( d ),
+      map_updater_( map_updater ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -287,6 +291,8 @@ struct TravelHandler : public OrdersHandler {
   maybe<UnitId> target_unit = nothing;
 
   MovementPoints mv_points_to_subtract_ = {};
+
+  IMapUpdater& map_updater_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -540,8 +546,9 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto  id   = unit_id;
-  auto& unit = unit_from_id( id );
+  auto        id          = unit_id;
+  UnitsState& units_state = GameState::units();
+  auto&       unit        = units_state.unit_for( id );
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
 
@@ -568,7 +575,8 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      move_unit_from_map_to_map( id, move_dst );
+      unit_to_map_square( units_state, map_updater_, id,
+                          move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       unit.consume_mv_points( mv_points_to_subtract_ );
       break;
@@ -587,12 +595,14 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      GameState::units().change_to_map( id, move_dst );
+      unit_to_map_square( units_state, map_updater_, id,
+                          move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      move_unit_from_map_to_map( id, move_dst );
+      unit_to_map_square( units_state, map_updater_, id,
+                          move_dst );
       // When a ship moves into port it forfeights its movement
       // points.
       unit.forfeight_mv_points();
@@ -605,7 +615,7 @@ wait<> TravelHandler::perform() {
       //
       // TODO: consider prioritizing units that are brought in by
       // the ship.
-      co_await show_colony_view( colony_id );
+      co_await show_colony_view( colony_id, map_updater_ );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -649,8 +659,11 @@ wait<> TravelHandler::perform() {
 ** AttackHandler
 *****************************************************************/
 struct AttackHandler : public OrdersHandler {
-  AttackHandler( UnitId unit_id_, e_direction d )
-    : unit_id( unit_id_ ), direction( d ) {}
+  AttackHandler( UnitId unit_id_, e_direction d,
+                 IMapUpdater& map_updater )
+    : unit_id( unit_id_ ),
+      direction( d ),
+      map_updater_( map_updater ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -752,7 +765,7 @@ struct AttackHandler : public OrdersHandler {
       co_await ui::message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
-      co_await show_colony_view( colony_id );
+      co_await show_colony_view( colony_id, map_updater_ );
     }
   }
 
@@ -782,6 +795,8 @@ struct AttackHandler : public OrdersHandler {
   // breakdown of the statistics contributing to the final proba-
   // bilities.
   maybe<FightStatistics> fight_stats{};
+
+  IMapUpdater& map_updater_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -969,6 +984,8 @@ wait<> AttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
 
+  UnitsState& units_state = GameState::units();
+
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( target_unit.has_value() );
@@ -1004,7 +1021,8 @@ wait<> AttackHandler::perform() {
       // the colony location.
       change_colony_nation( colony_id, attacker.nation() );
       // 2. The attacker moves into the colony square.
-      move_unit_from_map_to_map( attacker.id(), attack_dst );
+      unit_to_map_square( units_state, map_updater_,
+                          attacker.id(), attack_dst );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
       // TODO: what if there are trade routes that involve this
@@ -1061,8 +1079,8 @@ wait<> AttackHandler::perform() {
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
-        move_unit_from_map_to_map(
-            loser.id(),
+        unit_to_map_square(
+            units_state, map_updater_, loser.id(),
             coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.
@@ -1088,7 +1106,8 @@ wait<> AttackHandler::perform() {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
+unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
+                                    IMapUpdater& map_updater ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
@@ -1096,20 +1115,20 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( id, d );
+    return make_unique<TravelHandler>( id, d, map_updater );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( id, d );
+    return make_unique<TravelHandler>( id, d, map_updater );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( id, d );
+    return make_unique<TravelHandler>( id, d, map_updater );
 
   // Must be an attack.
-  return make_unique<AttackHandler>( id, d );
+  return make_unique<AttackHandler>( id, d, map_updater );
 }
 
 } // namespace
@@ -1117,10 +1136,10 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( UnitId              id,
-                                         orders::move const& mv,
-                                         IMapUpdater* ) {
-  return dispatch( id, mv.d );
+unique_ptr<OrdersHandler> handle_orders(
+    UnitId id, orders::move const& mv,
+    IMapUpdater* map_updater ) {
+  return dispatch( id, mv.d, *map_updater );
 }
 
 } // namespace rn

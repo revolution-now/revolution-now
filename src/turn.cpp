@@ -287,11 +287,12 @@ wait<> process_player_input( e_menu_actions action,
 }
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
-                             IMapUpdater& ) {
+                             IMapUpdater& map_updater ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
-      co_await show_colony_view( input.get<colony>().id );
+      co_await show_colony_view( input.get<colony>().id,
+                                 map_updater );
       break;
     }
     default: break;
@@ -363,7 +364,8 @@ wait<> process_player_input( UnitId                       id,
       SHOULD_NOT_BE_HERE;
     }
     case e::colony: {
-      co_await show_colony_view( input.get<colony>().id );
+      co_await show_colony_view( input.get<colony>().id,
+                                 map_updater );
       break;
     }
     // We have some orders for the current unit.
@@ -524,7 +526,8 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
   // If it is a ship on the high seas then advance it. If it has
   // arrived in the old world then jump to the old world screen.
   if( is_unit_inbound( id ) || is_unit_outbound( id ) ) {
-    e_high_seas_result res = advance_unit_on_high_seas( id );
+    e_high_seas_result res =
+        advance_unit_on_high_seas( id, map_updater );
     switch( res ) {
       case e_high_seas_result::still_traveling:
         finish_turn( id );
@@ -632,7 +635,7 @@ wait<> units_turn( IMapUpdater& map_updater ) {
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn() {
+wait<> colonies_turn( IMapUpdater& map_updater ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -642,7 +645,7 @@ wait<> colonies_turn() {
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
-    co_await evolve_colony_one_turn( colony_id );
+    co_await evolve_colony_one_turn( colony_id, map_updater );
   }
 }
 
@@ -661,7 +664,7 @@ wait<> nation_turn( IMapUpdater& map_updater ) {
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn();
+    co_await colonies_turn( map_updater );
     st.did_colonies = true;
   }
 

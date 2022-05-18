@@ -16,6 +16,7 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "on-map.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 
@@ -211,7 +212,8 @@ void unit_move_to_old_world_dock( UnitId id ) {
   DCHECK( !is_unit_onboard( id ) );
 }
 
-e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
+e_high_seas_result advance_unit_on_high_seas(
+    UnitId id, IMapUpdater& map_updater ) {
   UNWRAP_CHECK( info, unit_old_world_view_info( id ) );
   constexpr double const advance = 0.25;
   if_get( info, UnitOldWorldViewState::outbound, outbound ) {
@@ -221,7 +223,8 @@ e_high_seas_result advance_unit_on_high_seas( UnitId id ) {
               debug_string( id ), outbound.percent );
     if( outbound.percent >= 1.0 ) {
       // FIXME: temporary
-      GameState::units().change_to_map( id, Coord{} );
+      unit_to_map_square( GameState::units(), map_updater, id,
+                          Coord{} );
       unit_from_id( id ).clear_orders();
       lg.debug( "unit has arrived in new world." );
       return e_high_seas_result::arrived_in_new_world;
@@ -266,7 +269,9 @@ LUA_FN( unit_sail_to_new_world, void, UnitId id ) {
 }
 
 LUA_FN( advance_unit_on_high_seas, void, UnitId id ) {
-  advance_unit_on_high_seas( id );
+  // FIXME
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  advance_unit_on_high_seas( id, map_updater );
 }
 
 } // namespace

@@ -18,7 +18,9 @@
 
 namespace rn {
 
-wait<> show_colony_view( ColonyId id );
+struct IMapUpdater;
+
+wait<> show_colony_view( ColonyId id, IMapUpdater& map_updater );
 
 struct Plane;
 Plane* colony_plane();

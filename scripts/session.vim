@@ -13,6 +13,7 @@ let s:stems = [
  \ 'map-edit',
  \ 'render-terrain',
  \ 'map-gen',
+ \ 'on-map',
 \]
 
 let s:luas = [

@@ -22,6 +22,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "on-map.hpp"
 #include "rand.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
@@ -130,7 +131,8 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-wait<> evolve_colony_one_turn( ColonyId id ) {
+wait<> evolve_colony_one_turn( ColonyId     id,
+                               IMapUpdater& map_updater ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
@@ -140,23 +142,19 @@ wait<> evolve_colony_one_turn( ColonyId id ) {
 #endif
   if( commodities[e_commodity::food] >= 200 ) {
     commodities[e_commodity::food] -= 200;
-    // FIXME: When creating a new unit on the map, decide whether
-    // we need to unsentry surrounding units and, if so, find a
-    // good place to put that such that it can be reused anytime
-    // a unit is created on the map.
     UnitType colonist =
         UnitType::create( e_unit_type::free_colonist );
     auto unit_id = create_unit( GameState::units(),
                                 colony.nation(), colonist );
-    GameState::units().change_to_map( unit_id,
-                                      colony.location() );
+    unit_to_map_square( GameState::units(), map_updater, unit_id,
+                        colony.location() );
     co_await landview_ensure_visible( colony.location() );
     ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "
         "View colony?",
         colony.name() ) );
     if( answer == ui::e_ok_cancel::ok )
-      co_await show_colony_view( id );
+      co_await show_colony_view( id, map_updater );
   }
 }
 

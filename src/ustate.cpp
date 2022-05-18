@@ -20,6 +20,7 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
+#include "on-map.hpp"
 #include "variant.hpp"
 
 // luapp
@@ -147,14 +148,6 @@ vector<UnitId> units_from_coord_recursive( Coord coord ) {
     for( auto held : held_units ) res.push_back( held.id );
   }
   return res;
-}
-
-void move_unit_from_map_to_map( UnitId id, Coord dst ) {
-  auto& gs_units = GameState::units();
-  CHECK( as_const( gs_units )
-             .ownership_of( id )
-             .holds<UnitOwnership::world>() );
-  gs_units.change_to_map( id, dst );
 }
 
 vector<UnitId> units_in_rect( Rect const& rect ) {
@@ -332,12 +325,14 @@ Coord coord_for_unit_multi_ownership_or_die( UnitId id ) {
 /****************************************************************
 ** For Testing / Development Only
 *****************************************************************/
-UnitId create_unit_on_map( UnitsState& units_state,
+UnitId create_unit_on_map( UnitsState&  units_state,
+                           IMapUpdater& map_updater,
                            e_nation nation, UnitComposition comp,
                            Coord coord ) {
   Unit& unit = units_state.unit_for(
       create_unit( units_state, nation, std::move( comp ) ) );
-  units_state.change_to_map( unit.id(), coord );
+  unit_to_map_square( units_state, map_updater, unit.id(),
+                      coord );
   return unit.id();
 }
 
@@ -349,8 +344,11 @@ namespace {
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
   UnitsState& units_state = GameState::units();
-  auto        id =
-      create_unit_on_map( units_state, nation, comp, coord );
+  // FIXME: this needs to render but can't cause it causes
+  // trouble for unit tests.
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+  auto id = create_unit_on_map( units_state, map_updater, nation,
+                                comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   auto& gs_units = GameState::units();

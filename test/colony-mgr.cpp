@@ -18,6 +18,7 @@
 #include "gs-units.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 
@@ -69,9 +70,10 @@ void init_game_world_for_test() {
   generate_unittest_terrain();
 }
 
-UnitId create_colonist_on_map( Coord where ) {
+UnitId create_colonist_on_map( Coord        where,
+                               IMapUpdater& map_updater ) {
   return create_unit_on_map(
-      GameState::units(), e_nation::english,
+      GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ),
       where );
 }
@@ -82,9 +84,10 @@ UnitId create_colonist() {
       UnitType::create( e_unit_type::free_colonist ) );
 }
 
-UnitId create_dragoon_on_map( Coord where ) {
+UnitId create_dragoon_on_map( Coord        where,
+                              IMapUpdater& map_updater ) {
   return create_unit_on_map(
-      GameState::units(), e_nation::english,
+      GameState::units(), map_updater, e_nation::english,
       UnitComposition::create(
           UnitType::create( e_unit_type::dragoon,
                             e_unit_type::petty_criminal )
@@ -92,23 +95,24 @@ UnitId create_dragoon_on_map( Coord where ) {
       where );
 }
 
-UnitId create_hardy_pioneer_on_map( Coord where ) {
+UnitId create_hardy_pioneer_on_map( Coord        where,
+                                    IMapUpdater& map_updater ) {
   return create_unit_on_map(
-      GameState::units(), e_nation::english,
+      GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::hardy_pioneer ),
       where );
 }
 
-UnitId create_ship( Coord where ) {
+UnitId create_ship( Coord where, IMapUpdater& map_updater ) {
   return create_unit_on_map(
-      GameState::units(), e_nation::english,
+      GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::merchantman ),
       where );
 }
 
-UnitId create_wagon( Coord where ) {
+UnitId create_wagon( Coord where, IMapUpdater& map_updater ) {
   return create_unit_on_map(
-      GameState::units(), e_nation::english,
+      GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::wagon_train ),
       where );
 }
@@ -125,7 +129,7 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist_on_map( coord );
+  auto  id    = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ).valid() );
   ColonyId col_id =
       found_colony_unsafe( id, map_updater, "colony" );
@@ -145,7 +149,7 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
 
   SECTION( "dragoon" ) {
     Coord  coord   = { 2_x, 2_y };
-    UnitId id      = create_dragoon_on_map( coord );
+    UnitId id      = create_dragoon_on_map( coord, map_updater );
     Unit&  founder = unit_from_id( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( id ).valid() );
@@ -186,9 +190,10 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
   }
 
   SECTION( "hardy_pioneer" ) {
-    Coord  coord   = { 2_x, 2_y };
-    UnitId id      = create_hardy_pioneer_on_map( coord );
-    Unit&  founder = unit_from_id( id );
+    Coord  coord = { 2_x, 2_y };
+    UnitId id =
+        create_hardy_pioneer_on_map( coord, map_updater );
+    Unit& founder = unit_from_id( id );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit_can_found_colony( id ).valid() );
     ColonyId col_id =
@@ -226,7 +231,7 @@ TEST_CASE(
   NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist_on_map( coord );
+  auto  id    = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ).valid() );
   ColonyId col_id =
       found_colony_unsafe( id, map_updater, "colony 1" );
@@ -239,7 +244,7 @@ TEST_CASE(
                       .value_or( 0 ) );
   }
 
-  id = create_colonist_on_map( coord );
+  id = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colony_exists_here ) );
 }
@@ -250,7 +255,7 @@ TEST_CASE(
   NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 2_x, 2_y };
-  auto  id    = create_colonist_on_map( coord );
+  auto  id    = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ).valid() );
   ColonyId col_id =
       found_colony_unsafe( id, map_updater, "colony" );
@@ -264,15 +269,16 @@ TEST_CASE(
   }
 
   coord += 1_w;
-  id = create_colonist_on_map( coord );
+  id = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ).valid() );
 }
 
 TEST_CASE( "[colony-mgr] create colony in water fails" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord   = { 1_x, 1_y };
-  auto  ship_id = create_ship( coord );
+  auto  ship_id = create_ship( coord, map_updater );
   auto  unit_id = create_colonist();
   GameState::units().change_to_cargo_somewhere( ship_id,
                                                 unit_id );
@@ -293,9 +299,10 @@ TEST_CASE(
 
 TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 1_x, 1_y };
-  auto  id    = create_ship( coord );
+  auto  id    = create_ship( coord, map_updater );
   REQUIRE(
       unit_can_found_colony( id ) ==
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
@@ -303,9 +310,10 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
 
 TEST_CASE( "[colony-mgr] found colony by non-human fails" ) {
   init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
   Coord coord = { 1_x, 1_y };
-  auto  id    = create_wagon( coord );
+  auto  id    = create_wagon( coord, map_updater );
   REQUIRE(
       unit_can_found_colony( id ) ==
       invalid(

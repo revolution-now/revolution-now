@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "map-updater.hpp"
 #include "unit-id.hpp"
 
 namespace rn {
@@ -58,6 +59,7 @@ enum e_high_seas_result {
 // sitioned to either the old-world or the new world, as appro-
 // priate. If this is called with a unit that is not on the high
 // seas then an error will be thrown.
-e_high_seas_result advance_unit_on_high_seas( UnitId id );
+e_high_seas_result advance_unit_on_high_seas(
+    UnitId id, IMapUpdater& map_updater );
 
 } // namespace rn

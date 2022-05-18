@@ -17,6 +17,7 @@
 #include "colony.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
+#include "map-updater.hpp"
 #include "unit.hpp"
 
 // base
@@ -67,11 +68,6 @@ ND std::unordered_set<UnitId> const& units_from_coord(
 // unit cannot be held as cargo if it itself if capable of
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 std::vector<UnitId> units_from_coord_recursive( Coord coord );
-
-// This is in the rare cases that we need to change a unit's po-
-// sition manually, such as when e.g. a colonist is captured in
-// combat.  Unit must be owned by the map for this!
-void move_unit_from_map_to_map( UnitId id, Coord dest );
 
 std::vector<UnitId> units_in_rect( Rect const& rect );
 
@@ -160,7 +156,8 @@ Coord        coord_for_unit_multi_ownership_or_die( UnitId id );
 ** For Testing / Development Only
 *****************************************************************/
 // Do not call these in normal game code.
-UnitId create_unit_on_map( UnitsState& units_state,
+UnitId create_unit_on_map( UnitsState&  units_state,
+                           IMapUpdater& map_updater,
                            e_nation nation, UnitComposition comp,
                            Coord coord );
 

@@ -17,6 +17,8 @@
 #include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
 #include "src/map-square.hpp"
+#include "src/map-updater.hpp"
+#include "src/on-map.hpp"
 #include "src/terrain.hpp"
 #include "src/ustate.hpp"
 
@@ -47,7 +49,8 @@ void prepare_world( TerrainState& terrain_state,
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
   CHECK( id == 1_id );
-  units_state.change_to_map( id, kSquare );
+  NonRenderingMapUpdater map_updater( terrain_state );
+  unit_to_map_square( units_state, map_updater, id, kSquare );
 }
 
 TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
