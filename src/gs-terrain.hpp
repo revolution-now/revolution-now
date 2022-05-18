@@ -69,8 +69,12 @@ struct TerrainState {
   // Throws if coord is not on map.
   bool is_land( Coord coord ) const;
 
-  // Note: if you call these to mutate the map, be sure to
-  // re-render the changed parts (or the entire thing).
+  // These should not be called directly; they should only be
+  // called by the MapUpdater classes, which is what you should
+  // be using whenever you modify terrain in order to ensure that
+  // the map gets redrawn accordingly. If you don't want to
+  // redraw a map (e.g. you are in unit tests) then just use the
+  // non-rendering map updater.
   Matrix<MapSquare>& mutable_world_map();
   MapSquare&         mutable_square_at( Coord coord );
   maybe<MapSquare&>  mutable_maybe_square_at( Coord coord );

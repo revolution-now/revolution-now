@@ -38,17 +38,15 @@ Coord const kSquare( 0_x, 0_y );
 void prepare_world( TerrainState& terrain_state,
                     UnitsState&   units_state,
                     e_unit_type   unit_type ) {
-  terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
-  Matrix<MapSquare>& world_map =
-      terrain_state.mutable_world_map();
-  world_map[kSquare] =
-      map_square_for_terrain( e_terrain::grassland );
+  NonRenderingMapUpdater map_updater( terrain_state );
+  map_updater.modify_entire_map( []( Matrix<MapSquare>& m ) {
+    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m[kSquare] = map_square_for_terrain( e_terrain::grassland );
+  } );
   UnitComposition comp = UnitComposition::create( unit_type );
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
   CHECK( id == 1_id );
-  NonRenderingMapUpdater map_updater( terrain_state );
   unit_to_map_square( units_state, map_updater, id, kSquare );
 }
 

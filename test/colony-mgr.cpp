@@ -53,16 +53,16 @@ void generate_unittest_terrain() {
   MapSquare const L = make_land_square();
   MapSquare const O = make_ocean_square();
 
-  TerrainState& terrain_state = GameState::terrain();
-  auto&         world_map = terrain_state.mutable_world_map();
-  world_map               = Matrix<MapSquare>( 10_w, 10_h );
-
-  Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
-
-  for( auto const& coord : terrain_state.world_map().rect() ) {
-    world_map[coord] = O;
-    if( coord.is_inside( land_rect ) ) world_map[coord] = L;
-  }
+  TerrainState&          terrain_state = GameState::terrain();
+  NonRenderingMapUpdater map_updater( terrain_state );
+  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
+    m = Matrix<MapSquare>( 10_w, 10_h );
+    Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
+    for( auto const& coord : terrain_state.world_map().rect() ) {
+      m[coord] = O;
+      if( coord.is_inside( land_rect ) ) m[coord] = L;
+    }
+  } );
 }
 
 void init_game_world_for_test() {
