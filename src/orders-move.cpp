@@ -255,7 +255,7 @@ struct TravelHandler : public OrdersHandler {
   }
 
   wait<e_travel_verdict> confirm_travel_impl();
-  wait<e_travel_verdict> analyze_unload();
+  wait<e_travel_verdict> analyze_unload() const;
 
   // The unit that is moving.
   UnitId      unit_id;
@@ -296,7 +296,7 @@ struct TravelHandler : public OrdersHandler {
 };
 
 wait<TravelHandler::e_travel_verdict>
-TravelHandler::analyze_unload() {
+TravelHandler::analyze_unload() const {
   std::vector<UnitId> to_offload;
   auto&               unit = unit_from_id( unit_id );
   for( auto unit_item :
@@ -312,10 +312,9 @@ TravelHandler::analyze_unload() {
           "in port." );
       co_return e_travel_verdict::land_forbidden;
     }
-    // We have at least one unit in the cargo that is able
-    // to make landfall. So we will indicate that the unit
-    // is al- lowed to make this move.
-    prioritize = to_offload;
+    // We have at least one unit in the cargo that is able to
+    // make landfall. So we will indicate that the unit is al-
+    // lowed to make this move.
     string msg = "Would you like to make landfall?";
     if( to_offload.size() <
         unit.cargo().items_of_type<Cargo::unit>().size() )
@@ -619,18 +618,39 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::land_fall:
-      // Just activate all the units on the ship that have not
-      // completed their turns. Note that the ship's movement
-      // points are not consumed.
+      // First activate and prioritize all the units on the ship
+      // that have not completed their turns, so that they will
+      // ask for orders. But for the first unit, in addition, we
+      // will also just give it orders to move onto land. This
+      // way, when the player makes land fall, the first unit el-
+      // igible for moving will move automatically, then the sub-
+      // sequent ones will ask for orders immediately after. This
+      // reproduces the behavior of the original game and is a
+      // good user experience.
+      //
+      // Note that the ship's movement points are not consumed.
+      prioritize.clear();
       for( auto unit_item :
            unit.cargo().items_of_type<Cargo::unit>() ) {
         auto& cargo_unit = unit_from_id( unit_item.id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
-          auto direction = old_coord.direction_to( move_dst );
-          CHECK( direction.has_value() );
-          orders_t orders = orders::move{ *direction };
+          prioritize.push_back( unit_item.id );
+        }
+      }
+      // First unit in list should move first.
+      reverse( prioritize.begin(), prioritize.end() );
+      for( auto unit_item :
+           unit.cargo().items_of_type<Cargo::unit>() ) {
+        auto& cargo_unit = unit_from_id( unit_item.id );
+        if( !cargo_unit.mv_pts_exhausted() ) {
+          UNWRAP_CHECK( direction,
+                        old_coord.direction_to( move_dst ) );
+          orders_t orders = orders::move{ direction };
           push_unit_orders( unit_item.id, orders );
+          // Stop after first eligible unit. The rest of the
+          // units will just ask for orders on the ship.
+          break;
         }
       }
       break;
