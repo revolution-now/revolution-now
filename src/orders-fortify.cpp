@@ -25,15 +25,9 @@ struct FortifyHandler : public OrdersHandler {
   FortifyHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
-    if( unit_from_id( unit_id ).desc().ship ) {
-      // FIXME: ships can in fact be fortified in the original
-      // game it seems.
-      co_await ui::message_box( "Ships cannot be fortified." );
-      co_return false;
-    }
     if( is_unit_onboard( unit_id ) ) {
       co_await ui::message_box(
-          "Cannot fortify while on a ship." );
+          "Cannot fortify as cargo of another unit." );
       co_return false;
     }
     co_return true;

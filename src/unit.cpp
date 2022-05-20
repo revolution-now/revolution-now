@@ -95,10 +95,7 @@ void Unit::set_turns_worked( int turns ) {
   o_.turns_worked = turns;
 }
 
-void Unit::fortify() {
-  CHECK( !desc().ship, "Only land units can be fortified." );
-  o_.orders = e_unit_orders::fortified;
-}
+void Unit::fortify() { o_.orders = e_unit_orders::fortified; }
 
 void Unit::change_nation( e_nation nation ) {
   // This could happen if we capture a colony containing a ship

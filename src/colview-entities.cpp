@@ -982,14 +982,9 @@ class UnitsAtGateColonyView : public ui::View,
                         { kChangeOrders, kStripUnit } );
     string mode = co_await wait_mode;
     if( mode == kChangeOrders ) {
-      vector<e_unit_orders> possible_orders;
-      if( unit.desc().ship )
-        possible_orders = { e_unit_orders::none,
-                            e_unit_orders::sentry };
-      else
-        possible_orders = { e_unit_orders::none,
-                            e_unit_orders::sentry,
-                            e_unit_orders::fortified };
+      vector<e_unit_orders> possible_orders = {
+          e_unit_orders::none, e_unit_orders::sentry,
+          e_unit_orders::fortified };
       e_unit_orders new_orders =
           co_await ui::select_box_enum<e_unit_orders>(
               "Change unit orders to:", possible_orders );
