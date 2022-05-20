@@ -347,34 +347,85 @@ struct LandViewRenderer {
   Rect const    covered = {};
 };
 
+// This will render the background around the zoomed-out map.
+// This background consists of some giant stretched ocean tiles.
+// It goes like this:
+//
+//   1. The tiles are scaled up, but only as large as possible so
+//      that they can remain as squares; so the tile size will be
+//      equal to the shorter side length of the viewport.
+//   2. Those tiles are then tiled to cover all of the area.
+//   3. Steps 1+2 are repeated two more times with partial alpha
+//      (i.e., layered on top of the previous), but each time
+//      being scaled up slightly more. The scaling is done about
+//      the center of the composite image in order create a
+//      "zooming" effect. To achieve this, the composite (total,
+//      tiled) image is rendered around the origin and the GPU
+//      then scales it and then translates it.
+//
+// As mentioned, all of the layers are done with partial alpha so
+// that they all end up visible and thus create a "zooming" ef-
+// fect.
+void render_backdrop( rr::Renderer& renderer ) {
+  SCOPED_RENDERER_MOD( painter_mods.alpha, 0.4 );
+  UNWRAP_CHECK(
+      viewport_rect_pixels,
+      compositor::section( compositor::e_section::viewport ) );
+  auto const [shortest_side, longest_side] = [&] {
+    Delta const delta         = viewport_rect_pixels.delta();
+    int         shortest_side = std::min( delta.w._, delta.h._ );
+    int         longest_side  = std::max( delta.w._, delta.h._ );
+    return pair{ shortest_side, longest_side };
+  }();
+  int const num_squares_needed =
+      longest_side / shortest_side + 1;
+  Delta const tile_size =
+      Delta( W{ shortest_side }, H{ shortest_side } );
+  Rect const tiled_rect =
+      Rect::from( Coord{},
+                  tile_size * Scale{ num_squares_needed } )
+          .centered_on( Coord{} );
+  Delta const shift = viewport_rect_pixels.center() -
+                      viewport_rect_pixels.upper_left();
+  double       scale      = 1.00;
+  double const kScaleInc  = .014;
+  int const    kNumLayers = 4;
+  for( int i = 0; i < kNumLayers; ++i ) {
+    SCOPED_RENDERER_MOD( painter_mods.repos.scale, scale );
+    SCOPED_RENDERER_MOD( painter_mods.repos.translation, shift );
+    rr::Painter painter = renderer.painter();
+    for( Coord coord : tiled_rect.to_grid_noalign( tile_size ) )
+      render_sprite( painter, Rect::from( coord, tile_size ),
+                     e_tile::terrain_ocean );
+    scale += kScaleInc;
+  }
+}
+
 void render_land_view( rr::Renderer& renderer ) {
   // If the map is zoomed out enough such that some of the outter
   // space is visible, paint a background so that it won't just
   // have empty black surroundings.
   if( viewport().are_surroundings_visible() ) {
-    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
     SCOPED_RENDERER_MOD( buffer_mods.buffer,
                          rr::e_render_target_buffer::backdrop );
-    UNWRAP_CHECK(
-        viewport_rect_pixels,
-        compositor::section( compositor::e_section::viewport ) );
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, viewport_rect_pixels,
-                   e_tile::terrain_ocean );
-    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.2 );
-    render_sprite( painter,
-                   viewport_rect_pixels.with_border_added(
-                       /*thickness=*/5 ),
-                   e_tile::terrain_ocean );
-    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.1 );
-    render_sprite( painter,
-                   viewport_rect_pixels.with_border_added(
-                       /*thickness=*/10 ),
-                   e_tile::terrain_ocean );
+    render_backdrop( renderer );
+
+    {
+      // This is the shadow behind the land rectangle.
+      SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
+      int shadow_offset   = lround( 30 * viewport().get_zoom() );
+      rr::Painter painter = renderer.painter();
+      painter.draw_solid_rect(
+          viewport().rendering_dest_rect().shifted_by(
+              Delta( W{ shadow_offset }, H{ shadow_offset } ) ),
+          gfx::pixel::black().with_alpha( 100 ) );
+    }
+
     renderer.render_buffer(
         rr::e_render_target_buffer::backdrop );
   }
 
+  // Now the actual land.
   double zoom = viewport().get_zoom();
   renderer.set_camera( viewport()
                            .landscape_buffer_render_upper_left()
