@@ -1311,7 +1311,8 @@ void render_terrain_square( TerrainState const& terrain_state,
   else
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
-  render_resources( painter, where, square );
+  if( !square.lost_city_rumor )
+    render_resources( painter, where, square );
   render_plow_if_present( painter, where, terrain_state,
                           world_square );
   render_road_if_present( painter, where, terrain_state,
