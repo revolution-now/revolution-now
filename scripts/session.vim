@@ -14,6 +14,7 @@ let s:stems = [
  \ 'render-terrain',
  \ 'map-gen',
  \ 'on-map',
+ \ 'lcr',
 \]
 
 let s:luas = [

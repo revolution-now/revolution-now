@@ -1,3 +1,19 @@
+Non seasoned scout outcomes on easiest level:
+
+47 : nothing but rumors
+13 : fountain of youth
+15 : ruins of lost civ (small amount of gold)
+10 : burial mounds (let us search for treasure/stay clear of those)
+       4 : trinkets (small amount of gold)
+       1 : sacred burial grounds (war)
+       5 : treasure
+             1 : sacred burial grounds (war)
+       1 : nothing (mounds are cold and empty)
+16 : small village, chief offers gift (small amount of money)
+ 8 : free colonist
+ 4 : unit vanished
+
+-----------------------------------------------------------
      0   ?
      1   15 
      2   32 49

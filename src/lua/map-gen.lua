@@ -703,6 +703,12 @@ function M.generate()
 
   create_indian_villages()
 
+  -- on_all( function( coord, square )
+  --   if square.surface == e.surface.land then
+  --     square.lost_city_rumor = true
+  --   end
+  -- end )
+
   create_initial_ships()
 end
 

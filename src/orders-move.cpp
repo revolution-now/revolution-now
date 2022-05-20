@@ -19,13 +19,16 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
+#include "gs-events.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "land-view.hpp"
+#include "lcr.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
+#include "player.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
@@ -247,7 +250,10 @@ struct TravelHandler : public OrdersHandler {
   wait<> perform() override;
 
   wait<> post() const override {
-    co_return; //
+    // !! Note that the unit theoretically may not exist here if
+    // they were destroyed as part of this action, e.g. lost in a
+    // lost city rumor.
+    co_return;
   }
 
   vector<UnitId> units_to_prioritize() const override {
@@ -545,9 +551,13 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto        id          = unit_id;
-  UnitsState& units_state = GameState::units();
-  auto&       unit        = units_state.unit_for( id );
+  TerrainState const& terrain_state = GameState::terrain();
+  EventsState const&  events_state  = GameState::events();
+  auto                id            = unit_id;
+  UnitsState&         units_state   = GameState::units();
+  auto&               unit          = units_state.unit_for( id );
+  Player& player = player_for_nation( unit.nation() );
+
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
 
@@ -672,6 +682,20 @@ wait<> TravelHandler::perform() {
     auto new_coord = coord_for_unit_indirect_or_die( id );
     CHECK( unit_would_move == ( new_coord == move_dst ) );
   }
+
+  // Check if the unit actually moved and it landed on a Lost
+  // City Rumor.
+  if( unit_would_move &&
+      has_lost_city_rumor( terrain_state, move_dst ) ) {
+    bool unit_disappeared = co_await enter_lost_city_rumor(
+        terrain_state, units_state, events_state, player,
+        map_updater_, unit_id, move_dst );
+    // Presumably we don't want to do anything more in this
+    // function if the unit that moved has disappeared.
+    if( unit_disappeared ) co_return;
+  }
+
+  // !! Note that the LCR may have removed the unit!
   co_return; //
 }
 
@@ -773,6 +797,10 @@ struct AttackHandler : public OrdersHandler {
   wait<> perform() override;
 
   wait<> post() const override {
+    // !! Note that the unit theoretically may not exist here if
+    // they were destroyed as part of this action, e.g. a ship
+    // losing a battle.
+
     if( verdict == e_attack_verdict::colony_undefended &&
         fight_stats->attacker_wins ) {
       conductor::play_request(
