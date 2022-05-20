@@ -170,10 +170,12 @@ wait<maybe<MovementPoints>> check_movement_points(
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
   TravelHandler( UnitId unit_id_, e_direction d,
-                 IMapUpdater& map_updater )
+                 IMapUpdater&  map_updater,
+                 TerrainState& terrain_state )
     : unit_id( unit_id_ ),
       direction( d ),
-      map_updater_( map_updater ) {}
+      map_updater_( map_updater ),
+      terrain_state_( terrain_state ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -263,6 +265,8 @@ struct TravelHandler : public OrdersHandler {
   wait<e_travel_verdict> confirm_travel_impl();
   wait<e_travel_verdict> analyze_unload() const;
 
+  wait<e_travel_verdict> confirm_sail_high_seas() const;
+
   // The unit that is moving.
   UnitId      unit_id;
   e_direction direction;
@@ -299,6 +303,8 @@ struct TravelHandler : public OrdersHandler {
   MovementPoints mv_points_to_subtract_ = {};
 
   IMapUpdater& map_updater_;
+
+  TerrainState& terrain_state_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -340,7 +346,15 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
   return terrain_state.square_at( c ).sea_lane;
 }
 
-wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
+wait<TravelHandler::e_travel_verdict>
+TravelHandler::confirm_sail_high_seas() const {
+  CHECK( is_high_seas( terrain_state_, move_dst ) );
+  // Only ask to sail the high seas if the current square is not
+  // a sea lane. This allows ships to sail around in the sea lane
+  // without being asked on each turn whether the player wants to
+  // sail the high seas.
+  if( is_high_seas( terrain_state_, move_src ) )
+    co_return e_travel_verdict::map_to_map;
   ui::e_confirm confirmed = co_await ui::yes_no(
       "Would you like to sail the high seas?" );
   co_return confirmed == ui::e_confirm::yes
@@ -350,18 +364,17 @@ wait<TravelHandler::e_travel_verdict> confirm_sail_high_seas() {
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
-  UnitsState const&   units_state   = GameState::units();
-  TerrainState const& terrain_state = GameState::terrain();
+  UnitsState const& units_state = GameState::units();
 
   UnitId id = unit_id;
   move_src  = coord_for_unit_indirect_or_die( id );
   move_dst  = move_src.moved( direction );
 
-  if( !move_dst.is_inside( terrain_state.world_rect_tiles() ) )
+  if( !move_dst.is_inside( terrain_state_.world_rect_tiles() ) )
     co_return e_travel_verdict::map_edge;
 
-  auto&       src_square = terrain_state.square_at( move_src );
-  auto&       dst_square = terrain_state.square_at( move_dst );
+  auto&       src_square = terrain_state_.square_at( move_src );
+  auto&       dst_square = terrain_state_.square_at( move_dst );
   Unit const& unit       = units_state.unit_for( id );
   maybe<MovementPoints> to_subtract =
       co_await check_movement_points( unit, src_square,
@@ -472,7 +485,7 @@ TravelHandler::confirm_travel_impl() {
     // Possible results: never, always, high_seas.
     bh_t bh = unit.desc().ship ? bh_t::always : bh_t::never;
     if( unit.desc().ship &&
-        is_high_seas( terrain_state, move_dst ) )
+        is_high_seas( terrain_state_, move_dst ) )
       bh = bh_t::high_seas;
     switch( bh ) {
       case bh_t::never:
@@ -489,7 +502,7 @@ TravelHandler::confirm_travel_impl() {
     // Possible results: always, never, move_onto_ship,
     //                   high_seas.
     if( unit.desc().ship ) {
-      if( is_high_seas( terrain_state, move_dst ) )
+      if( is_high_seas( terrain_state_, move_dst ) )
         bh = bh_t::high_seas;
       else
         bh = bh_t::always;
@@ -551,12 +564,11 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  TerrainState const& terrain_state = GameState::terrain();
-  EventsState const&  events_state  = GameState::events();
-  auto                id            = unit_id;
-  UnitsState&         units_state   = GameState::units();
-  auto&               unit          = units_state.unit_for( id );
-  Player& player = player_for_nation( unit.nation() );
+  EventsState const& events_state = GameState::events();
+  auto               id           = unit_id;
+  UnitsState&        units_state  = GameState::units();
+  auto&              unit         = units_state.unit_for( id );
+  Player&            player = player_for_nation( unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -686,9 +698,9 @@ wait<> TravelHandler::perform() {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   if( unit_would_move &&
-      has_lost_city_rumor( terrain_state, move_dst ) ) {
+      has_lost_city_rumor( terrain_state_, move_dst ) ) {
     bool unit_disappeared = co_await enter_lost_city_rumor(
-        terrain_state, units_state, events_state, player,
+        terrain_state_, units_state, events_state, player,
         map_updater_, unit_id, move_dst );
     // Presumably we don't want to do anything more in this
     // function if the unit that moved has disappeared.
@@ -704,10 +716,12 @@ wait<> TravelHandler::perform() {
 *****************************************************************/
 struct AttackHandler : public OrdersHandler {
   AttackHandler( UnitId unit_id_, e_direction d,
-                 IMapUpdater& map_updater )
+                 IMapUpdater&  map_updater,
+                 TerrainState& terrain_state )
     : unit_id( unit_id_ ),
       direction( d ),
-      map_updater_( map_updater ) {}
+      map_updater_( map_updater ),
+      terrain_state_( terrain_state ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -845,6 +859,8 @@ struct AttackHandler : public OrdersHandler {
   maybe<FightStatistics> fight_stats{};
 
   IMapUpdater& map_updater_;
+
+  TerrainState& terrain_state_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -876,11 +892,10 @@ AttackHandler::confirm_attack_impl() {
   auto dst_nation = nation_from_coord( attack_dst );
   CHECK( dst_nation.has_value() &&
          *dst_nation != unit.nation() );
-  TerrainState const& terrain_state = GameState::terrain();
-  CHECK(
-      attack_dst.is_inside( terrain_state.world_rect_tiles() ) );
+  CHECK( attack_dst.is_inside(
+      terrain_state_.world_rect_tiles() ) );
 
-  auto& square = terrain_state.square_at( attack_dst );
+  auto& square = terrain_state_.square_at( attack_dst );
 
   auto surface      = surface_type( square );
   auto relationship = e_unit_relationship::foreign;
@@ -1154,29 +1169,33 @@ wait<> AttackHandler::perform() {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
-                                    IMapUpdater& map_updater ) {
+unique_ptr<OrdersHandler> dispatch(
+    UnitId id, e_direction d, IMapUpdater& map_updater,
+    TerrainState& terrain_state ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
-  TerrainState const& terrain_state = GameState::terrain();
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( id, d, map_updater );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( id, d, map_updater );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( id, d, map_updater );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state );
 
   // Must be an attack.
-  return make_unique<AttackHandler>( id, d, map_updater );
+  return make_unique<AttackHandler>( id, d, map_updater,
+                                     terrain_state );
 }
 
 } // namespace
@@ -1187,7 +1206,8 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv,
     IMapUpdater* map_updater ) {
-  return dispatch( id, mv.d, *map_updater );
+  TerrainState& terrain_state = GameState::terrain();
+  return dispatch( id, mv.d, *map_updater, terrain_state );
 }
 
 } // namespace rn
