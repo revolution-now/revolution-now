@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "lua.hpp"
+#include "nation.hpp"
 #include "terrain.hpp"
 
 // config
@@ -146,7 +147,6 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<rn::MapSquare>();
 
-  // u["visibility"]      = &U::visibility;
   u["surface"]         = &U::surface;
   u["ground"]          = &U::ground;
   u["overlay"]         = &U::overlay;
@@ -157,6 +157,27 @@ LUA_STARTUP( lua::state& st ) {
   u["road"]            = &U::road;
   u["sea_lane"]        = &U::sea_lane;
   u["lost_city_rumor"] = &U::lost_city_rumor;
+
+  // Visibility.
+  u["set_visible_for_all"] = []( U& square ) {
+    for( e_nation nation : refl::enum_values<e_nation> )
+      square.visibility[nation] = true;
+  };
+
+  u["set_invisible_for_all"] = []( U& square ) {
+    for( e_nation nation : refl::enum_values<e_nation> )
+      square.visibility[nation] = false;
+  };
+
+  u["set_visible_for_nation"] = []( U&       square,
+                                    e_nation nation ) {
+    square.visibility[nation] = true;
+  };
+
+  u["set_invisible_for_nation"] = []( U&       square,
+                                      e_nation nation ) {
+    square.visibility[nation] = false;
+  };
 };
 
 } // namespace
