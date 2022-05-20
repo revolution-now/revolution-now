@@ -38,6 +38,10 @@ class SmoothViewport {
   Rect covered_tiles() const;
   Rect fully_covered_tiles() const;
 
+  // Are we zoomed out enough so that some of the space outside
+  // of the map is visible on any side?
+  bool are_surroundings_visible() const;
+
   bool is_fully_visible_x() const;
   bool is_fully_visible_y() const;
 

@@ -457,6 +457,10 @@ Rect SmoothViewport::covered_tiles() const {
       .clamp( this->world_rect_tiles() );
 }
 
+bool SmoothViewport::are_surroundings_visible() const {
+  return is_fully_visible_x() || is_fully_visible_y();
+}
+
 bool SmoothViewport::is_fully_visible_x() const {
   Rect covered = covered_tiles();
   return covered.x == 0_x && covered.w == world_rect_tiles().w;

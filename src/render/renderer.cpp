@@ -91,6 +91,7 @@ struct Renderer::Impl {
   Impl( PresentFn present_fn_arg, ProgramType program_arg,
         VertexArray_t vertex_array_arg,
         VertexArray_t landscape_vertex_array_arg,
+        VertexArray_t backdrop_vertex_array_arg,
         AtlasMap atlas_map_arg, size atlas_size_arg,
         gl::Texture                      atlas_tx_arg,
         unordered_map<string, int>       atlas_ids_arg,
@@ -105,6 +106,8 @@ struct Renderer::Impl {
       vertex_array( std::move( vertex_array_arg ) ),
       landscape_vertex_array(
           std::move( landscape_vertex_array_arg ) ),
+      backdrop_vertex_array(
+          std::move( backdrop_vertex_array_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
       atlas_size( std::move( atlas_size_arg ) ),
       atlas_tx( std::move( atlas_tx_arg ) ),
@@ -115,13 +118,16 @@ struct Renderer::Impl {
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       vertices{},
       landscape_vertices{},
+      backdrop_vertices{},
       emitter( vertices ),
       landscape_emitter( landscape_vertices ),
+      backdrop_emitter( backdrop_vertices ),
       logical_screen_size( logical_screen_size_arg ),
       landscape_dirty( true ) {
     mod_stack.push( RendererMods{} );
     emitter.log_capacity_changes( false );
     landscape_emitter.log_capacity_changes( false );
+    backdrop_emitter.log_capacity_changes( false );
   };
 
   static Impl* create( RendererConfig const& config,
@@ -144,7 +150,9 @@ struct Renderer::Impl {
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>
         vertex_array;
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>
-         landscape_vertex_array;
+        landscape_vertex_array;
+    gl::VertexArray<gl::VertexBuffer<GenericVertex>>
+         backdrop_vertex_array;
     auto pgrm = [&] {
       // Some OpenGL drivers, during shader program validation,
       // seem to require a vertex array to be bound to include in
@@ -213,6 +221,8 @@ struct Renderer::Impl {
         /*vertex_array=*/std::move( vertex_array ),
         /*landscape_vertex_array=*/
         std::move( landscape_vertex_array ),
+        /*backdrop_vertex_array=*/
+        std::move( backdrop_vertex_array ),
         /*atlas_map=*/std::move( atlas.dict ),
         /*atlas_size=*/atlas_size,
         /*atlas_tx=*/std::move( atlas_tx ),
@@ -225,12 +235,23 @@ struct Renderer::Impl {
 
   void begin_pass() {
     // This should not affect the capacity.
-    [[maybe_unused]] size_t capacity_before_clear =
-        vertices.capacity();
-    vertices.clear();
-    DCHECK( vertices.capacity() == capacity_before_clear );
-    DCHECK( vertices.empty() );
-    emitter.set_position( 0 );
+    {
+      [[maybe_unused]] size_t capacity_before_clear =
+          vertices.capacity();
+      vertices.clear();
+      DCHECK( vertices.capacity() == capacity_before_clear );
+      DCHECK( vertices.empty() );
+      emitter.set_position( 0 );
+    }
+    {
+      [[maybe_unused]] size_t capacity_before_clear =
+          backdrop_vertices.capacity();
+      backdrop_vertices.clear();
+      DCHECK( backdrop_vertices.capacity() ==
+              capacity_before_clear );
+      DCHECK( backdrop_vertices.empty() );
+      emitter.set_position( 0 );
+    }
     // We don't reset the position of the landscape emitter.
   }
 
@@ -247,6 +268,9 @@ struct Renderer::Impl {
         break;
       case e_render_target_buffer::landscape:
         modded_emitter = &landscape_emitter;
+        break;
+      case e_render_target_buffer::backdrop:
+        modded_emitter = &backdrop_emitter;
         break;
     }
     return *modded_emitter;
@@ -314,11 +338,23 @@ struct Renderer::Impl {
         landscape_vertices.clear();
         landscape_emitter.set_position( 0 );
         break;
+      case e_render_target_buffer::backdrop:
+        // We don't currently have a use for this, because the
+        // backdrop buffer gets automatically cleared at the
+        // start of each render pass.
+        SHOULD_NOT_BE_HERE;
+        break;
     }
   }
 
   void render_buffer( e_render_target_buffer buffer ) {
     switch( buffer ) {
+      case e_render_target_buffer::backdrop: {
+        vertex_array.buffer<0>().upload_data_replace(
+            backdrop_vertices, gl::e_draw_mode::stat1c );
+        program.run( vertex_array, backdrop_vertices.size() );
+        break;
+      }
       case e_render_target_buffer::normal: {
         vertex_array.buffer<0>().upload_data_replace(
             vertices, gl::e_draw_mode::stat1c );
@@ -335,7 +371,6 @@ struct Renderer::Impl {
         // fied because the camera uniforms may have changed.
         program.run( landscape_vertex_array,
                      landscape_vertices.size() );
-
         break;
       }
     }
@@ -346,6 +381,7 @@ struct Renderer::Impl {
   ProgramType                            program;
   VertexArray_t const                    vertex_array;
   VertexArray_t const                    landscape_vertex_array;
+  VertexArray_t const                    backdrop_vertex_array;
   AtlasMap const                         atlas_map;
   size const                             atlas_size;
   gl::Texture const                      atlas_tx;
@@ -356,8 +392,10 @@ struct Renderer::Impl {
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   vector<GenericVertex>                        vertices;
   vector<GenericVertex> landscape_vertices;
+  vector<GenericVertex> backdrop_vertices;
   Emitter               emitter;
   Emitter               landscape_emitter;
+  Emitter               backdrop_emitter;
   gfx::size             logical_screen_size;
   bool                  landscape_dirty;
 };
@@ -466,6 +504,8 @@ void Renderer::render_buffer( e_render_target_buffer buffer ) {
 long Renderer::buffer_vertex_count(
     e_render_target_buffer buffer ) {
   switch( buffer ) {
+    case e_render_target_buffer::backdrop:
+      return impl_->backdrop_vertices.size();
     case e_render_target_buffer::normal:
       return impl_->vertices.size();
     case e_render_target_buffer::landscape:

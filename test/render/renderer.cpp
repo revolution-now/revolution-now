@@ -192,7 +192,8 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_DeleteShader( 6 ) );
   EXPECT_CALL( mock, gl_DeleteShader( 5 ) );
 
-  // Create the normal and landscape vertex arrays.
+  // Create the normal, backdrop and landscape vertex arrays.
+  expect_create_vertex_array( mock );
   expect_create_vertex_array( mock );
   expect_create_vertex_array( mock );
 

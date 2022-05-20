@@ -59,8 +59,14 @@ struct RendererConfig {
 ** RendererMods
 *****************************************************************/
 enum class e_render_target_buffer {
-  normal,
+  // The backdrop buffer can be used if something needs to be
+  // rendered behind the landscape buffer. We can't put it in the
+  // normal buffer since that will be rendered on top of the
+  // landscape buffer. But we may not want to put it in the land-
+  // scape buffer because it might need to be dynamic.
+  backdrop,
   landscape,
+  normal,
 };
 
 struct BufferInfo {

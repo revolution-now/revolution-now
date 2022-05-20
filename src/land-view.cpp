@@ -348,6 +348,33 @@ struct LandViewRenderer {
 };
 
 void render_land_view( rr::Renderer& renderer ) {
+  // If the map is zoomed out enough such that some of the outter
+  // space is visible, paint a background so that it won't just
+  // have empty black surroundings.
+  if( viewport().are_surroundings_visible() ) {
+    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
+    SCOPED_RENDERER_MOD( buffer_mods.buffer,
+                         rr::e_render_target_buffer::backdrop );
+    UNWRAP_CHECK(
+        viewport_rect_pixels,
+        compositor::section( compositor::e_section::viewport ) );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, viewport_rect_pixels,
+                   e_tile::terrain_ocean );
+    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.2 );
+    render_sprite( painter,
+                   viewport_rect_pixels.with_border_added(
+                       /*thickness=*/5 ),
+                   e_tile::terrain_ocean );
+    SCOPED_RENDERER_MOD( painter_mods.alpha, 0.1 );
+    render_sprite( painter,
+                   viewport_rect_pixels.with_border_added(
+                       /*thickness=*/10 ),
+                   e_tile::terrain_ocean );
+    renderer.render_buffer(
+        rr::e_render_target_buffer::backdrop );
+  }
+
   double zoom = viewport().get_zoom();
   renderer.set_camera( viewport()
                            .landscape_buffer_render_upper_left()
@@ -947,7 +974,10 @@ struct LandViewPlane : public Plane {
         auto& val = event.get<input::mouse_wheel_event_t>();
         // If the mouse is in the viewport and its a wheel
         // event then we are in business.
-        if( viewport().screen_coord_in_viewport( val.pos ) ) {
+        UNWRAP_CHECK( viewport_rect_pixels,
+                      compositor::section(
+                          compositor::e_section::viewport ) );
+        if( val.pos.is_inside( viewport_rect_pixels ) ) {
           if( val.wheel_delta < 0 )
             viewport().set_zoom_push( e_push_direction::negative,
                                       nothing );
