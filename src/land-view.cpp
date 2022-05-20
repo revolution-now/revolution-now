@@ -742,44 +742,91 @@ struct LandViewPlane : public Plane {
     // This is so that a zoom-in followed by a zoom-out will
     // re- store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
-    if( item == e_menu_item::zoom_in ) {
-      static Plane::MenuClickHandler handler = [] {
-        // A user zoom request halts any auto zooming that may
-        // currently be happening.
-        viewport().stop_auto_zoom();
-        viewport().stop_auto_panning();
-        viewport().smooth_zoom_target( viewport().get_zoom() *
-                                       zoom_in_factor );
-      };
-      return handler;
-    }
-    if( item == e_menu_item::zoom_out ) {
-      static Plane::MenuClickHandler handler = [] {
-        // A user zoom request halts any auto zooming that may
-        // currently be happening.
-        viewport().stop_auto_zoom();
-        viewport().stop_auto_panning();
-        viewport().smooth_zoom_target( viewport().get_zoom() *
-                                       zoom_out_factor );
-      };
-      return handler;
-    }
-    if( item == e_menu_item::restore_zoom ) {
-      if( viewport().get_zoom() == 1.0 ) return nothing;
-      static Plane::MenuClickHandler handler = [] {
-        viewport().smooth_zoom_target( 1.0 );
-      };
-      return handler;
-    }
-    if( item == e_menu_item::find_blinking_unit ) {
-      if( !g_landview_state
-               .holds<LandViewUnitActionState::unit_input>() )
-        return nothing;
-      static Plane::MenuClickHandler handler = [] {
-        g_raw_input_stream.send(
-            RawInput( LandViewRawInput::center{} ) );
-      };
-      return handler;
+    switch( item ) {
+      case e_menu_item::zoom_in: {
+        static Plane::MenuClickHandler handler = [] {
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
+          viewport().stop_auto_zoom();
+          viewport().stop_auto_panning();
+          viewport().smooth_zoom_target( viewport().get_zoom() *
+                                         zoom_in_factor );
+        };
+        return handler;
+      }
+      case e_menu_item::zoom_out: {
+        static Plane::MenuClickHandler handler = [] {
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
+          viewport().stop_auto_zoom();
+          viewport().stop_auto_panning();
+          viewport().smooth_zoom_target( viewport().get_zoom() *
+                                         zoom_out_factor );
+        };
+        return handler;
+      }
+      case e_menu_item::restore_zoom: {
+        if( viewport().get_zoom() == 1.0 ) break;
+        static Plane::MenuClickHandler handler = [] {
+          viewport().smooth_zoom_target( 1.0 );
+        };
+        return handler;
+      }
+      case e_menu_item::find_blinking_unit: {
+        if( !g_landview_state
+                 .holds<LandViewUnitActionState::unit_input>() )
+          break;
+        static Plane::MenuClickHandler handler = [] {
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::center{} ) );
+        };
+        return handler;
+      }
+      case e_menu_item::sentry: {
+        if( !g_landview_state
+                 .holds<LandViewUnitActionState::unit_input>() )
+          break;
+        static Plane::MenuClickHandler handler = [] {
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = orders::sentry{} } ) );
+        };
+        return handler;
+      }
+      case e_menu_item::fortify: {
+        if( !g_landview_state
+                 .holds<LandViewUnitActionState::unit_input>() )
+          break;
+        static Plane::MenuClickHandler handler = [] {
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = orders::fortify{} } ) );
+        };
+        return handler;
+      }
+      case e_menu_item::plow: {
+        if( !g_landview_state
+                 .holds<LandViewUnitActionState::unit_input>() )
+          break;
+        static Plane::MenuClickHandler handler = [] {
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = orders::plow{} } ) );
+        };
+        return handler;
+      }
+      case e_menu_item::road: {
+        if( !g_landview_state
+                 .holds<LandViewUnitActionState::unit_input>() )
+          break;
+        static Plane::MenuClickHandler handler = [] {
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = orders::road{} } ) );
+        };
+        return handler;
+      }
+      default: break;
     }
     return nothing;
   }
