@@ -699,14 +699,18 @@ wait<> TravelHandler::perform() {
   // City Rumor.
   if( unit_would_move &&
       has_lost_city_rumor( terrain_state_, move_dst ) ) {
-    e_lost_city_rumor_result lcr_res =
+    LostCityRumorResult_t lcr_res =
         co_await enter_lost_city_rumor(
             terrain_state_, units_state, events_state, player,
             map_updater_, unit_id, move_dst );
     // Presumably we don't want to do anything more in this
     // function if the unit that moved has disappeared.
-    if( lcr_res == e_lost_city_rumor_result::unit_lost )
+    if( lcr_res.holds<LostCityRumorResult::unit_lost>() )
       co_return;
+    if( auto maybe_unit =
+            lcr_res.get_if<LostCityRumorResult::unit_created>();
+        maybe_unit.has_value() )
+      prioritize.push_back( maybe_unit->id );
   }
 
   // !! Note that the LCR may have removed the unit!

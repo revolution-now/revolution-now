@@ -19,6 +19,9 @@
 #include "unit-id.hpp"
 #include "wait.hpp"
 
+// Rds
+#include "lcr.rds.hpp"
+
 namespace rn {
 
 struct TerrainState;
@@ -28,8 +31,6 @@ struct EventsState;
 bool has_lost_city_rumor( TerrainState const& terrain_state,
                           Coord               square );
 
-enum class e_lost_city_rumor_result { unit_alive, unit_lost };
-
 // Runs through the actions that result from entering a lost city
 // rumor, including showing any relevant UI messages, randomly
 // choosing the rumor outcome, and making changes to game state
@@ -37,7 +38,7 @@ enum class e_lost_city_rumor_result { unit_alive, unit_lost };
 // outcomes, cause the unit to be deleted. If that happens then
 // this function will actually delete the unit and will then re-
 // turn true. Otherwise returns false.
-wait<e_lost_city_rumor_result> enter_lost_city_rumor(
+wait<LostCityRumorResult_t> enter_lost_city_rumor(
     TerrainState const& terrain_state, UnitsState& units_state,
     EventsState const& events_state, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,

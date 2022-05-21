@@ -72,13 +72,12 @@ bool allow_fountain_of_youth( EventsState const& events_state ) {
   return !events_state.independence_declared;
 }
 
-wait<> run_burial_mounds_result( e_burial_mounds_type type,
-                                 UnitsState&  units_state,
-                                 Player&      player,
-                                 IMapUpdater& map_updater,
-                                 UnitId       unit_id,
-                                 Coord        world_square ) {
-  bool positive_result = {};
+wait<LostCityRumorResult_t> run_burial_mounds_result(
+    e_burial_mounds_type type, UnitsState& units_state,
+    Player& player, IMapUpdater& map_updater, UnitId unit_id,
+    Coord world_square ) {
+  bool                  positive_result = {};
+  LostCityRumorResult_t result          = {};
   switch( type ) {
     case e_burial_mounds_type::trinkets: {
       int amount =
@@ -93,6 +92,7 @@ wait<> run_burial_mounds_result( e_burial_mounds_type type,
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation(), total );
       positive_result = true;
+      result          = LostCityRumorResult::other{};
       break;
     }
     case e_burial_mounds_type::treasure_train: {
@@ -109,16 +109,18 @@ wait<> run_burial_mounds_result( e_burial_mounds_type type,
           UnitComposition::create(
               UnitType::create( e_unit_type::large_treasure ),
               { { e_unit_inventory::gold, amount } } ) );
-      create_unit_on_map( units_state, map_updater,
-                          player.nation(), uc_treasure,
-                          world_square );
+      UnitId id = create_unit_on_map(
+          units_state, map_updater, player.nation(), uc_treasure,
+          world_square );
       positive_result = true;
+      result = LostCityRumorResult::unit_created{ .id = id };
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
       co_await ui::message_box(
           "The mounds are cold and empty." );
       positive_result = false;
+      result          = LostCityRumorResult::other{};
       break;
     }
   }
@@ -137,6 +139,7 @@ wait<> run_burial_mounds_result( e_burial_mounds_type type,
     co_await ui::message_box(
         "These are native burial grounds.  WAR!" );
   }
+  co_return result;
 }
 
 e_burial_mounds_type pick_burial_mounds_result() {
@@ -192,15 +195,15 @@ e_unit_type pick_unit_type_for_foy() {
   return rng::pick_from_weighted_enum_values( weights );
 }
 
-wait<> run_rumor_result( e_rumor_type        type,
-                         TerrainState const& terrain_state,
-                         UnitsState& units_state, Player& player,
-                         IMapUpdater& map_updater,
-                         UnitId unit_id, Coord world_square ) {
+wait<LostCityRumorResult_t> run_rumor_result(
+    e_rumor_type type, TerrainState const& terrain_state,
+    UnitsState& units_state, Player& player,
+    IMapUpdater& map_updater, UnitId unit_id,
+    Coord world_square ) {
   switch( type ) {
     case e_rumor_type::none: {
       co_await ui::message_box( "You find nothing but rumors." );
-      break;
+      co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::fountain_of_youth: {
       co_await ui::message_box(
@@ -221,7 +224,7 @@ wait<> run_rumor_result( e_rumor_type        type,
             "A @[H]{}@[] has arrived in port!",
             units_state.unit_for( id ).desc().name );
       }
-      break;
+      co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::ruins: {
       int amount =
@@ -236,7 +239,7 @@ wait<> run_rumor_result( e_rumor_type        type,
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation(), total );
-      break;
+      co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::burial_mounds: {
       ui::e_confirm res = co_await ui::yes_no(
@@ -244,10 +247,11 @@ wait<> run_rumor_result( e_rumor_type        type,
           "mounds.  Explore them?" );
       if( res == ui::e_confirm::no ) break;
       e_burial_mounds_type bm_type = pick_burial_mounds_result();
-      co_await run_burial_mounds_result( bm_type, units_state,
-                                         player, map_updater,
-                                         unit_id, world_square );
-      break;
+      LostCityRumorResult_t result =
+          co_await run_burial_mounds_result(
+              bm_type, units_state, player, map_updater, unit_id,
+              world_square );
+      co_return result;
     }
     case e_rumor_type::chief_gift: {
       int amount =
@@ -262,19 +266,19 @@ wait<> run_rumor_result( e_rumor_type        type,
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation(), total );
-      break;
+      co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::free_colonist: {
       co_await ui::message_box(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
           "swear allegiance to you and join your expedition." );
-      create_unit_on_map(
+      UnitId id = create_unit_on_map(
           units_state, map_updater, player.nation(),
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),
           world_square );
-      break;
+      co_return LostCityRumorResult::unit_created{ .id = id };
     }
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
@@ -282,11 +286,11 @@ wait<> run_rumor_result( e_rumor_type        type,
       units_state.destroy_unit( unit_id );
       co_await ui::message_box(
           "Our colonist has vanished without a trace." );
-      break;
+      co_return LostCityRumorResult::unit_lost{};
     }
     case e_rumor_type::nearby_land: {
       co_await ui::message_box( "Nearby lands?" );
-      break;
+      co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::scout_upgrade: {
       Unit& unit = units_state.unit_for( unit_id );
@@ -301,24 +305,10 @@ wait<> run_rumor_result( e_rumor_type        type,
             UnitType::create( e_unit_type::seasoned_scout ) ) );
         co_await ui::message_box( "Scout Upgrade?" );
       }
-      break;
+      co_return LostCityRumorResult::other{};
     }
   }
-  co_return;
-}
-
-bool did_kill_unit( e_rumor_type type ) {
-  switch( type ) {
-    case e_rumor_type::none:
-    case e_rumor_type::fountain_of_youth:
-    case e_rumor_type::ruins:
-    case e_rumor_type::burial_mounds:
-    case e_rumor_type::chief_gift:
-    case e_rumor_type::free_colonist:
-    case e_rumor_type::nearby_land:
-    case e_rumor_type::scout_upgrade: return false;
-    case e_rumor_type::unit_lost: return true;
-  }
+  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace
@@ -328,7 +318,7 @@ bool has_lost_city_rumor( TerrainState const& terrain_state,
   return terrain_state.square_at( square ).lost_city_rumor;
 }
 
-wait<e_lost_city_rumor_result> enter_lost_city_rumor(
+wait<LostCityRumorResult_t> enter_lost_city_rumor(
     TerrainState const& terrain_state, UnitsState& units_state,
     EventsState const& events_state, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
@@ -358,9 +348,9 @@ wait<e_lost_city_rumor_result> enter_lost_city_rumor(
   e_rumor_type type =
       rng::pick_from_weighted_enum_values( weights );
 
-  co_await run_rumor_result( type, terrain_state, units_state,
-                             player, map_updater, unit_id,
-                             world_square );
+  LostCityRumorResult_t result = co_await run_rumor_result(
+      type, terrain_state, units_state, player, map_updater,
+      unit_id, world_square );
 
   // Remove lost city rumor.
   map_updater.modify_map_square(
@@ -369,9 +359,7 @@ wait<e_lost_city_rumor_result> enter_lost_city_rumor(
         square.lost_city_rumor = false;
       } );
 
-  co_return did_kill_unit( type )
-      ? e_lost_city_rumor_result::unit_lost
-      : e_lost_city_rumor_result::unit_alive;
+  co_return result;
 }
 
 } // namespace rn
