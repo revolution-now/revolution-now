@@ -210,8 +210,8 @@ struct list {
 
   list( std::vector<value>&& v );
 
-  value&       operator[]( size_t idx ) { return o_[idx]; }
-  value const& operator[]( size_t idx ) const { return o_[idx]; }
+  value&       operator[]( size_t idx );
+  value const& operator[]( size_t idx ) const;
 
   auto begin() { return o_.begin(); }
   auto end() { return o_.end(); }
@@ -224,13 +224,11 @@ struct list {
     return o_.emplace_back( std::forward<T>( args )... );
   }
 
-  auto push_back( value const& v ) { return o_.push_back( v ); }
+  void push_back( value const& v );
 
-  auto push_back( value&& v ) {
-    return o_.push_back( std::move( v ) );
-  }
+  void push_back( value&& v );
 
-  auto reserve( size_t elems ) { return o_.reserve( elems ); }
+  void reserve( size_t elems );
 
   bool empty() const { return o_.empty(); }
 
@@ -238,7 +236,7 @@ struct list {
 
   long ssize() const;
 
-  auto size() const { return o_.size(); }
+  size_t size() const;
 
  private:
   std::vector<value> o_;

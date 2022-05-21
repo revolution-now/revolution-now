@@ -87,7 +87,23 @@ list::list( vector<value> const& v ) : o_( v ) {}
 
 list::list( vector<value>&& v ) : o_( std::move( v ) ) {}
 
+value& list::operator[]( size_t idx ) { return o_[idx]; }
+
+value const& list::operator[]( size_t idx ) const {
+  return o_[idx];
+}
+
 long list::ssize() const { return long( size() ); }
+
+void list::reserve( size_t elems ) { o_.reserve( elems ); }
+
+size_t list::size() const { return o_.size(); }
+
+void list::push_back( value&& v ) {
+  o_.push_back( std::move( v ) );
+}
+
+void list::push_back( value const& v ) { o_.push_back( v ); }
 
 void to_str( list const& o, std::string& out, base::ADL_t ) {
   out += '[';
