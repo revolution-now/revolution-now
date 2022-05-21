@@ -183,6 +183,16 @@ local function reset_terrain()
   on_all( set_water )
 end
 
+-- row is zero-based.
+local function row_has_land( row )
+  local size = map_gen.world_size()
+  for x = 0, size.w - 1 do
+    local square = map_gen.at{ x=x, y=row }
+    if square.surface == e.surface.land then return true end
+  end
+  return false
+end
+
 -----------------------------------------------------------------
 -- Square Surroundings
 -----------------------------------------------------------------
@@ -358,7 +368,8 @@ local function create_sea_lanes()
 
   -- Now clear out the sea lane tiles in the west half of the map
   -- because we don't want sea lane to extend too far west. TODO:
-  -- see what the original game does in this regard.
+  -- see what the original game does with regard to extending sea
+  -- lane to the west part of the map.
   on_all( function( coord, square )
     if coord.x < size.w / 2 then square.sea_lane = false end
   end )
@@ -412,7 +423,7 @@ local function create_sea_lanes()
   local closest_row = 0 -- row zero has been cleared of sea lane.
   local y_mid = size.h / 2
   for y = 0, size.h - 1 do
-    if not is_sea_lane{ x=0, y=y } then
+    if row_has_land( y ) then
       if math.abs( y - y_mid ) < math.abs( closest_row - y_mid ) then
         -- We've found a non-sea-lane row that is closer to the
         -- middle then what we've found so far.
@@ -435,7 +446,7 @@ local function create_sea_lanes()
                  '\n' )
   -- Now start at the row that we found and go upward.
   for y = closest_row - 1, 0, -1 do
-    if not is_sea_lane{ x=0, y=y } then
+    if row_has_land( y ) then
       curr_sea_lane_width = sea_lane_width( y )
     else
       -- Clear the sea lane and make it have the width of the row
@@ -447,7 +458,7 @@ local function create_sea_lanes()
   end
   -- Now start at the row that we found and go downward.
   for y = closest_row + 1, size.h - 1 do
-    if not is_sea_lane{ x=0, y=y } then
+    if row_has_land( y ) then
       curr_sea_lane_width = sea_lane_width( y )
     else
       -- Clear the sea lane and make it have the width of the row
