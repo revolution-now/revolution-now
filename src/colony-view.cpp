@@ -396,7 +396,7 @@ wait<> drag_drop_routine(
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event( input::key_event_t const& event,
-                         IMapUpdater& map_updater ) {
+                         IMapUpdater& ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
@@ -410,8 +410,7 @@ wait<bool> handle_event( input::key_event_t const& event,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    input::mouse_button_event_t const& event,
-    IMapUpdater&                       map_updater ) {
+    input::mouse_button_event_t const& event, IMapUpdater& ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
   Coord click_pos = event.pos;
@@ -428,13 +427,12 @@ wait<bool> handle_event( input::win_event_t const& event,
 }
 
 wait<bool> handle_event( input::mouse_drag_event_t const& event,
-                         IMapUpdater& map_updater ) {
+                         IMapUpdater& ) {
   co_await drag_drop_routine( event );
   co_return false;
 }
 
-wait<bool> handle_event( auto const&,
-                         IMapUpdater& map_updater ) {
+wait<bool> handle_event( auto const&, IMapUpdater& ) {
   co_return false;
 }
 

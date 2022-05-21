@@ -294,9 +294,9 @@ Rect Window::rect() const {
   return Rect::from( position, delta() );
 }
 
-Coord Window::inside_border() const {
-  return position + window_border();
-}
+// Coord Window::inside_border() const {
+//   return position + window_border();
+// }
 
 Rect Window::inside_border_rect() const {
   return Rect::from( position + window_border(),

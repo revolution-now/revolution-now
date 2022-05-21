@@ -17,6 +17,9 @@
 // base
 #include "base/meta.hpp"
 
+// C++ standard library
+#include <algorithm>
+
 #define GENERIC_SINGLE_ARG_MATCHER( name )             \
   template<MatchableValue T>                           \
   auto name( T&& arg ) {                               \

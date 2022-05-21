@@ -61,8 +61,8 @@ SmoothViewport& viewport() {
 ** Toolbar
 *****************************************************************/
 struct ToolbarItem {
-  e_tile                 tile;
-  editor::e_toolbar_item item;
+  e_tile                 tile = {};
+  editor::e_toolbar_item item = {};
 };
 
 EnumMap<editor::e_toolbar_item, ToolbarItem> g_toolbar_items{
@@ -444,7 +444,8 @@ struct MapEditorPlane : public Plane {
   maybe<wait<>> drag_thread;
   bool          drag_finished = true;
 
-  wait<> dragging( input::e_mouse_button button, Coord coord ) {
+  wait<> dragging( input::e_mouse_button button,
+                   Coord /*coord*/ ) {
     SCOPE_EXIT( drag_finished = true );
     if( button == input::e_mouse_button::r ) {
       while( maybe<DragUpdate> d = co_await drag_stream.next() )

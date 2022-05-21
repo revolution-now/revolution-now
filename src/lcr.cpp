@@ -74,7 +74,7 @@ bool allow_fountain_of_youth( EventsState const& events_state ) {
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
     e_burial_mounds_type type, UnitsState& units_state,
-    Player& player, IMapUpdater& map_updater, UnitId unit_id,
+    Player& player, IMapUpdater& map_updater, UnitId /*unit_id*/,
     Coord world_square ) {
   bool                  positive_result = {};
   LostCityRumorResult_t result          = {};
@@ -196,7 +196,7 @@ e_unit_type pick_unit_type_for_foy() {
 }
 
 wait<LostCityRumorResult_t> run_rumor_result(
-    e_rumor_type type, TerrainState const& terrain_state,
+    e_rumor_type type, TerrainState const& /*terrain_state*/,
     UnitsState& units_state, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {

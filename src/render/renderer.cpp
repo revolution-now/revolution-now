@@ -250,7 +250,7 @@ struct Renderer::Impl {
       DCHECK( backdrop_vertices.capacity() ==
               capacity_before_clear );
       DCHECK( backdrop_vertices.empty() );
-      emitter.set_position( 0 );
+      backdrop_emitter.set_position( 0 );
     }
     // We don't reset the position of the landscape emitter.
   }
