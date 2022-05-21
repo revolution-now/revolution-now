@@ -14,7 +14,7 @@
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
-#include "rand.hpp"
+#include "rand-enum.hpp"
 #include "time.hpp"
 
 // config

@@ -1,0 +1,69 @@
+# Configuration for anything related to Lost City Rumors.
+#
+# Note that all of the values here could be modified depending on
+# game configuration and state, e.g. difficulty level, founding
+# father status, type of unit exploring the LCR, etc.
+
+# How many immigrants will appear on the docks in response to the
+# discovery of a fountain of youth. The original game uses 8.
+fountain_of_youth_num_immigrants: 8
+
+# Weights for the various possible (top-level) outcomes of en-
+# tering a lost city rumor tile. Some of these outcomes then
+# have multiple possible sub-outcomes.
+rumor_type_weights {
+  none:              47
+  fountain_of_youth: 13
+  ruins:             15
+  burial_mounds:     10
+  chief_gift:        16
+  free_colonist:      8
+  unit_lost:          4
+  nearby_land:        0
+  scout_upgrade:      0
+}
+
+# Weights for the various possible suboutcomes of finding
+# burial mounds in a lost city rumor (note that "burial mounds"
+# are to be distinguished from "burial grounds"; the former is
+# neutral while the latter is negative).
+burial_mounds_type_weights {
+  trinkets:       4
+  treasure_train: 5
+  cold_and_empty: 1
+}
+
+# Some docs say that in the original game one possible outcome of
+# an LCR is that a scout can be upgraded to a seasoned scout.
+# However, some docs also say that in the original game a unit
+# with another expertise (acting as a scout) will lose that ex-
+# pertise in the promotion. If this flag is true then that will
+# happen, otherwise only scouts created from petty criminals, in-
+# dentured servants, and free colonists will be upgraded (di-
+# rectly) to a seasoned scout.
+scout_upgrades_other_expert_unit: true
+
+# The range of values can a chief can give as a gift when the
+# outcome is having discovered a small village. These will be
+# rounded down to the nearest 10.
+chief_gift_min:  50
+chief_gift_max: 350
+
+# The range of values of gold that can be found when the outcome
+# is "ruins of a lost civilization." These will be rounded down
+# to the nearest 10.
+ruins_gift_min:  50
+ruins_gift_max: 350
+
+# The range of values of gold that can be found when finding
+# "trinkets" in burial mounds. These will be rounded down to the
+# nearest 10.
+trinkets_gift_min:  50
+trinkets_gift_max: 200
+
+# The range of values of gold that can emerge on a treasure train
+# when discovering a lost city (e.g., Seven Cities of Cibola)
+# after having investigated burial mounds. Will be rounded down
+# to the nearest 100.
+lost_city_treasure_min:   500
+lost_city_treasure_max: 12000

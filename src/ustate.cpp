@@ -130,6 +130,16 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                       UnitComposition::create( type ) );
 }
 
+UnitId create_unit_on_map( UnitsState&  units_state,
+                           IMapUpdater& map_updater,
+                           e_nation nation, UnitComposition comp,
+                           Coord coord ) {
+  UnitId id =
+      create_unit( units_state, nation, std::move( comp ) );
+  unit_to_map_square( units_state, map_updater, id, coord );
+  return id;
+}
+
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
@@ -320,20 +330,6 @@ maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
 Coord coord_for_unit_multi_ownership_or_die( UnitId id ) {
   UNWRAP_CHECK( res, coord_for_unit_multi_ownership( id ) );
   return res;
-}
-
-/****************************************************************
-** For Testing / Development Only
-*****************************************************************/
-UnitId create_unit_on_map( UnitsState&  units_state,
-                           IMapUpdater& map_updater,
-                           e_nation nation, UnitComposition comp,
-                           Coord coord ) {
-  Unit& unit = units_state.unit_for(
-      create_unit( units_state, nation, std::move( comp ) ) );
-  unit_to_map_square( units_state, map_updater, unit.id(),
-                      coord );
-  return unit.id();
 }
 
 /****************************************************************

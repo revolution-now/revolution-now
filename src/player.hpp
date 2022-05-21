@@ -32,6 +32,10 @@ class Player {
   int      money() const { return o_.money; }
   bool     is_human() const { return o_.human; }
 
+  // Adds the amount (which could be negative) to the player's
+  // gold and returns the amount after adding.
+  int add_money( int amount );
+
   // Implement refl::WrapsReflected.
   Player( wrapped::Player&& o ) : o_( std::move( o ) ) {}
   wrapped::Player const&            refl() const { return o_; }

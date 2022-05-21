@@ -1,0 +1,81 @@
+# ===============================================================
+# lcr.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-21.
+#
+# Description: Config info related to Lost City Rumors.
+#
+# ===============================================================
+# Revolution Now
+include "enum-map.hpp"
+
+# Rds
+include "lcr-impl.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+# include "cdr/ext-std.hpp"
+
+namespace "rn"
+
+# Note that all of the values here could be modified depending on
+# game configuration and state, e.g. difficulty level, founding
+# father status, type of unit exploring the LCR, etc.
+struct.config_lcr_t {
+  # How many immigrants will appear on the docks in response to
+  # the discovery of a fountain of youth.
+  fountain_of_youth_num_immigrants 'int',
+
+  # Weights for the various possible (top-level) outcomes of en-
+  # tering a lost city rumor tile. Some of these outcomes then
+  # have multiple possible sub-outcomes.
+  rumor_type_weights 'EnumMap<e_rumor_type, int>',
+
+  # Weights for the various possible suboutcomes of finding
+  # burial mounds in a lost city rumor (note that "burial mounds"
+  # are to be distinguished from "burial grounds"; the former is
+  # neutral while the latter is negative). These would be the de-
+  # fault weights for these outcomes.
+  burial_mounds_type_weights 'EnumMap<e_burial_mounds_type, int>',
+
+  # Some docs say that in the original game one possible outcome
+  # of an LCR is that a scout can be upgraded to a seasoned
+  # scout. However, some docs also say that in the original game
+  # a unit with another expertise (acting as a scout) will lose
+  # that expertise in the promotion. If this flag is true then
+  # that will happen, otherwise only scouts created from petty
+  # criminals, indentured servants, and free colonists will be
+  # upgraded (directly) to a seasoned scout.
+  scout_upgrades_other_expert_unit 'bool',
+
+  # The range of values can a chief can give as a gift when the
+  # outcome is having discovered a small village. These will be
+  # rounded down to the nearest 10.
+  chief_gift_min 'int',
+  chief_gift_max 'int',
+
+  # The range of values of gold that can be found when the out-
+  # come is "ruins of a lost civilization." These will be rounded
+  # down to the nearest 10.
+  ruins_gift_min 'int',
+  ruins_gift_max 'int',
+
+  # The range of values of gold that can be found when finding
+  # "trinkets" in burial mounds. These will be rounded down to
+  # the nearest 10.
+  trinkets_gift_min 'int',
+  trinkets_gift_max 'int',
+
+  # The range of values of gold that can emerge on a treasure
+  # train when discovering a lost city (e.g., Seven Cities of Ci-
+  # bola) after having investigated burial mounds. Will be
+  # rounded down to the nearest 100.
+  lost_city_treasure_min 'int',
+  lost_city_treasure_max 'int',
+}
+
+config.lcr {}

@@ -71,6 +71,25 @@ TEST_CASE( "[enum-map] EnumMap primitive initialization" ) {
   REQUIRE( m[e_color::blue] == 0 );
 }
 
+TEST_CASE( "[enum-map] EnumMap initializer list init" ) {
+  EnumMap<e_color, int> m1{
+      { e_color::red, 4 },
+      { e_color::blue, 5 },
+      { e_color::green, 6 },
+  };
+  EnumMap<e_color, int> m2 = {
+      { e_color::red, 5 },
+      { e_color::blue, 6 },
+      { e_color::green, 7 },
+  };
+  REQUIRE( m1[e_color::red] == 4 );
+  REQUIRE( m1[e_color::blue] == 5 );
+  REQUIRE( m1[e_color::green] == 6 );
+  REQUIRE( m2[e_color::red] == 5 );
+  REQUIRE( m2[e_color::blue] == 6 );
+  REQUIRE( m2[e_color::green] == 7 );
+}
+
 TEST_CASE( "[enum-map] EnumMap indexing" ) {
   EnumMap<e_color, int> m;
   m.at( e_color::red ) = 5;

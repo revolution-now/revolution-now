@@ -140,6 +140,11 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitType type );
 
+UnitId create_unit_on_map( UnitsState&  units_state,
+                           IMapUpdater& map_updater,
+                           e_nation nation, UnitComposition comp,
+                           Coord coord );
+
 /****************************************************************
 ** Multi
 *****************************************************************/
@@ -151,15 +156,6 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 // ownership.
 maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
 Coord        coord_for_unit_multi_ownership_or_die( UnitId id );
-
-/****************************************************************
-** For Testing / Development Only
-*****************************************************************/
-// Do not call these in normal game code.
-UnitId create_unit_on_map( UnitsState&  units_state,
-                           IMapUpdater& map_updater,
-                           e_nation nation, UnitComposition comp,
-                           Coord coord );
 
 // Create unit with no ownership. Note that the unit will always
 // have id=0, since a unit does not get assigned an ID until it

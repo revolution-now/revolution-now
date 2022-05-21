@@ -1,0 +1,48 @@
+# ===============================================================
+# lcr-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-21.
+#
+# Description: Private Rds definitions for the lcr module.
+#
+# ===============================================================
+
+namespace "rn"
+
+enum.e_burial_mounds_type {
+  # Trinkets (small amount of gold).
+  trinkets,
+  # Treasure (creates treasure train unit).
+  # TODO: Seven cities of Cibola? El Dorado?
+  treasure_train,
+  # Nothing ("mounds are cold and empty").
+  cold_and_empty,
+}
+
+enum.e_rumor_type {
+  # "Nothing but rumors."
+  none,
+  # Fountain of Youth (eight immigrants at dock).
+  fountain_of_youth,
+  # Ruins of lost civ (small amount of gold).
+  ruins,
+  # Burial mounds (let us search for treasure/stay clear of
+  # those). Expands to e_burial_mounds_type. This is not to be
+  # confused with "burial grounds", although the latter can re-
+  # sult (regardless of what is found in the mounds), if the land
+  # is owned by indians.
+  burial_mounds,
+  # Small village, chief offers gift (small amount of money).
+  chief_gift,
+  # Survivors of lost colony; free_colonist is created.
+  free_colonist,
+  # Unit vanishes.
+  unit_lost,
+  # Learn about nearby lands. TODO: does not seem to happen.
+  nearby_land,
+  # Upgrade to seasoned scout (for scouts only). TODO: does not
+  # seem to happen.
+  scout_upgrade,
+}

@@ -15,9 +15,6 @@
 // Revolution Now
 #include "error.hpp"
 
-// refl
-#include "refl/query-enum.hpp"
-
 // C++ standard library
 #include <algorithm>
 #include <array>
@@ -46,16 +43,6 @@ int between( int lower, int upper, e_interval type );
 
 // Could be negative.
 int random_int();
-
-// Given a reflected enum type it will return a random value out
-// of all the possible values.
-template<typename Enum>
-Enum pick_one() {
-  constexpr auto count = refl::enum_count<Enum>;
-  static_assert( count > 0 );
-  auto idx = between( 0, count, e_interval::half_open );
-  return refl::enum_values<Enum>[idx];
-}
 
 // Pick a random enum value out of a set of choices. Use like
 // this:
