@@ -4,18 +4,37 @@
 
 # Land rendering:
 
-  1.  Add overlay connector tiles.
-  2.  Render rivers, with color cycling.
-  3.  Add color cycling to sea lane tile.
-  4.  Fix beach tiles.
-  5.  Consider adding connectors to diagonally adjacent forest
+  1.  Render natural resource tiles.
+  2.  Add overlay connector tiles.
+  3.  Render rivers, with color cycling.
+  4.  Add color cycling to sea lane tile.
+  5.  Fix beach tiles.
+  6.  Consider adding connectors to diagonally adjacent forest
       island tiles.
-  6.  Fix that colony position seems to wiggle slightly as the
+  7.  Fix that colony position seems to wiggle slightly as the
       map is scrolled.
-  7.  Render natural resource tiles and lost_city_rumor.
   8.  Implement world generation.
   9.  Implement terrain visibility.
-  10. On large maps the current method of updating tiles is to
+  10. [reproducible on lenovo] There is currently a (potentially
+      significant) performance problem with rendering the map
+      that needs to be better understood and fixed. The problem
+      is that, after some map squares have been updated and be-
+      fore the entire map has been rerendered, zooming in on
+      those squares causes the FPS to drop significantly. The way
+      to reproduce it is to create a new map, then use the map
+      editor to edit some tiles (but not enough to cause the map
+      to be redrawn), then zoom in on those redrawn tiles, and
+      observe the FPS drop significantly. This could be due to
+      the fact that the same tile now has vertices both in the
+      middle of the landscape buffer and at the end, which may be
+      interfering with some of the driver/hardware's rendering
+      optimizations. This really needs to be fixed, otherwise, if
+      the player is zoomed in, and they move a unit and expose
+      some new terrain, the FPS will drop, since the map has been
+      edited (in this case, by removing the fog). This doesn't
+      seem to be reproducible on all systems, so it could be
+      driver-specific :-E
+  11. On large maps the current method of updating tiles is to
       laggy due to the time taken to upload it to the GPU, and
       this is bad because it could happen often. To fix this,
       split the landscape buffer into two -- the main buffer and
@@ -23,10 +42,19 @@
       frame. When tiles are added they are added to the adjunct
       buffer and so only that has to be uploaded. When the map is
       redrawn, the adjunct buffer will be empty.
-  11. Fix that a land unit entering a water square when it has
+  12. Fix that a land unit entering a water square when it has
       partial movement points left presents the player with a
       message that it doesn't have enough movement points left,
       when it should not be able to enter that square anyway.
+  13. Make sure that the immediate starting area doesn't have any
+      lost city rumors on it, since that would be a weird experi-
+      ence to e.g. land in the new world for the first time and
+      discover the fountain of youth.
+  14. Fix that after centering on the blinking unit with 'c', the
+      shift-click map scroll stops working properly.
+  15. In the original game, although rivers act as roads for
+      movement points, it doesn't apply diagonally because rivers
+      only run square.
 
 # Minimap:
 
