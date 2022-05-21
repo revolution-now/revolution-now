@@ -525,15 +525,14 @@ TEST_CASE( "[co-combinator] exception with any" ) {
   REQUIRE( w.has_exception() );
 }
 
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 wait_promise<> get_int1_p;
 wait_promise<> get_int2_p;
 stream<int>    int_stream;
 string         places;
 
-#  define LOG_PLACES( a, A ) \
-    places += a;             \
-    SCOPE_EXIT( places += A );
+#define LOG_PLACES( a, A ) \
+  places += a;             \
+  SCOPE_EXIT( places += A );
 
 wait<int> get_int_from_stream() {
   LOG_PLACES( 'a', 'A' );
@@ -708,7 +707,6 @@ TEST_CASE(
     REQUIRE( !w.has_exception() );
   }
 }
-#endif
 
 wait_promise<int> wp;
 
@@ -773,7 +771,6 @@ TEST_CASE( "[co-combinator] try" ) {
   }
 }
 
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 wait<int> wait_on_stream( co::stream<int>& s ) {
   int n = co_await s.next(); // #1
   int m = co_await s.next(); // #2
@@ -881,7 +878,6 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     REQUIRE( *w3 == nothing );
   }
 }
-#endif
 
 TEST_CASE( "[co-combinator] interleave" ) {
   co::stream<int> s1;

@@ -25,15 +25,6 @@
 #include <exception>
 #include <memory>
 
-// Currently GCC generates buggy coroutine code which causes some
-// unit tests to fail when run under GCC with ASan. When this
-// CORO_TEST_DISABLE_FOR_GCC macro is defined, a few unit tests
-// in various files will be disabled. When gcc gets fixed, remove
-// this as well as the cc-specific.hpp header above.
-#if defined( COMPILER_GCC )
-#  define CORO_TEST_DISABLE_FOR_GCC
-#endif
-
 namespace rn {
 
 template<typename T = std::monostate>

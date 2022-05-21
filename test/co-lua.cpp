@@ -41,7 +41,6 @@ using ::base::valid;
 using ::Catch::Equals;
 using ::Catch::Matches;
 
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 string to_lower_str( string_view c ) {
   BASE_CHECK( c.size() == 1 );
   char   cl = (char)std::tolower( c[0] );
@@ -49,7 +48,6 @@ string to_lower_str( string_view c ) {
   res += cl;
   return res;
 }
-#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 #define TRACE( letter ) \
   trace( #letter );     \
@@ -58,7 +56,6 @@ string to_lower_str( string_view c ) {
 /****************************************************************
 ** Scenario 0: Ready
 *****************************************************************/
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_0 {
 
 string trace_log;
@@ -135,12 +132,9 @@ TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
   REQUIRE( trace_log == "ACca" );
 }
 
-#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
-
 /****************************************************************
 ** Scenario 1
 *****************************************************************/
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_1 {
 
 wait_promise<int> p1;
@@ -473,12 +467,9 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   )" );
 }
 
-#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
-
 /****************************************************************
 ** Scenario 2
 *****************************************************************/
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_2 {
 
 wait_promise<int>    p1;
@@ -686,12 +677,9 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
            "ahgfbadahgfbadadahgf" );
 }
 
-#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
-
 /****************************************************************
 ** Scenario 3: Cancellation from Lua
 *****************************************************************/
-#if !defined( CORO_TEST_DISABLE_FOR_GCC )
 namespace scenario_3 {
 
 wait_promise<>    p1;
@@ -830,8 +818,6 @@ TEST_CASE( "[co-lua] scenario 3" ) {
   REQUIRE( w.ready() );
   REQUIRE( *w == 42 );
 }
-
-#endif // !defined( CORO_TEST_DISABLE_FOR_GCC )
 
 struct MyType {};
 void to_str( MyType const&, string&, base::ADL_t ) {}
