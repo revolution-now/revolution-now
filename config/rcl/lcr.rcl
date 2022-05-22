@@ -19,8 +19,8 @@ rumor_type_weights {
   chief_gift:        16
   free_colonist:      8
   unit_lost:          4
-  nearby_land:        0
-  scout_upgrade:      0
+  nearby_land:        0 # Doesn't seem to happen in original game.
+  scout_upgrade:      0 # Doesn't seem to happen in original game.
 }
 
 # Weights for the various possible suboutcomes of finding
