@@ -1,17 +1,36 @@
 Non seasoned scout outcomes on easiest level:
 
-47 : nothing but rumors
-13 : fountain of youth
-15 : ruins of lost civ (small amount of gold)
-10 : burial mounds (let us search for treasure/stay clear of those)
-       4 : trinkets (small amount of gold)
+63 : nothing but rumors
+18 : fountain of youth
+19 : ruins of lost civ (small amount of gold)
+13 : burial mounds (let us search for treasure/stay clear of those)
+       6 : trinkets (small amount of gold)
        1 : sacred burial grounds (war)
-       5 : treasure
+       6 : treasure
              1 : sacred burial grounds (war)
        1 : nothing (mounds are cold and empty)
-16 : small village, chief offers gift (small amount of money)
- 8 : free colonist
- 4 : unit vanished
+23 : small village, chief offers gift (small amount of money)
+11 : free colonist
+ 8 : unit vanished
+
+Seasoned scout outcomes on easiest level:
+
+85 : nothing but rumors
+26 : fountain of youth
+19 : ruins of lost civ (small amount of gold)
+      [220,220,140,180,300,160,380,300,280,380,220,300,140,240,240,360,300,280,200]
+13 : burial mounds (let us search for treasure/stay clear of those)
+      3 : trinkets (small amount of gold)
+            [70,110,110]
+      0 : sacred burial grounds (war)
+      10 : treasure (value x100)
+            [42,40,38,32,42,30,32,40,42,32]
+            0 : sacred burial grounds (war)
+      0 : nothing (mounds are cold and empty)
+13 : small village, chief offers gift (small amount of money)
+      [60,42,42,44,46,52,44,44,42,56,48,38,56,52]
+23 : free colonist
+3 : unit vanished
 
 -----------------------------------------------------------
      0   ?
