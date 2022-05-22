@@ -90,12 +90,17 @@ base::valid_or<string> wrapped::SmoothViewport::validate()
   return base::valid;
 }
 
-void SmoothViewport::set_point_seek( Coord screen_pixel ) {
+void SmoothViewport::set_point_seek( Coord world_pixel ) {
+  point_seek_      = world_pixel;
+  zoom_point_seek_ = nothing;
+}
+
+void SmoothViewport::set_point_seek_from_screen_pixel(
+    Coord screen_pixel ) {
   maybe<Coord> world_pixel =
       screen_pixel_to_world_pixel( screen_pixel );
   if( !world_pixel ) return;
-  point_seek_      = world_pixel;
-  zoom_point_seek_ = nothing;
+  set_point_seek( *world_pixel );
 }
 
 void SmoothViewport::advance_zoom_point_seek(
@@ -599,6 +604,30 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
 
   DCHECK( res.x >= 0_x && res.y >= 0_y );
   return res;
+}
+
+double SmoothViewport::optimal_min_zoom() const {
+  Delta  world_pixels    = world_size_pixels();
+  Delta  viewport_pixels = viewport_rect_pixels_.delta();
+  double optimal_zoom_for_x =
+      double( viewport_pixels.w._ ) / world_pixels.w._;
+  double optimal_zoom_for_y =
+      double( viewport_pixels.h._ ) / world_pixels.h._;
+  double res =
+      std::min( optimal_zoom_for_x, optimal_zoom_for_y );
+  // Leave some border around it.
+  return res * .93;
+}
+
+Coord SmoothViewport::world_tile_to_world_pixel_center(
+    Coord world_tile ) const {
+  return world_tile * g_tile_scale + g_tile_delta / Scale{ 2 };
+}
+
+maybe<Coord> SmoothViewport::world_tile_to_screen_pixel(
+    Coord world_tile ) const {
+  return world_pixel_to_screen_pixel(
+      world_tile_to_world_pixel_center( world_tile ) );
 }
 
 maybe<Coord> SmoothViewport::world_pixel_to_screen_pixel(

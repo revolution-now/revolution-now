@@ -20,6 +20,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-land-view.hpp"
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-gen.hpp" // FIXME: temporary
@@ -935,21 +936,32 @@ struct LandViewPlane : public Plane {
           break;
         }
         switch( key_event.keycode ) {
-          case ::SDLK_z:
-            if( key_event.mod.shf_down ) {
-              if( viewport().get_zoom() < .5 )
-                viewport().smooth_zoom_target( 1.0 );
-              else
-                viewport().smooth_zoom_target( .17 );
-            } else {
-              if( viewport().get_zoom() < 1.0 )
-                viewport().smooth_zoom_target( 1.0 );
-              else if( viewport().get_zoom() < 1.5 )
-                viewport().smooth_zoom_target( 2.0 );
-              else
-                viewport().smooth_zoom_target( 1.0 );
+          case ::SDLK_z: {
+            if( key_event.mod.shf_down )
+              viewport().smooth_zoom_target(
+                  viewport().optimal_min_zoom() );
+            else {
+              // If the map surroundings are visible then that
+              // means that we are significantly zoomed out, so
+              // it is likely that, when zooming in, the user
+              // will want to zoom in on the current blinking
+              // unit.
+              bool center_on_unit =
+                  viewport().are_surroundings_visible();
+              viewport().smooth_zoom_target( 1.0 );
+              if( center_on_unit ) {
+                auto blinking_unit = g_landview_state.get_if<
+                    LandViewUnitActionState::unit_input>();
+                if( blinking_unit.has_value() )
+                  viewport().set_point_seek(
+                      viewport()
+                          .world_tile_to_world_pixel_center(
+                              coord_for_unit_indirect_or_die(
+                                  blinking_unit->unit_id ) ) );
+              }
             }
             break;
+          }
           case ::SDLK_w:
             if( key_event.mod.shf_down ) break;
             g_raw_input_stream.send(
@@ -1054,7 +1066,7 @@ struct LandViewPlane : public Plane {
         lg.debug( "clicked on tile: {}.", world_tile );
         if( val.mod.shf_down ) {
           viewport().smooth_zoom_target( 1.0 );
-          viewport().set_point_seek( val.pos );
+          viewport().set_point_seek_from_screen_pixel( val.pos );
         } else {
           g_raw_input_stream.send(
               RawInput( LandViewRawInput::tile_click{
@@ -1267,6 +1279,10 @@ LUA_FN( center_on_tile, void, Coord center ) {
 
 LUA_FN( set_zoom, void, double zoom ) {
   viewport().smooth_zoom_target( zoom );
+}
+
+LUA_FN( zoom_out_optimal, void ) {
+  viewport().smooth_zoom_target( viewport().optimal_min_zoom() );
 }
 
 LUA_FN( get_zoom, double ) { return viewport().get_zoom(); }

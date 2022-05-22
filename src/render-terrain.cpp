@@ -1360,7 +1360,7 @@ LUA_FN( toggle_grid, void ) {
   map_updater.just_redraw_map();
 }
 
-LUA_FN( render_terrain, void ) {
+LUA_FN( redraw, void ) {
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );

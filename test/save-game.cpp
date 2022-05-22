@@ -64,7 +64,8 @@ void generate_save_file( fs::path const&        dst,
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  run_lua_startup_main( map_updater );
+  lua::state&            st = lua_global_state();
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
   REQUIRE( save_game_to_rcl_file( dst, options ) );
@@ -148,14 +149,15 @@ TEST_CASE( "[save-game] default values (full)" ) {
 }
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
+  lua::state& st = lua_global_state();
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  run_lua_startup_main( map_updater );
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
   reset_seeds();
-  run_lua_startup_main( map_updater );
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-world-gen-full.sav.rcl";
@@ -179,14 +181,15 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
+  lua::state& st = lua_global_state();
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  run_lua_startup_main( map_updater );
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
   reset_seeds();
-  run_lua_startup_main( map_updater );
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst =

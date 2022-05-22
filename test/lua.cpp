@@ -136,11 +136,11 @@ TEST_CASE( "[lua] enums from string" ) {
   REQUIRE( st.script.run_safe<bool>( script ) == true );
 }
 
-TEST_CASE( "[lua] has startup.run" ) {
+TEST_CASE( "[lua] has new_game.create" ) {
   lua::state& st = lua_global_state();
   lua_reload();
   auto script = R"(
-    return tostring( startup.main )
+    return tostring( new_game.create )
   )";
 
   auto xp = st.script.run_safe<lua::rstring>( script );
@@ -174,13 +174,13 @@ TEST_CASE( "[lua] frozen globals" ) {
       xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = st.script.run_safe( "startup = 1" );
+  xp = st.script.run_safe( "new_game = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
       Contains( "attempt to modify a read-only global" ) );
 
-  xp = st.script.run_safe( "startup.x = 1" );
+  xp = st.script.run_safe( "new_game.x = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),

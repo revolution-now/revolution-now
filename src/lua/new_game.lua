@@ -1,24 +1,27 @@
 --[[ ------------------------------------------------------------
 |
-| startup.lua
+| new.lua
 |
 | Project: Revolution Now
 |
-| Created by dsicilia on 2019-09-17.
+| Created by dsicilia on 2022-05-22.
 |
-| Description: Code to be run at startup.
+| Description: Creates a new game.
 |
 --]] ------------------------------------------------------------
 local M = {}
 
-function M.main()
+-- The save-game state should be default-constructed before
+-- calling this.
+function M.create()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
     e.nation.french
   } )
 
   map_gen.generate_terrain()
-  land_view.set_zoom( .17 )
+  render_terrain.redraw()
+  land_view.zoom_out_optimal()
 end
 
 return M

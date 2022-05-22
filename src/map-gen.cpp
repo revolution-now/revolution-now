@@ -41,6 +41,7 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
 }
 
 void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
+  lg.info( "generating map..." );
   lua::state& st = lua_global_state();
   // st["math"]["randomseed"]( rng::random_int() );
   auto start = chrono::system_clock::now();
@@ -68,7 +69,8 @@ void ascii_map_gen() {
   NonRenderingMapUpdater map_updater( terrain_state );
   generate_terrain( map_updater );
   Matrix<MapSquare> const& world_map = terrain_state.world_map();
-  auto                     bar       = [&] {
+
+  auto bar = [&] {
     fmt::print( "+" );
     for( X x = 0_x; x < 0_x + world_map.size().w; ++x )
       fmt::print( "-" );

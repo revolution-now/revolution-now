@@ -24,7 +24,7 @@ function M.reveal_map( what )
       end
     end
   end
-  render_terrain.render_terrain()
+  render_terrain.redraw()
 end
 
 return M

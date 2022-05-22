@@ -22,6 +22,9 @@
 #include "save-game.hpp"
 #include "turn.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -79,8 +82,9 @@ wait<> run_new_game() {
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
-  run_lua_startup_main( map_updater );
   reinitialize_planes( map_updater );
+  lua::state& st = lua_global_state();
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
 
   // 1. Take user through game setup/configuration.
 

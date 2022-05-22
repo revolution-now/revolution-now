@@ -72,6 +72,10 @@ class SmoothViewport {
   // the available area.
   Rect rendering_dest_rect() const;
 
+  // Computes the zoom required so that the entire map is visible
+  // with a bit of map surrounds visible as well.
+  double optimal_min_zoom() const;
+
   // This will provide the upper left corning where the GPU
   // should start rendering the landscape buffer (which could be
   // off screen) in order to make the covered area visible on
@@ -82,6 +86,12 @@ class SmoothViewport {
   // coordinate.
   maybe<Coord> screen_pixel_to_world_pixel(
       Coord pixel_coord ) const;
+
+  Coord world_tile_to_world_pixel_center(
+      Coord world_tile ) const;
+
+  maybe<Coord> world_tile_to_screen_pixel(
+      Coord world_tile ) const;
 
   maybe<Coord> world_pixel_to_screen_pixel(
       Coord world_pixel ) const;
@@ -117,10 +127,10 @@ class SmoothViewport {
   void stop_auto_zoom();
   void stop_auto_panning();
 
-  // Pixel in screen coords indicating the point toward which we
-  // should scroll to whether zooming or not. This will override
-  // zoom_point_seek_.
-  void set_point_seek( Coord screen_pixel );
+  // Pixel indicating the point toward which we should scroll to
+  // whether zooming or not. This will override zoom_point_seek_.
+  void set_point_seek( Coord world_pixel );
+  void set_point_seek_from_screen_pixel( Coord screen_pixel );
 
   // Return current zoom.
   double get_zoom() const;

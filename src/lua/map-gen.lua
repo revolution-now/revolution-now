@@ -642,7 +642,7 @@ function M.redistribute_resources( placement_seed )
   placement_seed = placement_seed or set_random_placement_seed()
   distribute_prime_resources( placement_seed )
   distribute_lost_city_rumors( placement_seed )
-  render_terrain.render_terrain()
+  render_terrain.redraw()
 end
 
 -- This will recompute the distribution of resources but with the
