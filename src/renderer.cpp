@@ -111,8 +111,11 @@ REGISTER_INIT_ROUTINE( renderer );
 /****************************************************************
 ** Public API
 *****************************************************************/
+bool is_renderer_loaded() { return g_renderer != nullptr; }
+
 rr::Renderer& global_renderer_use_only_when_needed() {
-  CHECK( g_renderer != nullptr );
+  CHECK( is_renderer_loaded(),
+         "The renderer has not yet been initialized." );
   return *g_renderer;
 }
 

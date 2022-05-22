@@ -1,6 +1,6 @@
 --[[ ------------------------------------------------------------
 |
-| new.lua
+| new-game.lua
 |
 | Project: Revolution Now
 |
@@ -11,16 +11,23 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+function M.default_options()
+  return {
+    render=true --
+  }
+end
+
 -- The save-game state should be default-constructed before
 -- calling this.
-function M.create()
+function M.create( options )
+  options = options or M.default_options()
   player.set_players( {
     e.nation.dutch, e.nation.spanish, e.nation.english,
     e.nation.french
   } )
 
   map_gen.generate_terrain()
-  render_terrain.redraw()
+  if options.render then render_terrain.redraw() end
   land_view.zoom_out_optimal()
 end
 

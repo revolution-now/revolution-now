@@ -59,13 +59,21 @@ void reset_seeds() {
   st["math"]["randomseed"]( 0 );
 }
 
+void create_new_game_from_lua() {
+  lua::state& st       = lua_global_state();
+  lua::table  new_game = st["new_game"].as<lua::table>();
+  UNWRAP_CHECK(
+      options, new_game["default_options"].pcall<lua::table>() );
+  options["render"] = false;
+  CHECK_HAS_VALUE( new_game["create"].pcall( options ) );
+}
+
 void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  lua::state&            st = lua_global_state();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  create_new_game_from_lua();
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
   REQUIRE( save_game_to_rcl_file( dst, options ) );
@@ -149,15 +157,14 @@ TEST_CASE( "[save-game] default values (full)" ) {
 }
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
-  lua::state& st = lua_global_state();
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  create_new_game_from_lua();
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
   reset_seeds();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  create_new_game_from_lua();
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-world-gen-full.sav.rcl";
@@ -181,15 +188,14 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
-  lua::state& st = lua_global_state();
   default_construct_game_state();
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  create_new_game_from_lua();
   TopLevelState backup = std::move( GameState::top() );
   default_construct_game_state();
   reset_seeds();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  create_new_game_from_lua();
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst =

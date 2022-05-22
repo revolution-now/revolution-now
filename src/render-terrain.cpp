@@ -1354,6 +1354,8 @@ namespace {
 LUA_FN( toggle_grid, void ) {
   g_show_grid = !g_show_grid;
   lg.debug( "terrain grid is {}.", g_show_grid ? "on" : "off" );
+  LUA_CHECK( st, is_renderer_loaded(),
+             "the renderer has not yet been initialized." );
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
@@ -1361,6 +1363,8 @@ LUA_FN( toggle_grid, void ) {
 }
 
 LUA_FN( redraw, void ) {
+  LUA_CHECK( st, is_renderer_loaded(),
+             "the renderer has not yet been initialized." );
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
