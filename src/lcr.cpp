@@ -85,7 +85,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
                          .max = config_lcr.trinkets_gift_max,
                          .multiple = 10 } );
       co_await ui::message_box(
-          "You've find some trinkets worth @[H]{}@[] gold.",
+          "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
       int total = player.add_money( amount );
       lg.info(
@@ -101,8 +101,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
             .max      = config_lcr.lost_city_treasure_max,
             .multiple = 100 } );
       co_await ui::message_box(
-          "You've discovered the seven cities of Cibola, and "
-          "have recovered a treasure worth @[H]{}@[].",
+          "You've recovered a treasure worth @[H]{}@[].",
           amount );
       UNWRAP_CHECK(
           uc_treasure,
@@ -207,7 +206,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
     }
     case e_rumor_type::fountain_of_youth: {
       co_await ui::message_box(
-          "You've discovered the Fountain of Youth!" );
+          "You've discovered a Fountain of Youth!" );
       int const count =
           config_lcr.fountain_of_youth_num_immigrants;
       // TODO: we need to store a queue of immigrants so that the
@@ -232,7 +231,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
                          .max      = config_lcr.ruins_gift_max,
                          .multiple = 10 } );
       co_await ui::message_box(
-          "You've discovered ruins of a lost civilization, "
+          "You've discovered the ruins of a lost civilization, "
           "among which there are items worth @[H]{}@[] in gold.",
           amount );
       int total = player.add_money( amount );
@@ -289,7 +288,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::unit_lost{};
     }
     case e_rumor_type::nearby_land: {
-      co_await ui::message_box( "Nearby lands?" );
+      co_await ui::message_box( "(Nearby lands)" );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::scout_upgrade: {
@@ -303,7 +302,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
         }
         unit.change_type( UnitComposition::create(
             UnitType::create( e_unit_type::seasoned_scout ) ) );
-        co_await ui::message_box( "Scout Upgrade?" );
+        co_await ui::message_box( "(Scout Upgrade)" );
       }
       co_return LostCityRumorResult::other{};
     }

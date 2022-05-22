@@ -14,8 +14,8 @@ namespace "rn"
 enum.e_burial_mounds_type {
   # Trinkets (small amount of gold).
   trinkets,
-  # Treasure (creates treasure train unit).
-  # TODO: Seven cities of Cibola? El Dorado?
+  # Treasure (creates treasure train unit). Note that this is not
+  # not the same as discovering a lost city.
   treasure_train,
   # Nothing ("mounds are cold and empty").
   cold_and_empty,
