@@ -41,8 +41,19 @@ namespace {
 struct GiftOptions {
   int min      = 0;
   int max      = 0;
-  int multiple = 10;
+  int multiple = 5;
 };
+
+e_lcr_explorer_bucket explorer_bucket(
+    UnitsState const& units_state, UnitId unit_id ) {
+  Unit const& unit = units_state.unit_for( unit_id );
+  switch( unit.type() ) {
+    case e_unit_type::seasoned_scout:
+      return e_lcr_explorer_bucket::seasoned_scout;
+    case e_unit_type::scout: return e_lcr_explorer_bucket::scout;
+    default: return e_lcr_explorer_bucket::other;
+  }
+}
 
 int random_gift( GiftOptions options ) {
   if( options.multiple < 1 ) options.multiple = 1;
@@ -74,16 +85,18 @@ bool allow_fountain_of_youth( EventsState const& events_state ) {
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
     e_burial_mounds_type type, UnitsState& units_state,
-    Player& player, IMapUpdater& map_updater, UnitId /*unit_id*/,
+    Player& player, IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
-  bool                  positive_result = {};
-  LostCityRumorResult_t result          = {};
+  bool                        positive_result = {};
+  LostCityRumorResult_t       result          = {};
+  e_lcr_explorer_bucket const explorer =
+      explorer_bucket( units_state, unit_id );
   switch( type ) {
     case e_burial_mounds_type::trinkets: {
-      int amount =
-          random_gift( { .min = config_lcr.trinkets_gift_min,
-                         .max = config_lcr.trinkets_gift_max,
-                         .multiple = 10 } );
+      int amount = random_gift(
+          { .min      = config_lcr.trinkets_gift_min[explorer],
+            .max      = config_lcr.trinkets_gift_max[explorer],
+            .multiple = 10 } );
       co_await ui::message_box(
           "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
@@ -97,8 +110,10 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
     }
     case e_burial_mounds_type::treasure_train: {
       int amount = random_gift(
-          { .min      = config_lcr.lost_city_treasure_min,
-            .max      = config_lcr.lost_city_treasure_max,
+          { .min =
+                config_lcr.burial_mounds_treasure_min[explorer],
+            .max =
+                config_lcr.burial_mounds_treasure_max[explorer],
             .multiple = 100 } );
       co_await ui::message_box(
           "You've recovered a treasure worth @[H]{}@[].",
@@ -141,9 +156,10 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
   co_return result;
 }
 
-e_burial_mounds_type pick_burial_mounds_result() {
+e_burial_mounds_type pick_burial_mounds_result(
+    e_lcr_explorer_bucket explorer ) {
   EnumMap<e_burial_mounds_type, int> weights =
-      config_lcr.burial_mounds_type_weights;
+      config_lcr.burial_mounds_type_weights[explorer];
   // TODO: modify weights depending on game state.
   return rng::pick_from_weighted_enum_values( weights );
 }
@@ -199,6 +215,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
     UnitsState& units_state, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
+  e_lcr_explorer_bucket const explorer =
+      explorer_bucket( units_state, unit_id );
   switch( type ) {
     case e_rumor_type::none: {
       co_await ui::message_box( "You find nothing but rumors." );
@@ -226,10 +244,10 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::ruins: {
-      int amount =
-          random_gift( { .min      = config_lcr.ruins_gift_min,
-                         .max      = config_lcr.ruins_gift_max,
-                         .multiple = 10 } );
+      int amount = random_gift(
+          { .min      = config_lcr.ruins_gift_min[explorer],
+            .max      = config_lcr.ruins_gift_max[explorer],
+            .multiple = 10 } );
       co_await ui::message_box(
           "You've discovered the ruins of a lost civilization, "
           "among which there are items worth @[H]{}@[] in gold.",
@@ -245,7 +263,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
           "You stumble across some mysterious ancient burial "
           "mounds.  Explore them?" );
       if( res == ui::e_confirm::no ) break;
-      e_burial_mounds_type bm_type = pick_burial_mounds_result();
+      e_burial_mounds_type bm_type =
+          pick_burial_mounds_result( explorer );
       LostCityRumorResult_t result =
           co_await run_burial_mounds_result(
               bm_type, units_state, player, map_updater, unit_id,
@@ -253,10 +272,10 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return result;
     }
     case e_rumor_type::chief_gift: {
-      int amount =
-          random_gift( { .min      = config_lcr.chief_gift_min,
-                         .max      = config_lcr.chief_gift_max,
-                         .multiple = 10 } );
+      int amount = random_gift(
+          { .min      = config_lcr.chief_gift_min[explorer],
+            .max      = config_lcr.chief_gift_max[explorer],
+            .multiple = 5 } );
       co_await ui::message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth @[H]{}@[] gold.",
@@ -287,25 +306,6 @@ wait<LostCityRumorResult_t> run_rumor_result(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};
     }
-    case e_rumor_type::nearby_land: {
-      co_await ui::message_box( "(Nearby lands)" );
-      co_return LostCityRumorResult::other{};
-    }
-    case e_rumor_type::scout_upgrade: {
-      Unit& unit = units_state.unit_for( unit_id );
-      if( rng::flip_coin() &&
-          unit.type() == e_unit_type::scout ) {
-        if( !config_lcr.scout_upgrades_other_expert_unit ) {
-          // We're not upgrading units that already have some
-          // other expertise.
-          if( unit.desc().expertise.has_value() ) break;
-        }
-        unit.change_type( UnitComposition::create(
-            UnitType::create( e_unit_type::seasoned_scout ) ) );
-        co_await ui::message_box( "(Scout Upgrade)" );
-      }
-      co_return LostCityRumorResult::other{};
-    }
   }
   SHOULD_NOT_BE_HERE;
 }
@@ -322,8 +322,10 @@ wait<LostCityRumorResult_t> enter_lost_city_rumor(
     EventsState const& events_state, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
+  e_lcr_explorer_bucket const explorer =
+      explorer_bucket( units_state, unit_id );
   EnumMap<e_rumor_type, int> weights =
-      config_lcr.rumor_type_weights;
+      config_lcr.rumor_type_weights[explorer];
 
   if( !allow_fountain_of_youth( events_state ) )
     weights[e_rumor_type::fountain_of_youth] = 0;

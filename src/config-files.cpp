@@ -42,6 +42,11 @@ string config_file_for_name( string const& name ) {
 void init_configs() {
   rds::PopulatorsMap const& populators =
       rds::config_populators();
+  // FIXME: we need a mechanism for detecting if we are missing
+  // any populators, which can happen if a module is silently
+  // dropped by the linker. This can only happen in the unit test
+  // binary, but it seems like a good idea to ensure that said
+  // binary loads all config files, even if it doesn't use them.
   for( auto const& [name, populator] : populators ) {
     string file = config_file_for_name( name );
     replace( file.begin(), file.end(), '_', '-' );

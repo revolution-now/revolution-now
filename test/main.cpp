@@ -22,8 +22,9 @@ int main( int argc, char** argv ) {
   linker_dont_discard_me();
   run_all_init_routines( e_log_level::off,
                          {
-                             e_init_routine::rng, //
-                             e_init_routine::lua, //
+                             e_init_routine::configs, //
+                             e_init_routine::rng,     //
+                             e_init_routine::lua,     //
                          } );
   lua_reload();
 
