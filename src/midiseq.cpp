@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
-#include "rand.hpp"
 #include "ranges-fwd.hpp"
 #include "time.hpp"
 
