@@ -32,6 +32,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/no-default.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -39,9 +42,9 @@ namespace rn {
 namespace {
 
 struct GiftOptions {
-  int min      = 0;
-  int max      = 0;
-  int multiple = 5;
+  int min      = base::no_default<>;
+  int max      = base::no_default<>;
+  int multiple = base::no_default<>;
 };
 
 e_lcr_explorer_bucket explorer_bucket(
@@ -96,7 +99,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       int amount = random_gift(
           { .min      = config_lcr.trinkets_gift_min[explorer],
             .max      = config_lcr.trinkets_gift_max[explorer],
-            .multiple = 10 } );
+            .multiple = config_lcr.trinkets_gift_multiple } );
       co_await ui::message_box(
           "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
@@ -114,7 +117,8 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
                 config_lcr.burial_mounds_treasure_min[explorer],
             .max =
                 config_lcr.burial_mounds_treasure_max[explorer],
-            .multiple = 100 } );
+            .multiple =
+                config_lcr.burial_mounds_treasure_multiple } );
       co_await ui::message_box(
           "You've recovered a treasure worth @[H]{}@[].",
           amount );
@@ -247,7 +251,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       int amount = random_gift(
           { .min      = config_lcr.ruins_gift_min[explorer],
             .max      = config_lcr.ruins_gift_max[explorer],
-            .multiple = 10 } );
+            .multiple = config_lcr.ruins_gift_multiple } );
       co_await ui::message_box(
           "You've discovered the ruins of a lost civilization, "
           "among which there are items worth @[H]{}@[] in gold.",
@@ -275,7 +279,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       int amount = random_gift(
           { .min      = config_lcr.chief_gift_min[explorer],
             .max      = config_lcr.chief_gift_max[explorer],
-            .multiple = 5 } );
+            .multiple = config_lcr.chief_gift_multiple } );
       co_await ui::message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth @[H]{}@[] gold.",

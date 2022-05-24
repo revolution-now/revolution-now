@@ -71,7 +71,9 @@ burial_mounds_type_weights {
 
 # The range of values can a chief can give as a gift when the
 # outcome is having discovered a small village. These will be
-# rounded down to the nearest 5.
+# rounded down to the nearest multiple provided.
+chief_gift_multiple: 5
+
 chief_gift_min {
   seasoned_scout: 15
   scout:          15
@@ -85,7 +87,9 @@ chief_gift_max {
 
 # The range of values of gold that can be found when the outcome
 # is "ruins of a lost civilization." These will be rounded down
-# to the nearest 10.
+# to the nearest multiple provided.
+ruins_gift_multiple: 10
+
 ruins_gift_min {
   seasoned_scout: 140
   scout:          120
@@ -99,7 +103,9 @@ ruins_gift_max {
 
 # The range of values of gold that can be found when finding
 # "trinkets" in burial mounds. These will be rounded down to the
-# nearest 10.
+# nearest multiple provided.
+trinkets_gift_multiple: 10
+
 trinkets_gift_min {
   seasoned_scout: 70
   scout:          70
@@ -114,7 +120,9 @@ trinkets_gift_max {
 # The range of values of gold that can emerge on a treasure train
 # when discovering a lost city (e.g., Seven Cities of Cibola)
 # after having investigated burial mounds. Will be rounded down
-# to the nearest 100.
+# to the nearest multiple provided.
+burial_mounds_treasure_multiple: 100
+
 burial_mounds_treasure_min {
   seasoned_scout: 3000
   scout:          2500
