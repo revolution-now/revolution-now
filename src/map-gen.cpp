@@ -45,7 +45,7 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
   lua::state& st = lua_global_state();
   // st["math"]["randomseed"]( rng::random_int() );
   auto start = chrono::system_clock::now();
-  st["map_gen"]["generate"]();
+  CHECK_HAS_VALUE( st["map_gen"]["generate"].pcall() );
   auto end = chrono::system_clock::now();
   lg.info(
       "map generation took {}ms",

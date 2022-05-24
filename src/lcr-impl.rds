@@ -11,6 +11,15 @@
 
 namespace "rn"
 
+enum.e_lcr_explorer_bucket {
+  # Only the seasoned scout unit can use this.
+  seasoned_scout,
+  # A non-seasoned scout can use this.
+  scout,
+  # Any other unit that is not one of the above.
+  other,
+}
+
 enum.e_burial_mounds_type {
   # Trinkets (small amount of gold).
   trinkets,
@@ -40,9 +49,4 @@ enum.e_rumor_type {
   free_colonist,
   # Unit vanishes.
   unit_lost,
-  # Learn about nearby lands. TODO: does not seem to happen.
-  nearby_land,
-  # Upgrade to seasoned scout (for scouts only). TODO: does not
-  # seem to happen.
-  scout_upgrade,
 }

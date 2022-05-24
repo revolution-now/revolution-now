@@ -1,36 +1,50 @@
 Non seasoned scout outcomes on easiest level:
 
-63 : nothing but rumors
-18 : fountain of youth
-19 : ruins of lost civ (small amount of gold)
-13 : burial mounds (let us search for treasure/stay clear of those)
-       6 : trinkets (small amount of gold)
+194 : nothing but rumors
+45 : fountain of youth
+40 : ruins of lost civ (small amount of gold)
+       [165,240,240,150,135,150,180,120,135,120,180,255]
+       [135,300,255,255,300,165,165,270,240]
+21 : burial mounds (let us search for treasure/stay clear of those)
+       9 : trinkets (small amount of gold)
+             [190,190,130]
        1 : sacred burial grounds (war)
-       6 : treasure
+       10 : treasure
+             [3800,2800,3000,3000,]
              1 : sacred burial grounds (war)
        1 : nothing (mounds are cold and empty)
-23 : small village, chief offers gift (small amount of money)
-11 : free colonist
+43 : small village, chief offers gift (small amount of money)
+       [28,50,38,40,58,20,64,40,38,22,44,46,58,58,36,42,20]
+       [50,38,58]
+44 : free colonist
  8 : unit vanished
 
 Seasoned scout outcomes on easiest level:
 
-85 : nothing but rumors
-26 : fountain of youth
-19 : ruins of lost civ (small amount of gold)
+141 : nothing but rumors
+45 : fountain of youth
+31 : ruins of lost civ (small amount of gold)
       [220,220,140,180,300,160,380,300,280,380,220,300,140,240,240,360,300,280,200]
-13 : burial mounds (let us search for treasure/stay clear of those)
-      3 : trinkets (small amount of gold)
-            [70,110,110]
+      new
+      [240,220,200,380,300,300,440,340,360,240,240,320]
+22 : burial mounds (let us search for treasure/stay clear of those)
+      7 : trinkets (small amount of gold)
+            [70,110,110,160]
+            new
+            [80,170,100]
       0 : sacred burial grounds (war)
-      10 : treasure (value x100)
+      15 : treasure (value x100)
             [42,40,38,32,42,30,32,40,42,32]
+            new
+            [40,42,34,34,44]
             0 : sacred burial grounds (war)
       0 : nothing (mounds are cold and empty)
-13 : small village, chief offers gift (small amount of money)
+21 : small village, chief offers gift (small amount of money)
       [60,42,42,44,46,52,44,44,42,56,48,38,56,52]
-23 : free colonist
-3 : unit vanished
+      new
+      [44,52,18,60,18,26,32,52,]
+39 : free colonist
+6 : unit vanished
 
 -----------------------------------------------------------
      0   ?

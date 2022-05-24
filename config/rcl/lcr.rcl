@@ -9,61 +9,119 @@
 fountain_of_youth_num_immigrants: 8
 
 # Weights for the various possible (top-level) outcomes of en-
-# tering a lost city rumor tile. Some of these outcomes then
-# have multiple possible sub-outcomes.
+# tering a lost city rumor tile. Some of these outcomes then have
+# multiple possible sub-outcomes. Note: these are just weights
+# and don't have to sum to 100, but it is best to make them do so
+# (within each leaf section) for readability.
 rumor_type_weights {
-  none:              47
-  fountain_of_youth: 13
-  ruins:             15
-  burial_mounds:     10
-  chief_gift:        16
-  free_colonist:      8
-  unit_lost:          4
-  nearby_land:        0 # Doesn't seem to happen in original game.
-  scout_upgrade:      0 # Doesn't seem to happen in original game.
+  seasoned_scout {
+    none:              46
+    fountain_of_youth: 15
+    free_colonist:     13
+    ruins:             10
+    burial_mounds:      7
+    chief_gift:         7
+    unit_lost:          2
+  }
+  scout {
+    none:              49
+    fountain_of_youth: 12
+    free_colonist:     11
+    ruins:             10
+    burial_mounds:      5
+    chief_gift:        11
+    unit_lost:          2
+  }
+  other {
+    # TODO: need to measure these.
+    none:              51
+    fountain_of_youth:  9
+    free_colonist:      9
+    ruins:             10
+    burial_mounds:      3
+    chief_gift:        15
+    unit_lost:          3
+  }
 }
 
-# Weights for the various possible suboutcomes of finding
-# burial mounds in a lost city rumor (note that "burial mounds"
-# are to be distinguished from "burial grounds"; the former is
-# neutral while the latter is negative).
+# Weights for the various possible suboutcomes of finding burial
+# mounds in a lost city rumor (note that "burial mounds" are to
+# be distinguished from "burial grounds"; the former is neutral
+# while the latter is negative). Note: these are just weights and
+# don't have to sum to 100, but it is best to make them do so
+# (within each leaf section) for readability.
 burial_mounds_type_weights {
-  trinkets:       4
-  treasure_train: 5
-  cold_and_empty: 1
+  seasoned_scout {
+    treasure_train: 68
+    trinkets:       32
+    cold_and_empty:  0
+  }
+  scout {
+    treasure_train: 50
+    trinkets:       45
+    cold_and_empty:  5
+  }
+  other {
+    # TODO: need to measure these.
+    treasure_train: 32
+    trinkets:       58
+    cold_and_empty: 10
+  }
 }
-
-# Some docs say that in the original game one possible outcome of
-# an LCR is that a scout can be upgraded to a seasoned scout.
-# However, some docs also say that in the original game a unit
-# with another expertise (acting as a scout) will lose that ex-
-# pertise in the promotion. If this flag is true then that will
-# happen, otherwise only scouts created from petty criminals, in-
-# dentured servants, and free colonists will be upgraded (di-
-# rectly) to a seasoned scout.
-scout_upgrades_other_expert_unit: true
 
 # The range of values can a chief can give as a gift when the
 # outcome is having discovered a small village. These will be
-# rounded down to the nearest 10.
-chief_gift_min:  50
-chief_gift_max: 350
+# rounded down to the nearest 5.
+chief_gift_min {
+  seasoned_scout: 15
+  scout:          15
+  other:          15 # TODO: need to measure this.
+}
+chief_gift_max {
+  seasoned_scout: 70
+  scout:          70
+  other:          70 # TODO: need to measure this.
+}
 
 # The range of values of gold that can be found when the outcome
 # is "ruins of a lost civilization." These will be rounded down
 # to the nearest 10.
-ruins_gift_min:  50
-ruins_gift_max: 350
+ruins_gift_min {
+  seasoned_scout: 140
+  scout:          120
+  other:          100 # TODO: need to measure this.
+}
+ruins_gift_max {
+  seasoned_scout: 440
+  scout:          300
+  other:          160 # TODO: need to measure this.
+}
 
 # The range of values of gold that can be found when finding
 # "trinkets" in burial mounds. These will be rounded down to the
 # nearest 10.
-trinkets_gift_min:  50
-trinkets_gift_max: 200
+trinkets_gift_min {
+  seasoned_scout: 70
+  scout:          70
+  other:          70 # TODO: need to measure this.
+}
+trinkets_gift_max {
+  seasoned_scout: 200
+  scout:          200
+  other:          200 # TODO: need to measure this.
+}
 
 # The range of values of gold that can emerge on a treasure train
 # when discovering a lost city (e.g., Seven Cities of Cibola)
 # after having investigated burial mounds. Will be rounded down
 # to the nearest 100.
-lost_city_treasure_min:   500
-lost_city_treasure_max: 12000
+burial_mounds_treasure_min {
+  seasoned_scout: 3000
+  scout:          2500
+  other:          2000 # TODO: need to measure this.
+}
+burial_mounds_treasure_max {
+  seasoned_scout: 4500
+  scout:          4000
+  other:          3500 # TODO: need to measure this.
+}
