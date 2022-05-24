@@ -172,7 +172,6 @@ local function is_sea_lane( coord )
 end
 
 local function set_sea_lane( coord )
-  set_water( coord )
   local square = map_gen.at( coord )
   square.sea_lane = true
 end
@@ -422,7 +421,9 @@ local function create_sea_lanes()
         for x = 0, s.x do
           local coord = { x=x, y=s.y }
           local square = map_gen.at( coord )
-          if square.sea_lane then set_water( coord ) end
+          if square.sea_lane then
+            square.sea_lane = false
+          end
         end
       end
     end
@@ -435,14 +436,14 @@ local function create_sea_lanes()
     for x = 0, size.w - 1 do
       local coord = { x=x, y=y }
       local square = map_gen.at( coord )
-      if square.sea_lane then set_water( coord ) end
+      if square.sea_lane then square.sea_lane = false end
     end
   end
   for y = size.h - 4, size.h - 1 do
     for x = 0, size.w - 1 do
       local coord = { x=x, y=y }
       local square = map_gen.at( coord )
-      if square.sea_lane then set_water( coord ) end
+      if square.sea_lane then square.sea_lane = false end
     end
   end
 
@@ -691,34 +692,43 @@ end
 -----------------------------------------------------------------
 function M.generate()
   reset_terrain()
+-----------------------------------------------------------------
+-- Land Generation
+-----------------------------------------------------------------
+local function generate_land()
   local size = map_gen.world_size()
+  local buffer = { top=2, bottom=2, left=4, right=3 }
+  local initial_square = {
+    x=size.w - buffer.left * 2,
+    y=size.h / 2
+  }
+  local initial_area = math.random( 5, 50 )
+  generate_continent( initial_square, initial_area )
+  for i = 1, 8 do
+    local square = random_point_in_rect(
+                       {
+          x=buffer.left,
+          y=buffer.top,
+          w=size.w - buffer.right - buffer.left,
+          h=size.h - buffer.bottom - buffer.top
+        } )
+    local area = math.random( 10, 300 )
+    generate_continent( square, area )
+  end
+  clear_buffer_area( buffer )
+  remove_some_Xs()
+  create_arctic()
+  forest_cover()
 
-  -- local buffer = { top=2, bottom=2, left=4, right=3 }
-  -- local initial_square = {
-  --   x=size.w - buffer.left * 2,
-  --   y=size.h / 2
-  -- }
-  -- local initial_area = math.random( 5, 50 )
-  -- generate_continent( initial_square, initial_area )
-  -- for i = 1, 8 do
-  --   local square = random_point_in_rect(
-  --                      {
-  --         x=buffer.left,
-  --         y=buffer.top,
-  --         w=size.w - buffer.right - buffer.left,
-  --         h=size.h - buffer.bottom - buffer.top
-  --       } )
-  --   local area = math.random( 10, 300 )
-  --   generate_continent( square, area )
-  -- end
-  -- clear_buffer_area( buffer )
-  -- -- Need to do this before creating fish resources.
-  -- create_sea_lanes()
-  -- create_arctic()
-  --
-  -- forest_cover()
-  -- remove_some_Xs()
+  local placement_seed = set_random_placement_seed()
+  distribute_prime_resources( placement_seed )
+  distribute_lost_city_rumors( placement_seed )
+end
 
+-----------------------------------------------------------------
+-- Testing
+-----------------------------------------------------------------
+local function generate_testing_land()
   on_all( function( coord, square )
     local main = { x=coord.x, y=coord.y - 2 }
     if main.x > 5 and main.x < 50 and main.y > 5 and main.y < 60 then
@@ -750,15 +760,29 @@ function M.generate()
   distribute_prime_resources( placement_seed )
   distribute_lost_city_rumors( placement_seed )
 
-  create_indian_villages()
-
   -- on_all( function( coord, square )
   --   if square.surface == e.surface.land then
   --     square.lost_city_rumor = true
+  --     square.road = true
   --   end
   -- end )
+end
+
+-----------------------------------------------------------------
+-- Map Generator
+-----------------------------------------------------------------
+function M.generate()
+  reset_terrain()
+
+  generate_land()
+  -- generate_testing_land()
+
+  create_sea_lanes()
 
   create_initial_ships()
+
+  create_indian_villages()
+
 end
 
 return M
