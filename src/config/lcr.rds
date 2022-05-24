@@ -8,20 +8,15 @@
 # Description: Config info related to Lost City Rumors.
 #
 # ===============================================================
-# Revolution Now
-include "enum-map.hpp"
-
-# config
-include "config/lcr.hpp"
-
 # Rds
-include "lcr-impl.rds.hpp"
+include "../lcr-impl.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
 
-# Cdr.
-# include "cdr/ext-std.hpp"
+# cdr
+include "cdr/ext-builtin.hpp"
 
 namespace "rn"
 
@@ -35,43 +30,47 @@ struct.config_lcr_t {
 
   # Weights for the various possible (top-level) outcomes of en-
   # tering a lost city rumor tile. Some of these outcomes then
-  # have multiple possible sub-outcomes.
-  rumor_type_weights 'LcrProperty<EnumMap<e_rumor_type, int>>',
+  # have multiple possible sub-outcomes. These must sum to 100
+  # for each explorer type.
+  rumor_type_weights 'refl::enum_map<e_lcr_explorer_bucket, refl::enum_map<e_rumor_type, int>>',
 
   # Weights for the various possible suboutcomes of finding
   # burial mounds in a lost city rumor (note that "burial mounds"
   # are to be distinguished from "burial grounds"; the former is
   # neutral while the latter is negative). These would be the de-
-  # fault weights for these outcomes.
-  burial_mounds_type_weights 'LcrProperty<EnumMap<e_burial_mounds_type, int>>',
+  # fault weights for these outcomes. These must sum to 100 for
+  # each explorer type.
+  burial_mounds_type_weights 'refl::enum_map<e_lcr_explorer_bucket, refl::enum_map<e_burial_mounds_type, int>>',
 
   # The range of values can a chief can give as a gift when the
   # outcome is having discovered a small village. These will be
   # rounded down to the nearest multiple provided.
-  chief_gift_min 'LcrProperty<int>',
-  chief_gift_max 'LcrProperty<int>',
+  chief_gift_min 'refl::enum_map<e_lcr_explorer_bucket, int>',
+  chief_gift_max 'refl::enum_map<e_lcr_explorer_bucket, int>',
   chief_gift_multiple 'int',
 
   # The range of values of gold that can be found when the out-
   # come is "ruins of a lost civilization." These will be rounded
   # down to the nearest multiple provided.
-  ruins_gift_min 'LcrProperty<int>',
-  ruins_gift_max 'LcrProperty<int>',
+  ruins_gift_min 'refl::enum_map<e_lcr_explorer_bucket, int>',
+  ruins_gift_max 'refl::enum_map<e_lcr_explorer_bucket, int>',
   ruins_gift_multiple 'int',
 
   # The range of values of gold that can be found when finding
   # "trinkets" in burial mounds. These will be rounded down to
   # the nearest multiple provided.
-  trinkets_gift_min 'LcrProperty<int>',
-  trinkets_gift_max 'LcrProperty<int>',
+  trinkets_gift_min 'refl::enum_map<e_lcr_explorer_bucket, int>',
+  trinkets_gift_max 'refl::enum_map<e_lcr_explorer_bucket, int>',
   trinkets_gift_multiple 'int',
 
   # The range of values of gold that can emerge on a treasure
   # train when investigating burial mounds. These are rounded
   # down to the nearest multiple provided.
-  burial_mounds_treasure_min 'LcrProperty<int>',
-  burial_mounds_treasure_max 'LcrProperty<int>',
+  burial_mounds_treasure_min 'refl::enum_map<e_lcr_explorer_bucket, int>',
+  burial_mounds_treasure_max 'refl::enum_map<e_lcr_explorer_bucket, int>',
   burial_mounds_treasure_multiple 'int',
+
+  _features { validation, equality },
 }
 
 config.lcr {}

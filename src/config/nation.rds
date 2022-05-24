@@ -8,15 +8,13 @@
 # Description: Nation-specific config info.
 #
 # ===============================================================
-# Revolution Now
-include "enum-map.hpp"
-
 # Rds
 include "../nation.rds.hpp" # need ../ here so we don't include
                             # ourselves.
 
 # refl
 include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
 
 # Cdr.
 include "cdr/ext-std.hpp"
@@ -24,7 +22,7 @@ include "cdr/ext-std.hpp"
 namespace "rn"
 
 struct.config_nation_t {
-  nations 'EnumMap<e_nation, Nationality>',
+  nations 'refl::enum_map<e_nation, Nationality>',
 }
 
 config.nation {}

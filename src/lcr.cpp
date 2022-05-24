@@ -30,6 +30,7 @@
 #include "lcr-impl.rds.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
 
 // base
@@ -162,7 +163,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
 
 e_burial_mounds_type pick_burial_mounds_result(
     e_lcr_explorer_bucket explorer ) {
-  EnumMap<e_burial_mounds_type, int> weights =
+  refl::enum_map<e_burial_mounds_type, int> weights =
       config_lcr.burial_mounds_type_weights[explorer];
   // TODO: modify weights depending on game state.
   return rng::pick_from_weighted_enum_values( weights );
@@ -174,7 +175,7 @@ e_unit_type pick_unit_type_for_foy() {
   // FIXME: need to move this to the immigration module and have
   // a queue located in a new top-level save-game state repre-
   // senting the old world state.
-  EnumMap<e_unit_type, int> weights{
+  refl::enum_map<e_unit_type, int> weights{
       { e_unit_type::petty_criminal, 10 },         //
       { e_unit_type::indentured_servant, 10 },     //
       { e_unit_type::free_colonist, 10 },          //
@@ -328,7 +329,7 @@ wait<LostCityRumorResult_t> enter_lost_city_rumor(
     Coord world_square ) {
   e_lcr_explorer_bucket const explorer =
       explorer_bucket( units_state, unit_id );
-  EnumMap<e_rumor_type, int> weights =
+  refl::enum_map<e_rumor_type, int> weights =
       config_lcr.rumor_type_weights[explorer];
 
   if( !allow_fountain_of_youth( events_state ) )

@@ -14,11 +14,13 @@ include "colony-mfg.hpp"
 include "commodity.hpp"
 include "coord.hpp"
 include "maybe.hpp"
-include "enum-map.hpp"
 include "unit-id.hpp"
 
 # Rds
 include "nation.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 # C++ standard library
 include "<string>"
@@ -48,7 +50,7 @@ struct.Colony {
   location 'Coord',
 
   # Commodities.
-  commodities 'EnumMap<e_commodity, int>',
+  commodities 'refl::enum_map<e_commodity, int>',
 
   # Serves to both record the units in this colony as well as
   # their occupations.

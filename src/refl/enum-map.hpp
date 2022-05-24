@@ -10,30 +10,26 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "maybe.hpp"
+// refl
+#include "cdr.hpp"
+#include "ext.hpp"
+#include "query-enum.hpp"
 
 // Cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext.hpp"
 
-// refl
-#include "refl/cdr.hpp"
-#include "refl/ext.hpp"
-#include "refl/query-enum.hpp"
-
 // base
 #include "base/adl-tag.hpp"
 #include "base/cc-specific.hpp"
+#include "base/maybe.hpp"
 
 // C++ standard library
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-namespace rn {
+namespace refl {
 
 // This is a map whose keys are always reflected enums and which
 // is always guaranteed to have a value for every possible value
@@ -45,7 +41,7 @@ namespace rn {
 // just defer to to the base class implementation, which will
 // usually always be provided because it is a standard container.
 template<refl::ReflectedEnum Enum, typename ValT>
-struct EnumMap : public std::unordered_map<Enum, ValT> {
+struct enum_map : public std::unordered_map<Enum, ValT> {
   using base = std::unordered_map<Enum, ValT>;
 
   static constexpr int kSize = refl::enum_count<Enum>;
@@ -60,24 +56,24 @@ struct EnumMap : public std::unordered_map<Enum, ValT> {
   // All other constructors should ultimately call this one,
   // since this is the one that ensures that all keys have a
   // value.
-  EnumMap( base&& b ) : base( std::move( b ) ) {
+  enum_map( base&& b ) : base( std::move( b ) ) {
     for( Enum e : refl::enum_values<Enum> )
       if( this->find( e ) == this->end() ) //
         this->emplace( e, ValT{} );
   }
 
-  EnumMap( base const& b ) : EnumMap( base{ b } ) {}
+  enum_map( base const& b ) : enum_map( base{ b } ) {}
 
-  EnumMap() : EnumMap( base{} ) {}
+  enum_map() : enum_map( base{} ) {}
 
-  EnumMap(
+  enum_map(
       std::initializer_list<std::pair<Enum const, ValT>> il )
-    : EnumMap( base( il.begin(), il.end() ) ) {}
+    : enum_map( base( il.begin(), il.end() ) ) {}
 
   consteval size_t size() const { return kSize; }
   consteval int    ssize() const { return kSize; }
 
-  bool operator==( EnumMap const& ) const = default;
+  bool operator==( enum_map const& ) const = default;
 
   ValT const& operator[]( Enum i ) const { return at( i ); }
 
@@ -94,8 +90,8 @@ struct EnumMap : public std::unordered_map<Enum, ValT> {
   }
 
   friend cdr::value to_canonical( cdr::converter& conv,
-                                  EnumMap const&  o,
-                                  cdr::tag_t<EnumMap> ) {
+                                  enum_map const& o,
+                                  cdr::tag_t<enum_map> ) {
     cdr::table tbl;
     // Here we can use to_field to allow the converter to control
     // default field value behavior because, for this data struc-
@@ -107,12 +103,12 @@ struct EnumMap : public std::unordered_map<Enum, ValT> {
     return tbl;
   }
 
-  friend cdr::result<EnumMap> from_canonical(
+  friend cdr::result<enum_map> from_canonical(
       cdr::converter& conv, cdr::value const& v,
-      cdr::tag_t<EnumMap> ) {
+      cdr::tag_t<enum_map> ) {
     UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
     std::unordered_set<std::string> used_keys;
-    EnumMap                         res;
+    enum_map                        res;
     // Here we can use from_field to allow the converter to con-
     // trol default field value behavior because, for this data
     // structure, we know the complete set of possible keys and
@@ -131,4 +127,4 @@ struct EnumMap : public std::unordered_map<Enum, ValT> {
   }
 };
 
-} // namespace rn
+} // namespace refl

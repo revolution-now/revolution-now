@@ -13,10 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "enum-map.hpp"
 #include "rand.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
 
 // base
@@ -36,11 +36,11 @@ Enum pick_one() {
 
 // Picks a random enum value given the weights. All weights
 // should be >= 0. A zero weight means that the enum value will
-// never be chosen. Must be a reflected enum because the EnumMap
-// requires this.
+// never be chosen. Must be a reflected enum because the
+// refl::enum_map requires this.
 template<refl::ReflectedEnum T>
 T pick_from_weighted_enum_values(
-    EnumMap<T, int> const& weights ) {
+    refl::enum_map<T, int> const& weights ) {
   int total = 0;
   for( auto [item, weight] : weights ) total += weight;
   CHECK_GE( total, 0 );

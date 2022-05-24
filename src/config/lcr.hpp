@@ -10,14 +10,7 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// config
+#include "lcr.rds.hpp"
 
-// Rds
-#include "lcr-impl.rds.hpp"
-
-namespace rn {
-
-template<typename T>
-using LcrProperty = EnumMap<e_lcr_explorer_bucket, T>;
-
-} // namespace rn
+namespace rn {} // namespace rn

@@ -14,7 +14,6 @@
 #include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "coord.hpp"
-#include "enum-map.hpp"
 #include "game-state.hpp"
 #include "gs-land-view.hpp"
 #include "gs-terrain.hpp"
@@ -31,6 +30,7 @@
 #include "viewport.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
 
 // base
@@ -65,40 +65,41 @@ struct ToolbarItem {
   editor::e_toolbar_item item = {};
 };
 
-EnumMap<editor::e_toolbar_item, ToolbarItem> g_toolbar_items{
-    { editor::e_toolbar_item::ocean,
-      { .tile = e_tile::terrain_ocean } },
-    { editor::e_toolbar_item::sea_lane,
-      { .tile = e_tile::terrain_ocean_sea_lane } },
-    { editor::e_toolbar_item::ground_arctic,
-      { .tile = e_tile::terrain_arctic } },
-    { editor::e_toolbar_item::ground_desert,
-      { .tile = e_tile::terrain_desert } },
-    { editor::e_toolbar_item::ground_grassland,
-      { .tile = e_tile::terrain_grassland } },
-    { editor::e_toolbar_item::ground_marsh,
-      { .tile = e_tile::terrain_marsh } },
-    { editor::e_toolbar_item::ground_plains,
-      { .tile = e_tile::terrain_plains } },
-    { editor::e_toolbar_item::ground_prairie,
-      { .tile = e_tile::terrain_prairie } },
-    { editor::e_toolbar_item::ground_savannah,
-      { .tile = e_tile::terrain_savannah } },
-    { editor::e_toolbar_item::ground_swamp,
-      { .tile = e_tile::terrain_swamp } },
-    { editor::e_toolbar_item::ground_tundra,
-      { .tile = e_tile::terrain_tundra } },
-    { editor::e_toolbar_item::mountain,
-      { .tile = e_tile::terrain_mountain_island } },
-    { editor::e_toolbar_item::hills,
-      { .tile = e_tile::terrain_hills_island } },
-    { editor::e_toolbar_item::forest,
-      { .tile = e_tile::terrain_forest_island } },
-    { editor::e_toolbar_item::irrigation,
-      { .tile = e_tile::irrigation } },
-    { editor::e_toolbar_item::road,
-      { .tile = e_tile::road_island } },
-};
+refl::enum_map<editor::e_toolbar_item, ToolbarItem>
+    g_toolbar_items{
+        { editor::e_toolbar_item::ocean,
+          { .tile = e_tile::terrain_ocean } },
+        { editor::e_toolbar_item::sea_lane,
+          { .tile = e_tile::terrain_ocean_sea_lane } },
+        { editor::e_toolbar_item::ground_arctic,
+          { .tile = e_tile::terrain_arctic } },
+        { editor::e_toolbar_item::ground_desert,
+          { .tile = e_tile::terrain_desert } },
+        { editor::e_toolbar_item::ground_grassland,
+          { .tile = e_tile::terrain_grassland } },
+        { editor::e_toolbar_item::ground_marsh,
+          { .tile = e_tile::terrain_marsh } },
+        { editor::e_toolbar_item::ground_plains,
+          { .tile = e_tile::terrain_plains } },
+        { editor::e_toolbar_item::ground_prairie,
+          { .tile = e_tile::terrain_prairie } },
+        { editor::e_toolbar_item::ground_savannah,
+          { .tile = e_tile::terrain_savannah } },
+        { editor::e_toolbar_item::ground_swamp,
+          { .tile = e_tile::terrain_swamp } },
+        { editor::e_toolbar_item::ground_tundra,
+          { .tile = e_tile::terrain_tundra } },
+        { editor::e_toolbar_item::mountain,
+          { .tile = e_tile::terrain_mountain_island } },
+        { editor::e_toolbar_item::hills,
+          { .tile = e_tile::terrain_hills_island } },
+        { editor::e_toolbar_item::forest,
+          { .tile = e_tile::terrain_forest_island } },
+        { editor::e_toolbar_item::irrigation,
+          { .tile = e_tile::irrigation } },
+        { editor::e_toolbar_item::road,
+          { .tile = e_tile::road_island } },
+    };
 
 Rect toolbar_rect() {
   UNWRAP_CHECK( rect, compositor::section(

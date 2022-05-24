@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/enum-map.hpp"
+#include "src/refl/enum-map.hpp"
 
 // Rds
 #include "rds/testing.rds.hpp"
@@ -29,7 +29,7 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-namespace rn {
+namespace refl {
 namespace {
 
 using namespace ::std;
@@ -37,47 +37,49 @@ using namespace ::cdr::literals;
 
 using ::Catch::Matches;
 using ::cdr::testing::conv_from_bt;
+using ::rn::e_color;
+using ::rn::e_empty;
 
 // If this changes then the below tests may need to be updated.
 static_assert( refl::enum_count<e_color> == 3 );
 
 static_assert(
-    is_default_constructible_v<EnumMap<e_color, int>> );
-static_assert( is_move_constructible_v<EnumMap<e_color, int>> );
-static_assert( is_move_assignable_v<EnumMap<e_color, int>> );
+    is_default_constructible_v<enum_map<e_color, int>> );
+static_assert( is_move_constructible_v<enum_map<e_color, int>> );
+static_assert( is_move_assignable_v<enum_map<e_color, int>> );
 static_assert(
-    is_nothrow_move_constructible_v<EnumMap<e_color, int>> );
+    is_nothrow_move_constructible_v<enum_map<e_color, int>> );
 static_assert(
-    is_nothrow_move_assignable_v<EnumMap<e_color, int>> );
+    is_nothrow_move_assignable_v<enum_map<e_color, int>> );
 
-TEST_CASE( "[enum-map] EnumMap empty" ) {
-  EnumMap<e_empty, int> m;
+TEST_CASE( "[enum-map] enum_map empty" ) {
+  enum_map<e_empty, int> m;
   static_assert( m.kSize == 0 );
 }
 
-TEST_CASE( "[enum-map] EnumMap non-primitive construction" ) {
-  EnumMap<e_color, string> m;
+TEST_CASE( "[enum-map] enum_map non-primitive construction" ) {
+  enum_map<e_color, string> m;
   static_assert( m.kSize == 3 );
   REQUIRE( m[e_color::red] == "" );
   REQUIRE( m[e_color::green] == "" );
   REQUIRE( m[e_color::blue] == "" );
 }
 
-TEST_CASE( "[enum-map] EnumMap primitive initialization" ) {
-  EnumMap<e_color, int> m;
+TEST_CASE( "[enum-map] enum_map primitive initialization" ) {
+  enum_map<e_color, int> m;
   static_assert( m.kSize == 3 );
   REQUIRE( m[e_color::red] == 0 );
   REQUIRE( m[e_color::green] == 0 );
   REQUIRE( m[e_color::blue] == 0 );
 }
 
-TEST_CASE( "[enum-map] EnumMap initializer list init" ) {
-  EnumMap<e_color, int> m1{
+TEST_CASE( "[enum-map] enum_map initializer list init" ) {
+  enum_map<e_color, int> m1{
       { e_color::red, 4 },
       { e_color::blue, 5 },
       { e_color::green, 6 },
   };
-  EnumMap<e_color, int> m2 = {
+  enum_map<e_color, int> m2 = {
       { e_color::red, 5 },
       { e_color::blue, 6 },
       { e_color::green, 7 },
@@ -90,19 +92,19 @@ TEST_CASE( "[enum-map] EnumMap initializer list init" ) {
   REQUIRE( m2[e_color::green] == 7 );
 }
 
-TEST_CASE( "[enum-map] EnumMap indexing" ) {
-  EnumMap<e_color, int> m;
+TEST_CASE( "[enum-map] enum_map indexing" ) {
+  enum_map<e_color, int> m;
   m.at( e_color::red ) = 5;
   REQUIRE( m[e_color::red] == 5 );
   m[e_color::green] = 7;
   REQUIRE( m.at( e_color::green ) == 7 );
-  EnumMap<e_color, int> const m_const;
+  enum_map<e_color, int> const m_const;
   REQUIRE( m_const[e_color::red] == 0 );
   REQUIRE( m_const.at( e_color::green ) == 0 );
 }
 
-TEST_CASE( "[enum-map] EnumMap find" ) {
-  EnumMap<e_color, int> m;
+TEST_CASE( "[enum-map] enum_map find" ) {
+  enum_map<e_color, int> m;
   m[e_color::green] = 7;
   auto it           = m.find( e_color::green );
   REQUIRE( it != m.end() );
@@ -110,9 +112,9 @@ TEST_CASE( "[enum-map] EnumMap find" ) {
   REQUIRE( it->second == 7 );
 }
 
-TEST_CASE( "[enum-map] EnumMap equality" ) {
-  EnumMap<e_color, int> m1;
-  EnumMap<e_color, int> m2;
+TEST_CASE( "[enum-map] enum_map equality" ) {
+  enum_map<e_color, int> m1;
+  enum_map<e_color, int> m2;
   REQUIRE( m1 == m2 );
   REQUIRE( m1[e_color::blue] == 0 );
   REQUIRE( m1 == m2 );
@@ -129,7 +131,7 @@ TEST_CASE( "[enum-map] EnumMap equality" ) {
   REQUIRE( m1[e_color::blue] == 0 );
 }
 
-EnumMap<e_color, string> const native_colors1{
+enum_map<e_color, string> const native_colors1{
     { e_color::red, "one" },
     /*{ e_color::green, "" },*/
     { e_color::blue, "three" },
@@ -160,7 +162,7 @@ cdr::value const cdr_colors1_missing_field = cdr::table{
 };
 
 TEST_CASE( "[enum-map] cdr/strict" ) {
-  using M = EnumMap<e_color, string>;
+  using M = enum_map<e_color, string>;
   cdr::converter conv{ {
       .write_fields_with_default_value  = true,
       .allow_unrecognized_fields        = false,
@@ -186,7 +188,7 @@ TEST_CASE( "[enum-map] cdr/strict" ) {
 }
 
 TEST_CASE( "[enum-map] cdr/no-defaults" ) {
-  using M = EnumMap<e_color, string>;
+  using M = enum_map<e_color, string>;
   cdr::converter conv{ {
       .write_fields_with_default_value  = false,
       .allow_unrecognized_fields        = true,
@@ -213,4 +215,4 @@ TEST_CASE( "[enum-map] cdr/no-defaults" ) {
 }
 
 } // namespace
-} // namespace rn
+} // namespace refl

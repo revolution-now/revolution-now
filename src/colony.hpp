@@ -24,6 +24,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
+// refl
+#include "refl/enum-map.hpp"
+
 // Rds
 #include "colony.rds.hpp"
 
@@ -72,7 +75,7 @@ class Colony {
   void set_commodity_quantity( e_commodity comm, int q );
   void set_nation( e_nation new_nation );
 
-  EnumMap<e_commodity, int>& commodities() {
+  refl::enum_map<e_commodity, int>& commodities() {
     return o_.commodities;
   }
 

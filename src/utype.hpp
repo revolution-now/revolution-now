@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "enum-map.hpp"
 #include "expect.hpp"
 #include "lua-enum.hpp"
 

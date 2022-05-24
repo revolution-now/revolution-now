@@ -13,12 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "enum-map.hpp"
 #include "expect.hpp"
 #include "tile-enum.hpp"
 
 // Rds
 #include "tile-sheet.rds.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
@@ -53,7 +55,7 @@ struct TileSheetsConfig {
   wrapped::TileSheetsConfig o_;
 
   // ----- Non-serializable (transient) state.
-  EnumMap<e_tile, gfx::size> sizes_;
+  refl::enum_map<e_tile, gfx::size> sizes_;
 };
 
 } // namespace rn

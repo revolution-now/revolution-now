@@ -24,6 +24,7 @@
 #include "luapp/types.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
@@ -66,7 +67,8 @@ namespace {
 
 unordered_map<e_unit_inventory, e_unit_type_modifier>
 create_inventory_to_modifier_map(
-    EnumMap<e_unit_type_modifier, UnitTypeModifierTraits> const&
+    refl::enum_map<e_unit_type_modifier,
+                   UnitTypeModifierTraits> const&
         modifier_traits ) {
   unordered_map<e_unit_inventory, e_unit_type_modifier> res;
   for( auto const& [mod, val] : modifier_traits ) {

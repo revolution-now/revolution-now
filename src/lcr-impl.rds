@@ -8,7 +8,6 @@
 # Description: Private Rds definitions for the lcr module.
 #
 # ===============================================================
-
 namespace "rn"
 
 enum.e_lcr_explorer_bucket {

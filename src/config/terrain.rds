@@ -9,7 +9,6 @@
 #
 # ===============================================================
 # Revolution Now
-include "enum-map.hpp"
 include "mv-points.hpp"
 
 # Rds
@@ -18,6 +17,7 @@ include "../terrain.rds.hpp" # Need ../ so that we don't include
 
 # refl
 include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
 
 # Cdr.
 include "cdr/ext-builtin.hpp"
@@ -42,7 +42,7 @@ struct.TerrainTypeInfo {
 }
 
 struct.config_terrain_t {
-  types 'EnumMap<e_terrain, TerrainTypeInfo>',
+  types 'refl::enum_map<e_terrain, TerrainTypeInfo>',
 
   _features { equality, validation }
 }
