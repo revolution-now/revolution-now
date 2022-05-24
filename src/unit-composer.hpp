@@ -16,7 +16,7 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "maybe.hpp"
+#include "expect.hpp"
 #include "utype.hpp"
 
 // luapp
@@ -40,10 +40,10 @@ class UnitComposition {
   static UnitComposition create( UnitType type );
   static UnitComposition create( e_unit_type type );
 
-  static maybe<UnitComposition> create(
+  static expect<UnitComposition> create(
       UnitType type, UnitInventoryMap inventory );
 
-  maybe<UnitComposition> with_new_type( UnitType type ) const;
+  expect<UnitComposition> with_new_type( UnitType type ) const;
 
   bool operator==( UnitComposition const& ) const = default;
 

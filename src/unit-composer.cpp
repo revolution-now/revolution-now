@@ -104,15 +104,15 @@ UnitComposition UnitComposition::create( e_unit_type type ) {
   return UnitComposition::create( UnitType::create( type ) );
 }
 
-maybe<UnitComposition> UnitComposition::create(
+expect<UnitComposition> UnitComposition::create(
     UnitType type, UnitInventoryMap inventory ) {
   auto inner = wrapped::UnitComposition{
       .type = type, .inventory = std::move( inventory ) };
-  if( !inner.validate() ) return nothing;
+  if( auto ok = inner.validate(); !ok ) return ok.error();
   return UnitComposition( std::move( inner ) );
 }
 
-maybe<UnitComposition> UnitComposition::with_new_type(
+expect<UnitComposition> UnitComposition::with_new_type(
     UnitType type ) const {
   return create( type, o_.inventory );
 }
@@ -462,10 +462,23 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<UnitComposition>();
 
-  u["base_type"]     = &U::base_type;
-  u["type"]          = &U::type;
-  u["type_obj"]      = &U::type_obj;
-  u["with_new_type"] = &U::with_new_type;
+  u["base_type"] = &U::base_type;
+  u["type"]      = &U::type;
+  u["type_obj"]  = &U::type_obj;
+  // FIXME: Currently Lua does not know how to deal with the `ex-
+  // pect` type that this returns. What we should probably do is
+  // to create a wrapper whereby we could write:
+  //
+  //   u["with_new_type"] = expect_to_error( &U::with_new_type );
+  //
+  // Which would wrap the function in a new function that calls
+  // it and then checks the result, and if it's an error then it
+  // throws a Lua error, otherwise returns the contained type.
+  // The alternative, of exposing base::expect in lua, might not
+  // be trivial because it is not clear how to distringuish the
+  // error state from the success state in a usable way.
+  //
+  // u["with_new_type"] = &U::with_new_type;
 
   lua::table ucomp_tbl =
       lua::table::create_or_get( st["unit_composer"] );
