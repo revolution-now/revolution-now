@@ -364,15 +364,14 @@ end
 -- Will clear a frame around the edge of the map to make sure
 -- that land doesn't get too close to the map edge and we still
 -- have room for sea lane squares.
-local function clear_buffer_area( buffer_size )
+local function clear_buffer_area( buffer )
   local size = map_gen.world_size()
   on_all( function( coord )
-    local y = coord.y
     local x = coord.x
-    if y < buffer_size or y > size.h - buffer_size or x <
-        buffer_size or x > size.w - buffer_size then
-      set_water{ x=x, y=y }
-      -- set_sea_lane{ x=x, y=y }
+    local y = coord.y
+    if y < buffer.top or y >= size.h - buffer.bottom or x <
+        buffer.left or x >= size.w - buffer.right then
+      set_water( coord )
     end
   end )
 end
@@ -694,22 +693,25 @@ function M.generate()
   reset_terrain()
   local size = map_gen.world_size()
 
-  -- local buffer = 10
-  -- local initial_square = { x=size.w - buffer * 2, y=size.h / 2 }
-  -- local initial_area = math.random( 50, 200 )
+  -- local buffer = { top=2, bottom=2, left=4, right=3 }
+  -- local initial_square = {
+  --   x=size.w - buffer.left * 2,
+  --   y=size.h / 2
+  -- }
+  -- local initial_area = math.random( 5, 50 )
   -- generate_continent( initial_square, initial_area )
-  -- for i = 1, 2 do
+  -- for i = 1, 8 do
   --   local square = random_point_in_rect(
   --                      {
-  --         x=buffer,
-  --         y=buffer,
-  --         w=size.w - buffer * 2,
-  --         h=size.h - buffer * 2
+  --         x=buffer.left,
+  --         y=buffer.top,
+  --         w=size.w - buffer.right - buffer.left,
+  --         h=size.h - buffer.bottom - buffer.top
   --       } )
   --   local area = math.random( 10, 300 )
   --   generate_continent( square, area )
   -- end
-  -- clear_buffer_area( buffer / 2 )
+  -- clear_buffer_area( buffer )
   -- -- Need to do this before creating fish resources.
   -- create_sea_lanes()
   -- create_arctic()
