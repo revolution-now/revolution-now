@@ -414,7 +414,7 @@ void render_land_view( rr::Renderer& renderer ) {
     {
       // This is the shadow behind the land rectangle.
       SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
-      int shadow_offset   = lround( 30 * viewport().get_zoom() );
+      int shadow_offset   = lround( 20 * viewport().get_zoom() );
       rr::Painter painter = renderer.painter();
       painter.draw_solid_rect(
           viewport().rendering_dest_rect().shifted_by(
