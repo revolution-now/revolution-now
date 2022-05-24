@@ -5,7 +5,10 @@ composition {
       commodity:        null
       min_quantity:     0
       max_quantity:     1000000
-      multiple:         100
+      # In practice, gold quantities held by treasure trains will
+      # be in multiples of 100, but there doesn't seem to be any
+      # reason to enforce that through configuration.
+      multiple:         1
       default_quantity: 1000
     }
 
