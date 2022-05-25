@@ -15,25 +15,26 @@
       map is scrolled.
   8.  Implement world generation.
   9.  Implement terrain visibility.
-  10. [reproducible on lenovo] There is currently a (potentially
-      significant) performance problem with rendering the map
-      that needs to be better understood and fixed. The problem
-      is that, after some map squares have been updated and be-
-      fore the entire map has been rerendered, zooming in on
-      those squares causes the FPS to drop significantly. The way
-      to reproduce it is to create a new map, then use the map
-      editor to edit some tiles (but not enough to cause the map
-      to be redrawn), then zoom in on those redrawn tiles, and
-      observe the FPS drop significantly. This could be due to
-      the fact that the same tile now has vertices both in the
-      middle of the landscape buffer and at the end, which may be
-      interfering with some of the driver/hardware's rendering
-      optimizations. This really needs to be fixed, otherwise, if
-      the player is zoomed in, and they move a unit and expose
-      some new terrain, the FPS will drop, since the map has been
-      edited (in this case, by removing the fog). This doesn't
-      seem to be reproducible on all systems, so it could be
-      driver-specific :-E
+  10. [reproducible on darter, lenovo, and macbook] There is cur-
+      rently a (potentially significant) performance problem with
+      rendering the map that needs to be better understood and
+      fixed. The problem is that, after some map squares have
+      been updated and before the entire map has been rerendered,
+      zooming in on those squares causes the FPS to drop signifi-
+      cantly. The way to reproduce it is to create a new map,
+      then use the map editor to edit some tiles (but not enough
+      to cause the map to be redrawn), then zoom in on those re-
+      drawn tiles, and observe the FPS drop significantly. This
+      could be due to the fact that the same tile now has ver-
+      tices both in the middle of the landscape buffer and at the
+      end, which may be interfering with some of the driver/hard-
+      ware's rendering optimizations. This really needs to be
+      fixed, otherwise, if the player is zoomed in, and they move
+      a unit and expose some new terrain, the FPS will drop,
+      since the map has been edited (in this case, by removing
+      the fog). This doesn't seem to be reproducible on all sys-
+      tems, so it could be driver-specific. But it is repro-
+      ducible on enough systems such that it must be fixed.
   11. On large maps the current method of updating tiles is to
       laggy due to the time taken to upload it to the GPU, and
       this is bad because it could happen often. To fix this,
