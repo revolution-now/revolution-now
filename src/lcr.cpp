@@ -270,7 +270,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .yes_label      = "Let us search for treasure!",
             .no_label       = "Leave them alone.",
             .no_comes_first = false } );
-      if( res == ui::e_confirm::no ) break;
+      if( res == ui::e_confirm::no )
+        co_return LostCityRumorResult::other{};
       e_burial_mounds_type bm_type =
           pick_burial_mounds_result( explorer );
       LostCityRumorResult_t result =
