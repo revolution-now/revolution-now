@@ -342,7 +342,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -719,8 +719,8 @@ wait<> TravelHandler::perform() {
         player, explorer, burial_type );
     LostCityRumorResult_t lcr_res =
         co_await run_lost_city_rumor_result(
-            terrain_state_, units_state, events_state, gui_,
-            player, map_updater_, unit_id, move_dst, rumor_type,
+            terrain_state_, units_state, gui_, player,
+            map_updater_, unit_id, move_dst, rumor_type,
             burial_type, has_burial_grounds );
 
     // Presumably we don't want to do anything more in this
