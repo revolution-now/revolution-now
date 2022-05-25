@@ -1,3 +1,19 @@
+RAII Planes Redesign
+=================================================================
+
+// In the header.
+struct FooPlane : public Plane {
+  FooPlane(...);
+  // This must be defined separately; if we default it here then
+  // it will require access to the Impl destructor which we don't
+  // have.
+  ~FooPlane() noexcept; // = default but in the cpp.
+
+private:
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
 Landscape Buffer
 =================================================================
 

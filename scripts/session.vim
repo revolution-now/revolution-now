@@ -1,20 +1,17 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'render/vertex',
- \ 'render/generic',
- \ 'render/painter',
- \ 'render/renderer',
- \ 'terrain',
- \ 'config/terrain',
- \ 'map-square',
- \ 'map-updater',
- \ 'gs-terrain',
- \ 'land-view',
+ \ 'frame',
+ \ 'plane',
+ \ 'plane-ctrl',
+ \ 'main-menu',
  \ 'map-edit',
- \ 'render-terrain',
- \ 'map-gen',
- \ 'on-map',
- \ 'lcr',
+ \ 'land-view',
+ \ 'panel',
+ \ 'colony-view',
+ \ 'old-world',
+ \ 'console',
+ \ 'menu',
+ \ 'window',
 \]
 
 let s:luas = [
@@ -136,15 +133,15 @@ silent edit exe/main.cpp
 echo 'opening luas...'
 " call s:OpenLuas( s:luas )
 
+echo 'opening docs...'
+for q in s:quads
+  call s:OpenQuad( q[0], q[1], q[3], q[2] )
+endfor
+
 echo 'opening cpps...'
 for s in s:stems
   call s:OpenModule( s )
 endfor
-
-echo 'opening docs...'
-" for q in s:quads
-"   call s:OpenQuad( q[0], q[1], q[3], q[2] )
-" endfor
 
 tabdo set cmdheight=1
 tabdo wincmd =
