@@ -89,8 +89,8 @@ bool allow_fountain_of_youth( EventsState const& events_state ) {
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
     e_burial_mounds_type type, UnitsState& units_state,
-    Player& player, IMapUpdater& map_updater, UnitId unit_id,
-    Coord world_square ) {
+    IGui& gui, Player& player, IMapUpdater& map_updater,
+    UnitId unit_id, Coord world_square ) {
   bool                        positive_result = {};
   LostCityRumorResult_t       result          = {};
   e_lcr_explorer_bucket const explorer =
@@ -101,7 +101,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
           { .min      = config_lcr.trinkets_gift_min[explorer],
             .max      = config_lcr.trinkets_gift_max[explorer],
             .multiple = config_lcr.trinkets_gift_multiple } );
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
       int total = player.add_money( amount );
@@ -120,7 +120,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
                 config_lcr.burial_mounds_treasure_max[explorer],
             .multiple =
                 config_lcr.burial_mounds_treasure_multiple } );
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You've recovered a treasure worth @[H]{}@[].",
           amount );
       UNWRAP_CHECK(
@@ -136,7 +136,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
-      co_await ui::message_box(
+      co_await gui.message_box(
           "The mounds are cold and empty." );
       positive_result = false;
       result          = LostCityRumorResult::other{};
@@ -155,7 +155,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
   bool allow_burial_grounds =
       !has_hernando_de_soto() || positive_result;
   if( has_burial_grounds() && allow_burial_grounds ) {
-    co_await ui::message_box(
+    co_await gui.message_box(
         "These are native burial grounds.  WAR!" );
   }
   co_return result;
@@ -217,18 +217,18 @@ e_unit_type pick_unit_type_for_foy() {
 
 wait<LostCityRumorResult_t> run_rumor_result(
     e_rumor_type type, TerrainState const& /*terrain_state*/,
-    UnitsState& units_state, Player& player,
+    UnitsState& units_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
   e_lcr_explorer_bucket const explorer =
       explorer_bucket( units_state, unit_id );
   switch( type ) {
     case e_rumor_type::none: {
-      co_await ui::message_box( "You find nothing but rumors." );
+      co_await gui.message_box( "You find nothing but rumors." );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::fountain_of_youth: {
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You've discovered a Fountain of Youth!" );
       int const count =
           config_lcr.fountain_of_youth_num_immigrants;
@@ -242,7 +242,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
                          UnitComposition::create( next ) );
         units_state.change_to_old_world_view(
             id, UnitOldWorldViewState::in_port{} );
-        co_await ui::message_box(
+        co_await gui.message_box(
             "A @[H]{}@[] has arrived in port!",
             units_state.unit_for( id ).desc().name );
       }
@@ -253,7 +253,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
           { .min      = config_lcr.ruins_gift_min[explorer],
             .max      = config_lcr.ruins_gift_max[explorer],
             .multiple = config_lcr.ruins_gift_multiple } );
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You've discovered the ruins of a lost civilization, "
           "among which there are items worth @[H]{}@[] in gold.",
           amount );
@@ -264,16 +264,19 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::burial_mounds: {
-      ui::e_confirm res = co_await ui::yes_no(
-          "You stumble across some mysterious ancient burial "
-          "mounds.  Explore them?" );
+      ui::e_confirm res = co_await gui.yes_no(
+          { .msg = "You stumble across some mysterious ancient "
+                   "burial mounds.  Explore them?",
+            .yes_label      = "Let us search for treasure!",
+            .no_label       = "Leave them alone.",
+            .no_comes_first = false } );
       if( res == ui::e_confirm::no ) break;
       e_burial_mounds_type bm_type =
           pick_burial_mounds_result( explorer );
       LostCityRumorResult_t result =
           co_await run_burial_mounds_result(
-              bm_type, units_state, player, map_updater, unit_id,
-              world_square );
+              bm_type, units_state, gui, player, map_updater,
+              unit_id, world_square );
       co_return result;
     }
     case e_rumor_type::chief_gift: {
@@ -281,7 +284,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
           { .min      = config_lcr.chief_gift_min[explorer],
             .max      = config_lcr.chief_gift_max[explorer],
             .multiple = config_lcr.chief_gift_multiple } );
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth @[H]{}@[] gold.",
           amount );
@@ -292,7 +295,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::free_colonist: {
-      co_await ui::message_box(
+      co_await gui.message_box(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
           "swear allegiance to you and join your expedition." );
@@ -307,7 +310,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
       units_state.destroy_unit( unit_id );
-      co_await ui::message_box(
+      co_await gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};
     }
@@ -324,7 +327,7 @@ bool has_lost_city_rumor( TerrainState const& terrain_state,
 
 wait<LostCityRumorResult_t> enter_lost_city_rumor(
     TerrainState const& terrain_state, UnitsState& units_state,
-    EventsState const& events_state, Player& player,
+    EventsState const& events_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
   e_lcr_explorer_bucket const explorer =
@@ -355,7 +358,7 @@ wait<LostCityRumorResult_t> enter_lost_city_rumor(
       rng::pick_from_weighted_enum_values( weights );
 
   LostCityRumorResult_t result = co_await run_rumor_result(
-      type, terrain_state, units_state, player, map_updater,
+      type, terrain_state, units_state, gui, player, map_updater,
       unit_id, world_square );
 
   // Remove lost city rumor.

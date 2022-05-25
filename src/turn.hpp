@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "igui.hpp"
 #include "wait.hpp"
 
 // C++ standard library
@@ -25,6 +26,6 @@ struct game_load_interrupt : std::exception {};
 
 struct IMapUpdater;
 
-wait<> next_turn( IMapUpdater& map_updater );
+wait<> next_turn( IMapUpdater& map_updater, IGui& gui );
 
 } // namespace rn

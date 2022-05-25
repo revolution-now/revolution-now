@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "igui.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
@@ -88,7 +89,7 @@ struct OrdersHandler {
 struct IMapUpdater;
 
 std::unique_ptr<OrdersHandler> orders_handler(
-    UnitId id, orders_t const& orders,
-    IMapUpdater* map_updater );
+    UnitId id, orders_t const& orders, IMapUpdater* map_updater,
+    IGui& gui );
 
 } // namespace rn

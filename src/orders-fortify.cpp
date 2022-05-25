@@ -22,11 +22,12 @@ namespace rn {
 namespace {
 
 struct FortifyHandler : public OrdersHandler {
-  FortifyHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  FortifyHandler( UnitId unit_id_, IGui& gui_arg )
+    : unit_id( unit_id_ ), gui( gui_arg ) {}
 
   wait<bool> confirm() override {
     if( is_unit_onboard( unit_id ) ) {
-      co_await ui::message_box(
+      co_await gui.message_box(
           "Cannot fortify as cargo of another unit." );
       co_return false;
     }
@@ -41,10 +42,12 @@ struct FortifyHandler : public OrdersHandler {
   }
 
   UnitId unit_id;
+  IGui&  gui;
 };
 
 struct SentryHandler : public OrdersHandler {
-  SentryHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  SentryHandler( UnitId unit_id_, IGui& gui_arg )
+    : unit_id( unit_id_ ), gui( gui_arg ) {}
 
   wait<bool> confirm() override { co_return true; }
 
@@ -54,6 +57,7 @@ struct SentryHandler : public OrdersHandler {
   }
 
   UnitId unit_id;
+  IGui&  gui;
 };
 
 } // namespace
@@ -62,13 +66,14 @@ struct SentryHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const&, IMapUpdater* ) {
-  return make_unique<FortifyHandler>( id );
+    UnitId id, orders::fortify const&, IMapUpdater*,
+    IGui&  gui ) {
+  return make_unique<FortifyHandler>( id, gui );
 }
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const&, IMapUpdater* ) {
-  return make_unique<SentryHandler>( id );
+    UnitId id, orders::sentry const&, IMapUpdater*, IGui& gui ) {
+  return make_unique<SentryHandler>( id, gui );
 }
 
 } // namespace rn

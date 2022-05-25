@@ -20,9 +20,11 @@ namespace rn {
 struct IMapUpdater;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const& fortify, IMapUpdater* );
+    UnitId id, orders::fortify const& fortify, IMapUpdater*,
+    IGui& gui );
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const& sentry, IMapUpdater* );
+    UnitId id, orders::sentry const& sentry, IMapUpdater*,
+    IGui& gui );
 
 } // namespace rn

@@ -26,20 +26,21 @@ namespace rn {
 namespace {
 
 struct RoadHandler : public OrdersHandler {
-  RoadHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  RoadHandler( IGui& gui_arg, UnitId unit_id_ )
+    : gui( gui_arg ), unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
     UnitsState const& units_state = GameState::units();
     Unit const&       unit = units_state.unit_for( unit_id );
     if( unit.type() == e_unit_type::hardy_colonist ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "This @[H]Hardy Pioneer@[] requires at least 20 tools "
           "to build a road." );
       co_return false;
     }
     if( unit.type() != e_unit_type::pioneer &&
         unit.type() != e_unit_type::hardy_pioneer ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "Only @[H]Pioneers@[] and @[H]Hardy Pioneers@[] can "
           "build roads." );
       co_return false;
@@ -49,7 +50,7 @@ struct RoadHandler : public OrdersHandler {
     if( !ownership.is<UnitOwnership::world>() ) {
       // This can happen if a pioneer is on a ship asking for or-
       // ders and it is given road-building orders.
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "Roads can only be built while directly on a land "
           "tile." );
       co_return false;
@@ -58,7 +59,7 @@ struct RoadHandler : public OrdersHandler {
     TerrainState const& terrain_state = GameState::terrain();
     CHECK( terrain_state.is_land( world_square ) );
     if( has_road( terrain_state, world_square ) ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "There is already a road on this square." );
       co_return false;
     }
@@ -83,6 +84,7 @@ struct RoadHandler : public OrdersHandler {
     co_return;
   }
 
+  IGui&  gui;
   UnitId unit_id;
 };
 
@@ -92,8 +94,9 @@ struct RoadHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::road const& /*road*/, IMapUpdater* ) {
-  return make_unique<RoadHandler>( id );
+    UnitId id, orders::road const& /*road*/, IMapUpdater*,
+    IGui&  gui ) {
+  return make_unique<RoadHandler>( gui, id );
 }
 
 } // namespace rn

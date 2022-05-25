@@ -45,13 +45,13 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> turn_loop( IMapUpdater& map_updater ) {
-  while( true ) co_await next_turn( map_updater );
+wait<> turn_loop( IMapUpdater& map_updater, IGui& gui ) {
+  while( true ) co_await next_turn( map_updater, gui );
 }
 
-wait<> run_loaded_game( IMapUpdater& map_updater ) {
+wait<> run_loaded_game( IMapUpdater& map_updater, IGui& gui ) {
   return co::erase( co::try_<game_quit_interrupt>(
-      [&] { return turn_loop( map_updater ); } ) );
+      [&] { return turn_loop( map_updater, gui ); } ) );
 }
 
 } // namespace
@@ -59,7 +59,7 @@ wait<> run_loaded_game( IMapUpdater& map_updater ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_existing_game() {
+wait<> run_existing_game( IGui& gui ) {
   lua_reload();
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
@@ -70,10 +70,10 @@ wait<> run_existing_game() {
   CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( map_updater );
+  co_await run_loaded_game( map_updater, gui );
 }
 
-wait<> run_new_game() {
+wait<> run_new_game( IGui& gui ) {
   lua_reload();
   default_construct_game_state();
   // Leave this here because it depends on the terrain which,
@@ -98,7 +98,7 @@ wait<> run_new_game() {
 
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( map_updater );
+  co_await run_loaded_game( map_updater, gui );
 }
 
 } // namespace rn

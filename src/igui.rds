@@ -1,0 +1,49 @@
+# ===============================================================
+# igui.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-25.
+#
+# Description: Rds definitions for the igui module.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
+# Rds
+include "ui-enums.rds.hpp"
+
+# C++ standard library
+include "<string>"
+include "<vector>"
+
+namespace "rn"
+
+struct.ChoiceConfigOption {
+  key 'std::string',
+  display_name 'std::string',
+}
+
+# Used to configure a message box that presents the user with
+# some choices.
+struct.ChoiceConfig {
+  # This text will be reflowed and may end up on multiple lines.
+  msg 'std::string',
+
+  # Needs to be a vector for well-defined and customizable order-
+  # ing.
+  options 'std::vector<ChoiceConfigOption>',
+
+  # If this has a value then the user is allowed to hit escape to
+  # close the window and in that case it will return the given
+  # key, which does not have to be among those in the options.
+  key_on_escape 'maybe<std::string>',
+};
+
+struct.YesNoConfig {
+  msg 'std::string',
+  yes_label 'std::string',
+  no_label 'std::string',
+  no_comes_first 'bool',
+}

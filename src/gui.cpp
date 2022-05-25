@@ -34,7 +34,7 @@ wait<std::string> RealGui::choice( ChoiceConfig const& config ) {
     // Sanity check.
     unordered_set<string> seen_key;
     unordered_set<string> seen_display;
-    for( ChoiceConfig::Option option : config.options ) {
+    for( ChoiceConfigOption option : config.options ) {
       DCHECK( !seen_key.contains( option.key ) );
       DCHECK( !seen_display.contains( option.display_name ) );
       seen_key.insert( option.key );
@@ -42,7 +42,7 @@ wait<std::string> RealGui::choice( ChoiceConfig const& config ) {
     }
   }
   vector<string> options;
-  for( ChoiceConfig::Option option : config.options )
+  for( ChoiceConfigOption option : config.options )
     options.push_back( option.display_name );
   int selected = co_await ui::select_box( config.msg, options );
   co_return config.options[selected].key;

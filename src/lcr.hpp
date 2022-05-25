@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "igui.hpp"
 #include "map-updater.hpp"
 #include "player.hpp"
 #include "unit-id.hpp"
@@ -40,7 +41,7 @@ bool has_lost_city_rumor( TerrainState const& terrain_state,
 // turn true. Otherwise returns false.
 wait<LostCityRumorResult_t> enter_lost_city_rumor(
     TerrainState const& terrain_state, UnitsState& units_state,
-    EventsState const& events_state, Player& player,
+    EventsState const& events_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square );
 

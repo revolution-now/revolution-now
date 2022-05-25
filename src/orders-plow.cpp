@@ -30,20 +30,21 @@ namespace rn {
 namespace {
 
 struct PlowHandler : public OrdersHandler {
-  PlowHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  PlowHandler( IGui& gui_arg, UnitId unit_id_ )
+    : gui( gui_arg ), unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
     UnitsState const& units_state = GameState::units();
     Unit const&       unit = units_state.unit_for( unit_id );
     if( unit.type() == e_unit_type::hardy_colonist ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "This @[H]Hardy Pioneer@[] requires at least 20 tools "
           "to plow." );
       co_return false;
     }
     if( unit.type() != e_unit_type::pioneer &&
         unit.type() != e_unit_type::hardy_pioneer ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "Only @[H]Pioneers@[] and @[H]Hardy Pioneers@[] can "
           "plow." );
       co_return false;
@@ -53,7 +54,7 @@ struct PlowHandler : public OrdersHandler {
     if( !ownership.is<UnitOwnership::world>() ) {
       // This can happen if a pioneer is on a ship asking for or-
       // ders and it is given plowing orders.
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "Plowing can only be done while directly on a land "
           "tile." );
       co_return false;
@@ -62,14 +63,14 @@ struct PlowHandler : public OrdersHandler {
     TerrainState const& terrain_state = GameState::terrain();
     CHECK( terrain_state.is_land( world_square ) );
     if( !can_plow( terrain_state, world_square ) ) {
-      co_await ui::message_box(
+      co_await gui.message_box(
           "@[H]{}@[] tiles cannot be plowed or cleared.",
           effective_terrain(
               terrain_state.square_at( world_square ) ) );
       co_return false;
     }
     if( has_irrigation( terrain_state, world_square ) ) {
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "There is already irrigation on this square." );
       co_return false;
     }
@@ -94,6 +95,7 @@ struct PlowHandler : public OrdersHandler {
     co_return;
   }
 
+  IGui&  gui;
   UnitId unit_id;
 };
 
@@ -103,8 +105,9 @@ struct PlowHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::plow const& /*plow*/, IMapUpdater* ) {
-  return make_unique<PlowHandler>( id );
+    UnitId id, orders::plow const& /*plow*/, IMapUpdater*,
+    IGui&  gui ) {
+  return make_unique<PlowHandler>( gui, id );
 }
 
 } // namespace rn

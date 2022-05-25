@@ -16,6 +16,9 @@
 #include "maybe.hpp"
 #include "wait.hpp"
 
+// Rds
+#include "igui.rds.hpp"
+
 // base
 #include "base/fmt.hpp"
 #include "base/no-default.hpp"
@@ -26,30 +29,6 @@
 #include <vector>
 
 namespace rn {
-
-// Used to configure a message box that presents the user with
-// some choices.
-struct ChoiceConfig {
-  bool operator==( ChoiceConfig const& ) const = default;
-
-  struct Option {
-    std::string key          = base::no_default<>;
-    std::string display_name = base::no_default<>;
-  };
-
-  // This text will be reflowed and may end up on multiple lines.
-  std::string msg = base::no_default<>;
-
-  // Needs to be a vector for well-defined and customizable or-
-  // dering.
-  std::vector<Option> options = base::no_default<>;
-
-  // If this has a value then the user is allowed to hit escape
-  // to close the window and in that case it will return the
-  // given key, which does not have to be among those in the op-
-  // tions.
-  maybe<std::string> key_on_escape = nothing;
-};
 
 /****************************************************************
 ** IGui
@@ -82,6 +61,9 @@ struct IGui {
         fmt::runtime( msg ), std::forward<Arg>( arg ),
         std::forward<Rest>( rest )... ) );
   }
+
+  // For convenience. Should not be overridden.
+  wait<ui::e_confirm> yes_no( YesNoConfig const& config );
 };
 
 } // namespace rn

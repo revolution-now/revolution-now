@@ -20,6 +20,7 @@ namespace rn {
 struct IMapUpdater;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::road const& road, IMapUpdater* );
+    UnitId id, orders::road const& road, IMapUpdater*,
+    IGui& gui );
 
 } // namespace rn

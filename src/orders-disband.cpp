@@ -27,13 +27,15 @@ namespace rn {
 namespace {
 
 struct DisbandHandler : public OrdersHandler {
-  DisbandHandler( UnitId unit_id_ ) : unit_id( unit_id_ ) {}
+  DisbandHandler( UnitId unit_id_, IGui& gui_arg )
+    : unit_id( unit_id_ ), gui( gui_arg ) {}
 
   wait<bool> confirm() override {
     auto q = fmt::format( "Really disband {}?",
                           unit_from_id( unit_id ).desc().name );
 
-    ui::e_confirm answer = co_await ui::yes_no( q );
+    ui::e_confirm answer = co_await gui.yes_no(
+        { .msg = q, .yes_label = "Yes", .no_label = "No" } );
     co_return answer == ui::e_confirm::yes;
   }
 
@@ -43,6 +45,7 @@ struct DisbandHandler : public OrdersHandler {
   }
 
   UnitId unit_id;
+  IGui&  gui;
 };
 
 } // namespace
@@ -51,8 +54,9 @@ struct DisbandHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::disband const&, IMapUpdater* ) {
-  return make_unique<DisbandHandler>( id );
+    UnitId id, orders::disband const&, IMapUpdater*,
+    IGui&  gui ) {
+  return make_unique<DisbandHandler>( id, gui );
 }
 
 } // namespace rn

@@ -45,23 +45,26 @@ valid_or<string> is_valid_colony_name_msg( string_view name ) {
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( IMapUpdater* map_updater, UnitId unit_id_ )
-    : map_updater_( map_updater ), unit_id( unit_id_ ) {}
+  BuildHandler( IMapUpdater* map_updater_arg, IGui& gui_arg,
+                UnitId unit_id_ )
+    : map_updater( map_updater_arg ),
+      gui( gui_arg ),
+      unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
     if( auto valid = unit_can_found_colony( unit_id ); !valid ) {
       switch( valid.error() ) {
         case e_found_colony_err::colony_exists_here:
-          co_await ui::message_box(
+          co_await gui.message_box(
               "There is already a colony on this "
               "square." );
           co_return false;
         case e_found_colony_err::no_water_colony:
-          co_await ui::message_box(
+          co_await gui.message_box(
               "Cannot found a colony on water." );
           co_return false;
         case e_found_colony_err::non_human_cannot_found_colony:
-          co_await ui::message_box(
+          co_await gui.message_box(
               "Only human units can found colonies." );
           co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
@@ -74,7 +77,9 @@ struct BuildHandler : public OrdersHandler {
     }
 
     ui::e_confirm proceed =
-        co_await ui::yes_no( "Build colony here?" );
+        co_await gui.yes_no( { .msg       = "Build colony here?",
+                               .yes_label = "Yes",
+                               .no_label  = "No" } );
     if( proceed == ui::e_confirm::no ) co_return false;
     while( true ) {
       colony_name = co_await ui::str_input_box(
@@ -85,21 +90,22 @@ struct BuildHandler : public OrdersHandler {
       valid_or<string> is_valid =
           is_valid_colony_name_msg( *colony_name );
       if( is_valid ) co_return true;
-      co_await ui::message_box( is_valid.error() );
+      co_await gui.message_box( is_valid.error() );
     }
   }
 
   wait<> perform() override {
-    colony_id = found_colony_unsafe( unit_id, *map_updater_,
+    colony_id = found_colony_unsafe( unit_id, *map_updater,
                                      *colony_name );
     co_return;
   }
 
   wait<> post() const override {
-    return show_colony_view( colony_id, *map_updater_ );
+    return show_colony_view( colony_id, *map_updater );
   }
 
-  IMapUpdater*  map_updater_;
+  IMapUpdater*  map_updater;
+  IGui&         gui;
   UnitId        unit_id;
   maybe<string> colony_name;
   ColonyId      colony_id;
@@ -112,8 +118,8 @@ struct BuildHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater ) {
-  return make_unique<BuildHandler>( map_updater, id );
+    IMapUpdater* map_updater, IGui& gui ) {
+  return make_unique<BuildHandler>( map_updater, gui, id );
 }
 
 } // namespace rn

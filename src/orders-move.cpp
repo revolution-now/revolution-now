@@ -22,6 +22,7 @@
 #include "gs-events.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
+#include "igui.hpp"
 #include "land-view.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
@@ -138,7 +139,7 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 ** Movement Points Calculator
 *****************************************************************/
 wait<maybe<MovementPoints>> check_movement_points(
-    Unit const& unit, MapSquare const& src_square,
+    IGui& gui, Unit const& unit, MapSquare const& src_square,
     MapSquare const& dst_square ) {
   MovementPointsAnalysis analysis =
       expense_movement_points( unit, src_square, dst_square );
@@ -154,7 +155,7 @@ wait<maybe<MovementPoints>> check_movement_points(
   // with not enough movement points will simply end that unit's
   // turn by forfeighting its movement points, and it appears
   // that will mirror the original game's behavior.
-  co_await ui::message_box(
+  co_await gui.message_box(
       "Unit requires @[H]{}@[] movement point(s) to enter this "
       "square, but only has @[H]{}@[]+{} = @[H]{}@[] available "
       "to use.",
@@ -171,11 +172,12 @@ wait<maybe<MovementPoints>> check_movement_points(
 struct TravelHandler : public OrdersHandler {
   TravelHandler( UnitId unit_id_, e_direction d,
                  IMapUpdater&  map_updater,
-                 TerrainState& terrain_state )
+                 TerrainState& terrain_state, IGui& gui )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
-      terrain_state_( terrain_state ) {}
+      terrain_state_( terrain_state ),
+      gui_( gui ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -210,7 +212,7 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::not_enough_movement_points:
         co_return false;
       case e_travel_verdict::board_ship_full:
-        co_await ui::message_box(
+        co_await gui_.message_box(
             "None of the ships on this square have enough free "
             "space to hold this unit!" );
         co_return false;
@@ -305,6 +307,8 @@ struct TravelHandler : public OrdersHandler {
   IMapUpdater& map_updater_;
 
   TerrainState& terrain_state_;
+
+  IGui& gui_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -319,7 +323,7 @@ TravelHandler::analyze_unload() const {
   }
   if( !to_offload.empty() ) {
     if( colony_from_coord( move_src ) ) {
-      co_await ui::message_box(
+      co_await gui_.message_box(
           "A ship containing units cannot make landfall while "
           "in port." );
       co_return e_travel_verdict::land_forbidden;
@@ -333,7 +337,11 @@ TravelHandler::analyze_unload() const {
       msg =
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
-    ui::e_confirm answer = co_await ui::yes_no( msg );
+    ui::e_confirm answer =
+        co_await gui_.yes_no( { .msg       = msg,
+                                .yes_label = "Make landfall",
+                                .no_label  = "Stay with ships",
+                                .no_comes_first = true } );
     co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
@@ -355,8 +363,10 @@ TravelHandler::confirm_sail_high_seas() const {
   // sail the high seas.
   if( is_high_seas( terrain_state_, move_src ) )
     co_return e_travel_verdict::map_to_map;
-  ui::e_confirm confirmed = co_await ui::yes_no(
-      "Would you like to sail the high seas?" );
+  ui::e_confirm confirmed = co_await gui_.yes_no(
+      { .msg       = "Would you like to sail the high seas?",
+        .yes_label = "Yes, steady as she goes!",
+        .no_label  = "No, let us remain in these waters." } );
   co_return confirmed == ui::e_confirm::yes
       ? TravelHandler::e_travel_verdict::sail_high_seas
       : TravelHandler::e_travel_verdict::map_to_map;
@@ -377,7 +387,7 @@ TravelHandler::confirm_travel_impl() {
   auto&       dst_square = terrain_state_.square_at( move_dst );
   Unit const& unit       = units_state.unit_for( id );
   maybe<MovementPoints> to_subtract =
-      co_await check_movement_points( unit, src_square,
+      co_await check_movement_points( gui_, unit, src_square,
                                       dst_square );
   if( !to_subtract.has_value() )
     co_return e_travel_verdict::not_enough_movement_points;
@@ -701,8 +711,8 @@ wait<> TravelHandler::perform() {
       has_lost_city_rumor( terrain_state_, move_dst ) ) {
     LostCityRumorResult_t lcr_res =
         co_await enter_lost_city_rumor(
-            terrain_state_, units_state, events_state, player,
-            map_updater_, unit_id, move_dst );
+            terrain_state_, units_state, events_state, gui_,
+            player, map_updater_, unit_id, move_dst );
     // Presumably we don't want to do anything more in this
     // function if the unit that moved has disappeared.
     if( lcr_res.holds<LostCityRumorResult::unit_lost>() )
@@ -723,11 +733,12 @@ wait<> TravelHandler::perform() {
 struct AttackHandler : public OrdersHandler {
   AttackHandler( UnitId unit_id_, e_direction d,
                  IMapUpdater&  map_updater,
-                 TerrainState& terrain_state )
+                 TerrainState& terrain_state, IGui& gui )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
-      terrain_state_( terrain_state ) {}
+      terrain_state_( terrain_state ),
+      gui_( gui ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -750,18 +761,19 @@ struct AttackHandler : public OrdersHandler {
       case e_attack_verdict::cancelled: co_return false;
       // Non-allowed (errors)
       case e_attack_verdict::land_unit_attack_ship:
-        co_await ui::message_box(
+        co_await gui_.message_box(
             "Land units cannot attack ships." );
         co_return false;
       case e_attack_verdict::ship_attack_land_unit:
-        co_await ui::message_box(
+        co_await gui_.message_box(
             "Ships cannot attack land units." );
         co_return false;
       case e_attack_verdict::unit_cannot_attack:
-        co_await ui::message_box( "This unit cannot attack." );
+        co_await gui_.message_box( "This unit cannot attack." );
         co_return false;
       case e_attack_verdict::attack_from_ship:
-        co_await ui::message_box( "Cannot attack from a ship." );
+        co_await gui_.message_box(
+            "Cannot attack from a ship." );
         co_return false;
       // Allowed moves
       case e_attack_verdict::colony_undefended:
@@ -830,7 +842,7 @@ struct AttackHandler : public OrdersHandler {
       Colony const&      colony = colony_from_id( colony_id );
       Nationality const& attacker_nation =
           nation_obj( unit_from_id( unit_id ).nation() );
-      co_await ui::message_box(
+      co_await gui_.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
       co_await show_colony_view( colony_id, map_updater_ );
@@ -867,6 +879,8 @@ struct AttackHandler : public OrdersHandler {
   IMapUpdater& map_updater_;
 
   TerrainState& terrain_state_;
+
+  IGui& gui_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -885,11 +899,16 @@ AttackHandler::confirm_attack_impl() {
     co_return e_attack_verdict::unit_cannot_attack;
 
   if( unit.movement_points() < 1 ) {
-    if( co_await ui::ok_cancel(
-            "This unit only has @[H]{}@[] movement points and "
-            "so will not be fighting at full strength.  "
-            "Continue?",
-            unit.movement_points() ) == ui::e_ok_cancel::cancel )
+    if( co_await gui_.yes_no(
+            { .msg = fmt::format(
+                  "This unit only has @[H]{}@[] movement points "
+                  "and so will not be fighting at full "
+                  "strength.  Continue?",
+                  unit.movement_points() ),
+              .yes_label =
+                  "Yes, let us proceed with full force!",
+              .no_label = "No, do not attack." } ) ==
+        ui::e_confirm::no )
       co_return e_attack_verdict::cancelled;
   }
 
@@ -1115,7 +1134,7 @@ wait<> AttackHandler::perform() {
       GameState::units().destroy_unit( loser.id() );
       if( loser_type == e_unit_type::scout ||
           loser_type == e_unit_type::seasoned_scout )
-        co_await ui::message_box(
+        co_await gui_.message_box(
             "@[H]{}@[] scout has been lost!",
             nation_obj( loser_nation ).adjective );
       break;
@@ -1141,7 +1160,7 @@ wait<> AttackHandler::perform() {
       // otherwise the unit will reappear on the map while the
       // message is open.
       GameState::units().destroy_unit( loser.id() );
-      co_await ui::message_box( msg );
+      co_await gui_.message_box( msg );
       break;
     }
     case e::capture:
@@ -1175,9 +1194,10 @@ wait<> AttackHandler::perform() {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch(
-    UnitId id, e_direction d, IMapUpdater& map_updater,
-    TerrainState& terrain_state ) {
+unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
+                                    IMapUpdater&  map_updater,
+                                    TerrainState& terrain_state,
+                                    IGui&         gui ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
@@ -1185,23 +1205,23 @@ unique_ptr<OrdersHandler> dispatch(
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
     return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state );
+                                       terrain_state, gui );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state );
+                                       terrain_state, gui );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state );
+                                       terrain_state, gui );
 
   // Must be an attack.
   return make_unique<AttackHandler>( id, d, map_updater,
-                                     terrain_state );
+                                     terrain_state, gui );
 }
 
 } // namespace
@@ -1210,10 +1230,10 @@ unique_ptr<OrdersHandler> dispatch(
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::move const& mv,
-    IMapUpdater* map_updater ) {
+    UnitId id, orders::move const& mv, IMapUpdater* map_updater,
+    IGui& gui ) {
   TerrainState& terrain_state = GameState::terrain();
-  return dispatch( id, mv.d, *map_updater, terrain_state );
+  return dispatch( id, mv.d, *map_updater, terrain_state, gui );
 }
 
 } // namespace rn
