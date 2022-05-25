@@ -135,3 +135,9 @@ burial_mounds_treasure_max {
   scout:          4000
   other:          3500
 }
+
+burial_grounds_probability {
+  seasoned_scout: .01
+  scout:          .05
+  other:          .25
+}

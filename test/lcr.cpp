@@ -22,6 +22,9 @@
 // Under test.
 #include "src/lcr.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -76,6 +79,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   e_rumor_type         rumor_type = e_rumor_type::none;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL(
@@ -87,7 +91,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -133,6 +137,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   e_rumor_type         rumor_type = e_rumor_type::chief_gift;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui, message_box( StrContains(
@@ -144,7 +149,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -156,6 +161,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   // culty mode.
   REQUIRE( player.money() >= 15 );
   REQUIRE( player.money() <= 70 );
+  REQUIRE( player.money() % 1 == 0 ); // trivial
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -194,6 +200,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   e_rumor_type         rumor_type = e_rumor_type::ruins;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL(
@@ -206,7 +213,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -218,6 +225,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   // lowest difficulty mode.
   REQUIRE( player.money() >= 80 );
   REQUIRE( player.money() <= 220 );
+  REQUIRE( player.money() % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -256,6 +264,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   e_rumor_type rumor_type = e_rumor_type::fountain_of_youth;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui,
@@ -276,7 +285,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -322,6 +331,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   e_rumor_type         rumor_type = e_rumor_type::free_colonist;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL(
@@ -334,7 +344,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -383,6 +393,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   e_rumor_type         rumor_type = e_rumor_type::unit_lost;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty; // not relevant.
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL(
@@ -395,7 +406,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -441,6 +452,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::treasure_train;
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui, choice( _ ) )
@@ -454,7 +466,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -464,8 +476,19 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
       2_id );
-  REQUIRE( units_state.unit_for( 2_id ).type() ==
-           e_unit_type::large_treasure );
+  Unit const& unit = units_state.unit_for( 2_id );
+  REQUIRE( unit.type() == e_unit_type::large_treasure );
+  unordered_map<e_unit_inventory, int> const& inventory =
+      unit.composition().inventory();
+  REQUIRE( inventory.contains( e_unit_inventory::gold ) );
+  UNWRAP_CHECK(
+      gold, base::lookup( inventory, e_unit_inventory::gold ) );
+  // These number come from the config files for the min/max
+  // amount of a treasure train for a non-scout on the lowest
+  // difficulty mode.
+  REQUIRE( gold >= 2000 );
+  REQUIRE( gold <= 3500 );
+  REQUIRE( gold % 100 == 0 );
   // Money is zero because the gold is on the treasure train.
   REQUIRE( player.money() == 0 );
   REQUIRE( units_state.exists( unit_id ) );
@@ -506,6 +529,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::cold_and_empty;
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui, choice( _ ) )
@@ -519,7 +543,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -565,6 +589,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::trinkets;
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui, choice( _ ) )
@@ -578,7 +603,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -590,6 +615,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   // ficulty mode.
   REQUIRE( player.money() >= 70 );
   REQUIRE( player.money() <= 200 );
+  REQUIRE( player.money() % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -628,6 +654,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
   e_burial_mounds_type burial_type =
       e_burial_mounds_type::trinkets;
+  bool has_burial_grounds = false;
 
   // Mock function calls.
   EXPECT_CALL( gui, choice( _ ) )
@@ -638,7 +665,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
       run_lost_city_rumor_result(
           terrain_state, units_state, events_state, gui, player,
           map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type );
+          burial_type, has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -646,6 +673,76 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
   REQUIRE( player.money() == 0 );
+  REQUIRE( units_state.exists( unit_id ) );
+  REQUIRE( units_state.all().size() == 1 );
+}
+
+TEST_CASE(
+    "[test/lcr] burial mounds / trinkets with burial grounds" ) {
+  UnitsState             units_state;
+  TerrainState           terrain_state;
+  EventsState            events_state;
+  PlayersState           players_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  MockIGui               gui;
+
+  // Set nation.
+  e_nation const nation = e_nation::dutch;
+
+  // Set players.
+  set_players( players_state, { e_nation::dutch } );
+  Player& player = player_for_nation( players_state, nation );
+  REQUIRE( player.money() == 0 );
+
+  // Create map.
+  terrain_state.mutable_world_map() =
+      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+  MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.lost_city_rumor = true;
+
+  // Create unit on map.
+  UnitId unit_id = create_unit_on_map(
+      units_state, map_updater, nation,
+      UnitComposition::create(
+          UnitType::create( e_unit_type::free_colonist ) ),
+      Coord{} );
+  REQUIRE( units_state.all().size() == 1 );
+
+  // Set outcome types.
+  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
+  e_burial_mounds_type burial_type =
+      e_burial_mounds_type::trinkets;
+  bool has_burial_grounds = true;
+
+  // Mock function calls.
+  EXPECT_CALL( gui, choice( _ ) )
+      .returns( make_wait<string>( "yes" ) );
+  EXPECT_CALL(
+      gui, message_box( StrContains( "found some trinkets" ) ) )
+      .returns( make_wait() );
+  EXPECT_CALL(
+      gui,
+      message_box( StrContains( "native burial grounds" ) ) )
+      .returns( make_wait() );
+
+  // Go
+  wait<LostCityRumorResult_t> lcr_res =
+      run_lost_city_rumor_result(
+          terrain_state, units_state, events_state, gui, player,
+          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
+          burial_type, has_burial_grounds );
+
+  // Make sure that we finished at all.
+  REQUIRE( lcr_res.ready() );
+
+  // Make sure that we have the correct result and side effects.
+  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  // These number come from the config files for the min/max
+  // amount of a trinkets gift to a non-scout on the lowest dif-
+  // ficulty mode.
+  REQUIRE( player.money() >= 70 );
+  REQUIRE( player.money() <= 200 );
+  REQUIRE( player.money() % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }

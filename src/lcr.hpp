@@ -36,11 +36,15 @@ e_lcr_explorer_category lcr_explorer_category(
     UnitsState const& units_state, UnitId unit_id );
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer,
-    EventsState const&      events_state );
+    e_lcr_explorer_category explorer, Player const& player,
+    EventsState const& events_state );
 
 e_burial_mounds_type pick_burial_mounds_result(
     e_lcr_explorer_category explorer );
+
+bool pick_burial_grounds_result(
+    Player const& player, e_lcr_explorer_category explorer,
+    e_burial_mounds_type burial_type );
 
 // Given a predetermined rumor type result (and burial mounds re-
 // sult, which will only be used in the relevant case) this will
@@ -55,6 +59,7 @@ wait<LostCityRumorResult_t> run_lost_city_rumor_result(
     TerrainState const& terrain_state, UnitsState& units_state,
     EventsState const& events_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
-    e_rumor_type type, e_burial_mounds_type burial_type );
+    e_rumor_type type, e_burial_mounds_type burial_type,
+    bool has_burial_grounds );
 
 } // namespace rn

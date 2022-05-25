@@ -70,6 +70,12 @@ struct.config_lcr_t {
   burial_mounds_treasure_max 'refl::enum_map<e_lcr_explorer_category, int>',
   burial_mounds_treasure_multiple 'int',
 
+  # If it is determined (by various game logic) that this LCR
+  # could potentially contain native burial grounds (which cause
+  # them to declare war) then this will be the probability that
+  # it will actually happen.
+  burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, double>',
+
   _features { validation, equality },
 }
 

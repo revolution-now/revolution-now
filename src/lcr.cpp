@@ -55,7 +55,7 @@ int random_gift( GiftOptions options ) {
   return ( amount / options.multiple ) * options.multiple;
 }
 
-bool has_hernando_de_soto() {
+bool has_hernando_de_soto( Player const& ) {
   // TODO
   return false;
 }
@@ -63,7 +63,7 @@ bool has_hernando_de_soto() {
 // When exploring burial mounds that are in native owned land we
 // could find indian burial grounds, which will cause that tribe
 // to declare war (permanently?).
-bool has_burial_grounds() {
+bool is_native_land() {
   // TODO
   return false;
 }
@@ -74,11 +74,11 @@ bool allow_fountain_of_youth( EventsState const& events_state ) {
 }
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
-    e_burial_mounds_type type, UnitsState& units_state,
-    IGui& gui, Player& player, IMapUpdater& map_updater,
-    UnitId unit_id, Coord world_square ) {
-  bool                          positive_result = {};
-  LostCityRumorResult_t         result          = {};
+    e_burial_mounds_type type, bool has_burial_grounds,
+    UnitsState& units_state, IGui& gui, Player& player,
+    IMapUpdater& map_updater, UnitId unit_id,
+    Coord world_square ) {
+  LostCityRumorResult_t         result = {};
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( units_state, unit_id );
   switch( type ) {
@@ -94,8 +94,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation(), total );
-      positive_result = true;
-      result          = LostCityRumorResult::other{};
+      result = LostCityRumorResult::other{};
       break;
     }
     case e_burial_mounds_type::treasure_train: {
@@ -117,30 +116,17 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       UnitId id = create_unit_on_map(
           units_state, map_updater, player.nation(), uc_treasure,
           world_square );
-      positive_result = true;
       result = LostCityRumorResult::unit_created{ .id = id };
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
       co_await gui.message_box(
           "The mounds are cold and empty." );
-      positive_result = false;
-      result          = LostCityRumorResult::other{};
+      result = LostCityRumorResult::other{};
       break;
     }
   }
-
-  // TODO: Some say that suppressing burial grounds via De Soto
-  // requires using a scout (need to determine this). Also, some
-  // say that even with De Soto you can still stumble on native
-  // burial grounds, though that would always be accompanied by a
-  // positive result otherwise such as a treasure, hence the
-  // logic below. In that way, De Soto only means that "purely
-  // negative" results are prevented. But this needs to be deter-
-  // mined.
-  bool allow_burial_grounds =
-      !has_hernando_de_soto() || positive_result;
-  if( has_burial_grounds() && allow_burial_grounds ) {
+  if( has_burial_grounds ) {
     co_await gui.message_box(
         "These are native burial grounds.  WAR!" );
   }
@@ -195,6 +181,7 @@ e_unit_type pick_unit_type_for_foy() {
 
 wait<LostCityRumorResult_t> run_rumor_result(
     e_rumor_type type, e_burial_mounds_type burial_type,
+    bool has_burial_grounds,
     TerrainState const& /*terrain_state*/,
     UnitsState& units_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
@@ -253,8 +240,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
         co_return LostCityRumorResult::other{};
       LostCityRumorResult_t result =
           co_await run_burial_mounds_result(
-              burial_type, units_state, gui, player, map_updater,
-              unit_id, world_square );
+              burial_type, has_burial_grounds, units_state, gui,
+              player, map_updater, unit_id, world_square );
       co_return result;
     }
     case e_rumor_type::chief_gift: {
@@ -324,15 +311,15 @@ e_burial_mounds_type pick_burial_mounds_result(
 }
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer,
-    EventsState const&      events_state ) {
+    e_lcr_explorer_category explorer, Player const& player,
+    EventsState const& events_state ) {
   refl::enum_map<e_rumor_type, int> weights =
       config_lcr.rumor_type_weights[explorer];
 
   if( !allow_fountain_of_youth( events_state ) )
     weights[e_rumor_type::fountain_of_youth] = 0;
 
-  if( has_hernando_de_soto() ) {
+  if( has_hernando_de_soto( player ) ) {
     // Most docs say that having De Soto will prevent LCR results
     // from being negative.  This means that you can still get
     // neutral results, such as "nothing but rumors", but the
@@ -352,14 +339,39 @@ e_rumor_type pick_rumor_type_result(
   return rng::pick_from_weighted_enum_values( weights );
 }
 
+bool pick_burial_grounds_result(
+    Player const& player, e_lcr_explorer_category explorer,
+    e_burial_mounds_type burial_type ) {
+  if( !is_native_land() ) return false;
+  bool positive_burial_mounds_result =
+      ( burial_type != e_burial_mounds_type::cold_and_empty );
+  // TODO: Some say that suppressing burial grounds via De Soto
+  // requires using a scout (need to determine this). Also, some
+  // say that even with De Soto you can still stumble on native
+  // burial grounds, though that would always be accompanied by a
+  // positive result otherwise such as a treasure, hence the
+  // logic below. In that way, De Soto only means that "purely
+  // negative" results are prevented. But this needs to be deter-
+  // mined.
+  bool allow_negative = !has_hernando_de_soto( player ) ||
+                        positive_burial_mounds_result;
+  if( !allow_negative ) return false;
+  // We are clear for allowing burial grounds. But whether we
+  // trigger it is still a matter of probability.
+  return rng::flip_coin(
+      config_lcr.burial_grounds_probability[explorer] );
+}
+
 wait<LostCityRumorResult_t> run_lost_city_rumor_result(
     TerrainState const& terrain_state, UnitsState& units_state,
     EventsState const& events_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
-    e_rumor_type type, e_burial_mounds_type burial_type ) {
+    e_rumor_type type, e_burial_mounds_type burial_type,
+    bool has_burial_grounds ) {
   LostCityRumorResult_t result = co_await run_rumor_result(
-      type, burial_type, terrain_state, units_state, gui, player,
-      map_updater, unit_id, world_square );
+      type, burial_type, has_burial_grounds, terrain_state,
+      units_state, gui, player, map_updater, unit_id,
+      world_square );
 
   // Remove lost city rumor.
   map_updater.modify_map_square(

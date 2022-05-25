@@ -712,14 +712,16 @@ wait<> TravelHandler::perform() {
     e_lcr_explorer_category const explorer =
         lcr_explorer_category( units_state, unit_id );
     e_rumor_type rumor_type =
-        pick_rumor_type_result( explorer, events_state );
+        pick_rumor_type_result( explorer, player, events_state );
     e_burial_mounds_type burial_type =
         pick_burial_mounds_result( explorer );
+    bool has_burial_grounds = pick_burial_grounds_result(
+        player, explorer, burial_type );
     LostCityRumorResult_t lcr_res =
         co_await run_lost_city_rumor_result(
             terrain_state_, units_state, events_state, gui_,
             player, map_updater_, unit_id, move_dst, rumor_type,
-            burial_type );
+            burial_type, has_burial_grounds );
 
     // Presumably we don't want to do anything more in this
     // function if the unit that moved has disappeared.
