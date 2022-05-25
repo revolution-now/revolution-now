@@ -33,14 +33,17 @@ rumor_type_weights {
     unit_lost:          2
   }
   other {
-    # TODO: need to measure these.
-    none:              51
-    fountain_of_youth:  9
-    free_colonist:      9
-    ruins:             10
-    burial_mounds:      3
-    chief_gift:        15
-    unit_lost:          3
+    none:              56
+    fountain_of_youth: 12
+    free_colonist:     13
+    ruins:              8
+    burial_mounds:      5
+    chief_gift:         6
+    # Seems to be zero in the original game at least on the
+    # lowest difficulty level; this could be to prevent the
+    # player from losing the initial units, since the first few
+    # LCRs explored will probably be done by them.
+    unit_lost:          0
   }
 }
 
@@ -62,27 +65,26 @@ burial_mounds_type_weights {
     cold_and_empty:  5
   }
   other {
-    # TODO: need to measure these.
-    treasure_train: 32
-    trinkets:       58
-    cold_and_empty: 10
+    treasure_train: 31
+    trinkets:       56
+    cold_and_empty: 13
   }
 }
 
 # The range of values can a chief can give as a gift when the
 # outcome is having discovered a small village. These will be
 # rounded down to the nearest multiple provided.
-chief_gift_multiple: 5
+chief_gift_multiple: 1
 
 chief_gift_min {
   seasoned_scout: 15
   scout:          15
-  other:          15 # TODO: need to measure this.
+  other:          15
 }
 chief_gift_max {
   seasoned_scout: 70
   scout:          70
-  other:          70 # TODO: need to measure this.
+  other:          70
 }
 
 # The range of values of gold that can be found when the outcome
@@ -93,12 +95,12 @@ ruins_gift_multiple: 10
 ruins_gift_min {
   seasoned_scout: 140
   scout:          120
-  other:          100 # TODO: need to measure this.
+  other:           80
 }
 ruins_gift_max {
   seasoned_scout: 440
   scout:          300
-  other:          160 # TODO: need to measure this.
+  other:          220
 }
 
 # The range of values of gold that can be found when finding
@@ -109,12 +111,12 @@ trinkets_gift_multiple: 10
 trinkets_gift_min {
   seasoned_scout: 70
   scout:          70
-  other:          70 # TODO: need to measure this.
+  other:          70
 }
 trinkets_gift_max {
   seasoned_scout: 200
   scout:          200
-  other:          200 # TODO: need to measure this.
+  other:          200
 }
 
 # The range of values of gold that can emerge on a treasure train
@@ -126,10 +128,10 @@ burial_mounds_treasure_multiple: 100
 burial_mounds_treasure_min {
   seasoned_scout: 3000
   scout:          2500
-  other:          2000 # TODO: need to measure this.
+  other:          2000
 }
 burial_mounds_treasure_max {
   seasoned_scout: 4500
   scout:          4000
-  other:          3500 # TODO: need to measure this.
+  other:          3500
 }
