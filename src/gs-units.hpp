@@ -85,6 +85,15 @@ struct UnitsState {
   // Should not be holding any references to the unit after this.
   void destroy_unit( UnitId id );
 
+  // This should probably only be used in unit tests. Returns
+  // false if the unit currently exists; returns true if the unit
+  // existed but has since been deleted; check-fails if the id
+  // doesn't correspond to a unit that ever existed. Note that
+  // this does not use the deleted-units cache, it uses the
+  // next_unit_id, and so should be ok to call across saves. That
+  // said, normal game code probably shouldn't need to call this.
+  bool exists( UnitId id ) const;
+
  private:
   // Changes a unit's ownership from whatever it is (map or oth-
   // erwise) to the map at the given coordinate. It will always

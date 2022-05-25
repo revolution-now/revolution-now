@@ -233,8 +233,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .max      = config_lcr.ruins_gift_max[explorer],
             .multiple = config_lcr.ruins_gift_multiple } );
       co_await gui.message_box(
-          "You've discovered the ruins of a lost civilization, "
-          "among which there are items worth @[H]{}@[] in gold.",
+          "You've discovered the ruins of a lost colony, among "
+          "which there are items worth @[H]{}@[] in gold.",
           amount );
       int total = player.add_money( amount );
       lg.info(

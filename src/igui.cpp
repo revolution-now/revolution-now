@@ -28,8 +28,9 @@ wait<ui::e_confirm> IGui::yes_no( YesNoConfig const& config ) {
   string res = co_await choice(
       { .msg = config.msg, .options = std::move( options ) } );
   DCHECK( res == "no" || res == "yes" );
-  co_return( res == "no" ) ? ui::e_confirm::no
-                           : ui::e_confirm::yes;
+  if( res == "no" ) co_return ui::e_confirm::no;
+  if( res == "yes" ) co_return ui::e_confirm::yes;
+  FATAL( "unexpected input result: {}", res );
 }
 
 } // namespace rn
