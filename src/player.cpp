@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "game-state.hpp"
+#include "gs-players.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "util.hpp"
@@ -51,8 +52,25 @@ Player& player_for_nation( e_nation nation ) {
   return players[nation];
 }
 
-void set_players( vector<e_nation> const& nations ) {
-  auto& players = GameState::players().players;
+Player& player_for_nation( PlayersState& players_state,
+                           e_nation      nation ) {
+  auto it = players_state.players.find( nation );
+  CHECK( it != players_state.players.end(),
+         "player for nation {} does not exist.", nation );
+  return it->second;
+}
+
+Player const& player_for_nation(
+    PlayersState const& players_state, e_nation nation ) {
+  auto it = players_state.players.find( nation );
+  CHECK( it != players_state.players.end(),
+         "player for nation {} does not exist.", nation );
+  return it->second;
+}
+
+void set_players( PlayersState&           players_state,
+                  vector<e_nation> const& nations ) {
+  auto& players = players_state.players;
   players.clear();
   for( auto nation : nations ) {
     players.emplace( nation, Player( wrapped::Player{
@@ -71,12 +89,13 @@ void linker_dont_discard_module_player() {}
 namespace {
 
 LUA_FN( set_players, void, lua::table nations ) {
+  auto&            players_state = GameState::players();
   vector<e_nation> vec;
   for( auto p : nations )
     vec.push_back( lua::as<e_nation>( p.second ) );
   lg.info( "enabling nations: {}",
            base::FmtJsonStyleList{ vec } );
-  set_players( vec );
+  set_players( players_state, vec );
 }
 
 } // namespace

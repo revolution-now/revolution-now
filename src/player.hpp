@@ -23,6 +23,8 @@
 
 namespace rn {
 
+struct PlayersState;
+
 class Player {
  public:
   Player() = default;
@@ -46,9 +48,17 @@ class Player {
   wrapped::Player o_;
 };
 
+Player& player_for_nation( PlayersState& players_state,
+                           e_nation      nation );
+
+Player const& player_for_nation(
+    PlayersState const& players_state, e_nation nation );
+
+// FIXME: deprecated
 Player& player_for_nation( e_nation nation );
 
-void set_players( std::vector<e_nation> const& nations );
+void set_players( PlayersState&                players_state,
+                  std::vector<e_nation> const& nations );
 
 void linker_dont_discard_module_player();
 
