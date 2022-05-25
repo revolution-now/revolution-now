@@ -957,9 +957,7 @@ bool OptionSelectView::on_mouse_button(
   return true;
 }
 
-string const& OptionSelectView::get_selected() const {
-  return get_view( selected_ )->line();
-}
+int OptionSelectView::get_selected() const { return selected_; }
 
 /****************************************************************
 ** FakeUnitView

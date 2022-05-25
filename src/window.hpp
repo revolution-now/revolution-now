@@ -104,8 +104,8 @@ wait<maybe<std::string>> str_input_box(
 /****************************************************************
 ** Generic Option-Select Window
 *****************************************************************/
-wait<std::string> select_box( std::string_view         title,
-                              std::vector<std::string> options );
+wait<int> select_box( std::string_view                title,
+                      std::vector<std::string> const& options );
 
 // FIXME: clang can't seem to handle function template corouti-
 // nes, without emitting warnings, so to work around that we make
@@ -115,16 +115,11 @@ struct SelectBoxEnum {
   wait<Enum> operator()(
       std::string_view         title,
       std::vector<Enum> const& options ) const {
-    // map over member function?
     std::vector<std::string> words;
     for( auto option : options )
       words.push_back(
           std::string( enum_to_display_name( option ) ) );
-    std::string str_result = co_await select_box( title, words );
-    for( auto const& option : options )
-      if( str_result == enum_to_display_name( option ) )
-        co_return option;
-    SHOULD_NOT_BE_HERE;
+    co_return options[co_await select_box( title, words )];
   }
 
   wait<Enum> operator()( std::string_view title ) const {

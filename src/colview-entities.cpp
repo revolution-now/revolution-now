@@ -973,14 +973,13 @@ class UnitsAtGateColonyView : public ui::View,
       // orders menu.
       co_return;
     }
-    static string kChangeOrders = "Change Orders";
-    static string kStripUnit    = "Strip Unit";
-    // Put co_await in separate statement to remove weird gcc
-    // ICE, which hopefully will go away in a future version.
-    wait<string> wait_mode =
-        ui::select_box( "What would you like to do?",
-                        { kChangeOrders, kStripUnit } );
-    string mode = co_await wait_mode;
+    static string const         kChangeOrders = "Change Orders";
+    static string const         kStripUnit    = "Strip Unit";
+    static vector<string> const kModes{ kChangeOrders,
+                                        kStripUnit };
+    int int_mode = co_await ui::select_box(
+        "What would you like to do?", kModes );
+    string mode = kModes[int_mode];
     if( mode == kChangeOrders ) {
       vector<e_unit_orders> possible_orders = {
           e_unit_orders::none, e_unit_orders::sentry,

@@ -578,7 +578,7 @@ class OptionSelectView : public VectorView {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
-  std::string const& get_selected() const;
+  int get_selected() const;
 
   void grow_to( W w );
 

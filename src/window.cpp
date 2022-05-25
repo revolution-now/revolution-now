@@ -701,14 +701,14 @@ wait<maybe<string>> str_input_box( string_view title,
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-wait<string> select_box( string_view    title,
-                         vector<string> options ) {
+wait<int> select_box( string_view           title,
+                      vector<string> const& options ) {
   lg.info( "question: \"{}\"", title );
   auto selector_view = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
   auto* p_selector_view = selector_view.get();
 
-  wait_promise<string> p;
+  wait_promise<int> p;
 
   auto on_input = [&]( input::event_t const& event ) {
     bool selected = false;
@@ -737,8 +737,9 @@ wait<string> select_box( string_view    title,
       default: break;
     }
     if( selected ) {
-      string result = p_selector_view->get_selected();
-      lg.info( "selected: {}", result );
+      int result = p_selector_view->get_selected();
+      CHECK( result >= 0 && result < int( options.size() ) );
+      lg.info( "selected: {}", options[result] );
       p.set_value( result );
     }
     bool handled = selected;
