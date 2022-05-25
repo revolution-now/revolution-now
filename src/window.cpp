@@ -165,10 +165,6 @@ struct WindowPlane : public Plane {
     wm.draw_layout( renderer );
   }
   e_input_handled input( input::event_t const& event ) override {
-    // Windows are modal, so ignore the result of this function
-    // because we need to swallow the event whether the window
-    // manager handled it or not. I.e., we cannot ever let an
-    // event go down to a lower plane.
     return wm.input( event );
   }
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
@@ -359,6 +355,8 @@ maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
 
 Plane::e_input_handled WindowManager::input(
     input::event_t const& event ) {
+  // Since windows are model we will always declare that we've
+  // handled the event, unless there are no windows open.
   if( this->num_windows() == 0 )
     return Plane::e_input_handled::no;
 
@@ -366,17 +364,17 @@ Plane::e_input_handled WindowManager::input(
       input::is_mouse_event( event );
   if( !mouse_event ) {
     // It's a non-mouse event, so just send it to the top-most
-    // window and return if it was handled.
-    return focused().view->input( event )
-               ? Plane::e_input_handled::yes
-               : Plane::e_input_handled::no;
+    // window and declare it to be handled.
+    (void)focused().view->input( event );
+    return Plane::e_input_handled::yes;
   }
 
   // It's a mouse event.
   maybe<Window&> win = window_for_cursor_pos( mouse_event->pos );
   if( !win )
     // Only send mouse events when the cursor is over a window.
-    return Plane::e_input_handled::no;
+    // But still declare that we've handled the event.
+    return Plane::e_input_handled::yes;
   auto view_rect =
       Rect::from( win->view_pos(), win->view->delta() );
 
@@ -408,11 +406,9 @@ Plane::e_input_handled WindowManager::input(
     auto new_event = input::move_mouse_origin_by(
         event, win->view_pos() - Coord{} );
     (void)win->view->input( new_event );
-    // Always return that we handled the mouse event if we are
-    // inside a view.
-    return Plane::e_input_handled::yes;
   }
-  return Plane::e_input_handled::no;
+  // Always handle the event if there is a window open.
+  return Plane::e_input_handled::yes;
 }
 
 Plane::e_accept_drag WindowManager::can_drag(
