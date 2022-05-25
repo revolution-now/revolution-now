@@ -26,9 +26,6 @@
 // config
 #include "config/lcr.rds.hpp"
 
-// Rds
-#include "lcr-impl.rds.hpp"
-
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
@@ -47,17 +44,6 @@ struct GiftOptions {
   int max      = base::no_default<>;
   int multiple = base::no_default<>;
 };
-
-e_lcr_explorer_bucket explorer_bucket(
-    UnitsState const& units_state, UnitId unit_id ) {
-  Unit const& unit = units_state.unit_for( unit_id );
-  switch( unit.type() ) {
-    case e_unit_type::seasoned_scout:
-      return e_lcr_explorer_bucket::seasoned_scout;
-    case e_unit_type::scout: return e_lcr_explorer_bucket::scout;
-    default: return e_lcr_explorer_bucket::other;
-  }
-}
 
 int random_gift( GiftOptions options ) {
   if( options.multiple < 1 ) options.multiple = 1;
@@ -91,10 +77,10 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
     e_burial_mounds_type type, UnitsState& units_state,
     IGui& gui, Player& player, IMapUpdater& map_updater,
     UnitId unit_id, Coord world_square ) {
-  bool                        positive_result = {};
-  LostCityRumorResult_t       result          = {};
-  e_lcr_explorer_bucket const explorer =
-      explorer_bucket( units_state, unit_id );
+  bool                          positive_result = {};
+  LostCityRumorResult_t         result          = {};
+  e_lcr_explorer_category const explorer =
+      lcr_explorer_category( units_state, unit_id );
   switch( type ) {
     case e_burial_mounds_type::trinkets: {
       int amount = random_gift(
@@ -161,14 +147,6 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
   co_return result;
 }
 
-e_burial_mounds_type pick_burial_mounds_result(
-    e_lcr_explorer_bucket explorer ) {
-  refl::enum_map<e_burial_mounds_type, int> weights =
-      config_lcr.burial_mounds_type_weights[explorer];
-  // TODO: modify weights depending on game state.
-  return rng::pick_from_weighted_enum_values( weights );
-}
-
 e_unit_type pick_unit_type_for_foy() {
   // TODO: need to adjust these weights.
   //
@@ -216,12 +194,13 @@ e_unit_type pick_unit_type_for_foy() {
 }
 
 wait<LostCityRumorResult_t> run_rumor_result(
-    e_rumor_type type, TerrainState const& /*terrain_state*/,
+    e_rumor_type type, e_burial_mounds_type burial_type,
+    TerrainState const& /*terrain_state*/,
     UnitsState& units_state, IGui& gui, Player& player,
     IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
-  e_lcr_explorer_bucket const explorer =
-      explorer_bucket( units_state, unit_id );
+  e_lcr_explorer_category const explorer =
+      lcr_explorer_category( units_state, unit_id );
   switch( type ) {
     case e_rumor_type::none: {
       co_await gui.message_box( "You find nothing but rumors." );
@@ -272,11 +251,9 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .no_comes_first = false } );
       if( res == ui::e_confirm::no )
         co_return LostCityRumorResult::other{};
-      e_burial_mounds_type bm_type =
-          pick_burial_mounds_result( explorer );
       LostCityRumorResult_t result =
           co_await run_burial_mounds_result(
-              bm_type, units_state, gui, player, map_updater,
+              burial_type, units_state, gui, player, map_updater,
               unit_id, world_square );
       co_return result;
     }
@@ -326,13 +303,29 @@ bool has_lost_city_rumor( TerrainState const& terrain_state,
   return terrain_state.square_at( square ).lost_city_rumor;
 }
 
-wait<LostCityRumorResult_t> enter_lost_city_rumor(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    EventsState const& events_state, IGui& gui, Player& player,
-    IMapUpdater& map_updater, UnitId unit_id,
-    Coord world_square ) {
-  e_lcr_explorer_bucket const explorer =
-      explorer_bucket( units_state, unit_id );
+e_lcr_explorer_category lcr_explorer_category(
+    UnitsState const& units_state, UnitId unit_id ) {
+  Unit const& unit = units_state.unit_for( unit_id );
+  switch( unit.type() ) {
+    case e_unit_type::seasoned_scout:
+      return e_lcr_explorer_category::seasoned_scout;
+    case e_unit_type::scout:
+      return e_lcr_explorer_category::scout;
+    default: return e_lcr_explorer_category::other;
+  }
+}
+
+e_burial_mounds_type pick_burial_mounds_result(
+    e_lcr_explorer_category explorer ) {
+  refl::enum_map<e_burial_mounds_type, int> weights =
+      config_lcr.burial_mounds_type_weights[explorer];
+  // TODO: modify weights depending on game state.
+  return rng::pick_from_weighted_enum_values( weights );
+}
+
+e_rumor_type pick_rumor_type_result(
+    e_lcr_explorer_category explorer,
+    EventsState const&      events_state ) {
   refl::enum_map<e_rumor_type, int> weights =
       config_lcr.rumor_type_weights[explorer];
 
@@ -355,12 +348,18 @@ wait<LostCityRumorResult_t> enter_lost_city_rumor(
     weights[e_rumor_type::unit_lost] = 0;
   }
 
-  e_rumor_type type =
-      rng::pick_from_weighted_enum_values( weights );
+  // TODO: modify weights depending on game state.
+  return rng::pick_from_weighted_enum_values( weights );
+}
 
+wait<LostCityRumorResult_t> run_lost_city_rumor_result(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    EventsState const& events_state, IGui& gui, Player& player,
+    IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
+    e_rumor_type type, e_burial_mounds_type burial_type ) {
   LostCityRumorResult_t result = co_await run_rumor_result(
-      type, terrain_state, units_state, gui, player, map_updater,
-      unit_id, world_square );
+      type, burial_type, terrain_state, units_state, gui, player,
+      map_updater, unit_id, world_square );
 
   // Remove lost city rumor.
   map_updater.modify_map_square(

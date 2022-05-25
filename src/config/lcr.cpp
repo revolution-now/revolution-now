@@ -20,7 +20,8 @@ namespace rn {
 base::valid_or<string> config_lcr_t::validate() const {
   // Check that the rumor outcome weights sum to 100 for each ex-
   // plorer type.
-  for( auto bucket : refl::enum_values<e_lcr_explorer_bucket> ) {
+  for( auto bucket :
+       refl::enum_values<e_lcr_explorer_category> ) {
     int total = 0;
     for( auto outcome : refl::enum_values<e_rumor_type> )
       total += rumor_type_weights[bucket][outcome];

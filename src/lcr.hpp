@@ -32,17 +32,29 @@ struct EventsState;
 bool has_lost_city_rumor( TerrainState const& terrain_state,
                           Coord               square );
 
-// Runs through the actions that result from entering a lost city
-// rumor, including showing any relevant UI messages, randomly
-// choosing the rumor outcome, and making changes to game state
-// accordingly. Note that this function may, as one of the rumor
-// outcomes, cause the unit to be deleted. If that happens then
-// this function will actually delete the unit and will then re-
-// turn true. Otherwise returns false.
-wait<LostCityRumorResult_t> enter_lost_city_rumor(
+e_lcr_explorer_category lcr_explorer_category(
+    UnitsState const& units_state, UnitId unit_id );
+
+e_rumor_type pick_rumor_type_result(
+    e_lcr_explorer_category explorer,
+    EventsState const&      events_state );
+
+e_burial_mounds_type pick_burial_mounds_result(
+    e_lcr_explorer_category explorer );
+
+// Given a predetermined rumor type result (and burial mounds re-
+// sult, which will only be used in the relevant case) this will
+// run through the sequence of actions for that result, including
+// showing UI messages, making changes to game state, and poten-
+// tially deleting the unit (when that outcome is selected).
+//
+// This function is the one that should be used for testing be-
+// cause it will not manually generate a rumor type result. How-
+// ever, it will manually generate gift amounts.
+wait<LostCityRumorResult_t> run_lost_city_rumor_result(
     TerrainState const& terrain_state, UnitsState& units_state,
     EventsState const& events_state, IGui& gui, Player& player,
-    IMapUpdater& map_updater, UnitId unit_id,
-    Coord world_square );
+    IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
+    e_rumor_type type, e_burial_mounds_type burial_type );
 
 } // namespace rn
