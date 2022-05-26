@@ -46,6 +46,20 @@ TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
   REQUIRE( has_lost_city_rumor( terrain_state, Coord{} ) );
 }
 
+TEST_CASE( "[test/lcr] de soto means no unit lost" ) {
+  PlayersState   players_state;
+  e_nation const nation = e_nation::dutch;
+  set_players( players_state, { e_nation::dutch } );
+  Player& player = player_for_nation( players_state, nation );
+  player.give_father( e_founding_father::hernando_de_soto );
+  for( int i = 0; i < 100; ++i ) {
+    INFO( fmt::format( "i: {}", i ) );
+    e_rumor_type type = pick_rumor_type_result(
+        e_lcr_explorer_category::other, player );
+    REQUIRE( type != e_rumor_type::unit_lost );
+  }
+}
+
 TEST_CASE( "[test/lcr] nothing but rumors" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;

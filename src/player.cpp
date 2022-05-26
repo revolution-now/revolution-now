@@ -29,6 +29,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/to-str-ext-std.hpp"
 #include "base/to-str-tags.hpp"
 
 using namespace std;
@@ -88,6 +89,15 @@ void set_players( PlayersState&           players_state,
   }
 }
 
+// Founding fathers.
+void Player::give_father( e_founding_father father ) {
+  o_.fathers[father] = true;
+}
+
+bool Player::has_father( e_founding_father father ) const {
+  return o_.fathers[father];
+}
+
 void linker_dont_discard_module_player() {}
 
 /****************************************************************
@@ -108,6 +118,9 @@ LUA_STARTUP( lua::state& st ) {
   u["add_money"] = &U::add_money;
   u["money"]     = &U::money;
   u["set_money"] = &U::set_money;
+
+  u["give_father"] = &U::give_father;
+  u["has_father"]  = &U::has_father;
 
   u["independence_declared"] = &U::independence_declared;
 };

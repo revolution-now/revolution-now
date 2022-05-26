@@ -10,6 +10,10 @@
 # ===============================================================
 # Rds
 include "nation.rds.hpp"
+include "fathers.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 namespace "rn.wrapped"
 
@@ -26,4 +30,7 @@ struct.Player {
   discovered_new_world 'maybe<std::string>',
 
   independence_declared 'bool',
+
+  # Which founding fathers does this player have.
+  fathers 'refl::enum_map<e_founding_father, bool>',
 }

@@ -16,6 +16,33 @@ old_world_view.selected_unit: null
 players.players {
   dutch {
     discovered_new_world: null
+    fathers {
+      adam_smith: false
+      bartolome_de_las_casas: false
+      benjamin_franklin: false
+      father_jean_de_brebeuf: false
+      ferdinand_magellan: false
+      francis_drake: false
+      francisco_de_coronado: false
+      george_washington: false
+      henry_hudson: false
+      hernan_cortes: false
+      hernando_de_soto: false
+      jakob_fugger: false
+      jan_de_witt: false
+      john_paul_jones: false
+      juan_de_sepulveda: false
+      paul_revere: false
+      peter_minuit: false
+      peter_stuyvesant: false
+      pocahontas: false
+      sieur_de_la_salle: false
+      simon_bolivar: false
+      thomas_jefferson: false
+      thomas_paine: false
+      william_brewster: false
+      william_penn: false
+    }
     human: true
     independence_declared: false
     money: 0
@@ -23,6 +50,33 @@ players.players {
   }
   english {
     discovered_new_world: null
+    fathers {
+      adam_smith: false
+      bartolome_de_las_casas: false
+      benjamin_franklin: false
+      father_jean_de_brebeuf: false
+      ferdinand_magellan: false
+      francis_drake: false
+      francisco_de_coronado: false
+      george_washington: false
+      henry_hudson: false
+      hernan_cortes: false
+      hernando_de_soto: false
+      jakob_fugger: false
+      jan_de_witt: false
+      john_paul_jones: false
+      juan_de_sepulveda: false
+      paul_revere: false
+      peter_minuit: false
+      peter_stuyvesant: false
+      pocahontas: false
+      sieur_de_la_salle: false
+      simon_bolivar: false
+      thomas_jefferson: false
+      thomas_paine: false
+      william_brewster: false
+      william_penn: false
+    }
     human: true
     independence_declared: false
     money: 0
@@ -30,6 +84,33 @@ players.players {
   }
   french {
     discovered_new_world: null
+    fathers {
+      adam_smith: false
+      bartolome_de_las_casas: false
+      benjamin_franklin: false
+      father_jean_de_brebeuf: false
+      ferdinand_magellan: false
+      francis_drake: false
+      francisco_de_coronado: false
+      george_washington: false
+      henry_hudson: false
+      hernan_cortes: false
+      hernando_de_soto: false
+      jakob_fugger: false
+      jan_de_witt: false
+      john_paul_jones: false
+      juan_de_sepulveda: false
+      paul_revere: false
+      peter_minuit: false
+      peter_stuyvesant: false
+      pocahontas: false
+      sieur_de_la_salle: false
+      simon_bolivar: false
+      thomas_jefferson: false
+      thomas_paine: false
+      william_brewster: false
+      william_penn: false
+    }
     human: true
     independence_declared: false
     money: 0
@@ -37,6 +118,33 @@ players.players {
   }
   spanish {
     discovered_new_world: null
+    fathers {
+      adam_smith: false
+      bartolome_de_las_casas: false
+      benjamin_franklin: false
+      father_jean_de_brebeuf: false
+      ferdinand_magellan: false
+      francis_drake: false
+      francisco_de_coronado: false
+      george_washington: false
+      henry_hudson: false
+      hernan_cortes: false
+      hernando_de_soto: false
+      jakob_fugger: false
+      jan_de_witt: false
+      john_paul_jones: false
+      juan_de_sepulveda: false
+      paul_revere: false
+      peter_minuit: false
+      peter_stuyvesant: false
+      pocahontas: false
+      sieur_de_la_salle: false
+      simon_bolivar: false
+      thomas_jefferson: false
+      thomas_paine: false
+      william_brewster: false
+      william_penn: false
+    }
     human: true
     independence_declared: false
     money: 0

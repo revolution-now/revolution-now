@@ -54,9 +54,9 @@ int random_gift( GiftOptions options ) {
   return ( amount / options.multiple ) * options.multiple;
 }
 
-bool has_hernando_de_soto( Player const& ) {
-  // TODO
-  return false;
+bool has_hernando_de_soto( Player const& player ) {
+  return player.has_father(
+      e_founding_father::hernando_de_soto );
 }
 
 // When exploring burial mounds that are in native owned land we

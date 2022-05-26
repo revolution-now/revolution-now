@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "fathers.hpp"
 #include "nation.hpp"
 
 // Rds
@@ -36,6 +37,7 @@ class Player {
 
   e_nation nation() const { return o_.nation; }
 
+  // Human status.
   bool is_human() const { return o_.human; }
   void set_human( bool yes );
 
@@ -44,6 +46,10 @@ class Player {
   int  add_money( int amount );
   int  money() const { return o_.money; }
   void set_money( int amount );
+
+  // Founding fathers.
+  void give_father( e_founding_father father );
+  bool has_father( e_founding_father father ) const;
 
   bool independence_declared() const {
     return o_.independence_declared;
