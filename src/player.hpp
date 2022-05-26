@@ -18,6 +18,9 @@
 // Rds
 #include "player.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // Abseil
 #include "absl/types/span.h"
 
@@ -29,14 +32,18 @@ class Player {
  public:
   Player() = default;
 
-  bool     operator==( Player const& ) const = default;
+  bool operator==( Player const& ) const = default;
+
   e_nation nation() const { return o_.nation; }
-  int      money() const { return o_.money; }
-  bool     is_human() const { return o_.human; }
+
+  bool is_human() const { return o_.human; }
+  void set_human( bool yes );
 
   // Adds the amount (which could be negative) to the player's
   // gold and returns the amount after adding.
-  int add_money( int amount );
+  int  add_money( int amount );
+  int  money() const { return o_.money; }
+  void set_money( int amount );
 
   bool independence_declared() const {
     return o_.independence_declared;
@@ -71,3 +78,10 @@ void set_players( PlayersState&                players_state,
 void linker_dont_discard_module_player();
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::Player, owned_by_cpp ){};
+}

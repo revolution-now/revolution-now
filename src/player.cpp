@@ -43,6 +43,13 @@ int Player::add_money( int amount ) {
   return o_.money;
 }
 
+void Player::set_money( int amount ) {
+  DCHECK( amount >= 0 );
+  o_.money = amount;
+}
+
+void Player::set_human( bool yes ) { o_.human = yes; }
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -87,6 +94,30 @@ void linker_dont_discard_module_player() {}
 ** Lua Bindings
 *****************************************************************/
 namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::Player;
+
+  auto u = st.usertype.create<U>();
+
+  u["nation"] = &U::nation;
+
+  u["is_human"]  = &U::is_human;
+  u["set_human"] = &U::set_human;
+
+  u["add_money"] = &U::add_money;
+  u["money"]     = &U::money;
+  u["set_money"] = &U::set_money;
+
+  u["independence_declared"] = &U::independence_declared;
+};
+
+LUA_FN( player_object, Player&, e_nation nation ) {
+  auto& players_state = GameState::players();
+  LUA_CHECK( st, players_state.players.contains( nation ),
+             "Player for nation {} does not exist.", nation );
+  return players_state.players[nation];
+}
 
 LUA_FN( set_players, void, lua::table nations ) {
   auto&            players_state = GameState::players();

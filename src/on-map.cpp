@@ -93,9 +93,9 @@ wait<> try_lost_city_rumor( UnitsState&         units_state,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void unit_to_map_square_no_ui( UnitsState&  units_state,
-                               IMapUpdater& map_updater,
-                               UnitId id, Coord world_square ) {
+void unit_to_map_square_no_ui( UnitsState& units_state,
+                               IMapUpdater&, UnitId id,
+                               Coord world_square ) {
   // 1. Move the unit. This is the only place where this function
   // should be called by normal game code.
   units_state.change_to_map( id, world_square );
@@ -104,16 +104,7 @@ void unit_to_map_square_no_ui( UnitsState&  units_state,
   // TODO
 
   // 3. Update terrain visibility.
-  for( e_direction d : refl::enum_values<e_direction> ) {
-    if( !GameState::terrain()
-             .maybe_square_at( world_square.moved( d ) )
-             .has_value() )
-      continue;
-    map_updater.modify_map_square(
-        world_square.moved( d ), []( MapSquare& square ) {
-          square.visibility[e_nation::dutch] = true;
-        } );
-  }
+  // TODO
 }
 
 wait<> unit_to_map_square( UnitsState&         units_state,

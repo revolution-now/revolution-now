@@ -6647,30 +6647,17 @@ zzz_terrain {
       },
       {
         key {
-          x: 44
-          y: 34
-        }
-        val.visibility.dutch: true
-      },
-      {
-        key {
           x: 45
           y: 34
         }
-        val {
-          sea_lane: true
-          visibility.dutch: true
-        }
+        val.sea_lane: true
       },
       {
         key {
           x: 46
           y: 34
         }
-        val {
-          sea_lane: true
-          visibility.dutch: true
-        }
+        val.sea_lane: true
       },
       {
         key {
@@ -6774,30 +6761,17 @@ zzz_terrain {
       },
       {
         key {
-          x: 44
-          y: 35
-        }
-        val.visibility.dutch: true
-      },
-      {
-        key {
           x: 45
           y: 35
         }
-        val {
-          sea_lane: true
-          visibility.dutch: true
-        }
+        val.sea_lane: true
       },
       {
         key {
           x: 46
           y: 35
         }
-        val {
-          sea_lane: true
-          visibility.dutch: true
-        }
+        val.sea_lane: true
       },
       {
         key {
@@ -6872,27 +6846,6 @@ zzz_terrain {
           y: 36
         }
         val.ground_resource: fish
-      },
-      {
-        key {
-          x: 44
-          y: 36
-        }
-        val.visibility.dutch: true
-      },
-      {
-        key {
-          x: 45
-          y: 36
-        }
-        val.visibility.dutch: true
-      },
-      {
-        key {
-          x: 46
-          y: 36
-        }
-        val.visibility.dutch: true
       },
       {
         key {
