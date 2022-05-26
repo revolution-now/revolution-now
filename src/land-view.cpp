@@ -23,13 +23,11 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "map-gen.hpp" // FIXME: temporary
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
 #include "render.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "screen.hpp"
 #include "sound.hpp"
@@ -997,14 +995,6 @@ struct LandViewPlane : public Plane {
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::disband{} } ) );
             break;
-          case ::SDLK_g: {
-            if( key_event.mod.shf_down ) break;
-            MapUpdater map_updater(
-                GameState::terrain(),
-                global_renderer_use_only_when_needed() );
-            generate_terrain( map_updater );
-            break;
-          }
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
             if( g_landview_state.holds<
