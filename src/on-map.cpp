@@ -87,7 +87,6 @@ wait<> try_lost_city_rumor( UnitsState&         units_state,
   (void)lcr_res;
 }
 
-// !! Note that the LCR may have removed the unit!
 } // namespace
 
 /****************************************************************
@@ -123,6 +122,8 @@ wait<> unit_to_map_square( UnitsState&         units_state,
     co_await try_lost_city_rumor( units_state, terrain_state,
                                   player, gui, map_updater, id,
                                   world_square );
+
+  // !! Note that the LCR may have removed the unit!
 }
 
 } // namespace rn
