@@ -19,7 +19,6 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
-#include "gs-events.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui.hpp"
@@ -574,11 +573,10 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  EventsState const& events_state = GameState::events();
-  auto               id           = unit_id;
-  UnitsState&        units_state  = GameState::units();
-  auto&              unit         = units_state.unit_for( id );
-  Player&            player = player_for_nation( unit.nation() );
+  auto        id          = unit_id;
+  UnitsState& units_state = GameState::units();
+  auto&       unit        = units_state.unit_for( id );
+  Player&     player      = player_for_nation( unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -712,7 +710,7 @@ wait<> TravelHandler::perform() {
     e_lcr_explorer_category const explorer =
         lcr_explorer_category( units_state, unit_id );
     e_rumor_type rumor_type =
-        pick_rumor_type_result( explorer, player, events_state );
+        pick_rumor_type_result( explorer, player );
     e_burial_mounds_type burial_type =
         pick_burial_mounds_result( explorer );
     bool has_burial_grounds = pick_burial_grounds_result(

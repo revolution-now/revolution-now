@@ -43,10 +43,7 @@ cdr::value cdr_game_state_default = cdr::table{
             "minor"_key = 0,
             "patch"_key = 0,
         },
-    "events"_key =
-        cdr::table{
-            "independence_declared"_key = false,
-        },
+    "events"_key = cdr::table{},
     "units"_key =
         cdr::table{
             "next_unit_id"_key = 1,

@@ -11,5 +11,7 @@
 namespace "rn"
 
 struct.EventsState {
-  independence_declared 'bool',
+  # This state is intended to be for overall global game state
+  # changes that are not per-player. Not sure yet if this will
+  # have a use.
 }

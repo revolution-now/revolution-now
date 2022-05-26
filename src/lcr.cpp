@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-events.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
@@ -69,8 +68,8 @@ bool is_native_land() {
 }
 
 // The fountain of youth is only allowed pre-independence.
-bool allow_fountain_of_youth( EventsState const& events_state ) {
-  return !events_state.independence_declared;
+bool allow_fountain_of_youth( Player const& player ) {
+  return !player.independence_declared();
 }
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
@@ -311,12 +310,11 @@ e_burial_mounds_type pick_burial_mounds_result(
 }
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer, Player const& player,
-    EventsState const& events_state ) {
+    e_lcr_explorer_category explorer, Player const& player ) {
   refl::enum_map<e_rumor_type, int> weights =
       config_lcr.rumor_type_weights[explorer];
 
-  if( !allow_fountain_of_youth( events_state ) )
+  if( !allow_fountain_of_youth( player ) )
     weights[e_rumor_type::fountain_of_youth] = 0;
 
   if( has_hernando_de_soto( player ) ) {

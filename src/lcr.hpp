@@ -27,7 +27,6 @@ namespace rn {
 
 struct TerrainState;
 struct UnitsState;
-struct EventsState;
 
 bool has_lost_city_rumor( TerrainState const& terrain_state,
                           Coord               square );
@@ -36,8 +35,7 @@ e_lcr_explorer_category lcr_explorer_category(
     UnitsState const& units_state, UnitId unit_id );
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer, Player const& player,
-    EventsState const& events_state );
+    e_lcr_explorer_category explorer, Player const& player );
 
 e_burial_mounds_type pick_burial_mounds_result(
     e_lcr_explorer_category explorer );

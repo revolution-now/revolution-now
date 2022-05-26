@@ -38,6 +38,10 @@ class Player {
   // gold and returns the amount after adding.
   int add_money( int amount );
 
+  bool independence_declared() const {
+    return o_.independence_declared;
+  }
+
   // Implement refl::WrapsReflected.
   Player( wrapped::Player&& o ) : o_( std::move( o ) ) {}
   wrapped::Player const&            refl() const { return o_; }
