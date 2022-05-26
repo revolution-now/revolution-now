@@ -429,24 +429,6 @@ local function create_sea_lanes()
     end
   end )
 
-  -- Clear out any sea lane along the three rows at the top of
-  -- the map and the bottom of the map (not including the arctic
-  -- rows).
-  for y = 0, 3 do
-    for x = 0, size.w - 1 do
-      local coord = { x=x, y=y }
-      local square = map_gen.at( coord )
-      if square.sea_lane then square.sea_lane = false end
-    end
-  end
-  for y = size.h - 4, size.h - 1 do
-    for x = 0, size.w - 1 do
-      local coord = { x=x, y=y }
-      local square = map_gen.at( coord )
-      if square.sea_lane then square.sea_lane = false end
-    end
-  end
-
   -- At this point, some rows (that contain no land tiles) will
   -- be all sea lane. So we will start at the center of the map
   -- and move upward (downward) to find them and we will set
