@@ -105,7 +105,7 @@ function M.initial_ship_pos()
   local y = size.h / 2
   local x = size.w - 1
   while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { x=x, y=y }
+  return { x=x + 1, y=y }
 end
 
 local function unit_type( type, base_type )
@@ -676,12 +676,12 @@ local function generate_land()
   local size = map_gen.world_size()
   local buffer = { top=2, bottom=2, left=4, right=3 }
   local initial_square = {
-    x=size.w - buffer.left * 2,
+    x=size.w - buffer.left * 4,
     y=size.h / 2
   }
   local initial_area = math.random( 5, 50 )
   generate_continent( initial_square, initial_area )
-  for i = 1, 8 do
+  for i = 1, 6 do
     local square = random_point_in_rect(
                        {
           x=buffer.left,
