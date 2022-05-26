@@ -138,8 +138,6 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
 }
 
 e_unit_type pick_unit_type_for_foy() {
-  // TODO: need to adjust these weights.
-  //
   // FIXME: need to move this to the immigration module and have
   // a queue located in a new top-level save-game state repre-
   // senting the old world state.
@@ -311,9 +309,8 @@ e_lcr_explorer_category lcr_explorer_category(
 
 e_burial_mounds_type pick_burial_mounds_result(
     e_lcr_explorer_category explorer ) {
-  refl::enum_map<e_burial_mounds_type, int> weights =
+  refl::enum_map<e_burial_mounds_type, int> const& weights =
       config_lcr.burial_mounds_type_weights[explorer];
-  // TODO: modify weights depending on game state.
   return rng::pick_from_weighted_enum_values( weights );
 }
 
@@ -327,21 +324,15 @@ e_rumor_type pick_rumor_type_result(
 
   if( has_hernando_de_soto( player ) ) {
     // Most docs say that having De Soto will prevent LCR results
-    // from being negative.  This means that you can still get
+    // from being negative. This means that you can still get
     // neutral results, such as "nothing but rumors", but the
     // solely-negative results are prevented.
     //
     // TODO: However, some say that this requires using a scout
-    // (need to determine this). Also, some say that even with De
-    // Soto you can still stumble on native burial grounds,
-    // though that would always be accompanied by a positive re-
-    // sult otherwise such as a treasure. In that way, De Soto
-    // only means that "purely negative" results are prevented.
-    // But this needs to be determined.
+    // (need to determine this).
     weights[e_rumor_type::unit_lost] = 0;
   }
 
-  // TODO: modify weights depending on game state.
   return rng::pick_from_weighted_enum_values( weights );
 }
 
