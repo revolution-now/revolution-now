@@ -198,6 +198,9 @@ wait<> click_on_tile( IMapUpdater& map_updater, Coord tile,
       new_square.road = ( action == e_action::add );
       break;
   }
+  for( auto& [nation, visible] : new_square.visibility )
+    visible = true;
+
   map_updater.modify_map_square(
       tile,
       [&]( MapSquare& to_edit ) { to_edit = new_square; } );
