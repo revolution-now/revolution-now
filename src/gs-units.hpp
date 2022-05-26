@@ -110,10 +110,10 @@ struct UnitsState {
   void change_to_map( UnitId id, Coord target );
 
   // This is the function that calls the above.
-  friend void unit_to_map_square( UnitsState&  unit_state,
-                                  IMapUpdater& map_updater,
-                                  UnitId       id,
-                                  Coord        world_square );
+  friend void unit_to_map_square_no_ui( UnitsState&  unit_state,
+                                        IMapUpdater& map_updater,
+                                        UnitId       id,
+                                        Coord world_square );
 
  public:
   // Will start at the starting slot and rotate right trying to

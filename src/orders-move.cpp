@@ -23,7 +23,6 @@
 #include "gs-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
-#include "lcr.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
@@ -604,8 +603,9 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, gui_, map_updater_,
+                                   id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       unit.consume_mv_points( mv_points_to_subtract_ );
       break;
@@ -624,14 +624,16 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, gui_, map_updater_,
+                                   id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, gui_, map_updater_,
+                                   id, move_dst );
       // When a ship moves into port it forfeights its movement
       // points.
       unit.forfeight_mv_points();
@@ -703,35 +705,6 @@ wait<> TravelHandler::perform() {
     CHECK( unit_would_move == ( new_coord == move_dst ) );
   }
 
-  // Check if the unit actually moved and it landed on a Lost
-  // City Rumor.
-  if( unit_would_move &&
-      has_lost_city_rumor( terrain_state_, move_dst ) ) {
-    e_lcr_explorer_category const explorer =
-        lcr_explorer_category( units_state, unit_id );
-    e_rumor_type rumor_type =
-        pick_rumor_type_result( explorer, player );
-    e_burial_mounds_type burial_type =
-        pick_burial_mounds_result( explorer );
-    bool has_burial_grounds = pick_burial_grounds_result(
-        player, explorer, burial_type );
-    LostCityRumorResult_t lcr_res =
-        co_await run_lost_city_rumor_result(
-            terrain_state_, units_state, gui_, player,
-            map_updater_, unit_id, move_dst, rumor_type,
-            burial_type, has_burial_grounds );
-
-    // Presumably we don't want to do anything more in this
-    // function if the unit that moved has disappeared.
-    if( lcr_res.holds<LostCityRumorResult::unit_lost>() )
-      co_return;
-    if( auto maybe_unit =
-            lcr_res.get_if<LostCityRumorResult::unit_created>();
-        maybe_unit.has_value() )
-      prioritize.push_back( maybe_unit->id );
-  }
-
-  // !! Note that the LCR may have removed the unit!
   co_return; //
 }
 
@@ -1080,7 +1053,10 @@ wait<> AttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
 
-  UnitsState& units_state = GameState::units();
+  UnitsState&   units_state   = GameState::units();
+  PlayersState& players_state = GameState::players();
+  Player&       player =
+      player_for_nation( players_state, unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -1117,8 +1093,9 @@ wait<> AttackHandler::perform() {
       // the colony location.
       change_colony_nation( colony_id, attacker.nation() );
       // 2. The attacker moves into the colony square.
-      unit_to_map_square( units_state, map_updater_,
-                          attacker.id(), attack_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, gui_, map_updater_,
+                                   attacker.id(), attack_dst );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
       // TODO: what if there are trade routes that involve this
@@ -1175,8 +1152,9 @@ wait<> AttackHandler::perform() {
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
-        unit_to_map_square(
-            units_state, map_updater_, loser.id(),
+        co_await unit_to_map_square(
+            units_state, terrain_state_, player, gui_,
+            map_updater_, loser.id(),
             coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.

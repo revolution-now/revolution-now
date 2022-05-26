@@ -42,6 +42,10 @@ class Player {
     return o_.independence_declared;
   }
 
+  maybe<std::string>& discovered_new_world() {
+    return o_.discovered_new_world;
+  }
+
   // Implement refl::WrapsReflected.
   Player( wrapped::Player&& o ) : o_( std::move( o ) ) {}
   wrapped::Player const&            refl() const { return o_; }

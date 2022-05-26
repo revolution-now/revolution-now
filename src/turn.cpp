@@ -501,7 +501,7 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -517,7 +517,7 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( id ) ) {
@@ -637,7 +637,7 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui ) {
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn( IMapUpdater& map_updater ) {
+wait<> colonies_turn( IMapUpdater& map_updater, IGui& gui ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -647,7 +647,8 @@ wait<> colonies_turn( IMapUpdater& map_updater ) {
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
-    co_await evolve_colony_one_turn( colony_id, map_updater );
+    co_await evolve_colony_one_turn( colony_id, map_updater,
+                                     gui );
   }
 }
 
@@ -666,7 +667,7 @@ wait<> nation_turn( IMapUpdater& map_updater, IGui& gui ) {
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn( map_updater );
+    co_await colonies_turn( map_updater, gui );
     st.did_colonies = true;
   }
 

@@ -112,7 +112,12 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
           UnitComposition::create(
               UnitType::create( e_unit_type::large_treasure ),
               { { e_unit_inventory::gold, amount } } ) );
-      UnitId id = create_unit_on_map(
+      // Use the non-coroutine version of this because it avoids
+      // an inifinite-regress issue where the new unit created
+      // rediscovers the LCR on this tile; also, there are no
+      // further UI actions needed in response to creating this
+      // unit, apart from what we will do here.
+      UnitId id = create_unit_on_map_no_ui(
           units_state, map_updater, player.nation(), uc_treasure,
           world_square );
       result = LostCityRumorResult::unit_created{ .id = id };
@@ -180,10 +185,8 @@ e_unit_type pick_unit_type_for_foy() {
 
 wait<LostCityRumorResult_t> run_rumor_result(
     e_rumor_type type, e_burial_mounds_type burial_type,
-    bool has_burial_grounds,
-    TerrainState const& /*terrain_state*/,
-    UnitsState& units_state, IGui& gui, Player& player,
-    IMapUpdater& map_updater, UnitId unit_id,
+    bool has_burial_grounds, UnitsState& units_state, IGui& gui,
+    Player& player, IMapUpdater& map_updater, UnitId unit_id,
     Coord world_square ) {
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( units_state, unit_id );
@@ -263,7 +266,12 @@ wait<LostCityRumorResult_t> run_rumor_result(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
           "swear allegiance to you and join your expedition." );
-      UnitId id = create_unit_on_map(
+      // Use the non-coroutine version of this because it avoids
+      // an inifinite-regress issue where the new unit created
+      // rediscovers the LCR on this tile; also, there are no
+      // further UI actions needed in response to creating this
+      // unit, apart from what we will do here.
+      UnitId id = create_unit_on_map_no_ui(
           units_state, map_updater, player.nation(),
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),
@@ -361,14 +369,13 @@ bool pick_burial_grounds_result(
 }
 
 wait<LostCityRumorResult_t> run_lost_city_rumor_result(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    IGui& gui, Player& player, IMapUpdater& map_updater,
-    UnitId unit_id, Coord world_square, e_rumor_type type,
-    e_burial_mounds_type burial_type, bool has_burial_grounds ) {
+    UnitsState& units_state, IGui& gui, Player& player,
+    IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
+    e_rumor_type type, e_burial_mounds_type burial_type,
+    bool has_burial_grounds ) {
   LostCityRumorResult_t result = co_await run_rumor_result(
-      type, burial_type, has_burial_grounds, terrain_state,
-      units_state, gui, player, map_updater, unit_id,
-      world_square );
+      type, burial_type, has_burial_grounds, units_state, gui,
+      player, map_updater, unit_id, world_square );
 
   // Remove lost city rumor.
   map_updater.modify_map_square(

@@ -17,8 +17,11 @@
 #include "colony.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
+#include "igui.hpp"
 #include "map-updater.hpp"
+#include "player.hpp"
 #include "unit.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -140,10 +143,18 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitType type );
 
-UnitId create_unit_on_map( UnitsState&  units_state,
-                           IMapUpdater& map_updater,
-                           e_nation nation, UnitComposition comp,
-                           Coord coord );
+wait<UnitId> create_unit_on_map(
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, IGui& gui, IMapUpdater& map_updater,
+    UnitComposition comp, Coord coord );
+
+// Note: when calling from a coroutine, call the coroutine ver-
+// sion above since it will run through any UI actions.
+UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
+                                 IMapUpdater&    map_updater,
+                                 e_nation        nation,
+                                 UnitComposition comp,
+                                 Coord           coord );
 
 /****************************************************************
 ** Multi

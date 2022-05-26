@@ -53,6 +53,11 @@ struct IGui {
   virtual wait<std::string> choice(
       ChoiceConfig const& config ) = 0;
 
+  // Display a prompt and ask (require) a string input from the
+  // user.
+  virtual wait<std::string> string_input(
+      StringInputConfig const& config ) = 0;
+
   // For convenience.  Should not be overridden.
   template<typename Arg, typename... Rest>
   wait<> message_box( std::string_view msg, Arg&& arg,

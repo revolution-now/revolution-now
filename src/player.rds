@@ -21,5 +21,9 @@ struct.Player {
 
   money 'int',
 
+  # When the new world is first discovered this will have a value
+  # and will be the name given to the new world by the player.
+  discovered_new_world 'maybe<std::string>',
+
   independence_declared 'bool',
 }

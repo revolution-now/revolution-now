@@ -213,7 +213,10 @@ zzz_terrain {
       },
       {
         key.x: 53
-        val.ground_resource: fish
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key.x: 54
@@ -12341,6 +12344,13 @@ zzz_terrain {
       },
       {
         key {
+          x: 54
+          y: 66
+        }
+        val.sea_lane: true
+      },
+      {
+        key {
           x: 55
           y: 66
         }
@@ -12408,7 +12418,10 @@ zzz_terrain {
           x: 54
           y: 67
         }
-        val.ground_resource: fish
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key {
@@ -12469,6 +12482,13 @@ zzz_terrain {
           y: 68
         }
         val.ground_resource: fish
+      },
+      {
+        key {
+          x: 54
+          y: 68
+        }
+        val.sea_lane: true
       },
       {
         key {

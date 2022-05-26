@@ -47,7 +47,8 @@ void prepare_world( TerrainState& terrain_state,
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
   CHECK( id == 1_id );
-  unit_to_map_square( units_state, map_updater, id, kSquare );
+  unit_to_map_square_no_ui( units_state, map_updater, id,
+                            kSquare );
 }
 
 TEST_CASE( "[src/road] perform_road_work 100 tools" ) {

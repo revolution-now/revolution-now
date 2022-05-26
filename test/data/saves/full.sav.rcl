@@ -15,24 +15,28 @@ old_world_view.selected_unit: null
 
 players.players {
   dutch {
+    discovered_new_world: null
     human: true
     independence_declared: false
     money: 0
     nation: dutch
   }
   english {
+    discovered_new_world: null
     human: true
     independence_declared: false
     money: 0
     nation: english
   }
   french {
+    discovered_new_world: null
     human: true
     independence_declared: false
     money: 0
     nation: french
   }
   spanish {
+    discovered_new_world: null
     human: true
     independence_declared: false
     money: 0
@@ -1105,7 +1109,7 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: false
+        sea_lane: true
         surface: water
         visibility {
           dutch: false
@@ -67651,7 +67655,7 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: false
+        sea_lane: true
         surface: water
         visibility {
           dutch: false
@@ -68659,24 +68663,6 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: false
-        surface: water
-        visibility {
-          dutch: false
-          english: false
-          french: false
-          spanish: false
-        }
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
         sea_lane: true
         surface: water
         visibility {
@@ -68707,6 +68693,24 @@ zzz_terrain {
       {
         forest_resource: null
         ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: true
+        surface: water
+        visibility {
+          dutch: false
+          english: false
+          french: false
+          spanish: false
+        }
+      },
+      {
+        forest_resource: null
+        ground: arctic
         ground_resource: fish
         irrigation: false
         lost_city_rumor: false
@@ -69667,7 +69671,7 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: false
+        sea_lane: true
         surface: water
         visibility {
           dutch: false

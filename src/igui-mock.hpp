@@ -27,6 +27,8 @@ struct MockIGui : IGui {
   MOCK_GUI_METHOD( wait<>, message_box, ( std::string_view ) );
   MOCK_GUI_METHOD( wait<std::string>, choice,
                    (ChoiceConfig const&));
+  MOCK_GUI_METHOD( wait<std::string>, string_input,
+                   (StringInputConfig const&));
 };
 
 static_assert( !std::is_abstract_v<MockIGui> );

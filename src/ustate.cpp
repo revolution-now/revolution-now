@@ -12,6 +12,7 @@
 #include "ustate.hpp"
 
 // Revolution Now
+#include "co-wait.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "error.hpp"
@@ -130,14 +131,28 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                       UnitComposition::create( type ) );
 }
 
-UnitId create_unit_on_map( UnitsState&  units_state,
-                           IMapUpdater& map_updater,
-                           e_nation nation, UnitComposition comp,
-                           Coord coord ) {
+UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
+                                 IMapUpdater&    map_updater,
+                                 e_nation        nation,
+                                 UnitComposition comp,
+                                 Coord           coord ) {
   UnitId id =
       create_unit( units_state, nation, std::move( comp ) );
-  unit_to_map_square( units_state, map_updater, id, coord );
+  unit_to_map_square_no_ui( units_state, map_updater, id,
+                            coord );
   return id;
+}
+
+wait<UnitId> create_unit_on_map(
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, IGui& gui, IMapUpdater& map_updater,
+    UnitComposition comp, Coord coord ) {
+  UnitId id = create_unit( units_state, player.nation(),
+                           std::move( comp ) );
+  co_await unit_to_map_square( units_state, terrain_state,
+                               player, gui, map_updater, id,
+                               coord );
+  co_return id;
 }
 
 /****************************************************************
@@ -343,8 +358,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
   // FIXME: this needs to render but can't cause it causes
   // trouble for unit tests.
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  auto id = create_unit_on_map( units_state, map_updater, nation,
-                                comp, coord );
+  auto id = create_unit_on_map_no_ui( units_state, map_updater,
+                                      nation, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   auto& gs_units = GameState::units();

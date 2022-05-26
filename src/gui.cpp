@@ -48,4 +48,16 @@ wait<std::string> RealGui::choice( ChoiceConfig const& config ) {
   co_return config.options[selected].key;
 }
 
+wait<std::string> RealGui::string_input(
+    StringInputConfig const& config ) {
+  maybe<std::string> res;
+  // FIXME: need to use a different function here that just re-
+  // quires input.
+  while( !res.has_value() )
+    res = co_await ui::str_input_box( "title?", config.msg,
+                                      config.initial_text );
+  DCHECK( res.has_value() );
+  co_return *res;
+}
+
 } // namespace rn

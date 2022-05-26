@@ -41,6 +41,7 @@ TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
 
   REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
   REQUIRE( has_lost_city_rumor( terrain_state, Coord{} ) );
 }
@@ -64,10 +65,11 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -88,8 +90,8 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -121,10 +123,11 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -145,8 +148,8 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -183,10 +186,11 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -208,8 +212,8 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -246,10 +250,11 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -279,8 +284,8 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -312,10 +317,11 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -337,8 +343,8 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -373,10 +379,11 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -398,8 +405,8 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -435,10 +442,11 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -461,8 +469,8 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -515,10 +523,11 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -541,8 +550,8 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -578,10 +587,11 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -604,8 +614,8 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -646,10 +656,11 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -669,8 +680,8 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.
@@ -707,10 +718,11 @@ TEST_CASE(
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -737,8 +749,8 @@ TEST_CASE(
   // Go
   wait<LostCityRumorResult_t> lcr_res =
       run_lost_city_rumor_result(
-          terrain_state, units_state, gui, player, map_updater,
-          unit_id, /*move_dst=*/Coord{}, rumor_type, burial_type,
+          units_state, gui, player, map_updater, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
           has_burial_grounds );
 
   // Make sure that we finished at all.

@@ -30,6 +30,8 @@
 
 namespace rn {
 
+struct IGui;
+
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     std::string_view name );
 
@@ -50,6 +52,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
 
 // Evolve the colony by one turn.
 wait<> evolve_colony_one_turn( ColonyId     id,
-                               IMapUpdater& map_updater );
+                               IMapUpdater& map_updater,
+                               IGui&        gui );
 
 } // namespace rn

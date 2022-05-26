@@ -907,8 +907,9 @@ class UnitsAtGateColonyView : public ui::View,
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            unit_to_map_square( GameState::units(), map_updater_,
-                                unit.id, colony().location() );
+            unit_to_map_square_no_ui( GameState::units(),
+                                      map_updater_, unit.id,
+                                      colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the

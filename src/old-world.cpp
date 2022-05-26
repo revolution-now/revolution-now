@@ -222,9 +222,10 @@ e_high_seas_result advance_unit_on_high_seas(
     lg.debug( "advancing outbound unit {} to {} percent.",
               debug_string( id ), outbound.percent );
     if( outbound.percent >= 1.0 ) {
-      // FIXME: temporary
-      unit_to_map_square( GameState::units(), map_updater, id,
-                          Coord{} );
+      // FIXME: temporary; also, would want to use coroutine ver-
+      // sion of this function.
+      unit_to_map_square_no_ui( GameState::units(), map_updater,
+                                id, Coord{} );
       unit_from_id( id ).clear_orders();
       lg.debug( "unit has arrived in new world." );
       return e_high_seas_result::arrived_in_new_world;
