@@ -372,6 +372,9 @@ TravelHandler::confirm_sail_high_seas() const {
   // also move west without getting the prompt, which allows
   // starting the ship in the middle of sea lane at the start of
   // the game.
+  //
+  // FIXME: the below needs to be adjusted for the pacific sea
+  // lane once we get pacific ocean tiles.
   bool correct_dst = is_high_seas( terrain_state_, move_dst );
   bool correct_src = is_high_seas( terrain_state_, move_src );
   UNWRAP_CHECK( d, move_src.direction_to( move_dst ) );
