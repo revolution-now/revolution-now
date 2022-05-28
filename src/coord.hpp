@@ -38,14 +38,26 @@
 
 namespace rn {
 
-struct Coord;
-struct Delta;
-struct Rect;
-
 using ScaleX = SX;
 using ScaleY = SY;
 
-struct ND Scale {
+/****************************************************************
+** Fwd Decls
+*****************************************************************/
+struct Coord;
+struct Delta;
+struct Rect;
+struct RectGridProxyIteratorHelper;
+
+/****************************************************************
+** e_direction
+*****************************************************************/
+e_direction_type direction_type( e_direction d );
+
+/****************************************************************
+** Scale
+*****************************************************************/
+struct Scale {
   SX sx = 1_sx;
   SY sy = 1_sy;
 
@@ -65,9 +77,11 @@ struct ND Scale {
     return ( sx != rhs.sx ) || ( sy != rhs.sy );
   }
 };
-NOTHROW_MOVE( Scale );
 
-struct ND Delta {
+/****************************************************************
+** Delta
+*****************************************************************/
+struct Delta {
   W w;
   H h;
 
@@ -170,9 +184,11 @@ struct ND Delta {
                                lua::tag<Delta> );
   friend void lua_push( lua::cthread L, Delta const& delta );
 };
-NOTHROW_MOVE( Delta );
 
-struct ND Coord {
+/****************************************************************
+** Coord
+*****************************************************************/
+struct Coord {
   Y y;
   X x;
 
@@ -257,11 +273,11 @@ struct ND Coord {
                                lua::tag<Coord> );
   friend void lua_push( lua::cthread L, Coord const& coord );
 };
-NOTHROW_MOVE( Coord );
 
-class RectGridProxyIteratorHelper;
-
-struct ND Rect {
+/****************************************************************
+** Rect
+*****************************************************************/
+struct Rect {
   X x;
   Y y;
   W w;
@@ -469,7 +485,6 @@ struct ND Rect {
     return const_iterator( lower_left(), this );
   }
 };
-NOTHROW_MOVE( Rect );
 
 #if defined( _LIBCPP_VERSION ) // libc++
 // FIXME: re-enable this when libc++ gets std::input_iterator.
@@ -477,10 +492,14 @@ NOTHROW_MOVE( Rect );
 static_assert( std::input_iterator<Rect::const_iterator> );
 #endif
 
+/****************************************************************
+** RectGridProxyIteratorHelper
+*****************************************************************/
 // This object will be returned as a proxy by the Rect class to
 // facilitate iterating over the inside of the rect in jumps of a
 // certain size.
-class RectGridProxyIteratorHelper {
+struct RectGridProxyIteratorHelper {
+ private:
   Rect const& rect;
   Delta       chunk_size;
 
@@ -559,6 +578,9 @@ static_assert( std::input_iterator<
                RectGridProxyIteratorHelper::const_iterator> );
 #endif
 
+/****************************************************************
+** Misc Functions
+*****************************************************************/
 // Will take the delta and center it with respect to the rect and
 // return the coordinate of the upper-left corner of the centered
 // rect.  Note that the coord returned may be negative.
@@ -579,6 +601,9 @@ ND Delta max( Delta const& lhs, Delta const& rhs );
 
 ND Delta min( Delta const& lhs, Delta const& rhs );
 
+/****************************************************************
+** Algebra
+*****************************************************************/
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
 ND inline constexpr Delta operator+( Delta const& lhs,
                                      Delta const& rhs ) {

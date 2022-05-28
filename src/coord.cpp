@@ -39,6 +39,26 @@ namespace rn {
 
 namespace {} // namespace
 
+/****************************************************************
+** e_direction
+*****************************************************************/
+e_direction_type direction_type( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+    case e_direction::ne:
+    case e_direction::sw:
+    case e_direction::se: return e_direction_type::diagonal;
+    case e_direction::n:
+    case e_direction::w:
+    case e_direction::e:
+    case e_direction::s: return e_direction_type::cardinal;
+    case e_direction::c: return e_direction_type::center;
+  }
+}
+
+/****************************************************************
+** Rect
+*****************************************************************/
 Rect Rect::from( Coord const& _1, Coord const& _2 ) {
   Rect res;
   res.x = std::min( _1.x, _2.x );
