@@ -72,6 +72,11 @@ struct type_traits<::rn::wait<T>>
   //   stackoverflow.com/questions/6420985/
   //       how-to-force-a-static-member-to-be-initialized
   //
+  // The following also seems to work:
+  //
+  //   static constexpr auto const force_register =
+  //           &registration;
+  //
   static_assert( &registration == &registration );
 };
 
