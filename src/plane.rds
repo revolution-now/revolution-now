@@ -15,7 +15,7 @@ enum.e_plane {
   land_view, # land, units, colonies, etc.
   panel,     # the info panel on the right
   colony,    # colony view
-  old_world, # the old world
+  harbor,    # the harbor (old world docs)
   main_menu, # main menu.
   console,   # the developer console
   menu,      # the menus at the top of screen

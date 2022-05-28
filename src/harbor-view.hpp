@@ -1,11 +1,11 @@
 /****************************************************************
-**old-world-view.hpp
+**harbor-view.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-06-14.
 *
-* Description: Implements the Old World port view.
+* Description: Implements the harbor view.
 *
 *****************************************************************/
 #pragma once
@@ -18,11 +18,11 @@
 
 namespace rn {
 
-wait<> show_old_world_view();
+wait<> show_harbor_view();
 
-void old_world_view_set_selected_unit( UnitId id );
+void harbor_view_set_selected_unit( UnitId id );
 
 struct Plane;
-Plane* old_world_plane();
+Plane* harbor_plane();
 
 } // namespace rn

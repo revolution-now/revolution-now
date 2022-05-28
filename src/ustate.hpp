@@ -121,18 +121,17 @@ bool is_unit_in_colony( UnitId id );
 maybe<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************
-** Old World View Ownership
+** Harbor View Ownership
 *****************************************************************/
-base::valid_or<generic_err> check_old_world_state_invariants(
-    UnitOldWorldViewState_t const& info );
+base::valid_or<generic_err> check_harbor_state_invariants(
+    UnitHarborViewState_t const& info );
 
-// If unit is owned by old-world-view then this will return info.
-maybe<UnitOldWorldViewState_t&> unit_old_world_view_info(
-    UnitId id );
+// If unit is owned by harbor-view then this will return info.
+maybe<UnitHarborViewState_t&> unit_harbor_view_info( UnitId id );
 
-// Get a set of all units owned by the old-world-view.
+// Get a set of all units owned by the harbor-view.
 // FIXME: needs to be nation-specific.
-std::vector<UnitId> units_in_old_world_view();
+std::vector<UnitId> units_in_harbor_view();
 
 /****************************************************************
 ** Creation

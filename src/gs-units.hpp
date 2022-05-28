@@ -63,12 +63,11 @@ struct UnitsState {
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId        holder_of( UnitId id ) const;
 
-  // We allow non-const access to the old world view state be-
-  // cause changing it will not affect the invariants of this
-  // class.
-  maybe<UnitOldWorldViewState_t&> maybe_old_world_view_state_of(
+  // We allow non-const access to the harbor view state because
+  // changing it will not affect the invariants of this class.
+  maybe<UnitHarborViewState_t&> maybe_harbor_view_state_of(
       UnitId id );
-  UnitOldWorldViewState_t& old_world_view_state_of( UnitId id );
+  UnitHarborViewState_t& harbor_view_state_of( UnitId id );
 
   std::unordered_set<UnitId> const& from_coord(
       Coord const& c ) const;
@@ -124,8 +123,8 @@ struct UnitsState {
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
-  void change_to_old_world_view( UnitId                  id,
-                                 UnitOldWorldViewState_t info );
+  void change_to_harbor_view( UnitId                id,
+                              UnitHarborViewState_t info );
 
   void change_to_colony( UnitId id, ColonyId col_id,
                          ColonyJob_t const& job );

@@ -44,12 +44,11 @@ valid_or<string> wrapped::UnitsState::validate() const {
                    "unit {} is in the `free` state.", id );
   }
 
-  // Check old_world states.
+  // Check harbor states.
   for( auto const& [id, unit_state] : units ) {
     UnitOwnership_t const& st = unit_state.ownership;
-    if_get( st, UnitOwnership::old_world, val ) {
-      REFL_VALIDATE(
-          check_old_world_state_invariants( val.st ) );
+    if_get( st, UnitOwnership::harbor, val ) {
+      REFL_VALIDATE( check_harbor_state_invariants( val.st ) );
     }
   }
 
@@ -152,7 +151,7 @@ maybe<Coord> UnitsState::maybe_coord_for( UnitId id ) const {
       return o.get<UnitOwnership::world>().coord;
     case UnitOwnership::e::free:
     case UnitOwnership::e::cargo:
-    case UnitOwnership::e::old_world:
+    case UnitOwnership::e::harbor:
     case UnitOwnership::e::colony: //
       return nothing;
   };
@@ -170,7 +169,7 @@ maybe<UnitId> UnitsState::maybe_holder_of( UnitId id ) const {
       return o.get<UnitOwnership::cargo>().holder;
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
-    case UnitOwnership::e::old_world:
+    case UnitOwnership::e::harbor:
     case UnitOwnership::e::colony: //
       return nothing;
   };
@@ -182,11 +181,11 @@ UnitId UnitsState::holder_of( UnitId id ) const {
   return holder;
 }
 
-maybe<UnitOldWorldViewState_t&>
-UnitsState::maybe_old_world_view_state_of( UnitId id ) {
+maybe<UnitHarborViewState_t&>
+UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {
-    case UnitOwnership::e::old_world:
-      return o.get<UnitOwnership::old_world>().st;
+    case UnitOwnership::e::harbor:
+      return o.get<UnitOwnership::harbor>().st;
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
     case UnitOwnership::e::cargo:
@@ -195,9 +194,9 @@ UnitsState::maybe_old_world_view_state_of( UnitId id ) {
   };
 }
 
-UnitOldWorldViewState_t& UnitsState::old_world_view_state_of(
+UnitHarborViewState_t& UnitsState::harbor_view_state_of(
     UnitId id ) {
-  UNWRAP_CHECK_MSG( st, maybe_old_world_view_state_of( id ),
+  UNWRAP_CHECK_MSG( st, maybe_harbor_view_state_of( id ),
                     "unit is not in the old world state." );
   return st;
 }
@@ -223,7 +222,7 @@ void UnitsState::disown_unit( UnitId id ) {
       holder_unit.cargo().remove( slot_idx );
       break;
     }
-    case UnitOwnership::e::old_world: {
+    case UnitOwnership::e::harbor: {
       break;
     }
     case UnitOwnership::e::colony: {
@@ -295,13 +294,13 @@ void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
       UnitOwnership::cargo{ /*holder=*/new_holder };
 }
 
-void UnitsState::change_to_old_world_view(
-    UnitId id, UnitOldWorldViewState_t info ) {
-  CHECK_HAS_VALUE( check_old_world_state_invariants( info ) );
+void UnitsState::change_to_harbor_view(
+    UnitId id, UnitHarborViewState_t info ) {
+  CHECK_HAS_VALUE( check_harbor_state_invariants( info ) );
   UnitOwnership_t& ownership = ownership_of( id );
-  if( !ownership.holds<UnitOwnership::old_world>() )
+  if( !ownership.holds<UnitOwnership::harbor>() )
     disown_unit( id );
-  ownership = UnitOwnership::old_world{ /*st=*/info };
+  ownership = UnitOwnership::harbor{ /*st=*/info };
 }
 
 void UnitsState::change_to_colony( UnitId id, ColonyId col_id,

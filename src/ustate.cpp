@@ -219,7 +219,7 @@ maybe<Coord> coord_for_unit_indirect( UnitId id ) {
       return coord_for_unit_indirect( holder );
     }
     case UnitOwnership::e::free:
-    case UnitOwnership::e::old_world:
+    case UnitOwnership::e::harbor:
     case UnitOwnership::e::colony: //
       return nothing;
   };
@@ -277,7 +277,7 @@ maybe<UnitId> is_unit_onboard( UnitId id ) {
 /****************************************************************
 ** Old World View Ownership
 *****************************************************************/
-valid_or<string> UnitOldWorldViewState::outbound::validate()
+valid_or<string> UnitHarborViewState::outbound::validate()
     const {
   RETURN_IF_FALSE( percent >= 0.0,
                    "ship outbound percentage must be between 0 "
@@ -290,8 +290,7 @@ valid_or<string> UnitOldWorldViewState::outbound::validate()
   return valid;
 }
 
-valid_or<string> UnitOldWorldViewState::inbound::validate()
-    const {
+valid_or<string> UnitHarborViewState::inbound::validate() const {
   RETURN_IF_FALSE( percent >= 0.0,
                    "ship outbound percentage must be between 0 "
                    "and 1 inclusive, but is {}.",
@@ -303,29 +302,28 @@ valid_or<string> UnitOldWorldViewState::inbound::validate()
   return valid;
 }
 
-valid_or<string> UnitOldWorldViewState::in_port::validate()
-    const {
+valid_or<string> UnitHarborViewState::in_port::validate() const {
   return valid;
 }
 
-valid_or<generic_err> check_old_world_state_invariants(
-    UnitOldWorldViewState_t const& info ) {
+valid_or<generic_err> check_harbor_state_invariants(
+    UnitHarborViewState_t const& info ) {
   valid_or<string> res = std::visit( L( _.validate() ), info );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }
 
-maybe<UnitOldWorldViewState_t&> unit_old_world_view_info(
+maybe<UnitHarborViewState_t&> unit_harbor_view_info(
     UnitId id ) {
   auto& gs_units = GameState::units();
-  return gs_units.maybe_old_world_view_state_of( id );
+  return gs_units.maybe_harbor_view_state_of( id );
 }
 
-vector<UnitId> units_in_old_world_view() {
+vector<UnitId> units_in_harbor_view() {
   vector<UnitId> res;
   auto&          gs_units = GameState::units();
   for( auto const& [id, st] : gs_units.all() ) {
-    if( st.ownership.holds<UnitOwnership::old_world>() )
+    if( st.ownership.holds<UnitOwnership::harbor>() )
       res.push_back( id );
   }
   return res;

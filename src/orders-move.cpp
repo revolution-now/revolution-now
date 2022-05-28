@@ -340,7 +340,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -687,9 +687,9 @@ wait<> TravelHandler::perform() {
       }
       break;
     case e_travel_verdict::sail_high_seas: {
-      UnitOldWorldViewState_t state =
-          UnitOldWorldViewState::inbound{ .percent = 0.0 };
-      GameState::units().change_to_old_world_view( id, state );
+      UnitHarborViewState_t state =
+          UnitHarborViewState::inbound{ .percent = 0.0 };
+      GameState::units().change_to_harbor_view( id, state );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;

@@ -15,7 +15,7 @@ enum.e_init_routine {
   compositor,
   conductor,
   configs,
-  old_world_view,
+  harbor_view,
   lua,
   menus,
   midiplayer,

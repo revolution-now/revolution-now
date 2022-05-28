@@ -18,13 +18,13 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-units.hpp"
+#include "harbor-units.hpp"
+#include "harbor-view.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
-#include "old-world-view.hpp"
-#include "old-world.hpp"
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
@@ -71,7 +71,7 @@ enum class e_menu_actions {
   save,
   load,
   revolution,
-  old_world_view,
+  harbor_view,
   map_editor,
 };
 
@@ -141,8 +141,8 @@ wait<> menu_revolution_handler() {
   co_await ui::message_box( "You selected: {}", answer );
 }
 
-wait<> menu_old_world_view_handler() {
-  co_await show_old_world_view();
+wait<> menu_harbor_view_handler() {
+  co_await show_harbor_view();
 }
 
 wait<bool> proceed_to_leave_game() { co_return true; }
@@ -176,7 +176,7 @@ DEFAULT_TURN_MENU_ITEM_HANDLER( exit );
 DEFAULT_TURN_MENU_ITEM_HANDLER( save );
 DEFAULT_TURN_MENU_ITEM_HANDLER( load );
 DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
-DEFAULT_TURN_MENU_ITEM_HANDLER( old_world_view );
+DEFAULT_TURN_MENU_ITEM_HANDLER( harbor_view );
 DEFAULT_TURN_MENU_ITEM_HANDLER( map_editor );
 
 #define CASE_MENU_HANDLER( item ) \
@@ -188,7 +188,7 @@ wait<> handle_menu_item( e_menu_actions action ) {
     CASE_MENU_HANDLER( save );
     CASE_MENU_HANDLER( load );
     CASE_MENU_HANDLER( revolution );
-    CASE_MENU_HANDLER( old_world_view );
+    CASE_MENU_HANDLER( harbor_view );
     CASE_MENU_HANDLER( map_editor );
   }
 }
@@ -501,7 +501,7 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::road );
+    co_return( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -517,7 +517,7 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::plow );
+    co_return( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( id ) ) {
@@ -537,15 +537,15 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
       case e_high_seas_result::arrived_in_new_world:
         unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
-      case e_high_seas_result::arrived_in_old_world: {
+      case e_high_seas_result::arrived_in_harbor: {
         finish_turn( id );
         ui::e_confirm confirmed = co_await ui::yes_no(
             "Your excellency, our {} has arrived in the old "
             "world.  Go to port?",
             unit_from_id( id ).desc().name );
         if( confirmed == ui::e_confirm::yes ) {
-          old_world_view_set_selected_unit( id );
-          co_await show_old_world_view();
+          harbor_view_set_selected_unit( id );
+          co_await show_harbor_view();
         }
         co_return false; // do not ask for orders.
       }

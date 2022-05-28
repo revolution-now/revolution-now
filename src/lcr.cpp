@@ -14,8 +14,8 @@
 #include "co-wait.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
+#include "harbor-units.hpp"
 #include "logger.hpp"
-#include "old-world.hpp"
 #include "rand-enum.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
@@ -206,8 +206,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
         UnitId      id =
             create_unit( units_state, player.nation(),
                          UnitComposition::create( next ) );
-        units_state.change_to_old_world_view(
-            id, UnitOldWorldViewState::in_port{} );
+        units_state.change_to_harbor_view(
+            id, UnitHarborViewState::in_port{} );
         co_await gui.message_box(
             "A @[H]{}@[] has arrived in port!",
             units_state.unit_for( id ).desc().name );

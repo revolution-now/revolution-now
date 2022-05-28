@@ -291,8 +291,8 @@ TEST_CASE(
   init_game_world_for_test();
 
   auto id = create_colonist();
-  GameState::units().change_to_old_world_view(
-      id, UnitOldWorldViewState::in_port{} );
+  GameState::units().change_to_harbor_view(
+      id, UnitHarborViewState::in_port{} );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }

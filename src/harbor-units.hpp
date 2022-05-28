@@ -1,5 +1,5 @@
 /****************************************************************
-**old-world.hpp
+**harbor-units.hpp
 *
 * Project: Revolution Now
 *
@@ -24,12 +24,10 @@ bool is_unit_outbound( UnitId id );
 bool is_unit_in_port( UnitId id );
 
 // FIXME: needs to be nation-specific.
-std::vector<UnitId>
-old_world_units_on_dock(); // Sorted by arrival.
-std::vector<UnitId>
-old_world_units_in_port(); // Sorted by arrival.
-std::vector<UnitId> old_world_units_inbound();  // to old world
-std::vector<UnitId> old_world_units_outbound(); // to new world
+std::vector<UnitId> harbor_units_on_dock(); // Sorted by arrival.
+std::vector<UnitId> harbor_units_in_port(); // Sorted by arrival.
+std::vector<UnitId> harbor_units_inbound(); // to harbor
+std::vector<UnitId> harbor_units_outbound(); // to new world
 
 // These will take a ship and make it old (new) world-bound (must
 // be a ship). If it is already in this state then this is a
@@ -38,26 +36,26 @@ std::vector<UnitId> old_world_units_outbound(); // to new world
 //
 // If a ship in the new world is told to sail to the new world
 // then an error will be thrown since this is likely a logic er-
-// ror. Likewise, if a ship in the old-world port is told to sail
-// to the old-world then a similar thing happens.
-void unit_sail_to_old_world( UnitId id );
+// ror. Likewise, if a ship in the harbor is told to sail to the
+// harbor then a similar thing happens.
+void unit_sail_to_harbor( UnitId id );
 void unit_sail_to_new_world( UnitId id );
 
 // Takes a unit (which is required to be in the cargo of a ship
 // that is in port) and moves it to the dock.
-void unit_move_to_old_world_dock( UnitId id );
+void unit_move_to_harbor( UnitId id );
 
 enum e_high_seas_result {
   still_traveling,
-  arrived_in_old_world,
+  arrived_in_harbor,
   arrived_in_new_world
 };
 
 // Takes a unit on the high seas and increases the percentage
 // completion of its journey. If the percentage reaches 1.0 as a
 // result of this call then the state will automatically be tran-
-// sitioned to either the old-world or the new world, as appro-
-// priate. If this is called with a unit that is not on the high
+// sitioned to either the harbor or the new world, as appropri-
+// ate. If this is called with a unit that is not on the high
 // seas then an error will be thrown.
 e_high_seas_result advance_unit_on_high_seas(
     UnitId id, IMapUpdater& map_updater );
