@@ -15,6 +15,8 @@ let s:stems = [
  \ 'map-gen',
  \ 'on-map',
  \ 'lcr',
+ \ 'old-world-state',
+ \ 'immigration',
 \]
 
 let s:luas = [
