@@ -69,7 +69,7 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
         config_rn.viewport.zoom_accel_drag_coeff *
             config_rn.viewport.zoom_speed ),
     smooth_zoom_target_{},
-    coro_smooth_center_{},
+    coro_smooth_scroll_{},
     zoom_point_seek_{},
     point_seek_{},
     viewport_rect_pixels_{},
@@ -234,16 +234,16 @@ void SmoothViewport::advance_state(
 
   advance( x_push_, y_push_, zoom_push_ );
 
-  if( coro_smooth_center_ ) {
-    advance_target_seeking( coro_smooth_center_->x_target,
+  if( coro_smooth_scroll_ ) {
+    advance_target_seeking( coro_smooth_scroll_->x_target,
                             o_.center_x, x_vel_,
                             translation_seeking_parameters );
-    advance_target_seeking( coro_smooth_center_->y_target,
+    advance_target_seeking( coro_smooth_scroll_->y_target,
                             o_.center_y, y_vel_,
                             translation_seeking_parameters );
     if( is_tile_fully_visible(
-            coro_smooth_center_->tile_target ) )
-      coro_smooth_center_->promise
+            coro_smooth_scroll_->tile_target ) )
+      coro_smooth_scroll_->promise
           .set_value_emplace_if_not_set();
   }
 
@@ -320,9 +320,9 @@ void SmoothViewport::stop_auto_zoom() {
 }
 
 void SmoothViewport::stop_auto_panning() {
-  if( coro_smooth_center_ ) {
-    coro_smooth_center_->promise.set_value_emplace_if_not_set();
-    coro_smooth_center_ = nothing;
+  if( coro_smooth_scroll_ ) {
+    coro_smooth_scroll_->promise.set_value_emplace_if_not_set();
+    coro_smooth_scroll_ = nothing;
   }
   point_seek_ = nothing;
 }
@@ -786,12 +786,12 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
-  coro_smooth_center_ = SmoothCenter{
+  coro_smooth_scroll_ = SmoothScroll{
       .x_target = XD{ double( ( coord.x * g_tile_width )._ ) },
       .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
       .tile_target = coord,
       .promise     = {} };
-  return coro_smooth_center_->promise.wait();
+  return coro_smooth_scroll_->promise.wait();
 }
 
 bool SmoothViewport::operator==(
