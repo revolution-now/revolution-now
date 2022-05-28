@@ -359,8 +359,11 @@ TravelHandler::confirm_sail_high_seas() const {
   // only if the following conditions are met:
   //
   //   1. The desination square is high seas.
-  //   2. The source square is high seas.
-  //   3. You are moving in either the ne, e, or se directions.
+  //   2. The source square is high seas, but only for atlantic
+  //      sea lanes.
+  //   3. You are moving in either the ne, e, or se directions
+  //      (that's for atlantic sea lanes; the opposite for pa-
+  //      cific sea lanes).
   //
   // Not sure the reason for #2, but the benefit of #3 is that
   // you can freely move north/south without getting the prompt
@@ -372,15 +375,21 @@ TravelHandler::confirm_sail_high_seas() const {
   // also move west without getting the prompt, which allows
   // starting the ship in the middle of sea lane at the start of
   // the game.
-  //
-  // FIXME: the below needs to be adjusted for the pacific sea
-  // lane once we get pacific ocean tiles.
+  bool is_atlantic =
+      ( move_src.x >=
+        0_x + terrain_state_.world_size_tiles().w / 2_sx );
+  bool is_pacific  = !is_atlantic;
   bool correct_dst = is_high_seas( terrain_state_, move_dst );
-  bool correct_src = is_high_seas( terrain_state_, move_src );
+  bool correct_src =
+      is_pacific || is_high_seas( terrain_state_, move_src );
   UNWRAP_CHECK( d, move_src.direction_to( move_dst ) );
-  bool correct_direction = ( d == e_direction::ne ) ||
-                           ( d == e_direction::e ) ||
-                           ( d == e_direction::se );
+  bool correct_direction = is_atlantic
+                               ? ( ( d == e_direction::ne ) ||
+                                   ( d == e_direction::e ) ||
+                                   ( d == e_direction::se ) )
+                               : ( ( d == e_direction::nw ) ||
+                                   ( d == e_direction::w ) ||
+                                   ( d == e_direction::sw ) );
   bool ask = correct_src && correct_dst && correct_direction;
   if( !ask ) co_return e_travel_verdict::map_to_map;
   ui::e_confirm confirmed = co_await gui_.yes_no(
