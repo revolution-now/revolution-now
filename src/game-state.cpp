@@ -32,24 +32,29 @@ TopLevelState& g_state() {
 FormatVersion& GameState::version() {
   return g_state().version();
 }
-EventsState&  GameState::events() { return g_state().events(); }
-UnitsState&   GameState::units() { return g_state().units(); }
+
+EventsState& GameState::events() { return g_state().events(); }
+
+UnitsState& GameState::units() { return g_state().units(); }
+
 PlayersState& GameState::players() {
   return g_state().players();
 }
-TurnState&     GameState::turn() { return g_state().turn(); }
-OldWorldState& GameState::old_world() {
-  return g_state().old_world();
-}
+
+TurnState& GameState::turn() { return g_state().turn(); }
+
 ColoniesState& GameState::colonies() {
   return g_state().colonies();
 }
+
 LandViewState& GameState::land_view() {
   return g_state().land_view();
 }
+
 TerrainState& GameState::terrain() {
   return g_state().terrain();
 }
+
 TopLevelState& GameState::top() { return g_state(); }
 
 /****************************************************************

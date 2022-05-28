@@ -11,8 +11,6 @@ land_view.viewport {
   zoom: 1
 }
 
-old_world.selected_unit: null
-
 players.players {
   dutch {
     crosses: 0
@@ -45,11 +43,109 @@ players.players {
       william_penn: false
     }
     human: true
-    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: dutch
-    next_recruit_cost_base: 0
+    old_world_state {
+      expeditionary_force {
+        artillery: 0
+        cavalry: 0
+        men_of_war: 0
+        regulars: 0
+      }
+      harbor_state.selected_unit: null
+      immigration {
+        immigrants_pool: [
+          petty_criminal,
+          petty_criminal,
+          petty_criminal,
+        ]
+        next_recruit_cost_base: 0
+      }
+      market.commodities {
+        cigars {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cloth {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        coats {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cotton {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        food {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        fur {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        horses {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        lumber {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        muskets {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        ore {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        rum {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        silver {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        sugar {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tobacco {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tools {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        trade_goods {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+      }
+      taxes.tax_rate: 0
+    }
   }
   english {
     crosses: 0
@@ -82,11 +178,109 @@ players.players {
       william_penn: false
     }
     human: true
-    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: english
-    next_recruit_cost_base: 0
+    old_world_state {
+      expeditionary_force {
+        artillery: 0
+        cavalry: 0
+        men_of_war: 0
+        regulars: 0
+      }
+      harbor_state.selected_unit: null
+      immigration {
+        immigrants_pool: [
+          petty_criminal,
+          petty_criminal,
+          petty_criminal,
+        ]
+        next_recruit_cost_base: 0
+      }
+      market.commodities {
+        cigars {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cloth {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        coats {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cotton {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        food {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        fur {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        horses {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        lumber {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        muskets {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        ore {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        rum {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        silver {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        sugar {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tobacco {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tools {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        trade_goods {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+      }
+      taxes.tax_rate: 0
+    }
   }
   french {
     crosses: 0
@@ -119,11 +313,109 @@ players.players {
       william_penn: false
     }
     human: true
-    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: french
-    next_recruit_cost_base: 0
+    old_world_state {
+      expeditionary_force {
+        artillery: 0
+        cavalry: 0
+        men_of_war: 0
+        regulars: 0
+      }
+      harbor_state.selected_unit: null
+      immigration {
+        immigrants_pool: [
+          petty_criminal,
+          petty_criminal,
+          petty_criminal,
+        ]
+        next_recruit_cost_base: 0
+      }
+      market.commodities {
+        cigars {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cloth {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        coats {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cotton {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        food {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        fur {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        horses {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        lumber {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        muskets {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        ore {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        rum {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        silver {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        sugar {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tobacco {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tools {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        trade_goods {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+      }
+      taxes.tax_rate: 0
+    }
   }
   spanish {
     crosses: 0
@@ -156,11 +448,109 @@ players.players {
       william_penn: false
     }
     human: true
-    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: spanish
-    next_recruit_cost_base: 0
+    old_world_state {
+      expeditionary_force {
+        artillery: 0
+        cavalry: 0
+        men_of_war: 0
+        regulars: 0
+      }
+      harbor_state.selected_unit: null
+      immigration {
+        immigrants_pool: [
+          petty_criminal,
+          petty_criminal,
+          petty_criminal,
+        ]
+        next_recruit_cost_base: 0
+      }
+      market.commodities {
+        cigars {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cloth {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        coats {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cotton {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        food {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        fur {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        horses {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        lumber {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        muskets {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        ore {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        rum {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        silver {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        sugar {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tobacco {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tools {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        trade_goods {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+      }
+      taxes.tax_rate: 0
+    }
   }
 }
 

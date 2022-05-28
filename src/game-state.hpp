@@ -41,7 +41,6 @@ struct EventsState;
 struct UnitsState;
 struct PlayersState;
 struct TurnState;
-struct OldWorldState;
 struct ColoniesState;
 struct LandViewState;
 struct TerrainState;
@@ -57,7 +56,6 @@ struct GameState {
   static UnitsState&    units();
   static PlayersState&  players();
   static TurnState&     turn();
-  static OldWorldState& old_world();
   static ColoniesState& colonies();
   static LandViewState& land_view();
   static TerrainState&  terrain();

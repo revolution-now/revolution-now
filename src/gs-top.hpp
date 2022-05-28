@@ -46,9 +46,6 @@ struct TopLevelState {
   TurnState&       turn() { return o_.turn; }
   TurnState const& turn() const { return o_.turn; }
 
-  OldWorldState&       old_world() { return o_.old_world; }
-  OldWorldState const& old_world() const { return o_.old_world; }
-
   ColoniesState&       colonies() { return o_.colonies; }
   ColoniesState const& colonies() const { return o_.colonies; }
 

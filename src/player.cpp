@@ -15,6 +15,7 @@
 #include "gs-players.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "old-world-state.hpp"
 #include "util.hpp"
 
 // Rds
@@ -122,6 +123,10 @@ LUA_STARTUP( lua::state& st ) {
 
   u["crosses"]     = &U::crosses;
   u["set_crosses"] = &U::set_crosses;
+
+  u["old_world"] = []( U& obj ) -> OldWorldState& {
+    return obj.old_world();
+  };
 
   u["add_money"] = &U::add_money;
   u["money"]     = &U::money;

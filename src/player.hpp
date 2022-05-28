@@ -45,10 +45,10 @@ class Player {
   int  crosses() const { return o_.crosses; }
   void set_crosses( int n );
 
-  std::vector<e_unit_type> const& pool() const {
-    return o_.immigrants_pool;
+  OldWorldState const& old_world() const {
+    return o_.old_world_state;
   }
-  std::vector<e_unit_type>& pool() { return o_.immigrants_pool; }
+  OldWorldState& old_world() { return o_.old_world_state; }
 
   // Adds the amount (which could be negative) to the player's
   // gold and returns the amount after adding.

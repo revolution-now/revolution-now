@@ -20,13 +20,14 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
-#include "gs-old-world.hpp"
+#include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "old-world-state.hpp"
 #include "old-world.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
@@ -64,6 +65,18 @@ namespace {
 // When we drag a commodity from the market this is the default
 // amount that we take.
 constexpr int const k_default_market_quantity = 100;
+
+/****************************************************************
+** FIXME
+*****************************************************************/
+// FIXME
+HarborState& get_harbor_state() {
+  // FIXME: dutch is hard coded.
+  return GameState::players()
+      .players[e_nation::dutch]
+      .old_world()
+      .harbor_state;
+}
 
 /****************************************************************
 ** Globals
@@ -125,8 +138,8 @@ maybe<Cargo_t> draggable_to_cargo_object(
 
 maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  OldWorldState const& ow_state = GameState::old_world();
-  return ow_state.selected_unit.fmap( unit_from_id )
+  HarborState const& hb_state = get_harbor_state();
+  return hb_state.selected_unit.fmap( unit_from_id )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
@@ -779,8 +792,8 @@ class UnitCollection {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter          painter  = renderer.painter();
-    OldWorldState const& ow_state = GameState::old_world();
+    rr::Painter        painter  = renderer.painter();
+    HarborState const& hb_state = get_harbor_state();
     // auto bds = bounds();
     // painter.draw_empty_rect( bds.shifted_by( offset ),
     // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
@@ -793,9 +806,9 @@ class UnitCollection {
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
                      /*with_icon=*/false );
-    if( ow_state.selected_unit ) {
+    if( hb_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
-        if( id == *ow_state.selected_unit ) {
+        if( id == *hb_state.selected_unit ) {
           painter.draw_empty_rect(
               Rect::from( coord, g_tile_delta )
                       .shifted_by( offset ) -
@@ -1090,11 +1103,11 @@ class ActiveCargo {
       Delta const&                 size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<ShipsInPort> const&    maybe_ships_in_port ) {
-    OldWorldState const& ow_state = GameState::old_world();
-    maybe<ActiveCargo>   res;
+    HarborState const& hb_state = get_harbor_state();
+    maybe<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
-          /*maybe_active_unit_=*/ow_state.selected_unit,
+          /*maybe_active_unit_=*/hb_state.selected_unit,
           /*bounds_=*/maybe_active_cargo_box->bounds() };
       // FIXME: if we are inside the active cargo box, and the
       // active cargo box exists, do we need the following
@@ -1741,7 +1754,7 @@ struct DragPerform {
     unit_sail_to_new_world( src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
-    OldWorldState& ow_state = GameState::old_world();
+    HarborState& hb_state = get_harbor_state();
     unit_sail_to_new_world( src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
@@ -1749,9 +1762,9 @@ struct DragPerform {
     // with, as opposed to keeping the selection on the unit that
     // is now outbound. Or if there are no more units in port,
     // just deselect.
-    ow_state.selected_unit       = nothing;
+    hb_state.selected_unit       = nothing;
     vector<UnitId> units_in_port = old_world_units_in_port();
-    ow_state.selected_unit = rl::all( units_in_port ).head();
+    hb_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
     GameState::units().change_to_cargo_somewhere( dst.id,
@@ -2076,12 +2089,12 @@ struct OldWorldPlane : public Plane {
         // Unit selection.
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
-          OldWorldState& ow_state = GameState::old_world();
+          HarborState& hb_state = get_harbor_state();
           if( maybe_entity ) {
             if( auto maybe_pair =
                     maybe_entity->obj_under_cursor( val.pos );
                 maybe_pair ) {
-              ow_state.selected_unit = maybe_pair->first;
+              hb_state.selected_unit = maybe_pair->first;
               handled                = e_input_handled::yes;
               create_entities( &entities_ );
             }
@@ -2169,15 +2182,15 @@ wait<> run_old_world_view() {
 ** Public API
 *****************************************************************/
 wait<> show_old_world_view() {
-  OldWorldState& ow_state = GameState::old_world();
-  g_exit_promise          = {};
-  if( ow_state.selected_unit ) {
-    UnitId id = *ow_state.selected_unit;
+  HarborState& hb_state = get_harbor_state();
+  g_exit_promise        = {};
+  if( hb_state.selected_unit ) {
+    UnitId id = *hb_state.selected_unit;
     // We could have a case where the unit that was last selected
     // went to the new world and was then disbanded, or is just
     // no longer in the old world.
     if( !unit_exists( id ) || !unit_old_world_view_info( id ) )
-      ow_state.selected_unit = nothing;
+      hb_state.selected_unit = nothing;
   }
   ScopedPlanePush pusher( e_plane_config::old_world );
   lg.info( "entering old world view." );
@@ -2186,12 +2199,12 @@ wait<> show_old_world_view() {
 }
 
 void old_world_view_set_selected_unit( UnitId id ) {
-  OldWorldState& ow_state = GameState::old_world();
+  HarborState& hb_state = get_harbor_state();
   // Ensure that the unit is either in port or on the high seas,
   // otherwise it doesn't make sense for the unit to be selected
   // on this screen.
   CHECK( unit_old_world_view_info( id ) );
-  ow_state.selected_unit = id;
+  hb_state.selected_unit = id;
 }
 
 Plane* old_world_plane() { return &g_old_world_plane; }

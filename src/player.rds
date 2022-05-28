@@ -9,15 +9,12 @@
 #
 # ===============================================================
 # Rds
-include "nation.rds.hpp"
 include "fathers.rds.hpp"
-include "utype.rds.hpp"
+include "old-world-state.rds.hpp"
+include "nation.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
-
-# C++ standard library
-include "<vector>"
 
 namespace "rn.wrapped"
 
@@ -36,25 +33,9 @@ struct.Player {
   # factors, plus some randomness.
   crosses 'int',
 
-  # At any given time there are three immigrants in the pool who
-  # are considering to come.
-  immigrants_pool 'std::vector<e_unit_type>',
-
-  # This is NOT the exact cost of recruiting the next immigrant,
-  # it is just a base value which must be added to the (normally
-  # calculated) cost. The reason for this is that the cost of an
-  # immigrant cannot be computed simply from the instantaneous
-  # values of the usual inputs (i.e., current number of crosses,
-  # current number units, current number of units on dock, etc.)
-  # because it must increase each time the player pays the re-
-  # cruitment cost, at least until the next immigration that is
-  # earned through crosses. Once the next immigration happens
-  # that is earned through cross accumulation (alone) then this
-  # value gets reset to zero. This seems to be the way the orig-
-  # inal game works (increasing this by 20 per recruitment) prob-
-  # ably to make it more difficult to just recruit a large number
-  # of immigrants at once.
-  next_recruit_cost_base 'int',
+  # The state of all things related to the old world, king, euro-
+  # pean market prices, etc.
+  old_world_state 'OldWorldState',
 
   # When the new world is first discovered this will have a value
   # and will be the name given to the new world by the player.
