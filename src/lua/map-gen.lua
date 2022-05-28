@@ -414,9 +414,17 @@ local function create_sea_lanes()
   on_all( function( coord )
     local square = map_gen.at( coord )
     if square.surface == e.surface.land then
-      local block_edge = surrounding_squares_7x7_right_edge(
-                             coord )
-      block_edge = filter_existing_squares( block_edge )
+      local block_edge = {}
+      -- We need to do this because if we are are very close to
+      -- the right edge of the map (e.g., arctic) then the right
+      -- edge of the 7x7 square won't exist; in that case, just
+      -- move it over to the left by one, since that will have
+      -- the same effect.
+      repeat
+        block_edge = surrounding_squares_7x7_right_edge( coord )
+        block_edge = filter_existing_squares( block_edge )
+        coord.x = coord.x - 1
+      until #block_edge > 0
       for _, s in ipairs( block_edge ) do
         for x = 0, s.x do
           local coord = { x=x, y=s.y }
