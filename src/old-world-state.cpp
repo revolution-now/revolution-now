@@ -105,9 +105,18 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::MarketState;
   auto u  = st.usertype.create<U>();
 
-  (void)u;
+  u["commodities"] = &U::commodities;
+};
 
-  // u["commodities"] = &U::commodities;
+// MarketStateCommoditiesEnumMap
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::MarketStateCommoditiesEnumMap;
+  auto u  = st.usertype.create<U>();
+
+  u[lua::metatable_key]["__index"] =
+      []( U& obj, e_commodity comm ) -> decltype( auto ) {
+    return obj[comm];
+  };
 };
 
 // ExpeditionaryForce
@@ -129,12 +138,31 @@ LUA_STARTUP( lua::state& st ) {
   u["selected_unit"] = &U::selected_unit;
 };
 
+// ImmigrantsPoolArray
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::ImmigrantsPoolArray;
+  auto u  = st.usertype.create<U>();
+
+  u[lua::metatable_key]["__index"] = [&]( U& obj, int idx ) {
+    LUA_CHECK( st, idx >= 1 && idx <= 3,
+               "immigrant pool index must be either 1, 2, 3." );
+    return obj[idx - 1];
+  };
+
+  u[lua::metatable_key]["__newindex"] = [&]( U& obj, int idx,
+                                             e_unit_type type ) {
+    LUA_CHECK( st, idx >= 1 && idx <= 3,
+               "immigrant pool index must be either 1, 2, 3." );
+    obj[idx - 1] = type;
+  };
+};
+
 // ImmigrationState
 LUA_STARTUP( lua::state& st ) {
   using U = ::rn::ImmigrationState;
   auto u  = st.usertype.create<U>();
 
-  // u["immigrants_pool"]   = &U::immigrants_pool;
+  u["immigrants_pool"]        = &U::immigrants_pool;
   u["next_recruit_cost_base"] = &U::next_recruit_cost_base;
 };
 
