@@ -33,6 +33,9 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   MapSquare grassland_with_road =
       map_square_for_terrain( e_terrain::grassland );
   grassland_with_road.road = true;
+  MapSquare grassland_with_river =
+      map_square_for_terrain( e_terrain::grassland );
+  grassland_with_river.river = e_river::minor;
   MapSquare mountains_with_road =
       map_square_for_terrain( e_terrain::mountains );
   mountains_with_road.road = true;
@@ -47,12 +50,13 @@ TEST_CASE( "[src/mv-calc] expense" ) {
   Unit privateer = create_free_unit(
       e_nation::english,
       UnitComposition::create( e_unit_type::privateer ) );
-  Unit free_colonist = create_free_unit(
+  Unit const free_colonist_1_pristine = create_free_unit(
       e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ) );
-  Unit dragoon = create_free_unit(
-      e_nation::english,
-      UnitComposition::create( e_unit_type::dragoon ) );
+  Unit free_colonist = free_colonist_1_pristine;
+  Unit dragoon       = create_free_unit(
+            e_nation::english,
+            UnitComposition::create( e_unit_type::dragoon ) );
 
   reference_wrapper<MapSquare const> src  = ocean;
   reference_wrapper<MapSquare const> dst  = ocean;
@@ -69,7 +73,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 1 ),
       .has_start_of_turn_exemption = true,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -89,7 +94,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints::_1_3(),
       .has_start_of_turn_exemption = true,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -110,7 +116,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints::_1_3(),
       .has_start_of_turn_exemption = false,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -131,7 +138,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints::_1_3(),
       .has_start_of_turn_exemption = false,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -148,7 +156,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 1 ),
       .has_start_of_turn_exemption = false,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( !result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -165,7 +174,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 1 ),
       .has_start_of_turn_exemption = false,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -182,7 +192,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 3 ),
       .has_start_of_turn_exemption = true,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == true );
@@ -199,7 +210,8 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 3 ),
       .has_start_of_turn_exemption = true,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
@@ -216,12 +228,54 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       .needs                       = MovementPoints( 3 ),
       .has_start_of_turn_exemption = false,
   };
-  result = expense_movement_points( unit, src, dst );
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
   REQUIRE( result == expected );
   REQUIRE( !result.allowed() );
   REQUIRE( result.using_start_of_turn_exemption() == false );
   REQUIRE( result.using_overdraw_allowance() == false );
   REQUIRE( unit.get().movement_points() == MovementPoints( 1 ) );
+
+  free_colonist = free_colonist_1_pristine;
+
+  // Free colonist, river to river (cardinal).
+  src      = grassland_with_river;
+  dst      = grassland_with_river;
+  unit     = free_colonist;
+  expected = MovementPointsAnalysis{
+      .has                         = MovementPoints( 1 ),
+      .needs                       = MovementPoints::_1_3(),
+      .has_start_of_turn_exemption = true,
+  };
+  result =
+      expense_movement_points( unit, src, dst, e_direction::n );
+  REQUIRE( result == expected );
+  REQUIRE( result.allowed() );
+  REQUIRE( result.using_start_of_turn_exemption() == false );
+  REQUIRE( result.using_overdraw_allowance() == false );
+  unit.get().consume_mv_points( result.points_to_subtract() );
+  REQUIRE( unit.get().movement_points() ==
+           MovementPoints::_2_3() );
+
+  free_colonist = free_colonist_1_pristine;
+
+  // Free colonist, river to river (diagonal).
+  src      = grassland_with_river;
+  dst      = grassland_with_river;
+  unit     = free_colonist;
+  expected = MovementPointsAnalysis{
+      .has                         = MovementPoints( 1 ),
+      .needs                       = MovementPoints( 1 ),
+      .has_start_of_turn_exemption = true,
+  };
+  result =
+      expense_movement_points( unit, src, dst, e_direction::se );
+  REQUIRE( result == expected );
+  REQUIRE( result.allowed() );
+  REQUIRE( result.using_start_of_turn_exemption() == false );
+  REQUIRE( result.using_overdraw_allowance() == false );
+  unit.get().consume_mv_points( result.points_to_subtract() );
+  REQUIRE( unit.get().movement_points() == MovementPoints( 0 ) );
 }
 
 } // namespace

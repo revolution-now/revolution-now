@@ -138,9 +138,9 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 *****************************************************************/
 wait<maybe<MovementPoints>> check_movement_points(
     IGui& gui, Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square ) {
-  MovementPointsAnalysis analysis =
-      expense_movement_points( unit, src_square, dst_square );
+    MapSquare const& dst_square, e_direction direction ) {
+  MovementPointsAnalysis analysis = expense_movement_points(
+      unit, src_square, dst_square, direction );
   if( analysis.allowed() ) {
     if( analysis.using_start_of_turn_exemption() )
       lg.debug( "move allowed by start-of-turn exemption." );
@@ -384,9 +384,10 @@ TravelHandler::confirm_travel_impl() {
   auto&       src_square = terrain_state_.square_at( move_src );
   auto&       dst_square = terrain_state_.square_at( move_dst );
   Unit const& unit       = units_state.unit_for( id );
+  UNWRAP_CHECK( direction, move_src.direction_to( move_dst ) );
   maybe<MovementPoints> to_subtract =
       co_await check_movement_points( gui_, unit, src_square,
-                                      dst_square );
+                                      dst_square, direction );
   if( !to_subtract.has_value() )
     co_return e_travel_verdict::not_enough_movement_points;
   mv_points_to_subtract_ = *to_subtract;
