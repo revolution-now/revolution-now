@@ -37,6 +37,7 @@ void default_construct_game_state();
 // can just include it and isn't forced to pull in all of the
 // other headers.
 struct FormatVersion;
+struct SettingsState;
 struct EventsState;
 struct UnitsState;
 struct PlayersState;
@@ -52,6 +53,7 @@ struct TopLevelState;
 *****************************************************************/
 struct GameState {
   static FormatVersion& version();
+  static SettingsState& settings();
   static EventsState&   events();
   static UnitsState&    units();
   static PlayersState&  players();

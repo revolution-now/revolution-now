@@ -35,6 +35,10 @@ FormatVersion& GameState::version() {
 
 EventsState& GameState::events() { return g_state().events(); }
 
+SettingsState& GameState::settings() {
+  return g_state().settings();
+}
+
 UnitsState& GameState::units() { return g_state().units(); }
 
 PlayersState& GameState::players() {

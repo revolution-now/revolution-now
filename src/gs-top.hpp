@@ -34,6 +34,9 @@ struct TopLevelState {
   FormatVersion&       version() { return o_.version; }
   FormatVersion const& version() const { return o_.version; }
 
+  SettingsState&       settings() { return o_.settings; }
+  SettingsState const& settings() const { return o_.settings; }
+
   EventsState&       events() { return o_.events; }
   EventsState const& events() const { return o_.events; }
 

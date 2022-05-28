@@ -43,6 +43,10 @@ cdr::value cdr_game_state_default = cdr::table{
             "minor"_key = 0,
             "patch"_key = 0,
         },
+    "settings"_key =
+        cdr::table{
+            "difficulty"_key = 0,
+        },
     "events"_key = cdr::table{},
     "units"_key =
         cdr::table{
@@ -91,6 +95,7 @@ cdr::value cdr_game_state_default = cdr::table{
 };
 
 // static_assert( equality_comparable<FormatVersion> );
+// static_assert( equality_comparable<SettingsState> );
 // static_assert( equality_comparable<EventsState> );
 // static_assert( equality_comparable<UnitsState> );
 // static_assert( equality_comparable<PlayersState> );

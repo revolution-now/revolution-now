@@ -19,6 +19,7 @@
 namespace rn {
 
 struct UnitsState;
+struct SettingsState;
 struct Player;
 
 void give_player_crosses_if_dock_empty(
@@ -28,7 +29,8 @@ int crosses_required_for_next_immigration(
     UnitsState const&       units_state,
     ImmigrationState const& immigration );
 
-e_unit_type pick_next_unit_for_pool();
+e_unit_type pick_next_unit_for_pool(
+    Player const& player, SettingsState const& settings );
 
 e_unit_type take_immigrant_and_replace(
     int slot, e_unit_type replacement );

@@ -1,16 +1,138 @@
 players.players {
-  dutch.human: true
-  english {
+  dutch {
+    crosses: 32
     human: true
+    money: 1000
+    old_world_state {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      immigration {
+        immigrants_pool: [
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        muskets {
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+      }
+      taxes.tax_rate: 7
+    }
+  }
+  english {
+    crosses: 32
+    human: true
+    money: 1000
     nation: english
+    old_world_state {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      immigration {
+        immigrants_pool: [
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        muskets {
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+      }
+      taxes.tax_rate: 7
+    }
   }
   french {
+    crosses: 32
     human: true
+    money: 1000
     nation: french
+    old_world_state {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      immigration {
+        immigrants_pool: [
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        muskets {
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+      }
+      taxes.tax_rate: 7
+    }
   }
   spanish {
+    crosses: 32
     human: true
+    money: 1000
     nation: spanish
+    old_world_state {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      immigration {
+        immigrants_pool: [
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        muskets {
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+      }
+      taxes.tax_rate: 7
+    }
   }
 }
 
@@ -213,10 +335,7 @@ zzz_terrain {
       },
       {
         key.x: 53
-        val {
-          ground_resource: fish
-          sea_lane: true
-        }
+        val.ground_resource: fish
       },
       {
         key.x: 54
@@ -12297,13 +12416,6 @@ zzz_terrain {
       },
       {
         key {
-          x: 54
-          y: 66
-        }
-        val.sea_lane: true
-      },
-      {
-        key {
           x: 55
           y: 66
         }
@@ -12371,10 +12483,7 @@ zzz_terrain {
           x: 54
           y: 67
         }
-        val {
-          ground_resource: fish
-          sea_lane: true
-        }
+        val.ground_resource: fish
       },
       {
         key {
@@ -12435,13 +12544,6 @@ zzz_terrain {
           y: 68
         }
         val.ground_resource: fish
-      },
-      {
-        key {
-          x: 54
-          y: 68
-        }
-        val.sea_lane: true
       },
       {
         key {

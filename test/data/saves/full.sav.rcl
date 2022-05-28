@@ -13,7 +13,7 @@ land_view.viewport {
 
 players.players {
   dutch {
-    crosses: 0
+    crosses: 32
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -44,23 +44,23 @@ players.players {
     }
     human: true
     independence_declared: false
-    money: 0
+    money: 1000
     nation: dutch
     old_world_state {
       expeditionary_force {
-        artillery: 0
-        cavalry: 0
-        men_of_war: 0
-        regulars: 0
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
       }
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          petty_criminal,
-          petty_criminal,
-          petty_criminal,
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
         ]
-        next_recruit_cost_base: 0
+        next_recruit_cost_base: 50
       }
       market.commodities {
         cigars {
@@ -79,9 +79,9 @@ players.players {
           sell_price_in_hundreds: 0
         }
         cotton {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
         }
         food {
           boycott: false
@@ -105,8 +105,8 @@ players.players {
         }
         muskets {
           boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
         }
         ore {
           boycott: false
@@ -144,11 +144,11 @@ players.players {
           sell_price_in_hundreds: 0
         }
       }
-      taxes.tax_rate: 0
+      taxes.tax_rate: 7
     }
   }
   english {
-    crosses: 0
+    crosses: 32
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -179,23 +179,23 @@ players.players {
     }
     human: true
     independence_declared: false
-    money: 0
+    money: 1000
     nation: english
     old_world_state {
       expeditionary_force {
-        artillery: 0
-        cavalry: 0
-        men_of_war: 0
-        regulars: 0
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
       }
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          petty_criminal,
-          petty_criminal,
-          petty_criminal,
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
         ]
-        next_recruit_cost_base: 0
+        next_recruit_cost_base: 50
       }
       market.commodities {
         cigars {
@@ -214,9 +214,9 @@ players.players {
           sell_price_in_hundreds: 0
         }
         cotton {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
         }
         food {
           boycott: false
@@ -240,8 +240,8 @@ players.players {
         }
         muskets {
           boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
         }
         ore {
           boycott: false
@@ -279,11 +279,11 @@ players.players {
           sell_price_in_hundreds: 0
         }
       }
-      taxes.tax_rate: 0
+      taxes.tax_rate: 7
     }
   }
   french {
-    crosses: 0
+    crosses: 32
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -314,23 +314,23 @@ players.players {
     }
     human: true
     independence_declared: false
-    money: 0
+    money: 1000
     nation: french
     old_world_state {
       expeditionary_force {
-        artillery: 0
-        cavalry: 0
-        men_of_war: 0
-        regulars: 0
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
       }
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          petty_criminal,
-          petty_criminal,
-          petty_criminal,
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
         ]
-        next_recruit_cost_base: 0
+        next_recruit_cost_base: 50
       }
       market.commodities {
         cigars {
@@ -349,9 +349,9 @@ players.players {
           sell_price_in_hundreds: 0
         }
         cotton {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
         }
         food {
           boycott: false
@@ -375,8 +375,8 @@ players.players {
         }
         muskets {
           boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
         }
         ore {
           boycott: false
@@ -414,11 +414,11 @@ players.players {
           sell_price_in_hundreds: 0
         }
       }
-      taxes.tax_rate: 0
+      taxes.tax_rate: 7
     }
   }
   spanish {
-    crosses: 0
+    crosses: 32
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -449,23 +449,23 @@ players.players {
     }
     human: true
     independence_declared: false
-    money: 0
+    money: 1000
     nation: spanish
     old_world_state {
       expeditionary_force {
-        artillery: 0
-        cavalry: 0
-        men_of_war: 0
-        regulars: 0
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
       }
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          petty_criminal,
-          petty_criminal,
-          petty_criminal,
+          expert_farmer,
+          free_colonist,
+          seasoned_scout,
         ]
-        next_recruit_cost_base: 0
+        next_recruit_cost_base: 50
       }
       market.commodities {
         cigars {
@@ -484,9 +484,9 @@ players.players {
           sell_price_in_hundreds: 0
         }
         cotton {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
         }
         food {
           boycott: false
@@ -510,8 +510,8 @@ players.players {
         }
         muskets {
           boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
         }
         ore {
           boycott: false
@@ -549,10 +549,12 @@ players.players {
           sell_price_in_hundreds: 0
         }
       }
-      taxes.tax_rate: 0
+      taxes.tax_rate: 7
     }
   }
 }
+
+settings.difficulty: 0
 
 turn {
   nation: null
@@ -1301,7 +1303,7 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: true
+        sea_lane: false
         surface: water
       },
       {
@@ -45665,7 +45667,7 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: true
+        sea_lane: false
         surface: water
       },
       {
@@ -46337,666 +46339,6 @@ zzz_terrain {
         overlay: null
         river: null
         road: false
-        sea_lane: true
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: true
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: true
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: fish
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
-        sea_lane: false
-        surface: water
-      },
-      {
-        forest_resource: null
-        ground: arctic
-        ground_resource: null
-        irrigation: false
-        lost_city_rumor: false
-        overlay: null
-        river: null
-        road: false
         sea_lane: false
         surface: water
       },
@@ -47010,6 +46352,666 @@ zzz_terrain {
         river: null
         road: false
         sea_lane: true
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: true
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: fish
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
+        surface: water
+      },
+      {
+        forest_resource: null
+        ground: arctic
+        ground_resource: null
+        irrigation: false
+        lost_city_rumor: false
+        overlay: null
+        river: null
+        road: false
+        sea_lane: false
         surface: water
       },
       {

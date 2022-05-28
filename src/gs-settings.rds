@@ -1,0 +1,18 @@
+# ===============================================================
+# gs-settings.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-28.
+#
+# Description: Rds definitions for save-game settings data.
+#
+# ===============================================================
+namespace "rn"
+
+struct.SettingsState {
+  # 0 is easiest (discoverer), 4 is hardest (viceroy).
+  difficulty 'int',
+
+  _features { equality, validation }
+}
