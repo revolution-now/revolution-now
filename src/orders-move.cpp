@@ -355,12 +355,31 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_sail_high_seas() const {
   CHECK( is_high_seas( terrain_state_, move_dst ) );
-  // Only ask to sail the high seas if the current square is not
-  // a sea lane. This allows ships to sail around in the sea lane
-  // without being asked on each turn whether the player wants to
-  // sail the high seas.
-  if( is_high_seas( terrain_state_, move_src ) )
-    co_return e_travel_verdict::map_to_map;
+  // The original game seems to ask to sail the high seas if and
+  // only if the following conditions are met:
+  //
+  //   1. The desination square is high seas.
+  //   2. The source square is high seas.
+  //   3. You are moving in either the ne, e, or se directions.
+  //
+  // Not sure the reason for #2, but the benefit of #3 is that
+  // you can freely move north/south without getting the prompt
+  // which is useful for traveling around the map generally
+  // (sometimes continents that are above/below each other are
+  // separated by a line of sea lane which would make it perpetu-
+  // ally frustrating to travel between if you were prompted to
+  // sail the high seas when moving north south), and you can
+  // also move west without getting the prompt, which allows
+  // starting the ship in the middle of sea lane at the start of
+  // the game.
+  bool correct_dst = is_high_seas( terrain_state_, move_dst );
+  bool correct_src = is_high_seas( terrain_state_, move_src );
+  UNWRAP_CHECK( d, move_src.direction_to( move_dst ) );
+  bool correct_direction = ( d == e_direction::ne ) ||
+                           ( d == e_direction::e ) ||
+                           ( d == e_direction::se );
+  bool ask = correct_src && correct_dst && correct_direction;
+  if( !ask ) co_return e_travel_verdict::map_to_map;
   ui::e_confirm confirmed = co_await gui_.yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",
