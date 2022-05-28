@@ -51,6 +51,11 @@ void Player::set_money( int amount ) {
 
 void Player::set_human( bool yes ) { o_.human = yes; }
 
+void Player::set_crosses( int n ) {
+  DCHECK( n >= 0 );
+  o_.crosses = n;
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -114,6 +119,9 @@ LUA_STARTUP( lua::state& st ) {
 
   u["is_human"]  = &U::is_human;
   u["set_human"] = &U::set_human;
+
+  u["crosses"]     = &U::crosses;
+  u["set_crosses"] = &U::set_crosses;
 
   u["add_money"] = &U::add_money;
   u["money"]     = &U::money;

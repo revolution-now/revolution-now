@@ -1,11 +1,11 @@
 # ===============================================================
-# gs-old-world-view.rds
+# gs-old-world.rds
 #
 # Project: Revolution Now
 #
 # Created by dsicilia on 2022-02-13.
 #
-# Description: RDS definitions for the gs-old-world-view module.
+# Description: RDS definitions for the gs-old-world module.
 #
 # ===============================================================
 # Revolution Now
@@ -16,6 +16,6 @@ include "base/maybe.hpp"
 
 namespace "rn"
 
-struct.OldWorldViewState {
+struct.OldWorldState {
   selected_unit 'base::maybe<UnitId>',
 }

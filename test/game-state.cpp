@@ -60,7 +60,7 @@ cdr::value cdr_game_state_default = cdr::table{
             "nation"_key    = cdr::null,
             "remainder"_key = cdr::list{},
         },
-    "old_world_view"_key =
+    "old_world"_key =
         cdr::table{
             "selected_unit"_key = cdr::null,
         },
@@ -99,7 +99,7 @@ cdr::value cdr_game_state_default = cdr::table{
 // static_assert( equality_comparable<UnitsState> );
 // static_assert( equality_comparable<PlayersState> );
 // static_assert( equality_comparable<TurnState> );
-// static_assert( equality_comparable<OldWorldViewState> );
+// static_assert( equality_comparable<OldWorldState> );
 // static_assert( equality_comparable<ColoniesState> );
 // static_assert( equality_comparable<LandViewState> );
 // static_assert( equality_comparable<TerrainState> );

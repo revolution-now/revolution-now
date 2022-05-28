@@ -41,6 +41,15 @@ class Player {
   bool is_human() const { return o_.human; }
   void set_human( bool yes );
 
+  // Crosses.
+  int  crosses() const { return o_.crosses; }
+  void set_crosses( int n );
+
+  std::vector<e_unit_type> const& pool() const {
+    return o_.immigrants_pool;
+  }
+  std::vector<e_unit_type>& pool() { return o_.immigrants_pool; }
+
   // Adds the amount (which could be negative) to the player's
   // gold and returns the amount after adding.
   int  add_money( int amount );

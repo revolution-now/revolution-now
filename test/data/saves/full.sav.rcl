@@ -11,10 +11,11 @@ land_view.viewport {
   zoom: 1
 }
 
-old_world_view.selected_unit: null
+old_world.selected_unit: null
 
 players.players {
   dutch {
+    crosses: 0
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -44,11 +45,14 @@ players.players {
       william_penn: false
     }
     human: true
+    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: dutch
+    next_recruit_cost_base: 0
   }
   english {
+    crosses: 0
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -78,11 +82,14 @@ players.players {
       william_penn: false
     }
     human: true
+    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: english
+    next_recruit_cost_base: 0
   }
   french {
+    crosses: 0
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -112,11 +119,14 @@ players.players {
       william_penn: false
     }
     human: true
+    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: french
+    next_recruit_cost_base: 0
   }
   spanish {
+    crosses: 0
     discovered_new_world: null
     fathers {
       adam_smith: false
@@ -146,9 +156,11 @@ players.players {
       william_penn: false
     }
     human: true
+    immigrants_pool: []
     independence_declared: false
     money: 0
     nation: spanish
+    next_recruit_cost_base: 0
   }
 }
 

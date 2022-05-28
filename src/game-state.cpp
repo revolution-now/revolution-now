@@ -37,9 +37,9 @@ UnitsState&   GameState::units() { return g_state().units(); }
 PlayersState& GameState::players() {
   return g_state().players();
 }
-TurnState&         GameState::turn() { return g_state().turn(); }
-OldWorldViewState& GameState::old_world_view() {
-  return g_state().old_world_view();
+TurnState&     GameState::turn() { return g_state().turn(); }
+OldWorldState& GameState::old_world() {
+  return g_state().old_world();
 }
 ColoniesState& GameState::colonies() {
   return g_state().colonies();

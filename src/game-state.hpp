@@ -41,7 +41,7 @@ struct EventsState;
 struct UnitsState;
 struct PlayersState;
 struct TurnState;
-struct OldWorldViewState;
+struct OldWorldState;
 struct ColoniesState;
 struct LandViewState;
 struct TerrainState;
@@ -52,15 +52,15 @@ struct TopLevelState;
 ** GameState
 *****************************************************************/
 struct GameState {
-  static FormatVersion&     version();
-  static EventsState&       events();
-  static UnitsState&        units();
-  static PlayersState&      players();
-  static TurnState&         turn();
-  static OldWorldViewState& old_world_view();
-  static ColoniesState&     colonies();
-  static LandViewState&     land_view();
-  static TerrainState&      terrain();
+  static FormatVersion& version();
+  static EventsState&   events();
+  static UnitsState&    units();
+  static PlayersState&  players();
+  static TurnState&     turn();
+  static OldWorldState& old_world();
+  static ColoniesState& colonies();
+  static LandViewState& land_view();
+  static TerrainState&  terrain();
 
   static TopLevelState& top();
 };
