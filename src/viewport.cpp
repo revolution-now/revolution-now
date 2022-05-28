@@ -100,6 +100,8 @@ void SmoothViewport::set_point_seek_from_screen_pixel(
   maybe<Coord> world_pixel =
       screen_pixel_to_world_pixel( screen_pixel );
   if( !world_pixel ) return;
+  // Need to do this to stop any coro-based smooth panning.
+  stop_auto_panning();
   set_point_seek( *world_pixel );
 }
 
