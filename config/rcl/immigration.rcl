@@ -86,37 +86,37 @@ base_weights {
 # an additive one is that they don't necessarily have to be re-
 # computed when the base weights are adjusted.
 difficulty_factor_per_level {
-  petty_criminal:          1.4309690810
-  indentured_servant:      1.3405949510
-  free_colonist:           0.9440875113
-  soldier:                 0.8325532074
-  dragoon:                 0.6597539554
-  pioneer:                 0.8325532074
-  missionary:              0.8325532074
-  scout:                   0.8325532074
-  expert_farmer:           0.6309573445
-  expert_fisherman:        0.6309573445
-  expert_sugar_planter:    0.6309573445
-  expert_tobacco_planter:  0.6309573445
-  expert_cotton_planter:   0.6309573445
-  expert_fur_trapper:      0.6309573445
-  expert_lumberjack:       0.6309573445
-  expert_ore_miner:        0.6309573445
-  expert_silver_miner:     0.6309573445
-  master_carpenter:        0.6309573445
-  master_rum_distiller:    0.6309573445
-  master_tobacconist:      0.6309573445
-  master_weaver:           0.6309573445
-  master_fur_trader:       0.6309573445
-  master_blacksmith:       0.6309573445
-  master_gunsmith:         0.6309573445
-  elder_statesman:         0.6309573445
-  firebrand_preacher:      0.6309573445
-  hardy_pioneer:           0.6309573445
-  jesuit_missionary:       0.6309573445
-  seasoned_scout:          0.6309573445
-  veteran_soldier:         0.6309573445
-  veteran_dragoon:         0.6309573445
+  petty_criminal:          1.5650845800
+  indentured_servant:      1.4425204350
+  free_colonist:           0.9306048591
+  soldier:                 0.7952707288
+  dragoon:                 0.5946035575
+  pioneer:                 0.7952707288
+  missionary:              0.7952707288
+  scout:                   0.7952707288
+  expert_farmer:           0.5623413252
+  expert_fisherman:        0.5623413252
+  expert_sugar_planter:    0.5623413252
+  expert_tobacco_planter:  0.5623413252
+  expert_cotton_planter:   0.5623413252
+  expert_fur_trapper:      0.5623413252
+  expert_lumberjack:       0.5623413252
+  expert_ore_miner:        0.5623413252
+  expert_silver_miner:     0.5623413252
+  master_carpenter:        0.5623413252
+  master_rum_distiller:    0.5623413252
+  master_tobacconist:      0.5623413252
+  master_weaver:           0.5623413252
+  master_fur_trader:       0.5623413252
+  master_blacksmith:       0.5623413252
+  master_gunsmith:         0.5623413252
+  elder_statesman:         0.5623413252
+  firebrand_preacher:      0.5623413252
+  hardy_pioneer:           0.5623413252
+  jesuit_missionary:       0.5623413252
+  seasoned_scout:          0.5623413252
+  veteran_soldier:         0.5623413252
+  veteran_dragoon:         0.5623413252
 
   # TODO: These theoretically could make sense to appear on the
   # docs, but in the original game they don't seem to. Need to
