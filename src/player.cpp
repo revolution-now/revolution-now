@@ -108,6 +108,43 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<U>();
 
+#if 0
+  // These are methods on U that take no parameters and return a
+  // reference to a sub data structure of U, and thus it makes
+  // more sense to expose them to Lua as non-function fields. The
+  // below is one way to do that, but it is probably not the
+  // right way. A better way would be to teach lua::usertype how
+  // to do it, so that we could e.g. do:
+  //
+  //   u.as_var["old_world"] = []( U& obj ) { ... };
+  //
+  // So that it can check the function signature to ensure that
+  // it takes no additional parameters and so that it can perhaps
+  // reuse the existing __index implementation.
+
+  auto default_index =
+      u[lua::metatable_key]["__index"].as<lua::rfunction>();
+
+  unordered_map<string, lua::rfunction> var_methods{
+      { "old_world",
+        st.function.create( []( U& obj ) -> OldWorldState& {
+          return obj.old_world();
+        } ) },
+  };
+
+  auto replacement_index =
+      [default_index, var_methods = std::move( var_methods )](
+          U& obj, lua::rstring key ) {
+        if( auto it = var_methods.find( key.as_cpp() );
+            it != var_methods.end() )
+          return it->second( obj );
+        return default_index( obj, key );
+      };
+
+  u[lua::metatable_key]["__index"] =
+      std::move( replacement_index );
+#endif
+
   u["nation"]     = &U::nation;
   u["set_nation"] = &U::set_nation;
 
