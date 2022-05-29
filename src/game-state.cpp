@@ -12,6 +12,16 @@
 
 // Revolution Now
 #include "gs-top.hpp"
+#include "lua.hpp"
+
+// luapp
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -71,5 +81,15 @@ valid_or<std::string> validate_game_state() {
 }
 
 void default_construct_game_state() { g_state() = {}; }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// TODO: this is probably temporary.
+LUA_FN( top, TopLevelState& ) { return g_state(); }
+
+} // namespace
 
 } // namespace rn
