@@ -12,6 +12,7 @@
 #include "gs-top.hpp"
 
 // Revolution Now
+#include "gs-players.hpp"
 #include "gs-settings.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
@@ -149,9 +150,9 @@ LUA_STARTUP( lua::state& st ) {
   //   return obj.units();
   // };
 
-  // u["players"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.players();
-  // };
+  u["players"] = []( U& obj ) -> decltype( auto ) {
+    return obj.players();
+  };
 
   // u["turn"] = []( U& obj ) -> decltype( auto ) {
   //   return obj.turn();

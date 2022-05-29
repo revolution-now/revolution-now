@@ -57,6 +57,10 @@ void Player::set_crosses( int n ) {
   o_.crosses = n;
 }
 
+void Player::set_nation( e_nation nation ) {
+  o_.nation = nation;
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -82,19 +86,6 @@ Player const& player_for_nation(
   return it->second;
 }
 
-void set_players( PlayersState&           players_state,
-                  vector<e_nation> const& nations ) {
-  auto& players = players_state.players;
-  players.clear();
-  for( auto nation : nations ) {
-    players.emplace( nation, Player( wrapped::Player{
-                                 .nation = nation,
-                                 .human  = true,
-                                 .money  = 0,
-                             } ) );
-  }
-}
-
 // Founding fathers.
 void Player::give_father( e_founding_father father ) {
   o_.fathers[father] = true;
@@ -116,7 +107,8 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<U>();
 
-  u["nation"] = &U::nation;
+  u["nation"]     = &U::nation;
+  u["set_nation"] = &U::set_nation;
 
   u["is_human"]  = &U::is_human;
   u["set_human"] = &U::set_human;
@@ -137,23 +129,6 @@ LUA_STARTUP( lua::state& st ) {
 
   u["independence_declared"] = &U::independence_declared;
 };
-
-LUA_FN( player_object, Player&, e_nation nation ) {
-  auto& players_state = GameState::players();
-  LUA_CHECK( st, players_state.players.contains( nation ),
-             "Player for nation {} does not exist.", nation );
-  return players_state.players[nation];
-}
-
-LUA_FN( set_players, void, lua::table nations ) {
-  auto&            players_state = GameState::players();
-  vector<e_nation> vec;
-  for( auto p : nations )
-    vec.push_back( lua::as<e_nation>( p.second ) );
-  lg.info( "enabling nations: {}",
-           base::FmtJsonStyleList{ vec } );
-  set_players( players_state, vec );
-}
 
 } // namespace
 

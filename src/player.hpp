@@ -36,6 +36,7 @@ class Player {
   bool operator==( Player const& ) const = default;
 
   e_nation nation() const { return o_.nation; }
+  void     set_nation( e_nation nation );
 
   // Human status.
   bool is_human() const { return o_.human; }
@@ -86,9 +87,6 @@ Player const& player_for_nation(
 
 // FIXME: deprecated
 Player& player_for_nation( e_nation nation );
-
-void set_players( PlayersState&                players_state,
-                  std::vector<e_nation> const& nations );
 
 void linker_dont_discard_module_player();
 

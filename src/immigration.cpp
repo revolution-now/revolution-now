@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "gs-settings.hpp"
 #include "igui.hpp"
+#include "lua.hpp"
 #include "player.hpp"
 #include "rand-enum.hpp"
 #include "utype.hpp"
@@ -23,6 +24,9 @@
 
 // Rds
 #include "old-world-state.rds.hpp"
+
+// luapp
+#include "luapp/state.hpp"
 
 using namespace std;
 
@@ -100,5 +104,17 @@ e_unit_type pick_next_unit_for_pool(
 
   return rng::pick_from_weighted_enum_values( weights );
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( pick_next_unit_for_pool, e_unit_type,
+        Player const& player, SettingsState const& settings ) {
+  return pick_next_unit_for_pool( player, settings );
+};
+
+} // namespace
 
 } // namespace rn

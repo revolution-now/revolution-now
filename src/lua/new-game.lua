@@ -11,21 +11,35 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+local DIFFICULTY_NAMES = {
+  ['discoverer']=0,
+  ['explorer']=1,
+  ['conquistador']=2,
+  ['governor']=3,
+  ['viceroy']=4
+}
+
 function M.default_options()
   return {
-    render=true --
+    difficulty_name='discoverer',
+    render=true, -- FIXME
+    nations={
+      e.nation.english, e.nation.french, e.nation.dutch,
+      e.nation.spanish
+    }
   }
 end
 
-local function create_old_world_state( old_world )
+local function create_old_world_state( settings, player )
+  local old_world = player:old_world()
   -- Immigrants state.
   old_world.immigration.next_recruit_cost_base = 50
   old_world.immigration.immigrants_pool[1] =
-      e.unit_type.expert_farmer
+      immigration.pick_next_unit_for_pool( player, settings )
   old_world.immigration.immigrants_pool[2] =
-      e.unit_type.free_colonist
+      immigration.pick_next_unit_for_pool( player, settings )
   old_world.immigration.immigrants_pool[3] =
-      e.unit_type.seasoned_scout
+      immigration.pick_next_unit_for_pool( player, settings )
 
   -- Tax rate.
   old_world.taxes.tax_rate = 7
@@ -50,29 +64,41 @@ local function create_old_world_state( old_world )
   old_world.expeditionary_force.men_of_war = 3
 end
 
-local function create_player_state( player )
+local function create_player_state( settings, nation, player )
+  player:set_nation( nation )
   player:set_human( true )
-
-  player:set_money( 1000 )
-
+  player:set_money( 1000 - 250 * settings.difficulty )
   player:set_crosses( 32 )
+  create_old_world_state( settings, player )
+end
 
-  create_old_world_state( player:old_world() )
+local function create_nations( options, top )
+  local players = top:players().players
+  local settings = top:settings()
+  for _, nation in ipairs( options.nations ) do
+    local player = players:reset_player( nation )
+    create_player_state( settings, nation, player )
+  end
 end
 
 -- The save-game state should be default-constructed before
 -- calling this.
 function M.create( options )
-  options = options or M.default_options()
-
-  local nations = {
-    e.nation.dutch, e.nation.spanish, e.nation.english,
-    e.nation.french
-  }
-  player.set_players( nations )
-  for _, nation in ipairs( nations ) do
-    create_player_state( player.player_object( nation ) )
+  options = options or {}
+  -- Merge the options with the default ones so that any missing
+  -- fields will have their default values.
+  for k, v in pairs( M.default_options() ) do
+    if options[k] == nil then options[k] = v end
   end
+
+  local top = game_state.top()
+
+  local difficulty_int =
+      DIFFICULTY_NAMES[options.difficulty_name]
+  local settings = top:settings()
+  settings.difficulty = assert( difficulty_int )
+
+  create_nations( options, top )
 
   map_gen.generate_terrain()
 

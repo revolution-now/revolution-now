@@ -50,7 +50,7 @@ TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
 TEST_CASE( "[test/lcr] de soto means no unit lost" ) {
   PlayersState   players_state;
   e_nation const nation = e_nation::dutch;
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   player.give_father( e_founding_father::hernando_de_soto );
   for( int i = 0; i < 100; ++i ) {
@@ -73,7 +73,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -133,7 +133,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -198,7 +198,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -264,7 +264,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -336,7 +336,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -400,7 +400,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -465,7 +465,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -548,7 +548,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -614,7 +614,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -685,7 +685,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -749,7 +749,7 @@ TEST_CASE(
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
