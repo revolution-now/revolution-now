@@ -65,8 +65,11 @@ class Player {
     return o_.independence_declared;
   }
 
-  maybe<std::string>& discovered_new_world() {
+  maybe<std::string> discovered_new_world() const {
     return o_.discovered_new_world;
+  }
+  void set_discovered_new_world( maybe<std::string> name ) {
+    o_.discovered_new_world = name;
   }
 
   // Implement refl::WrapsReflected.

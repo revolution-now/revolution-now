@@ -68,7 +68,9 @@ local function create_player_state( settings, nation, player )
   player:set_nation( nation )
   player:set_human( true )
   player:set_money( 1000 - 250 * settings.difficulty )
-  player:set_crosses( 32 )
+  -- This is temporary so that it doesn't keep asking us.
+  player:set_discovered_new_world( 'temporary' )
+  -- player:set_crosses( 0 )
   create_old_world_state( settings, player )
 end
 

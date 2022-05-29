@@ -40,7 +40,8 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
   // discovered).
-  maybe<string>& new_world_name = player.discovered_new_world();
+  maybe<string> const& new_world_name =
+      player.discovered_new_world();
   if( new_world_name.has_value() ) co_return;
   for( e_direction d : refl::enum_values<e_direction> ) {
     maybe<MapSquare const&> square =
@@ -52,7 +53,7 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
           .initial_text = new_world_name_for( player ) } );
-    new_world_name = name;
+    player.set_discovered_new_world( name );
     lg.info( "the new world has been discovered: \"{}\".",
              name );
     CHECK( player.discovered_new_world().has_value() );

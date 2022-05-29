@@ -23,6 +23,7 @@
 
 // luapp
 #include "luapp/as.hpp"
+#include "luapp/ext-base.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
 
@@ -128,6 +129,9 @@ LUA_STARTUP( lua::state& st ) {
   u["has_father"]  = &U::has_father;
 
   u["independence_declared"] = &U::independence_declared;
+
+  u["discovered_new_world"]     = &U::discovered_new_world;
+  u["set_discovered_new_world"] = &U::set_discovered_new_world;
 };
 
 } // namespace
