@@ -14,7 +14,6 @@ let s:stems = [
  \ 'render-terrain',
  \ 'map-gen',
  \ 'on-map',
- \ 'lcr',
  \ 'old-world-state',
  \ 'immigration',
 \]
