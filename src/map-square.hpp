@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "coord.hpp"
 #include "mv-points.hpp"
 #include "terrain.hpp"
 
@@ -29,8 +30,10 @@ bool is_water( MapSquare const& square );
 
 e_surface surface_type( MapSquare const& square );
 
+// The direction is from the source to the dest square.
 MovementPoints movement_points_required(
-    MapSquare const& src_square, MapSquare const& dst_square );
+    MapSquare const& src_square, MapSquare const& dst_square,
+    e_direction d );
 
 e_terrain effective_terrain( MapSquare const& square );
 

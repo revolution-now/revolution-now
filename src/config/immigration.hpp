@@ -1,18 +1,18 @@
 /****************************************************************
-**gs-old-world-view.hpp
+**immigration.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-02-14.
+* Created by dsicilia on 2022-05-28.
 *
-* Description: Save-game state related to the Old World View.
+# Description: Config structures for immigration game logic.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// Rds
-#include "gs-old-world-view.rds.hpp"
+// config
+#include "immigration.rds.hpp"
 
 namespace rn {} // namespace rn

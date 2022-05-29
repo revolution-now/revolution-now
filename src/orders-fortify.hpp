@@ -18,13 +18,14 @@
 namespace rn {
 
 struct IMapUpdater;
+struct SettingsState;
 
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::fortify const& fortify, IMapUpdater*,
-    IGui& gui );
+    IGui& gui, SettingsState const& settings );
 
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::sentry const& sentry, IMapUpdater*,
-    IGui& gui );
+    IGui& gui, SettingsState const& settings );
 
 } // namespace rn

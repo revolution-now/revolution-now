@@ -157,9 +157,9 @@ TEST_CASE( "[lua] C++ function binding" ) {
     local soldier_comp = unit_composer
                         .UnitComposition
                         .create_with_type_obj( soldier_type )
-    local id1 = old_world.create_unit_in_port( e.nation.dutch, soldier_comp )
-    local id2 = old_world.create_unit_in_port( e.nation.dutch, soldier_comp )
-    local id3 = old_world.create_unit_in_port( e.nation.dutch, soldier_comp )
+    local id1 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
+    local id2 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
+    local id3 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
     return id3-id1
   )";
 
@@ -328,15 +328,15 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-          return lua::as<string>( o ) + "!";
+      return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-          return fmt::format( "a double: {}", *maybe_double );
+      return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-          return fmt::format( "a bool: {}", *maybe_bool );
+      return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-          return "?";
+      return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==

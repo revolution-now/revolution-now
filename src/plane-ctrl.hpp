@@ -18,7 +18,7 @@ enum class e_plane_config {
   main_menu,
   land_view,
   colony,
-  old_world,
+  harbor,
   black,
   map_editor,
 };

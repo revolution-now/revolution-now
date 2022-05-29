@@ -115,8 +115,8 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
           /***********/ DIVIDER, /***********/              //
           ITEM( find_blinking_unit, "Find Blinking Unit" ), //
           /***********/ DIVIDER, /***********/              //
-          ITEM( old_world_view, "Old World" ),              //
-          ITEM( old_world_close, "Exit Old World" )         //
+          ITEM( harbor_view, "Old World Harbor View" ),     //
+          ITEM( harbor_close, "Exit Harber View" )          //
       } },
     { e_menu::orders,
       {

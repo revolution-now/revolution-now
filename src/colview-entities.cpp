@@ -31,7 +31,7 @@
 #include "window.hpp"
 
 // Rds
-#include "gs-events.rds.hpp"
+#include "gs-players.rds.hpp"
 
 // Config
 #include "config/units.rds.hpp"
@@ -838,7 +838,8 @@ class UnitsAtGateColonyView : public ui::View,
         unit.with_commodity_added( comm );
     adjust_for_independence_status(
         possibilities,
-        GameState::events().independence_declared );
+        // FIXME
+        /*independence_declared=*/false );
 
     erase_if( possibilities, []( auto const& xform_res ) {
       for( auto [mod, _] : xform_res.modifier_deltas )
@@ -906,8 +907,9 @@ class UnitsAtGateColonyView : public ui::View,
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            unit_to_map_square( GameState::units(), map_updater_,
-                                unit.id, colony().location() );
+            unit_to_map_square_no_ui( GameState::units(),
+                                      map_updater_, unit.id,
+                                      colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the

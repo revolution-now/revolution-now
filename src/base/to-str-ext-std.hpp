@@ -19,7 +19,8 @@
 // base-util
 #include "base-util/string.hpp"
 
-// C++ standard library
+// C++ standard library // FIXME: too many heavy includes below.
+#include <array>
 #include <chrono>
 #include <deque>
 #include <map>
@@ -73,6 +74,11 @@ void to_str( std::span<T> o, std::string& out, ADL_t ) {
     // Remove trailing comma.
     out.pop_back();
   to_str( "]"s, out, ADL );
+}
+
+template<Show T, size_t Size>
+void to_str( std::array<T, Size> o, std::string& out, ADL_t ) {
+  to_str( std::span<T>( o ), out, ADL );
 }
 
 void to_str( fs::path const& o, std::string& out, ADL_t );

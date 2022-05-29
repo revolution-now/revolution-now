@@ -17,8 +17,11 @@
 #include "colony.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
+#include "igui.hpp"
 #include "map-updater.hpp"
+#include "player.hpp"
 #include "unit.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -31,6 +34,8 @@
 #include <unordered_set>
 
 namespace rn {
+
+struct SettingsState;
 
 /****************************************************************
 ** Units
@@ -118,18 +123,17 @@ bool is_unit_in_colony( UnitId id );
 maybe<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************
-** Old World View Ownership
+** Harbor View Ownership
 *****************************************************************/
-base::valid_or<generic_err> check_old_world_state_invariants(
-    UnitOldWorldViewState_t const& info );
+base::valid_or<generic_err> check_harbor_state_invariants(
+    UnitHarborViewState_t const& info );
 
-// If unit is owned by old-world-view then this will return info.
-maybe<UnitOldWorldViewState_t&> unit_old_world_view_info(
-    UnitId id );
+// If unit is owned by harbor-view then this will return info.
+maybe<UnitHarborViewState_t&> unit_harbor_view_info( UnitId id );
 
-// Get a set of all units owned by the old-world-view.
+// Get a set of all units owned by the harbor-view.
 // FIXME: needs to be nation-specific.
-std::vector<UnitId> units_in_old_world_view();
+std::vector<UnitId> units_in_harbor_view();
 
 /****************************************************************
 ** Creation
@@ -140,10 +144,19 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitType type );
 
-UnitId create_unit_on_map( UnitsState&  units_state,
-                           IMapUpdater& map_updater,
-                           e_nation nation, UnitComposition comp,
-                           Coord coord );
+wait<UnitId> create_unit_on_map(
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, SettingsState const& settings, IGui& gui,
+    IMapUpdater& map_updater, UnitComposition comp,
+    Coord coord );
+
+// Note: when calling from a coroutine, call the coroutine ver-
+// sion above since it will run through any UI actions.
+UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
+                                 IMapUpdater&    map_updater,
+                                 e_nation        nation,
+                                 UnitComposition comp,
+                                 Coord           coord );
 
 /****************************************************************
 ** Multi

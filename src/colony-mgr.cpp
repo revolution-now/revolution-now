@@ -19,10 +19,12 @@
 #include "game-state.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
+#include "igui.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "on-map.hpp"
+#include "player.hpp"
 #include "rand.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
@@ -131,8 +133,10 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-wait<> evolve_colony_one_turn( ColonyId     id,
-                               IMapUpdater& map_updater ) {
+wait<> evolve_colony_one_turn( ColonyId             id,
+                               SettingsState const& settings,
+                               IMapUpdater&         map_updater,
+                               IGui&                gui ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
@@ -144,10 +148,13 @@ wait<> evolve_colony_one_turn( ColonyId     id,
     commodities[e_commodity::food] -= 200;
     UnitType colonist =
         UnitType::create( e_unit_type::free_colonist );
-    auto unit_id = create_unit( GameState::units(),
-                                colony.nation(), colonist );
-    unit_to_map_square( GameState::units(), map_updater, unit_id,
-                        colony.location() );
+    auto    unit_id = create_unit( GameState::units(),
+                                   colony.nation(), colonist );
+    Player& player  = player_for_nation( GameState::players(),
+                                         colony.nation() );
+    co_await unit_to_map_square(
+        GameState::units(), GameState::terrain(), player,
+        settings, gui, map_updater, unit_id, colony.location() );
     co_await landview_ensure_visible( colony.location() );
     ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "
@@ -156,6 +163,11 @@ wait<> evolve_colony_one_turn( ColonyId     id,
     if( answer == ui::e_ok_cancel::ok )
       co_await show_colony_view( id, map_updater );
   }
+
+  // Temporary.
+  Player& player =
+      player_for_nation( GameState::players(), colony.nation() );
+  player.set_crosses( player.crosses() + 10 );
 }
 
 void change_colony_nation( ColonyId id, e_nation new_nation ) {

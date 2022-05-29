@@ -24,6 +24,27 @@ namespace {
 using namespace std;
 using namespace rn;
 
+TEST_CASE( "[e_direction] direction type*" ) {
+  REQUIRE( direction_type( e_direction::nw ) ==
+           e_direction_type::diagonal );
+  REQUIRE( direction_type( e_direction::ne ) ==
+           e_direction_type::diagonal );
+  REQUIRE( direction_type( e_direction::sw ) ==
+           e_direction_type::diagonal );
+  REQUIRE( direction_type( e_direction::se ) ==
+           e_direction_type::diagonal );
+  REQUIRE( direction_type( e_direction::n ) ==
+           e_direction_type::cardinal );
+  REQUIRE( direction_type( e_direction::w ) ==
+           e_direction_type::cardinal );
+  REQUIRE( direction_type( e_direction::e ) ==
+           e_direction_type::cardinal );
+  REQUIRE( direction_type( e_direction::s ) ==
+           e_direction_type::cardinal );
+  REQUIRE( direction_type( e_direction::c ) ==
+           e_direction_type::center );
+}
+
 TEST_CASE( "[coord] centered*" ) {
   Rect  rect;
   Delta delta;

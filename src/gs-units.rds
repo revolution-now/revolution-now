@@ -30,8 +30,8 @@ sumtype.UnitOwnership {
   cargo {
     holder 'UnitId',
   },
-  old_world {
-    st 'UnitOldWorldViewState_t',
+  harbor {
+    st 'UnitHarborViewState_t',
   },
   colony {
     id 'ColonyId',

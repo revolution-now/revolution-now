@@ -10,6 +10,19 @@
 *****************************************************************/
 #include "gs-players.hpp"
 
+// Revolution Now
+#include "lua.hpp"
+
+// luapp
+#include "luapp/ext-base.hpp"
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -22,5 +35,52 @@ base::valid_or<string> PlayersState::validate() const {
                    "mismatch in player nations." );
   return base::valid;
 }
+
+void reset_players( PlayersState&           players_state,
+                    vector<e_nation> const& nations ) {
+  auto& players = players_state.players;
+  players.clear();
+  for( auto nation : nations ) {
+    players.emplace( nation, Player( wrapped::Player{
+                                 .nation = nation,
+                                 .human  = true,
+                                 .money  = 0,
+                             } ) );
+  }
+}
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// PlayersState
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::PlayersState;
+  auto u  = st.usertype.create<U>();
+
+  u["players"] = &U::players;
+};
+
+// PlayersMap
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::PlayersMap;
+  auto u  = st.usertype.create<U>();
+
+  // We could instead do this by overriding the __index
+  // metamethod, but then we would not be able to register any
+  // further (non-metamethod) members of this userdata.
+  u["get"] = [&]( U& obj, e_nation nation ) -> maybe<Player&> {
+    if( !obj.contains( nation ) ) return nothing;
+    return obj[nation];
+  };
+
+  u["reset_player"] = []( U& obj, e_nation nation ) -> Player& {
+    obj[nation] = Player{};
+    return obj[nation];
+  };
+};
+
+} // namespace
 
 } // namespace rn

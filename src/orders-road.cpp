@@ -95,7 +95,7 @@ struct RoadHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::road const& /*road*/, IMapUpdater*,
-    IGui&  gui ) {
+    IGui&  gui, SettingsState const& ) {
   return make_unique<RoadHandler>( gui, id );
 }
 

@@ -12,6 +12,16 @@
 
 // Revolution Now
 #include "gs-top.hpp"
+#include "lua.hpp"
+
+// luapp
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -32,24 +42,33 @@ TopLevelState& g_state() {
 FormatVersion& GameState::version() {
   return g_state().version();
 }
-EventsState&  GameState::events() { return g_state().events(); }
-UnitsState&   GameState::units() { return g_state().units(); }
+
+EventsState& GameState::events() { return g_state().events(); }
+
+SettingsState& GameState::settings() {
+  return g_state().settings();
+}
+
+UnitsState& GameState::units() { return g_state().units(); }
+
 PlayersState& GameState::players() {
   return g_state().players();
 }
-TurnState&         GameState::turn() { return g_state().turn(); }
-OldWorldViewState& GameState::old_world_view() {
-  return g_state().old_world_view();
-}
+
+TurnState& GameState::turn() { return g_state().turn(); }
+
 ColoniesState& GameState::colonies() {
   return g_state().colonies();
 }
+
 LandViewState& GameState::land_view() {
   return g_state().land_view();
 }
+
 TerrainState& GameState::terrain() {
   return g_state().terrain();
 }
+
 TopLevelState& GameState::top() { return g_state(); }
 
 /****************************************************************
@@ -62,5 +81,15 @@ valid_or<std::string> validate_game_state() {
 }
 
 void default_construct_game_state() { g_state() = {}; }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// TODO: this is probably temporary.
+LUA_FN( top, TopLevelState& ) { return g_state(); }
+
+} // namespace
 
 } // namespace rn

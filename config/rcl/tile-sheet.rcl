@@ -9,10 +9,10 @@ sheets {
 
   sprite_sheets [
     {
-      img_path: assets/art/old-world/old-world.png
+      img_path: assets/art/harbor/harbor.png
       sprite_size: { w: 1280, h: 640 }
       sprites {
-        old_world_background: { y: 0, x: 0 }
+        harbor_background: { y: 0, x: 0 }
       }
     }
     {

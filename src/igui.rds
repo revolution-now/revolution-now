@@ -47,3 +47,8 @@ struct.YesNoConfig {
   no_label 'std::string',
   no_comes_first 'bool',
 }
+
+struct.StringInputConfig {
+  msg 'std::string',
+  initial_text 'std::string',
+}

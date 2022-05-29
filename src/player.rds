@@ -9,12 +9,40 @@
 #
 # ===============================================================
 # Rds
+include "fathers.rds.hpp"
+include "old-world-state.rds.hpp"
 include "nation.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 namespace "rn.wrapped"
 
 struct.Player {
+  # Somewhat just for convenience.
   nation 'e_nation',
+
   human 'bool',
+
   money 'int',
+
+  # How many crosses has this player accumulated. Note that this
+  # gets subtracted from each time a new immigrant arrives on the
+  # docks, so it is not cumulative beyond that. The number of
+  # crosses needed to produce an immigrant depends on a number of
+  # factors, plus some randomness.
+  crosses 'int',
+
+  # The state of all things related to the old world, king, euro-
+  # pean market prices, etc.
+  old_world_state 'OldWorldState',
+
+  # When the new world is first discovered this will have a value
+  # and will be the name given to the new world by the player.
+  discovered_new_world 'maybe<std::string>',
+
+  independence_declared 'bool',
+
+  # Which founding fathers does this player have.
+  fathers 'refl::enum_map<e_founding_father, bool>',
 }

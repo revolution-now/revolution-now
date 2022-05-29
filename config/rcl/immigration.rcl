@@ -1,0 +1,149 @@
+# Weights (for the lowest difficulty level) for the given unit
+# types to appear on the docs as immigrants each time a new unit
+# is added to the pool. Note that the original game restricts
+# these units to human units, although that can be changed if if
+# desired. The probability of a unit appearing will be its weight
+# divided by the sum of all weights.
+#
+# Note that when William Brewster is obtained, probabilities are
+# then computed by first zeroing out the criminal and servant
+# weights, then proceeding as usual.
+base_weights {
+  # Lame ones
+  petty_criminal:           400.0
+  indentured_servant:       600.0
+
+  # Regular colonists
+  free_colonist:           2000.0
+  soldier:                  500.0
+  dragoon:                  400.0
+  pioneer:                  500.0
+  missionary:               500.0
+  scout:                    500.0
+
+  # Experts
+  expert_farmer:            200.0
+  expert_fisherman:         200.0
+  expert_sugar_planter:     200.0
+  expert_tobacco_planter:   200.0
+  expert_cotton_planter:    200.0
+  expert_fur_trapper:       200.0
+  expert_lumberjack:        200.0
+  expert_ore_miner:         200.0
+  expert_silver_miner:      200.0
+  master_carpenter:         200.0
+  master_rum_distiller:     200.0
+  master_tobacconist:       200.0
+  master_weaver:            200.0
+  master_fur_trader:        200.0
+  master_blacksmith:        200.0
+  master_gunsmith:          200.0
+  elder_statesman:          200.0
+  firebrand_preacher:       200.0
+  hardy_pioneer:            200.0
+  jesuit_missionary:        200.0
+  seasoned_scout:           200.0
+  veteran_soldier:          200.0
+  veteran_dragoon:          200.0
+
+  # TODO: These theoretically could make sense to appear on the
+  # docs, but in the original game they don't seem to. Need to
+  # check on this though.
+  seasoned_colonist:          0.0
+  veteran_colonist:           0.0
+  hardy_colonist:             0.0
+  jesuit_colonist:            0.0
+
+  # Non-human units, ships, and post-independence units should
+  # not appear and thus get zero weights.
+  artillery:                  0.0
+  damaged_artillery:          0.0
+  wagon_train:                0.0
+  small_treasure:             0.0
+  large_treasure:             0.0
+  caravel:                    0.0
+  merchantman:                0.0
+  galleon:                    0.0
+  privateer:                  0.0
+  frigate:                    0.0
+  man_o_war:                  0.0
+  continental_army:           0.0
+  continental_cavalry:        0.0
+  regular:                    0.0
+  cavalry:                    0.0
+  hardy_pioneer:              0.0
+  jesuit_missionary:          0.0
+  seasoned_scout:             0.0
+}
+
+# These factors adjust the weights for each difficulty level. The
+# weight for a given unit type is given by the base weight multi-
+# pled by pow(difficulty_factor, level) where level is in [0,4].
+# Once these factors are multiplied onto the base weights, then
+# the probabilities are computed as usual.
+#
+# The benefit of making this a multiplicative factor instead of
+# an additive one is that they don't necessarily have to be re-
+# computed when the base weights are adjusted.
+difficulty_factor_per_level {
+  petty_criminal:          1.5650845800
+  indentured_servant:      1.4425204350
+  free_colonist:           0.9306048591
+  soldier:                 0.7952707288
+  dragoon:                 0.5946035575
+  pioneer:                 0.7952707288
+  missionary:              0.7952707288
+  scout:                   0.7952707288
+  expert_farmer:           0.5623413252
+  expert_fisherman:        0.5623413252
+  expert_sugar_planter:    0.5623413252
+  expert_tobacco_planter:  0.5623413252
+  expert_cotton_planter:   0.5623413252
+  expert_fur_trapper:      0.5623413252
+  expert_lumberjack:       0.5623413252
+  expert_ore_miner:        0.5623413252
+  expert_silver_miner:     0.5623413252
+  master_carpenter:        0.5623413252
+  master_rum_distiller:    0.5623413252
+  master_tobacconist:      0.5623413252
+  master_weaver:           0.5623413252
+  master_fur_trader:       0.5623413252
+  master_blacksmith:       0.5623413252
+  master_gunsmith:         0.5623413252
+  elder_statesman:         0.5623413252
+  firebrand_preacher:      0.5623413252
+  hardy_pioneer:           0.5623413252
+  jesuit_missionary:       0.5623413252
+  seasoned_scout:          0.5623413252
+  veteran_soldier:         0.5623413252
+  veteran_dragoon:         0.5623413252
+
+  # TODO: These theoretically could make sense to appear on the
+  # docs, but in the original game they don't seem to. Need to
+  # check on this though.
+  seasoned_colonist:       1.0
+  veteran_colonist:        1.0
+  hardy_colonist:          1.0
+  jesuit_colonist:         1.0
+
+  # Non-human units, ships, and post-independence units don't ap-
+  # pear on the docks and thus these values are irrelevant.
+  artillery:               1.0
+  damaged_artillery:       1.0
+  wagon_train:             1.0
+  small_treasure:          1.0
+  large_treasure:          1.0
+  caravel:                 1.0
+  merchantman:             1.0
+  galleon:                 1.0
+  privateer:               1.0
+  frigate:                 1.0
+  man_o_war:               1.0
+  continental_army:        1.0
+  continental_cavalry:     1.0
+  regular:                 1.0
+  cavalry:                 1.0
+  hardy_pioneer:           1.0
+  jesuit_missionary:       1.0
+  seasoned_scout:          1.0
+}

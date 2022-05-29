@@ -12,10 +12,19 @@
 #include "gs-top.hpp"
 
 // Revolution Now
+#include "gs-players.hpp"
+#include "gs-settings.hpp"
+#include "lua.hpp"
 #include "map-square.hpp"
+
+// luapp
+#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -114,5 +123,54 @@ TopLevelState::TopLevelState()
   : TopLevelState( wrapped::TopLevelState{} ) {
   validate_or_die();
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// TopLevelState
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::TopLevelState;
+  auto u  = st.usertype.create<U>();
+
+  // u["version"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.version();
+  // };
+
+  u["settings"] = []( U& obj ) -> decltype( auto ) {
+    return obj.settings();
+  };
+
+  // u["events"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.events();
+  // };
+
+  // u["units"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.units();
+  // };
+
+  u["players"] = []( U& obj ) -> decltype( auto ) {
+    return obj.players();
+  };
+
+  // u["turn"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.turn();
+  // };
+
+  // u["colonies"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.colonies();
+  // };
+
+  // u["land_view"] = []( U& obj ) -> decltype( auto ) {
+  //   return obj.land_view();
+  // };
+
+  u["terrain"] = []( U& obj ) -> decltype( auto ) {
+    return obj.terrain();
+  };
+};
+
+} // namespace
 
 } // namespace rn

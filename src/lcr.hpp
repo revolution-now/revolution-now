@@ -27,7 +27,7 @@ namespace rn {
 
 struct TerrainState;
 struct UnitsState;
-struct EventsState;
+struct SettingsState;
 
 bool has_lost_city_rumor( TerrainState const& terrain_state,
                           Coord               square );
@@ -36,8 +36,7 @@ e_lcr_explorer_category lcr_explorer_category(
     UnitsState const& units_state, UnitId unit_id );
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer, Player const& player,
-    EventsState const& events_state );
+    e_lcr_explorer_category explorer, Player const& player );
 
 e_burial_mounds_type pick_burial_mounds_result(
     e_lcr_explorer_category explorer );
@@ -56,10 +55,9 @@ bool pick_burial_grounds_result(
 // cause it will not manually generate a rumor type result. How-
 // ever, it will manually generate gift amounts.
 wait<LostCityRumorResult_t> run_lost_city_rumor_result(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    EventsState const& events_state, IGui& gui, Player& player,
-    IMapUpdater& map_updater, UnitId unit_id, Coord world_square,
-    e_rumor_type type, e_burial_mounds_type burial_type,
-    bool has_burial_grounds );
+    UnitsState& units_state, IGui& gui, Player& player,
+    SettingsState const& settings, IMapUpdater& map_updater,
+    UnitId unit_id, Coord world_square, e_rumor_type type,
+    e_burial_mounds_type burial_type, bool has_burial_grounds );
 
 } // namespace rn

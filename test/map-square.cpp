@@ -55,6 +55,9 @@ TEST_CASE( "[map-square] movement_points_required" ) {
   MapSquare grassland_with_road =
       map_square_for_terrain( e_terrain::grassland );
   grassland_with_road.road = true;
+  MapSquare grassland_with_river =
+      map_square_for_terrain( e_terrain::grassland );
+  grassland_with_river.river = e_river::minor;
   MapSquare mountains_with_road =
       map_square_for_terrain( e_terrain::mountains );
   mountains_with_road.road = true;
@@ -75,112 +78,125 @@ TEST_CASE( "[map-square] movement_points_required" ) {
   src      = ocean;
   dst      = ocean;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland;
   dst      = ocean;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = ocean;
   dst      = grassland;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland;
   dst      = grassland;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains;
   dst      = grassland;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland;
   dst      = mountains;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains;
   dst      = mountains;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road;
   dst      = grassland;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland;
   dst      = grassland_with_road;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road;
   dst      = grassland_with_road;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains_with_road;
   dst      = grassland;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains;
   dst      = grassland_with_road;
   expected = 1;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains_with_road;
   dst      = grassland_with_road;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road;
   dst      = mountains;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland;
   dst      = mountains_with_road;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road;
   dst      = mountains_with_road;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains_with_road;
   dst      = mountains;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains;
   dst      = mountains_with_road;
   expected = 3;
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains_with_road;
   dst      = mountains_with_road;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road;
   dst      = grassland_with_road_and_river;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road_and_river;
   dst      = grassland_with_road;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = grassland_with_road_and_river;
   dst      = grassland_with_road_and_river;
   expected = MovementPoints::_1_3();
-  REQUIRE( f( src, dst ) == expected );
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
+
+  // Test squares that have only rivers but that are diagonally
+  // adjacent -- we should not get a bonus in that case. First,
+  // test the case with a cardinal direction:
+  src      = grassland_with_river;
+  dst      = grassland_with_river;
+  expected = MovementPoints::_1_3();
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
+  // Now the case with diagonal.
+  src      = grassland_with_river;
+  dst      = grassland_with_river;
+  expected = 1;
+  REQUIRE( f( src, dst, e_direction::sw ) == expected );
 }
 
 TEST_CASE( "[map-square] effective_terrain" ) {

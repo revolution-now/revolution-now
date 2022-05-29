@@ -72,7 +72,7 @@ void init_game_world_for_test() {
 
 UnitId create_colonist_on_map( Coord        where,
                                IMapUpdater& map_updater ) {
-  return create_unit_on_map(
+  return create_unit_on_map_no_ui(
       GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ),
       where );
@@ -86,7 +86,7 @@ UnitId create_colonist() {
 
 UnitId create_dragoon_on_map( Coord        where,
                               IMapUpdater& map_updater ) {
-  return create_unit_on_map(
+  return create_unit_on_map_no_ui(
       GameState::units(), map_updater, e_nation::english,
       UnitComposition::create(
           UnitType::create( e_unit_type::dragoon,
@@ -97,21 +97,21 @@ UnitId create_dragoon_on_map( Coord        where,
 
 UnitId create_hardy_pioneer_on_map( Coord        where,
                                     IMapUpdater& map_updater ) {
-  return create_unit_on_map(
+  return create_unit_on_map_no_ui(
       GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::hardy_pioneer ),
       where );
 }
 
 UnitId create_ship( Coord where, IMapUpdater& map_updater ) {
-  return create_unit_on_map(
+  return create_unit_on_map_no_ui(
       GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::merchantman ),
       where );
 }
 
 UnitId create_wagon( Coord where, IMapUpdater& map_updater ) {
-  return create_unit_on_map(
+  return create_unit_on_map_no_ui(
       GameState::units(), map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::wagon_train ),
       where );
@@ -291,8 +291,8 @@ TEST_CASE(
   init_game_world_for_test();
 
   auto id = create_colonist();
-  GameState::units().change_to_old_world_view(
-      id, UnitOldWorldViewState::in_port{} );
+  GameState::units().change_to_harbor_view(
+      id, UnitHarborViewState::in_port{} );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }

@@ -23,13 +23,11 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "map-gen.hpp" // FIXME: temporary
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
 #include "render.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "screen.hpp"
 #include "sound.hpp"
@@ -604,47 +602,54 @@ wait<vector<LandViewPlayerInput_t>> click_on_world_tile(
 
   // Now check for units.
   auto const& units = units_from_coord_recursive( coord );
-  if( units.size() == 0 ) co_return res;
-
-  // Decide which units are selected and for what actions.
-  vector<ui::UnitSelection> selections;
-  if( units.size() == 1 ) {
-    auto              id = *units.begin();
-    ui::UnitSelection selection{
-        id, ui::e_unit_selection::clear_orders };
-    if( !unit_from_id( id ).has_orders() && allow_activate )
-      selection.what = ui::e_unit_selection::activate;
-    selections = vector{ selection };
-  } else {
-    selections =
-        co_await ui::unit_selection_box( units, allow_activate );
-  }
-
-  vector<UnitId> prioritize;
-  for( auto const& selection : selections ) {
-    switch( selection.what ) {
-      case ui::e_unit_selection::clear_orders:
-        unit_from_id( selection.id ).clear_orders();
-        break;
-      case ui::e_unit_selection::activate:
-        CHECK( allow_activate );
-        // Activation implies also to clear orders if they're not
-        // already cleared. We do this here because, even if the
-        // prioritization is later denied (because the unit has
-        // already moved this turn) the clearing of the orders
-        // should still be upheld, because that can always be
-        // done, hence they are done separately.
-        unit_from_id( selection.id ).clear_orders();
-        prioritize.push_back( selection.id );
-        break;
+  if( units.size() != 0 ) {
+    // Decide which units are selected and for what actions.
+    vector<ui::UnitSelection> selections;
+    if( units.size() == 1 ) {
+      auto              id = *units.begin();
+      ui::UnitSelection selection{
+          id, ui::e_unit_selection::clear_orders };
+      if( !unit_from_id( id ).has_orders() && allow_activate )
+        selection.what = ui::e_unit_selection::activate;
+      selections = vector{ selection };
+    } else {
+      selections = co_await ui::unit_selection_box(
+          units, allow_activate );
     }
+
+    vector<UnitId> prioritize;
+    for( auto const& selection : selections ) {
+      switch( selection.what ) {
+        case ui::e_unit_selection::clear_orders:
+          unit_from_id( selection.id ).clear_orders();
+          break;
+        case ui::e_unit_selection::activate:
+          CHECK( allow_activate );
+          // Activation implies also to clear orders if they're
+          // not already cleared. We do this here because, even
+          // if the prioritization is later denied (because the
+          // unit has already moved this turn) the clearing of
+          // the orders should still be upheld, because that can
+          // always be done, hence they are done separately.
+          unit_from_id( selection.id ).clear_orders();
+          prioritize.push_back( selection.id );
+          break;
+      }
+    }
+    // These need to all be grouped into a vector so that the
+    // first prioritized unit doesn't start asking for orders
+    // before the rest are prioritized.
+    if( !prioritize.empty() )
+      add( LandViewPlayerInput::prioritize{} ).units =
+          std::move( prioritize );
+
+    co_return res;
   }
-  // These need to all be grouped into a vector so that the first
-  // prioritized unit doesn't start asking for orders before the
-  // rest are prioritized.
-  if( !prioritize.empty() )
-    add( LandViewPlayerInput::prioritize{} ).units =
-        std::move( prioritize );
+
+  // Nothing to click on, so just scroll the map to center on the
+  // clicked tile.
+  viewport().set_point_seek(
+      viewport().world_tile_to_world_pixel_center( coord ) );
 
   co_return res;
 }
@@ -997,14 +1002,6 @@ struct LandViewPlane : public Plane {
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::disband{} } ) );
             break;
-          case ::SDLK_g: {
-            if( key_event.mod.shf_down ) break;
-            MapUpdater map_updater(
-                GameState::terrain(),
-                global_renderer_use_only_when_needed() );
-            generate_terrain( map_updater );
-            break;
-          }
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
             if( g_landview_state.holds<

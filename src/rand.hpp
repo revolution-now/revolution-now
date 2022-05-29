@@ -41,6 +41,9 @@ enum class e_interval { half_open, closed };
 // then lower must be < upper.
 int between( int lower, int upper, e_interval type );
 
+// Random floating point number in [lower, upper).
+double between( double lower, double upper );
+
 // Could be negative.
 int random_int();
 

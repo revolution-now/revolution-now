@@ -1,14 +1,14 @@
 /****************************************************************
-**old-world-view.cpp
+**harbor-view.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-06-14.
 *
-* Description: Implements the Old World port view.
+* Description: Implements the harbor view.
 *
 *****************************************************************/
-#include "old-world-view.hpp"
+#include "harbor-view.hpp"
 
 // Revolution Now
 #include "anim.hpp"
@@ -20,14 +20,15 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
-#include "gs-old-world-view.hpp"
+#include "gs-players.hpp"
 #include "gs-units.hpp"
+#include "harbor-units.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "old-world.hpp"
+#include "old-world-state.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "render.hpp"
@@ -51,7 +52,7 @@
 #include "base/vocab.hpp"
 
 // Rds
-#include "old-world-view-impl.rds.hpp"
+#include "harbor-view-impl.rds.hpp"
 
 using namespace std;
 
@@ -66,6 +67,18 @@ namespace {
 constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
+** FIXME
+*****************************************************************/
+// FIXME
+HarborState& get_harbor_state() {
+  // FIXME: dutch is hard coded.
+  return GameState::players()
+      .players[e_nation::dutch]
+      .old_world()
+      .harbor_state;
+}
+
+/****************************************************************
 ** Globals
 *****************************************************************/
 wait_promise<> g_exit_promise;
@@ -73,13 +86,13 @@ wait_promise<> g_exit_promise;
 /****************************************************************
 ** Dragging
 *****************************************************************/
-maybe<drag::State<OldWorldDraggableObject_t>> g_drag_state;
-maybe<wait<>>                                 g_drag_thread;
+maybe<drag::State<HarborDraggableObject_t>> g_drag_state;
+maybe<wait<>>                               g_drag_thread;
 
 /****************************************************************
 ** Draggable Object
 *****************************************************************/
-maybe<OldWorldDraggableObject_t> cargo_slot_to_draggable(
+maybe<HarborDraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
   switch( slot.to_enum() ) {
     case CargoSlot::e::empty: {
@@ -92,12 +105,12 @@ maybe<OldWorldDraggableObject_t> cargo_slot_to_draggable(
       auto& cargo = slot.get<CargoSlot::cargo>();
       return overload_visit(
           cargo.contents,
-          []( Cargo::unit u ) -> OldWorldDraggableObject_t {
-            return OldWorldDraggableObject::unit{ /*id=*/u.id };
+          []( Cargo::unit u ) -> HarborDraggableObject_t {
+            return HarborDraggableObject::unit{ /*id=*/u.id };
           },
           [&]( Cargo::commodity const& c )
-              -> OldWorldDraggableObject_t {
-            return OldWorldDraggableObject::cargo_commodity{
+              -> HarborDraggableObject_t {
+            return HarborDraggableObject::cargo_commodity{
                 /*comm=*/c.obj,
                 /*slot=*/slot_idx };
           } );
@@ -106,33 +119,32 @@ maybe<OldWorldDraggableObject_t> cargo_slot_to_draggable(
 }
 
 maybe<Cargo_t> draggable_to_cargo_object(
-    OldWorldDraggableObject_t const& draggable ) {
+    HarborDraggableObject_t const& draggable ) {
   switch( draggable.to_enum() ) {
-    case OldWorldDraggableObject::e::unit: {
-      auto& val = draggable.get<OldWorldDraggableObject::unit>();
+    case HarborDraggableObject::e::unit: {
+      auto& val = draggable.get<HarborDraggableObject::unit>();
       return Cargo::unit{ val.id };
     }
-    case OldWorldDraggableObject::e::market_commodity:
+    case HarborDraggableObject::e::market_commodity:
       return nothing;
-    case OldWorldDraggableObject::e::cargo_commodity: {
+    case HarborDraggableObject::e::cargo_commodity: {
       auto& val =
           draggable
-              .get<OldWorldDraggableObject::cargo_commodity>();
+              .get<HarborDraggableObject::cargo_commodity>();
       return Cargo::commodity{ val.comm };
     }
   }
 }
 
-maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
+maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  OldWorldViewState const& owv_state =
-      GameState::old_world_view();
-  return owv_state.selected_unit.fmap( unit_from_id )
+  HarborState const& hb_state = get_harbor_state();
+  return hb_state.selected_unit.fmap( unit_from_id )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
-maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
+maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
     int slot ) {
   return draggable_in_cargo_slot( CargoSlotIndex{ slot } );
 }
@@ -156,7 +168,7 @@ auto range_of_rects( RectGridProxyIteratorHelper const&
 auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
 
 /****************************************************************
-** Old World View Entities
+** Harbor View Entities
 *****************************************************************/
 namespace entity {
 
@@ -416,7 +428,7 @@ class Backdrop {
   void draw( rr::Renderer& renderer, Delta offset ) const {
     rr::Painter painter = renderer.painter();
     render_sprite_section(
-        painter, e_tile::old_world_background, Coord{} + offset,
+        painter, e_tile::harbor_background, Coord{} + offset,
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
@@ -780,24 +792,23 @@ class UnitCollection {
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter              painter = renderer.painter();
-    OldWorldViewState const& owv_state =
-        GameState::old_world_view();
+    rr::Painter        painter  = renderer.painter();
+    HarborState const& hb_state = get_harbor_state();
     // auto bds = bounds();
     // painter.draw_empty_rect( bds.shifted_by( offset ),
     // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
     for( auto const& unit_with_pos : units_ )
       if( !g_drag_state || g_drag_state->object !=
-                               OldWorldDraggableObject_t{
-                                   OldWorldDraggableObject::unit{
+                               HarborDraggableObject_t{
+                                   HarborDraggableObject::unit{
                                        unit_with_pos.id } } )
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
                      /*with_icon=*/false );
-    if( owv_state.selected_unit ) {
+    if( hb_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
-        if( id == *owv_state.selected_unit ) {
+        if( id == *hb_state.selected_unit ) {
           painter.draw_empty_rect(
               Rect::from( coord, g_tile_delta )
                       .shifted_by( offset ) -
@@ -856,7 +867,7 @@ class UnitsOnDock : public UnitCollection {
       vector<UnitWithPosition> units;
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
-      for( auto id : old_world_units_on_dock() ) {
+      for( auto id : harbor_units_on_dock() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < maybe_dock->bounds().left_edge() )
@@ -900,7 +911,7 @@ class ShipsInPort : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id : old_world_units_in_port() ) {
+      for( auto id : harbor_units_in_port() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < in_port_bds.left_edge() )
@@ -944,7 +955,7 @@ class ShipsInbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : old_world_units_inbound() ) {
+      for( auto id : harbor_units_inbound() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -987,7 +998,7 @@ class ShipsOutbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : old_world_units_outbound() ) {
+      for( auto id : harbor_units_outbound() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -1034,8 +1045,7 @@ class ActiveCargo {
                     range_of_rects( grid ) ) ) {
         if( g_drag_state.has_value() ) {
           if_get( g_drag_state->object,
-                  OldWorldDraggableObject::cargo_commodity,
-                  cc ) {
+                  HarborDraggableObject::cargo_commodity, cc ) {
             if( cc.slot._ == idx ) continue;
           }
         }
@@ -1055,8 +1065,8 @@ class ActiveCargo {
                 [&]( Cargo::unit u ) {
                   if( !g_drag_state ||
                       g_drag_state->object !=
-                          OldWorldDraggableObject_t{
-                              OldWorldDraggableObject::unit{
+                          HarborDraggableObject_t{
+                              HarborDraggableObject::unit{
                                   u.id } } )
                     render_unit( renderer, dst_coord, u.id,
                                  /*with_icon=*/false );
@@ -1092,12 +1102,11 @@ class ActiveCargo {
       Delta const&                 size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<ShipsInPort> const&    maybe_ships_in_port ) {
-    OldWorldViewState const& owv_state =
-        GameState::old_world_view();
+    HarborState const& hb_state = get_harbor_state();
     maybe<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
-          /*maybe_active_unit_=*/owv_state.selected_unit,
+          /*maybe_active_unit_=*/hb_state.selected_unit,
           /*bounds_=*/maybe_active_cargo_box->bounds() };
       // FIXME: if we are inside the active cargo box, and the
       // active cargo box exists, do we need the following
@@ -1131,7 +1140,7 @@ class ActiveCargo {
                   .as_if_origin_were( bounds().upper_left() );
           auto scale = ActiveCargoBox::box_scale;
 
-          using OldWorldDraggableObject::cargo_commodity;
+          using HarborDraggableObject::cargo_commodity;
           if( draggable_in_cargo_slot( *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += kCommodityInCargoHoldRenderingOffset;
@@ -1290,22 +1299,22 @@ void draw_entities( rr::Renderer&   renderer,
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-struct OldWorldDragSrcInfo {
-  OldWorldDragSrc_t src;
-  Rect              rect;
+struct HarborDragSrcInfo {
+  HarborDragSrc_t src;
+  Rect            rect;
 };
 
-maybe<OldWorldDragSrcInfo> drag_src_from_coord(
+maybe<HarborDragSrcInfo> drag_src_from_coord(
     Coord const& coord, Entities const* entities ) {
   using namespace entity;
-  maybe<OldWorldDragSrcInfo> res;
+  maybe<HarborDragSrcInfo> res;
   if( entities->units_on_dock.has_value() ) {
     if( auto maybe_pair =
             entities->units_on_dock->obj_under_cursor( coord );
         maybe_pair ) {
       auto const& [id, rect] = *maybe_pair;
-      res                    = OldWorldDragSrcInfo{
-          /*src=*/OldWorldDragSrc::dock{ /*id=*/id },
+      res                    = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::dock{ /*id=*/id },
           /*rect=*/rect };
     }
   }
@@ -1321,9 +1330,9 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
             .bind( L( draggable_in_cargo_slot( _ ) ) ) ) {
       auto const& [slot, rect] = *maybe_pair;
 
-      res = OldWorldDragSrcInfo{
-          /*src=*/OldWorldDragSrc::cargo{ /*slot=*/slot,
-                                          /*quantity=*/nothing },
+      res = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::cargo{ /*slot=*/slot,
+                                        /*quantity=*/nothing },
           /*rect=*/rect };
     }
   }
@@ -1333,8 +1342,8 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
         maybe_pair ) {
       auto const& [id, rect] = *maybe_pair;
 
-      res = OldWorldDragSrcInfo{
-          /*src=*/OldWorldDragSrc::outbound{ /*id=*/id },
+      res = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::outbound{ /*id=*/id },
           /*rect=*/rect };
     }
   }
@@ -1344,8 +1353,8 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
         maybe_pair ) {
       auto const& [id, rect] = *maybe_pair;
 
-      res = OldWorldDragSrcInfo{
-          /*src=*/OldWorldDragSrc::inbound{ /*id=*/id },
+      res = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::inbound{ /*id=*/id },
           /*rect=*/rect };
     }
   }
@@ -1355,8 +1364,8 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
         maybe_pair ) {
       auto const& [id, rect] = *maybe_pair;
 
-      res = OldWorldDragSrcInfo{
-          /*src=*/OldWorldDragSrc::inport{ /*id=*/id },
+      res = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::inport{ /*id=*/id },
           /*rect=*/rect };
     }
   }
@@ -1367,10 +1376,10 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
         maybe_pair ) {
       auto const& [type, rect] = *maybe_pair;
 
-      res = OldWorldDragSrcInfo{ /*src=*/OldWorldDragSrc::market{
-                                     /*type=*/type,
-                                     /*quantity=*/nothing },
-                                 /*rect=*/rect };
+      res = HarborDragSrcInfo{
+          /*src=*/HarborDragSrc::market{ /*type=*/type,
+                                         /*quantity=*/nothing },
+          /*rect=*/rect };
     }
   }
 
@@ -1380,40 +1389,40 @@ maybe<OldWorldDragSrcInfo> drag_src_from_coord(
 // Important: in this function we should not return early; we
 // should check all the entities (in order) to allow later ones
 // to override earlier ones.
-maybe<OldWorldDragDst_t> drag_dst_from_coord(
+maybe<HarborDragDst_t> drag_dst_from_coord(
     Entities const* entities, Coord const& coord ) {
   using namespace entity;
-  maybe<OldWorldDragDst_t> res;
+  maybe<HarborDragDst_t> res;
   if( entities->active_cargo.has_value() ) {
     if( auto maybe_pair =
             entities->active_cargo->obj_under_cursor( coord );
         maybe_pair ) {
       auto const& slot = maybe_pair->first;
 
-      res = OldWorldDragDst::cargo{
+      res = HarborDragDst::cargo{
           /*slot=*/slot //
       };
     }
   }
   if( entities->dock.has_value() ) {
     if( coord.is_inside( entities->dock->bounds() ) )
-      res = OldWorldDragDst::dock{};
+      res = HarborDragDst::dock{};
   }
   if( entities->units_on_dock.has_value() ) {
     if( coord.is_inside( entities->units_on_dock->bounds() ) )
-      res = OldWorldDragDst::dock{};
+      res = HarborDragDst::dock{};
   }
   if( entities->outbound_box.has_value() ) {
     if( coord.is_inside( entities->outbound_box->bounds() ) )
-      res = OldWorldDragDst::outbound{};
+      res = HarborDragDst::outbound{};
   }
   if( entities->inbound_box.has_value() ) {
     if( coord.is_inside( entities->inbound_box->bounds() ) )
-      res = OldWorldDragDst::inbound{};
+      res = HarborDragDst::inbound{};
   }
   if( entities->in_port_box.has_value() ) {
     if( coord.is_inside( entities->in_port_box->bounds() ) )
-      res = OldWorldDragDst::inport{};
+      res = HarborDragDst::inport{};
   }
   if( entities->ships_in_port.has_value() ) {
     if( auto maybe_pair =
@@ -1421,7 +1430,7 @@ maybe<OldWorldDragDst_t> drag_dst_from_coord(
         maybe_pair ) {
       auto const& ship = maybe_pair->first;
 
-      res = OldWorldDragDst::inport_ship{
+      res = HarborDragDst::inport_ship{
           /*id=*/ship, //
       };
     }
@@ -1429,7 +1438,7 @@ maybe<OldWorldDragDst_t> drag_dst_from_coord(
   if( entities->market_commodities.has_value() ) {
     if( coord.is_inside(
             entities->market_commodities->bounds() ) )
-      return OldWorldDragDst::market{};
+      return HarborDragDst::market{};
   }
   return res;
 }
@@ -1439,46 +1448,44 @@ maybe<UnitId> active_cargo_ship( Entities const* entities ) {
       &entity::ActiveCargo::active_unit );
 }
 
-OldWorldDraggableObject_t draggable_from_src(
-    OldWorldDragSrc_t const& drag_src ) {
-  using namespace OldWorldDragSrc;
-  return overload_visit<OldWorldDraggableObject_t>(
+HarborDraggableObject_t draggable_from_src(
+    HarborDragSrc_t const& drag_src ) {
+  using namespace HarborDragSrc;
+  return overload_visit<HarborDraggableObject_t>(
       drag_src,
       [&]( dock const& o ) {
-        return OldWorldDraggableObject::unit{ o.id };
+        return HarborDraggableObject::unit{ o.id };
       },
       [&]( cargo const& o ) {
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the
-        // OldWorldDragSrc object should never have been created.
+        // HarborDragSrc object should never have been created.
         UNWRAP_CHECK( object,
                       draggable_in_cargo_slot( o.slot ) );
         return object;
       },
       [&]( outbound const& o ) {
-        return OldWorldDraggableObject::unit{ o.id };
+        return HarborDraggableObject::unit{ o.id };
       },
       [&]( inbound const& o ) {
-        return OldWorldDraggableObject::unit{ o.id };
+        return HarborDraggableObject::unit{ o.id };
       },
       [&]( inport const& o ) {
-        return OldWorldDraggableObject::unit{ o.id };
+        return HarborDraggableObject::unit{ o.id };
       },
       [&]( market const& o ) {
-        return OldWorldDraggableObject::market_commodity{
-            o.type };
+        return HarborDraggableObject::market_commodity{ o.type };
       } );
 }
 
-#define DRAG_CONNECT_CASE( src_, dst_ )                  \
-  operator()(                                            \
-      [[maybe_unused]] OldWorldDragSrc::src_ const& src, \
-      [[maybe_unused]] OldWorldDragDst::dst_ const& dst )
+#define DRAG_CONNECT_CASE( src_, dst_ )                        \
+  operator()( [[maybe_unused]] HarborDragSrc::src_ const& src, \
+              [[maybe_unused]] HarborDragDst::dst_ const& dst )
 
 struct DragConnector {
-  static bool visit( Entities const*          entities,
-                     OldWorldDragSrc_t const& drag_src,
-                     OldWorldDragDst_t const& drag_dst ) {
+  static bool visit( Entities const*        entities,
+                     HarborDragSrc_t const& drag_src,
+                     HarborDragDst_t const& drag_dst ) {
     DragConnector connector( entities );
     return std::visit( connector, drag_src, drag_dst );
   }
@@ -1493,7 +1500,7 @@ struct DragConnector {
         Cargo::unit{ src.id }, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
-    return holds<OldWorldDraggableObject::unit>(
+    return holds<HarborDraggableObject::unit>(
                draggable_from_src( src ) )
         .has_value();
   }
@@ -1530,9 +1537,9 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UNWRAP_CHECK( info, unit_old_world_view_info( src.id ) );
+    UNWRAP_CHECK( info, unit_harbor_view_info( src.id ) );
     ASSIGN_CHECK_V( outbound, info,
-                    UnitOldWorldViewState::outbound );
+                    UnitHarborViewState::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
     // errors.
     return outbound.percent < 0.01;
@@ -1608,9 +1615,9 @@ struct DragConnector {
   }
 };
 
-#define DRAG_CONFIRM_CASE( src_, dst_ )                    \
-  operator()( [[maybe_unused]] OldWorldDragSrc::src_& src, \
-              [[maybe_unused]] OldWorldDragDst::dst_& dst )
+#define DRAG_CONFIRM_CASE( src_, dst_ )                  \
+  operator()( [[maybe_unused]] HarborDragSrc::src_& src, \
+              [[maybe_unused]] HarborDragDst::dst_& dst )
 
 struct DragUserInput {
   Entities const* entities = nullptr;
@@ -1618,8 +1625,8 @@ struct DragUserInput {
     : entities( entities_ ) {}
 
   static wait<base::NoDiscard<bool>> visit(
-      Entities const* entities, OldWorldDragSrc_t* drag_src,
-      OldWorldDragDst_t* drag_dst ) {
+      Entities const* entities, HarborDragSrc_t* drag_src,
+      HarborDragDst_t* drag_dst ) {
     // Need to co_await here to keep parameters alive.
     bool proceed = co_await std::visit(
         DragUserInput( entities ), *drag_src, *drag_dst );
@@ -1680,19 +1687,18 @@ struct DragUserInput {
   }
 };
 
-#define DRAG_PERFORM_CASE( src_, dst_ )                  \
-  operator()(                                            \
-      [[maybe_unused]] OldWorldDragSrc::src_ const& src, \
-      [[maybe_unused]] OldWorldDragDst::dst_ const& dst )
+#define DRAG_PERFORM_CASE( src_, dst_ )                        \
+  operator()( [[maybe_unused]] HarborDragSrc::src_ const& src, \
+              [[maybe_unused]] HarborDragDst::dst_ const& dst )
 
 struct DragPerform {
   Entities const* entities = nullptr;
   DragPerform( Entities const* entities_ )
     : entities( entities_ ) {}
 
-  static void visit( Entities const*          entities,
-                     OldWorldDragSrc_t const& src,
-                     OldWorldDragDst_t const& dst ) {
+  static void visit( Entities const*        entities,
+                     HarborDragSrc_t const& src,
+                     HarborDragDst_t const& dst ) {
     lg.debug( "performing drag: {} to {}", src, dst );
     std::visit( DragPerform( entities ), src, dst );
   }
@@ -1711,8 +1717,8 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
-                    OldWorldDraggableObject::unit );
-    unit_move_to_old_world_dock( unit.id );
+                    HarborDraggableObject::unit );
+    unit_move_to_harbor( unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
@@ -1735,16 +1741,16 @@ struct DragPerform {
         } );
   }
   void DRAG_PERFORM_CASE( outbound, inbound ) const {
-    unit_sail_to_old_world( src.id );
+    unit_sail_to_harbor( src.id );
   }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
-    unit_sail_to_old_world( src.id );
+    unit_sail_to_harbor( src.id );
   }
   void DRAG_PERFORM_CASE( inbound, outbound ) const {
     unit_sail_to_new_world( src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
-    OldWorldViewState& owv_state = GameState::old_world_view();
+    HarborState& hb_state = get_harbor_state();
     unit_sail_to_new_world( src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
@@ -1752,9 +1758,9 @@ struct DragPerform {
     // with, as opposed to keeping the selection on the unit that
     // is now outbound. Or if there are no more units in port,
     // just deselect.
-    owv_state.selected_unit      = nothing;
-    vector<UnitId> units_in_port = old_world_units_in_port();
-    owv_state.selected_unit = rl::all( units_in_port ).head();
+    hb_state.selected_unit       = nothing;
+    vector<UnitId> units_in_port = harbor_units_in_port();
+    hb_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
     GameState::units().change_to_cargo_somewhere( dst.id,
@@ -1852,13 +1858,13 @@ void drag_n_drop_draw( rr::Renderer& renderer,
   if( !g_drag_state ) return;
   auto& state            = *g_drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-     return c + canvas.upper_left().distance_from_origin();
+    return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
            tile_size / Scale{ 2 } - state.click_offset;
   };
-  using namespace OldWorldDraggableObject;
+  using namespace HarborDraggableObject;
   // Render the dragged item.
   overload_visit(
       state.object,
@@ -1930,13 +1936,13 @@ wait<> dragging_thread( Entities*             entities,
   // not the start of a valid drag then we must return immedi-
   // ately without co_awaiting on anything.
   if( button != input::e_mouse_button::l ) co_return;
-  maybe<OldWorldDragSrcInfo> src_info =
+  maybe<HarborDragSrcInfo> src_info =
       drag_src_from_coord( origin, entities );
   if( !src_info ) co_return;
-  OldWorldDragSrc_t& src = src_info->src;
+  HarborDragSrc_t& src = src_info->src;
 
   // Now we have a valid drag that has initiated.
-  g_drag_state = drag::State<OldWorldDraggableObject_t>{
+  g_drag_state = drag::State<HarborDraggableObject_t>{
       .stream              = {},
       .object              = draggable_from_src( src ),
       .indicator           = drag::e_status_indicator::none,
@@ -1946,8 +1952,8 @@ wait<> dragging_thread( Entities*             entities,
   SCOPE_EXIT( g_drag_state = nothing );
   auto& state = *g_drag_state;
 
-  drag::Step               latest;
-  maybe<OldWorldDragDst_t> dst;
+  drag::Step             latest;
+  maybe<HarborDragDst_t> dst;
   while( maybe<drag::Step> d = co_await state.stream.next() ) {
     latest      = *d;
     state.where = d->current;
@@ -1999,10 +2005,10 @@ wait<> dragging_thread( Entities*             entities,
 }
 
 /****************************************************************
-** The Old World Plane
+** The Harbor Plane
 *****************************************************************/
-struct OldWorldPlane : public Plane {
-  OldWorldPlane() = default;
+struct HarborPlane : public Plane {
+  HarborPlane() = default;
 
   bool covers_screen() const override { return true; }
 
@@ -2079,14 +2085,13 @@ struct OldWorldPlane : public Plane {
         // Unit selection.
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
-          OldWorldViewState& owv_state =
-              GameState::old_world_view();
+          HarborState& hb_state = get_harbor_state();
           if( maybe_entity ) {
             if( auto maybe_pair =
                     maybe_entity->obj_under_cursor( val.pos );
                 maybe_pair ) {
-              owv_state.selected_unit = maybe_pair->first;
-              handled                 = e_input_handled::yes;
+              hb_state.selected_unit = maybe_pair->first;
+              handled                = e_input_handled::yes;
               create_entities( &entities_ );
             }
           }
@@ -2145,22 +2150,22 @@ struct OldWorldPlane : public Plane {
   Rect     canvas_;
 };
 
-OldWorldPlane g_old_world_plane;
+HarborPlane g_harbor_plane;
 
 /****************************************************************
 ** Initialization / Cleanup
 *****************************************************************/
-void init_old_world_view() {}
+void init_harbor_view() {}
 
-void cleanup_old_world_view() { g_drag_thread = nothing; }
+void cleanup_harbor_view() { g_drag_thread = nothing; }
 
-REGISTER_INIT_ROUTINE( old_world_view );
+REGISTER_INIT_ROUTINE( harbor_view );
 
 /****************************************************************
 ** Main Thread
 *****************************************************************/
-wait<> run_old_world_view() {
-  create_entities( &g_old_world_plane.entities_ );
+wait<> run_harbor_view() {
+  create_entities( &g_harbor_plane.entities_ );
   // TODO: how does this thread interact with the dragging
   // thread? It should probably somehow co_await on it when a
   // drag happens.
@@ -2172,40 +2177,40 @@ wait<> run_old_world_view() {
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> show_old_world_view() {
-  OldWorldViewState& owv_state = GameState::old_world_view();
-  g_exit_promise               = {};
-  if( owv_state.selected_unit ) {
-    UnitId id = *owv_state.selected_unit;
+wait<> show_harbor_view() {
+  HarborState& hb_state = get_harbor_state();
+  g_exit_promise        = {};
+  if( hb_state.selected_unit ) {
+    UnitId id = *hb_state.selected_unit;
     // We could have a case where the unit that was last selected
     // went to the new world and was then disbanded, or is just
-    // no longer in the old world.
-    if( !unit_exists( id ) || !unit_old_world_view_info( id ) )
-      owv_state.selected_unit = nothing;
+    // no longer in the harbor.
+    if( !unit_exists( id ) || !unit_harbor_view_info( id ) )
+      hb_state.selected_unit = nothing;
   }
-  ScopedPlanePush pusher( e_plane_config::old_world );
-  lg.info( "entering old world view." );
-  co_await run_old_world_view();
-  lg.info( "leaving old world view." );
+  ScopedPlanePush pusher( e_plane_config::harbor );
+  lg.info( "entering harbor view." );
+  co_await run_harbor_view();
+  lg.info( "leaving harbor view." );
 }
 
-void old_world_view_set_selected_unit( UnitId id ) {
-  OldWorldViewState& owv_state = GameState::old_world_view();
+void harbor_view_set_selected_unit( UnitId id ) {
+  HarborState& hb_state = get_harbor_state();
   // Ensure that the unit is either in port or on the high seas,
   // otherwise it doesn't make sense for the unit to be selected
   // on this screen.
-  CHECK( unit_old_world_view_info( id ) );
-  owv_state.selected_unit = id;
+  CHECK( unit_harbor_view_info( id ) );
+  hb_state.selected_unit = id;
 }
 
-Plane* old_world_plane() { return &g_old_world_plane; }
+Plane* harbor_plane() { return &g_harbor_plane; }
 
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
 
 MENU_ITEM_HANDLER(
-    old_world_close, [] { g_exit_promise.set_value_emplace(); },
-    [] { return is_plane_enabled( e_plane::old_world ); } )
+    harbor_close, [] { g_exit_promise.set_value_emplace(); },
+    [] { return is_plane_enabled( e_plane::harbor ); } )
 
 } // namespace rn

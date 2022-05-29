@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "map-updater.hpp"
-
 // base
 #include "base/cc-specific.hpp"
 #include "base/fs.hpp"

@@ -12,11 +12,7 @@
 include "maybe.hpp"
 
 # Rds
-include "nation.rds.hpp"
 include "terrain.rds.hpp"
-
-# refl
-include "refl/enum-map.hpp"
 
 namespace "rn"
 
@@ -25,9 +21,6 @@ namespace "rn"
 # their default values so that they can be omitted from the save
 # file.
 struct.MapSquare {
-  # Which nations have explored this square.
-  visibility 'refl::enum_map<e_nation, bool>',
-
   # Is this land or water.
   surface 'e_surface',
 

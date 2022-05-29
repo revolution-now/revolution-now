@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "coord.hpp"
 #include "map-square.hpp"
 #include "mv-points.hpp"
 #include "unit.hpp"
@@ -78,7 +79,8 @@ struct [[nodiscard]] MovementPointsAnalysis {
 
   // Number of movement points theoretically needed. This will be
   // determined by the terrain in the target square as well as
-  // whether there is a road or river connecting the two squares.
+  // whether there is a road or river connecting the two squares,
+  // as well as the direction from the src tile to the dst tile.
   MovementPoints needs = {};
 
   // Has the unit not moved yet; if so, they will be allowed to
@@ -94,8 +96,9 @@ static_assert( MovementPointsAnalysis::kOverdrawAllowance > 0 );
 /****************************************************************
 ** Public API
 *****************************************************************/
+// The direction is from src to dst.
 MovementPointsAnalysis expense_movement_points(
     Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square );
+    MapSquare const& dst_square, e_direction d );
 
 } // namespace rn

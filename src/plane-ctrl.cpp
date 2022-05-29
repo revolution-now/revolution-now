@@ -56,11 +56,11 @@ vector<e_plane> const& planes_from_config(
       };
       return planes;
     }
-    case e_plane_config::old_world: {
+    case e_plane_config::harbor: {
       static vector<e_plane> const planes{
-          e_plane::old_world, //
-          e_plane::menu,      //
-          e_plane::window,    //
+          e_plane::harbor, //
+          e_plane::menu,   //
+          e_plane::window, //
       };
       return planes;
     }

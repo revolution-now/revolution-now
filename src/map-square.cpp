@@ -64,7 +64,10 @@ e_terrain effective_terrain( MapSquare const& square ) {
 }
 
 MovementPoints movement_points_required(
-    MapSquare const& src_square, MapSquare const& dst_square ) {
+    MapSquare const& src_square, MapSquare const& dst_square,
+    e_direction d ) {
+  CHECK( d != e_direction::c );
+
   if( is_water( src_square ) || is_water( dst_square ) )
     return MovementPoints( 1 );
   // Both squares are land.
@@ -72,7 +75,13 @@ MovementPoints movement_points_required(
   if( src_square.road && dst_square.road )
     return MovementPoints::_1_3();
 
-  if( src_square.river && dst_square.river )
+  // In the original game rivers, unlike roads, cannot run diago-
+  // nally, and this is reflected in the movement point logic. We
+  // get a movement bonus from moving from a river tile to an-
+  // other river tile only if it is along one of the cardinal di-
+  // rections.
+  if( src_square.river && dst_square.river &&
+      direction_type( d ) == e_direction_type::cardinal )
     return MovementPoints::_1_3();
 
   // We're moving from land to land without a road/river on both
@@ -157,27 +166,6 @@ LUA_STARTUP( lua::state& st ) {
   u["road"]            = &U::road;
   u["sea_lane"]        = &U::sea_lane;
   u["lost_city_rumor"] = &U::lost_city_rumor;
-
-  // Visibility.
-  u["set_visible_for_all"] = []( U& square ) {
-    for( e_nation nation : refl::enum_values<e_nation> )
-      square.visibility[nation] = true;
-  };
-
-  u["set_invisible_for_all"] = []( U& square ) {
-    for( e_nation nation : refl::enum_values<e_nation> )
-      square.visibility[nation] = false;
-  };
-
-  u["set_visible_for_nation"] = []( U&       square,
-                                    e_nation nation ) {
-    square.visibility[nation] = true;
-  };
-
-  u["set_invisible_for_nation"] = []( U&       square,
-                                      e_nation nation ) {
-    square.visibility[nation] = false;
-  };
 };
 
 } // namespace

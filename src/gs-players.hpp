@@ -15,4 +15,24 @@
 // Rds
 #include "gs-players.rds.hpp"
 
-namespace rn {} // namespace rn
+// luapp
+#include "luapp/ext-userdata.hpp"
+
+namespace rn {
+
+using PlayersMap = std::unordered_map<e_nation, Player>;
+
+void reset_players( PlayersState&                players_state,
+                    std::vector<e_nation> const& nations );
+
+} // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::PlayersState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::PlayersMap, owned_by_cpp ){};
+
+} // namespace lua

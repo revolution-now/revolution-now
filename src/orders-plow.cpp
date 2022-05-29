@@ -106,7 +106,7 @@ struct PlowHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::plow const& /*plow*/, IMapUpdater*,
-    IGui&  gui ) {
+    IGui&  gui, SettingsState const& ) {
   return make_unique<PlowHandler>( gui, id );
 }
 

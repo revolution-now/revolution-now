@@ -12,8 +12,8 @@
 #include "test/testing.hpp"
 
 // Revolution Now
-#include "gs-events.hpp"
 #include "gs-players.hpp"
+#include "gs-settings.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui-mock.hpp"
@@ -42,15 +42,30 @@ TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
 
   REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
   REQUIRE( has_lost_city_rumor( terrain_state, Coord{} ) );
+}
+
+TEST_CASE( "[test/lcr] de soto means no unit lost" ) {
+  PlayersState   players_state;
+  e_nation const nation = e_nation::dutch;
+  reset_players( players_state, { e_nation::dutch } );
+  Player& player = player_for_nation( players_state, nation );
+  player.give_father( e_founding_father::hernando_de_soto );
+  for( int i = 0; i < 100; ++i ) {
+    INFO( fmt::format( "i: {}", i ) );
+    e_rumor_type type = pick_rumor_type_result(
+        e_lcr_explorer_category::other, player );
+    REQUIRE( type != e_rumor_type::unit_lost );
+  }
 }
 
 TEST_CASE( "[test/lcr] nothing but rumors" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -58,7 +73,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -66,10 +81,11 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -89,10 +105,11 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -107,8 +124,8 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
 TEST_CASE( "[test/lcr] small village, chief gift" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -116,7 +133,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -124,10 +141,11 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -147,10 +165,11 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -170,8 +189,8 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
 TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -179,7 +198,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -187,10 +206,11 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -211,10 +231,11 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -234,8 +255,8 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
 TEST_CASE( "[test/lcr] fountain of youth" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -243,7 +264,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -251,10 +272,11 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -276,17 +298,21 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   // object for each one (since they are moved).
   for( int i = 0; i < 8; ++i ) {
     EXPECT_CALL(
-        gui,
-        message_box( StrContains( "has arrived in port" ) ) )
-        .returns( make_wait() );
+        gui, choice( Field(
+                 &ChoiceConfig::msg,
+                 StrContains( "Who shall we next choose" ) ) ) )
+        .returns( make_wait<string>( "1" ) );
+    EXPECT_CALL( gui, wait_for( chrono::milliseconds( 300 ) ) )
+        .returns( chrono::microseconds{} );
   }
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -301,8 +327,8 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
 TEST_CASE( "[test/lcr] free colonist" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -310,7 +336,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -318,10 +344,11 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -342,10 +369,11 @@ TEST_CASE( "[test/lcr] free colonist" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -363,8 +391,8 @@ TEST_CASE( "[test/lcr] free colonist" ) {
 TEST_CASE( "[test/lcr] unit lost" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -372,7 +400,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -380,10 +408,11 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -404,10 +433,11 @@ TEST_CASE( "[test/lcr] unit lost" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -426,8 +456,8 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
 #endif
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -435,7 +465,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -443,10 +473,11 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -468,10 +499,11 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -507,8 +539,8 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
 #endif
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -516,7 +548,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -524,10 +556,11 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -549,10 +582,11 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -571,8 +605,8 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
 #endif
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -580,7 +614,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -588,10 +622,11 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -613,10 +648,11 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -640,8 +676,8 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
 #endif
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -649,7 +685,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -657,10 +693,11 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -679,10 +716,11 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -702,8 +740,8 @@ TEST_CASE(
 #endif
   UnitsState             units_state;
   TerrainState           terrain_state;
-  EventsState            events_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -711,7 +749,7 @@ TEST_CASE(
   e_nation const nation = e_nation::dutch;
 
   // Set players.
-  set_players( players_state, { e_nation::dutch } );
+  reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
   REQUIRE( player.money() == 0 );
 
@@ -719,10 +757,11 @@ TEST_CASE(
   terrain_state.mutable_world_map() =
       Matrix<MapSquare>( Delta( 1_w, 1_h ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  square.surface    = e_surface::land;
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map(
+  UnitId unit_id = create_unit_on_map_no_ui(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -748,10 +787,11 @@ TEST_CASE(
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          terrain_state, units_state, events_state, gui, player,
-          map_updater, unit_id, /*move_dst=*/Coord{}, rumor_type,
-          burial_type, has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );

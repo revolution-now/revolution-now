@@ -11,6 +11,7 @@
 #include "gui.hpp"
 
 // Revolution Now
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "window.hpp"
 
@@ -25,11 +26,11 @@ namespace rn {
 /****************************************************************
 ** RealGui
 *****************************************************************/
-wait<> RealGui::message_box( std::string_view msg ) {
+wait<> RealGui::message_box( string_view msg ) {
   return ui::message_box( msg );
 }
 
-wait<std::string> RealGui::choice( ChoiceConfig const& config ) {
+wait<string> RealGui::choice( ChoiceConfig const& config ) {
   {
     // Sanity check.
     unordered_set<string> seen_key;
@@ -46,6 +47,23 @@ wait<std::string> RealGui::choice( ChoiceConfig const& config ) {
     options.push_back( option.display_name );
   int selected = co_await ui::select_box( config.msg, options );
   co_return config.options[selected].key;
+}
+
+wait<string> RealGui::string_input(
+    StringInputConfig const& config ) {
+  maybe<string> res;
+  // FIXME: need to use a different function here that just re-
+  // quires input.
+  while( !res.has_value() )
+    res = co_await ui::str_input_box( "title?", config.msg,
+                                      config.initial_text );
+  DCHECK( res.has_value() );
+  co_return *res;
+}
+
+wait<chrono::microseconds> RealGui::wait_for(
+    chrono::microseconds time ) {
+  co_return co_await time;
 }
 
 } // namespace rn

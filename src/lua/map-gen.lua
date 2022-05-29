@@ -105,7 +105,7 @@ function M.initial_ship_pos()
   local y = size.h / 2
   local x = size.w - 1
   while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { x=x, y=y }
+  return { x=x + 1, y=y }
 end
 
 local function unit_type( type, base_type )
@@ -414,9 +414,17 @@ local function create_sea_lanes()
   on_all( function( coord )
     local square = map_gen.at( coord )
     if square.surface == e.surface.land then
-      local block_edge = surrounding_squares_7x7_right_edge(
-                             coord )
-      block_edge = filter_existing_squares( block_edge )
+      local block_edge = {}
+      -- We need to do this because if we are are very close to
+      -- the right edge of the map (e.g., arctic) then the right
+      -- edge of the 7x7 square won't exist; in that case, just
+      -- move it over to the left by one, since that will have
+      -- the same effect.
+      repeat
+        block_edge = surrounding_squares_7x7_right_edge( coord )
+        block_edge = filter_existing_squares( block_edge )
+        coord.x = coord.x - 1
+      until #block_edge > 0
       for _, s in ipairs( block_edge ) do
         for x = 0, s.x do
           local coord = { x=x, y=s.y }
@@ -428,24 +436,6 @@ local function create_sea_lanes()
       end
     end
   end )
-
-  -- Clear out any sea lane along the three rows at the top of
-  -- the map and the bottom of the map (not including the arctic
-  -- rows).
-  for y = 0, 3 do
-    for x = 0, size.w - 1 do
-      local coord = { x=x, y=y }
-      local square = map_gen.at( coord )
-      if square.sea_lane then square.sea_lane = false end
-    end
-  end
-  for y = size.h - 4, size.h - 1 do
-    for x = 0, size.w - 1 do
-      local coord = { x=x, y=y }
-      local square = map_gen.at( coord )
-      if square.sea_lane then square.sea_lane = false end
-    end
-  end
 
   -- At this point, some rows (that contain no land tiles) will
   -- be all sea lane. So we will start at the center of the map
@@ -694,12 +684,12 @@ local function generate_land()
   local size = map_gen.world_size()
   local buffer = { top=2, bottom=2, left=4, right=3 }
   local initial_square = {
-    x=size.w - buffer.left * 2,
+    x=size.w - buffer.left * 4,
     y=size.h / 2
   }
   local initial_area = math.random( 5, 50 )
   generate_continent( initial_square, initial_area )
-  for i = 1, 8 do
+  for i = 1, 6 do
     local square = random_point_in_rect(
                        {
           x=buffer.left,

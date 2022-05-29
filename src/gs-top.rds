@@ -15,10 +15,10 @@ include "gs-units.hpp"
 include "gs-terrain.hpp"
 
 # Rds
+include "gs-settings.rds.hpp"
 include "gs-events.rds.hpp"
 include "gs-players.rds.hpp"
 include "gs-turn.rds.hpp"
-include "gs-old-world-view.rds.hpp"
 include "gs-land-view.rds.hpp"
 
 namespace "rn"
@@ -35,11 +35,11 @@ namespace "rn.wrapped"
 
 struct.TopLevelState {
   version 'rn::FormatVersion',
+  settings 'rn::SettingsState',
   events 'rn::EventsState',
   units 'rn::UnitsState',
   players 'rn::PlayersState',
   turn 'rn::TurnState',
-  old_world_view 'rn::OldWorldViewState',
   colonies 'rn::ColoniesState',
   land_view 'rn::LandViewState',
   # Use a zzz prefix to make sure that the terrain field will be

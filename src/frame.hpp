@@ -10,9 +10,10 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 // Revolution Now
 #include "cache.hpp"
-#include "core-config.hpp"
 #include "frame-count.hpp"
 #include "moving-avg.hpp"
 #include "wait.hpp"
@@ -45,18 +46,6 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc f,
 void subscribe_to_frame_tick( FrameSubscriptionFunc,
                               std::chrono::microseconds n,
                               bool repeating = true );
-
-// The returned wait becomes ready after `n` frames have
-// passed. Note: instead of co_await'ing this directly, you can
-// do: co_await 5_frames.
-wait<> wait_n_frames( FrameCount n );
-// The returned wait becomes ready after the given duration
-// has passed, and it returns the actual duration that has
-// passed. This is useful if co_await'ing on small time intervals
-// and the frame rate is low. Note: instead of co_await'ing this
-// directly, you can do: co_await 2s.
-wait<std::chrono::microseconds> wait_for_duration(
-    std::chrono::microseconds us );
 
 using EventCountMap =
     std::unordered_map<std::string_view,

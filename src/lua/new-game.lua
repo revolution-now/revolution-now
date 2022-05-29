@@ -11,22 +11,99 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+local DIFFICULTY_NAMES = {
+  ['discoverer']=0,
+  ['explorer']=1,
+  ['conquistador']=2,
+  ['governor']=3,
+  ['viceroy']=4
+}
+
 function M.default_options()
   return {
-    render=true --
+    difficulty_name='discoverer',
+    render=true, -- FIXME
+    nations={
+      e.nation.english, e.nation.french, e.nation.dutch,
+      e.nation.spanish
+    }
   }
+end
+
+local function create_old_world_state( settings, player )
+  local old_world = player:old_world()
+  -- Immigrants state.
+  old_world.immigration.next_recruit_cost_base = 50
+  old_world.immigration.immigrants_pool[1] =
+      immigration.pick_next_unit_for_pool( player, settings )
+  old_world.immigration.immigrants_pool[2] =
+      immigration.pick_next_unit_for_pool( player, settings )
+  old_world.immigration.immigrants_pool[3] =
+      immigration.pick_next_unit_for_pool( player, settings )
+
+  -- Tax rate.
+  old_world.taxes.tax_rate = 7
+
+  -- Market state.
+  local cotton_item = old_world.market.commodities[e.commodity
+                          .cotton]
+  cotton_item.sell_price_in_hundreds = 4
+  cotton_item.boycott = true
+  cotton_item.price_movement = .33
+
+  local muskets_item = old_world.market.commodities[e.commodity
+                           .muskets]
+  muskets_item.sell_price_in_hundreds = 5
+  muskets_item.boycott = false
+  muskets_item.price_movement = .44
+
+  -- Expeditionary force.
+  old_world.expeditionary_force.regulars = 3
+  old_world.expeditionary_force.cavalry = 2
+  old_world.expeditionary_force.artillery = 2
+  old_world.expeditionary_force.men_of_war = 3
+end
+
+local function create_player_state( settings, nation, player )
+  player:set_nation( nation )
+  player:set_human( true )
+  player:set_money( 1000 - 250 * settings.difficulty )
+  -- This is temporary so that it doesn't keep asking us.
+  player:set_discovered_new_world( 'temporary' )
+  -- player:set_crosses( 0 )
+  create_old_world_state( settings, player )
+end
+
+local function create_nations( options, top )
+  local players = top:players().players
+  local settings = top:settings()
+  for _, nation in ipairs( options.nations ) do
+    local player = players:reset_player( nation )
+    create_player_state( settings, nation, player )
+  end
 end
 
 -- The save-game state should be default-constructed before
 -- calling this.
 function M.create( options )
-  options = options or M.default_options()
-  player.set_players( {
-    e.nation.dutch, e.nation.spanish, e.nation.english,
-    e.nation.french
-  } )
+  options = options or {}
+  -- Merge the options with the default ones so that any missing
+  -- fields will have their default values.
+  for k, v in pairs( M.default_options() ) do
+    if options[k] == nil then options[k] = v end
+  end
+
+  local top = game_state.top()
+
+  local difficulty_int =
+      DIFFICULTY_NAMES[options.difficulty_name]
+  local settings = top:settings()
+  settings.difficulty = assert( difficulty_int )
+
+  create_nations( options, top )
 
   map_gen.generate_terrain()
+
   if options.render then render_terrain.redraw() end
   land_view.zoom_out_optimal()
 end

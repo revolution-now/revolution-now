@@ -19,12 +19,10 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
-#include "gs-events.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
-#include "lcr.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
@@ -140,9 +138,9 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 *****************************************************************/
 wait<maybe<MovementPoints>> check_movement_points(
     IGui& gui, Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square ) {
-  MovementPointsAnalysis analysis =
-      expense_movement_points( unit, src_square, dst_square );
+    MapSquare const& dst_square, e_direction direction ) {
+  MovementPointsAnalysis analysis = expense_movement_points(
+      unit, src_square, dst_square, direction );
   if( analysis.allowed() ) {
     if( analysis.using_start_of_turn_exemption() )
       lg.debug( "move allowed by start-of-turn exemption." );
@@ -172,12 +170,14 @@ wait<maybe<MovementPoints>> check_movement_points(
 struct TravelHandler : public OrdersHandler {
   TravelHandler( UnitId unit_id_, e_direction d,
                  IMapUpdater&  map_updater,
-                 TerrainState& terrain_state, IGui& gui )
+                 TerrainState& terrain_state, IGui& gui,
+                 SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
       terrain_state_( terrain_state ),
-      gui_( gui ) {}
+      gui_( gui ),
+      settings_( settings ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -309,6 +309,8 @@ struct TravelHandler : public OrdersHandler {
   TerrainState& terrain_state_;
 
   IGui& gui_;
+
+  SettingsState const& settings_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -357,12 +359,43 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_sail_high_seas() const {
   CHECK( is_high_seas( terrain_state_, move_dst ) );
-  // Only ask to sail the high seas if the current square is not
-  // a sea lane. This allows ships to sail around in the sea lane
-  // without being asked on each turn whether the player wants to
-  // sail the high seas.
-  if( is_high_seas( terrain_state_, move_src ) )
-    co_return e_travel_verdict::map_to_map;
+  // The original game seems to ask to sail the high seas if and
+  // only if the following conditions are met:
+  //
+  //   1. The desination square is high seas.
+  //   2. The source square is high seas, but only for atlantic
+  //      sea lanes.
+  //   3. You are moving in either the ne, e, or se directions
+  //      (that's for atlantic sea lanes; the opposite for pa-
+  //      cific sea lanes).
+  //
+  // Not sure the reason for #2, but the benefit of #3 is that
+  // you can freely move north/south without getting the prompt
+  // which is useful for traveling around the map generally
+  // (sometimes continents that are above/below each other are
+  // separated by a line of sea lane which would make it perpetu-
+  // ally frustrating to travel between if you were prompted to
+  // sail the high seas when moving north south), and you can
+  // also move west without getting the prompt, which allows
+  // starting the ship in the middle of sea lane at the start of
+  // the game.
+  bool is_atlantic =
+      ( move_src.x >=
+        0_x + terrain_state_.world_size_tiles().w / 2_sx );
+  bool is_pacific  = !is_atlantic;
+  bool correct_dst = is_high_seas( terrain_state_, move_dst );
+  bool correct_src =
+      is_pacific || is_high_seas( terrain_state_, move_src );
+  UNWRAP_CHECK( d, move_src.direction_to( move_dst ) );
+  bool correct_direction = is_atlantic
+                               ? ( ( d == e_direction::ne ) ||
+                                   ( d == e_direction::e ) ||
+                                   ( d == e_direction::se ) )
+                               : ( ( d == e_direction::nw ) ||
+                                   ( d == e_direction::w ) ||
+                                   ( d == e_direction::sw ) );
+  bool ask = correct_src && correct_dst && correct_direction;
+  if( !ask ) co_return e_travel_verdict::map_to_map;
   ui::e_confirm confirmed = co_await gui_.yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",
@@ -386,9 +419,10 @@ TravelHandler::confirm_travel_impl() {
   auto&       src_square = terrain_state_.square_at( move_src );
   auto&       dst_square = terrain_state_.square_at( move_dst );
   Unit const& unit       = units_state.unit_for( id );
+  UNWRAP_CHECK( direction, move_src.direction_to( move_dst ) );
   maybe<MovementPoints> to_subtract =
       co_await check_movement_points( gui_, unit, src_square,
-                                      dst_square );
+                                      dst_square, direction );
   if( !to_subtract.has_value() )
     co_return e_travel_verdict::not_enough_movement_points;
   mv_points_to_subtract_ = *to_subtract;
@@ -574,11 +608,10 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  EventsState const& events_state = GameState::events();
-  auto               id           = unit_id;
-  UnitsState&        units_state  = GameState::units();
-  auto&              unit         = units_state.unit_for( id );
-  Player&            player = player_for_nation( unit.nation() );
+  auto        id          = unit_id;
+  UnitsState& units_state = GameState::units();
+  auto&       unit        = units_state.unit_for( id );
+  Player&     player      = player_for_nation( unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -606,8 +639,9 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, settings_, gui_,
+                                   map_updater_, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       unit.consume_mv_points( mv_points_to_subtract_ );
       break;
@@ -626,14 +660,16 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, settings_, gui_,
+                                   map_updater_, id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      unit_to_map_square( units_state, map_updater_, id,
-                          move_dst );
+      co_await unit_to_map_square( units_state, terrain_state_,
+                                   player, settings_, gui_,
+                                   map_updater_, id, move_dst );
       // When a ship moves into port it forfeights its movement
       // points.
       unit.forfeight_mv_points();
@@ -687,9 +723,9 @@ wait<> TravelHandler::perform() {
       }
       break;
     case e_travel_verdict::sail_high_seas: {
-      UnitOldWorldViewState_t state =
-          UnitOldWorldViewState::inbound{ .percent = 0.0 };
-      GameState::units().change_to_old_world_view( id, state );
+      UnitHarborViewState_t state =
+          UnitHarborViewState::inbound{ .percent = 0.0 };
+      GameState::units().change_to_harbor_view( id, state );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -705,35 +741,6 @@ wait<> TravelHandler::perform() {
     CHECK( unit_would_move == ( new_coord == move_dst ) );
   }
 
-  // Check if the unit actually moved and it landed on a Lost
-  // City Rumor.
-  if( unit_would_move &&
-      has_lost_city_rumor( terrain_state_, move_dst ) ) {
-    e_lcr_explorer_category const explorer =
-        lcr_explorer_category( units_state, unit_id );
-    e_rumor_type rumor_type =
-        pick_rumor_type_result( explorer, player, events_state );
-    e_burial_mounds_type burial_type =
-        pick_burial_mounds_result( explorer );
-    bool has_burial_grounds = pick_burial_grounds_result(
-        player, explorer, burial_type );
-    LostCityRumorResult_t lcr_res =
-        co_await run_lost_city_rumor_result(
-            terrain_state_, units_state, events_state, gui_,
-            player, map_updater_, unit_id, move_dst, rumor_type,
-            burial_type, has_burial_grounds );
-
-    // Presumably we don't want to do anything more in this
-    // function if the unit that moved has disappeared.
-    if( lcr_res.holds<LostCityRumorResult::unit_lost>() )
-      co_return;
-    if( auto maybe_unit =
-            lcr_res.get_if<LostCityRumorResult::unit_created>();
-        maybe_unit.has_value() )
-      prioritize.push_back( maybe_unit->id );
-  }
-
-  // !! Note that the LCR may have removed the unit!
   co_return; //
 }
 
@@ -743,12 +750,14 @@ wait<> TravelHandler::perform() {
 struct AttackHandler : public OrdersHandler {
   AttackHandler( UnitId unit_id_, e_direction d,
                  IMapUpdater&  map_updater,
-                 TerrainState& terrain_state, IGui& gui )
+                 TerrainState& terrain_state, IGui& gui,
+                 SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
       terrain_state_( terrain_state ),
-      gui_( gui ) {}
+      gui_( gui ),
+      settings_( settings ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -891,6 +900,8 @@ struct AttackHandler : public OrdersHandler {
   TerrainState& terrain_state_;
 
   IGui& gui_;
+
+  SettingsState const& settings_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -1082,7 +1093,10 @@ wait<> AttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
 
-  UnitsState& units_state = GameState::units();
+  UnitsState&   units_state   = GameState::units();
+  PlayersState& players_state = GameState::players();
+  Player&       player =
+      player_for_nation( players_state, unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -1119,8 +1133,9 @@ wait<> AttackHandler::perform() {
       // the colony location.
       change_colony_nation( colony_id, attacker.nation() );
       // 2. The attacker moves into the colony square.
-      unit_to_map_square( units_state, map_updater_,
-                          attacker.id(), attack_dst );
+      co_await unit_to_map_square(
+          units_state, terrain_state_, player, settings_, gui_,
+          map_updater_, attacker.id(), attack_dst );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
       // TODO: what if there are trade routes that involve this
@@ -1177,8 +1192,9 @@ wait<> AttackHandler::perform() {
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
-        unit_to_map_square(
-            units_state, map_updater_, loser.id(),
+        co_await unit_to_map_square(
+            units_state, terrain_state_, player, settings_, gui_,
+            map_updater_, loser.id(),
             coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.
@@ -1204,34 +1220,34 @@ wait<> AttackHandler::perform() {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
-                                    IMapUpdater&  map_updater,
-                                    TerrainState& terrain_state,
-                                    IGui&         gui ) {
+unique_ptr<OrdersHandler> dispatch(
+    UnitId id, e_direction d, IMapUpdater& map_updater,
+    TerrainState& terrain_state, IGui& gui,
+    SettingsState const& settings ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui );
+    return make_unique<TravelHandler>(
+        id, d, map_updater, terrain_state, gui, settings );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui );
+    return make_unique<TravelHandler>(
+        id, d, map_updater, terrain_state, gui, settings );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui );
+    return make_unique<TravelHandler>(
+        id, d, map_updater, terrain_state, gui, settings );
 
   // Must be an attack.
-  return make_unique<AttackHandler>( id, d, map_updater,
-                                     terrain_state, gui );
+  return make_unique<AttackHandler>(
+      id, d, map_updater, terrain_state, gui, settings );
 }
 
 } // namespace
@@ -1241,9 +1257,10 @@ unique_ptr<OrdersHandler> dispatch( UnitId id, e_direction d,
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv, IMapUpdater* map_updater,
-    IGui& gui ) {
+    IGui& gui, SettingsState const& settings ) {
   TerrainState& terrain_state = GameState::terrain();
-  return dispatch( id, mv.d, *map_updater, terrain_state, gui );
+  return dispatch( id, mv.d, *map_updater, terrain_state, gui,
+                   settings );
 }
 
 } // namespace rn

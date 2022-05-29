@@ -109,7 +109,10 @@ class SmoothViewport {
   // world.
   void set_max_viewable_size_tiles( Delta size );
 
-  // Immediate change.
+  // Immediate change. Note that it is tricky to make a coro ver-
+  // sion of this because we have to detect when to stop, which
+  // is not trivial because some tiles close to the edge of the
+  // map cannot reach the center.
   void center_on_tile( Coord const& coords );
 
   void set_x_push( e_push_direction );
@@ -226,7 +229,7 @@ class SmoothViewport {
   // to match it.
   maybe<double> smooth_zoom_target_{};
 
-  struct SmoothCenter {
+  struct SmoothScroll {
     XD    x_target{};
     YD    y_target{};
     Coord tile_target{};
@@ -234,11 +237,11 @@ class SmoothViewport {
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.
     wait_promise<> promise{};
-    bool operator==( SmoothCenter const& ) const = default;
+    bool operator==( SmoothScroll const& ) const = default;
   };
   // If this has a value then the viewport will attempt to scroll
   // to match it.
-  maybe<SmoothCenter> coro_smooth_center_{};
+  maybe<SmoothScroll> coro_smooth_scroll_{};
 
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom (though only while zoom-

@@ -53,6 +53,12 @@ string to_lower_str( string_view c ) {
   trace( #letter );     \
   SCOPE_EXIT( trace( to_lower_str( #letter ) ) )
 
+#define REQUIRE_NO_EXCEPTION( w )                       \
+  if( w.has_exception() ) {                             \
+    INFO( base::rethrow_and_get_msg( w.exception() ) ); \
+    REQUIRE( !w.has_exception() );                      \
+  }
+
 /****************************************************************
 ** Scenario 0: Ready
 *****************************************************************/
@@ -105,6 +111,7 @@ TEST_CASE( "[co-lua] scenario 0" ) {
 
   wait<int> w = do_lua_coroutine( 0 );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACcBba" );
 
   REQUIRE( w.ready() );
@@ -259,6 +266,7 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   p2.set_value( 8 );
   p3.finish();
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACGHhgDIJjiEMKLlkNnmFfedcBba" );
   REQUIRE( shown_int == "20" );
 
@@ -287,26 +295,31 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   wait<int> w = do_lua_coroutine();
   REQUIRE( trace_log == "ACG" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACG" );
 
   p1.set_value( 7 );
   REQUIRE( trace_log == "ACG" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACGHhgDI" );
 
   p2.set_value( 8 );
   REQUIRE( trace_log == "ACGHhgDI" );
   REQUIRE( shown_int == "" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACGHhgDIJjiEMK" );
   REQUIRE( shown_int == "20" );
 
   p3.finish();
   REQUIRE( trace_log == "ACGHhgDIJjiEMK" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACGHhgDIJjiEMKLlkNnmFfedcBba" );
 
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACGHhgDIJjiEMKLlkNnmFfedcBba" );
   REQUIRE( shown_int == "20" );
 
@@ -555,6 +568,7 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -563,6 +577,7 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( w.ready() );
   REQUIRE( trace_log ==
            "FGADADABFGADABFGADABFGADABFGALHHHHHMmlaIihgfCcbaEeda"
@@ -590,6 +605,7 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -660,6 +676,7 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "FGADADABFGADABFGADABFGADABFGALHHHHH" );
 
@@ -671,6 +688,7 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   p1.set_value_emplace( 1 );
   p2.set_value_emplace( "1" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log ==
            "FGADADABFGADABFGADABFGADABFGALHHHHHlahgfbadahgfbad"
@@ -794,25 +812,30 @@ TEST_CASE( "[co-lua] scenario 3" ) {
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJC" );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJC" );
 
   p1.set_value_emplace();
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
 
   p2.set_value_emplace();
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
 
   p3.set_value( 42 );
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
 
   p4.set_value_emplace();
   run_all_coroutines();
+  REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
 
   REQUIRE( w.ready() );

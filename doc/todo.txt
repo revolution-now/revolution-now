@@ -12,9 +12,26 @@
   6.  Consider adding connectors to diagonally adjacent forest
       island tiles.
   7.  Fix that colony position seems to wiggle slightly as the
-      map is scrolled.
+      map is scrolled. The solution to this may be render it as
+      part of the landscape. However, before doing that, there
+      would have to be a mechanism in place to allow animations
+      of colony icons; specifically, the colony icon has to be
+      able to depixelate when a new enclosure is added (such as a
+      fort, in which case it would animate from a stockade to a
+      fort). Maybe we should add a new buffer to the renderer
+      called a landscape animation buffer which will get recre-
+      ated each frame and is always rendered between the land-
+      scape buffer and the normal buffer. This landscape anima-
+      tion buffer would only have a rendering of those squares
+      around the thing being animated.
   8.  Implement world generation.
-  9.  Implement terrain visibility.
+  9.  Implement terrain visibility. This probably has to be de-
+      signed together with the zones-of-control and fog-of-war
+      mechanisms. Current thinking is that the TerrainState will
+      contain additional maps for each nation containing a sepa-
+      rate set of MapSquares that are visible to them. This will
+      be extra space, but will allow for a simple implementation
+      of fog-of-war.
   10. [reproducible on darter, lenovo, and macbook] There is cur-
       rently a (potentially significant) performance problem with
       rendering the map that needs to be better understood and
@@ -51,11 +68,6 @@
       lost city rumors on it, since that would be a weird experi-
       ence to e.g. land in the new world for the first time and
       discover the fountain of youth.
-  14. Fix that after centering on the blinking unit with 'c', the
-      shift-click map scroll stops working properly.
-  15. In the original game, although rivers act as roads for
-      movement points, it doesn't apply diagonally because rivers
-      only run square.
 
 # Minimap:
 

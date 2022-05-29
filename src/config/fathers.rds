@@ -1,0 +1,40 @@
+# ===============================================================
+# fathers.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-26.
+#
+# Description: Config info for founding fathers.
+#
+# ===============================================================
+# Rds
+include "../fathers.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+namespace "rn"
+
+struct.FoundingFather {
+  id 'e_founding_father',
+  name 'std::string',
+  type 'e_founding_father_type',
+}
+
+struct.FoundingFatherType {
+  id 'e_founding_father_type',
+  name 'std::string',
+}
+
+struct.config_fathers_t {
+  types 'refl::enum_map<e_founding_father_type, FoundingFatherType>',
+  fathers 'refl::enum_map<e_founding_father, FoundingFather>',
+}
+
+config.fathers {}

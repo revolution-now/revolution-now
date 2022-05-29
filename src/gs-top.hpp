@@ -16,6 +16,9 @@
 // Rds
 #include "gs-top.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 namespace rn {
 
 struct TopLevelState {
@@ -34,6 +37,9 @@ struct TopLevelState {
   FormatVersion&       version() { return o_.version; }
   FormatVersion const& version() const { return o_.version; }
 
+  SettingsState&       settings() { return o_.settings; }
+  SettingsState const& settings() const { return o_.settings; }
+
   EventsState&       events() { return o_.events; }
   EventsState const& events() const { return o_.events; }
 
@@ -45,13 +51,6 @@ struct TopLevelState {
 
   TurnState&       turn() { return o_.turn; }
   TurnState const& turn() const { return o_.turn; }
-
-  OldWorldViewState& old_world_view() {
-    return o_.old_world_view;
-  }
-  OldWorldViewState const& old_world_view() const {
-    return o_.old_world_view;
-  }
 
   ColoniesState&       colonies() { return o_.colonies; }
   ColoniesState const& colonies() const { return o_.colonies; }
@@ -71,3 +70,12 @@ struct TopLevelState {
 };
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::TopLevelState, owned_by_cpp ){};
+
+} // namespace lua

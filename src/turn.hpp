@@ -25,7 +25,9 @@ struct game_quit_interrupt : std::exception {};
 struct game_load_interrupt : std::exception {};
 
 struct IMapUpdater;
+struct SettingsState;
 
-wait<> next_turn( IMapUpdater& map_updater, IGui& gui );
+wait<> next_turn( SettingsState const& settings,
+                  IMapUpdater& map_updater, IGui& gui );
 
 } // namespace rn

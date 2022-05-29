@@ -43,10 +43,11 @@ cdr::value cdr_game_state_default = cdr::table{
             "minor"_key = 0,
             "patch"_key = 0,
         },
-    "events"_key =
+    "settings"_key =
         cdr::table{
-            "independence_declared"_key = false,
+            "difficulty"_key = 0,
         },
+    "events"_key = cdr::table{},
     "units"_key =
         cdr::table{
             "next_unit_id"_key = 1,
@@ -62,10 +63,6 @@ cdr::value cdr_game_state_default = cdr::table{
             "need_eot"_key  = false,
             "nation"_key    = cdr::null,
             "remainder"_key = cdr::list{},
-        },
-    "old_world_view"_key =
-        cdr::table{
-            "selected_unit"_key = cdr::null,
         },
     "colonies"_key =
         cdr::table{
@@ -98,11 +95,11 @@ cdr::value cdr_game_state_default = cdr::table{
 };
 
 // static_assert( equality_comparable<FormatVersion> );
+// static_assert( equality_comparable<SettingsState> );
 // static_assert( equality_comparable<EventsState> );
 // static_assert( equality_comparable<UnitsState> );
 // static_assert( equality_comparable<PlayersState> );
 // static_assert( equality_comparable<TurnState> );
-// static_assert( equality_comparable<OldWorldViewState> );
 // static_assert( equality_comparable<ColoniesState> );
 // static_assert( equality_comparable<LandViewState> );
 // static_assert( equality_comparable<TerrainState> );

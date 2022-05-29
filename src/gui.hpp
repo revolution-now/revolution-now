@@ -23,14 +23,20 @@ namespace rn {
 // Presents real GUI elements to the player. For unit testing in-
 // stead use a mock of IGui, not this one.
 struct RealGui : IGui {
-  // Displays a message box. Hitting basically any key or
-  // clicking the mouse (anywhere) should close it.
+  // Implement IGui.
   wait<> message_box( std::string_view msg ) override;
 
-  // Display a message and one or more choices and let the user
-  // choose one.
+  // Implement IGui.
   wait<std::string> choice(
       ChoiceConfig const& config ) override;
+
+  // Implement IGui.
+  wait<std::string> string_input(
+      StringInputConfig const& config ) override;
+
+  // Implement IGui.
+  wait<std::chrono::microseconds> wait_for(
+      std::chrono::microseconds time ) override;
 };
 
 } // namespace rn

@@ -18,9 +18,11 @@
 namespace rn {
 
 struct IMapUpdater;
+struct SettingsState;
 
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::build const& build,
-    IMapUpdater* map_updater, IGui& gui );
+    IMapUpdater* map_updater, IGui& gui,
+    SettingsState const& settings );
 
 } // namespace rn
