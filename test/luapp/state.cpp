@@ -161,5 +161,16 @@ LUA_TEST_CASE( "[lua-state] cast" ) {
   }
 }
 
+LUA_TEST_CASE( "[lua-state] function" ) {
+  rfunction f1 =
+      st.function.create( []( int n ) { return n + 1; } );
+  int       m = 5;
+  rfunction f2 =
+      st.function.create( [m]( int n ) { return n + m; } );
+
+  REQUIRE( f1( 7 ) == 8 );
+  REQUIRE( f2( 7 ) == 12 );
+}
+
 } // namespace
 } // namespace lua

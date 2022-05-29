@@ -15,6 +15,7 @@
 #include "call.hpp"
 #include "cthread.hpp"
 #include "error.hpp"
+#include "func-push.hpp"
 #include "rfunction.hpp"
 #include "rstring.hpp"
 #include "rtable.hpp"
@@ -106,6 +107,24 @@ struct state : base::zero<state, cthread> {
    private:
     cthread L;
   } table;
+
+  /**************************************************************
+  ** Functions
+  ***************************************************************/
+  struct Function {
+    Function( cthread cth );
+
+    template<Pushable Func>
+    rfunction create( Func&& func ) noexcept {
+      lua::push( L, std::forward<Func>( func ) );
+      rfunction res = lua::get_or_luaerr<rfunction>( L, -1 );
+      pop_stack( L, 1 );
+      return res;
+    }
+
+   private:
+    cthread L;
+  } function;
 
   /**************************************************************
   ** Libs
