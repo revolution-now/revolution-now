@@ -67,6 +67,9 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::PlayersMap;
   auto u  = st.usertype.create<U>();
 
+  // We could instead do this by overriding the __index
+  // metamethod, but then we would not be able to register any
+  // further (non-metamethod) members of this userdata.
   u["get"] = [&]( U& obj, e_nation nation ) -> maybe<Player&> {
     if( !obj.contains( nation ) ) return nothing;
     return obj[nation];

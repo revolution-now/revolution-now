@@ -117,6 +117,11 @@ LUA_STARTUP( lua::state& st ) {
       []( U& obj, e_commodity comm ) -> decltype( auto ) {
     return obj[comm];
   };
+
+  // !! NOTE: because we overwrote the __index metamethod on this
+  // userdata we cannot add any further (non-metatable) members
+  // on this object, since there will be no way to look them up
+  // by name.
 };
 
 // ExpeditionaryForce
@@ -155,6 +160,11 @@ LUA_STARTUP( lua::state& st ) {
                "immigrant pool index must be either 1, 2, 3." );
     obj[idx - 1] = type;
   };
+
+  // !! NOTE: because we overwrote the __index metamethod on this
+  // userdata we cannot add any further (non-metatable) members
+  // on this object, since there will be no way to look them up
+  // by name.
 };
 
 // ImmigrationState
