@@ -14,9 +14,15 @@
 
 // Revolution Now
 #include "map-updater.hpp"
+#include "nation.hpp"
 #include "unit-id.hpp"
 
+// Rds
+#include "utype.rds.hpp"
+
 namespace rn {
+
+struct UnitsState;
 
 bool is_unit_on_dock( UnitId id );
 bool is_unit_inbound( UnitId id );
@@ -59,5 +65,11 @@ enum e_high_seas_result {
 // seas then an error will be thrown.
 e_high_seas_result advance_unit_on_high_seas(
     UnitId id, IMapUpdater& map_updater );
+
+// In practice we only really need to create the default incarna-
+// tion of a unit given the unit type.
+UnitId create_unit_in_harbor( UnitsState& units_state,
+                              e_nation    nation,
+                              e_unit_type type );
 
 } // namespace rn

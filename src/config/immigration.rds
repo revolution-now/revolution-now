@@ -1,0 +1,45 @@
+# ===============================================================
+# immigration.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-28.
+#
+# Description: Config structures for immigration game logic.
+#
+# ===============================================================
+# Rds
+include "../utype.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+namespace "rn"
+
+struct.config_immigration_t {
+  # Weights (for the lowest difficulty level) for the given unit
+  # types to appear on the docs as immigrants each time a new
+  # unit is added to the pool. Note that the original game re-
+  # stricts these units to human units, although that can be
+  # changed if if desired. The probability of a unit appearing
+  # will be its weight divided by the sum of all weights.
+  base_weights 'refl::enum_map<e_unit_type, double>',
+
+  # These factors adjust the weights for each difficulty level.
+  # The weight for a given unit type is given by the base weight
+  # multipled by pow(difficulty_factor, level) where level is in
+  # [0,4]. Once these factors are multiplied onto the base
+  # weights, then the probabilities are computed as usual.
+  #
+  # The benefit of making this a multiplicative factor instead of
+  # an additive one is that they don't necessarily have to be re-
+  # computed when the base weights are adjusted.
+  difficulty_factor_per_level 'refl::enum_map<e_unit_type, double>',
+}
+
+config.immigration {}

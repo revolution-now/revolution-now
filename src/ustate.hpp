@@ -35,6 +35,8 @@
 
 namespace rn {
 
+struct SettingsState;
+
 /****************************************************************
 ** Units
 *****************************************************************/
@@ -144,8 +146,9 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 
 wait<UnitId> create_unit_on_map(
     UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IGui& gui, IMapUpdater& map_updater,
-    UnitComposition comp, Coord coord );
+    Player& player, SettingsState const& settings, IGui& gui,
+    IMapUpdater& map_updater, UnitComposition comp,
+    Coord coord );
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.

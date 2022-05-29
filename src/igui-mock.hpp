@@ -29,6 +29,8 @@ struct MockIGui : IGui {
                    (ChoiceConfig const&));
   MOCK_GUI_METHOD( wait<std::string>, string_input,
                    (StringInputConfig const&));
+  MOCK_GUI_METHOD( wait<std::chrono::microseconds>, wait_for,
+                   ( std::chrono::microseconds ) );
 };
 
 static_assert( !std::is_abstract_v<MockIGui> );

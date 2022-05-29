@@ -53,4 +53,27 @@ T pick_from_weighted_enum_values(
   SHOULD_NOT_BE_HERE;
 }
 
+// For doubles.
+template<refl::ReflectedEnum T>
+T pick_from_weighted_enum_values(
+    refl::enum_map<T, double> const& weights ) {
+  double total = 0;
+  for( auto [item, weight] : weights ) total += weight;
+  CHECK_GE( total, 0.0 );
+  double stop    = between( 0.0, total );
+  double running = 0.0;
+  T      res     = {};
+  for( auto [item, weight] : weights ) {
+    res = item;
+    running += weight;
+    if( running > stop ) break;
+  }
+  // Unlike with the int version above, I am not convinced that
+  // we can check-fail if we get here in the case of doubles,
+  // since I'm not sure if there are any edge cases with rounding
+  // errors. So instead we'll just arrange to always return a
+  // value.
+  return res;
+}
+
 } // namespace rn::rng

@@ -133,9 +133,10 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-wait<> evolve_colony_one_turn( ColonyId     id,
-                               IMapUpdater& map_updater,
-                               IGui&        gui ) {
+wait<> evolve_colony_one_turn( ColonyId             id,
+                               SettingsState const& settings,
+                               IMapUpdater&         map_updater,
+                               IGui&                gui ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
@@ -152,8 +153,8 @@ wait<> evolve_colony_one_turn( ColonyId     id,
     Player& player  = player_for_nation( GameState::players(),
                                          colony.nation() );
     co_await unit_to_map_square(
-        GameState::units(), GameState::terrain(), player, gui,
-        map_updater, unit_id, colony.location() );
+        GameState::units(), GameState::terrain(), player,
+        settings, gui, map_updater, unit_id, colony.location() );
     co_await landview_ensure_visible( colony.location() );
     ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "

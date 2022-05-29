@@ -24,6 +24,7 @@ namespace rn {
 
 struct TerrainState;
 struct UnitsState;
+struct SettingsState;
 struct IGui;
 class Player;
 
@@ -36,11 +37,12 @@ class Player;
 // WARNING: After this function completes, the unit may no longer
 // exist since they might stepped into a lost city rumor and dis-
 // appeared! Or new units could have been created, etc.
-wait<> unit_to_map_square( UnitsState&         units_state,
-                           TerrainState const& terrain_state,
-                           Player& player, IGui& gui,
-                           IMapUpdater& map_updater, UnitId id,
-                           Coord world_square );
+wait<> unit_to_map_square( UnitsState&          units_state,
+                           TerrainState const&  terrain_state,
+                           Player&              player,
+                           SettingsState const& settings,
+                           IGui& gui, IMapUpdater& map_updater,
+                           UnitId id, Coord world_square );
 
 // This is the non-coroutine version of the above, only to be
 // called from non-coroutines where you know that this action

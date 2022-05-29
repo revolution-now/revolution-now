@@ -60,11 +60,12 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
   }
 }
 
-wait<> try_lost_city_rumor( UnitsState&         units_state,
-                            TerrainState const& terrain_state,
-                            Player& player, IGui& gui,
-                            IMapUpdater& map_updater, UnitId id,
-                            Coord world_square ) {
+wait<> try_lost_city_rumor( UnitsState&          units_state,
+                            TerrainState const&  terrain_state,
+                            Player&              player,
+                            SettingsState const& settings,
+                            IGui& gui, IMapUpdater& map_updater,
+                            UnitId id, Coord world_square ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   if( !has_lost_city_rumor( terrain_state, world_square ) )
@@ -79,7 +80,7 @@ wait<> try_lost_city_rumor( UnitsState&         units_state,
       player, explorer, burial_type );
   LostCityRumorResult_t lcr_res =
       co_await run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, id,
+          units_state, gui, player, settings, map_updater, id,
           world_square, rumor_type, burial_type,
           has_burial_grounds );
 
@@ -106,11 +107,12 @@ void unit_to_map_square_no_ui( UnitsState& units_state,
   // TODO
 }
 
-wait<> unit_to_map_square( UnitsState&         units_state,
-                           TerrainState const& terrain_state,
-                           Player& player, IGui& gui,
-                           IMapUpdater& map_updater, UnitId id,
-                           Coord world_square ) {
+wait<> unit_to_map_square( UnitsState&          units_state,
+                           TerrainState const&  terrain_state,
+                           Player&              player,
+                           SettingsState const& settings,
+                           IGui& gui, IMapUpdater& map_updater,
+                           UnitId id, Coord world_square ) {
   unit_to_map_square_no_ui( units_state, map_updater, id,
                             world_square );
 
@@ -119,9 +121,9 @@ wait<> unit_to_map_square( UnitsState&         units_state,
                                      world_square );
 
   if( has_lost_city_rumor( terrain_state, world_square ) )
-    co_await try_lost_city_rumor( units_state, terrain_state,
-                                  player, gui, map_updater, id,
-                                  world_square );
+    co_await try_lost_city_rumor(
+        units_state, terrain_state, player, settings, gui,
+        map_updater, id, world_square );
 
   // !! Note that the LCR may have removed the unit!
 }

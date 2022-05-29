@@ -24,6 +24,7 @@
 #include "base/no-default.hpp"
 
 // C++ standard library
+#include <chrono>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -57,6 +58,11 @@ struct IGui {
   // user.
   virtual wait<std::string> string_input(
       StringInputConfig const& config ) = 0;
+
+  // Waits for the given amount of time and then returns the
+  // amount of time actually waited.
+  virtual wait<std::chrono::microseconds> wait_for(
+      std::chrono::microseconds time ) = 0;
 
   // For convenience.  Should not be overridden.
   template<typename Arg, typename... Rest>

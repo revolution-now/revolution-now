@@ -33,6 +33,10 @@ struct RealGui : IGui {
   // Implement IGui.
   wait<std::string> string_input(
       StringInputConfig const& config ) override;
+
+  // Implement IGui.
+  wait<std::chrono::microseconds> wait_for(
+      std::chrono::microseconds time ) override;
 };
 
 } // namespace rn

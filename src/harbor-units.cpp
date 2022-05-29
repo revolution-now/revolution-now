@@ -243,6 +243,16 @@ e_high_seas_result advance_unit_on_high_seas(
   FATAL( "{} is not on the high seas.", debug_string( id ) );
 }
 
+UnitId create_unit_in_harbor( UnitsState& units_state,
+                              e_nation    nation,
+                              e_unit_type type ) {
+  UnitId id = create_unit( units_state, nation,
+                           UnitComposition::create( type ) );
+  units_state.change_to_harbor_view(
+      id, UnitHarborViewState::in_port{} );
+  return id;
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

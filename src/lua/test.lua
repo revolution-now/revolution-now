@@ -27,7 +27,7 @@ end
 local message_box = auto_await( message_box_format )
 local ok_cancel = auto_await( lua_ui.ok_cancel )
 local str_input_box = auto_await( lua_ui.str_input_box )
-local wait_for_micros = auto_await( frame.wait_for_micros )
+local wait_for_micros = auto_await( co_time.wait_for_micros )
 
 local function multiply( n )
   local m = n * 5

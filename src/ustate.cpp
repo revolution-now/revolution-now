@@ -145,13 +145,14 @@ UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
 
 wait<UnitId> create_unit_on_map(
     UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IGui& gui, IMapUpdater& map_updater,
-    UnitComposition comp, Coord coord ) {
+    Player& player, SettingsState const& settings, IGui& gui,
+    IMapUpdater& map_updater, UnitComposition comp,
+    Coord coord ) {
   UnitId id = create_unit( units_state, player.nation(),
                            std::move( comp ) );
   co_await unit_to_map_square( units_state, terrain_state,
-                               player, gui, map_updater, id,
-                               coord );
+                               player, settings, gui,
+                               map_updater, id, coord );
   co_return id;
 }
 

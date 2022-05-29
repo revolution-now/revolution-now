@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "gs-players.hpp"
+#include "gs-settings.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui-mock.hpp"
@@ -64,6 +65,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -103,10 +105,11 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -122,6 +125,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -161,10 +165,11 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -185,6 +190,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -225,10 +231,11 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -249,6 +256,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -290,17 +298,21 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   // object for each one (since they are moved).
   for( int i = 0; i < 8; ++i ) {
     EXPECT_CALL(
-        gui,
-        message_box( StrContains( "has arrived in port" ) ) )
-        .returns( make_wait() );
+        gui, choice( Field(
+                 &ChoiceConfig::msg,
+                 StrContains( "Who shall we next choose" ) ) ) )
+        .returns( make_wait<string>( "1" ) );
+    EXPECT_CALL( gui, wait_for( chrono::milliseconds( 300 ) ) )
+        .returns( chrono::microseconds{} );
   }
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -316,6 +328,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -356,10 +369,11 @@ TEST_CASE( "[test/lcr] free colonist" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -378,6 +392,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -418,10 +433,11 @@ TEST_CASE( "[test/lcr] unit lost" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -441,6 +457,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -482,10 +499,11 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -522,6 +540,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -563,10 +582,11 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -586,6 +606,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -627,10 +648,11 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -655,6 +677,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -693,10 +716,11 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -717,6 +741,7 @@ TEST_CASE(
   UnitsState             units_state;
   TerrainState           terrain_state;
   PlayersState           players_state;
+  SettingsState          settings;
   NonRenderingMapUpdater map_updater( terrain_state );
   MockIGui               gui;
 
@@ -762,10 +787,11 @@ TEST_CASE(
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
-      run_lost_city_rumor_result(
-          units_state, gui, player, map_updater, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+      run_lost_city_rumor_result( units_state, gui, player,
+                                  settings, map_updater, unit_id,
+                                  /*move_dst=*/Coord{},
+                                  rumor_type, burial_type,
+                                  has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );

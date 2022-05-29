@@ -12,17 +12,11 @@
 
 // Revolution Now
 #include "co-runner.hpp"
-#include "co-wait.hpp"
-#include "compositor.hpp" // FIXME: temporary
 #include "input.hpp"
-#include "logger.hpp"
-#include "lua-wait.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
 #include "plane.hpp"
-#include "render.hpp" // FIXME
-#include "renderer.hpp"
 #include "screen.hpp"
 #include "time.hpp"
 #include "variant.hpp"
@@ -239,28 +233,6 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc func,
                                  .func         = func } );
 }
 
-wait<> wait_n_frames( FrameCount n ) {
-  if( n == 0_frames ) return make_wait<>();
-  wait_promise<> p;
-  auto after_ticks = [p]() mutable { p.set_value_emplace(); };
-  subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
-  return p.wait();
-}
-
-wait<chrono::microseconds> wait_for_duration(
-    chrono::microseconds us ) {
-  if( us == chrono::microseconds{ 0 } )
-    return wait<chrono::microseconds>( 0 );
-  wait_promise<chrono::microseconds> p;
-  auto                               now = Clock_t::now();
-  auto after_time = [p, then = now]() mutable {
-    p.set_value( duration_cast<chrono::microseconds>(
-        Clock_t::now() - then ) );
-  };
-  subscribe_to_frame_tick( after_time, us, /*repeating=*/false );
-  return p.wait();
-}
-
 EventCountMap& event_counts() { return g_event_counts; }
 
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
@@ -283,12 +255,6 @@ LUA_FN( set_target_framerate, void, int target ) {
   CHECK( target > 0 );
   CHECK( target < 1000 );
   g_target_fps = target;
-}
-
-LUA_FN( wait_for_micros, wait<int>, int micros ) {
-  chrono::microseconds actual = co_await wait_for_duration(
-      chrono::microseconds{ micros } );
-  co_return actual.count();
 }
 
 } // namespace

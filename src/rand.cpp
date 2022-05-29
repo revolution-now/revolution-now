@@ -70,6 +70,11 @@ int between( int lower, int upper, e_interval type ) {
   return uniform_dist( engine() );
 }
 
+double between( double lower, double upper ) {
+  uniform_real_distribution<double> uniform_dist( lower, upper );
+  return uniform_dist( engine() );
+}
+
 int random_int() {
   return between( numeric_limits<int>::min(),
                   numeric_limits<int>::max(),
@@ -100,6 +105,9 @@ void cleanup_rng() {}
 
 } // namespace
 
+//
+//
+//
 REGISTER_INIT_ROUTINE( rng );
 
 } // namespace rn

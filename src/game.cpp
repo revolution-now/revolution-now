@@ -45,13 +45,16 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> turn_loop( IMapUpdater& map_updater, IGui& gui ) {
-  while( true ) co_await next_turn( map_updater, gui );
+wait<> turn_loop( SettingsState const& settings,
+                  IMapUpdater& map_updater, IGui& gui ) {
+  while( true ) co_await next_turn( settings, map_updater, gui );
 }
 
-wait<> run_loaded_game( IMapUpdater& map_updater, IGui& gui ) {
-  return co::erase( co::try_<game_quit_interrupt>(
-      [&] { return turn_loop( map_updater, gui ); } ) );
+wait<> run_loaded_game( SettingsState const& settings,
+                        IMapUpdater& map_updater, IGui& gui ) {
+  return co::erase( co::try_<game_quit_interrupt>( [&] {
+    return turn_loop( settings, map_updater, gui );
+  } ) );
 }
 
 } // namespace
@@ -70,7 +73,8 @@ wait<> run_existing_game( IGui& gui ) {
   CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( map_updater, gui );
+  co_await run_loaded_game( GameState::settings(), map_updater,
+                            gui );
 }
 
 wait<> run_new_game( IGui& gui ) {
@@ -85,6 +89,7 @@ wait<> run_new_game( IGui& gui ) {
   reinitialize_planes( map_updater );
   lua::state& st = lua_global_state();
   CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  SettingsState const& settings = GameState::settings();
 
   // 1. Take user through game setup/configuration.
 
@@ -98,7 +103,7 @@ wait<> run_new_game( IGui& gui ) {
 
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( map_updater, gui );
+  co_await run_loaded_game( settings, map_updater, gui );
 }
 
 } // namespace rn

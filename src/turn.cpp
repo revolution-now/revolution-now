@@ -343,7 +343,8 @@ wait<> end_of_turn( IMapUpdater& map_updater ) {
 ** Processing Player Input (During Turn).
 *****************************************************************/
 wait<> process_player_input( UnitId, e_menu_actions action,
-                             IMapUpdater&, IGui& ) {
+                             IMapUpdater&, IGui&,
+                             SettingsState const& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
@@ -352,8 +353,8 @@ wait<> process_player_input( UnitId, e_menu_actions action,
 
 wait<> process_player_input( UnitId                       id,
                              LandViewPlayerInput_t const& input,
-                             IMapUpdater& map_updater,
-                             IGui&        gui ) {
+                             IMapUpdater& map_updater, IGui& gui,
+                             SettingsState const& settings ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   auto& q  = st.units;
@@ -402,8 +403,8 @@ wait<> process_player_input( UnitId                       id,
         break;
       }
 
-      unique_ptr<OrdersHandler> handler =
-          orders_handler( id, orders, &map_updater, gui );
+      unique_ptr<OrdersHandler> handler = orders_handler(
+          id, orders, &map_updater, gui, settings );
       CHECK( handler );
       Coord old_loc    = coord_for_unit_indirect_or_die( id );
       auto  run_result = co_await handler->run();
@@ -472,11 +473,13 @@ wait<LandViewPlayerInput_t> landview_player_input( UnitId id ) {
 }
 
 wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
-                         IGui& gui ) {
+                         IGui&                gui,
+                         SettingsState const& settings ) {
   auto command = co_await co::first(
       wait_for_menu_selection(), landview_player_input( id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
-    return process_player_input( id, action, map_updater, gui );
+    return process_player_input( id, action, map_updater, gui,
+                                 settings );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -562,7 +565,8 @@ wait<bool> advance_unit( IMapUpdater& map_updater, UnitId id ) {
 }
 
 wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
-                            deque<UnitId>& q ) {
+                            SettingsState const& settings,
+                            deque<UnitId>&       q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -591,14 +595,15 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id, map_updater, gui );
+    co_await query_unit_input( id, map_updater, gui, settings );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
   }
 }
 
-wait<> units_turn( IMapUpdater& map_updater, IGui& gui ) {
+wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
+                   SettingsState const& settings ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   auto& q  = st.units;
@@ -623,7 +628,8 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui ) {
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( map_updater, gui, q );
+    co_await units_turn_one_pass( map_updater, gui, settings,
+                                  q );
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( st.nation );
@@ -637,7 +643,8 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui ) {
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn( IMapUpdater& map_updater, IGui& gui ) {
+wait<> colonies_turn( SettingsState const& settings,
+                      IMapUpdater& map_updater, IGui& gui ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -647,15 +654,16 @@ wait<> colonies_turn( IMapUpdater& map_updater, IGui& gui ) {
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
-    co_await evolve_colony_one_turn( colony_id, map_updater,
-                                     gui );
+    co_await evolve_colony_one_turn( colony_id, settings,
+                                     map_updater, gui );
   }
 }
 
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
-wait<> nation_turn( IMapUpdater& map_updater, IGui& gui ) {
+wait<> nation_turn( SettingsState const& settings,
+                    IMapUpdater& map_updater, IGui& gui ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
 
@@ -667,12 +675,12 @@ wait<> nation_turn( IMapUpdater& map_updater, IGui& gui ) {
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn( map_updater, gui );
+    co_await colonies_turn( settings, map_updater, gui );
     st.did_colonies = true;
   }
 
   if( !st.did_units ) {
-    co_await units_turn( map_updater, gui );
+    co_await units_turn( map_updater, gui, settings );
     st.did_units = true;
   }
   CHECK( st.units.empty() );
@@ -681,7 +689,8 @@ wait<> nation_turn( IMapUpdater& map_updater, IGui& gui ) {
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-wait<> next_turn_impl( IMapUpdater& map_updater, IGui& gui ) {
+wait<> next_turn_impl( SettingsState const& settings,
+                       IMapUpdater& map_updater, IGui& gui ) {
   landview_start_new_turn();
   auto& st = GameState::turn();
 
@@ -695,14 +704,14 @@ wait<> next_turn_impl( IMapUpdater& map_updater, IGui& gui ) {
 
   // Body.
   if( st.nation.has_value() ) {
-    co_await nation_turn( map_updater, gui );
+    co_await nation_turn( settings, map_updater, gui );
     st.nation.reset();
   }
 
   while( !st.remainder.empty() ) {
     st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
-    co_await nation_turn( map_updater, gui );
+    co_await nation_turn( settings, map_updater, gui );
     st.nation.reset();
   }
 
@@ -717,9 +726,10 @@ wait<> next_turn_impl( IMapUpdater& map_updater, IGui& gui ) {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> next_turn( IMapUpdater& map_updater, IGui& gui ) {
+wait<> next_turn( SettingsState const& settings,
+                  IMapUpdater& map_updater, IGui& gui ) {
   ScopedPlanePush pusher( e_plane_config::land_view );
-  co_await next_turn_impl( map_updater, gui );
+  co_await next_turn_impl( settings, map_updater, gui );
 }
 
 } // namespace rn

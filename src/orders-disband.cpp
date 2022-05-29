@@ -54,8 +54,8 @@ struct DisbandHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::disband const&, IMapUpdater*,
-    IGui&  gui ) {
+    UnitId id, orders::disband const&, IMapUpdater*, IGui& gui,
+    SettingsState const& ) {
   return make_unique<DisbandHandler>( id, gui );
 }
 

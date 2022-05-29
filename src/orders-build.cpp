@@ -118,7 +118,7 @@ struct BuildHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater, IGui& gui ) {
+    IMapUpdater* map_updater, IGui& gui, SettingsState const& ) {
   return make_unique<BuildHandler>( map_updater, gui, id );
 }
 
