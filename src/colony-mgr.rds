@@ -12,6 +12,7 @@ namespace "rn"
 
 enum.e_found_colony_err {
   colony_exists_here,
+  too_close_to_colony,
   no_water_colony,
   colonist_not_on_map,
   ship_cannot_found_colony,

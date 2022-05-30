@@ -78,6 +78,17 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( colony_from_coord( *maybe_coord ) )
     return invalid( Res_t::colony_exists_here );
 
+  // Check if we are too close to another colony.
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    // Note that at this point we already know that there is no
+    // colony on the center square.
+    Coord new_coord = maybe_coord->moved( d );
+    if( !GameState::terrain().square_exists( new_coord ) )
+      continue;
+    if( colony_from_coord( maybe_coord->moved( d ) ) )
+      return invalid( Res_t::too_close_to_colony );
+  }
+
   TerrainState const& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );

@@ -59,6 +59,13 @@ struct BuildHandler : public OrdersHandler {
               "There is already a colony on this "
               "square." );
           co_return false;
+        case e_found_colony_err::too_close_to_colony:
+          // TODO: put the name of the adjacent colony here for a
+          // better message.
+          co_await gui.message_box(
+              "Cannot found a colony in a square that is "
+              "adjacent to an existing colony." );
+          co_return false;
         case e_found_colony_err::no_water_colony:
           co_await gui.message_box(
               "Cannot found a colony on water." );

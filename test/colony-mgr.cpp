@@ -268,9 +268,23 @@ TEST_CASE(
                       .value_or( 0 ) );
   }
 
-  coord += 1_w;
+  coord += 2_w;
   id = create_colonist_on_map( coord, map_updater );
   REQUIRE( unit_can_found_colony( id ).valid() );
+}
+
+TEST_CASE( "[colony-mgr] too close to another colony fails" ) {
+  init_game_world_for_test();
+  NonRenderingMapUpdater map_updater( GameState::terrain() );
+
+  Coord coord = { 2_x, 2_y };
+  auto  id    = create_colonist_on_map( coord, map_updater );
+  REQUIRE( unit_can_found_colony( id ).valid() );
+  found_colony_unsafe( id, map_updater, "colony" );
+  coord += 1_w;
+  id = create_colonist_on_map( coord, map_updater );
+  REQUIRE( unit_can_found_colony( id ) ==
+           invalid( e_found_colony_err::too_close_to_colony ) );
 }
 
 TEST_CASE( "[colony-mgr] create colony in water fails" ) {
