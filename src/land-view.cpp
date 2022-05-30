@@ -20,6 +20,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-land-view.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -1201,13 +1202,18 @@ wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
   return next_player_input_object();
 }
 
-wait<> landview_animate_move( UnitId      id,
-                              e_direction direction ) {
+wait<> landview_animate_move( TerrainState const& terrain_state,
+                              UnitId              id,
+                              e_direction         direction ) {
   // Ensure that both src and dst squares are visible.
   Coord src = coord_for_unit_indirect_or_die( id );
   Coord dst = src.moved( direction );
   co_await landview_ensure_visible( src );
-  co_await landview_ensure_visible( dst );
+  // The destination square may not exist if it is a ship sailing
+  // the high seas by moving off of the map edge (which the orig-
+  // inal game allows).
+  if( terrain_state.square_exists( dst ) )
+    co_await landview_ensure_visible( dst );
   SCOPED_SET_AND_RESTORE(
       g_landview_state,
       LandViewUnitActionState::unit_move{ .unit_id = id } );
@@ -1242,9 +1248,9 @@ wait<> landview_animate_attack( UnitId attacker, UnitId defender,
 // FIXME: Would be nice to make this animation a bit more sophis-
 // ticated, but we first need to fix the animation framework in
 // this module to be more flexible.
-wait<> landview_animate_colony_capture( UnitId   attacker_id,
-                                        UnitId   defender_id,
-                                        ColonyId colony_id ) {
+wait<> landview_animate_colony_capture(
+    TerrainState const& terrain_state, UnitId attacker_id,
+    UnitId defender_id, ColonyId colony_id ) {
   co_await landview_animate_attack( attacker_id, defender_id,
                                     /*attacker_wins=*/true,
                                     e_depixelate_anim::death );
@@ -1253,7 +1259,8 @@ wait<> landview_animate_colony_capture( UnitId   attacker_id,
       coord_for_unit( attacker_id )
           ->direction_to(
               colony_from_id( colony_id ).location() ) );
-  co_await landview_animate_move( attacker_id, direction );
+  co_await landview_animate_move( terrain_state, attacker_id,
+                                  direction );
 }
 
 /****************************************************************

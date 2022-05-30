@@ -189,6 +189,7 @@ struct TravelHandler : public OrdersHandler {
     board_ship_full,
     not_enough_movement_points,
     // Allowed moves
+    map_edge_high_seas,
     map_to_map,
     board_ship,
     offboard_ship,
@@ -218,6 +219,7 @@ struct TravelHandler : public OrdersHandler {
         co_return false;
 
       // Allowed moves
+      case e_travel_verdict::map_edge_high_seas:
       case e_travel_verdict::map_to_map:
       case e_travel_verdict::board_ship:
       case e_travel_verdict::offboard_ship:
@@ -227,7 +229,8 @@ struct TravelHandler : public OrdersHandler {
         break;
     }
 
-    // Just some sanity checks.
+    // Just some sanity checks. Note that for map_edge_high_seas,
+    // the move_dst square will not be on the map.
     CHECK( move_src != move_dst );
     CHECK( find( prioritize.begin(), prioritize.end(),
                  unit_id ) == prioritize.end() );
@@ -248,7 +251,8 @@ struct TravelHandler : public OrdersHandler {
     // a ship and board it.
     if( verdict == e_travel_verdict::land_fall ) co_return;
 
-    co_await landview_animate_move( unit_id, direction );
+    co_await landview_animate_move( terrain_state_, unit_id,
+                                    direction );
   }
 
   wait<> perform() override;
@@ -267,7 +271,9 @@ struct TravelHandler : public OrdersHandler {
   wait<e_travel_verdict> confirm_travel_impl();
   wait<e_travel_verdict> analyze_unload() const;
 
+  wait<ui::e_confirm>    ask_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas() const;
+  wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
   // The unit that is moving.
   UnitId      unit_id;
@@ -356,6 +362,16 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
   return terrain_state.square_at( c ).sea_lane;
 }
 
+wait<ui::e_confirm> TravelHandler::ask_sail_high_seas() const {
+  return gui_.yes_no(
+      { .msg       = "Would you like to sail the high seas?",
+        .yes_label = "Yes, steady as she goes!",
+        .no_label  = "No, let us remain in these waters." } );
+}
+
+// This is for the case where the destination square is on the
+// map. The function below is for when the ship attempts to sail
+// off of the map.
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_sail_high_seas() const {
   CHECK( is_high_seas( terrain_state_, move_dst ) );
@@ -396,29 +412,47 @@ TravelHandler::confirm_sail_high_seas() const {
                                    ( d == e_direction::sw ) );
   bool ask = correct_src && correct_dst && correct_direction;
   if( !ask ) co_return e_travel_verdict::map_to_map;
-  ui::e_confirm confirmed = co_await gui_.yes_no(
-      { .msg       = "Would you like to sail the high seas?",
-        .yes_label = "Yes, steady as she goes!",
-        .no_label  = "No, let us remain in these waters." } );
+  ui::e_confirm confirmed = co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
       ? TravelHandler::e_travel_verdict::sail_high_seas
       : TravelHandler::e_travel_verdict::map_to_map;
+}
+
+// This version is for when the ship sails off of the left or
+// right edge of the map.
+wait<TravelHandler::e_travel_verdict>
+TravelHandler::confirm_sail_high_seas_map_edge() const {
+  // The original game asks the player if they want to sail the
+  // high seas when a ship attempts to sail off of the left or
+  // right edge of the map.
+  bool ask =
+      ( move_dst.x._ == -1 ||
+        move_dst.x._ == terrain_state_.world_size_tiles().w._ );
+  if( !ask ) co_return e_travel_verdict::cancelled;
+  ui::e_confirm confirmed = co_await ask_sail_high_seas();
+  co_return confirmed == ui::e_confirm::yes
+      ? TravelHandler::e_travel_verdict::map_edge_high_seas
+      : TravelHandler::e_travel_verdict::cancelled;
 }
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
   UnitsState const& units_state = GameState::units();
 
-  UnitId id = unit_id;
-  move_src  = coord_for_unit_indirect_or_die( id );
-  move_dst  = move_src.moved( direction );
+  UnitId      id   = unit_id;
+  Unit const& unit = units_state.unit_for( id );
+  move_src         = coord_for_unit_indirect_or_die( id );
+  move_dst         = move_src.moved( direction );
 
-  if( !move_dst.is_inside( terrain_state_.world_rect_tiles() ) )
+  if( !move_dst.is_inside(
+          terrain_state_.world_rect_tiles() ) ) {
+    if( unit.desc().ship )
+      co_return co_await confirm_sail_high_seas_map_edge();
     co_return e_travel_verdict::map_edge;
+  }
 
-  auto&       src_square = terrain_state_.square_at( move_src );
-  auto&       dst_square = terrain_state_.square_at( move_dst );
-  Unit const& unit       = units_state.unit_for( id );
+  auto& src_square = terrain_state_.square_at( move_src );
+  auto& dst_square = terrain_state_.square_at( move_dst );
   UNWRAP_CHECK( direction, move_src.direction_to( move_dst ) );
   maybe<MovementPoints> to_subtract =
       co_await check_movement_points( gui_, unit, src_square,
@@ -722,7 +756,8 @@ wait<> TravelHandler::perform() {
         }
       }
       break;
-    case e_travel_verdict::sail_high_seas: {
+    case e_travel_verdict::sail_high_seas:
+    case e_travel_verdict::map_edge_high_seas: {
       UnitHarborViewState_t state =
           UnitHarborViewState::inbound{ .percent = 0.0 };
       GameState::units().change_to_harbor_view( id, state );
@@ -820,7 +855,7 @@ struct AttackHandler : public OrdersHandler {
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
       return landview_animate_colony_capture(
-          attacker_id, defender_id, colony_id );
+          terrain_state_, attacker_id, defender_id, colony_id );
     }
 
     auto attacker = unit_id;
