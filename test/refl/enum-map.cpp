@@ -214,5 +214,34 @@ TEST_CASE( "[enum-map] cdr/no-defaults" ) {
   }
 }
 
+struct NonCopyable {
+  NonCopyable() = default;
+  NonCopyable( int m ) : n( m ) {}
+
+  NonCopyable( NonCopyable const& ) = delete;
+  NonCopyable& operator=( NonCopyable const& ) = delete;
+
+  NonCopyable( NonCopyable&& ) = default;
+  NonCopyable& operator=( NonCopyable&& ) = default;
+
+  bool operator==( NonCopyable const& ) const = default;
+
+  int n = 0;
+};
+
+TEST_CASE( "[enum-map] non-copyable" ) {
+  enum_map<e_color, NonCopyable> em;
+  REQUIRE( em[e_color::red] == NonCopyable( 0 ) );
+
+  em[e_color::red] = NonCopyable{ 5 };
+  REQUIRE( em[e_color::red] == NonCopyable( 5 ) );
+
+  enum_map<e_color, NonCopyable> em2;
+  REQUIRE( em2[e_color::red] == NonCopyable( 0 ) );
+
+  em2 = std::move( em );
+  REQUIRE( em2[e_color::red] == NonCopyable( 5 ) );
+}
+
 } // namespace
 } // namespace refl
