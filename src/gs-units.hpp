@@ -67,6 +67,9 @@ struct UnitsState {
   // changing it will not affect the invariants of this class.
   maybe<UnitHarborViewState_t&> maybe_harbor_view_state_of(
       UnitId id );
+  maybe<UnitHarborViewState_t const&> maybe_harbor_view_state_of(
+      UnitId id ) const;
+
   UnitHarborViewState_t& harbor_view_state_of( UnitId id );
 
   std::unordered_set<UnitId> const& from_coord(

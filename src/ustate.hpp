@@ -26,9 +26,6 @@
 // base
 #include "base/function-ref.hpp"
 
-// Rds
-#include "ustate.rds.hpp"
-
 // C++ standard library
 #include <functional>
 #include <unordered_set>
@@ -40,6 +37,7 @@ struct SettingsState;
 /****************************************************************
 ** Units
 *****************************************************************/
+// FIXME
 std::string debug_string( UnitId id );
 
 ND bool unit_exists( UnitId id );
@@ -125,12 +123,6 @@ maybe<UnitId> is_unit_onboard( UnitId id );
 /****************************************************************
 ** Harbor View Ownership
 *****************************************************************/
-base::valid_or<generic_err> check_harbor_state_invariants(
-    UnitHarborViewState_t const& info );
-
-// If unit is owned by harbor-view then this will return info.
-maybe<UnitHarborViewState_t&> unit_harbor_view_info( UnitId id );
-
 // Get a set of all units owned by the harbor-view.
 // FIXME: needs to be nation-specific.
 std::vector<UnitId> units_in_harbor_view();

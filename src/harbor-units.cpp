@@ -51,14 +51,18 @@ vector<UnitId> units_in_harbor_filtered( Func&& func ) {
 ** Public API
 *****************************************************************/
 bool is_unit_on_dock( UnitId id ) {
-  auto harbor_status = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              harbor_status =
+      units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          !unit_from_id( id ).desc().ship &&
          holds<UnitHarborViewState::in_port>( *harbor_status );
 }
 
 bool is_unit_inbound( UnitId id ) {
-  auto harbor_status = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              harbor_status =
+      units_state.maybe_harbor_view_state_of( id );
   auto is_inbound =
       harbor_status.has_value() &&
       holds<UnitHarborViewState::inbound>( *harbor_status );
@@ -67,7 +71,9 @@ bool is_unit_inbound( UnitId id ) {
 }
 
 bool is_unit_outbound( UnitId id ) {
-  auto harbor_status = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              harbor_status =
+      units_state.maybe_harbor_view_state_of( id );
   auto is_outbound =
       harbor_status.has_value() &&
       holds<UnitHarborViewState::outbound>( *harbor_status );
@@ -76,7 +82,9 @@ bool is_unit_outbound( UnitId id ) {
 }
 
 bool is_unit_in_port( UnitId id ) {
-  auto harbor_status = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              harbor_status =
+      units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          unit_from_id( id ).desc().ship &&
          holds<UnitHarborViewState::in_port>( *harbor_status );
@@ -119,7 +127,9 @@ void unit_sail_to_harbor( UnitId id ) {
   // current state of the unit).
   UnitHarborViewState_t target_state =
       UnitHarborViewState::inbound{ /*progress=*/0.0 };
-  auto maybe_state = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              maybe_state =
+      units_state.maybe_harbor_view_state_of( id );
   if( maybe_state ) {
     switch( auto& v = *maybe_state; v.to_enum() ) {
       case UnitHarborViewState::e::inbound: {
@@ -166,7 +176,9 @@ void unit_sail_to_new_world( UnitId id ) {
   // current state of the unit).
   UnitHarborViewState_t target_state =
       UnitHarborViewState::outbound{ /*progress=*/0.0 };
-  auto maybe_state = unit_harbor_view_info( id );
+  UnitsState const& units_state = GameState::units();
+  auto              maybe_state =
+      units_state.maybe_harbor_view_state_of( id );
   CHECK( maybe_state );
   switch( auto& v = *maybe_state; v.to_enum() ) {
     case UnitHarborViewState::e::outbound: {
@@ -209,7 +221,9 @@ void unit_move_to_harbor( UnitId id ) {
 
 e_high_seas_result advance_unit_on_high_seas(
     UnitId id, IMapUpdater& map_updater ) {
-  UNWRAP_CHECK( info, unit_harbor_view_info( id ) );
+  UnitsState& units_state = GameState::units();
+  UNWRAP_CHECK( info,
+                units_state.maybe_harbor_view_state_of( id ) );
   constexpr double const advance = 0.25;
   if_get( info, UnitHarborViewState::outbound, outbound ) {
     outbound.percent += advance;

@@ -1537,7 +1537,9 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UNWRAP_CHECK( info, unit_harbor_view_info( src.id ) );
+    UnitsState const& units_state = GameState::units();
+    UNWRAP_CHECK(
+        info, units_state.maybe_harbor_view_state_of( src.id ) );
     ASSIGN_CHECK_V( outbound, info,
                     UnitHarborViewState::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
@@ -2178,14 +2180,16 @@ wait<> run_harbor_view() {
 ** Public API
 *****************************************************************/
 wait<> show_harbor_view() {
-  HarborState& hb_state = get_harbor_state();
-  g_exit_promise        = {};
+  HarborState& hb_state         = get_harbor_state();
+  g_exit_promise                = {};
+  UnitsState const& units_state = GameState::units();
   if( hb_state.selected_unit ) {
     UnitId id = *hb_state.selected_unit;
     // We could have a case where the unit that was last selected
     // went to the new world and was then disbanded, or is just
     // no longer in the harbor.
-    if( !unit_exists( id ) || !unit_harbor_view_info( id ) )
+    if( !unit_exists( id ) ||
+        !units_state.maybe_harbor_view_state_of( id ) )
       hb_state.selected_unit = nothing;
   }
   ScopedPlanePush pusher( e_plane_config::harbor );
@@ -2195,11 +2199,12 @@ wait<> show_harbor_view() {
 }
 
 void harbor_view_set_selected_unit( UnitId id ) {
-  HarborState& hb_state = get_harbor_state();
+  HarborState&      hb_state    = get_harbor_state();
+  UnitsState const& units_state = GameState::units();
   // Ensure that the unit is either in port or on the high seas,
   // otherwise it doesn't make sense for the unit to be selected
   // on this screen.
-  CHECK( unit_harbor_view_info( id ) );
+  CHECK( units_state.maybe_harbor_view_state_of( id ) );
   hb_state.selected_unit = id;
 }
 
