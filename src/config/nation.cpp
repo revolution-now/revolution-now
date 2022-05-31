@@ -47,7 +47,7 @@ base::valid_or<string> SpecialAbility::validate() const {
   // another config module which is necessarily available while
   // this config is being loaded.
 
-  REFL_VALIDATE( crosses_needed > 0.0,
+  REFL_VALIDATE( crosses_needed_multiplier > 0.0,
                  "crosses multiplier must be > 0." );
 
   REFL_VALIDATE( valid_ship( starting_ship ),

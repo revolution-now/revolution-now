@@ -23,6 +23,7 @@
 
 // config
 #include "config/immigration.rds.hpp"
+#include "config/nation.rds.hpp"
 
 // Rds
 #include "old-world-state.rds.hpp"
@@ -166,8 +167,14 @@ CrossesCalculation compute_crosses(
   // clude the units-on-dock when it prints the number of crosses
   // needed on the Religion Advisor page, but it still includes
   // them in the calculation.
-  int const crosses_needed =
+  int const default_crosses_needed =
       8 + 2 * ( total_units + units_on_dock );
+
+  // This is what will incorporate the English's special ability
+  // to more quickly attract immigrants.
+  int const crosses_needed = std::lround(
+      default_crosses_needed * config_nation.abilities[nation]
+                                   .crosses_needed_multiplier );
 
   return CrossesCalculation{
       .dock_crosses_bonus = dock_crosses_bonus,
