@@ -9,20 +9,52 @@
 #
 # ===============================================================
 # Rds
-include "../nation.rds.hpp" # need ../ here so we don't include
-                            # ourselves.
+include "../nation.rds.hpp" # FIXME: dependency not ideal
+include "unit-type.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
 
 # Cdr.
+include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 
 namespace "rn"
 
+struct.SpecialAbility {
+  # This is a number that will be multiplied by the total number
+  # of crosses otherwise needed to attract a new immigrant, then
+  # rounded up to the nearest integer after multiplication.
+  crosses_needed 'double',
+
+  starting_ship 'e_unit_type',
+
+  # What kind of pioneer unit does the nation start with.
+  starting_pioneer 'e_unit_type',
+
+  # Multipler that scales the rate at which native alarm grows.
+  # If this is less than 1.0 then it grows more slowly. If this
+  # is zero then there is no escalation of alarm.
+  native_alarm_multiplier 'double',
+
+  # Multipler that scales the delta of european price fluctua-
+  # tions. If this is less than 1.0 then it dampens those shifts.
+  # If it is zero then there is no price movement.
+  price_movement_multiplier 'double',
+
+  # This is a % bonus that is factored into the combat analysis
+  # when attacking native settlements. Zero means no bonus.
+  native_settlement_attack_bonus 'int',
+
+  _features { validation, equality }
+}
+
 struct.config_nation_t {
   nations 'refl::enum_map<e_nation, Nationality>',
+
+  # Describes the special abilities that each nation has.
+  abilities 'refl::enum_map<e_nation, SpecialAbility>',
 }
 
 config.nation {}

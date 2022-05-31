@@ -41,3 +41,58 @@ nations {
   }
 
 }
+
+# NOTE: The multipliers below have not been measured, though the
+# game and docs seem to be pretty clear about the crosses multi-
+# plier for the English (.666).
+abilities {
+
+  dutch {
+    # Special ability.
+    price_movement_multiplier:      0.6666
+    starting_ship:                  merchantman
+
+    # Default values.
+    crosses_needed:                 1.0
+    starting_pioneer:               pioneer
+    native_alarm_multiplier:        1.0
+    native_settlement_attack_bonus: 0
+  }
+
+  french {
+    # Special ability.
+    starting_pioneer:               hardy_pioneer
+    native_alarm_multiplier:        0.6666
+
+    # Default values.
+    crosses_needed:                 1.0
+    starting_ship:                  caravel
+    price_movement_multiplier:      1.0
+    native_settlement_attack_bonus: 0
+  }
+
+  english {
+    # Special ability.
+    crosses_needed:                 0.6666
+
+    # Default values.
+    starting_ship:                  caravel
+    starting_pioneer:               pioneer
+    native_alarm_multiplier:        1.0
+    price_movement_multiplier:      1.0
+    native_settlement_attack_bonus: 0
+  }
+
+  spanish {
+    # Special ability.
+    native_settlement_attack_bonus: 50
+
+    # Default values.
+    crosses_needed:                 1.0
+    starting_ship:                  caravel
+    starting_pioneer:               pioneer
+    native_alarm_multiplier:        1.0
+    price_movement_multiplier:      1.0
+  }
+
+}
