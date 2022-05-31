@@ -50,9 +50,8 @@ class Colony {
   e_nation           nation() const { return o_.nation; }
   std::string const& name() const { return o_.name; }
   Coord              location() const { return o_.location; }
-  int                sentiment() const { return o_.sentiment; }
+  int                bells() const { return o_.bells; }
   int prod_hammers() const { return o_.prod_hammers; }
-  int prod_tools() const { return o_.prod_tools; }
   int commodity_quantity( e_commodity commodity ) const;
   // These units will be in unspecified order (order may depend
   // on hash table iteration) so the caller should take care to

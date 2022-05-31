@@ -60,10 +60,9 @@ struct.Colony {
   # Production
   production 'maybe<e_colony_building>',
   prod_hammers 'int',
-  prod_tools 'int',
 
-  # Liberty sentiment: [0,100].
-  sentiment 'int',
+  # How many bells this colony has accumulated..
+  bells 'int',
 
   _features { equality, validation }
 }

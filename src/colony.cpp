@@ -159,11 +159,11 @@ LUA_STARTUP( lua::state& st ) {
   auto colony = st.usertype.create<Colony>();
 
   // Getters.
-  colony["id"]        = &Colony::id;
-  colony["nation"]    = &Colony::nation;
-  colony["name"]      = &Colony::name;
-  colony["location"]  = &Colony::location;
-  colony["sentiment"] = &Colony::sentiment;
+  colony["id"]       = &Colony::id;
+  colony["nation"]   = &Colony::nation;
+  colony["name"]     = &Colony::name;
+  colony["location"] = &Colony::location;
+  colony["bells"]    = &Colony::bells;
 
   // Modifiers.
   colony["add_building"] = &Colony::add_building;

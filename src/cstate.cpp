@@ -58,8 +58,7 @@ ColonyId create_colony( e_nation nation, Coord const& where,
       .buildings    = {},
       .production   = nothing,
       .prod_hammers = 0,
-      .prod_tools   = 0,
-      .sentiment    = 0,
+      .bells        = 0,
   };
   return cols_state.add_colony(
       Colony( std::move( refl_colony ) ) );
