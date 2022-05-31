@@ -26,7 +26,7 @@ struct TerrainState;
 struct UnitsState;
 struct SettingsState;
 struct IGui;
-class Player;
+struct Player;
 
 // Whenever a unit is placed on a map square for any reason
 // (whether they moved there, were created there, appeared there,

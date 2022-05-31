@@ -24,7 +24,7 @@ struct UnitsState;
 struct SettingsState;
 struct ImmigrationState;
 struct IGui;
-class Player;
+struct Player;
 
 // Presents the user with the three unit types that are currently
 // in the immigration pool and asks to choose one. The player can

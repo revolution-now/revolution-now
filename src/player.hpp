@@ -29,8 +29,7 @@ namespace rn {
 
 struct PlayersState;
 
-class Player {
- public:
+struct Player {
   Player() = default;
 
   bool operator==( Player const& ) const = default;
