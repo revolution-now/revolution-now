@@ -36,8 +36,7 @@
 
 namespace rn {
 
-class Colony {
- public:
+struct Colony {
   // This is provided for the serialization framework; a
   // default-constructed object will likely not be valid.
   Colony() = default;
