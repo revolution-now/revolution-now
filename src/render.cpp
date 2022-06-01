@@ -11,6 +11,7 @@
 #include "render.hpp"
 
 // Revolution Now
+#include "colony.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "error.hpp"

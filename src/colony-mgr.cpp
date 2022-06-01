@@ -14,9 +14,9 @@
 #include "co-wait.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
-#include "cstate.hpp"
 #include "enum.hpp"
 #include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui.hpp"
@@ -48,22 +48,48 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+// This returns all units that are either working in the colony
+// or who are on the map on the colony square.
+unordered_set<UnitId> units_at_or_in_colony(
+    Colony const& colony, UnitsState const& units_state ) {
+  unordered_set<UnitId> all =
+      units_state.from_colony( colony.id() );
+  Coord colony_loc = colony.location();
+  for( UnitId map_id : units_from_coord( colony_loc ) )
+    all.insert( map_id );
+  return all;
+}
+
+} // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
+ColonyId create_empty_colony( ColoniesState& colonies_state,
+                              e_nation nation, Coord where,
+                              string_view name ) {
+  return colonies_state.add_colony( Colony( wrapped::Colony{
+      .nation   = nation,
+      .name     = string( name ),
+      .location = where,
+  } ) );
+}
+
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
-    std::string_view name ) {
-  if( colony_from_name( name ).has_value() )
+    ColoniesState const& colonies_state, string_view name ) {
+  if( colonies_state.maybe_from_name( name ).has_value() )
     return invalid( e_new_colony_name_err::already_exists );
   return valid;
 }
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    UnitId founder ) {
-  using Res_t = e_found_colony_err;
-  auto& unit  = unit_from_id( founder );
+    ColoniesState const& colonies_state,
+    UnitsState const&    units_state,
+    TerrainState const& terrain_state, UnitId founder ) {
+  using Res_t      = e_found_colony_err;
+  Unit const& unit = units_state.unit_for( founder );
 
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
@@ -71,11 +97,12 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( !unit.is_human() )
     return invalid( Res_t::non_human_cannot_found_colony );
 
-  auto maybe_coord = coord_for_unit_indirect( founder );
+  auto maybe_coord =
+      coord_for_unit_indirect( units_state, founder );
   if( !maybe_coord.has_value() )
     return invalid( Res_t::colonist_not_on_map );
 
-  if( colony_from_coord( *maybe_coord ) )
+  if( colonies_state.maybe_from_coord( *maybe_coord ) )
     return invalid( Res_t::colony_exists_here );
 
   // Check if we are too close to another colony.
@@ -83,50 +110,58 @@ valid_or<e_found_colony_err> unit_can_found_colony(
     // Note that at this point we already know that there is no
     // colony on the center square.
     Coord new_coord = maybe_coord->moved( d );
-    if( !GameState::terrain().square_exists( new_coord ) )
-      continue;
-    if( colony_from_coord( maybe_coord->moved( d ) ) )
+    if( !terrain_state.square_exists( new_coord ) ) continue;
+    if( colonies_state.maybe_from_coord(
+            maybe_coord->moved( d ) ) )
       return invalid( Res_t::too_close_to_colony );
   }
 
-  TerrainState const& terrain_state = GameState::terrain();
   if( !terrain_state.is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
   return valid;
 }
 
-ColonyId found_colony_unsafe( UnitId           founder,
-                              IMapUpdater&     map_updater,
-                              std::string_view name ) {
-  if( auto res = is_valid_new_colony_name( name ); !res )
+ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
+                              TerrainState const& terrain_state,
+                              UnitsState&         units_state,
+                              UnitId              founder,
+                              IMapUpdater&        map_updater,
+                              string_view         name ) {
+  if( auto res =
+          is_valid_new_colony_name( colonies_state, name );
+      !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  if( auto res = unit_can_found_colony( founder ); !res )
+  if( auto res = unit_can_found_colony(
+          colonies_state, units_state, terrain_state, founder );
+      !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  Unit& unit   = unit_from_id( founder );
+  Unit& unit   = units_state.unit_for( founder );
   auto  nation = unit.nation();
-  UNWRAP_CHECK( where, coord_for_unit_indirect( founder ) );
+  UNWRAP_CHECK(
+      where, coord_for_unit_indirect( units_state, founder ) );
 
   // Create colony object.
-  ColonyId col_id = create_colony( nation, where, name );
-  Colony&  col    = colony_from_id( col_id );
+  ColonyId col_id =
+      create_empty_colony( colonies_state, nation, where, name );
+  Colony& col = colonies_state.colony_for( col_id );
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
-  col.strip_unit_commodities( founder );
+  strip_unit_commodities( units_state, unit, col );
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job =
       ColonyJob::indoor{ .job = e_indoor_job::bells };
 
   // Move unit into it.
-  GameState::units().change_to_colony( founder, col_id, job );
+  move_unit_to_colony( units_state, col, founder, job );
 
   // Add road onto colony square.
   set_road( map_updater, where );
@@ -144,11 +179,13 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-wait<> evolve_colony_one_turn( ColonyId             id,
+wait<> evolve_colony_one_turn( Colony&              colony,
                                SettingsState const& settings,
-                               IMapUpdater&         map_updater,
-                               IGui&                gui ) {
-  auto& colony = colony_from_id( id );
+                               UnitsState&          units_state,
+                               TerrainState const& terrain_state,
+                               IMapUpdater&        map_updater,
+                               IGui&               gui ) {
+  ColonyId id = colony.id();
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
 #if 0
@@ -159,13 +196,13 @@ wait<> evolve_colony_one_turn( ColonyId             id,
     commodities[e_commodity::food] -= 200;
     UnitType colonist =
         UnitType::create( e_unit_type::free_colonist );
-    auto    unit_id = create_unit( GameState::units(),
-                                   colony.nation(), colonist );
-    Player& player  = player_for_nation( GameState::players(),
-                                         colony.nation() );
+    auto unit_id =
+        create_unit( units_state, colony.nation(), colonist );
+    Player& player = player_for_nation( GameState::players(),
+                                        colony.nation() );
     co_await unit_to_map_square(
-        GameState::units(), GameState::terrain(), player,
-        settings, gui, map_updater, unit_id, colony.location() );
+        units_state, terrain_state, player, settings, gui,
+        map_updater, unit_id, colony.location() );
     co_await landview_ensure_visible( colony.location() );
     ui::e_ok_cancel answer = co_await ui::ok_cancel( fmt::format(
         "The @[H]{}@[] colony has produced a new colonist.  "
@@ -181,13 +218,49 @@ wait<> evolve_colony_one_turn( ColonyId             id,
   player.crosses += 10;
 }
 
-void change_colony_nation( ColonyId id, e_nation new_nation ) {
-  unordered_set<UnitId> units = units_at_or_in_colony( id );
+void change_colony_nation( Colony&     colony,
+                           UnitsState& units_state,
+                           e_nation    new_nation ) {
+  unordered_set<UnitId> units =
+      units_at_or_in_colony( colony, units_state );
   for( UnitId unit_id : units )
-    unit_from_id( unit_id ).change_nation( new_nation );
-  auto& colony = colony_from_id( id );
+    units_state.unit_for( unit_id ).change_nation( new_nation );
   CHECK( colony.nation() != new_nation );
   colony.set_nation( new_nation );
+}
+
+void strip_unit_commodities( UnitsState const& units_state,
+                             Unit& unit, Colony& colony ) {
+  UNWRAP_CHECK_MSG(
+      coord, units_state.maybe_coord_for( unit.id() ),
+      "unit must be on map to shed its commodities." );
+  CHECK( coord == colony.location(),
+         "unit must be in colony to shed its commodities." );
+  UnitTransformationResult tranform_res =
+      unit.strip_to_base_type();
+  for( auto [type, q] : tranform_res.commodity_deltas ) {
+    CHECK_GT( q, 0 );
+    lg.debug( "adding {} {} to colony {}.", q, type,
+              colony.name() );
+    colony.commodities()[type] += q;
+  }
+}
+
+void move_unit_to_colony( UnitsState& units_state,
+                          Colony& colony, UnitId unit_id,
+                          ColonyJob_t const& job ) {
+  CHECK( units_state.unit_for( unit_id ).nation() ==
+         colony.nation() );
+  units_state.change_to_colony( unit_id, colony.id() );
+  colony.add_unit( unit_id, job );
+}
+
+void remove_unit_from_colony( UnitsState& units_state,
+                              Colony& colony, UnitId unit_id ) {
+  CHECK( units_state.unit_for( unit_id ).nation() ==
+         colony.nation() );
+  units_state.disown_unit( unit_id );
+  colony.remove_unit( unit_id );
 }
 
 /****************************************************************
@@ -210,17 +283,25 @@ namespace {
 // it breaks unit tests where there is no global renderer -- that
 // needs to be fixed.
 LUA_FN( found_colony, ColonyId, UnitId founder,
-        std::string const& name ) {
-  if( auto res = is_valid_new_colony_name( name ); !res )
+        string const& name ) {
+  ColoniesState& colonies_state = GameState::colonies();
+  TerrainState&  terrain_state  = GameState::terrain();
+  UnitsState&    units_state    = GameState::units();
+  if( auto res =
+          is_valid_new_colony_name( colonies_state, name );
+      !res )
     // FIXME: improve error message generation.
     st.error( "cannot found colony here: {}.",
               enum_to_display_name( res.error() ) );
-  if( auto res = unit_can_found_colony( founder ); !res )
+  if( auto res = unit_can_found_colony(
+          colonies_state, units_state, terrain_state, founder );
+      !res )
     st.error( "cannot found colony here." );
-  TerrainState& terrain_state = GameState::terrain();
   // FIXME: needs to render.
   NonRenderingMapUpdater map_updater( terrain_state );
-  return found_colony_unsafe( founder, map_updater, name );
+  return found_colony_unsafe( colonies_state, terrain_state,
+                              units_state, founder, map_updater,
+                              name );
 }
 
 } // namespace

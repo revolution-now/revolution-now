@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "src/commodity.hpp"
+#include "src/game-state.hpp"
 #include "src/ustate.hpp"
 
 // Must be last.

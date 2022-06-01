@@ -13,6 +13,7 @@
 // Revolution Now
 #include "anim.hpp"
 #include "co-combinator.hpp"
+#include "colony.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"

@@ -15,8 +15,8 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
-#include "cstate.hpp"
 #include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "harbor-units.hpp"
@@ -246,6 +246,15 @@ bool should_remove_unit_from_queue( UnitId id ) {
   }
 }
 
+// Get all units in the eight squares that surround coord.
+vector<UnitId> surrounding_units( Coord const& coord ) {
+  vector<UnitId> res;
+  for( e_direction d : refl::enum_values<e_direction> )
+    for( auto id : units_from_coord( coord.moved( d ) ) )
+      res.push_back( id );
+  return res;
+}
+
 // See if `unit` needs to be unsentry'd due to surrounding for-
 // eign units.
 void try_unsentry_unit( Unit& unit ) {
@@ -272,6 +281,32 @@ void unsentry_surroundings( UnitId src_id ) {
     if( unit.orders() != e_unit_orders::sentry ) continue;
     if( unit.nation() == src_unit.nation() ) continue;
     unit.clear_orders();
+  }
+}
+
+vector<UnitId> units_all( e_nation n ) {
+  auto&          gs_units = GameState::units();
+  vector<UnitId> res;
+  res.reserve( gs_units.all().size() );
+  for( auto const& p : gs_units.all() )
+    if( n == p.second.unit.nation() ) res.push_back( p.first );
+  return res;
+}
+
+// Apply a function to all units. The function may mutate the
+// units.
+void map_units( base::function_ref<void( Unit& )> func ) {
+  auto& gs_units = GameState::units();
+  for( auto& p : gs_units.all() )
+    func( gs_units.unit_for( p.first ) );
+}
+
+void map_units( e_nation                          nation,
+                base::function_ref<void( Unit& )> func ) {
+  auto& gs_units = GameState::units();
+  for( auto& p : gs_units.all() ) {
+    Unit& unit = gs_units.unit_for( p.first );
+    if( unit.nation() == nation ) func( unit );
   }
 }
 
@@ -432,7 +467,7 @@ wait<> process_player_input( UnitId                       id,
       // If the unit still exists, check if it has moved squares
       // in any fashion, and if so then wake up any foreign sen-
       // try'd neighbors.
-      if( unit_exists( id ) ) {
+      if( units_state.exists( id ) ) {
         maybe<Coord> new_loc = coord_for_unit_indirect( id );
         if( new_loc && *new_loc != old_loc )
           unsentry_surroundings( id );
@@ -586,7 +621,7 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
     // queue in this loop by user input. Also, the very first
     // check that we must do needs to be to check if the unit
     // still exists, which it might not if e.g. it was disbanded.
-    if( !unit_exists( id ) ||
+    if( !units_state.exists( id ) ||
         should_remove_unit_from_queue( id ) ) {
       q.pop_front();
       continue;
@@ -662,18 +697,23 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
 ** Per-Colony Turn Processor
 *****************************************************************/
 wait<> colonies_turn( SettingsState const& settings,
+                      UnitsState&          units_state,
+                      TerrainState const&  terrain_state,
                       IMapUpdater& map_updater, IGui& gui ) {
   CHECK( GameState::turn().nation );
   auto& st = *GameState::turn().nation;
   lg.info( "processing colonies for the {}.", st.nation );
+  ColoniesState&  colonies_state = GameState::colonies();
   queue<ColonyId> colonies;
-  for( ColonyId colony_id : colonies_all( st.nation ) )
-    colonies.push( colony_id );
+  for( auto const& [colony_id, colony] : colonies_state.all() )
+    if( colony.nation() == st.nation )
+      colonies.push( colony_id );
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
-    co_await evolve_colony_one_turn( colony_id, settings,
-                                     map_updater, gui );
+    co_await evolve_colony_one_turn(
+        colonies_state.colony_for( colony_id ), settings,
+        units_state, terrain_state, map_updater, gui );
   }
 }
 
@@ -696,7 +736,8 @@ wait<> nation_turn( Player&              player,
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn( settings, map_updater, gui );
+    co_await colonies_turn( settings, units_state, terrain_state,
+                            map_updater, gui );
     st.did_colonies = true;
   }
 

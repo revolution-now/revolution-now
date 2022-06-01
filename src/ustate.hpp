@@ -14,12 +14,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "colony.hpp"
 #include "error.hpp"
-#include "game-state.hpp"
-#include "igui.hpp"
-#include "map-updater.hpp"
-#include "player.hpp"
+#include "unit-id.hpp"
 #include "unit.hpp"
 #include "wait.hpp"
 
@@ -32,7 +28,12 @@
 
 namespace rn {
 
+struct IGui;
+struct IMapUpdater;
+struct Player;
 struct SettingsState;
+struct TerrainState;
+struct UnitsState;
 
 /****************************************************************
 ** Units
@@ -40,20 +41,8 @@ struct SettingsState;
 // FIXME
 std::string debug_string( UnitId id );
 
-ND bool unit_exists( UnitId id );
 // FIXME: replace this with UnitsState::unit_for.
-ND Unit&            unit_from_id( UnitId id );
-std::vector<UnitId> units_all();
-std::vector<UnitId> units_all( e_nation n );
-// Apply a function to all units. The function may mutate the
-// units. NOTE: here, the word "map" is meant in the functional
-// programming sense, and not in the sense of the game world map.
-void map_units( base::function_ref<void( Unit& )> func );
-void map_units( e_nation                          nation,
-                base::function_ref<void( Unit& )> func );
-
-// Should not be holding any references to the unit after this.
-void destroy_unit( UnitId id );
+ND Unit& unit_from_id( UnitId id );
 
 /****************************************************************
 ** Map Ownership
@@ -72,11 +61,6 @@ ND std::unordered_set<UnitId> const& units_from_coord(
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 std::vector<UnitId> units_from_coord_recursive( Coord coord );
 
-std::vector<UnitId> units_in_rect( Rect const& rect );
-
-// Get all units in the eight squares that surround coord.
-std::vector<UnitId> surrounding_units( Coord const& coord );
-
 // Returns the map coordinates for the unit if it is on the map
 // (which does NOT include being cargo of a unit on the map; for
 // that, see `coord_for_unit_indirect`).
@@ -89,6 +73,10 @@ maybe<Coord> coord_for_unit( UnitId id );
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
 ND Coord coord_for_unit_indirect_or_die( UnitId id );
+
+ND maybe<Coord> coord_for_unit_indirect(
+    UnitsState const& units_state, UnitId id );
+// FIXME: deprecated
 ND maybe<Coord> coord_for_unit_indirect( UnitId id );
 
 // This will return true for a unit if it is owned by the map or
@@ -98,20 +86,6 @@ bool is_unit_on_map_indirect( UnitId id );
 // These will return true for a unit if it is directly on the
 // map.
 bool is_unit_on_map( UnitId id );
-
-/****************************************************************
-** Colony Ownership
-*****************************************************************/
-// This returns all units that are either working in the colony
-// or who are on the map on the colony square.
-std::unordered_set<UnitId> units_at_or_in_colony( ColonyId id );
-
-// If the unit is working in the colony then this will return it;
-// however it will not return a ColonyId if the unit simply occu-
-// pies the same square as the colony.
-maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id );
-
-bool is_unit_in_colony( UnitId id );
 
 /****************************************************************
 ** Cargo Ownership
@@ -146,6 +120,7 @@ wait<UnitId> create_unit_on_map(
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
+// FIXME: bad name
 UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
                                  IMapUpdater&    map_updater,
                                  e_nation        nation,

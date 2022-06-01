@@ -22,6 +22,7 @@
 #include "lua.hpp"
 #include "macros.hpp"
 #include "on-map.hpp"
+#include "player.hpp"
 #include "variant.hpp"
 
 // luapp
@@ -46,6 +47,19 @@ namespace {
 
 using ::base::function_ref;
 
+// If the unit is working in the colony then this will return it;
+// however it will not return a ColonyId if the unit simply occu-
+// pies the same square as the colony.
+maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
+  auto const&     gs_units = GameState::units();
+  maybe<ColonyId> res;
+  if_get( gs_units.ownership_of( id ), UnitOwnership::colony,
+          colony_state ) {
+    return colony_state.id;
+  }
+  return res;
+}
+
 } // namespace
 
 /****************************************************************
@@ -56,47 +70,8 @@ string debug_string( UnitId id ) {
   return debug_string( gs_units.unit_for( id ) );
 }
 
-vector<UnitId> units_all() {
-  auto&          gs_units = GameState::units();
-  vector<UnitId> res;
-  res.reserve( gs_units.all().size() );
-  for( auto const& p : gs_units.all() ) res.push_back( p.first );
-  return res;
-}
-
-vector<UnitId> units_all( e_nation n ) {
-  auto&          gs_units = GameState::units();
-  vector<UnitId> res;
-  res.reserve( gs_units.all().size() );
-  for( auto const& p : gs_units.all() )
-    if( n == p.second.unit.nation() ) res.push_back( p.first );
-  return res;
-}
-
-bool unit_exists( UnitId id ) {
-  auto& gs_units = GameState::units();
-  return gs_units.all().contains( id );
-}
-
 Unit& unit_from_id( UnitId id ) {
   return GameState::units().unit_for( id );
-}
-
-// Apply a function to all units. The function may mutate the
-// units.
-void map_units( function_ref<void( Unit& )> func ) {
-  auto& gs_units = GameState::units();
-  for( auto& p : gs_units.all() )
-    func( gs_units.unit_for( p.first ) );
-}
-
-void map_units( e_nation                    nation,
-                function_ref<void( Unit& )> func ) {
-  auto& gs_units = GameState::units();
-  for( auto& p : gs_units.all() ) {
-    Unit& unit = gs_units.unit_for( p.first );
-    if( unit.nation() == nation ) func( unit );
-  }
 }
 
 UnitId create_unit( UnitsState& units_state, e_nation nation,
@@ -181,23 +156,6 @@ vector<UnitId> units_from_coord_recursive( Coord coord ) {
   return res;
 }
 
-vector<UnitId> units_in_rect( Rect const& rect ) {
-  vector<UnitId> res;
-  for( Y i = rect.y; i < rect.y + rect.h; ++i )
-    for( X j = rect.x; j < rect.x + rect.w; ++j )
-      for( auto id : units_from_coord( Coord{ i, j } ) )
-        res.push_back( id );
-  return res;
-}
-
-vector<UnitId> surrounding_units( Coord const& coord ) {
-  vector<UnitId> res;
-  for( e_direction d : refl::enum_values<e_direction> )
-    for( auto id : units_from_coord( coord.moved( d ) ) )
-      res.push_back( id );
-  return res;
-}
-
 maybe<Coord> coord_for_unit( UnitId id ) {
   return GameState::units().maybe_coord_for( id );
 }
@@ -209,10 +167,11 @@ Coord coord_for_unit_indirect_or_die( UnitId id ) {
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-maybe<Coord> coord_for_unit_indirect( UnitId id ) {
-  auto const& gs_units = GameState::units();
-  CHECK( unit_exists( id ) );
-  UnitOwnership_t const& ownership = gs_units.ownership_of( id );
+maybe<Coord> coord_for_unit_indirect(
+    UnitsState const& units_state, UnitId id ) {
+  CHECK( units_state.exists( id ) );
+  UnitOwnership_t const& ownership =
+      units_state.ownership_of( id );
   switch( ownership.to_enum() ) {
     case UnitOwnership::e::world: {
       auto& [coord] = ownership.get<UnitOwnership::world>();
@@ -220,13 +179,20 @@ maybe<Coord> coord_for_unit_indirect( UnitId id ) {
     }
     case UnitOwnership::e::cargo: {
       auto& [holder] = ownership.get<UnitOwnership::cargo>();
-      return coord_for_unit_indirect( holder );
+      return coord_for_unit_indirect( units_state, holder );
     }
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
     case UnitOwnership::e::colony: //
       return nothing;
   };
+}
+
+// If this function makes recursive calls it should always call
+// the _safe variant since this function should not throw.
+maybe<Coord> coord_for_unit_indirect( UnitId id ) {
+  auto const& units_state = GameState::units();
+  return coord_for_unit_indirect( units_state, id );
 }
 
 bool is_unit_on_map_indirect( UnitId id ) {
@@ -237,35 +203,6 @@ bool is_unit_on_map( UnitId id ) {
   auto const& gs_units = GameState::units();
   return gs_units.ownership_of( id )
       .holds<UnitOwnership::world>();
-}
-
-/****************************************************************
-** Colony Ownership
-*****************************************************************/
-unordered_set<UnitId> units_at_or_in_colony( ColonyId id ) {
-  auto& gs_units = GameState::units();
-  CHECK( colony_exists( id ) );
-  unordered_set<UnitId> all = gs_units.from_colony( id );
-  Coord colony_loc          = colony_from_id( id ).location();
-  for( UnitId map_id : units_from_coord( colony_loc ) )
-    all.insert( map_id );
-  return all;
-}
-
-maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
-  auto const&     gs_units = GameState::units();
-  maybe<ColonyId> res;
-  if_get( gs_units.ownership_of( id ), UnitOwnership::colony,
-          colony_state ) {
-    return colony_state.id;
-  }
-  return res;
-}
-
-bool is_unit_in_colony( UnitId id ) {
-  auto const& gs_units = GameState::units();
-  return gs_units.ownership_of( id )
-      .holds<UnitOwnership::colony>();
 }
 
 /****************************************************************

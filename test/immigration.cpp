@@ -19,6 +19,9 @@
 #include "src/gs-units.hpp"
 #include "src/igui-mock.hpp"
 #include "src/igui.hpp"
+#include "src/map-square.hpp"
+#include "src/map-updater.hpp"
+#include "src/player.hpp"
 #include "src/ustate.hpp"
 
 // Rds

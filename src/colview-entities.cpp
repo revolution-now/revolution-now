@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
@@ -964,8 +965,9 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   wait<> click_on_unit( UnitId id ) {
+    UnitsState& units_state = GameState::units();
     lg.info( "clicked on unit {}.", debug_string( id ) );
-    auto& unit = unit_from_id( id );
+    Unit& unit = units_state.unit_for( id );
     if( selected_ != id ) {
       set_selected_unit( id );
       // The first time we select a unit, just select it, but
@@ -1005,7 +1007,7 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      colony().strip_unit_commodities( id );
+      strip_unit_commodities( units_state, unit, colony() );
     }
   }
 

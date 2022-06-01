@@ -45,7 +45,6 @@ struct ColoniesState {
   ColonyId        from_coord( Coord const& c ) const;
 
   maybe<ColonyId> maybe_from_name( std::string_view name ) const;
-  std::vector<ColonyId> from_rect( Rect const& rect ) const;
 
   // The id of this colony must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-

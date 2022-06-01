@@ -40,6 +40,11 @@ namespace rn {
 using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
 
 /****************************************************************
+** Fwd Decls
+*****************************************************************/
+struct UnitsState;
+
+/****************************************************************
 ** e_indoor_job
 *****************************************************************/
 LUA_ENUM_DECL( indoor_job );
@@ -88,12 +93,6 @@ struct Colony {
     return o_.commodities;
   }
 
-  // Will strip the unit of any commodities (including inventory
-  // and modifiers) and deposit them commodities into the colony.
-  // The unit must be on the colony square otherwise this will
-  // check fail.
-  void strip_unit_commodities( UnitId unit_id );
-
   /************************ Functions **************************/
   int  population() const;
   bool has_unit( UnitId id ) const;
@@ -107,14 +106,28 @@ struct Colony {
   static constexpr std::string_view refl_name = "Colony";
 
  private:
-  friend struct UnitsState;
-  friend struct ColoniesState;
-
-  // These are private because they should only be called via the
-  // UnitsState interface so that it can make sure to synchronize
-  // its state with the changes.
+  // This should only be called via the appropriate high level
+  // function (below) to ensure that other state gets updated as
+  // needed.
   void add_unit( UnitId id, ColonyJob_t const& job );
+
+  friend void move_unit_to_colony( UnitsState& units_state,
+                                   Colony&     colony,
+                                   UnitId      unit_id,
+                                   ColonyJob_t const& job );
+
+ private:
+  // This should only be called via the appropriate high level
+  // function (below) to ensure that other state gets updated as
+  // needed.
   void remove_unit( UnitId id );
+
+  friend void remove_unit_from_colony( UnitsState& units_state,
+                                       Colony&     colony,
+                                       UnitId      unit_id );
+
+ private:
+  friend struct ColoniesState;
 
   wrapped::Colony o_;
 };

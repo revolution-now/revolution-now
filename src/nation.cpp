@@ -11,6 +11,7 @@
 #include "nation.hpp"
 
 // Revolution Now
+#include "colony.hpp"
 #include "cstate.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"

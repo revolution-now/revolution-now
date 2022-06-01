@@ -19,6 +19,7 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui.hpp"
@@ -1147,6 +1148,8 @@ wait<> AttackHandler::perform() {
       fight_stats->attacker_wins ? attacker : defender;
   auto& loser = fight_stats->attacker_wins ? defender : attacker;
 
+  ColoniesState& colonies_state = GameState::colonies();
+
   // The original game seems to consume all movement points of a
   // unit when attacking.
   attacker.forfeight_mv_points();
@@ -1165,11 +1168,14 @@ wait<> AttackHandler::perform() {
         // special happens; we just do what we normally do when
         // an attacker loses a battle.
         break;
-      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
+      UNWRAP_CHECK( colony_id, colonies_state.maybe_from_coord(
+                                   attack_dst ) );
       // 1. The colony changes ownership, as well as all of the
       // units that are working in it and who are on the map at
       // the colony location.
-      change_colony_nation( colony_id, attacker.nation() );
+      change_colony_nation(
+          colonies_state.colony_for( colony_id ), units_state_,
+          attacker.nation() );
       // 2. The attacker moves into the colony square.
       co_await unit_to_map_square(
           units_state_, terrain_state_, player_, settings_, gui_,

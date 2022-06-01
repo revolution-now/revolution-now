@@ -248,7 +248,6 @@ void UnitsState::disown_unit( UnitId id ) {
       units_set.erase( id );
       if( units_set.empty() )
         worker_units_from_colony_.erase( set_it );
-      colony_from_id( col_id ).remove_unit( id );
       break;
     }
   };
@@ -345,14 +344,10 @@ valid_or<string> UnitHarborViewState::in_port::validate() const {
   return valid;
 }
 
-void UnitsState::change_to_colony( UnitId id, ColonyId col_id,
-                                   ColonyJob_t const& job ) {
-  CHECK( unit_for( id ).nation() ==
-         colony_from_id( col_id ).nation() );
+void UnitsState::change_to_colony( UnitId id, ColonyId col_id ) {
   disown_unit( id );
   worker_units_from_colony_[col_id].insert( id );
   ownership_of( id ) = UnitOwnership::colony{ col_id };
-  colony_from_id( col_id ).add_unit( id, job );
 }
 
 UnitId UnitsState::add_unit( Unit&& unit ) {

@@ -34,8 +34,7 @@ namespace rn {
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-class ND Unit {
- public:
+struct ND Unit {
   // This is provided for the serialization framework; a
   // default-constructed object will likely not be valid.
   Unit() = default;

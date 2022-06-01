@@ -2187,7 +2187,7 @@ wait<> show_harbor_view() {
     // We could have a case where the unit that was last selected
     // went to the new world and was then disbanded, or is just
     // no longer in the harbor.
-    if( !unit_exists( id ) ||
+    if( !units_state.exists( id ) ||
         !units_state.maybe_harbor_view_state_of( id ) )
       hb_state.selected_unit = nothing;
   }

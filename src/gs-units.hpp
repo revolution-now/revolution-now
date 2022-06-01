@@ -117,6 +117,17 @@ struct UnitsState {
                                         UnitId       id,
                                         Coord world_square );
 
+ private:
+  // This is private because it should only be called via the
+  // higher level method (below) that can also update the
+  // colonies state.
+  void change_to_colony( UnitId id, ColonyId col_id );
+
+  friend void move_unit_to_colony( UnitsState& units_state,
+                                   Colony&     colony,
+                                   UnitId      unit_id,
+                                   ColonyJob_t const& job );
+
  public:
   // Will start at the starting slot and rotate right trying to
   // find a place where the unit can fit.
@@ -128,9 +139,6 @@ struct UnitsState {
 
   void change_to_harbor_view( UnitId                id,
                               UnitHarborViewState_t info );
-
-  void change_to_colony( UnitId id, ColonyId col_id,
-                         ColonyJob_t const& job );
 
   // ------ Non-invariant Preserving ------
   // This will erase any ownership that is had over the given

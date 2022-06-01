@@ -127,12 +127,14 @@ Coord ColoniesState::coord_for( ColonyId id ) const {
 ColonyId ColoniesState::add_colony( Colony&& colony ) {
   CHECK( colony.id() == ColonyId{ 0 },
          "colony ID must be zero when creating colony." );
-  ColonyId id                           = next_colony_id();
-  colony.o_.id                          = id;
+  ColonyId id  = next_colony_id();
+  colony.o_.id = id;
+  CHECK( !colony_from_coord_.contains( colony.location() ) );
+  CHECK( !colony_from_name_.contains( colony.name() ) );
   colony_from_coord_[colony.location()] = id;
   colony_from_name_[colony.name()]      = id;
   // Must be last to avoid use-after-move.
-  DCHECK( !o_.colonies.contains( id ) );
+  CHECK( !o_.colonies.contains( id ) );
   o_.colonies[id] = std::move( colony );
   return id;
 }
@@ -171,17 +173,6 @@ ColonyId ColoniesState::from_coord( Coord const& coord ) const {
 maybe<ColonyId> ColoniesState::maybe_from_name(
     string_view name ) const {
   return base::lookup( colony_from_name_, string( name ) );
-}
-
-vector<ColonyId> ColoniesState::from_rect(
-    Rect const& rect ) const {
-  vector<ColonyId> res;
-  for( auto coord : rect )
-    if( auto maybe_id =
-            base::lookup( colony_from_coord_, coord );
-        maybe_id )
-      res.push_back( *maybe_id );
-  return res;
 }
 
 } // namespace rn
