@@ -24,6 +24,5 @@ namespace rn {
 void linker_dont_discard_module_colony_mfg();
 
 LUA_ENUM_DECL( colony_building );
-LUA_ENUM_DECL( mfg_job );
 
 } // namespace rn

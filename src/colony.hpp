@@ -18,6 +18,7 @@
 #include "commodity.hpp"
 #include "error.hpp"
 #include "expect.hpp"
+#include "lua-enum.hpp"
 #include "nation.hpp"
 #include "unit-id.hpp"
 
@@ -36,41 +37,51 @@
 
 namespace rn {
 
+using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
+
+/****************************************************************
+** e_indoor_job
+*****************************************************************/
+LUA_ENUM_DECL( indoor_job );
+
+/****************************************************************
+** Colony
+*****************************************************************/
 struct Colony {
-  // This is provided for the serialization framework; a
-  // default-constructed object will likely not be valid.
   Colony() = default;
 
   bool operator==( Colony const& ) const = default;
 
   /************************* Getters ***************************/
+  ColonyId id() const { return o_.id; }
 
-  ColonyId           id() const { return o_.id; }
-  e_nation           nation() const { return o_.nation; }
+  e_nation nation() const { return o_.nation; }
+
   std::string const& name() const { return o_.name; }
-  Coord              location() const { return o_.location; }
-  int                bells() const { return o_.bells; }
-  int prod_hammers() const { return o_.prod_hammers; }
-  int commodity_quantity( e_commodity commodity ) const;
-  // These units will be in unspecified order (order may depend
-  // on hash table iteration) so the caller should take care to
-  // not depend on the ordering returned by this function.
-  std::vector<UnitId>                          units() const;
-  std::unordered_set<e_colony_building> const& buildings()
-      const {
-    return o_.buildings;
+
+  Coord location() const { return o_.location; }
+
+  refl::enum_map<e_commodity, int> const& commodities() const {
+    return o_.commodities;
   }
-  std::unordered_map<UnitId, ColonyJob_t> const& units_jobs()
-      const {
-    return o_.units;
-  }
+
+  auto const& units() const { return o_.units; }
+
+  auto const& indoor_jobs() const { return o_.indoor_jobs; }
+
+  auto const& outdoor_jobs() const { return o_.outdoor_jobs; }
+
+  auto const& buildings() const { return o_.buildings; }
+
+  auto const& production() const { return o_.production; }
+
+  int hammers() const { return o_.hammers; }
+
+  int bells() const { return o_.bells; }
 
   /************************ Modifiers **************************/
-  // NOTE: these modifiers do not enforce invariants!
   void add_building( e_colony_building building );
-  void add_unit( UnitId id, ColonyJob_t const& job );
-  void remove_unit( UnitId id );
-  void set_commodity_quantity( e_commodity comm, int q );
+
   void set_nation( e_nation new_nation );
 
   refl::enum_map<e_commodity, int>& commodities() {
@@ -84,7 +95,6 @@ struct Colony {
   void strip_unit_commodities( UnitId unit_id );
 
   /************************ Functions **************************/
-  // NOTE: these modifiers do not enforce invariants!
   int  population() const;
   bool has_unit( UnitId id ) const;
 
@@ -97,7 +107,14 @@ struct Colony {
   static constexpr std::string_view refl_name = "Colony";
 
  private:
+  friend struct UnitsState;
   friend struct ColoniesState;
+
+  // These are private because they should only be called via the
+  // UnitsState interface so that it can make sure to synchronize
+  // its state with the changes.
+  void add_unit( UnitId id, ColonyJob_t const& job );
+  void remove_unit( UnitId id );
 
   wrapped::Colony o_;
 };
@@ -109,5 +126,9 @@ NOTHROW_MOVE( Colony );
 ** Lua
 *****************************************************************/
 namespace lua {
+
 LUA_USERDATA_TRAITS( ::rn::Colony, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::CommodityQuantityMap,
+                     owned_by_cpp ){};
+
 }

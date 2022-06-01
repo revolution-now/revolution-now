@@ -123,7 +123,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job =
-      ColonyJob::mfg{ .mfg_job = e_mfg_job::bells };
+      ColonyJob::indoor{ .job = e_indoor_job::bells };
 
   // Move unit into it.
   GameState::units().change_to_colony( founder, col_id, job );

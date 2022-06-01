@@ -49,16 +49,16 @@ ColonyId create_colony( e_nation nation, Coord const& where,
          "there is already a colony with name {}.", name );
 
   wrapped::Colony refl_colony{
-      .id           = ColonyId{ 0 },
-      .nation       = nation,
-      .name         = string( name ),
-      .location     = where,
-      .commodities  = {},
-      .units        = {},
-      .buildings    = {},
-      .production   = nothing,
-      .prod_hammers = 0,
-      .bells        = 0,
+      .id          = ColonyId{ 0 },
+      .nation      = nation,
+      .name        = string( name ),
+      .location    = where,
+      .commodities = {},
+      .units       = {},
+      .buildings   = {},
+      .production  = nothing,
+      .hammers     = 0,
+      .bells       = 0,
   };
   return cols_state.add_colony(
       Colony( std::move( refl_colony ) ) );

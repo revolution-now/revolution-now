@@ -39,14 +39,14 @@ valid_or<string> validate_interaction(
     // All units owned by colony are colony's units.
     for( UnitId unit_id : units.from_colony( colony_id ) ) {
       REFL_VALIDATE(
-          colony.units_jobs().contains( unit_id ),
+          colony.units().contains( unit_id ),
           "unit {} owned by colony is not in colony {}.",
           debug_string( units.unit_for( unit_id ) ),
           colony.debug_string() );
     }
 
     // All colony's units are of same nation.
-    for( auto const& p : colony.units_jobs() ) {
+    for( auto const& p : colony.units() ) {
       auto unit_nation = units.unit_for( p.first ).nation();
       REFL_VALIDATE( colony.nation() == unit_nation,
                      "Colony {} has nation {} but contains a "
@@ -55,7 +55,7 @@ valid_or<string> validate_interaction(
     }
 
     // All colony's units owned by colony.
-    for( auto const& p : colony.units_jobs() ) {
+    for( auto const& p : colony.units() ) {
       auto unit_id = p.first;
       REFL_VALIDATE(
           units.state_of( unit_id ).ownership.to_enum() ==

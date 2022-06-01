@@ -36,6 +36,5 @@ void linker_dont_discard_module_colony_mfg() {}
 ** Lua Bindings
 *****************************************************************/
 LUA_ENUM( colony_building );
-LUA_ENUM( mfg_job );
 
 } // namespace rn
