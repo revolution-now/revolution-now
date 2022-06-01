@@ -135,6 +135,8 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitComposition comp );
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     UnitType type );
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    e_unit_type type );
 
 wait<UnitId> create_unit_on_map(
     UnitsState& units_state, TerrainState const& terrain_state,

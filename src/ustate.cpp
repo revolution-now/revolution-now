@@ -130,6 +130,12 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                       UnitComposition::create( type ) );
 }
 
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    e_unit_type type ) {
+  return create_unit( units_state, nation,
+                      UnitType::create( type ) );
+}
+
 UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
                                  IMapUpdater&    map_updater,
                                  e_nation        nation,
