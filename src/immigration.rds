@@ -1,0 +1,29 @@
+# ===============================================================
+# immigration.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-31.
+#
+# Description: Rds definitions for the immigration module.
+#
+# ===============================================================
+namespace "rn"
+
+# This holds the results of the crosses-related calculations that
+# need to be done each turn.
+struct.CrossesCalculation {
+  # This gives the number of crosses per turn that are added to
+  # the normal crosses production in colonies. Note that it can
+  # be negative! Note that this can be positive or negative.
+  #
+  # NOTE: This needs to be added to the total colony crosses pro-
+  # duction first before then adding the result to the player's
+  # accumulated cross production. This is to ensure that the
+  # per-turn delta does not go below zero. (we don't ever want
+  # the player's accumulated crosses to decrease).
+  dock_crosses_bonus 'int',
+
+  # Crosses needed for next immigration.
+  crosses_needed 'int',
+}

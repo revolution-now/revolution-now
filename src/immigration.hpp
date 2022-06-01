@@ -16,6 +16,7 @@
 #include "wait.hpp"
 
 // Rds
+#include "immigration.rds.hpp"
 #include "nation.rds.hpp"
 #include "utype.rds.hpp"
 
@@ -43,24 +44,6 @@ e_unit_type take_immigrant_from_pool(
 // Randomly selects the next unit type for the immigration pool.
 e_unit_type pick_next_unit_for_pool(
     Player const& player, SettingsState const& settings );
-
-// This holds the results of the crosses-related calculations
-// that need to be done each turn.
-struct CrossesCalculation {
-  // This gives the number of crosses per turn that are added to
-  // the normal crosses production in colonies. Note that it can
-  // be negative! Note that this can be positive or negative.
-  //
-  // NOTE: This needs to be added to the total colony crosses
-  // production first before then adding the result to the play-
-  // er's accumulated cross production. This is to ensure that
-  // the per-turn delta does not go below zero. (we don't ever
-  // want the player's accumulated crosses to decrease).
-  int dock_crosses_bonus = 0;
-
-  // Crosses needed for next immigration.
-  int crosses_needed = 0;
-};
 
 // This is not cheap to compute, so should be computed only when
 // needed.
