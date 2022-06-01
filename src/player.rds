@@ -13,9 +13,6 @@ include "fathers.rds.hpp"
 include "old-world-state.rds.hpp"
 include "nation.rds.hpp"
 
-# refl
-include "refl/enum-map.hpp"
-
 namespace "rn"
 
 struct.Player {
@@ -43,6 +40,6 @@ struct.Player {
 
   independence_declared 'bool',
 
-  # Which founding fathers does this player have.
-  fathers 'refl::enum_map<e_founding_father, bool>',
+  # Anything related to founding fathers is in here.
+  fathers 'FoundingFathersState',
 }

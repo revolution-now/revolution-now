@@ -52,7 +52,7 @@ TEST_CASE( "[test/lcr] de soto means no unit lost" ) {
   e_nation const nation = e_nation::dutch;
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  player.fathers[e_founding_father::hernando_de_soto] = true;
+  player.fathers.has[e_founding_father::hernando_de_soto] = true;
   for( int i = 0; i < 100; ++i ) {
     INFO( fmt::format( "i: {}", i ) );
     e_rumor_type type = pick_rumor_type_result(

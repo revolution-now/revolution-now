@@ -61,7 +61,13 @@ struct.Colony {
   production 'maybe<e_colony_building>',
   prod_hammers 'int',
 
-  # How many bells this colony has accumulated..
+  # How many bells this colony has accumulated. A certain number
+  # of bells generated in a turn are consumed by colonists, and
+  # the remainder (which might be negative) is added to this.
+  # Then, the value this ends up having each turn determines the
+  # percentage of Sons of Liberty membership by comparing its
+  # value to the population size (the formula used for this is
+  # not yet clear).
   bells 'int',
 
   _features { equality, validation }

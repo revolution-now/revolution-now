@@ -59,7 +59,7 @@ int random_gift( GiftOptions options ) {
 }
 
 bool has_hernando_de_soto( Player const& player ) {
-  return player.fathers[e_founding_father::hernando_de_soto];
+  return player.fathers.has[e_founding_father::hernando_de_soto];
 }
 
 // When exploring burial mounds that are in native owned land we

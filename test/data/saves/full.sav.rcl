@@ -16,31 +16,34 @@ players.players {
     crosses: 0
     discovered_new_world: temporary
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
     human: true
     independence_declared: false
@@ -151,31 +154,34 @@ players.players {
     crosses: 0
     discovered_new_world: temporary
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
     human: true
     independence_declared: false
@@ -286,31 +292,34 @@ players.players {
     crosses: 0
     discovered_new_world: temporary
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
     human: true
     independence_declared: false
@@ -421,31 +430,34 @@ players.players {
     crosses: 0
     discovered_new_world: temporary
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
     human: true
     independence_declared: false

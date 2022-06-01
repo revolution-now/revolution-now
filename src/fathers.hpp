@@ -18,11 +18,17 @@
 // Rds
 #include "fathers.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // C++ standard library
 #include <string_view>
 #include <vector>
 
 namespace rn {
+
+using FoundingFathersMap =
+    refl::enum_map<e_founding_father, bool>;
 
 /****************************************************************
 ** e_founding_father
@@ -47,3 +53,14 @@ std::string_view founding_father_type_name(
     e_founding_father_type type );
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::FoundingFathersState,
+                     owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::FoundingFathersMap, owned_by_cpp ){};
+
+}

@@ -11,6 +11,7 @@
 #include "player.hpp"
 
 // Revolution Now
+#include "fathers.hpp"
 #include "game-state.hpp"
 #include "gs-players.hpp"
 #include "logger.hpp"
@@ -69,22 +70,6 @@ void linker_dont_discard_module_player() {}
 ** Lua Bindings
 *****************************************************************/
 namespace {
-
-// FoundingFathersMap
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::FoundingFathersMap;
-  auto u  = st.usertype.create<U>();
-
-  u[lua::metatable_key]["__index"] =
-      []( U& obj, e_founding_father father ) {
-        return obj[father];
-      };
-
-  // !! NOTE: because we overwrote the __index metamethod on this
-  // userdata we cannot add any further (non-metatable) members
-  // on this object, since there will be no way to look them up
-  // by name.
-};
 
 LUA_STARTUP( lua::state& st ) {
   using U = ::rn::Player;

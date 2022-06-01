@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "fathers.hpp"
 #include "nation.hpp"
 
 // Rds
@@ -40,17 +39,11 @@ Player& player_for_nation( e_nation nation );
 
 void linker_dont_discard_module_player();
 
-using FoundingFathersMap =
-    refl::enum_map<e_founding_father, bool>;
-
 } // namespace rn
 
 /****************************************************************
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::Player, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::FoundingFathersMap, owned_by_cpp ){};
-
 }

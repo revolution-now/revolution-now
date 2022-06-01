@@ -21,6 +21,12 @@
 // config
 #include "config/fathers.rds.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -60,5 +66,36 @@ string_view founding_father_type_name(
     e_founding_father_type type ) {
   return config_fathers.types[type].name;
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::FoundingFathersMap;
+  auto u  = st.usertype.create<U>();
+
+  u[lua::metatable_key]["__index"] =
+      []( U& obj, e_founding_father father ) {
+        return obj[father];
+      };
+
+  // !! NOTE: because we overwrote the __index metamethod on this
+  // userdata we cannot add any further (non-metatable) members
+  // on this object, since there will be no way to look them up
+  // by name.
+};
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::FoundingFathersState;
+
+  auto u = st.usertype.create<U>();
+
+  u["bells"] = &U::bells;
+  u["has"]   = &U::has;
+};
+
+} // namespace
 
 } // namespace rn

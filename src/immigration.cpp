@@ -120,7 +120,7 @@ e_unit_type pick_next_unit_for_pool(
   // Having William Brewster prevents criminals and servants from
   // showing up on the docks.
   bool has_brewster =
-      player.fathers[e_founding_father::william_brewster];
+      player.fathers.has[e_founding_father::william_brewster];
   if( has_brewster ) {
     weights[e_unit_type::petty_criminal]     = 0.0;
     weights[e_unit_type::indentured_servant] = 0.0;
