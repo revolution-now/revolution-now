@@ -37,15 +37,15 @@ namespace {
 
 unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 
-unique_ptr<OrdersHandler> handle_orders( UnitId,
-                                         orders::wait const&,
-                                         IMapUpdater*, IGui&,
-                                         SettingsState const& ) {
+unique_ptr<OrdersHandler> handle_orders(
+    UnitId, orders::wait const&, IMapUpdater*, IGui&, Player&,
+    TerrainState const&, UnitsState&, SettingsState const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<OrdersHandler> handle_orders(
     UnitId, orders::forfeight const&, IMapUpdater*, IGui&,
+    Player&, TerrainState const&, UnitsState&,
     SettingsState const& ) {
   SHOULD_NOT_BE_HERE;
 }
@@ -70,10 +70,13 @@ maybe<orders_t> pop_unit_orders( UnitId id ) {
 
 std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders, IMapUpdater* map_updater,
-    IGui& gui, SettingsState const& settings ) {
+    IGui& gui, Player& player, TerrainState const& terrain_state,
+    UnitsState& units_state, SettingsState const& settings ) {
   CHECK( !unit_from_id( id ).mv_pts_exhausted() );
-  return visit( orders, LC( handle_orders( id, _, map_updater,
-                                           gui, settings ) ) );
+  return visit(
+      orders, LC( handle_orders( id, _, map_updater, gui, player,
+                                 terrain_state, units_state,
+                                 settings ) ) );
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {

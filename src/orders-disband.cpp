@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "game-state.hpp"
 #include "gs-units.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
@@ -27,8 +26,11 @@ namespace rn {
 namespace {
 
 struct DisbandHandler : public OrdersHandler {
-  DisbandHandler( UnitId unit_id_, IGui& gui_arg )
-    : unit_id( unit_id_ ), gui( gui_arg ) {}
+  DisbandHandler( UnitId unit_id_, IGui& gui_arg,
+                  UnitsState& units_state_arg )
+    : unit_id( unit_id_ ),
+      gui( gui_arg ),
+      units_state( units_state_arg ) {}
 
   wait<bool> confirm() override {
     auto q = fmt::format( "Really disband {}?",
@@ -40,12 +42,13 @@ struct DisbandHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    GameState::units().destroy_unit( unit_id );
+    units_state.destroy_unit( unit_id );
     co_return;
   }
 
-  UnitId unit_id;
-  IGui&  gui;
+  UnitId      unit_id;
+  IGui&       gui;
+  UnitsState& units_state;
 };
 
 } // namespace
@@ -55,8 +58,9 @@ struct DisbandHandler : public OrdersHandler {
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::disband const&, IMapUpdater*, IGui& gui,
+    Player&, TerrainState const&, UnitsState& units_state,
     SettingsState const& ) {
-  return make_unique<DisbandHandler>( id, gui );
+  return make_unique<DisbandHandler>( id, gui, units_state );
 }
 
 } // namespace rn

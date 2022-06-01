@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "game-state.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
@@ -26,12 +25,16 @@ namespace rn {
 namespace {
 
 struct RoadHandler : public OrdersHandler {
-  RoadHandler( IGui& gui_arg, UnitId unit_id_ )
-    : gui( gui_arg ), unit_id( unit_id_ ) {}
+  RoadHandler( IGui& gui_arg, UnitId unit_id_arg,
+               TerrainState const& terrain_state_arg,
+               UnitsState&         units_state_arg )
+    : gui( gui_arg ),
+      unit_id( unit_id_arg ),
+      terrain_state( terrain_state_arg ),
+      units_state( units_state_arg ) {}
 
   wait<bool> confirm() override {
-    UnitsState const& units_state = GameState::units();
-    Unit const&       unit = units_state.unit_for( unit_id );
+    Unit const& unit = units_state.unit_for( unit_id );
     if( unit.type() == e_unit_type::hardy_colonist ) {
       co_await gui.message_box(
           "This @[H]Hardy Pioneer@[] requires at least 20 tools "
@@ -46,7 +49,8 @@ struct RoadHandler : public OrdersHandler {
       co_return false;
     }
     UnitOwnership_t const& ownership =
-        units_state.ownership_of( unit_id );
+        static_cast<UnitsState const&>( units_state )
+            .ownership_of( unit_id );
     if( !ownership.is<UnitOwnership::world>() ) {
       // This can happen if a pioneer is on a ship asking for or-
       // ders and it is given road-building orders.
@@ -56,7 +60,6 @@ struct RoadHandler : public OrdersHandler {
       co_return false;
     }
     Coord world_square = units_state.coord_for( unit_id );
-    TerrainState const& terrain_state = GameState::terrain();
     CHECK( terrain_state.is_land( world_square ) );
     if( has_road( terrain_state, world_square ) ) {
       co_await gui.message_box(
@@ -68,8 +71,7 @@ struct RoadHandler : public OrdersHandler {
 
   wait<> perform() override {
     lg.info( "building a road." );
-    UnitsState& units_state = GameState::units();
-    Unit&       unit        = units_state.unit_for( unit_id );
+    Unit& unit = units_state.unit_for( unit_id );
     // The unit of course does not need movement points to build
     // a road, but we use those to also track if the unit has
     // used up its turn.
@@ -84,8 +86,10 @@ struct RoadHandler : public OrdersHandler {
     co_return;
   }
 
-  IGui&  gui;
-  UnitId unit_id;
+  IGui&               gui;
+  UnitId              unit_id;
+  TerrainState const& terrain_state;
+  UnitsState&         units_state;
 };
 
 } // namespace
@@ -95,8 +99,10 @@ struct RoadHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::road const& /*road*/, IMapUpdater*,
-    IGui&  gui, SettingsState const& ) {
-  return make_unique<RoadHandler>( gui, id );
+    IGui& gui, Player&, TerrainState const& terrain_state,
+    UnitsState& units_state, SettingsState const& ) {
+  return make_unique<RoadHandler>( gui, id, terrain_state,
+                                   units_state );
 }
 
 } // namespace rn

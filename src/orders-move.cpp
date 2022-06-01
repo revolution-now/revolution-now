@@ -169,14 +169,16 @@ wait<maybe<MovementPoints>> check_movement_points(
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
   TravelHandler( UnitId unit_id_, e_direction d,
-                 IMapUpdater&  map_updater,
-                 TerrainState& terrain_state, IGui& gui,
+                 IMapUpdater&        map_updater,
+                 TerrainState const& terrain_state, IGui& gui,
+                 UnitsState&          units_state,
                  SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
       terrain_state_( terrain_state ),
       gui_( gui ),
+      units_state_( units_state ),
       settings_( settings ) {}
 
   enum class e_travel_verdict {
@@ -312,9 +314,11 @@ struct TravelHandler : public OrdersHandler {
 
   IMapUpdater& map_updater_;
 
-  TerrainState& terrain_state_;
+  TerrainState const& terrain_state_;
 
   IGui& gui_;
+
+  UnitsState& units_state_;
 
   SettingsState const& settings_;
 };
@@ -437,10 +441,8 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
-  UnitsState const& units_state = GameState::units();
-
   UnitId      id   = unit_id;
-  Unit const& unit = units_state.unit_for( id );
+  Unit const& unit = units_state_.unit_for( id );
   move_src         = coord_for_unit_indirect_or_die( id );
   move_dst         = move_src.moved( direction );
 
@@ -642,10 +644,9 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto        id          = unit_id;
-  UnitsState& units_state = GameState::units();
-  auto&       unit        = units_state.unit_for( id );
-  Player&     player      = player_for_nation( unit.nation() );
+  auto    id     = unit_id;
+  auto&   unit   = units_state_.unit_for( id );
+  Player& player = player_for_nation( unit.nation() );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -673,7 +674,7 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      co_await unit_to_map_square( units_state, terrain_state_,
+      co_await unit_to_map_square( units_state_, terrain_state_,
                                    player, settings_, gui_,
                                    map_updater_, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
@@ -682,8 +683,7 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      GameState::units().change_to_cargo_somewhere( *target_unit,
-                                                    id );
+      units_state_.change_to_cargo_somewhere( *target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -694,14 +694,14 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      co_await unit_to_map_square( units_state, terrain_state_,
+      co_await unit_to_map_square( units_state_, terrain_state_,
                                    player, settings_, gui_,
                                    map_updater_, id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      co_await unit_to_map_square( units_state, terrain_state_,
+      co_await unit_to_map_square( units_state_, terrain_state_,
                                    player, settings_, gui_,
                                    map_updater_, id, move_dst );
       // When a ship moves into port it forfeights its movement
@@ -760,7 +760,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::map_edge_high_seas: {
       UnitHarborViewState_t state =
           UnitHarborViewState::inbound{ .percent = 0.0 };
-      GameState::units().change_to_harbor_view( id, state );
+      units_state_.change_to_harbor_view( id, state );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -784,14 +784,17 @@ wait<> TravelHandler::perform() {
 *****************************************************************/
 struct AttackHandler : public OrdersHandler {
   AttackHandler( UnitId unit_id_, e_direction d,
-                 IMapUpdater&  map_updater,
-                 TerrainState& terrain_state, IGui& gui,
+                 IMapUpdater&        map_updater,
+                 TerrainState const& terrain_state, IGui& gui,
+                 Player& player, UnitsState& units_state,
                  SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
       terrain_state_( terrain_state ),
       gui_( gui ),
+      player_( player ),
+      units_state_( units_state ),
       settings_( settings ) {}
 
   enum class e_attack_verdict {
@@ -932,9 +935,13 @@ struct AttackHandler : public OrdersHandler {
 
   IMapUpdater& map_updater_;
 
-  TerrainState& terrain_state_;
+  TerrainState const& terrain_state_;
 
   IGui& gui_;
+
+  Player& player_;
+
+  UnitsState& units_state_;
 
   SettingsState const& settings_;
 };
@@ -1005,13 +1012,14 @@ AttackHandler::confirm_attack_impl() {
 
   // If military units are exhausted then attack the colony.
   if( colony_at_dst && units_at_dst.empty() ) {
-    auto const&    colony = colony_from_id( *colony_at_dst );
-    vector<UnitId> units_working_in_colony = colony.units();
-    CHECK( units_working_in_colony.size() > 0 );
+    unordered_set<UnitId> const& units_working_in_colony =
+        units_state_.from_colony( *colony_at_dst );
+    vector<UnitId> sorted( units_working_in_colony.begin(),
+                           units_working_in_colony.end() );
+    CHECK( sorted.size() > 0 );
     // Sort since order is otherwise unspecified.
-    sort( units_working_in_colony.begin(),
-          units_working_in_colony.end() );
-    units_at_dst.push_back( units_working_in_colony[0] );
+    sort( sorted.begin(), sorted.end() );
+    units_at_dst.push_back( sorted[0] );
   }
   CHECK( !units_at_dst.empty() );
   // Now let's find the unit with the highest defense points
@@ -1128,11 +1136,6 @@ wait<> AttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = unit_from_id( id );
 
-  UnitsState&   units_state   = GameState::units();
-  PlayersState& players_state = GameState::players();
-  Player&       player =
-      player_for_nation( players_state, unit.nation() );
-
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( target_unit.has_value() );
@@ -1169,7 +1172,7 @@ wait<> AttackHandler::perform() {
       change_colony_nation( colony_id, attacker.nation() );
       // 2. The attacker moves into the colony square.
       co_await unit_to_map_square(
-          units_state, terrain_state_, player, settings_, gui_,
+          units_state_, terrain_state_, player_, settings_, gui_,
           map_updater_, attacker.id(), attack_dst );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
@@ -1191,7 +1194,7 @@ wait<> AttackHandler::perform() {
     case e::destroy: {
       e_unit_type loser_type   = loser.type();
       e_nation    loser_nation = loser.nation();
-      GameState::units().destroy_unit( loser.id() );
+      units_state_.destroy_unit( loser.id() );
       if( loser_type == e_unit_type::scout ||
           loser_type == e_unit_type::seasoned_scout )
         co_await gui_.message_box(
@@ -1219,7 +1222,7 @@ wait<> AttackHandler::perform() {
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
-      GameState::units().destroy_unit( loser.id() );
+      units_state_.destroy_unit( loser.id() );
       co_await gui_.message_box( msg );
       break;
     }
@@ -1228,8 +1231,8 @@ wait<> AttackHandler::perform() {
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
         co_await unit_to_map_square(
-            units_state, terrain_state_, player, settings_, gui_,
-            map_updater_, loser.id(),
+            units_state_, terrain_state_, player_, settings_,
+            gui_, map_updater_, loser.id(),
             coord_for_unit_indirect_or_die( winner.id() ) );
         // This is so that the captured unit won't ask for orders
         // in the same turn that it is captured.
@@ -1257,32 +1260,36 @@ wait<> AttackHandler::perform() {
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch(
     UnitId id, e_direction d, IMapUpdater& map_updater,
-    TerrainState& terrain_state, IGui& gui,
-    SettingsState const& settings ) {
+    TerrainState const& terrain_state, IGui& gui, Player& player,
+    UnitsState& units_state, SettingsState const& settings ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = unit_from_id( id );
 
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>(
-        id, d, map_updater, terrain_state, gui, settings );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state, gui,
+                                       units_state, settings );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>(
-        id, d, map_updater, terrain_state, gui, settings );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state, gui,
+                                       units_state, settings );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>(
-        id, d, map_updater, terrain_state, gui, settings );
+    return make_unique<TravelHandler>( id, d, map_updater,
+                                       terrain_state, gui,
+                                       units_state, settings );
 
   // Must be an attack.
-  return make_unique<AttackHandler>(
-      id, d, map_updater, terrain_state, gui, settings );
+  return make_unique<AttackHandler>( id, d, map_updater,
+                                     terrain_state, gui, player,
+                                     units_state, settings );
 }
 
 } // namespace
@@ -1292,10 +1299,10 @@ unique_ptr<OrdersHandler> dispatch(
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv, IMapUpdater* map_updater,
-    IGui& gui, SettingsState const& settings ) {
-  TerrainState& terrain_state = GameState::terrain();
+    IGui& gui, Player& player, TerrainState const& terrain_state,
+    UnitsState& units_state, SettingsState const& settings ) {
   return dispatch( id, mv.d, *map_updater, terrain_state, gui,
-                   settings );
+                   player, units_state, settings );
 }
 
 } // namespace rn

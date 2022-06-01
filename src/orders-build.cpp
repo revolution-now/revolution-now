@@ -16,7 +16,6 @@
 #include "colony-view.hpp"
 #include "map-updater.hpp"
 #include "maybe.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "window.hpp"
 
 // Rds
@@ -125,7 +124,8 @@ struct BuildHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater, IGui& gui, SettingsState const& ) {
+    IMapUpdater* map_updater, IGui& gui, Player&,
+    TerrainState const&, UnitsState&, SettingsState const& ) {
   return make_unique<BuildHandler>( map_updater, gui, id );
 }
 
