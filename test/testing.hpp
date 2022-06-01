@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "stacktrace.hpp"
 
 // base
 #include "base/fs.hpp"
