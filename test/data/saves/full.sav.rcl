@@ -13,8 +13,8 @@ land_view.viewport {
 
 players.players {
   dutch {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: temporary
     fathers {
       adam_smith: false
       bartolome_de_las_casas: false
@@ -46,7 +46,7 @@ players.players {
     independence_declared: false
     money: 1000
     nation: dutch
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -56,7 +56,7 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          jesuit_missionary,
           free_colonist,
           seasoned_scout,
         ]
@@ -148,8 +148,8 @@ players.players {
     }
   }
   english {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: temporary
     fathers {
       adam_smith: false
       bartolome_de_las_casas: false
@@ -181,7 +181,7 @@ players.players {
     independence_declared: false
     money: 1000
     nation: english
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -191,9 +191,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          expert_tobacco_planter,
           free_colonist,
-          seasoned_scout,
+          scout,
         ]
         next_recruit_cost_base: 50
       }
@@ -283,8 +283,8 @@ players.players {
     }
   }
   french {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: temporary
     fathers {
       adam_smith: false
       bartolome_de_las_casas: false
@@ -316,7 +316,7 @@ players.players {
     independence_declared: false
     money: 1000
     nation: french
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -326,9 +326,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          indentured_servant,
+          master_blacksmith,
           free_colonist,
-          seasoned_scout,
         ]
         next_recruit_cost_base: 50
       }
@@ -418,8 +418,8 @@ players.players {
     }
   }
   spanish {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: temporary
     fathers {
       adam_smith: false
       bartolome_de_las_casas: false
@@ -451,7 +451,7 @@ players.players {
     independence_declared: false
     money: 1000
     nation: spanish
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -461,9 +461,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
-          free_colonist,
-          seasoned_scout,
+          veteran_dragoon,
+          indentured_servant,
+          master_blacksmith,
         ]
         next_recruit_cost_base: 50
       }

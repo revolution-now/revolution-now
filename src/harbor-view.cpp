@@ -74,8 +74,7 @@ HarborState& get_harbor_state() {
   // FIXME: dutch is hard coded.
   return GameState::players()
       .players[e_nation::dutch]
-      .old_world()
-      .harbor_state;
+      .old_world.harbor_state;
 }
 
 /****************************************************************

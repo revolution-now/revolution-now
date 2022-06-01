@@ -175,10 +175,10 @@ wait<> evolve_colony_one_turn( ColonyId             id,
       co_await show_colony_view( id, map_updater );
   }
 
-  // Temporary.
+  // Temporary. FIXME
   Player& player =
       player_for_nation( GameState::players(), colony.nation() );
-  player.set_crosses( player.crosses() + 10 );
+  player.crosses += 10;
 }
 
 void change_colony_nation( ColonyId id, e_nation new_nation ) {

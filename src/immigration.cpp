@@ -120,7 +120,7 @@ e_unit_type pick_next_unit_for_pool(
   // Having William Brewster prevents criminals and servants from
   // showing up on the docks.
   bool has_brewster =
-      player.has_father( e_founding_father::william_brewster );
+      player.fathers[e_founding_father::william_brewster];
   if( has_brewster ) {
     weights[e_unit_type::petty_criminal]     = 0.0;
     weights[e_unit_type::indentured_servant] = 0.0;
@@ -193,10 +193,10 @@ void add_player_crosses( Player& player,
   int const delta =
       total_colonies_cross_production + dock_crosses_bonus;
   if( delta < 0 ) return;
-  lg.debug( "{} crosses increased by {}.", player.nation(),
+  lg.debug( "{} crosses increased by {}.", player.nation,
             delta );
-  int const crosses = player.crosses();
-  player.set_crosses( crosses + delta );
+  int const crosses = player.crosses;
+  player.crosses    = crosses + delta;
 }
 
 /****************************************************************

@@ -31,7 +31,7 @@ function M.default_options()
 end
 
 local function create_old_world_state( settings, player )
-  local old_world = player:old_world()
+  local old_world = player.old_world
   -- Immigrants state.
   old_world.immigration.next_recruit_cost_base = 50
   old_world.immigration.immigrants_pool[1] =
@@ -65,12 +65,11 @@ local function create_old_world_state( settings, player )
 end
 
 local function create_player_state( settings, nation, player )
-  player:set_nation( nation )
-  player:set_human( true )
-  player:set_money( 1000 - 250 * settings.difficulty )
+  player.nation = nation
+  player.human = true
+  player.money = 1000 - 250 * settings.difficulty
   -- This is temporary so that it doesn't keep asking us.
-  player:set_discovered_new_world( 'temporary' )
-  -- player:set_crosses( 0 )
+  player.discovered_new_world = 'temporary'
   create_old_world_state( settings, player )
 end
 

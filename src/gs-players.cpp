@@ -31,7 +31,7 @@ base::valid_or<string> PlayersState::validate() const {
   // Check that players have the correct nation relative to their
   // key in the map.
   for( auto const& [nation, player] : players )
-    REFL_VALIDATE( player.nation() == nation,
+    REFL_VALIDATE( player.nation == nation,
                    "mismatch in player nations." );
   return base::valid;
 }
@@ -41,7 +41,7 @@ void reset_players( PlayersState&           players_state,
   auto& players = players_state.players;
   players.clear();
   for( auto nation : nations ) {
-    players.emplace( nation, Player( wrapped::Player{
+    players.emplace( nation, Player( Player{
                                  .nation = nation,
                                  .human  = true,
                                  .money  = 0,

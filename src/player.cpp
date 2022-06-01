@@ -39,30 +39,6 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** Player
-*****************************************************************/
-int Player::add_money( int amount ) {
-  o_.money += amount;
-  return o_.money;
-}
-
-void Player::set_money( int amount ) {
-  DCHECK( amount >= 0 );
-  o_.money = amount;
-}
-
-void Player::set_human( bool yes ) { o_.human = yes; }
-
-void Player::set_crosses( int n ) {
-  DCHECK( n >= 0 );
-  o_.crosses = n;
-}
-
-void Player::set_nation( e_nation nation ) {
-  o_.nation = nation;
-}
-
-/****************************************************************
 ** Public API
 *****************************************************************/
 Player& player_for_nation( e_nation nation ) {
@@ -87,15 +63,6 @@ Player const& player_for_nation(
   return it->second;
 }
 
-// Founding fathers.
-void Player::give_father( e_founding_father father ) {
-  o_.fathers[father] = true;
-}
-
-bool Player::has_father( e_founding_father father ) const {
-  return o_.fathers[father];
-}
-
 void linker_dont_discard_module_player() {}
 
 /****************************************************************
@@ -103,72 +70,35 @@ void linker_dont_discard_module_player() {}
 *****************************************************************/
 namespace {
 
+// FoundingFathersMap
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::FoundingFathersMap;
+  auto u  = st.usertype.create<U>();
+
+  u[lua::metatable_key]["__index"] =
+      []( U& obj, e_founding_father father ) {
+        return obj[father];
+      };
+
+  // !! NOTE: because we overwrote the __index metamethod on this
+  // userdata we cannot add any further (non-metatable) members
+  // on this object, since there will be no way to look them up
+  // by name.
+};
+
 LUA_STARTUP( lua::state& st ) {
   using U = ::rn::Player;
 
   auto u = st.usertype.create<U>();
 
-#if 0
-  // These are methods on U that take no parameters and return a
-  // reference to a sub data structure of U, and thus it makes
-  // more sense to expose them to Lua as non-function fields. The
-  // below is one way to do that, but it is probably not the
-  // right way. A better way would be to teach lua::usertype how
-  // to do it, so that we could e.g. do:
-  //
-  //   u.as_var["old_world"] = []( U& obj ) { ... };
-  //
-  // So that it can check the function signature to ensure that
-  // it takes no additional parameters and so that it can perhaps
-  // reuse the existing __index implementation.
-
-  auto default_index =
-      u[lua::metatable_key]["__index"].as<lua::rfunction>();
-
-  unordered_map<string, lua::rfunction> var_methods{
-      { "old_world",
-        st.function.create( []( U& obj ) -> OldWorldState& {
-          return obj.old_world();
-        } ) },
-  };
-
-  auto replacement_index =
-      [default_index, var_methods = std::move( var_methods )](
-          U& obj, lua::rstring key ) {
-        if( auto it = var_methods.find( key.as_cpp() );
-            it != var_methods.end() )
-          return it->second( obj );
-        return default_index( obj, key );
-      };
-
-  u[lua::metatable_key]["__index"] =
-      std::move( replacement_index );
-#endif
-
-  u["nation"]     = &U::nation;
-  u["set_nation"] = &U::set_nation;
-
-  u["is_human"]  = &U::is_human;
-  u["set_human"] = &U::set_human;
-
-  u["crosses"]     = &U::crosses;
-  u["set_crosses"] = &U::set_crosses;
-
-  u["old_world"] = []( U& obj ) -> OldWorldState& {
-    return obj.old_world();
-  };
-
-  u["add_money"] = &U::add_money;
-  u["money"]     = &U::money;
-  u["set_money"] = &U::set_money;
-
-  u["give_father"] = &U::give_father;
-  u["has_father"]  = &U::has_father;
-
+  u["nation"]                = &U::nation;
+  u["human"]                 = &U::human;
+  u["money"]                 = &U::money;
+  u["crosses"]               = &U::crosses;
+  u["old_world"]             = &U::old_world;
+  u["discovered_new_world"]  = &U::discovered_new_world;
   u["independence_declared"] = &U::independence_declared;
-
-  u["discovered_new_world"]     = &U::discovered_new_world;
-  u["set_discovered_new_world"] = &U::set_discovered_new_world;
+  u["fathers"]               = &U::fathers;
 };
 
 } // namespace

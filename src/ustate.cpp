@@ -147,7 +147,7 @@ wait<UnitId> create_unit_on_map(
     Player& player, SettingsState const& settings, IGui& gui,
     IMapUpdater& map_updater, UnitComposition comp,
     Coord coord ) {
-  UnitId id = create_unit( units_state, player.nation(),
+  UnitId id = create_unit( units_state, player.nation,
                            std::move( comp ) );
   co_await unit_to_map_square( units_state, terrain_state,
                                player, settings, gui,

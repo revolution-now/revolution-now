@@ -31,7 +31,7 @@ namespace rn {
 namespace {
 
 string new_world_name_for( Player const& player ) {
-  return config_nation.nations[player.nation()].new_world_name;
+  return config_nation.nations[player.nation].new_world_name;
 }
 
 wait<> try_discover_new_world( TerrainState const& terrain_state,
@@ -41,7 +41,7 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
   // player if it has a value (meaning, if the new world has been
   // discovered).
   maybe<string> const& new_world_name =
-      player.discovered_new_world();
+      player.discovered_new_world;
   if( new_world_name.has_value() ) co_return;
   for( e_direction d : refl::enum_values<e_direction> ) {
     maybe<MapSquare const&> square =
@@ -53,10 +53,10 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
           .initial_text = new_world_name_for( player ) } );
-    player.set_discovered_new_world( name );
+    player.discovered_new_world = name;
     lg.info( "the new world has been discovered: \"{}\".",
              name );
-    CHECK( player.discovered_new_world().has_value() );
+    CHECK( player.discovered_new_world.has_value() );
     co_return;
   }
 }
@@ -117,7 +117,7 @@ wait<> unit_to_map_square( UnitsState&          units_state,
   unit_to_map_square_no_ui( units_state, map_updater, id,
                             world_square );
 
-  if( !player.discovered_new_world().has_value() )
+  if( !player.discovered_new_world.has_value() )
     co_await try_discover_new_world( terrain_state, player, gui,
                                      world_square );
 

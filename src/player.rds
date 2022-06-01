@@ -16,7 +16,7 @@ include "nation.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
-namespace "rn.wrapped"
+namespace "rn"
 
 struct.Player {
   # Somewhat just for convenience.
@@ -35,7 +35,7 @@ struct.Player {
 
   # The state of all things related to the old world, king, euro-
   # pean market prices, etc.
-  old_world_state 'OldWorldState',
+  old_world 'OldWorldState',
 
   # When the new world is first discovered this will have a value
   # and will be the name given to the new world by the player.
