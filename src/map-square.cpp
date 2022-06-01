@@ -66,8 +66,6 @@ e_terrain effective_terrain( MapSquare const& square ) {
 MovementPoints movement_points_required(
     MapSquare const& src_square, MapSquare const& dst_square,
     e_direction d ) {
-  CHECK( d != e_direction::c );
-
   if( is_water( src_square ) || is_water( dst_square ) )
     return MovementPoints( 1 );
   // Both squares are land.
