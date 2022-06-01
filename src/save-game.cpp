@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "game-state.hpp"
+#include "gs-root.hpp"
 #include "gs-terrain.hpp"
-#include "gs-top.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "render-terrain.hpp"
@@ -73,7 +73,7 @@ string save_game_to_rcl( SaveGameOptions const& opts ) {
   watch.start( "[save] total" );
   watch.start( "  [save] to_canonical" );
   cdr::value cdr_val = cdr::run_conversion_to_canonical(
-      GameState::top(), cdr_opts );
+      GameState::root(), cdr_opts );
   watch.stop( "  [save] to_canonical" );
   cdr::converter conv( cdr_opts );
   UNWRAP_CHECK( tbl, conv.ensure_type<cdr::table>( cdr_val ) );
@@ -112,15 +112,14 @@ valid_or<string> load_game_from_rcl( IMapUpdater&  map_updater,
                  rcl::parse( filename, in, proc_opts ) );
   watch.stop( "  [load] rcl parse" );
   watch.start( "  [load] from_canonical" );
-  UNWRAP_RETURN( top,
-                 run_conversion_from_canonical<TopLevelState>(
-                     rcl_doc.top_val(), cdr_opts ) );
+  UNWRAP_RETURN( root, run_conversion_from_canonical<RootState>(
+                           rcl_doc.top_val(), cdr_opts ) );
   watch.stop( "  [load] from_canonical" );
   watch.stop( "[load] total" );
   print_time( watch, "[load] total" );
   print_time( watch, "  [load] rcl parse" );
   print_time( watch, "  [load] from_canonical" );
-  GameState::top() = std::move( top );
+  GameState::root() = std::move( root );
   map_updater.just_redraw_map();
   return valid;
 }

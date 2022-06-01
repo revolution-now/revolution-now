@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-top.cpp
+**gs-root.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *              saved when a game is saved.
 *
 *****************************************************************/
-#include "gs-top.hpp"
+#include "gs-root.hpp"
 
 // Revolution Now
 #include "gs-players.hpp"
@@ -93,14 +93,14 @@ valid_or<string> FormatVersion::validate() const {
   return valid;
 }
 
-valid_or<string> wrapped::TopLevelState::validate() const {
+valid_or<string> wrapped::RootState::validate() const {
   HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
   HAS_VALUE_OR_RET(
       validate_interaction( colonies, zzz_terrain ) );
   return valid;
 }
 
-valid_or<string> TopLevelState::validate() const {
+valid_or<string> RootState::validate() const {
   // First validate reflected part.
   HAS_VALUE_OR_RET( o_.validate() );
   // Now validate transient state.
@@ -108,19 +108,18 @@ valid_or<string> TopLevelState::validate() const {
   return valid;
 }
 
-void TopLevelState::validate_or_die() const {
+void RootState::validate_or_die() const {
   CHECK_HAS_VALUE( validate() );
 }
 
-TopLevelState::TopLevelState( wrapped::TopLevelState&& o )
+RootState::RootState( wrapped::RootState&& o )
   : o_( std::move( o ) ) {
   // Populate any transient fields.
   o_.land_view.viewport.set_max_viewable_size_tiles(
       o_.zzz_terrain.world_map().size() );
 }
 
-TopLevelState::TopLevelState()
-  : TopLevelState( wrapped::TopLevelState{} ) {
+RootState::RootState() : RootState( wrapped::RootState{} ) {
   validate_or_die();
 }
 
@@ -129,9 +128,9 @@ TopLevelState::TopLevelState()
 *****************************************************************/
 namespace {
 
-// TopLevelState
+// RootState
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::TopLevelState;
+  using U = ::rn::RootState;
   auto u  = st.usertype.create<U>();
 
   // u["version"] = []( U& obj ) -> decltype( auto ) {

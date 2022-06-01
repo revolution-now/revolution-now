@@ -36,7 +36,7 @@ rr::Renderer& renderer() {
 
 void full_init() {
   run_all_init_routines( e_log_level::debug );
-  lua_reload();
+  lua_reload( GameState::root() );
   MapUpdater map_updater( GameState::terrain(), renderer() );
 }
 
@@ -61,7 +61,7 @@ void run( e_mode mode ) {
           e_log_level::warn,
           { e_init_routine::configs, e_init_routine::lua,
             e_init_routine::rng } );
-      lua_reload();
+      lua_reload( GameState::root() );
       NonRenderingMapUpdater map_updater( GameState::terrain() );
       ascii_map_gen();
       break;

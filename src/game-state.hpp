@@ -46,7 +46,7 @@ struct ColoniesState;
 struct LandViewState;
 struct TerrainState;
 
-struct TopLevelState;
+struct RootState;
 
 /****************************************************************
 ** GameState
@@ -62,7 +62,7 @@ struct GameState {
   static LandViewState& land_view();
   static TerrainState&  terrain();
 
-  static TopLevelState& top();
+  static RootState& root();
 };
 
 } // namespace rn

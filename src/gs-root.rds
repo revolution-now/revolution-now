@@ -1,5 +1,5 @@
 # ===============================================================
-# top.rds
+# gs-root.rds
 #
 # Project: Revolution Now
 #
@@ -33,7 +33,7 @@ struct.FormatVersion {
 
 namespace "rn.wrapped"
 
-struct.TopLevelState {
+struct.RootState {
   version 'rn::FormatVersion',
   settings 'rn::SettingsState',
   events 'rn::EventsState',

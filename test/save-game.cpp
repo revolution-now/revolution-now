@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "src/game-state.hpp"
-#include "src/gs-top.hpp"
+#include "src/gs-root.hpp"
 #include "src/lua.hpp"
 #include "src/rand.hpp"
 
@@ -161,7 +161,7 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   create_new_game_from_lua();
-  TopLevelState backup = std::move( GameState::top() );
+  RootState backup = std::move( GameState::root() );
   default_construct_game_state();
   reset_seeds();
   create_new_game_from_lua();
@@ -183,7 +183,7 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
-  REQUIRE( ( backup == GameState::top() ) );
+  REQUIRE( ( backup == GameState::root() ) );
 }
 
 TEST_CASE(
@@ -192,7 +192,7 @@ TEST_CASE(
   reset_seeds();
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   create_new_game_from_lua();
-  TopLevelState backup = std::move( GameState::top() );
+  RootState backup = std::move( GameState::root() );
   default_construct_game_state();
   reset_seeds();
   create_new_game_from_lua();
@@ -215,7 +215,7 @@ TEST_CASE(
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
-  REQUIRE( ( backup == GameState::top() ) );
+  REQUIRE( ( backup == GameState::root() ) );
 }
 
 #endif

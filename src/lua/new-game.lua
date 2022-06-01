@@ -73,9 +73,9 @@ local function create_player_state( settings, nation, player )
   create_old_world_state( settings, player )
 end
 
-local function create_nations( options, top )
-  local players = top:players().players
-  local settings = top:settings()
+local function create_nations( options, root )
+  local players = root:players().players
+  local settings = root:settings()
   for _, nation in ipairs( options.nations ) do
     local player = players:reset_player( nation )
     create_player_state( settings, nation, player )
@@ -92,14 +92,14 @@ function M.create( options )
     if options[k] == nil then options[k] = v end
   end
 
-  local top = game_state.top()
+  local root = ROOT_STATE
 
   local difficulty_int =
       DIFFICULTY_NAMES[options.difficulty_name]
-  local settings = top:settings()
+  local settings = root:settings()
   settings.difficulty = assert( difficulty_int )
 
-  create_nations( options, top )
+  create_nations( options, root )
 
   map_gen.generate_terrain()
 

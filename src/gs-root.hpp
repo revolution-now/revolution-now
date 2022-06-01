@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-top.hpp
+**gs-root.hpp
 *
 * Project: Revolution Now
 *
@@ -14,22 +14,22 @@
 #include "core-config.hpp"
 
 // Rds
-#include "gs-top.rds.hpp"
+#include "gs-root.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
 namespace rn {
 
-struct TopLevelState {
-  TopLevelState();
-  bool operator==( TopLevelState const& ) const = default;
+struct RootState {
+  RootState();
+  bool operator==( RootState const& ) const = default;
 
   // Implement refl::WrapsReflected.
-  TopLevelState( wrapped::TopLevelState&& o );
-  wrapped::TopLevelState const&     refl() const { return o_; }
+  RootState( wrapped::RootState&& o );
+  wrapped::RootState const&         refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
-  static constexpr std::string_view refl_name = "TopLevelState";
+  static constexpr std::string_view refl_name = "RootState";
 
   valid_or<std::string> validate() const;
   void                  validate_or_die() const;
@@ -63,7 +63,7 @@ struct TopLevelState {
 
  private:
   // ----- Serializable state.
-  wrapped::TopLevelState o_;
+  wrapped::RootState o_;
 
   // ----- Non-serializable (transient) state.
   // None.
@@ -76,6 +76,6 @@ struct TopLevelState {
 *****************************************************************/
 namespace lua {
 
-LUA_USERDATA_TRAITS( ::rn::TopLevelState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::RootState, owned_by_cpp ){};
 
 } // namespace lua

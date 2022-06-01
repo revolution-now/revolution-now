@@ -14,6 +14,7 @@
 #include "co-combinator.hpp"
 #include "conductor.hpp"
 #include "game-state.hpp"
+#include "gs-root.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
@@ -73,7 +74,6 @@ wait<> run_loaded_game( PlayersState&        players_state,
 ** Public API
 *****************************************************************/
 wait<> run_existing_game( IGui& gui ) {
-  lua_reload();
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.
@@ -81,6 +81,7 @@ wait<> run_existing_game( IGui& gui ) {
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
+  lua_reload( GameState::root() );
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
@@ -90,8 +91,8 @@ wait<> run_existing_game( IGui& gui ) {
 }
 
 wait<> run_new_game( IGui& gui ) {
-  lua_reload();
   default_construct_game_state();
+  lua_reload( GameState::root() );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.

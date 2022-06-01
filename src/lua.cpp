@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
+#include "gs-root.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 
@@ -23,6 +24,9 @@
 #include "luapp/iter.hpp"
 #include "luapp/state.hpp"
 #include "luapp/usertype.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // base
 #include "base/to-str-ext-std.hpp"
@@ -85,7 +89,7 @@ void reset_lua_state() {
   CHECK( g_lua["log"] == lua::nil );
   lua::table log = lua::table::create_or_get( g_lua["log"] );
   log["info"]    = []( string const& msg ) {
-       lg.info( "{}", msg );
+    lg.info( "{}", msg );
   };
   log["debug"] = []( string const& msg ) {
     lg.debug( "{}", msg );
@@ -166,10 +170,11 @@ void load_lua_modules() {
     require( path.stem() );
 }
 
-void lua_reload() {
+void lua_reload( RootState& root_state ) {
   reset_lua_state();
   run_lua_startup_routines();
   load_lua_modules();
+  g_lua["ROOT_STATE"] = root_state;
   // Freeze all existing global variables and tables.
   g_lua["meta"]["freeze_all"]();
 }
@@ -186,10 +191,5 @@ vector<string> format_lua_error_msg( string const& msg ) {
 void register_lua_fn( LuaRegistrationFnSig* const* fn ) {
   registration_functions().push_back( fn );
 }
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void reset_state() { lua_reload(); }
 
 } // namespace rn

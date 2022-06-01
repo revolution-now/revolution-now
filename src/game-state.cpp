@@ -11,11 +11,7 @@
 #include "game-state.hpp"
 
 // Revolution Now
-#include "gs-top.hpp"
-#include "lua.hpp"
-
-// luapp
-#include "luapp/state.hpp"
+#include "gs-root.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -29,8 +25,8 @@ namespace rn {
 
 namespace {
 
-TopLevelState& g_state() {
-  static TopLevelState top;
+RootState& g_state() {
+  static RootState top;
   return top;
 }
 
@@ -69,7 +65,7 @@ TerrainState& GameState::terrain() {
   return g_state().terrain();
 }
 
-TopLevelState& GameState::top() { return g_state(); }
+RootState& GameState::root() { return g_state(); }
 
 /****************************************************************
 ** Public API
@@ -81,15 +77,5 @@ valid_or<std::string> validate_game_state() {
 }
 
 void default_construct_game_state() { g_state() = {}; }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// TODO: this is probably temporary.
-LUA_FN( top, TopLevelState& ) { return g_state(); }
-
-} // namespace
 
 } // namespace rn

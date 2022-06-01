@@ -25,7 +25,7 @@ fs::path const& data_dir() {
 
 void default_construct_all_game_state() {
   rn::default_construct_game_state();
-  rn::lua_reload();
+  rn::lua_reload( rn::GameState::root() );
 }
 
 } // namespace testing

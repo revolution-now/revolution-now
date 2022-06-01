@@ -9,6 +9,7 @@
 *
 *****************************************************************/
 // Revolution Now
+#include "game-state.hpp" // FIXME: temporary
 #include "init.hpp"
 #include "linking.hpp"
 #include "lua.hpp"
@@ -26,7 +27,7 @@ int main( int argc, char** argv ) {
                              e_init_routine::rng,     //
                              e_init_routine::lua,     //
                          } );
-  lua_reload();
+  lua_reload( GameState::root() ); // FIXME: temporary
 
   int result = Catch::Session().run( argc, argv );
 
