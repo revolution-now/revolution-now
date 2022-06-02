@@ -11,50 +11,62 @@
 namespace "rn"
 
 enum.e_colony_building {
-  # Free buildings.
-  blacksmiths_house,
-  carpenters_shop,
-  fur_traders_house,
-  rum_distillers_house,
-  tobacconists_house,
-  town_hall,
-  weavers_house,
-
-  # Level 1 buildings.
+  # House-level.
   armory,
-  docks,
-  printing_press,
-  schoolhouse,
-  stable,
-  stockade,
-  warehouse,
+  blacksmiths_house,     # free
+  carpenters_shop,       # free
+  fur_traders_house,     # free
+  rum_distillers_house,  # free
+  tobacconists_house,    # free
+  weavers_house,         # free
 
-  # Level 2 buildings.
+  # Shop-level.
   blacksmiths_shop,
-  church,
-  college,
-  drydock,
-  fort,
   fur_trading_post,
   lumber_mill,
   magazine,
-  newspaper,
   rum_distillery,
   tobacconists_shop,
-  warehouse_expansion,
   weavers_shop,
 
-  # Level 3 buildings.
+  # Factory-level.
   arsenal,
-  cathedral,
   cigar_factory,
-  fortress,
   fur_factory,
   iron_works,
   rum_factory,
-  shipyard,
   textile_mill,
+
+  # Bells.
+  town_hall,             # free
+  printing_press,
+  newspaper,
+
+  # Instruction.
+  schoolhouse,
+  college,
   university,
+
+  # Offshore.
+  docks,
+  drydock,
+  shipyard,
+
+  # Horses.
+  stable,
+
+  # Defense.
+  stockade,
+  fort,
+  fortress,
+
+  # Warehouses.
+  warehouse,
+  warehouse_expansion,
+
+  # Crosses.
+  church,
+  cathedral,
 
   # Special buildings.
   custom_house,

@@ -1,21 +1,31 @@
 " =========================== Config ============================
+ " \ 'render/vertex',
+ " \ 'render/generic',
+ " \ 'render/painter',
+ " \ 'render/renderer',
+ " \ 'terrain',
+ " \ 'config/terrain',
+ " \ 'map-square',
+ " \ 'map-updater',
+ " \ 'gs-terrain',
+ " \ 'land-view',
+ " \ 'map-edit',
+ " \ 'render-terrain',
+ " \ 'map-gen',
+ " \ 'on-map',
 let s:stems = [
- \ 'render/vertex',
- \ 'render/generic',
- \ 'render/painter',
- \ 'render/renderer',
- \ 'terrain',
- \ 'config/terrain',
- \ 'map-square',
- \ 'map-updater',
- \ 'gs-terrain',
- \ 'land-view',
- \ 'map-edit',
- \ 'render-terrain',
- \ 'map-gen',
- \ 'on-map',
  \ 'old-world-state',
+ \ 'player',
  \ 'immigration',
+ \ 'turn',
+ \ 'colony',
+ \ 'gs-colonies',
+ \ 'cstate',
+ \ 'colony-view',
+ \ 'colony-mfg',
+ \ 'colony-mgr',
+ \ 'production',
+ \ 'config/production',
 \]
 
 let s:luas = [
@@ -45,7 +55,9 @@ function s:Open3( stem )
     exe 'silent tabnew src/' . a:stem . '.hpp'
   endif
   exe 'silent vsplit src/' . a:stem . '.cpp'
-  if filereadable( 'test/' . a:stem . '.cpp' )
+  if a:stem =~ '^config/'
+    exe 'silent vsplit config/rcl/' . fnamemodify( a:stem, ':t:r' ) . '.rcl'
+  elseif filereadable( 'test/' . a:stem . '.cpp' )
     exe 'silent vsplit test/' . a:stem . '.cpp'
   else
     " Turn off auto template initialization, create the file,

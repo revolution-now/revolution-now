@@ -1,0 +1,40 @@
+# ===============================================================
+# production.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-31.
+#
+# Description: Rds definitions for the production module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_colony_product {
+  # Produced on land.
+  food,
+  fish,
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  lumber,
+  ore,
+  silver,
+
+  # Produced in buildings from raw materials.
+  rum,
+  cigars,
+  cloth,
+  coats,
+  tools,
+  muskets,
+  hammers,
+
+  # Horses.
+  horses,
+
+  # Produced in buildings.
+  bells,
+  crosses,
+}
