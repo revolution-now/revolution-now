@@ -74,8 +74,8 @@ local function create_player_state( settings, nation, player )
 end
 
 local function create_nations( options, root )
-  local players = root:players().players
-  local settings = root:settings()
+  local players = root.players.players
+  local settings = root.settings
   for _, nation in ipairs( options.nations ) do
     local player = players:reset_player( nation )
     create_player_state( settings, nation, player )
@@ -99,11 +99,11 @@ function M.create( options )
 
   local root = ROOT_STATE
 
-  create_turn_state( root:turn() )
+  create_turn_state( root.turn )
 
   local difficulty_int =
       DIFFICULTY_NAMES[options.difficulty_name]
-  local settings = root:settings()
+  local settings = root.settings
   settings.difficulty = assert( difficulty_int )
 
   create_nations( options, root )

@@ -570,7 +570,6 @@ settings.difficulty: 0
 
 turn {
   nation: null
-  need_eot: false
   remainder: []
   started: false
   time_point {

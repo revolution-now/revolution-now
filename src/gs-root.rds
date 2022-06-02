@@ -31,7 +31,7 @@ struct.FormatVersion {
   _features { equality, validation }
 }
 
-namespace "rn.wrapped"
+namespace "rn"
 
 struct.RootState {
   version 'rn::FormatVersion',

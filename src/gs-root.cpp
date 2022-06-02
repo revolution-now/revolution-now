@@ -94,34 +94,11 @@ valid_or<string> FormatVersion::validate() const {
   return valid;
 }
 
-valid_or<string> wrapped::RootState::validate() const {
+valid_or<string> RootState::validate() const {
   HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
   HAS_VALUE_OR_RET(
       validate_interaction( colonies, zzz_terrain ) );
   return valid;
-}
-
-valid_or<string> RootState::validate() const {
-  // First validate reflected part.
-  HAS_VALUE_OR_RET( o_.validate() );
-  // Now validate transient state.
-  // n/a.
-  return valid;
-}
-
-void RootState::validate_or_die() const {
-  CHECK_HAS_VALUE( validate() );
-}
-
-RootState::RootState( wrapped::RootState&& o )
-  : o_( std::move( o ) ) {
-  // Populate any transient fields.
-  o_.land_view.viewport.set_max_viewable_size_tiles(
-      o_.zzz_terrain.world_map().size() );
-}
-
-RootState::RootState() : RootState( wrapped::RootState{} ) {
-  validate_or_die();
 }
 
 /****************************************************************
@@ -134,41 +111,15 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::RootState;
   auto u  = st.usertype.create<U>();
 
-  // u["version"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.version();
-  // };
-
-  u["settings"] = []( U& obj ) -> decltype( auto ) {
-    return obj.settings();
-  };
-
-  // u["events"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.events();
-  // };
-
-  // u["units"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.units();
-  // };
-
-  u["players"] = []( U& obj ) -> decltype( auto ) {
-    return obj.players();
-  };
-
-  u["turn"] = []( U& obj ) -> decltype( auto ) {
-    return obj.turn();
-  };
-
-  // u["colonies"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.colonies();
-  // };
-
-  // u["land_view"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.land_view();
-  // };
-
-  u["terrain"] = []( U& obj ) -> decltype( auto ) {
-    return obj.terrain();
-  };
+  // u["version"] = &U::version;
+  u["settings"] = &U::settings;
+  // u["events"] = &U::events;
+  // u["units"] = &U::units;
+  u["players"] = &U::players;
+  u["turn"]    = &U::turn;
+  // u["colonies"] = &U::colonies;
+  // u["land_view"] = &U::land_view;
+  u["terrain"] = &U::zzz_terrain;
 };
 
 } // namespace

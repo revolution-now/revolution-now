@@ -50,21 +50,26 @@ wait<> turn_loop( PlayersState&        players_state,
                   TerrainState const&  terrain_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,
+                  TurnState&           turn_state,
+                  ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
   while( true )
     co_await next_turn( players_state, terrain_state,
-                        units_state, settings, map_updater,
-                        gui );
+                        units_state, settings, turn_state,
+                        colonies_state, map_updater, gui );
 }
 
 wait<> run_loaded_game( PlayersState&        players_state,
                         TerrainState const&  terrain_state,
                         UnitsState&          units_state,
                         SettingsState const& settings,
+                        TurnState&           turn_state,
+                        ColoniesState&       colonies_state,
                         IMapUpdater& map_updater, IGui& gui ) {
   return co::erase( co::try_<game_quit_interrupt>( [&] {
     return turn_loop( players_state, terrain_state, units_state,
-                      settings, map_updater, gui );
+                      settings, turn_state, colonies_state,
+                      map_updater, gui );
   } ) );
 }
 
@@ -86,7 +91,8 @@ wait<> run_existing_game( IGui& gui ) {
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
       GameState::players(), GameState::terrain(),
-      GameState::units(), GameState::settings(), map_updater,
+      GameState::units(), GameState::settings(),
+      GameState::turn(), GameState::colonies(), map_updater,
       gui );
 }
 
@@ -117,7 +123,8 @@ wait<> run_new_game( IGui& gui ) {
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
       GameState::players(), GameState::terrain(),
-      GameState::units(), GameState::settings(), map_updater,
+      GameState::units(), GameState::settings(),
+      GameState::turn(), GameState::colonies(), map_updater,
       gui );
 }
 

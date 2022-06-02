@@ -37,12 +37,13 @@ struct.TurnTimePoint {
   _features { validation, equality }
 }
 
-struct.NationTurn {
+struct.NationTurnState {
   nation 'e_nation',
   started 'bool',
   did_colonies 'bool',
   did_units 'bool', # FIXME: do we need this?
   units 'std::deque<UnitId>',
+  need_eot 'bool',
 }
 
 struct.TurnState {
@@ -50,9 +51,7 @@ struct.TurnState {
 
   started 'bool',
 
-  need_eot 'bool',
-
-  nation 'base::maybe<NationTurn>',
+  nation 'base::maybe<NationTurnState>',
 
   remainder 'std::queue<e_nation>',
 }

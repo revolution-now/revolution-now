@@ -65,7 +65,6 @@ cdr::value cdr_game_state_default = cdr::table{
                     "season"_key = "winter",
                 },
             "started"_key   = false,
-            "need_eot"_key  = false,
             "nation"_key    = cdr::null,
             "remainder"_key = cdr::list{},
         },
