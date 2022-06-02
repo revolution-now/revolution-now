@@ -14,6 +14,7 @@
 // Revolution Now
 #include "gs-players.hpp"
 #include "gs-settings.hpp"
+#include "gs-turn.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
 
@@ -153,9 +154,9 @@ LUA_STARTUP( lua::state& st ) {
     return obj.players();
   };
 
-  // u["turn"] = []( U& obj ) -> decltype( auto ) {
-  //   return obj.turn();
-  // };
+  u["turn"] = []( U& obj ) -> decltype( auto ) {
+    return obj.turn();
+  };
 
   // u["colonies"] = []( U& obj ) -> decltype( auto ) {
   //   return obj.colonies();

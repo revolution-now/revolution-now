@@ -82,6 +82,11 @@ local function create_nations( options, root )
   end
 end
 
+local function create_turn_state( turns_state )
+  turns_state.time_point.year = 1492
+  turns_state.time_point.season = e.season.spring
+end
+
 -- The save-game state should be default-constructed before
 -- calling this.
 function M.create( options )
@@ -93,6 +98,8 @@ function M.create( options )
   end
 
   local root = ROOT_STATE
+
+  create_turn_state( root:turn() )
 
   local difficulty_int =
       DIFFICULTY_NAMES[options.difficulty_name]

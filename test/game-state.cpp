@@ -59,6 +59,11 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "turn"_key =
         cdr::table{
+            "time_point"_key =
+                cdr::table{
+                    "year"_key   = 0,
+                    "season"_key = "winter",
+                },
             "started"_key   = false,
             "need_eot"_key  = false,
             "nation"_key    = cdr::null,

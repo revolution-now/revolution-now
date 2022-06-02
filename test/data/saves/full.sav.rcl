@@ -573,6 +573,10 @@ turn {
   need_eot: false
   remainder: []
   started: false
+  time_point {
+    season: spring
+    year: 1492
+  }
 }
 
 units {
