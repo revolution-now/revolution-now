@@ -356,10 +356,12 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   REQUIRE( w.has_exception() );
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
+  // whether we have 'global' or 'function' depends on whether
+  // globals are frozen or not.
   REQUIRE_THAT( msg, Matches(
     "\\[string \"...\"\\]:15: error from cpp\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
       "\t\\[C\\]: in \\?"
@@ -396,15 +398,17 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   REQUIRE( w.has_exception() );
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
+  // whether we have 'global' or 'function' depends on whether
+  // globals are frozen or not.
   REQUIRE_THAT( msg, Matches(
     "\\[string \"...\"\\]:15: "
     "\\[string \"...\"\\]:24: error from lua\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\t\\[string \"...\"\\]:24: in function 'throw_error_from_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:15: in function 'get_and_add_ints'\n"
       "\t\\[C\\]: in \\?"
@@ -622,6 +626,8 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   REQUIRE( w.has_exception() );
   string msg = base::rethrow_and_get_msg( w.exception() );
   // clang-format off
+  // whether we have 'global' or 'function' depends on whether
+  // globals are frozen or not.
   REQUIRE_THAT( msg, Matches(
     "\\[string \"...\"\\]:19: "
     "\\[string \"...\"\\]:19: "
@@ -629,27 +635,27 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
     "\\[string \"...\"\\]:19: "
     "\\[string \"...\"\\]:19: c\\+\\+ failed\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?\n"
     "stack traceback:\n"
-      "\t\\[C\\]: in global 'error'\n"
+      "\t\\[C\\]: in (global|function) 'error'\n"
       "\tsrc/lua/wait.lua:[0-9]+: in upvalue 'await'\n"
       "\t\\[string \"...\"\\]:19: in function 'accum_lua'\n"
       "\t\\[C\\]: in \\?"

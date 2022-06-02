@@ -15,6 +15,7 @@
 // Revolution Now
 #include "coord.hpp"
 #include "expect.hpp"
+#include "game-state.hpp"
 #include "gs-root.hpp"
 #include "lua.hpp"
 
@@ -35,11 +36,6 @@ using namespace rn;
 
 using Catch::Contains;
 using Catch::Equals;
-
-RootState& empty_root_state() {
-  static RootState r;
-  return r;
-}
 
 TEST_CASE( "[lua] run trivial script" ) {
   lua::state& st     = lua_global_state();
@@ -144,7 +140,7 @@ TEST_CASE( "[lua] enums from string" ) {
 
 TEST_CASE( "[lua] has new_game.create" ) {
   lua::state& st = lua_global_state();
-  lua_reload( empty_root_state() );
+  lua_reload( GameState::root() );
   auto script = R"(
     return tostring( new_game.create )
   )";
@@ -156,7 +152,7 @@ TEST_CASE( "[lua] has new_game.create" ) {
 
 TEST_CASE( "[lua] C++ function binding" ) {
   lua::state& st = lua_global_state();
-  lua_reload( empty_root_state() );
+  lua_reload( GameState::root() );
   auto script = R"(
     local soldier_type =
         utype.UnitType.create( e.unit_type.soldier )
