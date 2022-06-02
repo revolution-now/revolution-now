@@ -192,7 +192,7 @@ wait<> evolve_colony_one_turn( Colony&              colony,
   UNWRAP_CHECK( player, base::lookup( players_state.players,
                                       colony.nation() ) );
   ColonyId id = colony.id();
-  lg.debug( "evolving colony: {}.", colony );
+  lg.debug( "evolving colony: {}.", colony.debug_string() );
   auto& commodities = colony.commodities();
 
   // Production.
