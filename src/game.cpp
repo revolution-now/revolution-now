@@ -66,6 +66,13 @@ wait<> run_loaded_game( PlayersState&        players_state,
                         TurnState&           turn_state,
                         ColoniesState&       colonies_state,
                         IMapUpdater& map_updater, IGui& gui ) {
+  // TODO: temporary until we have AI.
+  bool found_human = false;
+  for( auto const& [nation, player] : players_state.players )
+    found_human |= player.human;
+  CHECK( found_human,
+         "there must be at least one human player." );
+
   return co::erase( co::try_<game_quit_interrupt>( [&] {
     return turn_loop( players_state, terrain_state, units_state,
                       settings, turn_state, colonies_state,

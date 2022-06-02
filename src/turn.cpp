@@ -107,17 +107,51 @@ NationTurnState new_nation_turn_obj( e_nation nat ) {
   };
 }
 
-TurnState new_turn() {
+wait<> advance_time( TurnTimePoint& time_point ) {
+  if( time_point.year == 1600 &&
+      time_point.season == e_season::spring )
+    co_await ui::message_box(
+        "Starting in the year @[H]1600@[] the time scale "
+        "changes.  Henceforth there will be both a "
+        "@[H]Spring@[] and a @[H]Fall@[] turn each year." );
+  bool const two_turns = ( time_point.year >= 1600 );
+  switch( time_point.season ) {
+    case e_season::winter:
+      // We're not currently supporting four seasons per year, so
+      // just revert it to the spring/fall cycle.
+      time_point.season = e_season::spring;
+      break;
+    case e_season::spring:
+      if( two_turns ) {
+        // Two seasons per year.
+        time_point.season = e_season::fall;
+      } else {
+        // Stay in Spring and just go to the next year.
+        ++time_point.year;
+      }
+      break;
+    case e_season::summer:
+      // We're not currently supporting four seasons per year, so
+      // just revert it to the spring/fall cycle.
+      time_point.season = e_season::fall;
+      break;
+    case e_season::fall:
+      // Two seasons per year.
+      time_point.season = e_season::spring;
+      ++time_point.year;
+      break;
+  }
+}
+
+void reset_turn_obj( TurnState& st ) {
   queue<e_nation> remainder;
   remainder.push( e_nation::english );
   remainder.push( e_nation::french );
   remainder.push( e_nation::dutch );
   remainder.push( e_nation::spanish );
-  return TurnState{
-      .started   = false,
-      .nation    = nothing,
-      .remainder = std::move( remainder ),
-  };
+  st.started   = false;
+  st.nation    = nothing;
+  st.remainder = std::move( remainder );
 }
 
 /****************************************************************
@@ -737,6 +771,8 @@ wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
                     IMapUpdater& map_updater, IGui& gui ) {
   auto& st = nat_turn_st;
 
+  if( !player.human ) co_return; // TODO: Until we have AI.
+
   // Starting.
   if( !st.started ) {
     print_bar( '-', fmt::format( "[ {} ]", st.nation ) );
@@ -779,7 +815,7 @@ wait<> next_turn_impl( PlayersState&        players_state,
   if( !st.started ) {
     print_bar( '=', "[ Starting Turn ]" );
     map_units( []( Unit& unit ) { unit.new_turn(); } );
-    st         = new_turn();
+    reset_turn_obj( st );
     st.started = true;
   }
 
@@ -802,7 +838,8 @@ wait<> next_turn_impl( PlayersState&        players_state,
     st.nation.reset();
   }
 
-  st = new_turn();
+  reset_turn_obj( st );
+  co_await advance_time( st.time_point );
 }
 
 } // namespace

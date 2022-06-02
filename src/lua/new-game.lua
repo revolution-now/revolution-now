@@ -23,9 +23,13 @@ function M.default_options()
   return {
     difficulty_name='discoverer',
     render=true, -- FIXME
+    -- This determines the nations and whether they are human
+    -- (true) or AI controlled (false).
     nations={
-      e.nation.english, e.nation.french, e.nation.dutch,
-      e.nation.spanish
+      [e.nation.english]=false,
+      [e.nation.french]=false,
+      [e.nation.dutch]=true,
+      [e.nation.spanish]=false
     }
   }
 end
@@ -64,21 +68,22 @@ local function create_old_world_state( settings, player )
   old_world.expeditionary_force.men_of_war = 3
 end
 
-local function create_player_state( settings, nation, player )
+local function create_player_state(settings, nation, player,
+                                   is_human )
   player.nation = nation
-  player.human = true
+  player.human = is_human
   player.money = 1000 - 250 * settings.difficulty
   -- This is temporary so that it doesn't keep asking us.
-  player.discovered_new_world = 'temporary'
+  player.discovered_new_world = 'New Netherlands'
   create_old_world_state( settings, player )
 end
 
 local function create_nations( options, root )
   local players = root.players.players
   local settings = root.settings
-  for _, nation in ipairs( options.nations ) do
+  for nation, is_human in pairs( options.nations ) do
     local player = players:reset_player( nation )
-    create_player_state( settings, nation, player )
+    create_player_state( settings, nation, player, is_human )
   end
 end
 
