@@ -22,7 +22,7 @@ let s:stems = [
  \ 'gs-colonies',
  \ 'cstate',
  \ 'colony-view',
- \ 'colony-mfg',
+ \ 'config/colony-enums',
  \ 'colony-mgr',
  \ 'production',
  \ 'config/production',

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "colony-id.hpp"
-#include "colony-mfg.hpp"
 #include "commodity.hpp"
 #include "error.hpp"
 #include "expect.hpp"
@@ -43,6 +42,11 @@ using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
 ** Fwd Decls
 *****************************************************************/
 struct UnitsState;
+
+/****************************************************************
+** e_colony_building
+*****************************************************************/
+LUA_ENUM_DECL( colony_building );
 
 /****************************************************************
 ** e_indoor_job

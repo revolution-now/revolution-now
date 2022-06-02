@@ -10,7 +10,6 @@
 # ===============================================================
 # Revolution Now
 include "colony-id.hpp"
-include "colony-mfg.hpp"
 include "commodity.hpp"
 include "coord.hpp"
 include "maybe.hpp"
@@ -18,6 +17,7 @@ include "unit-id.hpp"
 
 # Rds
 include "nation.rds.hpp"
+include "config/colony-enums.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

@@ -11,7 +11,11 @@
 # Revolution Now
 include "maybe.hpp"
 
+# Rds
+include "colony-enums.rds.hpp"
+
 # refl
+include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
 
 # cdr
@@ -22,8 +26,9 @@ namespace "rn"
 
 sumtype.BuildingBonus {
   none {},
-  normal {
-    # For a +50% bonus this would be 50.  Could be zero.
+  same {
+    # Same bonus for use/put. For a +50% bonus this would be 50.
+    # Could be zero.
     bonus 'int',
   },
   factory {
@@ -85,6 +90,8 @@ struct.config_production_t {
   # Newspaper do seem to get applied to the base production. Note
   # that the original game appears to ROUND DOWN on 1/2.
   building_production_bonus 'refl::enum_map<e_colony_building, maybe<BuildingBonus_t>>',
+
+  _features { validation, equality }
 }
 
 config.production {}
