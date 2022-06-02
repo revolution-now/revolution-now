@@ -21,8 +21,8 @@
 
 namespace rn {
 
-struct Player;
 struct Colony;
+struct PlayersState;
 struct UnitsState;
 
 struct ColonyProduction {
@@ -36,7 +36,7 @@ struct ColonyProduction {
 // both produced and consumed in the same turn, and so those will
 // have to be subtracted to get the net change.
 ColonyProduction production_for_colony(
-    UnitsState const& units_state, Player const& player,
-    Colony const& colony );
+    UnitsState const&   units_state,
+    PlayersState const& players_state, Colony const& colony );
 
 } // namespace rn

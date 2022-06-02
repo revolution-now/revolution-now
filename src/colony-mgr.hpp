@@ -34,6 +34,7 @@ namespace rn {
 struct IGui;
 struct SettingsState;
 struct ColoniesState;
+struct PlayersState;
 struct TerrainState;
 struct UnitsState;
 struct Colony;
@@ -69,6 +70,7 @@ wait<> evolve_colony_one_turn( Colony&              colony,
                                SettingsState const& settings,
                                UnitsState&          units_state,
                                TerrainState const& terrain_state,
+                               PlayersState&       players_state,
                                IMapUpdater&        map_updater,
                                IGui&               gui );
 

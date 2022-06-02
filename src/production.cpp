@@ -12,12 +12,16 @@
 
 // Revolution Now
 #include "colony.hpp"
+#include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "player.hpp"
 #include "unit.hpp"
 
 // config
 #include "config/production.rds.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 using namespace std;
 
@@ -95,8 +99,8 @@ struct BuildingBonusResult {
     case BuildingBonus::e::none: {
       return BuildingBonusResult{ .use = n, .put = n };
     }
-    case BuildingBonus::e::normal: {
-      auto const& o = bonus.get<BuildingBonus::normal>();
+    case BuildingBonus::e::same: {
+      auto const& o = bonus.get<BuildingBonus::same>();
       int         b = apply_int_percent_bonus( n, o.bonus );
       return BuildingBonusResult{ .use = b, .put = b };
     }
@@ -174,8 +178,10 @@ int crosses_production_for_colony( UnitsState const& units_state,
 }
 
 ColonyProduction production_for_colony(
-    UnitsState const& units_state, Player const& player,
-    Colony const& colony ) {
+    UnitsState const&   units_state,
+    PlayersState const& players_state, Colony const& colony ) {
+  UNWRAP_CHECK( player, base::lookup( players_state.players,
+                                      colony.nation() ) );
   ColonyProduction res;
 
   res.produced[e_colony_product::crosses] =

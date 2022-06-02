@@ -17,6 +17,7 @@
 #include "enum.hpp"
 #include "game-state.hpp"
 #include "gs-colonies.hpp"
+#include "gs-players.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "igui.hpp"
@@ -25,6 +26,7 @@
 #include "lua.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
+#include "production.hpp"
 #include "rand.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
@@ -39,6 +41,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/keyval.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -183,15 +186,31 @@ wait<> evolve_colony_one_turn( Colony&              colony,
                                SettingsState const& settings,
                                UnitsState&          units_state,
                                TerrainState const& terrain_state,
+                               PlayersState&       players_state,
                                IMapUpdater&        map_updater,
                                IGui&               gui ) {
+  UNWRAP_CHECK( player, base::lookup( players_state.players,
+                                      colony.nation() ) );
   ColonyId id = colony.id();
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
+
+  // Production.
+  // struct ColonyProduction {
+  //   refl::enum_map<e_colony_product, int> produced;
+  //   refl::enum_map<e_commodity, int>      consumed;
+  // };
+  ColonyProduction production = production_for_colony(
+      units_state, players_state, colony );
+  // FIXME: temporary
+  player.crosses +=
+      production.produced[e_colony_product::crosses];
+
 #if 0
   commodities[e_commodity::food] +=
       rng::between( 3, 7, rng::e_interval::closed );
 #endif
+
   if( commodities[e_commodity::food] >= 200 ) {
     commodities[e_commodity::food] -= 200;
     UnitType colonist =
@@ -211,11 +230,6 @@ wait<> evolve_colony_one_turn( Colony&              colony,
     if( answer == ui::e_ok_cancel::ok )
       co_await show_colony_view( id, map_updater );
   }
-
-  // Temporary. FIXME
-  Player& player =
-      player_for_nation( GameState::players(), colony.nation() );
-  player.crosses += 10;
 }
 
 void change_colony_nation( Colony&     colony,
