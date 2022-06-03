@@ -1,8 +1,45 @@
 players.players {
   dutch {
-    discovered_new_world: temporary
+    discovered_new_world: New Netherlands
     human: true
     money: 1000
+    old_world {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      immigration {
+        immigrants_pool: [
+          expert_tobacco_planter,
+          free_colonist,
+          scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        muskets {
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+      }
+      taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 45
+      y: 35
+    }
+  }
+  english {
+    discovered_new_world: New Netherlands
+    money: 1000
+    nation: english
     old_world {
       expeditionary_force {
         artillery: 2
@@ -32,43 +69,8 @@ players.players {
       taxes.tax_rate: 7
     }
   }
-  english {
-    discovered_new_world: temporary
-    human: true
-    money: 1000
-    nation: english
-    old_world {
-      expeditionary_force {
-        artillery: 2
-        cavalry: 2
-        men_of_war: 3
-        regulars: 3
-      }
-      immigration {
-        immigrants_pool: [
-          expert_tobacco_planter,
-          free_colonist,
-          scout,
-        ]
-        next_recruit_cost_base: 50
-      }
-      market.commodities {
-        cotton {
-          boycott: true
-          price_movement: 0.33
-          sell_price_in_hundreds: 4
-        }
-        muskets {
-          price_movement: 0.44
-          sell_price_in_hundreds: 5
-        }
-      }
-      taxes.tax_rate: 7
-    }
-  }
   french {
-    discovered_new_world: temporary
-    human: true
+    discovered_new_world: New Netherlands
     money: 1000
     nation: french
     old_world {
@@ -101,8 +103,7 @@ players.players {
     }
   }
   spanish {
-    discovered_new_world: temporary
-    human: true
+    discovered_new_world: New Netherlands
     money: 1000
     nation: spanish
     old_world {

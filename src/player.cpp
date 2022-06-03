@@ -84,6 +84,7 @@ LUA_STARTUP( lua::state& st ) {
   u["discovered_new_world"]  = &U::discovered_new_world;
   u["independence_declared"] = &U::independence_declared;
   u["fathers"]               = &U::fathers;
+  u["starting_position"]     = &U::starting_position;
   u["last_high_seas"]        = &U::last_high_seas;
 };
 

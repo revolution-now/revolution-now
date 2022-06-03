@@ -48,22 +48,26 @@ sumtype.PortStatus {
 struct.UnitHarborViewState {
   port_status 'PortStatus_t',
 
-  # This field is only relevant if the unit is a ship, in which
-  # case it specifies the square which the unit will be placed on
-  # when it eventually makes its way back to the new world. If it
-  # sailed to europe from the new world then this will hold the
-  # (sea lane) square that it sailed from (not the destination
-  # square but the source square, since the destination square
-  # might not exist if the unit moved off the edge of the map).
+  # This field only has a value if the unit is a ship and the
+  # ship arrived in europe by sailing the high seas in the new
+  # world. In that case it specifies the square from which the
+  # unit sailed the high seas. This is so that, when the ship
+  # eventually returns to the new world, it can be placed where
+  # it left. Note that this square is not the destination square
+  # of the last move order but the source square, since the des-
+  # tination square might not exist if the unit moved off the
+  # edge of the map.
+  #
   # On the other hand if the ship ended up in europe without
   # having sailed there (possibly because it was purchased there
-  # or it was damaged and was transported there) then the game
-  # will apply some rules to determine a suitable coordinate. The
-  # original game will use the sea lane square of the most recent
-  # ship that sailed to europe (regardless of which side of the
-  # map it was on). Finally, if no ships have ever sailed to eu-
-  # rope, then this would be the starting position.
-  sailed_from 'Coord',
+  # or it was damaged and was transported there) then this will
+  # not have a value. In those cases, the game will place the
+  # ship on the last sea lane square sailed by the player, re-
+  # gardless of which side of the map it is on. If, in turn, that
+  # value is not present (i.e. at the very start of the game)
+  # then it will use the player's starting position as a final
+  # fallback.
+  sailed_from 'maybe<Coord>',
 }
 
 sumtype.UnitOwnership {

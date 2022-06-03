@@ -17,6 +17,7 @@
 // Revolution Now
 #include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
+#include "src/harbor-units.hpp"
 #include "src/igui-mock.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
@@ -70,10 +71,7 @@ UnitId add_unit_to_dock( UnitsState& units_state,
                          e_nation    nation ) {
   UnitId id = create_unit( units_state, nation,
                            e_unit_type::free_colonist );
-  units_state.change_to_harbor_view(
-      id,
-      UnitHarborViewState{ .port_status = PortStatus::in_port{},
-                           .sailed_from = {} } );
+  unit_move_to_port( units_state, id );
   return id;
 }
 

@@ -14,7 +14,7 @@ land_view.viewport {
 players.players {
   dutch {
     crosses: 0
-    discovered_new_world: temporary
+    discovered_new_world: New Netherlands
     fathers {
       bells: 0
       has {
@@ -47,146 +47,9 @@ players.players {
     }
     human: true
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: dutch
-    old_world {
-      expeditionary_force {
-        artillery: 2
-        cavalry: 2
-        men_of_war: 3
-        regulars: 3
-      }
-      harbor_state.selected_unit: null
-      immigration {
-        immigrants_pool: [
-          jesuit_missionary,
-          free_colonist,
-          seasoned_scout,
-        ]
-        next_recruit_cost_base: 50
-      }
-      market.commodities {
-        cigars {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        cloth {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        coats {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        cotton {
-          boycott: true
-          price_movement: 0.33
-          sell_price_in_hundreds: 4
-        }
-        food {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        fur {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        horses {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        lumber {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        muskets {
-          boycott: false
-          price_movement: 0.44
-          sell_price_in_hundreds: 5
-        }
-        ore {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        rum {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        silver {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        sugar {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        tobacco {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        tools {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-        trade_goods {
-          boycott: false
-          price_movement: 0
-          sell_price_in_hundreds: 0
-        }
-      }
-      taxes.tax_rate: 7
-    }
-  }
-  english {
-    crosses: 0
-    discovered_new_world: temporary
-    fathers {
-      bells: 0
-      has {
-        adam_smith: false
-        bartolome_de_las_casas: false
-        benjamin_franklin: false
-        father_jean_de_brebeuf: false
-        ferdinand_magellan: false
-        francis_drake: false
-        francisco_de_coronado: false
-        george_washington: false
-        henry_hudson: false
-        hernan_cortes: false
-        hernando_de_soto: false
-        jakob_fugger: false
-        jan_de_witt: false
-        john_paul_jones: false
-        juan_de_sepulveda: false
-        paul_revere: false
-        peter_minuit: false
-        peter_stuyvesant: false
-        pocahontas: false
-        sieur_de_la_salle: false
-        simon_bolivar: false
-        thomas_jefferson: false
-        thomas_paine: false
-        william_brewster: false
-        william_penn: false
-      }
-    }
-    human: true
-    independence_declared: false
-    money: 1000
-    nation: english
     old_world {
       expeditionary_force {
         artillery: 2
@@ -287,10 +150,14 @@ players.players {
       }
       taxes.tax_rate: 7
     }
+    starting_position {
+      x: 45
+      y: 35
+    }
   }
-  french {
+  english {
     crosses: 0
-    discovered_new_world: temporary
+    discovered_new_world: New Netherlands
     fathers {
       bells: 0
       has {
@@ -321,8 +188,152 @@ players.players {
         william_penn: false
       }
     }
-    human: true
+    human: false
     independence_declared: false
+    last_high_seas: null
+    money: 1000
+    nation: english
+    old_world {
+      expeditionary_force {
+        artillery: 2
+        cavalry: 2
+        men_of_war: 3
+        regulars: 3
+      }
+      harbor_state.selected_unit: null
+      immigration {
+        immigrants_pool: [
+          jesuit_missionary,
+          free_colonist,
+          seasoned_scout,
+        ]
+        next_recruit_cost_base: 50
+      }
+      market.commodities {
+        cigars {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cloth {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        coats {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        cotton {
+          boycott: true
+          price_movement: 0.33
+          sell_price_in_hundreds: 4
+        }
+        food {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        fur {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        horses {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        lumber {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        muskets {
+          boycott: false
+          price_movement: 0.44
+          sell_price_in_hundreds: 5
+        }
+        ore {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        rum {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        silver {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        sugar {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tobacco {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        tools {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+        trade_goods {
+          boycott: false
+          price_movement: 0
+          sell_price_in_hundreds: 0
+        }
+      }
+      taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 0
+      y: 0
+    }
+  }
+  french {
+    crosses: 0
+    discovered_new_world: New Netherlands
+    fathers {
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
+    }
+    human: false
+    independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: french
     old_world {
@@ -425,10 +436,14 @@ players.players {
       }
       taxes.tax_rate: 7
     }
+    starting_position {
+      x: 0
+      y: 0
+    }
   }
   spanish {
     crosses: 0
-    discovered_new_world: temporary
+    discovered_new_world: New Netherlands
     fathers {
       bells: 0
       has {
@@ -459,8 +474,9 @@ players.players {
         william_penn: false
       }
     }
-    human: true
+    human: false
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: spanish
     old_world {
@@ -562,6 +578,10 @@ players.players {
         }
       }
       taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 0
+      y: 0
     }
   }
 }

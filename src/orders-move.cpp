@@ -22,6 +22,7 @@
 #include "gs-colonies.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -169,13 +170,14 @@ wait<maybe<MovementPoints>> check_movement_points(
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
-  TravelHandler( UnitId unit_id_, e_direction d,
+  TravelHandler( UnitId unit_id_, e_direction d, Player& player,
                  IMapUpdater&        map_updater,
                  TerrainState const& terrain_state, IGui& gui,
                  UnitsState&          units_state,
                  SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
+      player_( player ),
       map_updater_( map_updater ),
       terrain_state_( terrain_state ),
       gui_( gui ),
@@ -312,6 +314,8 @@ struct TravelHandler : public OrdersHandler {
   maybe<UnitId> target_unit = nothing;
 
   MovementPoints mv_points_to_subtract_ = {};
+
+  Player& player_;
 
   IMapUpdater& map_updater_;
 
@@ -759,10 +763,7 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
-      UnitHarborViewState state = {
-          .port_status = PortStatus::inbound{ .percent = 0.0 },
-          .sailed_from = {} };
-      units_state_.change_to_harbor_view( id, state );
+      unit_sail_to_harbor( units_state_, player_, id );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -1275,23 +1276,23 @@ unique_ptr<OrdersHandler> dispatch(
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui,
-                                       units_state, settings );
+    return make_unique<TravelHandler>(
+        id, d, player, map_updater, terrain_state, gui,
+        units_state, settings );
 
   auto dst_nation = nation_from_coord( dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui,
-                                       units_state, settings );
+    return make_unique<TravelHandler>(
+        id, d, player, map_updater, terrain_state, gui,
+        units_state, settings );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( id, d, map_updater,
-                                       terrain_state, gui,
-                                       units_state, settings );
+    return make_unique<TravelHandler>(
+        id, d, player, map_updater, terrain_state, gui,
+        units_state, settings );
 
   // Must be an attack.
   return make_unique<AttackHandler>( id, d, map_updater,

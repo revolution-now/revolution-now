@@ -113,7 +113,7 @@ local function create_player_state(settings, nation, player,
   -- This is temporary so that it doesn't keep asking us.
   player.discovered_new_world = 'New Netherlands'
   local coord = create_initial_units( nation )
-  player.last_high_seas = coord
+  player.starting_position = coord
   create_old_world_state( settings, player )
 end
 

@@ -573,7 +573,8 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( UnitsState&  units_state,
+wait<bool> advance_unit( UnitsState&   units_state,
+                         Player const& player,
                          IMapUpdater& map_updater, UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   Unit& unit = units_state.unit_for( id );
@@ -587,7 +588,7 @@ wait<bool> advance_unit( UnitsState&  units_state,
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -603,19 +604,20 @@ wait<bool> advance_unit( UnitsState&  units_state,
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
-  if( is_unit_in_port( id ) ) {
+  if( is_unit_in_port( units_state, id ) ) {
     finish_turn( id );
     co_return false; // do not ask for orders.
   }
 
   // If it is a ship on the high seas then advance it. If it has
   // arrived in the old world then jump to the old world screen.
-  if( is_unit_inbound( id ) || is_unit_outbound( id ) ) {
-    e_high_seas_result res =
-        advance_unit_on_high_seas( id, map_updater );
+  if( is_unit_inbound( units_state, id ) ||
+      is_unit_outbound( units_state, id ) ) {
+    e_high_seas_result res = advance_unit_on_high_seas(
+        units_state, player, id, map_updater );
     switch( res ) {
       case e_high_seas_result::still_traveling:
         finish_turn( id );
@@ -667,8 +669,8 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
       continue;
     }
 
-    bool should_ask =
-        co_await advance_unit( units_state, map_updater, id );
+    bool should_ask = co_await advance_unit( units_state, player,
+                                             map_updater, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
