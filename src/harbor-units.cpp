@@ -39,10 +39,23 @@ namespace rn {
 
 namespace {
 
+vector<UnitId> units_in_harbor_view(
+    UnitsState const& units_state, e_nation nation ) {
+  vector<UnitId> res;
+  for( auto const& [id, st] : units_state.all() ) {
+    if( st.unit.nation() == nation &&
+        st.ownership.holds<UnitOwnership::harbor>() )
+      res.push_back( id );
+  }
+  return res;
+}
+
 template<typename Func>
 vector<UnitId> units_in_harbor_filtered(
-    UnitsState const& units_state, Func&& func ) {
-  vector<UnitId> res = units_in_harbor_view();
+    UnitsState const& units_state, e_nation nation,
+    Func&& func ) {
+  vector<UnitId> res =
+      units_in_harbor_view( units_state, nation );
   erase_if( res, not_fn( [&]( UnitId id ) {
               return func( units_state, id );
             } ) );
@@ -73,7 +86,7 @@ bool is_unit_on_dock( UnitsState const& units_state,
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
-         !unit_from_id( id ).desc().ship &&
+         !units_state.unit_for( id ).desc().ship &&
          holds<PortStatus::in_port>(
              harbor_status->port_status );
 }
@@ -90,7 +103,9 @@ bool is_unit_inbound( UnitsState const& units_state,
   auto is_inbound =
       harbor_status.has_value() &&
       holds<PortStatus::inbound>( harbor_status->port_status );
-  if( is_inbound ) { CHECK( unit_from_id( id ).desc().ship ); }
+  if( is_inbound ) {
+    CHECK( units_state.unit_for( id ).desc().ship );
+  }
   return is_inbound;
 }
 
@@ -101,7 +116,9 @@ bool is_unit_outbound( UnitsState const& units_state,
   auto is_outbound =
       harbor_status.has_value() &&
       holds<PortStatus::outbound>( harbor_status->port_status );
-  if( is_outbound ) { CHECK( unit_from_id( id ).desc().ship ); }
+  if( is_outbound ) {
+    CHECK( units_state.unit_for( id ).desc().ship );
+  }
   return is_outbound;
 }
 
@@ -110,15 +127,15 @@ bool is_unit_in_port( UnitsState const& units_state,
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
-         unit_from_id( id ).desc().ship &&
+         units_state.unit_for( id ).desc().ship &&
          holds<PortStatus::in_port>(
              harbor_status->port_status );
 }
 
 vector<UnitId> harbor_units_on_dock(
-    UnitsState const& units_state ) {
-  vector<UnitId> res =
-      units_in_harbor_filtered( units_state, is_unit_on_dock );
+    UnitsState const& units_state, e_nation nation ) {
+  vector<UnitId> res = units_in_harbor_filtered(
+      units_state, nation, is_unit_on_dock );
   // Now we must order the units by their arrival time in port
   // (or on dock).
   sort( res.begin(), res.end() );
@@ -126,9 +143,9 @@ vector<UnitId> harbor_units_on_dock(
 }
 
 vector<UnitId> harbor_units_in_port(
-    UnitsState const& units_state ) {
-  vector<UnitId> res =
-      units_in_harbor_filtered( units_state, is_unit_in_port );
+    UnitsState const& units_state, e_nation nation ) {
+  vector<UnitId> res = units_in_harbor_filtered(
+      units_state, nation, is_unit_in_port );
   // Now we must order the units by their arrival time in port
   // (or on dock).
   sort( res.begin(), res.end() );
@@ -137,15 +154,15 @@ vector<UnitId> harbor_units_in_port(
 
 // To old world.
 vector<UnitId> harbor_units_inbound(
-    UnitsState const& units_state ) {
-  return units_in_harbor_filtered( units_state,
+    UnitsState const& units_state, e_nation nation ) {
+  return units_in_harbor_filtered( units_state, nation,
                                    is_unit_inbound );
 }
 
 // To new world.
 vector<UnitId> harbor_units_outbound(
-    UnitsState const& units_state ) {
-  return units_in_harbor_filtered( units_state,
+    UnitsState const& units_state, e_nation nation ) {
+  return units_in_harbor_filtered( units_state, nation,
                                    is_unit_outbound );
 }
 

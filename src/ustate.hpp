@@ -95,13 +95,6 @@ bool is_unit_on_map( UnitId id );
 maybe<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************
-** Harbor View Ownership
-*****************************************************************/
-// Get a set of all units owned by the harbor-view.
-// FIXME: needs to be nation-specific.
-std::vector<UnitId> units_in_harbor_view();
-
-/****************************************************************
 ** Creation
 *****************************************************************/
 // Creates a unit with no ownership.

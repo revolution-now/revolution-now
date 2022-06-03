@@ -215,19 +215,6 @@ maybe<UnitId> is_unit_onboard( UnitId id ) {
 }
 
 /****************************************************************
-** Old World View Ownership
-*****************************************************************/
-vector<UnitId> units_in_harbor_view() {
-  vector<UnitId> res;
-  auto&          gs_units = GameState::units();
-  for( auto const& [id, st] : gs_units.all() ) {
-    if( st.ownership.holds<UnitOwnership::harbor>() )
-      res.push_back( id );
-  }
-  return res;
-}
-
-/****************************************************************
 ** Multi
 *****************************************************************/
 maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {

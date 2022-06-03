@@ -31,15 +31,18 @@ bool is_unit_outbound( UnitsState const& units_state,
                        UnitId            id );
 bool is_unit_in_port( UnitsState const& units_state, UnitId id );
 
-// FIXME: needs to be nation-specific.
 std::vector<UnitId> harbor_units_on_dock(
-    UnitsState const& units_state ); // Sorted by arrival.
+    UnitsState const& units_state,
+    e_nation          nation ); // Sorted by arrival.
 std::vector<UnitId> harbor_units_in_port(
-    UnitsState const& units_state ); // Sorted by arrival.
+    UnitsState const& units_state,
+    e_nation          nation ); // Sorted by arrival.
 std::vector<UnitId> harbor_units_inbound(
-    UnitsState const& units_state ); // to harbor
+    UnitsState const& units_state,
+    e_nation          nation ); // to harbor
 std::vector<UnitId> harbor_units_outbound(
-    UnitsState const& units_state ); // to new world
+    UnitsState const& units_state,
+    e_nation          nation ); // to new world
 
 // This is called on a ship that is in the harbor to make it sail
 // to the new world.

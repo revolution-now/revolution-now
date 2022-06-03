@@ -70,10 +70,16 @@ constexpr int const k_default_market_quantity = 100;
 ** FIXME
 *****************************************************************/
 // FIXME
+e_nation get_nation() {
+  // FIXME: dutch is hard coded.
+  return e_nation::dutch;
+}
+
+// FIXME
 HarborState& get_harbor_state() {
   // FIXME: dutch is hard coded.
   return GameState::players()
-      .players[e_nation::dutch]
+      .players[get_nation()]
       .old_world.harbor_state;
 }
 
@@ -866,8 +872,8 @@ class UnitsOnDock : public UnitCollection {
       vector<UnitWithPosition> units;
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
-      for( auto id :
-           harbor_units_on_dock( GameState::units() ) ) {
+      for( auto id : harbor_units_on_dock( GameState::units(),
+                                           get_nation() ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < maybe_dock->bounds().left_edge() )
@@ -911,8 +917,8 @@ class ShipsInPort : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id :
-           harbor_units_in_port( GameState::units() ) ) {
+      for( auto id : harbor_units_in_port( GameState::units(),
+                                           get_nation() ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < in_port_bds.left_edge() )
@@ -956,8 +962,8 @@ class ShipsInbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id :
-           harbor_units_inbound( GameState::units() ) ) {
+      for( auto id : harbor_units_inbound( GameState::units(),
+                                           get_nation() ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -1000,8 +1006,8 @@ class ShipsOutbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id :
-           harbor_units_outbound( GameState::units() ) ) {
+      for( auto id : harbor_units_outbound( GameState::units(),
+                                            get_nation() ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -1784,7 +1790,7 @@ struct DragPerform {
     // just deselect.
     hb_state.selected_unit = nothing;
     vector<UnitId> units_in_port =
-        harbor_units_in_port( GameState::units() );
+        harbor_units_in_port( GameState::units(), get_nation() );
     hb_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
@@ -1883,7 +1889,7 @@ void drag_n_drop_draw( rr::Renderer& renderer,
   if( !g_drag_state ) return;
   auto& state            = *g_drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-     return c + canvas.upper_left().distance_from_origin();
+    return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
