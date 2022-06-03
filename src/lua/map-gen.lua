@@ -192,6 +192,16 @@ local function row_has_land( row )
   return false
 end
 
+local function right_most_land_square_in_row( row )
+  local size = map_gen.world_size()
+  for x = size.w - 1, 0, -1 do
+    local coord = { x=x, y=row }
+    local square = map_gen.at( coord )
+    if square.surface == e.surface.land then return coord end
+  end
+  return nil
+end
+
 -----------------------------------------------------------------
 -- Square Surroundings
 -----------------------------------------------------------------
@@ -411,9 +421,13 @@ local function create_sea_lanes()
   -- sea lane squares in their vicinity (7x7 square). And for
   -- each of those water squares, clear all sea lane squares
   -- along the entire row to the left of it until the map edge.
-  on_all( function( coord )
-    local square = map_gen.at( coord )
-    if square.surface == e.surface.land then
+  -- In order to make this more efficient, instead of applying
+  -- this to all land squares, we will only apply it to the
+  -- right-most land square in each row, since that will yield an
+  -- equivalent result.
+  for y = 0, size.h - 1 do
+    local coord = right_most_land_square_in_row( y )
+    if coord ~= nil then
       local block_edge = {}
       -- We need to do this because if we are are very close to
       -- the right edge of the map (e.g., arctic) then the right
@@ -426,22 +440,29 @@ local function create_sea_lanes()
         coord.x = coord.x - 1
       until #block_edge > 0
       for _, s in ipairs( block_edge ) do
-        for x = 0, s.x do
+        -- Walk from the right to the left until we either get to
+        -- the left edge of the map or we find an ocean square
+        -- with no sea lane, which means we've already cleared
+        -- the remainder as part of another row, so we can stop.
+        for x = s.x, 0, -1 do
           local coord = { x=x, y=s.y }
           local square = map_gen.at( coord )
+          if square.surface == e.surface.water and
+              not square.sea_lane then break end
           if square.sea_lane then
             square.sea_lane = false
           end
         end
       end
     end
-  end )
+  end
 
-  -- At this point, some rows (that contain no land tiles) will
-  -- be all sea lane. So we will start at the center of the map
-  -- and move upward (downward) to find them and we will set
-  -- their sea lane width (i.e., the width on the right side of
-  -- the map) to what it was below (above) that row.
+  -- At this point, some rows (that contain no land tiles and are
+  -- far from a row that does) will be all sea lane. So we will
+  -- start at the center of the map and move upward (downward) to
+  -- find them and we will set their sea lane width (i.e., the
+  -- width on the right side of the map) to what it was below
+  -- (above) that row.
   --
   -- Run through all rows and find the row that is not entirely
   -- sea lane that is closest to the center of the map.
