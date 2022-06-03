@@ -94,6 +94,13 @@ wait<> run_existing_game( IGui& gui ) {
       global_renderer_use_only_when_needed() );
   CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
   lua_reload( GameState::root() );
+
+  // FIXME: this will be better once we have RAII planes. Note
+  // that this needs to be done before reinitializing the planes.
+  LandViewState& land_view_state = GameState::land_view();
+  land_view_state.viewport.set_max_viewable_size_tiles(
+      GameState::terrain().world_map().size() );
+
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
