@@ -20,21 +20,18 @@ include "<unordered_map>"
 namespace "rn"
 
 sumtype.PortStatus {
-  # For ships that are venturing to europe. `percent` starts from
-  # 0 and goes to 1.0 at arrival. This means that the value
-  # should never actually assume a value of 1.0, because as soon
-  # as it does, the state is transitioned to in_port.
+  # For ships that are venturing to europe. ``turns` gives the
+  # number of turns that elapsed since starting the journey. The
+  # initial value of it is 0.
   outbound {
-    percent 'double',
+    turns 'int',
   },
 
-  # For ships that are traveling from europe to the new world.
-  # `percent` starts from 0 and goes to 1.0 at arrival. This
-  # means that the value should never actually assume a value of
-  # 1.0, because as soon as it does, the state is transitioned to
-  # the map.
+  # For ships that are venturing to europe. ``turns` gives the
+  # number of turns that elapsed since starting the journey. The
+  # initial value of it is 0.
   inbound {
-    percent 'double',
+    turns 'int',
   },
 
   # If a ship is in this state then it is in port (shown in the

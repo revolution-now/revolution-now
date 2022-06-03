@@ -22,6 +22,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/harbor.rds.hpp"
+
 // luapp
 #include "luapp/state.hpp"
 
@@ -39,6 +42,38 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+// All of the docs on the original game state that travel time
+// from the west map edge is longer than for the east map edge,
+// and furthermore than when you get Magellan that west-edge
+// travel time is reduced. However, testing on the original game
+// (at least version 3.0) suggests that this is not the case.
+// West edge travel time is the same as east edge travel time,
+// which is to say two turns (and it remains two turns even after
+// the time scale change in 1600).
+//
+// But it does seem sensible to have the west edge travel time be
+// longer (and to therefore make Magellan more attractive), so we
+// will allow for that possibility here.
+int turns_needed_for_high_seas(
+    TerrainState const& terrain_state, Player const& player,
+    UnitHarborViewState const& harbor_state ) {
+  // First find where the unit sailed from (east or west). If
+  // that information is not available then just assume east
+  // edge.
+  Coord sailed_from = harbor_state.sailed_from.value_or(
+      terrain_state.world_rect_tiles().lower_right() );
+
+  if( sailed_from.x >=
+      terrain_state.world_rect_tiles().right_edge() / 2_sx )
+    return config_harbor.high_seas_turns_east;
+
+  // We're on the west.
+  return player.fathers
+                 .has[e_founding_father::ferdinand_magellan]
+             ? config_harbor.high_seas_turns_west_post_magellan
+             : config_harbor.high_seas_turns_west;
+}
 
 vector<UnitId> units_in_harbor_view(
     UnitsState const& units_state, e_nation nation ) {
@@ -232,7 +267,8 @@ void unit_move_to_port( UnitsState& units_state, UnitId id ) {
   units_state.change_to_harbor_view( id, new_state );
 }
 
-void unit_sail_to_harbor( UnitsState& units_state,
+void unit_sail_to_harbor( TerrainState const& terrain_state,
+                          UnitsState&         units_state,
                           Player& player, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
@@ -241,27 +277,30 @@ void unit_sail_to_harbor( UnitsState& units_state,
   if( maybe<UnitHarborViewState const&> existing_state =
           units_state.maybe_harbor_view_state_of( id );
       existing_state.has_value() ) {
+    int const turns_needed = turns_needed_for_high_seas(
+        terrain_state, player, *existing_state );
     switch( auto& v = existing_state->port_status;
             v.to_enum() ) {
       case PortStatus::e::in_port: return;
       case PortStatus::e::inbound: {
-        auto const& [percent] = v.get<PortStatus::inbound>();
-        if( percent >= 1.0 )
+        auto const& [turns] = v.get<PortStatus::inbound>();
+        if( turns >= turns_needed )
           // Unit has not yet made any progress, so we can imme-
           // diately move it to in_port.
           unit_move_to_port( units_state, id );
         return;
       }
       case PortStatus::e::outbound: {
-        auto const& [percent] = v.get<PortStatus::outbound>();
+        auto const& [turns] = v.get<PortStatus::outbound>();
         UnitHarborViewState new_state = *existing_state;
         // Unit must "turn around" and go the other way.
-        new_state.port_status = PortStatus::inbound{
-            /*progress=*/( 1.0 - percent ) };
+        new_state.port_status =
+            PortStatus::inbound{ .turns = turns_needed - turns };
         units_state.change_to_harbor_view( id, new_state );
         // Recurse to deal with the inbound state, which might in
         // turn need to be translated to in_port.
-        unit_sail_to_harbor( units_state, player, id );
+        unit_sail_to_harbor( terrain_state, units_state, player,
+                             id );
         return;
       }
     }
@@ -277,14 +316,14 @@ void unit_sail_to_harbor( UnitsState& units_state,
   // If the unit is currently on the map then record that posi-
   // tion so that it can return to it.
   units_state.change_to_harbor_view(
-      id,
-      UnitHarborViewState{
-          .port_status = PortStatus::inbound{ /*progress=*/0.0 },
-          .sailed_from = sailed_from } );
+      id, UnitHarborViewState{
+              .port_status = PortStatus::inbound{ .turns = 0 },
+              .sailed_from = sailed_from } );
 }
 
-void unit_sail_to_new_world( UnitsState& units_state,
-                             UnitId      id ) {
+void unit_sail_to_new_world( TerrainState const& terrain_state,
+                             UnitsState&         units_state,
+                             Player const& player, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
   CHECK( units_state.unit_for( id ).desc().ship );
@@ -297,19 +336,21 @@ void unit_sail_to_new_world( UnitsState& units_state,
 
   switch( auto& v = existing_state.port_status; v.to_enum() ) {
     case PortStatus::e::outbound: //
-      // Even if the progress is 1.0, we don't move the unit onto
-      // the map, since that is not the job of this function.
+      // Even if the progress is complete, we don't move the unit
+      // onto the map, since that is not the job of this func-
+      // tion.
       return;
     case PortStatus::e::inbound: {
-      auto& [percent] = v.get<PortStatus::inbound>();
+      auto& [turns]          = v.get<PortStatus::inbound>();
+      int const turns_needed = turns_needed_for_high_seas(
+          terrain_state, player, existing_state );
       // Unit must "turn around" and go the other way.
       new_state.port_status =
-          PortStatus::outbound{ /*progress=*/( 1.0 - percent ) };
+          PortStatus::outbound{ .turns = turns_needed - turns };
       break;
     }
     case PortStatus::e::in_port: {
-      new_state.port_status =
-          PortStatus::outbound{ /*progress=*/0.0 };
+      new_state.port_status = PortStatus::outbound{ .turns = 0 };
       break;
     }
   }
@@ -318,31 +359,30 @@ void unit_sail_to_new_world( UnitsState& units_state,
 }
 
 e_high_seas_result advance_unit_on_high_seas(
-    UnitsState& units_state, UnitId id ) {
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player const& player, UnitId id ) {
   UNWRAP_CHECK( info,
                 units_state.maybe_harbor_view_state_of( id ) );
-  // TODO: need to put in the correct travel time, which differs
-  // between the pacific side and atlantic side. Also, when Mag-
-  // ellan is obtained, the pacific time is shortened.
-  constexpr double const advance = 0.25;
+  int const turns_needed =
+      turns_needed_for_high_seas( terrain_state, player, info );
 
   if_get( info.port_status, PortStatus::outbound, outbound ) {
-    outbound.percent += advance;
-    outbound.percent = std::clamp( outbound.percent, 0.0, 1.0 );
-    lg.debug( "advancing outbound unit {} to {} percent.",
-              debug_string( units_state, id ),
-              outbound.percent );
-    if( outbound.percent >= 1.0 )
+    ++outbound.turns;
+    outbound.turns =
+        std::clamp( outbound.turns, 0, turns_needed );
+    lg.debug( "advancing outbound unit {} to {} turns.",
+              debug_string( units_state, id ), outbound.turns );
+    if( outbound.turns >= turns_needed )
       return e_high_seas_result::arrived_in_new_world;
     return e_high_seas_result::still_traveling;
   }
 
   if_get( info.port_status, PortStatus::inbound, inbound ) {
-    inbound.percent += advance;
-    inbound.percent = std::clamp( inbound.percent, 0.0, 1.0 );
-    lg.debug( "advancing inbound unit {} to {} percent.",
-              debug_string( units_state, id ), inbound.percent );
-    if( inbound.percent >= 1.0 ) {
+    ++inbound.turns;
+    inbound.turns = std::clamp( inbound.turns, 0, turns_needed );
+    lg.debug( "advancing inbound unit {} to {} turns.",
+              debug_string( units_state, id ), inbound.turns );
+    if( inbound.turns >= turns_needed ) {
       // This should preserve the `sailed_from`.
       unit_move_to_port( units_state, id );
       return e_high_seas_result::arrived_in_harbor;

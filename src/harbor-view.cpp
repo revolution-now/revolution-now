@@ -69,18 +69,19 @@ constexpr int const k_default_market_quantity = 100;
 /****************************************************************
 ** FIXME
 *****************************************************************/
+e_nation g_nation = e_nation::dutch;
+
 // FIXME
-e_nation get_nation() {
-  // FIXME: dutch is hard coded.
-  return e_nation::dutch;
+e_nation get_nation() { return g_nation; }
+
+// FIXME
+Player& get_player() {
+  return GameState::players().players[get_nation()];
 }
 
 // FIXME
 HarborState& get_harbor_state() {
-  // FIXME: dutch is hard coded.
-  return GameState::players()
-      .players[get_nation()]
-      .old_world.harbor_state;
+  return get_player().old_world.harbor_state;
 }
 
 /****************************************************************
@@ -1558,7 +1559,7 @@ struct DragConnector {
                     PortStatus::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
     // errors.
-    return outbound.percent < 0.01;
+    return outbound.turns == 0;
   }
   bool DRAG_CONNECT_CASE( inbound, outbound ) const {
     return true;
@@ -1760,28 +1761,28 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( outbound, inbound ) const {
     // FIXME FIXME
-    PlayersState& players_state = GameState::players();
-    auto&         players       = players_state.players;
-    Player&       player = players.contains( e_nation::dutch )
-                               ? players[e_nation::dutch]
-                               : players.begin()->second;
-    unit_sail_to_harbor( GameState::units(), player, src.id );
+    Player& player = get_player();
+    unit_sail_to_harbor( GameState::terrain(),
+                         GameState::units(), player, src.id );
   }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
     // FIXME FIXME
-    PlayersState& players_state = GameState::players();
-    auto&         players       = players_state.players;
-    Player&       player = players.contains( e_nation::dutch )
-                               ? players[e_nation::dutch]
-                               : players.begin()->second;
-    unit_sail_to_harbor( GameState::units(), player, src.id );
+    Player& player = get_player();
+    unit_sail_to_harbor( GameState::terrain(),
+                         GameState::units(), player, src.id );
   }
   void DRAG_PERFORM_CASE( inbound, outbound ) const {
-    unit_sail_to_new_world( GameState::units(), src.id );
+    // FIXME FIXME
+    Player& player = get_player();
+    unit_sail_to_new_world( GameState::terrain(),
+                            GameState::units(), player, src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
+    // FIXME FIXME
+    Player&      player   = get_player();
     HarborState& hb_state = get_harbor_state();
-    unit_sail_to_new_world( GameState::units(), src.id );
+    unit_sail_to_new_world( GameState::terrain(),
+                            GameState::units(), player, src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
     // (if any) since that is likely what the user wants to work
@@ -2208,6 +2209,11 @@ wait<> run_harbor_view() {
 /****************************************************************
 ** Public API
 *****************************************************************/
+// FIXME: remove
+void set_harbor_view_player( e_nation nation ) {
+  g_nation = nation;
+}
+
 wait<> show_harbor_view() {
   HarborState& hb_state         = get_harbor_state();
   g_exit_promise                = {};

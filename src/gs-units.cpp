@@ -317,26 +317,18 @@ void UnitsState::change_to_harbor_view(
 }
 
 valid_or<string> PortStatus::outbound::validate() const {
-  RETURN_IF_FALSE( percent >= 0.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  RETURN_IF_FALSE( percent <= 1.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
+  RETURN_IF_FALSE( turns >= 0,
+                   "ship outbound turn count must be larger "
+                   "than zero, but instead is ",
+                   turns );
   return valid;
 }
 
 valid_or<string> PortStatus::inbound::validate() const {
-  RETURN_IF_FALSE( percent >= 0.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  RETURN_IF_FALSE( percent <= 1.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
+  RETURN_IF_FALSE( turns >= 0,
+                   "ship inbound turn count must be larger than "
+                   "zero, but instead is ",
+                   turns );
   return valid;
 }
 

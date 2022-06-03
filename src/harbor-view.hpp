@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "nation.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
@@ -24,5 +25,8 @@ void harbor_view_set_selected_unit( UnitId id );
 
 struct Plane;
 Plane* harbor_plane();
+
+// FIXME: remove
+void set_harbor_view_player( e_nation nation );
 
 } // namespace rn

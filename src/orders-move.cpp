@@ -770,7 +770,8 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
-      unit_sail_to_harbor( units_state_, player_, id );
+      unit_sail_to_harbor( terrain_state_, units_state_, player_,
+                           id );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;

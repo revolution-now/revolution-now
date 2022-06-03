@@ -624,8 +624,8 @@ wait<bool> advance_unit( UnitsState&          units_state,
   // arrived in the old world then jump to the old world screen.
   if( is_unit_inbound( units_state, id ) ||
       is_unit_outbound( units_state, id ) ) {
-    e_high_seas_result res =
-        advance_unit_on_high_seas( units_state, id );
+    e_high_seas_result res = advance_unit_on_high_seas(
+        terrain_state, units_state, player, id );
     switch( res ) {
       case e_high_seas_result::still_traveling:
         finish_turn( id );
@@ -797,6 +797,9 @@ wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
                     ColoniesState&       colonies_state,
                     IMapUpdater& map_updater, IGui& gui ) {
   auto& st = nat_turn_st;
+
+  // FIXME: remove
+  set_harbor_view_player( st.nation );
 
   if( !player.human ) co_return; // TODO: Until we have AI.
 

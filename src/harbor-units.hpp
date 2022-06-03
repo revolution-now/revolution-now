@@ -51,8 +51,9 @@ std::vector<UnitId> harbor_units_outbound(
 // to the new world. This just puts it into inbound state with
 // the appropriate percentage given its current state; it will
 // not ever move the unit to the map.
-void unit_sail_to_new_world( UnitsState& units_state,
-                             UnitId      id );
+void unit_sail_to_new_world( TerrainState const& terrain_state,
+                             UnitsState&         units_state,
+                             Player const& player, UnitId id );
 
 // This is the method that should always be called to set a ship
 // sailing the high seas, or at least moving toward the harbor if
@@ -62,7 +63,8 @@ void unit_sail_to_new_world( UnitsState& units_state,
 // If it is a unit owned by the map then it record its position
 // so that it can return to that position when it emerges back in
 // the new world eventually.
-void unit_sail_to_harbor( UnitsState& units_state,
+void unit_sail_to_harbor( TerrainState const& terrain_state,
+                          UnitsState&         units_state,
                           Player& player, UnitId id );
 
 // Takes a unit and just moves it to port (that means the dock if
@@ -75,14 +77,15 @@ void unit_sail_to_harbor( UnitsState& units_state,
 // purchased in europe. Also useful for creating testing setups.
 void unit_move_to_port( UnitsState& units_state, UnitId id );
 
-// Takes a unit on the high seas and increases the percentage
-// completion of its journey. If the percentage reaches 1.0 as a
-// result of this call then the state will automatically be tran-
-// sitioned to either the harbor or the new world, as appropri-
-// ate. If this is called with a unit that is not on the high
-// seas then an error will be thrown.
+// Takes a unit on the high seas and increases the turn count of
+// its journey. If the turn count reaches the maximum as a result
+// of this call then the state will automatically be transitioned
+// to either the harbor or the new world, as appropriate. If this
+// is called with a unit that is not on the high seas then an
+// error will be thrown.
 [[nodiscard]] e_high_seas_result advance_unit_on_high_seas(
-    UnitsState& units_state, UnitId id );
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player const& player, UnitId id );
 
 // When a unit arrives in the new world from the high seas we
 // need to find a square on which to place the unit. That is ac-
