@@ -57,8 +57,7 @@ Matrix<MapSquare>& TerrainState::mutable_world_map() {
 }
 
 Delta TerrainState::world_size_tiles() const {
-  TerrainState const& terrain_state = GameState::terrain();
-  return terrain_state.world_map().size();
+  return o_.world_map.size();
 }
 
 Rect TerrainState::world_rect_tiles() const {
