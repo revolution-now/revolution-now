@@ -65,9 +65,8 @@ maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
 /****************************************************************
 ** Units
 *****************************************************************/
-string debug_string( UnitId id ) {
-  auto& gs_units = GameState::units();
-  return debug_string( gs_units.unit_for( id ) );
+string debug_string( UnitsState const& units_state, UnitId id ) {
+  return debug_string( units_state.unit_for( id ) );
 }
 
 Unit& unit_from_id( UnitId id ) {
@@ -266,7 +265,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
   UnitsState& units_state = GameState::units();
   lg.info( "adding unit {} to cargo of unit {}.",
-           debug_string( held ), debug_string( holder ) );
+           debug_string( units_state, held ),
+           debug_string( units_state, holder ) );
   units_state.change_to_cargo_somewhere( holder, held );
 }
 
@@ -274,8 +274,9 @@ LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
   UnitsState& units_state = GameState::units();
   UnitId      unit_id = create_unit( units_state, nation, comp );
-  lg.info( "created unit {}.", debug_string( unit_id ),
-           debug_string( holder ) );
+  lg.info( "created unit {}.",
+           debug_string( units_state, unit_id ),
+           debug_string( units_state, holder ) );
   units_state.change_to_cargo_somewhere( holder, unit_id );
   return units_state.unit_for( unit_id );
 }

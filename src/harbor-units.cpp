@@ -253,7 +253,8 @@ e_high_seas_result advance_unit_on_high_seas(
     outbound.percent += advance;
     outbound.percent = std::clamp( outbound.percent, 0.0, 1.0 );
     lg.debug( "advancing outbound unit {} to {} percent.",
-              debug_string( id ), outbound.percent );
+              debug_string( units_state, id ),
+              outbound.percent );
     if( outbound.percent >= 1.0 ) {
       // FIXME: temporary; also, would want to use coroutine ver-
       // sion of this function.
@@ -271,7 +272,7 @@ e_high_seas_result advance_unit_on_high_seas(
     inbound.percent += advance;
     inbound.percent = std::clamp( inbound.percent, 0.0, 1.0 );
     lg.debug( "advancing inbound unit {} to {} percent.",
-              debug_string( id ), inbound.percent );
+              debug_string( units_state, id ), inbound.percent );
     if( inbound.percent >= 1.0 ) {
       // This should preserve the `sailed_from`.
       unit_move_to_port( units_state, id );
@@ -281,7 +282,8 @@ e_high_seas_result advance_unit_on_high_seas(
     return e_high_seas_result::still_traveling;
   }
 
-  FATAL( "{} is not on the high seas.", debug_string( id ) );
+  FATAL( "{} is not on the high seas.",
+         debug_string( units_state, id ) );
 }
 
 UnitId create_unit_in_harbor( UnitsState&     units_state,

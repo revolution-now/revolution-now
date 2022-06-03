@@ -966,7 +966,8 @@ class UnitsAtGateColonyView : public ui::View,
 
   wait<> click_on_unit( UnitId id ) {
     UnitsState& units_state = GameState::units();
-    lg.info( "clicked on unit {}.", debug_string( id ) );
+    lg.info( "clicked on unit {}.",
+             debug_string( units_state, id ) );
     Unit& unit = units_state.unit_for( id );
     if( selected_ != id ) {
       set_selected_unit( id );

@@ -1035,7 +1035,7 @@ AttackHandler::confirm_attack_impl() {
   CHECK( !sorted_by_defense.empty() );
   UnitId highest_defense_unit = sorted_by_defense.back();
   lg.info( "unit in target square with highest defense: {}",
-           debug_string( highest_defense_unit ) );
+           debug_string( units_state_, highest_defense_unit ) );
 
   // Deferred evaluation until we know that the attack makes
   // sense.

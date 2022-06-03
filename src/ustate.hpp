@@ -38,8 +38,8 @@ struct UnitsState;
 /****************************************************************
 ** Units
 *****************************************************************/
-// FIXME
-std::string debug_string( UnitId id );
+std::string debug_string( UnitsState const& units_state,
+                          UnitId            id );
 
 // FIXME: replace this with UnitsState::unit_for.
 ND Unit& unit_from_id( UnitId id );

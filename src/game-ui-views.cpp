@@ -11,6 +11,7 @@
 #include "game-ui-views.hpp"
 
 // Revolution Now
+#include "game-state.hpp"
 #include "logger.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -149,7 +150,8 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
         [p_unit_activation_view, id, p_fake_unit_view,
          p_border_view] {
           auto& infos = p_unit_activation_view->info_map();
-          lg.debug( "clicked on {}", debug_string( id ) );
+          lg.debug( "clicked on {}",
+                    debug_string( GameState::units(), id ) );
           p_unit_activation_view->on_click_unit( id );
           CHECK( infos.contains( id ) );
           auto& info = infos[id];

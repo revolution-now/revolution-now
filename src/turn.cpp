@@ -536,13 +536,15 @@ wait<> process_player_input( UnitId                       id,
 }
 
 wait<LandViewPlayerInput_t> landview_player_input(
-    NationTurnState& nat_turn_st, UnitId id ) {
+    NationTurnState& nat_turn_st, UnitsState const& units_state,
+    UnitId id ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
         .orders = *maybe_orders };
   } else {
-    lg.debug( "asking orders for: {}", debug_string( id ) );
+    lg.debug( "asking orders for: {}",
+              debug_string( units_state, id ) );
     nat_turn_st.need_eot = false;
     response = co_await landview_get_next_input( id );
   }
@@ -557,7 +559,7 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
                          SettingsState const& settings ) {
   auto command = co_await co::first(
       wait_for_menu_selection(),
-      landview_player_input( nat_turn_st, id ) );
+      landview_player_input( nat_turn_st, units_state, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
     return process_player_input(
         id, action, map_updater, gui, player, nat_turn_st,
