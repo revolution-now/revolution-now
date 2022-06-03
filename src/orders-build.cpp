@@ -140,9 +140,7 @@ unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
     IMapUpdater* map_updater, IGui& gui, Player&,
     TerrainState const& terrain_state, UnitsState& units_state,
-    SettingsState const& ) {
-  // FIXME
-  ColoniesState& colonies_state = GameState::colonies();
+    ColoniesState& colonies_state, SettingsState const& ) {
   return make_unique<BuildHandler>( map_updater, gui, id,
                                     colonies_state,
                                     terrain_state, units_state );

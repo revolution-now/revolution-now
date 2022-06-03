@@ -14,6 +14,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
+#include "gs-units.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
@@ -39,13 +40,14 @@ unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 
 unique_ptr<OrdersHandler> handle_orders(
     UnitId, orders::wait const&, IMapUpdater*, IGui&, Player&,
-    TerrainState const&, UnitsState&, SettingsState const& ) {
+    TerrainState const&, UnitsState&, ColoniesState&,
+    SettingsState const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<OrdersHandler> handle_orders(
     UnitId, orders::forfeight const&, IMapUpdater*, IGui&,
-    Player&, TerrainState const&, UnitsState&,
+    Player&, TerrainState const&, UnitsState&, ColoniesState&,
     SettingsState const& ) {
   SHOULD_NOT_BE_HERE;
 }
@@ -71,12 +73,13 @@ maybe<orders_t> pop_unit_orders( UnitId id ) {
 std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
-    UnitsState& units_state, SettingsState const& settings ) {
-  CHECK( !unit_from_id( id ).mv_pts_exhausted() );
+    UnitsState& units_state, ColoniesState& colonies_state,
+    SettingsState const& settings ) {
+  CHECK( !units_state.unit_for( id ).mv_pts_exhausted() );
   return visit(
       orders, LC( handle_orders( id, _, map_updater, gui, player,
                                  terrain_state, units_state,
-                                 settings ) ) );
+                                 colonies_state, settings ) ) );
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {

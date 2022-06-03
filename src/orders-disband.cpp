@@ -58,8 +58,8 @@ struct DisbandHandler : public OrdersHandler {
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::disband const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState& units_state,
-    SettingsState const& ) {
+    Player&, TerrainState const&, ColoniesState&,
+    UnitsState& units_state, SettingsState const& ) {
   return make_unique<DisbandHandler>( id, gui, units_state );
 }
 

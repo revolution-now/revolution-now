@@ -1324,8 +1324,8 @@ unique_ptr<OrdersHandler> dispatch(
 unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
-    UnitsState& units_state, SettingsState const& settings ) {
-  ColoniesState& colonies_state = GameState::colonies();
+    UnitsState& units_state, ColoniesState& colonies_state,
+    SettingsState const& settings ) {
   return dispatch( id, mv.d, *map_updater, terrain_state, gui,
                    player, units_state, colonies_state,
                    settings );

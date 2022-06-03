@@ -67,14 +67,14 @@ struct SentryHandler : public OrdersHandler {
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::fortify const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&,
+    Player&, TerrainState const&, UnitsState&, ColoniesState&,
     SettingsState const& ) {
   return make_unique<FortifyHandler>( id, gui );
 }
 
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::sentry const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&,
+    Player&, TerrainState const&, UnitsState&, ColoniesState&,
     SettingsState const& ) {
   return make_unique<SentryHandler>( id, gui );
 }
