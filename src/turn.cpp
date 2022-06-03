@@ -577,6 +577,7 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( UnitsState&          units_state,
+                         ColoniesState const& colonies_state,
                          TerrainState const&  terrain_state,
                          SettingsState const& settings,
                          Player& player, IGui& gui,
@@ -629,13 +630,23 @@ wait<bool> advance_unit( UnitsState&          units_state,
         co_return false; // do not ask for orders.
       case e_high_seas_result::arrived_in_new_world: {
         lg.debug( "unit has arrived in new world." );
-        units_state.unit_for( id ).clear_orders();
-        Coord dst_coord = find_new_world_arrival_square(
-            units_state, terrain_state, player,
+        maybe<Coord> dst_coord = find_new_world_arrival_square(
+            units_state, colonies_state, terrain_state, player,
             units_state.harbor_view_state_of( id ) );
+        if( !dst_coord.has_value() ) {
+          co_await ui::message_box(
+              "Unfortunately, while our @[H]{}@[] has arrived "
+              "in the new world, there are no appropriate water "
+              "squares on which to place it.  We will try again "
+              "next turn.",
+              units_state.unit_for( id ).desc().name );
+          finish_turn( id );
+          break;
+        }
+        units_state.unit_for( id ).clear_orders();
         co_await unit_to_map_square(
             units_state, terrain_state, player, settings, gui,
-            map_updater, id, dst_coord );
+            map_updater, id, *dst_coord );
         unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
       }
@@ -663,6 +674,7 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
                             NationTurnState&     nat_turn_st,
                             TerrainState const&  terrain_state,
                             UnitsState&          units_state,
+                            ColoniesState const& colonies_state,
                             SettingsState const& settings,
                             deque<UnitId>&       q ) {
   while( !q.empty() ) {
@@ -679,8 +691,8 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
     }
 
     bool should_ask = co_await advance_unit(
-        units_state, terrain_state, settings, player, gui,
-        map_updater, id );
+        units_state, colonies_state, terrain_state, settings,
+        player, gui, map_updater, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -708,6 +720,7 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
                    Player& player, NationTurnState& nat_turn_st,
                    TerrainState const&  terrain_state,
                    UnitsState&          units_state,
+                   ColoniesState const& colonies_state,
                    SettingsState const& settings ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
@@ -732,9 +745,9 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( map_updater, gui, player,
-                                  nat_turn_st, terrain_state,
-                                  units_state, settings, q );
+    co_await units_turn_one_pass(
+        map_updater, gui, player, nat_turn_st, terrain_state,
+        units_state, colonies_state, settings, q );
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( st.nation );
@@ -801,7 +814,8 @@ wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
 
   if( !st.did_units ) {
     co_await units_turn( map_updater, gui, player, st,
-                         terrain_state, units_state, settings );
+                         terrain_state, units_state,
+                         colonies_state, settings );
     st.did_units = true;
   }
   CHECK( st.units.empty() );

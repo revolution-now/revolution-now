@@ -28,9 +28,14 @@
 
 namespace rn {
 
+struct UnitsState;
+struct ColoniesState;
+
 Nationality const& nation_obj( e_nation nation );
 
-maybe<e_nation> nation_from_coord( Coord coord );
+maybe<e_nation> nation_from_coord(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state, Coord coord );
 
 constexpr auto all_nations() {
   constexpr std::array<e_nation, refl::enum_count<e_nation>>

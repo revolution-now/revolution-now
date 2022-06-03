@@ -23,6 +23,7 @@
 
 namespace rn {
 
+struct ColoniesState;
 struct Player;
 struct TerrainState;
 struct UnitHarborViewState;
@@ -86,8 +87,9 @@ void unit_move_to_port( UnitsState& units_state, UnitId id );
 // When a unit arrives in the new world from the high seas we
 // need to find a square on which to place the unit. That is ac-
 // tually a non-trivial process, and this function does that.
-Coord find_new_world_arrival_square(
-    UnitsState const&   units_state,
+maybe<Coord> find_new_world_arrival_square(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state,
     TerrainState const& terrain_state, Player const& player,
     UnitHarborViewState const& info );
 

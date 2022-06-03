@@ -174,6 +174,7 @@ struct TravelHandler : public OrdersHandler {
                  IMapUpdater&        map_updater,
                  TerrainState const& terrain_state, IGui& gui,
                  UnitsState&          units_state,
+                 ColoniesState const& colonies_state,
                  SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
@@ -182,6 +183,7 @@ struct TravelHandler : public OrdersHandler {
       terrain_state_( terrain_state ),
       gui_( gui ),
       units_state_( units_state ),
+      colonies_state_( colonies_state ),
       settings_( settings ) {}
 
   enum class e_travel_verdict {
@@ -325,16 +327,19 @@ struct TravelHandler : public OrdersHandler {
 
   UnitsState& units_state_;
 
+  ColoniesState const& colonies_state_;
+
   SettingsState const& settings_;
 };
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::analyze_unload() const {
   std::vector<UnitId> to_offload;
-  auto&               unit = unit_from_id( unit_id );
+  auto&               unit = units_state_.unit_for( unit_id );
   for( auto unit_item :
        unit.cargo().items_of_type<Cargo::unit>() ) {
-    auto const& cargo_unit = unit_from_id( unit_item.id );
+    auto const& cargo_unit =
+        units_state_.unit_for( unit_item.id );
     if( !cargo_unit.mv_pts_exhausted() )
       to_offload.push_back( unit_item.id );
   }
@@ -359,7 +364,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -474,7 +479,8 @@ TravelHandler::confirm_travel_impl() {
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
-  if( auto dst_nation = nation_from_coord( move_dst );
+  if( auto dst_nation = nation_from_coord(
+          units_state_, colonies_state_, move_dst );
       dst_nation.has_value() ) {
     CHECK( *dst_nation == unit.nation() );
     relationship = e_unit_relationship::friendly;
@@ -608,7 +614,8 @@ TravelHandler::confirm_travel_impl() {
         // through and find the first one (if any) that
         // the unit can board.
         for( auto ship_id : ships ) {
-          auto const& ship_unit = unit_from_id( ship_id );
+          auto const& ship_unit =
+              units_state_.unit_for( ship_id );
           CHECK( ship_unit.desc().ship );
           lg.debug( "checking ship cargo: {}",
                     ship_unit.cargo() );
@@ -675,7 +682,7 @@ wait<> TravelHandler::perform() {
       if( unit.desc().ship ) {
         for( Cargo::unit u :
              unit.cargo().items_of_type<Cargo::unit>() ) {
-          auto& cargo_unit = unit_from_id( u.id );
+          auto& cargo_unit = units_state_.unit_for( u.id );
           cargo_unit.sentry();
         }
       }
@@ -694,7 +701,7 @@ wait<> TravelHandler::perform() {
       // If the ship is sentried then clear it's orders because
       // the player will likely want to start moving it now that
       // a unit has boarded.
-      auto& ship_unit = unit_from_id( *target_unit );
+      auto& ship_unit = units_state_.unit_for( *target_unit );
       ship_unit.clear_orders();
       break;
     }
@@ -739,7 +746,7 @@ wait<> TravelHandler::perform() {
       prioritize.clear();
       for( auto unit_item :
            unit.cargo().items_of_type<Cargo::unit>() ) {
-        auto& cargo_unit = unit_from_id( unit_item.id );
+        auto& cargo_unit = units_state_.unit_for( unit_item.id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
           prioritize.push_back( unit_item.id );
@@ -749,7 +756,7 @@ wait<> TravelHandler::perform() {
       reverse( prioritize.begin(), prioritize.end() );
       for( auto unit_item :
            unit.cargo().items_of_type<Cargo::unit>() ) {
-        auto& cargo_unit = unit_from_id( unit_item.id );
+        auto& cargo_unit = units_state_.unit_for( unit_item.id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           UNWRAP_CHECK( direction,
                         old_coord.direction_to( move_dst ) );
@@ -790,6 +797,7 @@ struct AttackHandler : public OrdersHandler {
                  IMapUpdater&        map_updater,
                  TerrainState const& terrain_state, IGui& gui,
                  Player& player, UnitsState& units_state,
+                 ColoniesState&       colonies_state,
                  SettingsState const& settings )
     : unit_id( unit_id_ ),
       direction( d ),
@@ -798,6 +806,7 @@ struct AttackHandler : public OrdersHandler {
       gui_( gui ),
       player_( player ),
       units_state_( units_state ),
+      colonies_state_( colonies_state ),
       settings_( settings ) {}
 
   enum class e_attack_verdict {
@@ -867,8 +876,10 @@ struct AttackHandler : public OrdersHandler {
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
-    auto const& defender_unit = unit_from_id( defender );
-    auto const& attacker_unit = unit_from_id( attacker );
+    auto const& defender_unit =
+        units_state_.unit_for( defender );
+    auto const& attacker_unit =
+        units_state_.unit_for( attacker );
 
     e_depixelate_anim dp_anim =
         stats.attacker_wins
@@ -900,8 +911,8 @@ struct AttackHandler : public OrdersHandler {
           conductor::e_request_probability::always );
       UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
       Colony const&      colony = colony_from_id( colony_id );
-      Nationality const& attacker_nation =
-          nation_obj( unit_from_id( unit_id ).nation() );
+      Nationality const& attacker_nation = nation_obj(
+          units_state_.unit_for( unit_id ).nation() );
       co_await gui_.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
@@ -946,6 +957,8 @@ struct AttackHandler : public OrdersHandler {
 
   UnitsState& units_state_;
 
+  ColoniesState& colonies_state_;
+
   SettingsState const& settings_;
 };
 
@@ -955,7 +968,7 @@ AttackHandler::confirm_attack_impl() {
   attack_src = coord_for_unit_indirect_or_die( id );
   attack_dst = attack_src.moved( direction );
 
-  auto& unit = unit_from_id( id );
+  auto& unit = units_state_.unit_for( id );
   CHECK( !unit.mv_pts_exhausted() );
 
   if( is_unit_onboard( id ) )
@@ -980,7 +993,8 @@ AttackHandler::confirm_attack_impl() {
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
-  auto dst_nation = nation_from_coord( attack_dst );
+  auto dst_nation = nation_from_coord(
+      units_state_, colonies_state_, attack_dst );
   CHECK( dst_nation.has_value() &&
          *dst_nation != unit.nation() );
   CHECK( attack_dst.is_inside(
@@ -1007,10 +1021,11 @@ AttackHandler::confirm_attack_impl() {
   // ceeds, the colony is taken) even if there are free colonists
   // on the colony map square.
   if( colony_at_dst ) {
-    erase_if( units_at_dst, L( unit_from_id( _ ).desc().ship ) );
-    erase_if(
-        units_at_dst,
-        L( !is_military_unit( unit_from_id( _ ).desc() ) ) );
+    erase_if( units_at_dst,
+              LC( units_state_.unit_for( _ ).desc().ship ) );
+    erase_if( units_at_dst,
+              LC( !is_military_unit(
+                  units_state_.unit_for( _ ).desc() ) ) );
   }
 
   // If military units are exhausted then attack the colony.
@@ -1031,7 +1046,7 @@ AttackHandler::confirm_attack_impl() {
                                     units_at_dst.end() );
   util::sort_by_key(
       sorted_by_defense,
-      L( unit_from_id( _ ).desc().defense_points ) );
+      LC( units_state_.unit_for( _ ).desc().defense_points ) );
   CHECK( !sorted_by_defense.empty() );
   UnitId highest_defense_unit = sorted_by_defense.back();
   lg.info( "unit in target square with highest defense: {}",
@@ -1085,7 +1100,8 @@ AttackHandler::confirm_attack_impl() {
       case bh_t::attack: {
         e_attack_verdict which =
             is_military_unit(
-                unit_from_id( highest_defense_unit ).desc() )
+                units_state_.unit_for( highest_defense_unit )
+                    .desc() )
                 ? e_attack_verdict::colony_defended
                 : e_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit;
@@ -1137,7 +1153,7 @@ AttackHandler::confirm_attack_impl() {
 
 wait<> AttackHandler::perform() {
   auto  id   = unit_id;
-  auto& unit = unit_from_id( id );
+  auto& unit = units_state_.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -1145,12 +1161,10 @@ wait<> AttackHandler::perform() {
   CHECK( fight_stats.has_value() );
 
   auto& attacker = unit;
-  auto& defender = unit_from_id( *target_unit );
+  auto& defender = units_state_.unit_for( *target_unit );
   auto& winner =
       fight_stats->attacker_wins ? attacker : defender;
   auto& loser = fight_stats->attacker_wins ? defender : attacker;
-
-  ColoniesState& colonies_state = GameState::colonies();
 
   // The original game seems to consume all movement points of a
   // unit when attacking.
@@ -1170,13 +1184,13 @@ wait<> AttackHandler::perform() {
         // special happens; we just do what we normally do when
         // an attacker loses a battle.
         break;
-      UNWRAP_CHECK( colony_id, colonies_state.maybe_from_coord(
+      UNWRAP_CHECK( colony_id, colonies_state_.maybe_from_coord(
                                    attack_dst ) );
       // 1. The colony changes ownership, as well as all of the
       // units that are working in it and who are on the map at
       // the colony location.
       change_colony_nation(
-          colonies_state.colony_for( colony_id ), units_state_,
+          colonies_state_.colony_for( colony_id ), units_state_,
           attacker.nation() );
       // 2. The attacker moves into the colony square.
       co_await unit_to_map_square(
@@ -1269,35 +1283,37 @@ wait<> AttackHandler::perform() {
 unique_ptr<OrdersHandler> dispatch(
     UnitId id, e_direction d, IMapUpdater& map_updater,
     TerrainState const& terrain_state, IGui& gui, Player& player,
-    UnitsState& units_state, SettingsState const& settings ) {
+    UnitsState& units_state, ColoniesState& colonies_state,
+    SettingsState const& settings ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
-  auto& unit = unit_from_id( id );
+  auto& unit = units_state.unit_for( id );
 
   if( !dst.is_inside( terrain_state.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, settings );
+        units_state, colonies_state, settings );
 
-  auto dst_nation = nation_from_coord( dst );
+  auto dst_nation =
+      nation_from_coord( units_state, colonies_state, dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, settings );
+        units_state, colonies_state, settings );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, settings );
+        units_state, colonies_state, settings );
 
   // Must be an attack.
-  return make_unique<AttackHandler>( id, d, map_updater,
-                                     terrain_state, gui, player,
-                                     units_state, settings );
+  return make_unique<AttackHandler>(
+      id, d, map_updater, terrain_state, gui, player,
+      units_state, colonies_state, settings );
 }
 
 } // namespace
@@ -1309,8 +1325,10 @@ unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
     UnitsState& units_state, SettingsState const& settings ) {
+  ColoniesState& colonies_state = GameState::colonies();
   return dispatch( id, mv.d, *map_updater, terrain_state, gui,
-                   player, units_state, settings );
+                   player, units_state, colonies_state,
+                   settings );
 }
 
 } // namespace rn

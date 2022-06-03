@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -101,14 +102,50 @@ bool is_unit_on_dock( UnitsState const& units_state,
 *****************************************************************/
 // Find the right place to put a ship which has just arrived from
 // europe.
-Coord find_new_world_arrival_square(
-    UnitsState const&, TerrainState const&, Player const& player,
+maybe<Coord> find_new_world_arrival_square(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state,
+    TerrainState const& terrain_state, Player const& player,
     UnitHarborViewState const& info ) {
   Coord candidate =
       find_new_world_arrival_square_candidate( player, info );
 
+  maybe<e_nation> nation = nation_from_coord(
+      units_state, colonies_state, candidate );
 
-  return candidate;
+  if( !nation.has_value() ) return candidate;
+
+  // We have a case where there are units on the candidate
+  // square, so let's make sure they are friendly.
+  if( nation == player.nation ) return candidate;
+
+  // The units on the square are not friendly, so we cannot drop
+  // the unit here. We will procede to search the squares in an
+  // outward fashion until we find one.
+  Delta const world_size = terrain_state.world_size_tiles();
+  Rect search     = Rect::from( candidate, Delta( 1_w, 1_h ) );
+  int  max_radius = std::max( world_size.w._, world_size.h._ );
+
+  for( int radius = 0; radius < max_radius; ++radius ) {
+    search = search.with_border_added();
+    for( Coord c : search ) {
+      maybe<MapSquare const&> square =
+          terrain_state.maybe_square_at( c );
+      if( !square.has_value() ) continue;
+      if( square->surface != e_surface::water ) continue;
+      maybe<e_nation> nation =
+          nation_from_coord( units_state, colonies_state, c );
+      if( !nation.has_value() || nation == player.nation )
+        // We've found a square that is water and does not con-
+        // tain a foreign nation.
+        return c;
+    }
+  }
+
+  // Theoretically at this point we should also make sure that we
+  // haven't placed the ship into a lake in which it will be
+  // trapped... but that seems like a rare occurrence.
+  return nothing;
 }
 
 bool is_unit_inbound( UnitsState const& units_state,
@@ -284,6 +321,9 @@ e_high_seas_result advance_unit_on_high_seas(
     UnitsState& units_state, UnitId id ) {
   UNWRAP_CHECK( info,
                 units_state.maybe_harbor_view_state_of( id ) );
+  // TODO: need to put in the correct travel time, which differs
+  // between the pacific side and atlantic side. Also, when Mag-
+  // ellan is obtained, the pacific time is shortened.
   constexpr double const advance = 0.25;
 
   if_get( info.port_status, PortStatus::outbound, outbound ) {

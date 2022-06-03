@@ -17,6 +17,7 @@
 #include "src/harbor-units.hpp"
 
 // Revolution Now
+#include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
 #include "src/player.hpp"
 
@@ -106,7 +107,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
   REQUIRE( !is_unit_in_port( w.units(), caravel ) );
 
   REQUIRE( find_new_world_arrival_square(
-               w.units(), w.terrain(), w.dutch(),
+               w.units(), w.colonies(), w.terrain(), w.dutch(),
                w.units().harbor_view_state_of( caravel ) ) ==
            coord );
 }
@@ -317,7 +318,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
           .port_status = PortStatus::outbound{ .percent = 1.0 },
           .sailed_from = coord } );
   REQUIRE( find_new_world_arrival_square(
-               w.units(), w.terrain(), w.dutch(),
+               w.units(), w.colonies(), w.terrain(), w.dutch(),
                w.units().harbor_view_state_of( id ) ) == coord );
 
   // Sail once again.
@@ -381,7 +382,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
       UnitHarborViewState{ .port_status = PortStatus::in_port{},
                            .sailed_from = coord } );
   REQUIRE( find_new_world_arrival_square(
-               w.units(), w.terrain(), w.dutch(),
+               w.units(), w.colonies(), w.terrain(), w.dutch(),
                w.units().harbor_view_state_of( id ) ) == coord );
 
   // Sail back to the new world.
@@ -438,7 +439,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
           .sailed_from = coord } );
 
   REQUIRE( find_new_world_arrival_square(
-               w.units(), w.terrain(), w.dutch(),
+               w.units(), w.colonies(), w.terrain(), w.dutch(),
                w.units().harbor_view_state_of( id ) ) == coord );
 }
 
@@ -460,7 +461,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
   SECTION( "no ships sailed" ) {
     unit_sail_to_new_world( w.units(), caravel2 );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.terrain(), w.dutch(),
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
                  w.units().harbor_view_state_of( caravel2 ) ) ==
              starting );
   }
@@ -471,7 +472,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
     unit_sail_to_harbor( w.units(), w.dutch(), caravel1 );
     unit_sail_to_new_world( w.units(), caravel2 );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.terrain(), w.dutch(),
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
                  w.units().harbor_view_state_of( caravel2 ) ) ==
              ship_loc );
   }
@@ -497,16 +498,127 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
                      PortStatus::outbound{ .percent = 1.0 },
                  .sailed_from = ship_loc } );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.terrain(), w.dutch(),
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
                  w.units().harbor_view_state_of( caravel1 ) ) ==
              ship_loc );
   }
 }
 
 TEST_CASE(
-    "[harbor-units] sail to new world with foreign unit" ) {
+    "[harbor-units] find_new_world_arrival_square with foreign "
+    "unit" ) {
   HarborUnitsWorld w;
-  // TODO
+
+  SECTION( "friendly unit" ) {
+    Coord const ship_loc( 8_x, 5_y );
+    UnitId      dutch_caravel = w.add_unit_on_map(
+             e_unit_type::caravel, ship_loc, e_nation::dutch );
+    unit_sail_to_harbor( w.units(), w.dutch(), dutch_caravel );
+    unit_move_to_port( w.units(), dutch_caravel );
+    REQUIRE( w.units().from_coord( ship_loc ).empty() );
+
+    UnitId dutch_caravel2 = w.add_unit_on_map(
+        e_unit_type::caravel, ship_loc, e_nation::dutch );
+    REQUIRE( find_new_world_arrival_square(
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.units().harbor_view_state_of(
+                     dutch_caravel ) ) == ship_loc );
+    REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
+    REQUIRE( w.units()
+                 .from_coord( ship_loc )
+                 .contains( dutch_caravel2 ) );
+  }
+
+  SECTION( "foreign unit" ) {
+    Coord const ship_loc( 8_x, 5_y );
+    UnitId      dutch_caravel = w.add_unit_on_map(
+             e_unit_type::caravel, ship_loc, e_nation::dutch );
+    unit_sail_to_harbor( w.units(), w.dutch(), dutch_caravel );
+    unit_move_to_port( w.units(), dutch_caravel );
+    REQUIRE( w.units().from_coord( ship_loc ).empty() );
+
+    UnitId dutch_caravel2 = w.add_unit_on_map(
+        e_unit_type::caravel, ship_loc, e_nation::french );
+    REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
+    REQUIRE( w.units()
+                 .from_coord( ship_loc )
+                 .contains( dutch_caravel2 ) );
+    Coord const expected( 7_x, 4_y );
+    REQUIRE( find_new_world_arrival_square(
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.units().harbor_view_state_of(
+                     dutch_caravel ) ) == expected );
+  }
+
+  SECTION( "map edge + foreign units" ) {
+    Coord const ship_loc( 0_x, 0_y );
+    UnitId      dutch_caravel = w.add_unit_on_map(
+             e_unit_type::caravel, ship_loc, e_nation::dutch );
+    unit_sail_to_harbor( w.units(), w.dutch(), dutch_caravel );
+    unit_move_to_port( w.units(), dutch_caravel );
+    REQUIRE( w.units().from_coord( ship_loc ).empty() );
+
+    w.add_unit_on_map( e_unit_type::caravel, ship_loc,
+                       e_nation::french );
+    Coord const expected( 1_x, 0_y );
+    REQUIRE( find_new_world_arrival_square(
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.units().harbor_view_state_of(
+                     dutch_caravel ) ) == expected );
+  }
+
+  SECTION( "map edge + a lot foreign units" ) {
+    Coord const ship_loc( 0_x, 0_y );
+    UnitId      dutch_caravel = w.add_unit_on_map(
+             e_unit_type::caravel, ship_loc, e_nation::dutch );
+    unit_sail_to_harbor( w.units(), w.dutch(), dutch_caravel );
+    unit_move_to_port( w.units(), dutch_caravel );
+    REQUIRE( w.units().from_coord( ship_loc ).empty() );
+
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 0_h + 0_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 0_h + 1_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 0_h + 2_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 1_h + 0_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 1_h + 1_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 1_h + 2_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 2_h + 0_w, e_nation::french );
+    w.add_unit_on_map( e_unit_type::caravel,
+                       ship_loc + 2_h + 1_w, e_nation::french );
+    Coord const expected( 3_x, 0_y );
+    REQUIRE( find_new_world_arrival_square(
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.units().harbor_view_state_of(
+                     dutch_caravel ) ) == expected );
+  }
+
+  SECTION( "no squares available" ) {
+    Coord const ship_loc( 0_x, 0_y );
+    UnitId      dutch_caravel = w.add_unit_on_map(
+             e_unit_type::caravel, ship_loc, e_nation::dutch );
+    unit_sail_to_harbor( w.units(), w.dutch(), dutch_caravel );
+    unit_move_to_port( w.units(), dutch_caravel );
+    REQUIRE( w.units().from_coord( ship_loc ).empty() );
+
+    // Fill all ocean squares with foreign units to test the case
+    // where we cannot find any where to place the unit.
+    for( Coord c : w.terrain().world_rect_tiles() )
+      if( w.terrain().square_at( c ).surface ==
+          e_surface::water )
+        w.add_unit_on_map( e_unit_type::caravel, c,
+                           e_nation::french );
+
+    REQUIRE( find_new_world_arrival_square(
+                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.units().harbor_view_state_of(
+                     dutch_caravel ) ) == nothing );
+  }
 }
 
 } // namespace
