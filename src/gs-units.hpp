@@ -65,12 +65,12 @@ struct UnitsState {
 
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
-  maybe<UnitHarborViewState_t&> maybe_harbor_view_state_of(
+  maybe<UnitHarborViewState&> maybe_harbor_view_state_of(
       UnitId id );
-  maybe<UnitHarborViewState_t const&> maybe_harbor_view_state_of(
+  maybe<UnitHarborViewState const&> maybe_harbor_view_state_of(
       UnitId id ) const;
 
-  UnitHarborViewState_t& harbor_view_state_of( UnitId id );
+  UnitHarborViewState& harbor_view_state_of( UnitId id );
 
   std::unordered_set<UnitId> const& from_coord(
       Coord const& c ) const;
@@ -137,8 +137,8 @@ struct UnitsState {
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
-  void change_to_harbor_view( UnitId                id,
-                              UnitHarborViewState_t info );
+  void change_to_harbor_view( UnitId              id,
+                              UnitHarborViewState info );
 
   // ------ Non-invariant Preserving ------
   // This will erase any ownership that is had over the given

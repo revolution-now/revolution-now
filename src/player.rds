@@ -8,6 +8,9 @@
 # Description: RDS definitions for the player module.
 #
 # ===============================================================
+# Revolution Now
+include "coord.hpp"
+
 # Rds
 include "fathers.rds.hpp"
 include "old-world-state.rds.hpp"
@@ -42,4 +45,16 @@ struct.Player {
 
   # Anything related to founding fathers is in here.
   fathers 'FoundingFathersState',
+
+  # This holds the source square of the most recent ship that
+  # sailed the high seas. This is needed so that if a ship is in
+  # europe and it got there without sailing from the new world,
+  # then this square will be used to place it when it arrives in
+  # the new world for the first time. If the unit sails to europe
+  # from the new world then this coordinate will not be used; in
+  # that case, the unit will return to the square from which it
+  # sailed. Theoretically this always needs to have a meaninful
+  # value, and so at the start of the game it should just be set
+  # to the player starting position.
+  last_high_seas 'Coord',
 }

@@ -356,7 +356,9 @@ TEST_CASE(
 
   auto id = create_colonist( units_state );
   units_state.change_to_harbor_view(
-      id, UnitHarborViewState::in_port{} );
+      id,
+      UnitHarborViewState{ .port_status = PortStatus::in_port{},
+                           .sailed_from = {} } );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );

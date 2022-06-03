@@ -1539,8 +1539,8 @@ struct DragConnector {
     UnitsState const& units_state = GameState::units();
     UNWRAP_CHECK(
         info, units_state.maybe_harbor_view_state_of( src.id ) );
-    ASSIGN_CHECK_V( outbound, info,
-                    UnitHarborViewState::outbound );
+    ASSIGN_CHECK_V( outbound, info.port_status,
+                    PortStatus::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
     // errors.
     return outbound.percent < 0.01;
@@ -1859,7 +1859,7 @@ void drag_n_drop_draw( rr::Renderer& renderer,
   if( !g_drag_state ) return;
   auto& state            = *g_drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -

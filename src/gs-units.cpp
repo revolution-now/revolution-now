@@ -32,9 +32,10 @@ constexpr int kFirstUnitId = 1;
 
 // FIXME: we should have a generic way to do this.
 valid_or<generic_err> check_harbor_state_invariants(
-    UnitHarborViewState_t const& info ) {
-  valid_or<string> res = std::visit(
-      []( auto const& o ) { return o.validate(); }, info );
+    UnitHarborViewState const& info ) {
+  valid_or<string> res =
+      std::visit( []( auto const& o ) { return o.validate(); },
+                  info.port_status );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }
@@ -181,7 +182,7 @@ UnitId UnitsState::holder_of( UnitId id ) const {
   return holder;
 }
 
-maybe<UnitHarborViewState_t&>
+maybe<UnitHarborViewState&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {
     case UnitOwnership::e::harbor:
@@ -194,7 +195,7 @@ UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   };
 }
 
-maybe<UnitHarborViewState_t const&>
+maybe<UnitHarborViewState const&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) const {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {
     case UnitOwnership::e::harbor:
@@ -207,7 +208,7 @@ UnitsState::maybe_harbor_view_state_of( UnitId id ) const {
   };
 }
 
-UnitHarborViewState_t& UnitsState::harbor_view_state_of(
+UnitHarborViewState& UnitsState::harbor_view_state_of(
     UnitId id ) {
   UNWRAP_CHECK_MSG( st, maybe_harbor_view_state_of( id ),
                     "unit is not in the old world state." );
@@ -307,7 +308,7 @@ void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
 }
 
 void UnitsState::change_to_harbor_view(
-    UnitId id, UnitHarborViewState_t info ) {
+    UnitId id, UnitHarborViewState info ) {
   CHECK_HAS_VALUE( check_harbor_state_invariants( info ) );
   UnitOwnership_t& ownership = ownership_of( id );
   if( !ownership.holds<UnitOwnership::harbor>() )
@@ -315,8 +316,7 @@ void UnitsState::change_to_harbor_view(
   ownership = UnitOwnership::harbor{ /*st=*/info };
 }
 
-valid_or<string> UnitHarborViewState::outbound::validate()
-    const {
+valid_or<string> PortStatus::outbound::validate() const {
   RETURN_IF_FALSE( percent >= 0.0,
                    "ship outbound percentage must be between 0 "
                    "and 1 inclusive, but is {}.",
@@ -328,7 +328,7 @@ valid_or<string> UnitHarborViewState::outbound::validate()
   return valid;
 }
 
-valid_or<string> UnitHarborViewState::inbound::validate() const {
+valid_or<string> PortStatus::inbound::validate() const {
   RETURN_IF_FALSE( percent >= 0.0,
                    "ship outbound percentage must be between 0 "
                    "and 1 inclusive, but is {}.",
@@ -340,7 +340,7 @@ valid_or<string> UnitHarborViewState::inbound::validate() const {
   return valid;
 }
 
-valid_or<string> UnitHarborViewState::in_port::validate() const {
+valid_or<string> PortStatus::in_port::validate() const {
   return valid;
 }
 

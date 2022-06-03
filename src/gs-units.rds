@@ -19,9 +19,7 @@ include "<unordered_map>"
 
 namespace "rn"
 
-# These pertain to units who are owned by either the high seas or
-# by europe view (e.g., in port, on the dock, etc.);
-sumtype.UnitHarborViewState {
+sumtype.PortStatus {
   # For ships that are venturing to europe. `percent` starts from
   # 0 and goes to 1.0 at arrival. This means that the value
   # should never actually assume a value of 1.0, because as soon
@@ -47,6 +45,27 @@ sumtype.UnitHarborViewState {
   _features { equality, validation }
 }
 
+struct.UnitHarborViewState {
+  port_status 'PortStatus_t',
+
+  # This field is only relevant if the unit is a ship, in which
+  # case it specifies the square which the unit will be placed on
+  # when it eventually makes its way back to the new world. If it
+  # sailed to europe from the new world then this will hold the
+  # (sea lane) square that it sailed from (not the destination
+  # square but the source square, since the destination square
+  # might not exist if the unit moved off the edge of the map).
+  # On the other hand if the ship ended up in europe without
+  # having sailed there (possibly because it was purchased there
+  # or it was damaged and was transported there) then the game
+  # will apply some rules to determine a suitable coordinate. The
+  # original game will use the sea lane square of the most recent
+  # ship that sailed to europe (regardless of which side of the
+  # map it was on). Finally, if no ships have ever sailed to eu-
+  # rope, then this would be the starting position.
+  sailed_from 'Coord',
+}
+
 sumtype.UnitOwnership {
   free {},
   world {
@@ -56,7 +75,7 @@ sumtype.UnitOwnership {
     holder 'UnitId',
   },
   harbor {
-    st 'UnitHarborViewState_t',
+    st 'UnitHarborViewState',
   },
   colony {
     id 'ColonyId',

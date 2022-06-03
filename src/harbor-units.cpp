@@ -56,7 +56,8 @@ bool is_unit_on_dock( UnitId id ) {
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          !unit_from_id( id ).desc().ship &&
-         holds<UnitHarborViewState::in_port>( *harbor_status );
+         holds<PortStatus::in_port>(
+             harbor_status->port_status );
 }
 
 bool is_unit_inbound( UnitId id ) {
@@ -65,7 +66,7 @@ bool is_unit_inbound( UnitId id ) {
       units_state.maybe_harbor_view_state_of( id );
   auto is_inbound =
       harbor_status.has_value() &&
-      holds<UnitHarborViewState::inbound>( *harbor_status );
+      holds<PortStatus::inbound>( harbor_status->port_status );
   if( is_inbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_inbound;
 }
@@ -76,7 +77,7 @@ bool is_unit_outbound( UnitId id ) {
       units_state.maybe_harbor_view_state_of( id );
   auto is_outbound =
       harbor_status.has_value() &&
-      holds<UnitHarborViewState::outbound>( *harbor_status );
+      holds<PortStatus::outbound>( harbor_status->port_status );
   if( is_outbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_outbound;
 }
@@ -87,7 +88,8 @@ bool is_unit_in_port( UnitId id ) {
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          unit_from_id( id ).desc().ship &&
-         holds<UnitHarborViewState::in_port>( *harbor_status );
+         holds<PortStatus::in_port>(
+             harbor_status->port_status );
 }
 
 vector<UnitId> harbor_units_on_dock() {
@@ -125,45 +127,48 @@ void unit_sail_to_harbor( UnitId id ) {
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).
-  UnitHarborViewState_t target_state =
-      UnitHarborViewState::inbound{ /*progress=*/0.0 };
+  PortStatus_t port_status =
+      PortStatus::inbound{ /*progress=*/0.0 };
   UnitsState const& units_state = GameState::units();
-  auto              maybe_state =
-      units_state.maybe_harbor_view_state_of( id );
-  if( maybe_state ) {
-    switch( auto& v = *maybe_state; v.to_enum() ) {
-      case UnitHarborViewState::e::inbound: {
-        auto& val = v.get<UnitHarborViewState::inbound>();
+  auto              maybe_port_status =
+      units_state.maybe_harbor_view_state_of( id ).member(
+          &UnitHarborViewState::port_status );
+  if( maybe_port_status ) {
+    switch( auto& v = *maybe_port_status; v.to_enum() ) {
+      case PortStatus::e::inbound: {
+        auto& val = v.get<PortStatus::inbound>();
         // no-op, i.e., keep state the same.
-        target_state = val;
+        port_status = val;
         break;
       }
-      case UnitHarborViewState::e::outbound: {
-        auto& [percent] = v.get<UnitHarborViewState::outbound>();
+      case PortStatus::e::outbound: {
+        auto& [percent] = v.get<PortStatus::outbound>();
         if( percent > 0.0 ) {
           // Unit must "turn around" and go the other way.
-          target_state = UnitHarborViewState::inbound{
+          port_status = PortStatus::inbound{
               /*progress=*/( 1.0 - percent ) };
         } else {
           // Unit has not yet made any progress, so we can imme-
           // diately move it to in_port.
-          target_state = UnitHarborViewState::in_port{};
+          port_status = PortStatus::in_port{};
         }
         break;
       }
-      case UnitHarborViewState::e::in_port: {
-        auto& val = v.get<UnitHarborViewState::in_port>();
+      case PortStatus::e::in_port: {
+        auto& val = v.get<PortStatus::in_port>();
         // no-op, unit is already in port.
-        target_state = val;
+        port_status = val;
         break;
       }
     }
   }
-  if( target_state == maybe_state ) //
+  if( port_status == maybe_port_status ) //
     return;
   lg.info( "setting {} to state {}", debug_string( id ),
-           target_state );
+           port_status );
   // Note: unit may already be in a harbor state here.
+  UnitHarborViewState target_state{ .port_status = port_status,
+                                    .sailed_from = Coord{} };
   GameState::units().change_to_harbor_view( id, target_state );
 }
 
@@ -174,36 +179,39 @@ void unit_sail_to_new_world( UnitId id ) {
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).
-  UnitHarborViewState_t target_state =
-      UnitHarborViewState::outbound{ /*progress=*/0.0 };
+  PortStatus_t port_status =
+      PortStatus::outbound{ /*progress=*/0.0 };
   UnitsState const& units_state = GameState::units();
-  auto              maybe_state =
-      units_state.maybe_harbor_view_state_of( id );
-  CHECK( maybe_state );
-  switch( auto& v = *maybe_state; v.to_enum() ) {
-    case UnitHarborViewState::e::outbound: {
-      auto& val = v.get<UnitHarborViewState::outbound>();
+  auto              maybe_port_status =
+      units_state.maybe_harbor_view_state_of( id ).member(
+          &UnitHarborViewState::port_status );
+  CHECK( maybe_port_status );
+  switch( auto& v = *maybe_port_status; v.to_enum() ) {
+    case PortStatus::e::outbound: {
+      auto& val = v.get<PortStatus::outbound>();
       // no-op, i.e., keep state the same.
-      target_state = val;
+      port_status = val;
       break;
     }
-    case UnitHarborViewState::e::inbound: {
-      auto& [percent] = v.get<UnitHarborViewState::inbound>();
+    case PortStatus::e::inbound: {
+      auto& [percent] = v.get<PortStatus::inbound>();
       // Unit must "turn around" and go the other way.
-      target_state = UnitHarborViewState::outbound{
-          /*progress=*/( 1.0 - percent ) };
+      port_status =
+          PortStatus::outbound{ /*progress=*/( 1.0 - percent ) };
       break;
     }
-    case UnitHarborViewState::e::in_port: {
+    case PortStatus::e::in_port: {
       // keep default target.
       break;
     }
   }
-  if( target_state == maybe_state ) //
+  if( port_status == maybe_port_status ) //
     return;
   lg.info( "setting {} to state {}", debug_string( id ),
-           target_state );
+           port_status );
   // Note: unit may already be in a harbor state here.
+  UnitHarborViewState target_state{ .port_status = port_status,
+                                    .sailed_from = Coord{} };
   GameState::units().change_to_harbor_view( id, target_state );
 }
 
@@ -214,7 +222,9 @@ void unit_move_to_harbor( UnitId id ) {
          "cannot move unit to dock unless it is in the cargo of "
          "a ship that is in port." );
   GameState::units().change_to_harbor_view(
-      id, UnitHarborViewState::in_port{} );
+      id,
+      UnitHarborViewState{ .port_status = PortStatus::in_port{},
+                           .sailed_from = {} } );
   DCHECK( is_unit_on_dock( id ) );
   DCHECK( !is_unit_onboard( id ) );
 }
@@ -225,7 +235,7 @@ e_high_seas_result advance_unit_on_high_seas(
   UNWRAP_CHECK( info,
                 units_state.maybe_harbor_view_state_of( id ) );
   constexpr double const advance = 0.25;
-  if_get( info, UnitHarborViewState::outbound, outbound ) {
+  if_get( info.port_status, PortStatus::outbound, outbound ) {
     outbound.percent += advance;
     outbound.percent = std::clamp( outbound.percent, 0.0, 1.0 );
     lg.debug( "advancing outbound unit {} to {} percent.",
@@ -241,14 +251,16 @@ e_high_seas_result advance_unit_on_high_seas(
     }
     return e_high_seas_result::still_traveling;
   }
-  if_get( info, UnitHarborViewState::inbound, inbound ) {
+  if_get( info.port_status, PortStatus::inbound, inbound ) {
     inbound.percent += advance;
     inbound.percent = std::clamp( inbound.percent, 0.0, 1.0 );
     lg.debug( "advancing inbound unit {} to {} percent.",
               debug_string( id ), inbound.percent );
     if( inbound.percent >= 1.0 ) {
       GameState::units().change_to_harbor_view(
-          id, UnitHarborViewState::in_port{} );
+          id, UnitHarborViewState{
+                  .port_status = PortStatus::in_port{},
+                  .sailed_from = {} } );
       lg.debug( "unit has arrived in old world." );
       return e_high_seas_result::arrived_in_harbor;
     }
@@ -263,7 +275,9 @@ UnitId create_unit_in_harbor( UnitsState& units_state,
   UnitId id = create_unit( units_state, nation,
                            UnitComposition::create( type ) );
   units_state.change_to_harbor_view(
-      id, UnitHarborViewState::in_port{} );
+      id,
+      UnitHarborViewState{ .port_status = PortStatus::in_port{},
+                           .sailed_from = {} } );
   return id;
 }
 
@@ -277,7 +291,9 @@ LUA_FN( create_unit_in_port, UnitId, e_nation nation,
   auto id = create_unit( GameState::units(), nation,
                          std::move( comp ) );
   GameState::units().change_to_harbor_view(
-      id, UnitHarborViewState::in_port{} );
+      id,
+      UnitHarborViewState{ .port_status = PortStatus::in_port{},
+                           .sailed_from = {} } );
   lg.info( "created a {} in {} port/dock.",
            unit_attr( comp.type() ).name,
            nation_obj( nation ).adjective );

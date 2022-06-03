@@ -71,7 +71,9 @@ UnitId add_unit_to_dock( UnitsState& units_state,
   UnitId id = create_unit( units_state, nation,
                            e_unit_type::free_colonist );
   units_state.change_to_harbor_view(
-      id, UnitHarborViewState::in_port{} );
+      id,
+      UnitHarborViewState{ .port_status = PortStatus::in_port{},
+                           .sailed_from = {} } );
   return id;
 }
 
