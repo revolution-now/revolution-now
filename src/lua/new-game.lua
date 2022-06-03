@@ -38,6 +38,16 @@ function M.default_options()
 end
 
 -----------------------------------------------------------------
+-- Settings
+-----------------------------------------------------------------
+local function set_default_settings( options, settings )
+  local difficulty_int =
+      DIFFICULTY_NAMES[options.difficulty_name]
+  settings.difficulty = assert( difficulty_int )
+  settings.fast_piece_slide = true
+end
+
+-----------------------------------------------------------------
 -- Units
 -----------------------------------------------------------------
 local function unit_type( type, base_type )
@@ -151,14 +161,11 @@ function M.create( options )
 
   local root = ROOT_STATE
 
+  set_default_settings( options, root.settings )
+
   map_gen.generate_terrain()
 
   create_turn_state( root.turn )
-
-  local difficulty_int =
-      DIFFICULTY_NAMES[options.difficulty_name]
-  local settings = root.settings
-  settings.difficulty = assert( difficulty_int )
 
   create_nations( options, root )
 

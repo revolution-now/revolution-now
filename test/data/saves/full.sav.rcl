@@ -586,7 +586,10 @@ players.players {
   }
 }
 
-settings.difficulty: 0
+settings {
+  difficulty: 0
+  fast_piece_slide: true
+}
 
 turn {
   nation: null

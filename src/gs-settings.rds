@@ -14,5 +14,9 @@ struct.SettingsState {
   # 0 is easiest (discoverer), 4 is hardest (viceroy).
   difficulty 'int',
 
+  # Units slide more quickly when moving and attacking. For the
+  # impatient.
+  fast_piece_slide 'bool',
+
   _features { equality, validation }
 }

@@ -258,8 +258,8 @@ struct TravelHandler : public OrdersHandler {
     // a ship and board it.
     if( verdict == e_travel_verdict::land_fall ) co_return;
 
-    co_await landview_animate_move( terrain_state_, unit_id,
-                                    direction );
+    co_await landview_animate_move( terrain_state_, settings_,
+                                    unit_id, direction );
   }
 
   wait<> perform() override;
@@ -364,7 +364,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -871,7 +871,8 @@ struct AttackHandler : public OrdersHandler {
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
       return landview_animate_colony_capture(
-          terrain_state_, attacker_id, defender_id, colony_id );
+          terrain_state_, settings_, attacker_id, defender_id,
+          colony_id );
     }
 
     auto attacker = unit_id;
@@ -895,7 +896,8 @@ struct AttackHandler : public OrdersHandler {
                     ? e_depixelate_anim::demote
                     : e_depixelate_anim::death );
     return landview_animate_attack(
-        attacker, defender, stats.attacker_wins, dp_anim );
+        settings_, attacker, defender, stats.attacker_wins,
+        dp_anim );
   }
 
   wait<> perform() override;

@@ -137,6 +137,8 @@ players.players {
   }
 }
 
+settings.fast_piece_slide: true
+
 turn.time_point {
   season: spring
   year: 1492

@@ -44,7 +44,8 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::SettingsState;
   auto u  = st.usertype.create<U>();
 
-  u["difficulty"] = &U::difficulty;
+  u["difficulty"]       = &U::difficulty;
+  u["fast_piece_slide"] = &U::fast_piece_slide;
 };
 
 } // namespace

@@ -45,7 +45,8 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "settings"_key =
         cdr::table{
-            "difficulty"_key = 0,
+            "difficulty"_key       = 0,
+            "fast_piece_slide"_key = false,
         },
     "events"_key = cdr::table{},
     "units"_key =
