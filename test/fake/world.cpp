@@ -29,7 +29,6 @@ TurnState&     World::turn() { return root().turn; }
 ColoniesState& World::colonies() { return root().colonies; }
 LandViewState& World::land_view() { return root().land_view; }
 TerrainState&  World::terrain() { return root().zzz_terrain; }
-RootState&     World::root() { return *root_; }
 
 MapSquare World::make_ocean() {
   return map_square_for_terrain( e_terrain::ocean );
@@ -46,22 +45,20 @@ MapSquare World::make_grassland() {
 }
 
 void World::build_map( vector<MapSquare> tiles ) {
-  NonRenderingMapUpdater map_updater( terrain() );
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
+  map_updater().modify_entire_map( [&]( Matrix<MapSquare>& m ) {
     m = Matrix<MapSquare>( std::move( tiles ), 10_w );
   } );
 }
 
-UnitId World::add_unit_in_port( e_nation    nation,
-                                e_unit_type type ) {
+UnitId World::add_unit_in_port( e_unit_type type,
+                                e_nation    nation ) {
   return create_unit_in_harbor( root().units, nation, type );
 }
 
-UnitId World::add_unit_on_map( e_nation nation, e_unit_type type,
-                               Coord where ) {
-  NonRenderingMapUpdater map_updater( terrain() );
+UnitId World::add_unit_on_map( e_unit_type type, Coord where,
+                               e_nation nation ) {
   return create_unit_on_map_no_ui(
-      root().units, map_updater, nation,
+      root().units, map_updater(), nation,
       UnitComposition::create( type ), where );
 }
 
@@ -89,7 +86,10 @@ Player& World::french() {
   return root().players.players[e_nation::french];
 }
 
-World::World() : root_( new RootState ) {}
+World::World()
+  : root_( new RootState ),
+    map_updater_(
+        new NonRenderingMapUpdater( root_->zzz_terrain ) ) {}
 
 World::~World() noexcept = default;
 

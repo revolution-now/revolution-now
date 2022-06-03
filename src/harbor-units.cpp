@@ -62,10 +62,13 @@ vector<UnitId> units_in_harbor_filtered(
   return res;
 }
 
-// Find the right place to put a ship which has just arrived from
-// europe.
-Coord find_arrival_square( Player const&              player,
-                           UnitHarborViewState const& info ) {
+// Find the place where we are supposed to put the unit when it
+// arrives from the new world. This is just a candidate because
+// there are some further checks that need to be done on the
+// square to make sure it is valid. The vast majority of the time
+// it will be valid though.
+Coord find_new_world_arrival_square_candidate(
+    Player const& player, UnitHarborViewState const& info ) {
   if( info.sailed_from.has_value() )
     // The unit sailed from the new world, so the square from
     // which it came will have been recorded.
@@ -96,6 +99,18 @@ bool is_unit_on_dock( UnitsState const& units_state,
 /****************************************************************
 ** Public API
 *****************************************************************/
+// Find the right place to put a ship which has just arrived from
+// europe.
+Coord find_new_world_arrival_square(
+    UnitsState const&, TerrainState const&, Player const& player,
+    UnitHarborViewState const& info ) {
+  Coord candidate =
+      find_new_world_arrival_square_candidate( player, info );
+
+
+  return candidate;
+}
+
 bool is_unit_inbound( UnitsState const& units_state,
                       UnitId            id ) {
   auto harbor_status =
@@ -192,20 +207,24 @@ void unit_sail_to_harbor( UnitsState& units_state,
     switch( auto& v = existing_state->port_status;
             v.to_enum() ) {
       case PortStatus::e::in_port: return;
-      case PortStatus::e::inbound: return;
+      case PortStatus::e::inbound: {
+        auto const& [percent] = v.get<PortStatus::inbound>();
+        if( percent >= 1.0 )
+          // Unit has not yet made any progress, so we can imme-
+          // diately move it to in_port.
+          unit_move_to_port( units_state, id );
+        return;
+      }
       case PortStatus::e::outbound: {
         auto const& [percent] = v.get<PortStatus::outbound>();
         UnitHarborViewState new_state = *existing_state;
-        if( percent > 0.0 ) {
-          // Unit must "turn around" and go the other way.
-          new_state.port_status = PortStatus::inbound{
-              /*progress=*/( 1.0 - percent ) };
-        } else {
-          // Unit has not yet made any progress, so we can imme-
-          // diately move it to in_port.
-          new_state.port_status = PortStatus::in_port{};
-        }
+        // Unit must "turn around" and go the other way.
+        new_state.port_status = PortStatus::inbound{
+            /*progress=*/( 1.0 - percent ) };
         units_state.change_to_harbor_view( id, new_state );
+        // Recurse to deal with the inbound state, which might in
+        // turn need to be translated to in_port.
+        unit_sail_to_harbor( units_state, player, id );
         return;
       }
     }
@@ -241,6 +260,8 @@ void unit_sail_to_new_world( UnitsState& units_state,
 
   switch( auto& v = existing_state.port_status; v.to_enum() ) {
     case PortStatus::e::outbound: //
+      // Even if the progress is 1.0, we don't move the unit onto
+      // the map, since that is not the job of this function.
       return;
     case PortStatus::e::inbound: {
       auto& [percent] = v.get<PortStatus::inbound>();
@@ -260,8 +281,7 @@ void unit_sail_to_new_world( UnitsState& units_state,
 }
 
 e_high_seas_result advance_unit_on_high_seas(
-    UnitsState& units_state, Player const& player, UnitId id,
-    IMapUpdater& map_updater ) {
+    UnitsState& units_state, UnitId id ) {
   UNWRAP_CHECK( info,
                 units_state.maybe_harbor_view_state_of( id ) );
   constexpr double const advance = 0.25;
@@ -272,16 +292,8 @@ e_high_seas_result advance_unit_on_high_seas(
     lg.debug( "advancing outbound unit {} to {} percent.",
               debug_string( units_state, id ),
               outbound.percent );
-    if( outbound.percent >= 1.0 ) {
-      // FIXME: temporary; also, would want to use coroutine ver-
-      // sion of this function.
-      unit_to_map_square_no_ui(
-          units_state, map_updater, id,
-          find_arrival_square( player, info ) );
-      units_state.unit_for( id ).clear_orders();
-      lg.debug( "unit has arrived in new world." );
+    if( outbound.percent >= 1.0 )
       return e_high_seas_result::arrived_in_new_world;
-    }
     return e_high_seas_result::still_traveling;
   }
 
@@ -293,7 +305,6 @@ e_high_seas_result advance_unit_on_high_seas(
     if( inbound.percent >= 1.0 ) {
       // This should preserve the `sailed_from`.
       unit_move_to_port( units_state, id );
-      lg.debug( "unit has arrived in old world." );
       return e_high_seas_result::arrived_in_harbor;
     }
     return e_high_seas_result::still_traveling;

@@ -26,6 +26,7 @@
 #include "map-edit.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
+#include "on-map.hpp"
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
@@ -575,8 +576,10 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( UnitsState&   units_state,
-                         Player const& player,
+wait<bool> advance_unit( UnitsState&          units_state,
+                         TerrainState const&  terrain_state,
+                         SettingsState const& settings,
+                         Player& player, IGui& gui,
                          IMapUpdater& map_updater, UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   Unit& unit = units_state.unit_for( id );
@@ -590,7 +593,7 @@ wait<bool> advance_unit( UnitsState&   units_state,
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::road );
+    co_return( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -606,7 +609,7 @@ wait<bool> advance_unit( UnitsState&   units_state,
       co_await ui::message_box_basic(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::plow );
+    co_return( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( units_state, id ) ) {
@@ -618,25 +621,29 @@ wait<bool> advance_unit( UnitsState&   units_state,
   // arrived in the old world then jump to the old world screen.
   if( is_unit_inbound( units_state, id ) ||
       is_unit_outbound( units_state, id ) ) {
-    e_high_seas_result res = advance_unit_on_high_seas(
-        units_state, player, id, map_updater );
+    e_high_seas_result res =
+        advance_unit_on_high_seas( units_state, id );
     switch( res ) {
       case e_high_seas_result::still_traveling:
         finish_turn( id );
         co_return false; // do not ask for orders.
-      case e_high_seas_result::arrived_in_new_world:
+      case e_high_seas_result::arrived_in_new_world: {
+        lg.debug( "unit has arrived in new world." );
+        units_state.unit_for( id ).clear_orders();
+        Coord dst_coord = find_new_world_arrival_square(
+            units_state, terrain_state, player,
+            units_state.harbor_view_state_of( id ) );
+        co_await unit_to_map_square(
+            units_state, terrain_state, player, settings, gui,
+            map_updater, id, dst_coord );
         unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
+      }
       case e_high_seas_result::arrived_in_harbor: {
+        lg.debug( "unit has arrived in old world." );
         finish_turn( id );
-        ui::e_confirm confirmed = co_await ui::yes_no(
-            "Your excellency, our {} has arrived in the old "
-            "world.  Go to port?",
-            unit_from_id( id ).desc().name );
-        if( confirmed == ui::e_confirm::yes ) {
-          harbor_view_set_selected_unit( id );
-          co_await show_harbor_view();
-        }
+        harbor_view_set_selected_unit( id );
+        co_await show_harbor_view();
         co_return false; // do not ask for orders.
       }
     }
@@ -671,8 +678,9 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
       continue;
     }
 
-    bool should_ask = co_await advance_unit( units_state, player,
-                                             map_updater, id );
+    bool should_ask = co_await advance_unit(
+        units_state, terrain_state, settings, player, gui,
+        map_updater, id );
     if( !should_ask ) {
       q.pop_front();
       continue;

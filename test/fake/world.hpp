@@ -40,6 +40,7 @@ struct LandViewState;
 struct TerrainState;
 
 struct Player;
+struct IMapUpdater;
 
 } // namespace rn
 
@@ -53,10 +54,11 @@ struct World {
 
   void build_map( std::vector<MapSquare> tiles );
 
-  UnitId add_unit_in_port( e_nation nation, e_unit_type type );
+  UnitId add_unit_in_port( e_unit_type type,
+                           e_nation nation = e_nation::dutch );
 
-  UnitId add_unit_on_map( e_nation nation, e_unit_type type,
-                          Coord where );
+  UnitId add_unit_on_map( e_unit_type type, Coord where,
+                          e_nation nation = e_nation::dutch );
 
   void add_player( e_nation nation );
 
@@ -79,9 +81,14 @@ struct World {
   LandViewState& land_view();
   TerrainState&  terrain();
 
-  RootState& root();
+  RootState& root() { return *root_; }
 
+  IMapUpdater& map_updater() { return *map_updater_; }
+
+ private:
   std::unique_ptr<RootState> root_;
+
+  std::unique_ptr<IMapUpdater> map_updater_;
 };
 
 } // namespace rn::testing
