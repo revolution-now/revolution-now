@@ -100,39 +100,12 @@ end
 -----------------------------------------------------------------
 -- Unit Placement
 -----------------------------------------------------------------
-function M.initial_ship_pos()
+function M.initial_ships_pos()
   local size = map_gen.world_size()
   local y = size.h / 2
   local x = size.w - 1
   while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { x=x + 1, y=y }
-end
-
-local function unit_type( type, base_type )
-  if base_type == nil then
-    return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create( type ) )
-  else
-    return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create_with_base( type, base_type ) )
-  end
-end
-
-local function create_initial_ships()
-  -- Dutch ------------------------------------------------------
-  local nation = e.nation.dutch
-  local coord = map_gen.initial_ship_pos()
-  local merchantman = unit_type( e.unit_type.merchantman )
-  local soldier = unit_type( e.unit_type.soldier )
-  local pioneer = unit_type( e.unit_type.pioneer )
-
-  local merchantman_unit = ustate.create_unit_on_map( nation,
-                                                      merchantman,
-                                                      coord )
-  ustate.create_unit_in_cargo( nation, soldier,
-                               merchantman_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer,
-                               merchantman_unit:id() )
+  return { [e.nation.dutch]={ x=x + 1, y=y } }
 end
 
 -----------------------------------------------------------------
@@ -785,10 +758,7 @@ function M.generate()
 
   create_sea_lanes()
 
-  create_initial_ships()
-
   create_indian_villages()
-
 end
 
 return M

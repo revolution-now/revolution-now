@@ -11,6 +11,9 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- Options
+-----------------------------------------------------------------
 local DIFFICULTY_NAMES = {
   ['discoverer']=0,
   ['explorer']=1,
@@ -34,6 +37,40 @@ function M.default_options()
   }
 end
 
+-----------------------------------------------------------------
+-- Units
+-----------------------------------------------------------------
+local function unit_type( type, base_type )
+  if base_type == nil then
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create( type ) )
+  else
+    return unit_composer.UnitComposition.create_with_type_obj(
+               utype.UnitType.create_with_base( type, base_type ) )
+  end
+end
+
+local function create_initial_units( nation )
+  local coord = map_gen.initial_ships_pos()[nation]
+  if not coord then return { x=0, y=0 } end
+  local merchantman = unit_type( e.unit_type.merchantman )
+  local soldier = unit_type( e.unit_type.soldier )
+  local pioneer = unit_type( e.unit_type.pioneer )
+
+  local merchantman_unit = ustate.create_unit_on_map( nation,
+                                                      merchantman,
+                                                      coord )
+  ustate.create_unit_in_cargo( nation, soldier,
+                               merchantman_unit:id() )
+  ustate.create_unit_in_cargo( nation, pioneer,
+                               merchantman_unit:id() )
+
+  return coord
+end
+
+-----------------------------------------------------------------
+-- Players State
+-----------------------------------------------------------------
 local function create_old_world_state( settings, player )
   local old_world = player.old_world
   -- Immigrants state.
@@ -75,6 +112,8 @@ local function create_player_state(settings, nation, player,
   player.money = 1000 - 250 * settings.difficulty
   -- This is temporary so that it doesn't keep asking us.
   player.discovered_new_world = 'New Netherlands'
+  local coord = create_initial_units( nation )
+  player.last_high_seas = coord
   create_old_world_state( settings, player )
 end
 
@@ -87,13 +126,21 @@ local function create_nations( options, root )
   end
 end
 
+-----------------------------------------------------------------
+-- Turn State
+-----------------------------------------------------------------
 local function create_turn_state( turns_state )
   turns_state.time_point.year = 1492
   turns_state.time_point.season = e.season.spring
 end
 
--- The save-game state should be default-constructed before
--- calling this.
+-----------------------------------------------------------------
+-- Creates a new Game
+-----------------------------------------------------------------
+-- This should be called af the player decides the parameters of
+-- the game, which should be passed in as options here. Also, the
+-- save-game state should be default-constructed before calling
+-- this.
 function M.create( options )
   options = options or {}
   -- Merge the options with the default ones so that any missing
@@ -104,6 +151,8 @@ function M.create( options )
 
   local root = ROOT_STATE
 
+  map_gen.generate_terrain()
+
   create_turn_state( root.turn )
 
   local difficulty_int =
@@ -112,8 +161,6 @@ function M.create( options )
   settings.difficulty = assert( difficulty_int )
 
   create_nations( options, root )
-
-  map_gen.generate_terrain()
 
   if options.render then render_terrain.redraw() end
   land_view.zoom_out_optimal()
