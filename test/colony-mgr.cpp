@@ -70,7 +70,7 @@ void generate_unittest_terrain( TerrainState& terrain_state ) {
 UnitId create_colonist_on_map( UnitsState&  units_state,
                                Coord        where,
                                IMapUpdater& map_updater ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       units_state, map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ),
       where );
@@ -85,7 +85,7 @@ UnitId create_colonist( UnitsState& units_state ) {
 UnitId create_dragoon_on_map( UnitsState&  units_state,
                               Coord        where,
                               IMapUpdater& map_updater ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       units_state, map_updater, e_nation::english,
       UnitComposition::create(
           UnitType::create( e_unit_type::dragoon,
@@ -97,7 +97,7 @@ UnitId create_dragoon_on_map( UnitsState&  units_state,
 UnitId create_hardy_pioneer_on_map( UnitsState&  units_state,
                                     Coord        where,
                                     IMapUpdater& map_updater ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       units_state, map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::hardy_pioneer ),
       where );
@@ -105,7 +105,7 @@ UnitId create_hardy_pioneer_on_map( UnitsState&  units_state,
 
 UnitId create_ship( UnitsState& units_state, Coord where,
                     IMapUpdater& map_updater ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       units_state, map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::merchantman ),
       where );
@@ -113,7 +113,7 @@ UnitId create_ship( UnitsState& units_state, Coord where,
 
 UnitId create_wagon( UnitsState& units_state, Coord where,
                      IMapUpdater& map_updater ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       units_state, map_updater, e_nation::english,
       UnitComposition::create( e_unit_type::wagon_train ),
       where );

@@ -113,12 +113,9 @@ wait<UnitId> create_unit_on_map(
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
-// FIXME: bad name
-UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
-                                 IMapUpdater&    map_updater,
-                                 e_nation        nation,
-                                 UnitComposition comp,
-                                 Coord           coord );
+UnitId create_unit_on_map_non_interactive(
+    UnitsState& units_state, IMapUpdater& map_updater,
+    e_nation nation, UnitComposition comp, Coord coord );
 
 /****************************************************************
 ** Multi

@@ -94,9 +94,9 @@ wait<> try_lost_city_rumor( UnitsState&          units_state,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void unit_to_map_square_no_ui( UnitsState& units_state,
-                               IMapUpdater&, UnitId id,
-                               Coord world_square ) {
+void unit_to_map_square_non_interactive( UnitsState& units_state,
+                                         IMapUpdater&, UnitId id,
+                                         Coord world_square ) {
   // 1. Move the unit. This is the only place where this function
   // should be called by normal game code.
   units_state.change_to_map( id, world_square );
@@ -114,8 +114,8 @@ wait<> unit_to_map_square( UnitsState&          units_state,
                            SettingsState const& settings,
                            IGui& gui, IMapUpdater& map_updater,
                            UnitId id, Coord world_square ) {
-  unit_to_map_square_no_ui( units_state, map_updater, id,
-                            world_square );
+  unit_to_map_square_non_interactive( units_state, map_updater,
+                                      id, world_square );
 
   if( !player.discovered_new_world.has_value() )
     co_await try_discover_new_world( terrain_state, player, gui,

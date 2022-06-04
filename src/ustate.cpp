@@ -110,15 +110,13 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                       UnitType::create( type ) );
 }
 
-UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
-                                 IMapUpdater&    map_updater,
-                                 e_nation        nation,
-                                 UnitComposition comp,
-                                 Coord           coord ) {
+UnitId create_unit_on_map_non_interactive(
+    UnitsState& units_state, IMapUpdater& map_updater,
+    e_nation nation, UnitComposition comp, Coord coord ) {
   UnitId id =
       create_unit( units_state, nation, std::move( comp ) );
-  unit_to_map_square_no_ui( units_state, map_updater, id,
-                            coord );
+  unit_to_map_square_non_interactive( units_state, map_updater,
+                                      id, coord );
   return id;
 }
 
@@ -241,8 +239,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
   // FIXME: this needs to render but can't cause it causes
   // trouble for unit tests.
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  auto id = create_unit_on_map_no_ui( units_state, map_updater,
-                                      nation, comp, coord );
+  auto                   id = create_unit_on_map_non_interactive(
+                        units_state, map_updater, nation, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   auto& gs_units = GameState::units();

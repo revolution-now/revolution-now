@@ -120,7 +120,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       // rediscovers the LCR on this tile; also, there are no
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_no_ui(
+      UnitId id = create_unit_on_map_non_interactive(
           units_state, map_updater, player.nation, uc_treasure,
           world_square );
       result = LostCityRumorResult::unit_created{ .id = id };
@@ -257,7 +257,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // rediscovers the LCR on this tile; also, there are no
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_no_ui(
+      UnitId id = create_unit_on_map_non_interactive(
           units_state, map_updater, player.nation,
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),

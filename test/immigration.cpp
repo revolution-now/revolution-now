@@ -62,8 +62,8 @@ UnitId add_unit_to_new_world( UnitsState&   units_state,
   UnitId                 id = create_unit( units_state, nation,
                                            e_unit_type::free_colonist );
   NonRenderingMapUpdater map_updater( terrain_state );
-  unit_to_map_square_no_ui( units_state, map_updater, id,
-                            kSquare );
+  unit_to_map_square_non_interactive( units_state, map_updater,
+                                      id, kSquare );
   return id;
 }
 

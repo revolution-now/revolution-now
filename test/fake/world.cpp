@@ -57,7 +57,7 @@ UnitId World::add_unit_in_port( e_unit_type type,
 
 UnitId World::add_unit_on_map( e_unit_type type, Coord where,
                                e_nation nation ) {
-  return create_unit_on_map_no_ui(
+  return create_unit_on_map_non_interactive(
       root().units, map_updater(), nation,
       UnitComposition::create( type ), where );
 }

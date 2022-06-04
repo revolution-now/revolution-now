@@ -85,7 +85,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -145,7 +145,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -210,7 +210,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -276,7 +276,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -348,7 +348,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -412,7 +412,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -477,7 +477,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -560,7 +560,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -626,7 +626,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -697,7 +697,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -761,7 +761,7 @@ TEST_CASE(
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
