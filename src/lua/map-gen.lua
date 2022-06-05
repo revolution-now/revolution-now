@@ -738,7 +738,8 @@ local function continent_stretch_for_seed( seed_square, scale )
                               size.w - seed_square.x )
   local stretch_y = math.min( seed_square.y,
                               size.h - seed_square.y )
-  return { x=stretch_x * scale, y=stretch_y * scale }
+  local stretch = scale * math.min( stretch_x, stretch_y )
+  return { x=stretch, y=stretch }
 end
 
 -- Start at the seed square and do a biased 2D random walk
@@ -796,7 +797,7 @@ local function generate_land( target_land_density )
   local seed_rect = {
     x=buffer.left * 2,
     y=buffer.top * 2,
-    w=(size.w - buffer.left * 2 - buffer.right * 2),
+    w=(size.w - buffer.left * 2 - buffer.right * 4),
     h=(size.h - buffer.top * 2 - buffer.bottom * 2)
   }
   local quadrants = {
