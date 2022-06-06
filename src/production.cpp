@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "colony.hpp"
-#include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "player.hpp"
 #include "unit.hpp"
@@ -178,16 +177,12 @@ int crosses_production_for_colony( UnitsState const& units_state,
 }
 
 ColonyProduction production_for_colony(
-    UnitsState const&   units_state,
-    PlayersState const& players_state, Colony const& colony ) {
-  UNWRAP_CHECK( player, base::lookup( players_state.players,
-                                      colony.nation() ) );
+    TerrainState const&, UnitsState const& units_state,
+    Player const& player, Colony const& colony ) {
   ColonyProduction res;
 
-  res.produced[e_colony_product::crosses] =
-      crosses_production_for_colony( units_state, player,
-                                     colony );
-
+  res.crosses = crosses_production_for_colony( units_state,
+                                               player, colony );
   // TODO: factor in sons of liberty bonuses and/or tory penalty.
 
   return res;

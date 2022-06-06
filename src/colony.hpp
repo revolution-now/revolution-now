@@ -97,6 +97,8 @@ struct Colony {
     return o_.commodities;
   }
 
+  void add_hammers( int hammers );
+
   /************************ Functions **************************/
   int  population() const;
   bool has_unit( UnitId id ) const;

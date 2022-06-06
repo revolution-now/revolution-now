@@ -101,15 +101,14 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
                            { .key          = "2",
                              .display_name = "Seasoned Scout" },
                        },
-                   .key_on_escape = "-",
+                   .key_on_escape = nothing,
                } ) )
       .returns( make_wait<string>( "1" ) );
 
-  wait<maybe<int>> w = ask_player_to_choose_immigrant(
+  wait<int> w = ask_player_to_choose_immigrant(
       gui, immigration, "please select one" );
   REQUIRE( w.ready() );
-  REQUIRE( w->has_value() );
-  REQUIRE( **w == 1 );
+  REQUIRE( *w == 1 );
 }
 
 TEST_CASE( "[immigration] compute_crosses (dutch)" ) {

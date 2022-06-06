@@ -766,24 +766,12 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
 wait<> colonies_turn( SettingsState const& settings,
                       UnitsState&          units_state,
                       TerrainState const&  terrain_state,
-                      PlayersState&        players_state,
-                      NationTurnState&     nat_turn_st,
+                      Player&              player,
                       ColoniesState&       colonies_state,
                       IMapUpdater& map_updater, IGui& gui ) {
-  auto& st = nat_turn_st;
-  lg.info( "processing colonies for the {}.", st.nation );
-  queue<ColonyId> colonies;
-  for( auto const& [colony_id, colony] : colonies_state.all() )
-    if( colony.nation() == st.nation )
-      colonies.push( colony_id );
-  while( !colonies.empty() ) {
-    ColonyId colony_id = colonies.front();
-    colonies.pop();
-    co_await evolve_colony_one_turn(
-        colonies_state.colony_for( colony_id ), settings,
-        units_state, terrain_state, players_state, map_updater,
-        gui );
-  }
+  co_await evolve_colonies_for_player(
+      colonies_state, settings, units_state, terrain_state,
+      player, map_updater, gui );
 }
 
 /****************************************************************
@@ -812,8 +800,8 @@ wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
   // Colonies.
   if( !st.did_colonies ) {
     co_await colonies_turn( settings, units_state, terrain_state,
-                            players_state, nat_turn_st,
-                            colonies_state, map_updater, gui );
+                            player, colonies_state, map_updater,
+                            gui );
     st.did_colonies = true;
   }
 

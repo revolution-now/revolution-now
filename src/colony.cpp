@@ -214,6 +214,11 @@ void Colony::set_nation( e_nation new_nation ) {
   o_.nation = new_nation;
 }
 
+void Colony::add_hammers( int hammers ) {
+  o_.hammers += hammers;
+  CHECK_GE( o_.hammers, 0 );
+}
+
 } // namespace rn
 
 /****************************************************************

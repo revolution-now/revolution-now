@@ -1,0 +1,39 @@
+# ===============================================================
+# colony-evolve.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-04.
+#
+# Description: Rds definitions for the colony-evolve module.
+#
+# ===============================================================
+# Revolution Now
+ include "unit-id.hpp"
+
+# Rds
+include "production.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+sumtype.ColonyNotification {
+  new_colonist {
+    id 'UnitId',
+  },
+  spoilage {
+    spoiled 'std::vector<Commodity>',
+  }
+}
+
+struct.ColonyEvolution {
+  # The list of notifications that will be presented to the user
+  # in sequence for this colony. The messages presented to the
+  # user are specified elsewhere. Each one will give the user the
+  # ability to zoom into the colony screen if desired.
+  notifications 'std::vector<ColonyNotification_t>',
+
+  production 'ColonyProduction',
+}

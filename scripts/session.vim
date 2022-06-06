@@ -21,9 +21,10 @@ let s:stems = [
  \ 'cstate',
  \ 'colony-view',
  \ 'config/colony-enums',
- \ 'turn',
  \ 'immigration',
+ \ 'turn',
  \ 'colony-mgr',
+ \ 'colony-evolve',
  \ 'production',
  \ 'config/production',
 \]

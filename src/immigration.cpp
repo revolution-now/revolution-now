@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "gs-settings.hpp"
 #include "gs-units.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -74,7 +75,7 @@ UnitCounts unit_counts( UnitsState const& units_state,
 
 } // namespace
 
-wait<maybe<int>> ask_player_to_choose_immigrant(
+wait<int> ask_player_to_choose_immigrant(
     IGui& gui, ImmigrationState const& immigration,
     string msg ) {
   array<e_unit_type, 3> const& pool =
@@ -87,17 +88,16 @@ wait<maybe<int>> ask_player_to_choose_immigrant(
   ChoiceConfig config{
       .msg           = std::move( msg ),
       .options       = options,
-      .key_on_escape = "-",
+      .key_on_escape = nothing,
   };
 
   std::string res = co_await gui.choice( config );
   if( res == "0" ) co_return 0;
   if( res == "1" ) co_return 1;
   if( res == "2" ) co_return 2;
-  if( res == "-" ) co_return nothing;
   FATAL(
       "unexpected selection result: {} (should be '0', '1', or "
-      "'2', or '-')",
+      "'2')",
       res );
 }
 
@@ -195,8 +195,40 @@ void add_player_crosses( Player& player,
   if( delta < 0 ) return;
   lg.debug( "{} crosses increased by {}.", player.nation,
             delta );
-  int const crosses = player.crosses;
-  player.crosses    = crosses + delta;
+  player.crosses += delta;
+}
+
+wait<maybe<UnitId>> check_for_new_immigrant(
+    IGui& gui, UnitsState& units_state, Player& player,
+    SettingsState const& settings, int crosses_needed ) {
+  CHECK_GE( crosses_needed, 0 );
+  if( player.crosses < crosses_needed ) co_return nothing;
+  player.crosses -= crosses_needed;
+  DCHECK( player.crosses >= 0 );
+  int immigrant_idx =
+      rng::between( 0, 2, rng::e_interval::closed );
+  if( player.fathers.has[e_founding_father::william_brewster] ) {
+    string msg =
+        "Which of the following immigrants shall we choose to "
+        "join us in the New World?";
+    int immigrant_idx = co_await ask_player_to_choose_immigrant(
+        gui, player.old_world.immigration, msg );
+    CHECK_GE( immigrant_idx, 0 );
+    CHECK_LE( immigrant_idx, 2 );
+  } else {
+    string msg = fmt::format(
+        "A new immigrant (@[H]{}@[]) has arrived on the docks.",
+        unit_attr( player.old_world.immigration
+                       .immigrants_pool[immigrant_idx] )
+            .name );
+    co_await gui.message_box( msg );
+  }
+  e_unit_type replacement =
+      pick_next_unit_for_pool( player, settings );
+  e_unit_type type = take_immigrant_from_pool(
+      player.old_world.immigration, immigrant_idx, replacement );
+  co_return create_unit_in_harbor( units_state, player.nation,
+                                   type );
 }
 
 /****************************************************************

@@ -29,9 +29,8 @@ struct IGui;
 struct Player;
 
 // Presents the user with the three unit types that are currently
-// in the immigration pool and asks to choose one. The player can
-// also press escape in which case nothing will be returned.
-wait<maybe<int>> ask_player_to_choose_immigrant(
+// in the immigration pool and asks to choose one.
+wait<int> ask_player_to_choose_immigrant(
     IGui& gui, ImmigrationState const& immigration,
     std::string msg );
 
@@ -57,5 +56,11 @@ CrossesCalculation compute_crosses(
 void add_player_crosses( Player& player,
                          int     total_colonies_cross_production,
                          int     dock_crosses_bonus );
+
+// Will check if the player can obtain a new immigrant, and, if
+// so, will run through the associated UI routine.
+wait<maybe<UnitId>> check_for_new_immigrant(
+    IGui& gui, UnitsState& units_state, Player& player,
+    SettingsState const& settings, int crosses_needed );
 
 } // namespace rn

@@ -13,22 +13,14 @@
 #include "core-config.hpp"
 
 // Rds
-#include "commodity.rds.hpp"
 #include "production.rds.hpp"
-
-// refl
-#include "refl/enum-map.hpp"
 
 namespace rn {
 
 struct Colony;
-struct PlayersState;
+struct Player;
+struct TerrainState;
 struct UnitsState;
-
-struct ColonyProduction {
-  refl::enum_map<e_colony_product, int> produced;
-  refl::enum_map<e_commodity, int>      consumed;
-};
 
 // Computes everything that is produced and consumed by the
 // colony in one turn, given the current state of the colony, all
@@ -36,7 +28,8 @@ struct ColonyProduction {
 // both produced and consumed in the same turn, and so those will
 // have to be subtracted to get the net change.
 ColonyProduction production_for_colony(
-    UnitsState const&   units_state,
-    PlayersState const& players_state, Colony const& colony );
+    TerrainState const& terrain_state,
+    UnitsState const& units_state, Player const& player,
+    Colony const& colony );
 
 } // namespace rn

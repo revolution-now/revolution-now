@@ -34,7 +34,7 @@ namespace rn {
 struct IGui;
 struct SettingsState;
 struct ColoniesState;
-struct PlayersState;
+struct Player;
 struct TerrainState;
 struct UnitsState;
 struct Colony;
@@ -66,13 +66,10 @@ ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
                               std::string_view    name );
 
 // Evolve the colony by one turn.
-wait<> evolve_colony_one_turn( Colony&              colony,
-                               SettingsState const& settings,
-                               UnitsState&          units_state,
-                               TerrainState const& terrain_state,
-                               PlayersState&       players_state,
-                               IMapUpdater&        map_updater,
-                               IGui&               gui );
+wait<> evolve_colonies_for_player(
+    ColoniesState& colonies_state, SettingsState const& settings,
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, IMapUpdater& map_updater, IGui& gui );
 
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is
