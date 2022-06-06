@@ -817,7 +817,6 @@ struct LandViewPlane : public Plane {
     g_needs_scroll_to_unit_on_input = true;
     viewport().set_max_viewable_size_tiles(
         map_updater.matrix().size() );
-    map_updater.just_redraw_map();
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.

@@ -19,6 +19,7 @@
 #include "gs-terrain.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "plane-ctrl.hpp"
@@ -398,7 +399,6 @@ struct MapEditorPlane : public Plane {
   void initialize( IMapUpdater& map_updater ) override {
     viewport().set_max_viewable_size_tiles(
         map_updater.matrix().size() );
-    map_updater.just_redraw_map();
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -520,6 +520,8 @@ wait<> map_editor( IMapUpdater& map_updater ) {
   reset_globals();
   ScopedPlanePush pusher( e_plane_config::map_editor );
   lg.info( "entering map editor." );
+  generate_terrain( map_updater );
+  reinitialize_planes( map_updater );
   co_await run_map_editor( map_updater );
   lg.info( "leaving map editor." );
 }
