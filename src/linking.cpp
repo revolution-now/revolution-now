@@ -15,6 +15,7 @@
 #include "conductor.hpp"
 #include "config-files.hpp"
 #include "error.hpp"
+#include "fathers.hpp"
 #include "lua-ui.hpp"
 #include "map-gen.hpp"
 #include "player.hpp"
@@ -35,6 +36,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_lua_ui();
   linker_dont_discard_module_map_gen();
   linker_dont_discard_module_config_files();
+  linker_dont_discard_module_fathers();
   // Add more here as needed.
 }
 

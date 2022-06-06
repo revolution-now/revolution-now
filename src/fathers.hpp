@@ -52,6 +52,8 @@ std::vector<e_founding_father> founding_fathers_for_type(
 std::string_view founding_father_type_name(
     e_founding_father_type type );
 
+void linker_dont_discard_module_fathers();
+
 } // namespace rn
 
 /****************************************************************

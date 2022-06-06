@@ -67,6 +67,8 @@ string_view founding_father_type_name(
   return config_fathers.types[type].name;
 }
 
+void linker_dont_discard_module_fathers() {}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -81,10 +83,15 @@ LUA_STARTUP( lua::state& st ) {
         return obj[father];
       };
 
-  // !! NOTE: because we overwrote the __index metamethod on this
-  // userdata we cannot add any further (non-metatable) members
-  // on this object, since there will be no way to look them up
-  // by name.
+  u[lua::metatable_key]["__newindex"] =
+      []( U& obj, e_founding_father father, bool b ) {
+        obj[father] = b;
+      };
+
+  // !! NOTE: because we overwrote the __*index metamethods on
+  // this userdata we cannot add any further (non-metatable) mem-
+  // bers on this object, since there will be no way to look them
+  // up by name.
 };
 
 LUA_STARTUP( lua::state& st ) {

@@ -205,19 +205,23 @@ wait<maybe<UnitId>> check_for_new_immigrant(
   if( player.crosses < crosses_needed ) co_return nothing;
   player.crosses -= crosses_needed;
   DCHECK( player.crosses >= 0 );
-  int immigrant_idx =
-      rng::between( 0, 2, rng::e_interval::closed );
+  int immigrant_idx = {};
+  rng::between( 0, 2, rng::e_interval::closed );
   if( player.fathers.has[e_founding_father::william_brewster] ) {
     string msg =
-        "Which of the following immigrants shall we choose to "
-        "join us in the New World?";
-    int immigrant_idx = co_await ask_player_to_choose_immigrant(
+        "Word of religious freedom has spread! New immigrants "
+        "are ready to join us in the New World.  Which of the "
+        "following shall we choose?";
+    immigrant_idx = co_await ask_player_to_choose_immigrant(
         gui, player.old_world.immigration, msg );
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {
+    immigrant_idx =
+        rng::between( 0, 2, rng::e_interval::closed );
     string msg = fmt::format(
-        "A new immigrant (@[H]{}@[]) has arrived on the docks.",
+        "Word of religious freedom has spread! A new immigrant "
+        "(@[H]{}@[]) has arrived on the docks.",
         unit_attr( player.old_world.immigration
                        .immigrants_pool[immigrant_idx] )
             .name );

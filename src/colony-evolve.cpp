@@ -22,6 +22,9 @@
 // config
 #include "config/colony.rds.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -108,6 +111,12 @@ void apply_production_to_colony(
       production.ore_products.tools_delta_final;
   commodities[e_commodity::muskets] +=
       production.ore_products.muskets_delta_final;
+
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    CHECK( commodities[c] >= 0,
+           "colony {} has a negative quantity ({}) of {}.",
+           colony.name(), commodities[c], c );
+  }
 }
 
 } // namespace
