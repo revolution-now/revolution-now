@@ -86,21 +86,14 @@ wait<> run_loaded_game( PlayersState&        players_state,
 ** Public API
 *****************************************************************/
 wait<> run_existing_game( IGui& gui ) {
+  CHECK_HAS_VALUE( load_game( 0 ) );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
-  CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
   lua_reload( GameState::root() );
-
-  // FIXME: this will be better once we have RAII planes. Note
-  // that this needs to be done before reinitializing the planes.
-  LandViewState& land_view_state = GameState::land_view();
-  land_view_state.viewport.set_max_viewable_size_tiles(
-      GameState::terrain().world_map().size() );
-
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
@@ -113,6 +106,8 @@ wait<> run_existing_game( IGui& gui ) {
 wait<> run_new_game( IGui& gui ) {
   default_construct_game_state();
   lua_reload( GameState::root() );
+  lua::state& st = lua_global_state();
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.
@@ -120,8 +115,8 @@ wait<> run_new_game( IGui& gui ) {
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   reinitialize_planes( map_updater );
-  lua::state& st = lua_global_state();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  GameState::land_view().viewport.set_zoom(
+      GameState::land_view().viewport.optimal_min_zoom() );
 
   // 1. Take user through game setup/configuration.
 

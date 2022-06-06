@@ -24,7 +24,7 @@ namespace {} // namespace
 
 void DissipativeVelocity::set_bounds( double min_velocity,
                                       double max_velocity ) {
-  CHECK( min_velocity < max_velocity );
+  CHECK_LT( min_velocity, max_velocity );
   min_velocity_ = min_velocity;
   max_velocity_ = max_velocity;
   if( velocity_ < min_velocity ) velocity_ = min_velocity;

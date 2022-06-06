@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "game-state.hpp"
 #include "map-square.hpp"
 #include "matrix.hpp"
 
@@ -25,6 +24,8 @@
 #include "base/function-ref.hpp"
 
 namespace rn {
+
+struct TerrainState;
 
 /****************************************************************
 ** IMapUpdater
@@ -53,6 +54,12 @@ struct IMapUpdater {
 
   // Will redraw the entire map.
   virtual void just_redraw_map() = 0;
+
+  // For convenience. In practice, a map updater will always have
+  // access to a map, and so we may as well give it to the user
+  // if they want it (but only in read only mode; mutating it re-
+  // quires strictly using the functions above).
+  virtual Matrix<MapSquare> const& matrix() const = 0;
 };
 
 /****************************************************************
@@ -75,6 +82,9 @@ struct MapUpdater : IMapUpdater {
   // Implement IMapUpdater.
   void just_redraw_map() override;
 
+  // Implement IMapUpdater.
+  Matrix<MapSquare> const& matrix() const override;
+
  private:
   TerrainState& terrain_state_;
   rr::Renderer& renderer_;
@@ -96,6 +106,9 @@ struct NonRenderingMapUpdater : IMapUpdater {
 
   // Implement IMapUpdater.
   void just_redraw_map() override;
+
+  // Implement IMapUpdater.
+  Matrix<MapSquare> const& matrix() const override;
 
  private:
   TerrainState& terrain_state_;

@@ -807,7 +807,7 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
-  void initialize( IMapUpdater& ) override {
+  void initialize( IMapUpdater& map_updater ) override {
     // Initialize general global data.
     g_unit_animations.clear();
     g_landview_state  = LandViewUnitActionState::none{};
@@ -815,6 +815,9 @@ struct LandViewPlane : public Plane {
     g_raw_input_stream.reset();
     g_translated_input_stream.reset();
     g_needs_scroll_to_unit_on_input = true;
+    viewport().set_max_viewable_size_tiles(
+        map_updater.matrix().size() );
+    map_updater.just_redraw_map();
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.

@@ -33,7 +33,11 @@ struct.config_rn_main_window {
 
 struct.config_rn_viewport {
   pan_speed 'double',
-  zoom_min 'double',
+  # This is not the min zoom exactly, it is the factor that the
+  # "optimal" zoom will be divided by to get the minimum allowed
+  # zoom. The "optimal" zoom is the one that is just small enough
+  # to put the entire map on the screen, with a bit of border.
+  zoom_min_factor 'double',
   zoom_speed 'double',
   zoom_accel_coeff 'double',
   zoom_accel_drag_coeff 'double',

@@ -25,7 +25,6 @@ local DIFFICULTY_NAMES = {
 function M.default_options()
   return {
     difficulty_name='discoverer',
-    render=true, -- FIXME
     -- This determines the nations and whether they are human
     -- (true) or AI controlled (false).
     nations={
@@ -168,9 +167,6 @@ function M.create( options )
   create_turn_state( root.turn )
 
   create_nations( options, root )
-
-  if options.render then render_terrain.redraw() end
-  land_view.zoom_out_optimal()
 end
 
 return M
