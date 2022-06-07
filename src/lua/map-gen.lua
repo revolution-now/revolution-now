@@ -18,7 +18,34 @@ local dist = require( 'map-gen.classic.resource-dist' )
 -----------------------------------------------------------------
 -- The maps in the original game are 58x72, but the tiles on the
 -- edges are not visible, so effectively we have 56x70.
-local WORLD_SIZE = { w=56, h=70 }
+local CLASSIC_WORLD_SIZE = { w=56, h=70 }
+
+-----------------------------------------------------------------
+-- Options
+-----------------------------------------------------------------
+-- TODO: move this into a dedicated options module that can be
+-- shared.
+local function secure_options( tbl )
+  assert( tbl )
+  return setmetatable( tbl, {
+    __index=function( tbl, key )
+      error( 'options key ' .. key .. ' does not exist.' )
+    end
+  } )
+end
+
+function M.default_options()
+  return secure_options{
+    world_size=CLASSIC_WORLD_SIZE,
+    -- The original game seems to have a land density of about
+    -- 25% on normal map generation settings. However we will put
+    -- it slightly lower because it tends to end up slightly
+    -- higher than the target.
+    land_density=.22,
+    remove_Xs=false,
+    brush='cross'
+  }
+end
 
 -----------------------------------------------------------------
 -- Utils
@@ -42,6 +69,11 @@ local function switch( b, t, f )
   else
     return f
   end
+end
+
+-- Take a percent (where 1.0 is 100%) and format it like nn.n%
+local function percent( x )
+  return tostring( math.floor( x * 1000 ) / 10 ) .. '%'
 end
 
 -----------------------------------------------------------------
@@ -145,8 +177,8 @@ local function set_sea_lane( coord )
 end
 
 -- This will create a new empty map set all squares to water.
-local function reset_terrain()
-  map_gen.reset_terrain( WORLD_SIZE )
+local function reset_terrain( options )
+  map_gen.reset_terrain( options.world_size )
   on_all( set_water )
 end
 
@@ -667,7 +699,7 @@ end
 -- This function will find all such Xs and will remove them by
 -- choosing one of the four tiles at random and flipping its sur-
 -- face type.
-local function remove_some_Xs()
+local function remove_Xs()
   local size = map_gen.world_size()
   on_all( function( coord, square )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
@@ -742,9 +774,41 @@ local function continent_stretch_for_seed( seed_square, scale )
   return { x=stretch, y=stretch }
 end
 
+local function set_land_if_needed( coord )
+  if not square_exists( coord ) then return 0 end
+  if map_gen.at( coord ).surface == e.surface.land then
+    -- Bail here so that we don't clame to have added land where
+    -- it already existed, which would mess up the land density
+    -- calculations.
+    return 0
+  end
+  set_land( coord )
+  return 1
+end
+
+-- A "brush" is a function that paints land on the map with a
+-- given shape and returns the number of water squares that were
+-- changed to land in the process.
+local brushes = {
+  single=function( x, y )
+    local count = 0
+    count = count + set_land_if_needed{ x=x, y=y }
+    return count
+  end,
+  cross=function( x, y )
+    local count = 0
+    count = count + set_land_if_needed{ x=x, y=y }
+    count = count + set_land_if_needed{ x=x - 1, y=y }
+    count = count + set_land_if_needed{ x=x + 1, y=y }
+    count = count + set_land_if_needed{ x=x, y=y - 1 }
+    count = count + set_land_if_needed{ x=x, y=y + 1 }
+    return count
+  end
+}
+
 -- Start at the seed square and do a biased 2D random walk
 -- filling in land squares.
-local function generate_continent( seed_square, stretch )
+local function generate_continent( options, seed_square, stretch )
   local square = seed_square
   local area = (stretch.x * 2) * (stretch.y * 2)
   local land_squares = 0
@@ -752,17 +816,14 @@ local function generate_continent( seed_square, stretch )
   local p_vertical = 1 - p_horizontal
 
   set_land( square )
+  local brush = assert( brushes[options.brush] )
   for i = 1, area - 1 do
     local delta_x = random_choice( p_horizontal, 1, 0 ) *
                         random_choice( .5, -1, 1 )
     local delta_y = random_choice( p_vertical, 1, 0 ) *
                         random_choice( .5, -1, 1 )
     square = { x=square.x + delta_x, y=square.y + delta_y }
-    if square_exists( square ) and map_gen.at( square ).surface ==
-        e.surface.water then
-      set_land( square )
-      land_squares = land_squares + 1
-    end
+    land_squares = land_squares + brush( square.x, square.y )
   end
   return land_squares
 end
@@ -780,14 +841,14 @@ end
 
 -- This will generate a continent with a seed in the given rec-
 -- tangle. Note that the continent generated may escape the rect.
-local function generate_continent_in_rect( seed_rect )
+local function generate_continent_in_rect( options, seed_rect )
   local square = random_point_in_rect( seed_rect )
   local scale = math.random( 12, 42 ) / 100
   local stretch = continent_stretch_for_seed( square, scale )
-  return generate_continent( square, stretch )
+  return generate_continent( options, square, stretch )
 end
 
-local function generate_land( target_land_density )
+local function generate_land( options )
   local size = map_gen.world_size()
   -- The buffer zone will have no land in it, so it should be
   -- relatively small.
@@ -830,14 +891,20 @@ local function generate_land( target_land_density )
   for i = 1, 1000 do
     for quadrant_name, rect in pairs( quadrants ) do
       land_squares = land_squares +
-                         generate_continent_in_rect( rect )
+                         generate_continent_in_rect( options,
+                                                     rect )
     end
-    if total_land_density( land_squares ) > target_land_density then
+    local density = total_land_density( land_squares )
+    local target = options.land_density
+    if density > target then
+      log.info( 'land density actual/target: ' ..
+                    percent( density ) .. '/' ..
+                    percent( target ) )
       break
     end
   end
   clear_buffer_area( buffer )
-  remove_some_Xs()
+  if options.remove_Xs then remove_Xs() end
   remove_islands()
   create_arctic()
   assign_ground_types()
@@ -899,14 +966,20 @@ function M.regen()
   render_terrain.redraw()
 end
 
-local options = {
-  land_density=.2 --
-}
+function M.generate( options )
+  options = options or {}
+  -- Merge the options with the default ones so that any missing
+  -- fields will have their default values.
+  -- TODO: move this into a dedicated options module that can be
+  -- shared.
+  for k, v in pairs( M.default_options() ) do
+    if options[k] == nil then options[k] = v end
+  end
+  options = secure_options( options )
 
-function M.generate()
-  reset_terrain()
+  reset_terrain( options )
 
-  generate_land( options.land_density )
+  generate_land( options )
   -- generate_testing_land()
 
   create_sea_lanes()
