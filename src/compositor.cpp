@@ -35,7 +35,9 @@ e_composite_location g_console_loc =
 // Percent of screen dimension occupied.
 double g_console_size = 0.0;
 
-void init_compositor() {}
+void init_compositor() {
+  g_console_loc = config_ui.console.default_location;
+}
 
 void cleanup_compositor() {}
 
