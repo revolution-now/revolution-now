@@ -520,10 +520,14 @@ wait<> map_editor( IMapUpdater& map_updater ) {
   reset_globals();
   ScopedPlanePush pusher( e_plane_config::map_editor );
   lg.info( "entering map editor." );
-  generate_terrain( map_updater );
-  reinitialize_planes( map_updater );
   co_await run_map_editor( map_updater );
   lg.info( "leaving map editor." );
+}
+
+wait<> map_editor_standalone( IMapUpdater& map_updater ) {
+  generate_terrain( map_updater );
+  reinitialize_planes( map_updater );
+  co_await map_editor( map_updater );
 }
 
 Plane* map_editor_plane() { return &g_map_editor_plane; }

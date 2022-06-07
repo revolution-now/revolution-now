@@ -22,11 +22,11 @@ let s:stems = [
  \ 'colony-view',
  \ 'config/colony-enums',
  \ 'immigration',
- \ 'turn',
  \ 'colony-mgr',
  \ 'colony-evolve',
  \ 'production',
  \ 'config/production',
+ \ 'config/colony',
 \]
 
 let s:luas = [

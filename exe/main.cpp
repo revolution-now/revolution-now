@@ -53,7 +53,8 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
       MapUpdater map_updater( GameState::terrain(), renderer() );
-      frame_loop( map_editor( map_updater ), renderer() );
+      frame_loop( map_editor_standalone( map_updater ),
+                  renderer() );
       break;
     }
     case e_mode::map_gen: {
