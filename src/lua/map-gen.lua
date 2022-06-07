@@ -448,6 +448,7 @@ local function create_sea_lanes()
     end
   end
   -- Now start at the row that we found and go downward.
+  curr_sea_lane_width = sea_lane_width( closest_row )
   for y = closest_row + 1, size.h - 1 do
     if row_has_land( y ) then
       curr_sea_lane_width = sea_lane_width( y )
@@ -961,8 +962,8 @@ end
 -----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
-function M.regen()
-  M.generate()
+function M.regen( options )
+  M.generate( options )
   render_terrain.redraw()
 end
 
