@@ -16,7 +16,6 @@
 #include "colony-view.hpp"
 #include "map-updater.hpp"
 #include "maybe.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "window.hpp"
 
 // Rds
@@ -31,11 +30,12 @@ namespace rn {
 
 namespace {
 
-valid_or<string> is_valid_colony_name_msg( string_view name ) {
+valid_or<string> is_valid_colony_name_msg(
+    ColoniesState const& colonies_state, string_view name ) {
   if( base::trim( name ) != name )
     return invalid<string>(
         "Colony name must not start or end with spaces." );
-  auto res = is_valid_new_colony_name( name );
+  auto res = is_valid_new_colony_name( colonies_state, name );
   if( res ) return valid;
   switch( res.error() ) {
     case e_new_colony_name_err::already_exists:
@@ -46,18 +46,34 @@ valid_or<string> is_valid_colony_name_msg( string_view name ) {
 
 struct BuildHandler : public OrdersHandler {
   BuildHandler( IMapUpdater* map_updater_arg, IGui& gui_arg,
-                UnitId unit_id_ )
+                UnitId              unit_id_,
+                ColoniesState&      colonies_state_arg,
+                TerrainState const& terrain_state_arg,
+                UnitsState&         units_state_arg )
     : map_updater( map_updater_arg ),
       gui( gui_arg ),
-      unit_id( unit_id_ ) {}
+      unit_id( unit_id_ ),
+      colonies_state( colonies_state_arg ),
+      terrain_state( terrain_state_arg ),
+      units_state( units_state_arg ) {}
 
   wait<bool> confirm() override {
-    if( auto valid = unit_can_found_colony( unit_id ); !valid ) {
+    if( auto valid =
+            unit_can_found_colony( colonies_state, units_state,
+                                   terrain_state, unit_id );
+        !valid ) {
       switch( valid.error() ) {
         case e_found_colony_err::colony_exists_here:
           co_await gui.message_box(
               "There is already a colony on this "
               "square." );
+          co_return false;
+        case e_found_colony_err::too_close_to_colony:
+          // TODO: put the name of the adjacent colony here for a
+          // better message.
+          co_await gui.message_box(
+              "Cannot found a colony in a square that is "
+              "adjacent to an existing colony." );
           co_return false;
         case e_found_colony_err::no_water_colony:
           co_await gui.message_box(
@@ -87,16 +103,17 @@ struct BuildHandler : public OrdersHandler {
           "What shall this colony be named, your majesty?",
           /*initial_text=*/colony_name.value_or( "" ) );
       if( !colony_name.has_value() ) co_return false;
-      valid_or<string> is_valid =
-          is_valid_colony_name_msg( *colony_name );
+      valid_or<string> is_valid = is_valid_colony_name_msg(
+          colonies_state, *colony_name );
       if( is_valid ) co_return true;
       co_await gui.message_box( is_valid.error() );
     }
   }
 
   wait<> perform() override {
-    colony_id = found_colony_unsafe( unit_id, *map_updater,
-                                     *colony_name );
+    colony_id = found_colony_unsafe(
+        colonies_state, terrain_state, units_state, unit_id,
+        *map_updater, *colony_name );
     co_return;
   }
 
@@ -104,11 +121,14 @@ struct BuildHandler : public OrdersHandler {
     return show_colony_view( colony_id, *map_updater );
   }
 
-  IMapUpdater*  map_updater;
-  IGui&         gui;
-  UnitId        unit_id;
-  maybe<string> colony_name;
-  ColonyId      colony_id;
+  IMapUpdater*        map_updater;
+  IGui&               gui;
+  UnitId              unit_id;
+  maybe<string>       colony_name;
+  ColonyId            colony_id;
+  ColoniesState&      colonies_state;
+  TerrainState const& terrain_state;
+  UnitsState&         units_state;
 };
 
 } // namespace
@@ -118,8 +138,12 @@ struct BuildHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater, IGui& gui, SettingsState const& ) {
-  return make_unique<BuildHandler>( map_updater, gui, id );
+    IMapUpdater* map_updater, IGui& gui, Player&,
+    TerrainState const& terrain_state, UnitsState& units_state,
+    ColoniesState& colonies_state, SettingsState const& ) {
+  return make_unique<BuildHandler>( map_updater, gui, id,
+                                    colonies_state,
+                                    terrain_state, units_state );
 }
 
 } // namespace rn

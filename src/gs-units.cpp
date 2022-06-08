@@ -13,7 +13,6 @@
 // Revolution Now
 #include "cstate.hpp"
 #include "logger.hpp"
-#include "ustate.hpp"
 #include "variant.hpp"
 
 // refl
@@ -31,6 +30,16 @@ namespace {
 
 constexpr int kFirstUnitId = 1;
 
+// FIXME: we should have a generic way to do this.
+valid_or<generic_err> check_harbor_state_invariants(
+    UnitHarborViewState const& info ) {
+  valid_or<string> res =
+      std::visit( []( auto const& o ) { return o.validate(); },
+                  info.port_status );
+  if( !res ) return GENERIC_ERROR( "{}", res.error() );
+  return base::valid;
+}
+
 } // namespace
 
 /****************************************************************
@@ -42,14 +51,6 @@ valid_or<string> wrapped::UnitsState::validate() const {
     UnitOwnership_t const& st = unit_state.ownership;
     REFL_VALIDATE( !holds<UnitOwnership::free>( st ),
                    "unit {} is in the `free` state.", id );
-  }
-
-  // Check harbor states.
-  for( auto const& [id, unit_state] : units ) {
-    UnitOwnership_t const& st = unit_state.ownership;
-    if_get( st, UnitOwnership::harbor, val ) {
-      REFL_VALIDATE( check_harbor_state_invariants( val.st ) );
-    }
   }
 
   // Validate all unit cargos. We can only do this now after
@@ -181,7 +182,7 @@ UnitId UnitsState::holder_of( UnitId id ) const {
   return holder;
 }
 
-maybe<UnitHarborViewState_t&>
+maybe<UnitHarborViewState&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {
     case UnitOwnership::e::harbor:
@@ -194,7 +195,20 @@ UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   };
 }
 
-UnitHarborViewState_t& UnitsState::harbor_view_state_of(
+maybe<UnitHarborViewState const&>
+UnitsState::maybe_harbor_view_state_of( UnitId id ) const {
+  switch( auto& o = ownership_of( id ); o.to_enum() ) {
+    case UnitOwnership::e::harbor:
+      return o.get<UnitOwnership::harbor>().st;
+    case UnitOwnership::e::world:
+    case UnitOwnership::e::free:
+    case UnitOwnership::e::cargo:
+    case UnitOwnership::e::colony: //
+      return nothing;
+  };
+}
+
+UnitHarborViewState& UnitsState::harbor_view_state_of(
     UnitId id ) {
   UNWRAP_CHECK_MSG( st, maybe_harbor_view_state_of( id ),
                     "unit is not in the old world state." );
@@ -235,7 +249,6 @@ void UnitsState::disown_unit( UnitId id ) {
       units_set.erase( id );
       if( units_set.empty() )
         worker_units_from_colony_.erase( set_it );
-      colony_from_id( col_id ).remove_unit( id );
       break;
     }
   };
@@ -261,8 +274,8 @@ void UnitsState::change_to_cargo_somewhere( UnitId new_holder,
     }
   }
   FATAL( "{} cannot be placed in {}'s cargo: {}",
-         debug_string( held ), debug_string( new_holder ),
-         cargo );
+         debug_string( unit_for( held ) ),
+         debug_string( unit_for( new_holder ) ), cargo );
 }
 
 void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
@@ -295,7 +308,7 @@ void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
 }
 
 void UnitsState::change_to_harbor_view(
-    UnitId id, UnitHarborViewState_t info ) {
+    UnitId id, UnitHarborViewState info ) {
   CHECK_HAS_VALUE( check_harbor_state_invariants( info ) );
   UnitOwnership_t& ownership = ownership_of( id );
   if( !ownership.holds<UnitOwnership::harbor>() )
@@ -303,14 +316,30 @@ void UnitsState::change_to_harbor_view(
   ownership = UnitOwnership::harbor{ /*st=*/info };
 }
 
-void UnitsState::change_to_colony( UnitId id, ColonyId col_id,
-                                   ColonyJob_t const& job ) {
-  CHECK( unit_for( id ).nation() ==
-         colony_from_id( col_id ).nation() );
+valid_or<string> PortStatus::outbound::validate() const {
+  RETURN_IF_FALSE( turns >= 0,
+                   "ship outbound turn count must be larger "
+                   "than zero, but instead is ",
+                   turns );
+  return valid;
+}
+
+valid_or<string> PortStatus::inbound::validate() const {
+  RETURN_IF_FALSE( turns >= 0,
+                   "ship inbound turn count must be larger than "
+                   "zero, but instead is ",
+                   turns );
+  return valid;
+}
+
+valid_or<string> PortStatus::in_port::validate() const {
+  return valid;
+}
+
+void UnitsState::change_to_colony( UnitId id, ColonyId col_id ) {
   disown_unit( id );
   worker_units_from_colony_[col_id].insert( id );
   ownership_of( id ) = UnitOwnership::colony{ col_id };
-  colony_from_id( col_id ).add_unit( id, job );
 }
 
 UnitId UnitsState::add_unit( Unit&& unit ) {

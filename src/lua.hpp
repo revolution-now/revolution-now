@@ -40,6 +40,8 @@ struct state;
 
 namespace rn {
 
+struct RootState;
+
 /****************************************************************
 ** Lua State
 *****************************************************************/
@@ -51,7 +53,7 @@ lua::state& lua_global_state();
 void run_lua_startup_routines();
 void load_lua_modules();
 
-void lua_reload();
+void lua_reload( RootState& root_state );
 
 /****************************************************************
 ** Registration
@@ -137,10 +139,5 @@ auto lua_module_name__ =
         { { "-", "_" } } );
 #endif
 } // namespace
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void reset_state();
 
 } // namespace rn

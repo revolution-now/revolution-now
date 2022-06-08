@@ -41,8 +41,6 @@ TEST_CASE( "[e_direction] direction type*" ) {
            e_direction_type::cardinal );
   REQUIRE( direction_type( e_direction::s ) ==
            e_direction_type::cardinal );
-  REQUIRE( direction_type( e_direction::c ) ==
-           e_direction_type::center );
 }
 
 TEST_CASE( "[coord] centered*" ) {

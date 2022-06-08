@@ -11,7 +11,9 @@
 #include "nation.hpp"
 
 // Revolution Now
-#include "cstate.hpp"
+#include "colony.hpp"
+#include "gs-colonies.hpp"
+#include "gs-units.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
 
@@ -33,17 +35,23 @@ Nationality const& nation_obj( e_nation nation ) {
   return config_nation.nations[nation];
 }
 
-maybe<e_nation> nation_from_coord( Coord coord ) {
-  if( auto maybe_colony_id = colony_from_coord( coord );
+maybe<e_nation> nation_from_coord(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state, Coord coord ) {
+  if( auto maybe_colony_id =
+          colonies_state.maybe_from_coord( coord );
       maybe_colony_id )
-    return colony_from_id( *maybe_colony_id ).nation();
+    return colonies_state.colony_for( *maybe_colony_id )
+        .nation();
 
-  auto const& units = units_from_coord( coord );
+  unordered_set<UnitId> const& units =
+      units_state.from_coord( coord );
   if( units.empty() ) return nothing;
-  e_nation first = unit_from_id( *units.begin() ).nation();
+  e_nation first =
+      units_state.unit_for( *units.begin() ).nation();
   for( auto const& id : units ) {
     (void)id; // for release builds.
-    DCHECK( first == unit_from_id( id ).nation() );
+    DCHECK( first == units_state.unit_for( id ).nation() );
   }
   return first;
 }

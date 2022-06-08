@@ -20,3 +20,7 @@ menus {
   font:                  habbo_15
   menu_bar_height:       16
 }
+
+console {
+  default_location: bottom
+}

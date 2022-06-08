@@ -13,10 +13,9 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "error.hpp"
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "unit-composer.hpp"
-#include "ustate.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -26,6 +25,7 @@
 #include "luapp/state.hpp"
 
 // base
+#include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
@@ -33,7 +33,76 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+// This should be called at the end of any non-const member func-
+// tion that can edit the jobs/units maps.
+void validate_job_maps( wrapped::Colony const& colony ) {
+  unordered_set<UnitId> all;
+
+  // First compile a list of all unit IDs mentioned.
+  for( auto const& [id, job] : colony.units ) all.insert( id );
+  for( auto const& [job, units] : colony.indoor_jobs )
+    all.insert( units.begin(), units.end() );
+  for( auto const& [direction, outdoor_unit] :
+       colony.outdoor_jobs )
+    if( outdoor_unit.has_value() )
+      all.insert( outdoor_unit->unit_id );
+
+  // Now for each unit ID, make sure that it is in both the
+  // unit-to-jobs map and precisely one of the jobs-to-units
+  // maps.
+
+  for( UnitId id : all ) {
+    bool units_has       = colony.units.contains( id );
+    bool indoor_jobs_has = false;
+    for( auto const& [job, units] : colony.indoor_jobs ) {
+      CHECK_LE( int( units.size() ), 3 );
+      if( units.contains( id ) ) {
+        CHECK( !indoor_jobs_has,
+               "unit id {} appears multiple times in the indoor "
+               "jobs lists.",
+               id );
+        indoor_jobs_has = true;
+      }
+    }
+    bool outdoor_jobs_has = false;
+    for( auto const& [direction, outdoor_unit] :
+         colony.outdoor_jobs ) {
+      if( outdoor_unit.has_value() &&
+          outdoor_unit->unit_id == id ) {
+        CHECK( !indoor_jobs_has,
+               "unit id {} appears in both the indoor and "
+               "outdoor jobs lists.",
+               id );
+        CHECK( !outdoor_jobs_has,
+               "unit id {} appears multiple times in the out "
+               "door jobs list.",
+               id );
+        outdoor_jobs_has = true;
+      }
+    }
+
+    bool jobs_has = indoor_jobs_has || outdoor_jobs_has;
+
+    CHECK( units_has == jobs_has,
+           "colony (id={}) is in an inconsistent state with "
+           "regard to unit {}.",
+           colony.id, id );
+  }
+}
+
+} // namespace
+
+/****************************************************************
+** e_colony_building
+*****************************************************************/
+LUA_ENUM( colony_building );
+
+/****************************************************************
+** e_indoor_job
+*****************************************************************/
+LUA_ENUM( indoor_job );
 
 /****************************************************************
 ** Colony
@@ -60,6 +129,8 @@ valid_or<string> wrapped::Colony::validate() const {
                    id, comm );
   }
 
+  validate_job_maps( *this );
+
   // All colony's units can occupy a colony.
   // TODO: to do this I think we just check that each unit is a
   // human and a base type.
@@ -80,22 +151,6 @@ valid_or<string> wrapped::Colony::validate() const {
 
 int Colony::population() const { return o_.units.size(); }
 
-int Colony::commodity_quantity( e_commodity commodity ) const {
-  auto res = o_.commodities.find( commodity );
-  if( res == o_.commodities.end() ) return 0;
-  return res->second;
-}
-
-vector<UnitId> Colony::units() const {
-  vector<UnitId> units_working_in_colony;
-  units_working_in_colony.reserve( units_jobs().size() );
-  for( auto const& [unit_id, job] : units_jobs() ) {
-    (void)job;
-    units_working_in_colony.push_back( unit_id );
-  }
-  return units_working_in_colony;
-}
-
 string Colony::debug_string() const {
   return fmt::format(
       "Colony{{name=\"{}\",id={},nation={},coord={},population={"
@@ -104,24 +159,51 @@ string Colony::debug_string() const {
 }
 
 void Colony::add_building( e_colony_building building ) {
-  CHECK( !o_.buildings.contains( building ),
-         "Colony already has a {}.", building );
   o_.buildings.insert( building );
 }
 
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
+  SCOPE_EXIT( validate_job_maps( o_ ) );
   CHECK( !has_unit( id ), "Unit {} already in colony.", id );
   o_.units[id] = job;
+  switch( job.to_enum() ) {
+    case ColonyJob::e::indoor: {
+      auto const& o = job.get<ColonyJob::indoor>();
+      o_.indoor_jobs[o.job].insert( id );
+      break;
+    }
+    case ColonyJob::e::outdoor: {
+      auto const&         o = job.get<ColonyJob::outdoor>();
+      maybe<OutdoorUnit>& outdoor_unit =
+          o_.outdoor_jobs[o.direction];
+      CHECK( !outdoor_unit.has_value() );
+      outdoor_unit = OutdoorUnit{ .unit_id = id, .job = o.job };
+      break;
+    }
+  }
 }
 
 void Colony::remove_unit( UnitId id ) {
+  SCOPE_EXIT( validate_job_maps( o_ ) );
   CHECK( has_unit( id ), "Unit {} is not in colony.", id );
   o_.units.erase( id );
-}
 
-void Colony::set_commodity_quantity( e_commodity comm, int q ) {
-  CHECK( q >= 0, "Colony commodity quantities must be >= 0." );
-  commodities()[comm] = q;
+  for( auto& [job, units] : o_.indoor_jobs ) {
+    if( units.contains( id ) ) {
+      units.erase( id );
+      return;
+    }
+  }
+
+  for( auto& [direction, outdoor_unit] : o_.outdoor_jobs ) {
+    if( outdoor_unit.has_value() &&
+        outdoor_unit->unit_id == id ) {
+      outdoor_unit = nothing;
+      return;
+    }
+  }
+
+  SHOULD_NOT_BE_HERE;
 }
 
 bool Colony::has_unit( UnitId id ) const {
@@ -132,19 +214,9 @@ void Colony::set_nation( e_nation new_nation ) {
   o_.nation = new_nation;
 }
 
-void Colony::strip_unit_commodities( UnitId unit_id ) {
-  UNWRAP_CHECK_MSG(
-      coord, coord_for_unit( unit_id ),
-      "unit must be on map to shed its commodities." );
-  CHECK( coord == location(),
-         "unit must be in colony to shed its commodities." );
-  UnitTransformationResult tranform_res =
-      unit_from_id( unit_id ).strip_to_base_type();
-  for( auto [type, q] : tranform_res.commodity_deltas ) {
-    CHECK( q > 0 );
-    lg.debug( "adding {} {} to colony {}.", q, type, name() );
-    o_.commodities[type] += q;
-  }
+void Colony::add_hammers( int hammers ) {
+  o_.hammers += hammers;
+  CHECK_GE( o_.hammers, 0 );
 }
 
 } // namespace rn
@@ -155,21 +227,44 @@ void Colony::strip_unit_commodities( UnitId unit_id ) {
 namespace rn {
 namespace {
 
+// CommodityQuantityMap
 LUA_STARTUP( lua::state& st ) {
-  auto colony = st.usertype.create<Colony>();
+  using U = ::rn::CommodityQuantityMap;
+  auto u  = st.usertype.create<U>();
+
+  u[lua::metatable_key]["__index"] =
+      [&]( U& obj, e_commodity c ) { return obj[c]; };
+
+  u[lua::metatable_key]["__newindex"] =
+      [&]( U& obj, e_commodity c, int quantity ) {
+        obj[c] = quantity;
+      };
+
+  // !! NOTE: because we overwrote the __index and __newindex
+  // metamethods on this userdata we cannot add any further
+  // (non-metatable) members on this object, since there will be
+  // no way to look them up by name.
+};
+
+LUA_STARTUP( lua::state& st ) {
+  using U = Colony;
+  auto u  = st.usertype.create<U>();
 
   // Getters.
-  colony["id"]        = &Colony::id;
-  colony["nation"]    = &Colony::nation;
-  colony["name"]      = &Colony::name;
-  colony["location"]  = &Colony::location;
-  colony["sentiment"] = &Colony::sentiment;
+  u["id"]       = &U::id;
+  u["nation"]   = &U::nation;
+  u["name"]     = &U::name;
+  u["location"] = &U::location;
+  u["bells"]    = &U::bells;
 
   // Modifiers.
-  colony["add_building"] = &Colony::add_building;
-  colony["set_commodity_quantity"] =
-      &Colony::set_commodity_quantity;
-  colony["commodity_quantity"] = &Colony::commodity_quantity;
+  u["add_building"] = &U::add_building;
+
+  // TODO: this should be exposed to lua as a non-function prop-
+  // erty.
+  u["commodities"] = []( U& obj ) -> decltype( auto ) {
+    return obj.commodities();
+  };
 };
 
 } // namespace

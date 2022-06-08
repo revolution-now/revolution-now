@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "src/cargo.hpp"
+#include "src/game-state.hpp"
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
 

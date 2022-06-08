@@ -52,7 +52,6 @@ e_direction_type direction_type( e_direction d ) {
     case e_direction::w:
     case e_direction::e:
     case e_direction::s: return e_direction_type::cardinal;
-    case e_direction::c: return e_direction_type::center;
   }
 }
 
@@ -280,14 +279,12 @@ Coord Coord::moved( e_direction d ) const {
     case e_direction::n:  return {y-1,x  }; break;
     case e_direction::ne: return {y-1,x+1}; break;
     case e_direction::w:  return {y,  x-1}; break;
-    case e_direction::c:  return {y,  x  }; break;
     case e_direction::e:  return {y,  x+1}; break;
     case e_direction::sw: return {y+1,x-1}; break;
     case e_direction::s:  return {y+1,x  }; break;
     case e_direction::se: return {y+1,x+1}; break;
   };
   // clang-format on
-  SHOULD_NOT_BE_HERE;
 }
 
 maybe<e_direction> Coord::direction_to( Coord dest ) const {
@@ -305,11 +302,7 @@ Coord Coord::as_if_origin_were( Coord const& coord ) const {
 }
 
 bool Coord::is_adjacent_to( Coord other ) const {
-  auto direction = direction_to( other );
-  if( direction.has_value() &&
-      direction.value() != e_direction::c )
-    return true;
-  return false;
+  return direction_to( other ).has_value();
 }
 
 bool Coord::is_inside( Rect const& rect ) const {

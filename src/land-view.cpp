@@ -20,6 +20,8 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-land-view.hpp"
+#include "gs-settings.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -517,7 +519,8 @@ wait<> animate_blink( UnitId id ) {
   }
 }
 
-wait<> animate_slide( UnitId id, e_direction d ) {
+wait<> animate_slide( SettingsState const& settings, UnitId id,
+                      e_direction d ) {
   CHECK( !g_unit_animations.contains( id ) );
   Coord target = coord_for_unit_indirect_or_die( id );
   UnitAnimation::slide& mv =
@@ -526,13 +529,17 @@ wait<> animate_slide( UnitId id, e_direction d ) {
     UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
     g_unit_animations.erase( it );
   } );
+
+  // TODO: make this a game option.
+  double const kMaxVelocity =
+      settings.fast_piece_slide ? .1 : .07;
+
   mv = UnitAnimation::slide{
-      // FIXME: check if target is in world.
       .target      = target.moved( d ),
       .percent     = 0.0,
       .percent_vel = DissipativeVelocity{
           /*min_velocity=*/0,            //
-          /*max_velocity=*/.07,          //
+          /*max_velocity=*/kMaxVelocity, //
           /*initial_velocity=*/.1,       //
           /*mag_acceleration=*/1,        //
           /*mag_drag_acceleration=*/.002 //
@@ -800,7 +807,7 @@ maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
-  void initialize( IMapUpdater& ) override {
+  void initialize( IMapUpdater& map_updater ) override {
     // Initialize general global data.
     g_unit_animations.clear();
     g_landview_state  = LandViewUnitActionState::none{};
@@ -808,6 +815,8 @@ struct LandViewPlane : public Plane {
     g_raw_input_stream.reset();
     g_translated_input_stream.reset();
     g_needs_scroll_to_unit_on_input = true;
+    viewport().set_max_viewable_size_tiles(
+        map_updater.matrix().size() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -1201,21 +1210,28 @@ wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
   return next_player_input_object();
 }
 
-wait<> landview_animate_move( UnitId      id,
-                              e_direction direction ) {
+wait<> landview_animate_move( TerrainState const&  terrain_state,
+                              SettingsState const& settings,
+                              UnitId               id,
+                              e_direction          direction ) {
   // Ensure that both src and dst squares are visible.
   Coord src = coord_for_unit_indirect_or_die( id );
   Coord dst = src.moved( direction );
   co_await landview_ensure_visible( src );
-  co_await landview_ensure_visible( dst );
+  // The destination square may not exist if it is a ship sailing
+  // the high seas by moving off of the map edge (which the orig-
+  // inal game allows).
+  if( terrain_state.square_exists( dst ) )
+    co_await landview_ensure_visible( dst );
   SCOPED_SET_AND_RESTORE(
       g_landview_state,
       LandViewUnitActionState::unit_move{ .unit_id = id } );
   play_sound_effect( e_sfx::move );
-  co_await animate_slide( id, direction );
+  co_await animate_slide( settings, id, direction );
 }
 
-wait<> landview_animate_attack( UnitId attacker, UnitId defender,
+wait<> landview_animate_attack( SettingsState const& settings,
+                                UnitId attacker, UnitId defender,
                                 bool              attacker_wins,
                                 e_depixelate_anim dp_anim ) {
   co_await landview_ensure_visible( defender );
@@ -1231,7 +1247,7 @@ wait<> landview_animate_attack( UnitId attacker, UnitId defender,
   UNWRAP_CHECK( d,
                 attacker_coord.direction_to( defender_coord ) );
   play_sound_effect( e_sfx::move );
-  co_await animate_slide( attacker, d );
+  co_await animate_slide( settings, attacker, d );
 
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
@@ -1242,18 +1258,20 @@ wait<> landview_animate_attack( UnitId attacker, UnitId defender,
 // FIXME: Would be nice to make this animation a bit more sophis-
 // ticated, but we first need to fix the animation framework in
 // this module to be more flexible.
-wait<> landview_animate_colony_capture( UnitId   attacker_id,
-                                        UnitId   defender_id,
-                                        ColonyId colony_id ) {
-  co_await landview_animate_attack( attacker_id, defender_id,
-                                    /*attacker_wins=*/true,
-                                    e_depixelate_anim::death );
+wait<> landview_animate_colony_capture(
+    TerrainState const&  terrain_state,
+    SettingsState const& settings, UnitId attacker_id,
+    UnitId defender_id, ColonyId colony_id ) {
+  co_await landview_animate_attack(
+      settings, attacker_id, defender_id,
+      /*attacker_wins=*/true, e_depixelate_anim::death );
   UNWRAP_CHECK(
       direction,
       coord_for_unit( attacker_id )
           ->direction_to(
               colony_from_id( colony_id ).location() ) );
-  co_await landview_animate_move( attacker_id, direction );
+  co_await landview_animate_move( terrain_state, settings,
+                                  attacker_id, direction );
 }
 
 /****************************************************************

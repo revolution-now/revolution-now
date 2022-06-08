@@ -65,9 +65,12 @@ struct UnitsState {
 
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
-  maybe<UnitHarborViewState_t&> maybe_harbor_view_state_of(
+  maybe<UnitHarborViewState&> maybe_harbor_view_state_of(
       UnitId id );
-  UnitHarborViewState_t& harbor_view_state_of( UnitId id );
+  maybe<UnitHarborViewState const&> maybe_harbor_view_state_of(
+      UnitId id ) const;
+
+  UnitHarborViewState& harbor_view_state_of( UnitId id );
 
   std::unordered_set<UnitId> const& from_coord(
       Coord const& c ) const;
@@ -109,10 +112,20 @@ struct UnitsState {
   void change_to_map( UnitId id, Coord target );
 
   // This is the function that calls the above.
-  friend void unit_to_map_square_no_ui( UnitsState&  unit_state,
-                                        IMapUpdater& map_updater,
-                                        UnitId       id,
-                                        Coord world_square );
+  friend void unit_to_map_square_non_interactive(
+      UnitsState& unit_state, IMapUpdater& map_updater,
+      UnitId id, Coord world_square );
+
+ private:
+  // This is private because it should only be called via the
+  // higher level method (below) that can also update the
+  // colonies state.
+  void change_to_colony( UnitId id, ColonyId col_id );
+
+  friend void move_unit_to_colony( UnitsState& units_state,
+                                   Colony&     colony,
+                                   UnitId      unit_id,
+                                   ColonyJob_t const& job );
 
  public:
   // Will start at the starting slot and rotate right trying to
@@ -123,11 +136,8 @@ struct UnitsState {
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
-  void change_to_harbor_view( UnitId                id,
-                              UnitHarborViewState_t info );
-
-  void change_to_colony( UnitId id, ColonyId col_id,
-                         ColonyJob_t const& job );
+  void change_to_harbor_view( UnitId              id,
+                              UnitHarborViewState info );
 
   // ------ Non-invariant Preserving ------
   // This will erase any ownership that is had over the given

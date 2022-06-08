@@ -342,7 +342,6 @@ enum.e_tile {
   resource_beaver,
   resource_cotton,
   resource_deer,
-  resource_fish,
   resource_minerals,
   resource_oasis,
   resource_ore,
@@ -352,6 +351,10 @@ enum.e_tile {
   resource_tobacco,
   resource_tree,
   resource_wheat,
+
+  resource_fish_body,
+  resource_fish_splash_fin_large,
+  resource_fish_splash_fin_small,
 
   # =============================================================
   # Lost City Rumor

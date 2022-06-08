@@ -19,10 +19,16 @@ namespace rn {
 
 struct IMapUpdater;
 struct SettingsState;
+struct UnitsState;
+struct ColoniesState;
+struct TerrainState;
+struct Player;
 
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::build const& build,
-    IMapUpdater* map_updater, IGui& gui,
+    IMapUpdater* map_updater, IGui& gui, Player& player,
+    TerrainState const& terrain_state, UnitsState& units_state,
+    ColoniesState&       colonies_state,
     SettingsState const& settings );
 
 } // namespace rn

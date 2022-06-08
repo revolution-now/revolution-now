@@ -12,12 +12,11 @@ namespace "rn"
 
 enum.e_direction {
   nw, n, ne,
-   w, c,  e,
+   w,     e,
   sw, s, se,
 }
 
 enum.e_direction_type {
-  center,   # c
   cardinal, # n, w, e, s
   diagonal, # nw, ne, sw, se
 }

@@ -22,7 +22,6 @@ sheets {
         resource_beaver:            { y: 0, x: 0 }
         resource_cotton:            { y: 0, x: 1 }
         resource_deer:              { y: 0, x: 2 }
-        resource_fish:              { y: 0, x: 3 }
         resource_minerals:          { y: 0, x: 4 }
         resource_oasis:             { y: 0, x: 5 }
         resource_ore:               { y: 0, x: 6 }
@@ -33,6 +32,10 @@ sheets {
         resource_tree:              { y: 1, x: 1 }
         resource_wheat:             { y: 1, x: 2 }
         lost_city_rumor:            { y: 1, x: 3 }
+
+        resource_fish_body:             { y: 3, x: 0 }
+        resource_fish_splash_fin_large: { y: 3, x: 1 }
+        resource_fish_splash_fin_small: { y: 3, x: 2 }
       }
     }
     {

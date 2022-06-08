@@ -59,8 +59,7 @@ int random_gift( GiftOptions options ) {
 }
 
 bool has_hernando_de_soto( Player const& player ) {
-  return player.has_father(
-      e_founding_father::hernando_de_soto );
+  return player.fathers.has[e_founding_father::hernando_de_soto];
 }
 
 // When exploring burial mounds that are in native owned land we
@@ -73,7 +72,7 @@ bool is_native_land() {
 
 // The fountain of youth is only allowed pre-independence.
 bool allow_fountain_of_youth( Player const& player ) {
-  return !player.independence_declared();
+  return !player.independence_declared;
 }
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
@@ -93,10 +92,10 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       co_await gui.message_box(
           "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
-      int total = player.add_money( amount );
+      int total = player.money += amount;
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation(), total );
+          amount, player.nation, total );
       result = LostCityRumorResult::other{};
       break;
     }
@@ -121,8 +120,8 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
       // rediscovers the LCR on this tile; also, there are no
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_no_ui(
-          units_state, map_updater, player.nation(), uc_treasure,
+      UnitId id = create_unit_on_map_non_interactive(
+          units_state, map_updater, player.nation, uc_treasure,
           world_square );
       result = LostCityRumorResult::unit_created{ .id = id };
       break;
@@ -151,7 +150,7 @@ wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
   // trast to immigration via crosses which only allows the
   // player to choose when William Brewster has been obtained.
   maybe<int> choice = co_await ask_player_to_choose_immigrant(
-      gui, cplayer.old_world().immigration,
+      gui, cplayer.old_world.immigration,
       "Who shall we next choose to join us in the New "
       "World?" );
   // The original game allows escaping from each prompt and that
@@ -160,8 +159,8 @@ wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
   e_unit_type replacement =
       pick_next_unit_for_pool( cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
-      player.old_world().immigration, *choice, replacement );
-  create_unit_in_harbor( units_state, player.nation(), taken );
+      player.old_world.immigration, *choice, replacement );
+  create_unit_in_harbor( units_state, player.nation, taken );
 }
 
 wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,
@@ -210,10 +209,11 @@ wait<LostCityRumorResult_t> run_rumor_result(
           "You've discovered the ruins of a lost colony, among "
           "which there are items worth @[H]{}@[] in gold.",
           amount );
-      int total = player.add_money( amount );
+      player.money += amount;
+      int total = player.money;
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation(), total );
+          amount, player.nation, total );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::burial_mounds: {
@@ -240,10 +240,11 @@ wait<LostCityRumorResult_t> run_rumor_result(
           "You happen upon a small village.  The chief offers "
           "you a gift worth @[H]{}@[] gold.",
           amount );
-      int total = player.add_money( amount );
+      player.money += amount;
+      int total = player.money;
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation(), total );
+          amount, player.nation, total );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::free_colonist: {
@@ -256,8 +257,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // rediscovers the LCR on this tile; also, there are no
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_no_ui(
-          units_state, map_updater, player.nation(),
+      UnitId id = create_unit_on_map_non_interactive(
+          units_state, map_updater, player.nation,
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),
           world_square );

@@ -11,6 +11,7 @@
 #include "player.hpp"
 
 // Revolution Now
+#include "fathers.hpp"
 #include "game-state.hpp"
 #include "gs-players.hpp"
 #include "logger.hpp"
@@ -39,30 +40,6 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** Player
-*****************************************************************/
-int Player::add_money( int amount ) {
-  o_.money += amount;
-  return o_.money;
-}
-
-void Player::set_money( int amount ) {
-  DCHECK( amount >= 0 );
-  o_.money = amount;
-}
-
-void Player::set_human( bool yes ) { o_.human = yes; }
-
-void Player::set_crosses( int n ) {
-  DCHECK( n >= 0 );
-  o_.crosses = n;
-}
-
-void Player::set_nation( e_nation nation ) {
-  o_.nation = nation;
-}
-
-/****************************************************************
 ** Public API
 *****************************************************************/
 Player& player_for_nation( e_nation nation ) {
@@ -87,15 +64,6 @@ Player const& player_for_nation(
   return it->second;
 }
 
-// Founding fathers.
-void Player::give_father( e_founding_father father ) {
-  o_.fathers[father] = true;
-}
-
-bool Player::has_father( e_founding_father father ) const {
-  return o_.fathers[father];
-}
-
 void linker_dont_discard_module_player() {}
 
 /****************************************************************
@@ -108,30 +76,16 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<U>();
 
-  u["nation"]     = &U::nation;
-  u["set_nation"] = &U::set_nation;
-
-  u["is_human"]  = &U::is_human;
-  u["set_human"] = &U::set_human;
-
-  u["crosses"]     = &U::crosses;
-  u["set_crosses"] = &U::set_crosses;
-
-  u["old_world"] = []( U& obj ) -> OldWorldState& {
-    return obj.old_world();
-  };
-
-  u["add_money"] = &U::add_money;
-  u["money"]     = &U::money;
-  u["set_money"] = &U::set_money;
-
-  u["give_father"] = &U::give_father;
-  u["has_father"]  = &U::has_father;
-
+  u["nation"]                = &U::nation;
+  u["human"]                 = &U::human;
+  u["money"]                 = &U::money;
+  u["crosses"]               = &U::crosses;
+  u["old_world"]             = &U::old_world;
+  u["discovered_new_world"]  = &U::discovered_new_world;
   u["independence_declared"] = &U::independence_declared;
-
-  u["discovered_new_world"]     = &U::discovered_new_world;
-  u["set_discovered_new_world"] = &U::set_discovered_new_world;
+  u["fathers"]               = &U::fathers;
+  u["starting_position"]     = &U::starting_position;
+  u["last_high_seas"]        = &U::last_high_seas;
 };
 
 } // namespace

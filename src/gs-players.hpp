@@ -21,6 +21,8 @@
 namespace rn {
 
 using PlayersMap = std::unordered_map<e_nation, Player>;
+static_assert( std::is_same_v<
+               PlayersMap, decltype( PlayersState::players )> );
 
 void reset_players( PlayersState&                players_state,
                     std::vector<e_nation> const& nations );

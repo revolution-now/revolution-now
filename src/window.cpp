@@ -15,6 +15,7 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
+#include "game-state.hpp"
 #include "game-ui-views.hpp"
 #include "input.hpp"
 #include "logger.hpp"
@@ -793,10 +794,11 @@ wait<vector<UnitSelection>> unit_selection_box(
           }
         }
         for( auto selection : selections )
-          lg.debug( "selection: {} --> {}",
-                    debug_string( selection.id ),
-                    // FIXME: until we can format this enum.
-                    static_cast<int>( selection.what ) );
+          lg.debug(
+              "selection: {} --> {}",
+              debug_string( GameState::units(), selection.id ),
+              // FIXME: until we can format this enum.
+              static_cast<int>( selection.what ) );
         s_promise.set_value( std::move( selections ) );
       };
 

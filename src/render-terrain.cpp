@@ -1258,6 +1258,55 @@ void render_lost_city_rumor( rr::Painter& painter, Coord where,
     render_sprite( painter, where, e_tile::lost_city_rumor );
 }
 
+void render_fish( TerrainState const& terrain_state,
+                  rr::Renderer& renderer, Coord where,
+                  Coord world_square ) {
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& down =
+      terrain_state.total_square_at( world_square + 1_h );
+
+  // Treat off-map tiles as water for rendering purposes.
+  bool const land_up   = up.surface == e_surface::land;
+  bool const land_left = left.surface == e_surface::land;
+  bool const land_down = down.surface == e_surface::land;
+
+  // If there is land above or to the right of the fish then we
+  // will render an outline facing that direction it so that it
+  // can be visually distinguished.
+  bool const should_outline_up   = land_up;
+  bool const should_outline_left = land_left;
+
+  // If there is land below then we will render a small splash so
+  // that the splash doesn't overlap the land.
+  bool const small_splash = land_down;
+
+  e_tile fish_body = e_tile::resource_fish_body;
+  e_tile fish_splash_fin =
+      small_splash ? e_tile::resource_fish_splash_fin_small
+                   : e_tile::resource_fish_splash_fin_large;
+
+  gfx::pixel const outline_color = {
+      .r = 32, .g = 85, .b = 78, .a = 255 };
+
+  if( should_outline_up || should_outline_left ) {
+    // TODO: insert mod here.
+    rr::Painter painter = renderer.painter();
+    if( should_outline_up )
+      render_sprite_silhouette( painter, where - 1_h, fish_body,
+                                outline_color );
+    if( should_outline_left )
+      render_sprite_silhouette( painter, where - 1_w, fish_body,
+                                outline_color );
+  }
+
+  rr::Painter painter = renderer.painter();
+  render_sprite( painter, where, fish_body );
+  render_sprite( painter, where, fish_splash_fin );
+}
+
 e_tile resource_tile( e_natural_resource resource ) {
   switch( resource ) {
     case e_natural_resource::beaver: //
@@ -1273,7 +1322,7 @@ e_tile resource_tile( e_natural_resource resource ) {
     case e_natural_resource::cotton: //
       return e_tile::resource_cotton;
     case e_natural_resource::fish: //
-      return e_tile::resource_fish;
+      SHOULD_NOT_BE_HERE;
     case e_natural_resource::ore: //
       return e_tile::resource_ore;
     case e_natural_resource::silver: //
@@ -1289,11 +1338,17 @@ e_tile resource_tile( e_natural_resource resource ) {
   }
 }
 
-void render_resources( rr::Painter& painter, Coord where,
-                       MapSquare const& square ) {
+void render_resources( rr::Renderer&       renderer,
+                       rr::Painter&        painter,
+                       TerrainState const& terrain_state,
+                       Coord where, MapSquare const& square,
+                       Coord world_square ) {
   maybe<e_natural_resource> resource =
       effective_resource( square );
   if( !resource.has_value() ) return;
+  if( *resource == e_natural_resource::fish )
+    return render_fish( terrain_state, renderer, where,
+                        world_square );
   render_sprite( painter, where, resource_tile( *resource ) );
 }
 
@@ -1312,7 +1367,8 @@ void render_terrain_square( TerrainState const& terrain_state,
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
   if( !square.lost_city_rumor )
-    render_resources( painter, where, square );
+    render_resources( renderer, painter, terrain_state, where,
+                      square, world_square );
   render_plow_if_present( painter, where, terrain_state,
                           world_square );
   render_road_if_present( painter, where, terrain_state,

@@ -1,0 +1,196 @@
+# ===============================================================
+# production.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-31.
+#
+# Description: Rds definitions for the production module.
+#
+# ===============================================================
+# refl
+include "refl/enum-map.hpp"
+
+# Rds
+include "commodity.rds.hpp"
+
+namespace "rn"
+
+# This is for pairs of commodities where one is "mined" (raw) and
+# the other is produced (product) from the mined material.
+struct.RawMaterialAndProduct {
+  raw_produced 'int',
+
+  raw_consumed 'int',
+
+  # This could be less than raw_produced because some is being is
+  # being consumed to make the product.
+  raw_delta_theoretical 'int',
+
+  # This is the actual amount that will be added to the commodity
+  # store, and takes into account warehouse capacity. Can be pos-
+  # itive or negative, but will never make the commodity quantity
+  # in the warehouse negative, and also does not take into ac-
+  # count spoilage.
+  raw_delta_final 'int',
+
+  # This gives the maximum amount of product that theoretically
+  # could be produced in this colony at this time given the
+  # buildings, colonists working in those buildings.
+  product_produced_theoretical 'int',
+
+  # This is the actual amount that can be produced based on the
+  # limitations on supply (produced incremental and stored) of
+  # the raw material.
+  product_produced_actual 'int',
+
+  # This is the actual amount that will be added to the commodity
+  # store, and takes into account warehouse capacity. Can be pos-
+  # itive or negative, but will never make the commodity quantity
+  # in the warehouse negative, and does not take into account
+  # spoilage. Note that this also applies to hammers, which are
+  # not in the commodity store but work on a similar principle.
+  product_delta_final 'int',
+}
+
+# Here "food" is an abstract quantity that includes both corn
+# (land) and fish (sea). We need to distinguish between the two
+# basically just for visualization purposes. But anything derived
+# from these quantities is derived from the sum of corn and fish
+# (total "food").
+struct.FoodProduction {
+  corn_produced 'int',
+  fish_produced 'int',
+
+  # Sum of corn and fish, for convenience.
+  food_produced 'int',
+
+  food_consumed_by_colonists_theoretical 'int',
+
+  # This could be less than the theoretical if there isn't enough
+  # food in the warehouse.
+  food_consumed_by_colonists_actual 'int',
+
+  # The number of horses that theoretically could be produced
+  # this turn given an infinite amount of food production (not
+  # food in the warehouse, since horses never consume that).
+  horses_produced_theoretical 'int',
+
+  # The amount that should actually be added to the commodity
+  # store. Will never be negative.
+  horses_delta_final 'int',
+
+  # The amount actually consumed by horses. This is both the real
+  # and theoretical value, because horses only consume food if
+  # there is a surplus each turn (because they don't draw from
+  # the warehouse). This will only be larger than zero if the
+  # theoretical food consumed by colonists < the food produced.
+  food_consumed_by_horses 'int',
+
+  # The amount that should actually be added to the commodity
+  # store. Could be positive or negative, but will never cause
+  # the quantity of food to be negative.
+  food_delta_final 'int',
+
+  # This can be computed from the above, but it is slightly com-
+  # plicated and so it is here so that consumers don't have to
+  # understand how to do it.
+  colonist_starved 'bool',
+
+  # Indicates if a new colonist is to be produced. If/when this
+  # is the case then the food_delta_final will reflect that by
+  # subtracting the appropriate amount of food from the store, in
+  # addition to any other food that was consumed by colonists.
+  # Also note that the original game will produce at most one new
+  # colonist per turn, regardless of how much food there is in
+  # the warehouse (and there can be an arbitrary amount, since
+  # the original game doesn't seem to impose any warehouse limits
+  # on food).
+  colonist_created 'bool',
+}
+
+struct.OreProducts {
+  ore_produced 'int',
+
+  ore_consumed 'int',
+
+  # This could be less than raw_produced because some is being is
+  # being consumed to make tools.
+  ore_delta_theoretical 'int',
+
+  # This is the actual amount that will be added to the commodity
+  # store, and takes into account warehouse capacity. Can be pos-
+  # itive or negative, but will never make the commodity quantity
+  # in the warehouse negative, and does not take into account
+  # spoilage.
+  ore_delta_final 'int',
+
+  # This gives the maximum amount of product that theoretically
+  # could be produced in this colony at this time given the
+  # buildings, colonists working in those buildings.
+  tools_produced_theoretical 'int',
+
+  # This is the actual amount that can be produced based on the
+  # limitations on supply (produced incremental and stored) of
+  # the raw material.
+  tools_produced_actual 'int',
+
+  # How many tools would be consumed is all of the (theoretical)
+  # muskets being produced were actually produced.
+  tools_consumed_theoretical 'int',
+
+  # How many tools are being consumed given the actual tools pro-
+  # duced and number of muskets theoretically produced.
+  tools_consumed_actual 'int',
+
+  # This gives the maximum amount of product that theoretically
+  # could be produced in this colony at this time given the
+  # buildings, colonists working in those buildings.
+  muskets_produced_theoretical 'int',
+
+  # This is the actual amount that can be produced based on the
+  # limitations on the number of tools actually produced this
+  # turn together with warehouse supply.
+  muskets_produced_actual 'int',
+
+  # This is the actual amount that will be added to the commodity
+  # store, and takes into account warehouse capacity. Can be pos-
+  # itive or negative, but will never make the commodity quantity
+  # in the warehouse negative, and does not take into account
+  # spoilage. Note that this also applies to hammers, which are
+  # not in the commodity store but work on a similar principle.
+  muskets_delta_final 'int',
+
+  # This is the actual amount that will be added to the commodity
+  # store, and takes into account warehouse capacity. Can be pos-
+  # itive or negative, but will never make the commodity quantity
+  # in the warehouse negative, and does not take into account
+  # spoilage. This accounts for both production of tools and con-
+  # sumption of tools from making muskets.
+  tools_delta_final 'int',
+}
+
+# Note regarding warehouses: the quantities of goods produced as
+# indicated in this structure will be such that they will never
+# cause the quantity in the store to exceed the warehouse capac-
+# ity. That said, they will not take into account any loss of
+# goods that happens as a result of spoilage; that needs to be
+# checked after these deltas are applied. The reason for that is
+# so that the consumer of this data can distinguish spoilage from
+# consumption so that the player can be notified.
+struct.ColonyProduction {
+  food 'FoodProduction',
+
+  sugar_rum      'RawMaterialAndProduct',
+  tobacco_cigars 'RawMaterialAndProduct',
+  cotton_cloth   'RawMaterialAndProduct',
+  fur_coats      'RawMaterialAndProduct',
+  lumber_hammers 'RawMaterialAndProduct',
+
+  ore_products   'OreProducts',
+
+  # Things that are neither derived nor consumed.
+  silver  'int',
+  crosses 'int',
+  bells   'int',
+}

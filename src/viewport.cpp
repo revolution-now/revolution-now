@@ -329,10 +329,7 @@ void SmoothViewport::stop_auto_panning() {
   point_seek_ = nothing;
 }
 
-// Computes the critical zoom point below which (i.e., if you
-// were to zoom out a bit further) would be revealed space around
-// the map.
-double SmoothViewport::minimum_zoom_for_viewport() {
+double SmoothViewport::min_zoom_for_no_border() const {
   auto min_zoom_for_x =
       double( viewport_rect_pixels_.delta().w ) /
       double( ( world_size_tiles_ * g_tile_scale ).w );
@@ -340,6 +337,10 @@ double SmoothViewport::minimum_zoom_for_viewport() {
       double( viewport_rect_pixels_.delta().h ) /
       double( ( world_size_tiles_ * g_tile_scale ).h );
   return std::max( min_zoom_for_x, min_zoom_for_y );
+}
+
+double SmoothViewport::min_zoom_allowed() const {
+  return optimal_min_zoom() / config_rn.viewport.zoom_min_factor;
 }
 
 double SmoothViewport::x_world_pixels_in_viewport() const {
@@ -418,9 +419,9 @@ Rect SmoothViewport::world_rect_tiles() const {
 }
 
 void SmoothViewport::fix_invariants() {
-  o_.zoom = std::max( o_.zoom, config_rn.viewport.zoom_min );
+  o_.zoom = std::max( o_.zoom, min_zoom_allowed() );
   if( !config_rn.viewport.can_reveal_space_around_map )
-    o_.zoom = std::max( o_.zoom, minimum_zoom_for_viewport() );
+    o_.zoom = std::max( o_.zoom, min_zoom_for_no_border() );
   auto [size_x, size_y] = world_size_tiles_;
   size_y *= g_tile_height;
   size_x *= g_tile_width;

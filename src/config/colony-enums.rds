@@ -1,0 +1,73 @@
+# ===============================================================
+# colony-enums.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-02.
+#
+# Description: Rds definitions for the colony-enums module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_colony_building {
+  # House-level.
+  armory,
+  blacksmiths_house,     # free
+  carpenters_shop,       # free
+  fur_traders_house,     # free
+  rum_distillers_house,  # free
+  tobacconists_house,    # free
+  weavers_house,         # free
+
+  # Shop-level.
+  blacksmiths_shop,
+  fur_trading_post,
+  lumber_mill,
+  magazine,
+  rum_distillery,
+  tobacconists_shop,
+  weavers_shop,
+
+  # Factory-level.
+  arsenal,
+  cigar_factory,
+  fur_factory,
+  iron_works,
+  rum_factory,
+  textile_mill,
+
+  # Bells.
+  town_hall,             # free
+  printing_press,
+  newspaper,
+
+  # Instruction.
+  schoolhouse,
+  college,
+  university,
+
+  # Offshore.
+  docks,
+  drydock,
+  shipyard,
+
+  # Horses.
+  stable,
+
+  # Defense.
+  stockade,
+  fort,
+  fortress,
+
+  # Warehouses.
+  warehouse,
+  warehouse_expansion,
+
+  # Crosses.
+  church,
+  cathedral,
+
+  # Special buildings.
+  custom_house,
+}

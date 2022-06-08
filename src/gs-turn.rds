@@ -5,7 +5,7 @@
 #
 # Created by dsicilia on 2022-02-12.
 #
-# Description: RDS definitions for the sg-turn module.
+# Description: Turn-related save-game state.
 #
 # ===============================================================
 # Revolution Now
@@ -23,17 +23,35 @@ include "<queue>"
 
 namespace "rn"
 
-struct.NationTurn {
+enum.e_season {
+  winter,
+  spring,
+  summer,
+  fall,
+}
+
+struct.TurnTimePoint {
+  year 'int',
+  season 'e_season',
+
+  _features { validation, equality }
+}
+
+struct.NationTurnState {
   nation 'e_nation',
   started 'bool',
   did_colonies 'bool',
   did_units 'bool', # FIXME: do we need this?
   units 'std::deque<UnitId>',
+  need_eot 'bool',
 }
 
 struct.TurnState {
+  time_point 'TurnTimePoint',
+
   started 'bool',
-  need_eot 'bool',
-  nation 'base::maybe<NationTurn>',
+
+  nation 'base::maybe<NationTurnState>',
+
   remainder 'std::queue<e_nation>',
 }

@@ -17,6 +17,7 @@ file( GLOB src_refl_sources   "refl/[a-zA-Z]*.cpp"     )
 file( GLOB src_sources        "[a-zA-Z]*.cpp"          )
 file( GLOB src_stb_sources    "stb/[a-zA-Z]*.cpp"      )
 file( GLOB src_render_sources "render/[a-zA-Z]*.cpp"   )
+file( GLOB src_fake_sources   "fake/[a-zA-Z]*.cpp"     )
 
 add_executable(
   unittest
@@ -31,6 +32,7 @@ add_executable(
   ${src_cdr_sources}
   ${src_refl_sources}
   ${src_render_sources}
+  ${src_fake_sources}
 )
 
 set_warning_options( unittest )

@@ -1,0 +1,48 @@
+# ===============================================================
+# colony.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-06.
+#
+# Description: Config info for colonies (non-production).
+#
+# ===============================================================
+# cdr
+include "cdr/ext-builtin.hpp"
+
+namespace "rn"
+
+struct.Warehouses {
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with no warehouses.
+  default_max_quantity 'int',
+
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with a warehouse.
+  warehouse_max_quantity 'int',
+
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with a warehouse expansion.
+  warehouse_expansion_max_quantity 'int',
+
+  # The original game doesn't seem to impose a limit on the
+  # amount of food that can be stored. This could partially be to
+  # allow exceeding 100 without a warehouse in order to get to
+  # 200 which is needed to create a new colonist.
+  food_max_quantity 'int',
+
+  _features { validation, equality }
+}
+
+# Note that this config is for non-production related things. For
+# production-related things there is a dedicated config file.
+struct.config_colony_t {
+  warehouses 'Warehouses',
+
+  food_for_creating_new_colonist 'int',
+
+  _features { validation, equality }
+}
+
+config.colony {}

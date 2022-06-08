@@ -10,8 +10,11 @@
 *****************************************************************/
 #include "testing.hpp"
 
-// Revolution Now
+// Under test.
 #include "cstate.hpp"
+
+// Revolution Now
+#include "colony-mgr.hpp"
 #include "game-state.hpp"
 #include "gs-colonies.hpp"
 #include "lua.hpp"
@@ -26,100 +29,16 @@ namespace rn {
 namespace {
 
 using namespace std;
-using namespace rn;
 
 using Catch::Contains;
-using Catch::UnorderedEquals;
 
-TEST_CASE( "[cstate] create, query, destroy" ) {
-  testing::default_construct_all_game_state();
-  ColoniesState& cols_state = GameState::colonies();
-  auto xp = create_colony( e_nation::english, Coord{ 1_x, 2_y },
-                           "my colony" );
-  REQUIRE( xp == ColonyId{ 1 } );
-
-  Colony const& colony = colony_from_id( ColonyId{ 1 } );
-  REQUIRE( colony.id() == ColonyId{ 1 } );
-  REQUIRE( colony.nation() == e_nation::english );
-  REQUIRE( colony.name() == "my colony" );
-  REQUIRE( colony.location() == Coord{ 1_x, 2_y } );
-
-  REQUIRE( colony_exists( ColonyId{ 1 } ) );
-  REQUIRE( !colony_exists( ColonyId{ 2 } ) );
-
-  auto xp2 = create_colony( e_nation::dutch, Coord{ 1_x, 3_y },
-                            "my second colony" );
-  REQUIRE( xp2 == ColonyId{ 2 } );
-  REQUIRE_THAT( colonies_all(),
-                UnorderedEquals( vector<ColonyId>{
-                    ColonyId{ 1 }, ColonyId{ 2 } } ) );
-  REQUIRE_THAT(
-      colonies_all( e_nation::dutch ),
-      UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
-  REQUIRE_THAT(
-      colonies_all( e_nation::english ),
-      UnorderedEquals( vector<ColonyId>{ ColonyId{ 1 } } ) );
-  REQUIRE_THAT( colonies_all( e_nation::french ),
-                UnorderedEquals( vector<ColonyId>{} ) );
-
-  REQUIRE( cols_state.maybe_from_name( "my colony" ) ==
-           ColonyId{ 1 } );
-  cols_state.destroy_colony( ColonyId{ 1 } );
-  REQUIRE_THAT(
-      colonies_all(),
-      UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
-
-  cols_state.destroy_colony( ColonyId{ 2 } );
-  REQUIRE_THAT( colonies_all(),
-                UnorderedEquals( vector<ColonyId>{} ) );
-}
-
-TEST_CASE( "[cstate] colonies_in_rect" ) {
-  testing::default_construct_all_game_state();
-  vector<Coord> coords{
-      { 1_x, 2_y }, // 1
-      { 1_x, 5_y }, // 2
-      { 1_x, 8_y }, // 3
-      { 3_x, 5_y }, // 4
-      { 4_x, 4_y }, // 5
-      { 5_x, 3_y }, // 6
-      { 4_x, 2_y }, // 7
-      { 3_x, 2_y }, // 8
-      { 4_x, 3_y }, // 9
-      { 7_x, 9_y }, // 10
-      { 3_x, 3_y }, // 11
-  };
-  int i = 0;
-  for( auto coord : coords ) {
-    auto xp = create_colony( e_nation::english, coord,
-                             fmt::format( "colony{}", i++ ) );
-    REQUIRE( xp == ColonyId{ i } );
-  }
-  REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 3_y, 0_w, 0_h } ),
-                UnorderedEquals( vector<ColonyId>{} ) );
-  REQUIRE_THAT(
-      colonies_in_rect( Rect{ 3_x, 3_y, 1_w, 1_h } ),
-      UnorderedEquals( vector<ColonyId>{ ColonyId{ 11 } } ) );
-  REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 3_y, 3_w, 3_h } ),
-                UnorderedEquals( vector<ColonyId>{
-                    ColonyId{ 4 }, ColonyId{ 5 }, ColonyId{ 6 },
-                    ColonyId{ 9 }, ColonyId{ 11 } } ) );
-  REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 1_y, 2_w, 8_h } ),
-                UnorderedEquals( vector<ColonyId>{
-                    ColonyId{ 4 },
-                    ColonyId{ 5 },
-                    ColonyId{ 7 },
-                    ColonyId{ 8 },
-                    ColonyId{ 9 },
-                    ColonyId{ 11 },
-                } ) );
-}
-
-TEST_CASE( "[cstate] lua" ) {
+TEST_CASE( "[cstate] lua create colony" ) {
   lua::state& st = lua_global_state();
   testing::default_construct_all_game_state();
-  auto xp = create_colony( e_nation::english, Coord{ 1_x, 2_y },
-                           "my colony" );
+  ColoniesState& colonies_state = GameState::colonies();
+  auto           xp =
+      create_empty_colony( colonies_state, e_nation::english,
+                           Coord{ 1_x, 2_y }, "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
   auto script = R"(
     local colony = cstate.colony_from_id( 1 )

@@ -1,0 +1,23 @@
+warehouses {
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with no warehouses.
+  default_max_quantity: 100
+
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with a warehouse.
+  warehouse_max_quantity: 200
+
+  # Maximum amount of non-food quantity of a commodity that can
+  # be stored in a colony with a warehouse expansion.
+  warehouse_expansion_max_quantity: 300
+
+  # The original game doesn't seem to impose a limit on the
+  # amount of food that can be stored. This could partially be to
+  # allow exceeding 100 without a warehouse in order to get to
+  # 200 which is needed to create a new colonist. So here we'll
+  # just impose a limit which will likely be needed for rendering
+  # purposes.
+  food_max_quantity: 900
+}
+
+food_for_creating_new_colonist: 200

@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "src/game-state.hpp"
-#include "src/gs-top.hpp"
+#include "src/gs-root.hpp"
 #include "src/lua.hpp"
 #include "src/rand.hpp"
 
@@ -64,7 +64,6 @@ void create_new_game_from_lua() {
   lua::table  new_game = st["new_game"].as<lua::table>();
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
-  options["render"] = false;
   CHECK_HAS_VALUE( new_game["create"].pcall( options ) );
 }
 
@@ -72,7 +71,6 @@ void generate_save_file( fs::path const&        dst,
                          SaveGameOptions const& options ) {
   default_construct_game_state();
   reset_seeds();
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
   create_new_game_from_lua();
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
@@ -86,8 +84,6 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   static SaveGameOptions const opts{
       .verbosity = e_savegame_verbosity::compact,
   };
-
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
 
 #  if REGENERATE_FILES
   generate_save_file( src, opts );
@@ -104,7 +100,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 
   // Make a round trip.
   print_line( "Load Compact" );
-  REQUIRE( load_game_from_rcl_file( map_updater, src, opts ) );
+  REQUIRE( load_game_from_rcl_file( src, opts ) );
   print_line( "Save Compact" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
 
@@ -125,8 +121,6 @@ TEST_CASE( "[save-game] default values (full)" ) {
       .verbosity = e_savegame_verbosity::full,
   };
 
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
-
 #  if REGENERATE_FILES
   generate_save_file( src, opts );
 #  else
@@ -142,7 +136,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
 
   // Make a round trip.
   print_line( "Load Full" );
-  REQUIRE( load_game_from_rcl_file( map_updater, src, opts ) );
+  REQUIRE( load_game_from_rcl_file( src, opts ) );
   print_line( "Save Full" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
 
@@ -159,9 +153,8 @@ TEST_CASE( "[save-game] default values (full)" ) {
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
   default_construct_game_state();
   reset_seeds();
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
   create_new_game_from_lua();
-  TopLevelState backup = std::move( GameState::top() );
+  RootState backup = std::move( GameState::root() );
   default_construct_game_state();
   reset_seeds();
   create_new_game_from_lua();
@@ -179,20 +172,19 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( map_updater, dst, opts ) );
+  REQUIRE( load_game_from_rcl_file( dst, opts ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
-  REQUIRE( ( backup == GameState::top() ) );
+  REQUIRE( ( backup == GameState::root() ) );
 }
 
 TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
   default_construct_game_state();
   reset_seeds();
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
   create_new_game_from_lua();
-  TopLevelState backup = std::move( GameState::top() );
+  RootState backup = std::move( GameState::root() );
   default_construct_game_state();
   reset_seeds();
   create_new_game_from_lua();
@@ -211,11 +203,10 @@ TEST_CASE(
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( dst, opts ) );
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( map_updater, dst, opts ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
-  REQUIRE( ( backup == GameState::top() ) );
+  REQUIRE( ( backup == GameState::root() ) );
 }
 
 #endif

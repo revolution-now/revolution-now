@@ -13,40 +13,44 @@ land_view.viewport {
 
 players.players {
   dutch {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: New Netherlands
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
     human: true
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: dutch
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -56,9 +60,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          expert_tobacco_planter,
           free_colonist,
-          seasoned_scout,
+          scout,
         ]
         next_recruit_cost_base: 50
       }
@@ -145,43 +149,51 @@ players.players {
         }
       }
       taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 45
+      y: 35
     }
   }
   english {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: New Netherlands
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
-    human: true
+    human: false
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: english
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -191,7 +203,7 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          jesuit_missionary,
           free_colonist,
           seasoned_scout,
         ]
@@ -280,43 +292,51 @@ players.players {
         }
       }
       taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 0
+      y: 0
     }
   }
   french {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: New Netherlands
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
-    human: true
+    human: false
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: french
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -326,9 +346,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
+          indentured_servant,
+          master_blacksmith,
           free_colonist,
-          seasoned_scout,
         ]
         next_recruit_cost_base: 50
       }
@@ -415,43 +435,51 @@ players.players {
         }
       }
       taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 0
+      y: 0
     }
   }
   spanish {
-    crosses: 32
-    discovered_new_world: null
+    crosses: 0
+    discovered_new_world: New Netherlands
     fathers {
-      adam_smith: false
-      bartolome_de_las_casas: false
-      benjamin_franklin: false
-      father_jean_de_brebeuf: false
-      ferdinand_magellan: false
-      francis_drake: false
-      francisco_de_coronado: false
-      george_washington: false
-      henry_hudson: false
-      hernan_cortes: false
-      hernando_de_soto: false
-      jakob_fugger: false
-      jan_de_witt: false
-      john_paul_jones: false
-      juan_de_sepulveda: false
-      paul_revere: false
-      peter_minuit: false
-      peter_stuyvesant: false
-      pocahontas: false
-      sieur_de_la_salle: false
-      simon_bolivar: false
-      thomas_jefferson: false
-      thomas_paine: false
-      william_brewster: false
-      william_penn: false
+      bells: 0
+      has {
+        adam_smith: false
+        bartolome_de_las_casas: false
+        benjamin_franklin: false
+        father_jean_de_brebeuf: false
+        ferdinand_magellan: false
+        francis_drake: false
+        francisco_de_coronado: false
+        george_washington: false
+        henry_hudson: false
+        hernan_cortes: false
+        hernando_de_soto: false
+        jakob_fugger: false
+        jan_de_witt: false
+        john_paul_jones: false
+        juan_de_sepulveda: false
+        paul_revere: false
+        peter_minuit: false
+        peter_stuyvesant: false
+        pocahontas: false
+        sieur_de_la_salle: false
+        simon_bolivar: false
+        thomas_jefferson: false
+        thomas_paine: false
+        william_brewster: false
+        william_penn: false
+      }
     }
-    human: true
+    human: false
     independence_declared: false
+    last_high_seas: null
     money: 1000
     nation: spanish
-    old_world_state {
+    old_world {
       expeditionary_force {
         artillery: 2
         cavalry: 2
@@ -461,9 +489,9 @@ players.players {
       harbor_state.selected_unit: null
       immigration {
         immigrants_pool: [
-          expert_farmer,
-          free_colonist,
-          seasoned_scout,
+          veteran_dragoon,
+          indentured_servant,
+          master_blacksmith,
         ]
         next_recruit_cost_base: 50
       }
@@ -550,17 +578,27 @@ players.players {
         }
       }
       taxes.tax_rate: 7
+    }
+    starting_position {
+      x: 0
+      y: 0
     }
   }
 }
 
-settings.difficulty: 0
+settings {
+  difficulty: 0
+  fast_piece_slide: true
+}
 
 turn {
   nation: null
-  need_eot: false
   remainder: []
   started: false
+  time_point {
+    season: spring
+    year: 1492
+  }
 }
 
 units {

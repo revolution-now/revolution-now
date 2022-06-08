@@ -76,6 +76,13 @@ class SmoothViewport {
   // with a bit of map surrounds visible as well.
   double optimal_min_zoom() const;
 
+  // Computes the critical zoom point below which (i.e., if you
+  // were to zoom out a bit further) would be revealed space
+  // around the map.
+  double min_zoom_for_no_border() const;
+
+  double min_zoom_allowed() const;
+
   // This will provide the upper left corning where the GPU
   // should start rendering the landscape buffer (which could be
   // off screen) in order to make the covered area visible on
@@ -201,8 +208,6 @@ class SmoothViewport {
 
   double width_tiles() const;
   double height_tiles() const;
-
-  double minimum_zoom_for_viewport();
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );

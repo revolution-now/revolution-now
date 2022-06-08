@@ -8,6 +8,9 @@
 # Description: Rds definitions for the fathers module.
 #
 # ===============================================================
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
 
 enum.e_founding_father {
@@ -53,4 +56,16 @@ enum.e_founding_father_type {
   political,
   religious,
   trade,
+}
+
+struct.FoundingFathersState {
+  # This is the total number of bells thus accumulated toward the
+  # next founding father. This will be reset to zero when a new
+  # father joins the congress. Sources say that the original game
+  # keeps this count separate from the accumulation of bells in
+  # each individual colony.
+  bells 'int',
+
+  # Which founding fathers does this player have.
+  has 'refl::enum_map<e_founding_father, bool>',
 }

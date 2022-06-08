@@ -14,6 +14,7 @@
 #include "co-combinator.hpp"
 #include "conductor.hpp"
 #include "game-state.hpp"
+#include "gs-root.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
@@ -45,15 +46,37 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> turn_loop( SettingsState const& settings,
+wait<> turn_loop( PlayersState&        players_state,
+                  TerrainState const&  terrain_state,
+                  UnitsState&          units_state,
+                  SettingsState const& settings,
+                  TurnState&           turn_state,
+                  ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
-  while( true ) co_await next_turn( settings, map_updater, gui );
+  while( true )
+    co_await next_turn( players_state, terrain_state,
+                        units_state, settings, turn_state,
+                        colonies_state, map_updater, gui );
 }
 
-wait<> run_loaded_game( SettingsState const& settings,
+wait<> run_loaded_game( PlayersState&        players_state,
+                        TerrainState const&  terrain_state,
+                        UnitsState&          units_state,
+                        SettingsState const& settings,
+                        TurnState&           turn_state,
+                        ColoniesState&       colonies_state,
                         IMapUpdater& map_updater, IGui& gui ) {
+  // TODO: temporary until we have AI.
+  bool found_human = false;
+  for( auto const& [nation, player] : players_state.players )
+    found_human |= player.human;
+  CHECK( found_human,
+         "there must be at least one human player." );
+
   return co::erase( co::try_<game_quit_interrupt>( [&] {
-    return turn_loop( settings, map_updater, gui );
+    return turn_loop( players_state, terrain_state, units_state,
+                      settings, turn_state, colonies_state,
+                      map_updater, gui );
   } ) );
 }
 
@@ -63,33 +86,38 @@ wait<> run_loaded_game( SettingsState const& settings,
 ** Public API
 *****************************************************************/
 wait<> run_existing_game( IGui& gui ) {
-  lua_reload();
+  CHECK_HAS_VALUE( load_game( 0 ) );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
-  CHECK_HAS_VALUE( load_game( map_updater, 0 ) );
+  lua_reload( GameState::root() );
   reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( GameState::settings(), map_updater,
-                            gui );
+  co_await run_loaded_game(
+      GameState::players(), GameState::terrain(),
+      GameState::units(), GameState::settings(),
+      GameState::turn(), GameState::colonies(), map_updater,
+      gui );
 }
 
 wait<> run_new_game( IGui& gui ) {
-  lua_reload();
   default_construct_game_state();
+  lua_reload( GameState::root() );
+  lua::state& st = lua_global_state();
+  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
   // exist higher than us in the call stack.
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
+  map_updater.just_redraw_map();
   reinitialize_planes( map_updater );
-  lua::state& st = lua_global_state();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
-  SettingsState const& settings = GameState::settings();
+  GameState::land_view().viewport.set_zoom(
+      GameState::land_view().viewport.optimal_min_zoom() );
 
   // 1. Take user through game setup/configuration.
 
@@ -103,7 +131,11 @@ wait<> run_new_game( IGui& gui ) {
 
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game( settings, map_updater, gui );
+  co_await run_loaded_game(
+      GameState::players(), GameState::terrain(),
+      GameState::units(), GameState::settings(),
+      GameState::turn(), GameState::colonies(), map_updater,
+      gui );
 }
 
 } // namespace rn

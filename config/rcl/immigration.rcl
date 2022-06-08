@@ -22,29 +22,33 @@ base_weights {
   scout:                    500.0
 
   # Experts
-  expert_farmer:            200.0
-  expert_fisherman:         200.0
-  expert_sugar_planter:     200.0
-  expert_tobacco_planter:   200.0
-  expert_cotton_planter:    200.0
-  expert_fur_trapper:       200.0
-  expert_lumberjack:        200.0
-  expert_ore_miner:         200.0
-  expert_silver_miner:      200.0
-  master_carpenter:         200.0
-  master_rum_distiller:     200.0
-  master_tobacconist:       200.0
-  master_weaver:            200.0
-  master_fur_trader:        200.0
-  master_blacksmith:        200.0
-  master_gunsmith:          200.0
-  elder_statesman:          200.0
-  firebrand_preacher:       200.0
-  hardy_pioneer:            200.0
-  jesuit_missionary:        200.0
-  seasoned_scout:           200.0
-  veteran_soldier:          200.0
-  veteran_dragoon:          200.0
+  expert_farmer:            240.0
+  expert_fisherman:         240.0
+  expert_lumberjack:        240.0
+  expert_ore_miner:         240.0
+  expert_silver_miner:      240.0
+  master_carpenter:         240.0
+  master_rum_distiller:     240.0
+  master_tobacconist:       240.0
+  master_weaver:            240.0
+  master_fur_trader:        240.0
+  master_blacksmith:        240.0
+  master_gunsmith:          240.0
+  elder_statesman:          240.0
+  firebrand_preacher:       240.0
+  hardy_pioneer:            240.0
+  jesuit_missionary:        240.0
+  seasoned_scout:           240.0
+  veteran_soldier:          240.0
+  veteran_dragoon:          240.0
+
+  # In the original game these are not available in europe by any
+  # means, probably as an incentive to get training from the na-
+  # tives.
+  expert_sugar_planter:       0.0
+  expert_tobacco_planter:     0.0
+  expert_cotton_planter:      0.0
+  expert_fur_trapper:         0.0
 
   # TODO: These theoretically could make sense to appear on the
   # docs, but in the original game they don't seem to. Need to
@@ -96,10 +100,6 @@ difficulty_factor_per_level {
   scout:                   0.7952707288
   expert_farmer:           0.5623413252
   expert_fisherman:        0.5623413252
-  expert_sugar_planter:    0.5623413252
-  expert_tobacco_planter:  0.5623413252
-  expert_cotton_planter:   0.5623413252
-  expert_fur_trapper:      0.5623413252
   expert_lumberjack:       0.5623413252
   expert_ore_miner:        0.5623413252
   expert_silver_miner:     0.5623413252
@@ -117,6 +117,14 @@ difficulty_factor_per_level {
   seasoned_scout:          0.5623413252
   veteran_soldier:         0.5623413252
   veteran_dragoon:         0.5623413252
+
+  # In the original game these are not available in europe by any
+  # means, probably as an incentive to get training from the na-
+  # tives.
+  expert_sugar_planter:    1.0
+  expert_tobacco_planter:  1.0
+  expert_cotton_planter:   1.0
+  expert_fur_trapper:      1.0
 
   # TODO: These theoretically could make sense to appear on the
   # docs, but in the original game they don't seem to. Need to

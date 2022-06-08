@@ -22,6 +22,7 @@
 #include "lua.hpp"
 #include "macros.hpp"
 #include "on-map.hpp"
+#include "player.hpp"
 #include "variant.hpp"
 
 // luapp
@@ -36,7 +37,6 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
-#include "base/lambda.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -47,57 +47,30 @@ namespace {
 
 using ::base::function_ref;
 
+// If the unit is working in the colony then this will return it;
+// however it will not return a ColonyId if the unit simply occu-
+// pies the same square as the colony.
+maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
+  auto const&     gs_units = GameState::units();
+  maybe<ColonyId> res;
+  if_get( gs_units.ownership_of( id ), UnitOwnership::colony,
+          colony_state ) {
+    return colony_state.id;
+  }
+  return res;
+}
+
 } // namespace
 
 /****************************************************************
 ** Units
 *****************************************************************/
-string debug_string( UnitId id ) {
-  auto& gs_units = GameState::units();
-  return debug_string( gs_units.unit_for( id ) );
-}
-
-vector<UnitId> units_all() {
-  auto&          gs_units = GameState::units();
-  vector<UnitId> res;
-  res.reserve( gs_units.all().size() );
-  for( auto const& p : gs_units.all() ) res.push_back( p.first );
-  return res;
-}
-
-vector<UnitId> units_all( e_nation n ) {
-  auto&          gs_units = GameState::units();
-  vector<UnitId> res;
-  res.reserve( gs_units.all().size() );
-  for( auto const& p : gs_units.all() )
-    if( n == p.second.unit.nation() ) res.push_back( p.first );
-  return res;
-}
-
-bool unit_exists( UnitId id ) {
-  auto& gs_units = GameState::units();
-  return gs_units.all().contains( id );
+string debug_string( UnitsState const& units_state, UnitId id ) {
+  return debug_string( units_state.unit_for( id ) );
 }
 
 Unit& unit_from_id( UnitId id ) {
   return GameState::units().unit_for( id );
-}
-
-// Apply a function to all units. The function may mutate the
-// units.
-void map_units( function_ref<void( Unit& )> func ) {
-  auto& gs_units = GameState::units();
-  for( auto& p : gs_units.all() )
-    func( gs_units.unit_for( p.first ) );
-}
-
-void map_units( e_nation                    nation,
-                function_ref<void( Unit& )> func ) {
-  auto& gs_units = GameState::units();
-  for( auto& p : gs_units.all() ) {
-    Unit& unit = gs_units.unit_for( p.first );
-    if( unit.nation() == nation ) func( unit );
-  }
 }
 
 UnitId create_unit( UnitsState& units_state, e_nation nation,
@@ -131,15 +104,19 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
                       UnitComposition::create( type ) );
 }
 
-UnitId create_unit_on_map_no_ui( UnitsState&     units_state,
-                                 IMapUpdater&    map_updater,
-                                 e_nation        nation,
-                                 UnitComposition comp,
-                                 Coord           coord ) {
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    e_unit_type type ) {
+  return create_unit( units_state, nation,
+                      UnitType::create( type ) );
+}
+
+UnitId create_unit_on_map_non_interactive(
+    UnitsState& units_state, IMapUpdater& map_updater,
+    e_nation nation, UnitComposition comp, Coord coord ) {
   UnitId id =
       create_unit( units_state, nation, std::move( comp ) );
-  unit_to_map_square_no_ui( units_state, map_updater, id,
-                            coord );
+  unit_to_map_square_non_interactive( units_state, map_updater,
+                                      id, coord );
   return id;
 }
 
@@ -148,7 +125,7 @@ wait<UnitId> create_unit_on_map(
     Player& player, SettingsState const& settings, IGui& gui,
     IMapUpdater& map_updater, UnitComposition comp,
     Coord coord ) {
-  UnitId id = create_unit( units_state, player.nation(),
+  UnitId id = create_unit( units_state, player.nation,
                            std::move( comp ) );
   co_await unit_to_map_square( units_state, terrain_state,
                                player, settings, gui,
@@ -176,25 +153,6 @@ vector<UnitId> units_from_coord_recursive( Coord coord ) {
   return res;
 }
 
-vector<UnitId> units_in_rect( Rect const& rect ) {
-  vector<UnitId> res;
-  for( Y i = rect.y; i < rect.y + rect.h; ++i )
-    for( X j = rect.x; j < rect.x + rect.w; ++j )
-      for( auto id : units_from_coord( Coord{ i, j } ) )
-        res.push_back( id );
-  return res;
-}
-
-vector<UnitId> surrounding_units( Coord const& coord ) {
-  vector<UnitId> res;
-  for( e_direction d : refl::enum_values<e_direction> ) {
-    if( d == e_direction::c ) continue;
-    for( auto id : units_from_coord( coord.moved( d ) ) )
-      res.push_back( id );
-  }
-  return res;
-}
-
 maybe<Coord> coord_for_unit( UnitId id ) {
   return GameState::units().maybe_coord_for( id );
 }
@@ -206,10 +164,11 @@ Coord coord_for_unit_indirect_or_die( UnitId id ) {
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-maybe<Coord> coord_for_unit_indirect( UnitId id ) {
-  auto const& gs_units = GameState::units();
-  CHECK( unit_exists( id ) );
-  UnitOwnership_t const& ownership = gs_units.ownership_of( id );
+maybe<Coord> coord_for_unit_indirect(
+    UnitsState const& units_state, UnitId id ) {
+  CHECK( units_state.exists( id ) );
+  UnitOwnership_t const& ownership =
+      units_state.ownership_of( id );
   switch( ownership.to_enum() ) {
     case UnitOwnership::e::world: {
       auto& [coord] = ownership.get<UnitOwnership::world>();
@@ -217,13 +176,20 @@ maybe<Coord> coord_for_unit_indirect( UnitId id ) {
     }
     case UnitOwnership::e::cargo: {
       auto& [holder] = ownership.get<UnitOwnership::cargo>();
-      return coord_for_unit_indirect( holder );
+      return coord_for_unit_indirect( units_state, holder );
     }
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
     case UnitOwnership::e::colony: //
       return nothing;
   };
+}
+
+// If this function makes recursive calls it should always call
+// the _safe variant since this function should not throw.
+maybe<Coord> coord_for_unit_indirect( UnitId id ) {
+  auto const& units_state = GameState::units();
+  return coord_for_unit_indirect( units_state, id );
 }
 
 bool is_unit_on_map_indirect( UnitId id ) {
@@ -237,35 +203,6 @@ bool is_unit_on_map( UnitId id ) {
 }
 
 /****************************************************************
-** Colony Ownership
-*****************************************************************/
-unordered_set<UnitId> units_at_or_in_colony( ColonyId id ) {
-  auto& gs_units = GameState::units();
-  CHECK( colony_exists( id ) );
-  unordered_set<UnitId> all = gs_units.from_colony( id );
-  Coord colony_loc          = colony_from_id( id ).location();
-  for( UnitId map_id : units_from_coord( colony_loc ) )
-    all.insert( map_id );
-  return all;
-}
-
-maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
-  auto const&     gs_units = GameState::units();
-  maybe<ColonyId> res;
-  if_get( gs_units.ownership_of( id ), UnitOwnership::colony,
-          colony_state ) {
-    return colony_state.id;
-  }
-  return res;
-}
-
-bool is_unit_in_colony( UnitId id ) {
-  auto const& gs_units = GameState::units();
-  return gs_units.ownership_of( id )
-      .holds<UnitOwnership::colony>();
-}
-
-/****************************************************************
 ** Cargo Ownership
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
@@ -273,61 +210,6 @@ bool is_unit_in_colony( UnitId id ) {
 maybe<UnitId> is_unit_onboard( UnitId id ) {
   auto& gs_units = GameState::units();
   return gs_units.maybe_holder_of( id );
-}
-
-/****************************************************************
-** Old World View Ownership
-*****************************************************************/
-valid_or<string> UnitHarborViewState::outbound::validate()
-    const {
-  RETURN_IF_FALSE( percent >= 0.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  RETURN_IF_FALSE( percent <= 1.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  return valid;
-}
-
-valid_or<string> UnitHarborViewState::inbound::validate() const {
-  RETURN_IF_FALSE( percent >= 0.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  RETURN_IF_FALSE( percent <= 1.0,
-                   "ship outbound percentage must be between 0 "
-                   "and 1 inclusive, but is {}.",
-                   percent );
-  return valid;
-}
-
-valid_or<string> UnitHarborViewState::in_port::validate() const {
-  return valid;
-}
-
-valid_or<generic_err> check_harbor_state_invariants(
-    UnitHarborViewState_t const& info ) {
-  valid_or<string> res = std::visit( L( _.validate() ), info );
-  if( !res ) return GENERIC_ERROR( "{}", res.error() );
-  return base::valid;
-}
-
-maybe<UnitHarborViewState_t&> unit_harbor_view_info(
-    UnitId id ) {
-  auto& gs_units = GameState::units();
-  return gs_units.maybe_harbor_view_state_of( id );
-}
-
-vector<UnitId> units_in_harbor_view() {
-  vector<UnitId> res;
-  auto&          gs_units = GameState::units();
-  for( auto const& [id, st] : gs_units.all() ) {
-    if( st.ownership.holds<UnitOwnership::harbor>() )
-      res.push_back( id );
-  }
-  return res;
 }
 
 /****************************************************************
@@ -357,8 +239,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
   // FIXME: this needs to render but can't cause it causes
   // trouble for unit tests.
   NonRenderingMapUpdater map_updater( GameState::terrain() );
-  auto id = create_unit_on_map_no_ui( units_state, map_updater,
-                                      nation, comp, coord );
+  auto                   id = create_unit_on_map_non_interactive(
+                        units_state, map_updater, nation, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   auto& gs_units = GameState::units();
@@ -368,7 +250,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
   UnitsState& units_state = GameState::units();
   lg.info( "adding unit {} to cargo of unit {}.",
-           debug_string( held ), debug_string( holder ) );
+           debug_string( units_state, held ),
+           debug_string( units_state, holder ) );
   units_state.change_to_cargo_somewhere( holder, held );
 }
 
@@ -376,8 +259,9 @@ LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
   UnitsState& units_state = GameState::units();
   UnitId      unit_id = create_unit( units_state, nation, comp );
-  lg.info( "created unit {}.", debug_string( unit_id ),
-           debug_string( holder ) );
+  lg.info( "created unit {}.",
+           debug_string( units_state, unit_id ),
+           debug_string( units_state, holder ) );
   units_state.change_to_cargo_somewhere( holder, unit_id );
   return units_state.unit_for( unit_id );
 }

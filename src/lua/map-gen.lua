@@ -18,7 +18,34 @@ local dist = require( 'map-gen.classic.resource-dist' )
 -----------------------------------------------------------------
 -- The maps in the original game are 58x72, but the tiles on the
 -- edges are not visible, so effectively we have 56x70.
-local WORLD_SIZE = { w=56, h=70 }
+local CLASSIC_WORLD_SIZE = { w=56, h=70 }
+
+-----------------------------------------------------------------
+-- Options
+-----------------------------------------------------------------
+-- TODO: move this into a dedicated options module that can be
+-- shared.
+local function secure_options( tbl )
+  assert( tbl )
+  return setmetatable( tbl, {
+    __index=function( tbl, key )
+      error( 'options key ' .. key .. ' does not exist.' )
+    end
+  } )
+end
+
+function M.default_options()
+  return secure_options{
+    world_size=CLASSIC_WORLD_SIZE,
+    -- The original game seems to have a land density of about
+    -- 25% on normal map generation settings. However we will put
+    -- it slightly lower because it tends to end up slightly
+    -- higher than the target.
+    land_density=.22,
+    remove_Xs=false,
+    brush='cross'
+  }
+end
 
 -----------------------------------------------------------------
 -- Utils
@@ -36,6 +63,19 @@ end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
 
+local function switch( b, t, f )
+  if b then
+    return t
+  else
+    return f
+  end
+end
+
+-- Take a percent (where 1.0 is 100%) and format it like nn.n%
+local function percent( x )
+  return tostring( math.floor( x * 1000 ) / 10 ) .. '%'
+end
+
 -----------------------------------------------------------------
 -- Random Numbers
 -----------------------------------------------------------------
@@ -48,11 +88,16 @@ local function random_elem( tbl, len )
   end
 end
 
-local function random_bool()
-  if math.random( 1, 2 ) == 1 then
-    return true
+local function random_bool( p )
+  p = p or 0.5
+  return math.random() < p
+end
+
+local function random_choice( p, l, r )
+  if math.random() <= p then
+    return l
   else
-    return false
+    return r
   end
 end
 
@@ -65,19 +110,6 @@ local function random_point_in_rect( rect )
   local x = math.random( 0, rect.w - 1 ) + rect.x
   local y = math.random( 0, rect.h - 1 ) + rect.y
   return { x=x, y=y }
-end
-
-local function random_direction()
-  local x = math.random( 0, 1 )
-  local y = math.random( 0, 1 )
-  return { x=x, y=y }
-end
-
------------------------------------------------------------------
--- Coordinate Map
------------------------------------------------------------------
-local function square_key( square )
-  return square.y * 10000 + square.x
 end
 
 -----------------------------------------------------------------
@@ -100,39 +132,12 @@ end
 -----------------------------------------------------------------
 -- Unit Placement
 -----------------------------------------------------------------
-function M.initial_ship_pos()
+function M.initial_ships_pos()
   local size = map_gen.world_size()
   local y = size.h / 2
   local x = size.w - 1
   while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { x=x + 1, y=y }
-end
-
-local function unit_type( type, base_type )
-  if base_type == nil then
-    return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create( type ) )
-  else
-    return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create_with_base( type, base_type ) )
-  end
-end
-
-local function create_initial_ships()
-  -- Dutch ------------------------------------------------------
-  local nation = e.nation.dutch
-  local coord = map_gen.initial_ship_pos()
-  local merchantman = unit_type( e.unit_type.merchantman )
-  local soldier = unit_type( e.unit_type.soldier )
-  local pioneer = unit_type( e.unit_type.pioneer )
-
-  local merchantman_unit = ustate.create_unit_on_map( nation,
-                                                      merchantman,
-                                                      coord )
-  ustate.create_unit_in_cargo( nation, soldier,
-                               merchantman_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer,
-                               merchantman_unit:id() )
+  return { [e.nation.dutch]={ x=x + 1, y=y } }
 end
 
 -----------------------------------------------------------------
@@ -141,12 +146,7 @@ end
 local function set_land( coord )
   local square = map_gen.at( coord )
   square.surface = e.surface.land
-  square.ground = random_list_elem{
-    e.ground_terrain.plains, e.ground_terrain.grassland,
-    e.ground_terrain.prairie, e.ground_terrain.marsh,
-    e.ground_terrain.savannah, e.ground_terrain.desert,
-    e.ground_terrain.swamp
-  }
+  square.ground = e.ground_terrain.grassland
 end
 
 local function set_water( coord )
@@ -177,8 +177,8 @@ local function set_sea_lane( coord )
 end
 
 -- This will create a new empty map set all squares to water.
-local function reset_terrain()
-  map_gen.reset_terrain( WORLD_SIZE )
+local function reset_terrain( options )
+  map_gen.reset_terrain( options.world_size )
   on_all( set_water )
 end
 
@@ -190,6 +190,24 @@ local function row_has_land( row )
     if square.surface == e.surface.land then return true end
   end
   return false
+end
+
+local function is_land( square )
+  return square.surface == e.surface.land
+end
+
+local function is_water( square )
+  return square.surface == e.surface.water
+end
+
+local function right_most_land_square_in_row( row )
+  local size = map_gen.world_size()
+  for x = size.w - 1, 0, -1 do
+    local coord = { x=x, y=row }
+    local square = map_gen.at( coord )
+    if square.surface == e.surface.land then return coord end
+  end
+  return nil
 end
 
 -----------------------------------------------------------------
@@ -211,6 +229,18 @@ local function surrounding_squares_5x5( square )
   local possible = {}
   for y = square.y - 2, square.y + 2 do
     for x = square.x - 2, square.x + 2 do
+      if x ~= square.x or y ~= square.y then
+        append( possible, { x=x, y=y } )
+      end
+    end
+  end
+  return possible
+end
+
+local function surrounding_squares_3x3( square )
+  local possible = {}
+  for y = square.y - 1, square.y + 1 do
+    for x = square.x - 1, square.x + 1 do
       if x ~= square.x or y ~= square.y then
         append( possible, { x=x, y=y } )
       end
@@ -249,94 +279,19 @@ local function surrounding_squares_cardinal( square )
   return possible
 end
 
+local function square_exists( square )
+  local size = map_gen.world_size()
+  return
+      square.x >= 0 and square.y >= 0 and square.x < size.w and
+          square.y < size.h
+end
+
 local function filter_existing_squares( squares )
   local exists = {}
-  local size = map_gen.world_size()
-  local function square_exists( square )
-    return
-        square.x >= 0 and square.y >= 0 and square.x < size.w and
-            square.y < size.h
-  end
   for _, val in ipairs( squares ) do
     if square_exists( val ) then append( exists, val ) end
   end
   return exists
-end
-
------------------------------------------------------------------
--- Continent Generation
------------------------------------------------------------------
--- The land generated by the original game does not appear to
--- have any land/water Xs in it, e.g.:
---
---   L O            O L
---   O L     or     L O
---
--- Indications are that Civilization 1 removed these as a final
--- stage of its map generation, and so Colonization 1 might be
--- doing the same. These are not ideal visually because, if we
--- are to render them, then extra rendering complications are in-
--- troduced because we need to signal to the player that they are
--- actually connected in that a ship can sail between them (the
--- naive rendering would draw the ocean squares as ocean sin-
--- gleton tiles and so there would be no visual indication that
--- they are connected). It is possibel that Civilization 1 wanted
--- to avoid this rendering complication and so it just removes
--- them. And since Colonization may have borrowed from the Civ
--- engine, it may do the same thing for that reason.
---
--- Colonization, however, is able to properly render these Xs
--- with a visual cue (thin blue "canal" between the diagonally
--- adjacent water tiles) to signal to the player that they are
--- connected) as evidenced by the fact that we can create maps
--- containing them in the map editor. This game can also render
--- them similarly, and so there is really no reason to omit them.
--- But, we will do so here for two reasons: 1) because the orig-
--- inal game did, and 2) we otherwise seem to end up with too
--- many of them and they don't really look good.
---
--- This function will find all such Xs and will remove them by
--- choosing one of the four tiles at random and flipping its sur-
--- face type.
-local function remove_some_Xs()
-  -- TODO
-end
-
-local function generate_continent( seed_square, area )
-  local square = seed_square
-  local border_squares = {}
-  border_squares_len = 0
-  set_land( square )
-  for i = 1, area - 1 do
-    local surrounding_n
-    if math.random( 1, 3 ) > 1 then
-      surrounding_n = surrounding_squares_cardinal
-    else
-      surrounding_n = surrounding_squares_diagonal
-    end
-    local surrounding = filter_existing_squares(
-                            surrounding_n( square ) )
-    for _, s in ipairs( surrounding ) do
-      if map_gen.at( s ).surface == e.surface.water then
-        local key = square_key( s )
-        if border_squares[key] == nil then
-          border_squares[key] = s
-          border_squares_len = border_squares_len + 1
-        end
-      end
-    end
-    if border_squares_len == 0 then
-      -- We've run out of space to grow.  This can happen
-      -- e.g. if we started inside an enclosed lake inside
-      -- another continent.
-      return
-    end
-    key = random_elem( border_squares, border_squares_len )
-    square = border_squares[key]
-    border_squares[key] = nil
-    border_squares_len = border_squares_len - 1
-    set_land( square )
-  end
 end
 
 -----------------------------------------------------------------
@@ -411,9 +366,13 @@ local function create_sea_lanes()
   -- sea lane squares in their vicinity (7x7 square). And for
   -- each of those water squares, clear all sea lane squares
   -- along the entire row to the left of it until the map edge.
-  on_all( function( coord )
-    local square = map_gen.at( coord )
-    if square.surface == e.surface.land then
+  -- In order to make this more efficient, instead of applying
+  -- this to all land squares, we will only apply it to the
+  -- right-most land square in each row, since that will yield an
+  -- equivalent result.
+  for y = 0, size.h - 1 do
+    local coord = right_most_land_square_in_row( y )
+    if coord ~= nil then
       local block_edge = {}
       -- We need to do this because if we are are very close to
       -- the right edge of the map (e.g., arctic) then the right
@@ -426,22 +385,29 @@ local function create_sea_lanes()
         coord.x = coord.x - 1
       until #block_edge > 0
       for _, s in ipairs( block_edge ) do
-        for x = 0, s.x do
+        -- Walk from the right to the left until we either get to
+        -- the left edge of the map or we find an ocean square
+        -- with no sea lane, which means we've already cleared
+        -- the remainder as part of another row, so we can stop.
+        for x = s.x, 0, -1 do
           local coord = { x=x, y=s.y }
           local square = map_gen.at( coord )
+          if square.surface == e.surface.water and
+              not square.sea_lane then break end
           if square.sea_lane then
             square.sea_lane = false
           end
         end
       end
     end
-  end )
+  end
 
-  -- At this point, some rows (that contain no land tiles) will
-  -- be all sea lane. So we will start at the center of the map
-  -- and move upward (downward) to find them and we will set
-  -- their sea lane width (i.e., the width on the right side of
-  -- the map) to what it was below (above) that row.
+  -- At this point, some rows (that contain no land tiles and are
+  -- far from a row that does) will be all sea lane. So we will
+  -- start at the center of the map and move upward (downward) to
+  -- find them and we will set their sea lane width (i.e., the
+  -- width on the right side of the map) to what it was below
+  -- (above) that row.
   --
   -- Run through all rows and find the row that is not entirely
   -- sea lane that is closest to the center of the map.
@@ -482,6 +448,7 @@ local function create_sea_lanes()
     end
   end
   -- Now start at the row that we found and go downward.
+  curr_sea_lane_width = sea_lane_width( closest_row )
   for y = closest_row + 1, size.h - 1 do
     if row_has_land( y ) then
       curr_sea_lane_width = sea_lane_width( y )
@@ -678,31 +645,270 @@ function M.refresh_resources()
 end
 
 -----------------------------------------------------------------
+-- Ground Terrain Assignment
+-----------------------------------------------------------------
+local function assign_ground_types()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if is_water( square ) then return end
+    if coord.y == 0 or coord.y == size.h - 1 then
+      square.ground = e.ground_terrain.arctic
+      return
+    end
+    -- TODO
+    square.ground = random_list_elem{
+      e.ground_terrain.plains, e.ground_terrain.grassland,
+      e.ground_terrain.prairie, e.ground_terrain.marsh,
+      e.ground_terrain.savannah, e.ground_terrain.desert,
+      e.ground_terrain.swamp
+    }
+  end )
+end
+
+-----------------------------------------------------------------
+-- Patchwork/Cleanup
+-----------------------------------------------------------------
+-- The land generated by the original game does not appear to
+-- have any land/water Xs in it, e.g.:
+--
+--   L O            O L
+--   O L     or     L O
+--
+-- Indications are that Civilization 1 removed these as a final
+-- stage of its map generation, and so Colonization 1 might be
+-- doing the same. These are not ideal visually because, if we
+-- are to render them, then extra rendering complications are in-
+-- troduced because we need to signal to the player that they are
+-- actually connected in that a ship can sail between them (the
+-- naive rendering would draw the ocean squares as ocean sin-
+-- gleton tiles and so there would be no visual indication that
+-- they are connected). It is possibel that Civilization 1 wanted
+-- to avoid this rendering complication and so it just removes
+-- them. And since Colonization may have borrowed from the Civ
+-- engine, it may do the same thing for that reason.
+--
+-- Colonization, however, is able to properly render these Xs
+-- with a visual cue (thin blue "canal" between the diagonally
+-- adjacent water tiles) to signal to the player that they are
+-- connected) as evidenced by the fact that we can create maps
+-- containing them in the map editor. This game can also render
+-- them similarly, and so there is really no reason to omit them.
+-- But, we will do so here for two reasons: 1) because the orig-
+-- inal game did, and 2) we otherwise seem to end up with too
+-- many of them and they don't really look good.
+--
+-- This function will find all such Xs and will remove them by
+-- choosing one of the four tiles at random and flipping its sur-
+-- face type.
+local function remove_Xs()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if coord.y < size.h - 1 and coord.x < size.w - 1 then
+      local square_right = map_gen.at{ x=coord.x + 1, y=coord.y }
+      local square_down = map_gen.at{ x=coord.x, y=coord.y + 1 }
+      local square_diag = map_gen.at{
+        x=coord.x + 1,
+        y=coord.y + 1
+      }
+      if is_land( square ) and is_water( square_right ) and
+          is_water( square_down ) and is_land( square_diag ) then
+        square_diag.surface = e.surface.water
+      end
+      if is_water( square ) and is_land( square_right ) and
+          is_land( square_down ) and is_water( square_diag ) then
+        square_diag.surface = e.surface.land
+      end
+    end
+  end )
+end
+
+-- We cannot have islands in the game because that would give the
+-- player a way to have a coastal colony that could not be at-
+-- tacked by the royal forces during the war of independence be-
+-- cause they would have no adjacent land squares on which to
+-- land. The exception is the arctic, in which we will allow is-
+-- lands. If the player wants to use that as a loop hole, so be
+-- it.
+local function remove_islands()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if coord.y > 0 and coord.y < size.h - 1 then
+      local surrounding = surrounding_squares_3x3( coord )
+      surrounding = filter_existing_squares( surrounding )
+      local has_land = false
+      for _, square in ipairs( surrounding ) do
+        if map_gen.at( square ).surface == e.surface.land then
+          has_land = true
+          break
+        end
+      end
+      if not has_land then
+        -- We have an island.
+        square.surface = e.surface.water
+      end
+    end
+  end )
+end
+
+-----------------------------------------------------------------
+-- Continent Generation
+-----------------------------------------------------------------
+-- For each continent that we ask the continent generator to gen-
+-- erate, we need to give it an area. One way to do that would be
+-- to select the area randomly. However, that then causes prob-
+-- lems where continents with a seed close to the map edge get a
+-- large area and then end up with a flat cutoff along one of the
+-- sides, which looks unnatural. So instead we choose the conti-
+-- nent aread based on where the seed is. The closer the seed is
+-- to a map edge along a given dimension (x or y), the less its
+-- area will (statistically) extend along that dimensions.
+--
+-- scale will affect continent size.
+--
+local function continent_stretch_for_seed( seed_square, scale )
+  local size = map_gen.world_size()
+  local stretch_x = math.min( seed_square.x,
+                              size.w - seed_square.x )
+  local stretch_y = math.min( seed_square.y,
+                              size.h - seed_square.y )
+  local stretch = scale * math.min( stretch_x, stretch_y )
+  return { x=stretch, y=stretch }
+end
+
+local function set_land_if_needed( coord )
+  if not square_exists( coord ) then return 0 end
+  if map_gen.at( coord ).surface == e.surface.land then
+    -- Bail here so that we don't clame to have added land where
+    -- it already existed, which would mess up the land density
+    -- calculations.
+    return 0
+  end
+  set_land( coord )
+  return 1
+end
+
+-- A "brush" is a function that paints land on the map with a
+-- given shape and returns the number of water squares that were
+-- changed to land in the process.
+local brushes = {
+  single=function( x, y )
+    local count = 0
+    count = count + set_land_if_needed{ x=x, y=y }
+    return count
+  end,
+  cross=function( x, y )
+    local count = 0
+    count = count + set_land_if_needed{ x=x, y=y }
+    count = count + set_land_if_needed{ x=x - 1, y=y }
+    count = count + set_land_if_needed{ x=x + 1, y=y }
+    count = count + set_land_if_needed{ x=x, y=y - 1 }
+    count = count + set_land_if_needed{ x=x, y=y + 1 }
+    return count
+  end
+}
+
+-- Start at the seed square and do a biased 2D random walk
+-- filling in land squares.
+local function generate_continent( options, seed_square, stretch )
+  local square = seed_square
+  local area = (stretch.x * 2) * (stretch.y * 2)
+  local land_squares = 0
+  local p_horizontal = stretch.x / (stretch.x + stretch.y)
+  local p_vertical = 1 - p_horizontal
+
+  set_land( square )
+  local brush = assert( brushes[options.brush] )
+  for i = 1, area - 1 do
+    local delta_x = random_choice( p_horizontal, 1, 0 ) *
+                        random_choice( .5, -1, 1 )
+    local delta_y = random_choice( p_vertical, 1, 0 ) *
+                        random_choice( .5, -1, 1 )
+    square = { x=square.x + delta_x, y=square.y + delta_y }
+    land_squares = land_squares + brush( square.x, square.y )
+  end
+  return land_squares
+end
+
+-----------------------------------------------------------------
 -- Land Generation
 -----------------------------------------------------------------
-local function generate_land()
+local function total_land_density( land_count )
   local size = map_gen.world_size()
-  local buffer = { top=2, bottom=2, left=4, right=3 }
-  local initial_square = {
-    x=size.w - buffer.left * 4,
-    y=size.h / 2
+  local total_count = size.w * size.h
+  local density = land_count / total_count
+  assert( density <= 1.0 )
+  return density
+end
+
+-- This will generate a continent with a seed in the given rec-
+-- tangle. Note that the continent generated may escape the rect.
+local function generate_continent_in_rect( options, seed_rect )
+  local square = random_point_in_rect( seed_rect )
+  local scale = math.random( 12, 42 ) / 100
+  local stretch = continent_stretch_for_seed( square, scale )
+  return generate_continent( options, square, stretch )
+end
+
+local function generate_land( options )
+  local size = map_gen.world_size()
+  -- The buffer zone will have no land in it, so it should be
+  -- relatively small.
+  local buffer = { top=1, bottom=1, left=4, right=3 }
+  -- Seeds will be chosen from this rect, which is a bit smaller
+  -- than the buffer to allow for outward growth.
+  local seed_rect = {
+    x=buffer.left * 2,
+    y=buffer.top * 2,
+    w=(size.w - buffer.left * 2 - buffer.right * 4),
+    h=(size.h - buffer.top * 2 - buffer.bottom * 2)
   }
-  local initial_area = math.random( 5, 50 )
-  generate_continent( initial_square, initial_area )
-  for i = 1, 6 do
-    local square = random_point_in_rect(
-                       {
-          x=buffer.left,
-          y=buffer.top,
-          w=size.w - buffer.right - buffer.left,
-          h=size.h - buffer.bottom - buffer.top
-        } )
-    local area = math.random( 10, 300 )
-    generate_continent( square, area )
+  local quadrants = {
+    upper_left={
+      x=seed_rect.x,
+      y=seed_rect.y,
+      w=seed_rect.w // 2,
+      h=seed_rect.h // 2
+    },
+    upper_right={
+      x=seed_rect.x + seed_rect.w // 2,
+      y=seed_rect.y,
+      w=seed_rect.w // 2,
+      h=seed_rect.h // 2
+    },
+    lower_left={
+      x=seed_rect.x,
+      y=seed_rect.y + seed_rect.h // 2,
+      w=seed_rect.w // 2,
+      h=seed_rect.h // 2
+    },
+    lower_right={
+      x=seed_rect.x + seed_rect.w // 2,
+      y=seed_rect.y + seed_rect.h // 2,
+      w=seed_rect.w // 2,
+      h=seed_rect.h // 2
+    }
+  }
+  local land_squares = 0
+  for i = 1, 1000 do
+    for quadrant_name, rect in pairs( quadrants ) do
+      land_squares = land_squares +
+                         generate_continent_in_rect( options,
+                                                     rect )
+    end
+    local density = total_land_density( land_squares )
+    local target = options.land_density
+    if density > target then
+      log.info( 'land density actual/target: ' ..
+                    percent( density ) .. '/' ..
+                    percent( target ) )
+      break
+    end
   end
   clear_buffer_area( buffer )
-  remove_some_Xs()
+  if options.remove_Xs then remove_Xs() end
+  remove_islands()
   create_arctic()
+  assign_ground_types()
   forest_cover()
 
   local placement_seed = set_random_placement_seed()
@@ -756,18 +962,30 @@ end
 -----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
-function M.generate()
-  reset_terrain()
+function M.regen( options )
+  M.generate( options )
+  render_terrain.redraw()
+end
 
-  generate_land()
+function M.generate( options )
+  options = options or {}
+  -- Merge the options with the default ones so that any missing
+  -- fields will have their default values.
+  -- TODO: move this into a dedicated options module that can be
+  -- shared.
+  for k, v in pairs( M.default_options() ) do
+    if options[k] == nil then options[k] = v end
+  end
+  options = secure_options( options )
+
+  reset_terrain( options )
+
+  generate_land( options )
   -- generate_testing_land()
 
   create_sea_lanes()
 
-  create_initial_ships()
-
   create_indian_villages()
-
 end
 
 return M

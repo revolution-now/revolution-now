@@ -55,7 +55,6 @@ MovementPoints MovementPointsAnalysis::points_to_subtract()
 MovementPointsAnalysis expense_movement_points(
     Unit const& unit, MapSquare const& src_square,
     MapSquare const& dst_square, e_direction d ) {
-  CHECK( d != e_direction::c );
   MovementPoints const has = unit.movement_points();
   // TODO: if there is a colony on the square then the unit can
   // probably always move into it (but might be worth checking

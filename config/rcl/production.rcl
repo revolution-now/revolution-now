@@ -1,0 +1,159 @@
+# How many crosses are produced by a colony just by virtue of it
+# existing (i.e., with no churches or cathedrals)?
+base_crosses: 1
+
+indoor_production {
+  # Amount produced per turn by a petty criminal working in an
+  # indoor job (e.g. rum distiller).
+  petty_criminal_base_production: 1
+
+  # Amount produced per turn by an indentured servant working in
+  # an indoor job (e.g. rum distiller).
+  indentured_servant_base_production: 2
+
+  # Amount produced per turn by a free colonist working in an in-
+  # door job (e.g. rum distiller) or by an expert colonist
+  # working a job that they are not an expert at.
+  non_expert_base_production: 3
+
+  # Amount produced by an expert colonist working in an indoor
+  # job matching their expertise (e.g. master rum distiller
+  # working on producing rum).
+  expert_base_production: 6
+
+  # William Penn crosses production bonus percent.
+  william_penn_crosses_bonus: 50
+}
+
+# The number of items that are automatically produced by virtual
+# of a building existing. Most buildings have "zero" for this.
+free_building_production {
+  # House-level.
+  armory:               0
+  blacksmiths_house:    0
+  carpenters_shop:      0
+  fur_traders_house:    0
+  rum_distillers_house: 0
+  tobacconists_house:   0
+  weavers_house:        0
+
+  # Shop-level.
+  blacksmiths_shop:     0
+  fur_trading_post:     0
+  lumber_mill:          0
+  magazine:             0
+  rum_distillery:       0
+  tobacconists_shop:    0
+  weavers_shop:         0
+
+  # Factory-level.
+  arsenal:              0
+  cigar_factory:        0
+  fur_factory:          0
+  iron_works:           0
+  rum_factory:          0
+  textile_mill:         0
+
+  # Bells.
+  town_hall:            1
+  printing_press:       0
+  newspaper:            0
+
+  # Instruction.
+  schoolhouse:          0
+  college:              0
+  university:           0
+
+  # Offshore.
+  docks:                0
+  drydock:              0
+  shipyard:             0
+
+  # Horses.
+  stable:               0
+
+  # Defense.
+  stockade:             0
+  fort:                 0
+  fortress:             0
+
+  # Warehouses.
+  warehouse:            0
+  warehouse_expansion:  0
+
+  # Crosses.
+  church:               1
+  cathedral:            2
+
+  # Special buildings.
+  custom_house:         0
+}
+
+# This describes the nature of the bonus that you get from a
+# building on production in terms of percent increases. Note that
+# the base value to which the percentage is applied here may or
+# may not include the base/free production, depending on what
+# we're talking about. For example, the percent bonus for a
+# Cathedral does not seem to apply to the base production of the
+# building, while the percent bonus of a Printing Press and News-
+# paper do seem to get applied to the base production. Note that
+# the original game appears to ROUND DOWN on 1/2.
+building_production_bonus {
+  # Buildings with just base values.
+  blacksmiths_house.none:    {}
+  carpenters_shop.none:      {}
+  fur_traders_house.none:    {}
+  rum_distillers_house.none: {}
+  tobacconists_house.none:   {}
+  weavers_house.none:        {}
+  armory.none:               {}
+  church.none:               {}
+
+  # Buildings with regular bonuses. They get a fixed percent in-
+  # crease on both use and put.
+  blacksmiths_shop.same:     { bonus=100 }
+  fur_trading_post.same:     { bonus=100 }
+  lumber_mill.same:          { bonus=100 }
+  magazine.same:             { bonus=100 }
+  rum_distillery.same:       { bonus=100 }
+  tobacconists_shop.same:    { bonus=100 }
+  weavers_shop.same:         { bonus=100 }
+  # Note that in the original game bells have a base/free level
+  # of production (coming from the town hall). Unlike with the
+  # Cathedral, the original game appears to first compute the
+  # total production of bells from the colony, then applies this
+  # bonus to the result.
+  printing_press.same:       { bonus=50  }
+  newspaper.same:            { bonus=100 }
+  # Note that in the original game this building has base/free
+  # production; the original game appears to apply this bonus
+  # only to the units' production, then adds the base production.
+  cathedral.same:            { bonus=100 }
+
+  # Level 3 buildings. They get different bonus on what is used
+  # versus what is produced. Specifically, in the original game,
+  # the use the same amount as the previous level building, but
+  # emit 50% more.
+  arsenal.factory:           { use_bonus=100, put_bonus=200 }
+  cigar_factory.factory:     { use_bonus=100, put_bonus=200 }
+  fur_factory.factory:       { use_bonus=100, put_bonus=200 }
+  iron_works.factory:        { use_bonus=100, put_bonus=200 }
+  rum_factory.factory:       { use_bonus=100, put_bonus=200 }
+  textile_mill.factory:      { use_bonus=100, put_bonus=200 }
+
+  # Non relevant buildings.
+  custom_house:              null
+  docks:                     null
+  drydock:                   null
+  shipyard:                  null
+  town_hall:                 null
+  stable:                    null
+  warehouse:                 null
+  warehouse_expansion:       null
+  stockade:                  null
+  fort:                      null
+  fortress:                  null
+  schoolhouse:               null
+  college:                   null
+  university:                null
+}

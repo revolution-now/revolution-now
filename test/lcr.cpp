@@ -52,7 +52,7 @@ TEST_CASE( "[test/lcr] de soto means no unit lost" ) {
   e_nation const nation = e_nation::dutch;
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  player.give_father( e_founding_father::hernando_de_soto );
+  player.fathers.has[e_founding_father::hernando_de_soto] = true;
   for( int i = 0; i < 100; ++i ) {
     INFO( fmt::format( "i: {}", i ) );
     e_rumor_type type = pick_rumor_type_result(
@@ -75,7 +75,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -85,7 +85,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -116,7 +116,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -135,7 +135,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -145,7 +145,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -179,9 +179,9 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
   // These number come from the config files for the min/max
   // amount of a chief gift to a non-scout on the lowest diffi-
   // culty mode.
-  REQUIRE( player.money() >= 15 );
-  REQUIRE( player.money() <= 70 );
-  REQUIRE( player.money() % 1 == 0 ); // trivial
+  REQUIRE( player.money >= 15 );
+  REQUIRE( player.money <= 70 );
+  REQUIRE( player.money % 1 == 0 ); // trivial
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -200,7 +200,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -210,7 +210,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -245,9 +245,9 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
   // These number come from the config files for the min/max
   // amount of a ruins of lost colony to a non-scout on the
   // lowest difficulty mode.
-  REQUIRE( player.money() >= 80 );
-  REQUIRE( player.money() <= 220 );
-  REQUIRE( player.money() % 10 == 0 );
+  REQUIRE( player.money >= 80 );
+  REQUIRE( player.money <= 220 );
+  REQUIRE( player.money % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -266,7 +266,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -276,7 +276,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -319,7 +319,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 9 );
 }
@@ -338,7 +338,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -348,7 +348,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -383,7 +383,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
       2_id );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 2 );
 }
@@ -402,7 +402,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -412,7 +412,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -444,7 +444,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_lost>() );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE_FALSE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 0 );
 }
@@ -467,7 +467,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -477,7 +477,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -527,7 +527,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   REQUIRE( gold <= 3500 );
   REQUIRE( gold % 100 == 0 );
   // Money is zero because the gold is on the treasure train.
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 2 );
 }
@@ -550,7 +550,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -560,7 +560,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -593,7 +593,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -616,7 +616,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -626,7 +626,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -662,9 +662,9 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.
-  REQUIRE( player.money() >= 70 );
-  REQUIRE( player.money() <= 200 );
-  REQUIRE( player.money() % 10 == 0 );
+  REQUIRE( player.money >= 70 );
+  REQUIRE( player.money <= 200 );
+  REQUIRE( player.money % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -687,7 +687,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -697,7 +697,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -727,7 +727,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }
@@ -751,7 +751,7 @@ TEST_CASE(
   // Set players.
   reset_players( players_state, { e_nation::dutch } );
   Player& player = player_for_nation( players_state, nation );
-  REQUIRE( player.money() == 0 );
+  REQUIRE( player.money == 0 );
 
   // Create map.
   terrain_state.mutable_world_map() =
@@ -761,7 +761,7 @@ TEST_CASE(
   square.lost_city_rumor = true;
 
   // Create unit on map.
-  UnitId unit_id = create_unit_on_map_no_ui(
+  UnitId unit_id = create_unit_on_map_non_interactive(
       units_state, map_updater, nation,
       UnitComposition::create(
           UnitType::create( e_unit_type::free_colonist ) ),
@@ -801,9 +801,9 @@ TEST_CASE(
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.
-  REQUIRE( player.money() >= 70 );
-  REQUIRE( player.money() <= 200 );
-  REQUIRE( player.money() % 10 == 0 );
+  REQUIRE( player.money >= 70 );
+  REQUIRE( player.money <= 200 );
+  REQUIRE( player.money % 10 == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 1 );
 }

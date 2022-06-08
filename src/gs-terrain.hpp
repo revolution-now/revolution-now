@@ -28,9 +28,6 @@ struct TerrainState {
   TerrainState();
   bool operator==( TerrainState const& ) const = default;
 
-  TerrainState( TerrainState&& ) = default;
-  TerrainState& operator=( TerrainState&& ) = default;
-
   // Implement refl::WrapsReflected.
   TerrainState( wrapped::TerrainState&& o );
   wrapped::TerrainState const&      refl() const { return o_; }

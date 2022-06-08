@@ -26,7 +26,7 @@ struct TerrainState;
 struct UnitsState;
 struct SettingsState;
 struct IGui;
-class Player;
+struct Player;
 
 // Whenever a unit is placed on a map square for any reason
 // (whether they moved there, were created there, appeared there,
@@ -47,8 +47,8 @@ wait<> unit_to_map_square( UnitsState&          units_state,
 // This is the non-coroutine version of the above, only to be
 // called from non-coroutines where you know that this action
 // won't need to trigger any UI actions.
-void unit_to_map_square_no_ui( UnitsState&  units_state,
-                               IMapUpdater& map_updater,
-                               UnitId id, Coord world_square );
+void unit_to_map_square_non_interactive(
+    UnitsState& units_state, IMapUpdater& map_updater, UnitId id,
+    Coord world_square );
 
 } // namespace rn

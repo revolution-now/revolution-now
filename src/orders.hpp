@@ -28,6 +28,10 @@ namespace rn {
 
 struct IMapUpdater;
 struct SettingsState;
+struct UnitsState;
+struct ColoniesState;
+struct TerrainState;
+struct Player;
 
 void push_unit_orders( UnitId id, orders_t const& orders );
 maybe<orders_t> pop_unit_orders( UnitId id );
@@ -91,6 +95,8 @@ struct OrdersHandler {
 
 std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders, IMapUpdater* map_updater,
-    IGui& gui, SettingsState const& settings );
+    IGui& gui, Player& player, TerrainState const& terrain_state,
+    UnitsState& units_state, ColoniesState& colonies_state,
+    SettingsState const& settings );
 
 } // namespace rn

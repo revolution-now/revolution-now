@@ -14,6 +14,9 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
+#include "game-state.hpp"
+#include "gs-players.hpp"
+#include "gs-turn.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "menu.hpp"
@@ -24,7 +27,11 @@
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
+#include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;
@@ -84,10 +91,57 @@ struct PanelPlane : public Plane {
     next_turn_button().enable( false );
   }
 
+  string season_str( e_season season ) const {
+    switch( season ) {
+      case e_season::winter: return "Winter";
+      case e_season::spring: return "Spring";
+      case e_season::summer: return "Summer";
+      case e_season::fall: return "Autumn";
+    }
+  }
+
+  void draw_some_stats( rr::Renderer& renderer,
+                        Coord const   where ) const {
+    Coord p = where;
+
+    rr::Typer typer =
+        renderer.typer( where, gfx::pixel::banana() );
+
+    // First some general stats that are not player specific.
+    TurnState const& turn_state = GameState::turn();
+    typer.write( "{} {}\n",
+                 season_str( turn_state.time_point.season ),
+                 turn_state.time_point.year );
+
+    typer.newline();
+
+    maybe<NationTurnState const&> nat_st = turn_state.nation;
+    if( !nat_st ) return;
+
+    // We have an active player, so print some info about it.
+    e_nation            nation        = nat_st->nation;
+    PlayersState const& players_state = GameState::players();
+    UNWRAP_CHECK(
+        player, base::lookup( players_state.players, nation ) );
+
+    if( player.discovered_new_world )
+      typer.write( "{}\n", *player.discovered_new_world );
+    typer.write( "Nation:  {}\n", nation );
+    typer.write( "Gold:    ${}\n", player.money );
+    typer.write( "Tax:     {}%\n",
+                 player.old_world.taxes.tax_rate );
+
+    typer.newline();
+
+    typer.write( "Crosses: {}\n", player.crosses );
+  }
+
   void draw( rr::Renderer& renderer ) const override {
     rr::Painter painter = renderer.painter();
     tile_sprite( painter, e_tile::wood_middle, rect() );
     view->draw( renderer, origin() );
+    Coord p = rect().upper_left() + 44_h + 8_w;
+    draw_some_stats( renderer, p );
   }
 
   e_input_handled input( input::event_t const& event ) override {

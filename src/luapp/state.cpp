@@ -43,6 +43,7 @@ state::state( cthread cth )
     thread( resource() ),
     string( resource() ),
     table( resource() ),
+    function( resource() ),
     lib( resource() ),
     usertype( resource() ),
     script( resource() ) {}
@@ -52,6 +53,7 @@ state::state()
     thread( resource() ),
     string( resource() ),
     table( resource() ),
+    function( resource() ),
     lib( resource() ),
     usertype( resource() ),
     script( resource() ) {
@@ -109,6 +111,11 @@ table state::Table::create() noexcept {
   C.newtable();
   return lua::table( L, C.ref_registry() );
 }
+
+/****************************************************************
+** Functions
+*****************************************************************/
+state::Function::Function( cthread cth ) : L( cth ) {}
 
 /****************************************************************
 ** Libs

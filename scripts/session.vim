@@ -41,7 +41,9 @@ function s:Open3( stem )
     exe 'silent tabnew src/' . a:stem . '.hpp'
   endif
   exe 'silent vsplit src/' . a:stem . '.cpp'
-  if filereadable( 'test/' . a:stem . '.cpp' )
+  if a:stem =~ '^config/'
+    exe 'silent vsplit config/rcl/' . fnamemodify( a:stem, ':t:r' ) . '.rcl'
+  elseif filereadable( 'test/' . a:stem . '.cpp' )
     exe 'silent vsplit test/' . a:stem . '.cpp'
   else
     " Turn off auto template initialization, create the file,

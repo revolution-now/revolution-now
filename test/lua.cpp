@@ -15,7 +15,10 @@
 // Revolution Now
 #include "coord.hpp"
 #include "expect.hpp"
+#include "game-state.hpp"
+#include "gs-root.hpp"
 #include "lua.hpp"
+#include "map-updater.hpp"
 
 // luapp
 #include "luapp/as.hpp"
@@ -34,6 +37,17 @@ using namespace rn;
 
 using Catch::Contains;
 using Catch::Equals;
+
+Coord const kSquare( 0_x, 0_y );
+
+// This will preprare a 1x1 map with a grassland tile.
+void prepare_world( TerrainState& terrain_state ) {
+  NonRenderingMapUpdater map_updater( terrain_state );
+  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
+    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m[kSquare] = map_square_for_terrain( e_terrain::grassland );
+  } );
+}
 
 TEST_CASE( "[lua] run trivial script" ) {
   lua::state& st     = lua_global_state();
@@ -138,7 +152,7 @@ TEST_CASE( "[lua] enums from string" ) {
 
 TEST_CASE( "[lua] has new_game.create" ) {
   lua::state& st = lua_global_state();
-  lua_reload();
+  lua_reload( GameState::root() );
   auto script = R"(
     return tostring( new_game.create )
   )";
@@ -150,17 +164,24 @@ TEST_CASE( "[lua] has new_game.create" ) {
 
 TEST_CASE( "[lua] C++ function binding" ) {
   lua::state& st = lua_global_state();
-  lua_reload();
+  prepare_world( GameState::root().zzz_terrain );
+  lua_reload( GameState::root() );
   auto script = R"(
     local soldier_type =
         utype.UnitType.create( e.unit_type.soldier )
     local soldier_comp = unit_composer
                         .UnitComposition
                         .create_with_type_obj( soldier_type )
-    local id1 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
-    local id2 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
-    local id3 = harbor_units.create_unit_in_port( e.nation.dutch, soldier_comp )
-    return id3-id1
+    local unit1 = ustate.create_unit_on_map( e.nation.dutch,
+                                             soldier_comp,
+                                             { x=0, y=0 } )
+    local unit2 = ustate.create_unit_on_map( e.nation.dutch,
+                                             soldier_comp,
+                                             { x=0, y=0 } )
+    local unit3 = ustate.create_unit_on_map( e.nation.dutch,
+                                             soldier_comp,
+                                             { x=0, y=0 } )
+    return unit3:id()-unit1:id()
   )";
 
   REQUIRE( st.script.run_safe<int>( script ) == 2 );
@@ -328,15 +349,15 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-      return lua::as<string>( o ) + "!";
+          return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-      return fmt::format( "a double: {}", *maybe_double );
+          return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-      return fmt::format( "a bool: {}", *maybe_bool );
+          return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-      return "?";
+          return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==

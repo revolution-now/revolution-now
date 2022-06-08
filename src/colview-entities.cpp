@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
@@ -211,7 +212,7 @@ class MarketCommodities : public ui::View,
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::black() );
-      label.value = colony.commodity_quantity( *comm_it );
+      label.value = colony.commodities()[*comm_it];
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
       // of label for buckets), but we want the quantity to
@@ -233,7 +234,7 @@ class MarketCommodities : public ui::View,
   }
 
   int quantity_of( e_commodity type ) const {
-    return colony().commodity_quantity( type );
+    return colony().commodities()[type];
   }
 
   maybe<ColViewObjectWithBounds> object_here(
@@ -280,7 +281,7 @@ class MarketCommodities : public ui::View,
     int         new_quantity =
         quantity_of( type ) - draggable_->quantity;
     CHECK( new_quantity >= 0 );
-    colony().set_commodity_quantity( type, new_quantity );
+    colony().commodities()[type] = new_quantity;
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -294,9 +295,9 @@ class MarketCommodities : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
-    int q = colony().commodity_quantity( c.type );
+    int q = colony().commodities()[c.type];
     q += c.quantity;
-    colony().set_commodity_quantity( c.type, q );
+    colony().commodities()[c.type] = q;
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
@@ -350,7 +351,7 @@ class PopulationView : public ui::View, public ColonySubView {
                              gfx::pixel::black() );
     auto const& colony = colony_from_id( colony_id() );
     unordered_map<UnitId, ColonyJob_t> const& units_jobs =
-        colony.units_jobs();
+        colony.units();
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
       render_unit( renderer, unit_pos, unit_id,
@@ -907,9 +908,9 @@ class UnitsAtGateColonyView : public ui::View,
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            unit_to_map_square_no_ui( GameState::units(),
-                                      map_updater_, unit.id,
-                                      colony().location() );
+            unit_to_map_square_non_interactive(
+                GameState::units(), map_updater_, unit.id,
+                colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -964,8 +965,10 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   wait<> click_on_unit( UnitId id ) {
-    lg.info( "clicked on unit {}.", debug_string( id ) );
-    auto& unit = unit_from_id( id );
+    UnitsState& units_state = GameState::units();
+    lg.info( "clicked on unit {}.",
+             debug_string( units_state, id ) );
+    Unit& unit = units_state.unit_for( id );
     if( selected_ != id ) {
       set_selected_unit( id );
       // The first time we select a unit, just select it, but
@@ -1005,7 +1008,7 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      colony().strip_unit_commodities( id );
+      strip_unit_commodities( units_state, unit, colony() );
     }
   }
 

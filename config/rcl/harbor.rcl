@@ -1,0 +1,12 @@
+# How many turns does it take to sail from the east edge of the
+# map to the harbor. A value of one means that a unit that sails
+# the high seas will arrive on the next turn.
+high_seas_turns_east: 2
+
+# How many turns does it take to sail from the west edge of the
+# map to the harbor. A value of one means that a unit that sails
+# the high seas will arrive on the next turn.
+high_seas_turns_west: 4
+
+# Same as the above, but after Magellan is acquired.
+high_seas_turns_west_post_magellan: 2

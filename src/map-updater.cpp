@@ -77,6 +77,10 @@ void MapUpdater::just_redraw_map() {
   tiles_updated_ = 0;
 }
 
+Matrix<MapSquare> const& MapUpdater::matrix() const {
+  return terrain_state_.world_map();
+}
+
 /****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
@@ -92,5 +96,9 @@ void NonRenderingMapUpdater::modify_entire_map(
 }
 
 void NonRenderingMapUpdater::just_redraw_map() {}
+
+Matrix<MapSquare> const& NonRenderingMapUpdater::matrix() const {
+  return terrain_state_.world_map();
+}
 
 } // namespace rn

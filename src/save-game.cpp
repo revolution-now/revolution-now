@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "game-state.hpp"
+#include "gs-root.hpp"
 #include "gs-terrain.hpp"
-#include "gs-top.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "render-terrain.hpp"
@@ -73,7 +73,7 @@ string save_game_to_rcl( SaveGameOptions const& opts ) {
   watch.start( "[save] total" );
   watch.start( "  [save] to_canonical" );
   cdr::value cdr_val = cdr::run_conversion_to_canonical(
-      GameState::top(), cdr_opts );
+      GameState::root(), cdr_opts );
   watch.stop( "  [save] to_canonical" );
   cdr::converter conv( cdr_opts );
   UNWRAP_CHECK( tbl, conv.ensure_type<cdr::table>( cdr_val ) );
@@ -95,8 +95,7 @@ string save_game_to_rcl( SaveGameOptions const& opts ) {
 }
 
 // The filename is only used for error reporting.
-valid_or<string> load_game_from_rcl( IMapUpdater&  map_updater,
-                                     string_view   filename,
+valid_or<string> load_game_from_rcl( string_view   filename,
                                      string const& in,
                                      SaveGameOptions const& ) {
   cdr::converter::options const cdr_opts{
@@ -112,16 +111,14 @@ valid_or<string> load_game_from_rcl( IMapUpdater&  map_updater,
                  rcl::parse( filename, in, proc_opts ) );
   watch.stop( "  [load] rcl parse" );
   watch.start( "  [load] from_canonical" );
-  UNWRAP_RETURN( top,
-                 run_conversion_from_canonical<TopLevelState>(
-                     rcl_doc.top_val(), cdr_opts ) );
+  UNWRAP_RETURN( root, run_conversion_from_canonical<RootState>(
+                           rcl_doc.top_val(), cdr_opts ) );
   watch.stop( "  [load] from_canonical" );
   watch.stop( "[load] total" );
   print_time( watch, "[load] total" );
   print_time( watch, "  [load] rcl parse" );
   print_time( watch, "  [load] from_canonical" );
-  GameState::top() = std::move( top );
-  map_updater.just_redraw_map();
+  GameState::root() = std::move( root );
   return valid;
 }
 
@@ -152,8 +149,7 @@ valid_or<std::string> save_game_to_rcl_file(
 }
 
 valid_or<std::string> load_game_from_rcl_file(
-    IMapUpdater& map_updater, fs::path const& p,
-    SaveGameOptions const& opts ) {
+    fs::path const& p, SaveGameOptions const& opts ) {
   auto maybe_rcl = base::read_text_file_as_string( p );
   if( !maybe_rcl )
     return fmt::format( "failed to read Rcl file" );
@@ -161,8 +157,8 @@ valid_or<std::string> load_game_from_rcl_file(
   watch.start( "loading from rcl" );
   constexpr int trials = 1;
   for( int i = trials; i >= 1; --i ) {
-    HAS_VALUE_OR_RET( load_game_from_rcl(
-        map_updater, p.string(), *maybe_rcl, opts ) );
+    HAS_VALUE_OR_RET(
+        load_game_from_rcl( p.string(), *maybe_rcl, opts ) );
   }
   watch.stop( "loading from rcl" );
   lg.info( "loading game ({} trials) took: {}", trials,
@@ -183,8 +179,7 @@ expect<fs::path> save_game( int slot ) {
   return p;
 }
 
-expect<fs::path> load_game( IMapUpdater& map_updater,
-                            int          slot ) {
+expect<fs::path> load_game( int slot ) {
   auto rcl_path =
       path_for_slot( slot ).replace_extension( ".sav.rcl" );
   auto b64_path =
@@ -220,8 +215,8 @@ expect<fs::path> load_game( IMapUpdater& map_updater,
   }
 
   if( use_rcl ) {
-    HAS_VALUE_OR_RET( load_game_from_rcl_file(
-        map_updater, rcl_path, SaveGameOptions{} ) );
+    HAS_VALUE_OR_RET(
+        load_game_from_rcl_file( rcl_path, SaveGameOptions{} ) );
     return rcl_path;
   } else {
     lg.info( "loading game from {}.", b64_path );

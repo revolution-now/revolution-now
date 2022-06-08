@@ -12,6 +12,9 @@
 include "font.hpp"
 include "typed-int.hpp"
 
+# Rds
+include "../compositor.rds.hpp"
+
 # gfx
 include "gfx/pixel.hpp"
 
@@ -46,10 +49,15 @@ struct.config_ui_menus {
   menu_bar_height 'rn::H',
 }
 
+struct.config_ui_console {
+  default_location 'compositor::e_composite_location',
+}
+
 struct.config_ui_t {
   window 'config_ui_window',
   dialog_text 'config_ui_dialog_text',
   menus 'config_ui_menus',
+  console 'config_ui_console',
 }
 
 config.ui {}

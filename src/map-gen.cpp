@@ -40,7 +40,7 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
       } );
 }
 
-void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
+void generate_terrain_impl( Matrix<MapSquare>& ) {
   lg.info( "generating map..." );
   lua::state& st = lua_global_state();
   // st["math"]["randomseed"]( rng::random_int() );
@@ -51,11 +51,6 @@ void generate_terrain_impl( Matrix<MapSquare>& world_map ) {
       "map generation took {}ms",
       chrono::duration_cast<chrono::milliseconds>( end - start )
           .count() );
-
-  // FIXME find a better way to do this.
-  LandViewState& land_view_state = GameState::land_view();
-  land_view_state.viewport.set_max_viewable_size_tiles(
-      world_map.size() );
 }
 
 } // namespace

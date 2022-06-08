@@ -24,10 +24,20 @@ namespace rn {
 struct game_quit_interrupt : std::exception {};
 struct game_load_interrupt : std::exception {};
 
+struct ColoniesState;
 struct IMapUpdater;
 struct SettingsState;
+struct PlayersState;
+struct UnitsState;
+struct TerrainState;
+struct TurnState;
 
-wait<> next_turn( SettingsState const& settings,
+wait<> next_turn( PlayersState&        players_state,
+                  TerrainState const&  terrain_state,
+                  UnitsState&          units_state,
+                  SettingsState const& settings,
+                  TurnState&           turn_state,
+                  ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui );
 
 } // namespace rn

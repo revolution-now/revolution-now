@@ -10,7 +10,6 @@
 # ===============================================================
 # Revolution Now
 include "colony-id.hpp"
-include "colony-mfg.hpp"
 include "commodity.hpp"
 include "coord.hpp"
 include "maybe.hpp"
@@ -18,6 +17,7 @@ include "unit-id.hpp"
 
 # Rds
 include "nation.rds.hpp"
+include "config/colony-enums.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -29,16 +29,46 @@ include "<unordered_set>"
 
 namespace "rn"
 
-sumtype.ColonyJob {
-  land {
-    d 'e_direction',
-    producing 'e_commodity',
-  },
-  mfg {
-    mfg_job 'e_mfg_job',
-  },
+enum.e_indoor_job {
+  bells,
+  crosses,
+  hammers,
+  rum,
+  cigars,
+  cloth,
+  coats,
+  tools,
+  muskets,
+  teacher,
 }
 
+enum.e_outdoor_job {
+  food,
+  fish,
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  lumber,
+  ore,
+  silver,
+}
+
+struct.OutdoorUnit {
+  unit_id 'UnitId',
+  job     'e_outdoor_job',
+}
+
+# FIXME: do we need this?
+sumtype.ColonyJob {
+  outdoor {
+    direction 'e_direction',
+    job       'e_outdoor_job',
+  },
+  indoor {
+    job       'e_indoor_job',
+  },
+}
 
 namespace "rn.wrapped"
 
@@ -53,17 +83,28 @@ struct.Colony {
   commodities 'refl::enum_map<e_commodity, int>',
 
   # Serves to both record the units in this colony as well as
-  # their occupations.
+  # their occupations. FIXME: is this needed?
   units 'std::unordered_map<UnitId, ColonyJob_t>',
+
+  indoor_jobs 'refl::enum_map<e_indoor_job, std::unordered_set<UnitId>>',
+
+  outdoor_jobs 'refl::enum_map<e_direction, maybe<OutdoorUnit>>',
+
   buildings 'std::unordered_set<e_colony_building>',
 
-  # Production
+  # What is the colony currently producing.
   production 'maybe<e_colony_building>',
-  prod_hammers 'int',
-  prod_tools 'int',
 
-  # Liberty sentiment: [0,100].
-  sentiment 'int',
+  hammers 'int',
+
+  # How many bells this colony has accumulated. A certain number
+  # of bells generated in a turn are consumed by colonists, and
+  # the remainder (which might be negative) is added to this.
+  # Then, the value this ends up having each turn determines the
+  # percentage of Sons of Liberty membership by comparing its
+  # value to the population size (the formula used for this is
+  # not yet clear).
+  bells 'int',
 
   _features { equality, validation }
 }

@@ -1,0 +1,32 @@
+# ===============================================================
+# harbor.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-03.
+#
+# Description: Config info related to the high seas and harbor
+#              view.
+#
+# ===============================================================
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
+namespace "rn"
+
+struct.config_harbor_t {
+  # How many turns does it take to sail from the east edge of the
+  # map to the harbor. A value of one means that a unit that
+  # sails the high seas will arrive on the next turn.
+  high_seas_turns_east 'int',
+
+  # How many turns does it take to sail from the west edge of the
+  # map to the harbor. A value of one means that a unit that
+  # sails the high seas will arrive on the next turn.
+  high_seas_turns_west 'int',
+
+  # Same as the above, but after Magellan is acquired.
+  high_seas_turns_west_post_magellan 'int',
+}
+
+config.harbor {}

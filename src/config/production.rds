@@ -1,0 +1,97 @@
+# ===============================================================
+# production.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-31.
+#
+# Description: Config info for colony production.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
+# Rds
+include "colony-enums.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# cdr
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-base.hpp"
+
+namespace "rn"
+
+sumtype.BuildingBonus {
+  none {},
+  same {
+    # Same bonus for use/put. For a +50% bonus this would be 50.
+    # Could be zero.
+    bonus 'int',
+  },
+  factory {
+    # Factory level buildings produce a bonus, but what sets them
+    # apart is that they put out more than they consume, unlike
+    # the bonuses from level 2 buildings. For example, an Iron
+    # Works would have a percent_increase_use of 100 because it
+    # uses the same amount as the level 2 Blacksmiths Shop. But
+    # the Iron Works will have a percent_increase_put of 150 be-
+    # cause it is extra efficient in then it will produce +50%
+    # more goods than it is consuming.
+    use_bonus 'int',
+    put_bonus 'int',
+  },
+}
+
+struct.IndoorProduction {
+  # Amount produced per turn by a petty criminal working in an
+  # indoor job (e.g. rum distiller).
+  petty_criminal_base_production 'int',
+
+  # Amount produced per turn by an indentured servant working in
+  # an indoor job (e.g. rum distiller).
+  indentured_servant_base_production 'int',
+
+  # Amount produced per turn by a free colonist working in an in-
+  # door job (e.g. rum distiller) or by an expert colonist
+  # working a job that they are not an expert at.
+  non_expert_base_production 'int',
+
+  # Amount produced by an expert colonist working in an indoor
+  # job matching their expertise (e.g. master run distiller
+  # working on producing rum).
+  expert_base_production 'int',
+
+  # William Penn crosses production bonus percent.
+  william_penn_crosses_bonus 'int',
+}
+
+struct.config_production_t {
+  # How many crosses are produced by a colony just by virtue of
+  # it existing (i.e., with no churches or cathedrals)?
+  base_crosses 'int',
+
+  indoor_production 'IndoorProduction',
+
+  # The number of items that are automatically produced by vir-
+  # tual of a building existing. Most buildings have "zero" for
+  # this.
+  free_building_production 'refl::enum_map<e_colony_building, int>',
+
+  # This describes the nature of the bonus that you get from a
+  # building on production in terms of percent increases. Note
+  # that the base value to which the percentage is applied here
+  # may or may not include the base/free production, depending on
+  # what we're talking about. For example, the percent bonus for
+  # a Cathedral does not seem to apply to the base production of
+  # the building, while the percent bonus of a Printing Press and
+  # Newspaper do seem to get applied to the base production. Note
+  # that the original game appears to ROUND DOWN on 1/2.
+  building_production_bonus 'refl::enum_map<e_colony_building, maybe<BuildingBonus_t>>',
+
+  _features { validation, equality }
+}
+
+config.production {}

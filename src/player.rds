@@ -8,15 +8,16 @@
 # Description: RDS definitions for the player module.
 #
 # ===============================================================
+# Revolution Now
+include "coord.hpp"
+include "maybe.hpp"
+
 # Rds
 include "fathers.rds.hpp"
 include "old-world-state.rds.hpp"
 include "nation.rds.hpp"
 
-# refl
-include "refl/enum-map.hpp"
-
-namespace "rn.wrapped"
+namespace "rn"
 
 struct.Player {
   # Somewhat just for convenience.
@@ -35,7 +36,7 @@ struct.Player {
 
   # The state of all things related to the old world, king, euro-
   # pean market prices, etc.
-  old_world_state 'OldWorldState',
+  old_world 'OldWorldState',
 
   # When the new world is first discovered this will have a value
   # and will be the name given to the new world by the player.
@@ -43,6 +44,36 @@ struct.Player {
 
   independence_declared 'bool',
 
-  # Which founding fathers does this player have.
-  fathers 'refl::enum_map<e_founding_father, bool>',
+  # Anything related to founding fathers is in here.
+  fathers 'FoundingFathersState',
+
+  # The original game, which has a (visible) map size of 56x70,
+  # starts the four players out at equally spaced locations along
+  # the vertical (14 rows apart):
+  #
+  #   y=14: AI
+  #   y=28: AI or human
+  #   y=42: AI or human
+  #   y=56: AI
+  #
+  # This is chosen at the start of the game and then does not
+  # change thereafter. The original appears to randomly select
+  # one of the two middle slots for the player. In general, it
+  # chooses the x values such as to place the players at the
+  # left-most edge of the seal land in their row. Then, by virtue
+  # of how the sea lane is generated, that will always place them
+  # about 3-4 tiles away from land with high probability.
+  starting_position 'Coord',
+
+  # This holds the source square of the most recent ship that
+  # sailed the high seas. This is needed so that if a ship is in
+  # europe and it got there without sailing from the new world,
+  # then this square will be used to place it when it arrives in
+  # the new world for the first time. If the unit sails to europe
+  # from the new world then this coordinate will not be used; in
+  # that case, the unit will return to the square from which it
+  # sailed. At the start of the game this will not have a value
+  # because now ships have sailed to europe, and so in that case
+  # the game will use the starting_position.
+  last_high_seas 'maybe<Coord>',
 }

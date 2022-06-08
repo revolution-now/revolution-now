@@ -14,7 +14,7 @@
 #include "src/game-state.hpp"
 
 // Revolution Now
-#include "src/gs-top.hpp"
+#include "src/gs-root.hpp"
 
 // refl
 #include "refl/cdr.hpp"
@@ -45,7 +45,8 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "settings"_key =
         cdr::table{
-            "difficulty"_key = 0,
+            "difficulty"_key       = 0,
+            "fast_piece_slide"_key = false,
         },
     "events"_key = cdr::table{},
     "units"_key =
@@ -59,8 +60,12 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "turn"_key =
         cdr::table{
+            "time_point"_key =
+                cdr::table{
+                    "year"_key   = 0,
+                    "season"_key = "winter",
+                },
             "started"_key   = false,
-            "need_eot"_key  = false,
             "nation"_key    = cdr::null,
             "remainder"_key = cdr::list{},
         },
@@ -103,18 +108,18 @@ cdr::value cdr_game_state_default = cdr::table{
 // static_assert( equality_comparable<ColoniesState> );
 // static_assert( equality_comparable<LandViewState> );
 // static_assert( equality_comparable<TerrainState> );
-// static_assert( equality_comparable<TopLevelState> );
+// static_assert( equality_comparable<RootState> );
 
 TEST_CASE( "[game-state] some test" ) {
   cdr::converter conv;
-  TopLevelState  top_def;
-  cdr::value     v = conv.to( top_def );
+  RootState      root_def;
+  cdr::value     v = conv.to( root_def );
   REQUIRE( v == cdr_game_state_default );
   // Round trip.
-  REQUIRE( conv_from_bt<TopLevelState>( conv, v ) == top_def );
+  REQUIRE( conv_from_bt<RootState>( conv, v ) == root_def );
   // From the original cdr.
-  REQUIRE( conv_from_bt<TopLevelState>(
-               conv, cdr_game_state_default ) == top_def );
+  REQUIRE( conv_from_bt<RootState>(
+               conv, cdr_game_state_default ) == root_def );
 }
 
 } // namespace
