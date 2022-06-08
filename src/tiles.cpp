@@ -113,6 +113,11 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
                                source );
 }
 
+void render_sprite_silhouette( rr::Painter& painter, Coord where,
+                               e_tile tile, gfx::pixel color ) {
+  painter.draw_silhouette( atlas_lookup( tile ), where, color );
+}
+
 void render_sprite_stencil( rr::Painter& painter, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color ) {
