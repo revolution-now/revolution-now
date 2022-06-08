@@ -13,17 +13,32 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "co-combinator.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "main-menu.rds.hpp"
 
+// C++ standard library
+#include <memory>
+
 namespace rn {
 
-co::stream<e_main_menu_item>& main_menu_input_stream();
+struct IGui;
+struct Planes;
 
-struct Plane;
-Plane* main_menu_plane();
+struct MainMenuPlane {
+  MainMenuPlane( Planes& planes );
+  ~MainMenuPlane() noexcept;
+
+  wait<> item_selected( IGui& gui, e_main_menu_item item );
+
+  wait<> run();
+
+ private:
+  Planes& planes_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn

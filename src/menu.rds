@@ -8,8 +8,6 @@
 # Description: RDS definitions for the menu module.
 #
 # ===============================================================
-include "menu.hpp"
-
 namespace "rn"
 
 enum.e_menu_item {

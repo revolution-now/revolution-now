@@ -1,11 +1,11 @@
 /****************************************************************
-**console.hpp
+**omni.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-02-03.
+* Created by dsicilia on 2022-06-08.
 *
-* Description: The developer/mod console.
+* Description: A plane that is always on the top of the stack.
 *
 *****************************************************************/
 #pragma once
@@ -18,11 +18,10 @@
 namespace rn {
 
 struct Planes;
-struct MenuPlane;
 
-struct ConsolePlane {
-  ConsolePlane( Planes& planes, MenuPlane& menu_plane );
-  ~ConsolePlane() noexcept;
+struct OmniPlane {
+  OmniPlane( Planes& planes );
+  ~OmniPlane() noexcept;
 
  private:
   Planes& planes_;

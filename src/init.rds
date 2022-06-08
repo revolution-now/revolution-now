@@ -21,7 +21,6 @@ enum.e_init_routine {
   midiplayer,
   midiseq,
   oggplayer,
-  planes,
   renderer,
   rng,
   screen,

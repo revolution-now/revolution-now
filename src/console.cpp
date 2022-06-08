@@ -17,6 +17,7 @@
 #include "frame.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "terminal.hpp"
@@ -31,7 +32,7 @@ using namespace std;
 
 namespace rn {
 
-namespace {
+namespace {} // namespace
 
 /****************************************************************
 ** Console Commands
@@ -39,7 +40,7 @@ namespace {
 constexpr string_view prompt = "> ";
 
 /****************************************************************
-** Console Plane
+** ConsolePlane::Impl
 *****************************************************************/
 constexpr uint8_t text_alpha  = 225;
 constexpr uint8_t cmds_alpha  = 240;
@@ -48,10 +49,10 @@ constexpr uint8_t stats_alpha = 255;
 constexpr H kDividerHeight = 2_h;
 constexpr W kDividerWidth  = 2_w;
 
-struct ConsolePlane : public Plane {
-  ConsolePlane() = default;
+struct ConsolePlane::Impl : public Plane {
+  Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
+    menu_plane.register( e_menu_item::toggle_console, this );
 
-  void initialize( IMapUpdater& ) override {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(
@@ -275,25 +276,32 @@ struct ConsolePlane : public Plane {
     return is_mouse_over_rect( *rect );
   }
 
+  bool will_handle_menu_click(
+      e_menu_item item ) const override {
+    return ( item == e_menu_item::toggle_console );
+  }
+
+  void handle_menu_click( e_menu_item item ) override {
+    CHECK( item == e_menu_item::toggle_console );
+    show_ = !show_;
+  }
+
+  MenuPlane&                   menu_plane_;
   bool                         show_{ false };
   double                       show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int                          history_index_{ 0 };
 };
 
-ConsolePlane g_console_plane;
-
-} // namespace
-
 /****************************************************************
-** Public API
+** ConsolePlane
 *****************************************************************/
-Plane* console_plane() { return &g_console_plane; }
+ConsolePlane::ConsolePlane( Planes&    planes,
+                            MenuPlane& menu_plane )
+  : planes_( planes ), impl_( new Impl( menu_plane ) ) {
+  planes.push( *impl_.get() );
+}
 
-//
-MENU_ITEM_HANDLER(
-    toggle_console,
-    [] { g_console_plane.show_ = !g_console_plane.show_; },
-    [] { return true; } )
+ConsolePlane::~ConsolePlane() noexcept { planes_.pop(); }
 
 } // namespace rn

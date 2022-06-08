@@ -16,6 +16,7 @@
 #include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "time.hpp"
@@ -109,11 +110,13 @@ void notify_subscribers() {
 }
 
 using InputReceivedFunc = base::function_ref<void()>;
-using FrameLoopBodyFunc = base::function_ref<void(
-    rr::Renderer&, InputReceivedFunc, Time_t const& )>;
+using FrameLoopBodyFunc =
+    base::function_ref<void( rr::Renderer&, PlaneStack&,
+                             InputReceivedFunc, Time_t const& )>;
 
 void frame_loop_scheduler( wait<> const&     what,
                            rr::Renderer&     renderer,
+                           PlaneStack&       plane_stack,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
 
@@ -134,7 +137,7 @@ void frame_loop_scheduler( wait<> const&     what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( renderer, on_input, start );
+    body( renderer, plane_stack, on_input, start );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -149,6 +152,7 @@ void frame_loop_scheduler( wait<> const&     what,
 
 // Called once per frame.
 void frame_loop_body( rr::Renderer&     renderer,
+                      PlaneStack&       plane_stack,
                       InputReceivedFunc input_received,
                       Time_t const&     curr_time ) {
   // ----------------------------------------------------------
@@ -182,14 +186,14 @@ void frame_loop_body( rr::Renderer&     renderer,
     input_received();
     input::event_t const& event = q.front();
     if( is_win_resize( event ) ) on_main_window_resized();
-    (void)send_input_to_planes( event );
+    plane_stack.send_input( event );
     q.pop();
     run_all_coroutines();
   }
 
   // ----------------------------------------------------------
   // 2. Update State.
-  advance_plane_state();
+  plane_stack.advance_state();
   run_all_coroutines();
 
   // ----------------------------------------------------------
@@ -202,7 +206,9 @@ void frame_loop_body( rr::Renderer&     renderer,
   renderer.set_logical_screen_size( main_window_logical_size() );
   renderer.set_physical_screen_size(
       main_window_physical_size() );
-  renderer.render_pass( draw_all_planes );
+  renderer.render_pass( [&]( rr::Renderer& renderer ) {
+    plane_stack.draw_all_planes( renderer );
+  } );
 };
 
 void deinit_frame() {
@@ -239,8 +245,10 @@ uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( wait<> const& what, rr::Renderer& renderer ) {
-  g_target_fps = config_gfx.target_frame_rate;
-  frame_loop_scheduler( what, renderer, frame_loop_body );
+  PlaneStack& plane_stack = PlaneStack::global();
+  g_target_fps            = config_gfx.target_frame_rate;
+  frame_loop_scheduler( what, renderer, plane_stack,
+                        frame_loop_body );
   deinit_frame();
 }
 

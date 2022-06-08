@@ -8,6 +8,13 @@
 # Description: RDS definitions for the input module.
 #
 # ===============================================================
+namespace "rn"
+
+enum.e_input_handled {
+  no,
+  yes,
+}
+
 namespace "rn.input"
 
 enum.e_drag_phase {

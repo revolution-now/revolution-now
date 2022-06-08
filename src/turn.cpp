@@ -21,6 +21,7 @@
 #include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
+#include "interrupts.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
@@ -29,7 +30,6 @@
 #include "on-map.hpp"
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
-#include "plane-ctrl.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"

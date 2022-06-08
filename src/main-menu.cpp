@@ -11,12 +11,18 @@
 #include "main-menu.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "compositor.hpp"
+#include "conductor.hpp"
 #include "enum.hpp"
+#include "game.hpp"
+#include "gui.hpp"
+#include "interrupts.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
-#include "screen.hpp"
-#include "text.hpp"
 #include "tiles.hpp"
+#include "turn.hpp"
+#include "window.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -31,17 +37,19 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-e_main_menu_item             g_curr_item;
-co::stream<e_main_menu_item> g_selection_stream;
-
 /****************************************************************
-** Plane
+** MainMenuPlane::Impl
 *****************************************************************/
-struct MainMenuPlane : public Plane {
-  MainMenuPlane() = default;
+struct MainMenuPlane::Impl : public Plane {
+  // State
+  e_main_menu_item             curr_item_;
+  co::stream<e_main_menu_item> selection_stream_;
+
+ public:
+  Impl() = default;
+
   bool covers_screen() const override { return true; }
+
   void draw( rr::Renderer& renderer ) const override {
     rr::Painter painter = renderer.painter();
     UNWRAP_CHECK(
@@ -66,13 +74,14 @@ struct MainMenuPlane : public Plane {
       dst = dst.with_border_added( 2 );
       dst.x -= 3_w;
       dst.w += 6_w;
-      if( e == g_curr_item )
+      if( e == curr_item_ )
         painter.draw_empty_rect(
             dst, rr::Painter::e_border_mode::outside,
             gfx::pixel::banana() );
       h += dst.delta().h;
     }
   }
+
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
     switch( event.to_enum() ) {
@@ -83,21 +92,21 @@ struct MainMenuPlane : public Plane {
         switch( val.keycode ) {
           case ::SDLK_UP:
           case ::SDLK_KP_8:
-            g_curr_item = util::find_previous_and_cycle(
+            curr_item_ = util::find_previous_and_cycle(
                 refl::enum_values<e_main_menu_item>,
-                g_curr_item );
+                curr_item_ );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_DOWN:
           case ::SDLK_KP_2:
-            g_curr_item = util::find_subsequent_and_cycle(
+            curr_item_ = util::find_subsequent_and_cycle(
                 refl::enum_values<e_main_menu_item>,
-                g_curr_item );
+                curr_item_ );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
-            g_selection_stream.send( g_curr_item );
+            selection_stream_.send( curr_item_ );
             handled = e_input_handled::yes;
             break;
           default: break;
@@ -111,17 +120,55 @@ struct MainMenuPlane : public Plane {
   }
 };
 
-MainMenuPlane g_main_menu_plane;
-
-} // namespace
-
-Plane* main_menu_plane() { return &g_main_menu_plane; }
-
 /****************************************************************
-** Public API
+** MainMenuPlane
 *****************************************************************/
-co::stream<e_main_menu_item>& main_menu_input_stream() {
-  return g_selection_stream;
+MainMenuPlane::MainMenuPlane( Planes& planes )
+  : planes_( planes ), impl_( new Impl ) {
+  planes.push( *impl_.get() );
+}
+
+MainMenuPlane::~MainMenuPlane() noexcept { planes_.pop(); }
+
+wait<> MainMenuPlane::item_selected( IGui&            gui,
+                                     e_main_menu_item item ) {
+  switch( item ) {
+    case e_main_menu_item::new_: //
+      co_await run_new_game( gui );
+      break;
+    case e_main_menu_item::load:
+      co_await run_existing_game( gui );
+      break;
+    case e_main_menu_item::quit: //
+      throw game_load_interrupt{};
+    case e_main_menu_item::settings_graphics:
+      co_await gui.message_box( "No graphics settings yet." );
+      break;
+    case e_main_menu_item::settings_sound:
+      co_await gui.message_box( "No sound settings yet." );
+      break;
+  }
+}
+
+wait<> MainMenuPlane::run() {
+  RealGui gui;
+  conductor::play_request(
+      conductor::e_request::fife_drum_happy,
+      conductor::e_request_probability::always );
+  co::stream<e_main_menu_item>& selections =
+      impl_->selection_stream_;
+  // TODO: Temporary
+  selections.send( e_main_menu_item::new_ );
+  while( true ) {
+    e_main_menu_item item = co_await selections.next();
+    try {
+      co_await item_selected( gui, item );
+    } catch( game_quit_interrupt const& ) {
+      co_return;
+    } catch( game_load_interrupt const& ) {
+      selections.send( e_main_menu_item::load );
+    }
+  }
 }
 
 } // namespace rn
