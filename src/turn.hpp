@@ -24,12 +24,13 @@ namespace rn {
 struct ColoniesState;
 struct IMapUpdater;
 struct SettingsState;
+struct Planes;
 struct PlayersState;
 struct UnitsState;
 struct TerrainState;
 struct TurnState;
 
-wait<> next_turn( PlayersState&        players_state,
+wait<> next_turn( Planes& planes, PlayersState& players_state,
                   TerrainState const&  terrain_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,

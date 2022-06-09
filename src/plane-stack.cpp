@@ -33,47 +33,27 @@ PlaneStack g_plane_stack;
 /****************************************************************
 ** Planes
 *****************************************************************/
-void Planes::push( Plane& plane ) {
-  planes_.push_back( &plane );
+void Planes::push( Plane& plane, e_plane_stack where ) {
+  switch( where ) {
+    case e_plane_stack::back:
+      planes_.push_back( &plane );
+      return;
+    case e_plane_stack::front:
+      planes_.insert( planes_.begin(), &plane );
+      return;
+  }
 }
 
-void Planes::pop() {
+void Planes::pop( e_plane_stack where ) {
   DCHECK( planes_.size() > 0 );
-  planes_.pop_back();
-}
-
-void Planes::draw_all_planes( rr::Renderer& renderer ) {
-  renderer.clear_screen( gfx::pixel::black() );
-
-  if( planes_.empty() ) return;
-
-  // This will find the last plane that will render (opaquely)
-  // over every pixel. If one is found then we will not render
-  // any planes before it. This is technically not necessary, but
-  // saves rendering work by avoiding to render things that would
-  // go unseen anyway.
-  int first_to_draw = 0;
-  for( int i = 0; i < int( planes_.size() ); ++i )
-    if( planes_[i]->covers_screen() ) //
-      first_to_draw = i;
-
-  DCHECK( first_to_draw >= 0 );
-  CHECK_LT( first_to_draw, int( planes_.size() ) );
-
-  for( int i = first_to_draw; i < int( planes_.size() ); ++i )
-    planes_[i]->draw( renderer );
-}
-
-void Planes::advance_state() {
-  for( Plane* plane : planes_ ) plane->advance_state();
-}
-
-e_input_handled Planes::send_input(
-    input::event_t const& event ) {
-  for( Plane* plane : base::rl::rall( planes_ ) )
-    if( plane->input( event ) == e_input_handled::yes )
-      return e_input_handled::yes;
-  return e_input_handled::no;
+  switch( where ) {
+    case e_plane_stack::back: //
+      planes_.pop_back();
+      return;
+    case e_plane_stack::front:
+      planes_.erase( planes_.begin() );
+      return;
+  }
 }
 
 /****************************************************************
@@ -91,13 +71,36 @@ Planes& PlaneStack::operator[]( e_plane_stack_level level ) {
   return groups_[n];
 }
 
-void PlaneStack::draw_all_planes( rr::Renderer& renderer ) {
-  for( Planes& planes : groups_ )
-    planes.draw_all_planes( renderer );
+// This will find the last plane that will render (opaquely) over
+// every pixel. If one is found then we will not render any
+// planes before it. This is technically not necessary, but saves
+// rendering work by avoiding to render things that would go un-
+// seen anyway.
+vector<Plane*> PlaneStack::relevant() {
+  vector<Plane*> flat( 10 );
+  int            i = 0, first_relevant = 0;
+  for( Planes& planes : groups_ ) {
+    for( Plane* plane : planes.all() ) {
+      flat.push_back( plane );
+      if( plane->covers_screen() ) first_relevant = i;
+      ++i;
+    }
+  }
+  if( !flat.empty() ) {
+    DCHECK( first_relevant >= 0 );
+    CHECK_LT( first_relevant, int( flat.size() ) );
+    flat.erase( flat.begin(), flat.begin() + first_relevant );
+  }
+  return flat;
+}
+
+void PlaneStack::draw( rr::Renderer& renderer ) {
+  renderer.clear_screen( gfx::pixel::black() );
+  for( Plane* plane : relevant() ) plane->draw( renderer );
 }
 
 void PlaneStack::advance_state() {
-  for( Planes& planes : groups_ ) planes.advance_state();
+  for( Plane* plane : relevant() ) plane->advance_state();
 }
 
 e_input_handled PlaneStack::send_input(
@@ -106,9 +109,10 @@ e_input_handled PlaneStack::send_input(
   auto* drag_event =
       std::get_if<input::mouse_drag_event_t>( &event );
   if( drag_event == nullptr ) {
+    vector<Plane*> planes = relevant();
     // Normal event, so send it out using the usual protocol.
-    for( Planes& planes : base::rl::rall( groups_ ) ) {
-      switch( planes.send_input( event ) ) {
+    for( Plane* plane : base::rl::rall( planes ) ) {
+      switch( plane->input( event ) ) {
         case e_input_handled::yes: return e_input_handled::yes;
         case e_input_handled::no: break;
       }
@@ -178,71 +182,68 @@ e_input_handled PlaneStack::send_input(
   // No drag plane registered to accept the event, so lets send
   // out the event but only if it's a `begin` event.
   if( drag_event->state.phase == e_drag_phase::begin ) {
-    for( Planes& planes : groups_ ) {
-      for( Plane* plane : planes.all() ) {
-        // Note here we use the origin position of the mouse drag
-        // as opposed to the current mouse position because that
-        // is what is relevant for determining whether the plane
-        // can handle the drag event or not (at this point, even
-        // though we are in a `begin` event, the current mouse
-        // position may already have moved a bit from the
-        // origin).
-        Plane::e_accept_drag accept = plane->can_drag(
-            drag_event->button, drag_event->state.origin );
-        switch( accept ) {
-          // If the plane doesn't want to handle it then move on
-          // to ask the next one.
-          case Plane::e_accept_drag::no: continue;
-          case Plane::e_accept_drag::motion: {
-            // In this case the plane says that it wants to
-            // receive the events, but just as normal mouse
-            // move/click events.
-            drag_state_.reset();
-            drag_state_.emplace();
-            drag_state_->plane = plane;
-            drag_state_->mode  = e_drag_send_mode::motion;
-            auto motion =
-                input::drag_event_to_mouse_motion_event(
-                    *drag_event );
-            auto maybe_button =
-                input::drag_event_to_mouse_button_event(
-                    *drag_event );
-            // Drag events in the e_drag_phase::begin phase
-            // should not contain any button events because the
-            // initial mouse-down will always be sent as a normal
-            // click event.
-            CHECK( !maybe_button.has_value() );
-            (void)plane->input( motion );
-            // All events within a drag are assumed handled.
-            return e_input_handled::yes;
-          }
-          case Plane::e_accept_drag::swallow:
-            drag_state_.reset();
-            // The plane says that it doesn't want to handle it
-            // AND it doesn't want anyone else to handle it.
-            return e_input_handled::yes;
-          case Plane::e_accept_drag::yes:
-            // Wants to handle it.
-            drag_state_.reset();
-            drag_state_.emplace();
-            drag_state_->plane = plane;
-            drag_state_->mode  = e_drag_send_mode::normal;
-            // Now we must send it an on_drag because this mouse
-            // event that we're dealing with serves both to tell
-            // us about a new drag even but also may have a mouse
-            // delta in it that needs to be processed.
-            plane->on_drag( drag_event->mod, drag_event->button,
-                            drag_event->state.origin,
-                            drag_event->prev, drag_event->pos );
-            return e_input_handled::yes;
-          case Plane::e_accept_drag::yes_but_raw:
-            drag_state_.reset();
-            drag_state_.emplace();
-            drag_state_->plane = plane;
-            drag_state_->mode  = e_drag_send_mode::raw;
-            (void)plane->input( event );
-            return e_input_handled::yes;
+    vector<Plane*> planes = relevant();
+    for( Plane* plane : base::rl::rall( planes ) ) {
+      // Note here we use the origin position of the mouse drag
+      // as opposed to the current mouse position because that is
+      // what is relevant for determining whether the plane can
+      // handle the drag event or not (at this point, even though
+      // we are in a `begin` event, the current mouse position
+      // may already have moved a bit from the origin).
+      Plane::e_accept_drag accept = plane->can_drag(
+          drag_event->button, drag_event->state.origin );
+      switch( accept ) {
+        // If the plane doesn't want to handle it then move on to
+        // ask the next one.
+        case Plane::e_accept_drag::no: continue;
+        case Plane::e_accept_drag::motion: {
+          // In this case the plane says that it wants to receive
+          // the events, but just as normal mouse move/click
+          // events.
+          drag_state_.reset();
+          drag_state_.emplace();
+          drag_state_->plane = plane;
+          drag_state_->mode  = e_drag_send_mode::motion;
+          auto motion = input::drag_event_to_mouse_motion_event(
+              *drag_event );
+          auto maybe_button =
+              input::drag_event_to_mouse_button_event(
+                  *drag_event );
+          // Drag events in the e_drag_phase::begin phase should
+          // not contain any button events because the initial
+          // mouse-down will always be sent as a normal click
+          // event.
+          CHECK( !maybe_button.has_value() );
+          (void)plane->input( motion );
+          // All events within a drag are assumed handled.
+          return e_input_handled::yes;
         }
+        case Plane::e_accept_drag::swallow:
+          drag_state_.reset();
+          // The plane says that it doesn't want to handle it AND
+          // it doesn't want anyone else to handle it.
+          return e_input_handled::yes;
+        case Plane::e_accept_drag::yes:
+          // Wants to handle it.
+          drag_state_.reset();
+          drag_state_.emplace();
+          drag_state_->plane = plane;
+          drag_state_->mode  = e_drag_send_mode::normal;
+          // Now we must send it an on_drag because this mouse
+          // event that we're dealing with serves both to tell us
+          // about a new drag even but also may have a mouse
+          // delta in it that needs to be processed.
+          plane->on_drag( drag_event->mod, drag_event->button,
+                          drag_event->state.origin,
+                          drag_event->prev, drag_event->pos );
+          return e_input_handled::yes;
+        case Plane::e_accept_drag::yes_but_raw:
+          drag_state_.reset();
+          drag_state_.emplace();
+          drag_state_->plane = plane;
+          drag_state_->mode  = e_drag_send_mode::raw;
+          (void)plane->input( event );
+          return e_input_handled::yes;
       }
     }
   }

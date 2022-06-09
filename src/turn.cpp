@@ -159,22 +159,27 @@ void reset_turn_obj( TurnState& st ) {
 ** Menu Handlers
 *****************************************************************/
 wait<> menu_save_handler() {
-  if( auto res = save_game( 0 ); !res ) {
-    co_await ui::message_box(
-        "There was a problem saving the game." );
-    lg.error( "failed to save game: {}", res.error() );
-  } else {
-    co_await ui::message_box(
-        fmt::format( "Successfully saved game to {}.", res ) );
-    lg.info( "saved game to {}.", res );
-  }
+  NOT_IMPLEMENTED;
+  // FIXME
+  // if( auto res = save_game( 0 ); !res ) {
+  //   co_await ui::message_box(
+  //       "There was a problem saving the game." );
+  //   lg.error( "failed to save game: {}", res.error() );
+  // } else {
+  //   co_await ui::message_box(
+  //       fmt::format( "Successfully saved game to {}.", res )
+  //       );
+  //   lg.info( "saved game to {}.", res );
+  // }
 }
 
 wait<> menu_revolution_handler() {
-  e_revolution_confirmation answer =
-      co_await ui::select_box_enum<e_revolution_confirmation>(
-          "Declare Revolution?" );
-  co_await ui::message_box( "You selected: {}", answer );
+  NOT_IMPLEMENTED;
+  // FIXME
+  // e_revolution_confirmation answer =
+  //     co_await ui::select_box_enum<e_revolution_confirmation>(
+  //         "Declare Revolution?" );
+  // co_await ui::message_box( "You selected: {}", answer );
 }
 
 wait<> menu_harbor_view_handler() {
@@ -867,7 +872,7 @@ wait<> next_turn_impl( PlayersState&        players_state,
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> next_turn( PlayersState&        players_state,
+wait<> next_turn( Planes& planes, PlayersState& players_state,
                   TerrainState const&  terrain_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,
@@ -875,6 +880,9 @@ wait<> next_turn( PlayersState&        players_state,
                   ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
   ScopedPlanePush pusher( e_plane_config::land_view );
+  LandViewPlane   land_view_plane(
+        plane_stack[e_plane_stack_level::bottom],
+        e_plane_stack_push::back );
   co_await next_turn_impl( players_state, terrain_state,
                            units_state, settings, turn_state,
                            colonies_state, map_updater, gui );

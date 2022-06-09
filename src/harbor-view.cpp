@@ -29,7 +29,6 @@
 #include "logger.hpp"
 #include "macros.hpp"
 #include "old-world-state.hpp"
-#include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"

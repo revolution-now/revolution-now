@@ -131,11 +131,11 @@ struct OmniPlane::Impl : public Plane {
 /****************************************************************
 ** OmniPlane
 *****************************************************************/
-OmniPlane::OmniPlane( Planes& planes )
-  : planes_( planes ), impl_( new Impl ) {
-  planes.push( *impl_.get() );
+OmniPlane::OmniPlane( Planes& planes, e_plane_stack where )
+  : planes_( planes ), where_( where ), impl_( new Impl ) {
+  planes.push( *impl_.get(), where );
 }
 
-OmniPlane::~OmniPlane() noexcept { planes_.pop(); }
+OmniPlane::~OmniPlane() noexcept { planes_.pop( where_ ); }
 
 } // namespace rn

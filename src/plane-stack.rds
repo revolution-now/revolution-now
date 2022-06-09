@@ -8,6 +8,13 @@
 # Description: Rds definitions for the plane-stack module.
 #
 # ===============================================================
+namespace "rn"
+
+enum.e_plane_stack {
+  back, # This means that the plane will be rendered on top.
+  front,
+}
+
 enum.e_plane_stack_level {
   bottom,
   middle,

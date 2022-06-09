@@ -19,6 +19,7 @@
 #include "game-ui-views.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -50,11 +51,9 @@
 
 using namespace std;
 
-namespace rn::ui {
+namespace rn {
 
 namespace rl = ::base::rl;
-
-namespace {
 
 using ::base::function_ref;
 
@@ -62,14 +61,12 @@ using ::base::function_ref;
 ** Window
 *****************************************************************/
 struct Window {
-  Window( std::string title_, Coord position_ );
+  Window( WindowPlane& window_plane, std::string title_,
+          Coord position_ );
   // Removes this window from the window manager.
   ~Window() noexcept;
 
-  Window( Window&& ) = default;
-  Window& operator=( Window&& ) = default;
-
-  void set_view( unique_ptr<View> view_ ) {
+  void set_view( unique_ptr<ui::View> view_ ) {
     view = std::move( view_ );
   }
 
@@ -95,12 +92,12 @@ struct Window {
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
-  std::string                        title;
-  std::unique_ptr<View>              view;
-  std::unique_ptr<OneLineStringView> title_view;
-  Coord                              position;
+  WindowPlane&                           window_plane_;
+  std::string                            title;
+  std::unique_ptr<ui::View>              view;
+  std::unique_ptr<ui::OneLineStringView> title_view;
+  Coord                                  position;
 };
-NOTHROW_MOVE( Window );
 
 /****************************************************************
 ** WindowManager
@@ -109,7 +106,7 @@ class WindowManager {
  public:
   void draw_layout( rr::Renderer& renderer ) const;
 
-  ND Plane::e_input_handled input( input::event_t const& event );
+  ND e_input_handled input( input::event_t const& event );
 
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord                 origin );
@@ -149,18 +146,11 @@ class WindowManager {
 };
 NOTHROW_MOVE( WindowManager );
 
-} // namespace
-} // namespace rn::ui
-
-namespace rn {
-
-namespace {
-
 /****************************************************************
-** The Window Plane
+** WindowPlane::Impl
 *****************************************************************/
-struct WindowPlane : public Plane {
-  WindowPlane() = default;
+struct WindowPlane::Impl : public Plane {
+  Impl() = default;
   bool covers_screen() const override { return false; }
   void draw( rr::Renderer& renderer ) const override {
     wm.draw_layout( renderer );
@@ -178,18 +168,8 @@ struct WindowPlane : public Plane {
     CHECK( wm.num_windows() != 0 );
     wm.on_drag( mod, button, origin, prev, current );
   }
-  ui::WindowManager wm;
+  WindowManager wm;
 };
-
-WindowPlane g_window_plane;
-
-} // namespace
-
-Plane* window_plane() { return &g_window_plane; }
-
-} // namespace rn
-
-namespace rn::ui {
 
 namespace {
 
@@ -220,19 +200,21 @@ Delta const& window_padding() {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-Window::Window( string title_, Coord position_ )
-  : title( move( title_ ) ),
+Window::Window( WindowPlane& window_plane, string title_,
+                Coord position_ )
+  : window_plane_( window_plane ),
+    title( move( title_ ) ),
     view{},
     title_view{},
     position( position_ ) {
-  title_view = make_unique<OneLineStringView>(
+  title_view = make_unique<ui::OneLineStringView>(
       title,
       gfx::pixel{ .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } );
-  g_window_plane.wm.add_window( this );
+  window_plane_.impl_->wm.add_window( this );
 }
 
 Window::~Window() noexcept {
-  g_window_plane.wm.remove_window( this );
+  window_plane_.impl_->wm.remove_window( this );
 }
 
 void Window::draw( rr::Renderer& renderer ) const {
@@ -354,12 +336,11 @@ maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
   return nothing;
 }
 
-Plane::e_input_handled WindowManager::input(
+e_input_handled WindowManager::input(
     input::event_t const& event ) {
   // Since windows are model we will always declare that we've
   // handled the event, unless there are no windows open.
-  if( this->num_windows() == 0 )
-    return Plane::e_input_handled::no;
+  if( this->num_windows() == 0 ) return e_input_handled::no;
 
   maybe<input::mouse_event_base_t const&> mouse_event =
       input::is_mouse_event( event );
@@ -367,7 +348,7 @@ Plane::e_input_handled WindowManager::input(
     // It's a non-mouse event, so just send it to the top-most
     // window and declare it to be handled.
     (void)focused().view->input( event );
-    return Plane::e_input_handled::yes;
+    return e_input_handled::yes;
   }
 
   // It's a mouse event.
@@ -375,7 +356,7 @@ Plane::e_input_handled WindowManager::input(
   if( !win )
     // Only send mouse events when the cursor is over a window.
     // But still declare that we've handled the event.
-    return Plane::e_input_handled::yes;
+    return e_input_handled::yes;
   auto view_rect =
       Rect::from( win->view_pos(), win->view->delta() );
 
@@ -409,7 +390,7 @@ Plane::e_input_handled WindowManager::input(
     (void)win->view->input( new_event );
   }
   // Always handle the event if there is a window open.
-  return Plane::e_input_handled::yes;
+  return e_input_handled::yes;
 }
 
 Plane::e_accept_drag WindowManager::can_drag(
@@ -464,8 +445,8 @@ Window& WindowManager::focused() {
 *****************************************************************/
 // These should probably be moved elsewhere.
 
-ValidatorFunc make_int_validator( maybe<int> min,
-                                  maybe<int> max ) {
+ui::ValidatorFunc make_int_validator( maybe<int> min,
+                                      maybe<int> max ) {
   return [min, max]( std::string const& proposed ) {
     auto maybe_int = base::stoi( proposed );
     if( !maybe_int.has_value() ) return false;
@@ -481,27 +462,29 @@ ValidatorFunc make_int_validator( maybe<int> min,
 // We need to have pointer stability on the returned window since
 // its address needs to go into callbacks.
 [[nodiscard]] unique_ptr<Window> async_window_builder(
-    std::string_view title, unique_ptr<View> view,
-    bool auto_pad ) {
-  auto win = make_unique<Window>( string( title ), Coord{} );
+    WindowPlane& window_plane, std::string_view title,
+    unique_ptr<ui::View> view, bool auto_pad ) {
+  auto win = make_unique<Window>( window_plane, string( title ),
+                                  Coord{} );
   if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   win->center_window();
   return win;
 }
 
-using GetOkCancelSubjectViewFunc = unique_ptr<View>(
+using GetOkCancelSubjectViewFunc = unique_ptr<ui::View>(
     function<void( bool )> /*enable_ok_button*/ //
 );
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_cancel_window_builder(
-    string_view title, function<ResultT()> get_result,
+    WindowPlane& window_plane, string_view title,
+    function<ResultT()>              get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( maybe<ResultT> )>         on_result,
     function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
-  auto ok_cancel_view = make_unique<OkCancelView>(
+  auto ok_cancel_view = make_unique<ui::OkCancelView>(
       /*on_ok=*/
       [on_result, validator{ std::move( validator ) },
        get_result{ std::move( get_result ) }] {
@@ -525,31 +508,34 @@ template<typename ResultT>
   auto  enable_ok_button = [p_ok_button]( bool enable ) {
     p_ok_button->enable( enable );
   };
-  unique_ptr<View> subject_view = get_view_fn(
+  unique_ptr<ui::View> subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
   );
   CHECK( subject_view != nullptr );
-  vector<unique_ptr<View>> view_vec;
+  vector<unique_ptr<ui::View>> view_vec;
   view_vec.emplace_back( std::move( subject_view ) );
   view_vec.emplace_back( std::move( ok_cancel_view ) );
-  auto view = make_unique<VerticalArrayView>(
-      std::move( view_vec ), VerticalArrayView::align::center );
-  return async_window_builder( title, std::move( view ),
+  auto view = make_unique<ui::VerticalArrayView>(
+      std::move( view_vec ),
+      ui::VerticalArrayView::align::center );
+  return async_window_builder( window_plane, title,
+                               std::move( view ),
                                /*auto_pad=*/true );
 }
 
-using GetOkBoxSubjectViewFunc = unique_ptr<View>(
+using GetOkBoxSubjectViewFunc = unique_ptr<ui::View>(
     function<void( bool )> /*enable_ok_button*/ //
 );
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_box_window_builder(
-    string_view title, function<ResultT()> get_result,
+    WindowPlane& window_plane, string_view title,
+    function<ResultT()>              get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( ResultT )>             on_result,
     function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
-  auto ok_button_view = make_unique<OkButtonView>(
+  auto ok_button_view = make_unique<ui::OkButtonView>(
       /*on_ok=*/
       [on_result, validator{ std::move( validator ) },
        get_result{ std::move( get_result ) }] {
@@ -568,21 +554,25 @@ template<typename ResultT>
   auto subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
   );
-  vector<unique_ptr<View>> view_vec;
+  vector<unique_ptr<ui::View>> view_vec;
   view_vec.emplace_back( std::move( subject_view ) );
   view_vec.emplace_back( std::move( ok_button_view ) );
-  auto view = make_unique<VerticalArrayView>(
-      std::move( view_vec ), VerticalArrayView::align::center );
-  return async_window_builder( title, std::move( view ),
+  auto view = make_unique<ui::VerticalArrayView>(
+      std::move( view_vec ),
+      ui::VerticalArrayView::align::center );
+  return async_window_builder( window_plane, title,
+                               std::move( view ),
                                /*auto_pad=*/true );
 }
 
 [[nodiscard]] unique_ptr<Window> ok_cancel_impl(
-    string_view msg, function<void( e_ok_cancel )> on_result ) {
+    WindowPlane& window_plane, string_view msg,
+    function<void( ui::e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
       [on_result{ std::move( on_result ) }]( maybe<int> o ) {
-        if( o.has_value() ) return on_result( e_ok_cancel::ok );
-        on_result( e_ok_cancel::cancel );
+        if( o.has_value() )
+          return on_result( ui::e_ok_cancel::ok );
+        on_result( ui::e_ok_cancel::cancel );
       };
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -590,7 +580,7 @@ template<typename ResultT>
   TextReflowInfo r_info{
       /*max_cols=*/config_ui.dialog_text.columns };
   auto view =
-      make_unique<TextView>( string( msg ), m_info, r_info );
+      make_unique<ui::TextView>( string( msg ), m_info, r_info );
 
   // We can capture by reference here because the function will
   // be called before this scope exits.
@@ -601,6 +591,7 @@ template<typename ResultT>
 
   // Use <int> for lack of anything better.
   return ok_cancel_window_builder<int>(
+      window_plane,
       /*title=*/"Question",
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
@@ -609,17 +600,20 @@ template<typename ResultT>
   );
 }
 
-wait<e_ok_cancel> ok_cancel( std::string_view msg ) {
-  wait_promise<e_ok_cancel> p;
-  unique_ptr<Window>        win = ok_cancel_impl(
-             msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
+wait<ui::e_ok_cancel> ok_cancel( WindowPlane&     window_plane,
+                                 std::string_view msg ) {
+  wait_promise<ui::e_ok_cancel> p;
+  unique_ptr<Window>            win = ok_cancel_impl(
+                 window_plane, msg,
+                 [p]( ui::e_ok_cancel oc ) { p.set_value( oc ); } );
   co_return co_await p.wait();
 }
 
 namespace {
 [[nodiscard]] unique_ptr<Window> text_input_box(
-    string_view title, string_view msg, string_view initial_text,
-    ValidatorFunc                   validator,
+    WindowPlane& window_plane, string_view title,
+    string_view msg, string_view initial_text,
+    ui::ValidatorFunc               validator,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -627,16 +621,16 @@ namespace {
   TextReflowInfo r_info{
       /*max_cols=*/config_ui.dialog_text.columns };
   auto text =
-      make_unique<TextView>( string( msg ), m_info, r_info );
-  auto le_view = make_unique<LineEditorView>( /*chars_wide=*/20,
-                                              initial_text );
-  LineEditorView* p_le_view = le_view.get();
+      make_unique<ui::TextView>( string( msg ), m_info, r_info );
+  auto le_view = make_unique<ui::LineEditorView>(
+      /*chars_wide=*/20, initial_text );
+  ui::LineEditorView* p_le_view = le_view.get();
 
   // We can capture by reference here because the function will
   // be called before this scope exits.
   auto get_view_fn =
       [&]( function<void( bool )> enable_ok_button ) {
-        LineEditorView::OnChangeFunc on_change =
+        ui::LineEditorView::OnChangeFunc on_change =
             [validator,
              enable_ok_button{ std::move( enable_ok_button ) }](
                 string const& new_str ) {
@@ -649,15 +643,16 @@ namespace {
         // initial validation result.
         on_change( le_view->text() );
         le_view->set_on_change_fn( std::move( on_change ) );
-        vector<unique_ptr<View>> view_vec;
+        vector<unique_ptr<ui::View>> view_vec;
         view_vec.emplace_back( std::move( text ) );
         view_vec.emplace_back( std::move( le_view ) );
-        return make_unique<VerticalArrayView>(
+        return make_unique<ui::VerticalArrayView>(
             std::move( view_vec ),
-            VerticalArrayView::align::center );
+            ui::VerticalArrayView::align::center );
       };
 
   return ok_cancel_window_builder<string>(
+      window_plane,
       /*title=*/title,
       /*get_result=*/
       [p_le_view]() -> string { return p_le_view->text(); },
@@ -669,7 +664,8 @@ namespace {
 } // namespace
 
 wait<maybe<int>> int_input_box(
-    IntInputBoxOptions const& options ) {
+    WindowPlane&                  window_plane,
+    ui::IntInputBoxOptions const& options ) {
   wait_promise<maybe<int>> p;
 
   string initial_text =
@@ -677,7 +673,7 @@ wait<maybe<int>> int_input_box(
           ? fmt::format( "{}", *options.initial )
           : "";
   unique_ptr<Window> win = text_input_box(
-      options.title, options.msg, initial_text,
+      window_plane, options.title, options.msg, initial_text,
       make_int_validator( options.min, options.max ),
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
@@ -685,23 +681,95 @@ wait<maybe<int>> int_input_box(
   co_return co_await p.wait();
 }
 
-wait<maybe<string>> str_input_box( string_view title,
-                                   string_view msg,
-                                   string_view initial_text ) {
-  wait_promise<maybe<string>> p;
-  unique_ptr<Window>          win = text_input_box(
-               title, msg, initial_text, L( _.size() > 0 ),
-               [p]( maybe<string> result ) { p.set_value( result ); } );
-  co_return co_await p.wait();
-}
-
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-wait<int> select_box( string_view           title,
-                      vector<string> const& options ) {
-  lg.info( "question: \"{}\"", title );
-  auto selector_view = make_unique<OptionSelectView>(
+wait<vector<ui::UnitSelection>> unit_selection_box(
+    WindowPlane& window_plane, vector<UnitId> const& ids,
+    bool allow_activation ) {
+  wait_promise<vector<ui::UnitSelection>> s_promise;
+
+  function<void( maybe<ui::UnitActivationView::map_t> )>
+      on_result =
+          [s_promise](
+              maybe<ui::UnitActivationView::map_t> result ) {
+            vector<ui::UnitSelection> selections;
+            if( result.has_value() ) {
+              for( auto const& [id, info] : *result ) {
+                if( info.is_activated ) {
+                  CHECK( info.current_orders ==
+                         e_unit_orders::none );
+                  selections.push_back(
+                      { id, ui::e_unit_selection::activate } );
+                } else if( info.current_orders !=
+                           info.original_orders ) {
+                  CHECK( info.current_orders ==
+                         e_unit_orders::none );
+                  selections.push_back(
+                      { id,
+                        ui::e_unit_selection::clear_orders } );
+                }
+              }
+            }
+            for( auto selection : selections )
+              lg.debug( "selection: {} --> {}",
+                        debug_string( GameState::units(),
+                                      selection.id ),
+                        // FIXME: until we can format this enum.
+                        static_cast<int>( selection.what ) );
+            s_promise.set_value( std::move( selections ) );
+          };
+
+  auto unit_activation_view =
+      ui::UnitActivationView::Create( ids, allow_activation );
+  auto* p_unit_activation_view = unit_activation_view.get();
+
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
+  auto get_view_fn =
+      [&]( function<void( bool )> /*enable_ok_button*/ ) {
+        return std::move( unit_activation_view );
+      };
+
+  unique_ptr<Window> win = ok_cancel_window_builder<
+      unordered_map<UnitId, ui::UnitActivationInfo>>(
+      window_plane,
+      /*title=*/"Activate Units",
+      /*get_result=*/
+      [p_unit_activation_view]() {
+        return p_unit_activation_view->info_map();
+      },
+      /*validator=*/L( ( (void)_, true ) ), // always true.
+      /*on_result=*/std::move( on_result ),
+      /*get_view_fun=*/get_view_fn //
+  );
+
+  co_return co_await s_promise.wait();
+}
+
+/****************************************************************
+** WindowPlane
+*****************************************************************/
+WindowPlane::WindowPlane( Planes& planes, e_plane_stack where )
+  : planes_( planes ), where_( where ), impl_( new Impl() ) {
+  planes.push( *impl_.get(), where );
+}
+
+WindowPlane::~WindowPlane() noexcept { planes_.pop( where_ ); }
+
+wait<> WindowPlane::message_box( string_view msg ) {
+  wait_promise<>     p;
+  unique_ptr<Window> win = async_window_builder(
+      *this, /*title=*/"note",
+      ui::PlainMessageBoxView::create( string( msg ), p ),
+      /*auto_pad=*/true );
+  co_await p.wait();
+}
+
+wait<int> WindowPlane::select_box(
+    string_view msg, vector<string> const& options ) {
+  lg.info( "question: \"{}\"", msg );
+  auto selector_view = make_unique<ui::OptionSelectView>(
       options, /*initial_selection=*/0 );
   auto* p_selector_view = selector_view.get();
 
@@ -743,12 +811,12 @@ wait<int> select_box( string_view           title,
     return handled;
   };
 
-  auto on_input_view = make_unique<OnInputView>(
+  auto on_input_view = make_unique<ui::OnInputView>(
       std::move( selector_view ), std::move( on_input ) );
 
-  unique_ptr<View>   view = std::move( on_input_view );
-  unique_ptr<Window> win  = async_window_builder(
-       title, std::move( view ), /*auto_pad=*/false );
+  unique_ptr<ui::View> view = std::move( on_input_view );
+  unique_ptr<Window>   win  = async_window_builder(
+         *this, msg, std::move( view ), /*auto_pad=*/false );
 
   p_selector_view->grow_to( win->inside_padding_rect().w );
 
@@ -757,80 +825,14 @@ wait<int> select_box( string_view           title,
   co_return co_await p.wait();
 }
 
-wait<e_confirm> yes_no( std::string_view title ) {
-  return select_box_enum<e_confirm>( title );
+wait<maybe<string>> WindowPlane::str_input_box(
+    string_view title, string_view msg,
+    string_view initial_text ) {
+  wait_promise<maybe<string>> p;
+  unique_ptr<Window>          win = text_input_box(
+               *this, title, msg, initial_text, L( _.size() > 0 ),
+               [p]( maybe<string> result ) { p.set_value( result ); } );
+  co_return co_await p.wait();
 }
 
-wait<> message_box_basic( string_view msg ) {
-  wait_promise<>     p;
-  unique_ptr<Window> win = async_window_builder(
-      /*title=*/"note",
-      PlainMessageBoxView::create( string( msg ), p ),
-      /*auto_pad=*/true );
-  co_await p.wait();
-}
-
-wait<vector<UnitSelection>> unit_selection_box(
-    vector<UnitId> const& ids, bool allow_activation ) {
-  wait_promise<vector<UnitSelection>> s_promise;
-
-  function<void( maybe<UnitActivationView::map_t> )> on_result =
-      [s_promise]( maybe<UnitActivationView::map_t> result ) {
-        vector<UnitSelection> selections;
-        if( result.has_value() ) {
-          for( auto const& [id, info] : *result ) {
-            if( info.is_activated ) {
-              CHECK( info.current_orders ==
-                     e_unit_orders::none );
-              selections.push_back(
-                  { id, e_unit_selection::activate } );
-            } else if( info.current_orders !=
-                       info.original_orders ) {
-              CHECK( info.current_orders ==
-                     e_unit_orders::none );
-              selections.push_back(
-                  { id, e_unit_selection::clear_orders } );
-            }
-          }
-        }
-        for( auto selection : selections )
-          lg.debug(
-              "selection: {} --> {}",
-              debug_string( GameState::units(), selection.id ),
-              // FIXME: until we can format this enum.
-              static_cast<int>( selection.what ) );
-        s_promise.set_value( std::move( selections ) );
-      };
-
-  auto unit_activation_view =
-      UnitActivationView::Create( ids, allow_activation );
-  auto* p_unit_activation_view = unit_activation_view.get();
-
-  // We can capture by reference here because the function will
-  // be called before this scope exits.
-  auto get_view_fn =
-      [&]( function<void( bool )> /*enable_ok_button*/ ) {
-        return std::move( unit_activation_view );
-      };
-
-  unique_ptr<Window> win = ok_cancel_window_builder<
-      unordered_map<UnitId, UnitActivationInfo>>(
-      /*title=*/"Activate Units",
-      /*get_result=*/
-      [p_unit_activation_view]() {
-        return p_unit_activation_view->info_map();
-      },
-      /*validator=*/L( ( (void)_, true ) ), // always true.
-      /*on_result=*/std::move( on_result ),
-      /*get_view_fun=*/get_view_fn //
-  );
-
-  co_return co_await s_promise.wait();
-}
-
-/****************************************************************
-** Testing Only
-*****************************************************************/
-void window_test() {}
-
-} // namespace rn::ui
+} // namespace rn

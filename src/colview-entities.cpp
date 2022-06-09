@@ -982,7 +982,8 @@ class UnitsAtGateColonyView : public ui::View,
     static string const         kStripUnit    = "Strip Unit";
     static vector<string> const kModes{ kChangeOrders,
                                         kStripUnit };
-    int int_mode = co_await ui::select_box(
+
+    int int_mode = co_await gui.choice(
         "What would you like to do?", kModes );
     string mode = kModes[int_mode];
     if( mode == kChangeOrders ) {
@@ -990,7 +991,7 @@ class UnitsAtGateColonyView : public ui::View,
           e_unit_orders::none, e_unit_orders::sentry,
           e_unit_orders::fortified };
       e_unit_orders new_orders =
-          co_await ui::select_box_enum<e_unit_orders>(
+          co_await gui.select_enum<e_unit_orders>(
               "Change unit orders to:", possible_orders );
       CHECK( new_orders != e_unit_orders::fortified ||
              !unit.desc().ship );

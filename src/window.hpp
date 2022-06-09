@@ -20,33 +20,62 @@
 #include "unit-id.hpp"
 #include "wait.hpp"
 
+// Rds
+#include "plane-stack.rds.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 
 // c++ standard library
+#include <memory>
 #include <string_view>
 #include <vector>
 
 namespace rn {
 
-struct Plane;
-Plane* window_plane();
+struct Planes;
+
+/****************************************************************
+** WindowPlane
+*****************************************************************/
+// The GUI methods in this class should be relatively primitive,
+// since it is intended only to be used to implement the IGui in-
+// terface, which is the more polished one.
+struct WindowPlane {
+  WindowPlane( Planes& planes, e_plane_stack where );
+  ~WindowPlane() noexcept;
+
+  wait<> message_box( std::string_view msg );
+
+  template<typename First, typename... Rest>
+  wait<> message_box( std::string_view msg, First&& first,
+                      Rest&&... rest ) {
+    return message_box( fmt::format(
+        fmt::runtime( msg ), std::forward<First>( first ),
+        std::forward<Rest>( rest )... ) );
+  }
+
+  wait<int> select_box(
+      std::string_view                msg,
+      std::vector<std::string> const& options );
+
+  wait<maybe<std::string>> str_input_box(
+      std::string_view title, std::string_view msg,
+      std::string_view initial_text );
+
+ private:
+  friend struct Window;
+
+  Planes&             planes_;
+  e_plane_stack const where_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn
 
 namespace rn::ui {
-
-// Pops up a box that displays a message to the user but takes no
-// user input apart from waiting for the <CR> or Space keys to be
-// pressed, which then closes the window. It takes markup text as
-// input and it will reflow the message.
-wait<> message_box_basic( std::string_view msg );
-
-template<typename... Args>
-wait<> message_box( std::string_view msg, Args&&... args ) {
-  return message_box_basic( fmt::format(
-      fmt::runtime( msg ), std::forward<Args>( args )... ) );
-}
 
 enum class e_unit_selection {
   clear_orders,
@@ -96,59 +125,5 @@ struct IntInputBoxOptions {
 
 wait<maybe<int>> int_input_box(
     IntInputBoxOptions const& options );
-
-wait<maybe<std::string>> str_input_box(
-    std::string_view title, std::string_view msg,
-    std::string_view initial_text );
-
-/****************************************************************
-** Generic Option-Select Window
-*****************************************************************/
-wait<int> select_box( std::string_view                title,
-                      std::vector<std::string> const& options );
-
-// FIXME: clang can't seem to handle function template corouti-
-// nes, without emitting warnings, so to work around that we make
-// this a niebloid.
-template<typename Enum>
-struct SelectBoxEnum {
-  wait<Enum> operator()(
-      std::string_view         title,
-      std::vector<Enum> const& options ) const {
-    std::vector<std::string> words;
-    for( auto option : options )
-      words.push_back(
-          std::string( enum_to_display_name( option ) ) );
-    co_return options[co_await select_box( title, words )];
-  }
-
-  wait<Enum> operator()( std::string_view title ) const {
-    static const std::vector<Enum> options = [] {
-      return std::vector<Enum>( refl::enum_values<Enum>.begin(),
-                                refl::enum_values<Enum>.end() );
-    }();
-    return ( *this )( title, options );
-  }
-};
-
-template<typename Enum>
-inline constexpr SelectBoxEnum<Enum> select_box_enum{};
-
-/****************************************************************
-** Canned Option-Select Windows
-*****************************************************************/
-wait<e_confirm> yes_no( std::string_view title );
-
-template<typename... Args>
-wait<e_confirm> yes_no( std::string_view question,
-                        Args&&... args ) {
-  return yes_no( fmt::format( fmt::runtime( question ),
-                              std::forward<Args>( args )... ) );
-}
-
-/****************************************************************
-** Testing Only
-*****************************************************************/
-void window_test();
 
 } // namespace rn::ui

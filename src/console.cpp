@@ -296,12 +296,14 @@ struct ConsolePlane::Impl : public Plane {
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
-ConsolePlane::ConsolePlane( Planes&    planes,
+ConsolePlane::ConsolePlane( Planes& planes, e_plane_stack where,
                             MenuPlane& menu_plane )
-  : planes_( planes ), impl_( new Impl( menu_plane ) ) {
-  planes.push( *impl_.get() );
+  : planes_( planes ),
+    where_( where ),
+    impl_( new Impl( menu_plane ) ) {
+  planes.push( *impl_.get(), where );
 }
 
-ConsolePlane::~ConsolePlane() noexcept { planes_.pop(); }
+ConsolePlane::~ConsolePlane() noexcept { planes_.pop( where_ ); }
 
 } // namespace rn

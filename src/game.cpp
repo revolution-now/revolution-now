@@ -15,6 +15,7 @@
 #include "conductor.hpp"
 #include "game-state.hpp"
 #include "gs-root.hpp"
+#include "interrupts.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
@@ -94,7 +95,6 @@ wait<> run_existing_game( IGui& gui ) {
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   lua_reload( GameState::root() );
-  reinitialize_planes( map_updater );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
       GameState::players(), GameState::terrain(),
@@ -115,7 +115,6 @@ wait<> run_new_game( IGui& gui ) {
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   map_updater.just_redraw_map();
-  reinitialize_planes( map_updater );
   GameState::land_view().viewport.set_zoom(
       GameState::land_view().viewport.optimal_min_zoom() );
 

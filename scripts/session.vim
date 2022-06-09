@@ -4,6 +4,7 @@ let s:stems = [
  \ 'plane',
  \ 'app-ctrl',
  \ 'plane-stack',
+ \ 'game',
  \ 'omni',
  \ 'main-menu',
  \ 'turn',
@@ -14,7 +15,9 @@ let s:stems = [
  \ 'harbor-view',
  \ 'console',
  \ 'menu',
+ \ 'gui',
  \ 'window',
+ \ 'lua-ui',
 \]
 
 let s:luas = [

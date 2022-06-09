@@ -27,7 +27,7 @@ namespace rn {
 ** RealGui
 *****************************************************************/
 wait<> RealGui::message_box( string_view msg ) {
-  return ui::message_box( msg );
+  return window_plane_.message_box( msg );
 }
 
 wait<string> RealGui::choice( ChoiceConfig const& config ) {
@@ -45,7 +45,8 @@ wait<string> RealGui::choice( ChoiceConfig const& config ) {
   vector<string> options;
   for( ChoiceConfigOption option : config.options )
     options.push_back( option.display_name );
-  int selected = co_await ui::select_box( config.msg, options );
+  int selected =
+      co_await window_plane_.select_box( config.msg, options );
   co_return config.options[selected].key;
 }
 
@@ -55,15 +56,16 @@ wait<string> RealGui::string_input(
   // FIXME: need to use a different function here that just re-
   // quires input.
   while( !res.has_value() )
-    res = co_await ui::str_input_box( "title?", config.msg,
-                                      config.initial_text );
+    res = co_await window_plane_.str_input_box(
+        "title?", config.msg, config.initial_text );
   DCHECK( res.has_value() );
   co_return *res;
 }
 
 wait<chrono::microseconds> RealGui::wait_for(
     chrono::microseconds time ) {
-  co_return co_await time;
+  chrono::microseconds actual = co_await time;
+  co_return actual;
 }
 
 } // namespace rn

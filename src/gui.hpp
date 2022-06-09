@@ -17,12 +17,17 @@
 
 namespace rn {
 
+struct WindowPlane;
+
 /****************************************************************
 ** RealGui
 *****************************************************************/
 // Presents real GUI elements to the player. For unit testing in-
 // stead use a mock of IGui, not this one.
 struct RealGui : IGui {
+  RealGui( WindowPlane& window_plane )
+    : window_plane_( window_plane ) {}
+
   // Implement IGui.
   wait<> message_box( std::string_view msg ) override;
 
@@ -37,6 +42,9 @@ struct RealGui : IGui {
   // Implement IGui.
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
+
+ private:
+  WindowPlane& window_plane_;
 };
 
 } // namespace rn

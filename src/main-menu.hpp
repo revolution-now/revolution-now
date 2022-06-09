@@ -17,6 +17,7 @@
 
 // Rds
 #include "main-menu.rds.hpp"
+#include "plane-stack.rds.hpp"
 
 // C++ standard library
 #include <memory>
@@ -26,16 +27,19 @@ namespace rn {
 struct IGui;
 struct Planes;
 
+/****************************************************************
+** MainMenuPlane
+*****************************************************************/
 struct MainMenuPlane {
-  MainMenuPlane( Planes& planes );
+  MainMenuPlane( Planes& planes, e_plane_stack where,
+                 IGui& gui );
   ~MainMenuPlane() noexcept;
-
-  wait<> item_selected( IGui& gui, e_main_menu_item item );
 
   wait<> run();
 
  private:
-  Planes& planes_;
+  Planes&             planes_;
+  e_plane_stack const where_;
 
   struct Impl;
   std::unique_ptr<Impl> impl_;

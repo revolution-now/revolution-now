@@ -22,7 +22,6 @@
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
-#include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove

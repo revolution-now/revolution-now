@@ -16,7 +16,6 @@
 #include "logger.hpp"
 #include "lua-wait.hpp"
 #include "lua.hpp"
-#include "plane-ctrl.hpp"
 #include "window.hpp"
 
 // luapp

@@ -20,7 +20,6 @@
 #include "dragdrop.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
-#include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"
 

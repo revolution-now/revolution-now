@@ -16,7 +16,7 @@
 #include "conductor.hpp"
 #include "enum.hpp"
 #include "game.hpp"
-#include "gui.hpp"
+#include "igui.hpp"
 #include "interrupts.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -42,11 +42,12 @@ namespace rn {
 *****************************************************************/
 struct MainMenuPlane::Impl : public Plane {
   // State
+  IGui&                        gui_;
   e_main_menu_item             curr_item_;
   co::stream<e_main_menu_item> selection_stream_;
 
  public:
-  Impl() = default;
+  Impl( IGui& gui ) : gui_( gui ) {}
 
   bool covers_screen() const override { return true; }
 
@@ -118,40 +119,43 @@ struct MainMenuPlane::Impl : public Plane {
     }
     return handled;
   }
+
+  wait<> item_selected( e_main_menu_item item ) {
+    switch( item ) {
+      case e_main_menu_item::new_: //
+        co_await run_new_game( gui_ );
+        break;
+      case e_main_menu_item::load:
+        co_await run_existing_game( gui_ );
+        break;
+      case e_main_menu_item::quit: //
+        throw game_load_interrupt{};
+      case e_main_menu_item::settings_graphics:
+        co_await gui_.message_box( "No graphics settings yet." );
+        break;
+      case e_main_menu_item::settings_sound:
+        co_await gui_.message_box( "No sound settings yet." );
+        break;
+    }
+  }
 };
 
 /****************************************************************
 ** MainMenuPlane
 *****************************************************************/
-MainMenuPlane::MainMenuPlane( Planes& planes )
-  : planes_( planes ), impl_( new Impl ) {
-  planes.push( *impl_.get() );
+MainMenuPlane::MainMenuPlane( Planes&       planes,
+                              e_plane_stack where, IGui& gui )
+  : planes_( planes ),
+    where_( where ),
+    impl_( new Impl( gui ) ) {
+  planes.push( *impl_.get(), where );
 }
 
-MainMenuPlane::~MainMenuPlane() noexcept { planes_.pop(); }
-
-wait<> MainMenuPlane::item_selected( IGui&            gui,
-                                     e_main_menu_item item ) {
-  switch( item ) {
-    case e_main_menu_item::new_: //
-      co_await run_new_game( gui );
-      break;
-    case e_main_menu_item::load:
-      co_await run_existing_game( gui );
-      break;
-    case e_main_menu_item::quit: //
-      throw game_load_interrupt{};
-    case e_main_menu_item::settings_graphics:
-      co_await gui.message_box( "No graphics settings yet." );
-      break;
-    case e_main_menu_item::settings_sound:
-      co_await gui.message_box( "No sound settings yet." );
-      break;
-  }
+MainMenuPlane::~MainMenuPlane() noexcept {
+  planes_.pop( where_ );
 }
 
 wait<> MainMenuPlane::run() {
-  RealGui gui;
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
@@ -162,7 +166,7 @@ wait<> MainMenuPlane::run() {
   while( true ) {
     e_main_menu_item item = co_await selections.next();
     try {
-      co_await item_selected( gui, item );
+      co_await impl_->item_selected( item );
     } catch( game_quit_interrupt const& ) {
       co_return;
     } catch( game_load_interrupt const& ) {
