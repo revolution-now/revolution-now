@@ -43,7 +43,7 @@ function M.default_options()
     -- higher than the target.
     land_density=.22,
     remove_Xs=false,
-    brush='cross'
+    brush='mixed'
   }
 end
 
@@ -795,12 +795,12 @@ end
 -- given shape and returns the number of water squares that were
 -- changed to land in the process.
 local brushes = {
-  single=function( x, y )
+  single=function( self, x, y )
     local count = 0
     count = count + set_land_if_needed{ x=x, y=y }
     return count
   end,
-  cross=function( x, y )
+  cross=function( self, x, y )
     local count = 0
     count = count + set_land_if_needed{ x=x, y=y }
     count = count + set_land_if_needed{ x=x - 1, y=y }
@@ -808,6 +808,13 @@ local brushes = {
     count = count + set_land_if_needed{ x=x, y=y - 1 }
     count = count + set_land_if_needed{ x=x, y=y + 1 }
     return count
+  end,
+  mixed=function( self, x, y )
+    if random_bool() then
+      return self:single( x, y )
+    else
+      return self:cross( x, y )
+    end
   end
 }
 
@@ -828,7 +835,8 @@ local function generate_continent( options, seed_square, stretch )
     local delta_y = random_choice( p_vertical, 1, 0 ) *
                         random_choice( .5, -1, 1 )
     square = { x=square.x + delta_x, y=square.y + delta_y }
-    land_squares = land_squares + brush( square.x, square.y )
+    land_squares = land_squares +
+                       brush( brushes, square.x, square.y )
   end
   return land_squares
 end
