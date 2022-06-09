@@ -109,11 +109,6 @@ unordered_map<e_init_routine, vector<e_init_routine>>
                        e_init_routine::sdl,     //
                        e_init_routine::screen   //
                    } },
-                 { e_init_routine::menus,
-                   {
-                       e_init_routine::configs, //
-                       e_init_routine::renderer //
-                   } },
                  { e_init_routine::tunes,
                    {
                        e_init_routine::configs, //

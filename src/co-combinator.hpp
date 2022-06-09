@@ -449,7 +449,7 @@ auto make_streamable( wait<T>&& w ) {
 }
 
 /****************************************************************
-** Stream
+** Streamable
 *****************************************************************/
 template<typename T>
 concept Streamable = requires( T s ) {

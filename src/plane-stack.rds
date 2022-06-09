@@ -11,7 +11,7 @@
 namespace "rn"
 
 enum.e_plane_stack {
-  back, # This means that the plane will be rendered on top.
+  back, # This means that the plane will be on top.
   front,
 }
 

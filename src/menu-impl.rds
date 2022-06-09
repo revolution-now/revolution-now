@@ -16,7 +16,6 @@ include "maybe.hpp"
 include "menu.rds.hpp"
 
 # C++ standard library
-include "<functional>"
 include "<string>"
 
 namespace "rn"
@@ -32,23 +31,12 @@ enum.e_menu {
   pedia,
 }
 
-struct.MenuCallbacks {
-  on_click 'std::function<void( void )>',
-  enabled  'std::function<bool( void )>',
-
-  _features {}
-}
-
 sumtype.MenuItem {
   menu_divider {},
   menu_clickable {
     item 'e_menu_item',
     name 'std::string',
-    callbacks 'MenuCallbacks',
-    name_width_pixels 'int',
   },
-
-  _features {}
 }
 
 sumtype.MenuState {
