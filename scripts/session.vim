@@ -2,10 +2,9 @@
 let s:stems = [
  \ 'plane',
  \ 'plane-stack',
+ \ 'land-view',
  \ 'map-edit',
- \ 'colony-view',
  \ 'harbor-view',
- \ 'console',
 \]
 
 let s:luas = [

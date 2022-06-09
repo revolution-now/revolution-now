@@ -112,7 +112,7 @@ unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::plow const& /*plow*/, IMapUpdater*,
     IGui& gui, Player&, TerrainState const& terrain_state,
     UnitsState& units_state, ColoniesState&,
-    SettingsState const&, LandViewPlane& ) {
+    SettingsState const&, LandViewPlane&, Planes& ) {
   return make_unique<PlowHandler>( gui, id, terrain_state,
                                    units_state );
 }

@@ -77,10 +77,6 @@ void MapUpdater::just_redraw_map() {
   tiles_updated_ = 0;
 }
 
-Matrix<MapSquare> const& MapUpdater::matrix() const {
-  return terrain_state_.world_map();
-}
-
 /****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
@@ -97,8 +93,19 @@ void NonRenderingMapUpdater::modify_entire_map(
 
 void NonRenderingMapUpdater::just_redraw_map() {}
 
-Matrix<MapSquare> const& NonRenderingMapUpdater::matrix() const {
-  return terrain_state_.world_map();
+/****************************************************************
+** TrappingMapUpdater
+*****************************************************************/
+void TrappingMapUpdater::modify_map_square(
+    Coord, base::function_ref<void( MapSquare& )> ) {
+  SHOULD_NOT_BE_HERE;
 }
+
+void TrappingMapUpdater::modify_entire_map(
+    base::function_ref<void( Matrix<MapSquare>& )> ) {
+  SHOULD_NOT_BE_HERE;
+}
+
+void TrappingMapUpdater::just_redraw_map() {}
 
 } // namespace rn

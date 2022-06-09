@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "gs-colonies.hpp"
 #include "map-updater.hpp"
 #include "maybe.hpp"
 #include "window.hpp"
@@ -49,13 +50,14 @@ struct BuildHandler : public OrdersHandler {
                 UnitId              unit_id_,
                 ColoniesState&      colonies_state_arg,
                 TerrainState const& terrain_state_arg,
-                UnitsState&         units_state_arg )
+                UnitsState& units_state_arg, Planes& planes_arg )
     : map_updater( map_updater_arg ),
       gui( gui_arg ),
       unit_id( unit_id_ ),
       colonies_state( colonies_state_arg ),
       terrain_state( terrain_state_arg ),
-      units_state( units_state_arg ) {}
+      units_state( units_state_arg ),
+      planes( planes_arg ) {}
 
   wait<bool> confirm() override {
     if( auto valid =
@@ -118,7 +120,10 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> post() const override {
-    return show_colony_view( colony_id, *map_updater );
+    ColonyPlane colony_plane(
+        planes, e_plane_stack::back,
+        colonies_state.colony_for( colony_id ), gui );
+    co_await colony_plane.show_colony_view();
   }
 
   IMapUpdater*        map_updater;
@@ -129,6 +134,7 @@ struct BuildHandler : public OrdersHandler {
   ColoniesState&      colonies_state;
   TerrainState const& terrain_state;
   UnitsState&         units_state;
+  Planes&             planes;
 };
 
 } // namespace
@@ -141,10 +147,10 @@ unique_ptr<OrdersHandler> handle_orders(
     IMapUpdater* map_updater, IGui& gui, Player&,
     TerrainState const& terrain_state, UnitsState& units_state,
     ColoniesState& colonies_state, SettingsState const&,
-    LandViewPlane& ) {
-  return make_unique<BuildHandler>( map_updater, gui, id,
-                                    colonies_state,
-                                    terrain_state, units_state );
+    LandViewPlane&, Planes& planes ) {
+  return make_unique<BuildHandler>(
+      map_updater, gui, id, colonies_state, terrain_state,
+      units_state, planes );
 }
 
 } // namespace rn

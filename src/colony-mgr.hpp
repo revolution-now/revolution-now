@@ -35,6 +35,7 @@ struct ColoniesState;
 struct Colony;
 struct IGui;
 struct LandViewPlane;
+struct Planes;
 struct Player;
 struct SettingsState;
 struct TerrainState;
@@ -71,7 +72,8 @@ wait<> evolve_colonies_for_player(
     LandViewPlane& land_view_plane,
     ColoniesState& colonies_state, SettingsState const& settings,
     UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IMapUpdater& map_updater, IGui& gui );
+    Player& player, IMapUpdater& map_updater, IGui& gui,
+    Planes& planes );
 
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is

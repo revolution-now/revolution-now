@@ -54,12 +54,6 @@ struct IMapUpdater {
 
   // Will redraw the entire map.
   virtual void just_redraw_map() = 0;
-
-  // For convenience. In practice, a map updater will always have
-  // access to a map, and so we may as well give it to the user
-  // if they want it (but only in read only mode; mutating it re-
-  // quires strictly using the functions above).
-  virtual Matrix<MapSquare> const& matrix() const = 0;
 };
 
 /****************************************************************
@@ -81,9 +75,6 @@ struct MapUpdater : IMapUpdater {
 
   // Implement IMapUpdater.
   void just_redraw_map() override;
-
-  // Implement IMapUpdater.
-  Matrix<MapSquare> const& matrix() const override;
 
  private:
   TerrainState& terrain_state_;
@@ -107,11 +98,28 @@ struct NonRenderingMapUpdater : IMapUpdater {
   // Implement IMapUpdater.
   void just_redraw_map() override;
 
-  // Implement IMapUpdater.
-  Matrix<MapSquare> const& matrix() const override;
-
  private:
   TerrainState& terrain_state_;
+};
+
+/****************************************************************
+** TrappingMapUpdater
+*****************************************************************/
+// This one literally does nothing except for check-fail if any
+// of its methods are called that attempt to modify the map. It's
+// for when you know that the map updater will not be called, but
+// need one to pass in anyway.
+struct TrappingMapUpdater : IMapUpdater {
+  TrappingMapUpdater() = default;
+
+  // Implement IMapUpdater.
+  void modify_map_square( Coord, SquareUpdateFunc ) override;
+
+  // Implement IMapUpdater.
+  void modify_entire_map( MapUpdateFunc mutator ) override;
+
+  // Implement IMapUpdater.
+  void just_redraw_map() override;
 };
 
 } // namespace rn

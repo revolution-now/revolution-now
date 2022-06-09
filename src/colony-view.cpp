@@ -20,6 +20,7 @@
 #include "dragdrop.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
 
@@ -41,25 +42,19 @@ namespace rn {
 
 namespace {
 
-using e_input_handled = Plane::e_input_handled;
+struct PS {
+  ColonyId                            colony_id  = {};
+  co::stream<input::event_t>          input      = {};
+  maybe<drag::State<ColViewObject_t>> drag_state = {};
+};
 
-/****************************************************************
-** Globals
-*****************************************************************/
-ColonyId                            g_colony_id{};
-co::stream<input::event_t>          g_input;
-maybe<drag::State<ColViewObject_t>> g_drag_state;
-
-void reset_globals() {
-  g_colony_id  = {};
-  g_input      = {};
-  g_drag_state = nothing;
 }
 
 /****************************************************************
 ** Drawing
 *****************************************************************/
-void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
+void draw_colony_view( Colony const& colony,
+                       rr::Renderer& renderer ) {
   static gfx::pixel background_color =
       gfx::pixel::parse_from_hex( "f1cf81" ).value();
   renderer.painter().draw_solid_rect(
@@ -69,8 +64,6 @@ void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
 
   UNWRAP_CHECK( canvas, compositor::section(
                             compositor::e_section::normal ) );
-
-  auto& colony = colony_from_id( id );
 
   Coord pos = canvas.upper_left();
 
@@ -100,13 +93,13 @@ void draw_colony_view( rr::Renderer& renderer, ColonyId id ) {
 #define NO_DRAG( ... )                       \
   {                                          \
     lg.debug( "cannot drag: " __VA_ARGS__ ); \
-    co_await eat_remaining_drag_events();    \
+    co_await eat_remaining_drag_events( S ); \
     co_return;                               \
   }
 
-wait<> eat_remaining_drag_events() {
+wait<> eat_remaining_drag_events( PS& S ) {
   while( true ) {
-    input::event_t event = co_await g_input.next();
+    input::event_t event = co_await S.input.next();
     auto drag = event.get_if<input::mouse_drag_event_t>();
     if( !drag ) continue;
     CHECK( drag->state.phase != input::e_drag_phase::begin )
@@ -118,9 +111,9 @@ wait<> eat_remaining_drag_events() {
 // Note that the mouse events received here will be relative to
 // the colony-view canvas.
 wait<> drag_drop_routine(
-    input::mouse_drag_event_t const& event ) {
+    PS& S, input::mouse_drag_event_t const& event ) {
   CHECK( event.state.phase == input::e_drag_phase::begin );
-  CHECK( !g_drag_state.has_value() );
+  CHECK( !S.drag_state.has_value() );
   if( event.button != input::e_mouse_button::l )
     NO_DRAG( "wrong mouse button." );
   Coord const& origin = event.state.origin;
@@ -176,7 +169,7 @@ wait<> drag_drop_routine(
   lg.debug( "dragging {} with bounds {}.", source_object,
             source_object_bounds );
 
-  g_drag_state = drag::State<ColViewObject_t>{
+  S.drag_state = drag::State<ColViewObject_t>{
       .stream              = {}, // FIXME: unused
       .object              = source_object,
       .indicator           = drag::e_status_indicator::none,
@@ -184,7 +177,7 @@ wait<> drag_drop_routine(
       .where               = origin,
       .click_offset = origin - source_object_bounds.upper_left(),
   };
-  SCOPE_EXIT( g_drag_state = nothing );
+  SCOPE_EXIT( S.drag_state = nothing );
 
   // The first drag event also contains some motion that we want
   // to process.
@@ -201,7 +194,7 @@ wait<> drag_drop_routine(
       lg.debug( "drag rejected." );
       break;
     }
-    latest = co_await g_input.next();
+    latest = co_await S.input.next();
     // Optional sanity check.
     if( auto drag =
             latest.get_if<input::mouse_drag_event_t>() ) {
@@ -226,7 +219,7 @@ wait<> drag_drop_routine(
       // We know that this event is not the last drag event,
       // since it is a window resize event.  So we need to eat
       // the remainder of the drag events.
-      co_await eat_remaining_drag_events();
+      co_await eat_remaining_drag_events( S );
       co_return; // no rubber banding.
     }
 
@@ -238,9 +231,9 @@ wait<> drag_drop_routine(
     // to key events, in particular when the user presses the
     // shift key to ask for user input.
 
-    g_drag_state->where     = mouse_pos;
-    g_drag_state->indicator = drag::e_status_indicator::none;
-    g_drag_state->user_requests_input = false;
+    S.drag_state->where     = mouse_pos;
+    S.drag_state->indicator = drag::e_status_indicator::none;
+    S.drag_state->user_requests_input = false;
 
     // Check if there is a view under the current mouse pos.
     maybe<PositionedColSubView> maybe_target_p_view =
@@ -258,7 +251,7 @@ wait<> drag_drop_routine(
     Coord             sink_coord =
         mouse_pos.with_new_origin( target_upper_left );
     // Assume the drag won't work unless we find out otherwise.
-    g_drag_state->indicator = drag::e_status_indicator::bad;
+    S.drag_state->indicator = drag::e_status_indicator::bad;
 
     // Check if the target view can receive the object that is
     // being dragged and can do so at the current mouse position.
@@ -268,7 +261,7 @@ wait<> drag_drop_routine(
                 source_object );
       continue;
     }
-    g_drag_state->indicator = drag::e_status_indicator::good;
+    S.drag_state->indicator = drag::e_status_indicator::good;
 
     // Check if the user is allowed to request user input. If so,
     // then check if they are holding down shift, which is how
@@ -278,7 +271,7 @@ wait<> drag_drop_routine(
     if( drag_user_input ) {
       auto const& base =
           variant_base<input::event_base_t>( latest );
-      g_drag_state->user_requests_input = base.mod.shf_down;
+      S.drag_state->user_requests_input = base.mod.shf_down;
     }
 
     // E.g. if this is a keyboard event, then we're done with it.
@@ -296,7 +289,7 @@ wait<> drag_drop_routine(
 
     // Check if the user wants to input anything.
     if( drag_user_input.has_value() &&
-        g_drag_state->user_requests_input ) {
+        S.drag_state->user_requests_input ) {
       maybe<ColViewObject_t> new_obj =
           co_await drag_user_input->user_edit_object();
       if( !new_obj ) {
@@ -376,16 +369,16 @@ wait<> drag_drop_routine(
   }
 
   // Rubber-band back to starting point.
-  g_drag_state->indicator = drag::e_status_indicator::none;
-  g_drag_state->user_requests_input = false;
+  S.drag_state->indicator = drag::e_status_indicator::none;
+  S.drag_state->user_requests_input = false;
 
-  Coord         start   = g_drag_state->where;
+  Coord         start   = S.drag_state->where;
   Coord         end     = origin;
   double        percent = 0.0;
   AnimThrottler throttle( kAlmostStandardFrame );
   while( percent <= 1.0 ) {
     co_await throttle();
-    g_drag_state->where =
+    S.drag_state->where =
         start + ( end - start ).multiply_and_round( percent );
     percent += 0.15;
   }
@@ -395,8 +388,8 @@ wait<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( input::key_event_t const& event,
-                         IMapUpdater& ) {
+wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
+                         input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
@@ -410,7 +403,8 @@ wait<bool> handle_event( input::key_event_t const& event,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    input::mouse_button_event_t const& event, IMapUpdater& ) {
+    PS& S, Colony& colony, IGui& gui,
+    input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
   Coord click_pos = event.pos;
@@ -418,21 +412,23 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( input::win_event_t const& event,
-                         IMapUpdater& map_updater ) {
+wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
+                         input::win_event_t const& event ) {
   if( event.type == input::e_win_event_type::resized )
     // Force a re-composite.
-    set_colview_colony( g_colony_id, map_updater );
+    set_colview_colony( colony.id(), gui );
   co_return false;
 }
 
-wait<bool> handle_event( input::mouse_drag_event_t const& event,
-                         IMapUpdater& ) {
-  co_await drag_drop_routine( event );
+wait<bool> handle_event(
+    PS& S, Colony& colony, IGui& gui,
+    input::mouse_drag_event_t const& event ) {
+  co_await drag_drop_routine( S, event );
   co_return false;
 }
 
-wait<bool> handle_event( auto const&, IMapUpdater& ) {
+wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
+                         auto const& ) {
   co_return false;
 }
 
@@ -440,10 +436,10 @@ wait<bool> handle_event( auto const&, IMapUpdater& ) {
 // user input, but save the ones that we always need to process,
 // such as window resize events (which are needed to maintain
 // proper drawing as the window is resized).
-void clear_non_essential_events() {
+void clear_non_essential_events( PS& S ) {
   vector<input::event_t> saved;
-  while( g_input.ready() ) {
-    input::event_t e = g_input.next().get();
+  while( S.input.ready() ) {
+    input::event_t e = S.input.next().get();
     switch( e.to_enum() ) {
       case input::e_input_event::win_event:
         saved.push_back( std::move( e ) );
@@ -451,28 +447,24 @@ void clear_non_essential_events() {
       default: break;
     }
   }
-  CHECK( !g_input.ready() );
+  CHECK( !S.input.ready() );
   // Re-insert the ones we want to save.
   for( input::event_t& e : saved )
-    g_input.send( std::move( e ) );
-}
-
-wait<> run_colview( IMapUpdater& map_updater ) {
-  while( true ) {
-    input::event_t event = co_await g_input.next();
-    auto [exit, suspended] =
-        co_await co::detect_suspend( std::visit(
-            LC( handle_event( _, map_updater ) ), event ) );
-    if( suspended ) clear_non_essential_events();
-    if( exit ) co_return;
-  }
+    S.input.send( std::move( e ) );
 }
 
 /****************************************************************
 ** Colony Plane
 *****************************************************************/
-struct ColonyPlane : public Plane {
-  ColonyPlane() = default;
+struct ColonyPlane::Impl : public Plane {
+  PS      S_;
+  Colony& colony_;
+  IGui&   gui_;
+
+  Impl( Colony& colony, IGui& gui )
+    : S_{}, colony_( colony ), gui_( gui ) {
+    set_colview_colony( colony_.id(), gui );
+  }
 
   bool covers_screen() const override { return true; }
 
@@ -497,23 +489,23 @@ struct ColonyPlane : public Plane {
       // during a drag operation (which would cause dangling
       // pointers; see the comment about that in the dragging
       // coroutine. This should probably be fixed).
-      g_input.send( input::win_event_t{
+      S_.input.send( input::win_event_t{
           input::event_base_t{},
           /*type=*/input::e_win_event_type::resized } );
     }
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    draw_colony_view( renderer, g_colony_id );
-    if( g_drag_state.has_value() )
-      colview_drag_n_drop_draw( renderer, *g_drag_state,
+    draw_colony_view( colony_, renderer );
+    if( S_.drag_state.has_value() )
+      colview_drag_n_drop_draw( renderer, *S_.drag_state,
                                 canvas_.upper_left() );
   }
 
   e_input_handled input( input::event_t const& event ) override {
     input::event_t event_translated = move_mouse_origin_by(
         event, canvas_.upper_left().distance_from_origin() );
-    g_input.send( event_translated );
+    S_.input.send( event_translated );
     if( event_translated.holds<input::win_event_t>() )
       // Generally we should return no here because this is an
       // event that we want all planes to see. FIXME: need to
@@ -525,32 +517,42 @@ struct ColonyPlane : public Plane {
   Plane::e_accept_drag can_drag(
       input::e_mouse_button /*button*/,
       Coord /*origin*/ ) override {
-    if( g_drag_state ) return Plane::e_accept_drag::swallow;
+    if( S_.drag_state ) return Plane::e_accept_drag::swallow;
     return e_accept_drag::yes_but_raw;
+  }
+
+  wait<> run_colview() {
+    while( true ) {
+      input::event_t event   = co_await S_.input.next();
+      auto [exit, suspended] = co_await co::detect_suspend(
+          std::visit( LC( handle_event( S_, colony_, gui_, _ ) ),
+                      event ) );
+      if( suspended ) clear_non_essential_events( S_ );
+      if( exit ) co_return;
+    }
   }
 
   Rect canvas_;
 };
 
-ColonyPlane g_colony_plane;
-
-} // namespace
-
 /****************************************************************
-** Public API
+** ColonyPlane
 *****************************************************************/
-Plane* colony_plane() { return &g_colony_plane; }
+ColonyPlane::ColonyPlane( Planes& planes, e_plane_stack where,
+                          Colony& colony, IGui& gui )
+  : planes_( planes ),
+    where_( where ),
+    impl_( new Impl( colony, gui ) ) {
+  planes.push( *impl_.get(), where );
+}
 
-wait<> show_colony_view( ColonyId     id,
-                         IMapUpdater& map_updater ) {
-  CHECK( colony_exists( id ) );
-  reset_globals();
-  g_colony_id = id;
-  set_colview_colony( id, map_updater );
-  ScopedPlanePush pusher( e_plane_config::colony );
-  lg.info( "viewing colony {}.",
-           colony_from_id( id ).debug_string() );
-  co_await run_colview( map_updater );
+ColonyPlane::~ColonyPlane() noexcept { planes_.pop( where_ ); }
+
+wait<> ColonyPlane::show_colony_view() const {
+  lg.info(
+      "viewing colony {}.",
+      colony_from_id( impl_->colony_.id() ).debug_string() );
+  co_await impl_->run_colview();
   lg.info( "leaving colony view." );
 }
 

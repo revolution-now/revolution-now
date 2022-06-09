@@ -174,9 +174,9 @@ struct TravelHandler : public OrdersHandler {
                  IMapUpdater&        map_updater,
                  TerrainState const& terrain_state, IGui& gui,
                  UnitsState&          units_state,
-                 ColoniesState const& colonies_state,
+                 ColoniesState&       colonies_state,
                  SettingsState const& settings,
-                 LandViewPlane&       land_view_plane )
+                 LandViewPlane& land_view_plane, Planes& planes )
     : unit_id( unit_id_ ),
       direction( d ),
       player_( player ),
@@ -186,7 +186,8 @@ struct TravelHandler : public OrdersHandler {
       units_state_( units_state ),
       colonies_state_( colonies_state ),
       settings_( settings ),
-      land_view_plane_( land_view_plane ) {}
+      land_view_plane_( land_view_plane ),
+      planes_( planes ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -329,11 +330,13 @@ struct TravelHandler : public OrdersHandler {
 
   UnitsState& units_state_;
 
-  ColoniesState const& colonies_state_;
+  ColoniesState& colonies_state_;
 
   SettingsState const& settings_;
 
   LandViewPlane& land_view_plane_;
+
+  Planes& planes_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -732,7 +735,10 @@ wait<> TravelHandler::perform() {
       //
       // TODO: consider prioritizing units that are brought in by
       // the ship.
-      co_await show_colony_view( colony_id, map_updater_ );
+      ColonyPlane colony_plane(
+          planes_, e_plane_stack::back,
+          colonies_state_.colony_for( colony_id ), gui_ );
+      co_await colony_plane.show_colony_view();
       break;
     }
     case e_travel_verdict::land_fall:
@@ -804,7 +810,7 @@ struct AttackHandler : public OrdersHandler {
                  Player& player, UnitsState& units_state,
                  ColoniesState&       colonies_state,
                  SettingsState const& settings,
-                 LandViewPlane&       land_view_plane )
+                 LandViewPlane& land_view_plane, Planes& planes )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
@@ -814,7 +820,8 @@ struct AttackHandler : public OrdersHandler {
       units_state_( units_state ),
       colonies_state_( colonies_state ),
       settings_( settings ),
-      land_view_plane_( land_view_plane ) {}
+      land_view_plane_( land_view_plane ),
+      planes_( planes ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -925,7 +932,10 @@ struct AttackHandler : public OrdersHandler {
       co_await gui_.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
-      co_await show_colony_view( colony_id, map_updater_ );
+      ColonyPlane colony_plane(
+          planes_, e_plane_stack::back,
+          colonies_state_.colony_for( colony_id ), gui_ );
+      co_await colony_plane.show_colony_view();
     }
   }
 
@@ -971,6 +981,8 @@ struct AttackHandler : public OrdersHandler {
   SettingsState const& settings_;
 
   LandViewPlane& land_view_plane_;
+
+  Planes& planes_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -1296,7 +1308,7 @@ unique_ptr<OrdersHandler> dispatch(
     TerrainState const& terrain_state, IGui& gui, Player& player,
     UnitsState& units_state, ColoniesState& colonies_state,
     SettingsState const& settings,
-    LandViewPlane&       land_view_plane ) {
+    LandViewPlane& land_view_plane, Planes& planes ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = units_state.unit_for( id );
 
@@ -1305,7 +1317,8 @@ unique_ptr<OrdersHandler> dispatch(
     // that knows how to handle it.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings, land_view_plane );
+        units_state, colonies_state, settings, land_view_plane,
+        planes );
 
   auto dst_nation =
       nation_from_coord( units_state, colonies_state, dst );
@@ -1314,18 +1327,21 @@ unique_ptr<OrdersHandler> dispatch(
     // No units on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings, land_view_plane );
+        units_state, colonies_state, settings, land_view_plane,
+        planes );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings, land_view_plane );
+        units_state, colonies_state, settings, land_view_plane,
+        planes );
 
   // Must be an attack.
   return make_unique<AttackHandler>(
       id, d, map_updater, terrain_state, gui, player,
-      units_state, colonies_state, settings, land_view_plane );
+      units_state, colonies_state, settings, land_view_plane,
+      planes );
 }
 
 } // namespace
@@ -1338,10 +1354,10 @@ unique_ptr<OrdersHandler> handle_orders(
     IGui& gui, Player& player, TerrainState const& terrain_state,
     UnitsState& units_state, ColoniesState& colonies_state,
     SettingsState const& settings,
-    LandViewPlane&       land_view_plane ) {
+    LandViewPlane& land_view_plane, Planes& planes ) {
   return dispatch( id, mv.d, *map_updater, terrain_state, gui,
                    player, units_state, colonies_state, settings,
-                   land_view_plane );
+                   land_view_plane, planes );
 }
 
 } // namespace rn

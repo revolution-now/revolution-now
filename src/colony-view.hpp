@@ -16,13 +16,31 @@
 #include "colony-id.hpp"
 #include "wait.hpp"
 
+// Rds
+#include "plane-stack.rds.hpp"
+
 namespace rn {
 
-struct IMapUpdater;
+struct Colony;
+struct IGui;
+struct Planes;
 
-wait<> show_colony_view( ColonyId id, IMapUpdater& map_updater );
+/****************************************************************
+** ColonyPlane
+*****************************************************************/
+struct ColonyPlane {
+  ColonyPlane( Planes& planes, e_plane_stack where,
+               Colony& colony, IGui& gui );
+  ~ColonyPlane() noexcept;
 
-struct Plane;
-Plane* colony_plane();
+  wait<> show_colony_view() const;
+
+ private:
+  Planes&             planes_;
+  e_plane_stack const where_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn

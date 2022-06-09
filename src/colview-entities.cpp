@@ -719,18 +719,14 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   static unique_ptr<UnitsAtGateColonyView> create(
-      CargoView* cargo_view, Delta size,
-      IMapUpdater& map_updater, IGui& gui ) {
-    return make_unique<UnitsAtGateColonyView>(
-        cargo_view, size, map_updater, gui );
+      CargoView* cargo_view, Delta size, IGui& gui ) {
+    return make_unique<UnitsAtGateColonyView>( cargo_view, size,
+                                               gui );
   }
 
   UnitsAtGateColonyView( CargoView* cargo_view, Delta size,
-                         IMapUpdater& map_updater, IGui& gui )
-    : cargo_view_( cargo_view ),
-      size_( size ),
-      map_updater_( map_updater ),
-      gui_( gui ) {
+                         IGui& gui )
+    : cargo_view_( cargo_view ), size_( size ), gui_( gui ) {
     update();
   }
 
@@ -910,8 +906,9 @@ class UnitsAtGateColonyView : public ui::View,
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
+            TrappingMapUpdater map_updater;
             unit_to_map_square_non_interactive(
-                GameState::units(), map_updater_, unit.id,
+                GameState::units(), map_updater, unit.id,
                 colony().location() );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
@@ -1049,7 +1046,6 @@ class UnitsAtGateColonyView : public ui::View,
   CargoView*    cargo_view_;
   Delta         size_;
   maybe<UnitId> dragging_;
-  IMapUpdater&  map_updater_;
   IGui&         gui_;
 };
 
@@ -1291,7 +1287,7 @@ struct CompositeColSubView : public ui::InvisibleView,
 };
 
 void recomposite( ColonyId id, Delta const& canvas_size,
-                  IMapUpdater& map_updater, IGui& gui ) {
+                  IGui& gui ) {
   lg.trace( "recompositing colony view." );
   CHECK( colony_exists( id ) );
   g_composition.id          = id;
@@ -1366,7 +1362,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       p_cargo_view,
       middle_strip_size.with_width( middle_strip_size.w / 3_sx )
           .with_height( middle_strip_size.h - 32_h ),
-      map_updater, gui );
+      gui );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
@@ -1481,12 +1477,11 @@ void colview_drag_n_drop_draw(
   }
 }
 
-void set_colview_colony( ColonyId id, IMapUpdater& map_updater,
-                         IGui& gui ) {
+void set_colview_colony( ColonyId id, IGui& gui ) {
   auto new_id = id;
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( new_id, normal.delta(), map_updater, gui );
+  recomposite( new_id, normal.delta(), gui );
 }
 
 } // namespace rn
