@@ -75,7 +75,7 @@ std::unique_ptr<OrdersHandler> handle_orders(
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::sentry const&, IMapUpdater*, IGui& gui,
     Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const& ) {
+    SettingsState const&, LandViewPlane& ) {
   return make_unique<SentryHandler>( id, gui );
 }
 

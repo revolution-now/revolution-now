@@ -292,40 +292,40 @@ void cleanup_screen() {
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
 }
 
-MENU_ITEM_HANDLER(
-    scale_up, [] { inc_resolution_scale(); },
-    L0( g_resolution_scale_factor !=
-        Scale{ max_scale_factor } ) )
-
-MENU_ITEM_HANDLER(
-    scale_down, [] { dec_resolution_scale(); },
-    L0( g_resolution_scale_factor !=
-        Scale{ min_scale_factor } ) )
-
-MENU_ITEM_HANDLER(
-    scale_optimal, [] { set_optimal_resolution_scale(); },
-    L0( g_resolution_scale_factor !=
-        g_optimal_resolution_scale_factor ) )
-
-MENU_ITEM_HANDLER(
-    toggle_fullscreen,
-    [] {
-      auto is_fullscreen = toggle_fullscreen();
-      if( !is_fullscreen ) restore_window();
-    },
-    L0( true ) )
-
-MENU_ITEM_HANDLER(
-    restore_window,
-    [] {
-      if( is_window_fullscreen() ) {
-        toggle_fullscreen();
-        restore_window();
-      } else {
-        restore_window();
-      }
-    },
-    L0( true ) )
+// MENU_ITEM_HANDLER(
+//     scale_up, [] { inc_resolution_scale(); },
+//     L0( g_resolution_scale_factor !=
+//         Scale{ max_scale_factor } ) )
+//
+// MENU_ITEM_HANDLER(
+//     scale_down, [] { dec_resolution_scale(); },
+//     L0( g_resolution_scale_factor !=
+//         Scale{ min_scale_factor } ) )
+//
+// MENU_ITEM_HANDLER(
+//     scale_optimal, [] { set_optimal_resolution_scale(); },
+//     L0( g_resolution_scale_factor !=
+//         g_optimal_resolution_scale_factor ) )
+//
+// MENU_ITEM_HANDLER(
+//     toggle_fullscreen,
+//     [] {
+//       auto is_fullscreen = toggle_fullscreen();
+//       if( !is_fullscreen ) restore_window();
+//     },
+//     L0( true ) )
+//
+// MENU_ITEM_HANDLER(
+//     restore_window,
+//     [] {
+//       if( is_window_fullscreen() ) {
+//         toggle_fullscreen();
+//         restore_window();
+//       } else {
+//         restore_window();
+//       }
+//     },
+//     L0( true ) )
 
 void on_logical_resolution_changed() {
   // Invalidate cache.

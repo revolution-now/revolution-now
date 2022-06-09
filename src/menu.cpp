@@ -1137,6 +1137,15 @@ struct MenuPlane::Impl : public Plane {
 };
 
 /****************************************************************
+** Deregistrar
+*****************************************************************/
+void MenuPlane::Deregistrar::free_resource() {
+  DCHECK( menu_plane_ != nullptr );
+  DCHECK( plane_ != nullptr );
+  menu_plane_->unregister_handler( resource(), *plane_ );
+}
+
+/****************************************************************
 ** MenuPlane
 *****************************************************************/
 MenuPlane::MenuPlane( Planes& planes, e_plane_stack where )
@@ -1146,9 +1155,10 @@ MenuPlane::MenuPlane( Planes& planes, e_plane_stack where )
 
 MenuPlane::~MenuPlane() noexcept { planes_.pop( where_ ); }
 
-void MenuPlane::register_handler( e_menu_item item,
-                                  Plane&      plane ) {
+MenuPlane::Deregistrar MenuPlane::register_handler(
+    e_menu_item item, Plane& plane ) {
   impl_->register_handler( item, plane );
+  return Deregistrar{ *this, plane, item };
 }
 
 void MenuPlane::unregister_handler( e_menu_item item,

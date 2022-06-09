@@ -815,24 +815,24 @@ bool menu_music_set_player_enabled() {
   return true;
 }
 
-MENU_ITEM_HANDLER( music_play, menu_music_play,
-                   menu_music_play_enabled );
-MENU_ITEM_HANDLER( music_stop, menu_music_stop,
-                   menu_music_stop_enabled );
-MENU_ITEM_HANDLER( music_pause, menu_music_pause,
-                   menu_music_pause_enabled );
-MENU_ITEM_HANDLER( music_resume, menu_music_resume,
-                   menu_music_resume_enabled );
-MENU_ITEM_HANDLER( music_next, menu_music_next,
-                   menu_music_next_enabled );
-MENU_ITEM_HANDLER( music_prev, menu_music_prev,
-                   menu_music_prev_enabled );
-MENU_ITEM_HANDLER( music_vol_up, menu_music_vol_up,
-                   menu_music_vol_up_enabled );
-MENU_ITEM_HANDLER( music_vol_down, menu_music_vol_down,
-                   menu_music_vol_down_enabled );
-MENU_ITEM_HANDLER( music_set_player, menu_music_set_player,
-                   menu_music_set_player_enabled );
+// MENU_ITEM_HANDLER( music_play, menu_music_play,
+//                    menu_music_play_enabled );
+// MENU_ITEM_HANDLER( music_stop, menu_music_stop,
+//                    menu_music_stop_enabled );
+// MENU_ITEM_HANDLER( music_pause, menu_music_pause,
+//                    menu_music_pause_enabled );
+// MENU_ITEM_HANDLER( music_resume, menu_music_resume,
+//                    menu_music_resume_enabled );
+// MENU_ITEM_HANDLER( music_next, menu_music_next,
+//                    menu_music_next_enabled );
+// MENU_ITEM_HANDLER( music_prev, menu_music_prev,
+//                    menu_music_prev_enabled );
+// MENU_ITEM_HANDLER( music_vol_up, menu_music_vol_up,
+//                    menu_music_vol_up_enabled );
+// MENU_ITEM_HANDLER( music_vol_down, menu_music_vol_down,
+//                    menu_music_vol_down_enabled );
+// MENU_ITEM_HANDLER( music_set_player, menu_music_set_player,
+//                    menu_music_set_player_enabled );
 
 // Testing
 void test() {

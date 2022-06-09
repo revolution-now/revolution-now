@@ -207,7 +207,7 @@ void frame_loop_body( rr::Renderer&     renderer,
   renderer.set_physical_screen_size(
       main_window_physical_size() );
   renderer.render_pass( [&]( rr::Renderer& renderer ) {
-    plane_stack.draw_all_planes( renderer );
+    plane_stack.draw( renderer );
   } );
 };
 

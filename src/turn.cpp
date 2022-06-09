@@ -29,7 +29,8 @@
 #include "menu.hpp"
 #include "on-map.hpp"
 #include "orders.hpp"
-#include "panel.hpp" // FIXME
+#include "panel.hpp"
+#include "plane-stack.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
@@ -108,10 +109,10 @@ NationTurnState new_nation_turn_obj( e_nation nat ) {
   };
 }
 
-wait<> advance_time( TurnTimePoint& time_point ) {
+wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   if( time_point.year == 1600 &&
       time_point.season == e_season::spring )
-    co_await ui::message_box(
+    co_await gui.message_box(
         "Starting in the year @[H]1600@[] the time scale "
         "changes.  Henceforth there will be both a "
         "@[H]Spring@[] and a @[H]Fall@[] turn each year." );
@@ -213,12 +214,12 @@ wait<> menu_map_editor_handler() {
       [] { g_menu_actions.send( e_menu_actions::item ); }, \
       [] { return g_menu_commands_accepted; } )
 
-DEFAULT_TURN_MENU_ITEM_HANDLER( exit );
-DEFAULT_TURN_MENU_ITEM_HANDLER( save );
-DEFAULT_TURN_MENU_ITEM_HANDLER( load );
-DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
-DEFAULT_TURN_MENU_ITEM_HANDLER( harbor_view );
-DEFAULT_TURN_MENU_ITEM_HANDLER( map_editor );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( exit );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( save );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( load );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( harbor_view );
+// DEFAULT_TURN_MENU_ITEM_HANDLER( map_editor );
 
 #define CASE_MENU_HANDLER( item ) \
   case e_menu_actions::item: return menu_##item##_handler();
@@ -379,11 +380,14 @@ wait<> process_player_input( next_turn_t, IMapUpdater& ) {
   co_return;
 }
 
-wait<> process_inputs( IMapUpdater& map_updater ) {
-  landview_reset_input_buffers();
+wait<> process_inputs( PanelPlane&    panel_plane,
+                       LandViewPlane& land_view_plane,
+                       IMapUpdater&   map_updater ) {
+  land_view_plane.landview_reset_input_buffers();
   while( true ) {
-    auto wait_for_button = co::fmap(
-        [] λ( next_turn_t{} ), wait_for_eot_button_click() );
+    auto wait_for_button =
+        co::fmap( [] λ( next_turn_t{} ),
+                  panel_plane.wait_for_eot_button_click() );
     // The reason that we want to use co::first here instead of
     // interleaving the three streams is because as soon as one
     // becomes ready (and we start processing it) we want all the
@@ -391,10 +395,10 @@ wait<> process_inputs( IMapUpdater& map_updater ) {
     // the effect of disabling further input on them (e.g., dis-
     // abling menu items), which is what we want for a good user
     // experience.
-    UserInput command = co_await co::first( //
-        wait_for_menu_selection(),          //
-        landview_eot_get_next_input(),      //
-        std::move( wait_for_button )        //
+    UserInput command = co_await co::first(            //
+        wait_for_menu_selection(),                     //
+        land_view_plane.landview_eot_get_next_input(), //
+        std::move( wait_for_button )                   //
     );
     co_await rn::visit(
         command, LC( process_player_input( _, map_updater ) ) );
@@ -409,35 +413,34 @@ wait<> process_inputs( IMapUpdater& map_updater ) {
 
 } // namespace eot
 
-wait<> end_of_turn( IMapUpdater& map_updater ) {
+wait<> end_of_turn( PanelPlane&    panel_plane,
+                    LandViewPlane& land_view_plane,
+                    IMapUpdater&   map_updater ) {
   SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
-  return eot::process_inputs( map_updater );
+  return eot::process_inputs( panel_plane, land_view_plane,
+                              map_updater );
 }
 
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-wait<> process_player_input( UnitId, e_menu_actions action,
-                             IMapUpdater&, IGui&, Player&,
-                             NationTurnState&,
-                             TerrainState const&, UnitsState&,
-                             ColoniesState&,
-                             SettingsState const& ) {
+wait<> process_player_input(
+    UnitId, e_menu_actions action, IMapUpdater&, IGui&, Player&,
+    NationTurnState&, TerrainState const&, UnitsState&,
+    ColoniesState&, SettingsState const&, LandViewPlane& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   return handle_menu_item( action );
 }
 
-wait<> process_player_input( UnitId                       id,
-                             LandViewPlayerInput_t const& input,
-                             IMapUpdater& map_updater, IGui& gui,
-                             Player&              player,
-                             NationTurnState&     nat_turn_st,
-                             TerrainState const&  terrain_state,
-                             UnitsState&          units_state,
-                             ColoniesState&       colonies_state,
-                             SettingsState const& settings ) {
+wait<> process_player_input(
+    UnitId id, LandViewPlayerInput_t const& input,
+    IMapUpdater& map_updater, IGui& gui, Player& player,
+    NationTurnState&    nat_turn_st,
+    TerrainState const& terrain_state, UnitsState& units_state,
+    ColoniesState& colonies_state, SettingsState const& settings,
+    LandViewPlane& land_view_plane ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
   switch( input.to_enum() ) {
@@ -487,7 +490,8 @@ wait<> process_player_input( UnitId                       id,
 
       unique_ptr<OrdersHandler> handler = orders_handler(
           id, orders, &map_updater, gui, player, terrain_state,
-          units_state, colonies_state, settings );
+          units_state, colonies_state, settings,
+          land_view_plane );
       CHECK( handler );
       Coord old_loc    = coord_for_unit_indirect_or_die( id );
       auto  run_result = co_await handler->run();
@@ -499,7 +503,7 @@ wait<> process_player_input( UnitId                       id,
       // intuitive user experience.
       if( run_result.suspended ) {
         lg.debug( "clearing land-view input buffers." );
-        landview_reset_input_buffers();
+        land_view_plane.landview_reset_input_buffers();
       }
       if( !run_result.order_was_run ) break;
       // !! The unit may no longer exist at this point, e.g. if
@@ -528,11 +532,11 @@ wait<> process_player_input( UnitId                       id,
       auto curr_size = prioritize.size();
       CHECK( curr_size <= orig_size );
       if( curr_size == 0 )
-        co_await ui::message_box(
+        co_await gui.message_box(
             "The selected unit(s) have already moved this "
             "turn." );
       else if( curr_size < orig_size )
-        co_await ui::message_box(
+        co_await gui.message_box(
             "Some of the selected units have already moved this "
             "turn." );
       for( UnitId id_to_add : prioritize )
@@ -543,8 +547,8 @@ wait<> process_player_input( UnitId                       id,
 }
 
 wait<LandViewPlayerInput_t> landview_player_input(
-    NationTurnState& nat_turn_st, UnitsState const& units_state,
-    UnitId id ) {
+    LandViewPlane& land_view_plane, NationTurnState& nat_turn_st,
+    UnitsState const& units_state, UnitId id ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
@@ -553,7 +557,8 @@ wait<LandViewPlayerInput_t> landview_player_input(
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );
     nat_turn_st.need_eot = false;
-    response = co_await landview_get_next_input( id );
+    response =
+        co_await land_view_plane.landview_get_next_input( id );
   }
   co_return response;
 }
@@ -564,14 +569,17 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
                          TerrainState const&  terrain_state,
                          UnitsState&          units_state,
                          ColoniesState&       colonies_state,
-                         SettingsState const& settings ) {
+                         SettingsState const& settings,
+                         LandViewPlane&       land_view_plane ) {
   auto command = co_await co::first(
       wait_for_menu_selection(),
-      landview_player_input( nat_turn_st, units_state, id ) );
+      landview_player_input( land_view_plane, nat_turn_st,
+                             units_state, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
     return process_player_input(
         id, action, map_updater, gui, player, nat_turn_st,
-        terrain_state, units_state, colonies_state, settings );
+        terrain_state, units_state, colonies_state, settings,
+        land_view_plane );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -583,7 +591,8 @@ wait<> query_unit_input( UnitId id, IMapUpdater& map_updater,
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( UnitsState&          units_state,
+wait<bool> advance_unit( LandViewPlane&       land_view_plane,
+                         UnitsState&          units_state,
                          ColoniesState const& colonies_state,
                          TerrainState const&  terrain_state,
                          SettingsState const& settings,
@@ -597,8 +606,8 @@ wait<bool> advance_unit( UnitsState&          units_state,
                        unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await landview_ensure_visible( id );
-      co_await ui::message_box_basic(
+      co_await land_view_plane.landview_ensure_visible( id );
+      co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
     co_return( unit.orders() != e_unit_orders::road );
@@ -609,12 +618,12 @@ wait<bool> advance_unit( UnitsState&          units_state,
                        unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await landview_ensure_visible( id );
+      co_await land_view_plane.landview_ensure_visible( id );
       // TODO: if we were clearing a forest then we should pick a
       // colony in the vicinity and add a certain amount of
       // lumber to it (see strategy guide for formula) and give a
       // message to the user.
-      co_await ui::message_box_basic(
+      co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
     co_return( unit.orders() != e_unit_orders::plow );
@@ -641,7 +650,7 @@ wait<bool> advance_unit( UnitsState&          units_state,
             units_state, colonies_state, terrain_state, player,
             units_state.harbor_view_state_of( id ) );
         if( !dst_coord.has_value() ) {
-          co_await ui::message_box(
+          co_await gui.message_box(
               "Unfortunately, while our @[H]{}@[] has arrived "
               "in the new world, there are no appropriate water "
               "squares on which to place it.  We will try again "
@@ -676,14 +685,12 @@ wait<bool> advance_unit( UnitsState&          units_state,
   co_return true;
 }
 
-wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
-                            Player&              player,
-                            NationTurnState&     nat_turn_st,
-                            TerrainState const&  terrain_state,
-                            UnitsState&          units_state,
-                            ColoniesState&       colonies_state,
-                            SettingsState const& settings,
-                            deque<UnitId>&       q ) {
+wait<> units_turn_one_pass(
+    LandViewPlane& land_view_plane, IMapUpdater& map_updater,
+    IGui& gui, Player& player, NationTurnState& nat_turn_st,
+    TerrainState const& terrain_state, UnitsState& units_state,
+    ColoniesState& colonies_state, SettingsState const& settings,
+    deque<UnitId>& q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -698,8 +705,8 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
     }
 
     bool should_ask = co_await advance_unit(
-        units_state, colonies_state, terrain_state, settings,
-        player, gui, map_updater, id );
+        land_view_plane, units_state, colonies_state,
+        terrain_state, settings, player, gui, map_updater, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -716,14 +723,15 @@ wait<> units_turn_one_pass( IMapUpdater& map_updater, IGui& gui,
     // activates another unit).
     co_await query_unit_input(
         id, map_updater, gui, player, nat_turn_st, terrain_state,
-        units_state, colonies_state, settings );
+        units_state, colonies_state, settings, land_view_plane );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
   }
 }
 
-wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
+wait<> units_turn( LandViewPlane& land_view_plane,
+                   IMapUpdater& map_updater, IGui& gui,
                    Player& player, NationTurnState& nat_turn_st,
                    TerrainState const&  terrain_state,
                    UnitsState&          units_state,
@@ -752,9 +760,10 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass(
-        map_updater, gui, player, nat_turn_st, terrain_state,
-        units_state, colonies_state, settings, q );
+    co_await units_turn_one_pass( land_view_plane, map_updater,
+                                  gui, player, nat_turn_st,
+                                  terrain_state, units_state,
+                                  colonies_state, settings, q );
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( units_state, st.nation );
@@ -768,21 +777,24 @@ wait<> units_turn( IMapUpdater& map_updater, IGui& gui,
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn( SettingsState const& settings,
+wait<> colonies_turn( LandViewPlane&       land_view_plane,
+                      SettingsState const& settings,
                       UnitsState&          units_state,
                       TerrainState const&  terrain_state,
                       Player&              player,
                       ColoniesState&       colonies_state,
                       IMapUpdater& map_updater, IGui& gui ) {
   co_await evolve_colonies_for_player(
-      colonies_state, settings, units_state, terrain_state,
-      player, map_updater, gui );
+      land_view_plane, colonies_state, settings, units_state,
+      terrain_state, player, map_updater, gui );
 }
 
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
-wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
+wait<> nation_turn( PanelPlane&    panel_plane,
+                    LandViewPlane& land_view_plane,
+                    Player& player, NationTurnState& nat_turn_st,
                     TerrainState const&  terrain_state,
                     UnitsState&          units_state,
                     SettingsState const& settings,
@@ -804,35 +816,39 @@ wait<> nation_turn( Player& player, NationTurnState& nat_turn_st,
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn( settings, units_state, terrain_state,
-                            player, colonies_state, map_updater,
-                            gui );
+    co_await colonies_turn( land_view_plane, settings,
+                            units_state, terrain_state, player,
+                            colonies_state, map_updater, gui );
     st.did_colonies = true;
   }
 
   if( !st.did_units ) {
-    co_await units_turn( map_updater, gui, player, st,
-                         terrain_state, units_state,
+    co_await units_turn( land_view_plane, map_updater, gui,
+                         player, st, terrain_state, units_state,
                          colonies_state, settings );
     st.did_units = true;
   }
   CHECK( st.units.empty() );
 
   // Ending.
-  if( st.need_eot ) co_await end_of_turn( map_updater );
+  if( st.need_eot )
+    co_await end_of_turn( panel_plane, land_view_plane,
+                          map_updater );
 }
 
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-wait<> next_turn_impl( PlayersState&        players_state,
+wait<> next_turn_impl( PanelPlane&          panel_plane,
+                       LandViewPlane&       land_view_plane,
+                       PlayersState&        players_state,
                        TerrainState const&  terrain_state,
                        UnitsState&          units_state,
                        SettingsState const& settings,
                        TurnState&           turn_state,
                        ColoniesState&       colonies_state,
                        IMapUpdater& map_updater, IGui& gui ) {
-  landview_start_new_turn();
+  land_view_plane.landview_start_new_turn();
   auto& st = turn_state;
 
   // Starting.
@@ -847,8 +863,9 @@ wait<> next_turn_impl( PlayersState&        players_state,
   // Body.
   if( st.nation.has_value() ) {
     Player& player = players_state.players[st.nation->nation];
-    co_await nation_turn( player, *st.nation, terrain_state,
-                          units_state, settings, players_state,
+    co_await nation_turn( panel_plane, land_view_plane, player,
+                          *st.nation, terrain_state, units_state,
+                          settings, players_state,
                           colonies_state, map_updater, gui );
     st.nation.reset();
   }
@@ -857,14 +874,15 @@ wait<> next_turn_impl( PlayersState&        players_state,
     st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
     Player& player = players_state.players[st.nation->nation];
-    co_await nation_turn( player, *st.nation, terrain_state,
-                          units_state, settings, players_state,
+    co_await nation_turn( panel_plane, land_view_plane, player,
+                          *st.nation, terrain_state, units_state,
+                          settings, players_state,
                           colonies_state, map_updater, gui );
     st.nation.reset();
   }
 
   reset_turn_obj( st );
-  co_await advance_time( st.time_point );
+  co_await advance_time( gui, st.time_point );
 }
 
 } // namespace
@@ -872,18 +890,22 @@ wait<> next_turn_impl( PlayersState&        players_state,
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> next_turn( Planes& planes, PlayersState& players_state,
+wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
+                  PlayersState&        players_state,
                   TerrainState const&  terrain_state,
+                  LandViewState&       land_view_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,
                   TurnState&           turn_state,
                   ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
-  ScopedPlanePush pusher( e_plane_config::land_view );
-  LandViewPlane   land_view_plane(
-        plane_stack[e_plane_stack_level::bottom],
-        e_plane_stack_push::back );
-  co_await next_turn_impl( players_state, terrain_state,
+  LandViewPlane land_view_plane( planes, e_plane_stack::back,
+                                 menu_plane, land_view_state,
+                                 terrain_state );
+  PanelPlane    panel_plane( planes, e_plane_stack::back,
+                             menu_plane );
+  co_await next_turn_impl( panel_plane, land_view_plane,
+                           players_state, terrain_state,
                            units_state, settings, turn_state,
                            colonies_state, map_updater, gui );
 }

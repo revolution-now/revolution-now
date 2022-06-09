@@ -47,8 +47,14 @@ class deferred {
   deferred( deferred const& ) = default;
   deferred( deferred&& )      = default;
 
-  T& operator=( T const& rhs ) { val_ = rhs; }
-  T& operator=( T&& rhs ) { val_ = std::move( rhs ); }
+  T& operator=( T const& rhs ) {
+    val_ = rhs;
+    return *val_;
+  }
+  T& operator=( T&& rhs ) {
+    val_ = std::move( rhs );
+    return *val_;
+  }
 
   bool constructed() const { return val_.has_value(); }
 

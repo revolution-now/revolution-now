@@ -1,23 +1,11 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'frame',
  \ 'plane',
- \ 'app-ctrl',
  \ 'plane-stack',
- \ 'game',
- \ 'omni',
- \ 'main-menu',
- \ 'turn',
  \ 'map-edit',
- \ 'land-view',
- \ 'panel',
  \ 'colony-view',
  \ 'harbor-view',
  \ 'console',
- \ 'menu',
- \ 'gui',
- \ 'window',
- \ 'lua-ui',
 \]
 
 let s:luas = [

@@ -89,6 +89,9 @@ maybe<Rect> section_inverted( e_section sec ) {
   SHOULD_NOT_BE_HERE;
 }
 
+// FIXME
+bool is_menu_plane_enabled() { return true; }
+
 // FIXME: the results of this need to be cached and only recom-
 // puted when some state changes that would affect it. This is
 // because this function is called multiple times per frame.
@@ -98,12 +101,12 @@ maybe<Rect> section_inverted( e_section sec ) {
 // advance_state to do that.
 maybe<Rect> section( e_section sec ) {
   maybe<Rect> res;
-  auto        menu_height = is_plane_enabled( e_plane::menu )
+  auto        menu_height = is_menu_plane_enabled()
                                 ? config_ui.menus.menu_bar_height
                                 : 0_h;
   switch( sec ) {
     case e_section::menu_bar: {
-      if( !is_plane_enabled( e_plane::menu ) ) break;
+      if( !is_menu_plane_enabled() ) break;
       UNWRAP_CHECK( normal, section( e_section::normal ) );
       res    = normal;
       res->h = menu_height;

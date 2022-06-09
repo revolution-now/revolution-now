@@ -19,6 +19,10 @@
 #include "menu.rds.hpp"
 #include "plane-stack.rds.hpp"
 
+// base
+#include "base/macros.hpp"
+#include "base/zero.hpp"
+
 // C++ standard library
 #include <string>
 
@@ -34,11 +38,33 @@ struct MenuPlane {
   MenuPlane( Planes& planes, e_plane_stack where );
   ~MenuPlane() noexcept;
 
-  void register_handler( e_menu_item item, Plane& plane );
+  struct Deregistrar : base::zero<Deregistrar, e_menu_item> {
+    using Base = base::zero<Deregistrar, e_menu_item>;
 
-  void unregister_handler( e_menu_item item, Plane& plane );
+    Deregistrar() = default;
+
+    Deregistrar( MenuPlane& menu_plane, Plane& plane,
+                 e_menu_item item )
+      : Base( item ),
+        menu_plane_( &menu_plane ),
+        plane_( &plane ) {}
+
+   private:
+    MenuPlane* menu_plane_ = nullptr;
+    Plane*     plane_      = nullptr;
+
+    friend Base;
+    // Implement base::zero.
+    void free_resource();
+  };
+
+ public:
+  [[nodiscard]] Deregistrar register_handler( e_menu_item item,
+                                              Plane& plane );
 
  private:
+  void unregister_handler( e_menu_item item, Plane& plane );
+
   Planes&             planes_;
   e_plane_stack const where_;
 

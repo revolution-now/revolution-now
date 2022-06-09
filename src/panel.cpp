@@ -18,14 +18,11 @@
 #include "gs-players.hpp"
 #include "gs-turn.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "menu.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
-
-// luapp
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -38,34 +35,19 @@ using namespace std;
 
 namespace rn {
 
-namespace {
+namespace {} // namespace
 
 /****************************************************************
-** Panel Rendering
+** PanelPlane::Impl
 *****************************************************************/
-struct PanelPlane : public Plane {
-  PanelPlane() = default;
-  bool covers_screen() const override { return false; }
+struct PanelPlane::Impl : public Plane {
+  MenuPlane::Deregistrar eot_click_dereg_;
 
-  static auto rect() {
-    UNWRAP_CHECK( res, compositor::section(
-                           compositor::e_section::panel ) );
-    return res;
-  }
-  static W panel_width() { return rect().w; }
-  static H panel_height() { return rect().h; }
+  Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
+    // Register menu handlers.
+    eot_click_dereg_ = menu_plane_.register_handler(
+        e_menu_item::next_turn, *this );
 
-  Delta delta() const {
-    return { panel_width(), panel_height() };
-  }
-  Coord origin() const { return rect().upper_left(); };
-
-  ui::ButtonView& next_turn_button() {
-    auto p_view = view->at( 0 );
-    return *p_view.view->cast<ui::ButtonView>();
-  }
-
-  void initialize( IMapUpdater& ) override {
     vector<ui::OwningPositionedView> view_vec;
 
     auto button_view =
@@ -89,6 +71,26 @@ struct PanelPlane : public Plane {
         delta(), std::move( view_vec ) );
 
     next_turn_button().enable( false );
+  }
+
+  bool covers_screen() const override { return false; }
+
+  static auto rect() {
+    UNWRAP_CHECK( res, compositor::section(
+                           compositor::e_section::panel ) );
+    return res;
+  }
+  static W panel_width() { return rect().w; }
+  static H panel_height() { return rect().h; }
+
+  Delta delta() const {
+    return { panel_width(), panel_height() };
+  }
+  Coord origin() const { return rect().upper_left(); };
+
+  ui::ButtonView& next_turn_button() const {
+    auto p_view = view->at( 0 );
+    return *p_view.view->cast<ui::ButtonView>();
   }
 
   string season_str( e_season season ) const {
@@ -170,38 +172,48 @@ struct PanelPlane : public Plane {
     co_await w_promise.wait();
   }
 
+  bool will_handle_menu_click(
+      e_menu_item item ) const override {
+    CHECK( item == e_menu_item::next_turn );
+    return next_turn_button().enabled();
+  }
+
+  void handle_menu_click( e_menu_item item ) override {
+    CHECK( item == e_menu_item::next_turn );
+    w_promise.set_value_emplace_if_not_set();
+  }
+
+  wait<> wait_for_eot_button_click() {
+    return user_hits_eot_button();
+  }
+
+  MenuPlane&                    menu_plane_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<>                w_promise;
 };
 
-PanelPlane g_panel_plane;
-
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-MENU_ITEM_HANDLER(
-    next_turn,
-    [] {
-      g_panel_plane.w_promise.set_value_emplace_if_not_set();
-    },
-    [] { return g_panel_plane.next_turn_button().enabled(); } )
-
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
-Plane* panel_plane() { return &g_panel_plane; }
-
-wait<> wait_for_eot_button_click() {
-  return g_panel_plane.user_hits_eot_button();
-}
+// MENU_ITEM_HANDLER(
+//     next_turn,
+//     [] {
+//       g_panel_plane.w_promise.set_value_emplace_if_not_set();
+//     },
+//     [] { return g_panel_plane.next_turn_button().enabled(); }
+//     )
 
 /****************************************************************
-** Lua bindings
+** PanelPlane
 *****************************************************************/
-LUA_FN( end_turn, void ) {
-  g_panel_plane.w_promise.set_value_emplace_if_not_set();
+PanelPlane::PanelPlane( Planes& planes, e_plane_stack where,
+                        MenuPlane& menu_plane )
+  : planes_( planes ),
+    where_( where ),
+    impl_( new Impl( menu_plane ) ) {
+  planes.push( *impl_.get(), where );
 }
+
+PanelPlane::~PanelPlane() noexcept { planes_.pop( where_ ); }
 
 } // namespace rn

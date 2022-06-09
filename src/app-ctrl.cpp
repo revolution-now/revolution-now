@@ -41,7 +41,7 @@ wait<> revolution_now() {
 
   MainMenuPlane main_menu_plane(
       plane_stack[e_plane_stack_level::bottom],
-      e_plane_stack::front, gui );
+      e_plane_stack::front, menu_plane, gui );
 
   // Level 2 planes.
   ConsolePlane console_plane(

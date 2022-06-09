@@ -29,6 +29,7 @@
 
 namespace rn {
 
+struct IGui;
 struct IMapUpdater;
 
 // TODO: Keep this generic and move it into the ui namespace
@@ -176,7 +177,8 @@ ColonySubView& colview_entity( e_colview_entity entity );
 ColonySubView& colview_top_level();
 
 // Must be called before any other method in this module.
-void set_colview_colony( ColonyId id, IMapUpdater& map_updater );
+void set_colview_colony( ColonyId id, IMapUpdater& map_updater,
+                         IGui& gui );
 
 void colview_drag_n_drop_draw(
     rr::Renderer&                       renderer,

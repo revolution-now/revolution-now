@@ -31,14 +31,15 @@
 
 namespace rn {
 
-struct IGui;
-struct SettingsState;
 struct ColoniesState;
-struct Player;
-struct TerrainState;
-struct UnitsState;
 struct Colony;
+struct IGui;
+struct LandViewPlane;
+struct Player;
+struct SettingsState;
+struct TerrainState;
 struct Unit;
+struct UnitsState;
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
@@ -67,6 +68,7 @@ ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
 
 // Evolve the colony by one turn.
 wait<> evolve_colonies_for_player(
+    LandViewPlane& land_view_plane,
     ColoniesState& colonies_state, SettingsState const& settings,
     UnitsState& units_state, TerrainState const& terrain_state,
     Player& player, IMapUpdater& map_updater, IGui& gui );

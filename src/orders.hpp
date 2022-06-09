@@ -27,6 +27,7 @@
 namespace rn {
 
 struct IMapUpdater;
+struct LandViewPlane;
 struct SettingsState;
 struct UnitsState;
 struct ColoniesState;
@@ -97,6 +98,7 @@ std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
     UnitsState& units_state, ColoniesState& colonies_state,
-    SettingsState const& settings );
+    SettingsState const& settings,
+    LandViewPlane&       land_view_plane );
 
 } // namespace rn

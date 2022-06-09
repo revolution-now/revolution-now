@@ -27,6 +27,7 @@
 #include "lua.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
 #include "render.hpp"
@@ -93,257 +94,10 @@ struct PlayerInput {
   Time_t                when;
 };
 
-co::stream<RawInput>                   g_raw_input_stream;
-co::stream<PlayerInput>                g_translated_input_stream;
-unordered_map<UnitId, UnitAnimation_t> g_unit_animations;
-LandViewUnitActionState_t              g_landview_state =
-    LandViewUnitActionState::none{};
-maybe<UnitId> g_last_unit_input;
-
-bool g_needs_scroll_to_unit_on_input = true;
-
-SmoothViewport& viewport() {
-  return GameState::land_view().viewport;
-}
-
 /****************************************************************
 ** Land-View Rendering
 *****************************************************************/
 struct LandViewRenderer {
-  // Given a tile, compute the screen rect where it should be
-  // rendered.
-  Rect render_rect_for_tile( Coord tile ) {
-    Delta delta_in_tiles  = tile - covered.upper_left();
-    Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
-    return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
-  }
-
-  using UnitSkipFunc = base::function_ref<bool( UnitId )>;
-
-  void render_units_on_square( Coord tile, UnitSkipFunc skip ) {
-    // TODO: When there are multiple units on a square, just
-    // render one (which one?) and then render multiple flags
-    // (stacked) to indicate that visually.
-    Coord loc = render_rect_for_tile( tile ).upper_left();
-    for( UnitId id : units_from_coord( tile ) ) {
-      if( skip( id ) ) continue;
-      render_unit( renderer, loc, id, /*with_icon=*/true );
-    }
-  }
-
-  void render_units_on_square( Coord tile ) {
-    render_units_on_square( tile,
-                            []( UnitId ) { return false; } );
-  }
-
-  void render_units_default() {
-    for( Coord tile : covered ) {
-      if( colony_from_coord( tile ).has_value() ) continue;
-      render_units_on_square( tile );
-    }
-  }
-
-  void render_units_blink( UnitId id, bool visible ) {
-    UnitId blinker_id = id;
-    Coord  blink_coord =
-        coord_for_unit_indirect_or_die( blinker_id );
-    for( auto coord : covered ) {
-      if( coord == blink_coord ) continue;
-      if( colony_from_coord( coord ).has_value() ) continue;
-      render_units_on_square( coord );
-    }
-    // Now render the blinking unit.
-    Coord loc = render_rect_for_tile( blink_coord ).upper_left();
-    if( visible )
-      render_unit( renderer, loc, blinker_id,
-                   /*with_icon=*/true );
-  }
-
-  void render_units_during_slide(
-      UnitId id, maybe<UnitId> target_unit,
-      UnitAnimation::slide const& slide ) {
-    UnitId mover_id = id;
-    Coord  mover_coord =
-        coord_for_unit_indirect_or_die( mover_id );
-    maybe<Coord> target_unit_coord =
-        target_unit.bind( coord_for_unit_multi_ownership );
-    // First render all units other than the sliding unit and
-    // other than units on colony squares.
-    for( auto coord : covered ) {
-      bool has_colony = colony_from_coord( coord ).has_value();
-      if( has_colony && coord != target_unit_coord ) continue;
-      auto skip = [&]( UnitId id ) {
-        // Always draw the target unit, if any.
-        if( id == target_unit ) return false;
-        // On the square containing the unit being attacked, only
-        // draw the unit being attacked (if any).
-        if( coord == target_unit_coord ) return true;
-        if( has_colony ) return true;
-        if( id == mover_id ) return true;
-        return false;
-      };
-      render_units_on_square( coord, skip );
-    }
-    // Now render the sliding unit.
-    Delta tile_delta = slide.target - mover_coord;
-    CHECK( -1 <= tile_delta.w && tile_delta.w <= 1 );
-    CHECK( -1 <= tile_delta.h && tile_delta.h <= 1 );
-    tile_delta *= g_tile_scale;
-    Delta pixel_delta =
-        tile_delta.multiply_and_round( slide.percent );
-    Coord pixel_coord =
-        render_rect_for_tile( mover_coord ).upper_left();
-    pixel_coord += pixel_delta;
-    render_unit( renderer, pixel_coord, mover_id,
-                 /*with_icon=*/true );
-  }
-
-  void render_units_during_depixelate(
-      UnitId                           depixelate_id,
-      UnitAnimation::depixelate const& dp_anim ) {
-    // Need the multi_ownership version because we could be de-
-    // pixelating a colonist that is owned by a colony, which
-    // happens when the colony is captured.
-    Coord depixelate_tile =
-        coord_for_unit_multi_ownership_or_die( depixelate_id );
-    // First render all units other than units on colony squares
-    // and unites on the same tile as the depixelating unit.
-    for( Coord tile : covered ) {
-      if( tile == depixelate_tile ) continue;
-      if( colony_from_coord( tile ).has_value() ) continue;
-      render_units_on_square( tile );
-    }
-    // Now render the depixelating unit.
-    Coord loc =
-        render_rect_for_tile( depixelate_tile ).upper_left();
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, loc );
-    rr::Painter painter = renderer.painter();
-    // Check if we are depixelating to another unit.
-    switch( dp_anim.type ) {
-      case e_depixelate_anim::death: {
-        // Render and depixelate both the unit and the flag.
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                             dp_anim.stage );
-        render_unit( renderer, loc, depixelate_id,
-                     /*with_icon=*/true );
-        break;
-      }
-      case e_depixelate_anim::demote: {
-        CHECK( dp_anim.target.has_value() );
-        e_tile from_tile =
-            unit_from_id( depixelate_id ).desc().tile;
-        e_tile    to_tile = unit_attr( *dp_anim.target ).tile;
-        gfx::size target =
-            depixelation_offset( painter, from_tile, to_tile );
-        // Render the flag first so that we don't subject it to
-        // the depixelation.
-        render_nationality_icon( renderer, loc, depixelate_id );
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                             dp_anim.stage );
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
-                             target );
-        render_unit( renderer, loc, depixelate_id,
-                     /*with_icon=*/false );
-        break;
-      }
-    }
-  }
-
-  void render_colonies() {
-    rr::Painter painter = renderer.painter();
-    // FIXME: since colony icons spill over the usual 32x32 tile
-    // we need to render colonies that are beyond the `covered`
-    // rect.
-    for( Coord tile : covered ) {
-      maybe<ColonyId> col_id = colony_from_coord( tile );
-      if( !col_id.has_value() ) continue;
-      Colony const& colony = colony_from_id( *col_id );
-
-      Coord tile_coord =
-          render_rect_for_tile( tile ).upper_left();
-      Coord colony_sprite_upper_left =
-          tile_coord - Delta{ 6_w, 6_h };
-      render_colony( painter, colony_sprite_upper_left,
-                     *col_id );
-      Coord name_coord =
-          tile_coord + config_land_view.colony_name_offset;
-      render_text_markup(
-          renderer, name_coord,
-          config_land_view.colony_name_font,
-          TextMarkupInfo{
-              .shadowed_text_color   = gfx::pixel::white(),
-              .shadowed_shadow_color = gfx::pixel::black() },
-          fmt::format( "@[S]{}@[]", colony.name() ) );
-    }
-  }
-
-  // Units (rendering strategy depends on land view state).
-  void render_units() {
-    // The land view state should be set first, then the anima-
-    // tion state; though occasionally we are in a frame where
-    // the land view state has changed but the animation state
-    // has not been set yet.
-    if( g_unit_animations.empty() ) {
-      render_units_default();
-      return;
-    }
-
-    switch( g_landview_state.to_enum() ) {
-      using namespace LandViewUnitActionState;
-      case e::none: {
-        // In this case the global unit animations should always
-        // be empty, in which case the if statement above should
-        // have caught it.
-        SHOULD_NOT_BE_HERE;
-      }
-      case e::unit_input: {
-        auto& o = g_landview_state.get<unit_input>();
-        CHECK( g_unit_animations.size() == 1 );
-        UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                               o.unit_id ) );
-        ASSIGN_CHECK_V( blink_anim, animation,
-                        UnitAnimation::blink );
-        render_units_blink( o.unit_id, blink_anim.visible );
-        break;
-      }
-      case e::unit_move: {
-        auto& o = g_landview_state.get<unit_move>();
-        CHECK( g_unit_animations.size() == 1 );
-        UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                               o.unit_id ) );
-        ASSIGN_CHECK_V( slide_anim, animation,
-                        UnitAnimation::slide );
-        render_units_during_slide( o.unit_id,
-                                   /*target_unit=*/nothing,
-                                   slide_anim );
-        break;
-      }
-      case e::unit_attack: {
-        auto& o = g_landview_state.get<unit_attack>();
-        CHECK( g_unit_animations.size() == 1 );
-        UnitId anim_id = g_unit_animations.begin()->first;
-        UnitAnimation_t const& animation =
-            g_unit_animations.begin()->second;
-        if( auto slide_anim =
-                animation.get_if<UnitAnimation::slide>() ) {
-          CHECK( anim_id == o.attacker );
-          render_units_during_slide( o.attacker, o.defender,
-                                     *slide_anim );
-          break;
-        }
-        if( auto dp_anim =
-                animation.get_if<UnitAnimation::depixelate>() ) {
-          render_units_during_depixelate( anim_id, *dp_anim );
-          break;
-        }
-        FATAL(
-            "Unit animation not found for either slide or "
-            "depixelate." );
-        break;
-      }
-    }
-  }
-
   rr::Renderer& renderer;
   Rect const    covered = {};
 };
@@ -402,432 +156,719 @@ void render_backdrop( rr::Renderer& renderer ) {
   }
 }
 
-void render_land_view( rr::Renderer& renderer ) {
-  // If the map is zoomed out enough such that some of the outter
-  // space is visible, paint a background so that it won't just
-  // have empty black surroundings.
-  if( viewport().are_surroundings_visible() ) {
-    SCOPED_RENDERER_MOD( buffer_mods.buffer,
-                         rr::e_render_target_buffer::backdrop );
-    render_backdrop( renderer );
+} // namespace
 
-    {
-      // This is the shadow behind the land rectangle.
-      SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
-      int shadow_offset   = lround( 20 * viewport().get_zoom() );
-      rr::Painter painter = renderer.painter();
-      painter.draw_solid_rect(
-          viewport().rendering_dest_rect().shifted_by(
-              Delta( W{ shadow_offset }, H{ shadow_offset } ) ),
-          gfx::pixel::black().with_alpha( 100 ) );
-    }
+struct LandViewPlane::Impl : public Plane {
+  MenuPlane&          menu_plane_;
+  LandViewState&      land_view_state_;
+  TerrainState const& terrain_state_;
 
-    renderer.render_buffer(
-        rr::e_render_target_buffer::backdrop );
+  co::stream<RawInput>    raw_input_stream_;
+  co::stream<PlayerInput> translated_input_stream_;
+  unordered_map<UnitId, UnitAnimation_t> unit_animations_;
+  LandViewUnitActionState_t              landview_action_state_ =
+      LandViewUnitActionState::none{};
+  maybe<UnitId> last_unit_input_;
+
+  bool g_needs_scroll_to_unit_on_input = true;
+
+  SmoothViewport const& viewport() const {
+    return land_view_state_.viewport;
   }
 
-  // Now the actual land.
-  double zoom = viewport().get_zoom();
-  renderer.set_camera( viewport()
-                           .landscape_buffer_render_upper_left()
-                           .distance_from_origin(),
-                       zoom );
-  // Should do this after setting the camera.
-  renderer.render_buffer(
-      rr::e_render_target_buffer::landscape );
-
-  Coord corner = viewport().rendering_dest_rect().upper_left();
-  Delta hidden =
-      viewport().covered_pixels().upper_left() % g_tile_scale;
-  if( hidden != Delta{} ) {
-    DCHECK( hidden.w >= 0_w );
-    DCHECK( hidden.h >= 0_h );
-    // Move the rendering start slightly off screen (in the
-    // upper-left direction) by an amount that is within the span
-    // of one tile to partially show that tile row/column.
-    corner -= hidden.multiply_and_round( zoom );
+  SmoothViewport& viewport() {
+    return land_view_state_.viewport;
   }
 
-  LandViewRenderer lv_renderer{
-      .renderer = renderer,
-      .covered  = viewport().covered_tiles(),
-  };
-
-  // The below render_* functions will always render at normal
-  // scale and starting at 0,0 on the screen, and then the ren-
-  // derer mods that we've install above will automatically do
-  // the shifting and scaling.
-  SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
-  SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                       corner.distance_from_origin() );
-  lv_renderer.render_colonies();
-  lv_renderer.render_units();
-}
-
-/****************************************************************
-** Animations
-*****************************************************************/
-wait<> animate_depixelation( UnitId            id,
-                             e_depixelate_anim dp_anim ) {
-  CHECK( !g_unit_animations.contains( id ) );
-  UnitAnimation::depixelate& depixelate =
-      g_unit_animations[id].emplace<UnitAnimation::depixelate>();
-  SCOPE_EXIT( {
-    UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-    g_unit_animations.erase( it );
-  } );
-  depixelate.type   = dp_anim;
-  depixelate.stage  = 0.0;
-  depixelate.target = unit_from_id( id ).demoted_type();
-
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage <= 1.0 ) {
-    co_await throttle();
-    depixelate.stage += config_rn.depixelate_per_frame;
-  }
-}
-
-wait<> animate_blink( UnitId id ) {
-  using namespace std::literals::chrono_literals;
-  CHECK( !g_unit_animations.contains( id ) );
-  UnitAnimation::blink& blink =
-      g_unit_animations[id].emplace<UnitAnimation::blink>();
-  // FIXME: this needs to be initially `true` for those units
-  // which are not visible by default, such as e.g. a ship in a
-  // colony that is asking for orders. The idea is that we want
-  // this to be the opposite of the unit's default visibility so
-  // that when the unit asks for orders, the player sees a visual
-  // signal immediately.
-  //
-  // FIXME: this causes the unit to remain invisible when the
-  // player continually tries to move a unit into a forbidden
-  // square.
-  blink = UnitAnimation::blink{ .visible = false };
-  // The unit will always end up visible after we stop since we
-  // are going to delete the animation object for this unit,
-  // which leaves them visible by default. Do this via RAII be-
-  // cause this coroutine will usually be interrupted.
-  SCOPE_EXIT( {
-    UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-    g_unit_animations.erase( it );
-  } );
-
-  AnimThrottler throttle( 500ms, /*initial_delay=*/true );
-  while( true ) {
-    co_await throttle();
-    blink.visible = !blink.visible;
-  }
-}
-
-wait<> animate_slide( SettingsState const& settings, UnitId id,
-                      e_direction d ) {
-  CHECK( !g_unit_animations.contains( id ) );
-  Coord target = coord_for_unit_indirect_or_die( id );
-  UnitAnimation::slide& mv =
-      g_unit_animations[id].emplace<UnitAnimation::slide>();
-  SCOPE_EXIT( {
-    UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-    g_unit_animations.erase( it );
-  } );
-
-  // TODO: make this a game option.
-  double const kMaxVelocity =
-      settings.fast_piece_slide ? .1 : .07;
-
-  mv = UnitAnimation::slide{
-      .target      = target.moved( d ),
-      .percent     = 0.0,
-      .percent_vel = DissipativeVelocity{
-          /*min_velocity=*/0,            //
-          /*max_velocity=*/kMaxVelocity, //
-          /*initial_velocity=*/.1,       //
-          /*mag_acceleration=*/1,        //
-          /*mag_drag_acceleration=*/.002 //
-      }                                  //
-  };
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( mv.percent <= 1.0 ) {
-    co_await throttle();
-    mv.percent_vel.advance( e_push_direction::none );
-    mv.percent += mv.percent_vel.to_double();
-  }
-}
-
-wait<> center_on_blinking_unit_if_any() {
-  using u_i = LandViewUnitActionState::unit_input;
-  auto blinking_unit =
-      g_landview_state.get_if<u_i>().member( &u_i::unit_id );
-  if( !blinking_unit ) {
-    lg.warn( "There are no units currently asking for orders." );
-    return make_wait<>();
-  }
-  return landview_ensure_visible( *blinking_unit );
-}
-
-/****************************************************************
-** Tile Clicking
-*****************************************************************/
-// If there is a single unit on the square with orders and
-// allow_activate is false then the unit's orders will be
-// cleared.
-//
-// If there is a single unit on the square with orders and
-// allow_activate is true then the unit's orders will be cleared
-// and the unit will be placed at the back of the queue to poten-
-// tially move this turn.
-//
-// If there is a single unit on the square with no orders and
-// allow_activate is false then nothing is done.
-//
-// If there is a single unit on the square with no orders and
-// allow_activate is true then the unit will be prioritized
-// (moved to the front of the queue).
-//
-// If there are multiple units on the square then it will pop
-// open a window to allow the user to select and/or activate
-// them, with the results for each unit behaving in a similar way
-// to the single-unit case described above with respect to orders
-// and the allow_activate flag.
-wait<vector<LandViewPlayerInput_t>> click_on_world_tile(
-    Coord coord ) {
-  vector<LandViewPlayerInput_t> res;
-  auto add = [&res]<typename T>( T t ) -> T& {
-    res.push_back( std::move( t ) );
-    return res.back().get<T>();
-  };
-
-  bool allow_activate =
-      g_landview_state
-          .holds<LandViewUnitActionState::unit_input>();
-
-  // First check for colonies.
-  if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
-    auto& colony = add( LandViewPlayerInput::colony{} );
-    colony.id    = *maybe_id;
-    co_return res;
-  }
-
-  // Now check for units.
-  auto const& units = units_from_coord_recursive( coord );
-  if( units.size() != 0 ) {
-    // Decide which units are selected and for what actions.
-    vector<ui::UnitSelection> selections;
-    if( units.size() == 1 ) {
-      auto              id = *units.begin();
-      ui::UnitSelection selection{
-          id, ui::e_unit_selection::clear_orders };
-      if( !unit_from_id( id ).has_orders() && allow_activate )
-        selection.what = ui::e_unit_selection::activate;
-      selections = vector{ selection };
-    } else {
-      selections = co_await ui::unit_selection_box(
-          units, allow_activate );
-    }
-
-    vector<UnitId> prioritize;
-    for( auto const& selection : selections ) {
-      switch( selection.what ) {
-        case ui::e_unit_selection::clear_orders:
-          unit_from_id( selection.id ).clear_orders();
-          break;
-        case ui::e_unit_selection::activate:
-          CHECK( allow_activate );
-          // Activation implies also to clear orders if they're
-          // not already cleared. We do this here because, even
-          // if the prioritization is later denied (because the
-          // unit has already moved this turn) the clearing of
-          // the orders should still be upheld, because that can
-          // always be done, hence they are done separately.
-          unit_from_id( selection.id ).clear_orders();
-          prioritize.push_back( selection.id );
-          break;
-      }
-    }
-    // These need to all be grouped into a vector so that the
-    // first prioritized unit doesn't start asking for orders
-    // before the rest are prioritized.
-    if( !prioritize.empty() )
-      add( LandViewPlayerInput::prioritize{} ).units =
-          std::move( prioritize );
-
-    co_return res;
-  }
-
-  // Nothing to click on, so just scroll the map to center on the
-  // clicked tile.
-  viewport().set_point_seek(
-      viewport().world_tile_to_world_pixel_center( coord ) );
-
-  co_return res;
-}
-
-/****************************************************************
-** Input Processor
-*****************************************************************/
-// Fetches one raw input and translates it, adding a new element
-// into the "translated" stream. For each translated event cre-
-// ated, preserve the time that the corresponding raw input event
-// was received.
-wait<> raw_input_translator() {
-  while( !g_translated_input_stream.ready() ) {
-    RawInput raw_input = co_await g_raw_input_stream.next();
-
-    switch( raw_input.input.to_enum() ) {
-      using namespace LandViewRawInput;
-      case e::next_turn: {
-        g_translated_input_stream.send( PlayerInput(
-            LandViewPlayerInput::next_turn{}, raw_input.when ) );
-        break;
-      }
-      case e::orders: {
-        g_translated_input_stream.send( PlayerInput(
-            LandViewPlayerInput::give_orders{
-                .orders = raw_input.input
-                              .get<LandViewRawInput::orders>()
-                              .orders },
-            raw_input.when ) );
-        break;
-      }
-      case e::tile_click: {
-        auto& o = raw_input.input.get<tile_click>();
-        vector<LandViewPlayerInput_t> inputs =
-            co_await click_on_world_tile( o.coord );
-        // Since we may have just popped open a box to ask the
-        // user to select units, just use the "now" time so that
-        // these events don't get disgarded. Also, mouse clicks
-        // are not likely to get buffered for too long anyway.
-        for( auto const& input : inputs )
-          g_translated_input_stream.send(
-              PlayerInput( input, Clock_t::now() ) );
-        break;
-      }
-      case e::center:
-        // For this one, we just perform the action right here.
-        co_await center_on_blinking_unit_if_any();
-        break;
-    }
-  }
-}
-
-wait<LandViewPlayerInput_t> next_player_input_object() {
-  while( true ) {
-    if( !g_translated_input_stream.ready() )
-      co_await raw_input_translator();
-    PlayerInput res = co_await g_translated_input_stream.next();
-    // Ignore any input events that are too old.
-    if( Clock_t::now() - res.when < chrono::seconds{ 2 } )
-      co_return std::move( res.input );
-  }
-}
-
-/****************************************************************
-** Land View Plane
-*****************************************************************/
-void advance_viewport_state() {
-  UNWRAP_CHECK(
-      viewport_rect_pixels,
-      compositor::section( compositor::e_section::viewport ) );
-
-  viewport().advance_state( viewport_rect_pixels );
-
-  viewport().fix_zoom_rounding();
-
-  // TODO: should only do the following when the viewport has
-  // input focus.
-  auto const* __state = ::SDL_GetKeyboardState( nullptr );
-
-  // Returns true if key is pressed.
-  auto state = [__state]( ::SDL_Scancode code ) {
-    return __state[code] != 0;
-  };
-
-  if( state( ::SDL_SCANCODE_LSHIFT ) ) {
-    viewport().set_x_push(
-        state( ::SDL_SCANCODE_A )   ? e_push_direction::negative
-        : state( ::SDL_SCANCODE_D ) ? e_push_direction::positive
-                                    : e_push_direction::none );
-    // y motion
-    viewport().set_y_push(
-        state( ::SDL_SCANCODE_W )   ? e_push_direction::negative
-        : state( ::SDL_SCANCODE_S ) ? e_push_direction::positive
-                                    : e_push_direction::none );
-
-    if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
-        state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
-      viewport().stop_auto_panning();
-  }
-}
-
-maybe<orders_t> try_orders_from_lua( int keycode, bool ctrl_down,
-                                     bool shf_down ) {
-  lua::state& st = lua_global_state();
-
-  lua::any lua_orders = st["land_view"]["key_to_orders"](
-      keycode, ctrl_down, shf_down );
-  if( !lua_orders ) return nothing;
-
-  // FIXME: the conversion from Lua to C++ below needs to be au-
-  // tomated once we have sumtype and struct reflection. When
-  // this is done then ideally we will just be able to do this:
-  //
-  //   orders_t orders = lua_orders.as<orders_t>();
-  //
-  // And it should do the correct conversion and error checking.
-  lua::table tbl = lua_orders.as<lua::table>();
-  orders_t   orders;
-  if( false )
-    ;
-  else if( tbl["wait"] )
-    orders = orders::wait{};
-  else if( tbl["forfeight"] )
-    orders = orders::forfeight{};
-  else if( tbl["build"] )
-    orders = orders::build{};
-  else if( tbl["fortify"] )
-    orders = orders::fortify{};
-  else if( tbl["sentry"] )
-    orders = orders::sentry{};
-  else if( tbl["disband"] )
-    orders = orders::disband{};
-  else if( tbl["road"] )
-    orders = orders::road{};
-  else if( tbl["plow"] )
-    orders = orders::plow{};
-  else if( tbl["move"] ) {
-    e_direction d = tbl["move"]["d"].as<e_direction>();
-    orders        = orders::move{ .d = d };
-  } else {
-    FATAL(
-        "invalid orders::move object received from "
-        "lua." );
-  }
-  return orders;
-}
-
-struct LandViewPlane : public Plane {
-  LandViewPlane() = default;
-  bool covers_screen() const override { return true; }
-  void initialize( IMapUpdater& map_updater ) override {
+  Impl( MenuPlane& menu_plane, LandViewState& land_view_state,
+        TerrainState const& terrain_state )
+    : menu_plane_( menu_plane ),
+      land_view_state_( land_view_state ),
+      terrain_state_( terrain_state ) {
     // Initialize general global data.
-    g_unit_animations.clear();
-    g_landview_state  = LandViewUnitActionState::none{};
-    g_last_unit_input = nothing;
-    g_raw_input_stream.reset();
-    g_translated_input_stream.reset();
+    unit_animations_.clear();
+    landview_action_state_ = LandViewUnitActionState::none{};
+    last_unit_input_       = nothing;
+    raw_input_stream_.reset();
+    translated_input_stream_.reset();
     g_needs_scroll_to_unit_on_input = true;
     viewport().set_max_viewable_size_tiles(
-        map_updater.matrix().size() );
+        terrain_state_.world_map().size() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
     advance_viewport_state();
   }
+
+  wait<> animate_depixelation( UnitId            id,
+                               e_depixelate_anim dp_anim ) {
+    CHECK( !unit_animations_.contains( id ) );
+    UnitAnimation::depixelate& depixelate =
+        unit_animations_[id]
+            .emplace<UnitAnimation::depixelate>();
+    SCOPE_EXIT( {
+      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
+      unit_animations_.erase( it );
+    } );
+    depixelate.type   = dp_anim;
+    depixelate.stage  = 0.0;
+    depixelate.target = unit_from_id( id ).demoted_type();
+
+    AnimThrottler throttle( kAlmostStandardFrame );
+    while( depixelate.stage <= 1.0 ) {
+      co_await throttle();
+      depixelate.stage += config_rn.depixelate_per_frame;
+    }
+  }
+
+  wait<> animate_blink( UnitId id ) {
+    using namespace std::literals::chrono_literals;
+    CHECK( !unit_animations_.contains( id ) );
+    UnitAnimation::blink& blink =
+        unit_animations_[id].emplace<UnitAnimation::blink>();
+    // FIXME: this needs to be initially `true` for those units
+    // which are not visible by default, such as e.g. a ship in a
+    // colony that is asking for orders. The idea is that we want
+    // this to be the opposite of the unit's default visibility
+    // so that when the unit asks for orders, the player sees a
+    // visual signal immediately.
+    //
+    // FIXME: this causes the unit to remain invisible when the
+    // player continually tries to move a unit into a forbidden
+    // square.
+    blink = UnitAnimation::blink{ .visible = false };
+    // The unit will always end up visible after we stop since we
+    // are going to delete the animation object for this unit,
+    // which leaves them visible by default. Do this via RAII be-
+    // cause this coroutine will usually be interrupted.
+    SCOPE_EXIT( {
+      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
+      unit_animations_.erase( it );
+    } );
+
+    AnimThrottler throttle( 500ms, /*initial_delay=*/true );
+    while( true ) {
+      co_await throttle();
+      blink.visible = !blink.visible;
+    }
+  }
+
+  wait<> animate_slide( SettingsState const& settings, UnitId id,
+                        e_direction d ) {
+    CHECK( !unit_animations_.contains( id ) );
+    Coord target = coord_for_unit_indirect_or_die( id );
+    UnitAnimation::slide& mv =
+        unit_animations_[id].emplace<UnitAnimation::slide>();
+    SCOPE_EXIT( {
+      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
+      unit_animations_.erase( it );
+    } );
+
+    // TODO: make this a game option.
+    double const kMaxVelocity =
+        settings.fast_piece_slide ? .1 : .07;
+
+    mv = UnitAnimation::slide{
+        .target      = target.moved( d ),
+        .percent     = 0.0,
+        .percent_vel = DissipativeVelocity{
+            /*min_velocity=*/0,            //
+            /*max_velocity=*/kMaxVelocity, //
+            /*initial_velocity=*/.1,       //
+            /*mag_acceleration=*/1,        //
+            /*mag_drag_acceleration=*/.002 //
+        }                                  //
+    };
+    AnimThrottler throttle( kAlmostStandardFrame );
+    while( mv.percent <= 1.0 ) {
+      co_await throttle();
+      mv.percent_vel.advance( e_push_direction::none );
+      mv.percent += mv.percent_vel.to_double();
+    }
+  }
+
+  wait<> center_on_blinking_unit_if_any() {
+    using u_i = LandViewUnitActionState::unit_input;
+    auto blinking_unit =
+        landview_action_state_.get_if<u_i>().member(
+            &u_i::unit_id );
+    if( !blinking_unit ) {
+      lg.warn(
+          "There are no units currently asking for orders." );
+      return make_wait<>();
+    }
+    return landview_ensure_visible( *blinking_unit );
+  }
+
+  /****************************************************************
+  ** Tile Clicking
+  *****************************************************************/
+  // If there is a single unit on the square with orders and
+  // allow_activate is false then the unit's orders will be
+  // cleared.
+  //
+  // If there is a single unit on the square with orders and
+  // allow_activate is true then the unit's orders will be
+  // cleared and the unit will be placed at the back of the queue
+  // to poten- tially move this turn.
+  //
+  // If there is a single unit on the square with no orders and
+  // allow_activate is false then nothing is done.
+  //
+  // If there is a single unit on the square with no orders and
+  // allow_activate is true then the unit will be prioritized
+  // (moved to the front of the queue).
+  //
+  // If there are multiple units on the square then it will pop
+  // open a window to allow the user to select and/or activate
+  // them, with the results for each unit behaving in a similar
+  // way to the single-unit case described above with respect to
+  // orders and the allow_activate flag.
+  wait<vector<LandViewPlayerInput_t>> click_on_world_tile(
+      Coord coord ) {
+    vector<LandViewPlayerInput_t> res;
+    auto add = [&res]<typename T>( T t ) -> T& {
+      res.push_back( std::move( t ) );
+      return res.back().get<T>();
+    };
+
+    bool allow_activate =
+        landview_action_state_
+            .holds<LandViewUnitActionState::unit_input>();
+
+    // First check for colonies.
+    if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
+      auto& colony = add( LandViewPlayerInput::colony{} );
+      colony.id    = *maybe_id;
+      co_return res;
+    }
+
+    // Now check for units.
+    auto const& units = units_from_coord_recursive( coord );
+    if( units.size() != 0 ) {
+      // Decide which units are selected and for what actions.
+      vector<ui::UnitSelection> selections;
+      if( units.size() == 1 ) {
+        auto              id = *units.begin();
+        ui::UnitSelection selection{
+            id, ui::e_unit_selection::clear_orders };
+        if( !unit_from_id( id ).has_orders() && allow_activate )
+          selection.what = ui::e_unit_selection::activate;
+        selections = vector{ selection };
+      } else {
+        selections = co_await ui::unit_selection_box(
+            units, allow_activate );
+      }
+
+      vector<UnitId> prioritize;
+      for( auto const& selection : selections ) {
+        switch( selection.what ) {
+          case ui::e_unit_selection::clear_orders:
+            unit_from_id( selection.id ).clear_orders();
+            break;
+          case ui::e_unit_selection::activate:
+            CHECK( allow_activate );
+            // Activation implies also to clear orders if they're
+            // not already cleared. We do this here because, even
+            // if the prioritization is later denied (because the
+            // unit has already moved this turn) the clearing of
+            // the orders should still be upheld, because that
+            // can always be done, hence they are done
+            // separately.
+            unit_from_id( selection.id ).clear_orders();
+            prioritize.push_back( selection.id );
+            break;
+        }
+      }
+      // These need to all be grouped into a vector so that the
+      // first prioritized unit doesn't start asking for orders
+      // before the rest are prioritized.
+      if( !prioritize.empty() )
+        add( LandViewPlayerInput::prioritize{} ).units =
+            std::move( prioritize );
+
+      co_return res;
+    }
+
+    // Nothing to click on, so just scroll the map to center on
+    // the clicked tile.
+    viewport().set_point_seek(
+        viewport().world_tile_to_world_pixel_center( coord ) );
+
+    co_return res;
+  }
+
+  /****************************************************************
+  ** Input Processor
+  *****************************************************************/
+  // Fetches one raw input and translates it, adding a new
+  // element into the "translated" stream. For each translated
+  // event cre- ated, preserve the time that the corresponding
+  // raw input event was received.
+  wait<> raw_input_translator() {
+    while( !translated_input_stream_.ready() ) {
+      RawInput raw_input = co_await raw_input_stream_.next();
+
+      switch( raw_input.input.to_enum() ) {
+        using namespace LandViewRawInput;
+        case e::next_turn: {
+          translated_input_stream_.send(
+              PlayerInput( LandViewPlayerInput::next_turn{},
+                           raw_input.when ) );
+          break;
+        }
+        case e::orders: {
+          translated_input_stream_.send( PlayerInput(
+              LandViewPlayerInput::give_orders{
+                  .orders = raw_input.input
+                                .get<LandViewRawInput::orders>()
+                                .orders },
+              raw_input.when ) );
+          break;
+        }
+        case e::tile_click: {
+          auto& o = raw_input.input.get<tile_click>();
+          vector<LandViewPlayerInput_t> inputs =
+              co_await click_on_world_tile( o.coord );
+          // Since we may have just popped open a box to ask the
+          // user to select units, just use the "now" time so
+          // that these events don't get disgarded. Also, mouse
+          // clicks are not likely to get buffered for too long
+          // anyway.
+          for( auto const& input : inputs )
+            translated_input_stream_.send(
+                PlayerInput( input, Clock_t::now() ) );
+          break;
+        }
+        case e::center:
+          // For this one, we just perform the action right here.
+          co_await center_on_blinking_unit_if_any();
+          break;
+      }
+    }
+  }
+
+  wait<LandViewPlayerInput_t> next_player_input_object() {
+    while( true ) {
+      if( !translated_input_stream_.ready() )
+        co_await raw_input_translator();
+      PlayerInput res = co_await translated_input_stream_.next();
+      // Ignore any input events that are too old.
+      if( Clock_t::now() - res.when < chrono::seconds{ 2 } )
+        co_return std::move( res.input );
+    }
+  }
+
+  /****************************************************************
+  ** Land View Plane
+  *****************************************************************/
+  void advance_viewport_state() {
+    UNWRAP_CHECK(
+        viewport_rect_pixels,
+        compositor::section( compositor::e_section::viewport ) );
+
+    viewport().advance_state( viewport_rect_pixels );
+
+    viewport().fix_zoom_rounding();
+
+    // TODO: should only do the following when the viewport has
+    // input focus.
+    auto const* __state = ::SDL_GetKeyboardState( nullptr );
+
+    // Returns true if key is pressed.
+    auto state = [__state]( ::SDL_Scancode code ) {
+      return __state[code] != 0;
+    };
+
+    if( state( ::SDL_SCANCODE_LSHIFT ) ) {
+      viewport().set_x_push( state( ::SDL_SCANCODE_A )
+                                 ? e_push_direction::negative
+                             : state( ::SDL_SCANCODE_D )
+                                 ? e_push_direction::positive
+                                 : e_push_direction::none );
+      // y motion
+      viewport().set_y_push( state( ::SDL_SCANCODE_W )
+                                 ? e_push_direction::negative
+                             : state( ::SDL_SCANCODE_S )
+                                 ? e_push_direction::positive
+                                 : e_push_direction::none );
+
+      if( state( ::SDL_SCANCODE_A ) ||
+          state( ::SDL_SCANCODE_D ) ||
+          state( ::SDL_SCANCODE_W ) ||
+          state( ::SDL_SCANCODE_S ) )
+        viewport().stop_auto_panning();
+    }
+  }
+
+  maybe<orders_t> try_orders_from_lua( int  keycode,
+                                       bool ctrl_down,
+                                       bool shf_down ) {
+    lua::state& st = lua_global_state();
+
+    lua::any lua_orders = st["land_view"]["key_to_orders"](
+        keycode, ctrl_down, shf_down );
+    if( !lua_orders ) return nothing;
+
+    // FIXME: the conversion from Lua to C++ below needs to be
+    // au- tomated once we have sumtype and struct reflection.
+    // When this is done then ideally we will just be able to do
+    // this:
+    //
+    //   orders_t orders = lua_orders.as<orders_t>();
+    //
+    // And it should do the correct conversion and error
+    // checking.
+    lua::table tbl = lua_orders.as<lua::table>();
+    orders_t   orders;
+    if( false )
+      ;
+    else if( tbl["wait"] )
+      orders = orders::wait{};
+    else if( tbl["forfeight"] )
+      orders = orders::forfeight{};
+    else if( tbl["build"] )
+      orders = orders::build{};
+    else if( tbl["fortify"] )
+      orders = orders::fortify{};
+    else if( tbl["sentry"] )
+      orders = orders::sentry{};
+    else if( tbl["disband"] )
+      orders = orders::disband{};
+    else if( tbl["road"] )
+      orders = orders::road{};
+    else if( tbl["plow"] )
+      orders = orders::plow{};
+    else if( tbl["move"] ) {
+      e_direction d = tbl["move"]["d"].as<e_direction>();
+      orders        = orders::move{ .d = d };
+    } else {
+      FATAL(
+          "invalid orders::move object received from "
+          "lua." );
+    }
+    return orders;
+  }
+
+  bool covers_screen() const override { return true; }
+
   void advance_state() override { advance_viewport_state(); }
+
+  // Given a tile, compute the screen rect where it should be
+  // rendered.
+  Rect render_rect_for_tile( Rect covered, Coord tile ) const {
+    Delta delta_in_tiles  = tile - covered.upper_left();
+    Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
+    return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
+  }
+
+  using UnitSkipFunc = base::function_ref<bool( UnitId )>;
+
+  void render_units_on_square( rr::Renderer& renderer,
+                               Rect covered, Coord tile,
+                               UnitSkipFunc skip ) const {
+    // TODO: When there are multiple units on a square, just
+    // render one (which one?) and then render multiple flags
+    // (stacked) to indicate that visually.
+    Coord loc =
+        render_rect_for_tile( covered, tile ).upper_left();
+    for( UnitId id : units_from_coord( tile ) ) {
+      if( skip( id ) ) continue;
+      render_unit( renderer, loc, id, /*with_icon=*/true );
+    }
+  }
+
+  void render_units_on_square( rr::Renderer& renderer,
+                               Rect covered, Coord tile ) const {
+    render_units_on_square( renderer, covered, tile,
+                            []( UnitId ) { return false; } );
+  }
+
+  void render_units_default( rr::Renderer& renderer,
+                             Rect          covered ) const {
+    for( Coord tile : covered ) {
+      if( colony_from_coord( tile ).has_value() ) continue;
+      render_units_on_square( renderer, covered, tile );
+    }
+  }
+
+  void render_units_blink( rr::Renderer& renderer, Rect covered,
+                           UnitId id, bool visible ) const {
+    UnitId blinker_id = id;
+    Coord  blink_coord =
+        coord_for_unit_indirect_or_die( blinker_id );
+    for( auto coord : covered ) {
+      if( coord == blink_coord ) continue;
+      if( colony_from_coord( coord ).has_value() ) continue;
+      render_units_on_square( renderer, covered, coord );
+    }
+    // Now render the blinking unit.
+    Coord loc = render_rect_for_tile( covered, blink_coord )
+                    .upper_left();
+    if( visible )
+      render_unit( renderer, loc, blinker_id,
+                   /*with_icon=*/true );
+  }
+
+  void render_units_during_slide(
+      rr::Renderer& renderer, Rect covered, UnitId id,
+      maybe<UnitId>               target_unit,
+      UnitAnimation::slide const& slide ) const {
+    UnitId mover_id = id;
+    Coord  mover_coord =
+        coord_for_unit_indirect_or_die( mover_id );
+    maybe<Coord> target_unit_coord =
+        target_unit.bind( coord_for_unit_multi_ownership );
+    // First render all units other than the sliding unit and
+    // other than units on colony squares.
+    for( auto coord : covered ) {
+      bool has_colony = colony_from_coord( coord ).has_value();
+      if( has_colony && coord != target_unit_coord ) continue;
+      auto skip = [&]( UnitId id ) {
+        // Always draw the target unit, if any.
+        if( id == target_unit ) return false;
+        // On the square containing the unit being attacked, only
+        // draw the unit being attacked (if any).
+        if( coord == target_unit_coord ) return true;
+        if( has_colony ) return true;
+        if( id == mover_id ) return true;
+        return false;
+      };
+      render_units_on_square( renderer, covered, coord, skip );
+    }
+    // Now render the sliding unit.
+    Delta tile_delta = slide.target - mover_coord;
+    CHECK( -1 <= tile_delta.w && tile_delta.w <= 1 );
+    CHECK( -1 <= tile_delta.h && tile_delta.h <= 1 );
+    tile_delta *= g_tile_scale;
+    Delta pixel_delta =
+        tile_delta.multiply_and_round( slide.percent );
+    Coord pixel_coord =
+        render_rect_for_tile( covered, mover_coord )
+            .upper_left();
+    pixel_coord += pixel_delta;
+    render_unit( renderer, pixel_coord, mover_id,
+                 /*with_icon=*/true );
+  }
+
+  void render_units_during_depixelate(
+      rr::Renderer& renderer, Rect covered, UnitId depixelate_id,
+      UnitAnimation::depixelate const& dp_anim ) const {
+    // Need the multi_ownership version because we could be de-
+    // pixelating a colonist that is owned by a colony, which
+    // happens when the colony is captured.
+    Coord depixelate_tile =
+        coord_for_unit_multi_ownership_or_die( depixelate_id );
+    // First render all units other than units on colony squares
+    // and unites on the same tile as the depixelating unit.
+    for( Coord tile : covered ) {
+      if( tile == depixelate_tile ) continue;
+      if( colony_from_coord( tile ).has_value() ) continue;
+      render_units_on_square( renderer, covered, tile );
+    }
+    // Now render the depixelating unit.
+    Coord loc = render_rect_for_tile( covered, depixelate_tile )
+                    .upper_left();
+    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, loc );
+    rr::Painter painter = renderer.painter();
+    // Check if we are depixelating to another unit.
+    switch( dp_anim.type ) {
+      case e_depixelate_anim::death: {
+        // Render and depixelate both the unit and the flag.
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                             dp_anim.stage );
+        render_unit( renderer, loc, depixelate_id,
+                     /*with_icon=*/true );
+        break;
+      }
+      case e_depixelate_anim::demote: {
+        CHECK( dp_anim.target.has_value() );
+        e_tile from_tile =
+            unit_from_id( depixelate_id ).desc().tile;
+        e_tile    to_tile = unit_attr( *dp_anim.target ).tile;
+        gfx::size target =
+            depixelation_offset( painter, from_tile, to_tile );
+        // Render the flag first so that we don't subject it to
+        // the depixelation.
+        render_nationality_icon( renderer, loc, depixelate_id );
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
+                             dp_anim.stage );
+        SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
+                             target );
+        render_unit( renderer, loc, depixelate_id,
+                     /*with_icon=*/false );
+        break;
+      }
+    }
+  }
+
+  void render_colonies( rr::Renderer& renderer,
+                        Rect          covered ) const {
+    rr::Painter painter = renderer.painter();
+    // FIXME: since colony icons spill over the usual 32x32 tile
+    // we need to render colonies that are beyond the `covered`
+    // rect.
+    for( Coord tile : covered ) {
+      maybe<ColonyId> col_id = colony_from_coord( tile );
+      if( !col_id.has_value() ) continue;
+      Colony const& colony = colony_from_id( *col_id );
+
+      Coord tile_coord =
+          render_rect_for_tile( covered, tile ).upper_left();
+      Coord colony_sprite_upper_left =
+          tile_coord - Delta{ 6_w, 6_h };
+      render_colony( painter, colony_sprite_upper_left,
+                     *col_id );
+      Coord name_coord =
+          tile_coord + config_land_view.colony_name_offset;
+      render_text_markup(
+          renderer, name_coord,
+          config_land_view.colony_name_font,
+          TextMarkupInfo{
+              .shadowed_text_color   = gfx::pixel::white(),
+              .shadowed_shadow_color = gfx::pixel::black() },
+          fmt::format( "@[S]{}@[]", colony.name() ) );
+    }
+  }
+
+  // Units (rendering strategy depends on land view state).
+  void render_units( rr::Renderer& renderer,
+                     Rect          covered ) const {
+    // The land view state should be set first, then the anima-
+    // tion state; though occasionally we are in a frame where
+    // the land view state has changed but the animation state
+    // has not been set yet.
+    if( unit_animations_.empty() ) {
+      render_units_default( renderer, covered );
+      return;
+    }
+
+    switch( landview_action_state_.to_enum() ) {
+      using namespace LandViewUnitActionState;
+      case e::none: {
+        // In this case the global unit animations should always
+        // be empty, in which case the if statement above should
+        // have caught it.
+        SHOULD_NOT_BE_HERE;
+      }
+      case e::unit_input: {
+        auto& o = landview_action_state_.get<unit_input>();
+        CHECK( unit_animations_.size() == 1 );
+        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
+                                               o.unit_id ) );
+        ASSIGN_CHECK_V( blink_anim, animation,
+                        UnitAnimation::blink );
+        render_units_blink( renderer, covered, o.unit_id,
+                            blink_anim.visible );
+        break;
+      }
+      case e::unit_move: {
+        auto& o = landview_action_state_.get<unit_move>();
+        CHECK( unit_animations_.size() == 1 );
+        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
+                                               o.unit_id ) );
+        ASSIGN_CHECK_V( slide_anim, animation,
+                        UnitAnimation::slide );
+        render_units_during_slide( renderer, covered, o.unit_id,
+                                   /*target_unit=*/nothing,
+                                   slide_anim );
+        break;
+      }
+      case e::unit_attack: {
+        auto& o = landview_action_state_.get<unit_attack>();
+        CHECK( unit_animations_.size() == 1 );
+        UnitId anim_id = unit_animations_.begin()->first;
+        UnitAnimation_t const& animation =
+            unit_animations_.begin()->second;
+        if( auto slide_anim =
+                animation.get_if<UnitAnimation::slide>() ) {
+          CHECK( anim_id == o.attacker );
+          render_units_during_slide( renderer, covered,
+                                     o.attacker, o.defender,
+                                     *slide_anim );
+          break;
+        }
+        if( auto dp_anim =
+                animation.get_if<UnitAnimation::depixelate>() ) {
+          render_units_during_depixelate( renderer, covered,
+                                          anim_id, *dp_anim );
+          break;
+        }
+        FATAL(
+            "Unit animation not found for either slide or "
+            "depixelate." );
+        break;
+      }
+    }
+  }
+
+  void render_land_view( rr::Renderer& renderer ) const {
+    // If the map is zoomed out enough such that some of the
+    // outter space is visible, paint a background so that it
+    // won't just have empty black surroundings.
+    if( viewport().are_surroundings_visible() ) {
+      SCOPED_RENDERER_MOD(
+          buffer_mods.buffer,
+          rr::e_render_target_buffer::backdrop );
+      render_backdrop( renderer );
+
+      {
+        // This is the shadow behind the land rectangle.
+        SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
+        int shadow_offset = lround( 20 * viewport().get_zoom() );
+        rr::Painter painter = renderer.painter();
+        painter.draw_solid_rect(
+            viewport().rendering_dest_rect().shifted_by( Delta(
+                W{ shadow_offset }, H{ shadow_offset } ) ),
+            gfx::pixel::black().with_alpha( 100 ) );
+      }
+
+      renderer.render_buffer(
+          rr::e_render_target_buffer::backdrop );
+    }
+
+    // Now the actual land.
+    double zoom = viewport().get_zoom();
+    renderer.set_camera(
+        viewport()
+            .landscape_buffer_render_upper_left()
+            .distance_from_origin(),
+        zoom );
+    // Should do this after setting the camera.
+    renderer.render_buffer(
+        rr::e_render_target_buffer::landscape );
+
+    Coord corner = viewport().rendering_dest_rect().upper_left();
+    Delta hidden =
+        viewport().covered_pixels().upper_left() % g_tile_scale;
+    if( hidden != Delta{} ) {
+      DCHECK( hidden.w >= 0_w );
+      DCHECK( hidden.h >= 0_h );
+      // Move the rendering start slightly off screen (in the
+      // upper-left direction) by an amount that is within the
+      // span of one tile to partially show that tile row/column.
+      corner -= hidden.multiply_and_round( zoom );
+    }
+
+    Rect const covered = viewport().covered_tiles();
+
+    // The below render_* functions will always render at normal
+    // scale and starting at 0,0 on the screen, and then the ren-
+    // derer mods that we've install above will automatically do
+    // the shifting and scaling.
+    SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
+    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
+                         corner.distance_from_origin() );
+    render_colonies( renderer, covered );
+    render_units( renderer, covered );
+  }
+
   void draw( rr::Renderer& renderer ) const override {
     render_land_view( renderer );
   }
-  maybe<Plane::MenuClickHandler> menu_click_handler(
-      e_menu_item item ) const override {
+
+  maybe<base::function_ref<void()>> menu_click_handler(
+      e_menu_item item ) {
     // These are factors by which the zoom will be scaled when
     // zooming in/out with the menus.
     double constexpr zoom_in_factor  = 2.0;
@@ -837,7 +878,7 @@ struct LandViewPlane : public Plane {
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
       case e_menu_item::zoom_in: {
-        static Plane::MenuClickHandler handler = [] {
+        auto handler = [this] {
           // A user zoom request halts any auto zooming that may
           // currently be happening.
           viewport().stop_auto_zoom();
@@ -848,7 +889,7 @@ struct LandViewPlane : public Plane {
         return handler;
       }
       case e_menu_item::zoom_out: {
-        static Plane::MenuClickHandler handler = [] {
+        auto handler = [this] {
           // A user zoom request halts any auto zooming that may
           // currently be happening.
           viewport().stop_auto_zoom();
@@ -860,60 +901,60 @@ struct LandViewPlane : public Plane {
       }
       case e_menu_item::restore_zoom: {
         if( viewport().get_zoom() == 1.0 ) break;
-        static Plane::MenuClickHandler handler = [] {
+        auto handler = [this] {
           viewport().smooth_zoom_target( 1.0 );
         };
         return handler;
       }
       case e_menu_item::find_blinking_unit: {
-        if( !g_landview_state
+        if( !landview_action_state_
                  .holds<LandViewUnitActionState::unit_input>() )
           break;
-        static Plane::MenuClickHandler handler = [] {
-          g_raw_input_stream.send(
+        auto handler = [this] {
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::center{} ) );
         };
         return handler;
       }
       case e_menu_item::sentry: {
-        if( !g_landview_state
+        if( !landview_action_state_
                  .holds<LandViewUnitActionState::unit_input>() )
           break;
-        static Plane::MenuClickHandler handler = [] {
-          g_raw_input_stream.send(
+        auto handler = [this] {
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = orders::sentry{} } ) );
         };
         return handler;
       }
       case e_menu_item::fortify: {
-        if( !g_landview_state
+        if( !landview_action_state_
                  .holds<LandViewUnitActionState::unit_input>() )
           break;
-        static Plane::MenuClickHandler handler = [] {
-          g_raw_input_stream.send(
+        auto handler = [this] {
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = orders::fortify{} } ) );
         };
         return handler;
       }
       case e_menu_item::plow: {
-        if( !g_landview_state
+        if( !landview_action_state_
                  .holds<LandViewUnitActionState::unit_input>() )
           break;
-        static Plane::MenuClickHandler handler = [] {
-          g_raw_input_stream.send(
+        auto handler = [this] {
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = orders::plow{} } ) );
         };
         return handler;
       }
       case e_menu_item::road: {
-        if( !g_landview_state
+        if( !landview_action_state_
                  .holds<LandViewUnitActionState::unit_input>() )
           break;
-        static Plane::MenuClickHandler handler = [] {
-          g_raw_input_stream.send(
+        auto handler = [this] {
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = orders::road{} } ) );
         };
@@ -923,6 +964,21 @@ struct LandViewPlane : public Plane {
     }
     return nothing;
   }
+
+  bool will_handle_menu_click(
+      e_menu_item item ) const override {
+    // This should be safe because we are not calling the click
+    // handler and so nothing should be mutated.
+    return const_cast<Impl&>( *this )
+        .menu_click_handler( item )
+        .has_value();
+  }
+
+  void handle_menu_click( e_menu_item item ) override {
+    DCHECK( menu_click_handler( item ).has_value() );
+    ( *menu_click_handler( item ) )();
+  }
+
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
     switch( event.to_enum() ) {
@@ -944,7 +1000,7 @@ struct LandViewPlane : public Plane {
             key_event.mod.shf_down );
         if( lua_orders ) {
           lg.debug( "received key from lua: {}", lua_orders );
-          g_raw_input_stream.send(
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = *lua_orders } ) );
           break;
@@ -964,8 +1020,9 @@ struct LandViewPlane : public Plane {
                   viewport().are_surroundings_visible();
               viewport().smooth_zoom_target( 1.0 );
               if( center_on_unit ) {
-                auto blinking_unit = g_landview_state.get_if<
-                    LandViewUnitActionState::unit_input>();
+                auto blinking_unit =
+                    landview_action_state_.get_if<
+                        LandViewUnitActionState::unit_input>();
                 if( blinking_unit.has_value() )
                   viewport().set_point_seek(
                       viewport()
@@ -978,50 +1035,50 @@ struct LandViewPlane : public Plane {
           }
           case ::SDLK_w:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::wait{} } ) );
             break;
           case ::SDLK_s:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::sentry{} } ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::fortify{} } ) );
             break;
           case ::SDLK_b:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::build{} } ) );
             break;
           case ::SDLK_c:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::center{} ) );
             break;
           case ::SDLK_d:
             if( key_event.mod.shf_down ) break;
-            g_raw_input_stream.send(
+            raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::disband{} } ) );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            if( g_landview_state.holds<
+            if( landview_action_state_.holds<
                     LandViewUnitActionState::unit_input>() ) {
               if( key_event.mod.shf_down ) break;
-              g_raw_input_stream.send(
+              raw_input_stream_.send(
                   RawInput( LandViewRawInput::orders{
                       .orders = orders::forfeight{} } ) );
-            } else if( g_landview_state.holds<
+            } else if( landview_action_state_.holds<
                            LandViewUnitActionState::none>() ) {
-              g_raw_input_stream.send(
+              raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
             }
             break;
@@ -1029,7 +1086,7 @@ struct LandViewPlane : public Plane {
             if( key_event.mod.shf_down ) break;
             handled = e_input_handled::no;
             if( key_event.direction ) {
-              g_raw_input_stream.send(
+              raw_input_stream_.send(
                   RawInput( LandViewRawInput::orders{
                       .orders = orders::move{
                           *key_event.direction } } ) );
@@ -1074,7 +1131,7 @@ struct LandViewPlane : public Plane {
           viewport().smooth_zoom_target( 1.0 );
           viewport().set_point_seek_from_screen_pixel( val.pos );
         } else {
-          g_raw_input_stream.send(
+          raw_input_stream_.send(
               RawInput( LandViewRawInput::tile_click{
                   .coord = world_tile } ) );
         }
@@ -1122,6 +1179,7 @@ struct LandViewPlane : public Plane {
     }
     return Plane::e_accept_drag::no;
   }
+
   void on_drag( input::mod_keys const& /*unused*/,
                 input::e_mouse_button /*unused*/,
                 Coord /*unused*/, Coord prev,
@@ -1129,6 +1187,7 @@ struct LandViewPlane : public Plane {
     drag_stream.send(
         DragUpdate{ .prev = prev, .current = current } );
   }
+
   void on_drag_finished( input::mod_keys const& /*mod*/,
                          input::e_mouse_button /*button*/,
                          Coord /*origin*/,
@@ -1137,141 +1196,154 @@ struct LandViewPlane : public Plane {
     // At this point we assume that the callback will finish on
     // its own after doing any post-drag stuff it needs to do.
   }
+
+  void landview_reset_input_buffers() {
+    raw_input_stream_.reset();
+    translated_input_stream_.reset();
+  }
+
+  void landview_start_new_turn() {
+    // An example of why this is needed is because when a unit is
+    // moving (say, it is the only active unit) and the screen
+    // scrolls away from it to show a colony update, then when
+    // that update message closes and the next turn starts and
+    // focuses again on the unit, it would not scroll back to
+    // that unit.
+    g_needs_scroll_to_unit_on_input = true;
+  }
+
+  wait<> landview_ensure_visible( Coord const& coord ) {
+    return viewport().ensure_tile_visible_smooth( coord );
+  }
+
+  wait<> landview_ensure_visible( UnitId id ) {
+    // Need multi-ownership variant because sometimes the unit in
+    // question is a worker in a colony, as can happen if we are
+    // attacking an undefended colony.
+    UNWRAP_CHECK( coord, coord_for_unit_multi_ownership( id ) );
+    return landview_ensure_visible( coord );
+  }
+
+  wait<LandViewPlayerInput_t> landview_get_next_input(
+      UnitId id ) {
+    // When we start on a new unit clear the input queue so that
+    // commands that were accidentally buffered while controlling
+    // the previous unit don't affect this new one, which would
+    // al- most certainly not be desirable. Also, we only pan to
+    // the unit here because if we did that outside of this if
+    // state- ment then the viewport would pan to the blinking
+    // unit after the player e.g. clicks on another unit to
+    // activate it.
+    if( last_unit_input_ != id )
+      g_needs_scroll_to_unit_on_input = true;
+
+    // This might be true either because we started a new turn,
+    // or because of the above assignment.
+    if( g_needs_scroll_to_unit_on_input )
+      co_await landview_ensure_visible( id );
+    g_needs_scroll_to_unit_on_input = false;
+
+    if( last_unit_input_ != id ) landview_reset_input_buffers();
+    last_unit_input_ = id;
+
+    SCOPED_SET_AND_RESTORE(
+        landview_action_state_,
+        LandViewUnitActionState::unit_input{ .unit_id = id } );
+
+    // Run the blinker while waiting for user input.
+    co_return co_await co::background(
+        next_player_input_object(), animate_blink( id ) );
+  }
+
+  wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
+    last_unit_input_       = nothing;
+    landview_action_state_ = LandViewUnitActionState::none{};
+    return next_player_input_object();
+  }
+
+  wait<> landview_animate_move(
+      TerrainState const&  terrain_state,
+      SettingsState const& settings, UnitId id,
+      e_direction direction ) {
+    // Ensure that both src and dst squares are visible.
+    Coord src = coord_for_unit_indirect_or_die( id );
+    Coord dst = src.moved( direction );
+    co_await landview_ensure_visible( src );
+    // The destination square may not exist if it is a ship
+    // sailing the high seas by moving off of the map edge (which
+    // the orig- inal game allows).
+    if( terrain_state.square_exists( dst ) )
+      co_await landview_ensure_visible( dst );
+    SCOPED_SET_AND_RESTORE(
+        landview_action_state_,
+        LandViewUnitActionState::unit_move{ .unit_id = id } );
+    play_sound_effect( e_sfx::move );
+    co_await animate_slide( settings, id, direction );
+  }
+
+  wait<> landview_animate_attack( SettingsState const& settings,
+                                  UnitId               attacker,
+                                  UnitId               defender,
+                                  bool attacker_wins,
+                                  e_depixelate_anim dp_anim ) {
+    co_await landview_ensure_visible( defender );
+    co_await landview_ensure_visible( attacker );
+    auto new_state = LandViewUnitActionState::unit_attack{
+        .attacker      = attacker,
+        .defender      = defender,
+        .attacker_wins = attacker_wins };
+    SCOPED_SET_AND_RESTORE( landview_action_state_, new_state );
+    UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
+    UNWRAP_CHECK( defender_coord,
+                  coord_for_unit_multi_ownership( defender ) );
+    UNWRAP_CHECK(
+        d, attacker_coord.direction_to( defender_coord ) );
+    play_sound_effect( e_sfx::move );
+    co_await animate_slide( settings, attacker, d );
+
+    play_sound_effect( attacker_wins ? e_sfx::attacker_won
+                                     : e_sfx::attacker_lost );
+    co_await animate_depixelation(
+        attacker_wins ? defender : attacker, dp_anim );
+  }
+
+  // FIXME: Would be nice to make this animation a bit more
+  // sophis- ticated, but we first need to fix the animation
+  // framework in this module to be more flexible.
+  wait<> landview_animate_colony_capture(
+      TerrainState const&  terrain_state,
+      SettingsState const& settings, UnitId attacker_id,
+      UnitId defender_id, ColonyId colony_id ) {
+    co_await landview_animate_attack(
+        settings, attacker_id, defender_id,
+        /*attacker_wins=*/true, e_depixelate_anim::death );
+    UNWRAP_CHECK(
+        direction,
+        coord_for_unit( attacker_id )
+            ->direction_to(
+                colony_from_id( colony_id ).location() ) );
+    co_await landview_animate_move( terrain_state, settings,
+                                    attacker_id, direction );
+  }
 };
 
-LandViewPlane g_land_view_plane;
-
-} // namespace
-
-Plane* land_view_plane() { return &g_land_view_plane; }
-
 /****************************************************************
-** Public API
+** LandViewPlane
 *****************************************************************/
-void landview_reset_input_buffers() {
-  g_raw_input_stream.reset();
-  g_translated_input_stream.reset();
+LandViewPlane::LandViewPlane( Planes&        planes,
+                              e_plane_stack  where,
+                              MenuPlane&     menu_plane,
+                              LandViewState& land_view_state,
+                              TerrainState const& terrain_state )
+  : planes_( planes ),
+    where_( where ),
+    impl_( new Impl( menu_plane, land_view_state,
+                     terrain_state ) ) {
+  planes.push( *impl_.get(), where );
 }
 
-void landview_start_new_turn() {
-  // An example of why this is needed is because when a unit is
-  // moving (say, it is the only active unit) and the screen
-  // scrolls away from it to show a colony update, then when that
-  // update message closes and the next turn starts and focuses
-  // again on the unit, it would not scroll back to that unit.
-  g_needs_scroll_to_unit_on_input = true;
-}
-
-wait<> landview_ensure_visible( Coord const& coord ) {
-  return viewport().ensure_tile_visible_smooth( coord );
-}
-
-wait<> landview_ensure_visible( UnitId id ) {
-  // Need multi-ownership variant because sometimes the unit in
-  // question is a worker in a colony, as can happen if we are
-  // attacking an undefended colony.
-  UNWRAP_CHECK( coord, coord_for_unit_multi_ownership( id ) );
-  return landview_ensure_visible( coord );
-}
-
-wait<LandViewPlayerInput_t> landview_get_next_input(
-    UnitId id ) {
-  // When we start on a new unit clear the input queue so that
-  // commands that were accidentally buffered while controlling
-  // the previous unit don't affect this new one, which would al-
-  // most certainly not be desirable. Also, we only pan to the
-  // unit here because if we did that outside of this if state-
-  // ment then the viewport would pan to the blinking unit after
-  // the player e.g. clicks on another unit to activate it.
-  if( g_last_unit_input != id )
-    g_needs_scroll_to_unit_on_input = true;
-
-  // This might be true either because we started a new turn, or
-  // because of the above assignment.
-  if( g_needs_scroll_to_unit_on_input )
-    co_await landview_ensure_visible( id );
-  g_needs_scroll_to_unit_on_input = false;
-
-  if( g_last_unit_input != id ) landview_reset_input_buffers();
-  g_last_unit_input = id;
-
-  SCOPED_SET_AND_RESTORE(
-      g_landview_state,
-      LandViewUnitActionState::unit_input{ .unit_id = id } );
-
-  // Run the blinker while waiting for user input.
-  co_return co_await co::background( next_player_input_object(),
-                                     animate_blink( id ) );
-}
-
-wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
-  g_last_unit_input = nothing;
-  g_landview_state  = LandViewUnitActionState::none{};
-  return next_player_input_object();
-}
-
-wait<> landview_animate_move( TerrainState const&  terrain_state,
-                              SettingsState const& settings,
-                              UnitId               id,
-                              e_direction          direction ) {
-  // Ensure that both src and dst squares are visible.
-  Coord src = coord_for_unit_indirect_or_die( id );
-  Coord dst = src.moved( direction );
-  co_await landview_ensure_visible( src );
-  // The destination square may not exist if it is a ship sailing
-  // the high seas by moving off of the map edge (which the orig-
-  // inal game allows).
-  if( terrain_state.square_exists( dst ) )
-    co_await landview_ensure_visible( dst );
-  SCOPED_SET_AND_RESTORE(
-      g_landview_state,
-      LandViewUnitActionState::unit_move{ .unit_id = id } );
-  play_sound_effect( e_sfx::move );
-  co_await animate_slide( settings, id, direction );
-}
-
-wait<> landview_animate_attack( SettingsState const& settings,
-                                UnitId attacker, UnitId defender,
-                                bool              attacker_wins,
-                                e_depixelate_anim dp_anim ) {
-  co_await landview_ensure_visible( defender );
-  co_await landview_ensure_visible( attacker );
-  auto new_state = LandViewUnitActionState::unit_attack{
-      .attacker      = attacker,
-      .defender      = defender,
-      .attacker_wins = attacker_wins };
-  SCOPED_SET_AND_RESTORE( g_landview_state, new_state );
-  UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
-  UNWRAP_CHECK( defender_coord,
-                coord_for_unit_multi_ownership( defender ) );
-  UNWRAP_CHECK( d,
-                attacker_coord.direction_to( defender_coord ) );
-  play_sound_effect( e_sfx::move );
-  co_await animate_slide( settings, attacker, d );
-
-  play_sound_effect( attacker_wins ? e_sfx::attacker_won
-                                   : e_sfx::attacker_lost );
-  co_await animate_depixelation(
-      attacker_wins ? defender : attacker, dp_anim );
-}
-
-// FIXME: Would be nice to make this animation a bit more sophis-
-// ticated, but we first need to fix the animation framework in
-// this module to be more flexible.
-wait<> landview_animate_colony_capture(
-    TerrainState const&  terrain_state,
-    SettingsState const& settings, UnitId attacker_id,
-    UnitId defender_id, ColonyId colony_id ) {
-  co_await landview_animate_attack(
-      settings, attacker_id, defender_id,
-      /*attacker_wins=*/true, e_depixelate_anim::death );
-  UNWRAP_CHECK(
-      direction,
-      coord_for_unit( attacker_id )
-          ->direction_to(
-              colony_from_id( colony_id ).location() ) );
-  co_await landview_animate_move( terrain_state, settings,
-                                  attacker_id, direction );
+LandViewPlane::~LandViewPlane() noexcept {
+  planes_.pop( where_ );
 }
 
 /****************************************************************
@@ -1279,28 +1351,30 @@ wait<> landview_animate_colony_capture(
 *****************************************************************/
 namespace {
 
-LUA_FN( blinking_unit, maybe<UnitId> ) {
-  using u_i = LandViewUnitActionState::unit_input;
-  return g_landview_state.get_if<u_i>().member( &u_i::unit_id );
-}
-
-LUA_FN( center_on_blinking_unit, void ) {
-  (void)center_on_blinking_unit_if_any();
-}
-
-LUA_FN( center_on_tile, void, Coord center ) {
-  viewport().center_on_tile( center );
-}
-
-LUA_FN( set_zoom, void, double zoom ) {
-  viewport().smooth_zoom_target( zoom );
-}
-
-LUA_FN( zoom_out_optimal, void ) {
-  viewport().smooth_zoom_target( viewport().optimal_min_zoom() );
-}
-
-LUA_FN( get_zoom, double ) { return viewport().get_zoom(); }
+// LUA_FN( blinking_unit, maybe<UnitId> ) {
+//   using u_i = LandViewUnitActionState::unit_input;
+//   return landview_action_state_.get_if<u_i>().member(
+//       &u_i::unit_id );
+// }
+//
+// LUA_FN( center_on_blinking_unit, void ) {
+//   (void)center_on_blinking_unit_if_any();
+// }
+//
+// LUA_FN( center_on_tile, void, Coord center ) {
+//   viewport().center_on_tile( center );
+// }
+//
+// LUA_FN( set_zoom, void, double zoom ) {
+//   viewport().smooth_zoom_target( zoom );
+// }
+//
+// LUA_FN( zoom_out_optimal, void ) {
+//   viewport().smooth_zoom_target( viewport().optimal_min_zoom()
+//   );
+// }
+//
+// LUA_FN( get_zoom, double ) { return viewport().get_zoom(); }
 
 } // namespace
 

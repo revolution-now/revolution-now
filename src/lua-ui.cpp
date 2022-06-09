@@ -35,24 +35,25 @@ void linker_dont_discard_module_lua_ui() {}
 
 namespace {
 
-LUA_AUTO_FN( "message_box", ui::message_box_basic );
-LUA_AUTO_FN( "str_input_box", ui::str_input_box );
+// LUA_AUTO_FN( "message_box", ui::message_box_basic );
+// LUA_AUTO_FN( "str_input_box", ui::str_input_box );
 
-LUA_FN( ok_cancel, wait<string>, string_view msg ) {
-  ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
-  co_return fmt::to_string( res );
-}
+// LUA_FN( ok_cancel, wait<string>, string_view msg ) {
+//   ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
+//   co_return fmt::to_string( res );
+// }
 
 } // namespace
 
 wait<> lua_ui_test() {
-  ScopedPlanePush pusher( e_plane_config::black );
-  lua::state&     st = lua_global_state();
-
-  auto n = co_await lua_wait<maybe<int>>(
-      st["test"]["some_ui_routine"], 42 );
-
-  lg.info( "received {} from some_ui_routine.", n );
+  NOT_IMPLEMENTED;
+  // ScopedPlanePush pusher( e_plane_config::black );
+  // lua::state&     st = lua_global_state();
+  //
+  // auto n = co_await lua_wait<maybe<int>>(
+  //     st["test"]["some_ui_routine"], 42 );
+  //
+  // lg.info( "received {} from some_ui_routine.", n );
 }
 
 } // namespace rn

@@ -50,8 +50,13 @@ constexpr H kDividerHeight = 2_h;
 constexpr W kDividerWidth  = 2_w;
 
 struct ConsolePlane::Impl : public Plane {
+  // State.
+  MenuPlane::Deregistrar toggle_console_dereg_;
+
   Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
-    menu_plane.register( e_menu_item::toggle_console, this );
+    // Register menu handlers.
+    toggle_console_dereg_ = menu_plane.register_handler(
+        e_menu_item::toggle_console, *this );
 
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.

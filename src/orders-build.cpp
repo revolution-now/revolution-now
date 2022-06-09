@@ -98,10 +98,10 @@ struct BuildHandler : public OrdersHandler {
                                .no_label  = "No" } );
     if( proceed == ui::e_confirm::no ) co_return false;
     while( true ) {
-      colony_name = co_await ui::str_input_box(
-          "Question",
-          "What shall this colony be named, your majesty?",
-          /*initial_text=*/colony_name.value_or( "" ) );
+      colony_name = co_await gui.string_input(
+          { .msg =
+                "What shall this colony be named, your majesty?",
+            .initial_text = colony_name.value_or( "" ) } );
       if( !colony_name.has_value() ) co_return false;
       valid_or<string> is_valid = is_valid_colony_name_msg(
           colonies_state, *colony_name );
@@ -140,7 +140,8 @@ unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
     IMapUpdater* map_updater, IGui& gui, Player&,
     TerrainState const& terrain_state, UnitsState& units_state,
-    ColoniesState& colonies_state, SettingsState const& ) {
+    ColoniesState& colonies_state, SettingsState const&,
+    LandViewPlane& ) {
   return make_unique<BuildHandler>( map_updater, gui, id,
                                     colonies_state,
                                     terrain_state, units_state );

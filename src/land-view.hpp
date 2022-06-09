@@ -21,44 +21,66 @@
 // Rds
 #include "land-view.rds.hpp"
 #include "orders.rds.hpp"
+#include "plane-stack.rds.hpp"
 
 namespace rn {
 
+struct MenuPlane;
+struct Planes;
+struct LandViewState;
 struct SettingsState;
 struct TerrainState;
 
-wait<> landview_ensure_visible( Coord const& coord );
-wait<> landview_ensure_visible( UnitId id );
-
-wait<LandViewPlayerInput_t> landview_get_next_input( UnitId id );
-
-wait<LandViewPlayerInput_t> landview_eot_get_next_input();
-
-wait<> landview_animate_move( TerrainState const&  terrain_state,
-                              SettingsState const& settings,
-                              UnitId id, e_direction direction );
-
 enum class e_depixelate_anim { death, demote };
 
-wait<> landview_animate_attack( SettingsState const& settings,
-                                UnitId attacker, UnitId defender,
-                                bool              attacker_wins,
-                                e_depixelate_anim dp_anim );
+/****************************************************************
+** LandViewPlane
+*****************************************************************/
+struct LandViewPlane {
+  LandViewPlane( Planes& planes, e_plane_stack where,
+                 MenuPlane&          menu_plane,
+                 LandViewState&      land_view_state,
+                 TerrainState const& terrain_state );
+  ~LandViewPlane() noexcept;
 
-wait<> landview_animate_colony_capture(
-    TerrainState const&  terrain_state,
-    SettingsState const& settings, UnitId attacker_id,
-    UnitId defender_id, ColonyId colony_id );
+  wait<> landview_ensure_visible( Coord const& coord );
+  wait<> landview_ensure_visible( UnitId id );
 
-// Clear any buffer input.
-void landview_reset_input_buffers();
+  wait<LandViewPlayerInput_t> landview_get_next_input(
+      UnitId id );
 
-// We don't have to do much specifically in the land view when we
-// start a new turn, but there are a couple of small things to do
-// for a polished user experience.
-void landview_start_new_turn();
+  wait<LandViewPlayerInput_t> landview_eot_get_next_input();
 
-struct Plane;
-Plane* land_view_plane();
+  wait<> landview_animate_move(
+      TerrainState const&  terrain_state,
+      SettingsState const& settings, UnitId id,
+      e_direction direction );
+
+  wait<> landview_animate_attack( SettingsState const& settings,
+                                  UnitId               attacker,
+                                  UnitId               defender,
+                                  bool attacker_wins,
+                                  e_depixelate_anim dp_anim );
+
+  wait<> landview_animate_colony_capture(
+      TerrainState const&  terrain_state,
+      SettingsState const& settings, UnitId attacker_id,
+      UnitId defender_id, ColonyId colony_id );
+
+  // Clear any buffer input.
+  void landview_reset_input_buffers();
+
+  // We don't have to do much specifically in the land view when
+  // we start a new turn, but there are a couple of small things
+  // to do for a polished user experience.
+  void landview_start_new_turn();
+
+ private:
+  Planes&             planes_;
+  e_plane_stack const where_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn

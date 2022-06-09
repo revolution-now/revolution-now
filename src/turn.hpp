@@ -23,6 +23,8 @@ namespace rn {
 
 struct ColoniesState;
 struct IMapUpdater;
+struct LandViewState;
+struct MenuPlane;
 struct SettingsState;
 struct Planes;
 struct PlayersState;
@@ -30,8 +32,10 @@ struct UnitsState;
 struct TerrainState;
 struct TurnState;
 
-wait<> next_turn( Planes& planes, PlayersState& players_state,
+wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
+                  PlayersState&        players_state,
                   TerrainState const&  terrain_state,
+                  LandViewState&       land_view_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,
                   TurnState&           turn_state,

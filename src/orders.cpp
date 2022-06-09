@@ -41,14 +41,14 @@ unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 unique_ptr<OrdersHandler> handle_orders(
     UnitId, orders::wait const&, IMapUpdater*, IGui&, Player&,
     TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const& ) {
+    SettingsState const&, LandViewPlane& ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<OrdersHandler> handle_orders(
     UnitId, orders::forfeight const&, IMapUpdater*, IGui&,
     Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const& ) {
+    SettingsState const&, LandViewPlane& ) {
   SHOULD_NOT_BE_HERE;
 }
 
@@ -74,12 +74,14 @@ std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
     UnitsState& units_state, ColoniesState& colonies_state,
-    SettingsState const& settings ) {
+    SettingsState const& settings,
+    LandViewPlane&       land_view_plane ) {
   CHECK( !units_state.unit_for( id ).mv_pts_exhausted() );
   return visit(
       orders, LC( handle_orders( id, _, map_updater, gui, player,
                                  terrain_state, units_state,
-                                 colonies_state, settings ) ) );
+                                 colonies_state, settings,
+                                 land_view_plane ) ) );
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {

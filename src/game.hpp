@@ -13,17 +13,22 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "igui.hpp"
 #include "wait.hpp"
 
 namespace rn {
 
+struct IGui;
+struct MenuPlane;
+struct Planes;
+
 // Run through the entire sequence of starting a new game and
 // playing it.
-wait<> run_new_game( IGui& gui );
+wait<> run_new_game( Planes& planes, MenuPlane& menu_plane,
+                     IGui& gui );
 
 // Run through the sequence of asking the user which game to load
 // and then loading it and playing it.
-wait<> run_existing_game( IGui& gui );
+wait<> run_existing_game( Planes& planes, MenuPlane& menu_plane,
+                          IGui& gui );
 
 } // namespace rn

@@ -19,6 +19,7 @@
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-units.hpp"
+#include "gui.hpp"
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
@@ -719,16 +720,17 @@ class UnitsAtGateColonyView : public ui::View,
 
   static unique_ptr<UnitsAtGateColonyView> create(
       CargoView* cargo_view, Delta size,
-      IMapUpdater& map_updater ) {
-    return make_unique<UnitsAtGateColonyView>( cargo_view, size,
-                                               map_updater );
+      IMapUpdater& map_updater, IGui& gui ) {
+    return make_unique<UnitsAtGateColonyView>(
+        cargo_view, size, map_updater, gui );
   }
 
   UnitsAtGateColonyView( CargoView* cargo_view, Delta size,
-                         IMapUpdater& map_updater )
+                         IMapUpdater& map_updater, IGui& gui )
     : cargo_view_( cargo_view ),
       size_( size ),
-      map_updater_( map_updater ) {
+      map_updater_( map_updater ),
+      gui_( gui ) {
     update();
   }
 
@@ -978,31 +980,30 @@ class UnitsAtGateColonyView : public ui::View,
       // orders menu.
       co_return;
     }
-    static string const         kChangeOrders = "Change Orders";
-    static string const         kStripUnit    = "Strip Unit";
-    static vector<string> const kModes{ kChangeOrders,
-                                        kStripUnit };
-
-    int int_mode = co_await gui.choice(
-        "What would you like to do?", kModes );
-    string mode = kModes[int_mode];
-    if( mode == kChangeOrders ) {
-      vector<e_unit_orders> possible_orders = {
-          e_unit_orders::none, e_unit_orders::sentry,
-          e_unit_orders::fortified };
-      e_unit_orders new_orders =
-          co_await gui.select_enum<e_unit_orders>(
-              "Change unit orders to:", possible_orders );
-      CHECK( new_orders != e_unit_orders::fortified ||
-             !unit.desc().ship );
-      switch( new_orders ) {
-        case e_unit_orders::none: unit.clear_orders(); break;
-        case e_unit_orders::road: unit.clear_orders(); break;
-        case e_unit_orders::plow: unit.clear_orders(); break;
-        case e_unit_orders::sentry: unit.sentry(); break;
-        case e_unit_orders::fortified: unit.fortify(); break;
-      }
-    } else if( mode == kStripUnit ) {
+    // FIXME: need to replace the two below calls with a more
+    // robust (non-string-based) approach.
+    string mode = co_await gui_.choice(
+        { .msg     = "What would you like to do?",
+          .options = { { .key          = "orders",
+                         .display_name = "Change Orders" },
+                       { .key          = "strip",
+                         .display_name = "Strip Unit" } } } );
+    if( mode == "orders" ) {
+      string new_orders = co_await gui_.choice(
+          { .msg     = "Change unit orders to:",
+            .options = {
+                { .key          = "clear",
+                  .display_name = "Clear Orders" },
+                { .key = "sentry", .display_name = "Sentry" },
+                { .key          = "fortify",
+                  .display_name = "Fortify" } } } );
+      if( new_orders == "clear" )
+        unit.clear_orders();
+      else if( new_orders == "sentry" )
+        unit.sentry();
+      else if( new_orders == "fortify" )
+        unit.fortify();
+    } else if( mode == "strip" ) {
       // Clear orders just in case it is a pioneer building a
       // road or plowing; that would put the pioneer into an in-
       // consistent state.
@@ -1049,6 +1050,7 @@ class UnitsAtGateColonyView : public ui::View,
   Delta         size_;
   maybe<UnitId> dragging_;
   IMapUpdater&  map_updater_;
+  IGui&         gui_;
 };
 
 class ProductionView : public ui::View, public ColonySubView {
@@ -1289,7 +1291,7 @@ struct CompositeColSubView : public ui::InvisibleView,
 };
 
 void recomposite( ColonyId id, Delta const& canvas_size,
-                  IMapUpdater& map_updater ) {
+                  IMapUpdater& map_updater, IGui& gui ) {
   lg.trace( "recompositing colony view." );
   CHECK( colony_exists( id ) );
   g_composition.id          = id;
@@ -1364,7 +1366,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       p_cargo_view,
       middle_strip_size.with_width( middle_strip_size.w / 3_sx )
           .with_height( middle_strip_size.h - 32_h ),
-      map_updater );
+      map_updater, gui );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
   pos = Coord{ population_right_edge, middle_strip_top };
@@ -1479,12 +1481,12 @@ void colview_drag_n_drop_draw(
   }
 }
 
-void set_colview_colony( ColonyId     id,
-                         IMapUpdater& map_updater ) {
+void set_colview_colony( ColonyId id, IMapUpdater& map_updater,
+                         IGui& gui ) {
   auto new_id = id;
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( new_id, normal.delta(), map_updater );
+  recomposite( new_id, normal.delta(), map_updater, gui );
 }
 
 } // namespace rn

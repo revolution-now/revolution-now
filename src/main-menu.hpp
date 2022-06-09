@@ -25,6 +25,7 @@
 namespace rn {
 
 struct IGui;
+struct MenuPlane;
 struct Planes;
 
 /****************************************************************
@@ -32,7 +33,7 @@ struct Planes;
 *****************************************************************/
 struct MainMenuPlane {
   MainMenuPlane( Planes& planes, e_plane_stack where,
-                 IGui& gui );
+                 MenuPlane& menu_plane, IGui& gui );
   ~MainMenuPlane() noexcept;
 
   wait<> run();

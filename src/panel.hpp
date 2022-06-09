@@ -15,11 +15,30 @@
 // Revolution Now
 #include "wait.hpp"
 
+// Rds
+#include "plane-stack.rds.hpp"
+
 namespace rn {
 
-struct Plane;
-Plane* panel_plane();
+struct MenuPlane;
+struct Planes;
 
-wait<> wait_for_eot_button_click();
+/****************************************************************
+** PanelPlane
+*****************************************************************/
+struct PanelPlane {
+  PanelPlane( Planes& planes, e_plane_stack where,
+              MenuPlane& menu_plane );
+  ~PanelPlane() noexcept;
+
+  wait<> wait_for_eot_button_click();
+
+ private:
+  Planes&             planes_;
+  e_plane_stack const where_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn

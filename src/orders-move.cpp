@@ -175,7 +175,8 @@ struct TravelHandler : public OrdersHandler {
                  TerrainState const& terrain_state, IGui& gui,
                  UnitsState&          units_state,
                  ColoniesState const& colonies_state,
-                 SettingsState const& settings )
+                 SettingsState const& settings,
+                 LandViewPlane&       land_view_plane )
     : unit_id( unit_id_ ),
       direction( d ),
       player_( player ),
@@ -184,7 +185,8 @@ struct TravelHandler : public OrdersHandler {
       gui_( gui ),
       units_state_( units_state ),
       colonies_state_( colonies_state ),
-      settings_( settings ) {}
+      settings_( settings ),
+      land_view_plane_( land_view_plane ) {}
 
   enum class e_travel_verdict {
     // Cancelled by user
@@ -258,8 +260,8 @@ struct TravelHandler : public OrdersHandler {
     // a ship and board it.
     if( verdict == e_travel_verdict::land_fall ) co_return;
 
-    co_await landview_animate_move( terrain_state_, settings_,
-                                    unit_id, direction );
+    co_await land_view_plane_.landview_animate_move(
+        terrain_state_, settings_, unit_id, direction );
   }
 
   wait<> perform() override;
@@ -330,6 +332,8 @@ struct TravelHandler : public OrdersHandler {
   ColoniesState const& colonies_state_;
 
   SettingsState const& settings_;
+
+  LandViewPlane& land_view_plane_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -364,7 +368,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -799,7 +803,8 @@ struct AttackHandler : public OrdersHandler {
                  TerrainState const& terrain_state, IGui& gui,
                  Player& player, UnitsState& units_state,
                  ColoniesState&       colonies_state,
-                 SettingsState const& settings )
+                 SettingsState const& settings,
+                 LandViewPlane&       land_view_plane )
     : unit_id( unit_id_ ),
       direction( d ),
       map_updater_( map_updater ),
@@ -808,7 +813,8 @@ struct AttackHandler : public OrdersHandler {
       player_( player ),
       units_state_( units_state ),
       colonies_state_( colonies_state ),
-      settings_( settings ) {}
+      settings_( settings ),
+      land_view_plane_( land_view_plane ) {}
 
   enum class e_attack_verdict {
     cancelled,
@@ -870,7 +876,7 @@ struct AttackHandler : public OrdersHandler {
       UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
-      return landview_animate_colony_capture(
+      return land_view_plane_.landview_animate_colony_capture(
           terrain_state_, settings_, attacker_id, defender_id,
           colony_id );
     }
@@ -895,7 +901,7 @@ struct AttackHandler : public OrdersHandler {
                         .holds<UnitDeathAction::demote>()
                     ? e_depixelate_anim::demote
                     : e_depixelate_anim::death );
-    return landview_animate_attack(
+    return land_view_plane_.landview_animate_attack(
         settings_, attacker, defender, stats.attacker_wins,
         dp_anim );
   }
@@ -963,6 +969,8 @@ struct AttackHandler : public OrdersHandler {
   ColoniesState& colonies_state_;
 
   SettingsState const& settings_;
+
+  LandViewPlane& land_view_plane_;
 };
 
 wait<AttackHandler::e_attack_verdict>
@@ -1287,7 +1295,8 @@ unique_ptr<OrdersHandler> dispatch(
     UnitId id, e_direction d, IMapUpdater& map_updater,
     TerrainState const& terrain_state, IGui& gui, Player& player,
     UnitsState& units_state, ColoniesState& colonies_state,
-    SettingsState const& settings ) {
+    SettingsState const& settings,
+    LandViewPlane&       land_view_plane ) {
   Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
   auto& unit = units_state.unit_for( id );
 
@@ -1296,7 +1305,7 @@ unique_ptr<OrdersHandler> dispatch(
     // that knows how to handle it.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings );
+        units_state, colonies_state, settings, land_view_plane );
 
   auto dst_nation =
       nation_from_coord( units_state, colonies_state, dst );
@@ -1305,18 +1314,18 @@ unique_ptr<OrdersHandler> dispatch(
     // No units on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings );
+        units_state, colonies_state, settings, land_view_plane );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>(
         id, d, player, map_updater, terrain_state, gui,
-        units_state, colonies_state, settings );
+        units_state, colonies_state, settings, land_view_plane );
 
   // Must be an attack.
   return make_unique<AttackHandler>(
       id, d, map_updater, terrain_state, gui, player,
-      units_state, colonies_state, settings );
+      units_state, colonies_state, settings, land_view_plane );
 }
 
 } // namespace
@@ -1328,10 +1337,11 @@ unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::move const& mv, IMapUpdater* map_updater,
     IGui& gui, Player& player, TerrainState const& terrain_state,
     UnitsState& units_state, ColoniesState& colonies_state,
-    SettingsState const& settings ) {
+    SettingsState const& settings,
+    LandViewPlane&       land_view_plane ) {
   return dispatch( id, mv.d, *map_updater, terrain_state, gui,
-                   player, units_state, colonies_state,
-                   settings );
+                   player, units_state, colonies_state, settings,
+                   land_view_plane );
 }
 
 } // namespace rn

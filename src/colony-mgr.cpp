@@ -308,6 +308,7 @@ void remove_unit_from_colony( UnitsState& units_state,
 }
 
 wait<> evolve_colonies_for_player(
+    LandViewPlane& land_view_plane,
     ColoniesState& colonies_state, SettingsState const& settings,
     UnitsState& units_state, TerrainState const& terrain_state,
     Player& player, IMapUpdater& map_updater, IGui& gui ) {
@@ -328,7 +329,8 @@ wait<> evolve_colonies_for_player(
     ColonyEvolution const& ev = evolutions.back();
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
-    co_await landview_ensure_visible( colony.location() );
+    co_await land_view_plane.landview_ensure_visible(
+        colony.location() );
     bool zoom_to_colony = co_await present_colony_updates(
         gui, colony, ev.notifications );
     if( zoom_to_colony )
