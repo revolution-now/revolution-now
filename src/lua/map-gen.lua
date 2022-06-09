@@ -525,11 +525,15 @@ local RESOURCES_FOREST = {
   [e.ground_terrain.tundra]=e.natural_resource.deer
 }
 
--- Checks if there is at least one land square within two tiles
--- from the square.
+-- The original game checks to see if there is at least one land
+-- square within *two* tiles from the water square in order to
+-- allow placing a fish there. However, there isn't any point to
+-- going beyond a one-tile distance in the check because those
+-- are the only squares that will be accessible to any colony. So
+-- here we will just do one square.
 local function can_place_fish( coord )
   local squares = filter_existing_squares(
-                      surrounding_squares_5x5( coord ) )
+                      surrounding_squares_3x3( coord ) )
   for _, coord in ipairs( squares ) do
     if map_gen.at( coord ).surface == e.surface.land then
       return true
