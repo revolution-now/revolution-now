@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // Rds
 #include "plane-stack.rds.hpp"
 
@@ -27,8 +30,9 @@ struct MenuPlane;
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
+  // If the menu_plane is given then it will register itself.
   ConsolePlane( Planes& planes, e_plane_stack where,
-                MenuPlane& menu_plane );
+                maybe<MenuPlane&> menu_plane );
   ~ConsolePlane() noexcept;
 
  private:

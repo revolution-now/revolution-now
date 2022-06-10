@@ -15,7 +15,6 @@
 #include "console.hpp"
 #include "gui.hpp"
 #include "main-menu.hpp"
-#include "menu.hpp"
 #include "omni.hpp"
 #include "plane-stack.hpp"
 #include "window.hpp"
@@ -30,23 +29,20 @@ namespace rn {
 wait<> revolution_now() {
   PlaneStack& plane_stack = PlaneStack::global();
 
-  MenuPlane menu_plane( plane_stack[e_plane_stack_level::bottom],
-                        e_plane_stack::back );
-
   WindowPlane window_plane(
-      plane_stack[e_plane_stack_level::bottom],
-      e_plane_stack::front );
+      plane_stack[e_plane_stack_level::middle],
+      e_plane_stack::back );
 
   RealGui gui( window_plane );
 
   MainMenuPlane main_menu_plane(
       plane_stack[e_plane_stack_level::bottom],
-      e_plane_stack::front, menu_plane, window_plane, gui );
+      e_plane_stack::front, window_plane, gui );
 
   // Level 2 planes.
   ConsolePlane console_plane(
       plane_stack[e_plane_stack_level::top], e_plane_stack::back,
-      menu_plane );
+      /*menu_plane=*/nothing );
   OmniPlane omni_plane( plane_stack[e_plane_stack_level::top],
                         e_plane_stack::back );
 

@@ -1227,6 +1227,10 @@ struct LandViewPlane::Impl : public Plane {
     return landview_ensure_visible( coord );
   }
 
+  void zoom_out_full() {
+    viewport().set_zoom( viewport().optimal_min_zoom() );
+  }
+
   wait<LandViewPlayerInput_t> landview_get_next_input(
       UnitId id ) {
     // When we start on a new unit clear the input queue so that
@@ -1400,6 +1404,10 @@ void LandViewPlane::landview_reset_input_buffers() {
 
 void LandViewPlane::landview_start_new_turn() {
   return impl_->landview_start_new_turn();
+}
+
+void LandViewPlane::zoom_out_full() {
+  return impl_->zoom_out_full();
 }
 
 /****************************************************************

@@ -77,8 +77,9 @@ Planes& PlaneStack::operator[]( e_plane_stack_level level ) {
 // rendering work by avoiding to render things that would go un-
 // seen anyway.
 vector<Plane*> PlaneStack::relevant() {
-  vector<Plane*> flat( 10 );
-  int            i = 0, first_relevant = 0;
+  vector<Plane*> flat;
+  flat.reserve( 10 );
+  int i = 0, first_relevant = 0;
   for( Planes& planes : groups_ ) {
     for( Plane* plane : planes.all() ) {
       flat.push_back( plane );

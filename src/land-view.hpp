@@ -77,6 +77,10 @@ struct LandViewPlane {
   // to do for a polished user experience.
   void landview_start_new_turn();
 
+  // Zoom out just enough to see the entire map plus a bit of
+  // border around it.
+  void zoom_out_full();
+
  private:
   Planes&             planes_;
   e_plane_stack const where_;

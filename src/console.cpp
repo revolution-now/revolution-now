@@ -50,13 +50,19 @@ constexpr H kDividerHeight = 2_h;
 constexpr W kDividerWidth  = 2_w;
 
 struct ConsolePlane::Impl : public Plane {
+  bool                         show_{ false };
+  double                       show_percent_{ 0.0 };
+  deferred<ui::LineEditorView> le_view_{};
+  int                          history_index_{ 0 };
+
   // State.
   MenuPlane::Deregistrar toggle_console_dereg_;
 
-  Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
+  Impl( maybe<MenuPlane&> menu_plane ) {
     // Register menu handlers.
-    toggle_console_dereg_ = menu_plane.register_handler(
-        e_menu_item::toggle_console, *this );
+    if( menu_plane.has_value() )
+      toggle_console_dereg_ = menu_plane->register_handler(
+          e_menu_item::toggle_console, *this );
 
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
@@ -290,19 +296,13 @@ struct ConsolePlane::Impl : public Plane {
     CHECK( item == e_menu_item::toggle_console );
     show_ = !show_;
   }
-
-  MenuPlane&                   menu_plane_;
-  bool                         show_{ false };
-  double                       show_percent_{ 0.0 };
-  deferred<ui::LineEditorView> le_view_{};
-  int                          history_index_{ 0 };
 };
 
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
 ConsolePlane::ConsolePlane( Planes& planes, e_plane_stack where,
-                            MenuPlane& menu_plane )
+                            maybe<MenuPlane&> menu_plane )
   : planes_( planes ),
     where_( where ),
     impl_( new Impl( menu_plane ) ) {

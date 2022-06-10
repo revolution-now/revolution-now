@@ -24,7 +24,6 @@ namespace rn {
 struct ColoniesState;
 struct IMapUpdater;
 struct LandViewState;
-struct MenuPlane;
 struct SettingsState;
 struct Planes;
 struct PlayersState;
@@ -33,8 +32,7 @@ struct TerrainState;
 struct TurnState;
 struct WindowPlane;
 
-wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
-                  WindowPlane&         window_plane,
+wait<> turn_loop( Planes& planes, WindowPlane& window_plane,
                   PlayersState&        players_state,
                   TerrainState const&  terrain_state,
                   LandViewState&       land_view_state,

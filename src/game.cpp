@@ -47,24 +47,7 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> turn_loop( Planes& planes, MenuPlane& menu_plane,
-                  WindowPlane&         window_plane,
-                  PlayersState&        players_state,
-                  TerrainState const&  terrain_state,
-                  LandViewState&       land_view_state,
-                  UnitsState&          units_state,
-                  SettingsState const& settings,
-                  TurnState&           turn_state,
-                  ColoniesState&       colonies_state,
-                  IMapUpdater& map_updater, IGui& gui ) {
-  while( true )
-    co_await next_turn(
-        planes, menu_plane, window_plane, players_state,
-        terrain_state, land_view_state, units_state, settings,
-        turn_state, colonies_state, map_updater, gui );
-}
-
-wait<> run_loaded_game( Planes& planes, MenuPlane& menu_plane,
+wait<> run_loaded_game( Planes&              planes,
                         WindowPlane&         window_plane,
                         PlayersState&        players_state,
                         TerrainState const&  terrain_state,
@@ -82,10 +65,10 @@ wait<> run_loaded_game( Planes& planes, MenuPlane& menu_plane,
          "there must be at least one human player." );
 
   return co::erase( co::try_<game_quit_interrupt>( [&] {
-    return turn_loop(
-        planes, menu_plane, window_plane, players_state,
-        terrain_state, land_view_state, units_state, settings,
-        turn_state, colonies_state, map_updater, gui );
+    return turn_loop( planes, window_plane, players_state,
+                      terrain_state, land_view_state,
+                      units_state, settings, turn_state,
+                      colonies_state, map_updater, gui );
   } ) );
 }
 
@@ -94,7 +77,7 @@ wait<> run_loaded_game( Planes& planes, MenuPlane& menu_plane,
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_existing_game( Planes& planes, MenuPlane& menu_plane,
+wait<> run_existing_game( Planes&      planes,
                           WindowPlane& window_plane,
                           IGui&        gui ) {
   CHECK_HAS_VALUE( load_game( 0 ) );
@@ -107,15 +90,15 @@ wait<> run_existing_game( Planes& planes, MenuPlane& menu_plane,
   lua_reload( GameState::root() );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
-      planes, menu_plane, window_plane, GameState::players(),
+      planes, window_plane, GameState::players(),
       GameState::terrain(), GameState::land_view(),
       GameState::units(), GameState::settings(),
       GameState::turn(), GameState::colonies(), map_updater,
       gui );
 }
 
-wait<> run_new_game( Planes& planes, MenuPlane& menu_plane,
-                     WindowPlane& window_plane, IGui& gui ) {
+wait<> run_new_game( Planes& planes, WindowPlane& window_plane,
+                     IGui& gui ) {
   default_construct_game_state();
   lua_reload( GameState::root() );
   lua::state& st = lua_global_state();
@@ -127,8 +110,6 @@ wait<> run_new_game( Planes& planes, MenuPlane& menu_plane,
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   map_updater.just_redraw_map();
-  GameState::land_view().viewport.set_zoom(
-      GameState::land_view().viewport.optimal_min_zoom() );
 
   // 1. Take user through game setup/configuration.
 
@@ -143,7 +124,7 @@ wait<> run_new_game( Planes& planes, MenuPlane& menu_plane,
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
-      planes, menu_plane, window_plane, GameState::players(),
+      planes, window_plane, GameState::players(),
       GameState::terrain(), GameState::land_view(),
       GameState::units(), GameState::settings(),
       GameState::turn(), GameState::colonies(), map_updater,

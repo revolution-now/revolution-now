@@ -332,10 +332,10 @@ void SmoothViewport::stop_auto_panning() {
 double SmoothViewport::min_zoom_for_no_border() const {
   auto min_zoom_for_x =
       double( viewport_rect_pixels_.delta().w ) /
-      double( ( world_size_tiles_ * g_tile_scale ).w );
+      double( ( world_size_tiles() * g_tile_scale ).w );
   auto min_zoom_for_y =
       double( viewport_rect_pixels_.delta().h ) /
-      double( ( world_size_tiles_ * g_tile_scale ).h );
+      double( ( world_size_tiles() * g_tile_scale ).h );
   return std::max( min_zoom_for_x, min_zoom_for_y );
 }
 
@@ -407,7 +407,7 @@ void SmoothViewport::set_max_viewable_size_tiles( Delta size ) {
 // These are to avoid a direct dependency on the screen module
 // and its initialization code.
 Delta SmoothViewport::world_size_pixels() const {
-  return world_size_tiles_ * Scale{ 32 };
+  return world_size_tiles() * Scale{ 32 };
 }
 
 Rect SmoothViewport::world_rect_pixels() const {
@@ -415,14 +415,19 @@ Rect SmoothViewport::world_rect_pixels() const {
 }
 
 Rect SmoothViewport::world_rect_tiles() const {
-  return Rect::from( Coord{}, world_size_tiles_ );
+  return Rect::from( Coord{}, world_size_tiles() );
+}
+
+Delta SmoothViewport::world_size_tiles() const {
+  DCHECK( world_size_tiles_.has_value() );
+  return *world_size_tiles_;
 }
 
 void SmoothViewport::fix_invariants() {
   o_.zoom = std::max( o_.zoom, min_zoom_allowed() );
   if( !config_rn.viewport.can_reveal_space_around_map )
     o_.zoom = std::max( o_.zoom, min_zoom_for_no_border() );
-  auto [size_x, size_y] = world_size_tiles_;
+  auto [size_x, size_y] = world_size_tiles();
   size_y *= g_tile_height;
   size_x *= g_tile_width;
   // For each dimension we say the following: if we are zoomed in

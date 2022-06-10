@@ -189,6 +189,7 @@ class SmoothViewport {
   // These are to avoid a direct dependency on the screen module
   // and its initialization code.
   Delta world_size_pixels() const;
+  Delta world_size_tiles() const;
   Rect  world_rect_pixels() const;
   Rect  world_rect_tiles() const;
 
@@ -258,8 +259,10 @@ class SmoothViewport {
   // override zoom_point_seek_.
   maybe<Coord> point_seek_{};
 
-  Rect  viewport_rect_pixels_{};
-  Delta world_size_tiles_{};
+  Rect viewport_rect_pixels_{};
+  // This is a maybe so that we can check that it has been set
+  // before we ues it.
+  maybe<Delta> world_size_tiles_{};
 };
 NOTHROW_MOVE( SmoothViewport );
 

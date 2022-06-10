@@ -49,6 +49,9 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// C++ standard library
+#include <stack>
+
 using namespace std;
 
 namespace rn {
@@ -177,6 +180,8 @@ struct MenuPlane::Impl : public Plane {
 
   MenuState_t menu_state_{ MenuState::menus_closed{} };
 
+  refl::enum_map<e_menu_item, stack<Plane*>> handlers_;
+
   Impl() {
     // TODO: probably should only do these things once.
 
@@ -195,9 +200,7 @@ struct MenuPlane::Impl : public Plane {
         auto& clickable =
             get<MenuItem::menu_clickable>( item_desc );
         items_from_menu_[menu].push_back( clickable.item );
-        CHECK( !menu_items_.contains( clickable.item ) );
-        menu_items_[clickable.item] = &clickable;
-        CHECK( !item_to_menu_.contains( clickable.item ) );
+        menu_items_[clickable.item]   = &clickable;
         item_to_menu_[clickable.item] = menu;
       }
     }
@@ -1115,23 +1118,26 @@ struct MenuPlane::Impl : public Plane {
     };
   }
 
-  void do_click( e_menu_item ) const {
-    // TODO
+  void do_click( e_menu_item item ) const {
+    CHECK( !handlers_[item].empty() );
+    CHECK( handlers_[item].top() != nullptr );
+    handlers_[item].top()->handle_menu_click( item );
   }
 
-  bool is_menu_item_enabled( e_menu_item ) const {
-    // TODO
-    return false;
+  bool is_menu_item_enabled( e_menu_item item ) const {
+    if( handlers_[item].empty() ) return false;
+    CHECK( handlers_[item].top() != nullptr );
+    return handlers_[item].top()->will_handle_menu_click( item );
   }
 
-  void register_handler( e_menu_item, Plane& ) {
-    // TODO
-    NOT_IMPLEMENTED;
+  void register_handler( e_menu_item item, Plane& plane ) {
+    handlers_[item].push( &plane );
   }
 
-  void unregister_handler( e_menu_item, Plane& ) {
-    // TODO
-    NOT_IMPLEMENTED;
+  void unregister_handler( e_menu_item item, Plane& plane ) {
+    CHECK( !handlers_[item].empty() );
+    CHECK( handlers_[item].top() == &plane );
+    handlers_[item].pop();
   }
 };
 

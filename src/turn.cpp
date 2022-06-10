@@ -626,7 +626,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -642,7 +642,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( units_state, id ) ) {
@@ -857,7 +857,7 @@ wait<> nation_turn(
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
-wait<> next_turn_impl(
+wait<> next_turn(
     PanelPlane& panel_plane, LandViewPlane& land_view_plane,
     PlayersState&       players_state,
     TerrainState const& terrain_state, UnitsState& units_state,
@@ -906,8 +906,7 @@ wait<> next_turn_impl(
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
-                  WindowPlane&         window_plane,
+wait<> turn_loop( Planes& planes, WindowPlane& window_plane,
                   PlayersState&        players_state,
                   TerrainState const&  terrain_state,
                   LandViewState&       land_view_state,
@@ -916,15 +915,21 @@ wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
                   TurnState&           turn_state,
                   ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
+  // MenuPlane menu_plane(planes,
   LandViewPlane land_view_plane(
       planes, e_plane_stack::back, menu_plane, window_plane,
       land_view_state, terrain_state );
   PanelPlane panel_plane( planes, e_plane_stack::back,
                           menu_plane );
-  co_await next_turn_impl(
-      panel_plane, land_view_plane, players_state, terrain_state,
-      units_state, settings, turn_state, colonies_state,
-      map_updater, gui, planes );
+
+  // FIXME: Temporary
+  land_view_plane.zoom_out_full();
+
+  while( true )
+    co_await next_turn(
+        panel_plane, land_view_plane, players_state,
+        terrain_state, units_state, settings, turn_state,
+        colonies_state, map_updater, gui, planes );
 }
 
 } // namespace rn
