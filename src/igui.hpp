@@ -59,6 +59,11 @@ struct IGui {
   virtual wait<std::string> string_input(
       StringInputConfig const& config ) = 0;
 
+  // Display a prompt and ask (require) an integer input from the
+  // user.
+  virtual wait<int> int_input(
+      IntInputConfig const& config ) = 0;
+
   // Waits for the given amount of time and then returns the
   // amount of time actually waited.
   virtual wait<std::chrono::microseconds> wait_for(

@@ -20,15 +20,16 @@ namespace rn {
 struct IGui;
 struct MenuPlane;
 struct Planes;
+struct WindowPlane;
 
 // Run through the entire sequence of starting a new game and
 // playing it.
 wait<> run_new_game( Planes& planes, MenuPlane& menu_plane,
-                     IGui& gui );
+                     WindowPlane& window_plane, IGui& gui );
 
 // Run through the sequence of asking the user which game to load
 // and then loading it and playing it.
 wait<> run_existing_game( Planes& planes, MenuPlane& menu_plane,
-                          IGui& gui );
+                          WindowPlane& window_plane, IGui& gui );
 
 } // namespace rn

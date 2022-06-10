@@ -30,6 +30,7 @@ struct Planes;
 struct LandViewState;
 struct SettingsState;
 struct TerrainState;
+struct WindowPlane;
 
 enum class e_depixelate_anim { death, demote };
 
@@ -39,6 +40,7 @@ enum class e_depixelate_anim { death, demote };
 struct LandViewPlane {
   LandViewPlane( Planes& planes, e_plane_stack where,
                  MenuPlane&          menu_plane,
+                 WindowPlane&        window_plane,
                  LandViewState&      land_view_state,
                  TerrainState const& terrain_state );
   ~LandViewPlane() noexcept;

@@ -109,8 +109,7 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
           /***********/ DIVIDER, /***********/              //
           ITEM( find_blinking_unit, "Find Blinking Unit" ), //
           /***********/ DIVIDER, /***********/              //
-          ITEM( harbor_view, "Old World Harbor View" ),     //
-          ITEM( harbor_close, "Exit Harber View" )          //
+          ITEM( harbor_view, "European Status" )            //
       } },
     { e_menu::orders,
       {

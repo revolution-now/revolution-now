@@ -13,22 +13,37 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "map-updater.hpp"
+#include "plane-stack.hpp"
 #include "wait.hpp"
-
-// Rds
-#include "map-edit.rds.hpp"
-
-// render
-#include "render/renderer.hpp"
 
 namespace rn {
 
-wait<> map_editor( IMapUpdater& map_updater );
+struct IMapUpdater;
+struct LandViewState;
+struct Planes;
+struct TerrainState;
 
-wait<> map_editor_standalone( IMapUpdater& map_updater );
+/****************************************************************
+** MapEditPlane
+*****************************************************************/
+struct MapEditPlane {
+  MapEditPlane( Planes& planes, e_plane_stack where,
+                IMapUpdater&        map_updater,
+                LandViewState&      land_view_state,
+                TerrainState const& terrain_state );
 
-struct Plane;
-Plane* map_editor_plane();
+  ~MapEditPlane() noexcept;
+
+  wait<> map_editor();
+
+  wait<> map_editor_standalone();
+
+ private:
+  Planes&             planes_;
+  e_plane_stack const where_;
+
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 } // namespace rn

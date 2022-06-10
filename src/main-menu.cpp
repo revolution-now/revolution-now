@@ -44,14 +44,17 @@ struct MainMenuPlane::Impl : public Plane {
   // State
   Planes&                      planes_;
   MenuPlane&                   menu_plane_;
+  WindowPlane&                 window_plane_;
   IGui&                        gui_;
   e_main_menu_item             curr_item_;
   co::stream<e_main_menu_item> selection_stream_;
 
  public:
-  Impl( Planes& planes, MenuPlane& menu_plane, IGui& gui )
+  Impl( Planes& planes, MenuPlane& menu_plane,
+        WindowPlane& window_plane, IGui& gui )
     : planes_( planes ),
       menu_plane_( menu_plane ),
+      window_plane_( window_plane ),
       gui_( gui ) {}
 
   bool covers_screen() const override { return true; }
@@ -128,10 +131,12 @@ struct MainMenuPlane::Impl : public Plane {
   wait<> item_selected( e_main_menu_item item ) {
     switch( item ) {
       case e_main_menu_item::new_: //
-        co_await run_new_game( planes_, menu_plane_, gui_ );
+        co_await run_new_game( planes_, menu_plane_,
+                               window_plane_, gui_ );
         break;
       case e_main_menu_item::load:
-        co_await run_existing_game( planes_, menu_plane_, gui_ );
+        co_await run_existing_game( planes_, menu_plane_,
+                                    window_plane_, gui_ );
         break;
       case e_main_menu_item::quit: //
         throw game_load_interrupt{};
@@ -150,10 +155,12 @@ struct MainMenuPlane::Impl : public Plane {
 *****************************************************************/
 MainMenuPlane::MainMenuPlane( Planes&       planes,
                               e_plane_stack where,
-                              MenuPlane& menu_plane, IGui& gui )
+                              MenuPlane&    menu_plane,
+                              WindowPlane&  window_plane,
+                              IGui&         gui )
   : planes_( planes ),
     where_( where ),
-    impl_( new Impl( planes, menu_plane, gui ) ) {
+    impl_( new Impl( planes, menu_plane, window_plane, gui ) ) {
   planes.push( *impl_.get(), where );
 }
 

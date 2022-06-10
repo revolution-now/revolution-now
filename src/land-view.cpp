@@ -160,6 +160,7 @@ void render_backdrop( rr::Renderer& renderer ) {
 
 struct LandViewPlane::Impl : public Plane {
   MenuPlane&          menu_plane_;
+  WindowPlane&        window_plane_;
   LandViewState&      land_view_state_;
   TerrainState const& terrain_state_;
 
@@ -180,9 +181,11 @@ struct LandViewPlane::Impl : public Plane {
     return land_view_state_.viewport;
   }
 
-  Impl( MenuPlane& menu_plane, LandViewState& land_view_state,
+  Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
+        LandViewState&      land_view_state,
         TerrainState const& terrain_state )
     : menu_plane_( menu_plane ),
+      window_plane_( window_plane ),
       land_view_state_( land_view_state ),
       terrain_state_( terrain_state ) {
     // Initialize general global data.
@@ -347,26 +350,26 @@ struct LandViewPlane::Impl : public Plane {
     auto const& units = units_from_coord_recursive( coord );
     if( units.size() != 0 ) {
       // Decide which units are selected and for what actions.
-      vector<ui::UnitSelection> selections;
+      vector<UnitSelection> selections;
       if( units.size() == 1 ) {
-        auto              id = *units.begin();
-        ui::UnitSelection selection{
-            id, ui::e_unit_selection::clear_orders };
+        auto          id = *units.begin();
+        UnitSelection selection{
+            id, e_unit_selection::clear_orders };
         if( !unit_from_id( id ).has_orders() && allow_activate )
-          selection.what = ui::e_unit_selection::activate;
+          selection.what = e_unit_selection::activate;
         selections = vector{ selection };
       } else {
-        selections = co_await ui::unit_selection_box(
-            units, allow_activate );
+        selections = co_await unit_selection_box(
+            window_plane_, units, allow_activate );
       }
 
       vector<UnitId> prioritize;
       for( auto const& selection : selections ) {
         switch( selection.what ) {
-          case ui::e_unit_selection::clear_orders:
+          case e_unit_selection::clear_orders:
             unit_from_id( selection.id ).clear_orders();
             break;
-          case ui::e_unit_selection::activate:
+          case e_unit_selection::activate:
             CHECK( allow_activate );
             // Activation implies also to clear orders if they're
             // not already cleared. We do this here because, even
@@ -1333,17 +1336,70 @@ struct LandViewPlane::Impl : public Plane {
 LandViewPlane::LandViewPlane( Planes&        planes,
                               e_plane_stack  where,
                               MenuPlane&     menu_plane,
+                              WindowPlane&   window_plane,
                               LandViewState& land_view_state,
                               TerrainState const& terrain_state )
   : planes_( planes ),
     where_( where ),
-    impl_( new Impl( menu_plane, land_view_state,
+    impl_( new Impl( menu_plane, window_plane, land_view_state,
                      terrain_state ) ) {
   planes.push( *impl_.get(), where );
 }
 
 LandViewPlane::~LandViewPlane() noexcept {
   planes_.pop( where_ );
+}
+
+wait<> LandViewPlane::landview_ensure_visible(
+    Coord const& coord ) {
+  return impl_->landview_ensure_visible( coord );
+}
+
+wait<> LandViewPlane::landview_ensure_visible( UnitId id ) {
+  return impl_->landview_ensure_visible( id );
+}
+
+wait<LandViewPlayerInput_t>
+LandViewPlane::landview_get_next_input( UnitId id ) {
+  return impl_->landview_get_next_input( id );
+}
+
+wait<LandViewPlayerInput_t>
+LandViewPlane::landview_eot_get_next_input() {
+  return impl_->landview_eot_get_next_input();
+}
+
+wait<> LandViewPlane::landview_animate_move(
+    TerrainState const&  terrain_state,
+    SettingsState const& settings, UnitId id,
+    e_direction direction ) {
+  return impl_->landview_animate_move( terrain_state, settings,
+                                       id, direction );
+}
+
+wait<> LandViewPlane::landview_animate_attack(
+    SettingsState const& settings, UnitId attacker,
+    UnitId defender, bool attacker_wins,
+    e_depixelate_anim dp_anim ) {
+  return impl_->landview_animate_attack(
+      settings, attacker, defender, attacker_wins, dp_anim );
+}
+
+wait<> LandViewPlane::landview_animate_colony_capture(
+    TerrainState const&  terrain_state,
+    SettingsState const& settings, UnitId attacker_id,
+    UnitId defender_id, ColonyId colony_id ) {
+  return impl_->landview_animate_colony_capture(
+      terrain_state, settings, attacker_id, defender_id,
+      colony_id );
+}
+
+void LandViewPlane::landview_reset_input_buffers() {
+  return impl_->landview_reset_input_buffers();
+}
+
+void LandViewPlane::landview_start_new_turn() {
+  return impl_->landview_start_new_turn();
 }
 
 /****************************************************************

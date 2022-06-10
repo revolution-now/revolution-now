@@ -52,3 +52,10 @@ struct.StringInputConfig {
   msg 'std::string',
   initial_text 'std::string',
 }
+
+struct.IntInputConfig {
+  msg 'std::string',
+  initial_value 'int',
+  min 'maybe<int>',
+  max 'maybe<int>',
+}

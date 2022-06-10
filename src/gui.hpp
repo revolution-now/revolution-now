@@ -40,6 +40,9 @@ struct RealGui : IGui {
       StringInputConfig const& config ) override;
 
   // Implement IGui.
+  wait<int> int_input( IntInputConfig const& config ) override;
+
+  // Implement IGui.
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
 

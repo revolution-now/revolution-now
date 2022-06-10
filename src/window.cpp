@@ -663,65 +663,44 @@ namespace {
 }
 } // namespace
 
-wait<maybe<int>> int_input_box(
-    WindowPlane&                  window_plane,
-    ui::IntInputBoxOptions const& options ) {
-  wait_promise<maybe<int>> p;
-
-  string initial_text =
-      options.initial.has_value()
-          ? fmt::format( "{}", *options.initial )
-          : "";
-  unique_ptr<Window> win = text_input_box(
-      window_plane, options.title, options.msg, initial_text,
-      make_int_validator( options.min, options.max ),
-      [p]( maybe<string> result ) {
-        p.set_value( result.bind( L( base::stoi( _ ) ) ) );
-      } );
-  co_return co_await p.wait();
-}
-
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-wait<vector<ui::UnitSelection>> unit_selection_box(
+wait<vector<UnitSelection>> unit_selection_box(
     WindowPlane& window_plane, vector<UnitId> const& ids,
     bool allow_activation ) {
-  wait_promise<vector<ui::UnitSelection>> s_promise;
+  wait_promise<vector<UnitSelection>> s_promise;
 
-  function<void( maybe<ui::UnitActivationView::map_t> )>
-      on_result =
-          [s_promise](
-              maybe<ui::UnitActivationView::map_t> result ) {
-            vector<ui::UnitSelection> selections;
-            if( result.has_value() ) {
-              for( auto const& [id, info] : *result ) {
-                if( info.is_activated ) {
-                  CHECK( info.current_orders ==
-                         e_unit_orders::none );
-                  selections.push_back(
-                      { id, ui::e_unit_selection::activate } );
-                } else if( info.current_orders !=
-                           info.original_orders ) {
-                  CHECK( info.current_orders ==
-                         e_unit_orders::none );
-                  selections.push_back(
-                      { id,
-                        ui::e_unit_selection::clear_orders } );
-                }
-              }
+  function<void( maybe<UnitActivationView::map_t> )> on_result =
+      [s_promise]( maybe<UnitActivationView::map_t> result ) {
+        vector<UnitSelection> selections;
+        if( result.has_value() ) {
+          for( auto const& [id, info] : *result ) {
+            if( info.is_activated ) {
+              CHECK( info.current_orders ==
+                     e_unit_orders::none );
+              selections.push_back(
+                  { id, e_unit_selection::activate } );
+            } else if( info.current_orders !=
+                       info.original_orders ) {
+              CHECK( info.current_orders ==
+                     e_unit_orders::none );
+              selections.push_back(
+                  { id, e_unit_selection::clear_orders } );
             }
-            for( auto selection : selections )
-              lg.debug( "selection: {} --> {}",
-                        debug_string( GameState::units(),
-                                      selection.id ),
-                        // FIXME: until we can format this enum.
-                        static_cast<int>( selection.what ) );
-            s_promise.set_value( std::move( selections ) );
-          };
+          }
+        }
+        for( auto selection : selections )
+          lg.debug(
+              "selection: {} --> {}",
+              debug_string( GameState::units(), selection.id ),
+              // FIXME: until we can format this enum.
+              static_cast<int>( selection.what ) );
+        s_promise.set_value( std::move( selections ) );
+      };
 
   auto unit_activation_view =
-      ui::UnitActivationView::Create( ids, allow_activation );
+      UnitActivationView::Create( ids, allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   // We can capture by reference here because the function will
@@ -732,7 +711,7 @@ wait<vector<ui::UnitSelection>> unit_selection_box(
       };
 
   unique_ptr<Window> win = ok_cancel_window_builder<
-      unordered_map<UnitId, ui::UnitActivationInfo>>(
+      unordered_map<UnitId, UnitActivationInfo>>(
       window_plane,
       /*title=*/"Activate Units",
       /*get_result=*/
@@ -832,6 +811,23 @@ wait<maybe<string>> WindowPlane::str_input_box(
   unique_ptr<Window>          win = text_input_box(
                *this, title, msg, initial_text, L( _.size() > 0 ),
                [p]( maybe<string> result ) { p.set_value( result ); } );
+  co_return co_await p.wait();
+}
+
+wait<maybe<int>> WindowPlane::int_input_box(
+    IntInputBoxOptions const& options ) {
+  wait_promise<maybe<int>> p;
+
+  string initial_text =
+      options.initial.has_value()
+          ? fmt::format( "{}", *options.initial )
+          : "";
+  unique_ptr<Window> win = text_input_box(
+      *this, options.title, options.msg, initial_text,
+      make_int_validator( options.min, options.max ),
+      [p]( maybe<string> result ) {
+        p.set_value( result.bind( L( base::stoi( _ ) ) ) );
+      } );
   co_return co_await p.wait();
 }
 

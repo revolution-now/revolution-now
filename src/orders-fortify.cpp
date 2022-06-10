@@ -68,7 +68,7 @@ struct SentryHandler : public OrdersHandler {
 std::unique_ptr<OrdersHandler> handle_orders(
     UnitId id, orders::fortify const&, IMapUpdater*, IGui& gui,
     Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const&, Planes& ) {
+    SettingsState const&, LandViewPlane&, Planes& ) {
   return make_unique<FortifyHandler>( id, gui );
 }
 

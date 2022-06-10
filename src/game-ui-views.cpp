@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace rn::ui {
+namespace rn {
 
 /****************************************************************
 ** UnitActivationView
@@ -134,17 +134,17 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
   for( auto id : ids ) {
     auto const& unit = unit_from_id( id );
 
-    auto fake_unit_view = make_unique<FakeUnitView>(
+    auto fake_unit_view = make_unique<ui::FakeUnitView>(
         unit.desc().type, unit.nation(), unit.orders() );
     auto* p_fake_unit_view = fake_unit_view.get();
 
-    auto border_view = make_unique<BorderView>(
+    auto border_view = make_unique<ui::BorderView>(
         std::move( fake_unit_view ), gfx::pixel::white(),
         /*padding=*/1,
         /*on_initially=*/false );
     auto* p_border_view = border_view.get();
 
-    auto clickable = make_unique<ClickableView>(
+    auto clickable = make_unique<ui::ClickableView>(
         // Capture local variables by value.
         std::move( border_view ),
         [p_unit_activation_view, id, p_fake_unit_view,
@@ -159,24 +159,25 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
           p_border_view->on( info.is_activated );
         } );
 
-    auto unit_label = make_unique<OneLineStringView>(
+    auto unit_label = make_unique<ui::OneLineStringView>(
         unit.desc().name, gfx::pixel::banana() );
 
     vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );
     horizontal_vec.emplace_back( std::move( unit_label ) );
-    auto horizontal_view = make_unique<HorizontalArrayView>(
+    auto horizontal_view = make_unique<ui::HorizontalArrayView>(
         std::move( horizontal_vec ),
-        HorizontalArrayView::align::middle );
+        ui::HorizontalArrayView::align::middle );
 
     units_vec.emplace_back( std::move( horizontal_view ) );
   }
-  auto arr_view = make_unique<VerticalArrayView>(
-      std::move( units_vec ), VerticalArrayView::align::left );
+  auto arr_view = make_unique<ui::VerticalArrayView>(
+      std::move( units_vec ),
+      ui::VerticalArrayView::align::left );
 
   unit_activation_view->set_view( std::move( arr_view ),
                                   Coord{} );
   return unit_activation_view;
 }
 
-} // namespace rn::ui
+} // namespace rn

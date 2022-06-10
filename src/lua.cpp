@@ -36,6 +36,7 @@
 #include "base-util/string.hpp"
 
 // Abseil
+#include "absl/strings/match.h"
 #include "absl/strings/str_replace.h"
 
 using namespace std;
@@ -167,7 +168,10 @@ void run_lua_startup_routines() {
 
 void load_lua_modules() {
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
-    require( path.stem() );
+    // FIXME FIXME
+    // Need to implement the lua methods in the lua-ui module.
+    if( !absl::StrContains( path.string(), "test.lua" ) )
+      require( path.stem() );
 }
 
 void lua_reload( RootState& root_state ) {

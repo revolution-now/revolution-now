@@ -62,6 +62,22 @@ wait<string> RealGui::string_input(
   co_return *res;
 }
 
+wait<int> RealGui::int_input( IntInputConfig const& config ) {
+  maybe<int> res;
+  // FIXME: need to use a different function here that just re-
+  // quires input.
+  while( !res.has_value() )
+    res = co_await window_plane_.int_input_box( {
+        .title   = "title?",
+        .msg     = config.msg,
+        .min     = config.min,
+        .max     = config.max,
+        .initial = config.initial_value,
+    } );
+  DCHECK( res.has_value() );
+  co_return *res;
+}
+
 wait<chrono::microseconds> RealGui::wait_for(
     chrono::microseconds time ) {
   chrono::microseconds actual = co_await time;

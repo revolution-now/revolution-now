@@ -230,8 +230,9 @@ class MarketCommodities : public ui::View,
     }
   }
 
-  static unique_ptr<MarketCommodities> create( W block_width ) {
-    return make_unique<MarketCommodities>( block_width );
+  static unique_ptr<MarketCommodities> create( IGui& gui,
+                                               W block_width ) {
+    return make_unique<MarketCommodities>( gui, block_width );
   }
 
   int quantity_of( e_commodity type ) const {
@@ -311,11 +312,10 @@ class MarketCommodities : public ui::View,
         "({}-{}):",
         commodity_display_name( draggable_->type ), min, max );
     maybe<int> quantity =
-        co_await ui::int_input_box( { .title = "Choose Quantity",
-                                      .msg   = text,
-                                      .min   = min,
-                                      .max   = max,
-                                      .initial = max } );
+        co_await gui_.int_input( { .msg           = text,
+                                   .initial_value = max,
+                                   .min           = min,
+                                   .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = *draggable_;
     new_comm.quantity  = *quantity;
@@ -323,12 +323,13 @@ class MarketCommodities : public ui::View,
     co_return from_cargo( Cargo::commodity{ new_comm } );
   }
 
-  MarketCommodities( W block_width )
-    : block_width_( block_width ) {}
+  MarketCommodities( IGui& gui, W block_width )
+    : block_width_( block_width ), gui_( gui ) {}
 
  private:
   W                block_width_;
   maybe<Commodity> draggable_;
+  IGui&            gui_;
 };
 
 class PopulationView : public ui::View, public ColonySubView {
@@ -469,11 +470,12 @@ class CargoView : public ui::View,
     }
   }
 
-  static unique_ptr<CargoView> create( Delta size ) {
-    return make_unique<CargoView>( size );
+  static unique_ptr<CargoView> create( IGui& gui, Delta size ) {
+    return make_unique<CargoView>( gui, size );
   }
 
-  CargoView( Delta size ) : size_( size ) {}
+  CargoView( IGui& gui, Delta size )
+    : size_( size ), gui_( gui ) {}
 
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
 
@@ -656,11 +658,10 @@ class CargoView : public ui::View,
                                           "({}-{}):",
                          commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity =
-        co_await ui::int_input_box( { .title = "Choose Quantity",
-                                      .msg   = text,
-                                      .min   = min,
-                                      .max   = max,
-                                      .initial = max } );
+        co_await gui_.int_input( { .msg           = text,
+                                   .initial_value = max,
+                                   .min           = min,
+                                   .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = comm.obj;
     new_comm.quantity  = *quantity;
@@ -681,6 +682,7 @@ class CargoView : public ui::View,
   maybe<UnitId>    holder_;
   Delta            size_;
   maybe<Draggable> draggable_;
+  IGui&            gui_;
 };
 
 class UnitsAtGateColonyView : public ui::View,
@@ -1317,7 +1319,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
-      MarketCommodities::create( comm_block_width );
+      MarketCommodities::create( gui, comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
       market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
@@ -1345,6 +1347,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
+      gui,
       middle_strip_size.with_width( middle_strip_size.w / 3_sx )
           .with_height( 32_h ) );
   g_composition.entities[e_colview_entity::cargo] =

@@ -184,7 +184,8 @@ wait<> menu_revolution_handler() {
 }
 
 wait<> menu_harbor_view_handler() {
-  co_await show_harbor_view();
+  NOT_IMPLEMENTED;
+  // co_await show_harbor_view();
 }
 
 wait<bool> proceed_to_leave_game() { co_return true; }
@@ -200,12 +201,13 @@ wait<> menu_load_handler() {
 }
 
 wait<> menu_map_editor_handler() {
-  // FIXME: hack
-  rr::Renderer& renderer =
-      global_renderer_use_only_when_needed();
-  MapUpdater map_updater( GameState::terrain(), renderer );
-  // Need to co_await so that the map_updater stays alive.
-  co_await map_editor( map_updater );
+  NOT_IMPLEMENTED;
+  // // FIXME: hack
+  // rr::Renderer& renderer =
+  //     global_renderer_use_only_when_needed();
+  // MapUpdater map_updater( GameState::terrain(), renderer );
+  // // Need to co_await so that the map_updater stays alive.
+  // co_await map_editor( map_updater );
 }
 
 #define DEFAULT_TURN_MENU_ITEM_HANDLER( item )             \
@@ -604,7 +606,8 @@ wait<> query_unit_input(
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( LandViewPlane&       land_view_plane,
+wait<bool> advance_unit( Planes&              planes,
+                         LandViewPlane&       land_view_plane,
                          UnitsState&          units_state,
                          ColoniesState const& colonies_state,
                          TerrainState const&  terrain_state,
@@ -682,8 +685,11 @@ wait<bool> advance_unit( LandViewPlane&       land_view_plane,
       case e_high_seas_result::arrived_in_harbor: {
         lg.debug( "unit has arrived in old world." );
         finish_turn( id );
-        harbor_view_set_selected_unit( id );
-        co_await show_harbor_view();
+        HarborPlane harbor_plane( planes, e_plane_stack::back,
+                                  player, units_state,
+                                  terrain_state, gui );
+        harbor_plane.set_selected_unit( id );
+        co_await harbor_plane.show_harbor_view();
         co_return false; // do not ask for orders.
       }
     }
@@ -719,7 +725,7 @@ wait<> units_turn_one_pass(
     }
 
     bool should_ask = co_await advance_unit(
-        land_view_plane, units_state, colonies_state,
+        planes, land_view_plane, units_state, colonies_state,
         terrain_state, settings, player, gui, map_updater, id );
     if( !should_ask ) {
       q.pop_front();
@@ -818,9 +824,6 @@ wait<> nation_turn(
     IGui& gui, Planes& planes ) {
   auto& st = nat_turn_st;
 
-  // FIXME: remove
-  set_harbor_view_player( st.nation );
-
   if( !player.human ) co_return; // TODO: Until we have AI.
 
   // Starting.
@@ -904,6 +907,7 @@ wait<> next_turn_impl(
 ** Turn State Advancement
 *****************************************************************/
 wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
+                  WindowPlane&         window_plane,
                   PlayersState&        players_state,
                   TerrainState const&  terrain_state,
                   LandViewState&       land_view_state,
@@ -912,11 +916,11 @@ wait<> next_turn( Planes& planes, MenuPlane& menu_plane,
                   TurnState&           turn_state,
                   ColoniesState&       colonies_state,
                   IMapUpdater& map_updater, IGui& gui ) {
-  LandViewPlane land_view_plane( planes, e_plane_stack::back,
-                                 menu_plane, land_view_state,
-                                 terrain_state );
-  PanelPlane    panel_plane( planes, e_plane_stack::back,
-                             menu_plane );
+  LandViewPlane land_view_plane(
+      planes, e_plane_stack::back, menu_plane, window_plane,
+      land_view_state, terrain_state );
+  PanelPlane panel_plane( planes, e_plane_stack::back,
+                          menu_plane );
   co_await next_turn_impl(
       panel_plane, land_view_plane, players_state, terrain_state,
       units_state, settings, turn_state, colonies_state,

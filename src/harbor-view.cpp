@@ -19,12 +19,10 @@
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
-#include "game-state.hpp"
 #include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "image.hpp"
-#include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
@@ -66,33 +64,23 @@ namespace {
 constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
-** FIXME
+** State
 *****************************************************************/
-e_nation g_nation = e_nation::dutch;
+struct PS {
+  Player&             player;
+  UnitsState&         units_state;
+  TerrainState const& terrain_state;
+  IGui&               gui;
 
-// FIXME
-e_nation get_nation() { return g_nation; }
+  wait_promise<> exit_promise;
 
-// FIXME
-Player& get_player() {
-  return GameState::players().players[get_nation()];
-}
+  maybe<drag::State<HarborDraggableObject_t>> drag_state;
+  maybe<wait<>>                               drag_thread;
 
-// FIXME
-HarborState& get_harbor_state() {
-  return get_player().old_world.harbor_state;
-}
-
-/****************************************************************
-** Globals
-*****************************************************************/
-wait_promise<> g_exit_promise;
-
-/****************************************************************
-** Dragging
-*****************************************************************/
-maybe<drag::State<HarborDraggableObject_t>> g_drag_state;
-maybe<wait<>>                               g_drag_thread;
+  HarborState& harbor_state() {
+    return player.old_world.harbor_state;
+  }
+};
 
 /****************************************************************
 ** Draggable Object
@@ -142,16 +130,16 @@ maybe<Cargo_t> draggable_to_cargo_object(
 }
 
 maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
-    CargoSlotIndex slot ) {
-  HarborState const& hb_state = get_harbor_state();
+    PS& S, CargoSlotIndex slot ) {
+  HarborState const& hb_state = S.harbor_state();
   return hb_state.selected_unit.fmap( unit_from_id )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
 maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
-    int slot ) {
-  return draggable_in_cargo_slot( CargoSlotIndex{ slot } );
+    PS& S, int slot ) {
+  return draggable_in_cargo_slot( S, CargoSlotIndex{ slot } );
 }
 
 /****************************************************************
@@ -177,6 +165,12 @@ auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
 *****************************************************************/
 namespace entity {
 
+struct EntityBase {
+  EntityBase( PS& S ) : S{ &S } {}
+
+  PS* S;
+};
+
 // Each entity is defined by a struct that holds its state and
 // that has the following methods:
 //
@@ -187,7 +181,7 @@ namespace entity {
 
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
-class MarketCommodities {
+class MarketCommodities : EntityBase {
   static constexpr W single_layer_blocks_width  = 16_w;
   static constexpr W double_layer_blocks_width  = 8_w;
   static constexpr H single_layer_blocks_height = 1_h;
@@ -240,22 +234,27 @@ class MarketCommodities {
   MarketCommodities( MarketCommodities&& ) = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
-  static maybe<MarketCommodities> create( Delta const& size ) {
+  static maybe<MarketCommodities> create( PS&          S,
+                                          Delta const& size ) {
     maybe<MarketCommodities> res;
     auto                     rect = Rect::from( Coord{}, size );
     if( size.w >= single_layer_width &&
         size.h >= single_layer_height ) {
-      res = MarketCommodities{
+      res = MarketCommodities(
+          S,
           /*doubled_=*/false,
-          /*origin_=*/Coord{
+          /*origin_=*/
+          Coord{
               /*x=*/rect.center().x - single_layer_width / 2_sx,
               /*y=*/rect.bottom_edge() - single_layer_height -
-                  1_h } };
+                  1_h } );
     } else if( rect.w >= double_layer_width &&
                rect.h >= double_layer_height ) {
       res = MarketCommodities{
+          S,
           /*doubled_=*/true,
-          /*origin_=*/Coord{
+          /*origin_=*/
+          Coord{
               /*x=*/rect.center().x - double_layer_width / 2_sx,
               /*y=*/rect.bottom_edge() - double_layer_height -
                   1_h } };
@@ -297,13 +296,12 @@ class MarketCommodities {
   Coord origin_{};
 
  private:
-  MarketCommodities() = default;
-  MarketCommodities( bool doubled, Coord origin )
-    : doubled_( doubled ), origin_( origin ) {}
+  MarketCommodities( PS& S, bool doubled, Coord origin )
+    : EntityBase( S ), doubled_( doubled ), origin_( origin ) {}
 };
 NOTHROW_MOVE( MarketCommodities );
 
-class ActiveCargoBox {
+class ActiveCargoBox : EntityBase {
   static constexpr Delta size_blocks{ 6_w, 1_h };
 
  public:
@@ -332,8 +330,9 @@ class ActiveCargoBox {
   ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
   static maybe<ActiveCargoBox> create(
-      Delta const& size, maybe<MarketCommodities> const&
-                             maybe_market_commodities ) {
+      PS& S, Delta const& size,
+      maybe<MarketCommodities> const&
+          maybe_market_commodities ) {
     maybe<ActiveCargoBox> res;
     auto                  rect = Rect::from( Coord{}, size );
     if( size.w < size_pixels.w || size.h < size_pixels.h )
@@ -344,12 +343,14 @@ class ActiveCargoBox {
         return res;
       if( market_commodities.doubled_ ) {
         res = ActiveCargoBox(
+            S,
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h,
                 rect.center().x - size_pixels.w / 2_sx } );
       } else {
         // Possibly just for now do this.
         res = ActiveCargoBox(
+            S,
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h,
                 rect.center().x - size_pixels.w / 2_sx } );
@@ -359,13 +360,13 @@ class ActiveCargoBox {
   }
 
  private:
-  ActiveCargoBox() = default;
-  ActiveCargoBox( Coord origin ) : origin_( origin ) {}
+  ActiveCargoBox( PS& S, Coord origin )
+    : EntityBase( S ), origin_( origin ) {}
   Coord origin_{};
 };
 NOTHROW_MOVE( ActiveCargoBox );
 
-class DockAnchor {
+class DockAnchor : EntityBase {
   static constexpr H above_active_cargo_box{ 32_h };
 
  public:
@@ -390,7 +391,7 @@ class DockAnchor {
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static maybe<DockAnchor> create(
-      Delta const&                 size,
+      PS& S, Delta const& size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<MarketCommodities> const&
           maybe_market_commodities ) {
@@ -409,7 +410,7 @@ class DockAnchor {
       location_x =
           std::clamp( location_x, x_lower_bound, x_upper_bound );
       if( location_y < 0_y ) return res;
-      res              = DockAnchor{};
+      res              = DockAnchor( S, {} );
       res->location_.x = location_x;
       res->location_.y = location_y;
     }
@@ -417,13 +418,13 @@ class DockAnchor {
   }
 
  private:
-  DockAnchor() = default;
-  DockAnchor( Coord location ) : location_( location ) {}
+  DockAnchor( PS& S, Coord location )
+    : EntityBase( S ), location_( location ) {}
   Coord location_{};
 };
 NOTHROW_MOVE( DockAnchor );
 
-class Backdrop {
+class Backdrop : EntityBase {
   static constexpr Delta image_distance_from_anchor{ 950_w,
                                                      544_h };
 
@@ -441,27 +442,29 @@ class Backdrop {
   Backdrop& operator=( Backdrop&& ) = default;
 
   static maybe<Backdrop> create(
-      Delta const&             size,
+      PS& S, Delta const& size,
       maybe<DockAnchor> const& maybe_dock_anchor ) {
     maybe<Backdrop> res;
     if( maybe_dock_anchor )
       res =
-          Backdrop{ -( maybe_dock_anchor->bounds().upper_left() -
+          Backdrop( S,
+                    -( maybe_dock_anchor->bounds().upper_left() -
                        image_distance_from_anchor ),
-                    size };
+                    size );
     return res;
   }
 
  private:
-  Backdrop() = default;
-  Backdrop( Coord upper_left, Delta size )
-    : upper_left_of_render_rect_( upper_left ), size_( size ) {}
+  Backdrop( PS& S, Coord upper_left, Delta size )
+    : EntityBase( S ),
+      upper_left_of_render_rect_( upper_left ),
+      size_( size ) {}
   Coord upper_left_of_render_rect_{};
   Delta size_{};
 };
 NOTHROW_MOVE( Backdrop );
 
-class InPortBox {
+class InPortBox : EntityBase {
  public:
   static constexpr Delta block_size{ 32_w, 32_h };
   static constexpr SY    height_blocks{ 3 };
@@ -488,7 +491,7 @@ class InPortBox {
   InPortBox& operator=( InPortBox&& ) = default;
 
   static maybe<InPortBox> create(
-      Delta const&                 size,
+      PS& S, Delta const& size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<MarketCommodities> const&
           maybe_market_commodities ) {
@@ -503,7 +506,7 @@ class InPortBox {
           block_size.h * size_in_blocks.sy;
       if( origin.y < 0_y || origin.x < 0_x ) return res;
 
-      res = InPortBox{ origin,         //
+      res = InPortBox{ S, origin,      //
                        size_in_blocks, //
                        is_wide };
 
@@ -519,15 +522,16 @@ class InPortBox {
   bool  is_wide_{};
 
  private:
-  InPortBox() = default;
-  InPortBox( Coord origin, Scale size_in_blocks, bool is_wide )
-    : origin_( origin ),
+  InPortBox( PS& S, Coord origin, Scale size_in_blocks,
+             bool is_wide )
+    : EntityBase( S ),
+      origin_( origin ),
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
 };
 NOTHROW_MOVE( InPortBox );
 
-class InboundBox {
+class InboundBox : EntityBase {
  public:
   Rect bounds() const {
     return Rect::from( origin_,
@@ -550,7 +554,7 @@ class InboundBox {
   InboundBox& operator=( InboundBox&& ) = default;
 
   static maybe<InboundBox> create(
-      Delta const&            size,
+      PS& S, Delta const& size,
       maybe<InPortBox> const& maybe_in_port_box ) {
     maybe<InboundBox> res;
     if( maybe_in_port_box ) {
@@ -568,6 +572,7 @@ class InboundBox {
                  InPortBox::block_size.h * size_in_blocks.sy;
       }
       res = InboundBox{
+          S,
           origin,         //
           size_in_blocks, //
           is_wide         //
@@ -584,9 +589,10 @@ class InboundBox {
   bool is_wide() const { return is_wide_; }
 
  private:
-  InboundBox() = default;
-  InboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
-    : origin_( origin ),
+  InboundBox( PS& S, Coord origin, Scale size_in_blocks,
+              bool is_wide )
+    : EntityBase( S ),
+      origin_( origin ),
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
   Coord origin_{};
@@ -595,7 +601,7 @@ class InboundBox {
 };
 NOTHROW_MOVE( InboundBox );
 
-class OutboundBox {
+class OutboundBox : EntityBase {
  public:
   Rect bounds() const {
     return Rect::from( origin_,
@@ -618,7 +624,7 @@ class OutboundBox {
   OutboundBox& operator=( OutboundBox&& ) = default;
 
   static maybe<OutboundBox> create(
-      Delta const&             size,
+      PS& S, Delta const& size,
       maybe<InboundBox> const& maybe_inbound_box ) {
     maybe<OutboundBox> res;
     if( maybe_inbound_box ) {
@@ -636,6 +642,7 @@ class OutboundBox {
                  InPortBox::block_size.h * size_in_blocks.sy;
       }
       res = OutboundBox{
+          S,
           origin,         //
           size_in_blocks, //
           is_wide         //
@@ -652,9 +659,10 @@ class OutboundBox {
   bool is_wide() const { return is_wide_; }
 
  private:
-  OutboundBox() = default;
-  OutboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
-    : origin_( origin ),
+  OutboundBox( PS& S, Coord origin, Scale size_in_blocks,
+               bool is_wide )
+    : EntityBase( S ),
+      origin_( origin ),
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
   Coord origin_{};
@@ -663,7 +671,7 @@ class OutboundBox {
 };
 NOTHROW_MOVE( OutboundBox );
 
-class Exit {
+class Exit : EntityBase {
   static constexpr Delta exit_block_pixels{ 26_w, 26_h };
 
  public:
@@ -689,7 +697,7 @@ class Exit {
   Exit( Exit&& ) = default;
   Exit& operator=( Exit&& ) = default;
 
-  static maybe<Exit> create( Delta const& size,
+  static maybe<Exit> create( PS& S, Delta const& size,
                              maybe<MarketCommodities> const&
                                  maybe_market_commodities ) {
     maybe<Exit> res;
@@ -703,7 +711,7 @@ class Exit {
             maybe_market_commodities->bounds().upper_right() -
             exit_block_pixels;
       }
-      res = Exit{ origin };
+      res = Exit( S, origin );
       lr_delta =
           ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
@@ -716,13 +724,13 @@ class Exit {
   }
 
  private:
-  Exit() = default;
-  Exit( Coord origin ) : origin_( origin ) {}
+  Exit( PS& S, Coord origin )
+    : EntityBase( S ), origin_( origin ) {}
   Coord origin_{};
 };
 NOTHROW_MOVE( Exit );
 
-class Dock {
+class Dock : EntityBase {
   static constexpr Scale dock_block_pixels{ 24 };
   static constexpr Delta dock_block_pixels_delta =
       Delta{ 1_w, 1_h } * dock_block_pixels;
@@ -749,7 +757,7 @@ class Dock {
   Dock& operator=( Dock&& ) = default;
 
   static maybe<Dock> create(
-      Delta const&             size,
+      PS& S, Delta const& size,
       maybe<DockAnchor> const& maybe_dock_anchor,
       maybe<InPortBox> const&  maybe_in_port_box ) {
     maybe<Dock> res;
@@ -760,8 +768,8 @@ class Dock {
       auto origin = maybe_dock_anchor->bounds().upper_left() -
                     ( available * dock_block_pixels.sx );
       origin -= 1_h * dock_block_pixels.sy / 2;
-      res = Dock{ /*origin_=*/origin,
-                  /*length_in_blocks_=*/available };
+      res = Dock( S, /*origin_=*/origin,
+                  /*length_in_blocks_=*/available );
       auto lr_delta =
           ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
@@ -774,9 +782,10 @@ class Dock {
   }
 
  private:
-  Dock() = default;
-  Dock( Coord origin, W length_in_blocks )
-    : origin_( origin ), length_in_blocks_( length_in_blocks ) {}
+  Dock( PS& S, Coord origin, W length_in_blocks )
+    : EntityBase( S ),
+      origin_( origin ),
+      length_in_blocks_( length_in_blocks ) {}
   Coord origin_{};
   W     length_in_blocks_{};
 };
@@ -784,7 +793,7 @@ NOTHROW_MOVE( Dock );
 
 // Base class for other entities that just consist of a collec-
 // tion of units.
-class UnitCollection {
+class UnitCollection : EntityBase {
  public:
   Rect bounds() const {
     auto Union = L2( _1.uni0n( _2 ) );
@@ -798,15 +807,15 @@ class UnitCollection {
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
     rr::Painter        painter  = renderer.painter();
-    HarborState const& hb_state = get_harbor_state();
+    HarborState const& hb_state = S->harbor_state();
     // auto bds = bounds();
     // painter.draw_empty_rect( bds.shifted_by( offset ),
     // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
     for( auto const& unit_with_pos : units_ )
-      if( !g_drag_state || g_drag_state->object !=
-                               HarborDraggableObject_t{
-                                   HarborDraggableObject::unit{
-                                       unit_with_pos.id } } )
+      if( !S->drag_state || S->drag_state->object !=
+                                HarborDraggableObject_t{
+                                    HarborDraggableObject::unit{
+                                        unit_with_pos.id } } )
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
@@ -848,9 +857,10 @@ class UnitCollection {
     Coord  pixel_coord;
   };
 
-  UnitCollection( Rect bounds_when_no_units,
+  UnitCollection( PS& S, Rect bounds_when_no_units,
                   vector<UnitWithPosition>&& units )
-    : bounds_when_no_units_( bounds_when_no_units ),
+    : EntityBase( S ),
+      bounds_when_no_units_( bounds_when_no_units ),
       units_( std::move( units ) ) {}
   // Returned as rect when no units. This is actaully a point.
   Rect                     bounds_when_no_units_;
@@ -864,7 +874,7 @@ class UnitsOnDock : public UnitCollection {
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
   static maybe<UnitsOnDock> create(
-      Delta const&             size,
+      PS& S, Delta const& size,
       maybe<DockAnchor> const& maybe_dock_anchor,
       maybe<Dock> const&       maybe_dock ) {
     maybe<UnitsOnDock> res;
@@ -872,8 +882,8 @@ class UnitsOnDock : public UnitCollection {
       vector<UnitWithPosition> units;
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
-      for( auto id : harbor_units_on_dock( GameState::units(),
-                                           get_nation() ) ) {
+      for( auto id : harbor_units_on_dock( S.units_state,
+                                           S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < maybe_dock->bounds().left_edge() )
@@ -883,9 +893,10 @@ class UnitsOnDock : public UnitCollection {
                          coord.y - g_tile_delta.h };
       }
       // populate units...
-      res = UnitsOnDock{
+      res = UnitsOnDock(
+          S,
           /*bounds_when_no_units_=*/maybe_dock_anchor->bounds(),
-          /*units_=*/std::move( units ) };
+          /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
           ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
@@ -898,9 +909,9 @@ class UnitsOnDock : public UnitCollection {
   }
 
  private:
-  UnitsOnDock( Rect                       dock_anchor,
+  UnitsOnDock( PS& S, Rect dock_anchor,
                vector<UnitWithPosition>&& units )
-    : UnitCollection( dock_anchor, std::move( units ) ) {}
+    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
 };
 NOTHROW_MOVE( UnitsOnDock );
 
@@ -910,15 +921,15 @@ class ShipsInPort : public UnitCollection {
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
   static maybe<ShipsInPort> create(
-      Delta const&            size,
+      PS& S, Delta const& size,
       maybe<InPortBox> const& maybe_in_port_box ) {
     maybe<ShipsInPort> res;
     if( maybe_in_port_box ) {
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_in_port( GameState::units(),
-                                           get_nation() ) ) {
+      for( auto id : harbor_units_in_port( S.units_state,
+                                           S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < in_port_bds.left_edge() )
@@ -927,10 +938,10 @@ class ShipsInPort : public UnitCollection {
               coord.y - g_tile_delta.h };
       }
       // populate units...
-      res =
-          ShipsInPort{ /*bounds_when_no_units_=*/Rect::from(
-                           in_port_bds.lower_right(), Delta{} ),
-                       /*units_=*/std::move( units ) };
+      res = ShipsInPort(
+          S, /*bounds_when_no_units_=*/
+          Rect::from( in_port_bds.lower_right(), Delta{} ),
+          /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
           ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
@@ -943,9 +954,9 @@ class ShipsInPort : public UnitCollection {
   }
 
  private:
-  ShipsInPort( Rect                       dock_anchor,
+  ShipsInPort( PS& S, Rect dock_anchor,
                vector<UnitWithPosition>&& units )
-    : UnitCollection( dock_anchor, std::move( units ) ) {}
+    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
 };
 NOTHROW_MOVE( ShipsInPort );
 
@@ -955,15 +966,15 @@ class ShipsInbound : public UnitCollection {
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
   static maybe<ShipsInbound> create(
-      Delta const&             size,
+      PS& S, Delta const& size,
       maybe<InboundBox> const& maybe_inbound_box ) {
     maybe<ShipsInbound> res;
     if( maybe_inbound_box ) {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_inbound( GameState::units(),
-                                           get_nation() ) ) {
+      for( auto id : harbor_units_inbound( S.units_state,
+                                           S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -972,9 +983,10 @@ class ShipsInbound : public UnitCollection {
               coord.y - g_tile_delta.h };
       }
       // populate units...
-      res = ShipsInbound{ /*bounds_when_no_units_=*/Rect::from(
-                              frame_bds.lower_right(), Delta{} ),
-                          /*units_=*/std::move( units ) };
+      res = ShipsInbound(
+          S, /*bounds_when_no_units_=*/
+          Rect::from( frame_bds.lower_right(), Delta{} ),
+          /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
           ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
@@ -987,9 +999,9 @@ class ShipsInbound : public UnitCollection {
   }
 
  private:
-  ShipsInbound( Rect                       dock_anchor,
+  ShipsInbound( PS& S, Rect dock_anchor,
                 vector<UnitWithPosition>&& units )
-    : UnitCollection( dock_anchor, std::move( units ) ) {}
+    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
 };
 NOTHROW_MOVE( ShipsInbound );
 
@@ -999,15 +1011,15 @@ class ShipsOutbound : public UnitCollection {
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
   static maybe<ShipsOutbound> create(
-      Delta const&              size,
+      PS& S, Delta const& size,
       maybe<OutboundBox> const& maybe_outbound_box ) {
     maybe<ShipsOutbound> res;
     if( maybe_outbound_box ) {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_outbound( GameState::units(),
-                                            get_nation() ) ) {
+      for( auto id : harbor_units_outbound( S.units_state,
+                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -1016,10 +1028,10 @@ class ShipsOutbound : public UnitCollection {
               coord.y - g_tile_delta.h };
       }
       // populate units...
-      res =
-          ShipsOutbound{ /*bounds_when_no_units_=*/Rect::from(
-                             frame_bds.lower_right(), Delta{} ),
-                         /*units_=*/std::move( units ) };
+      res = ShipsOutbound(
+          S, /*bounds_when_no_units_=*/
+          Rect::from( frame_bds.lower_right(), Delta{} ),
+          /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
           ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
@@ -1032,13 +1044,13 @@ class ShipsOutbound : public UnitCollection {
   }
 
  private:
-  ShipsOutbound( Rect                       dock_anchor,
+  ShipsOutbound( PS& S, Rect dock_anchor,
                  vector<UnitWithPosition>&& units )
-    : UnitCollection( dock_anchor, std::move( units ) ) {}
+    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
 };
 NOTHROW_MOVE( ShipsOutbound );
 
-class ActiveCargo {
+class ActiveCargo : EntityBase {
  public:
   Rect bounds() const { return bounds_; }
 
@@ -1052,8 +1064,8 @@ class ActiveCargo {
       for( auto const& [idx, cargo_slot, rect] :
            rl::zip( rl::ints(), cargo_slots,
                     range_of_rects( grid ) ) ) {
-        if( g_drag_state.has_value() ) {
-          if_get( g_drag_state->object,
+        if( S->drag_state.has_value() ) {
+          if_get( S->drag_state->object,
                   HarborDraggableObject::cargo_commodity, cc ) {
             if( cc.slot._ == idx ) continue;
           }
@@ -1072,8 +1084,8 @@ class ActiveCargo {
             overload_visit(
                 cargo.contents,
                 [&]( Cargo::unit u ) {
-                  if( !g_drag_state ||
-                      g_drag_state->object !=
+                  if( !S->drag_state ||
+                      S->drag_state->object !=
                           HarborDraggableObject_t{
                               HarborDraggableObject::unit{
                                   u.id } } )
@@ -1108,15 +1120,16 @@ class ActiveCargo {
   ActiveCargo& operator=( ActiveCargo&& ) = default;
 
   static maybe<ActiveCargo> create(
-      Delta const&                 size,
+      PS& S, Delta const& size,
       maybe<ActiveCargoBox> const& maybe_active_cargo_box,
       maybe<ShipsInPort> const&    maybe_ships_in_port ) {
-    HarborState const& hb_state = get_harbor_state();
+    HarborState const& hb_state = S.harbor_state();
     maybe<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
-      res = ActiveCargo{
+      res = ActiveCargo(
+          S,
           /*maybe_active_unit_=*/hb_state.selected_unit,
-          /*bounds_=*/maybe_active_cargo_box->bounds() };
+          /*bounds_=*/maybe_active_cargo_box->bounds() );
       // FIXME: if we are inside the active cargo box, and the
       // active cargo box exists, do we need the following
       // checks?
@@ -1150,7 +1163,7 @@ class ActiveCargo {
           auto scale = ActiveCargoBox::box_scale;
 
           using HarborDraggableObject::cargo_commodity;
-          if( draggable_in_cargo_slot( *maybe_slot )
+          if( draggable_in_cargo_slot( *S, *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += kCommodityInCargoHoldRenderingOffset;
             scale = Scale{ 16 };
@@ -1182,9 +1195,10 @@ class ActiveCargo {
   }
 
  private:
-  ActiveCargo() = default;
-  ActiveCargo( maybe<UnitId> maybe_active_unit, Rect bounds )
-    : maybe_active_unit_( maybe_active_unit ),
+  ActiveCargo( PS& S, maybe<UnitId> maybe_active_unit,
+               Rect bounds )
+    : EntityBase( S ),
+      maybe_active_unit_( maybe_active_unit ),
       bounds_( bounds ) {}
   maybe<UnitId> maybe_active_unit_;
   Rect          bounds_;
@@ -1215,56 +1229,56 @@ struct Entities {
 };
 NOTHROW_MOVE( Entities );
 
-void create_entities( Entities* entities ) {
+void create_entities( PS& S, Entities* entities ) {
   using namespace entity;
   UNWRAP_CHECK(
       normal_area,
       compositor::section( compositor::e_section::normal ) );
   Delta clip                   = normal_area.delta();
   entities->market_commodities = //
-      MarketCommodities::create( clip );
-  entities->active_cargo_box =      //
-      ActiveCargoBox::create( clip, //
+      MarketCommodities::create( S, clip );
+  entities->active_cargo_box =         //
+      ActiveCargoBox::create( S, clip, //
                               entities->market_commodities );
   entities->dock_anchor =                             //
-      DockAnchor::create( clip,                       //
+      DockAnchor::create( S, clip,                    //
                           entities->active_cargo_box, //
                           entities->market_commodities );
-  entities->backdrop =        //
-      Backdrop::create( clip, //
+  entities->backdrop =           //
+      Backdrop::create( S, clip, //
                         entities->dock_anchor );
   entities->in_port_box =                            //
-      InPortBox::create( clip,                       //
+      InPortBox::create( S, clip,                    //
                          entities->active_cargo_box, //
                          entities->market_commodities );
-  entities->inbound_box =       //
-      InboundBox::create( clip, //
+  entities->inbound_box =          //
+      InboundBox::create( S, clip, //
                           entities->in_port_box );
-  entities->outbound_box =       //
-      OutboundBox::create( clip, //
+  entities->outbound_box =          //
+      OutboundBox::create( S, clip, //
                            entities->inbound_box );
-  entities->exit_label =  //
-      Exit::create( clip, //
+  entities->exit_label =     //
+      Exit::create( S, clip, //
                     entities->market_commodities );
   entities->dock =                         //
-      Dock::create( clip,                  //
+      Dock::create( S, clip,               //
                     entities->dock_anchor, //
                     entities->in_port_box );
   entities->units_on_dock =                       //
-      UnitsOnDock::create( clip,                  //
+      UnitsOnDock::create( S, clip,               //
                            entities->dock_anchor, //
                            entities->dock );
-  entities->ships_in_port =      //
-      ShipsInPort::create( clip, //
+  entities->ships_in_port =         //
+      ShipsInPort::create( S, clip, //
                            entities->in_port_box );
-  entities->ships_inbound =       //
-      ShipsInbound::create( clip, //
+  entities->ships_inbound =          //
+      ShipsInbound::create( S, clip, //
                             entities->inbound_box );
-  entities->ships_outbound =       //
-      ShipsOutbound::create( clip, //
+  entities->ships_outbound =          //
+      ShipsOutbound::create( S, clip, //
                              entities->outbound_box );
   entities->active_cargo =                             //
-      ActiveCargo::create( clip,                       //
+      ActiveCargo::create( S, clip,                    //
                            entities->active_cargo_box, //
                            entities->ships_in_port );
 }
@@ -1314,7 +1328,7 @@ struct HarborDragSrcInfo {
 };
 
 maybe<HarborDragSrcInfo> drag_src_from_coord(
-    Coord const& coord, Entities const* entities ) {
+    PS& S, Coord const& coord, Entities const* entities ) {
   using namespace entity;
   maybe<HarborDragSrcInfo> res;
   if( entities->units_on_dock.has_value() ) {
@@ -1331,15 +1345,15 @@ maybe<HarborDragSrcInfo> drag_src_from_coord(
     auto const& active_cargo = *entities->active_cargo;
     auto        in_port =
         active_cargo.active_unit()
-            .fmap( []( UnitId id ) {
-              return is_unit_in_port( GameState::units(), id );
+            .fmap( [&]( UnitId id ) {
+              return is_unit_in_port( S.units_state, id );
             } )
             .is_value_truish();
     auto maybe_pair = base::just( coord ).bind(
         LC( active_cargo.obj_under_cursor( _ ) ) );
     if( in_port &&
         maybe_pair.fmap( L( _.first ) )
-            .bind( L( draggable_in_cargo_slot( _ ) ) ) ) {
+            .bind( LC( draggable_in_cargo_slot( S, _ ) ) ) ) {
       auto const& [slot, rect] = *maybe_pair;
 
       res = HarborDragSrcInfo{
@@ -1461,7 +1475,7 @@ maybe<UnitId> active_cargo_ship( Entities const* entities ) {
 }
 
 HarborDraggableObject_t draggable_from_src(
-    HarborDragSrc_t const& drag_src ) {
+    PS& S, HarborDragSrc_t const& drag_src ) {
   using namespace HarborDragSrc;
   return overload_visit<HarborDraggableObject_t>(
       drag_src,
@@ -1473,7 +1487,7 @@ HarborDraggableObject_t draggable_from_src(
         // this case the slot should otherwise the
         // HarborDragSrc object should never have been created.
         UNWRAP_CHECK( object,
-                      draggable_in_cargo_slot( o.slot ) );
+                      draggable_in_cargo_slot( S, o.slot ) );
         return object;
       },
       [&]( outbound const& o ) {
@@ -1495,36 +1509,36 @@ HarborDraggableObject_t draggable_from_src(
               [[maybe_unused]] HarborDragDst::dst_ const& dst )
 
 struct DragConnector {
-  static bool visit( Entities const*        entities,
+  PS& S;
+
+  static bool visit( PS& S, Entities const* entities,
                      HarborDragSrc_t const& drag_src,
                      HarborDragDst_t const& drag_dst ) {
-    DragConnector connector( entities );
+    DragConnector connector( S, entities );
     return std::visit( connector, drag_src, drag_dst );
   }
 
   Entities const* entities = nullptr;
-  DragConnector( Entities const* entities_ )
-    : entities( entities_ ) {}
+  DragConnector( PS& S_arg, Entities const* entities_ )
+    : S( S_arg ), entities( entities_ ) {}
   bool DRAG_CONNECT_CASE( dock, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( GameState::units(), ship ) )
-      return false;
+    if( !is_unit_in_port( S.units_state, ship ) ) return false;
     return unit_from_id( ship ).cargo().fits_somewhere(
         Cargo::unit{ src.id }, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<HarborDraggableObject::unit>(
-               draggable_from_src( src ) )
+               draggable_from_src( S, src ) )
         .has_value();
   }
   bool DRAG_CONNECT_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( GameState::units(), ship ) )
-      return false;
+    if( !is_unit_in_port( S.units_state, ship ) ) return false;
     if( src.slot == dst.slot ) return true;
-    UNWRAP_CHECK(
-        cargo_object,
-        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    UNWRAP_CHECK( cargo_object,
+                  draggable_to_cargo_object(
+                      draggable_from_src( S, src ) ) );
     return overload_visit(
         cargo_object,
         [&]( Cargo::unit ) {
@@ -1551,7 +1565,7 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UnitsState const& units_state = GameState::units();
+    UnitsState const& units_state = S.units_state;
     UNWRAP_CHECK(
         info, units_state.maybe_harbor_view_state_of( src.id ) );
     ASSIGN_CHECK_V( outbound, info.port_status,
@@ -1572,9 +1586,9 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
     auto dst_ship = dst.id;
-    UNWRAP_CHECK(
-        cargo_object,
-        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    UNWRAP_CHECK( cargo_object,
+                  draggable_to_cargo_object(
+                      draggable_from_src( S, src ) ) );
     return overload_visit(
         cargo_object,
         [&]( Cargo::unit u ) {
@@ -1595,8 +1609,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( market, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( GameState::units(), ship ) )
-      return false;
+    if( !is_unit_in_port( S.units_state, ship ) ) return false;
     auto comm = Commodity{
         /*type=*/src.type, //
         // If the commodity can fit even with just one quan-
@@ -1620,8 +1633,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( GameState::units(), ship ) )
-      return false;
+    if( !is_unit_in_port( S.units_state, ship ) ) return false;
     return unit_from_id( ship )
         .cargo()
         .template slot_holds_cargo_type<Cargo::commodity>(
@@ -1638,43 +1650,51 @@ struct DragConnector {
               [[maybe_unused]] HarborDragDst::dst_& dst )
 
 struct DragUserInput {
+  PS&             S;
   Entities const* entities = nullptr;
-  DragUserInput( Entities const* entities_ )
-    : entities( entities_ ) {}
+  DragUserInput( PS& S_arg, Entities const* entities_ )
+    : S( S_arg ), entities( entities_ ) {}
 
   static wait<base::NoDiscard<bool>> visit(
-      Entities const* entities, HarborDragSrc_t* drag_src,
+      PS& S, Entities const* entities, HarborDragSrc_t* drag_src,
       HarborDragDst_t* drag_dst ) {
     // Need to co_await here to keep parameters alive.
     bool proceed = co_await std::visit(
-        DragUserInput( entities ), *drag_src, *drag_dst );
+        DragUserInput( S, entities ), *drag_src, *drag_dst );
     co_return proceed;
   }
 
-  static wait<maybe<int>> ask_for_quantity( e_commodity type,
+  static wait<maybe<int>> ask_for_quantity( PS&         S,
+                                            e_commodity type,
                                             string_view verb ) {
     string text = fmt::format(
         "What quantity of @[H]{}@[] would you like to {}? "
         "(0-100):",
         commodity_display_name( type ), verb );
 
-    return ui::int_input_box( { .title = "Choose Quantity",
-                                .msg   = text,
-                                .min   = 0,
-                                .max   = 100 } );
+    // FIXME: allow the user to cancel by hitting escape.
+    //
+    // FIXME: add proper initial value.
+    int res = co_await S.gui.int_input( { .msg           = text,
+                                          .initial_value = 0,
+                                          .min           = 0,
+                                          .max = 100 } );
+    co_return res;
   }
 
   wait<bool> DRAG_CONFIRM_CASE( market, cargo ) const {
-    src.quantity = co_await ask_for_quantity( src.type, "buy" );
+    src.quantity =
+        co_await ask_for_quantity( S, src.type, "buy" );
     co_return src.quantity.has_value();
   }
   wait<bool> DRAG_CONFIRM_CASE( market, inport_ship ) const {
-    src.quantity = co_await ask_for_quantity( src.type, "buy" );
+    src.quantity =
+        co_await ask_for_quantity( S, src.type, "buy" );
     co_return src.quantity.has_value();
   }
   wait<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    CHECK( is_unit_in_port( GameState::units(), ship ) );
+    CHECK( is_unit_in_port( S.units_state, ship ) );
     UNWRAP_CHECK(
         commodity_ref,
         unit_from_id( ship )
@@ -1682,12 +1702,12 @@ struct DragUserInput {
             .template slot_holds_cargo_type<Cargo::commodity>(
                 src.slot._ ) );
     src.quantity = co_await ask_for_quantity(
-        commodity_ref.obj.type, "sell" );
+        S, commodity_ref.obj.type, "sell" );
     co_return src.quantity.has_value();
   }
   wait<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    CHECK( is_unit_in_port( GameState::units(), ship ) );
+    CHECK( is_unit_in_port( S.units_state, ship ) );
     auto maybe_commodity_ref =
         unit_from_id( ship )
             .cargo()
@@ -1697,7 +1717,7 @@ struct DragUserInput {
       // It's a unit.
       co_return true;
     src.quantity = co_await ask_for_quantity(
-        maybe_commodity_ref->obj.type, "move" );
+        S, maybe_commodity_ref->obj.type, "move" );
     co_return src.quantity.has_value();
   }
   wait<bool> operator()( auto const&, auto const& ) const {
@@ -1710,15 +1730,17 @@ struct DragUserInput {
               [[maybe_unused]] HarborDragDst::dst_ const& dst )
 
 struct DragPerform {
-  Entities const* entities = nullptr;
-  DragPerform( Entities const* entities_ )
-    : entities( entities_ ) {}
+  PS& S;
 
-  static void visit( Entities const*        entities,
+  Entities const* entities = nullptr;
+  DragPerform( PS& S_arg, Entities const* entities_ )
+    : S( S_arg ), entities( entities_ ) {}
+
+  static void visit( PS& S, Entities const* entities,
                      HarborDragSrc_t const& src,
                      HarborDragDst_t const& dst ) {
     lg.debug( "performing drag: {} to {}", src, dst );
-    std::visit( DragPerform( entities ), src, dst );
+    std::visit( DragPerform( S, entities ), src, dst );
   }
 
   void DRAG_PERFORM_CASE( dock, cargo ) const {
@@ -1727,29 +1749,28 @@ struct DragPerform {
     // the player,
     if( unit_from_id( ship ).cargo().fits( Cargo::unit{ src.id },
                                            dst.slot._ ) )
-      GameState::units().change_to_cargo_somewhere( ship, src.id,
-                                                    dst.slot._ );
+      S.units_state.change_to_cargo_somewhere( ship, src.id,
+                                               dst.slot._ );
     else
-      GameState::units().change_to_cargo_somewhere( ship,
-                                                    src.id );
+      S.units_state.change_to_cargo_somewhere( ship, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
-    ASSIGN_CHECK_V( unit, draggable_from_src( src ),
+    ASSIGN_CHECK_V( unit, draggable_from_src( S, src ),
                     HarborDraggableObject::unit );
-    unit_move_to_port( GameState::units(), unit.id );
+    unit_move_to_port( S.units_state, unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    UNWRAP_CHECK(
-        cargo_object,
-        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    UNWRAP_CHECK( cargo_object,
+                  draggable_to_cargo_object(
+                      draggable_from_src( S, src ) ) );
     overload_visit(
         cargo_object,
         [&]( Cargo::unit u ) {
           // Will first "disown" unit which will remove it
           // from the cargo.
-          GameState::units().change_to_cargo_somewhere(
-              ship, u.id, dst.slot._ );
+          S.units_state.change_to_cargo_somewhere( ship, u.id,
+                                                   dst.slot._ );
         },
         [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
@@ -1759,29 +1780,21 @@ struct DragPerform {
         } );
   }
   void DRAG_PERFORM_CASE( outbound, inbound ) const {
-    // FIXME FIXME
-    Player& player = get_player();
-    unit_sail_to_harbor( GameState::terrain(),
-                         GameState::units(), player, src.id );
+    unit_sail_to_harbor( S.terrain_state, S.units_state,
+                         S.player, src.id );
   }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
-    // FIXME FIXME
-    Player& player = get_player();
-    unit_sail_to_harbor( GameState::terrain(),
-                         GameState::units(), player, src.id );
+    unit_sail_to_harbor( S.terrain_state, S.units_state,
+                         S.player, src.id );
   }
   void DRAG_PERFORM_CASE( inbound, outbound ) const {
-    // FIXME FIXME
-    Player& player = get_player();
-    unit_sail_to_new_world( GameState::terrain(),
-                            GameState::units(), player, src.id );
+    unit_sail_to_new_world( S.terrain_state, S.units_state,
+                            S.player, src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
-    // FIXME FIXME
-    Player&      player   = get_player();
-    HarborState& hb_state = get_harbor_state();
-    unit_sail_to_new_world( GameState::terrain(),
-                            GameState::units(), player, src.id );
+    HarborState& hb_state = S.harbor_state();
+    unit_sail_to_new_world( S.terrain_state, S.units_state,
+                            S.player, src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
     // (if any) since that is likely what the user wants to work
@@ -1790,25 +1803,24 @@ struct DragPerform {
     // just deselect.
     hb_state.selected_unit = nothing;
     vector<UnitId> units_in_port =
-        harbor_units_in_port( GameState::units(), get_nation() );
+        harbor_units_in_port( S.units_state, S.player.nation );
     hb_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
-    GameState::units().change_to_cargo_somewhere( dst.id,
-                                                  src.id );
+    S.units_state.change_to_cargo_somewhere( dst.id, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
-    UNWRAP_CHECK(
-        cargo_object,
-        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    UNWRAP_CHECK( cargo_object,
+                  draggable_to_cargo_object(
+                      draggable_from_src( S, src ) ) );
     overload_visit(
         cargo_object,
         [&]( Cargo::unit u ) {
           CHECK( !src.quantity.has_value() );
           // Will first "disown" unit which will remove it
           // from the cargo.
-          GameState::units().change_to_cargo_somewhere( dst.id,
-                                                        u.id );
+          S.units_state.change_to_cargo_somewhere( dst.id,
+                                                   u.id );
         },
         [&]( Cargo::commodity const& ) {
           UNWRAP_CHECK( src_ship,
@@ -1884,10 +1896,10 @@ struct DragPerform {
   }
 };
 
-void drag_n_drop_draw( rr::Renderer& renderer,
-                       Rect const&   canvas ) {
-  if( !g_drag_state ) return;
-  auto& state            = *g_drag_state;
+void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
+                       Rect const& canvas ) {
+  if( !S.drag_state ) return;
+  auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
     return c + canvas.upper_left().distance_from_origin();
   };
@@ -1960,7 +1972,7 @@ void drag_n_drop_handle_input(
 
 // This function takes a coordinate relative to the canvas and
 // works in that frame.
-wait<> dragging_thread( Entities*             entities,
+wait<> dragging_thread( PS& S, Entities* entities,
                         input::e_mouse_button button,
                         Coord                 origin ) {
   // Must check first if there is anything to drag. If this is
@@ -1968,20 +1980,20 @@ wait<> dragging_thread( Entities*             entities,
   // ately without co_awaiting on anything.
   if( button != input::e_mouse_button::l ) co_return;
   maybe<HarborDragSrcInfo> src_info =
-      drag_src_from_coord( origin, entities );
+      drag_src_from_coord( S, origin, entities );
   if( !src_info ) co_return;
   HarborDragSrc_t& src = src_info->src;
 
   // Now we have a valid drag that has initiated.
-  g_drag_state = drag::State<HarborDraggableObject_t>{
+  S.drag_state = drag::State<HarborDraggableObject_t>{
       .stream              = {},
-      .object              = draggable_from_src( src ),
+      .object              = draggable_from_src( S, src ),
       .indicator           = drag::e_status_indicator::none,
       .user_requests_input = false,
       .where               = origin,
       .click_offset        = origin - src_info->rect.center() };
-  SCOPE_EXIT( g_drag_state = nothing );
-  auto& state = *g_drag_state;
+  SCOPE_EXIT( S.drag_state = nothing );
+  auto& state = *S.drag_state;
 
   drag::Step             latest;
   maybe<HarborDragDst_t> dst;
@@ -1993,7 +2005,7 @@ wait<> dragging_thread( Entities*             entities,
       state.indicator = drag::e_status_indicator::none;
       continue;
     }
-    if( !DragConnector::visit( entities, src, *dst ) ) {
+    if( !DragConnector::visit( S, entities, src, *dst ) ) {
       state.indicator = drag::e_status_indicator::bad;
       continue;
     }
@@ -2005,16 +2017,16 @@ wait<> dragging_thread( Entities*             entities,
     CHECK( dst );
     bool proceed = true;
     if( state.user_requests_input )
-      proceed =
-          co_await DragUserInput::visit( entities, &src, &*dst );
+      proceed = co_await DragUserInput::visit( S, entities, &src,
+                                               &*dst );
     if( proceed ) {
-      DragPerform::visit( entities, src, *dst );
+      DragPerform::visit( S, entities, src, *dst );
       // Now that we've potentially changed the ownership of some
       // units, we need to recreate the entities otherwise we'll
       // potentially have one frame where the dragged unit is
       // back in its original position before moving to where it
       // was dragged.
-      create_entities( entities );
+      create_entities( S, entities );
       co_return;
     }
   }
@@ -2035,11 +2047,20 @@ wait<> dragging_thread( Entities*             entities,
   }
 }
 
+} // namespace
+
 /****************************************************************
 ** The Harbor Plane
 *****************************************************************/
-struct HarborPlane : public Plane {
-  HarborPlane() = default;
+struct HarborPlane::Impl : public Plane {
+  PS S_;
+
+  Impl( Player& player, UnitsState& units_state,
+        TerrainState const& terrain_state, IGui& gui )
+    : S_{ .player        = player,
+          .units_state   = units_state,
+          .terrain_state = terrain_state,
+          .gui           = gui } {}
 
   bool covers_screen() const override { return true; }
 
@@ -2061,14 +2082,14 @@ struct HarborPlane : public Plane {
       // for a proper solution. That will require that this plane
       // be rewritten to send its inputs into the co::stream as
       // the colony-view plane does.
-      create_entities( &entities_ );
+      create_entities( S_, &entities_ );
     }
   }
 
   void draw( rr::Renderer& renderer ) const override {
     draw_entities( renderer, entities_ );
     // Should be last.
-    drag_n_drop_draw( renderer, canvas_ );
+    drag_n_drop_draw( S_, renderer, canvas_ );
   }
 
   e_input_handled input(
@@ -2078,8 +2099,8 @@ struct HarborPlane : public Plane {
         canvas_.upper_left().distance_from_origin() );
     // If there is a drag happening then the user's input should
     // not be needed for anything other than the drag.
-    if( g_drag_state ) {
-      drag_n_drop_handle_input( event, g_drag_state->stream );
+    if( S_.drag_state ) {
+      drag_n_drop_handle_input( event, S_.drag_state->stream );
       return e_input_handled::yes;
     }
     switch( event.to_enum() ) {
@@ -2088,7 +2109,7 @@ struct HarborPlane : public Plane {
       case input::e_input_event::quit_event:
         return e_input_handled::no;
       case input::e_input_event::win_event:
-        create_entities( &entities_ );
+        create_entities( S_, &entities_ );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
         return e_input_handled::no;
@@ -2108,7 +2129,7 @@ struct HarborPlane : public Plane {
         if( entities_.exit_label.has_value() ) {
           if( val.pos.is_inside(
                   entities_.exit_label->bounds() ) ) {
-            g_exit_promise.set_value_emplace();
+            S_.exit_promise.set_value_emplace();
             return e_input_handled::yes;
           }
         }
@@ -2116,14 +2137,14 @@ struct HarborPlane : public Plane {
         // Unit selection.
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
-          HarborState& hb_state = get_harbor_state();
+          HarborState& hb_state = S_.harbor_state();
           if( maybe_entity ) {
             if( auto maybe_pair =
                     maybe_entity->obj_under_cursor( val.pos );
                 maybe_pair ) {
               hb_state.selected_unit = maybe_pair->first;
               handled                = e_input_handled::yes;
-              create_entities( &entities_ );
+              create_entities( S_, &entities_ );
             }
           }
         };
@@ -2143,12 +2164,12 @@ struct HarborPlane : public Plane {
   ***************************************************************/
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
-    if( g_drag_state ) return Plane::e_accept_drag::swallow;
+    if( S_.drag_state ) return Plane::e_accept_drag::swallow;
     wait<> w = dragging_thread(
-        &entities_, button,
+        S_, &entities_, button,
         origin.with_new_origin( canvas_.upper_left() ) );
     if( w.ready() ) return e_accept_drag::no;
-    g_drag_thread = std::move( w );
+    S_.drag_thread = std::move( w );
     return e_accept_drag::yes;
   }
 
@@ -2156,8 +2177,8 @@ struct HarborPlane : public Plane {
                 input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
-    CHECK( g_drag_state );
-    g_drag_state->stream.send( drag::Step{
+    CHECK( S_.drag_state );
+    S_.drag_state->stream.send( drag::Step{
         .mod = mod,
         .current =
             current.with_new_origin( canvas_.upper_left() ) } );
@@ -2167,11 +2188,52 @@ struct HarborPlane : public Plane {
                          input::e_mouse_button /*button*/,
                          Coord /*origin*/,
                          Coord /*end*/ ) override {
-    CHECK( g_drag_state );
-    g_drag_state->stream.finish();
+    CHECK( S_.drag_state );
+    S_.drag_state->stream.finish();
     // At this point we assume that the callback will finish on
     // its own after doing any post-drag stuff it needs to do. No
     // new drags can start until then.
+  }
+
+  // ------------------------------------------------------------
+  // Main Thread
+  // ------------------------------------------------------------
+  wait<> run_harbor_view() {
+    create_entities( S_, &entities_ );
+    // TODO: how does this thread interact with the dragging
+    // thread? It should probably somehow co_await on it when a
+    // drag happens.
+    co_await S_.exit_promise.wait();
+  }
+
+  // ------------------------------------------------------------
+  // API
+  // ------------------------------------------------------------
+  wait<> show_harbor_view() {
+    HarborState& hb_state = S_.harbor_state();
+    S_.exit_promise       = {};
+    if( hb_state.selected_unit ) {
+      UnitId id = *hb_state.selected_unit;
+      // We could have a case where the unit that was last
+      // selected went to the new world and was then disbanded,
+      // or is just no longer in the harbor.
+      if( !S_.units_state.exists( id ) ||
+          !S_.units_state.maybe_harbor_view_state_of( id ) )
+        hb_state.selected_unit = nothing;
+    }
+    lg.info( "entering harbor view." );
+    co_await run_harbor_view();
+    lg.info( "leaving harbor view." );
+  }
+
+  void set_selected_unit( UnitId id ) {
+    HarborState&      hb_state    = S_.harbor_state();
+    UnitsState const& units_state = S_.units_state;
+    // Ensure that the unit is either in port or on the high
+    // seas, otherwise it doesn't make sense for the unit to be
+    // selected on this screen.
+    CHECK( units_state.maybe_harbor_view_state_of( id ) );
+    hb_state.selected_unit = id;
   }
 
   // ------------------------------------------------------------
@@ -2181,75 +2243,29 @@ struct HarborPlane : public Plane {
   Rect     canvas_;
 };
 
-HarborPlane g_harbor_plane;
-
 /****************************************************************
-** Initialization / Cleanup
+** HarborPlane
 *****************************************************************/
-void init_harbor_view() {}
-
-void cleanup_harbor_view() { g_drag_thread = nothing; }
-
-REGISTER_INIT_ROUTINE( harbor_view );
-
-/****************************************************************
-** Main Thread
-*****************************************************************/
-wait<> run_harbor_view() {
-  create_entities( &g_harbor_plane.entities_ );
-  // TODO: how does this thread interact with the dragging
-  // thread? It should probably somehow co_await on it when a
-  // drag happens.
-  co_await g_exit_promise.wait();
+HarborPlane::HarborPlane( Planes& planes, e_plane_stack where,
+                          Player&             player,
+                          UnitsState&         units_state,
+                          TerrainState const& terrain_state,
+                          IGui&               gui )
+  : planes_( planes ),
+    where_( where ),
+    impl_(
+        new Impl( player, units_state, terrain_state, gui ) ) {
+  planes.push( *impl_.get(), where );
 }
 
-} // namespace
+HarborPlane::~HarborPlane() noexcept { planes_.pop( where_ ); }
 
-/****************************************************************
-** Public API
-*****************************************************************/
-// FIXME: remove
-void set_harbor_view_player( e_nation nation ) {
-  g_nation = nation;
+void HarborPlane::set_selected_unit( UnitId id ) {
+  impl_->set_selected_unit( id );
 }
 
-wait<> show_harbor_view() {
-  HarborState& hb_state         = get_harbor_state();
-  g_exit_promise                = {};
-  UnitsState const& units_state = GameState::units();
-  if( hb_state.selected_unit ) {
-    UnitId id = *hb_state.selected_unit;
-    // We could have a case where the unit that was last selected
-    // went to the new world and was then disbanded, or is just
-    // no longer in the harbor.
-    if( !units_state.exists( id ) ||
-        !units_state.maybe_harbor_view_state_of( id ) )
-      hb_state.selected_unit = nothing;
-  }
-  ScopedPlanePush pusher( e_plane_config::harbor );
-  lg.info( "entering harbor view." );
-  co_await run_harbor_view();
-  lg.info( "leaving harbor view." );
+wait<> HarborPlane::show_harbor_view() {
+  return impl_->show_harbor_view();
 }
-
-void harbor_view_set_selected_unit( UnitId id ) {
-  HarborState&      hb_state    = get_harbor_state();
-  UnitsState const& units_state = GameState::units();
-  // Ensure that the unit is either in port or on the high seas,
-  // otherwise it doesn't make sense for the unit to be selected
-  // on this screen.
-  CHECK( units_state.maybe_harbor_view_state_of( id ) );
-  hb_state.selected_unit = id;
-}
-
-Plane* harbor_plane() { return &g_harbor_plane; }
-
-/****************************************************************
-** Menu Handlers
-*****************************************************************/
-
-MENU_ITEM_HANDLER(
-    harbor_close, [] { g_exit_promise.set_value_emplace(); },
-    [] { return is_plane_enabled( e_plane::harbor ); } )
 
 } // namespace rn

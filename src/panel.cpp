@@ -216,4 +216,8 @@ PanelPlane::PanelPlane( Planes& planes, e_plane_stack where,
 
 PanelPlane::~PanelPlane() noexcept { planes_.pop( where_ ); }
 
+wait<> PanelPlane::wait_for_eot_button_click() {
+  return impl_->wait_for_eot_button_click();
+}
+
 } // namespace rn

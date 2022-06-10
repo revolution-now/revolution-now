@@ -35,6 +35,14 @@ namespace rn {
 
 struct Planes;
 
+struct IntInputBoxOptions {
+  std::string_view title   = "";
+  std::string_view msg     = "";
+  maybe<int>       min     = nothing;
+  maybe<int>       max     = nothing;
+  maybe<int>       initial = nothing;
+};
+
 /****************************************************************
 ** WindowPlane
 *****************************************************************/
@@ -63,6 +71,9 @@ struct WindowPlane {
       std::string_view title, std::string_view msg,
       std::string_view initial_text );
 
+  wait<maybe<int>> int_input_box(
+      IntInputBoxOptions const& options );
+
  private:
   friend struct Window;
 
@@ -72,10 +83,6 @@ struct WindowPlane {
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
-
-} // namespace rn
-
-namespace rn::ui {
 
 enum class e_unit_selection {
   clear_orders,
@@ -89,7 +96,12 @@ struct UnitSelection {
 NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
-    std::vector<UnitId> const& ids_, bool allow_activation );
+    WindowPlane& window_plane, std::vector<UnitId> const& ids_,
+    bool allow_activation );
+
+} // namespace rn
+
+namespace rn::ui {
 
 /****************************************************************
 ** Validators
@@ -114,16 +126,5 @@ wait<e_ok_cancel> ok_cancel( std::string_view fmt_str,
   return ok_cancel( fmt::format(
       fmt::runtime( fmt_str ), std::forward<Args>( args )... ) );
 }
-
-struct IntInputBoxOptions {
-  std::string_view title   = "";
-  std::string_view msg     = "";
-  maybe<int>       min     = nothing;
-  maybe<int>       max     = nothing;
-  maybe<int>       initial = nothing;
-};
-
-wait<maybe<int>> int_input_box(
-    IntInputBoxOptions const& options );
 
 } // namespace rn::ui

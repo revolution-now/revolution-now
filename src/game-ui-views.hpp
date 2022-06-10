@@ -26,12 +26,12 @@
 #include <unordered_map>
 #include <vector>
 
-namespace rn::ui {
+namespace rn {
 
 /****************************************************************
 ** UnitActivationView
 *****************************************************************/
-class UnitActivationView final : public CompositeSingleView {
+class UnitActivationView final : public ui::CompositeSingleView {
  public:
   using map_t = std::unordered_map<UnitId, UnitActivationInfo>;
 
@@ -53,4 +53,4 @@ class UnitActivationView final : public CompositeSingleView {
   map_t info_map_;
 };
 
-} // namespace rn::ui
+} // namespace rn
