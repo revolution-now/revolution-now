@@ -6,6 +6,7 @@ let s:stems = [
  \ 'main-menu',
  \ 'game',
  \ 'turn',
+ \ 'turn-plane',
  \ 'omni',
  \ 'console',
  \ 'window',

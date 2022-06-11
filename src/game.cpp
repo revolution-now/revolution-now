@@ -80,6 +80,7 @@ wait<> run_existing_game( Planes& planes ) {
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
+  map_updater.just_redraw_map();
   lua_reload( GameState::root() );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(

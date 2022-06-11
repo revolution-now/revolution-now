@@ -29,6 +29,8 @@ Plane::e_accept_drag Plane::can_drag(
   return e_accept_drag::no;
 }
 
+void Plane::draw( rr::Renderer& ) const {}
+
 void Plane::on_drag( input::mod_keys const& /*unused*/,
                      input::e_mouse_button /*unused*/,
                      Coord /*unused*/, Coord /*unused*/,

@@ -19,6 +19,7 @@ namespace rn {
 
 struct IMapUpdater;
 struct LandViewState;
+struct MenuPlane;
 struct Plane;
 struct TerrainState;
 
@@ -28,12 +29,11 @@ struct TerrainState;
 struct MapEditPlane {
   MapEditPlane( IMapUpdater&        map_updater,
                 LandViewState&      land_view_state,
-                TerrainState const& terrain_state );
+                TerrainState const& terrain_state,
+                MenuPlane&          menu_plane );
   ~MapEditPlane();
 
-  wait<> map_editor();
-
-  wait<> map_editor_standalone();
+  wait<> run_map_editor();
 
  private:
   struct Impl;
@@ -42,5 +42,13 @@ struct MapEditPlane {
  public:
   Plane& impl();
 };
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> run_map_editor( IMapUpdater&        map_updater,
+                       LandViewState&      land_view_state,
+                       TerrainState const& terrain_state,
+                       bool                standalone_mode );
 
 } // namespace rn

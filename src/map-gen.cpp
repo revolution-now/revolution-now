@@ -33,13 +33,6 @@ namespace rn {
 
 namespace {
 
-void reset_terrain( IMapUpdater& map_updater, Delta size ) {
-  map_updater.modify_entire_map(
-      [&]( Matrix<MapSquare>& world_map ) {
-        world_map = Matrix<MapSquare>( size );
-      } );
-}
-
 void generate_terrain_impl( Matrix<MapSquare>& ) {
   lg.info( "generating map..." );
   lua::state& st = lua_global_state();
@@ -54,6 +47,13 @@ void generate_terrain_impl( Matrix<MapSquare>& ) {
 }
 
 } // namespace
+
+void reset_terrain( IMapUpdater& map_updater, Delta size ) {
+  map_updater.modify_entire_map(
+      [&]( Matrix<MapSquare>& world_map ) {
+        world_map = Matrix<MapSquare>( size );
+      } );
+}
 
 void generate_terrain( IMapUpdater& map_updater ) {
   map_updater.modify_entire_map( generate_terrain_impl );

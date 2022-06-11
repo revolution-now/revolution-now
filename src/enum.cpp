@@ -18,7 +18,6 @@
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
 #include "main-menu.hpp"
-#include "turn-impl.rds.hpp"
 #include "window.hpp"
 
 // refl
@@ -77,11 +76,10 @@ EnumNameMap& enum_display_names() {
     return EnumNameMap{ EVAL( PP_MAP_COMMAS(
         ENUM_TO_STR_FUNC, //
         /*************************************************/
-        ui::e_confirm,             //
-        e_music_player,            //
-        e_revolution_confirmation, //
-        e_commodity,               //
-        e_main_menu_item           //
+        ui::e_confirm,   //
+        e_music_player,  //
+        e_commodity,     //
+        e_main_menu_item //
         /*************************************************/
         ) ) };
   }();

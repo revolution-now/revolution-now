@@ -36,8 +36,11 @@ wait<string> RealGui::choice( ChoiceConfig const& config ) {
     unordered_set<string> seen_key;
     unordered_set<string> seen_display;
     for( ChoiceConfigOption option : config.options ) {
-      DCHECK( !seen_key.contains( option.key ) );
-      DCHECK( !seen_display.contains( option.display_name ) );
+      DCHECK( !seen_key.contains( option.key ),
+              "key {} appears twice.", option.key );
+      // Note that we don't do a similar uniqueness check for the
+      // display name because those are allowed to conincide in
+      // some cases, e.g. when selecting from the immigrant pool.
       seen_key.insert( option.key );
       seen_display.insert( option.display_name );
     }

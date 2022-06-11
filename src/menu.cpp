@@ -1108,6 +1108,7 @@ struct MenuPlane::Impl : public Plane {
         break;
       }
       case MenuState::e::menu_open: {
+        if( !is_menu_item_enabled( item ) ) return;
         lg.info( "selected menu item `{}`", item );
         menu_state_ = MenuState::item_click{
             item, chrono::system_clock::now() };

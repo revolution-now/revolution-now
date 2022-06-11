@@ -381,10 +381,26 @@ void advance_viewport_state( SmoothViewport& viewport ) {
 struct MapEditPlane::Impl : public Plane {
   PS S_;
 
+  MenuPlane::Deregistrar zoom_in_dereg_;
+  MenuPlane::Deregistrar zoom_out_dereg_;
+  MenuPlane::Deregistrar restore_zoom_dereg_;
+
+  void register_menu_items( MenuPlane& menu_plane ) {
+    // Register menu handlers.
+    zoom_in_dereg_ = menu_plane.register_handler(
+        e_menu_item::zoom_in, *this );
+    zoom_out_dereg_ = menu_plane.register_handler(
+        e_menu_item::zoom_out, *this );
+    restore_zoom_dereg_ = menu_plane.register_handler(
+        e_menu_item::restore_zoom, *this );
+  }
+
   Impl( IMapUpdater& map_updater, LandViewState& land_view_state,
-        TerrainState const& terrain_state )
+        TerrainState const& terrain_state,
+        MenuPlane&          menu_plane )
     : S_{ .map_updater     = map_updater,
           .land_view_state = land_view_state } {
+    register_menu_items( menu_plane );
     land_view_state.viewport.set_max_viewable_size_tiles(
         terrain_state.world_map().size() );
     // This is done to initialize the viewport with info about
@@ -430,6 +446,59 @@ struct MapEditPlane::Impl : public Plane {
 
   SmoothViewport const& viewport() const {
     return GameState::land_view().viewport;
+  }
+
+  maybe<function<void()>> menu_click_handler(
+      e_menu_item item ) {
+    // These are factors by which the zoom will be scaled when
+    // zooming in/out with the menus.
+    double constexpr zoom_in_factor  = 2.0;
+    double constexpr zoom_out_factor = 1.0 / zoom_in_factor;
+    // This is so that a zoom-in followed by a zoom-out will
+    // re- store to previous state.
+    static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
+    switch( item ) {
+      case e_menu_item::zoom_in: {
+        auto handler = [this] {
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
+          viewport().stop_auto_zoom();
+          viewport().stop_auto_panning();
+          viewport().smooth_zoom_target( viewport().get_zoom() *
+                                         zoom_in_factor );
+        };
+        return handler;
+      }
+      case e_menu_item::zoom_out: {
+        auto handler = [this] {
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
+          viewport().stop_auto_zoom();
+          viewport().stop_auto_panning();
+          viewport().smooth_zoom_target( viewport().get_zoom() *
+                                         zoom_out_factor );
+        };
+        return handler;
+      }
+      case e_menu_item::restore_zoom: {
+        if( viewport().get_zoom() == 1.0 ) break;
+        auto handler = [this] {
+          viewport().smooth_zoom_target( 1.0 );
+        };
+        return handler;
+      }
+      default: break;
+    }
+    return nothing;
+  }
+
+  bool will_handle_menu_click( e_menu_item item ) override {
+    return menu_click_handler( item ).has_value();
+  }
+
+  void handle_menu_click( e_menu_item item ) override {
+    DCHECK( menu_click_handler( item ).has_value() );
+    ( *menu_click_handler( item ) )();
   }
 
   wait<> run_map_editor() {
@@ -531,19 +600,17 @@ MapEditPlane::~MapEditPlane() = default;
 
 MapEditPlane::MapEditPlane( IMapUpdater&        map_updater,
                             LandViewState&      land_view_state,
-                            TerrainState const& terrain_state )
-  : impl_( new Impl( map_updater, land_view_state,
-                     terrain_state ) ) {}
+                            TerrainState const& terrain_state,
+                            MenuPlane&          menu_plane )
+  : impl_( new Impl( map_updater, land_view_state, terrain_state,
+                     menu_plane ) ) {}
 
-wait<> MapEditPlane::map_editor() {
+wait<> MapEditPlane::run_map_editor() {
   lg.info( "entering map editor." );
   co_await impl_->run_map_editor();
   lg.info( "leaving map editor." );
 }
 
-wait<> MapEditPlane::map_editor_standalone() {
-  generate_terrain( impl_->S_.map_updater );
-  co_await map_editor();
 }
 
 } // namespace rn

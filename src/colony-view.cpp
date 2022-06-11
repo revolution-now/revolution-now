@@ -537,14 +537,17 @@ struct ColonyPlane::Impl : public Plane {
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
+Plane& ColonyPlane::impl() { return *impl_; }
+
+ColonyPlane::~ColonyPlane() = default;
+
 ColonyPlane::ColonyPlane( Colony& colony, IGui& gui )
   : impl_( new Impl( colony, gui ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
-  lg.info(
-      "viewing colony {}.",
-      colony_from_id( impl_->colony_.id() ).debug_string() );
   co_await impl_->run_colview();
+}
+
   lg.info( "leaving colony view." );
 }
 

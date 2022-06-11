@@ -32,9 +32,9 @@ struct Plane {
 
   // Will rendering this plane cover all pixels?  If so, then
   // planes under it will not be rendered.
-  bool virtual covers_screen() const = 0;
+  virtual bool covers_screen() const = 0;
 
-  void virtual draw( rr::Renderer& renderer ) const = 0;
+  virtual void draw( rr::Renderer& renderer ) const;
 
   // Called once per frame.
   virtual void advance_state();

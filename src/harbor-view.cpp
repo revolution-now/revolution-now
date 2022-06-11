@@ -2246,7 +2246,9 @@ struct HarborPlane::Impl : public Plane {
 /****************************************************************
 ** HarborPlane
 *****************************************************************/
-HarborPlane::Impl& HarborPlane::impl() { return *impl_; }
+Plane& HarborPlane::impl() { return *impl_; }
+
+HarborPlane::~HarborPlane() = default;
 
 HarborPlane::HarborPlane( Player&             player,
                           UnitsState&         units_state,

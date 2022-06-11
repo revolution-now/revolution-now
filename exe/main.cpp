@@ -53,13 +53,11 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
       MapUpdater map_updater( GameState::terrain(), renderer() );
-      PlaneStack& plane_stack = PlaneStack::global();
-      Planes& planes = plane_stack[e_plane_stack_level::bottom];
-      MapEditPlane map_edit_plane(
-          planes, e_plane_stack::back, map_updater,
-          GameState::land_view(), GameState::terrain() );
-      frame_loop( map_edit_plane.map_editor_standalone(),
-                  renderer() );
+      frame_loop(
+          run_map_editor( map_updater, GameState::land_view(),
+                          GameState::terrain(),
+                          /*standalone_mode=*/true ),
+          renderer() );
       break;
     }
     case e_mode::map_gen: {

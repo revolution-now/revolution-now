@@ -159,7 +159,6 @@ void render_backdrop( rr::Renderer& renderer ) {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  MenuPlane&          menu_plane_;
   WindowPlane&        window_plane_;
   LandViewState&      land_view_state_;
   TerrainState const& terrain_state_;
@@ -190,34 +189,33 @@ struct LandViewPlane::Impl : public Plane {
     return land_view_state_.viewport;
   }
 
-  void register_menu_items() {
+  void register_menu_items( MenuPlane& menu_plane ) {
     // Register menu handlers.
-    zoom_in_dereg_ = menu_plane_.register_handler(
+    zoom_in_dereg_ = menu_plane.register_handler(
         e_menu_item::zoom_in, *this );
-    zoom_out_dereg_ = menu_plane_.register_handler(
+    zoom_out_dereg_ = menu_plane.register_handler(
         e_menu_item::zoom_out, *this );
-    restore_zoom_dereg_ = menu_plane_.register_handler(
+    restore_zoom_dereg_ = menu_plane.register_handler(
         e_menu_item::restore_zoom, *this );
-    find_blinking_unit_dereg_ = menu_plane_.register_handler(
+    find_blinking_unit_dereg_ = menu_plane.register_handler(
         e_menu_item::find_blinking_unit, *this );
-    sentry_dereg_ = menu_plane_.register_handler(
+    sentry_dereg_ = menu_plane.register_handler(
         e_menu_item::sentry, *this );
-    fortify_dereg_ = menu_plane_.register_handler(
+    fortify_dereg_ = menu_plane.register_handler(
         e_menu_item::fortify, *this );
     plow_dereg_ =
-        menu_plane_.register_handler( e_menu_item::plow, *this );
+        menu_plane.register_handler( e_menu_item::plow, *this );
     road_dereg_ =
-        menu_plane_.register_handler( e_menu_item::road, *this );
+        menu_plane.register_handler( e_menu_item::road, *this );
   }
 
   Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
         LandViewState&      land_view_state,
         TerrainState const& terrain_state )
-    : menu_plane_( menu_plane ),
-      window_plane_( window_plane ),
+    : window_plane_( window_plane ),
       land_view_state_( land_view_state ),
       terrain_state_( terrain_state ) {
-    register_menu_items();
+    register_menu_items( menu_plane );
     // Initialize general global data.
     unit_animations_.clear();
     landview_action_state_ = LandViewUnitActionState::none{};
@@ -999,8 +997,6 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   bool will_handle_menu_click( e_menu_item item ) override {
-    // This should be safe because we are not calling the click
-    // handler and so nothing should be mutated.
     return menu_click_handler( item ).has_value();
   }
 
