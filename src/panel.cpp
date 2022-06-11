@@ -103,8 +103,6 @@ struct PanelPlane::Impl : public Plane {
 
   void draw_some_stats( rr::Renderer& renderer,
                         Coord const   where ) const {
-    Coord p = where;
-
     rr::Typer typer =
         renderer.typer( where, gfx::pixel::banana() );
 

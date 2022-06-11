@@ -74,10 +74,10 @@ struct PS {
   TerrainState const& terrain_state;
   IGui&               gui;
 
-  wait_promise<> exit_promise;
+  wait_promise<> exit_promise = {};
 
-  maybe<drag::State<HarborDraggableObject_t>> drag_state;
-  maybe<wait<>>                               drag_thread;
+  maybe<drag::State<HarborDraggableObject_t>> drag_state  = {};
+  maybe<wait<>>                               drag_thread = {};
 
   HarborState& harbor_state() {
     return player.old_world.harbor_state;

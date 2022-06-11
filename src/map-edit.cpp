@@ -208,7 +208,7 @@ wait<> click_on_tile( PS& S, Coord tile, e_action action ) {
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( PS& S, SmoothViewport& viewport,
+wait<bool> handle_event( PS&, SmoothViewport& viewport,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
@@ -256,7 +256,7 @@ wait<bool> handle_event(
 }
 
 wait<bool> handle_event(
-    PS& S, SmoothViewport& viewport,
+    PS&, SmoothViewport& viewport,
     input::mouse_wheel_event_t const& event ) {
   if( viewport.screen_coord_in_viewport( event.pos ) ) {
     if( event.wheel_delta < 0 )
@@ -401,7 +401,9 @@ struct MapEditPlane::Impl : public Plane {
         TerrainState const& terrain_state,
         MenuPlane&          menu_plane )
     : S_{ .map_updater     = map_updater,
-          .land_view_state = land_view_state } {
+          .land_view_state = land_view_state,
+          .input           = {},
+          .selected_tool   = {} } {
     register_menu_items( menu_plane );
     land_view_state.viewport.set_max_viewable_size_tiles(
         terrain_state.world_map().size() );

@@ -182,13 +182,14 @@ wait<> menu_handler( Planes& planes, Player& player,
       break;
     }
     case e_menu_item::revolution: {
-      string answer = co_await gui.choice(
-          { .msg     = "Declare Revolution?",
-            .options = {
-                { .key = "no", .display_name = "Not Yet..." },
-                { .key          = "yes",
-                  .display_name = "Give me liberty or give me "
-                                  "death!" } } } );
+      ChoiceConfig config{
+          .msg     = "Declare Revolution?",
+          .options = {
+              { .key = "no", .display_name = "Not Yet..." },
+              { .key          = "yes",
+                .display_name = "Give me liberty or give me "
+                                "death!" } } };
+      string answer = co_await gui.choice( config );
       co_await gui.message_box( "You selected: {}", answer );
       break;
     }
@@ -349,11 +350,9 @@ wait<> process_player_input( e_menu_item item, ColoniesState&,
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              ColoniesState& colonies_state,
-                             IGui& gui, IMapUpdater& map_updater,
-                             LandViewState& land_view_state,
-                             Planes& planes, Player& player,
-                             TerrainState const& terrain_state,
-                             UnitsState&         units_state ) {
+                             IGui&, IMapUpdater&, LandViewState&,
+                             Planes& planes, Player&,
+                             TerrainState const&, UnitsState& ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -366,13 +365,10 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
   }
 }
 
-wait<> process_player_input( next_turn_t,
-                             ColoniesState& colonies_state,
-                             IGui& gui, IMapUpdater& map_updater,
-                             LandViewState& land_view_state,
-                             Planes& planes, Player& player,
-                             TerrainState const& terrain_state,
-                             UnitsState&         units_state ) {
+wait<> process_player_input( next_turn_t, ColoniesState&, IGui&,
+                             IMapUpdater&, LandViewState&,
+                             Planes&, Player&,
+                             TerrainState const&, UnitsState& ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
@@ -453,7 +449,7 @@ wait<> process_player_input(
     TerrainState const& terrain_state, UnitsState& units_state,
     ColoniesState& colonies_state, SettingsState const& settings,
     LandViewPlane& land_view_plane, Planes& planes,
-    LandViewState& land_view_state ) {
+    LandViewState& ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
   switch( input.to_enum() ) {
@@ -816,7 +812,7 @@ wait<> nation_turn(
     LandViewPlane& land_view_plane, Player& player,
     NationTurnState&    nat_turn_st,
     TerrainState const& terrain_state, UnitsState& units_state,
-    SettingsState const& settings, PlayersState& players_state,
+    SettingsState const& settings, PlayersState&,
     ColoniesState& colonies_state, IMapUpdater& map_updater,
     IGui& gui, Planes& planes, LandViewState& land_view_state ) {
   auto& st = nat_turn_st;

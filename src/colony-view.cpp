@@ -390,7 +390,7 @@ wait<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
+wait<bool> handle_event( PS&, Colony&, IGui&,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
@@ -405,7 +405,7 @@ wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    PS& S, Colony& colony, IGui& gui,
+    PS&, Colony&, IGui&,
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
@@ -414,7 +414,7 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
+wait<bool> handle_event( PS&, Colony& colony, IGui& gui,
                          input::win_event_t const& event ) {
   if( event.type == input::e_win_event_type::resized )
     // Force a re-composite.
@@ -423,14 +423,13 @@ wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
 }
 
 wait<bool> handle_event(
-    PS& S, Colony& colony, IGui& gui,
+    PS&                              S, Colony&, IGui&,
     input::mouse_drag_event_t const& event ) {
   co_await drag_drop_routine( S, event );
   co_return false;
 }
 
-wait<bool> handle_event( PS& S, Colony& colony, IGui& gui,
-                         auto const& ) {
+wait<bool> handle_event( PS&, Colony&, IGui&, auto const& ) {
   co_return false;
 }
 

@@ -981,21 +981,21 @@ class UnitsAtGateColonyView : public ui::View,
     }
     // FIXME: need to replace the two below calls with a more
     // robust (non-string-based) approach.
-    string mode = co_await gui_.choice(
-        { .msg     = "What would you like to do?",
-          .options = { { .key          = "orders",
-                         .display_name = "Change Orders" },
-                       { .key          = "strip",
-                         .display_name = "Strip Unit" } } } );
+    ChoiceConfig config{
+        .msg     = "What would you like to do?",
+        .options = {
+            { .key = "orders", .display_name = "Change Orders" },
+            { .key = "strip", .display_name = "Strip Unit" } } };
+    string mode = co_await gui_.choice( config );
     if( mode == "orders" ) {
-      string new_orders = co_await gui_.choice(
-          { .msg     = "Change unit orders to:",
-            .options = {
-                { .key          = "clear",
-                  .display_name = "Clear Orders" },
-                { .key = "sentry", .display_name = "Sentry" },
-                { .key          = "fortify",
-                  .display_name = "Fortify" } } } );
+      ChoiceConfig config{
+          .msg     = "Change unit orders to:",
+          .options = {
+              { .key = "clear", .display_name = "Clear Orders" },
+              { .key = "sentry", .display_name = "Sentry" },
+              { .key          = "fortify",
+                .display_name = "Fortify" } } };
+      string new_orders = co_await gui_.choice( config );
       if( new_orders == "clear" )
         unit.clear_orders();
       else if( new_orders == "sentry" )

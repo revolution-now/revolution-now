@@ -30,16 +30,9 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       map_square_for_terrain( e_terrain::grassland );
   MapSquare mountains =
       map_square_for_terrain( e_terrain::mountains );
-  MapSquare grassland_with_road =
-      map_square_for_terrain( e_terrain::grassland );
-  grassland_with_road.road = true;
   MapSquare grassland_with_river =
       map_square_for_terrain( e_terrain::grassland );
   grassland_with_river.river = e_river::minor;
-  MapSquare mountains_with_road =
-      map_square_for_terrain( e_terrain::mountains );
-  mountains_with_road.road = true;
-
   MapSquare grassland_with_road_and_river =
       map_square_for_terrain( e_terrain::grassland );
   grassland_with_road_and_river.road = true;
