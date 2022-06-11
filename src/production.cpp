@@ -112,11 +112,6 @@ struct BuildingBonusResult {
   }
 }
 
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
 int crosses_production_for_colony( UnitsState const& units_state,
                                    Player const&     player,
                                    Colony const&     colony ) {
@@ -176,6 +171,11 @@ int crosses_production_for_colony( UnitsState const& units_state,
   return total;
 }
 
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
 ColonyProduction production_for_colony(
     TerrainState const&, UnitsState const& units_state,
     Player const& player, Colony const& colony ) {
