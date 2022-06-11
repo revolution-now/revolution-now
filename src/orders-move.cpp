@@ -32,7 +32,6 @@
 #include "player.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
-#include "window.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -735,10 +734,8 @@ wait<> TravelHandler::perform() {
       //
       // TODO: consider prioritizing units that are brought in by
       // the ship.
-      ColonyPlane colony_plane(
-          planes_, e_plane_stack::back,
-          colonies_state_.colony_for( colony_id ), gui_ );
-      co_await colony_plane.show_colony_view();
+      co_await show_colony_view(
+          planes_, colonies_state_.colony_for( colony_id ) );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -932,10 +929,8 @@ struct AttackHandler : public OrdersHandler {
       co_await gui_.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
-      ColonyPlane colony_plane(
-          planes_, e_plane_stack::back,
-          colonies_state_.colony_for( colony_id ), gui_ );
-      co_await colony_plane.show_colony_view();
+      co_await show_colony_view(
+          planes_, colonies_state_.colony_for( colony_id ) );
     }
   }
 

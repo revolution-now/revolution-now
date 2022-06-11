@@ -17,7 +17,6 @@
 #include "frame.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
@@ -1153,12 +1152,11 @@ void MenuPlane::Deregistrar::free_resource() {
 /****************************************************************
 ** MenuPlane
 *****************************************************************/
-MenuPlane::MenuPlane( Planes& planes, e_plane_stack where )
-  : planes_( planes ), where_( where ), impl_( new Impl() ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& MenuPlane::impl() { return *impl_; }
 
-MenuPlane::~MenuPlane() noexcept { planes_.pop( where_ ); }
+MenuPlane::~MenuPlane() = default;
+
+MenuPlane::MenuPlane() : impl_( new Impl() ) {}
 
 MenuPlane::Deregistrar MenuPlane::register_handler(
     e_menu_item item, Plane& plane ) {

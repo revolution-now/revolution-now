@@ -20,7 +20,6 @@
 #include "dragdrop.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
 
@@ -538,15 +537,8 @@ struct ColonyPlane::Impl : public Plane {
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
-ColonyPlane::ColonyPlane( Planes& planes, e_plane_stack where,
-                          Colony& colony, IGui& gui )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( colony, gui ) ) {
-  planes.push( *impl_.get(), where );
-}
-
-ColonyPlane::~ColonyPlane() noexcept { planes_.pop( where_ ); }
+ColonyPlane::ColonyPlane( Colony& colony, IGui& gui )
+  : impl_( new Impl( colony, gui ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   lg.info(

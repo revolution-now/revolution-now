@@ -21,13 +21,12 @@
 // Rds
 #include "land-view.rds.hpp"
 #include "orders.rds.hpp"
-#include "plane-stack.rds.hpp"
 
 namespace rn {
 
 struct MenuPlane;
-struct Planes;
 struct LandViewState;
+struct Plane;
 struct SettingsState;
 struct TerrainState;
 struct WindowPlane;
@@ -38,12 +37,12 @@ enum class e_depixelate_anim { death, demote };
 ** LandViewPlane
 *****************************************************************/
 struct LandViewPlane {
-  LandViewPlane( Planes& planes, e_plane_stack where,
-                 MenuPlane&          menu_plane,
+  LandViewPlane( MenuPlane&          menu_plane,
                  WindowPlane&        window_plane,
                  LandViewState&      land_view_state,
                  TerrainState const& terrain_state );
-  ~LandViewPlane() noexcept;
+
+  ~LandViewPlane();
 
   wait<> landview_ensure_visible( Coord const& coord );
   wait<> landview_ensure_visible( UnitId id );
@@ -82,11 +81,11 @@ struct LandViewPlane {
   void zoom_out_full();
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 } // namespace rn

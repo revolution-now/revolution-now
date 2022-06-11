@@ -15,32 +15,28 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// Rds
-#include "plane-stack.rds.hpp"
-
 // C++ standard library
 #include <memory>
 
 namespace rn {
 
-struct Planes;
 struct MenuPlane;
+struct Plane;
 
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
-  // If the menu_plane is given then it will register itself.
-  ConsolePlane( Planes& planes, e_plane_stack where,
-                maybe<MenuPlane&> menu_plane );
-  ~ConsolePlane() noexcept;
+  // If a menu plane is provided then it will register itself.
+  ConsolePlane( maybe<MenuPlane&> menu_plane );
+  ~ConsolePlane();
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 } // namespace rn

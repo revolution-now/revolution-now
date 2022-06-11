@@ -25,9 +25,9 @@
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "menu.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
 #include "render.hpp"
@@ -164,6 +164,15 @@ struct LandViewPlane::Impl : public Plane {
   LandViewState&      land_view_state_;
   TerrainState const& terrain_state_;
 
+  MenuPlane::Deregistrar zoom_in_dereg_;
+  MenuPlane::Deregistrar zoom_out_dereg_;
+  MenuPlane::Deregistrar restore_zoom_dereg_;
+  MenuPlane::Deregistrar find_blinking_unit_dereg_;
+  MenuPlane::Deregistrar sentry_dereg_;
+  MenuPlane::Deregistrar fortify_dereg_;
+  MenuPlane::Deregistrar plow_dereg_;
+  MenuPlane::Deregistrar road_dereg_;
+
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
   unordered_map<UnitId, UnitAnimation_t> unit_animations_;
@@ -181,6 +190,26 @@ struct LandViewPlane::Impl : public Plane {
     return land_view_state_.viewport;
   }
 
+  void register_menu_items() {
+    // Register menu handlers.
+    zoom_in_dereg_ = menu_plane_.register_handler(
+        e_menu_item::zoom_in, *this );
+    zoom_out_dereg_ = menu_plane_.register_handler(
+        e_menu_item::zoom_out, *this );
+    restore_zoom_dereg_ = menu_plane_.register_handler(
+        e_menu_item::restore_zoom, *this );
+    find_blinking_unit_dereg_ = menu_plane_.register_handler(
+        e_menu_item::find_blinking_unit, *this );
+    sentry_dereg_ = menu_plane_.register_handler(
+        e_menu_item::sentry, *this );
+    fortify_dereg_ = menu_plane_.register_handler(
+        e_menu_item::fortify, *this );
+    plow_dereg_ =
+        menu_plane_.register_handler( e_menu_item::plow, *this );
+    road_dereg_ =
+        menu_plane_.register_handler( e_menu_item::road, *this );
+  }
+
   Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
         LandViewState&      land_view_state,
         TerrainState const& terrain_state )
@@ -188,6 +217,7 @@ struct LandViewPlane::Impl : public Plane {
       window_plane_( window_plane ),
       land_view_state_( land_view_state ),
       terrain_state_( terrain_state ) {
+    register_menu_items();
     // Initialize general global data.
     unit_animations_.clear();
     landview_action_state_ = LandViewUnitActionState::none{};
@@ -870,7 +900,7 @@ struct LandViewPlane::Impl : public Plane {
     render_land_view( renderer );
   }
 
-  maybe<base::function_ref<void()>> menu_click_handler(
+  maybe<function<void()>> menu_click_handler(
       e_menu_item item ) {
     // These are factors by which the zoom will be scaled when
     // zooming in/out with the menus.
@@ -968,13 +998,10 @@ struct LandViewPlane::Impl : public Plane {
     return nothing;
   }
 
-  bool will_handle_menu_click(
-      e_menu_item item ) const override {
+  bool will_handle_menu_click( e_menu_item item ) override {
     // This should be safe because we are not calling the click
     // handler and so nothing should be mutated.
-    return const_cast<Impl&>( *this )
-        .menu_click_handler( item )
-        .has_value();
+    return menu_click_handler( item ).has_value();
   }
 
   void handle_menu_click( e_menu_item item ) override {
@@ -1337,22 +1364,16 @@ struct LandViewPlane::Impl : public Plane {
 /****************************************************************
 ** LandViewPlane
 *****************************************************************/
-LandViewPlane::LandViewPlane( Planes&        planes,
-                              e_plane_stack  where,
-                              MenuPlane&     menu_plane,
+Plane& LandViewPlane::impl() { return *impl_; }
+
+LandViewPlane::~LandViewPlane() = default;
+
+LandViewPlane::LandViewPlane( MenuPlane&     menu_plane,
                               WindowPlane&   window_plane,
                               LandViewState& land_view_state,
                               TerrainState const& terrain_state )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( menu_plane, window_plane, land_view_state,
-                     terrain_state ) ) {
-  planes.push( *impl_.get(), where );
-}
-
-LandViewPlane::~LandViewPlane() noexcept {
-  planes_.pop( where_ );
-}
+  : impl_( new Impl( menu_plane, window_plane, land_view_state,
+                     terrain_state ) ) {}
 
 wait<> LandViewPlane::landview_ensure_visible(
     Coord const& coord ) {

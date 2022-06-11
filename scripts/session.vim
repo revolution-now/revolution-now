@@ -2,9 +2,20 @@
 let s:stems = [
  \ 'plane',
  \ 'plane-stack',
+ \ 'app-ctrl',
+ \ 'main-menu',
+ \ 'game',
+ \ 'turn',
+ \ 'omni',
+ \ 'console',
+ \ 'window',
+ \ 'menu',
+ \ 'main-menu',
  \ 'land-view',
- \ 'map-edit',
+ \ 'panel',
  \ 'harbor-view',
+ \ 'colony-view',
+ \ 'map-edit',
 \]
 
 let s:luas = [

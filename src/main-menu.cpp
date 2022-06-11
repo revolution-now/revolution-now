@@ -18,7 +18,6 @@
 #include "game.hpp"
 #include "igui.hpp"
 #include "interrupts.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "tiles.hpp"
 #include "turn.hpp"
@@ -128,11 +127,10 @@ struct MainMenuPlane::Impl : public Plane {
   wait<> item_selected( e_main_menu_item item ) {
     switch( item ) {
       case e_main_menu_item::new_: //
-        co_await run_new_game( planes_, window_plane_, gui_ );
+        co_await run_new_game( planes_ );
         break;
       case e_main_menu_item::load:
-        co_await run_existing_game( planes_, window_plane_,
-                                    gui_ );
+        co_await run_existing_game( planes_ );
         break;
       case e_main_menu_item::quit: //
         throw game_load_interrupt{};
@@ -149,19 +147,14 @@ struct MainMenuPlane::Impl : public Plane {
 /****************************************************************
 ** MainMenuPlane
 *****************************************************************/
-MainMenuPlane::MainMenuPlane( Planes&       planes,
-                              e_plane_stack where,
-                              WindowPlane&  window_plane,
-                              IGui&         gui )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( planes, window_plane, gui ) ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& MainMenuPlane::impl() { return *impl_; }
 
-MainMenuPlane::~MainMenuPlane() noexcept {
-  planes_.pop( where_ );
-}
+MainMenuPlane::~MainMenuPlane() = default;
+
+MainMenuPlane::MainMenuPlane( Planes&      planes,
+                              WindowPlane& window_plane,
+                              IGui&        gui )
+  : impl_( new Impl( planes, window_plane, gui ) ) {}
 
 wait<> MainMenuPlane::run() {
   conductor::play_request(

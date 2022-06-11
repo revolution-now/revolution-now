@@ -2246,19 +2246,14 @@ struct HarborPlane::Impl : public Plane {
 /****************************************************************
 ** HarborPlane
 *****************************************************************/
-HarborPlane::HarborPlane( Planes& planes, e_plane_stack where,
-                          Player&             player,
+HarborPlane::Impl& HarborPlane::impl() { return *impl_; }
+
+HarborPlane::HarborPlane( Player&             player,
                           UnitsState&         units_state,
                           TerrainState const& terrain_state,
                           IGui&               gui )
-  : planes_( planes ),
-    where_( where ),
-    impl_(
-        new Impl( player, units_state, terrain_state, gui ) ) {
-  planes.push( *impl_.get(), where );
-}
-
-HarborPlane::~HarborPlane() noexcept { planes_.pop( where_ ); }
+  : impl_(
+        new Impl( player, units_state, terrain_state, gui ) ) {}
 
 void HarborPlane::set_selected_unit( UnitId id ) {
   impl_->set_selected_unit( id );

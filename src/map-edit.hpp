@@ -13,37 +13,34 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "plane-stack.hpp"
 #include "wait.hpp"
 
 namespace rn {
 
 struct IMapUpdater;
 struct LandViewState;
-struct Planes;
+struct Plane;
 struct TerrainState;
 
 /****************************************************************
 ** MapEditPlane
 *****************************************************************/
 struct MapEditPlane {
-  MapEditPlane( Planes& planes, e_plane_stack where,
-                IMapUpdater&        map_updater,
+  MapEditPlane( IMapUpdater&        map_updater,
                 LandViewState&      land_view_state,
                 TerrainState const& terrain_state );
-
-  ~MapEditPlane() noexcept;
+  ~MapEditPlane();
 
   wait<> map_editor();
 
   wait<> map_editor_standalone();
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 } // namespace rn

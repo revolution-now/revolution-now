@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "frame.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -131,11 +130,10 @@ struct OmniPlane::Impl : public Plane {
 /****************************************************************
 ** OmniPlane
 *****************************************************************/
-OmniPlane::OmniPlane( Planes& planes, e_plane_stack where )
-  : planes_( planes ), where_( where ), impl_( new Impl ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& OmniPlane::impl() { return *impl_; }
 
-OmniPlane::~OmniPlane() noexcept { planes_.pop( where_ ); }
+OmniPlane::~OmniPlane() = default;
+
+OmniPlane::OmniPlane() : impl_( new Impl ) {}
 
 } // namespace rn

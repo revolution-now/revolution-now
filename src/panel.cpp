@@ -19,7 +19,6 @@
 #include "gs-turn.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
@@ -172,8 +171,7 @@ struct PanelPlane::Impl : public Plane {
     co_await w_promise.wait();
   }
 
-  bool will_handle_menu_click(
-      e_menu_item item ) const override {
+  bool will_handle_menu_click( e_menu_item item ) override {
     CHECK( item == e_menu_item::next_turn );
     return next_turn_button().enabled();
   }
@@ -206,15 +204,12 @@ struct PanelPlane::Impl : public Plane {
 /****************************************************************
 ** PanelPlane
 *****************************************************************/
-PanelPlane::PanelPlane( Planes& planes, e_plane_stack where,
-                        MenuPlane& menu_plane )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( menu_plane ) ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& PanelPlane::impl() { return *impl_; }
 
-PanelPlane::~PanelPlane() noexcept { planes_.pop( where_ ); }
+PanelPlane::~PanelPlane() = default;
+
+PanelPlane::PanelPlane( MenuPlane& menu_plane )
+  : impl_( new Impl( menu_plane ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

@@ -17,7 +17,6 @@
 #include "frame.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "terminal.hpp"
@@ -50,20 +49,25 @@ constexpr H kDividerHeight = 2_h;
 constexpr W kDividerWidth  = 2_w;
 
 struct ConsolePlane::Impl : public Plane {
+  // State.
   bool                         show_{ false };
   double                       show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int                          history_index_{ 0 };
+  maybe<MenuPlane&>            menu_plane_;
 
-  // State.
   MenuPlane::Deregistrar toggle_console_dereg_;
 
-  Impl( maybe<MenuPlane&> menu_plane ) {
+  void register_menu_items() {
+    if( !menu_plane_.has_value() ) return;
     // Register menu handlers.
-    if( menu_plane.has_value() )
-      toggle_console_dereg_ = menu_plane->register_handler(
-          e_menu_item::toggle_console, *this );
+    toggle_console_dereg_ = menu_plane_->register_handler(
+        e_menu_item::toggle_console, *this );
+  }
 
+  Impl( maybe<MenuPlane&> menu_plane )
+    : menu_plane_( menu_plane ) {
+    register_menu_items();
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(
@@ -287,8 +291,7 @@ struct ConsolePlane::Impl : public Plane {
     return is_mouse_over_rect( *rect );
   }
 
-  bool will_handle_menu_click(
-      e_menu_item item ) const override {
+  bool will_handle_menu_click( e_menu_item item ) override {
     return ( item == e_menu_item::toggle_console );
   }
 
@@ -301,14 +304,11 @@ struct ConsolePlane::Impl : public Plane {
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
-ConsolePlane::ConsolePlane( Planes& planes, e_plane_stack where,
-                            maybe<MenuPlane&> menu_plane )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( menu_plane ) ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& ConsolePlane::impl() { return *impl_; }
 
-ConsolePlane::~ConsolePlane() noexcept { planes_.pop( where_ ); }
+ConsolePlane::~ConsolePlane() = default;
+
+ConsolePlane::ConsolePlane( maybe<MenuPlane&> menu_plane )
+  : impl_( new Impl( menu_plane ) ) {}
 
 } // namespace rn

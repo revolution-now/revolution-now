@@ -26,93 +26,55 @@ namespace rn {
 
 namespace {
 
-PlaneStack g_plane_stack;
+Planes g_plane_stack;
 
 } // namespace
 
 /****************************************************************
-** Planes
+** PlaneGroup
 *****************************************************************/
-void Planes::push( Plane& plane, e_plane_stack where ) {
-  switch( where ) {
-    case e_plane_stack::back:
-      planes_.push_back( &plane );
-      return;
-    case e_plane_stack::front:
-      planes_.insert( planes_.begin(), &plane );
-      return;
-  }
-}
-
-void Planes::pop( e_plane_stack where ) {
-  DCHECK( planes_.size() > 0 );
-  switch( where ) {
-    case e_plane_stack::back: //
-      planes_.pop_back();
-      return;
-    case e_plane_stack::front:
-      planes_.erase( planes_.begin() );
-      return;
-  }
+void PlaneGroup::push_impl( Plane* plane ) {
+  planes_.push_back( plane );
 }
 
 /****************************************************************
-** PlaneStack
+** Planes
 *****************************************************************/
-PlaneStack::PlaneStack()
-  : groups_( refl::enum_count<e_plane_stack_level> ) {}
+Planes& Planes::global() { return g_plane_stack; }
 
-PlaneStack& PlaneStack::global() { return g_plane_stack; }
-
-Planes& PlaneStack::operator[]( e_plane_stack_level level ) {
-  int n = static_cast<int>( level );
-  CHECK_GE( n, 0 );
-  CHECK_LT( n, int( groups_.size() ) );
-  return groups_[n];
+Planes::popper Planes::new_group() {
+  groups_.emplace_back();
+  return popper( *this );
 }
 
-// This will find the last plane that will render (opaquely) over
-// every pixel. If one is found then we will not render any
-// planes before it. This is technically not necessary, but saves
-// rendering work by avoiding to render things that would go un-
-// seen anyway.
-vector<Plane*> PlaneStack::relevant() {
-  vector<Plane*> flat;
-  flat.reserve( 10 );
-  int i = 0, first_relevant = 0;
-  for( Planes& planes : groups_ ) {
-    for( Plane* plane : planes.all() ) {
-      flat.push_back( plane );
-      if( plane->covers_screen() ) first_relevant = i;
-      ++i;
-    }
-  }
-  if( !flat.empty() ) {
-    DCHECK( first_relevant >= 0 );
-    CHECK_LT( first_relevant, int( flat.size() ) );
-    flat.erase( flat.begin(), flat.begin() + first_relevant );
-  }
-  return flat;
+Planes::popper::~popper() {
+  CHECK( !planes_.groups_.empty() );
+  planes_.groups_.pop_back();
 }
 
-void PlaneStack::draw( rr::Renderer& renderer ) {
+void Planes::draw( rr::Renderer& renderer ) const {
   renderer.clear_screen( gfx::pixel::black() );
-  for( Plane* plane : relevant() ) plane->draw( renderer );
+  if( groups_.empty() ) return;
+  for( Plane* plane : groups_.back().all() )
+    plane->draw( renderer );
 }
 
-void PlaneStack::advance_state() {
-  for( Plane* plane : relevant() ) plane->advance_state();
+void Planes::advance_state() {
+  if( groups_.empty() ) return;
+  for( Plane* plane : groups_.back().all() )
+    plane->advance_state();
 }
 
-e_input_handled PlaneStack::send_input(
+e_input_handled Planes::send_input(
     input::event_t const& event ) {
+  if( groups_.empty() ) return e_input_handled::no;
   using namespace input;
   auto* drag_event =
       std::get_if<input::mouse_drag_event_t>( &event );
   if( drag_event == nullptr ) {
-    vector<Plane*> planes = relevant();
+    auto reversed = base::rl::rall( groups_.back().all() );
     // Normal event, so send it out using the usual protocol.
-    for( Plane* plane : base::rl::rall( planes ) ) {
+    for( Plane* plane : reversed ) {
       switch( plane->input( event ) ) {
         case e_input_handled::yes: return e_input_handled::yes;
         case e_input_handled::no: break;
@@ -183,8 +145,8 @@ e_input_handled PlaneStack::send_input(
   // No drag plane registered to accept the event, so lets send
   // out the event but only if it's a `begin` event.
   if( drag_event->state.phase == e_drag_phase::begin ) {
-    vector<Plane*> planes = relevant();
-    for( Plane* plane : base::rl::rall( planes ) ) {
+    auto reversed = base::rl::rall( groups_.back().all() );
+    for( Plane* plane : reversed ) {
       // Note here we use the origin position of the mouse drag
       // as opposed to the current mouse position because that is
       // what is relevant for determining whether the plane can

@@ -95,8 +95,10 @@ struct Plane {
   // item at this moment. This will only be called if the plane
   // has registered itself as able to handle this menu item in
   // the first place. Will be used to control which menu items
-  // are disabled.
-  virtual bool will_handle_menu_click( e_menu_item item ) const;
+  // are disabled. Note: the reason that this not const is be-
+  // cause it allows implementations to use the same function to
+  // implement this as for implementing handl_menu_click.
+  virtual bool will_handle_menu_click( e_menu_item item );
 
   // Handle the click. This will only be called if the plane has
   // registered itself as being able to handle this item and has

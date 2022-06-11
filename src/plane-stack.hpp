@@ -19,6 +19,9 @@
 // Rds
 #include "plane-stack.rds.hpp"
 
+// base
+#include "base/macros.hpp"
+
 // C++ standard library
 #include <vector>
 
@@ -36,38 +39,58 @@ struct IMapUpdater;
 struct Plane;
 
 /****************************************************************
-** Planes
+** PlaneGroup
 *****************************************************************/
-struct Planes {
-  // Push a plane onto the end, that means that it will be drawn
-  // on top of the ones before it.
-  void push( Plane& plane, e_plane_stack where );
+struct PlaneGroup {
+  PlaneGroup() = default;
 
-  void pop( e_plane_stack where );
+  PlaneGroup( std::vector<Plane*> planes );
+
+  // This will push a plane onto the top, so that it will be
+  // drawn on top.
+  template<typename T>
+  void push( T& plane_wrapper ) {
+    push_impl( &plane_wrapper.impl() );
+  }
 
   std::vector<Plane*> const& all() const { return planes_; }
 
  private:
+  void push_impl( Plane* plane );
+
   std::vector<Plane*> planes_;
 };
 
 /****************************************************************
-** PlaneStack
+** Planes
 *****************************************************************/
-struct PlaneStack {
-  // Get's the single global plane groups state. Should only be
-  // used by functions which cannot accept parameters. This is
-  // pretty much ok because these plane stack objects don't hold
-  // any real state themselves; they just hold pointers to real
-  // Plane objects that will exist on the call stack and will add
-  // and remove themselves using RAII.
-  static PlaneStack& global();
+struct Planes {
+  // Get's the single global planes object. Should only be used
+  // by functions which cannot accept parameters. This is pretty
+  // much ok because these plane stack objects don't hold any
+  // real state themselves; they just hold pointers to real Plane
+  // objects that will exist on the call stack and will add and
+  // remove themselves using RAII.
+  static Planes& global();
 
-  PlaneStack();
+  Planes() = default;
 
-  Planes& operator[]( e_plane_stack_level level );
+ private:
+  struct [[nodiscard]] popper {
+    popper( Planes& planes ) : planes_( planes ) {}
+    NO_COPY_NO_MOVE( popper );
+    ~popper();
+    Planes& planes_;
+  };
 
-  void draw( rr::Renderer& renderer );
+ public:
+  // To add a new plane group, first call this followed by back()
+  // to get the PlaneGroup, then call push on the plane group.
+  popper new_group();
+
+  PlaneGroup& back() { return groups_.back(); }
+
+  void draw( rr::Renderer& renderer ) const;
 
   // This will call the advance_state method on each plane to up-
   // date any state that it has. It will only be called on frames
@@ -76,13 +99,8 @@ struct PlaneStack {
 
   e_input_handled send_input( input::event_t const& event );
 
-  std::vector<Planes>&       all() { return groups_; }
-  std::vector<Planes> const& all() const { return groups_; }
-
  private:
-  std::vector<Plane*> relevant();
-
-  std::vector<Planes> groups_;
+  std::vector<PlaneGroup> groups_;
 
   enum class e_drag_send_mode { normal, raw, motion };
 

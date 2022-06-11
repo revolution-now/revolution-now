@@ -39,7 +39,7 @@ void Plane::on_drag_finished( input::mod_keys const& /*unused*/,
                               Coord /*unused*/,
                               Coord /*unused*/ ) {}
 
-bool Plane::will_handle_menu_click( e_menu_item ) const {
+bool Plane::will_handle_menu_click( e_menu_item ) {
   return false;
 }
 

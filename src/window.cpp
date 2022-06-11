@@ -19,7 +19,6 @@
 #include "game-ui-views.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -729,12 +728,11 @@ wait<vector<UnitSelection>> unit_selection_box(
 /****************************************************************
 ** WindowPlane
 *****************************************************************/
-WindowPlane::WindowPlane( Planes& planes, e_plane_stack where )
-  : planes_( planes ), where_( where ), impl_( new Impl() ) {
-  planes.push( *impl_.get(), where );
-}
+Plane& WindowPlane::impl() { return *impl_; }
 
-WindowPlane::~WindowPlane() noexcept { planes_.pop( where_ ); }
+WindowPlane::~WindowPlane() = default;
+
+WindowPlane::WindowPlane() : impl_( new Impl() ) {}
 
 wait<> WindowPlane::message_box( string_view msg ) {
   wait_promise<>     p;

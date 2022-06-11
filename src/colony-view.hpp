@@ -16,31 +16,34 @@
 #include "colony-id.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "plane-stack.rds.hpp"
-
 namespace rn {
 
 struct Colony;
 struct IGui;
+struct Plane;
 struct Planes;
 
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
 struct ColonyPlane {
-  ColonyPlane( Planes& planes, e_plane_stack where,
-               Colony& colony, IGui& gui );
-  ~ColonyPlane() noexcept;
+  ColonyPlane( Colony& colony, IGui& gui );
+
+  ~ColonyPlane();
 
   wait<> show_colony_view() const;
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> show_colony_view( Planes& planes, Colony& colony );
 
 } // namespace rn

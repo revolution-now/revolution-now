@@ -47,16 +47,12 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> run_loaded_game( Planes&              planes,
-                        WindowPlane&         window_plane,
-                        PlayersState&        players_state,
-                        TerrainState const&  terrain_state,
-                        LandViewState&       land_view_state,
-                        UnitsState&          units_state,
-                        SettingsState const& settings,
-                        TurnState&           turn_state,
-                        ColoniesState&       colonies_state,
-                        IMapUpdater& map_updater, IGui& gui ) {
+wait<> run_loaded_game(
+    Planes& planes, PlayersState& players_state,
+    TerrainState const& terrain_state,
+    LandViewState& land_view_state, UnitsState& units_state,
+    SettingsState const& settings, TurnState& turn_state,
+    ColoniesState& colonies_state, IMapUpdater& map_updater ) {
   // TODO: temporary until we have AI.
   bool found_human = false;
   for( auto const& [nation, player] : players_state.players )
@@ -65,10 +61,9 @@ wait<> run_loaded_game( Planes&              planes,
          "there must be at least one human player." );
 
   return co::erase( co::try_<game_quit_interrupt>( [&] {
-    return turn_loop( planes, window_plane, players_state,
-                      terrain_state, land_view_state,
-                      units_state, settings, turn_state,
-                      colonies_state, map_updater, gui );
+    return turn_loop( planes, players_state, terrain_state,
+                      land_view_state, units_state, settings,
+                      turn_state, colonies_state, map_updater );
   } ) );
 }
 
@@ -77,9 +72,7 @@ wait<> run_loaded_game( Planes&              planes,
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_existing_game( Planes&      planes,
-                          WindowPlane& window_plane,
-                          IGui&        gui ) {
+wait<> run_existing_game( Planes& planes ) {
   CHECK_HAS_VALUE( load_game( 0 ) );
   // Leave this here because it depends on the terrain which,
   // when we eventually move away from global game state, may not
@@ -90,15 +83,13 @@ wait<> run_existing_game( Planes&      planes,
   lua_reload( GameState::root() );
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
-      planes, window_plane, GameState::players(),
-      GameState::terrain(), GameState::land_view(),
-      GameState::units(), GameState::settings(),
-      GameState::turn(), GameState::colonies(), map_updater,
-      gui );
+      planes, GameState::players(), GameState::terrain(),
+      GameState::land_view(), GameState::units(),
+      GameState::settings(), GameState::turn(),
+      GameState::colonies(), map_updater );
 }
 
-wait<> run_new_game( Planes& planes, WindowPlane& window_plane,
-                     IGui& gui ) {
+wait<> run_new_game( Planes& planes ) {
   default_construct_game_state();
   lua_reload( GameState::root() );
   lua::state& st = lua_global_state();
@@ -124,11 +115,10 @@ wait<> run_new_game( Planes& planes, WindowPlane& window_plane,
   // 6. Player takes control.
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game(
-      planes, window_plane, GameState::players(),
-      GameState::terrain(), GameState::land_view(),
-      GameState::units(), GameState::settings(),
-      GameState::turn(), GameState::colonies(), map_updater,
-      gui );
+      planes, GameState::players(), GameState::terrain(),
+      GameState::land_view(), GameState::units(),
+      GameState::settings(), GameState::turn(),
+      GameState::colonies(), map_updater );
 }
 
 } // namespace rn

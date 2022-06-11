@@ -12,29 +12,26 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "plane-stack.rds.hpp"
-
 // C++ standard library
 #include <memory>
 
 namespace rn {
 
-struct Planes;
+struct Plane;
 
 /****************************************************************
 ** OmniPlane
 *****************************************************************/
 struct OmniPlane {
-  OmniPlane( Planes& planes, e_plane_stack where );
-  ~OmniPlane() noexcept;
+  OmniPlane();
+  ~OmniPlane();
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 } // namespace rn

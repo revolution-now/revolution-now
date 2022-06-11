@@ -15,9 +15,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "gs-colonies.hpp"
-#include "map-updater.hpp"
 #include "maybe.hpp"
-#include "window.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"
@@ -120,10 +118,8 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> post() const override {
-    ColonyPlane colony_plane(
-        planes, e_plane_stack::back,
-        colonies_state.colony_for( colony_id ), gui );
-    co_await colony_plane.show_colony_view();
+    co_await show_colony_view(
+        planes, colonies_state.colony_for( colony_id ) );
   }
 
   IMapUpdater*        map_updater;

@@ -32,14 +32,13 @@ struct TerrainState;
 struct TurnState;
 struct WindowPlane;
 
-wait<> turn_loop( Planes& planes, WindowPlane& window_plane,
-                  PlayersState&        players_state,
+wait<> turn_loop( Planes& planes, PlayersState& players_state,
                   TerrainState const&  terrain_state,
                   LandViewState&       land_view_state,
                   UnitsState&          units_state,
                   SettingsState const& settings,
                   TurnState&           turn_state,
                   ColoniesState&       colonies_state,
-                  IMapUpdater& map_updater, IGui& gui );
+                  IMapUpdater&         map_updater );
 
 } // namespace rn

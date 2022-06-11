@@ -17,7 +17,6 @@
 
 // Rds
 #include "menu.rds.hpp"
-#include "plane-stack.rds.hpp"
 
 // base
 #include "base/macros.hpp"
@@ -29,14 +28,13 @@
 namespace rn {
 
 struct Plane;
-struct Planes;
 
 /****************************************************************
 ** MenuPlane
 *****************************************************************/
 struct MenuPlane {
-  MenuPlane( Planes& planes, e_plane_stack where );
-  ~MenuPlane() noexcept;
+  MenuPlane();
+  ~MenuPlane();
 
   struct Deregistrar : base::zero<Deregistrar, e_menu_item> {
     using Base = base::zero<Deregistrar, e_menu_item>;
@@ -65,11 +63,11 @@ struct MenuPlane {
  private:
   void unregister_handler( e_menu_item item, Plane& plane );
 
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 } // namespace rn

@@ -20,9 +20,6 @@
 #include "unit-id.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "plane-stack.rds.hpp"
-
 // refl
 #include "refl/query-enum.hpp"
 
@@ -33,7 +30,7 @@
 
 namespace rn {
 
-struct Planes;
+struct Plane;
 
 struct IntInputBoxOptions {
   std::string_view title   = "";
@@ -50,8 +47,8 @@ struct IntInputBoxOptions {
 // since it is intended only to be used to implement the IGui in-
 // terface, which is the more polished one.
 struct WindowPlane {
-  WindowPlane( Planes& planes, e_plane_stack where );
-  ~WindowPlane() noexcept;
+  WindowPlane();
+  ~WindowPlane();
 
   wait<> message_box( std::string_view msg );
 
@@ -77,11 +74,11 @@ struct WindowPlane {
  private:
   friend struct Window;
 
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
 
 enum class e_unit_selection {

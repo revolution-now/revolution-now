@@ -13,13 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "plane-stack.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
 namespace rn {
 
 struct IGui;
+struct Plane;
 struct Planes;
 struct Player;
 struct UnitsState;
@@ -29,21 +29,29 @@ struct TerrainState;
 ** HarborPlane
 *****************************************************************/
 struct HarborPlane {
-  HarborPlane( Planes& planes, e_plane_stack where,
-               Player& player, UnitsState& units_state,
+  HarborPlane( Player& player, UnitsState& units_state,
                TerrainState const& terrain_state, IGui& gui );
 
-  ~HarborPlane() noexcept;
+  ~HarborPlane();
 
   void set_selected_unit( UnitId id );
 
   wait<> show_harbor_view();
 
  private:
-  Planes&             planes_;
-  e_plane_stack const where_;
-
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+ public:
+  Plane& impl();
 };
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> show_harbor_view( Planes& planes, Player& player,
+                         UnitsState&         units_state,
+                         TerrainState const& terrain_state,
+                         maybe<UnitId>       selected_unit );
+
 } // namespace rn

@@ -525,18 +525,15 @@ struct MapEditPlane::Impl : public Plane {
 /****************************************************************
 ** MapEditPlane
 *****************************************************************/
-MapEditPlane::MapEditPlane( Planes& planes, e_plane_stack where,
-                            IMapUpdater&        map_updater,
+Plane& MapEditPlane::impl() { return *impl_; }
+
+MapEditPlane::~MapEditPlane() = default;
+
+MapEditPlane::MapEditPlane( IMapUpdater&        map_updater,
                             LandViewState&      land_view_state,
                             TerrainState const& terrain_state )
-  : planes_( planes ),
-    where_( where ),
-    impl_( new Impl( map_updater, land_view_state,
-                     terrain_state ) ) {
-  planes.push( *impl_.get(), where );
-}
-
-MapEditPlane::~MapEditPlane() noexcept { planes_.pop( where_ ); }
+  : impl_( new Impl( map_updater, land_view_state,
+                     terrain_state ) ) {}
 
 wait<> MapEditPlane::map_editor() {
   lg.info( "entering map editor." );
