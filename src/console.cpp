@@ -16,7 +16,6 @@
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "logger.hpp"
-#include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "terminal.hpp"
@@ -54,20 +53,8 @@ struct ConsolePlane::Impl : public Plane {
   double                       show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int                          history_index_{ 0 };
-  maybe<MenuPlane&>            menu_plane_;
 
-  MenuPlane::Deregistrar toggle_console_dereg_;
-
-  void register_menu_items() {
-    if( !menu_plane_.has_value() ) return;
-    // Register menu handlers.
-    toggle_console_dereg_ = menu_plane_->register_handler(
-        e_menu_item::toggle_console, *this );
-  }
-
-  Impl( maybe<MenuPlane&> menu_plane )
-    : menu_plane_( menu_plane ) {
-    register_menu_items();
+  Impl() {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(
@@ -290,15 +277,6 @@ struct ConsolePlane::Impl : public Plane {
     if( !rect.has_value() ) return false;
     return is_mouse_over_rect( *rect );
   }
-
-  bool will_handle_menu_click( e_menu_item item ) override {
-    return ( item == e_menu_item::toggle_console );
-  }
-
-  void handle_menu_click( e_menu_item item ) override {
-    CHECK( item == e_menu_item::toggle_console );
-    show_ = !show_;
-  }
 };
 
 /****************************************************************
@@ -308,7 +286,6 @@ Plane& ConsolePlane::impl() { return *impl_; }
 
 ConsolePlane::~ConsolePlane() = default;
 
-ConsolePlane::ConsolePlane( maybe<MenuPlane&> menu_plane )
-  : impl_( new Impl( menu_plane ) ) {}
+ConsolePlane::ConsolePlane() : impl_( new Impl ) {}
 
 } // namespace rn

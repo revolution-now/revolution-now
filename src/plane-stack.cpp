@@ -52,17 +52,25 @@ Planes::popper::~popper() {
   planes_.groups_.pop_back();
 }
 
+vector<Plane*> Planes::active_planes() const {
+  vector<Plane*> res;
+  if( !groups_.empty() ) res = groups_.back().all();
+  vector<Plane*> const& all_top = top_.all();
+  res.insert( res.end(), all_top.begin(), all_top.end() );
+  return res;
+}
+
 void Planes::draw( rr::Renderer& renderer ) const {
   renderer.clear_screen( gfx::pixel::black() );
   if( groups_.empty() ) return;
-  for( Plane* plane : groups_.back().all() )
-    plane->draw( renderer );
+  vector<Plane*> active = active_planes();
+  for( Plane* plane : active ) plane->draw( renderer );
 }
 
 void Planes::advance_state() {
   if( groups_.empty() ) return;
-  for( Plane* plane : groups_.back().all() )
-    plane->advance_state();
+  vector<Plane*> active = active_planes();
+  for( Plane* plane : active ) plane->advance_state();
 }
 
 e_input_handled Planes::send_input(
@@ -72,7 +80,8 @@ e_input_handled Planes::send_input(
   auto* drag_event =
       std::get_if<input::mouse_drag_event_t>( &event );
   if( drag_event == nullptr ) {
-    auto reversed = base::rl::rall( groups_.back().all() );
+    vector<Plane*> active   = active_planes();
+    auto           reversed = base::rl::rall( active );
     // Normal event, so send it out using the usual protocol.
     for( Plane* plane : reversed ) {
       switch( plane->input( event ) ) {
@@ -145,6 +154,7 @@ e_input_handled Planes::send_input(
   // No drag plane registered to accept the event, so lets send
   // out the event but only if it's a `begin` event.
   if( drag_event->state.phase == e_drag_phase::begin ) {
+    vector<Plane*> active = active_planes();
     auto reversed = base::rl::rall( groups_.back().all() );
     for( Plane* plane : reversed ) {
       // Note here we use the origin position of the mouse drag

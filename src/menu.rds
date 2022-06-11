@@ -44,7 +44,6 @@ enum.e_menu_item {
   units_help,
   terrain_help,
   founding_father_help,
-  toggle_console,
   harbor_view,
   find_blinking_unit,
   next_turn,

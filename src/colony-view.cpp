@@ -18,10 +18,13 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "dragdrop.hpp"
+#include "gui.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
+#include "window.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -548,6 +551,19 @@ wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();
 }
 
+/****************************************************************
+** API
+*****************************************************************/
+wait<> show_colony_view( Planes& planes, Colony& colony ) {
+  WindowPlane window_plane;
+  RealGui     gui( window_plane );
+  ColonyPlane colony_plane( colony, gui );
+  auto        popper = planes.new_group();
+  PlaneGroup& group  = planes.back();
+  group.push( colony_plane );
+  group.push( window_plane );
+  lg.info( "viewing colony {}.", colony.debug_string() );
+  co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
 }
 

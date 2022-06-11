@@ -8,6 +8,7 @@
 #include "map-edit.hpp"
 #include "map-gen.hpp"
 #include "open-gl-test.hpp"
+#include "plane-stack.hpp"
 #include "renderer.hpp"
 #include "screen.hpp"
 #include "util.hpp"
@@ -53,11 +54,11 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
       MapUpdater map_updater( GameState::terrain(), renderer() );
-      frame_loop(
-          run_map_editor( map_updater, GameState::land_view(),
-                          GameState::terrain(),
-                          /*standalone_mode=*/true ),
-          renderer() );
+      frame_loop( run_map_editor( Planes::global(), map_updater,
+                                  GameState::land_view(),
+                                  GameState::terrain(),
+                                  /*standalone_mode=*/true ),
+                  renderer() );
       break;
     }
     case e_mode::map_gen: {

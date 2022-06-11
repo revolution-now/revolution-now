@@ -21,6 +21,7 @@ struct IMapUpdater;
 struct LandViewState;
 struct MenuPlane;
 struct Plane;
+struct Planes;
 struct TerrainState;
 
 /****************************************************************
@@ -46,7 +47,7 @@ struct MapEditPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_map_editor( IMapUpdater&        map_updater,
+wait<> run_map_editor( Planes& planes, IMapUpdater& map_updater,
                        LandViewState&      land_view_state,
                        TerrainState const& terrain_state,
                        bool                standalone_mode );

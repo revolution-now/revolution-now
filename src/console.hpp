@@ -20,15 +20,13 @@
 
 namespace rn {
 
-struct MenuPlane;
 struct Plane;
 
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
-  // If a menu plane is provided then it will register itself.
-  ConsolePlane( maybe<MenuPlane&> menu_plane );
+  ConsolePlane();
   ~ConsolePlane();
 
  private:

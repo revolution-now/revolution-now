@@ -21,12 +21,14 @@
 #include "dragdrop.hpp"
 #include "gs-players.hpp"
 #include "gs-units.hpp"
+#include "gui.hpp"
 #include "harbor-units.hpp"
 #include "image.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "old-world-state.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -2263,6 +2265,26 @@ void HarborPlane::set_selected_unit( UnitId id ) {
 
 wait<> HarborPlane::show_harbor_view() {
   return impl_->show_harbor_view();
+}
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> show_harbor_view( Planes& planes, Player& player,
+                         UnitsState&         units_state,
+                         TerrainState const& terrain_state,
+                         maybe<UnitId>       selected_unit ) {
+  WindowPlane window_plane;
+  RealGui     gui( window_plane );
+  HarborPlane harbor_plane( player, units_state, terrain_state,
+                            gui );
+  if( selected_unit.has_value() )
+    harbor_plane.set_selected_unit( *selected_unit );
+  auto        popper = planes.new_group();
+  PlaneGroup& group  = planes.back();
+  group.push( harbor_plane );
+  group.push( window_plane );
+  co_await harbor_plane.show_harbor_view();
 }
 
 } // namespace rn

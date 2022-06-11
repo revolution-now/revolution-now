@@ -16,9 +16,6 @@
 // Revolution Now
 #include "input.hpp" // FIXME
 
-// Rds
-#include "plane-stack.rds.hpp"
-
 // base
 #include "base/macros.hpp"
 
@@ -90,6 +87,8 @@ struct Planes {
 
   PlaneGroup& back() { return groups_.back(); }
 
+  PlaneGroup& top_group() { return top_; }
+
   void draw( rr::Renderer& renderer ) const;
 
   // This will call the advance_state method on each plane to up-
@@ -100,7 +99,13 @@ struct Planes {
   e_input_handled send_input( input::event_t const& event );
 
  private:
+  std::vector<Plane*> active_planes() const;
+
   std::vector<PlaneGroup> groups_;
+
+  // These are planes that are always on top and don't change
+  // throughout the game.
+  PlaneGroup top_;
 
   enum class e_drag_send_mode { normal, raw, motion };
 

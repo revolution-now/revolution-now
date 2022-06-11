@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "igui.hpp"
 #include "wait.hpp"
 
 // C++ standard library

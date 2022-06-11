@@ -23,7 +23,6 @@
 
 namespace rn {
 
-struct IGui;
 struct MenuPlane;
 struct Plane;
 struct Planes;
@@ -33,8 +32,7 @@ struct WindowPlane;
 ** MainMenuPlane
 *****************************************************************/
 struct MainMenuPlane {
-  MainMenuPlane( Planes& planes, WindowPlane& window_plane,
-                 IGui& gui );
+  MainMenuPlane( Planes& planes, WindowPlane& window_plane );
   ~MainMenuPlane();
 
   wait<> run();
@@ -46,5 +44,10 @@ struct MainMenuPlane {
  public:
   Plane& impl();
 };
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> run_main_menu( Planes& planes );
 
 } // namespace rn

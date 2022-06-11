@@ -19,6 +19,7 @@
 #include "gs-colonies.hpp"
 #include "gs-players.hpp"
 #include "gs-units.hpp"
+#include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
 #include "interrupts.hpp"
@@ -200,8 +201,8 @@ wait<> menu_handler( Planes& planes, Player& player,
     case e_menu_item::map_editor: {
       // Need to co_await so that the map_updater stays
       // alive.
-      co_await run_map_editor( map_updater, land_view_state,
-                               terrain_state,
+      co_await run_map_editor( planes, map_updater,
+                               land_view_state, terrain_state,
                                /*standalone_mode=*/false );
       break;
     }
@@ -915,11 +916,19 @@ wait<> turn_loop( Planes& planes, PlayersState& players_state,
                   TurnState&           turn_state,
                   ColoniesState&       colonies_state,
                   IMapUpdater&         map_updater ) {
+  WindowPlane   window_plane;
+  RealGui       gui( window_plane );
+  MenuPlane     menu_plane;
   LandViewPlane land_view_plane(
-      planes, e_plane_stack::back, menu_plane, window_plane,
-      land_view_state, terrain_state );
-  PanelPlane panel_plane( planes, e_plane_stack::back,
-                          menu_plane );
+      menu_plane, window_plane, land_view_state, terrain_state );
+  PanelPlane panel_plane( menu_plane );
+
+  auto        popper = planes.new_group();
+  PlaneGroup& group  = planes.back();
+  group.push( land_view_plane );
+  group.push( panel_plane );
+  group.push( menu_plane );
+  group.push( window_plane );
 
   // FIXME: Temporary
   land_view_plane.zoom_out_full();

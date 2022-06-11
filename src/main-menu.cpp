@@ -16,8 +16,9 @@
 #include "conductor.hpp"
 #include "enum.hpp"
 #include "game.hpp"
-#include "igui.hpp"
+#include "gui.hpp"
 #include "interrupts.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "tiles.hpp"
 #include "turn.hpp"
@@ -43,15 +44,15 @@ struct MainMenuPlane::Impl : public Plane {
   // State
   Planes&                      planes_;
   WindowPlane&                 window_plane_;
-  IGui&                        gui_;
-  e_main_menu_item             curr_item_;
+  RealGui                      gui_;
+  e_main_menu_item             curr_item_ = {};
   co::stream<e_main_menu_item> selection_stream_;
 
  public:
-  Impl( Planes& planes, WindowPlane& window_plane, IGui& gui )
+  Impl( Planes& planes, WindowPlane& window_plane )
     : planes_( planes ),
       window_plane_( window_plane ),
-      gui_( gui ) {}
+      gui_( window_plane ) {}
 
   bool covers_screen() const override { return true; }
 
@@ -133,7 +134,7 @@ struct MainMenuPlane::Impl : public Plane {
         co_await run_existing_game( planes_ );
         break;
       case e_main_menu_item::quit: //
-        throw game_load_interrupt{};
+        throw game_quit_interrupt{};
       case e_main_menu_item::settings_graphics:
         co_await gui_.message_box( "No graphics settings yet." );
         break;
@@ -152,9 +153,8 @@ Plane& MainMenuPlane::impl() { return *impl_; }
 MainMenuPlane::~MainMenuPlane() = default;
 
 MainMenuPlane::MainMenuPlane( Planes&      planes,
-                              WindowPlane& window_plane,
-                              IGui&        gui )
-  : impl_( new Impl( planes, window_plane, gui ) ) {}
+                              WindowPlane& window_plane )
+  : impl_( new Impl( planes, window_plane ) ) {}
 
 wait<> MainMenuPlane::run() {
   conductor::play_request(
@@ -174,6 +174,19 @@ wait<> MainMenuPlane::run() {
       selections.send( e_main_menu_item::load );
     }
   }
+}
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<> run_main_menu( Planes& planes ) {
+  WindowPlane   window_plane;
+  MainMenuPlane main_menu_plane( planes, window_plane );
+  auto          popper = planes.new_group();
+  PlaneGroup&   group  = planes.back();
+  group.push( main_menu_plane );
+  group.push( window_plane );
+  co_await main_menu_plane.run();
 }
 
 } // namespace rn

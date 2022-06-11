@@ -152,8 +152,7 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
       } },
     { e_menu::debug,
       {
-          ITEM( toggle_console, "Toggle Console" ), //
-          ITEM( map_editor, "Enter Map Editor" )    //
+          ITEM( map_editor, "Enter Map Editor" ) //
       } },
     { e_menu::pedia,
       {

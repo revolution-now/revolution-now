@@ -22,12 +22,14 @@
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
+#include "menu.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 
 // Rds
 #include "map-edit.rds.hpp"
@@ -611,6 +613,33 @@ wait<> MapEditPlane::run_map_editor() {
   lg.info( "leaving map editor." );
 }
 
+/****************************************************************
+** API
+*****************************************************************/
+wait<> run_map_editor( Planes& planes, IMapUpdater& map_updater,
+                       LandViewState&      land_view_state,
+                       TerrainState const& terrain_state,
+                       bool                standalone_mode ) {
+  if( standalone_mode ) {
+    Delta size( 100_w, 100_h );
+    reset_terrain( map_updater, size );
+  }
+
+  MenuPlane    menu_plane;
+  MapEditPlane map_edit_plane( map_updater, land_view_state,
+                               terrain_state, menu_plane );
+  WindowPlane  window_plane;
+
+  auto        popper = planes.new_group();
+  PlaneGroup& group  = planes.back();
+
+  // The menu plane goes first because we want to hide it
+  // behind the main menu screen.
+  group.push( map_edit_plane );
+  group.push( menu_plane );
+  group.push( window_plane );
+
+  co_await map_edit_plane.run_map_editor();
 }
 
 } // namespace rn
