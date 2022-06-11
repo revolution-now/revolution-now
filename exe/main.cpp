@@ -1,4 +1,5 @@
 #include "app-ctrl.hpp"
+#include "console.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
@@ -7,6 +8,7 @@
 #include "lua.hpp"
 #include "map-edit.hpp"
 #include "map-gen.hpp"
+#include "omni.hpp"
 #include "open-gl-test.hpp"
 #include "plane-stack.hpp"
 #include "renderer.hpp"
@@ -54,6 +56,12 @@ void run( e_mode mode ) {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
       MapUpdater map_updater( GameState::terrain(), renderer() );
+      Planes&    planes      = Planes::global();
+      PlaneGroup&  top_group = planes.top_group();
+      ConsolePlane console_plane;
+      OmniPlane    omni_plane;
+      top_group.push( console_plane );
+      top_group.push( omni_plane );
       frame_loop( run_map_editor( Planes::global(), map_updater,
                                   GameState::land_view(),
                                   GameState::terrain(),
