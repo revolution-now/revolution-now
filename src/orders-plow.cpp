@@ -65,16 +65,16 @@ struct PlowHandler : public OrdersHandler {
     }
     Coord world_square = units_state.coord_for( unit_id );
     CHECK( terrain_state.is_land( world_square ) );
+    if( has_irrigation( terrain_state, world_square ) ) {
+      co_await gui.message_box(
+          "There is already irrigation on this square." );
+      co_return false;
+    }
     if( !can_plow( terrain_state, world_square ) ) {
       co_await gui.message_box(
           "@[H]{}@[] tiles cannot be plowed or cleared.",
           effective_terrain(
               terrain_state.square_at( world_square ) ) );
-      co_return false;
-    }
-    if( has_irrigation( terrain_state, world_square ) ) {
-      co_await gui.message_box(
-          "There is already irrigation on this square." );
       co_return false;
     }
     co_return true;
