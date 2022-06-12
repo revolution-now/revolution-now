@@ -25,6 +25,7 @@
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
+#include "production.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "road.hpp"
@@ -98,6 +99,7 @@ struct ColViewComposited {
 };
 
 ColViewComposited g_composition;
+ColonyProduction  g_production;
 
 /****************************************************************
 ** Helpers
@@ -142,6 +144,14 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
     case e_outdoor_job::ore: return e_tile::commodity_ore;
     case e_outdoor_job::silver: return e_tile::commodity_silver;
   }
+}
+
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony ) {
+  g_production = production_for_colony(
+      terrain_state, units_state, player, colony );
 }
 
 /****************************************************************
@@ -1249,6 +1259,8 @@ class LandView : public ui::View,
     move_unit_to_colony( GameState::units(), colony, unit_id,
                          job );
     CHECK_HAS_VALUE( colony.validate() );
+    update_production( GameState::terrain(), GameState::units(),
+                       player_, colony );
   }
 
   void draw_land_3x3( rr::Renderer& renderer,
@@ -1336,10 +1348,18 @@ class LandView : public ui::View,
       render_sprite( painter, product_coord, product_tile );
       Delta const product_tile_size =
           sprite_size( product_tile );
-      rr::Typer typer =
-          renderer.typer( product_coord + product_tile_size.w,
-                          gfx::pixel::white() );
-      typer.write( "x 0" );
+      SquareProduction const& production =
+          g_production.land_production[direction];
+      int const    quantity = production.quantity;
+      string const q_str    = fmt::format( "x {}", quantity );
+      Coord const  text_coord =
+          product_coord + product_tile_size.w;
+      render_text_markup(
+          renderer, text_coord, {},
+          TextMarkupInfo{
+              .shadowed_text_color   = gfx::pixel::white(),
+              .shadowed_shadow_color = gfx::pixel::black() },
+          fmt::format( "@[S]{}@[]", q_str ) );
     }
   }
 
@@ -1361,15 +1381,17 @@ class LandView : public ui::View,
     }
   }
 
-  static unique_ptr<LandView> create( IGui&         gui,
+  static unique_ptr<LandView> create( Player const& player,
+                                      IGui&         gui,
                                       e_render_mode mode ) {
-    return make_unique<LandView>( gui, mode );
+    return make_unique<LandView>( player, gui, mode );
   }
 
-  LandView( IGui& gui, e_render_mode mode )
-    : gui_( gui ), mode_( mode ) {}
+  LandView( Player const& player, IGui& gui, e_render_mode mode )
+    : player_( player ), gui_( gui ), mode_( mode ) {}
 
  private:
+  Player const& player_;
   IGui&         gui_;
   e_render_mode mode_;
 };
@@ -1451,7 +1473,7 @@ struct CompositeColSubView : public ui::InvisibleView,
 };
 
 void recomposite( ColonyId id, Delta const& canvas_size,
-                  IGui& gui ) {
+                  IGui& gui, Player const& player ) {
   lg.trace( "recompositing colony view." );
   CHECK( colony_exists( id ) );
   g_composition.id          = id;
@@ -1558,7 +1580,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view = LandView::create( gui, land_view_mode );
+  auto land_view =
+      LandView::create( player, gui, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
@@ -1642,11 +1665,16 @@ void colview_drag_n_drop_draw(
   }
 }
 
-void set_colview_colony( ColonyId id, IGui& gui ) {
-  auto new_id = id;
+void set_colview_colony( IGui&               gui,
+                         TerrainState const& terrain_state,
+                         UnitsState const&   units_state,
+                         Player const&       player,
+                         Colony const&       colony ) {
+  update_production( terrain_state, units_state, player,
+                     colony );
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( new_id, normal.delta(), gui );
+  recomposite( colony.id(), normal.delta(), gui, player );
 }
 
 } // namespace rn

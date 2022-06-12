@@ -735,7 +735,8 @@ wait<> TravelHandler::perform() {
       // TODO: consider prioritizing units that are brought in by
       // the ship.
       co_await show_colony_view(
-          planes_, colonies_state_.colony_for( colony_id ) );
+          planes_, colonies_state_.colony_for( colony_id ),
+          terrain_state_, units_state_, player_ );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -930,7 +931,8 @@ struct AttackHandler : public OrdersHandler {
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name() );
       co_await show_colony_view(
-          planes_, colonies_state_.colony_for( colony_id ) );
+          planes_, colonies_state_.colony_for( colony_id ),
+          terrain_state_, units_state_, player_ );
     }
   }
 

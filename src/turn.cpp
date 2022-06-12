@@ -351,14 +351,16 @@ wait<> process_player_input( e_menu_item item, ColoniesState&,
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              ColoniesState& colonies_state,
                              IGui&, IMapUpdater&, LandViewState&,
-                             Planes& planes, Player&,
-                             TerrainState const&, UnitsState& ) {
+                             Planes& planes, Player& player,
+                             TerrainState const& terrain_state,
+                             UnitsState&         units_state ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
       co_await show_colony_view(
           planes,
-          colonies_state.colony_for( input.get<colony>().id ) );
+          colonies_state.colony_for( input.get<colony>().id ),
+          terrain_state, units_state, player );
       break;
     }
     default: break;
@@ -462,7 +464,8 @@ wait<> process_player_input(
     case e::colony: {
       co_await show_colony_view(
           planes,
-          colonies_state.colony_for( input.get<colony>().id ) );
+          colonies_state.colony_for( input.get<colony>().id ),
+          terrain_state, units_state, player );
       break;
     }
     // We have some orders for the current unit.

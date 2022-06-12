@@ -13,6 +13,7 @@ include "refl/enum-map.hpp"
 
 # Rds
 include "commodity.rds.hpp"
+include "colony.rds.hpp"
 
 namespace "rn"
 
@@ -170,6 +171,11 @@ struct.OreProducts {
   tools_delta_final 'int',
 }
 
+struct.SquareProduction {
+  what 'e_outdoor_job',
+  quantity 'int',
+}
+
 # Note regarding warehouses: the quantities of goods produced as
 # indicated in this structure will be such that they will never
 # cause the quantity in the store to exceed the warehouse capac-
@@ -180,6 +186,15 @@ struct.OreProducts {
 # consumption so that the player can be notified.
 struct.ColonyProduction {
   food 'FoodProduction',
+
+  # These are needed in order to render the amount being produced
+  # in each square on land in the colony view. Note that these
+  # quantities are just useed for rendering in the colony view
+  # and do not need to be added to the other fields, as the other
+  # fields already take them into account.
+  land_production 'refl::enum_map<e_direction, SquareProduction>',
+  center_food_production 'int',
+  center_extra_production 'SquareProduction',
 
   sugar_rum      'RawMaterialAndProduct',
   tobacco_cigars 'RawMaterialAndProduct',

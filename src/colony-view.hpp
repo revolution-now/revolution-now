@@ -22,12 +22,18 @@ struct Colony;
 struct IGui;
 struct Plane;
 struct Planes;
+struct Player;
+struct TerrainState;
+struct UnitsState;
 
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
 struct ColonyPlane {
   ColonyPlane( Colony& colony, IGui& gui );
+  ColonyPlane( Colony& colony, IGui& gui,
+               TerrainState const& terrain_state,
+               UnitsState& units_state, Player& player );
 
   ~ColonyPlane();
 
@@ -44,6 +50,9 @@ struct ColonyPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, Colony& colony );
+wait<> show_colony_view( Planes& planes, Colony& colony,
+                         TerrainState const& terrain_state,
+                         UnitsState&         units_state,
+                         Player&             player );
 
 } // namespace rn

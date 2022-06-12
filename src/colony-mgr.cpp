@@ -328,7 +328,8 @@ wait<> evolve_colonies_for_player(
     bool zoom_to_colony = co_await present_colony_updates(
         gui, colony, ev.notifications );
     if( zoom_to_colony )
-      co_await show_colony_view( planes, colony );
+      co_await show_colony_view( planes, colony, terrain_state,
+                                 units_state, player );
   }
 
   // Crosses/immigration.

@@ -48,14 +48,16 @@ struct BuildHandler : public OrdersHandler {
                 UnitId              unit_id_,
                 ColoniesState&      colonies_state_arg,
                 TerrainState const& terrain_state_arg,
-                UnitsState& units_state_arg, Planes& planes_arg )
+                UnitsState& units_state_arg, Planes& planes_arg,
+                Player& player_arg )
     : map_updater( map_updater_arg ),
       gui( gui_arg ),
       unit_id( unit_id_ ),
       colonies_state( colonies_state_arg ),
       terrain_state( terrain_state_arg ),
       units_state( units_state_arg ),
-      planes( planes_arg ) {}
+      planes( planes_arg ),
+      player( player_arg ) {}
 
   wait<bool> confirm() override {
     if( auto valid =
@@ -119,7 +121,8 @@ struct BuildHandler : public OrdersHandler {
 
   wait<> post() const override {
     co_await show_colony_view(
-        planes, colonies_state.colony_for( colony_id ) );
+        planes, colonies_state.colony_for( colony_id ),
+        terrain_state, units_state, player );
   }
 
   IMapUpdater*        map_updater;
@@ -131,6 +134,7 @@ struct BuildHandler : public OrdersHandler {
   TerrainState const& terrain_state;
   UnitsState&         units_state;
   Planes&             planes;
+  Player&             player;
 };
 
 } // namespace
@@ -140,13 +144,13 @@ struct BuildHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
     UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater, IGui& gui, Player&,
+    IMapUpdater* map_updater, IGui& gui, Player& player,
     TerrainState const& terrain_state, UnitsState& units_state,
     ColoniesState& colonies_state, SettingsState const&,
     LandViewPlane&, Planes& planes ) {
   return make_unique<BuildHandler>(
       map_updater, gui, id, colonies_state, terrain_state,
-      units_state, planes );
+      units_state, planes, player );
 }
 
 } // namespace rn

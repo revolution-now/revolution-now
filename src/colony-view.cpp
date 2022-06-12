@@ -45,12 +45,17 @@ namespace rn {
 namespace {
 
 struct PS {
+  IGui&               gui;
+  TerrainState const& terrain_state;
+  UnitsState const&   units_state;
+  Player const&       player;
+
   ColonyId                            colony_id  = {};
   co::stream<input::event_t>          input      = {};
   maybe<drag::State<ColViewObject_t>> drag_state = {};
 };
 
-}
+} // namespace
 
 /****************************************************************
 ** Drawing
@@ -392,7 +397,7 @@ wait<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( PS&, Colony&, IGui&,
+wait<bool> handle_event( PS&, Colony&,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
@@ -407,8 +412,7 @@ wait<bool> handle_event( PS&, Colony&, IGui&,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    PS&, Colony&, IGui&,
-    input::mouse_button_event_t const& event ) {
+    PS&, Colony&, input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return false;
   Coord click_pos = event.pos;
@@ -416,22 +420,22 @@ wait<bool> handle_event(
   co_return false;
 }
 
-wait<bool> handle_event( PS&, Colony& colony, IGui& gui,
+wait<bool> handle_event( PS& S, Colony& colony,
                          input::win_event_t const& event ) {
   if( event.type == input::e_win_event_type::resized )
     // Force a re-composite.
-    set_colview_colony( colony.id(), gui );
+    set_colview_colony( S.gui, S.terrain_state, S.units_state,
+                        S.player, colony );
   co_return false;
 }
 
 wait<bool> handle_event(
-    PS&                              S, Colony&, IGui&,
-    input::mouse_drag_event_t const& event ) {
+    PS& S, Colony&, input::mouse_drag_event_t const& event ) {
   co_await drag_drop_routine( S, event );
   co_return false;
 }
 
-wait<bool> handle_event( PS&, Colony&, IGui&, auto const& ) {
+wait<bool> handle_event( PS&, Colony&, auto const& ) {
   co_return false;
 }
 
@@ -464,9 +468,17 @@ struct ColonyPlane::Impl : public Plane {
   Colony& colony_;
   IGui&   gui_;
 
-  Impl( Colony& colony, IGui& gui )
-    : S_{}, colony_( colony ), gui_( gui ) {
-    set_colview_colony( colony_.id(), gui );
+  Impl( Colony& colony, IGui& gui,
+        TerrainState const& terrain_state,
+        UnitsState& units_state, Player& player )
+    : S_{ .gui           = gui,
+          .terrain_state = terrain_state,
+          .units_state   = units_state,
+          .player        = player },
+      colony_( colony ),
+      gui_( gui ) {
+    set_colview_colony( S_.gui, S_.terrain_state, S_.units_state,
+                        S_.player, colony );
   }
 
   bool covers_screen() const override { return true; }
@@ -526,10 +538,10 @@ struct ColonyPlane::Impl : public Plane {
 
   wait<> run_colview() {
     while( true ) {
-      input::event_t event   = co_await S_.input.next();
-      auto [exit, suspended] = co_await co::detect_suspend(
-          std::visit( LC( handle_event( S_, colony_, gui_, _ ) ),
-                      event ) );
+      input::event_t event = co_await S_.input.next();
+      auto [exit, suspended] =
+          co_await co::detect_suspend( std::visit(
+              LC( handle_event( S_, colony_, _ ) ), event ) );
       if( suspended ) clear_non_essential_events( S_ );
       if( exit ) co_return;
     }
@@ -545,8 +557,12 @@ Plane& ColonyPlane::impl() { return *impl_; }
 
 ColonyPlane::~ColonyPlane() = default;
 
-ColonyPlane::ColonyPlane( Colony& colony, IGui& gui )
-  : impl_( new Impl( colony, gui ) ) {}
+ColonyPlane::ColonyPlane( Colony& colony, IGui& gui,
+                          TerrainState const& terrain_state,
+                          UnitsState&         units_state,
+                          Player&             player )
+  : impl_( new Impl( colony, gui, terrain_state, units_state,
+                     player ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();
@@ -555,10 +571,14 @@ wait<> ColonyPlane::show_colony_view() const {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, Colony& colony ) {
+wait<> show_colony_view( Planes& planes, Colony& colony,
+                         TerrainState const& terrain_state,
+                         UnitsState&         units_state,
+                         Player&             player ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
-  ColonyPlane colony_plane( colony, gui );
+  ColonyPlane colony_plane( colony, gui, terrain_state,
+                            units_state, player );
   auto        popper = planes.new_group();
   PlaneGroup& group  = planes.back();
   group.push( colony_plane );
