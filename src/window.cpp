@@ -759,6 +759,7 @@ wait<int> WindowPlane::select_box(
         auto const& key_event = event.as<input::key_event_t>();
         if( key_event.keycode != ::SDLK_RETURN &&
             key_event.keycode != ::SDLK_KP_ENTER &&
+            key_event.keycode != ::SDLK_SPACE &&
             key_event.keycode != ::SDLK_KP_5 )
           return false; // not handled.
         if( key_event.change != input::e_key_change::down )
