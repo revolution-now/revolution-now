@@ -56,7 +56,7 @@ struct HarborUnitsWorld : testing::World {
      /*9*/  O, O, O, O, O, O, O, O, S, S,
     };
     // clang-format on
-    build_map( std::move( tiles ) );
+    build_map( std::move( tiles ), 10_w );
     add_player( e_nation::dutch );
     add_player( e_nation::french );
   }

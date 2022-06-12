@@ -52,7 +52,7 @@ struct World {
   World();
   ~World() noexcept;
 
-  void build_map( std::vector<MapSquare> tiles );
+  void build_map( std::vector<MapSquare> tiles, W width );
 
   UnitId add_unit_in_port( e_unit_type type,
                            e_nation nation = e_nation::dutch );
