@@ -111,9 +111,9 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    colony_id = found_colony_unsafe(
-        colonies_state, terrain_state, units_state, unit_id,
-        *map_updater, *colony_name );
+    colony_id =
+        found_colony( colonies_state, terrain_state, units_state,
+                      unit_id, *map_updater, *colony_name );
     co_return;
   }
 

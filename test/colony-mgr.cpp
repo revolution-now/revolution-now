@@ -18,7 +18,6 @@
 #include "gs-root.hpp"
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
-#include "lua.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
@@ -29,9 +28,6 @@
 
 // base
 #include "base/keyval.hpp"
-
-// luapp
-#include "luapp/state.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -121,9 +117,10 @@ UnitId create_wagon( UnitsState& units_state, Coord where,
 
 unordered_map<e_commodity, int> const
     kExpectedInitialColonyCommodityQuantities{
-        { e_commodity::horses, 100 },
-        { e_commodity::tools, 60 },
-        { e_commodity::muskets, 100 },
+        { e_commodity::horses, 0 },
+        { e_commodity::tools, 0 },
+        { e_commodity::muskets, 0 },
+        // ...
     };
 
 TEST_CASE( "[colony-mgr] create colony on land successful" ) {
@@ -139,9 +136,9 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state,
                                   id ) == base::valid );
-  ColonyId col_id = found_colony_unsafe(
-      colonies_state, terrain_state, units_state, id,
-      map_updater, "colony" );
+  ColonyId col_id =
+      found_colony( colonies_state, terrain_state, units_state,
+                    id, map_updater, "colony" );
   Colony& col = colonies_state.colony_for( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
@@ -168,9 +165,9 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                     terrain_state, id )
                  .valid() );
-    ColonyId col_id = found_colony_unsafe(
-        colonies_state, terrain_state, units_state, id,
-        map_updater, "colony" );
+    ColonyId col_id =
+        found_colony( colonies_state, terrain_state, units_state,
+                      id, map_updater, "colony" );
     REQUIRE( founder.type() == e_unit_type::petty_criminal );
     Colony& col = colonies_state.colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -214,9 +211,9 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
     REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                     terrain_state, id )
                  .valid() );
-    ColonyId col_id = found_colony_unsafe(
-        colonies_state, terrain_state, units_state, id,
-        map_updater, "colony" );
+    ColonyId col_id =
+        found_colony( colonies_state, terrain_state, units_state,
+                      id, map_updater, "colony" );
     REQUIRE( founder.type() == e_unit_type::hardy_colonist );
     Colony& col = colonies_state.colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -258,9 +255,9 @@ TEST_CASE(
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id )
                .valid() );
-  ColonyId col_id = found_colony_unsafe(
-      colonies_state, terrain_state, units_state, id,
-      map_updater, "colony 1" );
+  ColonyId col_id =
+      found_colony( colonies_state, terrain_state, units_state,
+                    id, map_updater, "colony 1" );
   Colony& col = colonies_state.colony_for( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
@@ -290,9 +287,9 @@ TEST_CASE(
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id )
                .valid() );
-  ColonyId col_id = found_colony_unsafe(
-      colonies_state, terrain_state, units_state, id,
-      map_updater, "colony" );
+  ColonyId col_id =
+      found_colony( colonies_state, terrain_state, units_state,
+                    id, map_updater, "colony" );
   Colony& col = colonies_state.colony_for( col_id );
   for( auto [type, q] : col.commodities() ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
@@ -322,8 +319,8 @@ TEST_CASE( "[colony-mgr] too close to another colony fails" ) {
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id )
                .valid() );
-  found_colony_unsafe( colonies_state, terrain_state,
-                       units_state, id, map_updater, "colony" );
+  found_colony( colonies_state, terrain_state, units_state, id,
+                map_updater, "colony" );
   coord += 1_w;
   id = create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
@@ -393,38 +390,6 @@ TEST_CASE( "[colony-mgr] found colony by non-human fails" ) {
                              terrain_state, id ) ==
       invalid(
           e_found_colony_err::non_human_cannot_found_colony ) );
-}
-
-// FIXME: this uses global state.
-TEST_CASE( "[colony-mgr] lua" ) {
-  lua::state& st    = lua_global_state();
-  GameState::root() = {};
-  generate_unittest_terrain( GameState::terrain() );
-  auto script = R"(
-    local coord = Coord{y=2, x=2}
-    local unit_type =
-        utype.UnitType.create( e.unit_type.free_colonist )
-    local unit_comp = unit_composer
-                     .UnitComposition
-                     .create_with_type_obj( unit_type )
-    unit_ = ustate.create_unit_on_map(
-             e.nation.english,
-             unit_comp,
-             coord )
-    col_id = colony_mgr.found_colony(
-               unit_:id(), "New York" )
-    assert( col_id )
-    local colony = cstate.colony_from_id( col_id )
-    assert_eq( colony:id(), 1 )
-    assert_eq( colony:name(), "New York" )
-    assert_eq( colony:nation(), e.nation.english )
-    assert_eq( colony:location(), Coord{x=2,y=2} )
-    return col_id
-  )";
-  REQUIRE( st.script.run_safe<ColonyId>( script ) ==
-           ColonyId{ 1 } );
-  REQUIRE( colony_from_id( ColonyId{ 1 } ).name() ==
-           "New York" );
 }
 
 vector<ColonyId> colonies_all(

@@ -205,12 +205,11 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   return valid;
 }
 
-ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
-                              TerrainState const& terrain_state,
-                              UnitsState&         units_state,
-                              UnitId              founder,
-                              IMapUpdater&        map_updater,
-                              string_view         name ) {
+ColonyId found_colony( ColoniesState&      colonies_state,
+                       TerrainState const& terrain_state,
+                       UnitsState& units_state, UnitId founder,
+                       IMapUpdater& map_updater,
+                       string_view  name ) {
   if( auto res =
           is_valid_new_colony_name( colonies_state, name );
       !res )
@@ -225,10 +224,9 @@ ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  Unit& unit   = units_state.unit_for( founder );
-  auto  nation = unit.nation();
-  UNWRAP_CHECK(
-      where, coord_for_unit_indirect( units_state, founder ) );
+  Unit&    unit   = units_state.unit_for( founder );
+  e_nation nation = unit.nation();
+  Coord    where  = units_state.coord_for( founder );
 
   // Create colony object.
   ColonyId col_id =
@@ -349,48 +347,5 @@ wait<> evolve_colonies_for_player(
     lg.info( "a new immigrant ({}) has arrived.",
              units_state.unit_for( *immigrant ).desc().name );
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// FIXME: calling this function on the blinking unit will cause
-// errors or check-fails in the game; the proper way to do this
-// is to have a mechanism by which we can inject player commands
-// as if the player had pressed 'b' so that the game can process
-// the fact that the unit in question is now in a colony.
-//
-// This function is also currently used to setup some colonies
-// from Lua at startup, where it works fine. The safer way to do
-// that would be to have a single function that both creates a
-// unit and the colony together.
-//
-// FIXME: this currently does not update the rendered map because
-// it breaks unit tests where there is no global renderer -- that
-// needs to be fixed.
-LUA_FN( found_colony, ColonyId, UnitId founder,
-        string const& name ) {
-  ColoniesState& colonies_state = GameState::colonies();
-  TerrainState&  terrain_state  = GameState::terrain();
-  UnitsState&    units_state    = GameState::units();
-  if( auto res =
-          is_valid_new_colony_name( colonies_state, name );
-      !res )
-    // FIXME: improve error message generation.
-    st.error( "cannot found colony here: {}.",
-              enum_to_display_name( res.error() ) );
-  if( auto res = unit_can_found_colony(
-          colonies_state, units_state, terrain_state, founder );
-      !res )
-    st.error( "cannot found colony here." );
-  // FIXME: needs to render.
-  NonRenderingMapUpdater map_updater( terrain_state );
-  return found_colony_unsafe( colonies_state, terrain_state,
-                              units_state, founder, map_updater,
-                              name );
-}
-
-} // namespace
 
 } // namespace rn

@@ -60,12 +60,11 @@ void change_colony_nation( Colony&     colony,
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
 // and thus if it doesn't, it will check-fail.
-ColonyId found_colony_unsafe( ColoniesState&      colonies_state,
-                              TerrainState const& terrain_state,
-                              UnitsState&         units_state,
-                              UnitId              founder,
-                              IMapUpdater&        map_updater,
-                              std::string_view    name );
+ColonyId found_colony( ColoniesState&      colonies_state,
+                       TerrainState const& terrain_state,
+                       UnitsState& units_state, UnitId founder,
+                       IMapUpdater&     map_updater,
+                       std::string_view name );
 
 // Evolve the colony by one turn.
 wait<> evolve_colonies_for_player(
