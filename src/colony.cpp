@@ -191,11 +191,11 @@ string Colony::debug_string() const {
 }
 
 void Colony::add_building( e_colony_building building ) {
-  o_.buildings.insert( building );
+  o_.buildings[building] = true;
 }
 
 void Colony::rm_building( e_colony_building building ) {
-  o_.buildings.erase( building );
+  o_.buildings[building] = false;
 }
 
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {

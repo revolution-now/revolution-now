@@ -90,7 +90,7 @@ struct.Colony {
 
   outdoor_jobs 'refl::enum_map<e_direction, maybe<OutdoorUnit>>',
 
-  buildings 'std::unordered_set<e_colony_building>',
+  buildings 'refl::enum_map<e_colony_building, bool>',
 
   # What is the colony currently producing.
   production 'maybe<e_colony_building>',
