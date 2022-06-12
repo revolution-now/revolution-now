@@ -91,6 +91,8 @@ struct Colony {
   /************************ Modifiers **************************/
   void add_building( e_colony_building building );
 
+  void rm_building( e_colony_building building );
+
   void set_nation( e_nation new_nation );
 
   refl::enum_map<e_commodity, int>& commodities() {
@@ -104,6 +106,10 @@ struct Colony {
   bool has_unit( UnitId id ) const;
 
   std::string debug_string() const;
+
+  base::valid_or<std::string> validate() const {
+    return o_.validate();
+  }
 
   // Implement refl::WrapsReflected.
   Colony( wrapped::Colony&& o ) : o_( std::move( o ) ) {}

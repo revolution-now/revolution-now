@@ -42,6 +42,9 @@ void linker_dont_discard_module_error() {}
 namespace base {
 
 // See description in base/stack-trace.hpp for what this is.
+//
+// FIXME: we should probably be using the source location passed
+// into this function in case a stack trace is not available.
 void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();

@@ -192,7 +192,10 @@
 /****************************************************************
 ** Check that a wrapped type has a value.
 *****************************************************************/
-#define CHECK_HAS_VALUE( e )                        \
+#define CHECK_HAS_VALUE( ... ) \
+  PP_ONE_OR_MORE_ARGS( CHECK_HAS_VALUE, __VA_ARGS__ )
+
+#define CHECK_HAS_VALUE_SINGLE( e )                 \
   {                                                 \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
@@ -202,7 +205,7 @@
     }                                               \
   }
 
-#define CHECK_HAS_VALUE_MSG( e, ... )                    \
+#define CHECK_HAS_VALUE_MULTI( e, ... )                  \
   {                                                      \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;        \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {        \

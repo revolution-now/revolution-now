@@ -17,6 +17,9 @@
 #include "logger.hpp"
 #include "lua.hpp"
 
+// config
+#include "config/colony.rds.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -25,6 +28,7 @@
 #include "luapp/state.hpp"
 
 // base
+#include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -90,6 +94,20 @@ void validate_job_maps( wrapped::Colony const& colony ) {
            "regard to unit {}.",
            colony.id, id );
   }
+
+  // Now make sure that job assignments are compatible between
+  // the various maps.
+  for( auto const& [indoor_job, units] : colony.indoor_jobs )
+    for( UnitId id : units )
+      CHECK( base::lookup( colony.units, id ) ==
+             ColonyJob_t{
+                 ColonyJob::indoor{ .job = indoor_job } } );
+  for( auto const& [direction, unit] : colony.outdoor_jobs )
+    if( unit.has_value() )
+      CHECK(
+          base::lookup( colony.units, unit->unit_id ) ==
+          ( ColonyJob_t{ ColonyJob::outdoor{
+              .direction = direction, .job = unit->job } } ) );
 }
 
 } // namespace
@@ -105,31 +123,42 @@ LUA_ENUM( colony_building );
 LUA_ENUM( indoor_job );
 
 /****************************************************************
-** Colony
+** wrapped::Colony
 *****************************************************************/
-
 // This function should only validate those things that don't
 // need access to any game state outside of this one colony ob-
 // ject. E.g., no validating things that require access to the
 // terrain or to unit info; that stuff should go in the top-level
 // validation functions.
 valid_or<string> wrapped::Colony::validate() const {
+  validate_job_maps( *this );
+
   // Colony has non-empty stripped name.
   REFL_VALIDATE( !base::trim( name ).empty(),
-                 "Colony name is empty (when stripped)." );
-
-  // Colony has at least one colonist.
-  REFL_VALIDATE( units.size() > 0, "Colony {} has no units.",
+                 "Colony {}'s name is empty (when stripped).",
                  id );
 
-  // Colony's commodity quantites in correct range.
+  // Colony has at least one colonist.
+  REFL_VALIDATE( units.size() > 0, "Colony '{}' has no units.",
+                 name );
+
+  // Colony's commodity quantites are in correct range.
   for( auto comm : refl::enum_values<e_commodity> ) {
     REFL_VALIDATE( commodities[comm] >= 0,
-                   "Colony {} has a negative quantity of {}.",
-                   id, comm );
+                   "Colony '{}' has a negative quantity of {}.",
+                   name, comm );
   }
 
-  validate_job_maps( *this );
+  // Each indoor building has a valid number of workers.
+  for( auto const& [indoor_job, units] : indoor_jobs ) {
+    REFL_VALIDATE(
+        int( units.size() ) <=
+            config_colony.max_workers_per_building,
+        "Colony '{}' has {} colonists assigned to produce {} "
+        "but a maximum of {} are allowed.",
+        name, units.size(), indoor_job,
+        config_colony.max_workers_per_building );
+  }
 
   // All colony's units can occupy a colony.
   // TODO: to do this I think we just check that each unit is a
@@ -149,6 +178,9 @@ valid_or<string> wrapped::Colony::validate() const {
   return valid;
 }
 
+/****************************************************************
+** Colony
+*****************************************************************/
 int Colony::population() const { return o_.units.size(); }
 
 string Colony::debug_string() const {
@@ -160,6 +192,10 @@ string Colony::debug_string() const {
 
 void Colony::add_building( e_colony_building building ) {
   o_.buildings.insert( building );
+}
+
+void Colony::rm_building( e_colony_building building ) {
+  o_.buildings.erase( building );
 }
 
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
@@ -259,6 +295,7 @@ LUA_STARTUP( lua::state& st ) {
 
   // Modifiers.
   u["add_building"] = &U::add_building;
+  u["rm_building"]  = &U::rm_building;
 
   // TODO: this should be exposed to lua as a non-function prop-
   // erty.

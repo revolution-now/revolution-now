@@ -32,7 +32,7 @@ string check_msg( char const* expr, string const& msg ) {
 void abort_with_msg( string_view msg, SourceLoc loc ) {
   fprintf( stderr, "%s:%d: error: %s\n", loc.file_name(),
            loc.line(), string( msg ).c_str() );
-  abort_with_backtrace_here();
+  abort_with_backtrace_here( loc );
 }
 
 void to_str( generic_err const& ge, std::string& out, ADL_t ) {

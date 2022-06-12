@@ -42,6 +42,10 @@ struct.config_colony_t {
 
   food_for_creating_new_colonist 'int',
 
+  # The maximum number of people that be placed in each (indoor)
+  # colony building.
+  max_workers_per_building 'int',
+
   _features { validation, equality }
 }
 

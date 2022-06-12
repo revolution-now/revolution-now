@@ -156,7 +156,7 @@ int crosses_production_for_colony( UnitsState const& units_state,
     // Producing crosses does not consume anything, so these
     // should not differ.
     CHECK( res.use == res.put );
-    units_quantity += res.put;
+    units_quantity = res.put;
   }
 
   // William Penn increases cross production by 50%, but this is

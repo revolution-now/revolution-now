@@ -21,3 +21,7 @@ warehouses {
 }
 
 food_for_creating_new_colonist: 200
+
+# The maximum number of people that be placed in each (indoor)
+# colony building. The original game uses 3.
+max_workers_per_building: 3
