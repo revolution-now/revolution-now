@@ -265,7 +265,7 @@ struct ConsolePlane::Impl : public Plane {
                : e_input_handled::no;
   }
 
-  double console_height() const { return show_percent_ * .33; }
+  double console_height() const { return show_percent_ * .25; }
 
   bool is_mouse_over_rect( Rect rect ) const {
     return input::current_mouse_position().is_inside( rect );
