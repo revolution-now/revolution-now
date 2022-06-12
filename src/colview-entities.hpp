@@ -103,11 +103,19 @@ struct IColViewDragSource {
   virtual void disown_dragged_object() = 0;
 };
 
-// Interface for drag targets that can/might ask the user for
-// confirmation just before affecting the drag.
-struct IColViewDragSinkConfirm {
-  virtual wait<bool> confirm( ColViewObject_t const&,
-                              Coord const& ) const = 0;
+// Interface for drag targets that can/might need some user in-
+// teraction after the drag has otherwise been greenlighted. Two
+// possibilities for this would be that it needs to ask the user
+// for a final confirmation, or it might check some further game
+// logic that could cause the drag to be cancelled in a way that
+// would require showing a message to the user. An example of the
+// latter case would be dragging a unit over a water tile in a
+// colony that does not contain docks; we want to all the drag
+// UI-wise, but we want to then show a message to the user ex-
+// plaining why we are cancelling it.
+struct IColViewDragSinkCheck {
+  virtual wait<bool> check( ColViewObject_t const&,
+                            Coord const& ) const = 0;
 };
 
 // Interface for views that can accept dragged items.
@@ -124,7 +132,7 @@ struct IColViewDragSink {
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const = 0;
 
-  maybe<IColViewDragSinkConfirm const&> drag_confirm() const;
+  maybe<IColViewDragSinkCheck const&> drag_check() const;
 
   // Coordinates are relative to view's upper left corner. The
   // sink MUST accept the object as-is.

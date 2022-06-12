@@ -346,13 +346,15 @@ wait<> drag_drop_routine(
     }
 
     // The source and sink have agreed on an object that can be
-    // transferred, so let's let the sink do a final user confir-
-    // mation if it needs to.
-    maybe<IColViewDragSinkConfirm const&> drag_confirm =
-        drag_sink.drag_confirm();
-    if( drag_confirm ) {
-      bool proceed = co_await drag_confirm->confirm(
-          source_object, sink_coord );
+    // transferred, so let's let give the sink a final opportu-
+    // nity to involve some user input to e.g. either confirm the
+    // drag or to cancel it with a message box explaining why,
+    // etc.
+    maybe<IColViewDragSinkCheck const&> drag_check =
+        drag_sink.drag_check();
+    if( drag_check ) {
+      bool proceed = co_await drag_check->check( source_object,
+                                                 sink_coord );
       if( !proceed ) {
         // User has cancelled the drag.
         lg.debug( "drag of object {} cancelled by user.",

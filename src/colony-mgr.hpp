@@ -83,11 +83,8 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
                               std::string_view name );
 
 // Will strip the unit of any commodities (including inventory
-// and modifiers) and deposit them commodities into the colony.
-// The unit must be on the colony square otherwise this will
-// check fail.
-void strip_unit_commodities( UnitsState const& units_state,
-                             Unit& unit, Colony& colony );
+// and modifiers) and deposit the commodities into the colony.
+void strip_unit_commodities( Unit& unit, Colony& colony );
 
 void move_unit_to_colony( UnitsState& units_state,
                           Colony& colony, UnitId unit_id,

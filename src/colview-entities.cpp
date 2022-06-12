@@ -18,6 +18,8 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
+#include "gs-colonies.hpp"
+#include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "gui.hpp"
 #include "logger.hpp"
@@ -61,10 +63,10 @@ IColViewDragSource::drag_user_input() const {
       IColViewDragSourceUserInput const&>( *this );
 }
 
-maybe<IColViewDragSinkConfirm const&>
-IColViewDragSink::drag_confirm() const {
-  return base::maybe_dynamic_cast<
-      IColViewDragSinkConfirm const&>( *this );
+maybe<IColViewDragSinkCheck const&>
+IColViewDragSink::drag_check() const {
+  return base::maybe_dynamic_cast<IColViewDragSinkCheck const&>(
+      *this );
 }
 
 maybe<IColViewDragSource&> ColonySubView::drag_source() {
@@ -1009,7 +1011,7 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      strip_unit_commodities( units_state, unit, colony() );
+      strip_unit_commodities( unit, colony() );
     }
   }
 
@@ -1082,7 +1084,10 @@ class ProductionView : public ui::View, public ColonySubView {
   Delta size_;
 };
 
-class LandView : public ui::View, public ColonySubView {
+class LandView : public ui::View,
+                 public ColonySubView,
+                 public IColViewDragSink,
+                 public IColViewDragSinkCheck {
  public:
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
@@ -1112,6 +1117,25 @@ class LandView : public ui::View, public ColonySubView {
     return Delta{ 32_w, 32_h } * Scale{ side_length_in_squares };
   }
 
+  maybe<e_direction> direction_for_land_square_under_coord(
+      Coord coord ) const {
+    switch( mode_ ) {
+      case e_render_mode::_3x3:
+        return Coord( 1_x, 1_y )
+            .direction_to( coord / g_tile_scale );
+      case e_render_mode::_5x5:
+        return Coord( 1_x, 1_y )
+            .direction_to( ( coord - g_tile_delta ) /
+                           g_tile_scale );
+        break;
+      case e_render_mode::_6x6:
+        return Coord( 1_x, 1_y )
+            .direction_to( coord /
+                           ( g_tile_scale * Scale{ 2 } ) );
+        break;
+    }
+  }
+
   Delta delta() const override { return size_needed( mode_ ); }
 
   maybe<e_colview_entity> entity() const override {
@@ -1121,6 +1145,89 @@ class LandView : public ui::View, public ColonySubView {
   ui::View&       view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
+  }
+
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o, e_colview_entity,
+      Coord const&           where ) const override {
+    // Verify that the dragged object is a unit.
+    maybe<UnitId> unit_id =
+        o.get_if<ColViewObject::unit>().member(
+            &ColViewObject::unit::id );
+    if( !unit_id.has_value() ) return nothing;
+    // Check if the unit is a human.
+    UnitsState const& units_state = GameState::units();
+    Unit const&       unit = units_state.unit_for( *unit_id );
+    if( !unit.is_human() ) return nothing;
+    // Check if there is a land square under the cursor that is
+    // not the center.
+    maybe<e_direction> d =
+        direction_for_land_square_under_coord( where );
+    if( !d.has_value() ) return nothing;
+    // Check if there is already a unit on the square.
+    ColoniesState const& colonies_state = GameState::colonies();
+    Colony const&        colony =
+        colonies_state.colony_for( colony_id() );
+    maybe<OutdoorUnit> const& existing =
+        colony.outdoor_jobs()[*d];
+    if( existing.has_value() ) return nothing;
+    // Note that we don't check for water/docks here; that is
+    // done in the check function.
+
+    // We're good to go.
+    return o;
+  }
+
+  wait<bool> check( ColViewObject_t const&,
+                    Coord const& where ) const override {
+    ColoniesState const& colonies_state = GameState::colonies();
+    Colony const&        colony =
+        colonies_state.colony_for( colony_id() );
+    TerrainState const& terrain_state = GameState::terrain();
+    maybe<e_direction>  d =
+        direction_for_land_square_under_coord( where );
+    CHECK( d );
+    MapSquare const& square =
+        terrain_state.square_at( colony.location().moved( *d ) );
+    if( square.surface == e_surface::land ) co_return true;
+
+    // The player is trying to drag a unit onto water, so we need
+    // to make sure that the colony has docks.
+    if( colony.buildings()[e_colony_building::docks] )
+      co_return true;
+
+    co_await gui_.message_box(
+        "We must build @[H]docks@[] in this colony in order to "
+        "fish on sea squares." );
+    co_return false;
+  }
+
+  ColonyJob_t make_job_for_square( e_direction d ) const {
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    MapSquare const& square = GameState::terrain().square_at(
+        colony.location().moved( d ) );
+    if( square.surface == e_surface::water )
+      return ColonyJob::outdoor{ .direction = d,
+                                 .job = e_outdoor_job::fish };
+    // TODO
+    return ColonyJob::outdoor{ .direction = d,
+                               .job = e_outdoor_job::food };
+  }
+
+  void drop( ColViewObject_t const& o,
+             Coord const&           where ) override {
+    UNWRAP_CHECK( unit_id,
+                  o.get_if<ColViewObject::unit>().member(
+                      &ColViewObject::unit::id ) );
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    UNWRAP_CHECK(
+        d, direction_for_land_square_under_coord( where ) );
+    ColonyJob_t job = make_job_for_square( d );
+    move_unit_to_colony( GameState::units(), colony, unit_id,
+                         job );
+    CHECK_HAS_VALUE( colony.validate() );
   }
 
   void draw_land_3x3( rr::Renderer& renderer,
@@ -1202,13 +1309,16 @@ class LandView : public ui::View, public ColonySubView {
     }
   }
 
-  static unique_ptr<LandView> create( e_render_mode mode ) {
-    return make_unique<LandView>( mode );
+  static unique_ptr<LandView> create( IGui&         gui,
+                                      e_render_mode mode ) {
+    return make_unique<LandView>( gui, mode );
   }
 
-  LandView( e_render_mode mode ) : mode_( mode ) {}
+  LandView( IGui& gui, e_render_mode mode )
+    : gui_( gui ), mode_( mode ) {}
 
  private:
+  IGui&         gui_;
   e_render_mode mode_;
 };
 
@@ -1396,7 +1506,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view = LandView::create( land_view_mode );
+  auto land_view = LandView::create( gui, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
