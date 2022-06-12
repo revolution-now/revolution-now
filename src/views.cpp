@@ -925,11 +925,13 @@ bool OptionSelectView::on_key(
   switch( event.keycode ) {
     case ::SDLK_UP:
     case ::SDLK_KP_8:
+    case ::SDLK_k: // TODO: temporary?
       if( selected_ > 0 ) set_selected( selected_ - 1 );
       return true;
       break;
     case ::SDLK_DOWN:
     case ::SDLK_KP_2:
+    case ::SDLK_j: // TODO: temporary?
       if( selected_ < count() - 1 )
         set_selected( selected_ + 1 );
       return true;
