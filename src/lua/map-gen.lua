@@ -76,6 +76,8 @@ local function percent( x )
   return tostring( math.floor( x * 1000 ) / 10 ) .. '%'
 end
 
+local function round( x ) return math.floor( x + 0.5 ) end
+
 -----------------------------------------------------------------
 -- Random Numbers
 -----------------------------------------------------------------
@@ -861,11 +863,24 @@ local function generate_continent_in_rect( options, seed_rect )
   return generate_continent( options, square, stretch )
 end
 
+local function round_buffer( target )
+  return math.min( math.max( round( target ), 1 ), 10 )
+end
+
 local function generate_land( options )
   local size = map_gen.world_size()
   -- The buffer zone will have no land in it, so it should be
-  -- relatively small.
-  local buffer = { top=1, bottom=1, left=4, right=3 }
+  -- relatively small. These are calculated so that for the orig-
+  -- inal game's map size they should yeild the buffer values
+  -- that the original game appears to use. These need to be
+  -- scaled by the map size otherwise for small maps the seed
+  -- square will be too small.
+  local buffer = {
+    top=round_buffer( size.h / 70 ),
+    bottom=round_buffer( size.h / 70 ),
+    left=round_buffer( 3 * size.w / 56 ),
+    right=round_buffer( 2 * size.w / 56 )
+  }
   -- Seeds will be chosen from this rect, which is a bit smaller
   -- than the buffer to allow for outward growth.
   local seed_rect = {
@@ -972,6 +987,13 @@ local function generate_testing_land()
 end
 
 -----------------------------------------------------------------
+-- Testing
+-----------------------------------------------------------------
+local function add_testing_options( options )
+  options.world_size = { w=16, h=16 }
+end
+
+-----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
 function M.regen( options )
@@ -989,6 +1011,8 @@ function M.generate( options )
     if options[k] == nil then options[k] = v end
   end
   options = secure_options( options )
+
+  add_testing_options( options )
 
   reset_terrain( options )
 
