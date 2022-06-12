@@ -76,10 +76,10 @@ int production_for_indoor_job( e_indoor_job job,
 }
 
 maybe<e_colony_building> find_highest_building(
-    unordered_set<e_colony_building> const& buildings,
+    refl::enum_map<e_colony_building, bool> const& buildings,
     e_colony_building level0, e_colony_building level1 ) {
-  if( buildings.contains( level1 ) ) return level1;
-  if( buildings.contains( level0 ) ) return level0;
+  if( buildings[level1] ) return level1;
+  if( buildings[level0] ) return level0;
   return nothing;
 }
 

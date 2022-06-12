@@ -39,12 +39,10 @@ maybe<ColonyNotification::spoilage> check_spoilage(
   int const food_capacity =
       config_colony.warehouses.food_max_quantity;
   int const warehouse_capacity =
-      colony.buildings().contains(
-          e_colony_building::warehouse_expansion )
+      colony.buildings()[e_colony_building::warehouse_expansion]
           ? config_colony.warehouses
                 .warehouse_expansion_max_quantity
-      : colony.buildings().contains(
-            e_colony_building::warehouse )
+      : colony.buildings()[e_colony_building::warehouse]
           ? config_colony.warehouses.warehouse_max_quantity
           : config_colony.warehouses.default_max_quantity;
 

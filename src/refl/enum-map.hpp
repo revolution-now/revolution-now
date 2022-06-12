@@ -89,6 +89,12 @@ struct enum_map : public std::unordered_map<Enum, ValT> {
     return this->find( i )->second;
   }
 
+  // Make sure that the base class `contains` method is not
+  // callable since calling this method is not correct for this
+  // class; enum_maps always contain every enum key, and so if
+  // someone is trying to call this it is certainly a bug.
+  void contains( Enum ) = delete;
+
   friend cdr::value to_canonical( cdr::converter& conv,
                                   enum_map const& o,
                                   cdr::tag_t<enum_map> ) {

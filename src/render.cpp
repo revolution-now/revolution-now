@@ -161,8 +161,8 @@ void render_unit( rr::Painter& painter, Coord where,
 void render_colony( rr::Painter& painter, Coord where,
                     ColonyId id ) {
   auto const& colony = colony_from_id( id );
-  auto        tile   = colony_from_id( id ).buildings().contains(
-                           e_colony_building::stockade )
+  auto        tile   = colony_from_id( id )
+                      .buildings()[e_colony_building::stockade]
                            ? e_tile::colony_stockade
                            : e_tile::colony_basic;
   render_sprite( painter, where, tile );

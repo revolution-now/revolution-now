@@ -183,12 +183,6 @@ struct MenuPlane::Impl : public Plane {
   Impl() {
     // TODO: probably should only do these things once.
 
-    // Check that all menus have descriptors.
-    for( auto menu : refl::enum_values<e_menu> ) {
-      CHECK( g_menus.contains( menu ) );
-      CHECK( g_menu_def.contains( menu ) );
-    }
-
     // Populate the e_menu_item maps and verify no duplicates.
     for( auto& [menu, items] : g_menu_def ) {
       for( auto& item_desc : items ) {
@@ -227,9 +221,7 @@ struct MenuPlane::Impl : public Plane {
 
     // Check that all e_menu_items are in a menu.
     for( auto item : refl::enum_values<e_menu_item> ) {
-      CHECK( menu_items_.contains( item ) );
       CHECK( menu_items_[item] != nullptr );
-      CHECK( item_to_menu_.contains( item ) );
     }
 
     // Populate text widths of menu and menu item names.
@@ -263,7 +255,6 @@ struct MenuPlane::Impl : public Plane {
       }
       case MenuState::e::item_click: {
         auto& click = menu_state_.get<MenuState::item_click>();
-        CHECK( item_to_menu_.contains( click.item ) );
         return item_to_menu_[click.item] == menu;
       }
       case MenuState::e::menu_open: {
@@ -322,7 +313,6 @@ struct MenuPlane::Impl : public Plane {
 
   X menu_header_x_pos( e_menu target ) const {
     // TODO: simplify this since menus are not invisible anymore.
-    CHECK( g_menus.contains( target ) );
     auto const& desc = g_menus[target];
     W           width_delta{ 0 };
     if( desc.right_side ) {
@@ -410,7 +400,6 @@ struct MenuPlane::Impl : public Plane {
   // borders, which themselves occupy part of a tile.
   H menu_body_height_inner( e_menu menu ) const {
     H h{ 0 };
-    CHECK( g_menu_def.contains( menu ) );
     for( auto const& item : g_menu_def[menu] ) {
       overload_visit(
           item,
@@ -438,7 +427,6 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect_inner( e_menu menu ) const {
-    CHECK( g_menus.contains( menu ) );
     Coord pos;
     pos.y = menu_bar_rect().bottom_edge() + 8_h;
     if( g_menus[menu].right_side ) {
@@ -452,7 +440,6 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect( e_menu menu ) const {
-    CHECK( g_menus.contains( menu ) );
     Coord pos;
     pos.y = menu_bar_rect().bottom_edge();
     if( g_menus[menu].right_side )
@@ -477,7 +464,6 @@ struct MenuPlane::Impl : public Plane {
 
   // `h` is the vertical position from the top of the menu body.
   maybe<e_menu_item> cursor_to_item( e_menu menu, H h ) const {
-    CHECK( g_menu_def.contains( menu ) );
     H pos{ 0 };
     for( auto const& item : g_menu_def[menu] ) {
       overload_visit(
@@ -642,7 +628,6 @@ struct MenuPlane::Impl : public Plane {
     }
     void operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
-      CHECK( impl->item_to_menu_.contains( ic.item ) );
       this->operator()(
           MenuState::menu_open{ impl->item_to_menu_[ic.item],
                                 /*hover=*/{} } );
@@ -718,7 +703,6 @@ struct MenuPlane::Impl : public Plane {
     }
     res_t operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
-      CHECK( impl.item_to_menu_.contains( ic.item ) );
       return ( *this )( MenuState::menu_open{
           impl.item_to_menu_[ic.item], /*hover=*/{} } );
     }
@@ -759,9 +743,8 @@ struct MenuPlane::Impl : public Plane {
         menu_state_, []( MenuState::menus_hidden ) {},
         [&]( MenuState::menus_closed ) {},
         [&]( MenuState::item_click const& ic ) {
-          auto menu = item_to_menu_[ic.item];
-          CHECK( item_to_menu_.contains( ic.item ) );
-          Coord pos = menu_body_rect( menu ).upper_left();
+          auto  menu = item_to_menu_[ic.item];
+          Coord pos  = menu_body_rect( menu ).upper_left();
           render_open_menu( renderer, pos, menu, ic.item );
         },
         [&]( MenuState::menu_open const& o ) {
