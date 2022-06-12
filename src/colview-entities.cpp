@@ -127,6 +127,23 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       } );
 }
 
+e_tile tile_for_outdoor_job( e_outdoor_job job ) {
+  switch( job ) {
+    case e_outdoor_job::food: return e_tile::commodity_food;
+    case e_outdoor_job::fish:
+      // TODO: temporary
+      return e_tile::commodity_food;
+    case e_outdoor_job::sugar: return e_tile::commodity_sugar;
+    case e_outdoor_job::tobacco:
+      return e_tile::commodity_tobacco;
+    case e_outdoor_job::cotton: return e_tile::commodity_cotton;
+    case e_outdoor_job::fur: return e_tile::commodity_fur;
+    case e_outdoor_job::lumber: return e_tile::commodity_lumber;
+    case e_outdoor_job::ore: return e_tile::commodity_ore;
+    case e_outdoor_job::silver: return e_tile::commodity_silver;
+  }
+}
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -1293,6 +1310,37 @@ class LandView : public ui::View,
       draw_land_3x3( renderer, coord );
     }
     // Further drawing should not be scaled.
+
+    // Render units.
+    rr::Painter          painter        = renderer.painter();
+    ColoniesState const& colonies_state = GameState::colonies();
+    Colony const&        colony =
+        colonies_state.colony_for( colony_id() );
+    Coord const center = Coord( 1_x, 1_y );
+
+    for( auto const& [direction, outdoor_unit] :
+         colony.outdoor_jobs() ) {
+      if( !outdoor_unit.has_value() ) continue;
+      Coord const square_coord =
+          coord + ( center.moved( direction ) * g_tile_scale *
+                    Scale{ 2 } )
+                      .distance_from_origin();
+      Coord const unit_coord =
+          square_coord + ( g_tile_delta / Scale{ 2 } );
+      UnitId const unit_id = outdoor_unit->unit_id;
+      render_unit( renderer, unit_coord, unit_id,
+                   /*with_icon=*/false );
+      e_outdoor_job const job    = outdoor_unit->job;
+      e_tile const product_tile  = tile_for_outdoor_job( job );
+      Coord const  product_coord = square_coord;
+      render_sprite( painter, product_coord, product_tile );
+      Delta const product_tile_size =
+          sprite_size( product_tile );
+      rr::Typer typer =
+          renderer.typer( product_coord + product_tile_size.w,
+                          gfx::pixel::white() );
+      typer.write( "x 0" );
+    }
   }
 
   void draw( rr::Renderer& renderer,
