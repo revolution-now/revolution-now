@@ -1123,11 +1123,15 @@ class LandView : public ui::View,
       case e_render_mode::_3x3:
         return Coord( 1_x, 1_y )
             .direction_to( coord / g_tile_scale );
-      case e_render_mode::_5x5:
+      case e_render_mode::_5x5: {
+        // TODO: this will probably have to be made more sophis-
+        // ticated.
+        Coord shifted = coord - g_tile_delta;
+        if( shifted.x < 0_x || shifted.y < 0_y ) return nothing;
         return Coord( 1_x, 1_y )
-            .direction_to( ( coord - g_tile_delta ) /
-                           g_tile_scale );
+            .direction_to( shifted / g_tile_scale );
         break;
+      }
       case e_render_mode::_6x6:
         return Coord( 1_x, 1_y )
             .direction_to( coord /
