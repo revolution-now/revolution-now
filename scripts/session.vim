@@ -158,3 +158,7 @@ tabdo wincmd =
 tabn 1
 " :q
 tabprev
+
+if has( 'nvim' )
+  tabdo set cmdheight=0
+end
