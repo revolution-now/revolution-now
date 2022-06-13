@@ -335,11 +335,6 @@ wait<> drag_drop_routine(
     bool can_drag = drag_source.try_drag(
         source_object,
         origin.with_new_origin( source_upper_left ) );
-    // This ensures that if the coroutine is interrupted some-
-    // where during the drag (e.g. early return, or cancellation)
-    // then the source object will be told about it so that it
-    // can go back to normal rendering of the dragged object.
-    SCOPE_EXIT( drag_source.cancel_drag() );
     if( !can_drag ) {
       // The source and sink can't negotiate a way to make this
       // drag work, so cancel it.
@@ -361,8 +356,7 @@ wait<> drag_drop_routine(
       bool proceed = co_await drag_check->check( source_object,
                                                  sink_coord );
       if( !proceed ) {
-        // User has cancelled the drag.
-        lg.debug( "drag of object {} cancelled by user.",
+        lg.debug( "drag of object {} cancelled.",
                   source_object );
         break;
       }
