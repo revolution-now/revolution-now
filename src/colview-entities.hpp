@@ -116,10 +116,12 @@ struct IColViewDragSource {
 // latter case would be dragging a unit over a water tile in a
 // colony that does not contain docks; we want to all the drag
 // UI-wise, but we want to then show a message to the user ex-
-// plaining why we are cancelling it.
+// plaining why we are cancelling it. Returning `true` means
+// "proceed".
 struct IColViewDragSinkCheck {
   virtual wait<bool> check( ColViewObject_t const&,
-                            Coord const& ) const = 0;
+                            e_colview_entity from,
+                            Coord const ) const = 0;
 };
 
 // Interface for views that can accept dragged items.

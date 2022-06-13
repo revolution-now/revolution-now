@@ -123,7 +123,7 @@ unordered_map<e_commodity, int> const
         // ...
     };
 
-TEST_CASE( "[colony-mgr] create colony on land successful" ) {
+TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -149,7 +149,7 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
   }
 }
 
-TEST_CASE( "[colony-mgr] create colony strips unit" ) {
+TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -242,7 +242,7 @@ TEST_CASE( "[colony-mgr] create colony strips unit" ) {
 }
 
 TEST_CASE(
-    "[colony-mgr] create colony on existing colony fails" ) {
+    "[colony-mgr] found_colony on existing colony fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -274,7 +274,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "[colony-mgr] create colony with existing name fails" ) {
+    "[colony-mgr] found_colony with existing name fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -306,7 +306,9 @@ TEST_CASE(
                .valid() );
 }
 
-TEST_CASE( "[colony-mgr] too close to another colony fails" ) {
+TEST_CASE(
+    "[colony-mgr] found_colony too close to another colony "
+    "fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -328,7 +330,7 @@ TEST_CASE( "[colony-mgr] too close to another colony fails" ) {
            invalid( e_found_colony_err::too_close_to_colony ) );
 }
 
-TEST_CASE( "[colony-mgr] create colony in water fails" ) {
+TEST_CASE( "[colony-mgr] found_colony in water fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -345,7 +347,7 @@ TEST_CASE( "[colony-mgr] create colony in water fails" ) {
 }
 
 TEST_CASE(
-    "[colony-mgr] found colony by unit not on map fails" ) {
+    "[colony-mgr] found_colony by unit not on map fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -361,7 +363,7 @@ TEST_CASE(
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }
 
-TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
+TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;
@@ -376,7 +378,7 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
 }
 
-TEST_CASE( "[colony-mgr] found colony by non-human fails" ) {
+TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
   TerrainState  terrain_state;
   ColoniesState colonies_state;
   UnitsState    units_state;

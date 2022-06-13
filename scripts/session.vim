@@ -1,22 +1,15 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'plane',
- \ 'plane-stack',
- \ 'app-ctrl',
- \ 'main-menu',
- \ 'game',
- \ 'turn',
- \ 'turn-plane',
- \ 'omni',
- \ 'console',
- \ 'window',
- \ 'menu',
- \ 'main-menu',
- \ 'land-view',
- \ 'panel',
- \ 'harbor-view',
+ \ 'colony',
+ \ 'config/colony',
+ \ 'gs-colonies',
+ \ 'colony-evolve',
+ \ 'colony-mgr',
  \ 'colony-view',
- \ 'map-edit',
+ \ 'colview-entities',
+ \ '../test/fake/world',
+ \ 'production',
+ \ 'config/production',
 \]
 
 let s:luas = [

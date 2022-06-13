@@ -129,12 +129,15 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       } );
 }
 
-e_tile tile_for_outdoor_job( e_outdoor_job job ) {
+e_tile tile_for_outdoor_job( MapSquare const& square,
+                             e_outdoor_job    job ) {
   switch( job ) {
-    case e_outdoor_job::food: return e_tile::commodity_food;
-    case e_outdoor_job::fish:
-      // TODO: temporary
-      return e_tile::commodity_food;
+    case e_outdoor_job::food: {
+      if( square.surface == e_surface::land )
+        return e_tile::commodity_food;
+      else
+        return e_tile::commodity_fish;
+    }
     case e_outdoor_job::sugar: return e_tile::commodity_sugar;
     case e_outdoor_job::tobacco:
       return e_tile::commodity_tobacco;
@@ -152,6 +155,25 @@ void update_production( TerrainState const& terrain_state,
                         Colony const&       colony ) {
   g_production = production_for_colony(
       terrain_state, units_state, player, colony );
+}
+
+wait<bool> check_abandon( IGui& gui ) {
+  ColoniesState& colonies_state = GameState::colonies();
+  Colony& colony = colonies_state.colony_for( colony_id() );
+  if( colony.units().size() == 1 ) {
+    co_await gui.message_box(
+        "This action would abandon the colony, which is "
+        "not yet supported." );
+    co_return false;
+  }
+  co_return true;
+}
+
+wait<bool> check_seige( IGui& gui ) {
+  // TODO: check if the colony is under seige; in that case
+  // colonists are not allowed to move from the fields to the
+  // gates.
+  co_return true;
 }
 
 /****************************************************************
@@ -248,7 +270,7 @@ class MarketCommodities : public ui::View,
       // of label for buckets), but we want the quantity to
       // render as zero to reflect the fact that the player has
       // removed those from the colony store.
-      if( *comm_it == draggable_.member( &Commodity::type ) )
+      if( *comm_it == dragging_.member( &Commodity::type ) )
         label.value = 0;
       render_commodity_annotated(
           renderer,
@@ -300,17 +322,16 @@ class MarketCommodities : public ui::View,
     // has edited `o` to be less in quantity than the source.
     CHECK( c.quantity <= dragged_c.quantity );
     // End sanity checks.
-    draggable_ = c;
+    dragging_ = c;
     return true;
   }
 
-  void cancel_drag() override { draggable_ = nothing; }
+  void cancel_drag() override { dragging_ = nothing; }
 
   void disown_dragged_object() override {
-    CHECK( draggable_ );
-    e_commodity type = draggable_->type;
-    int         new_quantity =
-        quantity_of( type ) - draggable_->quantity;
+    CHECK( dragging_ );
+    e_commodity type = dragging_->type;
+    int new_quantity = quantity_of( type ) - dragging_->quantity;
     CHECK( new_quantity >= 0 );
     colony().commodities()[type] = new_quantity;
   }
@@ -333,20 +354,20 @@ class MarketCommodities : public ui::View,
 
   wait<maybe<ColViewObject_t>> user_edit_object()
       const override {
-    CHECK( draggable_ );
+    CHECK( dragging_ );
     int    min  = 1;
-    int    max  = draggable_->quantity;
+    int    max  = dragging_->quantity;
     string text = fmt::format(
         "What quantity of @[H]{}@[] would you like to move? "
         "({}-{}):",
-        commodity_display_name( draggable_->type ), min, max );
+        commodity_display_name( dragging_->type ), min, max );
     maybe<int> quantity =
         co_await gui_.int_input( { .msg           = text,
                                    .initial_value = max,
                                    .min           = min,
                                    .max           = max } );
     if( !quantity ) co_return nothing;
-    Commodity new_comm = *draggable_;
+    Commodity new_comm = *dragging_;
     new_comm.quantity  = *quantity;
     CHECK( new_comm.quantity > 0 );
     co_return from_cargo( Cargo::commodity{ new_comm } );
@@ -357,7 +378,7 @@ class MarketCommodities : public ui::View,
 
  private:
   W                block_width_;
-  maybe<Commodity> draggable_;
+  maybe<Commodity> dragging_;
   IGui&            gui_;
 };
 
@@ -405,7 +426,8 @@ class CargoView : public ui::View,
                   public ColonySubView,
                   public IColViewDragSource,
                   public IColViewDragSourceUserInput,
-                  public IColViewDragSink {
+                  public IColViewDragSink,
+                  public IColViewDragSinkCheck {
  public:
   Delta delta() const override { return size_; }
 
@@ -551,6 +573,24 @@ class CargoView : public ui::View,
     }
   }
 
+  wait<bool> check( ColViewObject_t const&,
+                    e_colview_entity from,
+                    Coord const ) const override {
+    switch( from ) {
+      case e_colview_entity::units_at_gate:
+      case e_colview_entity::cargo:
+      case e_colview_entity::commodities: //
+        co_return true;
+      case e_colview_entity::land:
+        co_return( co_await check_abandon( gui_ ) &&
+                   co_await check_seige( gui_ ) );
+      case e_colview_entity::population:
+      case e_colview_entity::title_bar:
+      case e_colview_entity::production:
+        FATAL( "unexpected source entity." );
+    }
+  }
+
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override {
     CHECK( holder_ );
@@ -629,20 +669,20 @@ class CargoView : public ui::View,
     if( !slot_info ) return false;
     auto [is_open, slot_idx] = *slot_info;
     if( !is_open ) return false;
-    draggable_ = Draggable{ .slot = slot_idx, .object = o };
+    dragging_ = Draggable{ .slot = slot_idx, .object = o };
     return true;
   }
 
-  void cancel_drag() override { draggable_ = nothing; }
+  void cancel_drag() override { dragging_ = nothing; }
 
   void disown_dragged_object() override {
     CHECK( holder_ );
-    CHECK( draggable_ );
+    CHECK( dragging_ );
     // We need to take the stored object instead of just re-
     // trieving it from the slot, because the stored object might
     // have been edited, e.g. the commodity quantity might have
     // been lowered.
-    Cargo_t cargo_to_remove = to_cargo( draggable_->object );
+    Cargo_t cargo_to_remove = to_cargo( dragging_->object );
     overload_visit(
         cargo_to_remove,
         []( Cargo::unit held ) {
@@ -653,7 +693,7 @@ class CargoView : public ui::View,
               existing_cargo,
               unit_from_id( *holder_ )
                   .cargo()
-                  .cargo_starting_at_slot( draggable_->slot ) );
+                  .cargo_starting_at_slot( dragging_->slot ) );
           UNWRAP_CHECK(
               existing_comm,
               existing_cargo.get_if<Cargo::commodity>() );
@@ -662,19 +702,19 @@ class CargoView : public ui::View,
           CHECK( reduced_comm.type == to_remove.obj.type );
           reduced_comm.quantity -= to_remove.obj.quantity;
           CHECK( reduced_comm.quantity >= 0 );
-          rm_commodity_from_cargo( *holder_, draggable_->slot );
+          rm_commodity_from_cargo( *holder_, dragging_->slot );
           if( reduced_comm.quantity > 0 )
             add_commodity_to_cargo( reduced_comm, *holder_,
-                                    draggable_->slot,
+                                    dragging_->slot,
                                     /*try_other_slots=*/false );
         } );
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
       const override {
-    CHECK( draggable_ );
+    CHECK( dragging_ );
     UNWRAP_CHECK( cargo_and_rect,
-                  cargo_item_with_rect( draggable_->slot ) );
+                  cargo_item_with_rect( dragging_->slot ) );
     Cargo_t const& cargo = cargo_and_rect.first;
     if( !cargo.holds<Cargo::commodity>() )
       co_return from_cargo( cargo );
@@ -710,14 +750,15 @@ class CargoView : public ui::View,
   // them).
   maybe<UnitId>    holder_;
   Delta            size_;
-  maybe<Draggable> draggable_;
+  maybe<Draggable> dragging_;
   IGui&            gui_;
 };
 
 class UnitsAtGateColonyView : public ui::View,
                               public ColonySubView,
                               public IColViewDragSource,
-                              public IColViewDragSink {
+                              public IColViewDragSink,
+                              public IColViewDragSinkCheck {
  public:
   Delta delta() const override { return size_; }
 
@@ -830,6 +871,24 @@ class UnitsAtGateColonyView : public ui::View,
             Cargo::unit{ dragged } ) )
       return nothing;
     return ColViewObject::unit{ .id = dragged };
+  }
+
+  wait<bool> check( ColViewObject_t const&,
+                    e_colview_entity from,
+                    Coord const ) const override {
+    switch( from ) {
+      case e_colview_entity::units_at_gate:
+      case e_colview_entity::commodities:
+      case e_colview_entity::cargo: //
+        co_return true;
+      case e_colview_entity::land:
+        co_return( co_await check_abandon( gui_ ) &&
+                   co_await check_seige( gui_ ) );
+      case e_colview_entity::population:
+      case e_colview_entity::title_bar:
+      case e_colview_entity::production:
+        FATAL( "unexpected source entity." );
+    }
   }
 
   maybe<ColViewObject_t> can_cargo_unit_receive_commodity(
@@ -1113,6 +1172,7 @@ class ProductionView : public ui::View, public ColonySubView {
 
 class LandView : public ui::View,
                  public ColonySubView,
+                 public IColViewDragSource,
                  public IColViewDragSink,
                  public IColViewDragSinkCheck {
  public:
@@ -1157,14 +1217,51 @@ class LandView : public ui::View,
         if( shifted.x < 0_x || shifted.y < 0_y ) return nothing;
         return Coord( 1_x, 1_y )
             .direction_to( shifted / g_tile_scale );
-        break;
       }
       case e_render_mode::_6x6:
         return Coord( 1_x, 1_y )
             .direction_to( coord /
                            ( g_tile_scale * Scale{ 2 } ) );
-        break;
     }
+  }
+
+  // Gets the bounding rectangle for the unit position on the
+  // given square (whether there actually is a unit there or
+  // not).
+  Rect rect_for_unit( e_direction d ) const {
+    switch( mode_ ) {
+      case e_render_mode::_3x3:
+        return Rect::from(
+            Coord( 1_x, 1_y ).moved( d ) * g_tile_scale,
+            g_tile_delta );
+      case e_render_mode::_5x5: {
+        NOT_IMPLEMENTED;
+      }
+      case e_render_mode::_6x6:
+        return Rect::from( Coord( 1_x, 1_y ).moved( d ) *
+                                   g_tile_scale * Scale{ 2 } +
+                               ( g_tile_delta / Scale{ 2 } ),
+                           g_tile_delta );
+    }
+  }
+
+  maybe<UnitId> unit_for_direction( e_direction d ) const {
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    return colony.outdoor_jobs()[d].member(
+        &OutdoorUnit::unit_id );
+  }
+
+  maybe<e_outdoor_job> job_for_direction( e_direction d ) const {
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    return colony.outdoor_jobs()[d].member( &OutdoorUnit::job );
+  }
+
+  maybe<UnitId> unit_under_cursor( Coord where ) const {
+    UNWRAP_RETURN(
+        d, direction_for_land_square_under_coord( where ) );
+    return unit_for_direction( d );
   }
 
   Delta delta() const override { return size_needed( mode_ ); }
@@ -1195,13 +1292,11 @@ class LandView : public ui::View,
     maybe<e_direction> d =
         direction_for_land_square_under_coord( where );
     if( !d.has_value() ) return nothing;
+    // Check if this is the same unit currently being dragged, if
+    // so we'll allow it.
+    if( dragging_.has_value() && d == dragging_->d ) return o;
     // Check if there is already a unit on the square.
-    ColoniesState const& colonies_state = GameState::colonies();
-    Colony const&        colony =
-        colonies_state.colony_for( colony_id() );
-    maybe<OutdoorUnit> const& existing =
-        colony.outdoor_jobs()[*d];
-    if( existing.has_value() ) return nothing;
+    if( unit_under_cursor( where ).has_value() ) return nothing;
     // Note that we don't check for water/docks here; that is
     // done in the check function.
 
@@ -1209,8 +1304,8 @@ class LandView : public ui::View,
     return o;
   }
 
-  wait<bool> check( ColViewObject_t const&,
-                    Coord const& where ) const override {
+  wait<bool> check( ColViewObject_t const&, e_colview_entity,
+                    Coord const where ) const override {
     ColoniesState const& colonies_state = GameState::colonies();
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
@@ -1220,28 +1315,27 @@ class LandView : public ui::View,
     CHECK( d );
     MapSquare const& square =
         terrain_state.square_at( colony.location().moved( *d ) );
-    if( square.surface == e_surface::land ) co_return true;
 
-    // The player is trying to drag a unit onto water, so we need
-    // to make sure that the colony has docks.
-    if( colony.buildings()[e_colony_building::docks] )
-      co_return true;
+    if( is_water( square ) &&
+        !colony.buildings()[e_colony_building::docks] ) {
+      co_await gui_.message_box(
+          "We must build @[H]docks@[] in this colony in order "
+          "to work on sea squares." );
+      co_return false;
+    }
 
-    co_await gui_.message_box(
-        "We must build @[H]docks@[] in this colony in order to "
-        "fish on sea squares." );
-    co_return false;
+    if( square.lost_city_rumor ) {
+      co_await gui_.message_box(
+          "We must explore this Lost City Rumor before we can "
+          "work this square." );
+      co_return false;
+    }
+
+    co_return true;
   }
 
   ColonyJob_t make_job_for_square( e_direction d ) const {
-    ColoniesState& colonies_state = GameState::colonies();
-    Colony& colony = colonies_state.colony_for( colony_id() );
-    MapSquare const& square = GameState::terrain().square_at(
-        colony.location().moved( d ) );
-    if( square.surface == e_surface::water )
-      return ColonyJob::outdoor{ .direction = d,
-                                 .job = e_outdoor_job::fish };
-    // TODO
+    // The original game seems to always choose food.
     return ColonyJob::outdoor{ .direction = d,
                                .job = e_outdoor_job::food };
   }
@@ -1256,11 +1350,52 @@ class LandView : public ui::View,
     UNWRAP_CHECK(
         d, direction_for_land_square_under_coord( where ) );
     ColonyJob_t job = make_job_for_square( d );
+    if( dragging_.has_value() ) {
+      // The unit being dragged is coming from another square on
+      // the land view, so keep its job the same.
+      job = ColonyJob::outdoor{ .direction = d,
+                                .job       = dragging_->job };
+    }
     move_unit_to_colony( GameState::units(), colony, unit_id,
                          job );
     CHECK_HAS_VALUE( colony.validate() );
     update_production( GameState::terrain(), GameState::units(),
                        player_, colony );
+  }
+
+  maybe<ColViewObjectWithBounds> object_here(
+      Coord const& where ) const override {
+    UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
+    UNWRAP_RETURN(
+        d, direction_for_land_square_under_coord( where ) );
+    return ColViewObjectWithBounds{
+        .obj    = ColViewObject::unit{ .id = unit_id },
+        .bounds = rect_for_unit( d ) };
+  }
+
+  struct Draggable {
+    e_direction   d   = {};
+    e_outdoor_job job = {};
+  };
+
+  bool try_drag( ColViewObject_t const&,
+                 Coord const& where ) override {
+    UNWRAP_CHECK(
+        d, direction_for_land_square_under_coord( where ) );
+    UNWRAP_CHECK( job, job_for_direction( d ) );
+    dragging_ = Draggable{ .d = d, .job = job };
+    return true;
+  }
+
+  void cancel_drag() override { dragging_ = nothing; }
+
+  void disown_dragged_object() override {
+    UNWRAP_CHECK( draggable, dragging_ );
+    UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
+    UnitsState&    units_state    = GameState::units();
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    remove_unit_from_colony( units_state, colony, unit_id );
   }
 
   void draw_land_3x3( rr::Renderer& renderer,
@@ -1325,6 +1460,7 @@ class LandView : public ui::View,
 
     // Render units.
     rr::Painter          painter        = renderer.painter();
+    TerrainState const&  terrain_state  = GameState::terrain();
     ColoniesState const& colonies_state = GameState::colonies();
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
@@ -1333,6 +1469,8 @@ class LandView : public ui::View,
     for( auto const& [direction, outdoor_unit] :
          colony.outdoor_jobs() ) {
       if( !outdoor_unit.has_value() ) continue;
+      if( dragging_.has_value() && dragging_->d == direction )
+        continue;
       Coord const square_coord =
           coord + ( center.moved( direction ) * g_tile_scale *
                     Scale{ 2 } )
@@ -1342,9 +1480,12 @@ class LandView : public ui::View,
       UnitId const unit_id = outdoor_unit->unit_id;
       render_unit( renderer, unit_coord, unit_id,
                    /*with_icon=*/false );
-      e_outdoor_job const job    = outdoor_unit->job;
-      e_tile const product_tile  = tile_for_outdoor_job( job );
-      Coord const  product_coord = square_coord;
+      e_outdoor_job const job        = outdoor_unit->job;
+      MapSquare const&    map_square = terrain_state.square_at(
+             colony.location().moved( direction ) );
+      e_tile const product_tile =
+          tile_for_outdoor_job( map_square, job );
+      Coord const product_coord = square_coord;
       render_sprite( painter, product_coord, product_tile );
       Delta const product_tile_size =
           sprite_size( product_tile );
@@ -1391,9 +1532,10 @@ class LandView : public ui::View,
     : player_( player ), gui_( gui ), mode_( mode ) {}
 
  private:
-  Player const& player_;
-  IGui&         gui_;
-  e_render_mode mode_;
+  Player const&    player_;
+  IGui&            gui_;
+  e_render_mode    mode_;
+  maybe<Draggable> dragging_;
 };
 
 /****************************************************************

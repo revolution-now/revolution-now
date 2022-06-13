@@ -43,8 +43,7 @@ enum.e_indoor_job {
 }
 
 enum.e_outdoor_job {
-  food,
-  fish,
+  food, # corn+fish
   sugar,
   tobacco,
   cotton,

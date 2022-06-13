@@ -353,8 +353,8 @@ wait<> drag_drop_routine(
     maybe<IColViewDragSinkCheck const&> drag_check =
         drag_sink.drag_check();
     if( drag_check ) {
-      bool proceed = co_await drag_check->check( source_object,
-                                                 sink_coord );
+      bool proceed = co_await drag_check->check(
+          source_object, *source_entity, sink_coord );
       if( !proceed ) {
         lg.debug( "drag of object {} cancelled.",
                   source_object );

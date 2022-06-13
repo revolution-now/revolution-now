@@ -492,6 +492,9 @@ enum.e_tile {
   commodity_tools,
   commodity_muskets,
 
+  # Same as food, just different tile.
+  commodity_fish,
+
   # =============================================================
   # Roads
   # =============================================================

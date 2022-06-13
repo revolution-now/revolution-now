@@ -145,6 +145,50 @@ void give_new_crosses_to_player(
                       crosses_calc.dock_crosses_bonus );
 }
 
+ColonyJob_t find_job_for_initial_colonist(
+    TerrainState const& terrain_state, Colony const& colony,
+    Unit const& ) {
+  // In an unmodded game the colony will not start off with
+  // docks, but it could it settings are changed.
+  bool has_docks = colony.buildings()[e_colony_building::docks];
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const coord = colony.location().moved( d );
+    if( !terrain_state.square_exists( coord ) ) continue;
+    MapSquare const& square = terrain_state.square_at( coord );
+    if( is_water( square ) && !has_docks ) continue;
+    // Cannot work squares containing LCRs. This is what the
+    // original game does, and is probably for two reasons: 1)
+    // you cannot see what is under it, and 2) it forces the
+    // player to (risk) exploring the LCR if they want to work
+    // the square.
+    if( square.lost_city_rumor ) continue;
+    // TODO: Check if there is an indian village on the square.
+
+    // TODO: Check if the land is owned by an indian village.
+
+    // TODO: check if the square is being worked by other
+    //       colonies.
+
+    // TODO: check if there are any foreign units fortified on
+    //       the square.
+
+    // TODO: sanity check that there are no colonies on the
+    //       square.
+
+    return ColonyJob::outdoor{ .direction = d,
+                               .job = e_outdoor_job::food };
+  }
+
+  // Couldn't find a land job, so default to carpenter's shop.
+  // This is safe because the carpenter's shop will always be
+  // guaranteed to be there, since one can't build any other
+  // buildings without it.
+  if( !colony.buildings()[e_colony_building::carpenters_shop] )
+    lg.error( "colony '{}' does not have a carpenter's shop.",
+              colony.name() );
+  return ColonyJob::indoor{ .job = e_indoor_job::hammers };
+}
+
 } // namespace
 
 /****************************************************************
@@ -239,7 +283,7 @@ ColonyId found_colony( ColoniesState&      colonies_state,
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job =
-      ColonyJob::indoor{ .job = e_indoor_job::bells };
+      find_job_for_initial_colonist( terrain_state, col, unit );
 
   // Move unit into it.
   move_unit_to_colony( units_state, col, founder, job );
