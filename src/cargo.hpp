@@ -40,6 +40,8 @@ TYPED_INDEX( CargoSlotIndex );
 // Friends.
 namespace rn {
 
+struct UnitsState;
+
 void add_commodity_to_cargo( Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots );
@@ -168,8 +170,9 @@ class CargoHold {
   // object will do some validation that does not require that
   // access, and that is called by this method before it starts
   // its own validation.
-  valid_or<generic_err> validate() const;
-  void                  validate_or_die() const;
+  valid_or<generic_err> validate(
+      UnitsState const& units_state ) const;
+  void validate_or_die() const;
 
  protected:
   // These friend classes/functions are the only ones that should

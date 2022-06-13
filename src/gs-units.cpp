@@ -52,22 +52,6 @@ valid_or<string> wrapped::UnitsState::validate() const {
     REFL_VALIDATE( !holds<UnitOwnership::free>( st ),
                    "unit {} is in the `free` state.", id );
   }
-
-  // Validate all unit cargos. We can only do this now after
-  // all units have been loaded.
-  for( auto const& [id, unit_state] : units )
-    // FIXME: this can lead to a crash when a save-game is loaded
-    // while an existing game is in progress where a unit was
-    // lost due to it having been cargo of a sunk ship, then the
-    // save-game being loaded has a unit with that same ID that
-    // is also in the ship cargo. This crash happens because the
-    // cargo, as it performs its validation, will query for the
-    // unit state, but it will end up querying the current unit
-    // state and not the one we are validating here. The proper
-    // fix for this requires passing the game state as a para-
-    // meter to whoever needs it as opposed to code getting it
-    // from globals.
-    REFL_VALIDATE( unit_state.unit.cargo().validate() );
   return base::valid;
 }
 
@@ -76,7 +60,12 @@ valid_or<string> wrapped::UnitsState::validate() const {
 *****************************************************************/
 valid_or<std::string> UnitsState::validate() const {
   HAS_VALUE_OR_RET( o_.validate() );
-  // No further validation on derived state for now.
+
+  // Validate all unit cargos. We can only do this now after
+  // all units have been loaded.
+  for( auto const& [id, unit_state] : o_.units )
+    REFL_VALIDATE( unit_state.unit.cargo().validate( *this ) );
+
   return base::valid;
 }
 

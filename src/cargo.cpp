@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "game-state.hpp" // FIXME
+#include "gs-units.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
@@ -81,10 +83,11 @@ base::valid_or<string> wrapped::CargoHold::validate() const {
 }
 
 void CargoHold::validate_or_die() const {
-  CHECK_HAS_VALUE( validate() );
+  CHECK_HAS_VALUE( validate( GameState::units() ) );
 }
 
-valid_or<generic_err> CargoHold::validate() const {
+valid_or<generic_err> CargoHold::validate(
+    UnitsState const& units_state ) const {
   // First validate the reflected state. This will do the valida-
   // tion that can be done without needing access to any game
   // state outside of this cargo object.
@@ -100,7 +103,7 @@ valid_or<generic_err> CargoHold::validate() const {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) ) {
       if( auto* u =
               get_if<Cargo::unit>( &( cargo->contents ) ) ) {
-        auto const& unit = unit_from_id( u->id );
+        auto const& unit = units_state.unit_for( u->id );
         auto        occupies =
             unit.desc().cargo_slots_occupies.value_or( 0 );
         TRUE_OR_RETURN_GENERIC_ERR( occupies > 0 );
@@ -131,7 +134,7 @@ valid_or<generic_err> CargoHold::validate() const {
             cargo.contents,
             [&]( Cargo::unit u ) {
               occupied +=
-                  unit_from_id( u.id )
+                  units_state.unit_for( u.id )
                       .desc()
                       .cargo_slots_occupies.value_or( 0 );
             },

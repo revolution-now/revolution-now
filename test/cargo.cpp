@@ -30,9 +30,11 @@
 // Must be last.
 #include "catch-common.hpp"
 
-#define REQUIRE_BROKEN_INVARIANTS REQUIRE( !ch.validate() )
+#define REQUIRE_BROKEN_INVARIANTS \
+  REQUIRE( !ch.validate( GameState::units() ) )
 
-#define REQUIRE_GOOD_INVARIANTS REQUIRE( ch.validate() )
+#define REQUIRE_GOOD_INVARIANTS \
+  REQUIRE( ch.validate( GameState::units() ) )
 
 namespace rn {
 namespace {
