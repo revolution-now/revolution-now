@@ -104,5 +104,67 @@ TEST_CASE( "[production] crosses production" ) {
   REQUIRE( W.validate_colonies() == base::valid );
 }
 
+TEST_CASE( "[production] new colonist" ) {
+  World W;
+  W.create_default_map();
+  Colony&        colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Player&        player = W.dutch();
+  FoodProduction pr;
+
+  auto production = [&] {
+    ColonyProduction pr = production_for_colony(
+        W.terrain(), W.units(), player, colony );
+    return pr.food;
+  };
+
+  // Zero food.
+  pr = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 0 );
+  REQUIRE( pr.food_delta_final > -200 );
+  REQUIRE( pr.colonist_created == false );
+
+  // One food.
+  colony.commodities()[e_commodity::food] = 1;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 0 );
+  REQUIRE( pr.food_delta_final > -200 );
+  REQUIRE( pr.colonist_created == false );
+
+  // 100 food.
+  colony.commodities()[e_commodity::food] = 100;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 0 );
+  REQUIRE( pr.food_delta_final > -200 );
+  REQUIRE( pr.colonist_created == false );
+
+  // 199 food.
+  colony.commodities()[e_commodity::food] = 199;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 0 );
+  REQUIRE( pr.food_delta_final > -200 );
+  REQUIRE( pr.colonist_created == false );
+
+  // 200 food.
+  colony.commodities()[e_commodity::food] = 200;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 200 );
+  REQUIRE( pr.food_delta_final <= -200 );
+  REQUIRE( pr.colonist_created == true );
+
+  // 201 food.
+  colony.commodities()[e_commodity::food] = 201;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 200 );
+  REQUIRE( pr.food_delta_final <= -200 );
+  REQUIRE( pr.colonist_created == true );
+
+  // 300 food.
+  colony.commodities()[e_commodity::food] = 300;
+  pr                                      = production();
+  REQUIRE( pr.food_consumed_by_new_colonist == 200 );
+  REQUIRE( pr.food_delta_final <= -200 );
+  REQUIRE( pr.colonist_created == true );
+}
+
 } // namespace
 } // namespace rn

@@ -17,6 +17,7 @@
 #include "unit.hpp"
 
 // config
+#include "config/colony.rds.hpp"
 #include "config/production.rds.hpp"
 
 // base
@@ -171,6 +172,29 @@ int crosses_production_for_colony( UnitsState const& units_state,
   return total;
 }
 
+void compute_food_production( Colony const&   colony,
+                              FoodProduction& pr ) {
+  // TODO
+
+  // After all is said and done, if the colony will have enough
+  // food, then we can potentially produce a new colonist.
+  int const food_after_production =
+      colony.commodities()[e_commodity::food] +
+      pr.food_delta_final;
+  int const food_needed_for_creation =
+      config_colony.food_for_creating_new_colonist;
+  if( food_after_production >= food_needed_for_creation ) {
+    pr.food_consumed_by_new_colonist = food_needed_for_creation;
+    pr.food_delta_final -= food_needed_for_creation;
+    pr.colonist_created = true;
+  }
+
+  // One final sanity check.
+  CHECK_GE( colony.commodities()[e_commodity::food] +
+                pr.food_delta_final,
+            0 );
+}
+
 } // namespace
 
 /****************************************************************
@@ -184,6 +208,8 @@ ColonyProduction production_for_colony(
   res.crosses = crosses_production_for_colony( units_state,
                                                player, colony );
   // TODO: factor in sons of liberty bonuses and/or tory penalty.
+
+  compute_food_production( colony, res.food );
 
   return res;
 }
