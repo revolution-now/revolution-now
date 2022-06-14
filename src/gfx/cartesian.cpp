@@ -38,6 +38,11 @@ size size::operator/( int factor ) const {
   return res;
 }
 
+void size::operator+=( size term ) {
+  w += term.w;
+  h += term.h;
+}
+
 /****************************************************************
 ** point
 *****************************************************************/

@@ -38,6 +38,8 @@ struct size {
   size operator*( int factor ) const;
   size operator/( int factor ) const;
 
+  void operator+=( size term );
+
   bool operator==( size const& ) const = default;
 };
 
