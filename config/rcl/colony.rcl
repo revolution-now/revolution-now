@@ -25,3 +25,13 @@ food_for_creating_new_colonist: 200
 # The maximum number of people that be placed in each (indoor)
 # colony building. The original game uses 3.
 max_workers_per_building: 3
+
+initial_colony_buildings [
+  blacksmiths_house
+  carpenters_shop
+  fur_traders_house
+  rum_distillers_house
+  tobacconists_house
+  weavers_house
+  town_hall
+]

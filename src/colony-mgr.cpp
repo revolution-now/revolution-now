@@ -31,6 +31,9 @@
 #include "ustate.hpp"
 #include "window.hpp"
 
+// config
+#include "config/colony.rds.hpp"
+
 // luapp
 #include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
@@ -189,6 +192,12 @@ ColonyJob_t find_job_for_initial_colonist(
   return ColonyJob::indoor{ .job = e_indoor_job::hammers };
 }
 
+void create_initial_buildings( Colony& colony ) {
+  for( e_colony_building building :
+       config_colony.initial_colony_buildings )
+    colony.add_building( building );
+}
+
 } // namespace
 
 /****************************************************************
@@ -276,6 +285,10 @@ ColonyId found_colony( ColoniesState&      colonies_state,
   ColonyId col_id =
       create_empty_colony( colonies_state, nation, where, name );
   Colony& col = colonies_state.colony_for( col_id );
+
+  // Populate the colony with the initial set of buildings that
+  // are given for free.
+  create_initial_buildings( col );
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.

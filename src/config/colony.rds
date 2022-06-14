@@ -8,8 +8,12 @@
 # Description: Config info for colonies (non-production).
 #
 # ===============================================================
+# Rds
+include "colony-enums.rds.hpp"
+
 # cdr
 include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
 
 namespace "rn"
 
@@ -45,6 +49,10 @@ struct.config_colony_t {
   # The maximum number of people that be placed in each (indoor)
   # colony building.
   max_workers_per_building 'int',
+
+  # When a colony is founded it will get this set of buildings
+  # for free.
+  initial_colony_buildings 'std::unordered_set<e_colony_building>',
 
   _features { validation, equality }
 }

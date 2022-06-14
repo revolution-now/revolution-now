@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "testing.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
@@ -40,6 +43,31 @@ using namespace rn;
 
 using ::Catch::UnorderedEquals;
 
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() { add_player( e_nation::dutch ); }
+
+  void create_default_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const S = make_sea_lane();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+      _, L, _,
+      L, L, L,
+      _, L, L,
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 3_w );
+  }
+};
+
+/****************************************************************
+** FIXME: Legacy World Setup
+*****************************************************************/
 MapSquare make_land_square() {
   return map_square_for_terrain( e_terrain::grassland );
 }
@@ -48,6 +76,7 @@ MapSquare make_ocean_square() {
   return map_square_for_terrain( e_terrain::ocean );
 }
 
+// FIXME: remove
 void generate_unittest_terrain( TerrainState& terrain_state ) {
   MapSquare const L = make_land_square();
   MapSquare const O = make_ocean_square();
@@ -456,6 +485,25 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   colonies_state.destroy_colony( ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all( colonies_state ),
                 UnorderedEquals( vector<ColonyId>{} ) );
+}
+
+TEST_CASE( "[colony-mgr] initial colony buildings." ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  unordered_set<e_colony_building> buildings;
+  for( auto const& [building, has] : colony.buildings() )
+    if( has ) buildings.insert( building );
+  REQUIRE( buildings ==
+           unordered_set<e_colony_building>{
+               e_colony_building::blacksmiths_house,
+               e_colony_building::carpenters_shop,
+               e_colony_building::fur_traders_house,
+               e_colony_building::rum_distillers_house,
+               e_colony_building::tobacconists_house,
+               e_colony_building::weavers_house,
+               e_colony_building::town_hall,
+           } );
 }
 
 } // namespace
