@@ -38,14 +38,18 @@ namespace {
 
 bool g_show_grid = false;
 
-double g_tile_overlap_scaling       = .8;
-double g_tile_overlap_width_percent = .2;
+constexpr double g_tile_overlap_scaling       = .8;
+constexpr double g_tile_overlap_width_percent = .2;
 
-double g_tile_overlap_stage_one_alpha = .85;
-double g_tile_overlap_stage_one_stage = .70;
+constexpr double g_tile_overlap_stage_two_alpha = .5;
+constexpr double g_tile_overlap_stage_two_stage = .85;
 
-double g_tile_overlap_stage_two_alpha = .5;
-double g_tile_overlap_stage_two_stage = .85;
+// This will get applied multiplicatively after the stage two al-
+// pha, so we need to divide it to yield the end value that we
+// want.
+constexpr double g_tile_overlap_stage_one_alpha =
+    .85 / g_tile_overlap_stage_two_alpha;
+constexpr double g_tile_overlap_stage_one_stage = .70;
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
@@ -272,8 +276,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.w -= chop_w;
     src.x += chop_w;
     dst.x += 0_w;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
-                         dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -291,8 +295,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.h -= chop_h;
     src.y += chop_h;
     dst.y += 0_h;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
-                         dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -310,8 +314,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.h -= chop_h;
     src.y += 0_h;
     dst.y += chop_h;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
-                         dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -329,8 +333,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     src.w -= chop_w;
     src.x += 0_w;
     dst.x += chop_w;
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor,
-                         dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -370,10 +374,10 @@ void render_terrain_ground( TerrainState const& terrain_state,
       Scale{ 10 } * ( world_square % Scale{ 10 } );
   {
 #if 1
-    SCOPED_RENDERER_MOD( painter_mods.alpha,
-                         g_tile_overlap_stage_two_alpha );
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                         g_tile_overlap_stage_two_stage );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             g_tile_overlap_stage_two_alpha );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             g_tile_overlap_stage_two_stage );
     render_adjacent_overlap(
         terrain_state, renderer, where, world_square,
         /*chop_percent=*/
@@ -383,10 +387,10 @@ void render_terrain_ground( TerrainState const& terrain_state,
         anchor_offset );
 #endif
 #if 1
-    SCOPED_RENDERER_MOD( painter_mods.alpha,
-                         g_tile_overlap_stage_one_alpha );
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                         g_tile_overlap_stage_one_stage );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             g_tile_overlap_stage_one_alpha );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             g_tile_overlap_stage_one_stage );
     render_adjacent_overlap(
         terrain_state, renderer, where, world_square,
         /*chop_percent=*/
@@ -1192,7 +1196,8 @@ void render_terrain_ocean_square(
   if( second_border_tile.has_value() )
     render_sprite( painter, where, *second_border_tile );
   if( surf_tile.has_value() ) {
-    SCOPED_RENDERER_MOD( painter_mods.cycling.enabled, true );
+    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
+                             true );
     rr::Painter painter = renderer.painter();
     render_sprite( painter, where, *surf_tile );
   }
@@ -1200,7 +1205,7 @@ void render_terrain_ocean_square(
   // It's ok to draw canals after this because this won't be on a
   // tile with canals.
   if( sand_tile.has_value() ) {
-    SCOPED_RENDERER_MOD( painter_mods.alpha, .9 );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .9 );
     rr::Painter painter = renderer.painter();
     render_sprite( painter, where, *sand_tile );
   }
@@ -1382,11 +1387,11 @@ void render_terrain_square( TerrainState const& terrain_state,
 
 void render_terrain( TerrainState const& terrain_state,
                      rr::Renderer&       renderer ) {
-  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   auto const kLandscapeBuf =
       rr::e_render_target_buffer::landscape;
   renderer.clear_buffer( kLandscapeBuf );
-  SCOPED_RENDERER_MOD( buffer_mods.buffer, kLandscapeBuf );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
   auto start_time = chrono::system_clock::now();
   for( Coord square : terrain_state.world_rect_tiles() )
     render_terrain_square( terrain_state, renderer,
@@ -1425,12 +1430,6 @@ LUA_FN( redraw, void ) {
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
   map_updater.just_redraw_map();
-}
-
-LUA_FN( set_tile_chop_multiplier, void, double mult ) {
-  g_tile_overlap_scaling = std::clamp( mult, 0.0, 2.0 );
-  lg.debug( "setting tile overlap multiplier to {}.",
-            g_tile_overlap_scaling );
 }
 
 } // namespace

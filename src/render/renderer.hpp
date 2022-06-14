@@ -35,14 +35,45 @@ namespace rr {
 // mods.  Use it like so:
 //
 // {
-//   SCOPED_RENDERER_MOD( painter_mods.repos.translation, 5 );
+//   SCOPED_RENDERER_MOD_SET( painter_mods.repos.scale, 2.0 );
+//   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation, 5
+//   ); SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 1.5 );
 //   ...
 // }
 //
-#define SCOPED_RENDERER_MOD( leaf_path, mod )               \
+// Note that one should prefer using the cumulative variants if
+// possible so that nested scopes can compound their changes in-
+// stead of overwriting them.
+//
+#define SCOPED_RENDERER_MOD_SET( leaf_path, mod )           \
   auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
       renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
         mods.leaf_path = mod;                               \
+      } );
+
+#define SCOPED_RENDERER_MOD_ADD( leaf_path, mod )           \
+  auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
+      renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
+        if( !mods.leaf_path.has_value() )                   \
+          mods.leaf_path.emplace();                         \
+        *mods.leaf_path += mod;                             \
+      } );
+
+// This one only really works for numbers, since we have to ini-
+// tialize it to something that is the identity, and it's hard to
+// do that for types in general.
+#define SCOPED_RENDERER_MOD_MUL( leaf_path, mod )             \
+  static_assert(                                              \
+      std::is_integral_v<std::remove_cvref_t<                 \
+          decltype( *std::declval<::rr::RendererMods>()       \
+                         .leaf_path )>> ||                    \
+      std::is_floating_point_v<std::remove_cvref_t<           \
+          decltype( *std::declval<::rr::RendererMods>()       \
+                         .leaf_path )>> );                    \
+  auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) =   \
+      renderer.push_mods( [&]( rr::RendererMods& mods ) {     \
+        if( !mods.leaf_path.has_value() ) mods.leaf_path = 1; \
+        *mods.leaf_path *= mod;                               \
       } );
 
 /****************************************************************

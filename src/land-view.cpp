@@ -122,7 +122,7 @@ struct LandViewRenderer {
 // that they all end up visible and thus create a "zooming" ef-
 // fect.
 void render_backdrop( rr::Renderer& renderer ) {
-  SCOPED_RENDERER_MOD( painter_mods.alpha, 0.4 );
+  SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
   UNWRAP_CHECK(
       viewport_rect_pixels,
       compositor::section( compositor::e_section::viewport ) );
@@ -146,8 +146,9 @@ void render_backdrop( rr::Renderer& renderer ) {
   double const kScaleInc  = .014;
   int const    kNumLayers = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
-    SCOPED_RENDERER_MOD( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD( painter_mods.repos.translation, shift );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                             shift );
     rr::Painter painter = renderer.painter();
     for( Coord coord : tiled_rect.to_grid_noalign( tile_size ) )
       render_sprite( painter, Rect::from( coord, tile_size ),
@@ -700,14 +701,15 @@ struct LandViewPlane::Impl : public Plane {
     // Now render the depixelating unit.
     Coord loc = render_rect_for_tile( covered, depixelate_tile )
                     .upper_left();
-    SCOPED_RENDERER_MOD( painter_mods.depixelate.anchor, loc );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             loc );
     rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
     switch( dp_anim.type ) {
       case e_depixelate_anim::death: {
         // Render and depixelate both the unit and the flag.
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                             dp_anim.stage );
+        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                                 dp_anim.stage );
         render_unit( renderer, loc, depixelate_id,
                      /*with_icon=*/true );
         break;
@@ -722,10 +724,10 @@ struct LandViewPlane::Impl : public Plane {
         // Render the flag first so that we don't subject it to
         // the depixelation.
         render_nationality_icon( renderer, loc, depixelate_id );
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.stage,
-                             dp_anim.stage );
-        SCOPED_RENDERER_MOD( painter_mods.depixelate.target,
-                             target );
+        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                                 dp_anim.stage );
+        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.target,
+                                 target );
         render_unit( renderer, loc, depixelate_id,
                      /*with_icon=*/false );
         break;
@@ -838,14 +840,14 @@ struct LandViewPlane::Impl : public Plane {
     // outter space is visible, paint a background so that it
     // won't just have empty black surroundings.
     if( viewport().are_surroundings_visible() ) {
-      SCOPED_RENDERER_MOD(
+      SCOPED_RENDERER_MOD_SET(
           buffer_mods.buffer,
           rr::e_render_target_buffer::backdrop );
       render_backdrop( renderer );
 
       {
         // This is the shadow behind the land rectangle.
-        SCOPED_RENDERER_MOD( painter_mods.alpha, 0.5 );
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
         int shadow_offset = lround( 20 * viewport().get_zoom() );
         rr::Painter painter = renderer.painter();
         painter.draw_solid_rect(
@@ -887,9 +889,9 @@ struct LandViewPlane::Impl : public Plane {
     // scale and starting at 0,0 on the screen, and then the ren-
     // derer mods that we've install above will automatically do
     // the shifting and scaling.
-    SCOPED_RENDERER_MOD( painter_mods.repos.scale, zoom );
-    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                         corner.distance_from_origin() );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, zoom );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                             corner.distance_from_origin() );
     render_colonies( renderer, covered );
     render_units( renderer, covered );
   }

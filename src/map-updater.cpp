@@ -37,9 +37,10 @@ void MapUpdater::modify_map_square(
     return;
 
   auto& renderer = renderer_;
-  SCOPED_RENDERER_MOD( painter_mods.repos.use_camera, true );
-  SCOPED_RENDERER_MOD( buffer_mods.buffer,
-                       rr::e_render_target_buffer::landscape );
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+  SCOPED_RENDERER_MOD_SET(
+      buffer_mods.buffer,
+      rr::e_render_target_buffer::landscape );
 
   // Re-render the square and all adjacent squares. Actually, we
   // need to do two levels of adjacency because some water tiles
