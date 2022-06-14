@@ -37,10 +37,14 @@ namespace {
 
 constexpr Delta nationality_icon_size( 14_h, 14_w );
 
-// Unit only, no nationality icon.
+// Unit only, no flag.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
-                          e_unit_type unit_type ) {
+                          e_unit_type              unit_type,
+                          maybe<UnitShadow> const& shadow ) {
   auto const& desc = unit_attr( unit_type );
+  if( shadow.has_value() )
+    render_sprite_silhouette( painter, where + shadow->offset,
+                              desc.tile, shadow->color );
   render_sprite( painter, Rect::from( where, g_tile_delta ),
                  desc.tile );
 }
@@ -120,6 +124,18 @@ void render_nationality_icon( rr::Renderer&             renderer,
 
 } // namespace
 
+/****************************************************************
+** UnitShadow
+*****************************************************************/
+gfx::pixel UnitShadow::default_color() {
+  return gfx::pixel{ .r = 10, .g = 20, .b = 10, .a = 255 };
+}
+
+W UnitShadow::default_offset() { return W{ -3 }; }
+
+/****************************************************************
+** Public API
+*****************************************************************/
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_unit_type type,
                               e_nation      nation,
@@ -136,26 +152,38 @@ void render_nationality_icon( rr::Renderer& renderer,
 }
 
 void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
-                  bool with_icon ) {
+                  UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
   auto const& unit    = unit_from_id( id );
-  if( with_icon ) {
+  if( options.flag ) {
     // Should the icon be in front of the unit or in back.
     if( !unit.desc().nat_icon_front ) {
+      // This is a bit tricky if there's a shadow because we
+      // don't want the shadow to be over the flag.
+      UnitTypeAttributes const& desc = unit.desc();
+      if( options.shadow.has_value() )
+        render_sprite_silhouette(
+            painter, where + options.shadow->offset, desc.tile,
+            options.shadow->color );
       render_nationality_icon( renderer, where, id );
-      render_unit_no_icon( painter, where, unit.desc().type );
+      render_sprite( painter, Rect::from( where, g_tile_delta ),
+                     desc.tile );
     } else {
-      render_unit_no_icon( painter, where, unit.desc().type );
+      render_unit_no_icon( painter, where, unit.desc().type,
+                           options.shadow );
       render_nationality_icon( renderer, where, id );
     }
   } else {
-    render_unit_no_icon( painter, where, unit.desc().type );
+    render_unit_no_icon( painter, where, unit.desc().type,
+                         options.shadow );
   }
 }
 
-void render_unit( rr::Painter& painter, Coord where,
-                  e_unit_type unit_type ) {
-  render_unit_no_icon( painter, where, unit_type );
+void render_unit_type( rr::Painter& painter, Coord where,
+                       e_unit_type              unit_type,
+                       UnitRenderOptions const& options ) {
+  render_unit_no_icon( painter, where, unit_type,
+                       options.shadow );
 }
 
 void render_colony( rr::Painter& painter, Coord where,

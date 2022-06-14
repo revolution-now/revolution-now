@@ -606,7 +606,9 @@ struct LandViewPlane::Impl : public Plane {
         render_rect_for_tile( covered, tile ).upper_left();
     for( UnitId id : units_from_coord( tile ) ) {
       if( skip( id ) ) continue;
-      render_unit( renderer, loc, id, /*with_icon=*/true );
+      render_unit( renderer, loc, id,
+                   UnitRenderOptions{ .flag   = true,
+                                      .shadow = UnitShadow{} } );
     }
   }
 
@@ -639,7 +641,8 @@ struct LandViewPlane::Impl : public Plane {
                     .upper_left();
     if( visible )
       render_unit( renderer, loc, blinker_id,
-                   /*with_icon=*/true );
+                   UnitRenderOptions{ .flag   = true,
+                                      .shadow = UnitShadow{} } );
   }
 
   void render_units_during_slide(
@@ -680,7 +683,8 @@ struct LandViewPlane::Impl : public Plane {
             .upper_left();
     pixel_coord += pixel_delta;
     render_unit( renderer, pixel_coord, mover_id,
-                 /*with_icon=*/true );
+                 UnitRenderOptions{ .flag   = true,
+                                    .shadow = UnitShadow{} } );
   }
 
   void render_units_during_depixelate(
@@ -710,8 +714,10 @@ struct LandViewPlane::Impl : public Plane {
         // Render and depixelate both the unit and the flag.
         SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                                  dp_anim.stage );
-        render_unit( renderer, loc, depixelate_id,
-                     /*with_icon=*/true );
+        render_unit(
+            renderer, loc, depixelate_id,
+            UnitRenderOptions{ .flag   = true,
+                               .shadow = UnitShadow{} } );
         break;
       }
       case e_depixelate_anim::demote: {
@@ -728,8 +734,10 @@ struct LandViewPlane::Impl : public Plane {
                                  dp_anim.stage );
         SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.target,
                                  target );
-        render_unit( renderer, loc, depixelate_id,
-                     /*with_icon=*/false );
+        render_unit(
+            renderer, loc, depixelate_id,
+            UnitRenderOptions{ .flag   = false,
+                               .shadow = UnitShadow{} } );
         break;
       }
     }

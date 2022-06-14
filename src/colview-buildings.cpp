@@ -267,12 +267,18 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     maybe<e_indoor_job> const indoor_job =
         indoor_job_for_slot( slot );
 
+    gfx::pixel const kShadowColor{
+        .r = 60, .g = 80, .b = 80, .a = 255 };
     if( indoor_job ) {
       unordered_set<UnitId> const& colonists =
           colony_.indoor_jobs()[*indoor_job];
       Coord pos = rect.lower_left() - g_tile_delta.h;
       for( UnitId id : colonists ) {
-        render_unit( renderer, pos, id, /*with_icon=*/false );
+        render_unit(
+            renderer, pos, id,
+            UnitRenderOptions{ .flag   = false,
+                               .shadow = UnitShadow{
+                                   .color = kShadowColor } } );
         pos += g_tile_delta.w / 2_sx;
       }
     }

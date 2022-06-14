@@ -400,7 +400,7 @@ class PopulationView : public ui::View, public ColonySubView {
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
       render_unit( renderer, unit_pos, unit_id,
-                   /*with_icon=*/false );
+                   UnitRenderOptions{ .flag = false } );
       unit_pos += 24_w;
     }
   }
@@ -498,8 +498,9 @@ class CargoView : public ui::View,
           overload_visit(
               cargo.contents,
               [&]( Cargo::unit u ) {
-                render_unit( renderer, rect.upper_left(), u.id,
-                             /*with_icon=*/false );
+                render_unit(
+                    renderer, rect.upper_left(), u.id,
+                    UnitRenderOptions{ .flag = false } );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
@@ -774,7 +775,7 @@ class UnitsAtGateColonyView : public ui::View,
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
       render_unit( renderer, draw_pos, unit_id,
-                   /*with_icon=*/true );
+                   UnitRenderOptions{ .flag = true } );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ) -
@@ -1457,6 +1458,7 @@ class LandView : public ui::View,
     rr::Painter          painter        = renderer.painter();
     TerrainState const&  terrain_state  = GameState::terrain();
     ColoniesState const& colonies_state = GameState::colonies();
+    UnitsState const&    units_state    = GameState::units();
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
     Coord const center = Coord( 1_x, 1_y );
@@ -1473,8 +1475,11 @@ class LandView : public ui::View,
       Coord const unit_coord =
           square_coord + ( g_tile_delta / Scale{ 2 } );
       UnitId const unit_id = outdoor_unit->unit_id;
-      render_unit( renderer, unit_coord, unit_id,
-                   /*with_icon=*/false );
+      Unit const&  unit    = units_state.unit_for( unit_id );
+      UnitTypeAttributes const& desc = unit_attr( unit.type() );
+      render_unit_type(
+          painter, unit_coord, desc.type,
+          UnitRenderOptions{ .shadow = UnitShadow{} } );
       e_outdoor_job const job        = outdoor_unit->job;
       MapSquare const&    map_square = terrain_state.square_at(
              colony.location().moved( direction ) );
@@ -1780,7 +1785,7 @@ void colview_drag_n_drop_draw(
       state.object,
       [&]( unit const& o ) {
         render_unit( renderer, sprite_upper_left, o.id,
-                     /*with_icon=*/false );
+                     UnitRenderOptions{ .flag = false } );
       },
       [&]( commodity const& o ) {
         render_commodity( renderer, sprite_upper_left,

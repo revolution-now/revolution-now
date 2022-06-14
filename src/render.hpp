@@ -24,16 +24,35 @@
 namespace rn {
 
 /****************************************************************
-** Rendering Building Blocks
+** UnitShadow
 *****************************************************************/
+struct UnitShadow {
+  gfx::pixel color  = default_color();
+  W          offset = default_offset();
 
+  static gfx::pixel default_color();
+  static W          default_offset();
+};
+
+/****************************************************************
+** UnitRenderingOptions
+*****************************************************************/
+struct UnitRenderOptions {
+  bool              flag   = false;
+  maybe<UnitShadow> shadow = {};
+};
+
+/****************************************************************
+** Public API
+*****************************************************************/
 // Render an actual unit.
 void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
-                  bool with_icon );
+                  UnitRenderOptions const& options = {} );
 
 // Render an abstract unit of a given type.
-void render_unit( rr::Painter& painter, Coord where,
-                  e_unit_type unit_type );
+void render_unit_type( rr::Painter& painter, Coord where,
+                       e_unit_type              unit_type,
+                       UnitRenderOptions const& options = {} );
 
 void render_colony( rr::Painter& painter, Coord where,
                     ColonyId id );

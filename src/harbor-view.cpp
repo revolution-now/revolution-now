@@ -821,7 +821,7 @@ class UnitCollection : EntityBase {
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      unit_with_pos.id,
-                     /*with_icon=*/false );
+                     UnitRenderOptions{ .flag = false } );
     if( hb_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *hb_state.selected_unit ) {
@@ -1091,8 +1091,9 @@ class ActiveCargo : EntityBase {
                           HarborDraggableObject_t{
                               HarborDraggableObject::unit{
                                   u.id } } )
-                    render_unit( renderer, dst_coord, u.id,
-                                 /*with_icon=*/false );
+                    render_unit(
+                        renderer, dst_coord, u.id,
+                        UnitRenderOptions{ .flag = false } );
                 },
                 [&]( Cargo::commodity const& c ) {
                   render_commodity_annotated(
@@ -1917,7 +1918,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
         auto size =
             sprite_size( unit_from_id( o.id ).desc().tile );
         render_unit( renderer, origin_for( size ), o.id,
-                     /*with_icon=*/false );
+                     UnitRenderOptions{ .flag = false } );
       },
       [&]( market_commodity const& o ) {
         auto size = commodity_tile_size( o.type );
