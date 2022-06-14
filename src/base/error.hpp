@@ -255,6 +255,11 @@
     return std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
 
+#define UNWRAP_RETURN_FALSE( var, ... )                         \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;            \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) return false; \
+  auto&& var = *STRING_JOIN( __x, __LINE__ );
+
 /****************************************************************
 ** Variants
 *****************************************************************/

@@ -190,11 +190,6 @@ class ColonySubView : public AwaitView {
 ColonySubView& colview_entity( e_colview_entity entity );
 ColonySubView& colview_top_level();
 
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony );
-
 // FIXME: global state.
 ColonyProduction const& colview_production();
 

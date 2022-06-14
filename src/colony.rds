@@ -85,7 +85,9 @@ struct.Colony {
   # their occupations. FIXME: is this needed?
   units 'std::unordered_map<UnitId, ColonyJob_t>',
 
-  indoor_jobs 'refl::enum_map<e_indoor_job, std::unordered_set<UnitId>>',
+  # This is a vector and not a set because it is desirable to
+  # preserve the order in which units are added for UI purposes.
+  indoor_jobs 'refl::enum_map<e_indoor_job, std::vector<UnitId>>',
 
   outdoor_jobs 'refl::enum_map<e_direction, maybe<OutdoorUnit>>',
 

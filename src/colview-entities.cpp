@@ -169,6 +169,14 @@ wait<bool> check_seige( IGui& gui ) {
   co_return true;
 }
 
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony ) {
+  g_production = production_for_colony(
+      terrain_state, units_state, player, colony );
+}
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -1355,8 +1363,6 @@ class LandView : public ui::View,
     move_unit_to_colony( GameState::units(), colony, unit_id,
                          job );
     CHECK_HAS_VALUE( colony.validate() );
-    update_production( GameState::terrain(), GameState::units(),
-                       player_, colony );
   }
 
   maybe<ColViewObjectWithBounds> object_here(
@@ -1522,17 +1528,15 @@ class LandView : public ui::View,
     }
   }
 
-  static unique_ptr<LandView> create( Player const& player,
-                                      IGui&         gui,
+  static unique_ptr<LandView> create( IGui&         gui,
                                       e_render_mode mode ) {
-    return make_unique<LandView>( player, gui, mode );
+    return make_unique<LandView>( gui, mode );
   }
 
-  LandView( Player const& player, IGui& gui, e_render_mode mode )
-    : player_( player ), gui_( gui ), mode_( mode ) {}
+  LandView( IGui& gui, e_render_mode mode )
+    : gui_( gui ), mode_( mode ) {}
 
  private:
-  Player const&    player_;
   IGui&            gui_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
@@ -1544,8 +1548,10 @@ class LandView : public ui::View,
 struct CompositeColSubView : public ui::InvisibleView,
                              public ColonySubView {
   CompositeColSubView(
-      Delta size, std::vector<ui::OwningPositionedView> views )
-    : ui::InvisibleView( size, std::move( views ) ) {
+      Delta size, std::vector<ui::OwningPositionedView> views,
+      Player const& player )
+    : ui::InvisibleView( size, std::move( views ) ),
+      player_( player ) {
     for( ui::PositionedView v : *this ) {
       auto* col_view = dynamic_cast<ColonySubView*>( v.view );
       CHECK( col_view );
@@ -1608,10 +1614,14 @@ struct CompositeColSubView : public ui::InvisibleView,
   }
 
   void update() override {
+    // FIXME: this seems like it should go somewhere else.
+    update_production( GameState::terrain(), GameState::units(),
+                       player_, colony() );
     for( ColonySubView* p : ptrs_ ) p->update();
   }
 
   vector<ColonySubView*> ptrs_;
+  Player const&          player_;
 };
 
 void recomposite( ColonyId id, Delta const& canvas_size,
@@ -1722,8 +1732,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view =
-      LandView::create( player, gui, land_view_mode );
+  auto land_view = LandView::create( gui, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
@@ -1738,8 +1747,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   // [Buildings] ------------------------------------------------
   Delta buildings_size( land_view_left_edge - 0_x,
                         middle_strip_top - title_bar_bottom );
-  auto  buildings =
-      ColViewBuildings::create( buildings_size, colony() );
+  auto  buildings = ColViewBuildings::create(
+       buildings_size, colony(), player, gui );
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
   pos = Coord( 0_x, title_bar_bottom );
@@ -1748,7 +1757,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(
-      canvas_size, std::move( views ) );
+      canvas_size, std::move( views ), player );
   invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
@@ -1817,14 +1826,6 @@ void colview_drag_n_drop_draw(
       break;
     }
   }
-}
-
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony ) {
-  g_production = production_for_colony(
-      terrain_state, units_state, player, colony );
 }
 
 ColonyProduction const& colview_production() {

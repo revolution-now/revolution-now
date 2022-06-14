@@ -137,7 +137,7 @@ int crosses_production_for_colony( UnitsState const& units_state,
       config_production.free_building_production[building];
 
   // Now let's get the quantity added by the units.
-  unordered_set<UnitId> const& unit_ids =
+  vector<UnitId> const& unit_ids =
       colony.indoor_jobs()[e_indoor_job::crosses];
   int units_quantity = 0;
   for( UnitId id : unit_ids )

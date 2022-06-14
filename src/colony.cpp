@@ -62,7 +62,8 @@ void validate_job_maps( wrapped::Colony const& colony ) {
     bool indoor_jobs_has = false;
     for( auto const& [job, units] : colony.indoor_jobs ) {
       CHECK_LE( int( units.size() ), 3 );
-      if( units.contains( id ) ) {
+      if( find( units.begin(), units.end(), id ) !=
+          units.end() ) {
         CHECK( !indoor_jobs_has,
                "unit id {} appears multiple times in the indoor "
                "jobs lists.",
@@ -139,8 +140,11 @@ valid_or<string> wrapped::Colony::validate() const {
                  id );
 
   // Colony has at least one colonist.
-  REFL_VALIDATE( units.size() > 0, "Colony '{}' has no units.",
-                 name );
+  // NOTE: we don't validate this because a colony can be in this
+  // state transitively while moving units. Also, there isn't
+  // anything actually inconsistent with a colony not having any
+  // colonists -- it's just not allowed by the game as a matter
+  // of policy.  A modded game might allow it.
 
   // Colony's commodity quantites are in correct range.
   for( auto comm : refl::enum_values<e_commodity> ) {
@@ -199,13 +203,13 @@ void Colony::rm_building( e_colony_building building ) {
 }
 
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
-  SCOPE_EXIT( validate_job_maps( o_ ) );
+  SCOPE_EXIT( CHECK( validate() ) );
   CHECK( !has_unit( id ), "Unit {} already in colony.", id );
   o_.units[id] = job;
   switch( job.to_enum() ) {
     case ColonyJob::e::indoor: {
       auto const& o = job.get<ColonyJob::indoor>();
-      o_.indoor_jobs[o.job].insert( id );
+      o_.indoor_jobs[o.job].push_back( id );
       break;
     }
     case ColonyJob::e::outdoor: {
@@ -220,13 +224,13 @@ void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
 }
 
 void Colony::remove_unit( UnitId id ) {
-  SCOPE_EXIT( validate_job_maps( o_ ) );
+  SCOPE_EXIT( CHECK( validate() ) );
   CHECK( has_unit( id ), "Unit {} is not in colony.", id );
   o_.units.erase( id );
 
   for( auto& [job, units] : o_.indoor_jobs ) {
-    if( units.contains( id ) ) {
-      units.erase( id );
+    if( find( units.begin(), units.end(), id ) != units.end() ) {
+      units.erase( find( units.begin(), units.end(), id ) );
       return;
     }
   }
