@@ -1,0 +1,29 @@
+# ===============================================================
+# colview-buildings.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-14.
+#
+# Description: Rds definitions for the colview-buildings module.
+#
+# ===============================================================
+# In the colony there is one slot per building class.
+enum.e_colony_building_slot {
+  muskets,
+  tools,
+  rum,
+  cloth,
+  fur,
+  cigars,
+  hammers,
+  town_hall,
+  newspapers, # printing press + newspaper.
+  schools,
+  offshore,
+  horses,
+  wall,
+  warehouses,
+  crosses,
+  custom_house,
+}

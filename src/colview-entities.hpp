@@ -30,6 +30,7 @@
 namespace rn {
 
 struct Colony;
+struct ColonyProduction;
 struct IGui;
 struct Player;
 struct TerrainState;
@@ -188,6 +189,14 @@ class ColonySubView : public AwaitView {
 // set_colview_colony is called with a new colony id.
 ColonySubView& colview_entity( e_colview_entity entity );
 ColonySubView& colview_top_level();
+
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony );
+
+// FIXME: global state.
+ColonyProduction const& colview_production();
 
 // Must be called before any other method in this module.
 void set_colview_colony( IGui&               gui,

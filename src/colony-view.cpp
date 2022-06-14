@@ -60,8 +60,7 @@ struct PS {
 /****************************************************************
 ** Drawing
 *****************************************************************/
-void draw_colony_view( Colony const& colony,
-                       rr::Renderer& renderer ) {
+void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
   static gfx::pixel background_color =
       gfx::pixel::parse_from_hex( "f1cf81" ).value();
   renderer.painter().draw_solid_rect(
@@ -71,15 +70,6 @@ void draw_colony_view( Colony const& colony,
 
   UNWRAP_CHECK( canvas, compositor::section(
                             compositor::e_section::normal ) );
-
-  Coord pos = canvas.upper_left();
-
-  rr::Typer typer = renderer.typer( pos, gfx::pixel::black() );
-
-  typer.write( "\n\n" );
-  typer.write( "id: {}\n\n", colony.id() );
-  typer.write( "nation: {}\n\n", colony.nation() );
-  typer.write( "location: {}\n\n", colony.location() );
 
   colview_top_level().view().draw( renderer,
                                    canvas.upper_left() );

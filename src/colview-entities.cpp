@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "colview-buildings.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
@@ -136,7 +137,7 @@ e_tile tile_for_outdoor_job( MapSquare const& square,
       if( square.surface == e_surface::land )
         return e_tile::commodity_food;
       else
-        return e_tile::commodity_fish;
+        return e_tile::product_fish;
     }
     case e_outdoor_job::sugar: return e_tile::commodity_sugar;
     case e_outdoor_job::tobacco:
@@ -147,14 +148,6 @@ e_tile tile_for_outdoor_job( MapSquare const& square,
     case e_outdoor_job::ore: return e_tile::commodity_ore;
     case e_outdoor_job::silver: return e_tile::commodity_silver;
   }
-}
-
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony ) {
-  g_production = production_for_colony(
-      terrain_state, units_state, player, colony );
 }
 
 wait<bool> check_abandon( IGui& gui ) {
@@ -582,6 +575,7 @@ class CargoView : public ui::View,
       case e_colview_entity::commodities: //
         co_return true;
       case e_colview_entity::land:
+      case e_colview_entity::buildings: //
         co_return( co_await check_abandon( gui_ ) &&
                    co_await check_seige( gui_ ) );
       case e_colview_entity::population:
@@ -882,6 +876,7 @@ class UnitsAtGateColonyView : public ui::View,
       case e_colview_entity::cargo: //
         co_return true;
       case e_colview_entity::land:
+      case e_colview_entity::buildings: //
         co_return( co_await check_abandon( gui_ ) &&
                    co_await check_seige( gui_ ) );
       case e_colview_entity::population:
@@ -1400,8 +1395,8 @@ class LandView : public ui::View,
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord         coord ) const {
-    SCOPED_RENDERER_MOD( painter_mods.repos.translation,
-                         coord.distance_from_origin() );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                             coord.distance_from_origin() );
 
     TerrainState const& terrain_state = GameState::terrain();
     // FIXME: Should not be duplicating land-view rendering code
@@ -1453,7 +1448,7 @@ class LandView : public ui::View,
   void draw_land_6x6( rr::Renderer& renderer,
                       Coord         coord ) const {
     {
-      SCOPED_RENDERER_MOD( painter_mods.repos.scale, 2.0 );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 2.0 );
       draw_land_3x3( renderer, coord );
     }
     // Further drawing should not be scaled.
@@ -1490,7 +1485,7 @@ class LandView : public ui::View,
       Delta const product_tile_size =
           sprite_size( product_tile );
       SquareProduction const& production =
-          g_production.land_production[direction];
+          colview_production().land_production[direction];
       int const    quantity = production.quantity;
       string const q_str    = fmt::format( "x {}", quantity );
       Coord const  text_coord =
@@ -1731,8 +1726,20 @@ void recomposite( ColonyId id, Delta const& canvas_size,
             .rect( Coord{} )
             .lower_right() -
         land_view->delta().w;
+  X const land_view_left_edge = pos.x;
   views.push_back(
       ui::OwningPositionedView( std::move( land_view ), pos ) );
+
+  // [Buildings] ------------------------------------------------
+  Delta buildings_size( land_view_left_edge - 0_x,
+                        middle_strip_top - title_bar_bottom );
+  auto  buildings =
+      ColViewBuildings::create( buildings_size, colony() );
+  g_composition.entities[e_colview_entity::buildings] =
+      buildings.get();
+  pos = Coord( 0_x, title_bar_bottom );
+  views.push_back(
+      ui::OwningPositionedView( std::move( buildings ), pos ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(
@@ -1805,6 +1812,18 @@ void colview_drag_n_drop_draw(
       break;
     }
   }
+}
+
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony ) {
+  g_production = production_for_colony(
+      terrain_state, units_state, player, colony );
+}
+
+ColonyProduction const& colview_production() {
+  return g_production;
 }
 
 void set_colview_colony( IGui&               gui,
