@@ -299,6 +299,7 @@ struct Renderer::Impl {
 
   void set_logical_screen_size( size new_size ) {
     program["u_screen_size"_t] = gl::vec2::from_size( new_size );
+    logical_screen_size        = new_size;
   }
 
   void set_physical_screen_size( size new_size ) {
