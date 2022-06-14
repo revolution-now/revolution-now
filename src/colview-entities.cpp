@@ -150,23 +150,20 @@ e_tile tile_for_outdoor_job( MapSquare const& square,
   }
 }
 
-wait<bool> check_abandon( IGui& gui ) {
+maybe<string> check_abandon() {
   ColoniesState& colonies_state = GameState::colonies();
   Colony& colony = colonies_state.colony_for( colony_id() );
-  if( colony.units().size() == 1 ) {
-    co_await gui.message_box(
-        "This action would abandon the colony, which is "
-        "not yet supported." );
-    co_return false;
-  }
-  co_return true;
+  if( colony.units().size() == 1 )
+    return "This action would abandon the colony, which is not "
+           "yet supported.";
+  return nothing;
 }
 
-wait<bool> check_seige( IGui& gui ) {
+maybe<string> check_seige() {
   // TODO: check if the colony is under seige; in that case
   // colonists are not allowed to move from the fields to the
   // gates.
-  co_return true;
+  return nothing;
 }
 
 void update_production( TerrainState const& terrain_state,
@@ -575,18 +572,23 @@ class CargoView : public ui::View,
     }
   }
 
-  wait<bool> check( ColViewObject_t const&,
-                    e_colview_entity from,
-                    Coord const ) const override {
+  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+      ColViewObject_t const&, e_colview_entity from,
+      Coord const ) const override {
     switch( from ) {
       case e_colview_entity::units_at_gate:
       case e_colview_entity::cargo:
       case e_colview_entity::commodities: //
-        co_return true;
+        co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        co_return( co_await check_abandon( gui_ ) &&
-                   co_await check_seige( gui_ ) );
+        if( auto msg = check_abandon(); msg.has_value() )
+          co_return IColViewDragSinkCheck::Rejection{ .reason =
+                                                          *msg };
+        if( auto msg = check_seige(); msg.has_value() )
+          co_return IColViewDragSinkCheck::Rejection{ .reason =
+                                                          *msg };
+        co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:
       case e_colview_entity::production:
@@ -876,18 +878,23 @@ class UnitsAtGateColonyView : public ui::View,
     return ColViewObject::unit{ .id = dragged };
   }
 
-  wait<bool> check( ColViewObject_t const&,
-                    e_colview_entity from,
-                    Coord const ) const override {
+  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+      ColViewObject_t const&, e_colview_entity from,
+      Coord const ) const override {
     switch( from ) {
       case e_colview_entity::units_at_gate:
       case e_colview_entity::commodities:
       case e_colview_entity::cargo: //
-        co_return true;
+        co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        co_return( co_await check_abandon( gui_ ) &&
-                   co_await check_seige( gui_ ) );
+        if( auto msg = check_abandon(); msg.has_value() )
+          co_return IColViewDragSinkCheck::Rejection{ .reason =
+                                                          *msg };
+        if( auto msg = check_seige(); msg.has_value() )
+          co_return IColViewDragSinkCheck::Rejection{ .reason =
+                                                          *msg };
+        co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:
       case e_colview_entity::production:
@@ -1308,8 +1315,9 @@ class LandView : public ui::View,
     return o;
   }
 
-  wait<bool> check( ColViewObject_t const&, e_colview_entity,
-                    Coord const where ) const override {
+  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+      ColViewObject_t const&, e_colview_entity,
+      Coord const where ) const override {
     ColoniesState const& colonies_state = GameState::colonies();
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
@@ -1322,20 +1330,20 @@ class LandView : public ui::View,
 
     if( is_water( square ) &&
         !colony.buildings()[e_colony_building::docks] ) {
-      co_await gui_.message_box(
-          "We must build @[H]docks@[] in this colony in order "
-          "to work on sea squares." );
-      co_return false;
+      co_return IColViewDragSinkCheck::Rejection{
+          .reason =
+              "We must build @[H]docks@[] in this colony in "
+              "order to work on sea squares." };
     }
 
     if( square.lost_city_rumor ) {
-      co_await gui_.message_box(
-          "We must explore this Lost City Rumor before we can "
-          "work this square." );
-      co_return false;
+      co_return IColViewDragSinkCheck::Rejection{
+          .reason =
+              "We must explore this Lost City Rumor before we "
+              "can work this square." };
     }
 
-    co_return true;
+    co_return base::valid;
   }
 
   ColonyJob_t make_job_for_square( e_direction d ) const {
@@ -1528,16 +1536,13 @@ class LandView : public ui::View,
     }
   }
 
-  static unique_ptr<LandView> create( IGui&         gui,
-                                      e_render_mode mode ) {
-    return make_unique<LandView>( gui, mode );
+  static unique_ptr<LandView> create( e_render_mode mode ) {
+    return make_unique<LandView>( mode );
   }
 
-  LandView( IGui& gui, e_render_mode mode )
-    : gui_( gui ), mode_( mode ) {}
+  LandView( e_render_mode mode ) : mode_( mode ) {}
 
  private:
-  IGui&            gui_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
 };
@@ -1732,7 +1737,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view = LandView::create( gui, land_view_mode );
+  auto land_view = LandView::create( land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]

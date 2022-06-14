@@ -176,6 +176,12 @@ wait<> drag_drop_routine(
   };
   SCOPE_EXIT( S.drag_state = nothing );
 
+  // This can optionally be populated to be displayed as a mes-
+  // sage to the user after the drag is rejected and the item is
+  // rubber banded. This is because it tends to look better if
+  // the item bounces back first, then the message is displayed.
+  maybe<string> post_reject_message;
+
   // The first drag event also contains some motion that we want
   // to process.
   input::event_t latest    = event;
@@ -343,9 +349,11 @@ wait<> drag_drop_routine(
     maybe<IColViewDragSinkCheck const&> drag_check =
         drag_sink.drag_check();
     if( drag_check ) {
-      bool proceed = co_await drag_check->check(
-          source_object, *source_entity, sink_coord );
-      if( !proceed ) {
+      base::valid_or<IColViewDragSinkCheck::Rejection> proceed =
+          co_await drag_check->check(
+              source_object, *source_entity, sink_coord );
+      if( !proceed.valid() ) {
+        post_reject_message = proceed.error().reason;
         lg.debug( "drag of object {} cancelled.",
                   source_object );
         break;
@@ -373,8 +381,22 @@ wait<> drag_drop_routine(
     co_await throttle();
     S.drag_state->where =
         start + ( end - start ).multiply_and_round( percent );
+    if( percent >= 1.0 ) break;
     percent += 0.15;
   }
+
+  // The following will happen anyway at scope exit, but we need
+  // to do this before showing a message so that the item will go
+  // back to appearing the way it was before the drag begun.
+  // TODO: if this (long) function is at some point factored out
+  // into smaller functions that maybe we can remove these and
+  // just let the scope-exit macros do this if we place the
+  // closing braces in the right spot.
+  S.drag_state = nothing;
+  drag_source.cancel_drag();
+
+  if( post_reject_message.has_value() )
+    co_await S.gui.message_box( "{}", *post_reject_message );
 }
 
 /****************************************************************

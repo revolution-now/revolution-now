@@ -92,6 +92,8 @@ struct IColViewDragSource {
   // This function must be called if the drag is cancelled for
   // any reason before it is affected. It is recommended to call
   // this function in a SCOPE_EXIT just after calling try_drag.
+  // Note that an implementation of this MUST be idempotent,
+  // since this may be called more than once.
   virtual void cancel_drag() = 0;
 
   // This is used to indicate whether the user can hold down a
@@ -120,9 +122,13 @@ struct IColViewDragSource {
 // plaining why we are cancelling it. Returning `true` means
 // "proceed".
 struct IColViewDragSinkCheck {
-  virtual wait<bool> check( ColViewObject_t const&,
-                            e_colview_entity from,
-                            Coord const ) const = 0;
+  struct Rejection {
+    maybe<std::string> reason;
+  };
+
+  virtual wait<base::valid_or<Rejection>> check(
+      ColViewObject_t const&, e_colview_entity from,
+      Coord const ) const = 0;
 };
 
 // Interface for views that can accept dragged items.

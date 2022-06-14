@@ -308,6 +308,9 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
       vector<UnitId> const& colonists =
           colony_.indoor_jobs()[*indoor_job];
       for( int idx = 0; idx < int( colonists.size() ); ++idx ) {
+        UnitId unit_id = colonists[idx];
+        if( dragging_.has_value() && dragging_->id == unit_id )
+          continue;
         Coord pos = visible_rect_for_unit_in_slot( slot, idx )
                         .upper_left();
         // For debugging the bounding rects.
@@ -321,7 +324,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
             renderer,
             sprite_rect_for_unit_in_slot( slot, idx )
                 .upper_left(),
-            colonists[idx],
+            unit_id,
             UnitRenderOptions{ .flag   = false,
                                .shadow = UnitShadow{
                                    .color = kShadowColor } } );
@@ -368,9 +371,10 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
   return o; // allowed.
 }
 
-wait<bool> ColViewBuildings::check( ColViewObject_t const& o,
-                                    e_colview_entity       from,
-                                    Coord const where ) const {
+wait<base::valid_or<IColViewDragSinkCheck::Rejection>>
+ColViewBuildings::check( ColViewObject_t const& o,
+                         e_colview_entity       from,
+                         Coord const            where ) const {
   // These should have already been checked.
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );
@@ -381,18 +385,18 @@ wait<bool> ColViewBuildings::check( ColViewObject_t const& o,
   // were to let the drag proceed then it would change the or-
   // dering of the units which would be strange.
   if( dragging_.has_value() && slot == dragging_->slot )
-    co_return false;
+    co_return IColViewDragSinkCheck::Rejection{};
   // Check that there aren't more than the max allowed units in
   // this slot.
   if( int( colony_.indoor_jobs()[indoor_job].size() ) >=
       config_colony.max_workers_per_building ) {
-    co_await gui_.message_box(
-        "There can be at most @[H]{}@[] workers per colony "
-        "building.",
-        config_colony.max_workers_per_building );
-    co_return false;
+    co_return IColViewDragSinkCheck::Rejection{
+        .reason = fmt::format(
+            "There can be at most @[H]{}@[] workers per colony "
+            "building.",
+            config_colony.max_workers_per_building ) };
   }
-  co_return true; // proceed.
+  co_return base::valid; // proceed.
 }
 
 // Implement IColViewDragSink.

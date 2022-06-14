@@ -60,9 +60,9 @@ class ColViewBuildings : public ui::View,
              Coord const&           where ) override;
 
   // Implement IColViewDragSinkCheck.
-  wait<bool> check( ColViewObject_t const&,
-                    e_colview_entity from,
-                    Coord const ) const override;
+  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+      ColViewObject_t const&, e_colview_entity from,
+      Coord const ) const override;
 
   // Implement IColViewDragSource.
   bool try_drag( ColViewObject_t const& o,
