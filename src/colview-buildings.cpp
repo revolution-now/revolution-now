@@ -244,7 +244,10 @@ Rect ColViewBuildings::rect_for_slot(
   Delta const box_size = delta() / Scale{ 4 };
   int const   idx      = static_cast<int>( slot );
   Coord const coord( X{ idx % 4 }, Y{ idx / 4 } );
-  return Rect::from( coord * box_size.to_scale(), box_size );
+  Coord const upper_left  = coord * box_size.to_scale();
+  Coord       lower_right = upper_left + box_size;
+  if( idx / 4 == 3 ) lower_right.y = 0_y + delta().h;
+  return Rect::from( upper_left, lower_right );
 }
 
 int const kEffectiveUnitWidthPixels = g_tile_delta.w._ / 2;
