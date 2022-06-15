@@ -89,6 +89,15 @@ UnitId World::add_unit_on_map( e_unit_type type, Coord where,
       UnitComposition::create( type ), where );
 }
 
+UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
+                                 maybe<e_nation> nation ) {
+  if( !nation ) nation = default_nation_;
+  UnitId held = create_unit( units(), *nation,
+                             UnitComposition::create( type ) );
+  units().change_to_cargo_somewhere( holder, held );
+  return held;
+}
+
 UnitId World::add_unit_indoors( ColonyId     colony_id,
                                 e_indoor_job indoor_job,
                                 e_unit_type  type ) {

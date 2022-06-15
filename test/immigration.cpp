@@ -159,6 +159,28 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     REQUIRE( player.crosses == 1 );
   }
 
+  SECTION( "two units in cargo of harbor ship" ) {
+    // In this section we're testing that units that are in the
+    // cargo of ships in harbor get treated as being on the dock.
+    // This is done to uphold the spirit of the original game,
+    // which did not have a concept of units being inside the
+    // cargo of a ship in either the harbor view or colony view.
+    UnitId ship = world.add_unit_in_port( e_unit_type::caravel );
+    world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
+    world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
+    crosses  = compute_crosses( units_state, player.nation );
+    expected = {
+        .dock_crosses_bonus = -4,
+        // Dock units are counted twice.
+        .crosses_needed = 8 + 2 * ( 2 + 3 ),
+    };
+    REQUIRE( crosses == expected );
+    add_player_crosses( player,
+                        /*total_colonies_crosses_production=*/3,
+                        crosses.dock_crosses_bonus );
+    REQUIRE( player.crosses == 0 );
+  }
+
   SECTION( "units on dock and in new world" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
     world.add_unit_in_port( e_unit_type::free_colonist );

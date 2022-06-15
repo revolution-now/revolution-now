@@ -56,19 +56,29 @@ WeightsMap immigrant_weights_for_level( int level ) {
 }
 
 struct UnitCounts {
-  int total_units   = 0;
-  int units_on_dock = 0;
+  int total_units                    = 0;
+  int units_on_dock                  = 0;
+  int units_in_cargo_of_harbor_ships = 0;
 };
 
 UnitCounts unit_counts( UnitsState const& units_state,
                         e_nation          nation ) {
   UnitCounts counts;
   for( auto const& [id, state] : units_state.all() ) {
-    if( state.unit.nation() != nation ) continue;
+    Unit const& unit = state.unit;
+    if( unit.nation() != nation ) continue;
     ++counts.total_units;
-    if( !state.unit.desc().ship &&
-        state.ownership.holds<UnitOwnership::harbor>() )
-      ++counts.units_on_dock;
+    if( state.ownership.holds<UnitOwnership::harbor>() ) {
+      if( !unit.desc().ship ) {
+        ++counts.units_on_dock;
+      } else {
+        maybe<vector<UnitId>> cargo_units =
+            unit.units_in_cargo();
+        if( cargo_units.has_value() )
+          counts.units_in_cargo_of_harbor_ships +=
+              cargo_units->size();
+      }
+    }
   }
   return counts;
 }
@@ -139,10 +149,24 @@ CrossesCalculation compute_crosses(
   // the dock we get +2, but if 1 unit is on the dock we get -2
   // (because we both lose the empty-dock bonus and incur the
   // penalty of one unit on the dock).
-  auto const [total_units, units_on_dock] =
+  //
+  // For us though it is a bit more complicated, because (unlike
+  // the original game) we have a concept of a unit being in the
+  // cargo of a ship while it is in the harbor (and colony). So,
+  // in the spirit of the original game, we will consider units
+  // that are in the cargo of ships in harbor to count as units
+  // on the dock. This will also prevent the player from circum-
+  // venting the unit dock penalty by keeping a ship in harbor
+  // and just moving units onto it each time one appears on dock
+  // to immediately regain the dock bonus.
+  auto const [total_units, units_on_dock, harbor_cargo_units] =
       unit_counts( units_state, nation );
+  int const effective_units_on_dock =
+      units_on_dock + harbor_cargo_units;
   int const dock_crosses_bonus =
-      ( units_on_dock == 0 ) ? 2 : ( -units_on_dock * 2 );
+      ( effective_units_on_dock == 0 )
+          ? 2
+          : ( -effective_units_on_dock * 2 );
   DCHECK( dock_crosses_bonus != 0 );
 
   // Next compute the total number of crosses needed for the next
@@ -167,8 +191,12 @@ CrossesCalculation compute_crosses(
   // clude the units-on-dock when it prints the number of crosses
   // needed on the Religion Advisor page, but it still includes
   // them in the calculation.
+  //
+  // And again, as above, note that we are counting units in the
+  // cargo of harbor ships as being on dock for the purposes of
+  // this calculation.
   int const default_crosses_needed =
-      8 + 2 * ( total_units + units_on_dock );
+      8 + 2 * ( total_units + effective_units_on_dock );
 
   // This is what will incorporate the English's special ability
   // to more quickly attract immigrants.

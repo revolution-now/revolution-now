@@ -67,6 +67,9 @@ struct World {
   UnitId add_unit_on_map( e_unit_type type, Coord where,
                           maybe<e_nation> nation = nothing );
 
+  UnitId add_unit_in_cargo( e_unit_type type, UnitId holder,
+                            maybe<e_nation> nation = nothing );
+
   // Create a unit and add give it the specified indoor job in
   // the colony.
   UnitId add_unit_indoors(
