@@ -19,7 +19,7 @@
 #include "config/colony-enums.rds.hpp" // FIXME: to be moved.
 
 // Rds
-#include "colview-buildings.rds.hpp"
+#include "colony-buildings.rds.hpp"
 
 namespace rn {
 
@@ -86,9 +86,6 @@ class ColViewBuildings : public ui::View,
 
   Rect sprite_rect_for_unit_in_slot( e_colony_building_slot slot,
                                      int unit_idx ) const;
-
-  maybe<e_colony_building> building_for_slot(
-      e_colony_building_slot slot ) const;
 
   maybe<e_colony_building_slot> slot_for_coord(
       Coord where ) const;

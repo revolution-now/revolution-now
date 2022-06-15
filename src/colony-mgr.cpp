@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-buildings.hpp"
 #include "colony-evolve.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
@@ -114,7 +115,7 @@ wait<bool> present_colony_update(
         co_await gui.choice( { .msg     = msg,
                                .options = std::move( choices ),
                                .key_on_escape = "no_zoom" } );
-    co_return( res == "zoom" );
+    co_return ( res == "zoom" );
   }
   co_await gui.message_box( msg );
   co_return false;
@@ -153,7 +154,8 @@ ColonyJob_t find_job_for_initial_colonist(
     Unit const& ) {
   // In an unmodded game the colony will not start off with
   // docks, but it could it settings are changed.
-  bool has_docks = colony.buildings()[e_colony_building::docks];
+  bool has_docks = colony_has_building_level(
+      colony, e_colony_building::docks );
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = colony.location().moved( d );
     if( !terrain_state.square_exists( coord ) ) continue;

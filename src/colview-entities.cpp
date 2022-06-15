@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "colview-buildings.hpp"
@@ -1329,7 +1330,8 @@ class LandView : public ui::View,
         terrain_state.square_at( colony.location().moved( *d ) );
 
     if( is_water( square ) &&
-        !colony.buildings()[e_colony_building::docks] ) {
+        !colony_has_building_level(
+            colony, e_colony_building::docks ) ) {
       co_return IColViewDragSinkCheck::Rejection{
           .reason =
               "We must build @[H]docks@[] in this colony in "
