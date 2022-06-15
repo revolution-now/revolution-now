@@ -75,15 +75,17 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   } );
 }
 
-UnitId World::add_unit_in_port( e_unit_type type,
-                                e_nation    nation ) {
-  return create_unit_in_harbor( root().units, nation, type );
+UnitId World::add_unit_in_port( e_unit_type     type,
+                                maybe<e_nation> nation ) {
+  if( !nation ) nation = default_nation_;
+  return create_unit_in_harbor( root().units, *nation, type );
 }
 
 UnitId World::add_unit_on_map( e_unit_type type, Coord where,
-                               e_nation nation ) {
+                               maybe<e_nation> nation ) {
+  if( !nation ) nation = default_nation_;
   return create_unit_on_map_non_interactive(
-      root().units, map_updater(), nation,
+      root().units, map_updater(), *nation,
       UnitComposition::create( type ), where );
 }
 
@@ -112,6 +114,8 @@ UnitId World::add_unit_outdoors( ColonyId      colony_id,
 
 void World::add_player( e_nation nation ) {
   root().players.players[nation] = {};
+  // This is the minimal amount that we need to set for a player.
+  root().players.players[nation].nation = nation;
 }
 
 Colony& World::add_colony( UnitId founder ) {
@@ -122,9 +126,11 @@ Colony& World::add_colony( UnitId founder ) {
   return colonies().colony_for( id );
 }
 
-Colony& World::add_colony( Coord where, e_nation nation ) {
+Colony& World::add_colony( Coord           where,
+                           maybe<e_nation> nation ) {
+  if( !nation ) nation = default_nation_;
   UnitId founder = add_unit_on_map( e_unit_type::free_colonist,
-                                    where, nation );
+                                    where, *nation );
   return add_colony( founder );
 }
 
@@ -146,6 +152,15 @@ Player& World::spanish() {
 Player& World::french() {
   CHECK( root().players.players.contains( e_nation::french ) );
   return root().players.players[e_nation::french];
+}
+
+Player& World::default_player() {
+  switch( default_nation_ ) {
+    case e_nation::dutch: return dutch();
+    case e_nation::english: return english();
+    case e_nation::french: return french();
+    case e_nation::spanish: return spanish();
+  }
 }
 
 base::valid_or<string> World::validate_colonies() const {

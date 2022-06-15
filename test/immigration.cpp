@@ -8,11 +8,14 @@
 * Description: Unit tests for the src/immigration.* module.
 *
 *****************************************************************/
-#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
 #include "src/immigration.hpp"
+
+// Testing
+#include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 
 // Revolution Now
 #include "src/gs-terrain.hpp"
@@ -43,66 +46,41 @@ namespace {
 using namespace std;
 
 /****************************************************************
-** World Setup
+** Fake World Setup
 *****************************************************************/
-Coord const kSquare( 0_x, 0_y );
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {}
 
-// This will prepare a world with a 1x1 map.
-void prepare_world( TerrainState& terrain_state ) {
-  NonRenderingMapUpdater map_updater( terrain_state );
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
-    m[kSquare] = map_square_for_terrain( e_terrain::grassland );
-  } );
-}
-
-UnitId add_unit_to_new_world( UnitsState&   units_state,
-                              TerrainState& terrain_state,
-                              e_nation      nation ) {
-  UnitId                 id = create_unit( units_state, nation,
-                                           e_unit_type::free_colonist );
-  NonRenderingMapUpdater map_updater( terrain_state );
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      id, kSquare );
-  return id;
-}
-
-UnitId add_unit_to_dock( UnitsState& units_state,
-                         e_nation    nation ) {
-  UnitId id = create_unit( units_state, nation,
-                           e_unit_type::free_colonist );
-  unit_move_to_port( units_state, id );
-  return id;
-}
+  void create_default_map() {
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1_w );
+  }
+};
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
   ImmigrationState immigration{
-      .immigrants_pool =
-          {
-              e_unit_type::expert_farmer,
-              e_unit_type::veteran_soldier,
-              e_unit_type::seasoned_scout,
-          },
-  };
+      .immigrants_pool = { e_unit_type::expert_farmer,
+                           e_unit_type::veteran_soldier,
+                           e_unit_type::seasoned_scout } };
   MockIGui gui;
 
-  EXPECT_CALL( gui,
-               choice( ChoiceConfig{
-                   .msg = "please select one",
-                   .options =
-                       {
-                           { .key          = "0",
-                             .display_name = "Expert Farmer" },
-                           { .key          = "1",
-                             .display_name = "Veteran Soldier" },
-                           { .key          = "2",
-                             .display_name = "Seasoned Scout" },
-                       },
-                   .key_on_escape = nothing,
-               } ) )
+  EXPECT_CALL(
+      gui, choice( ChoiceConfig{
+               .msg = "please select one",
+               .options =
+                   vector<ChoiceConfigOption>{
+                       { .key          = "0",
+                         .display_name = "Expert Farmer" },
+                       { .key          = "1",
+                         .display_name = "Veteran Soldier" },
+                       { .key          = "2",
+                         .display_name = "Seasoned Scout" } },
+               .key_on_escape = nothing } ) )
       .returns( make_wait<string>( "1" ) );
 
   wait<int> w = ask_player_to_choose_immigrant(
@@ -112,15 +90,16 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
 }
 
 TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
-  UnitsState   units_state;
-  TerrainState terrain_state;
-  Player       player;
-  player.nation = e_nation::dutch;
+  World world;
+  world.add_player( e_nation::dutch );
+  world.set_default_player( e_nation::dutch );
+  world.create_default_map();
+
+  UnitsState const& units_state = world.units();
+  Player&           player      = world.default_player();
   REQUIRE( player.crosses == 0 );
 
   CrossesCalculation crosses, expected;
-
-  prepare_world( terrain_state );
 
   SECTION( "default" ) {
     crosses  = compute_crosses( units_state, player.nation );
@@ -136,10 +115,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   }
 
   SECTION( "some units in new world" ) {
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = 2,
@@ -153,7 +130,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   }
 
   SECTION( "one unit on dock, no production" ) {
-    add_unit_to_dock( units_state, player.nation );
+    world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = -2,
@@ -168,7 +145,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   }
 
   SECTION( "one unit on dock" ) {
-    add_unit_to_dock( units_state, player.nation );
+    world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = -2,
@@ -183,12 +160,10 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   }
 
   SECTION( "units on dock and in new world" ) {
-    add_unit_to_dock( units_state, player.nation );
-    add_unit_to_dock( units_state, player.nation );
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
+    world.add_unit_in_port( e_unit_type::free_colonist );
+    world.add_unit_in_port( e_unit_type::free_colonist );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = -4,
@@ -204,15 +179,16 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
 }
 
 TEST_CASE( "[immigration] compute_crosses (english)" ) {
-  UnitsState   units_state;
-  TerrainState terrain_state;
-  Player       player;
-  player.nation = e_nation::english;
+  World world;
+  world.add_player( e_nation::english );
+  world.set_default_player( e_nation::english );
+  world.create_default_map();
+
+  UnitsState const& units_state = world.units();
+  Player&           player      = world.default_player();
   REQUIRE( player.crosses == 0 );
 
   CrossesCalculation crosses, expected;
-
-  prepare_world( terrain_state );
 
   SECTION( "default" ) {
     crosses  = compute_crosses( units_state, player.nation );
@@ -229,10 +205,8 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   }
 
   SECTION( "some units in new world" ) {
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
-    add_unit_to_new_world( units_state, terrain_state,
-                           player.nation );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+    world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = 2,
@@ -247,7 +221,7 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   }
 
   SECTION( "one unit on dock, no production" ) {
-    add_unit_to_dock( units_state, player.nation );
+    world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
         .dock_crosses_bonus = -2,

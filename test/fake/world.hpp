@@ -61,11 +61,11 @@ struct World {
 
   void build_map( std::vector<MapSquare> tiles, W width );
 
-  UnitId add_unit_in_port( e_unit_type type,
-                           e_nation nation = e_nation::dutch );
+  UnitId add_unit_in_port( e_unit_type     type,
+                           maybe<e_nation> nation = nothing );
 
   UnitId add_unit_on_map( e_unit_type type, Coord where,
-                          e_nation nation = e_nation::dutch );
+                          maybe<e_nation> nation = nothing );
 
   // Create a unit and add give it the specified indoor job in
   // the colony.
@@ -86,10 +86,15 @@ struct World {
 
   // This one will create a free_colonist on the square and then
   // use it to found the colony.
-  Colony& add_colony( Coord    where,
-                      e_nation nation = e_nation::dutch );
+  Colony& add_colony( Coord           where,
+                      maybe<e_nation> nation = nothing );
 
   void add_player( e_nation nation );
+
+  e_nation default_nation() const { return default_nation_; }
+  void     set_default_player( e_nation nation ) {
+    default_nation_ = nation;
+  }
 
   // This will call the validate method on each colony in the
   // state and return an error if any of them fail.
@@ -103,6 +108,8 @@ struct World {
   Player& english();
   Player& spanish();
   Player& french();
+
+  Player& default_player();
 
   FormatVersion& version();
   SettingsState& settings();
@@ -130,6 +137,8 @@ struct World {
   IMapUpdater& map_updater() { return *map_updater_; }
 
  private:
+  e_nation default_nation_ = e_nation::dutch;
+
   std::unique_ptr<RootState> root_;
 
   std::unique_ptr<IMapUpdater> map_updater_;
