@@ -257,7 +257,7 @@ void UnitsState::change_to_cargo_somewhere( UnitId new_holder,
   for( int i = starting_slot;
        i < starting_slot + cargo.slots_total(); ++i ) {
     int modded = i % cargo.slots_total();
-    if( cargo.fits( Cargo::unit{ held }, modded ) ) {
+    if( cargo.fits( *this, Cargo::unit{ held }, modded ) ) {
       change_to_cargo( new_holder, held, modded );
       return;
     }
@@ -288,8 +288,9 @@ void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
   // unit (i.e., one occupying multiple slots) to another slot in
   // the same cargo where it will not fit unless it is first re-
   // moved from its current slot.
-  CHECK( cargo_hold.fits( Cargo::unit{ held }, slot ) );
-  CHECK( cargo_hold.try_add( Cargo::unit{ held }, slot ) );
+  CHECK( cargo_hold.fits( *this, Cargo::unit{ held }, slot ) );
+  CHECK(
+      cargo_hold.try_add( *this, Cargo::unit{ held }, slot ) );
   unit_for( held ).sentry();
   // Set new ownership
   ownership_of( held ) =

@@ -19,6 +19,7 @@
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
+#include "game-state.hpp"
 #include "gs-players.hpp"
 #include "gs-units.hpp"
 #include "gui.hpp"
@@ -1528,7 +1529,7 @@ struct DragConnector {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( S.units_state, ship ) ) return false;
     return unit_from_id( ship ).cargo().fits_somewhere(
-        Cargo::unit{ src.id }, dst.slot._ );
+        GameState::units(), Cargo::unit{ src.id }, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<HarborDraggableObject::unit>(
@@ -1548,6 +1549,7 @@ struct DragConnector {
           return unit_from_id( ship )
               .cargo()
               .fits_with_item_removed(
+                  GameState::units(),
                   /*cargo=*/cargo_object,   //
                   /*remove_slot=*/src.slot, //
                   /*insert_slot=*/dst.slot  //
@@ -1560,6 +1562,7 @@ struct DragConnector {
           auto size_one     = c.obj;
           size_one.quantity = 1;
           return unit_from_id( ship ).cargo().fits(
+              GameState::units(),
               /*cargo=*/Cargo::commodity{ size_one },
               /*slot=*/dst.slot );
         } );
@@ -1585,7 +1588,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        Cargo::unit{ src.id } );
+        GameState::units(), Cargo::unit{ src.id } );
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
     auto dst_ship = dst.id;
@@ -1598,7 +1601,7 @@ struct DragConnector {
           if( is_unit_onboard( u.id ) == dst_ship ) return false;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( u );
+              .fits_somewhere( GameState::units(), u );
         },
         [&]( Cargo::commodity const& c ) {
           // If even 1 quantity can fit then we can proceed
@@ -1607,7 +1610,8 @@ struct DragConnector {
           size_one.quantity = 1;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( Cargo::commodity{ size_one } );
+              .fits_somewhere( GameState::units(),
+                               Cargo::commodity{ size_one } );
         } );
   }
   bool DRAG_CONNECT_CASE( market, cargo ) const {
@@ -1621,7 +1625,8 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( ship ).cargo().fits_somewhere(
-        Cargo::commodity{ comm }, dst.slot._ );
+        GameState::units(), Cargo::commodity{ comm },
+        dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( market, inport_ship ) const {
     auto comm = Commodity{
@@ -1632,7 +1637,8 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        Cargo::commodity{ comm }, /*starting_slot=*/0 );
+        GameState::units(), Cargo::commodity{ comm },
+        /*starting_slot=*/0 );
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
@@ -1750,7 +1756,8 @@ struct DragPerform {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     // First try to respect the destination slot chosen by
     // the player,
-    if( unit_from_id( ship ).cargo().fits( Cargo::unit{ src.id },
+    if( unit_from_id( ship ).cargo().fits( GameState::units(),
+                                           Cargo::unit{ src.id },
                                            dst.slot._ ) )
       S.units_state.change_to_cargo_somewhere( ship, src.id,
                                                dst.slot._ );
@@ -1777,7 +1784,8 @@ struct DragPerform {
         },
         [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
-              ship, src.slot._, ship, dst.slot._,
+              GameState::units(), ship, src.slot._, ship,
+              dst.slot._,
               /*max_quantity=*/nothing,
               /*try_other_dst_slots=*/false );
         } );
@@ -1829,7 +1837,7 @@ struct DragPerform {
           UNWRAP_CHECK( src_ship,
                         active_cargo_ship( entities ) );
           move_commodity_as_much_as_possible(
-              src_ship, src.slot._,
+              GameState::units(), src_ship, src.slot._,
               /*dst_ship=*/dst.id,
               /*dst_slot=*/0,
               /*max_quantity=*/src.quantity,
@@ -1852,7 +1860,7 @@ struct DragPerform {
     comm.quantity =
         std::min( comm.quantity, k_default_market_quantity );
     CHECK( comm.quantity > 0 );
-    add_commodity_to_cargo( comm, ship,
+    add_commodity_to_cargo( GameState::units(), comm, ship,
                             /*slot=*/dst.slot._,
                             /*try_other_slots=*/true );
   }
@@ -1871,7 +1879,8 @@ struct DragPerform {
     comm.quantity =
         std::min( comm.quantity, k_default_market_quantity );
     CHECK( comm.quantity > 0 );
-    add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
+    add_commodity_to_cargo( GameState::units(), comm, dst.id,
+                            /*slot=*/0,
                             /*try_other_slots=*/true );
   }
   void DRAG_PERFORM_CASE( cargo, market ) const {
@@ -1888,9 +1897,10 @@ struct DragPerform {
                                          commodity_ref.obj.quantity );
     Commodity new_comm       = commodity_ref.obj;
     new_comm.quantity -= amount_to_sell;
-    rm_commodity_from_cargo( ship, src.slot._ );
+    rm_commodity_from_cargo( GameState::units(), ship,
+                             src.slot._ );
     if( new_comm.quantity > 0 )
-      add_commodity_to_cargo( new_comm, ship,
+      add_commodity_to_cargo( GameState::units(), new_comm, ship,
                               /*slot=*/src.slot._,
                               /*try_other_slots=*/false );
   }

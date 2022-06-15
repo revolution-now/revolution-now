@@ -557,8 +557,10 @@ class CargoView : public ui::View,
     switch( o.to_enum() ) {
       using namespace ColViewObject;
       case e::unit: {
-        UnitId id = o.get<ColViewObject::unit>().id;
-        if( !unit.cargo().fits_somewhere( Cargo::unit{ id } ) )
+        UnitId      id = o.get<ColViewObject::unit>().id;
+        UnitsState& units_state = GameState::units();
+        if( !unit.cargo().fits_somewhere( units_state,
+                                          Cargo::unit{ id } ) )
           return nothing;
         return o;
       }
@@ -600,9 +602,10 @@ class CargoView : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override {
     CHECK( holder_ );
-    auto&   cargo_hold = unit_from_id( *holder_ ).cargo();
-    Cargo_t cargo      = to_cargo( o );
-    CHECK( cargo_hold.fits_somewhere( cargo ) );
+    auto&       cargo_hold  = unit_from_id( *holder_ ).cargo();
+    Cargo_t     cargo       = to_cargo( o );
+    UnitsState& units_state = GameState::units();
+    CHECK( cargo_hold.fits_somewhere( units_state, cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
@@ -613,7 +616,8 @@ class CargoView : public ui::View,
         },
         [this,
          slot_idx = slot_idx]( Cargo::commodity const& c ) {
-          add_commodity_to_cargo( c.obj, *holder_, slot_idx,
+          add_commodity_to_cargo( GameState::units(), c.obj,
+                                  *holder_, slot_idx,
                                   /*try_other_slots=*/true );
         } );
   }
@@ -708,9 +712,11 @@ class CargoView : public ui::View,
           CHECK( reduced_comm.type == to_remove.obj.type );
           reduced_comm.quantity -= to_remove.obj.quantity;
           CHECK( reduced_comm.quantity >= 0 );
-          rm_commodity_from_cargo( *holder_, dragging_->slot );
+          rm_commodity_from_cargo( GameState::units(), *holder_,
+                                   dragging_->slot );
           if( reduced_comm.quantity > 0 )
-            add_commodity_to_cargo( reduced_comm, *holder_,
+            add_commodity_to_cargo( GameState::units(),
+                                    reduced_comm, *holder_,
                                     dragging_->slot,
                                     /*try_other_slots=*/false );
         } );
@@ -874,7 +880,7 @@ class UnitsAtGateColonyView : public ui::View,
     // unit that has cargo slots but is not already being held by
     // that unit, so we need to check if the unit fits.
     if( !target_unit.cargo().fits_somewhere(
-            Cargo::unit{ dragged } ) )
+            GameState::units(), Cargo::unit{ dragged } ) )
       return nothing;
     return ColViewObject::unit{ .id = dragged };
   }
@@ -1023,7 +1029,8 @@ class UnitsAtGateColonyView : public ui::View,
           CHECK( target_unit );
           Unit& unit = unit_from_id( *target_unit );
           if( unit.desc().cargo_slots > 0 ) {
-            add_commodity_to_cargo( comm.comm, *target_unit,
+            add_commodity_to_cargo( GameState::units(),
+                                    comm.comm, *target_unit,
                                     /*slot=*/0,
                                     /*try_other_slots=*/true );
           } else {

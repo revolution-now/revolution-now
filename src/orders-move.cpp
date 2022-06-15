@@ -626,7 +626,8 @@ TravelHandler::confirm_travel_impl() {
           lg.debug( "checking ship cargo: {}",
                     ship_unit.cargo() );
           if( auto const& cargo = ship_unit.cargo();
-              cargo.fits_somewhere( Cargo::unit{ id } ) ) {
+              cargo.fits_somewhere( units_state_,
+                                    Cargo::unit{ id } ) ) {
             prioritize  = { ship_id };
             target_unit = ship_id;
             co_return e_travel_verdict::board_ship;

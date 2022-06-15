@@ -122,9 +122,11 @@ class CargoHold {
   // Checks if the given cargo could be added at the given slot
   // index. If UnitId, will not check for unit id already in
   // cargo.
-  ND bool fits( Cargo_t const& cargo, int slot ) const;
-  ND bool fits( Cargo_t const& cargo,
-                CargoSlotIndex slot ) const;
+  ND bool fits( UnitsState const& units_state,
+                Cargo_t const& cargo, int slot ) const;
+  ND bool fits( UnitsState const& units_state,
+                Cargo_t const&    cargo,
+                CargoSlotIndex    slot ) const;
 
   // Precondition: there must be a cargo item whose first slot is
   // the given slot; if not, then an error will be thrown. This
@@ -133,13 +135,14 @@ class CargoHold {
   // removed. Will not throw an error if the cargo represents a
   // unit that is already in the cargo.
   ND bool fits_with_item_removed(
-      Cargo_t const& cargo, CargoSlotIndex remove_slot,
+      UnitsState const& units_state, Cargo_t const& cargo,
+      CargoSlotIndex remove_slot,
       CargoSlotIndex insert_slot ) const;
 
   // Same as above except it will try the entire cargo.
   ND bool fits_somewhere_with_item_removed(
-      Cargo_t const& cargo, int remove_slot,
-      int starting_slot = 0 ) const;
+      UnitsState const& units_state, Cargo_t const& cargo,
+      int remove_slot, int starting_slot = 0 ) const;
 
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
@@ -149,7 +152,8 @@ class CargoHold {
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool fits_somewhere( Cargo_t const& cargo,
+  ND bool fits_somewhere( UnitsState const& units_state,
+                          Cargo_t const&    cargo,
                           int starting_slot = 0 ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
@@ -157,7 +161,7 @@ class CargoHold {
   // date like commodities where possible. Units with equal occu-
   // pancy size will be put in order of creation, with older
   // units first.
-  void compactify();
+  void compactify( UnitsState const& units_state );
 
   // Implement refl::WrapsReflected.
   CargoHold( wrapped::CargoHold&& o ) : o_( std::move( o ) ) {}
@@ -172,7 +176,7 @@ class CargoHold {
   // its own validation.
   valid_or<generic_err> validate(
       UnitsState const& units_state ) const;
-  void validate_or_die() const;
+  void validate_or_die( UnitsState const& units_state ) const;
 
  protected:
   // These friend classes/functions are the only ones that should
@@ -181,12 +185,13 @@ class CargoHold {
 
   // These are the only functions that should be allowed to add
   // or remove commodities to/from the cargo.
-  friend void add_commodity_to_cargo( Commodity const& comm,
+  friend void add_commodity_to_cargo( UnitsState& units_state,
+                                      Commodity const& comm,
                                       UnitId holder, int slot,
                                       bool try_other_slots );
 
-  friend Commodity rm_commodity_from_cargo( UnitId holder,
-                                            int    slot );
+  friend Commodity rm_commodity_from_cargo(
+      UnitsState& units_state, UnitId holder, int slot );
   // ------------------------------------------------------------
 
   // Will search through the cargo slots, starting at the speci-
@@ -197,8 +202,9 @@ class CargoHold {
   // If an attempt is made to add a unit that is already in the
   // cargo then an exception will be thrown, since this likely
   // reflects a logic error on the part of the caller.
-  ND bool try_add_somewhere( Cargo_t const& cargo,
-                             int            starting_slot = 0 );
+  ND bool try_add_somewhere( UnitsState const& units_state,
+                             Cargo_t const&    cargo,
+                             int starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
   // if there was enough space at the given slot to add the
@@ -207,7 +213,8 @@ class CargoHold {
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool try_add( Cargo_t const& cargo, int slot );
+  ND bool try_add( UnitsState const& units_state,
+                   Cargo_t const& cargo, int slot );
 
   // There must be a cargo item in that slot, i.e., it cannot be
   // `overflow` or `empty`. Otherwise an error will be thrown.

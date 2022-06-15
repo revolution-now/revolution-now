@@ -31,6 +31,8 @@
 
 namespace rn {
 
+struct UnitsState;
+
 constexpr Delta const kCommodityInCargoHoldRenderingOffset{
     8_w, 3_h };
 
@@ -68,11 +70,13 @@ Commodity with_quantity( Commodity const& in, int new_quantity );
 // carried out then an error will be thrown. This will try to put
 // all the cargo in the specified slot, or, if it doesn't fit,
 // will try to distribute it to other slots.
-void add_commodity_to_cargo( Commodity const& comm,
+void add_commodity_to_cargo( UnitsState&      units_state,
+                             Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots );
 
-Commodity rm_commodity_from_cargo( UnitId holder, int slot );
+Commodity rm_commodity_from_cargo( UnitsState& units_state,
+                                   UnitId holder, int slot );
 
 // This will take the commodity in (only) the src_slot of the src
 // unit and will attempt to move as much of it as possible to the
@@ -85,8 +89,9 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 // This function will work even if the src and dst units are the
 // same (and then even if the src/dst slots are the same).
 int move_commodity_as_much_as_possible(
-    UnitId src, int src_slot, UnitId dst, int dst_slot,
-    maybe<int> max_quantity, bool try_other_dst_slots );
+    UnitsState& units_state, UnitId src, int src_slot,
+    UnitId dst, int dst_slot, maybe<int> max_quantity,
+    bool try_other_dst_slots );
 
 /****************************************************************
 ** Commodity Renderers

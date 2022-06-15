@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "enum.hpp"
+#include "gs-units.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
@@ -139,42 +140,46 @@ string_view commodity_display_name( e_commodity type ) {
   return enum_to_display_name( type );
 }
 
-void add_commodity_to_cargo( Commodity const& comm,
+void add_commodity_to_cargo( UnitsState&      units_state,
+                             Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots ) {
   if( try_other_slots ) {
-    CHECK( unit_from_id( holder ).cargo().try_add_somewhere(
-               Cargo::commodity{ comm }, slot ),
-           "failed to add {} starting at slot {}", comm, slot );
+    CHECK(
+        units_state.unit_for( holder ).cargo().try_add_somewhere(
+            units_state, Cargo::commodity{ comm }, slot ),
+        "failed to add {} starting at slot {}", comm, slot );
   } else {
-    CHECK( unit_from_id( holder ).cargo().try_add(
-               Cargo::commodity{ comm }, slot ),
+    CHECK( units_state.unit_for( holder ).cargo().try_add(
+               units_state, Cargo::commodity{ comm }, slot ),
            "failed to add {} at slot {}", comm, slot );
   }
 }
 
-Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
-  auto& cargo = unit_from_id( holder ).cargo();
+Commodity rm_commodity_from_cargo( UnitsState& units_state,
+                                   UnitId holder, int slot ) {
+  auto& cargo = units_state.unit_for( holder ).cargo();
 
   ASSIGN_CHECK_V( cargo_item, cargo[slot], CargoSlot::cargo );
   ASSIGN_CHECK_V( comm, cargo_item.contents, Cargo::commodity );
 
   Commodity res = std::move( comm.obj );
   cargo[slot]   = CargoSlot_t{ CargoSlot::empty{} };
-  cargo.validate_or_die();
+  cargo.validate_or_die( units_state );
   return res;
 }
 
 int move_commodity_as_much_as_possible(
-    UnitId src, int src_slot, UnitId dst, int dst_slot,
-    maybe<int> max_quantity, bool try_other_dst_slots ) {
-  auto const& src_cargo = unit_from_id( src ).cargo();
+    UnitsState& units_state, UnitId src, int src_slot,
+    UnitId dst, int dst_slot, maybe<int> max_quantity,
+    bool try_other_dst_slots ) {
+  auto const& src_cargo = units_state.unit_for( src ).cargo();
   auto        maybe_src_comm =
       src_cargo.slot_holds_cargo_type<Cargo::commodity>(
           src_slot );
   CHECK( maybe_src_comm.has_value() );
 
-  auto const& dst_cargo = unit_from_id( dst ).cargo();
+  auto const& dst_cargo = units_state.unit_for( dst ).cargo();
   auto        maybe_dst_comm =
       dst_cargo.slot_holds_cargo_type<Cargo::commodity>(
           dst_slot );
@@ -186,7 +191,8 @@ int move_commodity_as_much_as_possible(
   }
 
   // Need to remove first in case src/dst are the same unit.
-  auto removed = rm_commodity_from_cargo( src, src_slot );
+  auto removed =
+      rm_commodity_from_cargo( units_state, src, src_slot );
   CHECK( removed.quantity > 0 );
 
   int max_transfer_quantity = 0;
@@ -222,7 +228,7 @@ int move_commodity_as_much_as_possible(
     auto comm_to_transfer     = removed;
     comm_to_transfer.quantity = max_transfer_quantity;
     add_commodity_to_cargo(
-        comm_to_transfer, dst,
+        units_state, comm_to_transfer, dst,
         /*slot=*/dst_slot,
         /*try_other_slots=*/try_other_dst_slots );
     removed.quantity -= max_transfer_quantity;
@@ -230,7 +236,7 @@ int move_commodity_as_much_as_possible(
   }
 
   if( removed.quantity > 0 )
-    add_commodity_to_cargo( removed, src,
+    add_commodity_to_cargo( units_state, removed, src,
                             /*slot=*/src_slot,
                             /*try_other_slots=*/false );
 

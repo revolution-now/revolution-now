@@ -12,11 +12,9 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "game-state.hpp" // FIXME
 #include "gs-units.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "ustate.hpp"
 #include "util.hpp"
 #include "variant.hpp"
 
@@ -45,9 +43,7 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 CargoHold::CargoHold( int num_slots )
   : o_( wrapped::CargoHold{
-        .slots = vector<CargoSlot_t>( num_slots ) } ) {
-  validate_or_die();
-}
+        .slots = vector<CargoSlot_t>( num_slots ) } ) {}
 
 base::valid_or<string> wrapped::CargoHold::validate() const {
   int slots_total = slots.size();
@@ -82,8 +78,9 @@ base::valid_or<string> wrapped::CargoHold::validate() const {
   return valid;
 }
 
-void CargoHold::validate_or_die() const {
-  CHECK_HAS_VALUE( validate( GameState::units() ) );
+void CargoHold::validate_or_die(
+    UnitsState const& units_state ) const {
+  CHECK_HAS_VALUE( validate( units_state ) );
 }
 
 valid_or<generic_err> CargoHold::validate(
@@ -226,7 +223,7 @@ vector<pair<Commodity, int>> CargoHold::commodities(
   return res;
 }
 
-void CargoHold::compactify() {
+void CargoHold::compactify( UnitsState const& units_state ) {
   auto unit_ids    = units();
   auto comms_pairs = commodities();
   auto comms       = rl::all( comms_pairs ).keys().to_vector();
@@ -235,14 +232,14 @@ void CargoHold::compactify() {
   util::sort_by_key( unit_ids, []( auto id ) { return id._; } );
   // Negative to do reverse sort.
   util::stable_sort_by_key(
-      unit_ids,
-      L( -unit_from_id( _ ).desc().cargo_slots_occupies.value_or(
-          0 ) ) );
+      unit_ids, LC( -units_state.unit_for( _ )
+                         .desc()
+                         .cargo_slots_occupies.value_or( 0 ) ) );
   util::sort_by_key( comms, L( _.type ) );
   clear();
-  validate_or_die();
+  validate_or_die( units_state );
   for( UnitId id : unit_ids )
-    CHECK( try_add_somewhere( Cargo::unit{ id } ) );
+    CHECK( try_add_somewhere( units_state, Cargo::unit{ id } ) );
   auto like_types =
       rl::all( comms ).group_by_L( _1.type == _2.type );
   for( auto group : like_types ) {
@@ -263,9 +260,10 @@ void CargoHold::compactify() {
       }
     }
     for( auto const& comm : new_comms )
-      CHECK( try_add_somewhere( Cargo::commodity{ comm } ) );
+      CHECK( try_add_somewhere( units_state,
+                                Cargo::commodity{ comm } ) );
   }
-  validate_or_die();
+  validate_or_die( units_state );
 }
 
 int CargoHold::max_commodity_quantity_that_fits(
@@ -293,13 +291,15 @@ int CargoHold::max_commodity_quantity_that_fits(
   return rl::all( o_.slots ).map( one_slot ).accumulate();
 }
 
-bool CargoHold::fits( Cargo_t const& cargo, int slot ) const {
+bool CargoHold::fits( UnitsState const& units_state,
+                      Cargo_t const& cargo, int slot ) const {
   CHECK( slot >= 0 && slot < int( o_.slots.size() ) );
   return overload_visit(
       cargo,
       [&]( Cargo::unit u ) {
-        auto maybe_occupied =
-            unit_from_id( u.id ).desc().cargo_slots_occupies;
+        auto maybe_occupied = units_state.unit_for( u.id )
+                                  .desc()
+                                  .cargo_slots_occupies;
         if( !maybe_occupied )
           // Unit cannot be held as cargo.
           return false;
@@ -345,38 +345,44 @@ bool CargoHold::fits( Cargo_t const& cargo, int slot ) const {
       } );
 }
 
-ND bool CargoHold::fits( Cargo_t const& cargo,
-                         CargoSlotIndex slot ) const {
-  return fits( cargo, slot._ );
+ND bool CargoHold::fits( UnitsState const& units_state,
+                         Cargo_t const&    cargo,
+                         CargoSlotIndex    slot ) const {
+  return fits( units_state, cargo, slot._ );
 }
 
 ND bool CargoHold::fits_with_item_removed(
-    Cargo_t const& cargo, CargoSlotIndex remove_slot,
+    UnitsState const& units_state, Cargo_t const& cargo,
+    CargoSlotIndex remove_slot,
     CargoSlotIndex insert_slot ) const {
   CargoHold new_hold = *this;
   new_hold.remove( remove_slot._ );
-  return new_hold.fits( cargo, insert_slot );
+  return new_hold.fits( units_state, cargo, insert_slot );
 }
 
 ND bool CargoHold::fits_somewhere_with_item_removed(
-    Cargo_t const& cargo, int remove_slot,
-    int starting_slot ) const {
+    UnitsState const& units_state, Cargo_t const& cargo,
+    int remove_slot, int starting_slot ) const {
   CargoHold new_hold = *this;
   new_hold.remove( remove_slot );
-  return new_hold.fits_somewhere( cargo, starting_slot );
+  return new_hold.fits_somewhere( units_state, cargo,
+                                  starting_slot );
 }
 
-bool CargoHold::fits_somewhere( Cargo_t const& cargo,
+bool CargoHold::fits_somewhere( UnitsState const& units_state,
+                                Cargo_t const&    cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;
   // Do this so that this tmp cargo hold does not get destroyed
   // with stuff in it, which currently triggers a warning to be
   // logged to the console and slows things down.
   SCOPE_EXIT( new_hold.o_.slots.clear() );
-  return new_hold.try_add_somewhere( cargo, starting_slot );
+  return new_hold.try_add_somewhere( units_state, cargo,
+                                     starting_slot );
 }
 
-bool CargoHold::try_add_somewhere( Cargo_t const& cargo,
+bool CargoHold::try_add_somewhere( UnitsState const& units_state,
+                                   Cargo_t const&    cargo,
                                    int starting_from ) {
   if( slots_total() == 0 ) return false;
   CHECK( starting_from >= 0 && starting_from < slots_total() );
@@ -388,7 +394,7 @@ bool CargoHold::try_add_somewhere( Cargo_t const& cargo,
       cargo,
       [&]( Cargo::unit u ) {
         for( int idx : slots )
-          if( try_add( u, idx ) ) //
+          if( try_add( units_state, u, idx ) ) //
             return true;
         return false;
       },
@@ -406,7 +412,8 @@ bool CargoHold::try_add_somewhere( Cargo_t const& cargo,
               CHECK( quantity_to_add > 0 );
               commodity.quantity -= quantity_to_add;
               CHECK(
-                  try_add( Cargo::commodity{ Commodity{
+                  try_add( units_state,
+                           Cargo::commodity{ Commodity{
                                /*type=*/commodity.type,
                                /*quantity=*/quantity_to_add } },
                            idx ),
@@ -429,6 +436,7 @@ bool CargoHold::try_add_somewhere( Cargo_t const& cargo,
                   if( quantity_to_add > 0 ) {
                     CHECK(
                         try_add(
+                            units_state,
                             Cargo::commodity{ Commodity{
                                 /*type=*/commodity.type,
                                 /*quantity=*/quantity_to_add } },
@@ -453,7 +461,8 @@ bool CargoHold::try_add_somewhere( Cargo_t const& cargo,
       } );
 }
 
-bool CargoHold::try_add( Cargo_t const& cargo, int slot ) {
+bool CargoHold::try_add( UnitsState const& units_state,
+                         Cargo_t const& cargo, int slot ) {
   if( auto* unit = get_if<Cargo::unit>( &cargo ) ) {
     UnitId id = unit->id;
     // Make sure that the unit is not already in this cargo.
@@ -462,15 +471,16 @@ bool CargoHold::try_add( Cargo_t const& cargo, int slot ) {
         util::count_if( units, LC( _.id == id ) );
     CHECK( this_unit_in_cargo == 0 );
   }
-  if( !fits( cargo, slot ) ) return false;
+  if( !fits( units_state, cargo, slot ) ) return false;
   // From here on we assume it is totally safe in every way to
   // blindly add this cargo into the given slot(s).
   auto was_added = overload_visit(
       cargo,
       [&]( Cargo::unit u ) {
-        UnitId id = u.id;
-        auto   maybe_occupied =
-            unit_from_id( id ).desc().cargo_slots_occupies;
+        UnitId id             = u.id;
+        auto   maybe_occupied = units_state.unit_for( id )
+                                  .desc()
+                                  .cargo_slots_occupies;
         if( !maybe_occupied ) return false;
         auto occupied  = *maybe_occupied;
         o_.slots[slot] = CargoSlot::cargo{ /*contents=*/cargo };
@@ -493,7 +503,7 @@ bool CargoHold::try_add( Cargo_t const& cargo, int slot ) {
         }
         return true;
       } );
-  validate_or_die();
+  validate_or_die( units_state );
   return was_added;
 }
 
@@ -507,13 +517,11 @@ void CargoHold::remove( int slot ) {
     o_.slots[slot] = CargoSlot::empty{};
     ++slot;
   }
-  validate_or_die();
 }
 
 void CargoHold::clear() {
   for( auto& slot : o_.slots ) //
     slot = CargoSlot::empty{};
-  validate_or_die();
 }
 
 maybe<Cargo_t const&> CargoHold::cargo_starting_at_slot(
