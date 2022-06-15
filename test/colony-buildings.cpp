@@ -37,10 +37,6 @@ TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
   // TODO
 }
 
-TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
-  // TODO
-}
-
 TEST_CASE( "[colony-buildings] building_for_slot" ) {
   // TODO
 }
