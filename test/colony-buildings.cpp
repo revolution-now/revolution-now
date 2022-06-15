@@ -21,5 +21,33 @@ namespace {
 
 using namespace std;
 
+TEST_CASE( "[colony-buildings] slot_for_building" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] production_for_slot" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] indoor_job_for_slot" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] building_for_slot" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] colony_has_building_level" ) {
+  // TODO
+}
+
 } // namespace
 } // namespace rn

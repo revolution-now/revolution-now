@@ -195,14 +195,21 @@ void compute_food_production( Colony const&   colony,
             0 );
 }
 
+void compute_land_production(
+    ColonyProduction& pr, Colony const& colony,
+    TerrainState const& terrain_state ) {
+  // TODO
+}
+
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
 ColonyProduction production_for_colony(
-    TerrainState const&, UnitsState const& units_state,
-    Player const& player, Colony const& colony ) {
+    TerrainState const& terrain_state,
+    UnitsState const& units_state, Player const& player,
+    Colony const& colony ) {
   ColonyProduction res;
 
   res.crosses = crosses_production_for_colony( units_state,
@@ -210,6 +217,8 @@ ColonyProduction production_for_colony(
   // TODO: factor in sons of liberty bonuses and/or tory penalty.
 
   compute_food_production( colony, res.food );
+
+  compute_land_production( res, colony, terrain_state );
 
   return res;
 }
