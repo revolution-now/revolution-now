@@ -112,15 +112,17 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
         UnitId unit_id = colonists[idx];
         if( dragging_.has_value() && dragging_->id == unit_id )
           continue;
+#if 0
+        // For debugging the bounding rects.
         Coord pos = visible_rect_for_unit_in_slot( slot, idx )
                         .upper_left();
-        // For debugging the bounding rects.
         painter.draw_empty_rect(
             Rect::from( pos,
                         Delta( W{ kEffectiveUnitWidthPixels },
                                g_tile_delta.h ) ),
             rr::Painter::e_border_mode::in_out,
             gfx::pixel{ .r = 0, .g = 0, .b = 0, .a = 30 } );
+#endif
         render_unit(
             renderer,
             sprite_rect_for_unit_in_slot( slot, idx )
