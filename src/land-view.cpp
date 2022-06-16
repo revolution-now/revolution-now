@@ -724,7 +724,10 @@ struct LandViewPlane::Impl : public Plane {
         CHECK( dp_anim.target.has_value() );
         e_tile from_tile =
             unit_from_id( depixelate_id ).desc().tile;
-        e_tile    to_tile = unit_attr( *dp_anim.target ).tile;
+        e_tile to_tile = unit_attr( *dp_anim.target ).tile;
+        // FIXME: need to give the shader the ability to draw a
+        // shadow to the left of a sprite so that the unit being
+        // depixelated to has its shadow during that time.
         gfx::size target =
             depixelation_offset( painter, from_tile, to_tile );
         // Render the flag first so that we don't subject it to
