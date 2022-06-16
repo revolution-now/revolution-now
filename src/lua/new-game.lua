@@ -77,6 +77,23 @@ local function create_initial_units( nation )
   return coord
 end
 
+local function create_battlefield_units( options )
+  local veteran_soldier =
+      unit_type( e.unit_type.veteran_soldier )
+  local free_colonist = unit_type( e.unit_type.free_colonist )
+  local veteran_dragoon =
+      unit_type( e.unit_type.veteran_dragoon )
+
+  ustate.create_unit_on_map( e.nation.dutch, veteran_soldier,
+                             { x=1, y=1 } ):fortify()
+  ustate.create_unit_on_map( e.nation.dutch, free_colonist,
+                             { x=1, y=2 } ):fortify()
+  ustate.create_unit_on_map( e.nation.spanish, veteran_dragoon,
+                             { x=2, y=1 } )
+  ustate.create_unit_on_map( e.nation.spanish, veteran_dragoon,
+                             { x=2, y=2 } )
+end
+
 -----------------------------------------------------------------
 -- Players State
 -----------------------------------------------------------------
@@ -144,6 +161,13 @@ local function create_turn_state( turns_state )
 end
 
 -----------------------------------------------------------------
+-- Testing
+-----------------------------------------------------------------
+local function add_testing_options( options )
+  -- nothing.
+end
+
+-----------------------------------------------------------------
 -- Creates a new Game
 -----------------------------------------------------------------
 -- This should be called af the player decides the parameters of
@@ -158,6 +182,8 @@ function M.create( options )
     if options[k] == nil then options[k] = v end
   end
 
+  add_testing_options( options )
+
   local root = ROOT_STATE
 
   set_default_settings( options, root.settings )
@@ -167,6 +193,8 @@ function M.create( options )
   create_turn_state( root.turn )
 
   create_nations( options, root )
+
+  -- create_battlefield_units()
 end
 
 return M

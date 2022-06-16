@@ -986,6 +986,16 @@ local function generate_testing_land()
   -- end )
 end
 
+local function generate_battlefield()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if coord.x ~= 0 and coord.x ~= size.w - 1 then
+      square.surface = e.surface.land
+      square.ground = e.ground_terrain.grassland
+    end
+  end )
+end
+
 -----------------------------------------------------------------
 -- Testing
 -----------------------------------------------------------------
@@ -1017,6 +1027,7 @@ function M.generate( options )
   reset_terrain( options )
 
   generate_land( options )
+  -- generate_battlefield( options )
   -- generate_testing_land()
 
   create_sea_lanes()
