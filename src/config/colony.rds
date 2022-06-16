@@ -11,9 +11,15 @@
 # Rds
 include "colony-enums.rds.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 # cdr
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
+
+# C++ standard library
+include "<string>"
 
 namespace "rn"
 
@@ -39,6 +45,10 @@ struct.Warehouses {
   _features { validation, equality }
 }
 
+struct.config_colony_outdoors {
+  job_names 'refl::enum_map<e_outdoor_job, std::string>',
+}
+
 # Note that this config is for non-production related things. For
 # production-related things there is a dedicated config file.
 struct.config_colony_t {
@@ -53,6 +63,8 @@ struct.config_colony_t {
   # When a colony is founded it will get this set of buildings
   # for free.
   initial_colony_buildings 'std::unordered_set<e_colony_building>',
+
+  outdoors 'config_colony_outdoors',
 
   _features { validation, equality }
 }

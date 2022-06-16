@@ -39,3 +39,9 @@ wait<std::chrono::microseconds> wait_for_duration(
     std::chrono::microseconds us );
 
 } // namespace rn
+
+// Hack to allow finding this via ADL. If some day this conflicts
+// with something in std, then just rename it.
+namespace std {
+using ::rn::co_await_transform;
+}

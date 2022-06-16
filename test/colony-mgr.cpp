@@ -506,5 +506,63 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
            } );
 }
 
+TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
+  World W;
+  W.create_default_map();
+
+  UnitId founder = W.add_unit_on_map( e_unit_type::free_colonist,
+                                      Coord( 1_x, 1_y ) );
+  // Don't use W.add_colony here because we are testing
+  // found_colony specifically.
+  ColonyId id =
+      found_colony( W.colonies(), W.terrain(), W.units(),
+                    founder, W.map_updater(), "my colony" );
+  Colony& colony = W.colonies().colony_for( id );
+
+  REQUIRE( colony.outdoor_jobs()[e_direction::nw] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::ne] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::w] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::e] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::sw] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::s] == nothing );
+  REQUIRE( colony.outdoor_jobs()[e_direction::se] == nothing );
+
+  // Colonist should have been placed here.
+  REQUIRE( colony.outdoor_jobs()[e_direction::n] ==
+           ( OutdoorUnit{ .unit_id = founder,
+                          .job     = e_outdoor_job::food } ) );
+}
+
+TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  // Note that the founding colonist will have been placed on the
+  // north tile.
+  UnitId farmer = W.add_unit_outdoors(
+      colony.id(), e_direction::w, e_outdoor_job::food );
+  UnitId ore_miner = W.add_unit_outdoors(
+      colony.id(), e_direction::e, e_outdoor_job::ore );
+
+  // Sanity check.
+  REQUIRE( colony.outdoor_jobs()[e_direction::w] ==
+           ( OutdoorUnit{ .unit_id = farmer,
+                          .job     = e_outdoor_job::food } ) );
+  REQUIRE( colony.outdoor_jobs()[e_direction::e] ==
+           ( OutdoorUnit{ .unit_id = ore_miner,
+                          .job     = e_outdoor_job::ore } ) );
+
+  // Change job.
+  change_unit_outdoor_job( colony, farmer,
+                           e_outdoor_job::lumber );
+
+  REQUIRE( colony.outdoor_jobs()[e_direction::w] ==
+           ( OutdoorUnit{ .unit_id = farmer,
+                          .job     = e_outdoor_job::lumber } ) );
+  REQUIRE( colony.outdoor_jobs()[e_direction::e] ==
+           ( OutdoorUnit{ .unit_id = ore_miner,
+                          .job     = e_outdoor_job::ore } ) );
+}
+
 } // namespace
 } // namespace rn

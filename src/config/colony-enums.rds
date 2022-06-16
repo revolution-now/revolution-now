@@ -71,3 +71,28 @@ enum.e_colony_building {
   # Special buildings.
   custom_house,
 }
+
+enum.e_indoor_job {
+  bells,
+  crosses,
+  hammers,
+  rum,
+  cigars,
+  cloth,
+  coats,
+  tools,
+  muskets,
+  teacher,
+}
+
+enum.e_outdoor_job {
+  food,
+  fish,
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  lumber,
+  ore,
+  silver,
+}

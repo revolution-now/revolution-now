@@ -359,6 +359,15 @@ void remove_unit_from_colony( UnitsState& units_state,
   colony.remove_unit( unit_id );
 }
 
+void change_unit_outdoor_job( Colony& colony, UnitId id,
+                              e_outdoor_job new_job ) {
+  auto& outdoor_jobs = colony.outdoor_jobs();
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( outdoor_jobs[d].has_value() )
+      if( outdoor_jobs[d]->unit_id == id )
+        outdoor_jobs[d]->job = new_job;
+}
+
 wait<> evolve_colonies_for_player(
     LandViewPlane& land_view_plane,
     ColoniesState& colonies_state, SettingsState const& settings,

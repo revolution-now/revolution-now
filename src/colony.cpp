@@ -45,7 +45,6 @@ void validate_job_maps( wrapped::Colony const& colony ) {
   unordered_set<UnitId> all;
 
   // First compile a list of all unit IDs mentioned.
-  for( auto const& [id, job] : colony.units ) all.insert( id );
   for( auto const& [job, units] : colony.indoor_jobs )
     all.insert( units.begin(), units.end() );
   for( auto const& [direction, outdoor_unit] :
@@ -53,12 +52,10 @@ void validate_job_maps( wrapped::Colony const& colony ) {
     if( outdoor_unit.has_value() )
       all.insert( outdoor_unit->unit_id );
 
-  // Now for each unit ID, make sure that it is in both the
-  // unit-to-jobs map and precisely one of the jobs-to-units
-  // maps.
+  // Now for each unit ID, make sure that it is in precisely one
+  // of the jobs-to-units maps.
 
   for( UnitId id : all ) {
-    bool units_has       = colony.units.contains( id );
     bool indoor_jobs_has = false;
     for( auto const& [job, units] : colony.indoor_jobs ) {
       CHECK_LE( int( units.size() ), 3 );
@@ -87,28 +84,7 @@ void validate_job_maps( wrapped::Colony const& colony ) {
         outdoor_jobs_has = true;
       }
     }
-
-    bool jobs_has = indoor_jobs_has || outdoor_jobs_has;
-
-    CHECK( units_has == jobs_has,
-           "colony (id={}) is in an inconsistent state with "
-           "regard to unit {}.",
-           colony.id, id );
   }
-
-  // Now make sure that job assignments are compatible between
-  // the various maps.
-  for( auto const& [indoor_job, units] : colony.indoor_jobs )
-    for( UnitId id : units )
-      CHECK( base::lookup( colony.units, id ) ==
-             ColonyJob_t{
-                 ColonyJob::indoor{ .job = indoor_job } } );
-  for( auto const& [direction, unit] : colony.outdoor_jobs )
-    if( unit.has_value() )
-      CHECK(
-          base::lookup( colony.units, unit->unit_id ) ==
-          ( ColonyJob_t{ ColonyJob::outdoor{
-              .direction = direction, .job = unit->job } } ) );
 }
 
 } // namespace
@@ -185,7 +161,14 @@ valid_or<string> wrapped::Colony::validate() const {
 /****************************************************************
 ** Colony
 *****************************************************************/
-int Colony::population() const { return o_.units.size(); }
+int Colony::population() const {
+  int size = 0;
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    size += o_.indoor_jobs[job].size();
+  for( e_direction d : refl::enum_values<e_direction> )
+    size += o_.outdoor_jobs[d].has_value() ? 1 : 0;
+  return size;
+}
 
 string Colony::debug_string() const {
   return fmt::format(
@@ -202,10 +185,22 @@ void Colony::rm_building( e_colony_building building ) {
   o_.buildings[building] = false;
 }
 
+vector<UnitId> Colony::all_units() const {
+  vector<UnitId> res;
+  res.reserve( 40 );
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    res.insert( res.end(), o_.indoor_jobs[job].begin(),
+                o_.indoor_jobs[job].end() );
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( maybe<OutdoorUnit> const& job = o_.outdoor_jobs[d];
+        job.has_value() )
+      res.push_back( job->unit_id );
+  return res;
+}
+
 void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
   SCOPE_EXIT( CHECK( validate() ) );
   CHECK( !has_unit( id ), "Unit {} already in colony.", id );
-  o_.units[id] = job;
   switch( job.to_enum() ) {
     case ColonyJob::e::indoor: {
       auto const& o = job.get<ColonyJob::indoor>();
@@ -225,8 +220,6 @@ void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
 
 void Colony::remove_unit( UnitId id ) {
   SCOPE_EXIT( CHECK( validate() ) );
-  CHECK( has_unit( id ), "Unit {} is not in colony.", id );
-  o_.units.erase( id );
 
   for( auto& [job, units] : o_.indoor_jobs ) {
     if( find( units.begin(), units.end(), id ) != units.end() ) {
@@ -243,11 +236,12 @@ void Colony::remove_unit( UnitId id ) {
     }
   }
 
-  SHOULD_NOT_BE_HERE;
+  FATAL( "unit {} not found in colony.", id );
 }
 
 bool Colony::has_unit( UnitId id ) const {
-  return o_.units.contains( id );
+  vector<UnitId> units = all_units();
+  return find( units.begin(), units.end(), id ) != units.end();
 }
 
 void Colony::set_nation( e_nation new_nation ) {

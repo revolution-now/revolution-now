@@ -40,7 +40,8 @@
 // Rds
 #include "gs-players.rds.hpp"
 
-// Config
+// config
+#include "config/colony.rds.hpp"
 #include "config/units.rds.hpp"
 
 // refl
@@ -131,15 +132,10 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       } );
 }
 
-e_tile tile_for_outdoor_job( MapSquare const& square,
-                             e_outdoor_job    job ) {
+e_tile tile_for_outdoor_job( e_outdoor_job job ) {
   switch( job ) {
-    case e_outdoor_job::food: {
-      if( square.surface == e_surface::land )
-        return e_tile::commodity_food;
-      else
-        return e_tile::product_fish;
-    }
+    case e_outdoor_job::food: return e_tile::commodity_food;
+    case e_outdoor_job::fish: return e_tile::product_fish;
     case e_outdoor_job::sugar: return e_tile::commodity_sugar;
     case e_outdoor_job::tobacco:
       return e_tile::commodity_tobacco;
@@ -154,7 +150,7 @@ e_tile tile_for_outdoor_job( MapSquare const& square,
 maybe<string> check_abandon() {
   ColoniesState& colonies_state = GameState::colonies();
   Colony& colony = colonies_state.colony_for( colony_id() );
-  if( colony.units().size() == 1 )
+  if( colony.population() == 1 )
     return "This action would abandon the colony, which is not "
            "yet supported.";
   return nothing;
@@ -400,11 +396,10 @@ class PopulationView : public ui::View, public ColonySubView {
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
-    auto const& colony = colony_from_id( colony_id() );
-    unordered_map<UnitId, ColonyJob_t> const& units_jobs =
-        colony.units();
-    auto unit_pos = coord + 16_h;
-    for( auto const& [unit_id, job] : units_jobs ) {
+    auto const&    colony   = colony_from_id( colony_id() );
+    vector<UnitId> units    = colony.all_units();
+    auto           unit_pos = coord + 16_h;
+    for( UnitId unit_id : units ) {
       render_unit( renderer, unit_pos, unit_id,
                    UnitRenderOptions{ .flag = false } );
       unit_pos += 24_w;
@@ -1294,6 +1289,21 @@ class LandView : public ui::View,
     return *this;
   }
 
+  // Implement AwaitView.
+  wait<> perform_click( Coord pos ) override {
+    CHECK( pos.is_inside( rect( {} ) ) );
+    maybe<UnitId> unit_id = unit_under_cursor( pos );
+    if( !unit_id.has_value() ) co_return;
+    EnumChoiceConfig     config{ .msg = "Select Occupation",
+                                 .choice_required = false };
+    maybe<e_outdoor_job> new_job = co_await gui_.enum_choice(
+        config, config_colony.outdoors.job_names );
+    if( !new_job.has_value() ) co_return;
+    ColoniesState& colonies_state = GameState::colonies();
+    Colony& colony = colonies_state.colony_for( colony_id() );
+    change_unit_outdoor_job( colony, *unit_id, *new_job );
+  }
+
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity,
       Coord const&           where ) const override {
@@ -1479,7 +1489,6 @@ class LandView : public ui::View,
 
     // Render units.
     rr::Painter          painter        = renderer.painter();
-    TerrainState const&  terrain_state  = GameState::terrain();
     ColoniesState const& colonies_state = GameState::colonies();
     UnitsState const&    units_state    = GameState::units();
     Colony const&        colony =
@@ -1503,12 +1512,9 @@ class LandView : public ui::View,
       render_unit_type(
           painter, unit_coord, desc.type,
           UnitRenderOptions{ .shadow = UnitShadow{} } );
-      e_outdoor_job const job        = outdoor_unit->job;
-      MapSquare const&    map_square = terrain_state.square_at(
-             colony.location().moved( direction ) );
-      e_tile const product_tile =
-          tile_for_outdoor_job( map_square, job );
-      Coord const product_coord = square_coord;
+      e_outdoor_job const job    = outdoor_unit->job;
+      e_tile const product_tile  = tile_for_outdoor_job( job );
+      Coord const  product_coord = square_coord;
       render_sprite( painter, product_coord, product_tile );
       Delta const product_tile_size =
           sprite_size( product_tile );
@@ -1545,13 +1551,16 @@ class LandView : public ui::View,
     }
   }
 
-  static unique_ptr<LandView> create( e_render_mode mode ) {
-    return make_unique<LandView>( mode );
+  static unique_ptr<LandView> create( IGui&         gui,
+                                      e_render_mode mode ) {
+    return make_unique<LandView>( gui, mode );
   }
 
-  LandView( e_render_mode mode ) : mode_( mode ) {}
+  LandView( IGui& gui, e_render_mode mode )
+    : gui_( gui ), mode_( mode ) {}
 
  private:
+  IGui&            gui_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
 };
@@ -1746,7 +1755,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view = LandView::create( land_view_mode );
+  auto land_view = LandView::create( gui, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]

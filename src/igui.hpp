@@ -13,11 +13,17 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "co-wait.hpp"
 #include "maybe.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "igui.rds.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
+#include "refl/ext.hpp"
+#include "refl/query-enum.hpp"
 
 // base
 #include "base/fmt.hpp"
@@ -80,6 +86,27 @@ struct IGui {
 
   // For convenience. Should not be overridden.
   wait<ui::e_confirm> yes_no( YesNoConfig const& config );
+
+  template<refl::ReflectedEnum E>
+  wait<maybe<E>> enum_choice(
+      EnumChoiceConfig const&               enum_config,
+      refl::enum_map<E, std::string> const& names );
 };
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::enum_choice(
+    EnumChoiceConfig const&               enum_config,
+    refl::enum_map<E, std::string> const& names ) {
+  ChoiceConfig config{ .msg = enum_config.msg };
+  if( !enum_config.choice_required ) config.key_on_escape = "-";
+  for( E item : refl::enum_values<E> )
+    config.options.push_back( ChoiceConfigOption{
+        .key = std::string( refl::enum_value_name( item ) ),
+        .display_name = names[item] } );
+  std::string res = co_await choice( config );
+  // If hitting escape was allowed, and if that happened, then
+  // this should do the right thing and return nothing.
+  co_return refl::enum_from_string<E>( res );
+}
 
 } // namespace rn

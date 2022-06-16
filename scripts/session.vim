@@ -2,7 +2,7 @@
 let s:stems = [
  \ 'colony',
  \ 'config/colony',
- \ 'colony-enums',
+ \ 'config/colony-enums',
  \ 'gs-colonies',
  \ 'colony-evolve',
  \ 'colony-mgr',

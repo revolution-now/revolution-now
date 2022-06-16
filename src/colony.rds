@@ -29,30 +29,6 @@ include "<unordered_set>"
 
 namespace "rn"
 
-enum.e_indoor_job {
-  bells,
-  crosses,
-  hammers,
-  rum,
-  cigars,
-  cloth,
-  coats,
-  tools,
-  muskets,
-  teacher,
-}
-
-enum.e_outdoor_job {
-  food, # corn+fish
-  sugar,
-  tobacco,
-  cotton,
-  fur,
-  lumber,
-  ore,
-  silver,
-}
-
 struct.OutdoorUnit {
   unit_id 'UnitId',
   job     'e_outdoor_job',
@@ -80,10 +56,6 @@ struct.Colony {
 
   # Commodities.
   commodities 'refl::enum_map<e_commodity, int>',
-
-  # Serves to both record the units in this colony as well as
-  # their occupations. FIXME: is this needed?
-  units 'std::unordered_map<UnitId, ColonyJob_t>',
 
   # This is a vector and not a set because it is desirable to
   # preserve the order in which units are added for UI purposes.

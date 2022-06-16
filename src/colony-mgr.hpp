@@ -95,4 +95,7 @@ void move_unit_to_colony( UnitsState& units_state,
 void remove_unit_from_colony( UnitsState& units_state,
                               Colony& colony, UnitId unit_id );
 
+void change_unit_outdoor_job( Colony& colony, UnitId id,
+                              e_outdoor_job new_job );
+
 } // namespace rn

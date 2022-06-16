@@ -35,3 +35,17 @@ initial_colony_buildings [
   weavers_house
   town_hall
 ]
+
+outdoors {
+  job_names {
+    food:    Farmer
+    fish:    Fisherman
+    sugar:   Sugar Planter
+    tobacco: Tobacco Planter
+    cotton:  Cotton Planter
+    fur:     Fur Trapper
+    lumber:  Lumberjack
+    ore:     Ore Miner
+    silver:  Silver Miner
+  }
+}

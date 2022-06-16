@@ -59,3 +59,12 @@ struct.IntInputConfig {
   min 'maybe<int>',
   max 'maybe<int>',
 }
+
+struct.EnumChoiceConfig {
+  # This text will be reflowed and may end up on multiple lines.
+  msg 'std::string',
+
+  # Should the user be forced to choose one, or can they e.g. hit
+  # escape to just cancel.
+  choice_required 'bool',
+}

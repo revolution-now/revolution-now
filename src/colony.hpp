@@ -74,11 +74,12 @@ struct Colony {
     return o_.commodities;
   }
 
-  auto const& units() const { return o_.units; }
+  std::vector<UnitId> all_units() const;
 
   auto const& indoor_jobs() const { return o_.indoor_jobs; }
 
   auto const& outdoor_jobs() const { return o_.outdoor_jobs; }
+  auto&       outdoor_jobs() { return o_.outdoor_jobs; }
 
   auto const& buildings() const { return o_.buildings; }
 
