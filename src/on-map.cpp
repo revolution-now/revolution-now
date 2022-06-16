@@ -106,6 +106,7 @@ void unit_to_map_square_non_interactive( UnitsState& units_state,
 
   // 3. Update terrain visibility.
   // TODO
+  // TODO: mind founding father de soto here.
 }
 
 wait<> unit_to_map_square( UnitsState&          units_state,
