@@ -109,6 +109,13 @@ UnitId World::add_unit_indoors( ColonyId     colony_id,
   return unit_id;
 }
 
+void World::ship_to_outbound( UnitId id ) {
+  CHECK( units().unit_for( id ).desc().ship );
+  UnitHarborViewState new_state{
+      .port_status = PortStatus::outbound{ .turns = 0 } };
+  units().change_to_harbor_view( id, new_state );
+}
+
 UnitId World::add_unit_outdoors( ColonyId      colony_id,
                                  e_direction   d,
                                  e_outdoor_job outdoor_job,

@@ -61,6 +61,9 @@ struct World {
 
   void build_map( std::vector<MapSquare> tiles, W width );
 
+  // ------------------------------------------------------------
+  // Creating units.
+  // ------------------------------------------------------------
   UnitId add_unit_in_port( e_unit_type     type,
                            maybe<e_nation> nation = nothing );
 
@@ -83,6 +86,16 @@ struct World {
       e_outdoor_job outdoor_job,
       e_unit_type   type = e_unit_type::free_colonist );
 
+  // ------------------------------------------------------------
+  // Steering ships.
+  // ------------------------------------------------------------
+  // Given a unit that is a ship (in any state) it will change it
+  // to be outbound.
+  void ship_to_outbound( UnitId id );
+
+  // ------------------------------------------------------------
+  // Creating Colonies.
+  // ------------------------------------------------------------
   // Create a colony using the founder unit on the same square as
   // the unit.
   Colony& add_colony( UnitId founder );
@@ -92,11 +105,14 @@ struct World {
   Colony& add_colony( Coord           where,
                       maybe<e_nation> nation = nothing );
 
+  // ------------------------------------------------------------
+  // Players.
+  // ------------------------------------------------------------
   void add_player( e_nation nation );
 
   e_nation default_nation() const { return default_nation_; }
   void     set_default_player( e_nation nation ) {
-    default_nation_ = nation;
+        default_nation_ = nation;
   }
 
   // This will call the validate method on each colony in the

@@ -68,10 +68,13 @@ UnitCounts unit_counts( UnitsState const& units_state,
     Unit const& unit = state.unit;
     if( unit.nation() != nation ) continue;
     ++counts.total_units;
-    if( state.ownership.holds<UnitOwnership::harbor>() ) {
+    if( auto harbor =
+            state.ownership.get_if<UnitOwnership::harbor>();
+        harbor.has_value() ) {
       if( !unit.desc().ship ) {
         ++counts.units_on_dock;
-      } else {
+      } else if( harbor->st.port_status
+                     .holds<PortStatus::in_port>() ) {
         maybe<vector<UnitId>> cargo_units =
             unit.units_in_cargo();
         if( cargo_units.has_value() )
