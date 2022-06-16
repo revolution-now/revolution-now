@@ -371,7 +371,7 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
 TEST_CASE( "[utype] UnitType creation" ) {
   using UT = e_unit_type;
   auto f   = []( UT type, UT base_type ) {
-    return UnitType::create( type, base_type );
+      return UnitType::create( type, base_type );
   };
   // Same types (base);
   REQUIRE(
@@ -490,8 +490,8 @@ TEST_CASE( "[utype] unit_type_modifiers" ) {
   using Mod = e_unit_type_modifier;
   using US  = unordered_set<Mod>;
   auto f    = []( UT base_type, UT type ) -> maybe<US const&> {
-    UNWRAP_RETURN( ut, UnitType::create( type, base_type ) );
-    return ut.unit_type_modifiers();
+       UNWRAP_RETURN( ut, UnitType::create( type, base_type ) );
+       return ut.unit_type_modifiers();
   };
   // Same types (base);
   REQUIRE( f( UT::free_colonist, UT::free_colonist ) == US{} );
@@ -589,6 +589,25 @@ TEST_CASE( "[utype] on_death_demoted_type" ) {
            UnitType::create( UT::continental_army ) );
   REQUIRE( f( UnitType::create( UT::artillery ) ) ==
            UnitType::create( UT::damaged_artillery ) );
+}
+
+TEST_CASE( "[utype] on_capture_demoted_type" ) {
+  auto* f  = on_capture_demoted_type;
+  using UT = e_unit_type;
+  // No demoting.
+  REQUIRE( f( UnitType::create( UT::free_colonist ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::indentured_servant ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::expert_sugar_planter ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::damaged_artillery ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::caravel ) ) == nothing );
+  REQUIRE( f( UnitType::create( UT::cavalry ) ) == nothing );
+  // Demoting.
+  REQUIRE( f( UnitType::create( UT::veteran_colonist ) ) ==
+           UT::free_colonist );
 }
 
 TEST_CASE( "[utype] add_unit_type_modifiers" ) {

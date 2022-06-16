@@ -151,6 +151,14 @@ void Unit::demote_from_lost_battle() {
   change_type( std::move( new_comp ) );
 }
 
+void Unit::demote_from_capture() {
+  UNWRAP_CHECK( new_type,
+                on_capture_demoted_type( type_obj() ) );
+  UNWRAP_CHECK( new_comp, o_.composition.with_new_type(
+                              UnitType::create( new_type ) ) );
+  change_type( std::move( new_comp ) );
+}
+
 UnitTransformationResult Unit::strip_to_base_type() {
   UnitTransformationResult res =
       rn::strip_to_base_type( o_.composition );

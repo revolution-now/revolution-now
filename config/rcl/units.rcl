@@ -989,7 +989,7 @@ composition {
       movement_points:       1
       attack_points:         0
       defense_points:        1
-      on_death               capture{}
+      on_death               capture_and_demote{type=free_colonist}
       road_turns:            null
       plow_turns:            null
       canonical_base:        null

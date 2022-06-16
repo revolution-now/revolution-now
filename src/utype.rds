@@ -131,6 +131,9 @@ sumtype.UnitDeathAction {
   demote {
     lose 'std::unordered_set<e_unit_type_modifier>',
   },
+  capture_and_demote {
+    type 'e_unit_type',
+  },
 }
 
 # Unit promotion. Only base types can be promoted, but the de-

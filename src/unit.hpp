@@ -60,7 +60,7 @@ struct ND Unit {
   }
   MovementPoints movement_points() const { return o_.mv_pts; }
   e_unit_type    base_type() const {
-    return o_.composition.base_type();
+       return o_.composition.base_type();
   }
   e_unit_type type() const { return o_.composition.type(); }
   UnitType type_obj() const { return o_.composition.type_obj(); }
@@ -156,6 +156,9 @@ struct ND Unit {
 
   // Will check-fail if the unit cannot be demoted.
   void demote_from_lost_battle();
+  // This is for e.g. a veteran colonist that (in the original
+  // game) loses veteran status upon capture.
+  void demote_from_capture();
 
   // This is used to transform the unit when e.g. founding a
   // colony. In that situation, the unit needs to be stripped to

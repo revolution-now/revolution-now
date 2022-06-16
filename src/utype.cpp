@@ -329,6 +329,15 @@ maybe<UnitType> on_death_demoted_type( UnitType ut ) {
   return res;
 }
 
+maybe<e_unit_type> on_capture_demoted_type( UnitType ut ) {
+  UNWRAP_RETURN(
+      capture_and_demote,
+      unit_attr( ut.type() )
+          .on_death
+          .get_if<UnitDeathAction::capture_and_demote>() );
+  return capture_and_demote.type;
+}
+
 std::unordered_set<e_unit_type_modifier> const&
 UnitType::unit_type_modifiers() {
   UNWRAP_CHECK( res, unit_type_modifiers_for_path( o_.base_type,

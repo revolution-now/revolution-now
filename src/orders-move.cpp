@@ -370,7 +370,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -1232,6 +1232,18 @@ wait<> AttackHandler::perform() {
       break;
   }
 
+  auto capture_unit = [&]() -> wait<> {
+    loser.change_nation( winner.nation() );
+    co_await unit_to_map_square(
+        units_state_, terrain_state_, player_, settings_, gui_,
+        map_updater_, loser.id(),
+        coord_for_unit_indirect_or_die( winner.id() ) );
+    // This is so that the captured unit won't ask for orders
+    // in the same turn that it is captured.
+    loser.forfeight_mv_points();
+    loser.clear_orders();
+  };
+
   switch( loser.desc().on_death.to_enum() ) {
     using namespace UnitDeathAction;
     case e::destroy: {
@@ -1269,30 +1281,22 @@ wait<> AttackHandler::perform() {
       co_await gui_.message_box( msg );
       break;
     }
-    case e::capture:
-      // Capture only happens to defenders.
-      if( loser.id() == defender.id() ) {
-        loser.change_nation( winner.nation() );
-        co_await unit_to_map_square(
-            units_state_, terrain_state_, player_, settings_,
-            gui_, map_updater_, loser.id(),
-            coord_for_unit_indirect_or_die( winner.id() ) );
-        // This is so that the captured unit won't ask for orders
-        // in the same turn that it is captured.
-        loser.forfeight_mv_points();
-        loser.clear_orders();
-      } else {
-        // If the loser is not the defender, then the loser is
-        // the attacker, which means the loser must be a military
-        // unit, but military units can't really be captured in
-        // this game, at least not with the default rules.
-        SHOULD_NOT_BE_HERE;
-      }
+    case e::capture: //
+      co_await capture_unit();
       break;
     case e::demote:
       loser.demote_from_lost_battle();
       // TODO: if a unit loses, should it lose all of its move-
       // ment points? Check the original game.
+      break;
+    case e::capture_and_demote:
+      // Need to do this first before demoting the unit.
+      string msg = "Unit demoted upon capture!";
+      if( loser.type() == e_unit_type::veteran_colonist )
+        msg = "Veteran status lost upon capture!";
+      co_await capture_unit();
+      loser.demote_from_capture();
+      co_await gui_.message_box( msg );
       break;
   }
   co_return;

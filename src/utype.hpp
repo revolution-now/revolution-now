@@ -149,6 +149,10 @@ bool is_unit_human( UnitType ut );
 // base type.
 maybe<UnitType> on_death_demoted_type( UnitType ut );
 
+// For units that get demoted upon capture (e.g.
+// veteran_colonist) this will return that demoted type.
+maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
+
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
