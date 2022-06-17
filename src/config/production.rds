@@ -10,6 +10,7 @@
 # ===============================================================
 # Rds
 include "colony-enums.rds.hpp"
+include "../terrain.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
@@ -65,12 +66,68 @@ struct.IndoorProduction {
   william_penn_crosses_bonus 'int',
 }
 
+sumtype.OutdoorJobBonus {
+  none {},
+  add {
+    # In the original game, it seems that when bonuses are addi-
+    # tive, they can sometimes have different values for experts
+    # and non-experts.
+    non_expert 'int',
+    expert     'int',
+  },
+  mul {
+    by 'int',
+  },
+}
+
+struct.OutdoorJobProduction {
+  # In general the order in which these are applied matters be-
+  # cause some of them are additive and some multiplicative. When
+  # they are all additive, as in e.g. the case of farming in the
+  # original game, the order does not matter. In the case of e.g.
+  # cotton on prairie tiles, the original game appears to compute
+  # in this order, where each is present:
+  #
+  #   1. base:        3
+  #   2. resource:   x2
+  #   3. plow:       +1
+  #   4. river:      +1
+  #   5. expert:     x2
+  #
+  # So let's say that we have an expert cotton planter working on
+  # a square with prime cotton, a river, and plowed, we'd have:
+  #
+  #   production = ((3*2)+1+1)*2 = 16
+  #
+  # Note that none of these are mutually exclusive; i.e., when a
+  # tile is eligible for both plow and river bonuses, they can
+  # both be present and will be cumulative.
+  river_bonus    'OutdoorJobBonus_t',
+  road_bonus     'OutdoorJobBonus_t',
+  plow_bonus     'OutdoorJobBonus_t',
+  expert_bonus   'OutdoorJobBonus_t',
+
+  # For ocean tiles.
+  coast_bonus    'OutdoorJobBonus_t',
+
+  resource_bonus 'refl::enum_map<e_natural_resource, OutdoorJobBonus_t>',
+
+  # These are for a free colonist.
+  base_productions 'refl::enum_map<e_terrain, int>',
+}
+
+struct.OutdoorProduction {
+  jobs 'refl::enum_map<e_outdoor_job, OutdoorJobProduction>',
+}
+
 struct.config_production_t {
   # How many crosses are produced by a colony just by virtue of
   # it existing (i.e., with no churches or cathedrals)?
   base_crosses 'int',
 
   indoor_production 'IndoorProduction',
+
+  outdoor_production 'OutdoorProduction',
 
   # The number of items that are automatically produced by vir-
   # tual of a building existing. Most buildings have "zero" for

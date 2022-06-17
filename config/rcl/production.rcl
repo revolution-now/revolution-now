@@ -157,3 +157,451 @@ building_production_bonus {
   college.none:              {}
   university.none:           {}
 }
+
+outdoor_production {
+  jobs {
+    food: {
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=0, expert=0 }
+      plow_bonus.add   { non_expert=1, expert=1 }
+      coast_bonus.none {}
+      # The non_expert field is irrelevant here. Note that the
+      # in-game numbers say that this is 3, but it is actually 2.
+      expert_bonus.add { non_expert=0, expert=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.add             { non_expert=2, expert=4 }
+        fish.none            {}
+        minerals.none        {}
+        oasis.add            { non_expert=2, expert=4 }
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.add            { non_expert=2, expert=4 }
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    2
+        broadleaf: 2
+        conifer:   2
+        desert:    2
+        grassland: 3
+        hills:     2
+        marsh:     3
+        mixed:     3
+        mountains: 0
+        ocean:     0
+        plains:    5
+        prairie:   3
+        rain:      2
+        savannah:  4
+        scrub:     2
+        swamp:     3
+        tropical:  3
+        tundra:    3
+        wetland:   2
+      }
+    }
+    fish: {
+      # TODO: need to measure this.
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.none  {}
+      plow_bonus.none  {}
+      # The in-game numbers say that this is 1, but it actually
+      # seems to be 2.
+      coast_bonus.add  { non_expert=2, expert=2 }
+      # The non_expert field is irrelevant here. Note that the
+      # in-game numbers say that this is 3, but it is actually 2.
+      expert_bonus.add  { non_expert=0, expert=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.add             { non_expert=3, expert=6 }
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    0
+        broadleaf: 0
+        conifer:   0
+        desert:    0
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     0
+        mountains: 0
+        # The in-game docs say 4 for this, but it appears as 2.
+        ocean:     2
+        plains:    0
+        prairie:   0
+        rain:      0
+        savannah:  0
+        scrub:     0
+        swamp:     0
+        tropical:  0
+        tundra:    0
+        wetland:   0
+      }
+    }
+    sugar: {
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=0, expert=0 }
+      plow_bonus.add   { non_expert=1, expert=1 }
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.mul            { by=2 }
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    0
+        broadleaf: 0
+        conifer:   0
+        desert:    0
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     0
+        mountains: 0
+        ocean:     0
+        plains:    0
+        prairie:   0
+        rain:      1
+        savannah:  3
+        scrub:     0
+        swamp:     2
+        tropical:  1
+        tundra:    0
+        wetland:   0
+      }
+    }
+    tobacco: {
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=0, expert=0 }
+      plow_bonus.add   { non_expert=1, expert=1 }
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.mul          { by=2 }
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    0
+        broadleaf: 0
+        conifer:   1
+        desert:    0
+        grassland: 3
+        hills:     0
+        marsh:     2
+        mixed:     0
+        mountains: 0
+        ocean:     0
+        plains:    0
+        prairie:   0
+        rain:      0
+        savannah:  0
+        scrub:     0
+        swamp:     0
+        tropical:  0
+        tundra:    0
+        wetland:   1
+      }
+    }
+    cotton: {
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=0, expert=0 }
+      plow_bonus.add   { non_expert=1, expert=1 }
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.mul           { by=2 }
+        deer.none            {}
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        # TODO: check these because there appears to be more
+        # cotton production overall than tobacco and sugar.
+        arctic:    0
+        boreal:    0
+        broadleaf: 1
+        conifer:   0
+        desert:    1
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     1
+        mountains: 0
+        ocean:     0
+        plains:    2
+        prairie:   3
+        rain:      0
+        savannah:  0
+        scrub:     1
+        swamp:     0
+        tropical:  0
+        tundra:    0
+        wetland:   0
+      }
+    }
+    fur: {
+      river_bonus.add  { non_expert=2, expert=2 }
+      road_bonus.add   { non_expert=2, expert=2 }
+      plow_bonus.none  {}
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        # TODO: check this
+        beaver.add           { non_expert=3, expert=3 }
+        cotton.none          {}
+        # TODO: check this
+        deer.add             { non_expert=2, expert=2 }
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    3
+        broadleaf: 2
+        conifer:   2
+        desert:    0
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     3
+        mountains: 0
+        ocean:     0
+        plains:    0
+        prairie:   0
+        rain:      1
+        savannah:  0
+        scrub:     2
+        swamp:     0
+        tropical:  2
+        tundra:    0
+        wetland:   2
+      }
+    }
+    lumber: {
+      river_bonus.add  { non_expert=2, expert=2 }
+      road_bonus.add   { non_expert=2, expert=2 }
+      plow_bonus.none  {}
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        # TODO: check this
+        tree.add             { non_expert=4, expert=4 }
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    4
+        broadleaf: 4
+        conifer:   6
+        desert:    0
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     6
+        mountains: 0
+        ocean:     0
+        plains:    0
+        prairie:   0
+        rain:      4
+        savannah:  0
+        scrub:     2
+        swamp:     0
+        tropical:  4
+        tundra:    0
+        wetland:   4
+      }
+    }
+    ore: {
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=1, expert=1 }
+      plow_bonus.none  {}
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.none            {}
+        # TODO: check this
+        minerals.add         { non_expert=3, expert=3 }
+        oasis.none           {}
+        # TODO: check this
+        ore.add              { non_expert=2, expert=2 }
+        silver.none          {}
+        silver_depleted.none {}
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    1
+        broadleaf: 0
+        conifer:   0
+        desert:    2
+        grassland: 0
+        hills:     4
+        marsh:     2
+        mixed:     0
+        mountains: 4
+        ocean:     0
+        plains:    1
+        prairie:   0
+        rain:      1
+        savannah:  0
+        scrub:     1
+        swamp:     2
+        tropical:  0
+        tundra:    2
+        wetland:   1
+      }
+    }
+    silver: {
+      # In the original game silver can only be mined in moun-
+      # tains, and it appears that it doesn't support rivers on
+      # mountain squares, so this may not be relevant. But the
+      # in-game docs do give numbers for this river bonus.
+      river_bonus.add  { non_expert=1, expert=1 }
+      road_bonus.add   { non_expert=1, expert=1 }
+      plow_bonus.none  {}
+      coast_bonus.none {}
+      expert_bonus.mul { by=2 }
+
+      resource_bonus {
+        beaver.none          {}
+        cotton.none          {}
+        deer.none            {}
+        fish.none            {}
+        minerals.none        {}
+        oasis.none           {}
+        ore.none             {}
+        # TODO: check these.
+        silver.add           { non_expert=2, expert=2 }
+        silver_depleted.add  { non_expert=1, expert=1 }
+        sugar.none           {}
+        tobacco.none         {}
+        tree.none            {}
+        wheat.none           {}
+      }
+
+      base_productions {
+        arctic:    0
+        boreal:    0
+        broadleaf: 0
+        conifer:   0
+        desert:    0
+        grassland: 0
+        hills:     0
+        marsh:     0
+        mixed:     0
+        # Note: it has been observed in the author's copy of the
+        # game that colonists produce no silver in mountain
+        # squares unless there is a silver resource there or an
+        # expert. This does not appear in any docs anywhere it
+        # seems, so could be a bug. It seems likely to be a bug
+        # because all of the other variations (non-expert on
+        # silver resource, expert on mountains, expert on silver
+        # resource, etc.) seem to assume that this base value is
+        # actually 1.
+        mountains: 1
+        ocean:     0
+        plains:    0
+        prairie:   0
+        rain:      0
+        savannah:  0
+        scrub:     0
+        swamp:     0
+        tropical:  0
+        tundra:    0
+        wetland:   0
+      }
+    }
+  }
+}
