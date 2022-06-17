@@ -18,6 +18,7 @@ include "unit-id.hpp"
 # Rds
 include "nation.rds.hpp"
 include "config/colony-enums.rds.hpp"
+include "config/unit-type.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -45,6 +46,15 @@ sumtype.ColonyJob {
   },
 }
 
+sumtype.Construction {
+  building {
+    what 'e_colony_building',
+  },
+  unit {
+    type 'e_unit_type',
+  }
+}
+
 namespace "rn.wrapped"
 
 struct.Colony {
@@ -65,8 +75,8 @@ struct.Colony {
 
   buildings 'refl::enum_map<e_colony_building, bool>',
 
-  # What is the colony currently producing.
-  production 'maybe<e_colony_building>',
+  # What building is the colony currently constructing.
+  construction 'maybe<Construction_t>',
 
   hammers 'int',
 
