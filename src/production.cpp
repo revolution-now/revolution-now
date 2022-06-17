@@ -385,6 +385,36 @@ void compute_land_production( ColonyProduction&   pr,
 /****************************************************************
 ** Public API
 *****************************************************************/
+maybe<int> production_for_slot( ColonyProduction const& pr,
+                                e_colony_building_slot  slot ) {
+  switch( slot ) {
+    case e_colony_building_slot::muskets:
+      return pr.ore_products.muskets_produced_theoretical;
+    case e_colony_building_slot::tools:
+      return pr.ore_products.tools_produced_theoretical;
+    case e_colony_building_slot::rum:
+      return pr.sugar_rum.product_produced_theoretical;
+    case e_colony_building_slot::cloth:
+      return pr.cotton_cloth.product_produced_theoretical;
+    case e_colony_building_slot::coats:
+      return pr.fur_coats.product_produced_theoretical;
+    case e_colony_building_slot::cigars:
+      return pr.tobacco_cigars.product_produced_theoretical;
+    case e_colony_building_slot::hammers:
+      return pr.lumber_hammers.product_produced_theoretical;
+    case e_colony_building_slot::town_hall: return pr.bells;
+    case e_colony_building_slot::newspapers: return nothing;
+    case e_colony_building_slot::schools: return nothing;
+    case e_colony_building_slot::offshore: return nothing;
+    case e_colony_building_slot::horses:
+      return pr.food.horses_produced_theoretical;
+    case e_colony_building_slot::wall: return nothing;
+    case e_colony_building_slot::warehouses: return nothing;
+    case e_colony_building_slot::crosses: return pr.crosses;
+    case e_colony_building_slot::custom_house: return nothing;
+  }
+}
+
 ColonyProduction production_for_colony(
     TerrainState const& terrain_state,
     UnitsState const& units_state, Player const& player,

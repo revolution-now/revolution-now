@@ -13,12 +13,12 @@ namespace "rn"
 enum.e_colony_building {
   # House-level.
   armory,
-  blacksmiths_house,     # free
-  carpenters_shop,       # free
-  fur_traders_house,     # free
-  rum_distillers_house,  # free
-  tobacconists_house,    # free
-  weavers_house,         # free
+  blacksmiths_house,
+  carpenters_shop,
+  fur_traders_house,
+  rum_distillers_house,
+  tobacconists_house,
+  weavers_house,
 
   # Shop-level.
   blacksmiths_shop,
@@ -38,7 +38,7 @@ enum.e_colony_building {
   textile_mill,
 
   # Bells.
-  town_hall,             # free
+  town_hall,
   printing_press,
   newspaper,
 

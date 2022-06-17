@@ -15,6 +15,7 @@
 #include "colony.hpp"
 #include "game-state.hpp" // FIXME
 #include "gs-units.hpp"
+#include "production.hpp"
 #include "render.hpp"
 
 // config
@@ -31,7 +32,40 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
+  switch( slot ) {
+    case e_colony_building_slot::muskets:
+      return e_tile::commodity_muskets;
+    case e_colony_building_slot::tools:
+      return e_tile::commodity_tools;
+    case e_colony_building_slot::rum:
+      return e_tile::commodity_rum;
+    case e_colony_building_slot::cloth:
+      return e_tile::commodity_cloth;
+    case e_colony_building_slot::coats:
+      return e_tile::commodity_fur;
+    case e_colony_building_slot::cigars:
+      return e_tile::commodity_cigars;
+    case e_colony_building_slot::hammers:
+      return e_tile::product_hammers;
+    case e_colony_building_slot::town_hall:
+      return e_tile::product_bells;
+    case e_colony_building_slot::newspapers: return nothing;
+    case e_colony_building_slot::schools: return nothing;
+    case e_colony_building_slot::offshore: return nothing;
+    case e_colony_building_slot::horses:
+      return e_tile::commodity_horses;
+    case e_colony_building_slot::wall: return nothing;
+    case e_colony_building_slot::warehouses: return nothing;
+    case e_colony_building_slot::crosses:
+      return e_tile::product_crosses;
+    case e_colony_building_slot::custom_house: return nothing;
+  }
+}
+
+} // namespace
 
 /****************************************************************
 ** Buildings
@@ -134,17 +168,18 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
       }
     }
 
-    maybe<SlotProduction> product =
+    maybe<int> quantity =
         production_for_slot( colview_production(), slot );
-    if( product.has_value() ) {
+    if( quantity.has_value() ) {
+      UNWRAP_CHECK( tile, tile_for_slot( slot ) );
       Coord pos =
           rect.upper_left() + 2_h +
           H{ rr::rendered_text_line_size_pixels( "x" ).h };
-      render_sprite( painter, pos, product->tile );
-      pos += sprite_size( product->tile ).w;
+      render_sprite( painter, pos, tile );
+      pos += sprite_size( tile ).w;
       rr::Typer typer =
           renderer.typer( pos, gfx::pixel::black() );
-      typer.write( "x {}", product->quantity );
+      typer.write( "x {}", *quantity );
     }
   }
 }

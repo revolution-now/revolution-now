@@ -12,7 +12,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // Rds
+#include "colony-buildings.rds.hpp"
 #include "production.rds.hpp"
 
 namespace rn {
@@ -31,5 +35,10 @@ ColonyProduction production_for_colony(
     TerrainState const& terrain_state,
     UnitsState const& units_state, Player const& player,
     Colony const& colony );
+
+// Given a building slot, will extract the quantity of the thing
+// currently being produced there.
+maybe<int> production_for_slot( ColonyProduction const& pr,
+                                e_colony_building_slot  slot );
 
 } // namespace rn

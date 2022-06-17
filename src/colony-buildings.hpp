@@ -19,26 +19,17 @@
 #include "colony-buildings.rds.hpp"
 #include "colony.rds.hpp"
 #include "config/colony-enums.rds.hpp"
-#include "production.rds.hpp"
 #include "tile-enum.rds.hpp"
 
 namespace rn {
 
 struct Colony;
 
-struct SlotProduction {
-  int    quantity = {};
-  e_tile tile     = {};
-};
-
 /****************************************************************
 ** Public API
 *****************************************************************/
 e_colony_building_slot slot_for_building(
     e_colony_building building );
-
-maybe<SlotProduction> production_for_slot(
-    ColonyProduction const& pr, e_colony_building_slot slot );
 
 maybe<e_indoor_job> indoor_job_for_slot(
     e_colony_building_slot slot );
