@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "anim.hpp"
+#include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "colony.hpp"
 #include "colview-entities.hpp"
@@ -403,13 +404,19 @@ wait<> drag_drop_routine(
 ** Input Handling
 *****************************************************************/
 // Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( PS&, Colony&,
+wait<bool> handle_event( PS& S, Colony& colony,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
   switch( event.keycode ) {
     case ::SDLK_ESCAPE: //
       co_return true;
+    case ::SDLK_1:
+      if( event.mod.shf_down ) {
+        co_await cheat_colony_buildings( colony, S.gui );
+        colview_top_level().update();
+      }
+      break;
     default: //
       break;
   }

@@ -1,0 +1,19 @@
+# ===============================================================
+# cheat.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-06-16.
+#
+# Description: Rds definitions for the cheat module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_cheat_colony_buildings_option {
+  give_all_buildings,
+  remove_all_buildings,
+  set_default_buildings,
+  add_one_building,
+  remove_one_building,
+}
