@@ -27,4 +27,15 @@ string trim( string_view sv ) {
   return string( sv );
 }
 
+string capitalize_initials( string_view sv ) {
+  string res;
+  res.reserve( sv.size() );
+  bool capitalize = true;
+  for( char c : sv ) {
+    res.push_back( capitalize ? toupper( c ) : c );
+    capitalize = ( c == ' ' );
+  }
+  return res;
+}
+
 } // namespace base

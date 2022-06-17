@@ -36,5 +36,23 @@ TEST_CASE( "[string] trim" ) {
   REQUIRE( trim( "one    two three " ) == "one    two three" );
 }
 
+TEST_CASE( "[string] capitalize_initials" ) {
+  REQUIRE( capitalize_initials( "" ) == "" );
+  REQUIRE( capitalize_initials( " " ) == " " );
+  REQUIRE( capitalize_initials( "   " ) == "   " );
+  REQUIRE( capitalize_initials( "  a" ) == "  A" );
+  REQUIRE( capitalize_initials( "  A" ) == "  A" );
+  REQUIRE( capitalize_initials( "a" ) == "A" );
+  REQUIRE( capitalize_initials( "A" ) == "A" );
+  REQUIRE( capitalize_initials( "A" ) == "A" );
+  REQUIRE( capitalize_initials( "a " ) == "A " );
+  REQUIRE( capitalize_initials( "A " ) == "A " );
+  REQUIRE( capitalize_initials( "A " ) == "A " );
+  REQUIRE( capitalize_initials( "this is a test" ) ==
+           "This Is A Test" );
+  REQUIRE( capitalize_initials( "this Is" ) == "This Is" );
+  REQUIRE( capitalize_initials( " this Is" ) == " This Is" );
+}
+
 } // namespace
 } // namespace base

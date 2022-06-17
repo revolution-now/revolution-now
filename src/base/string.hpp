@@ -20,4 +20,7 @@ namespace base {
 // Trim leading and trailing whitespace.
 std::string trim( std::string_view sv );
 
+// Capitalize the first letter of each word.
+std::string capitalize_initials( std::string_view sv );
+
 } // namespace base
