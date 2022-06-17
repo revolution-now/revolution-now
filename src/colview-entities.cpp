@@ -1307,6 +1307,8 @@ class LandView : public ui::View,
     ColoniesState& colonies_state = GameState::colonies();
     Colony& colony = colonies_state.colony_for( colony_id() );
     change_unit_outdoor_job( colony, *unit_id, *new_job );
+    update_production( GameState::terrain(), GameState::units(),
+                       player_, ::rn::colony() );
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -1557,15 +1559,17 @@ class LandView : public ui::View,
   }
 
   static unique_ptr<LandView> create( IGui&         gui,
+                                      Player const& player,
                                       e_render_mode mode ) {
-    return make_unique<LandView>( gui, mode );
+    return make_unique<LandView>( gui, player, mode );
   }
 
-  LandView( IGui& gui, e_render_mode mode )
-    : gui_( gui ), mode_( mode ) {}
+  LandView( IGui& gui, Player const& player, e_render_mode mode )
+    : gui_( gui ), player_( player ), mode_( mode ) {}
 
  private:
   IGui&            gui_;
+  Player const&    player_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
 };
@@ -1760,7 +1764,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( LandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = LandView::e_render_mode::_3x3;
-  auto land_view = LandView::create( gui, land_view_mode );
+  auto land_view =
+      LandView::create( gui, player, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
