@@ -1172,6 +1172,11 @@ class ProductionView : public ui::View, public ColonySubView {
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                             coord.distance_from_origin() );
+    rr::Typer typer =
+        renderer.typer( Coord{ 2_x, 2_y }, gfx::pixel::black() );
+    typer.write( "Hammers: {}\n", colony().hammers() );
   }
 
   static unique_ptr<ProductionView> create( Delta size ) {
