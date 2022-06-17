@@ -43,6 +43,8 @@ maybe<SlotProduction> production_for_slot(
 maybe<e_indoor_job> indoor_job_for_slot(
     e_colony_building_slot slot );
 
+e_colony_building_slot slot_for_indoor_job( e_indoor_job job );
+
 // Returns all possible buildings in a slot, in descending order
 // of calibur.
 std::vector<e_colony_building> const& buildings_for_slot(
@@ -59,5 +61,8 @@ maybe<e_colony_building> building_for_slot(
 // representation.
 bool colony_has_building_level( Colony const&     colony,
                                 e_colony_building building );
+
+// Note that this does not apply to food.
+int colony_warehouse_capacity( Colony const& colony );
 
 } // namespace rn

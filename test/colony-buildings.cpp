@@ -33,6 +33,10 @@ TEST_CASE( "[colony-buildings] indoor_job_for_slot" ) {
   // TODO
 }
 
+TEST_CASE( "[colony-buildings] slot_for_indoor_job" ) {
+  // TODO
+}
+
 TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
   // TODO
 }
@@ -42,6 +46,10 @@ TEST_CASE( "[colony-buildings] building_for_slot" ) {
 }
 
 TEST_CASE( "[colony-buildings] colony_has_building_level" ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-buildings] colony_warehouse_capacity" ) {
   // TODO
 }
 

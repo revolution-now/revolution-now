@@ -14,6 +14,9 @@
 #include "colony.hpp"
 #include "production.hpp"
 
+// config
+#include "config/colony.rds.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -200,6 +203,31 @@ maybe<e_indoor_job> indoor_job_for_slot(
   }
 }
 
+e_colony_building_slot slot_for_indoor_job( e_indoor_job job ) {
+  switch( job ) {
+    case e_indoor_job::bells:
+      return e_colony_building_slot::town_hall;
+    case e_indoor_job::crosses:
+      return e_colony_building_slot::crosses;
+    case e_indoor_job::hammers:
+      return e_colony_building_slot::hammers;
+    case e_indoor_job::rum: //
+      return e_colony_building_slot::rum;
+    case e_indoor_job::cigars:
+      return e_colony_building_slot::cigars;
+    case e_indoor_job::cloth:
+      return e_colony_building_slot::cloth;
+    case e_indoor_job::coats:
+      return e_colony_building_slot::coats;
+    case e_indoor_job::tools:
+      return e_colony_building_slot::tools;
+    case e_indoor_job::muskets:
+      return e_colony_building_slot::muskets;
+    case e_indoor_job::teacher:
+      return e_colony_building_slot::schools;
+  }
+}
+
 maybe<e_colony_building> building_for_slot(
     Colony const& colony, e_colony_building_slot slot ) {
   refl::enum_map<e_colony_building, bool> const& buildings =
@@ -346,6 +374,19 @@ bool colony_has_building_level( Colony const&     colony,
     if( possible_building == building ) return false;
   }
   return false;
+}
+
+int colony_warehouse_capacity( Colony const& colony ) {
+  maybe<e_colony_building> building = building_for_slot(
+      colony, e_colony_building_slot::warehouses );
+  if( !building.has_value() )
+    return config_colony.warehouses.default_max_quantity;
+  if( building == e_colony_building::warehouse )
+    return config_colony.warehouses.warehouse_max_quantity;
+  if( building == e_colony_building::warehouse_expansion )
+    return config_colony.warehouses
+        .warehouse_expansion_max_quantity;
+  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn
