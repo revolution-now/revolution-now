@@ -30,3 +30,6 @@ console {
 power {
   time_till_slow_fps: 60
 }
+
+# Are the various cheat/debug hot keys and menus available.
+cheat_functions_enabled: true

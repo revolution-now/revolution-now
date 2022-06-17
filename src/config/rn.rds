@@ -64,6 +64,9 @@ struct.config_rn_t {
   viewport    'config_rn_viewport',
   console     'config_rn_console',
   power       'config_rn_power',
+
+  # Are the various cheat/debug hot keys and menus available.
+  cheat_functions_enabled 'bool',
 }
 
 config.rn {}
