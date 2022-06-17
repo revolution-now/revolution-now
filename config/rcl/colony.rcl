@@ -49,3 +49,117 @@ outdoors {
     silver:  Silver Miner
   }
 }
+
+materials_for_building {
+  # The carpenter's shop is the only one that must cost nothing
+  # to build, since without it you would not be able to build
+  # anything else, including the carpenter's shop.
+  carpenters_shop:      { hammers=0,   tools=0   }
+  lumber_mill:          { hammers=52,  tools=0   }
+
+  blacksmiths_house:    { hammers=10,  tools=0   }
+  blacksmiths_shop:     { hammers=64,  tools=20  }
+  iron_works:           { hammers=240, tools=100 }
+
+  stockade:             { hammers=64,  tools=0   }
+  fort:                 { hammers=120, tools=100 }
+  fortress:             { hammers=320, tools=200 }
+
+  tobacconists_house:   { hammers=10,  tools=0   }
+  tobacconists_shop:    { hammers=64,  tools=20  }
+  cigar_factory:        { hammers=160, tools=100 }
+
+  weavers_house:        { hammers=10,  tools=0   }
+  weavers_shop:         { hammers=64,  tools=20  }
+  textile_mill:         { hammers=160, tools=100 }
+
+  rum_distillers_house: { hammers=10,  tools=0   }
+  rum_distillery:       { hammers=64,  tools=20  }
+  rum_factory:          { hammers=160, tools=100 }
+
+  fur_traders_house:    { hammers=10,  tools=0   }
+  fur_trading_post:     { hammers=56,  tools=20  }
+  fur_factory:          { hammers=160, tools=100 }
+
+  armory:               { hammers=52,  tools=0   }
+  magazine:             { hammers=120, tools=50  }
+  arsenal:              { hammers=240, tools=100 }
+
+  docks:                { hammers=52,  tools=0   }
+  drydock:              { hammers=80,  tools=50  }
+  shipyard:             { hammers=240, tools=100 }
+
+  schoolhouse:          { hammers=64,  tools=0   }
+  college:              { hammers=160, tools=50  }
+  university:           { hammers=200, tools=100 }
+
+  warehouse:            { hammers=80,  tools=0   }
+  warehouse_expansion:  { hammers=80,  tools=20  }
+  stable:               { hammers=64,  tools=0   }
+
+  church:               { hammers=64,  tools=0   }
+  cathedral:            { hammers=176, tools=100 }
+
+  printing_press:       { hammers=52,  tools=20  }
+  newspaper:            { hammers=120, tools=50  }
+
+  town_hall:            { hammers=10,  tools=0   }
+
+  custom_house:         { hammers=150, tools=50  }
+}
+
+materials_for_unit  {
+  wagon_train:          { hammers=40,  tools=0   }
+  caravel:              { hammers=128, tools=40  }
+  merchantman:          { hammers=192, tools=80  }
+  galleon:              { hammers=320, tools=100 }
+  privateer:            { hammers=256, tools=120 }
+  frigate:              { hammers=512, tools=200 }
+  artillery:            { hammers=192, tools=40  }
+
+  # Not buildable in the original game.
+  man_o_war:              null
+
+  petty_criminal:         null
+  indentured_servant:     null
+  free_colonist:          null
+  soldier:                null
+  dragoon:                null
+  pioneer:                null
+  missionary:             null
+  scout:                  null
+  expert_farmer:          null
+  expert_fisherman:       null
+  expert_sugar_planter:   null
+  expert_tobacco_planter: null
+  expert_cotton_planter:  null
+  expert_fur_trapper:     null
+  expert_lumberjack:      null
+  expert_ore_miner:       null
+  expert_silver_miner:    null
+  master_carpenter:       null
+  master_rum_distiller:   null
+  master_tobacconist:     null
+  master_weaver:          null
+  master_fur_trader:      null
+  master_blacksmith:      null
+  master_gunsmith:        null
+  elder_statesman:        null
+  firebrand_preacher:     null
+  hardy_colonist:         null
+  jesuit_colonist:        null
+  seasoned_colonist:      null
+  veteran_colonist:       null
+  veteran_soldier:        null
+  veteran_dragoon:        null
+  continental_army:       null
+  continental_cavalry:    null
+  regular:                null
+  cavalry:                null
+  hardy_pioneer:          null
+  jesuit_missionary:      null
+  seasoned_scout:         null
+  damaged_artillery:      null
+  small_treasure:         null
+  large_treasure:         null
+}

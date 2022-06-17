@@ -36,6 +36,17 @@ base::valid_or<string> config_colony_t::validate() const {
           warehouses.food_max_quantity,
       "The amount of food required for creating a new colonist "
       "must be <= to the maximum quantity of food allowed." );
+
+  // The capenter's shop must not cost anything to build, since
+  // one would not be able to produce the hammers to build it
+  // without the building itself.
+  REFL_VALIDATE(
+      materials_for_building
+              [e_colony_building::carpenters_shop] ==
+          ( ConstructionMaterials{ .hammers = 0, .tools = 0 } ),
+      "The capenter's shop must cost no hammers and no tools to "
+      "build." );
+
   return base::valid;
 }
 

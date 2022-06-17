@@ -10,13 +10,18 @@
 # ===============================================================
 # Rds
 include "colony-enums.rds.hpp"
+include "unit-type.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
 
 # cdr
+include "cdr/ext-base.hpp"
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
+
+# base
+include "base/maybe.hpp"
 
 # C++ standard library
 include "<string>"
@@ -49,6 +54,12 @@ struct.config_colony_outdoors {
   job_names 'refl::enum_map<e_outdoor_job, std::string>',
 }
 
+# How many of each are needed for a given construction project.
+struct.ConstructionMaterials {
+  hammers 'int',
+  tools   'int',
+}
+
 # Note that this config is for non-production related things. For
 # production-related things there is a dedicated config file.
 struct.config_colony_t {
@@ -65,6 +76,14 @@ struct.config_colony_t {
   initial_colony_buildings 'std::unordered_set<e_colony_building>',
 
   outdoors 'config_colony_outdoors',
+
+  # All buildings are theoretically buildable, and this will
+  # specify how many hammers and tools are needed for each.
+  materials_for_building 'refl::enum_map<e_colony_building, ConstructionMaterials>',
+
+  # This gives the list of units that are buildable in a colony
+  # as well as how many hammers and tools are needed for each.
+  materials_for_unit 'refl::enum_map<e_unit_type, base::maybe<ConstructionMaterials>>',
 
   _features { validation, equality }
 }
