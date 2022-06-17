@@ -11,6 +11,7 @@
 #include "colony-evolve.hpp"
 
 // Revolution Now
+#include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
@@ -39,12 +40,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
   int const food_capacity =
       config_colony.warehouses.food_max_quantity;
   int const warehouse_capacity =
-      colony.buildings()[e_colony_building::warehouse_expansion]
-          ? config_colony.warehouses
-                .warehouse_expansion_max_quantity
-      : colony.buildings()[e_colony_building::warehouse]
-          ? config_colony.warehouses.warehouse_max_quantity
-          : config_colony.warehouses.default_max_quantity;
+      colony_warehouse_capacity( colony );
 
   vector<Commodity>                 spoiled;
   refl::enum_map<e_commodity, int>& commodities =
