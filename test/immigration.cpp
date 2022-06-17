@@ -18,6 +18,7 @@
 #include "test/mocking.hpp"
 
 // Revolution Now
+#include "src/gs-settings.hpp"
 #include "src/gs-terrain.hpp"
 #include "src/gs-units.hpp"
 #include "src/harbor-units.hpp"
@@ -44,6 +45,11 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::AllOf;
+using ::mock::matchers::Field;
+using ::mock::matchers::HasSize;
+using ::mock::matchers::StartsWith;
 
 /****************************************************************
 ** Fake World Setup
@@ -279,6 +285,129 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
                         /*total_colonies_crosses_production=*/0,
                         crosses.dock_crosses_bonus );
     REQUIRE( player.crosses == 0 );
+  }
+}
+
+TEST_CASE( "[immigration] take_immigrant_from_pool" ) {
+  ImmigrationState state;
+  state.immigrants_pool[0] = e_unit_type::expert_tobacco_planter;
+  state.immigrants_pool[1] = e_unit_type::free_colonist;
+  state.immigrants_pool[2] = e_unit_type::veteran_dragoon;
+
+  take_immigrant_from_pool( state, 1,
+                            e_unit_type::petty_criminal );
+
+  REQUIRE( state.immigrants_pool[0] ==
+           e_unit_type::expert_tobacco_planter );
+  REQUIRE( state.immigrants_pool[1] ==
+           e_unit_type::petty_criminal );
+  REQUIRE( state.immigrants_pool[2] ==
+           e_unit_type::veteran_dragoon );
+}
+
+// This is non-deterministic, but it should always pass when
+// things are working as expected.
+TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
+  SettingsState settings;
+
+  Player player;
+  player.fathers.has[e_founding_father::william_brewster] = true;
+
+  for( int difficulty = 0; difficulty < 5; ++difficulty ) {
+    settings.difficulty = difficulty;
+    for( int i = 0; i < 50; ++i ) {
+      e_unit_type type =
+          pick_next_unit_for_pool( player, settings );
+      REQUIRE( type != e_unit_type::petty_criminal );
+      REQUIRE( type != e_unit_type::indentured_servant );
+    }
+  }
+}
+
+TEST_CASE( "[immigration] check_for_new_immigrant" ) {
+  MockIGui      gui;
+  UnitsState    units_state;
+  Player        player;
+  SettingsState settings;
+
+  // Set up the immigrants pool.
+  ImmigrationState const initial_state = {
+      .immigrants_pool = { e_unit_type::expert_farmer,
+                           e_unit_type::veteran_soldier,
+                           e_unit_type::seasoned_scout } };
+  player.old_world.immigration.immigrants_pool =
+      initial_state.immigrants_pool;
+
+  SECTION( "not enough crosses" ) {
+    player.crosses                     = 10;
+    int const           crosses_needed = 11;
+    wait<maybe<UnitId>> w              = check_for_new_immigrant(
+                     gui, units_state, player, settings, crosses_needed );
+    REQUIRE( w.ready() );
+    REQUIRE( *w == nothing );
+    REQUIRE( player.crosses == 10 );
+    REQUIRE( units_state.all().size() == 0 );
+    REQUIRE( player.old_world.immigration.immigrants_pool ==
+             initial_state.immigrants_pool );
+  }
+
+  SECTION( "just enough crosses, no brewster" ) {
+    player.crosses           = 11;
+    int const crosses_needed = 11;
+
+    EXPECT_CALL( gui, message_box( StartsWith(
+                          "Word of religious freedom has "
+                          "spread! A new immigrant" ) ) )
+        .returns( make_wait<>() );
+    wait<maybe<UnitId>> w = check_for_new_immigrant(
+        gui, units_state, player, settings, crosses_needed );
+    REQUIRE( w.ready() );
+    REQUIRE( *w == UnitId{ 1 } );
+
+    REQUIRE( player.crosses == 0 );
+    REQUIRE( units_state.all().size() == 1 );
+    REQUIRE( units_state.all().begin()->first == UnitId{ 1 } );
+    UnitOwnership_t const expected_ownership{
+        UnitOwnership::harbor{
+            .st = UnitHarborViewState{
+                .port_status = PortStatus::in_port{} } } };
+    REQUIRE( units_state.all().begin()->second.ownership ==
+             expected_ownership );
+  }
+
+  SECTION( "enough crosses, with brewster" ) {
+    player.crosses = 13;
+    player.fathers.has[e_founding_father::william_brewster] =
+        true;
+    int const crosses_needed = 11;
+
+    EXPECT_CALL(
+        gui,
+        choice( AllOf(
+            Field( &ChoiceConfig::msg,
+                   StartsWith(
+                       "Word of religious freedom has spread! "
+                       "New immigrants are ready to join us in "
+                       "the New World.  Which of the following "
+                       "shall we choose?" ) ),
+            Field( &ChoiceConfig::options, HasSize( 3 ) ),
+            Field( &ChoiceConfig::key_on_escape,
+                   maybe<string>{} ) ) ) )
+        .returns( make_wait<string>( "1" ) );
+    wait<maybe<UnitId>> w = check_for_new_immigrant(
+        gui, units_state, player, settings, crosses_needed );
+    REQUIRE( w.ready() );
+    REQUIRE( *w == UnitId{ 1 } );
+
+    REQUIRE( player.crosses == 2 );
+    REQUIRE( units_state.all().size() == 1 );
+    REQUIRE( units_state.all().begin()->first == UnitId{ 1 } );
+    UnitOwnership_t const expected_ownership{
+        UnitOwnership::harbor{
+            .st = UnitHarborViewState{
+                .port_status = PortStatus::in_port{} } } };
+    REQUIRE( units_state.all().begin()->second.ownership ==
+             expected_ownership );
   }
 }
 
