@@ -564,5 +564,13 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
                           .job     = e_outdoor_job::ore } ) );
 }
 
+TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-mgr] evolve colonies." ) {
+  // TODO
+}
+
 } // namespace
 } // namespace rn

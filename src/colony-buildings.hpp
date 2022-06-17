@@ -20,6 +20,7 @@
 #include "colony.rds.hpp"
 #include "config/colony-enums.rds.hpp"
 #include "tile-enum.rds.hpp"
+#include "utype.rds.hpp"
 
 namespace rn {
 
@@ -55,5 +56,7 @@ bool colony_has_building_level( Colony const&     colony,
 
 // Note that this does not apply to food.
 int colony_warehouse_capacity( Colony const& colony );
+
+e_unit_activity activity_for_indoor_job( e_indoor_job job );
 
 } // namespace rn

@@ -122,6 +122,7 @@ enum.e_unit_activity {
   # Misc.
   bell_ringing,
   preaching,
+  teaching,
 }
 
 sumtype.UnitDeathAction {
@@ -273,6 +274,13 @@ struct.UnitTypeAttributes {
   # modifier along all possible paths to the derived unit (from
   # all relevant base types).
   inventory_types 'std::unordered_set<e_unit_inventory>',
+
+  # Does this unit have an inherent activity based on its type?
+  # Note that this is not related to the unit's expertise, since
+  # e.g. an expert farmer can be made into a soldier. It is for
+  # those cases like a soldier or pioneer when the type (derived
+  # type in that case) determines an inherent activity.
+  type_activity 'maybe<e_unit_activity>',
 
   # Can this unit type be obtained from a base type plus some
   # modifiers?

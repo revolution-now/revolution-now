@@ -1,23 +1,24 @@
 /****************************************************************
-**colview-buildings.cpp
+**cheat.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-06-14.
+* Created by dsicilia on 2022-06-17.
 *
-* Description: Unit tests for the src/colview-buildings.* module.
+* Description: Unit tests for the src/cheat.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/colview-buildings.hpp"
+#include "src/cheat.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
 
 // Revolution Now
 #include "src/gs-colonies.hpp"
+#include "src/gs-units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -52,13 +53,16 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[colview-buildings] layout" ) {
+TEST_CASE( "[cheat] cheat_upgrade_unit_expertise" ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
-
   // TODO
-  (void)colony;
+}
+
+TEST_CASE( "[cheat] cheat_downgrade_unit_expertise" ) {
+  World W;
+  W.create_default_map();
+  // TODO
 }
 
 } // namespace

@@ -18,6 +18,7 @@
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
+#include "input.hpp"
 #include "view.hpp"
 #include "wait.hpp"
 
@@ -41,7 +42,10 @@ struct UnitsState;
 struct AwaitView {
   virtual ~AwaitView() = default;
 
-  virtual wait<> perform_click( Coord ) { return make_wait<>(); }
+  virtual wait<> perform_click(
+      input::mouse_button_event_t const& ) {
+    return make_wait<>();
+  }
 };
 
 class ColonySubView;
@@ -198,6 +202,11 @@ ColonySubView& colview_top_level();
 
 // FIXME: global state.
 ColonyProduction const& colview_production();
+
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony );
 
 // Must be called before any other method in this module.
 void set_colview_colony( IGui&               gui,

@@ -219,5 +219,9 @@ TEST_CASE( "[production] production_for_slot" ) {
            nothing );
 }
 
+TEST_CASE( "[production] tobacco/cigar production" ) {
+  // TODO
+}
+
 } // namespace
 } // namespace rn

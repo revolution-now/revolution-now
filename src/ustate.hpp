@@ -28,6 +28,7 @@
 
 namespace rn {
 
+struct ColoniesState;
 struct IGui;
 struct IMapUpdater;
 struct Player;
@@ -43,6 +44,14 @@ std::string debug_string( UnitsState const& units_state,
 
 // FIXME: replace this with UnitsState::unit_for.
 ND Unit& unit_from_id( UnitId id );
+
+// This gets the activity that the unit is currently engaged in.
+// If it is working in a colony then it will be whatever job it
+// is doing. If it is e.g. a soldier on the map then it will be
+// that. This has nothing to do with the expertise of the unit.
+maybe<e_unit_activity> current_activity_for_unit(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state, UnitId id );
 
 /****************************************************************
 ** Map Ownership

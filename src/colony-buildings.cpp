@@ -323,4 +323,27 @@ int colony_warehouse_capacity( Colony const& colony ) {
   SHOULD_NOT_BE_HERE;
 }
 
+e_unit_activity activity_for_indoor_job( e_indoor_job job ) {
+  switch( job ) {
+    case e_indoor_job::bells:
+      return e_unit_activity::bell_ringing;
+    case e_indoor_job::crosses:
+      return e_unit_activity::preaching;
+    case e_indoor_job::hammers:
+      return e_unit_activity::carpentry;
+    case e_indoor_job::rum:
+      return e_unit_activity::rum_distilling;
+    case e_indoor_job::cigars:
+      return e_unit_activity::tobacconistry;
+    case e_indoor_job::cloth: return e_unit_activity::weaving;
+    case e_indoor_job::coats:
+      return e_unit_activity::fur_trading;
+    case e_indoor_job::tools:
+      return e_unit_activity::blacksmithing;
+    case e_indoor_job::muskets:
+      return e_unit_activity::gunsmithing;
+    case e_indoor_job::teacher: return e_unit_activity::teaching;
+  }
+}
+
 } // namespace rn

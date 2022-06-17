@@ -21,7 +21,15 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[land-production] some test" ) {
+TEST_CASE( "[production] outdoor_job_for_expertise" ) {
+  // TODO
+}
+
+TEST_CASE( "[production] activity_for_outdoor_job" ) {
+  // TODO
+}
+
+TEST_CASE( "[production] production_on_square" ) {
   // TODO
 }
 

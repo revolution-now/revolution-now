@@ -78,6 +78,10 @@ class ColViewBuildings : public ui::View,
   maybe<ColViewObjectWithBounds> object_here(
       Coord const& /*where*/ ) const override;
 
+  // Implement AwaitView.
+  wait<> perform_click(
+      input::mouse_button_event_t const& event ) override;
+
  private:
   Rect rect_for_slot( e_colony_building_slot slot ) const;
 

@@ -13,11 +13,14 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
+#include "gs-colonies.hpp"
 #include "gs-units.hpp"
+#include "land-production.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
@@ -65,6 +68,43 @@ maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
 /****************************************************************
 ** Units
 *****************************************************************/
+maybe<e_unit_activity> current_activity_for_unit(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state, UnitId id ) {
+  UnitOwnership_t const& ownership =
+      units_state.ownership_of( id );
+  switch( ownership.to_enum() ) {
+    case UnitOwnership::e::colony: {
+      auto&         o = ownership.get<UnitOwnership::colony>();
+      ColonyId      colony_id = o.id;
+      Colony const& colony =
+          colonies_state.colony_for( colony_id );
+      // First check outdoor jobs.
+      for( e_direction d : refl::enum_values<e_direction> ) {
+        maybe<OutdoorUnit const&> outdoor_unit =
+            colony.outdoor_jobs()[d];
+        if( outdoor_unit.has_value() &&
+            outdoor_unit->unit_id == id )
+          return activity_for_outdoor_job( outdoor_unit->job );
+      }
+      // Next check indoor jobs.
+      for( e_indoor_job job : refl::enum_values<e_indoor_job> ) {
+        vector<UnitId> const& units = colony.indoor_jobs()[job];
+        if( find( units.begin(), units.end(), id ) !=
+            units.end() )
+          return activity_for_indoor_job( job );
+      }
+      return nothing;
+    }
+    case UnitOwnership::e::cargo:
+    case UnitOwnership::e::free:
+    case UnitOwnership::e::harbor:
+    case UnitOwnership::e::world: break;
+  }
+
+  return units_state.unit_for( id ).desc().type_activity;
+}
+
 string debug_string( UnitsState const& units_state, UnitId id ) {
   return debug_string( units_state.unit_for( id ) );
 }

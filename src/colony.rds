@@ -35,7 +35,6 @@ struct.OutdoorUnit {
   job     'e_outdoor_job',
 }
 
-# FIXME: do we need this?
 sumtype.ColonyJob {
   outdoor {
     direction 'e_direction',

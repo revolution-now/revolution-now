@@ -768,6 +768,15 @@ valid_or<string> UnitCompositionConfig::validate() const {
     expertises.insert( activity );
   }
   for( auto activity : refl::enum_values<e_unit_activity> ) {
+    if( activity == e_unit_activity::teaching )
+      // This is a hack to avoid the fact that we don't have a
+      // unit with the expertise of teaching. Apparently the
+      // original game had an expert teacher (and it can still be
+      // seen in the original game by entering cheat mode and
+      // promoting a unit that is teaching), but it seems that it
+      // was removed before the game was shipped. It is not clear
+      // what an expert teacher would have done.
+      continue;
     CHECK( expertises.contains( activity ),
            "there is no unit type that has expertise {}.",
            activity );

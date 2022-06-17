@@ -426,10 +426,12 @@ wait<bool> handle_event( PS& S, Colony& colony,
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
     PS&, Colony&, input::mouse_button_event_t const& event ) {
-  if( event.buttons != input::e_mouse_button_event::left_up )
+  // Need to filter these out otherwise the start of drag events
+  // will call perform_click which we don't want.
+  if( event.buttons != input::e_mouse_button_event::left_up &&
+      event.buttons != input::e_mouse_button_event::right_up )
     co_return false;
-  Coord click_pos = event.pos;
-  co_await colview_top_level().perform_click( click_pos );
+  co_await colview_top_level().perform_click( event );
   co_return false;
 }
 

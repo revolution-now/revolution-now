@@ -11,6 +11,7 @@
 #include "colview-entities.hpp"
 
 // Revolution Now
+#include "cheat.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
@@ -24,6 +25,7 @@
 #include "gs-terrain.hpp"
 #include "gs-units.hpp"
 #include "gui.hpp"
+#include "land-production.hpp"
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
@@ -161,14 +163,6 @@ maybe<string> check_seige() {
   // colonists are not allowed to move from the fields to the
   // gates.
   return nothing;
-}
-
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony ) {
-  g_production = production_for_colony(
-      terrain_state, units_state, player, colony );
 }
 
 /****************************************************************
@@ -810,10 +804,13 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   // Implement AwaitView.
-  wait<> perform_click( Coord pos ) override {
-    CHECK( pos.is_inside( rect( {} ) ) );
+  wait<> perform_click(
+      input::mouse_button_event_t const& event ) override {
+    if( event.buttons != input::e_mouse_button_event::left_up )
+      co_return;
+    CHECK( event.pos.is_inside( rect( {} ) ) );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
-      if( pos.is_inside(
+      if( event.pos.is_inside(
               Rect::from( unit_pos, g_tile_delta ) ) ) {
         co_await click_on_unit( unit_id );
       }
@@ -1223,7 +1220,7 @@ class LandView : public ui::View,
     return Delta{ 32_w, 32_h } * Scale{ side_length_in_squares };
   }
 
-  maybe<e_direction> direction_for_land_square_under_coord(
+  maybe<e_direction> direction_under_cursor(
       Coord coord ) const {
     switch( mode_ ) {
       case e_render_mode::_3x3:
@@ -1278,8 +1275,7 @@ class LandView : public ui::View,
   }
 
   maybe<UnitId> unit_under_cursor( Coord where ) const {
-    UNWRAP_RETURN(
-        d, direction_for_land_square_under_coord( where ) );
+    UNWRAP_RETURN( d, direction_under_cursor( where ) );
     return unit_for_direction( d );
   }
 
@@ -1295,10 +1291,32 @@ class LandView : public ui::View,
   }
 
   // Implement AwaitView.
-  wait<> perform_click( Coord pos ) override {
-    CHECK( pos.is_inside( rect( {} ) ) );
-    maybe<UnitId> unit_id = unit_under_cursor( pos );
+  wait<> perform_click(
+      input::mouse_button_event_t const& event ) override {
+    CHECK( event.pos.is_inside( rect( {} ) ) );
+    maybe<UnitId> unit_id = unit_under_cursor( event.pos );
     if( !unit_id.has_value() ) co_return;
+
+    if( event.mod.shf_down ) {
+      // Cheat mode.
+      UnitsState& units_state = GameState::units();
+      Unit&       unit        = units_state.unit_for( *unit_id );
+      switch( event.buttons ) {
+        case input::e_mouse_button_event::left_up:
+          cheat_upgrade_unit_expertise(
+              units_state, GameState::colonies(), unit );
+          break;
+        case input::e_mouse_button_event::right_up:
+          cheat_downgrade_unit_expertise( unit );
+          break;
+        default: co_return;
+      }
+      update_production( GameState::terrain(),
+                         GameState::units(), player_,
+                         ::rn::colony() );
+      co_return;
+    }
+
     EnumChoiceConfig     config{ .msg = "Select Occupation",
                                  .choice_required = false };
     maybe<e_outdoor_job> new_job = co_await gui_.enum_choice(
@@ -1325,8 +1343,7 @@ class LandView : public ui::View,
     if( !unit.is_human() ) return nothing;
     // Check if there is a land square under the cursor that is
     // not the center.
-    maybe<e_direction> d =
-        direction_for_land_square_under_coord( where );
+    maybe<e_direction> d = direction_under_cursor( where );
     if( !d.has_value() ) return nothing;
     // Check if this is the same unit currently being dragged, if
     // so we'll allow it.
@@ -1347,8 +1364,7 @@ class LandView : public ui::View,
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
     TerrainState const& terrain_state = GameState::terrain();
-    maybe<e_direction>  d =
-        direction_for_land_square_under_coord( where );
+    maybe<e_direction>  d = direction_under_cursor( where );
     CHECK( d );
     MapSquare const& square =
         terrain_state.square_at( colony.location().moved( *d ) );
@@ -1385,8 +1401,7 @@ class LandView : public ui::View,
                       &ColViewObject::unit::id ) );
     ColoniesState& colonies_state = GameState::colonies();
     Colony& colony = colonies_state.colony_for( colony_id() );
-    UNWRAP_CHECK(
-        d, direction_for_land_square_under_coord( where ) );
+    UNWRAP_CHECK( d, direction_under_cursor( where ) );
     ColonyJob_t job = make_job_for_square( d );
     if( dragging_.has_value() ) {
       // The unit being dragged is coming from another square on
@@ -1402,8 +1417,7 @@ class LandView : public ui::View,
   maybe<ColViewObjectWithBounds> object_here(
       Coord const& where ) const override {
     UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
-    UNWRAP_RETURN(
-        d, direction_for_land_square_under_coord( where ) );
+    UNWRAP_RETURN( d, direction_under_cursor( where ) );
     return ColViewObjectWithBounds{
         .obj    = ColViewObject::unit{ .id = unit_id },
         .bounds = rect_for_unit( d ) };
@@ -1416,8 +1430,7 @@ class LandView : public ui::View,
 
   bool try_drag( ColViewObject_t const&,
                  Coord const& where ) override {
-    UNWRAP_CHECK(
-        d, direction_for_land_square_under_coord( where ) );
+    UNWRAP_CHECK( d, direction_under_cursor( where ) );
     UNWRAP_CHECK( job, job_for_direction( d ) );
     dragging_ = Draggable{ .d = d, .job = job };
     return true;
@@ -1598,14 +1611,19 @@ struct CompositeColSubView : public ui::InvisibleView,
   }
 
   // Implement AwaitView.
-  wait<> perform_click( Coord pos ) override {
+  wait<> perform_click(
+      input::mouse_button_event_t const& event ) override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
-      if( !pos.is_inside( pos_view.rect() ) ) continue;
-      return ptrs_[i]->perform_click(
-          pos.with_new_origin( pos_view.coord ) );
+      if( !event.pos.is_inside( pos_view.rect() ) ) continue;
+      UNWRAP_CHECK(
+          shifted_event,
+          input::move_mouse_origin_by(
+              event, pos_view.coord.distance_from_origin() )
+              .get_if<input::mouse_button_event_t>() );
+      // Need to co_await so that shifted_event stays alive.
+      co_await ptrs_[i]->perform_click( shifted_event );
     }
-    return make_wait<>();
   }
 
   maybe<PositionedColSubView> view_here( Coord coord ) override {
@@ -1865,6 +1883,14 @@ ColonyProduction const& colview_production() {
   return g_production;
 }
 
+void update_production( TerrainState const& terrain_state,
+                        UnitsState const&   units_state,
+                        Player const&       player,
+                        Colony const&       colony ) {
+  g_production = production_for_colony(
+      terrain_state, units_state, player, colony );
+}
+
 void set_colview_colony( IGui&               gui,
                          TerrainState const& terrain_state,
                          UnitsState const&   units_state,
@@ -1872,6 +1898,8 @@ void set_colview_colony( IGui&               gui,
                          Colony const&       colony ) {
   update_production( terrain_state, units_state, player,
                      colony );
+  // TODO: compute squares around this colony that are being
+  // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
   recomposite( colony.id(), normal.delta(), gui, player );

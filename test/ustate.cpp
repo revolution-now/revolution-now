@@ -1,17 +1,20 @@
 /****************************************************************
-**colony-evolve.cpp
+**ustate.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-06-06.
+* Created by dsicilia on 2022-06-17.
 *
-* Description: Unit tests for the src/colony-evolve.* module.
+* Description: Unit tests for the src/ustate.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/colony-evolve.hpp"
+#include "src/ustate.hpp"
+
+// Revolution Now
+#include "src/gs-units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -21,7 +24,7 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[colony-evolve] evolve_colony_one_turn" ) {
+TEST_CASE( "[ustate] current_activity_for_unit" ) {
   // TODO
 }
 

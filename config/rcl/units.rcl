@@ -74,6 +74,7 @@ composition {
       name:                  Petty Criminal
       tile:                  petty_criminal
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 yes
@@ -106,6 +107,7 @@ composition {
       name:                  Indentured Servant
       tile:                  indentured_servant
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 yes
@@ -138,6 +140,7 @@ composition {
       name:                  Free Colonist
       tile:                  free_colonist
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 yes
@@ -173,6 +176,7 @@ composition {
       name:                  Pioneer
       tile:                  pioneer
       expertise:             null
+      type_activity:         pioneering
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -199,6 +203,7 @@ composition {
       name:                  Missionary
       tile:                  missionary
       expertise:             null
+      type_activity:         missioning
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -225,6 +230,7 @@ composition {
       name:                  Scout
       tile:                  scout
       expertise:             null
+      type_activity:         scouting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -253,6 +259,7 @@ composition {
       name:                  Soldier
       tile:                  soldier
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -279,6 +286,7 @@ composition {
       name:                  Dragoon
       tile:                  dragoon
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -308,6 +316,7 @@ composition {
       name:                  Expert Farmer
       tile:                  expert_farmer
       expertise:             farming
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -340,6 +349,7 @@ composition {
       name:                  Expert Fisherman
       tile:                  expert_fisherman
       expertise:             fishing
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -372,6 +382,7 @@ composition {
       name:                  Expert Sugar Planter
       tile:                  expert_sugar_planter
       expertise:             sugar_planting
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -404,6 +415,7 @@ composition {
       name:                  Expert Tobacco Planter
       tile:                  expert_tobacco_planter
       expertise:             tobacco_planting
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -436,6 +448,7 @@ composition {
       name:                  Expert Cotton Planter
       tile:                  expert_cotton_planter
       expertise:             cotton_planting
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -468,6 +481,7 @@ composition {
       name:                  Expert Fur Trapper
       tile:                  expert_fur_trapper
       expertise:             fur_trapping
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -500,6 +514,7 @@ composition {
       name:                  Expert Lumberjack
       tile:                  expert_lumberjack
       expertise:             lumberjacking
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -532,6 +547,7 @@ composition {
       name:                  Expert Ore Miner
       tile:                  expert_ore_miner
       expertise:             ore_mining
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -564,6 +580,7 @@ composition {
       name:                  Expert Silver Miner
       tile:                  expert_silver_miner
       expertise:             silver_mining
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -596,6 +613,7 @@ composition {
       name:                  Master Carpenter
       tile:                  master_carpenter
       expertise:             carpentry
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -628,6 +646,7 @@ composition {
       name:                  Master Rum Distiller
       tile:                  master_rum_distiller
       expertise:             rum_distilling
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -660,6 +679,7 @@ composition {
       name:                  Master Tobacconist
       tile:                  master_tobacconist
       expertise:             tobacconistry
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -692,6 +712,7 @@ composition {
       name:                  Master Weaver
       tile:                  master_weaver
       expertise:             weaving
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -724,6 +745,7 @@ composition {
       name:                  Master Fur Trader
       tile:                  master_fur_trader
       expertise:             fur_trading
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -756,6 +778,7 @@ composition {
       name:                  Master Blacksmith
       tile:                  master_blacksmith
       expertise:             blacksmithing
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -788,6 +811,7 @@ composition {
       name:                  Master Gunsmith
       tile:                  master_gunsmith
       expertise:             gunsmithing
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -820,6 +844,7 @@ composition {
       name:                  Elder Statesman
       tile:                  elder_statesman
       expertise:             bell_ringing
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -852,6 +877,7 @@ composition {
       name:                  Firebrand Preacher
       tile:                  firebrand_preacher
       expertise:             preaching
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -884,6 +910,7 @@ composition {
       name:                  Hardy Colonist
       tile:                  hardy_colonist
       expertise:             pioneering
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -916,6 +943,7 @@ composition {
       name:                  Jesuit Colonist
       tile:                  jesuit_colonist
       expertise:             missioning
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -948,6 +976,7 @@ composition {
       name:                  Seasoned Colonist
       tile:                  seasoned_colonist
       expertise:             scouting
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -980,6 +1009,7 @@ composition {
       name:                  Veteran Colonist
       tile:                  veteran_colonist
       expertise:             fighting
+      type_activity:         null
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
@@ -1017,6 +1047,7 @@ composition {
       name:                  Veteran Soldier
       tile:                  veteran_soldier
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1043,6 +1074,7 @@ composition {
       name:                  Veteran Dragoon
       tile:                  veteran_dragoon
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1069,6 +1101,7 @@ composition {
       name:                  Continental Army
       tile:                  continental_army
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     soldier
       ship:                  false
       human:                 from_base
@@ -1095,6 +1128,7 @@ composition {
       name:                  Continental Cavalry
       tile:                  continental_cavalry
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     dragoon
       ship:                  false
       human:                 from_base
@@ -1121,6 +1155,7 @@ composition {
       name:                  Regular
       tile:                  regular
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 yes
@@ -1147,6 +1182,7 @@ composition {
       name:                  Cavalry
       tile:                  cavalry
       expertise:             null
+      type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
       human:                 yes
@@ -1173,6 +1209,7 @@ composition {
       name:                  Hardy Pioneer
       tile:                  hardy_pioneer
       expertise:             null
+      type_activity:         pioneering
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1199,6 +1236,7 @@ composition {
       name:                  Jesuit Missionary
       tile:                  jesuit_missionary
       expertise:             null
+      type_activity:         missioning
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1225,6 +1263,7 @@ composition {
       name:                  Seasoned Scout
       tile:                  seasoned_scout
       expertise:             null
+      type_activity:         scouting
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1256,6 +1295,7 @@ composition {
       name:                  Damaged Artillery
       tile:                  damaged_artillery
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 no
@@ -1284,6 +1324,7 @@ composition {
       name:                  Artillery
       tile:                  artillery
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
@@ -1313,6 +1354,7 @@ composition {
       name:                  Caravel
       tile:                  caravel
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1339,6 +1381,7 @@ composition {
       name:                  Merchantman
       tile:                  merchantman
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1365,6 +1408,7 @@ composition {
       name:                  Galleon
       tile:                  galleon
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1391,6 +1435,7 @@ composition {
       name:                  Privateer
       tile:                  privateer
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1417,6 +1462,7 @@ composition {
       name:                  Frigate
       tile:                  frigate
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1443,6 +1489,7 @@ composition {
       name:                  Man-O-War
       tile:                  man_o_war
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  true
       human:                 no
@@ -1472,6 +1519,7 @@ composition {
       name:                  Wagon Train
       tile:                  wagon_train
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 no
@@ -1502,6 +1550,7 @@ composition {
       name:                  Small Treasure
       tile:                  small_treasure
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 no
@@ -1528,6 +1577,7 @@ composition {
       name:                  Large Treasure
       tile:                  large_treasure
       expertise:             null
+      type_activity:         null
       cleared_expertise:     null
       ship:                  false
       human:                 no
