@@ -166,5 +166,58 @@ TEST_CASE( "[production] new colonist" ) {
   REQUIRE( pr.colonist_created == true );
 }
 
+TEST_CASE( "[production] production_for_slot" ) {
+  ColonyProduction pr;
+
+  pr.ore_products.muskets_produced_theoretical   = 1;
+  pr.ore_products.tools_produced_theoretical     = 2;
+  pr.sugar_rum.product_produced_theoretical      = 3;
+  pr.cotton_cloth.product_produced_theoretical   = 4;
+  pr.fur_coats.product_produced_theoretical      = 5;
+  pr.tobacco_cigars.product_produced_theoretical = 6;
+  pr.lumber_hammers.product_produced_theoretical = 7;
+  pr.bells                                       = 8;
+  pr.food.horses_produced_theoretical            = 12;
+  pr.crosses                                     = 15;
+
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::muskets ) == 1 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::tools ) == 2 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::rum ) == 3 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::cloth ) == 4 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::coats ) == 5 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::cigars ) == 6 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::hammers ) == 7 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::town_hall ) == 8 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::newspapers ) ==
+           nothing );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::schools ) ==
+           nothing );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::offshore ) ==
+           nothing );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::horses ) == 12 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::wall ) == nothing );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::warehouses ) ==
+           nothing );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::crosses ) == 15 );
+  REQUIRE( production_for_slot(
+               pr, e_colony_building_slot::custom_house ) ==
+           nothing );
+}
+
 } // namespace
 } // namespace rn
