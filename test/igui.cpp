@@ -64,6 +64,55 @@ TEST_CASE( "[igui] enum_choice selects value" ) {
   REQUIRE( **w == e_color::green );
 }
 
+TEST_CASE( "[igui] enum_choice automatic" ) {
+  MockIGui gui;
+
+  EXPECT_CALL(
+      gui,
+      choice( ChoiceConfig{
+          .msg = "Select One",
+          .options =
+              vector<ChoiceConfigOption>{
+                  { .key = "red", .display_name = "Red" },
+                  { .key = "green", .display_name = "Green" },
+                  { .key = "blue", .display_name = "Blue" } },
+          .key_on_escape = "-" } ) )
+      .returns( make_wait<string>( "green" ) );
+
+  EnumChoiceConfig config{ .msg             = "Select One",
+                           .choice_required = false };
+
+  wait<maybe<e_color>> w = gui.enum_choice<e_color>();
+  REQUIRE( w.ready() );
+  REQUIRE( w->has_value() );
+  REQUIRE( **w == e_color::green );
+}
+
+TEST_CASE( "[igui] enum_choice sorted" ) {
+  MockIGui gui;
+
+  // Note the elements in the config passed to `choice` will not
+  // be sorted; the choice function does the sorting.
+  EXPECT_CALL(
+      gui,
+      choice( ChoiceConfig{
+          .msg = "Select One",
+          .options =
+              vector<ChoiceConfigOption>{
+                  { .key = "red", .display_name = "Red" },
+                  { .key = "green", .display_name = "Green" },
+                  { .key = "blue", .display_name = "Blue" } },
+          .key_on_escape = "-",
+          .sort          = true } ) )
+      .returns( make_wait<string>( "green" ) );
+
+  wait<maybe<e_color>> w =
+      gui.enum_choice<e_color>( /*sort=*/true );
+  REQUIRE( w.ready() );
+  REQUIRE( w->has_value() );
+  REQUIRE( **w == e_color::green );
+}
+
 TEST_CASE( "[igui] enum_choice cancels" ) {
   MockIGui gui;
 

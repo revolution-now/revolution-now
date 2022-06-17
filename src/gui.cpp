@@ -16,6 +16,7 @@
 #include "window.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <unordered_set>
 #include <vector>
 
@@ -31,6 +32,16 @@ wait<> RealGui::message_box( string_view msg ) {
 }
 
 wait<string> RealGui::choice( ChoiceConfig const& config ) {
+  if( config.sort ) {
+    ChoiceConfig new_config = config;
+    std::sort( new_config.options.begin(),
+               new_config.options.end(), []( auto& l, auto& r ) {
+                 return l.display_name < r.display_name;
+               } );
+    // Recurse but this time with no sorting.
+    new_config.sort = false;
+    co_return co_await choice( new_config );
+  }
   {
     // Sanity check.
     unordered_set<string> seen_key;

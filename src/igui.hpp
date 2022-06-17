@@ -91,13 +91,30 @@ struct IGui {
   wait<maybe<E>> enum_choice(
       EnumChoiceConfig const&               enum_config,
       refl::enum_map<E, std::string> const& names );
+
+  // This one just uses the names of the enums as display names.
+  // This is mostly for debug related UIs.
+  template<refl::ReflectedEnum E>
+  wait<maybe<E>> enum_choice(
+      EnumChoiceConfig const& enum_config );
+
+  // Even more minimal for quick and dirty menus, just asks "Se-
+  // lect One" as the message and allows escaping. If sort ==
+  // true then the items will be sorted by display name.
+  template<refl::ReflectedEnum E>
+  wait<maybe<E>> enum_choice( bool sort = false );
+
+ private:
+  std::string identifier_to_display_name(
+      std::string_view ident ) const;
 };
 
 template<refl::ReflectedEnum E>
 wait<maybe<E>> IGui::enum_choice(
     EnumChoiceConfig const&               enum_config,
     refl::enum_map<E, std::string> const& names ) {
-  ChoiceConfig config{ .msg = enum_config.msg };
+  ChoiceConfig config{ .msg  = enum_config.msg,
+                       .sort = enum_config.sort };
   if( !enum_config.choice_required ) config.key_on_escape = "-";
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
@@ -107,6 +124,24 @@ wait<maybe<E>> IGui::enum_choice(
   // If hitting escape was allowed, and if that happened, then
   // this should do the right thing and return nothing.
   co_return refl::enum_from_string<E>( res );
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::enum_choice(
+    EnumChoiceConfig const& enum_config ) {
+  refl::enum_map<E, std::string> names;
+  for( E item : refl::enum_values<E> )
+    names[item] = identifier_to_display_name(
+        refl::enum_value_name( item ) );
+  co_return co_await enum_choice( enum_config, names );
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::enum_choice( bool sort ) {
+  EnumChoiceConfig config{ .msg             = "Select One",
+                           .choice_required = false,
+                           .sort            = sort };
+  co_return co_await enum_choice<E>( config );
 }
 
 } // namespace rn

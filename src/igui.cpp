@@ -13,6 +13,12 @@
 // Revolution Now
 #include "co-wait.hpp"
 
+// Abseil
+#include "absl/strings/str_replace.h"
+
+// base
+#include "base/string.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -31,6 +37,12 @@ wait<ui::e_confirm> IGui::yes_no( YesNoConfig const& config ) {
   if( res == "no" ) co_return ui::e_confirm::no;
   if( res == "yes" ) co_return ui::e_confirm::yes;
   FATAL( "unexpected input result: {}", res );
+}
+
+string IGui::identifier_to_display_name(
+    string_view ident ) const {
+  return base::capitalize_initials(
+      absl::StrReplaceAll( ident, { { "_", " " } } ) );
 }
 
 } // namespace rn

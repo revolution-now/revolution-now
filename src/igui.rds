@@ -39,6 +39,9 @@ struct.ChoiceConfig {
   # close the window and in that case it will return the given
   # key, which does not have to be among those in the options.
   key_on_escape 'maybe<std::string>',
+
+  # Should they be sorted by display name before being displayed.
+  sort 'bool',
 };
 
 struct.YesNoConfig {
@@ -67,4 +70,7 @@ struct.EnumChoiceConfig {
   # Should the user be forced to choose one, or can they e.g. hit
   # escape to just cancel.
   choice_required 'bool',
+
+  # Should they be sorted by display name before being displayed.
+  sort 'bool',
 }
