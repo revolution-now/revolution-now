@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "config/unit-type.rds.hpp"
+
 // Rds
 #include "colony.rds.hpp"
 
@@ -21,6 +24,6 @@ struct TerrainState;
 
 int production_on_square( e_outdoor_job       job,
                           TerrainState const& terrain_state,
-                          Coord               where );
+                          e_unit_type unit_type, Coord where );
 
 } // namespace rn

@@ -141,19 +141,19 @@ building_production_bonus {
   rum_factory.factory:       { use_bonus=100, put_bonus=200 }
   textile_mill.factory:      { use_bonus=100, put_bonus=200 }
 
-  # Non relevant buildings.
-  custom_house:              null
-  docks:                     null
-  drydock:                   null
-  shipyard:                  null
-  town_hall:                 null
-  stable:                    null
-  warehouse:                 null
-  warehouse_expansion:       null
-  stockade:                  null
-  fort:                      null
-  fortress:                  null
-  schoolhouse:               null
-  college:                   null
-  university:                null
+  # Non-relevant buildings.
+  custom_house.none:         {}
+  docks.none:                {}
+  drydock.none:              {}
+  shipyard.none:             {}
+  town_hall.none:            {}
+  stable.none:               {}
+  warehouse.none:            {}
+  warehouse_expansion.none:  {}
+  stockade.none:             {}
+  fort.none:                 {}
+  fortress.none:             {}
+  schoolhouse.none:          {}
+  college.none:              {}
+  university.none:           {}
 }

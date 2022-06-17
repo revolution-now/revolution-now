@@ -17,8 +17,9 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
-int production_on_square( e_outdoor_job, TerrainState const&,
-                          Coord ) {
+int production_on_square( e_outdoor_job       job,
+                          TerrainState const& terrain_state,
+                          e_unit_type type, Coord where ) {
   // TODO
   return 1;
 }

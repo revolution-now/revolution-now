@@ -8,9 +8,6 @@
 # Description: Config info for colony production.
 #
 # ===============================================================
-# Revolution Now
-include "maybe.hpp"
-
 # Rds
 include "colony-enums.rds.hpp"
 
@@ -89,7 +86,7 @@ struct.config_production_t {
   # the building, while the percent bonus of a Printing Press and
   # Newspaper do seem to get applied to the base production. Note
   # that the original game appears to ROUND DOWN on 1/2.
-  building_production_bonus 'refl::enum_map<e_colony_building, maybe<BuildingBonus_t>>',
+  building_production_bonus 'refl::enum_map<e_colony_building, BuildingBonus_t>',
 
   _features { validation, equality }
 }

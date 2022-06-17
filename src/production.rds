@@ -22,11 +22,18 @@ namespace "rn"
 struct.RawMaterialAndProduct {
   raw_produced 'int',
 
-  raw_consumed 'int',
+  # The amount of the raw material that would be consumed by the
+  # full production of the product.
+  raw_consumed_theoretical 'int',
 
-  # This could be less than raw_produced because some is being is
-  # being consumed to make the product.
+  # This could be less than raw_produced because some is being
+  # consumed to make the product.
   raw_delta_theoretical 'int',
+
+  # The amount of the raw material that is actually consumed.
+  # This can include both incrementally produced raw materials as
+  # well as stored ones.
+  raw_consumed_actual 'int',
 
   # This is the actual amount that will be added to the commodity
   # store, and takes into account warehouse capacity. Can be pos-
@@ -46,11 +53,8 @@ struct.RawMaterialAndProduct {
   product_produced_actual 'int',
 
   # This is the actual amount that will be added to the commodity
-  # store, and takes into account warehouse capacity. Can be pos-
-  # itive or negative, but will never make the commodity quantity
-  # in the warehouse negative, and does not take into account
-  # spoilage. Note that this also applies to hammers, which are
-  # not in the commodity store but work on a similar principle.
+  # store, and takes into account warehouse capacity (but not
+  # spoilage). Therefore it is never negative.
   product_delta_final 'int',
 }
 
