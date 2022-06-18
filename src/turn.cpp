@@ -944,8 +944,7 @@ wait<> turn_loop( Planes& planes, PlayersState& players_state,
   group.push( menu_plane );
   group.push( window_plane );
 
-  // FIXME: Temporary
-  land_view_plane.zoom_out_full();
+  // land_view_plane.zoom_out_full();
 
   while( true )
     co_await next_turn( panel_plane, menu_plane, land_view_plane,
