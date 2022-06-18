@@ -110,6 +110,19 @@ int bordering_land_tiles( TerrainState const& terrain_state,
   return n;
 }
 
+bool has_required_resources(
+    MapSquare const& square,
+    unordered_set<e_natural_resource> const&
+        required_resources ) {
+  if( square.ground_resource.has_value() &&
+      required_resources.contains( *square.ground_resource ) )
+    return true;
+  if( square.forest_resource.has_value() &&
+      required_resources.contains( *square.forest_resource ) )
+    return true;
+  return false;
+}
+
 int production_on_square( e_outdoor_job       job,
                           TerrainState const& terrain_state,
                           e_unit_type type, Coord where ) {
@@ -125,6 +138,18 @@ int production_on_square( e_outdoor_job       job,
 
   MapSquare const& square  = terrain_state.square_at( where );
   e_terrain const  terrain = effective_terrain( square );
+
+  // If this field is present on a square that has no resources
+  // then it overrides everything else. This is used to reproduce
+  // some non-standard behavior with regard to silver production
+  // that seems to have been inserted into some versions of the
+  // game to nerf silver production.
+  if( conf.non_resource_override.has_value() &&
+      !has_required_resources(
+          square,
+          conf.non_resource_override->required_resources ) )
+    return is_expert ? conf.non_resource_override->expert
+                     : conf.non_resource_override->non_expert;
 
   // In general the order in which these are applied matters be-
   // cause some of them are additive and some multiplicative.

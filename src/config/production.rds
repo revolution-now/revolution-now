@@ -17,8 +17,15 @@ include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
 
 # cdr
-include "cdr/ext-builtin.hpp"
 include "cdr/ext-base.hpp"
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<unordered_set>"
 
 namespace "rn"
 
@@ -78,6 +85,14 @@ sumtype.OutdoorJobBonus {
   mul {
     by 'int',
   },
+
+  _features { validation, equality }
+}
+
+struct.NonResourceOverride {
+  non_expert 'int',
+  expert     'int',
+  required_resources 'std::unordered_set<e_natural_resource>',
 }
 
 struct.OutdoorJobProduction {
@@ -114,6 +129,17 @@ struct.OutdoorJobProduction {
 
   # These are for a free colonist.
   base_productions 'refl::enum_map<e_terrain, int>',
+
+  # When this has a value, it means that, when the tile has no
+  # resource, the entire calculation will be completely over-
+  # ridden but the numbers here. That means that what would oth-
+  # erwise be the base production and various bonuses will not be
+  # applied, with the exception of the Sons of Liberty
+  # bonus/penalty. This is to allow reproducing the behavior of
+  # some versions of the original game with regard to silver pro-
+  # duction, which seems to follow all of the usual formulas but
+  # only when a tile has a silver (or depleted silver) resource.
+  non_resource_override 'base::maybe<NonResourceOverride>',
 }
 
 struct.OutdoorProduction {

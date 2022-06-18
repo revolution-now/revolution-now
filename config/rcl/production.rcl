@@ -207,6 +207,8 @@ outdoor_production {
         tundra:    3
         wetland:   2
       }
+
+      non_resource_override: null
     }
     fish: {
       # TODO: need to measure this.
@@ -259,6 +261,8 @@ outdoor_production {
         tundra:    0
         wetland:   0
       }
+
+      non_resource_override: null
     }
     sugar: {
       river_bonus.add  { non_expert=1, expert=1 }
@@ -305,6 +309,8 @@ outdoor_production {
         tundra:    0
         wetland:   0
       }
+
+      non_resource_override: null
     }
     tobacco: {
       river_bonus.add  { non_expert=1, expert=1 }
@@ -351,6 +357,8 @@ outdoor_production {
         tundra:    0
         wetland:   1
       }
+
+      non_resource_override: null
     }
     cotton: {
       river_bonus.add  { non_expert=1, expert=1 }
@@ -399,6 +407,8 @@ outdoor_production {
         tundra:    0
         wetland:   0
       }
+
+      non_resource_override: null
     }
     fur: {
       river_bonus.add  { non_expert=2, expert=2 }
@@ -447,6 +457,8 @@ outdoor_production {
         tundra:    0
         wetland:   2
       }
+
+      non_resource_override: null
     }
     lumber: {
       river_bonus.add  { non_expert=2, expert=2 }
@@ -494,6 +506,8 @@ outdoor_production {
         tundra:    0
         wetland:   4
       }
+
+      non_resource_override: null
     }
     ore: {
       river_bonus.add  { non_expert=1, expert=1 }
@@ -542,6 +556,8 @@ outdoor_production {
         tundra:    2
         wetland:   1
       }
+
+      non_resource_override: null
     }
     silver: {
       # In the original game silver can only be mined in moun-
@@ -554,6 +570,57 @@ outdoor_production {
       coast_bonus.none {}
       expert_bonus.mul { by=2 }
 
+      # The available documentation on the classic game states
+      # the following for the forumla for silver:
+      #
+      #   base: 1, road/river: +1, resource: +2, expert: x2
+      #
+      # which implies that a free colonist should produce at
+      # least one unit. However, in the version of the game from
+      # which these numbers were taken, the actual behavior is
+      # not only different from this, but it seems to depart from
+      # all other commodities. Specifically, when a maintain tile
+      # has a resource then it will follow the above formula; but
+      # when it has no resource then a free colonist produces
+      # zero, while an expert produces one.
+      #
+      # Furthermore, those numbers (for non-resource tiles)
+      # strangely don't seem to get subjuct to the usual bonuses;
+      # neither Sons of Liberty bonuses nor road/river bonuses
+      # seem to get applied, which suggests that they might have
+      # been hard-coded. On the other hand, when there is a
+      # silver resource, the above numbers hold and are computed
+      # in the usual way as with other commodities, and are sub-
+      # ject to Sons of Liberty bonuses.
+      #
+      # Also found in this version of the game is an (again un-
+      # documented) "depleted" silver resource, which appears to
+      # follow the following numbers:
+      #
+      #   base: 1, road/river: +1, resource: 0, expert: x2
+      #
+      # i.e., it provides a zero resource bonus. That seems
+      # strange, but given that silver production is almost com-
+      # pletely suppressed without any silver resources, the
+      # above does yield a bonus overall just by virtue of en-
+      # abling silver mining.
+      #
+      # Perhaps the game designers wanted to nurf silver produc-
+      # tion at the last minute and made some changes, including
+      # hard-codeding reduced numbers for non-resource tiles.
+      #
+      # Hence to reproduce this behavior we have the following
+      # resource-related stuff.
+
+      non_resource_override {
+        non_expert: 0
+        expert:     1
+        required_resources [
+          silver
+          silver_depleted
+        ]
+      }
+
       resource_bonus {
         beaver.none          {}
         cotton.none          {}
@@ -562,9 +629,8 @@ outdoor_production {
         minerals.none        {}
         oasis.none           {}
         ore.none             {}
-        # TODO: check these.
         silver.add           { non_expert=2, expert=2 }
-        silver_depleted.add  { non_expert=1, expert=1 }
+        silver_depleted.add  { non_expert=0, expert=0 }
         sugar.none           {}
         tobacco.none         {}
         tree.none            {}
@@ -581,15 +647,6 @@ outdoor_production {
         hills:     0
         marsh:     0
         mixed:     0
-        # Note: it has been observed in the author's copy of the
-        # game that colonists produce no silver in mountain
-        # squares unless there is a silver resource there or an
-        # expert. This does not appear in any docs anywhere it
-        # seems, so could be a bug. It seems likely to be a bug
-        # because all of the other variations (non-expert on
-        # silver resource, expert on mountains, expert on silver
-        # resource, etc.) seem to assume that this base value is
-        # actually 1.
         mountains: 1
         ocean:     0
         plains:    0

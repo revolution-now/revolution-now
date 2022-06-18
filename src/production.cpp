@@ -339,6 +339,42 @@ void compute_lumber_hammers(
          out.product_delta_final );
 }
 
+void compute_silver_production(
+    ColonyProduction& pr, Colony const& colony,
+    TerrainState const& terrain_state,
+    UnitsState const&   units_state ) {
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    if( maybe<OutdoorUnit> const& unit =
+            colony.outdoor_jobs()[d];
+        unit.has_value() &&
+        unit->job == e_outdoor_job::silver ) {
+      int const quantity = production_on_square(
+          e_outdoor_job::silver, terrain_state,
+          units_state.unit_for( unit->unit_id ).type(),
+          colony.location().moved( d ) );
+      pr.silver += quantity;
+      pr.land_production[d] = SquareProduction{
+          .what = e_outdoor_job::silver, .quantity = quantity };
+    }
+  }
+
+  // Note: the center square will never produce silver.
+
+  int const warehouse_capacity =
+      colony_warehouse_capacity( colony );
+
+  int const current_raw_quantity =
+      colony.commodities()[e_commodity::silver];
+  int const proposed_raw_quantity =
+      current_raw_quantity + pr.silver;
+  pr.silver =
+      std::min( proposed_raw_quantity, warehouse_capacity ) -
+      current_raw_quantity;
+  CHECK( pr.silver + current_raw_quantity >= 0,
+         "colony supply of silver has gone negative ({}).",
+         pr.silver + current_raw_quantity );
+}
+
 void compute_land_production( ColonyProduction&   pr,
                               Colony const&       colony,
                               TerrainState const& terrain_state,
@@ -376,6 +412,9 @@ void compute_land_production( ColonyProduction&   pr,
   compute_lumber_hammers( colony, terrain_state, units_state,
                           pr.lumber_hammers,
                           pr.land_production );
+
+  compute_silver_production( pr, colony, terrain_state,
+                             units_state );
 
   // TODO
 }
