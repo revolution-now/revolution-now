@@ -48,18 +48,18 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   // within range.
   for( e_unit_inventory type :
        refl::enum_values<e_unit_inventory> ) {
-    maybe<int const&> quantity = base::lookup( inventory, type );
-    if( !quantity.has_value() ) continue;
+    int const quantity = inventory[type];
+    if( quantity == 0 ) continue;
     UnitInventoryTraits const& traits =
         config_units.composition.inventory_traits[type];
-    REFL_VALIDATE( *quantity >= traits.min_quantity,
+    REFL_VALIDATE( quantity >= traits.min_quantity,
                    "{} inventory must have at least {} items.",
                    type, traits.min_quantity );
-    REFL_VALIDATE( *quantity <= traits.max_quantity,
+    REFL_VALIDATE( quantity <= traits.max_quantity,
                    "{} inventory must have at most {} items.",
                    type, traits.max_quantity );
     REFL_VALIDATE(
-        *quantity % traits.multiple == 0,
+        quantity % traits.multiple == 0,
         "{} inventory must come in multiples of {} items.", type,
         traits.multiple );
   }
@@ -69,7 +69,7 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   for( e_unit_inventory inv :
        config_units.composition.unit_types[type.type()]
            .inventory_types )
-    REFL_VALIDATE( inventory.contains( inv ),
+    REFL_VALIDATE( inventory[inv] > 0,
                    "unit requires inventory type `{}' but it "
                    "was not provided.",
                    inv );
@@ -77,12 +77,13 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   // Validation: make sure that the unit has no more inventory
   // types than it is supposed to.
   for( auto [inv, q] : inventory )
-    REFL_VALIDATE(
-        config_units.composition.unit_types[type.type()]
-            .inventory_types.contains( inv ),
-        "unit has inventory type `{}' but it is not in the list "
-        "of allowed inventory types for that unit type.",
-        inv );
+    if( q > 0 )
+      REFL_VALIDATE(
+          config_units.composition.unit_types[type.type()]
+              .inventory_types.contains( inv ),
+          "unit has inventory type `{}' but it is not in the "
+          "list of allowed inventory types for that unit type.",
+          inv );
 
   return base::valid;
 }
@@ -118,7 +119,7 @@ expect<UnitComposition> UnitComposition::with_new_type(
 }
 
 int UnitComposition::operator[]( e_unit_inventory inv ) const {
-  return base::lookup( o_.inventory, inv ).value_or( 0 );
+  return o_.inventory[inv];
 }
 
 /****************************************************************
@@ -138,9 +139,8 @@ maybe<Commodity> commodity_from_modifier(
       return o.commodity;
     }
     case e::inventory: {
-      auto const& o = traits.association.get<inventory>();
-      UNWRAP_RETURN( quantity,
-                     base::lookup( comp.inventory(), o.type ) );
+      auto const& o        = traits.association.get<inventory>();
+      int const   quantity = comp.inventory()[o.type];
       UnitInventoryTraits const& inv_traits =
           config_units.composition.inventory_traits[o.type];
       UNWRAP_RETURN( comm_type, inv_traits.commodity );
@@ -189,7 +189,7 @@ maybe<int> max_valid_inventory_quantity(
 void remove_commodities_from_inventory(
     UnitComposition::UnitInventoryMap& inventory ) {
   for( auto inv : refl::enum_values<e_unit_inventory> )
-    if( inventory_to_commodity( inv ) ) inventory.erase( inv );
+    if( inventory_to_commodity( inv ) ) inventory[inv] = 0;
 }
 
 } // namespace
@@ -276,7 +276,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
       commodities[comm->type] -= comm->quantity;
     }
     // Next determine commodities required in inventory.
-    unordered_map<e_unit_inventory, int> new_inventory =
+    refl::enum_map<e_unit_inventory, int> new_inventory =
         comp.inventory();
     // We remove these because we've already added them into the
     // starting_comms above.

@@ -32,8 +32,7 @@ namespace rn {
 *****************************************************************/
 class UnitComposition {
  public:
-  using UnitInventoryMap =
-      std::unordered_map<e_unit_inventory, int>;
+  using UnitInventoryMap = refl::enum_map<e_unit_inventory, int>;
 
   UnitComposition() = default;
 

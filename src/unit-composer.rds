@@ -11,6 +11,9 @@
 # Rds
 include "utype.rds.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 # C++ standard library
 include "<unordered_map>"
 
@@ -25,7 +28,7 @@ namespace "rn.wrapped"
 
 struct.UnitComposition {
   type 'rn::UnitType',
-  inventory 'std::unordered_map<e_unit_inventory, int>',
+  inventory 'refl::enum_map<e_unit_inventory, int>',
 
   _features { equality, validation }
 }
