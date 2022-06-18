@@ -847,6 +847,21 @@ wait<> nation_turn(
 
   // Ending.
   if( st.need_eot )
+    // FIXME: in the original game, a unit that hasn't moved this
+    // turn (say, one that has remained fortified) can be acti-
+    // vated and moved during the end of turn. Then after it
+    // moves the turn will end with no end-of-turn (although
+    // other units can be activated while the first one is blink-
+    // ing, in which case they can move as well). This should not
+    // be to difficult to implement (and might actually simplify
+    // some of the land-view logic in eliminating the distinction
+    // between end of turn and mid-turn in unit selection); any
+    // units that still have movement points remaining can be se-
+    // lected, then we just go back into the units_turn to
+    // process them. We can do that here just once, because we
+    // know that after that process is over a) the turn will end,
+    // and b) we won't need an end-of-turn state, because the
+    // user has already had one.
     co_await end_of_turn(
         panel_plane, menu_plane, land_view_plane, planes, gui,
         colonies_state, units_state, map_updater,
