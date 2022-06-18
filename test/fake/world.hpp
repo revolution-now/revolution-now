@@ -40,6 +40,7 @@ struct TurnState;
 struct ColoniesState;
 struct LandViewState;
 struct TerrainState;
+struct UnitType;
 
 struct Colony;
 struct IMapUpdater;
@@ -68,6 +69,9 @@ struct World {
                            maybe<e_nation> nation = nothing );
 
   UnitId add_unit_on_map( e_unit_type type, Coord where,
+                          maybe<e_nation> nation = nothing );
+
+  UnitId add_unit_on_map( UnitType const& type, Coord where,
                           maybe<e_nation> nation = nothing );
 
   UnitId add_unit_in_cargo( e_unit_type type, UnitId holder,
@@ -112,7 +116,7 @@ struct World {
 
   e_nation default_nation() const { return default_nation_; }
   void     set_default_player( e_nation nation ) {
-        default_nation_ = nation;
+    default_nation_ = nation;
   }
 
   // This will call the validate method on each colony in the

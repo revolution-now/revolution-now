@@ -17,7 +17,11 @@
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
+#include "base/to-str-ext-std.hpp"
 #include "base/to-str-tags.hpp"
 
 // Must be last.
@@ -2720,6 +2724,148 @@ TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
            FmtVerticalJsonList{ expected } );
+}
+
+TEST_CASE( "[unit-composer] promoted_from_activity" ) {
+  SECTION( "petty_criminal / farming" ) {
+    e_unit_activity const activity = e_unit_activity::farming;
+    auto ut = UnitType::create( e_unit_type::petty_criminal );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type =
+            UnitType::create( e_unit_type::indentured_servant ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "indentured_servant / farming" ) {
+    e_unit_activity const activity = e_unit_activity::farming;
+    auto                  ut =
+        UnitType::create( e_unit_type::indentured_servant );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::free_colonist ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "free_colonist / farming" ) {
+    e_unit_activity const activity = e_unit_activity::farming;
+    auto ut = UnitType::create( e_unit_type::free_colonist );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::expert_farmer ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "free_colonist / fighting" ) {
+    e_unit_activity const activity = e_unit_activity::fighting;
+    auto ut = UnitType::create( e_unit_type::free_colonist );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type =
+            UnitType::create( e_unit_type::veteran_colonist ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "free_colonist / pioneering" ) {
+    e_unit_activity const activity = e_unit_activity::pioneering;
+    auto ut = UnitType::create( e_unit_type::free_colonist );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::hardy_colonist ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "scout / fighting" ) {
+    e_unit_activity const activity = e_unit_activity::fighting;
+    auto ut = UnitType::create( e_unit_type::scout );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::seasoned_scout ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "pioneer / pioneering" ) {
+    e_unit_activity const activity = e_unit_activity::pioneering;
+    auto ut = UnitType::create( e_unit_type::pioneer );
+    UNWRAP_CHECK( uc,
+                  UnitComposition::create(
+                      ut, /*inventory=*/{
+                          { e_unit_inventory::tools, 80 } } ) );
+    UnitComposition expected( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::hardy_pioneer ),
+        .inventory = uc.inventory(),
+    } );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             expected );
+  }
+
+  SECTION( "hardy_colonist / pioneering" ) {
+    e_unit_activity const activity = e_unit_activity::pioneering;
+    auto ut = UnitType::create( e_unit_type::hardy_colonist );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             unexpected<UnitComposition>(
+                 "viable unit type not found"s ) );
+  }
+
+  SECTION( "hardy_pioneer / pioneering" ) {
+    e_unit_activity const activity = e_unit_activity::pioneering;
+    auto ut = UnitType::create( e_unit_type::hardy_pioneer );
+    UNWRAP_CHECK( uc,
+                  UnitComposition::create(
+                      ut, /*inventory=*/{
+                          { e_unit_inventory::tools, 80 } } ) );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             unexpected<UnitComposition>(
+                 "viable unit type not found"s ) );
+  }
+
+  SECTION( "hardy_colonist / farming" ) {
+    e_unit_activity const activity = e_unit_activity::farming;
+    auto ut = UnitType::create( e_unit_type::hardy_colonist );
+    UNWRAP_CHECK(
+        uc, UnitComposition::create( ut, /*inventory=*/{} ) );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             unexpected<UnitComposition>(
+                 "viable unit type not found"s ) );
+  }
+
+  SECTION( "hardy_pioneer / farming" ) {
+    e_unit_activity const activity = e_unit_activity::farming;
+    auto ut = UnitType::create( e_unit_type::hardy_pioneer );
+    UNWRAP_CHECK( uc,
+                  UnitComposition::create(
+                      ut, /*inventory=*/{
+                          { e_unit_inventory::tools, 80 } } ) );
+    REQUIRE( promoted_from_activity( uc, activity ) ==
+             unexpected<UnitComposition>(
+                 "viable unit type not found"s ) );
+  }
 }
 
 } // namespace

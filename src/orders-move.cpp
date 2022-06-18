@@ -370,7 +370,7 @@ TravelHandler::analyze_unload() const {
                                 .yes_label = "Make landfall",
                                 .no_label  = "Stay with ships",
                                 .no_comes_first = true } );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -737,7 +737,8 @@ wait<> TravelHandler::perform() {
       // the ship.
       co_await show_colony_view(
           planes_, colonies_state_.colony_for( colony_id ),
-          terrain_state_, units_state_, player_ );
+          terrain_state_, units_state_, colonies_state_,
+          player_ );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -933,7 +934,8 @@ struct AttackHandler : public OrdersHandler {
           attacker_nation.display_name, colony.name() );
       co_await show_colony_view(
           planes_, colonies_state_.colony_for( colony_id ),
-          terrain_state_, units_state_, player_ );
+          terrain_state_, units_state_, colonies_state_,
+          player_ );
     }
   }
 

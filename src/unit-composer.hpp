@@ -155,6 +155,22 @@ void adjust_for_independence_status(
     std::vector<UnitTransformationFromCommodityResult>& input,
     bool independence_declared );
 
+// This is the function that will promote a unit given an activ-
+// ity. It will promote the unit type given the activity, then
+// preserve the inventory. Note that if the unit type is already
+// an expert at something other than the activity then this will
+// not promote them, since that does not happen in the game nor-
+// mally (there may be some cheat/debug features that allow doing
+// that, but that logic is kept separate from this). On the other
+// hand, if the unit is already an expert at the given activity,
+// then no promotion will happen and an error will be returned.
+//
+// NOTE: instead of calling this directly, instead call the func-
+// tion that will look up the unit's current activity and promote
+// the unit if possible.
+expect<UnitComposition> promoted_from_activity(
+    UnitComposition const& comp, e_unit_activity activity );
+
 } // namespace rn
 
 /****************************************************************

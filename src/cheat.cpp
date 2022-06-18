@@ -15,6 +15,7 @@
 #include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "igui.hpp"
+#include "logger.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 
@@ -24,6 +25,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -117,24 +121,46 @@ void cheat_upgrade_unit_expertise(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state, Unit& unit ) {
   RETURN_IF_NO_CHEAT;
+  UnitType const original_type = unit.type_obj();
+  SCOPE_EXIT(
+      lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
   if( !is_unit_human( unit.type_obj() ) ) return;
+
+  // First just use the normal game logic to attempt a promotion.
+  // This will work in many cases but not all. It won't do a pro-
+  // motion when the unit has no activity and it won't change an
+  // expert's type to be a new expert, both things that we will
+  // want to do with this cheat feature.
+  if( try_promote_unit_for_current_activity(
+          units_state, colonies_state, unit ) )
+    return;
 
   maybe<e_unit_activity> activity = current_activity_for_unit(
       units_state, colonies_state, unit.id() );
 
   if( activity.has_value() ) {
-    maybe<UnitType> promoted =
-        promoted_unit_type( unit.type_obj(), *activity );
-    if( !promoted.has_value() ) {
-      // This is for when we have a unit that is already an ex-
-      // pert at something other than the given activity, we want
-      // to switch them to being an expert at the given activity.
-      promoted = promoted_unit_type(
-          UnitType::create( e_unit_type::free_colonist ),
-          *activity );
-      if( !promoted.has_value() ) return;
-    }
-    unit.change_type( UnitComposition::create( *promoted ) );
+    if( unit_attr( unit.base_type() ).expertise == *activity )
+      return;
+    // This is for when we have a unit that is already an expert
+    // at something other than the given activity, we want to
+    // switch them to being an expert at the given activity.
+    UnitType to_promote;
+    if( unit.desc().is_derived )
+      // Take the canonical version of the thing try to promote
+      // it (this is needed if it's a derived type).
+      to_promote = UnitType::create( unit.type() );
+    else
+      // Not derived, so just try promoting a free colonist.
+      to_promote =
+          UnitType::create( e_unit_type::free_colonist );
+    maybe<UnitType> new_ut =
+        promoted_unit_type( to_promote, *activity );
+    if( !new_ut.has_value() ) return;
+    expect<UnitComposition> promoted =
+        UnitComposition::create( *new_ut );
+    if( !promoted.has_value() ) return;
+    CHECK( promoted.has_value() );
+    unit.change_type( *promoted );
     return;
   }
 
@@ -155,6 +181,9 @@ void cheat_upgrade_unit_expertise(
 
 void cheat_downgrade_unit_expertise( Unit& unit ) {
   RETURN_IF_NO_CHEAT;
+  UnitType const original_type = unit.type_obj();
+  SCOPE_EXIT(
+      lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
   if( !is_unit_human( unit.type_obj() ) ) return;
 
   if( !unit.desc().is_derived ) {

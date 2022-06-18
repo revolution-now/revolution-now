@@ -19,6 +19,7 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "dragdrop.hpp"
+#include "gs-units.hpp"
 #include "gui.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
@@ -46,10 +47,11 @@ namespace rn {
 namespace {
 
 struct PS {
-  IGui&               gui;
-  TerrainState const& terrain_state;
-  UnitsState const&   units_state;
-  Player const&       player;
+  IGui&                gui;
+  TerrainState const&  terrain_state;
+  UnitsState&          units_state;
+  ColoniesState const& colonies_state;
+  Player const&        player;
 
   ColonyId                            colony_id  = {};
   co::stream<input::event_t>          input      = {};
@@ -74,6 +76,28 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 
   colview_top_level().view().draw( renderer,
                                    canvas.upper_left() );
+}
+
+/****************************************************************
+** Cheat Stuff
+*****************************************************************/
+void try_promote_demote_unit( PS& S, Coord where, bool demote ) {
+  maybe<ColViewObjectWithBounds> obj =
+      colview_top_level().object_here( where );
+  if( !obj.has_value() ) return;
+  UNWRAP_CHECK( unit_id,
+                obj->obj.get_if<ColViewObject::unit>().member(
+                    &ColViewObject::unit::id ) );
+
+  // Cheat mode.
+  Unit& unit = S.units_state.unit_for( unit_id );
+  if( demote )
+    cheat_downgrade_unit_expertise( unit );
+  else
+    cheat_upgrade_unit_expertise( S.units_state,
+                                  S.colonies_state, unit );
+  colview_top_level().update();
+  return;
 }
 
 /****************************************************************
@@ -425,12 +449,27 @@ wait<bool> handle_event( PS& S, Colony& colony,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    PS&, Colony&, input::mouse_button_event_t const& event ) {
+    PS& S, Colony&, input::mouse_button_event_t const& event ) {
   // Need to filter these out otherwise the start of drag events
   // will call perform_click which we don't want.
   if( event.buttons != input::e_mouse_button_event::left_up &&
       event.buttons != input::e_mouse_button_event::right_up )
     co_return false;
+  if( event.mod.shf_down ) {
+    // Cheat commands.
+    switch( event.buttons ) {
+      case input::e_mouse_button_event::left_up:
+        try_promote_demote_unit( S, event.pos,
+                                 /*demote=*/false );
+        break;
+      case input::e_mouse_button_event::right_up:
+        try_promote_demote_unit( S, event.pos,
+                                 /*demote=*/true );
+        break;
+      default: break;
+    }
+    co_return false;
+  }
   co_await colview_top_level().perform_click( event );
   co_return false;
 }
@@ -484,12 +523,14 @@ struct ColonyPlane::Impl : public Plane {
   IGui&   gui_;
 
   Impl( Colony& colony, IGui& gui,
-        TerrainState const& terrain_state,
-        UnitsState& units_state, Player& player )
-    : S_{ .gui           = gui,
-          .terrain_state = terrain_state,
-          .units_state   = units_state,
-          .player        = player },
+        TerrainState const&  terrain_state,
+        UnitsState&          units_state,
+        ColoniesState const& colonies_state, Player& player )
+    : S_{ .gui            = gui,
+          .terrain_state  = terrain_state,
+          .units_state    = units_state,
+          .colonies_state = colonies_state,
+          .player         = player },
       colony_( colony ),
       gui_( gui ) {
     set_colview_colony( S_.gui, S_.terrain_state, S_.units_state,
@@ -573,11 +614,12 @@ Plane& ColonyPlane::impl() { return *impl_; }
 ColonyPlane::~ColonyPlane() = default;
 
 ColonyPlane::ColonyPlane( Colony& colony, IGui& gui,
-                          TerrainState const& terrain_state,
-                          UnitsState&         units_state,
-                          Player&             player )
+                          TerrainState const&  terrain_state,
+                          UnitsState&          units_state,
+                          ColoniesState const& colonies_state,
+                          Player&              player )
   : impl_( new Impl( colony, gui, terrain_state, units_state,
-                     player ) ) {}
+                     colonies_state, player ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();
@@ -587,13 +629,15 @@ wait<> ColonyPlane::show_colony_view() const {
 ** API
 *****************************************************************/
 wait<> show_colony_view( Planes& planes, Colony& colony,
-                         TerrainState const& terrain_state,
-                         UnitsState&         units_state,
-                         Player&             player ) {
+                         TerrainState const&  terrain_state,
+                         UnitsState&          units_state,
+                         ColoniesState const& colonies_state,
+                         Player&              player ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
   ColonyPlane colony_plane( colony, gui, terrain_state,
-                            units_state, player );
+                            units_state, colonies_state,
+                            player );
   auto        popper = planes.new_group();
   PlaneGroup& group  = planes.back();
   group.push( colony_plane );

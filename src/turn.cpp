@@ -360,7 +360,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       co_await show_colony_view(
           planes,
           colonies_state.colony_for( input.get<colony>().id ),
-          terrain_state, units_state, player );
+          terrain_state, units_state, colonies_state, player );
       break;
     }
     default: break;
@@ -465,7 +465,7 @@ wait<> process_player_input(
       co_await show_colony_view(
           planes,
           colonies_state.colony_for( input.get<colony>().id ),
-          terrain_state, units_state, player );
+          terrain_state, units_state, colonies_state, player );
       break;
     }
     // We have some orders for the current unit.

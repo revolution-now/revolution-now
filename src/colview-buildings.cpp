@@ -11,7 +11,6 @@
 #include "colview-buildings.hpp"
 
 // Revolution Now
-#include "cheat.hpp"
 #include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "game-state.hpp" // FIXME
@@ -294,29 +293,9 @@ void ColViewBuildings::disown_dragged_object() {
 // Implement AwaitView.
 wait<> ColViewBuildings::perform_click(
     input::mouse_button_event_t const& event ) {
-  if( !event.mod.shf_down ) co_return;
-
-  maybe<ColViewObjectWithBounds> obj = object_here( event.pos );
-  if( !obj.has_value() ) co_return;
-  UNWRAP_CHECK( unit_id,
-                obj->obj.get_if<ColViewObject::unit>().member(
-                    &ColViewObject::unit::id ) );
-
-  // Cheat mode.
-  UnitsState& units_state = GameState::units();
-  Unit&       unit        = units_state.unit_for( unit_id );
-  switch( event.buttons ) {
-    case input::e_mouse_button_event::left_up:
-      cheat_upgrade_unit_expertise(
-          units_state, GameState::colonies(), unit );
-      break;
-    case input::e_mouse_button_event::right_up:
-      cheat_downgrade_unit_expertise( unit );
-      break;
-    default: co_return;
-  }
-  update_production( GameState::terrain(), GameState::units(),
-                     player_, colony_ );
+  if( event.buttons != input::e_mouse_button_event::left_up )
+    co_return;
+  // TODO
   co_return;
 }
 

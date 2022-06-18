@@ -11,7 +11,6 @@
 #include "colview-entities.hpp"
 
 // Revolution Now
-#include "cheat.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
@@ -1296,26 +1295,6 @@ class LandView : public ui::View,
     CHECK( event.pos.is_inside( rect( {} ) ) );
     maybe<UnitId> unit_id = unit_under_cursor( event.pos );
     if( !unit_id.has_value() ) co_return;
-
-    if( event.mod.shf_down ) {
-      // Cheat mode.
-      UnitsState& units_state = GameState::units();
-      Unit&       unit        = units_state.unit_for( *unit_id );
-      switch( event.buttons ) {
-        case input::e_mouse_button_event::left_up:
-          cheat_upgrade_unit_expertise(
-              units_state, GameState::colonies(), unit );
-          break;
-        case input::e_mouse_button_event::right_up:
-          cheat_downgrade_unit_expertise( unit );
-          break;
-        default: co_return;
-      }
-      update_production( GameState::terrain(),
-                         GameState::units(), player_,
-                         ::rn::colony() );
-      co_return;
-    }
 
     EnumChoiceConfig     config{ .msg = "Select Occupation",
                                  .choice_required = false };

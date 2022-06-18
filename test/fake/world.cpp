@@ -83,6 +83,12 @@ UnitId World::add_unit_in_port( e_unit_type     type,
 
 UnitId World::add_unit_on_map( e_unit_type type, Coord where,
                                maybe<e_nation> nation ) {
+  return add_unit_on_map( UnitType::create( type ), where,
+                          nation );
+}
+
+UnitId World::add_unit_on_map( UnitType const& type, Coord where,
+                               maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   return create_unit_on_map_non_interactive(
       root().units, map_updater(), *nation,

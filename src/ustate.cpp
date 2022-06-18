@@ -105,6 +105,22 @@ maybe<e_unit_activity> current_activity_for_unit(
   return units_state.unit_for( id ).desc().type_activity;
 }
 
+bool try_promote_unit_for_current_activity(
+    UnitsState const&    units_state,
+    ColoniesState const& colonies_state, Unit& unit ) {
+  if( !is_unit_human( unit.type_obj() ) ) return false;
+  maybe<e_unit_activity> activity = current_activity_for_unit(
+      units_state, colonies_state, unit.id() );
+  if( !activity.has_value() ) return false;
+  if( unit_attr( unit.base_type() ).expertise == *activity )
+    return false;
+  expect<UnitComposition> promoted =
+      promoted_from_activity( unit.composition(), *activity );
+  if( !promoted.has_value() ) return false;
+  unit.change_type( *promoted );
+  return true;
+}
+
 string debug_string( UnitsState const& units_state, UnitId id ) {
   return debug_string( units_state.unit_for( id ) );
 }

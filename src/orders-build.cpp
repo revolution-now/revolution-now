@@ -122,7 +122,7 @@ struct BuildHandler : public OrdersHandler {
   wait<> post() const override {
     co_await show_colony_view(
         planes, colonies_state.colony_for( colony_id ),
-        terrain_state, units_state, player );
+        terrain_state, units_state, colonies_state, player );
   }
 
   IMapUpdater*        map_updater;

@@ -182,6 +182,11 @@ UnitTypeAttributes const& unit_attr( UnitType type );
 // on the order of once per battle, although that probably won't
 // happen since the probability of promotion in a battle is not
 // large.
+//
+// NOTE: this function should not be called directly to promote a
+// unit in this fashion because it will not take into account
+// unit inventory. Search for the other functions that call this
+// one.
 maybe<UnitType> promoted_unit_type( UnitType        ut,
                                     e_unit_activity activity );
 
