@@ -75,19 +75,6 @@
   15. Fix that when clicking outside of an open menu to close it
       the menu plane does not handle the click and it goes
       through to what is underneath of it.
-  16. Fix that when a unit is depixelating to another unit, the
-      target unit doesn't have its shadow rendered during depixe-
-      lation. One way to fix this would be to give the shader the
-      ability to draw a shadow behind a unit, which might be a
-      good idea anyway. However, probably a better way would be
-      first remove the concept of depixelating to another tile
-      from the shader. Then add a flag to invert a depixelation,
-      and reimplement depixelation-to-another-unit by just run-
-      ning two simultaneous depixelations, one where the source
-      unit is depixelating, and another where the target unit is
-      pixelating. If the target unit has its depixelation in-
-      verted and has the same depixelation anchor as the source
-      then it should work.
 
 # Minimap:
 
