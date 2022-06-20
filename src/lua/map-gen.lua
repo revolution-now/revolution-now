@@ -993,10 +993,8 @@ end
 local function generate_battlefield()
   local size = map_gen.world_size()
   on_all( function( coord, square )
-    if coord.x ~= 0 and coord.x ~= size.w - 1 then
-      square.surface = e.surface.land
-      square.ground = e.ground_terrain.grassland
-    end
+    square.surface = e.surface.land
+    square.ground = e.ground_terrain.grassland
   end )
 end
 
@@ -1025,6 +1023,7 @@ local function generate( options )
 
   if options.type == 'battlefield' then
     generate_battlefield( options )
+    return
   elseif options.type == 'testing' then
     generate_testing_land()
   else
