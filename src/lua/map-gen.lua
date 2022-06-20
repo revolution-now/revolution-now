@@ -38,6 +38,7 @@ end
 function M.default_options()
   return secure_options{
     world_size=CLASSIC_WORLD_SIZE,
+    type='normal',
     -- The original game seems to have a land density of about
     -- 25% on normal map generation settings. However we will put
     -- it slightly lower because it tends to end up slightly
@@ -947,6 +948,7 @@ end
 -----------------------------------------------------------------
 -- Testing
 -----------------------------------------------------------------
+---- FIXME move this
 local function generate_testing_land()
   on_all( function( coord, square )
     local main = { x=coord.x, y=coord.y - 2 }
@@ -987,6 +989,7 @@ local function generate_testing_land()
   -- end )
 end
 
+-- FIXME move this
 local function generate_battlefield()
   local size = map_gen.world_size()
   on_all( function( coord, square )
@@ -995,13 +998,6 @@ local function generate_battlefield()
       square.ground = e.ground_terrain.grassland
     end
   end )
-end
-
------------------------------------------------------------------
--- Testing
------------------------------------------------------------------
-local function add_testing_options( options )
-  options.world_size = { w=16, h=16 }
 end
 
 -----------------------------------------------------------------
@@ -1027,9 +1023,13 @@ local function generate( options )
 
   reset_terrain( options )
 
-  generate_land( options )
-  -- generate_battlefield( options )
-  -- generate_testing_land()
+  if options.type == 'battlefield' then
+    generate_battlefield( options )
+  elseif options.type == 'testing' then
+    generate_testing_land()
+  else
+    generate_land( options )
+  end
 
   create_sea_lanes()
 

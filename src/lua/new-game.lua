@@ -11,6 +11,8 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+local map_gen = require( 'map-gen' )
+
 -----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
@@ -25,14 +27,15 @@ local DIFFICULTY_NAMES = {
 function M.default_options()
   return {
     difficulty_name='discoverer',
-    -- This determines the nations and whether they are human
-    -- (true) or AI controlled (false).
+    -- This determines which nations are enabled and some proper-
+    -- ties.
     nations={
-      [e.nation.english]=false,
-      [e.nation.french]=false,
-      [e.nation.dutch]=true,
-      [e.nation.spanish]=false
-    }
+      [e.nation.english]={ human=false },
+      [e.nation.french]={ human=false },
+      [e.nation.spanish]={ human=false },
+      [e.nation.dutch]={ human=true }
+    },
+    map={} -- use default map options.
   }
 end
 
@@ -59,7 +62,8 @@ local function unit_type( type, base_type )
   end
 end
 
-local function create_initial_units( nation )
+local function create_initial_units_for_nation( nation, root )
+  local player = root.players.players:get( nation )
   local coord = map_gen.initial_ships_pos()[nation]
   if not coord then return { x=0, y=0 } end
   local merchantman = unit_type( e.unit_type.merchantman )
@@ -74,23 +78,35 @@ local function create_initial_units( nation )
   ustate.create_unit_in_cargo( nation, pioneer,
                                merchantman_unit:id() )
 
-  return coord
+  player.starting_position = coord
 end
 
-local function create_battlefield_units( options )
-  local veteran_soldier =
-      unit_type( e.unit_type.veteran_soldier )
-  local free_colonist = unit_type( e.unit_type.free_colonist )
+local function create_initial_units( options, root )
+  for nation, _ in pairs( options.nations ) do
+    create_initial_units_for_nation( nation, root )
+  end
+end
+
+local function create_battlefield_units( options, root )
+  local nation1
+  local nation2
+  for nation, _ in pairs( options.nations ) do
+    nation1 = nation2
+    nation2 = nation
+    if nation1 then break end
+  end
+  assert( nation1 )
+  assert( nation2 )
   local veteran_dragoon =
       unit_type( e.unit_type.veteran_dragoon )
 
-  ustate.create_unit_on_map( e.nation.dutch, veteran_soldier,
+  ustate.create_unit_on_map( nation1, veteran_dragoon,
                              { x=1, y=1 } ):fortify()
-  ustate.create_unit_on_map( e.nation.dutch, free_colonist,
+  ustate.create_unit_on_map( nation1, veteran_dragoon,
                              { x=1, y=2 } ):fortify()
-  ustate.create_unit_on_map( e.nation.spanish, veteran_dragoon,
+  ustate.create_unit_on_map( nation2, veteran_dragoon,
                              { x=2, y=1 } )
-  ustate.create_unit_on_map( e.nation.spanish, veteran_dragoon,
+  ustate.create_unit_on_map( nation2, veteran_dragoon,
                              { x=2, y=2 } )
 end
 
@@ -138,17 +154,15 @@ local function create_player_state(settings, nation, player,
   player.money = 1000 - 250 * settings.difficulty
   -- This is temporary so that it doesn't keep asking us.
   player.discovered_new_world = 'New Netherlands'
-  local coord = create_initial_units( nation )
-  player.starting_position = coord
   create_old_world_state( settings, player )
 end
 
 local function create_nations( options, root )
   local players = root.players.players
   local settings = root.settings
-  for nation, is_human in pairs( options.nations ) do
+  for nation, tbl in pairs( options.nations ) do
     local player = players:reset_player( nation )
-    create_player_state( settings, nation, player, is_human )
+    create_player_state( settings, nation, player, tbl.human )
   end
 end
 
@@ -164,7 +178,12 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  -- nothing.
+  -- options.nations = {
+  --   [e.nation.french]={ human=true },
+  --   [e.nation.dutch]={ human=true }
+  -- }
+  -- options.map.world_size = { w=4, h=4 }
+  -- options.map.type = 'battlefield'
 end
 
 -----------------------------------------------------------------
@@ -188,13 +207,17 @@ function M.create( options )
 
   set_default_settings( options, root.settings )
 
-  map_gen.generate_terrain()
+  map_gen.generate( options.map )
 
   create_turn_state( root.turn )
 
   create_nations( options, root )
 
-  -- create_battlefield_units()
+  if options.map.type == 'battlefield' then
+    create_battlefield_units( options, root )
+  else
+    create_initial_units( options, root )
+  end
 end
 
 return M

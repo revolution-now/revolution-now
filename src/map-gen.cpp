@@ -112,18 +112,13 @@ void linker_dont_discard_module_map_gen() {}
 *****************************************************************/
 namespace {
 
-LUA_FN( generate_terrain, void ) {
-  // FIXME: this should render, but it breaks unit tests.
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
-  generate_terrain( map_updater );
-}
-
 LUA_FN( reset_terrain, void, Delta size ) {
-  // FIXME: this should render, but it breaks unit tests.
   NonRenderingMapUpdater map_updater( GameState::terrain() );
   reset_terrain( map_updater, size );
 }
 
+// FIXME: get rid of this and access it via the TerrainState
+// which is available from Lua.
 LUA_FN( at, MapSquare&, Coord tile ) {
   TerrainState& terrain_state = GameState::terrain();
   // FIXME: this generates a formatting error because `tile` for-
@@ -134,6 +129,8 @@ LUA_FN( at, MapSquare&, Coord tile ) {
   return terrain_state.mutable_square_at( tile );
 }
 
+// FIXME: get rid of this; lua should access the terrain state
+// via the root state.
 LUA_FN( terrain_state, TerrainState& ) {
   return GameState::terrain();
 }
