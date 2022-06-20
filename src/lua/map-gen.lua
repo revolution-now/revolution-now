@@ -45,7 +45,7 @@ function M.default_options()
     -- higher than the target.
     land_density=.22,
     remove_Xs=false,
-    brush='mixed'
+    brush='rand'
   }
 end
 
@@ -819,6 +819,16 @@ local brushes = {
     else
       return self:cross( x, y )
     end
+  end,
+  rand=function( self, x, y )
+    local count = 0
+    local squares = surrounding_squares_cardinal{ x=x, y=y }
+    for _, coord in ipairs( squares ) do
+      if random_bool( .5 ) then
+        count = count + set_land_if_needed( coord )
+      end
+    end
+    return count
   end
 }
 
