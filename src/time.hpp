@@ -46,4 +46,6 @@ auto from_seconds( T secs ) {
       std::chrono::nanoseconds( nanos ) );
 }
 
+void linker_dont_discard_module_time();
+
 } // namespace rn

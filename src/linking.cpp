@@ -20,6 +20,7 @@
 #include "map-gen.hpp"
 #include "player.hpp"
 #include "sound.hpp"
+#include "time.hpp"
 #include "turn.hpp"
 
 // base
@@ -37,6 +38,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_map_gen();
   linker_dont_discard_module_config_files();
   linker_dont_discard_module_fathers();
+  linker_dont_discard_module_time();
   // Add more here as needed.
 }
 

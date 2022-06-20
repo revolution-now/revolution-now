@@ -13,10 +13,8 @@
 // Revolution Now
 #include "gs-land-view.hpp"
 #include "gs-terrain.hpp"
-#include "logger.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
-#include "rand.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -34,16 +32,8 @@ namespace rn {
 namespace {
 
 void generate_terrain_impl( Matrix<MapSquare>& ) {
-  lg.info( "generating map..." );
   lua::state& st = lua_global_state();
-  // st["math"]["randomseed"]( rng::random_int() );
-  auto start = chrono::system_clock::now();
   CHECK_HAS_VALUE( st["map_gen"]["generate"].pcall() );
-  auto end = chrono::system_clock::now();
-  lg.info(
-      "map generation took {}ms",
-      chrono::duration_cast<chrono::milliseconds>( end - start )
-          .count() );
 }
 
 } // namespace

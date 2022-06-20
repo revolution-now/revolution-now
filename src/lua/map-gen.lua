@@ -12,6 +12,7 @@
 local M = {}
 
 local dist = require( 'map-gen.classic.resource-dist' )
+local timer = require( 'util.timer' )
 
 -----------------------------------------------------------------
 -- Constants
@@ -1011,7 +1012,7 @@ function M.regen( options )
   render_terrain.redraw()
 end
 
-function M.generate( options )
+local function generate( options )
   options = options or {}
   -- Merge the options with the default ones so that any missing
   -- fields will have their default values.
@@ -1022,7 +1023,7 @@ function M.generate( options )
   end
   options = secure_options( options )
 
-  add_testing_options( options )
+  log.info( 'generating map...' );
 
   reset_terrain( options )
 
@@ -1034,5 +1035,7 @@ function M.generate( options )
 
   create_indian_villages()
 end
+
+M.generate = timer.timed( 'map generation', generate )
 
 return M
