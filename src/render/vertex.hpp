@@ -55,12 +55,9 @@ struct VertexBase : protected GenericVertex {
   // around.
   void     set_depixelation_anchor( gfx::point anchor );
   gl::vec2 depixelation_anchor() const;
-  // If the sprite is depixelating to a different sprite then the
-  // second argument will be the offset in the texture atlas to
-  // go from this vertex to the corresponding vertex on the
-  // target sprite. Otherwise, if the second argument is zero,
-  // then we just depixelate to nothing.
-  void set_depixelation_target( gfx::size target_atlas_offset );
+  // Flips the state of each pixel.
+  void set_depixelation_inversion( bool inverted );
+  bool depixelation_inversion() const;
 
   // *** Visibility.
   bool is_visible() const;

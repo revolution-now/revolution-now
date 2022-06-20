@@ -32,11 +32,12 @@ struct VertexBase;
 struct DepixelateInfo {
   base::maybe<double> stage = {};
 
-  // If the sprite is depixelating to a different sprite then
-  // this will be the offset from the source pixel to the target
-  // pixel in the atlas. Otherwise, the depixelation just goes to
-  // full transparency.
-  base::maybe<gfx::size> target = {};
+  // Flip the interpretation of the stage. This is similar to
+  // doing stage=1.0-stage, but it is not exactly the same be-
+  // cause the set of pixels at play will be different when the
+  // stage is different. By using this inversion, the set of
+  // pixels that are visible/invisible are swapped.
+  base::maybe<bool> inverted = {};
 
   // This should be set for any sprite that might move around on
   // screen as it is depixelating, e.g. a unit is depixelating
@@ -139,9 +140,6 @@ struct Painter {
   Painter& draw_stencil( int atlas_id, int replacement_atlas_id,
                          gfx::point where,
                          gfx::pixel key_color );
-
-  gfx::size depixelation_offset( int from_atlas_id,
-                                 int to_atlas_id ) const;
 
  private:
   // Should always use this one to emit, that way we never forget

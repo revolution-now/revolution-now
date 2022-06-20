@@ -31,7 +31,7 @@ GenericVertex proto_vertex( vertex_type type,
   return GenericVertex{
       .type                = static_cast<int32_t>( type ),
       .visible             = 1,
-      .depixelate          = gl::vec3{},
+      .depixelate          = gl::vec4{},
       .position            = gl::vec2::from_point( position ),
       .atlas_position      = {},
       .atlas_target_offset = {},
@@ -66,10 +66,8 @@ gl::vec2 VertexBase::depixelation_anchor() const {
   return gl::vec2{ .x = depixelate.x, .y = depixelate.y };
 }
 
-void VertexBase::set_depixelation_target(
-    gfx::size target_atlas_offset ) {
-  atlas_target_offset =
-      gl::vec2::from_size( target_atlas_offset );
+void VertexBase::set_depixelation_inversion( bool inverted ) {
+  depixelate.w = inverted ? 1 : 0;
 }
 
 bool VertexBase::is_visible() const {

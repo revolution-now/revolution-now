@@ -11,7 +11,7 @@
 #version 330 core
 
 flat in int   frag_type;
-flat in vec3  frag_depixelate;
+flat in vec4  frag_depixelate;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
 flat in vec2  frag_atlas_target_offset;
@@ -111,9 +111,12 @@ float hash_position() {
   return hash_vec2( floor( hash_position )/screen_scale );
 }
 
-vec4 depixelate_to( in vec4 c1, in vec4 c2 ) {
+vec4 depixelate( in vec4 c ) {
   float animation_stage = frag_depixelate.z;
-  return ( hash_position() > animation_stage ) ? c1 : c2;
+  bool on = ( hash_position() >  animation_stage );
+  float inverted = frag_depixelate.w;
+  if( inverted != 0.0 ) on = !on;
+  return on ? c : vec4( 0.0 );
 }
 
 /****************************************************************
@@ -184,23 +187,8 @@ void main() {
   }
 
   // Depixelation.
-  if( frag_depixelate.z > 0.0 ) {
-    // Depixelate to nothing by default.
-    vec4 target_color = vec4( 0.0 );
-    // Check if we are depixelating to another sprite. This re-
-    // quires that we have the offset to the other sprite and
-    // also requires that this is a texture to begin with so that
-    // it won't affect the nationality flag. This logic may need
-    // to be improved at some point.
-    if( frag_type == 0 && length( frag_atlas_target_offset ) > 0 ) {
-      // Depixelate to another sprite, so get the position and
-      // color of the pixel in the other texture that we're de-
-      // pixelating to.
-      target_color = atlas_lookup( frag_atlas_position +
-                                   frag_atlas_target_offset );
-    }
-    color = depixelate_to( color, target_color );
-  }
+  if( frag_depixelate.z > 0.0 )
+    color = depixelate( color );
 
   // Color cycling.
   if( frag_color_cycle != 0 ) color = color_cycle( color );

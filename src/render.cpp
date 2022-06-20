@@ -122,6 +122,24 @@ void render_nationality_icon( rr::Renderer&             renderer,
   render_nationality_icon( renderer, where, nation, c );
 }
 
+void depixelate_from_to(
+    rr::Renderer& renderer, double stage,
+    base::function_ref<void( rr::Painter& painter )> from,
+    base::function_ref<void( rr::Painter& painter )> to ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           stage );
+  // The ordering of these should actually not matter, because we
+  // won't be rendering any pixels that contain both.
+  {
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
+                             true );
+    rr::Painter painter = renderer.painter();
+    to( painter );
+  }
+  rr::Painter painter = renderer.painter();
+  from( painter );
+}
+
 } // namespace
 
 /****************************************************************
@@ -197,6 +215,64 @@ void render_colony( rr::Painter& painter, Coord where,
   auto const& nation = nation_obj( colony.nation() );
   render_colony_flag( painter, where + Delta{ 8_w, 8_h },
                       nation.flag_color );
+}
+
+void render_unit_depixelate( rr::Renderer& renderer, Coord where,
+                             UnitId id, double stage,
+                             UnitRenderOptions const& options ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           stage );
+  render_unit( renderer, where, id, options );
+}
+
+// This is a bit tricky because we need to render the shadow, the
+// flag, and the unit, but 1) the flag has to go between the unit
+// and the shadow if the flag is to be behind the unit, and 2) we
+// don't want to depixelate the flag since we have a target unit,
+// so it would look strange if the flag depixelated.
+void render_unit_depixelate_to( rr::Renderer& renderer,
+                                Coord where, UnitId id,
+                                e_unit_type target, double stage,
+                                UnitRenderOptions options ) {
+  auto const& unit = unit_from_id( id );
+
+  // The shadow always goes in back of the flag, so if there is
+  // one we can get that out of the way.
+  if( options.shadow.has_value() )
+    depixelate_from_to(
+        renderer, stage, /*from=*/
+        [&]( rr::Painter& painter ) {
+          render_sprite_silhouette(
+              painter, where + options.shadow->offset,
+              unit.desc().tile, options.shadow->color );
+        },
+        /*to=*/
+        [&]( rr::Painter& painter ) {
+          render_sprite_silhouette(
+              painter, where + options.shadow->offset,
+              unit_attr( target ).tile, options.shadow->color );
+        } );
+  options.shadow.reset();
+
+  // If the flag is on then it goes in between the shadow and
+  // unit.
+  if( options.flag && !unit.desc().nat_icon_front )
+    render_nationality_icon( renderer, where, id );
+
+  // Now the unit.
+  depixelate_from_to(
+      renderer, stage, /*from=*/
+      [&]( rr::Painter& painter ) {
+        render_unit_type( painter, where, unit.desc().type,
+                          options );
+      },
+      /*to=*/
+      [&]( rr::Painter& painter ) {
+        render_unit_type( painter, where, target, options );
+      } );
+
+  if( options.flag && unit.desc().nat_icon_front )
+    render_nationality_icon( renderer, where, id );
 }
 
 } // namespace rn

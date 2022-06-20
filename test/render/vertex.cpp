@@ -32,7 +32,7 @@ TEST_CASE( "[render/vertex] SpriteVertex" ) {
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 0 );
   REQUIRE( gv.visible == 1 );
-  REQUIRE( gv.depixelate == gl::vec3{} );
+  REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
@@ -47,7 +47,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 1 );
   REQUIRE( gv.visible == 1 );
-  REQUIRE( gv.depixelate == gl::vec3{} );
+  REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{} );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
@@ -65,7 +65,7 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 2 );
   REQUIRE( gv.visible == 1 );
-  REQUIRE( gv.depixelate == gl::vec3{} );
+  REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
@@ -84,7 +84,7 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 3 );
   REQUIRE( gv.visible == 1 );
-  REQUIRE( gv.depixelate == gl::vec3{} );
+  REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_target_offset ==
@@ -124,29 +124,28 @@ TEST_CASE( "[render/vertex] depixelation" ) {
   REQUIRE( vert.depixelation_stage() == 0.0 );
   REQUIRE( vert.depixelation_anchor() == gl::vec2{} );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
-  REQUIRE( vert.generic().depixelate == gl::vec3{} );
+  REQUIRE( vert.generic().depixelate == gl::vec4{} );
   REQUIRE( vert.depixelation_stage() == 0.0 );
   REQUIRE( vert.depixelation_anchor() == gl::vec2{} );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
-  REQUIRE( vert.generic().depixelate == gl::vec3{} );
+  REQUIRE( vert.generic().depixelate == gl::vec4{} );
   vert.set_depixelation_stage( .5 );
   vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
-  vert.set_depixelation_target( gfx::size{} );
+  vert.set_depixelation_inversion( false );
   REQUIRE( vert.depixelation_stage() == 0.5 );
   REQUIRE( vert.depixelation_anchor() ==
            gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   REQUIRE( vert.generic().depixelate ==
-           gl::vec3{ .x = 1, .y = 2, .z = .5 } );
+           gl::vec4{ .x = 1, .y = 2, .z = .5, .w = 0 } );
   vert.set_depixelation_stage( 1.0 );
-  vert.set_depixelation_target( gfx::size{ .w = 9, .h = 10 } );
+  vert.set_depixelation_inversion( true );
   REQUIRE( vert.depixelation_stage() == 1.0 );
   REQUIRE( vert.depixelation_anchor() ==
            gl::vec2{ .x = 1, .y = 2 } );
-  REQUIRE( vert.generic().atlas_target_offset ==
-           gl::vec2{ .x = 9, .y = 10 } );
+  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   REQUIRE( vert.generic().depixelate ==
-           gl::vec3{ .x = 1, .y = 2, .z = 1.0 } );
+           gl::vec4{ .x = 1, .y = 2, .z = 1.0, .w = 1 } );
 }
 
 TEST_CASE( "[render/vertex] visibility" ) {

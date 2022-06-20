@@ -45,8 +45,22 @@ struct.GenericVertex {
 
   # Depixelation. This triangle will have individual pixels ran-
   # domly removed depending on the stage of the animation, which
-  # is given by the z value of this parameter: 0 means fully vis-
-  # ible (no depixelation), 1.0 means fully invisible.
+  # is given by the z value of this parameter, and the inversion
+  # flag which is given by the w. If inversion is false then
+  # stage=0 means no depixelation and 1.0 means full depixela-
+  # tion. If the inversion flat is true then the interpretation
+  # of the stage is flipped so that stage=0 means full depixela-
+  # tion and stage=1.0 means no depixelation. Note that inver-
+  # sion=true is not the same as doing stage=1.0-stage, and that
+  # is because the set of pixels e.g. in the range [0,.1] is dif-
+  # ferent from those in [.9,1]. So you use the inversion flag
+  # when you want to invert the stage of each pixel in the anima-
+  # tion. This used to implement the depixelation of one image to
+  # another; the source will have its stage move from 0->1 with
+  # inversion=false, and the target image will have its stage
+  # move also from 0->1 but with inversion=true. That way, each
+  # time a pixel is removed from the source image, that same
+  # pixel will be added to the target image.
   #
   # We need to make sure that the depixelation animation gets
   # rendered correctly even as the square being depixelated moves
@@ -69,7 +83,7 @@ struct.GenericVertex {
   #
   # This is a flat vertex attribute, meaning that it must be the
   # same for all vertices in the square.
-  depixelate 'gl::vec3',
+  depixelate 'gl::vec4',
 
   # Position of the vertex in game coordinates, i.e. where one
   # unit corresponds to one logical pixel and where the origin is
@@ -80,19 +94,8 @@ struct.GenericVertex {
   # the coordinates of the vertex in the texture atlas.
   atlas_position 'gl::vec2',
 
-  # When depixelation is on (i.e., depixelate > 0.0), and if this
-  # coordinate is other than zero, then it will be interpreted as
-  # an offset from the atlas_position to another position in the
-  # texture atlas where the target color should be taken. Effec-
-  # tively, this allows a sprite to "depixelate" into another
-  # sprite, as opposed to depixelating to nothing as is the de-
-  # fault when this offset is zero.
-  #
   # For stencil types this points to the alternate texture in the
-  # atlas that will be used for pixels of the key color. That
-  # means that we don't support triangles that are both stencils
-  # and that are depixelating to an alternate texture, but that
-  # shouldn't really be needed.
+  # atlas that will be used for pixels of the key color.
   atlas_target_offset 'gl::vec2',
 
   # For solid triangles or silhouettes this will be the color

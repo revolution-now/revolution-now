@@ -12,7 +12,7 @@
 
 layout (location = 0)  in int   in_type;
 layout (location = 1)  in int   in_visible;
-layout (location = 2)  in vec3  in_depixelate;
+layout (location = 2)  in vec4  in_depixelate;
 layout (location = 3)  in vec2  in_position;
 layout (location = 4)  in vec2  in_atlas_position;
 layout (location = 5)  in vec2  in_atlas_target_offset;
@@ -24,7 +24,7 @@ layout (location = 10) in int   in_color_cycle;
 layout (location = 11) in int   in_use_camera;
 
 flat out int   frag_type;
-flat out vec3  frag_depixelate;
+flat out vec4  frag_depixelate;
      out vec2  frag_position;
      out vec2  frag_atlas_position;
 flat out vec2  frag_atlas_target_offset;
@@ -56,7 +56,7 @@ vec2 shift_and_scale( in vec2 position ) {
 // screen position of something must be scaled/translated.
 void forwarding() {
   frag_type                = in_type;
-  frag_depixelate.z        = in_depixelate.z;
+  frag_depixelate.zw       = in_depixelate.zw;
   frag_depixelate.xy       = shift_and_scale( in_depixelate.xy );
   frag_position            = shift_and_scale( in_position );
   frag_atlas_position      = in_atlas_position;

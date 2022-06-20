@@ -54,6 +54,15 @@ void render_unit_type( rr::Painter& painter, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options = {} );
 
+void render_unit_depixelate(
+    rr::Renderer& renderer, Coord where, UnitId id, double stage,
+    UnitRenderOptions const& options = {} );
+
+void render_unit_depixelate_to( rr::Renderer& renderer,
+                                Coord where, UnitId id,
+                                e_unit_type target, double stage,
+                                UnitRenderOptions options = {} );
+
 void render_colony( rr::Painter& painter, Coord where,
                     ColonyId id );
 

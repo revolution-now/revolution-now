@@ -97,8 +97,8 @@ void Painter::add_mods( VertexBase&        vert,
     vert.set_depixelation_stage( *mods.depixelate.stage );
   if( mods.depixelate.anchor.has_value() )
     vert.set_depixelation_anchor( *mods.depixelate.anchor );
-  if( mods.depixelate.target.has_value() )
-    vert.set_depixelation_target( *mods.depixelate.target );
+  if( mods.depixelate.inverted.has_value() )
+    vert.set_depixelation_inversion( *mods.depixelate.inverted );
   if( mods.repos.scale.has_value() )
     vert.set_scaling( *mods.repos.scale );
   if( mods.repos.translation.has_value() )
@@ -261,13 +261,6 @@ Painter& Painter::draw_stencil( int        atlas_id,
   draw_stencil_impl( src, dst, replacement_atlas_offset,
                      key_color );
   return *this;
-}
-
-gfx::size Painter::depixelation_offset( int from_atlas_id,
-                                        int to_atlas_id ) const {
-  rect src = atlas_.lookup( from_atlas_id );
-  rect dst = atlas_.lookup( to_atlas_id );
-  return dst.origin - src.origin;
 }
 
 } // namespace rr

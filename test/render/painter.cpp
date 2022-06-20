@@ -806,8 +806,8 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage  = .7,
-                            .target = {},
+            DepixelateInfo{ .stage    = .7,
+                            .inverted = {},
                             .anchor = point{ .x = 1, .y = 2 } },
         .alpha = nothing,
         .repos = {} } );
@@ -837,7 +837,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/painter] mod depixelate to target" ) {
+TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   vector<GenericVertex> v, expected;
 
   Emitter emitter( v );
@@ -845,8 +845,9 @@ TEST_CASE( "[render/painter] mod depixelate to target" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage  = .7,
-                            .target = size{ .w = 5, .h = 6 } },
+            DepixelateInfo{ .stage    = .7,
+                            .inverted = true,
+                            .anchor = point{ .x = 1, .y = 2 } },
         .alpha = nothing,
         .repos = {} } );
 
@@ -855,7 +856,8 @@ TEST_CASE( "[render/painter] mod depixelate to target" ) {
   auto Vert = [&]( point p, point atlas_p ) {
     auto vert = SilhouetteVertex( p, atlas_p, R );
     vert.set_depixelation_stage( .7 );
-    vert.set_depixelation_target( size{ .w = 5, .h = 6 } );
+    vert.set_depixelation_inversion( true );
+    vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
   };
 
@@ -1007,20 +1009,6 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
       Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
-}
-
-TEST_CASE( "[render/painter] depixelation_offset" ) {
-  vector<GenericVertex> v;
-
-  Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
-
-  // id=1: { .origin = { .x = 2, .y = 3 },
-  //         .size   = { .w = 4, .h = 5 } },
-  // id=6: { .origin = { .x = 7, .y = 10 },
-  //         .size   = { .w = 8, .h = 9 } },
-  REQUIRE( painter.depixelation_offset( 1, 6 ) ==
-           size{ .w = 5, .h = 7 } );
 }
 
 } // namespace

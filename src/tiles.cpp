@@ -75,23 +75,6 @@ Delta sprite_size( e_tile tile ) {
       config_tile_sheet.sheets.sprite_size( tile ) );
 }
 
-gfx::size depixelation_offset( rr::Painter& painter,
-                               e_tile       from_tile,
-                               e_tile       to_tile ) {
-  gfx::size from_tile_size = sprite_size( from_tile );
-  gfx::size to_tile_size   = sprite_size( to_tile );
-  CHECK( sprite_size( from_tile ) == sprite_size( to_tile ),
-         "depixelation offsets can only be computed between "
-         "sprites of the same size; sprite {} has size {} and "
-         "sprite {} has size {}.",
-         from_tile, from_tile_size, to_tile, to_tile_size );
-  int                 from_id = atlas_lookup( from_tile );
-  int                 to_id   = atlas_lookup( to_tile );
-  rr::AtlasMap const& atlas   = painter.atlas();
-  return atlas.lookup( to_id ).origin -
-         atlas.lookup( from_id ).origin;
-}
-
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile ) {
   painter.draw_sprite_scale( atlas_lookup( tile ), where );

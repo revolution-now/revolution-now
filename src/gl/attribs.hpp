@@ -124,10 +124,10 @@ struct attrib_traits<vec3> {
 ** vec4
 *****************************************************************/
 struct vec4 {
-  float r = 0.0f;
-  float g = 0.0f;
-  float b = 0.0f;
-  float a = 0.0f;
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+  float w = 0.0f;
 
   bool operator==( vec4 const& ) const = default;
 };
@@ -231,6 +231,29 @@ struct traits<gl::vec3> {
                          offsetof( type, y ) },
       refl::StructField{ "z", &gl::vec3::z,
                          offsetof( type, z ) },
+  };
+};
+
+// Reflection info for struct gl::vec3.
+template<>
+struct traits<gl::vec4> {
+  using type = gl::vec4;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name = "vec4";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gl::vec4::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gl::vec4::y,
+                         offsetof( type, y ) },
+      refl::StructField{ "z", &gl::vec4::z,
+                         offsetof( type, z ) },
+      refl::StructField{ "w", &gl::vec4::w,
+                         offsetof( type, w ) },
   };
 };
 

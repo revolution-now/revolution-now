@@ -712,34 +712,20 @@ struct LandViewPlane::Impl : public Plane {
     switch( dp_anim.type ) {
       case e_depixelate_anim::death: {
         // Render and depixelate both the unit and the flag.
-        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                                 dp_anim.stage );
-        render_unit(
-            renderer, loc, depixelate_id,
+        render_unit_depixelate(
+            renderer, loc, depixelate_id, dp_anim.stage,
             UnitRenderOptions{ .flag   = true,
                                .shadow = UnitShadow{} } );
         break;
       }
       case e_depixelate_anim::demote: {
         CHECK( dp_anim.target.has_value() );
-        e_tile from_tile =
-            unit_from_id( depixelate_id ).desc().tile;
-        e_tile to_tile = unit_attr( *dp_anim.target ).tile;
-        // FIXME: need to give the shader the ability to draw a
-        // shadow to the left of a sprite so that the unit being
-        // depixelated to has its shadow during that time.
-        gfx::size target =
-            depixelation_offset( painter, from_tile, to_tile );
-        // Render the flag first so that we don't subject it to
-        // the depixelation.
-        render_nationality_icon( renderer, loc, depixelate_id );
-        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                                 dp_anim.stage );
-        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.target,
-                                 target );
-        render_unit(
-            renderer, loc, depixelate_id,
-            UnitRenderOptions{ .flag   = false,
+        // Render and the unit and the flag but only depixelate
+        // the unit to the target unit.
+        render_unit_depixelate_to(
+            renderer, loc, depixelate_id, *dp_anim.target,
+            dp_anim.stage,
+            UnitRenderOptions{ .flag   = true,
                                .shadow = UnitShadow{} } );
         break;
       }
