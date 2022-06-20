@@ -18,6 +18,7 @@
 #include "colview-buildings.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
+#include "construction.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "gs-colonies.hpp"
@@ -1172,17 +1173,33 @@ class ProductionView : public ui::View, public ColonySubView {
                              coord.distance_from_origin() );
     rr::Typer typer =
         renderer.typer( Coord{ 2_x, 2_y }, gfx::pixel::black() );
-    typer.write( "Hammers: {}\n", colony().hammers() );
+    typer.write( "Hammers:      {}\n", colony().hammers() );
+    typer.write( "Construction: " );
+    if( colony().construction().has_value() )
+      typer.write( "{}\n", construction_name(
+                               *colony().construction() ) );
+    else
+      typer.write( "nothing\n" );
   }
 
-  static unique_ptr<ProductionView> create( Delta size ) {
-    return make_unique<ProductionView>( size );
+  // Implement AwaitView.
+  wait<> perform_click(
+      input::mouse_button_event_t const& event ) override {
+    CHECK( event.pos.is_inside( rect( {} ) ) );
+    co_await select_colony_construction( colony(), gui_ );
   }
 
-  ProductionView( Delta size ) : size_( size ) {}
+  static unique_ptr<ProductionView> create( Delta size,
+                                            IGui& gui ) {
+    return make_unique<ProductionView>( size, gui );
+  }
+
+  ProductionView( Delta size, IGui& gui )
+    : size_( size ), gui_( gui ) {}
 
  private:
   Delta size_;
+  IGui& gui_;
 };
 
 class LandView : public ui::View,
@@ -1738,9 +1755,9 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       std::move( units_at_gate_view ), pos ) );
 
   // [Production] -----------------------------------------------
-  auto production_view =
-      ProductionView::create( middle_strip_size.with_width(
-          middle_strip_size.w / 3_sx ) );
+  auto production_view = ProductionView::create(
+      middle_strip_size.with_width( middle_strip_size.w / 3_sx ),
+      gui );
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
   pos = Coord{ cargo_right_edge, middle_strip_top };

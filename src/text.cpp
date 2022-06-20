@@ -406,4 +406,19 @@ Delta rendered_text_size( TextReflowInfo const& reflow_info,
   return res;
 }
 
+Delta rendered_text_size_no_reflow( string_view text ) {
+  string              no_markup = remove_markup( text );
+  vector<string_view> lines =
+      util::split_on_any( no_markup, "\r\n" );
+  gfx::size const kCharSize =
+      rr::rendered_text_line_size_pixels( "X" );
+  Delta res;
+  res.h = H{ kCharSize.h * int( lines.size() ) };
+  for( string_view line : lines ) {
+    W line_width = W{ int( line.size() ) * kCharSize.w };
+    res.w        = std::max( res.w, line_width );
+  }
+  return res;
+}
+
 } // namespace rn

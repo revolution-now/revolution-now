@@ -78,4 +78,7 @@ std::string remove_markup( std::string_view text );
 Delta rendered_text_size( TextReflowInfo const& reflow_info,
                           std::string_view      text );
 
+// Same as above but no reflow.  Will still account for markup.
+Delta rendered_text_size_no_reflow( std::string_view text );
+
 } // namespace rn

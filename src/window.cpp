@@ -744,10 +744,12 @@ wait<> WindowPlane::message_box( string_view msg ) {
 }
 
 wait<int> WindowPlane::select_box(
-    string_view msg, vector<string> const& options ) {
+    string_view msg, vector<string> const& options,
+    maybe<int> initial_selection ) {
   lg.info( "question: \"{}\"", msg );
   auto selector_view = make_unique<ui::OptionSelectView>(
-      options, /*initial_selection=*/0 );
+      options,
+      /*initial_selection=*/initial_selection.value_or( 0 ) );
   auto* p_selector_view = selector_view.get();
 
   wait_promise<int> p;

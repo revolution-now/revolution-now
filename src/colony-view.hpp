@@ -21,6 +21,7 @@ namespace rn {
 struct Colony;
 struct ColoniesState;
 struct IGui;
+struct IMapUpdater;
 struct Plane;
 struct Planes;
 struct Player;
@@ -36,7 +37,7 @@ struct ColonyPlane {
                TerrainState const&  terrain_state,
                UnitsState&          units_state,
                ColoniesState const& colonies_state,
-               Player&              player );
+               Player& player, IMapUpdater& map_updater );
 
   ~ColonyPlane();
 
@@ -57,6 +58,7 @@ wait<> show_colony_view( Planes& planes, Colony& colony,
                          TerrainState const&  terrain_state,
                          UnitsState&          units_state,
                          ColoniesState const& colonies_state,
-                         Player&              player );
+                         Player&              player,
+                         IMapUpdater&         map_updater );
 
 } // namespace rn

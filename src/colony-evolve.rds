@@ -9,9 +9,11 @@
 #
 # ===============================================================
 # Revolution Now
- include "unit-id.hpp"
+include "unit-id.hpp"
 
 # Rds
+include "colony.rds.hpp"
+include "commodity.rds.hpp"
 include "production.rds.hpp"
 
 # C++ standard library
@@ -23,9 +25,29 @@ sumtype.ColonyNotification {
   new_colonist {
     id 'UnitId',
   },
+  colonist_starved {
+    # Here we only give the unit type since by the time someone
+    # reads this message, the unit will already have been
+    # deleted.
+    type 'e_unit_type',
+  },
   spoilage {
     spoiled 'std::vector<Commodity>',
-  }
+  },
+  full_cargo {
+    what 'e_commodity',
+  },
+  construction_missing_tools {
+    what 'Construction_t',
+    have_tools 'int',
+    need_tools 'int',
+  },
+  construction_complete {
+    what 'Construction_t',
+  },
+  construction_already_finished {
+    what 'Construction_t',
+  },
 }
 
 struct.ColonyEvolution {
@@ -36,4 +58,11 @@ struct.ColonyEvolution {
   notifications 'std::vector<ColonyNotification_t>',
 
   production 'ColonyProduction',
+
+  # If the colony finished construction of a building (not a
+  # unit) then this will contain the building that was added.
+  # This is so that if the user opens the colony view in response
+  # to the message it can animate the construction of the build-
+  # ing.
+  built 'maybe<e_colony_building>',
 }

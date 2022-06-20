@@ -16,6 +16,7 @@
 #include "colony-evolve.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
+#include "construction.hpp"
 #include "enum.hpp"
 #include "game-state.hpp"
 #include "gs-colonies.hpp"
@@ -45,6 +46,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -77,13 +79,24 @@ wait<bool> present_colony_update(
     IGui& gui, Colony const& colony,
     ColonyNotification_t const& notification,
     bool                        ask_to_zoom ) {
-  string msg;
+  // We shouldn't ever use this, but give a fallback to help de-
+  // bugging if we miss something.
+  string msg = base::to_str( notification );
 
   switch( notification.to_enum() ) {
     case ColonyNotification::e::new_colonist: {
       msg = fmt::format(
           "The @[H]{}@[] colony has produced a new colonist.",
           colony.name() );
+      break;
+    }
+    case ColonyNotification::e::colonist_starved: {
+      auto& o = notification
+                    .get<ColonyNotification::colonist_starved>();
+      msg = fmt::format(
+          "The @[H]{}@[] colony has run out of food.  As a "
+          "result, a colonist (@[H]{}@[]) has starved.",
+          colony.name(), unit_attr( o.type ).name );
       break;
     }
     case ColonyNotification::e::spoilage: {
@@ -103,6 +116,44 @@ wait<bool> present_colony_update(
             "warehouse capacities and have been thrown out.",
             colony.name() );
       }
+      break;
+    }
+    case ColonyNotification::e::full_cargo: {
+      auto& o =
+          notification.get<ColonyNotification::full_cargo>();
+      msg = fmt::format(
+          "A new cargo of @[H]{}@[] is available in @[H]{}@[]!",
+          commodity_display_name( o.what ), colony.name() );
+      break;
+    }
+    case ColonyNotification::e::construction_missing_tools: {
+      auto& o = notification.get<
+          ColonyNotification::construction_missing_tools>();
+      msg = fmt::format(
+          "@[H]{}@[] is in need of @[H]{}@[] more @[H]tools@[] "
+          "to complete its construction work on the @[H]{}@[].",
+          colony.name(), o.need_tools - o.have_tools,
+          construction_name( o.what ) );
+      break;
+    }
+    case ColonyNotification::e::construction_complete: {
+      auto& o =
+          notification
+              .get<ColonyNotification::construction_complete>();
+      msg = fmt::format(
+          "@[H]{}@[] has completed its construction of the "
+          "@[H]{}@[]!",
+          colony.name(), construction_name( o.what ) );
+      break;
+    }
+    case ColonyNotification::e::construction_already_finished: {
+      auto& o = notification.get<
+          ColonyNotification::construction_already_finished>();
+      msg = fmt::format(
+          "@[H]{}@[]'s construction of the @[H]{}@[] has "
+          "already completed, we should change its production "
+          "to something else.",
+          colony.name(), construction_name( o.what ) );
       break;
     }
   }
@@ -398,7 +449,7 @@ wait<> evolve_colonies_for_player(
     if( zoom_to_colony )
       co_await show_colony_view( planes, colony, terrain_state,
                                  units_state, colonies_state,
-                                 player );
+                                 player, map_updater );
   }
 
   // Crosses/immigration.

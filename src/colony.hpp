@@ -84,8 +84,10 @@ struct Colony {
   auto const& buildings() const { return o_.buildings; }
 
   auto const& construction() const { return o_.construction; }
+  auto&       construction() { return o_.construction; }
 
-  int hammers() const { return o_.hammers; }
+  int const& hammers() const { return o_.hammers; }
+  int&       hammers() { return o_.hammers; }
 
   int bells() const { return o_.bells; }
 

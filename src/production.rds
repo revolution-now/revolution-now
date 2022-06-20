@@ -92,32 +92,15 @@ struct.FoodProduction {
   # theoretical food consumed by colonists < the food produced.
   food_consumed_by_horses 'int',
 
-  # If a colonist is created, this is the amount that was sub-
-  # tracted to create him.
-  food_consumed_by_new_colonist 'int',
-
   # The amount that should actually be added to the commodity
   # store. Could be positive or negative, but will never cause
-  # the quantity of food to be negative. Note that if a colonist
-  # is created then this will reflect the associated large sub-
-  # traction of food.
+  # the quantity of food to be negative.
   food_delta_final 'int',
 
   # This can be computed from the above, but it is slightly com-
   # plicated and so it is here so that consumers don't have to
   # understand how to do it.
   colonist_starved 'bool',
-
-  # Indicates if a new colonist is to be produced. If/when this
-  # is the case then the food_delta_final will reflect that by
-  # subtracting the appropriate amount of food from the store, in
-  # addition to any other food that was consumed by colonists.
-  # Also note that the original game will produce at most one new
-  # colonist per turn, regardless of how much food there is in
-  # the warehouse (and there can be an arbitrary amount, since
-  # the original game doesn't seem to impose any warehouse limits
-  # on food).
-  colonist_created 'bool',
 }
 
 struct.OreProducts {

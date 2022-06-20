@@ -350,8 +350,9 @@ wait<> process_player_input( e_menu_item item, ColoniesState&,
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              ColoniesState& colonies_state,
-                             IGui&, IMapUpdater&, LandViewState&,
-                             Planes& planes, Player& player,
+                             IGui&, IMapUpdater&     map_updater,
+                             LandViewState&, Planes& planes,
+                             Player&             player,
                              TerrainState const& terrain_state,
                              UnitsState&         units_state ) {
   switch( input.to_enum() ) {
@@ -360,7 +361,8 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       co_await show_colony_view(
           planes,
           colonies_state.colony_for( input.get<colony>().id ),
-          terrain_state, units_state, colonies_state, player );
+          terrain_state, units_state, colonies_state, player,
+          map_updater );
       break;
     }
     default: break;
@@ -465,7 +467,8 @@ wait<> process_player_input(
       co_await show_colony_view(
           planes,
           colonies_state.colony_for( input.get<colony>().id ),
-          terrain_state, units_state, colonies_state, player );
+          terrain_state, units_state, colonies_state, player,
+          map_updater );
       break;
     }
     // We have some orders for the current unit.

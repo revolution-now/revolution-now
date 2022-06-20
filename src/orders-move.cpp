@@ -737,8 +737,8 @@ wait<> TravelHandler::perform() {
       // the ship.
       co_await show_colony_view(
           planes_, colonies_state_.colony_for( colony_id ),
-          terrain_state_, units_state_, colonies_state_,
-          player_ );
+          terrain_state_, units_state_, colonies_state_, player_,
+          map_updater_ );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -934,8 +934,8 @@ struct AttackHandler : public OrdersHandler {
           attacker_nation.display_name, colony.name() );
       co_await show_colony_view(
           planes_, colonies_state_.colony_for( colony_id ),
-          terrain_state_, units_state_, colonies_state_,
-          player_ );
+          terrain_state_, units_state_, colonies_state_, player_,
+          map_updater_ );
     }
   }
 

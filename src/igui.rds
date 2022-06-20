@@ -42,6 +42,10 @@ struct.ChoiceConfig {
 
   # Should they be sorted by display name before being displayed.
   sort 'bool',
+
+  # Should something be selected initially? The default if this
+  # is not set is just the first one.
+  initial_selection 'maybe<int>',
 };
 
 struct.YesNoConfig {

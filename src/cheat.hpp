@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "unit-id.hpp"
 #include "wait.hpp"
 
 // Rds
@@ -20,11 +21,12 @@
 
 namespace rn {
 
-struct Colony;
 struct ColoniesState;
-struct UnitsState;
+struct Colony;
 struct IGui;
+struct IMapUpdater;
 struct Unit;
+struct UnitsState;
 
 /****************************************************************
 ** In Colony View
@@ -49,5 +51,9 @@ void cheat_upgrade_unit_expertise(
     ColoniesState const& colonies_state, Unit& unit );
 
 void cheat_downgrade_unit_expertise( Unit& unit );
+
+UnitId cheat_create_new_colonist( UnitsState&   units_state,
+                                  IMapUpdater&  map_updater,
+                                  Colony const& colony );
 
 } // namespace rn

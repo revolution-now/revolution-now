@@ -59,8 +59,13 @@ wait<string> RealGui::choice( ChoiceConfig const& config ) {
   vector<string> options;
   for( ChoiceConfigOption option : config.options )
     options.push_back( option.display_name );
-  int selected =
-      co_await window_plane_.select_box( config.msg, options );
+  if( config.initial_selection.has_value() ) {
+    CHECK_GE( *config.initial_selection, 0 );
+    CHECK_LT( *config.initial_selection, int( options.size() ) );
+  }
+  int selected = co_await window_plane_.select_box(
+      config.msg, options,
+      config.initial_selection.value_or( 0 ) );
   co_return config.options[selected].key;
 }
 

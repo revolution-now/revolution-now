@@ -172,7 +172,7 @@ void SolidRectView::draw( rr::Renderer& renderer,
 OneLineStringView::OneLineStringView( string     msg,
                                       gfx::pixel color )
   : msg_( move( msg ) ),
-    text_size_( rendered_text_size( /*reflow_info=*/{}, msg_ ) ),
+    text_size_( rendered_text_size_no_reflow( msg_ ) ),
     color_( color ) {}
 
 Delta OneLineStringView::delta() const { return text_size_; }
@@ -846,7 +846,7 @@ unique_ptr<View>& OptionSelectItemView::mutable_at( int idx ) {
 }
 
 void OptionSelectItemView::grow_to( W w ) {
-  auto new_delta = foreground_active_->delta();
+  auto new_delta = background_active_->delta();
   if( new_delta.w > w )
     // we only grow here, not shrink.
     return;

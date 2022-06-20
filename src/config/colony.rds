@@ -85,6 +85,8 @@ struct.config_colony_t {
   # as well as how many hammers and tools are needed for each.
   materials_for_unit 'refl::enum_map<e_unit_type, base::maybe<ConstructionMaterials>>',
 
+  building_display_names 'refl::enum_map<e_colony_building, std::string>',
+
   _features { validation, equality }
 }
 

@@ -104,7 +104,8 @@ struct IGui {
   template<refl::ReflectedEnum E>
   wait<maybe<E>> enum_choice( bool sort = false );
 
- private:
+  // For convenience while developing, shouldn't really be used
+  // to provide proper names for things for the player.
   std::string identifier_to_display_name(
       std::string_view ident ) const;
 };

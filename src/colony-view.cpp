@@ -52,6 +52,7 @@ struct PS {
   UnitsState&          units_state;
   ColoniesState const& colonies_state;
   Player const&        player;
+  IMapUpdater&         map_updater;
 
   ColonyId                            colony_id  = {};
   co::stream<input::event_t>          input      = {};
@@ -432,15 +433,25 @@ wait<bool> handle_event( PS& S, Colony& colony,
                          input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;
+  if( event.mod.shf_down ) {
+    // Cheat commands.
+    switch( event.keycode ) {
+      case ::SDLK_1:
+        co_await cheat_colony_buildings( colony, S.gui );
+        colview_top_level().update();
+        break;
+      case ::SDLK_t:
+        cheat_create_new_colonist( S.units_state, S.map_updater,
+                                   colony );
+        colview_top_level().update();
+        break;
+      default: //
+        break;
+    }
+  }
   switch( event.keycode ) {
     case ::SDLK_ESCAPE: //
       co_return true;
-    case ::SDLK_1:
-      if( event.mod.shf_down ) {
-        co_await cheat_colony_buildings( colony, S.gui );
-        colview_top_level().update();
-      }
-      break;
     default: //
       break;
   }
@@ -525,12 +536,14 @@ struct ColonyPlane::Impl : public Plane {
   Impl( Colony& colony, IGui& gui,
         TerrainState const&  terrain_state,
         UnitsState&          units_state,
-        ColoniesState const& colonies_state, Player& player )
+        ColoniesState const& colonies_state, Player& player,
+        IMapUpdater& map_updater )
     : S_{ .gui            = gui,
           .terrain_state  = terrain_state,
           .units_state    = units_state,
           .colonies_state = colonies_state,
-          .player         = player },
+          .player         = player,
+          .map_updater    = map_updater },
       colony_( colony ),
       gui_( gui ) {
     set_colview_colony( S_.gui, S_.terrain_state, S_.units_state,
@@ -617,9 +630,10 @@ ColonyPlane::ColonyPlane( Colony& colony, IGui& gui,
                           TerrainState const&  terrain_state,
                           UnitsState&          units_state,
                           ColoniesState const& colonies_state,
-                          Player&              player )
+                          Player&              player,
+                          IMapUpdater&         map_updater )
   : impl_( new Impl( colony, gui, terrain_state, units_state,
-                     colonies_state, player ) ) {}
+                     colonies_state, player, map_updater ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();
@@ -632,12 +646,13 @@ wait<> show_colony_view( Planes& planes, Colony& colony,
                          TerrainState const&  terrain_state,
                          UnitsState&          units_state,
                          ColoniesState const& colonies_state,
-                         Player&              player ) {
+                         Player&              player,
+                         IMapUpdater&         map_updater ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
   ColonyPlane colony_plane( colony, gui, terrain_state,
-                            units_state, colonies_state,
-                            player );
+                            units_state, colonies_state, player,
+                            map_updater );
   auto        popper = planes.new_group();
   PlaneGroup& group  = planes.back();
   group.push( colony_plane );

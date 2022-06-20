@@ -60,9 +60,9 @@ struct WindowPlane {
         std::forward<Rest>( rest )... ) );
   }
 
-  wait<int> select_box(
-      std::string_view                msg,
-      std::vector<std::string> const& options );
+  wait<int> select_box( std::string_view                msg,
+                        std::vector<std::string> const& options,
+                        maybe<int> initial_selection );
 
   wait<maybe<std::string>> str_input_box(
       std::string_view title, std::string_view msg,

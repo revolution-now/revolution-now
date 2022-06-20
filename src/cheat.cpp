@@ -239,4 +239,13 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
   }
 }
 
+UnitId cheat_create_new_colonist( UnitsState&   units_state,
+                                  IMapUpdater&  map_updater,
+                                  Colony const& colony ) {
+  return create_unit_on_map_non_interactive(
+      units_state, map_updater, colony.nation(),
+      UnitComposition::create( e_unit_type::free_colonist ),
+      colony.location() );
+}
+
 } // namespace rn

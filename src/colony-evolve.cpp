@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony.hpp"
+#include "gs-units.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
 #include "production.hpp"
@@ -62,49 +63,198 @@ maybe<ColonyNotification::spoilage> check_spoilage(
       .spoiled = std::move( spoiled ) };
 }
 
+ConstructionMaterials materials_needed(
+    Construction_t const& construction ) {
+  switch( construction.to_enum() ) {
+    using namespace Construction;
+    case e::building: {
+      auto& o = construction.get<building>();
+      return config_colony.materials_for_building[o.what];
+    }
+    case e::unit: {
+      auto& o = construction.get<unit>();
+      maybe<ConstructionMaterials> const& materials =
+          config_colony.materials_for_unit[o.type];
+      CHECK( materials.has_value(),
+             "a colony is constructing unit {}, but that unit "
+             "is not buildable.",
+             o.type );
+      return *materials;
+    }
+  }
+}
+
+void check_create_or_starve_colonist(
+    UnitsState& units_state, Colony& colony,
+    ColonyProduction const&       pr,
+    vector<ColonyNotification_t>& notifications,
+    IMapUpdater&                  map_updater ) {
+  if( pr.food.colonist_starved ) {
+    vector<UnitId> const units_in_colony = colony.all_units();
+    CHECK( !units_in_colony.empty() );
+    // vector must be non-empty for this.
+    UnitId      unit_id = rng::pick_one( units_in_colony );
+    e_unit_type type    = units_state.unit_for( unit_id ).type();
+    remove_unit_from_colony( units_state, colony, unit_id );
+    notifications.push_back(
+        ColonyNotification::colonist_starved{ .type = type } );
+    // At this point we may as well return because we can't have
+    // a new colonist created in the same turn as one starved.
+    return;
+  }
+
+  // Check for a colonist created. After all is said and done, if
+  // the colony will have enough food, then we can potentially
+  // produce a new colonist.
+  int& current_food = colony.commodities()[e_commodity::food];
+  int const food_needed_for_creation =
+      config_colony.food_for_creating_new_colonist;
+
+  if( current_food < food_needed_for_creation ) return;
+
+  current_food -= food_needed_for_creation;
+  UnitId unit_id = create_unit(
+      units_state, colony.nation(),
+      UnitType::create( e_unit_type::free_colonist ) );
+  unit_to_map_square_non_interactive(
+      units_state, map_updater, unit_id, colony.location() );
+  notifications.push_back(
+      ColonyNotification::new_colonist{ .id = unit_id } );
+
+  // One final sanity check.
+  CHECK_GE( colony.commodities()[e_commodity::food], 0 );
+}
+
+void check_construction( UnitsState&  units_state,
+                         IMapUpdater& map_updater,
+                         Colony& colony, ColonyEvolution& ev ) {
+  if( !colony.construction().has_value() ) return;
+  Construction_t const& construction = *colony.construction();
+
+  // First check if it's a building that the colony already has.
+  if( auto building =
+          construction.get_if<Construction::building>();
+      building.has_value() ) {
+    if( colony.buildings()[building->what] ) {
+      ev.notifications.push_back(
+          ColonyNotification::construction_already_finished{
+              .what = construction } );
+      return;
+    }
+  }
+
+  auto const [hammers_needed, tools_needed] =
+      materials_needed( construction );
+
+  if( colony.hammers() < hammers_needed ) return;
+
+  int const have_tools =
+      colony.commodities()[e_commodity::tools];
+
+  if( colony.commodities()[e_commodity::tools] < tools_needed ) {
+    ev.notifications.push_back(
+        ColonyNotification::construction_missing_tools{
+            .what       = construction,
+            .have_tools = have_tools,
+            .need_tools = tools_needed } );
+    return;
+  }
+
+  // In the original game, when a construction finishes it resets
+  // the hammers to zero, even if we've accumulated more than we
+  // need (waiting for tools). If we didn't do this then it might
+  // not give the player an incentive to get the tools in a
+  // timely manner, since they would never lose hammers. That
+  // said, it does appear to allow hammers to accumulate after a
+  // construction (while we are waiting for the player to change
+  // construction) and those hammers can then be reused on the
+  // next construction (to some extent, depending on difficulty
+  // level).
+  colony.hammers() = 0;
+  colony.commodities()[e_commodity::tools] -= tools_needed;
+  CHECK_GE( colony.commodities()[e_commodity::tools], 0 );
+
+  ev.notifications.push_back(
+      ColonyNotification::construction_complete{
+          .what = construction } );
+
+  switch( construction.to_enum() ) {
+    using namespace Construction;
+    case e::building: {
+      auto& o = construction.get<building>();
+      colony.add_building( o.what );
+      DCHECK( !ev.built.has_value() );
+      ev.built = o.what;
+      return;
+    }
+    case e::unit: {
+      auto& o = construction.get<unit>();
+      create_unit_on_map_non_interactive(
+          units_state, map_updater, colony.nation(),
+          UnitComposition::create( o.type ), colony.location() );
+      break;
+    }
+  }
+}
+
+void apply_commodity_increase(
+    refl::enum_map<e_commodity, int>& store, e_commodity what,
+    int delta, vector<ColonyNotification_t>& notifications ) {
+  int const old_value = store[what];
+  int const new_value = old_value + delta;
+  if( old_value < 100 && new_value >= 100 )
+    notifications.push_back(
+        ColonyNotification::full_cargo{ .what = what } );
+  store[what] = new_value;
+}
+
 void apply_production_to_colony(
-    Colony& colony, ColonyProduction const& production ) {
+    Colony& colony, ColonyProduction const& production,
+    vector<ColonyNotification_t>& notifications ) {
   refl::enum_map<e_commodity, int>& commodities =
       colony.commodities();
 
-  commodities[e_commodity::food] +=
-      production.food.food_delta_final;
-  commodities[e_commodity::horses] +=
-      production.food.horses_delta_final;
+  auto inc = [&]( e_commodity what, int delta ) {
+    apply_commodity_increase( commodities, what, delta,
+                              notifications );
+  };
 
-  commodities[e_commodity::sugar] +=
-      production.sugar_rum.raw_delta_final;
-  commodities[e_commodity::rum] +=
-      production.sugar_rum.product_delta_final;
+  inc( e_commodity::food, production.food.food_delta_final );
+  inc( e_commodity::horses, production.food.horses_delta_final );
 
-  commodities[e_commodity::tobacco] +=
-      production.tobacco_cigars.raw_delta_final;
-  commodities[e_commodity::cigars] +=
-      production.tobacco_cigars.product_delta_final;
+  inc( e_commodity::sugar,
+       production.sugar_rum.raw_delta_final );
+  inc( e_commodity::rum,
+       production.sugar_rum.product_delta_final );
 
-  commodities[e_commodity::cotton] +=
-      production.cotton_cloth.raw_delta_final;
-  commodities[e_commodity::cloth] +=
-      production.cotton_cloth.product_delta_final;
+  inc( e_commodity::tobacco,
+       production.tobacco_cigars.raw_delta_final );
+  inc( e_commodity::cigars,
+       production.tobacco_cigars.product_delta_final );
 
-  commodities[e_commodity::fur] +=
-      production.fur_coats.raw_delta_final;
-  commodities[e_commodity::coats] +=
-      production.fur_coats.product_delta_final;
+  inc( e_commodity::cotton,
+       production.cotton_cloth.raw_delta_final );
+  inc( e_commodity::cloth,
+       production.cotton_cloth.product_delta_final );
 
-  commodities[e_commodity::lumber] +=
-      production.lumber_hammers.raw_delta_final;
+  inc( e_commodity::fur, production.fur_coats.raw_delta_final );
+  inc( e_commodity::coats,
+       production.fur_coats.product_delta_final );
+
+  inc( e_commodity::lumber,
+       production.lumber_hammers.raw_delta_final );
+
+  inc( e_commodity::silver, production.silver );
+
+  inc( e_commodity::ore,
+       production.ore_products.ore_delta_final );
+  inc( e_commodity::tools,
+       production.ore_products.tools_delta_final );
+  inc( e_commodity::muskets,
+       production.ore_products.muskets_delta_final );
+
   colony.add_hammers(
       production.lumber_hammers.product_delta_final );
-
-  commodities[e_commodity::silver] += production.silver;
-
-  commodities[e_commodity::ore] +=
-      production.ore_products.ore_delta_final;
-  commodities[e_commodity::tools] +=
-      production.ore_products.tools_delta_final;
-  commodities[e_commodity::muskets] +=
-      production.ore_products.muskets_delta_final;
 
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     CHECK( commodities[c] >= 0,
@@ -124,19 +274,19 @@ ColonyEvolution evolve_colony_one_turn(
   ev.production = production_for_colony(
       terrain_state, units_state, player, colony );
 
-  apply_production_to_colony( colony, ev.production );
+  apply_production_to_colony( colony, ev.production,
+                              ev.notifications );
 
-  if( ev.production.food.colonist_created ) {
-    UnitType colonist =
-        UnitType::create( e_unit_type::free_colonist );
-    auto unit_id =
-        create_unit( units_state, colony.nation(), colonist );
-    unit_to_map_square_non_interactive(
-        units_state, map_updater, unit_id, colony.location() );
-    ev.notifications.push_back(
-        ColonyNotification::new_colonist{ .id = unit_id } );
-  }
+  check_construction( units_state, map_updater, colony, ev );
 
+  // Needs to be done after food deltas have been applied.
+  check_create_or_starve_colonist(
+      units_state, colony, ev.production, ev.notifications,
+      map_updater );
+
+  // NOTE: This should be done last, so that anything above that
+  // could potentially consume commodities can do so before they
+  // spoil.
   maybe<ColonyNotification::spoilage> spoilage_notification =
       check_spoilage( colony );
   if( spoilage_notification.has_value() )
