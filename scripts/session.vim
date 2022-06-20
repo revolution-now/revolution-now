@@ -4,16 +4,17 @@ let s:stems = [
  \ 'config/colony',
  \ 'config/colony-enums',
  \ 'gs-colonies',
- \ 'colony-evolve',
+ \ '../test/fake/world',
  \ 'colony-mgr',
+ \ 'colony-evolve',
+ \ 'production',
+ \ 'land-production',
+ \ 'config/production',
  \ 'colony-view',
  \ 'colview-entities',
- \ '../test/fake/world',
- \ 'production',
- \ 'config/production',
+ \ 'construction',
  \ 'colview-buildings',
  \ 'colony-buildings',
- \ 'land-production',
 \]
 
 let s:luas = [
