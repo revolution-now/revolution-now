@@ -34,7 +34,7 @@ namespace {
 string fmt_construction( string const& name,
                          string const& needed ) {
   string parens = fmt::format( "({})", needed );
-  return fmt::format( "{:<20} {}", name, needed );
+  return fmt::format( "{:<22} {}", name, needed );
 }
 
 string fmt_construction(
@@ -118,6 +118,10 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
   }
   for( e_unit_type type : refl::enum_values<e_unit_type> ) {
     if( !config_colony.materials_for_unit[type].has_value() )
+      continue;
+    if( unit_attr( type ).ship &&
+        !colony.buildings()[e_colony_building::shipyard] )
+      // Can't build ships without a shipyard.
       continue;
     // TODO: need to check prerequisistes for these units.
     config.options.push_back( ChoiceConfigOption{
