@@ -45,7 +45,15 @@ function M.default_options()
     -- higher than the target.
     land_density=.22,
     remove_Xs=false,
-    brush='rand'
+    brush='rand',
+    -- This is the probability that, given a land square, we will
+    -- start creating a river from it.
+    river_density=.08,
+    -- This is the probability that a given river segment will be
+    -- a major river. This should really be smaller than .5 be-
+    -- cause major rivers give a production bonus over minor
+    -- rivers.
+    major_river_fraction=.2
   }
 end
 
@@ -758,6 +766,83 @@ local function remove_islands()
   end )
 end
 
+-- Although there is nothing wrong with river islands from the
+-- point of view of game rules, they don't look good and they are
+-- not realistic (and the player might confuse them with ocean
+-- lakes where ships can enter).
+local function remove_river_islands()
+  on_all( function( coord, square )
+    local surrounding = surrounding_squares_3x3( coord )
+    surrounding = filter_existing_squares( surrounding )
+    local has_river = false
+    for _, square in ipairs( surrounding ) do
+      if map_gen.at( square ).river ~= nil then
+        has_river = true
+        break
+      end
+    end
+    if not has_river then
+      -- We have an island.
+      square.river = nil
+    end
+  end )
+end
+
+-----------------------------------------------------------------
+-- River Generation
+-----------------------------------------------------------------
+local function random_cardinal_direction()
+  return random_list_elem{
+    { w=-1, h=0 }, { w=1, h=0 }, { w=0, h=-1 }, { w=0, h=1 }
+  }
+end
+
+local function create_river_segment( options, coord )
+  local pos = { x=coord.x, y=coord.y }
+  -- This does not have to be long, since even a short range will
+  -- give rise to long segments since in many cases two consecu-
+  -- tive segments will be pointing in the same direction.
+  local length = math.random( 1, 3 )
+  local delta = random_cardinal_direction()
+  local river_type = e.river.minor
+  if random_bool( options.major_river_fraction ) then
+    river_type = e.river.major
+  end
+  for i = 1, length do
+    if not square_exists( pos ) then return nil end -- stop
+    local square = map_gen.at( pos )
+    square.river = river_type
+    pos.x = pos.x + delta.w
+    pos.y = pos.y + delta.h
+    -- If we reach the ocean that we have to stop since we have
+    -- no where else to go, but note that we did want to set the
+    -- river attribute on this final ocean tile because that is
+    -- what gives the river bonus to fisherman.
+    if is_water( square ) then return nil end -- stop
+  end
+  -- Keep going.
+  return pos
+end
+
+local function create_river( options, coord )
+  local num_segments = math.random( 1, 8 )
+  for i = 1, num_segments do
+    coord = create_river_segment( options, coord )
+    -- We've either reached the ocean or off-map.
+    if not coord then break end
+  end
+end
+
+local function create_rivers( options )
+  on_all( function( coord, square )
+    if is_land( square ) then
+      if random_bool( options.river_density ) then
+        create_river( options, coord )
+      end
+    end
+  end )
+end
+
 -----------------------------------------------------------------
 -- Continent Generation
 -----------------------------------------------------------------
@@ -953,6 +1038,9 @@ local function generate_land( options )
   local placement_seed = set_random_placement_seed()
   distribute_prime_resources( placement_seed )
   distribute_lost_city_rumors( placement_seed )
+
+  create_rivers( options )
+  remove_river_islands()
 end
 
 -----------------------------------------------------------------
