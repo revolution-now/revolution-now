@@ -100,6 +100,10 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
           { .tile = e_tile::irrigation } },
         { editor::e_toolbar_item::road,
           { .tile = e_tile::road_island } },
+        { editor::e_toolbar_item::major_river,
+          { .tile = e_tile::terrain_river_major_island } },
+        { editor::e_toolbar_item::minor_river,
+          { .tile = e_tile::terrain_river_minor_island } },
     };
 
 Rect toolbar_rect() {
@@ -196,6 +200,18 @@ wait<> click_on_tile( PS& S, Coord tile, e_action action ) {
       break;
     case editor::e_toolbar_item::road:
       new_square.road = ( action == e_action::add );
+      break;
+    case editor::e_toolbar_item::major_river:
+      if( action == e_action::add )
+        new_square.river = e_river::major;
+      else
+        new_square.river = nothing;
+      break;
+    case editor::e_toolbar_item::minor_river:
+      if( action == e_action::add )
+        new_square.river = e_river::minor;
+      else
+        new_square.river = nothing;
       break;
   }
 

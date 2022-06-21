@@ -483,6 +483,263 @@ void render_beach_corners(
                    e_tile::terrain_beach_corner_down_left );
 }
 
+void render_river( TerrainState const& terrain_state,
+                   rr::Renderer& renderer, Coord where,
+                   Coord            world_square,
+                   MapSquare const& square ) {
+  DCHECK( square.river.has_value() );
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& right =
+      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& down =
+      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+
+  // Treat off-map tiles as water for rendering purposes.
+  bool river_up    = up.river.has_value();
+  bool river_right = right.river.has_value();
+  bool river_down  = down.river.has_value();
+  bool river_left  = left.river.has_value();
+
+  // 0000abcd:
+  // a=river left, b=river up, c=river right, d=river down.
+  int mask = ( river_left ? ( 1 << 3 ) : 0 ) |
+             ( river_up ? ( 1 << 2 ) : 0 ) |
+             ( river_right ? ( 1 << 1 ) : 0 ) |
+             ( river_down ? ( 1 << 0 ) : 0 );
+
+  e_tile minor_river_tile = {};
+  e_tile major_river_tile = {};
+  e_tile minor_cycle_tile = {};
+  e_tile major_cycle_tile = {};
+  e_tile minor_bank_tile  = {};
+  e_tile major_bank_tile  = {};
+
+  switch( mask ) {
+    case 0b1000:
+      // river left.
+      minor_river_tile = e_tile::terrain_river_minor_left;
+      minor_bank_tile  = e_tile::terrain_river_bank_minor_left;
+      major_river_tile = e_tile::terrain_river_major_left;
+      major_bank_tile  = e_tile::terrain_river_bank_major_left;
+      minor_cycle_tile = e_tile::terrain_river_cycle_minor_left;
+      major_cycle_tile = e_tile::terrain_river_cycle_major_left;
+      break;
+    case 0b0100:
+      // river up.
+      minor_river_tile = e_tile::terrain_river_minor_up;
+      minor_bank_tile  = e_tile::terrain_river_bank_minor_up;
+      major_river_tile = e_tile::terrain_river_major_up;
+      major_bank_tile  = e_tile::terrain_river_bank_major_up;
+      minor_cycle_tile = e_tile::terrain_river_cycle_minor_up;
+      major_cycle_tile = e_tile::terrain_river_cycle_major_up;
+      break;
+    case 0b0010:
+      // river right.
+      minor_river_tile = e_tile::terrain_river_minor_right;
+      minor_bank_tile  = e_tile::terrain_river_bank_minor_right;
+      major_river_tile = e_tile::terrain_river_major_right;
+      major_bank_tile  = e_tile::terrain_river_bank_major_right;
+      minor_cycle_tile = e_tile::terrain_river_cycle_minor_right;
+      major_cycle_tile = e_tile::terrain_river_cycle_major_right;
+      break;
+    case 0b0001:
+      // river down.
+      minor_river_tile = e_tile::terrain_river_minor_down;
+      minor_bank_tile  = e_tile::terrain_river_bank_minor_down;
+      major_river_tile = e_tile::terrain_river_major_down;
+      major_bank_tile  = e_tile::terrain_river_bank_major_down;
+      minor_cycle_tile = e_tile::terrain_river_cycle_minor_down;
+      major_cycle_tile = e_tile::terrain_river_cycle_major_down;
+      break;
+    case 0b1100:
+      // river left up.
+      minor_river_tile = e_tile::terrain_river_minor_left_up;
+      minor_bank_tile = e_tile::terrain_river_bank_minor_left_up;
+      major_river_tile = e_tile::terrain_river_major_left_up;
+      major_bank_tile = e_tile::terrain_river_bank_major_left_up;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_left_up;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_left_up;
+      break;
+    case 0b0110:
+      // river up right.
+      minor_river_tile = e_tile::terrain_river_minor_up_right;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_up_right;
+      major_river_tile = e_tile::terrain_river_major_up_right;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_up_right;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_up_right;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_up_right;
+      break;
+    case 0b0011:
+      // river right down.
+      minor_river_tile = e_tile::terrain_river_minor_right_down;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_right_down;
+      major_river_tile = e_tile::terrain_river_major_right_down;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_right_down;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_right_down;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_right_down;
+      break;
+    case 0b1001:
+      // river down left.
+      minor_river_tile = e_tile::terrain_river_minor_down_left;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_down_left;
+      major_river_tile = e_tile::terrain_river_major_down_left;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_down_left;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_down_left;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_down_left;
+      break;
+    case 0b1110:
+      // river left up right.
+      minor_river_tile =
+          e_tile::terrain_river_minor_left_up_right;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_left_up_right;
+      major_river_tile =
+          e_tile::terrain_river_major_left_up_right;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_left_up_right;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_left_up_right;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_left_up_right;
+      break;
+    case 0b0111:
+      // river up right down.
+      minor_river_tile =
+          e_tile::terrain_river_minor_up_right_down;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_up_right_down;
+      major_river_tile =
+          e_tile::terrain_river_major_up_right_down;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_up_right_down;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_up_right_down;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_up_right_down;
+      break;
+    case 0b1011:
+      // river right down left.
+      minor_river_tile =
+          e_tile::terrain_river_minor_right_down_left;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_right_down_left;
+      major_river_tile =
+          e_tile::terrain_river_major_right_down_left;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_right_down_left;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_right_down_left;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_right_down_left;
+      break;
+    case 0b1101:
+      // river down left up.
+      minor_river_tile =
+          e_tile::terrain_river_minor_down_left_up;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_down_left_up;
+      major_river_tile =
+          e_tile::terrain_river_major_down_left_up;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_down_left_up;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_down_left_up;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_down_left_up;
+      break;
+    case 0b1010:
+      // river left right.
+      minor_river_tile = e_tile::terrain_river_minor_left_right;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_left_right;
+      major_river_tile = e_tile::terrain_river_major_left_right;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_left_right;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_left_right;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_left_right;
+      break;
+    case 0b0101:
+      // river up down.
+      minor_river_tile = e_tile::terrain_river_minor_up_down;
+      minor_bank_tile = e_tile::terrain_river_bank_minor_up_down;
+      major_river_tile = e_tile::terrain_river_major_up_down;
+      major_bank_tile = e_tile::terrain_river_bank_major_up_down;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_up_down;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_up_down;
+      break;
+    case 0b1111:
+      // river left up right down.
+      minor_river_tile =
+          e_tile::terrain_river_minor_left_up_right_down;
+      minor_bank_tile =
+          e_tile::terrain_river_bank_minor_left_up_right_down;
+      major_river_tile =
+          e_tile::terrain_river_major_left_up_right_down;
+      major_bank_tile =
+          e_tile::terrain_river_bank_major_left_up_right_down;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_left_up_right_down;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_left_up_right_down;
+      break;
+    case 0b0000:
+      // no rivers around.
+      minor_river_tile = e_tile::terrain_river_minor_island;
+      minor_bank_tile  = e_tile::terrain_river_bank_minor_island;
+      major_river_tile = e_tile::terrain_river_major_island;
+      major_bank_tile  = e_tile::terrain_river_bank_major_island;
+      minor_cycle_tile =
+          e_tile::terrain_river_cycle_minor_island;
+      major_cycle_tile =
+          e_tile::terrain_river_cycle_major_island;
+      break;
+    default: FATAL( "invalid river mask: {}", mask );
+  }
+
+  e_tile water = ( square.river == e_river::major )
+                     ? major_river_tile
+                     : minor_river_tile;
+
+  e_tile cycle = ( square.river == e_river::major )
+                     ? major_cycle_tile
+                     : minor_cycle_tile;
+
+  e_tile bank = ( square.river == e_river::major )
+                    ? major_bank_tile
+                    : minor_bank_tile;
+
+  rr::Painter painter = renderer.painter();
+  render_sprite( painter, where, water );
+  {
+    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
+                             true );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, where, cycle );
+  }
+  render_sprite( painter, where, bank );
+}
+
 } // namespace
 
 void render_terrain_ocean_square(
@@ -1371,6 +1628,9 @@ void render_terrain_square( TerrainState const& terrain_state,
   else
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
+  if( square.river.has_value() )
+    render_river( terrain_state, renderer, where, world_square,
+                  square );
   if( !square.lost_city_rumor )
     render_resources( renderer, painter, terrain_state, where,
                       square, world_square );

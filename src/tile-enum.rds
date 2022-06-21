@@ -283,6 +283,129 @@ enum.e_tile {
   terrain_beach_left_right_right_c_c,
 
   # =============================================================
+  # Rivers
+  # =============================================================
+  terrain_river_minor_left,
+  terrain_river_minor_up,
+  terrain_river_minor_right,
+  terrain_river_minor_down,
+
+  terrain_river_minor_left_up,
+  terrain_river_minor_up_right,
+  terrain_river_minor_right_down,
+  terrain_river_minor_down_left,
+
+  terrain_river_minor_left_up_right,
+  terrain_river_minor_up_right_down,
+  terrain_river_minor_right_down_left,
+  terrain_river_minor_down_left_up,
+
+  terrain_river_minor_left_right,
+  terrain_river_minor_up_down,
+  terrain_river_minor_left_up_right_down,
+  terrain_river_minor_island,
+
+  terrain_river_major_left,
+  terrain_river_major_up,
+  terrain_river_major_right,
+  terrain_river_major_down,
+
+  terrain_river_major_left_up,
+  terrain_river_major_up_right,
+  terrain_river_major_right_down,
+  terrain_river_major_down_left,
+
+  terrain_river_major_left_up_right,
+  terrain_river_major_up_right_down,
+  terrain_river_major_right_down_left,
+  terrain_river_major_down_left_up,
+
+  terrain_river_major_left_right,
+  terrain_river_major_up_down,
+  terrain_river_major_left_up_right_down,
+  terrain_river_major_island,
+
+  terrain_river_cycle_minor_left,
+  terrain_river_cycle_minor_up,
+  terrain_river_cycle_minor_right,
+  terrain_river_cycle_minor_down,
+
+  terrain_river_cycle_minor_left_up,
+  terrain_river_cycle_minor_up_right,
+  terrain_river_cycle_minor_right_down,
+  terrain_river_cycle_minor_down_left,
+
+  terrain_river_cycle_minor_left_up_right,
+  terrain_river_cycle_minor_up_right_down,
+  terrain_river_cycle_minor_right_down_left,
+  terrain_river_cycle_minor_down_left_up,
+
+  terrain_river_cycle_minor_left_right,
+  terrain_river_cycle_minor_up_down,
+  terrain_river_cycle_minor_left_up_right_down,
+  terrain_river_cycle_minor_island,
+
+  terrain_river_cycle_major_left,
+  terrain_river_cycle_major_up,
+  terrain_river_cycle_major_right,
+  terrain_river_cycle_major_down,
+
+  terrain_river_cycle_major_left_up,
+  terrain_river_cycle_major_up_right,
+  terrain_river_cycle_major_right_down,
+  terrain_river_cycle_major_down_left,
+
+  terrain_river_cycle_major_left_up_right,
+  terrain_river_cycle_major_up_right_down,
+  terrain_river_cycle_major_right_down_left,
+  terrain_river_cycle_major_down_left_up,
+
+  terrain_river_cycle_major_left_right,
+  terrain_river_cycle_major_up_down,
+  terrain_river_cycle_major_left_up_right_down,
+  terrain_river_cycle_major_island,
+
+  terrain_river_bank_minor_left,
+  terrain_river_bank_minor_up,
+  terrain_river_bank_minor_right,
+  terrain_river_bank_minor_down,
+
+  terrain_river_bank_minor_left_up,
+  terrain_river_bank_minor_up_right,
+  terrain_river_bank_minor_right_down,
+  terrain_river_bank_minor_down_left,
+
+  terrain_river_bank_minor_left_up_right,
+  terrain_river_bank_minor_up_right_down,
+  terrain_river_bank_minor_right_down_left,
+  terrain_river_bank_minor_down_left_up,
+
+  terrain_river_bank_minor_left_right,
+  terrain_river_bank_minor_up_down,
+  terrain_river_bank_minor_left_up_right_down,
+  terrain_river_bank_minor_island,
+
+  terrain_river_bank_major_left,
+  terrain_river_bank_major_up,
+  terrain_river_bank_major_right,
+  terrain_river_bank_major_down,
+
+  terrain_river_bank_major_left_up,
+  terrain_river_bank_major_up_right,
+  terrain_river_bank_major_right_down,
+  terrain_river_bank_major_down_left,
+
+  terrain_river_bank_major_left_up_right,
+  terrain_river_bank_major_up_right_down,
+  terrain_river_bank_major_right_down_left,
+  terrain_river_bank_major_down_left_up,
+
+  terrain_river_bank_major_left_right,
+  terrain_river_bank_major_up_down,
+  terrain_river_bank_major_left_up_right_down,
+  terrain_river_bank_major_island,
+
+  # =============================================================
   # Ground types.
   # =============================================================
   terrain_arctic,

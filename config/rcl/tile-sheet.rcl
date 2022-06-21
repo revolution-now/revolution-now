@@ -61,6 +61,141 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/rivers-water.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_river_minor_left:                { y: 0, x: 0 }
+        terrain_river_minor_up:                  { y: 0, x: 1 }
+        terrain_river_minor_right:               { y: 0, x: 2 }
+        terrain_river_minor_down:                { y: 0, x: 3 }
+
+        terrain_river_minor_left_up:             { y: 1, x: 0 }
+        terrain_river_minor_up_right:            { y: 1, x: 1 }
+        terrain_river_minor_right_down:          { y: 1, x: 2 }
+        terrain_river_minor_down_left:           { y: 1, x: 3 }
+
+        terrain_river_minor_left_up_right:       { y: 2, x: 0 }
+        terrain_river_minor_up_right_down:       { y: 2, x: 1 }
+        terrain_river_minor_right_down_left:     { y: 2, x: 2 }
+        terrain_river_minor_down_left_up:        { y: 2, x: 3 }
+
+        terrain_river_minor_left_right:          { y: 3, x: 0 }
+        terrain_river_minor_up_down:             { y: 3, x: 1 }
+        terrain_river_minor_left_up_right_down:  { y: 3, x: 2 }
+        terrain_river_minor_island:              { y: 3, x: 3 }
+
+        terrain_river_major_left:                { y: 4, x: 0 }
+        terrain_river_major_up:                  { y: 4, x: 1 }
+        terrain_river_major_right:               { y: 4, x: 2 }
+        terrain_river_major_down:                { y: 4, x: 3 }
+
+        terrain_river_major_left_up:             { y: 5, x: 0 }
+        terrain_river_major_up_right:            { y: 5, x: 1 }
+        terrain_river_major_right_down:          { y: 5, x: 2 }
+        terrain_river_major_down_left:           { y: 5, x: 3 }
+
+        terrain_river_major_left_up_right:       { y: 6, x: 0 }
+        terrain_river_major_up_right_down:       { y: 6, x: 1 }
+        terrain_river_major_right_down_left:     { y: 6, x: 2 }
+        terrain_river_major_down_left_up:        { y: 6, x: 3 }
+
+        terrain_river_major_left_right:          { y: 7, x: 0 }
+        terrain_river_major_up_down:             { y: 7, x: 1 }
+        terrain_river_major_left_up_right_down:  { y: 7, x: 2 }
+        terrain_river_major_island:              { y: 7, x: 3 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/rivers-cycle.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_river_cycle_minor_left:                { y: 0, x: 0 }
+        terrain_river_cycle_minor_up:                  { y: 0, x: 1 }
+        terrain_river_cycle_minor_right:               { y: 0, x: 2 }
+        terrain_river_cycle_minor_down:                { y: 0, x: 3 }
+
+        terrain_river_cycle_minor_left_up:             { y: 1, x: 0 }
+        terrain_river_cycle_minor_up_right:            { y: 1, x: 1 }
+        terrain_river_cycle_minor_right_down:          { y: 1, x: 2 }
+        terrain_river_cycle_minor_down_left:           { y: 1, x: 3 }
+
+        terrain_river_cycle_minor_left_up_right:       { y: 2, x: 0 }
+        terrain_river_cycle_minor_up_right_down:       { y: 2, x: 1 }
+        terrain_river_cycle_minor_right_down_left:     { y: 2, x: 2 }
+        terrain_river_cycle_minor_down_left_up:        { y: 2, x: 3 }
+
+        terrain_river_cycle_minor_left_right:          { y: 3, x: 0 }
+        terrain_river_cycle_minor_up_down:             { y: 3, x: 1 }
+        terrain_river_cycle_minor_left_up_right_down:  { y: 3, x: 2 }
+        terrain_river_cycle_minor_island:              { y: 3, x: 3 }
+
+        terrain_river_cycle_major_left:                { y: 4, x: 0 }
+        terrain_river_cycle_major_up:                  { y: 4, x: 1 }
+        terrain_river_cycle_major_right:               { y: 4, x: 2 }
+        terrain_river_cycle_major_down:                { y: 4, x: 3 }
+
+        terrain_river_cycle_major_left_up:             { y: 5, x: 0 }
+        terrain_river_cycle_major_up_right:            { y: 5, x: 1 }
+        terrain_river_cycle_major_right_down:          { y: 5, x: 2 }
+        terrain_river_cycle_major_down_left:           { y: 5, x: 3 }
+
+        terrain_river_cycle_major_left_up_right:       { y: 6, x: 0 }
+        terrain_river_cycle_major_up_right_down:       { y: 6, x: 1 }
+        terrain_river_cycle_major_right_down_left:     { y: 6, x: 2 }
+        terrain_river_cycle_major_down_left_up:        { y: 6, x: 3 }
+
+        terrain_river_cycle_major_left_right:          { y: 7, x: 0 }
+        terrain_river_cycle_major_up_down:             { y: 7, x: 1 }
+        terrain_river_cycle_major_left_up_right_down:  { y: 7, x: 2 }
+        terrain_river_cycle_major_island:              { y: 7, x: 3 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/rivers-bank.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_river_bank_minor_left:                { y: 0, x: 0 }
+        terrain_river_bank_minor_up:                  { y: 0, x: 1 }
+        terrain_river_bank_minor_right:               { y: 0, x: 2 }
+        terrain_river_bank_minor_down:                { y: 0, x: 3 }
+
+        terrain_river_bank_minor_left_up:             { y: 1, x: 0 }
+        terrain_river_bank_minor_up_right:            { y: 1, x: 1 }
+        terrain_river_bank_minor_right_down:          { y: 1, x: 2 }
+        terrain_river_bank_minor_down_left:           { y: 1, x: 3 }
+
+        terrain_river_bank_minor_left_up_right:       { y: 2, x: 0 }
+        terrain_river_bank_minor_up_right_down:       { y: 2, x: 1 }
+        terrain_river_bank_minor_right_down_left:     { y: 2, x: 2 }
+        terrain_river_bank_minor_down_left_up:        { y: 2, x: 3 }
+
+        terrain_river_bank_minor_left_right:          { y: 3, x: 0 }
+        terrain_river_bank_minor_up_down:             { y: 3, x: 1 }
+        terrain_river_bank_minor_left_up_right_down:  { y: 3, x: 2 }
+        terrain_river_bank_minor_island:              { y: 3, x: 3 }
+
+        terrain_river_bank_major_left:                { y: 4, x: 0 }
+        terrain_river_bank_major_up:                  { y: 4, x: 1 }
+        terrain_river_bank_major_right:               { y: 4, x: 2 }
+        terrain_river_bank_major_down:                { y: 4, x: 3 }
+
+        terrain_river_bank_major_left_up:             { y: 5, x: 0 }
+        terrain_river_bank_major_up_right:            { y: 5, x: 1 }
+        terrain_river_bank_major_right_down:          { y: 5, x: 2 }
+        terrain_river_bank_major_down_left:           { y: 5, x: 3 }
+
+        terrain_river_bank_major_left_up_right:       { y: 6, x: 0 }
+        terrain_river_bank_major_up_right_down:       { y: 6, x: 1 }
+        terrain_river_bank_major_right_down_left:     { y: 6, x: 2 }
+        terrain_river_bank_major_down_left_up:        { y: 6, x: 3 }
+
+        terrain_river_bank_major_left_right:          { y: 7, x: 0 }
+        terrain_river_bank_major_up_down:             { y: 7, x: 1 }
+        terrain_river_bank_major_left_up_right_down:  { y: 7, x: 2 }
+        terrain_river_bank_major_island:              { y: 7, x: 3 }
+      }
+    }
+    {
       img_path: assets/art/tiles/coast-stencils.png
       sprite_size: { w: 32, h: 32 }
       sprites {

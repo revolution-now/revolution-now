@@ -30,4 +30,7 @@ enum.e_toolbar_item {
 
   irrigation,
   road,
+
+  major_river,
+  minor_river,
 }
