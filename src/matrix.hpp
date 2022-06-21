@@ -90,21 +90,24 @@ class Matrix {
 
   Rect rect() const { return Rect::from( Coord{}, size() ); }
 
-  strong_span<T const, X, W> operator[]( Y y ) const {
+  strong_span<T const, X, W> operator[]( Y y ) const
+      [[clang::lifetimebound]] {
     CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
     return { &data_[y._ * w_._], w_ };
   }
-  strong_span<T, X, W> operator[]( Y y ) {
+  strong_span<T, X, W> operator[]( Y y )
+      [[clang::lifetimebound]] {
     CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
     return { &data_[y._ * w_._], w_ };
   }
 
-  T const& operator[]( Coord coord ) const {
+  T const& operator[]( Coord coord ) const
+      [[clang::lifetimebound]] {
     // These subscript operators should do the range checking.
     return ( *this )[coord.y][coord.x];
   };
 
-  T& operator[]( Coord coord ) {
+  T& operator[]( Coord coord ) [[clang::lifetimebound]] {
     // These subscript operators should do the range checking.
     return ( *this )[coord.y][coord.x];
   };
