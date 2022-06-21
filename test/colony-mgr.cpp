@@ -490,7 +490,8 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
 TEST_CASE( "[colony-mgr] initial colony buildings." ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Colony& colony =
+      W.add_colony_with_new_unit( Coord( 1_x, 1_y ) );
   unordered_set<e_colony_building> buildings;
   for( auto const& [building, has] : colony.buildings() )
     if( has ) buildings.insert( building );

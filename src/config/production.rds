@@ -106,7 +106,7 @@ struct.OutdoorJobProduction {
   #   1. base:        3
   #   2. resource:   x2
   #   3. plow:       +1
-  #   4. river:      +1
+  #   4. river:      +1 (minor)
   #   5. expert:     x2
   #
   # So let's say that we have an expert cotton planter working on
@@ -117,10 +117,11 @@ struct.OutdoorJobProduction {
   # Note that none of these are mutually exclusive; i.e., when a
   # tile is eligible for both plow and river bonuses, they can
   # both be present and will be cumulative.
-  river_bonus    'OutdoorJobBonus_t',
-  road_bonus     'OutdoorJobBonus_t',
-  plow_bonus     'OutdoorJobBonus_t',
-  expert_bonus   'OutdoorJobBonus_t',
+  minor_river_bonus 'OutdoorJobBonus_t',
+  major_river_bonus 'OutdoorJobBonus_t',
+  road_bonus        'OutdoorJobBonus_t',
+  plow_bonus        'OutdoorJobBonus_t',
+  expert_bonus      'OutdoorJobBonus_t',
 
   # For ocean tiles.
   coast_bonus    'OutdoorJobBonus_t',
@@ -144,6 +145,11 @@ struct.OutdoorJobProduction {
 
 struct.OutdoorProduction {
   jobs 'refl::enum_map<e_outdoor_job, OutdoorJobProduction>',
+
+  # Of the 8 tiles that border an ocean square, how many of them
+  # (at least) have to be land in order for it to be considered a
+  # "coast" (and thus recieve the associated fishing bonus).
+  num_land_tiles_for_coast 'int',
 }
 
 struct.config_production_t {

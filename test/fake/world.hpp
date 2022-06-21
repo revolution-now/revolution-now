@@ -60,7 +60,28 @@ struct World {
   World();
   ~World() noexcept;
 
+  // ------------------------------------------------------------
+  // Terrain.
+  // ------------------------------------------------------------
   void build_map( std::vector<MapSquare> tiles, W width );
+
+  static MapSquare make_ocean();
+  static MapSquare make_sea_lane();
+  static MapSquare make_grassland();
+
+  // Access the mutable map. NOTE: functions like this should not
+  // be used outside of unit tests, since normal game code should
+  // always use the IMapUpdater interface to update the map.
+  // Const versions of it are fine though.
+  MapSquare& square( gfx::point p );
+
+  void add_forest( gfx::point p );
+  void add_mountains( gfx::point p );
+  void add_hills( gfx::point p );
+  void add_road( gfx::point p );
+  void add_plow( gfx::point p );
+  void add_minor_river( gfx::point p );
+  void add_major_river( gfx::point p );
 
   // ------------------------------------------------------------
   // Creating units.
@@ -104,10 +125,17 @@ struct World {
   // the unit.
   Colony& add_colony( UnitId founder );
 
-  // This one will create a free_colonist on the square and then
-  // use it to found the colony.
+  // This one will create an empty colony with no units or build-
+  // ings in it, it is basically default constructed. It is not
+  // really a valid colony therefore, but should be fine for
+  // testing.
   Colony& add_colony( Coord           where,
                       maybe<e_nation> nation = nothing );
+
+  // This will create a free colonist on the square and use it to
+  // found a colony, this it should be a realistic valid colony.
+  Colony& add_colony_with_new_unit(
+      Coord where, maybe<e_nation> nation = nothing );
 
   // ------------------------------------------------------------
   // Players.
@@ -123,16 +151,19 @@ struct World {
   // state and return an error if any of them fail.
   base::valid_or<std::string> validate_colonies() const;
 
-  static MapSquare make_ocean();
-  static MapSquare make_sea_lane();
-  static MapSquare make_grassland();
-
-  Player& dutch();
-  Player& english();
-  Player& spanish();
-  Player& french();
+  Player&       dutch();
+  Player&       english();
+  Player&       spanish();
+  Player&       french();
+  Player const& dutch() const;
+  Player const& english() const;
+  Player const& spanish() const;
+  Player const& french() const;
 
   Player& default_player();
+
+  Player&       player( maybe<e_nation> nation = nothing );
+  Player const& player( maybe<e_nation> nation = nothing ) const;
 
   FormatVersion& version();
   SettingsState& settings();

@@ -21,6 +21,9 @@
 #include "src/gs-units.hpp"
 #include "src/player.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -54,56 +57,6 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[production] crosses production" ) {
-  World W;
-  W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
-  Player& player = W.dutch();
-
-  auto crosses = [&] {
-    ColonyProduction pr = production_for_colony(
-        W.terrain(), W.units(), player, colony );
-    return pr.crosses;
-  };
-
-  // Baseline.
-  REQUIRE( crosses() == 1 );
-
-  // With church.
-  colony.add_building( e_colony_building::church );
-  REQUIRE( crosses() == 2 );
-
-  // With free colonist working in church.
-  W.add_unit_indoors( colony.id(), e_indoor_job::crosses );
-  REQUIRE( crosses() == 2 + 3 );
-
-  // With free colonist and firebrand preacher working in church.
-  W.add_unit_indoors( colony.id(), e_indoor_job::crosses,
-                      e_unit_type::firebrand_preacher );
-  REQUIRE( crosses() == 2 + 3 + 6 );
-
-  // With free colonist and firebrand preacher working in cathe-
-  // dral.
-  colony.add_building( e_colony_building::cathedral );
-  REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
-
-  // Taking away the church should have no effect because the
-  // cathedral should override it.
-  colony.rm_building( e_colony_building::church );
-  REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
-
-  // With free colonist and firebrand preacher working in cathe-
-  // dral with William Penn.
-  player.fathers.has[e_founding_father::william_penn] = true;
-  // Should be a 50% increase (rounded up) applied only to the
-  // units' production and not the base production.
-  REQUIRE( crosses() ==
-           ( 3 + ( 3 + 6 ) * 2 ) + ( ( 3 + 6 ) * 2 ) / 2 );
-
-  // All colonies constructed in this test should be valid.
-  REQUIRE( W.validate_colonies() == base::valid );
-}
-
 TEST_CASE( "[production] production_for_slot" ) {
   ColonyProduction pr;
 
@@ -157,7 +110,282 @@ TEST_CASE( "[production] production_for_slot" ) {
            nothing );
 }
 
-TEST_CASE( "[production] tobacco/cigar production" ) {
+TEST_CASE( "[production] crosses" ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Player& player = W.dutch();
+
+  auto crosses = [&] {
+    ColonyProduction pr = production_for_colony(
+        W.terrain(), W.units(), player, colony );
+    return pr.crosses;
+  };
+
+  // Baseline.
+  REQUIRE( crosses() == 1 );
+
+  // With church.
+  colony.add_building( e_colony_building::church );
+  REQUIRE( crosses() == 2 );
+
+  // With free colonist working in church.
+  W.add_unit_indoors( colony.id(), e_indoor_job::crosses );
+  REQUIRE( crosses() == 2 + 3 );
+
+  // With free colonist and firebrand preacher working in church.
+  W.add_unit_indoors( colony.id(), e_indoor_job::crosses,
+                      e_unit_type::firebrand_preacher );
+  REQUIRE( crosses() == 2 + 3 + 6 );
+
+  // With free colonist and firebrand preacher working in cathe-
+  // dral.
+  colony.add_building( e_colony_building::cathedral );
+  REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
+
+  // Taking away the church should have no effect because the
+  // cathedral should override it.
+  colony.rm_building( e_colony_building::church );
+  REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
+
+  // With free colonist and firebrand preacher working in cathe-
+  // dral with William Penn.
+  player.fathers.has[e_founding_father::william_penn] = true;
+  // Should be a 50% increase (rounded up) applied only to the
+  // units' production and not the base production.
+  REQUIRE( crosses() ==
+           ( 3 + ( 3 + 6 ) * 2 ) + ( ( 3 + 6 ) * 2 ) / 2 );
+
+  // All colonies constructed in this test should be valid.
+  REQUIRE( W.validate_colonies() == base::valid );
+}
+
+TEST_CASE( "[production] lumber/hammers" ) {
+  World W;
+  W.create_default_map();
+  Colony&    colony = W.add_colony( Coord( 1_x, 1_y ) );
+  gfx::point P{ .x = 0, .y = 1 };
+
+  auto lum = [&] {
+    return production_for_colony( W.terrain(), W.units(),
+                                  W.player(), colony )
+        .lumber_hammers;
+  };
+
+  // TODO
+  // Need to add hammers.
+
+  SECTION( "petty_criminal" ) {
+    W.add_unit_outdoors( colony.id(), e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::petty_criminal );
+    SECTION( "grassland" ) {
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+    SECTION( "conifer forest" ) {
+      W.add_forest( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 6,
+                            .raw_delta_theoretical = 6,
+                            .raw_delta_final       = 6,
+                        } );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 8,
+                            .raw_delta_theoretical = 8,
+                            .raw_delta_final       = 8,
+                        } );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 10,
+                            .raw_delta_theoretical = 10,
+                            .raw_delta_final       = 10,
+                        } );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 12,
+                            .raw_delta_theoretical = 12,
+                            .raw_delta_final       = 12,
+                        } );
+    }
+    SECTION( "mountains" ) {
+      W.add_mountains( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+  }
+
+  SECTION( "free_colonist" ) {
+    W.add_unit_outdoors( colony.id(), e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::free_colonist );
+    SECTION( "grassland" ) {
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+    SECTION( "conifer forest" ) {
+      W.add_forest( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 6,
+                            .raw_delta_theoretical = 6,
+                            .raw_delta_final       = 6,
+                        } );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 8,
+                            .raw_delta_theoretical = 8,
+                            .raw_delta_final       = 8,
+                        } );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 10,
+                            .raw_delta_theoretical = 10,
+                            .raw_delta_final       = 10,
+                        } );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 12,
+                            .raw_delta_theoretical = 12,
+                            .raw_delta_final       = 12,
+                        } );
+    }
+    SECTION( "mountains" ) {
+      W.add_mountains( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+  }
+
+  SECTION( "expert_lumberjack" ) {
+    W.add_unit_outdoors( colony.id(), e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::expert_lumberjack );
+    SECTION( "grassland" ) {
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+    SECTION( "conifer forest" ) {
+      W.add_forest( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 12,
+                            .raw_delta_theoretical = 12,
+                            .raw_delta_final       = 12,
+                        } );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 16,
+                            .raw_delta_theoretical = 16,
+                            .raw_delta_final       = 16,
+                        } );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 20,
+                            .raw_delta_theoretical = 20,
+                            .raw_delta_final       = 20,
+                        } );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 24,
+                            .raw_delta_theoretical = 24,
+                            .raw_delta_final       = 24,
+                        } );
+    }
+    SECTION( "mountains" ) {
+      W.add_mountains( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+  }
+}
+
+TEST_CASE( "[production] tobacco/cigar" ) {
+  World W;
+  W.create_default_map();
   // TODO
 }
 

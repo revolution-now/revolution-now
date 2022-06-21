@@ -17,6 +17,9 @@
 #include "src/map-updater.hpp"
 #include "src/ustate.hpp"
 
+// base
+#include "src/base/keyval.hpp"
+
 using namespace std;
 
 namespace rn::testing {
@@ -73,6 +76,57 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   map_updater().modify_entire_map( [&]( Matrix<MapSquare>& m ) {
     m = Matrix<MapSquare>( std::move( tiles ), width );
   } );
+}
+
+MapSquare& World::square( gfx::point p ) {
+  return terrain().mutable_square_at( Coord::from_gfx( p ) );
+}
+
+void World::add_forest( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ), []( MapSquare& square ) {
+        square.overlay = e_land_overlay::forest;
+      } );
+}
+
+void World::add_mountains( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ), []( MapSquare& square ) {
+        square.overlay = e_land_overlay::mountains;
+      } );
+}
+
+void World::add_hills( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ), []( MapSquare& square ) {
+        square.overlay = e_land_overlay::hills;
+      } );
+}
+
+void World::add_road( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ),
+      []( MapSquare& square ) { square.road = true; } );
+}
+
+void World::add_plow( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ),
+      []( MapSquare& square ) { square.irrigation = true; } );
+}
+
+void World::add_minor_river( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ), []( MapSquare& square ) {
+        square.river = e_river::minor;
+      } );
+}
+
+void World::add_major_river( gfx::point p ) {
+  map_updater_->modify_map_square(
+      Coord::from_gfx( p ), []( MapSquare& square ) {
+        square.river = e_river::major;
+      } );
 }
 
 UnitId World::add_unit_in_port( e_unit_type     type,
@@ -150,6 +204,15 @@ Colony& World::add_colony( UnitId founder ) {
 
 Colony& World::add_colony( Coord           where,
                            maybe<e_nation> nation ) {
+  string name =
+      fmt::to_string( colonies().last_colony_id()._ + 1 );
+  return colonies().colony_for( create_empty_colony(
+      colonies(), nation.value_or( default_nation_ ), where,
+      name ) );
+}
+
+Colony& World::add_colony_with_new_unit(
+    Coord where, maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   UnitId founder = add_unit_on_map( e_unit_type::free_colonist,
                                     where, *nation );
@@ -176,8 +239,45 @@ Player& World::french() {
   return root().players.players[e_nation::french];
 }
 
+Player const& World::dutch() const {
+  UNWRAP_CHECK( player, base::lookup( root().players.players,
+                                      e_nation::dutch ) );
+  return player;
+}
+
+Player const& World::english() const {
+  UNWRAP_CHECK( player, base::lookup( root().players.players,
+                                      e_nation::english ) );
+  return player;
+}
+
+Player const& World::spanish() const {
+  UNWRAP_CHECK( player, base::lookup( root().players.players,
+                                      e_nation::spanish ) );
+  return player;
+}
+
+Player const& World::french() const {
+  UNWRAP_CHECK( player, base::lookup( root().players.players,
+                                      e_nation::french ) );
+  return player;
+}
+
 Player& World::default_player() {
-  switch( default_nation_ ) {
+  return player( default_nation_ );
+}
+
+Player& World::player( maybe<e_nation> nation ) {
+  switch( nation.value_or( default_nation_ ) ) {
+    case e_nation::dutch: return dutch();
+    case e_nation::english: return english();
+    case e_nation::french: return french();
+    case e_nation::spanish: return spanish();
+  }
+}
+
+Player const& World::player( maybe<e_nation> nation ) const {
+  switch( nation.value_or( default_nation_ ) ) {
     case e_nation::dutch: return dutch();
     case e_nation::english: return english();
     case e_nation::french: return french();

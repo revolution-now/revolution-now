@@ -103,10 +103,9 @@ int bordering_land_tiles( TerrainState const& terrain_state,
           e_surface::water );
   int n = 0;
   for( e_direction d : refl::enum_values<e_direction> )
-    if( direction_type( d ) == e_direction_type::cardinal )
-      if( terrain_state.total_square_at( where ).surface ==
-          e_surface::land )
-        ++n;
+    if( terrain_state.total_square_at( where.moved( d ) )
+            .surface == e_surface::land )
+      ++n;
   return n;
 }
 
@@ -139,6 +138,18 @@ int production_on_square( e_outdoor_job       job,
   MapSquare const& square  = terrain_state.square_at( where );
   e_terrain const  terrain = effective_terrain( square );
 
+  // If the base production is zero then that is taken to mean
+  // that the square should never produce any of that commodity
+  // regardless of the unit or terrain bonuses, and so we short
+  // circuit here. Otherwise e.g. a mountain tile with a road
+  // would produce 2 lumber via the road bonus. This also pre-
+  // vents e.g. getting tobacco on a prairie square by putting a
+  // prime tobacco resource there, which the original game did
+  // not allow, but we technically allow it (because of our more
+  // flexible map representation) and so it is nice that this
+  // also shields against that.
+  if( conf.base_productions[terrain] == 0 ) return 0;
+
   // If this field is present on a square that has no resources
   // then it overrides everything else. This is used to reproduce
   // some non-standard behavior with regard to silver production
@@ -160,18 +171,26 @@ int production_on_square( e_outdoor_job       job,
   //
   //   1. base:                   3
   //   2. resource:              x2
-  //   3. plow/river/road/coast: +1 each
-  //   4. expert:                x2
+  //   3. plow/road/coast:       +1 each
+  //   4. major/minor river      +1 (+2 for major)
+  //   5. expert:                x2
   //
   // So let's say that we have an expert cotton planter working
-  // on a square with prime cotton, a river, and plowed, we'd
-  // have:
+  // on a square with prime cotton, a minor river, and plowed,
+  // we'd have:
   //
   //   production = ((3*2)+1+1)*2 = 16
   //
-  // Note that none of these are mutually exclusive; i.e., when a
-  // tile is eligible for both plow and river bonuses, they can
-  // both be present and will be cumulative.
+  // Note that in this version of the game none of these are mu-
+  // tually exclusive; i.e., when a tile is eligible for both
+  // plow and river bonuses, they can both be present and will be
+  // cumulative. At least some versions of the original game, it
+  // appears that when a major river is present then the effects
+  // of a road/plow are ignored, and only the major river bonus
+  // is given. However that may not be the case in all version,
+  // and doesn't appear to be documented. Because of that, and
+  // because it introduces arguably a bit too much complexity, we
+  // don't do that here.
 
   // 1. Base.
   int res = conf.base_productions[terrain];
@@ -185,19 +204,34 @@ int production_on_square( e_outdoor_job       job,
                                conf.resource_bonus[*resource] );
 
   // 3. Plow/River/Road/Coast Bonus.
-  if( square.river.has_value() )
-    res =
-        apply_outdoor_bonus( res, is_expert, conf.river_bonus );
+  if( square.river.has_value() ) {
+    // Note this applies to water squares as well, for when a
+    // river empties into the ocean, the ocean tile will be given
+    // the river setting as well (though technically this is up
+    // to the map generator; the standard generator will do
+    // this), and this gives a fishing bonus.
+    switch( *square.river ) {
+      case e_river::minor:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.minor_river_bonus );
+        break;
+      case e_river::major:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.major_river_bonus );
+        break;
+    }
+  }
 
   if( square.road )
     res = apply_outdoor_bonus( res, is_expert, conf.road_bonus );
 
-  if( square.irrigation )
+  if( square.irrigation && /*defense*/ !square.overlay )
     res = apply_outdoor_bonus( res, is_expert, conf.plow_bonus );
 
   if( square.surface == e_surface::water &&
-      bordering_land_tiles( terrain_state, where ) >= 2 )
-    // TODO: check this logic with the original game.
+      bordering_land_tiles( terrain_state, where ) >=
+          config_production.outdoor_production
+              .num_land_tiles_for_coast )
     res =
         apply_outdoor_bonus( res, is_expert, conf.coast_bonus );
 

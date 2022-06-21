@@ -159,15 +159,20 @@ building_production_bonus {
 }
 
 outdoor_production {
+  # The original game seems to use 3 here (and that includes both
+  # cardinal and diagonal squares).
+  num_land_tiles_for_coast: 3
+
   jobs {
     food: {
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=0, expert=0 }
-      plow_bonus.add   { non_expert=1, expert=1 }
-      coast_bonus.none {}
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=1, expert=1 }
+      road_bonus.add        { non_expert=0, expert=0 }
+      plow_bonus.add        { non_expert=1, expert=1 }
+      coast_bonus.none      {}
       # The non_expert field is irrelevant here. Note that the
       # in-game numbers say that this is 3, but it is actually 2.
-      expert_bonus.add { non_expert=0, expert=2 }
+      expert_bonus.add      { non_expert=0, expert=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -211,16 +216,16 @@ outdoor_production {
       non_resource_override: null
     }
     fish: {
-      # TODO: need to measure this.
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.none  {}
-      plow_bonus.none  {}
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.none       {}
+      plow_bonus.none       {}
       # The in-game numbers say that this is 1, but it actually
       # seems to be 2.
-      coast_bonus.add  { non_expert=2, expert=2 }
+      coast_bonus.add       { non_expert=2, expert=2 }
       # The non_expert field is irrelevant here. Note that the
       # in-game numbers say that this is 3, but it is actually 2.
-      expert_bonus.add  { non_expert=0, expert=2 }
+      expert_bonus.add      { non_expert=0, expert=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -265,11 +270,12 @@ outdoor_production {
       non_resource_override: null
     }
     sugar: {
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=0, expert=0 }
-      plow_bonus.add   { non_expert=1, expert=1 }
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.add        { non_expert=0, expert=0 }
+      plow_bonus.add        { non_expert=1, expert=1 }
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -313,11 +319,12 @@ outdoor_production {
       non_resource_override: null
     }
     tobacco: {
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=0, expert=0 }
-      plow_bonus.add   { non_expert=1, expert=1 }
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.add        { non_expert=0, expert=0 }
+      plow_bonus.add        { non_expert=1, expert=1 }
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -361,11 +368,12 @@ outdoor_production {
       non_resource_override: null
     }
     cotton: {
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=0, expert=0 }
-      plow_bonus.add   { non_expert=1, expert=1 }
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.add        { non_expert=0, expert=0 }
+      plow_bonus.add        { non_expert=1, expert=1 }
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -411,11 +419,12 @@ outdoor_production {
       non_resource_override: null
     }
     fur: {
-      river_bonus.add  { non_expert=2, expert=2 }
-      road_bonus.add   { non_expert=2, expert=2 }
-      plow_bonus.none  {}
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=2, expert=2 }
+      major_river_bonus.add { non_expert=4, expert=4 }
+      road_bonus.add        { non_expert=2, expert=2 }
+      plow_bonus.none       {}
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         # TODO: check this
@@ -461,11 +470,12 @@ outdoor_production {
       non_resource_override: null
     }
     lumber: {
-      river_bonus.add  { non_expert=2, expert=2 }
-      road_bonus.add   { non_expert=2, expert=2 }
-      plow_bonus.none  {}
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=2, expert=2 }
+      major_river_bonus.add { non_expert=4, expert=4 }
+      road_bonus.add        { non_expert=2, expert=2 }
+      plow_bonus.none       {}
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -510,11 +520,12 @@ outdoor_production {
       non_resource_override: null
     }
     ore: {
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=1, expert=1 }
-      plow_bonus.none  {}
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.add        { non_expert=1, expert=1 }
+      plow_bonus.none       {}
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       resource_bonus {
         beaver.none          {}
@@ -564,11 +575,12 @@ outdoor_production {
       # tains, and it appears that it doesn't support rivers on
       # mountain squares, so this may not be relevant. But the
       # in-game docs do give numbers for this river bonus.
-      river_bonus.add  { non_expert=1, expert=1 }
-      road_bonus.add   { non_expert=1, expert=1 }
-      plow_bonus.none  {}
-      coast_bonus.none {}
-      expert_bonus.mul { by=2 }
+      minor_river_bonus.add { non_expert=1, expert=1 }
+      major_river_bonus.add { non_expert=2, expert=2 }
+      road_bonus.add        { non_expert=1, expert=1 }
+      plow_bonus.none       {}
+      coast_bonus.none      {}
+      expert_bonus.mul      { by=2 }
 
       # The available documentation on the classic game states
       # the following for the forumla for silver:

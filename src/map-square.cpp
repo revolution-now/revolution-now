@@ -57,7 +57,7 @@ e_terrain effective_terrain( MapSquare const& square ) {
           config_terrain
               .types[from_ground_terrain( square.ground )]
               .with_forest;
-      DCHECK( forested );
+      CHECK( forested );
       return *forested;
     }
   }
