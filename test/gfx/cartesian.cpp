@@ -67,6 +67,12 @@ TEST_CASE( "[gfx/cartesian] point::distance_from_origin" ) {
   REQUIRE( p.distance_from_origin() == size{ .w = 4, .h = 2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
+  point p{ .x = 4, .y = 2 };
+  REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
+  REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

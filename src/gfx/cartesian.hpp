@@ -58,6 +58,8 @@ struct point {
   static point origin();
 
   bool operator==( point const& ) const = default;
+
+  point moved_left( int by = 1 ) const;
 };
 
 /****************************************************************
