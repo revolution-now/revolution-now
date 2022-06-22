@@ -103,6 +103,11 @@ sheets {
         terrain_river_major_up_down:             { y: 7, x: 1 }
         terrain_river_major_left_up_right_down:  { y: 7, x: 2 }
         terrain_river_major_island:              { y: 7, x: 3 }
+
+        terrain_river_fanout_land_left:          { y: 8, x: 0 }
+        terrain_river_fanout_land_up:            { y: 8, x: 1 }
+        terrain_river_fanout_land_right:         { y: 8, x: 2 }
+        terrain_river_fanout_land_down:          { y: 8, x: 3 }
       }
     }
     {
@@ -193,6 +198,18 @@ sheets {
         terrain_river_bank_major_up_down:             { y: 7, x: 1 }
         terrain_river_bank_major_left_up_right_down:  { y: 7, x: 2 }
         terrain_river_bank_major_island:              { y: 7, x: 3 }
+
+        terrain_river_fanout_bank_land_left:          { y: 8, x: 0 }
+        terrain_river_fanout_bank_land_up:            { y: 8, x: 1 }
+        terrain_river_fanout_bank_land_right:         { y: 8, x: 2 }
+        terrain_river_fanout_bank_land_down:          { y: 8, x: 3 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/rivers-backdrop.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        terrain_river_shading: { y: 0, x: 4 }
       }
     }
     {

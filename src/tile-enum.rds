@@ -285,6 +285,12 @@ enum.e_tile {
   # =============================================================
   # Rivers
   # =============================================================
+  # The river tiles are stencils that will render through to the
+  # regular ocean tile, except that there is then this tile ren-
+  # dered on top of it (with the same stencil) but with a low
+  # alpha that will change the color a bit.
+  terrain_river_shading,
+
   terrain_river_minor_left,
   terrain_river_minor_up,
   terrain_river_minor_right,
@@ -404,6 +410,16 @@ enum.e_tile {
   terrain_river_bank_major_up_down,
   terrain_river_bank_major_left_up_right_down,
   terrain_river_bank_major_island,
+
+  # River tiles for rendering in ocean squares.
+  terrain_river_fanout_land_left,
+  terrain_river_fanout_land_up,
+  terrain_river_fanout_land_right,
+  terrain_river_fanout_land_down,
+  terrain_river_fanout_bank_land_left,
+  terrain_river_fanout_bank_land_up,
+  terrain_river_fanout_bank_land_right,
+  terrain_river_fanout_bank_land_down,
 
   # =============================================================
   # Ground types.

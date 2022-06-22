@@ -477,10 +477,95 @@ void render_beach_corners(
                    e_tile::terrain_beach_corner_down_left );
 }
 
-void render_river( TerrainState const& terrain_state,
-                   rr::Renderer& renderer, Coord where,
-                   Coord world_square, MapSquare const& square,
-                   bool no_bank ) {
+void render_river_water_tile( rr::Renderer& renderer,
+                              Coord where, e_tile tile,
+                              MapSquare const& square ) {
+  double alpha =
+      ( square.surface == e_surface::water ) ? .05 : .1;
+  rr::Painter painter = renderer.painter();
+  render_sprite_stencil( painter, where, tile,
+                         e_tile::terrain_ocean,
+                         gfx::pixel::black() );
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+    rr::Painter painter = renderer.painter();
+    render_sprite_stencil( painter, where, tile,
+                           e_tile::terrain_river_shading,
+                           gfx::pixel::black() );
+  }
+}
+
+// The idea here is that when we render rivers on the ocean
+// (which will always be end points, or at least rendered that
+// way), there are a couple of differences with rendering it on
+// land:
+//
+//   1. We don't draw the bank.
+//   2. We don't join to ocean squares that both contain rivers.
+//   3. We draw special fan-out tiles, one for each surrounding
+//      square that has a river.
+//
+void render_river_on_ocean( TerrainState const& terrain_state,
+                            rr::Renderer& renderer, Coord where,
+                            Coord            world_square,
+                            MapSquare const& square ) {
+  CHECK( square.river.has_value() );
+  MapSquare const& up =
+      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& right =
+      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& down =
+      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& left =
+      terrain_state.total_square_at( world_square - 1_w );
+
+  bool river_up =
+      up.river.has_value() && up.surface == e_surface::land;
+  bool river_right = right.river.has_value() &&
+                     right.surface == e_surface::land;
+  bool river_down =
+      down.river.has_value() && down.surface == e_surface::land;
+  bool river_left =
+      left.river.has_value() && left.surface == e_surface::land;
+
+  rr::Painter painter = renderer.painter();
+
+  if( river_left ) {
+    render_river_water_tile(
+        renderer, where, e_tile::terrain_river_fanout_land_left,
+        square );
+    render_sprite( painter, where,
+                   e_tile::terrain_river_fanout_bank_land_left );
+  }
+  if( river_up ) {
+    render_river_water_tile(
+        renderer, where, e_tile::terrain_river_fanout_land_up,
+        square );
+    render_sprite( painter, where,
+                   e_tile::terrain_river_fanout_bank_land_up );
+  }
+  if( river_right ) {
+    render_river_water_tile(
+        renderer, where, e_tile::terrain_river_fanout_land_right,
+        square );
+    render_sprite(
+        painter, where,
+        e_tile::terrain_river_fanout_bank_land_right );
+  }
+  if( river_down ) {
+    render_river_water_tile(
+        renderer, where, e_tile::terrain_river_fanout_land_down,
+        square );
+    render_sprite( painter, where,
+                   e_tile::terrain_river_fanout_bank_land_down );
+  }
+}
+
+void render_river_on_land( TerrainState const& terrain_state,
+                           rr::Renderer& renderer, Coord where,
+                           Coord            world_square,
+                           MapSquare const& square,
+                           bool             no_bank ) {
   DCHECK( square.river.has_value() );
   MapSquare const& up =
       terrain_state.total_square_at( world_square - 1_h );
@@ -723,12 +808,12 @@ void render_river( TerrainState const& terrain_state,
                     : minor_bank_tile;
 
   rr::Painter painter = renderer.painter();
-  render_sprite( painter, where, water );
+  render_river_water_tile( renderer, where, water, square );
   {
     SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
                              true );
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, where, cycle );
+    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, .5 );
+    render_river_water_tile( renderer, where, cycle, square );
   }
   if( !no_bank ) render_sprite( painter, where, bank );
 }
@@ -771,18 +856,8 @@ void render_river_hinting( TerrainState const& terrain_state,
                            Coord            world_square,
                            MapSquare const& square ) {
   DCHECK( square.overlay == e_land_overlay::forest );
-  // This forest square, which contains a river, has already had
-  // its river rendered under the forest tile (which it looks
-  // best), but that means that it won't be visible to the
-  // player. That's not ideal because the river will give produc-
-  // tion bonuses. So let's draw a light (faded and depixelated)
-  // river overtop of the forest to hint about it to the player.
-  //
-  // For the best visual effect, we will only render this hint on
-  // forest tiles that are completely surrounded (in the cardinal
-  // directions) by other forest tiles.
-  static double constexpr kEdgeAlpha         = 0.2;
-  static double constexpr kInnerAlpha        = 0.4;
+  static double constexpr kEdgeAlpha         = 0.5;
+  static double constexpr kInnerAlpha        = 0.7;
   static double constexpr kEdgeDepixelStage  = 0.7;
   static double constexpr kInnerDepixelStage = 0.6;
   static_assert( kInnerAlpha >= kEdgeAlpha );
@@ -796,8 +871,8 @@ void render_river_hinting( TerrainState const& terrain_state,
                            where );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
-  render_river( terrain_state, renderer, where, world_square,
-                square, /*no_bank=*/true );
+  render_river_on_land( terrain_state, renderer, where,
+                        world_square, square, /*no_bank=*/true );
 }
 
 void render_land_overlay( TerrainState const& terrain_state,
@@ -807,9 +882,29 @@ void render_land_overlay( TerrainState const& terrain_state,
                           MapSquare const& square ) {
   if( square.overlay == e_land_overlay::forest ) {
     render_forest( terrain_state, painter, where, world_square );
-    if( square.river.has_value() )
-      render_river_hinting( terrain_state, renderer, where,
-                            world_square, square );
+    if( square.river.has_value() ) {
+      if( square.ground != e_ground_terrain::desert )
+        // This forest square, which contains a river, has al-
+        // ready had its river rendered under the forest tile
+        // (which it looks best), but that means that it won't be
+        // visible to the player. That's not ideal because the
+        // river will give production bonuses. So let's draw a
+        // light (faded and depixelated) river overtop of the
+        // forest to hint about it to the player.
+        //
+        // For the best visual effect, we will only render this
+        // hint on forest tiles that are completely surrounded
+        // (in the cardinal directions) by other forest tiles.
+        render_river_hinting( terrain_state, renderer, where,
+                              world_square, square );
+      else
+        // If it's a forest in a desert (scrub forest) then just
+        // render the river over top of it seems to make more
+        // sense visually.
+        render_river_on_land( terrain_state, renderer, where,
+                              world_square, square,
+                              /*no_bank=*/false );
+    }
   } else if( square.overlay.has_value() ) {
     e_tile overlay = overlay_tile( square );
     render_sprite( painter, where, overlay );
@@ -1527,7 +1622,7 @@ void render_terrain_ocean_square(
     render_sprite( painter, where, *second_beach_tile );
   if( second_border_tile.has_value() )
     render_sprite( painter, where, *second_border_tile );
-  if( surf_tile.has_value() ) {
+  if( surf_tile.has_value() && !square.river.has_value() ) {
     SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
                              true );
     rr::Painter painter = renderer.painter();
@@ -1695,16 +1790,21 @@ void render_terrain_square( TerrainState const& terrain_state,
   rr::Painter      painter = renderer.painter();
   MapSquare const& square =
       terrain_state.square_at( world_square );
-  if( square.surface == e_surface::water )
+  if( square.surface == e_surface::water ) {
     render_terrain_ocean_square( renderer, painter, where,
                                  terrain_state, square,
                                  world_square );
-  else
+    if( square.river.has_value() )
+      render_river_on_ocean( terrain_state, renderer, where,
+                             world_square, square );
+  } else {
     render_terrain_land_square( terrain_state, painter, renderer,
                                 where, world_square, square );
-  if( square.river.has_value() )
-    render_river( terrain_state, renderer, where, world_square,
-                  square, /*no_bank=*/false );
+    if( square.river.has_value() )
+      render_river_on_land( terrain_state, renderer, where,
+                            world_square, square,
+                            /*no_bank=*/false );
+  }
   render_land_overlay( terrain_state, renderer, painter, where,
                        world_square, square );
   if( !square.lost_city_rumor )
