@@ -20,6 +20,52 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+TerrainRenderOptions make_terrain_options(
+    MapUpdaterOptions const& our_options ) {
+  return TerrainRenderOptions{ .render_forests =
+                                   our_options.render_forests };
+}
+
+}
+
+/****************************************************************
+** MapUpdaterOptions
+*****************************************************************/
+namespace detail {
+
+MapUpdaterOptionsPopper::~MapUpdaterOptionsPopper() noexcept {
+  CHECK( !map_updater_.options_.empty() );
+  map_updater_.options_.pop();
+  CHECK( !map_updater_.options_.empty() );
+  map_updater_.redraw();
+}
+
+} // namespace detail
+
+/****************************************************************
+** IMapUpdater
+*****************************************************************/
+IMapUpdater::IMapUpdater() {
+  options_.push( MapUpdaterOptions{} );
+}
+
+IMapUpdater::Popper IMapUpdater::push_options(
+    OptionsUpdateFunc mutator ) {
+  CHECK( !options_.empty() );
+  MapUpdaterOptions new_options = options_.top();
+  mutator( new_options );
+  options_.push( std::move( new_options ) );
+  redraw();
+  return Popper{ *this };
+}
+
+MapUpdaterOptions const& IMapUpdater::options() const {
+  CHECK( !options_.empty() );
+  return options_.top();
+}
+
 /****************************************************************
 ** MapUpdater
 *****************************************************************/
@@ -49,10 +95,13 @@ void MapUpdater::modify_map_square(
   // this kind only happen in the map editor.
   Rect to_update = Rect::from( tile - Delta( 2_w, 2_h ),
                                tile + Delta( 3_w, 3_h ) );
+  TerrainRenderOptions const terrain_options =
+      make_terrain_options( options() );
   for( Coord moved : to_update ) {
     if( !terrain_state_.square_exists( moved ) ) continue;
     render_terrain_square( terrain_state_, renderer_,
-                           moved * g_tile_scale, moved );
+                           moved * g_tile_scale, moved,
+                           terrain_options );
   }
 
   ++tiles_updated_;
@@ -73,7 +122,9 @@ void MapUpdater::modify_entire_map(
 }
 
 void MapUpdater::redraw() {
-  render_terrain( terrain_state_, renderer_ );
+  TerrainRenderOptions const terrain_options =
+      make_terrain_options( options() );
+  render_terrain( terrain_state_, renderer_, terrain_options );
   // Reset this since we just redrew the map.
   tiles_updated_ = 0;
 }

@@ -879,8 +879,12 @@ void render_land_overlay( TerrainState const& terrain_state,
                           rr::Renderer&       renderer,
                           rr::Painter& painter, Coord where,
                           Coord            world_square,
-                          MapSquare const& square ) {
+                          MapSquare const& square,
+                          TerrainRenderOptions const& options ) {
   if( square.overlay == e_land_overlay::forest ) {
+    // Need to do this inside the if since we don't want to go to
+    // the outter else branch.
+    if( !options.render_forests ) return;
     render_forest( terrain_state, painter, where, world_square );
     if( square.river.has_value() ) {
       if( square.ground != e_ground_terrain::desert )
@@ -1784,9 +1788,10 @@ void render_resources( rr::Renderer&       renderer,
 }
 
 // Pass in the painter as well for efficiency.
-void render_terrain_square( TerrainState const& terrain_state,
-                            rr::Renderer& renderer, Coord where,
-                            Coord const world_square ) {
+void render_terrain_square(
+    TerrainState const& terrain_state, rr::Renderer& renderer,
+    Coord where, Coord const world_square,
+    TerrainRenderOptions const& options ) {
   rr::Painter      painter = renderer.painter();
   MapSquare const& square =
       terrain_state.square_at( world_square );
@@ -1806,7 +1811,7 @@ void render_terrain_square( TerrainState const& terrain_state,
                             /*no_bank=*/false );
   }
   render_land_overlay( terrain_state, renderer, painter, where,
-                       world_square, square );
+                       world_square, square, options );
   if( !square.lost_city_rumor )
     render_resources( renderer, painter, terrain_state, where,
                       square, world_square );
@@ -1821,8 +1826,9 @@ void render_terrain_square( TerrainState const& terrain_state,
                              gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain( TerrainState const& terrain_state,
-                     rr::Renderer&       renderer ) {
+void render_terrain( TerrainState const&         terrain_state,
+                     rr::Renderer&               renderer,
+                     TerrainRenderOptions const& options ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   auto const kLandscapeBuf =
       rr::e_render_target_buffer::landscape;
@@ -1831,7 +1837,8 @@ void render_terrain( TerrainState const& terrain_state,
   auto start_time = chrono::system_clock::now();
   for( Coord square : terrain_state.world_rect_tiles() )
     render_terrain_square( terrain_state, renderer,
-                           square * g_tile_scale, square );
+                           square * g_tile_scale, square,
+                           options );
   auto end_time = chrono::system_clock::now();
   lg.info(
       "rendered landscape: {}ms with {} vertices, occupying "
@@ -1856,7 +1863,7 @@ LUA_FN( toggle_grid, void ) {
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
-  map_updater.just_redraw_map();
+  map_updater.redraw();
 }
 
 LUA_FN( redraw, void ) {
@@ -1865,7 +1872,7 @@ LUA_FN( redraw, void ) {
   MapUpdater map_updater(
       GameState::terrain(),
       global_renderer_use_only_when_needed() );
-  map_updater.just_redraw_map();
+  map_updater.redraw();
 }
 
 } // namespace

@@ -1459,9 +1459,9 @@ class LandView : public ui::View,
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
                            Delta{ 1_w, 1_h };
-      render_terrain_square( terrain_state, renderer,
-                             local_coord * g_tile_scale,
-                             render_square );
+      render_terrain_square(
+          terrain_state, renderer, local_coord * g_tile_scale,
+          render_square, TerrainRenderOptions{} );
     }
     // Render irrigation.
     for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {

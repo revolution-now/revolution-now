@@ -22,10 +22,43 @@
 
 // base
 #include "base/function-ref.hpp"
+#include "base/macros.hpp"
+
+// C++ standard library
+#include <stack>
 
 namespace rn {
 
+struct IMapUpdater;
 struct TerrainState;
+
+/****************************************************************
+** MapUpdaterOptions
+*****************************************************************/
+#define SCOPED_MAP_UPDATER_OPT_SET( map_updater, path, val )   \
+  auto STRING_JOIN( __scoped_map_updater_popper_, __LINE__ ) = \
+      map_updater.push_options(                                \
+          []( MapUpdaterOptions& options ) {                   \
+            options.path = val;                                \
+          } );
+
+struct MapUpdaterOptions {
+  bool render_forests = true;
+};
+
+namespace detail {
+
+struct [[nodiscard]] MapUpdaterOptionsPopper {
+  MapUpdaterOptionsPopper( IMapUpdater& map_updater )
+    : map_updater_( map_updater ) {}
+  ~MapUpdaterOptionsPopper() noexcept;
+  NO_COPY_NO_MOVE( MapUpdaterOptionsPopper );
+
+ private:
+  IMapUpdater& map_updater_;
+};
+
+} // namespace detail
 
 /****************************************************************
 ** IMapUpdater
@@ -40,6 +73,11 @@ struct IMapUpdater {
       base::function_ref<void( MapSquare& )>;
   using MapUpdateFunc =
       base::function_ref<void( Matrix<MapSquare>& )>;
+  using OptionsUpdateFunc =
+      base::function_ref<void( MapUpdaterOptions& )>;
+  using Popper = detail::MapUpdaterOptionsPopper;
+
+  IMapUpdater();
 
   virtual ~IMapUpdater() = default;
 
@@ -54,6 +92,19 @@ struct IMapUpdater {
 
   // Will redraw the entire map.
   virtual void redraw() = 0;
+
+  // Will call the function with the existing set of options and
+  // allow modifying them, then will push a new (modified) copy
+  // onto the stack and return a popper.
+  Popper push_options( OptionsUpdateFunc mutator );
+
+ protected:
+  MapUpdaterOptions const& options() const;
+
+ private:
+  friend struct detail::MapUpdaterOptionsPopper;
+
+  std::stack<MapUpdaterOptions> options_;
 };
 
 /****************************************************************
