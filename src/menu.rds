@@ -19,6 +19,7 @@ enum.e_menu_item {
   exit,
   zoom_in,
   zoom_out,
+  hidden_terrain,
   restore_zoom,
   music_play,
   music_stop,

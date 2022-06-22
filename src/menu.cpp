@@ -106,12 +106,13 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
       {
           ITEM( zoom_in, "Zoom In" ),                       //
           ITEM( zoom_out, "Zoom Out" ),                     //
-          /***********/ DIVIDER, /***********/              //
           ITEM( restore_zoom, "Zoom Default" ),             //
           /***********/ DIVIDER, /***********/              //
           ITEM( find_blinking_unit, "Find Blinking Unit" ), //
           /***********/ DIVIDER, /***********/              //
-          ITEM( harbor_view, "European Status" )            //
+          ITEM( harbor_view, "European Status" ),           //
+          /***********/ DIVIDER, /***********/              //
+          ITEM( hidden_terrain, "Show Hidden Terrain" )     //
       } },
     { e_menu::orders,
       {
