@@ -176,9 +176,8 @@ struct LandViewPlane::Impl : public Plane {
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
   unordered_map<UnitId, UnitAnimation_t> unit_animations_;
-  LandViewUnitActionState_t              landview_action_state_ =
-      LandViewUnitActionState::none{};
-  maybe<UnitId> last_unit_input_;
+  LandViewMode_t landview_mode_ = LandViewMode::none{};
+  maybe<UnitId>  last_unit_input_;
 
   bool g_needs_scroll_to_unit_on_input = true;
 
@@ -219,8 +218,8 @@ struct LandViewPlane::Impl : public Plane {
     register_menu_items( menu_plane );
     // Initialize general global data.
     unit_animations_.clear();
-    landview_action_state_ = LandViewUnitActionState::none{};
-    last_unit_input_       = nothing;
+    landview_mode_   = LandViewMode::none{};
+    last_unit_input_ = nothing;
     raw_input_stream_.reset();
     translated_input_stream_.reset();
     g_needs_scroll_to_unit_on_input = true;
@@ -320,10 +319,9 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   wait<> center_on_blinking_unit_if_any() {
-    using u_i = LandViewUnitActionState::unit_input;
+    using u_i = LandViewMode::unit_input;
     auto blinking_unit =
-        landview_action_state_.get_if<u_i>().member(
-            &u_i::unit_id );
+        landview_mode_.get_if<u_i>().member( &u_i::unit_id );
     if( !blinking_unit ) {
       lg.warn(
           "There are no units currently asking for orders." );
@@ -365,8 +363,7 @@ struct LandViewPlane::Impl : public Plane {
     };
 
     bool allow_activate =
-        landview_action_state_
-            .holds<LandViewUnitActionState::unit_input>();
+        landview_mode_.holds<LandViewMode::unit_input>();
 
     // First check for colonies.
     if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
@@ -773,8 +770,8 @@ struct LandViewPlane::Impl : public Plane {
       return;
     }
 
-    switch( landview_action_state_.to_enum() ) {
-      using namespace LandViewUnitActionState;
+    switch( landview_mode_.to_enum() ) {
+      using namespace LandViewMode;
       case e::none: {
         // In this case the global unit animations should always
         // be empty, in which case the if statement above should
@@ -782,7 +779,7 @@ struct LandViewPlane::Impl : public Plane {
         SHOULD_NOT_BE_HERE;
       }
       case e::unit_input: {
-        auto& o = landview_action_state_.get<unit_input>();
+        auto& o = landview_mode_.get<unit_input>();
         CHECK( unit_animations_.size() == 1 );
         UNWRAP_CHECK( animation, base::lookup( unit_animations_,
                                                o.unit_id ) );
@@ -793,7 +790,7 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::unit_move: {
-        auto& o = landview_action_state_.get<unit_move>();
+        auto& o = landview_mode_.get<unit_move>();
         CHECK( unit_animations_.size() == 1 );
         UNWRAP_CHECK( animation, base::lookup( unit_animations_,
                                                o.unit_id ) );
@@ -805,7 +802,7 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::unit_attack: {
-        auto& o = landview_action_state_.get<unit_attack>();
+        auto& o = landview_mode_.get<unit_attack>();
         CHECK( unit_animations_.size() == 1 );
         UnitId anim_id = unit_animations_.begin()->first;
         UnitAnimation_t const& animation =
@@ -832,7 +829,7 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  void render_land_view( rr::Renderer& renderer ) const {
+  void render_non_entities( rr::Renderer& renderer ) const {
     // If the map is zoomed out enough such that some of the
     // outter space is visible, paint a background so that it
     // won't just have empty black surroundings.
@@ -867,7 +864,12 @@ struct LandViewPlane::Impl : public Plane {
     // Should do this after setting the camera.
     renderer.render_buffer(
         rr::e_render_target_buffer::landscape );
+  }
 
+  void render_land_view( rr::Renderer& renderer ) const {
+    render_non_entities( renderer );
+    Rect const covered = viewport().covered_tiles();
+    double     zoom    = viewport().get_zoom();
     Coord corner = viewport().rendering_dest_rect().upper_left();
     Delta hidden =
         viewport().covered_pixels().upper_left() % g_tile_scale;
@@ -879,8 +881,6 @@ struct LandViewPlane::Impl : public Plane {
       // span of one tile to partially show that tile row/column.
       corner -= hidden.multiply_and_round( zoom );
     }
-
-    Rect const covered = viewport().covered_tiles();
 
     // The below render_* functions will always render at normal
     // scale and starting at 0,0 on the screen, and then the ren-
@@ -937,8 +937,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::find_blinking_unit: {
-        if( !landview_action_state_
-                 .holds<LandViewUnitActionState::unit_input>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -947,8 +946,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::sentry: {
-        if( !landview_action_state_
-                 .holds<LandViewUnitActionState::unit_input>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -958,8 +956,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::fortify: {
-        if( !landview_action_state_
-                 .holds<LandViewUnitActionState::unit_input>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -969,8 +966,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::plow: {
-        if( !landview_action_state_
-                 .holds<LandViewUnitActionState::unit_input>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -980,8 +976,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::road: {
-        if( !landview_action_state_
-                 .holds<LandViewUnitActionState::unit_input>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -1046,8 +1041,8 @@ struct LandViewPlane::Impl : public Plane {
               viewport().smooth_zoom_target( 1.0 );
               if( center_on_unit ) {
                 auto blinking_unit =
-                    landview_action_state_.get_if<
-                        LandViewUnitActionState::unit_input>();
+                    landview_mode_
+                        .get_if<LandViewMode::unit_input>();
                 if( blinking_unit.has_value() )
                   viewport().set_point_seek(
                       viewport()
@@ -1095,14 +1090,14 @@ struct LandViewPlane::Impl : public Plane {
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            if( landview_action_state_.holds<
-                    LandViewUnitActionState::unit_input>() ) {
+            if( landview_mode_
+                    .holds<LandViewMode::unit_input>() ) {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::orders{
                       .orders = orders::forfeight{} } ) );
-            } else if( landview_action_state_.holds<
-                           LandViewUnitActionState::none>() ) {
+            } else if( landview_mode_
+                           .holds<LandViewMode::none>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
             }
@@ -1276,8 +1271,8 @@ struct LandViewPlane::Impl : public Plane {
     last_unit_input_ = id;
 
     SCOPED_SET_AND_RESTORE(
-        landview_action_state_,
-        LandViewUnitActionState::unit_input{ .unit_id = id } );
+        landview_mode_,
+        LandViewMode::unit_input{ .unit_id = id } );
 
     // Run the blinker while waiting for user input.
     co_return co_await co::background(
@@ -1285,8 +1280,8 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
-    last_unit_input_       = nothing;
-    landview_action_state_ = LandViewUnitActionState::none{};
+    last_unit_input_ = nothing;
+    landview_mode_   = LandViewMode::none{};
     return next_player_input_object();
   }
 
@@ -1304,8 +1299,8 @@ struct LandViewPlane::Impl : public Plane {
     if( terrain_state.square_exists( dst ) )
       co_await landview_ensure_visible( dst );
     SCOPED_SET_AND_RESTORE(
-        landview_action_state_,
-        LandViewUnitActionState::unit_move{ .unit_id = id } );
+        landview_mode_,
+        LandViewMode::unit_move{ .unit_id = id } );
     play_sound_effect( e_sfx::move );
     co_await animate_slide( settings, id, direction );
   }
@@ -1317,11 +1312,11 @@ struct LandViewPlane::Impl : public Plane {
                                   e_depixelate_anim dp_anim ) {
     co_await landview_ensure_visible( defender );
     co_await landview_ensure_visible( attacker );
-    auto new_state = LandViewUnitActionState::unit_attack{
+    auto new_state = LandViewMode::unit_attack{
         .attacker      = attacker,
         .defender      = defender,
         .attacker_wins = attacker_wins };
-    SCOPED_SET_AND_RESTORE( landview_action_state_, new_state );
+    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
     UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
     UNWRAP_CHECK( defender_coord,
                   coord_for_unit_multi_ownership( defender ) );
@@ -1432,8 +1427,8 @@ void LandViewPlane::zoom_out_full() {
 namespace {
 
 // LUA_FN( blinking_unit, maybe<UnitId> ) {
-//   using u_i = LandViewUnitActionState::unit_input;
-//   return landview_action_state_.get_if<u_i>().member(
+//   using u_i = LandViewMode::unit_input;
+//   return landview_mode_.get_if<u_i>().member(
 //       &u_i::unit_id );
 // }
 //

@@ -18,7 +18,7 @@ include "orders.rds.hpp"
 
 namespace "rn"
 
-sumtype.LandViewUnitActionState {
+sumtype.LandViewMode {
   none {},
   unit_input {
     unit_id 'UnitId',
