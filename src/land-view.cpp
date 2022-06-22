@@ -174,6 +174,7 @@ struct LandViewPlane::Impl : public Plane {
   MenuPlane::Deregistrar fortify_dereg_;
   MenuPlane::Deregistrar plow_dereg_;
   MenuPlane::Deregistrar road_dereg_;
+  MenuPlane::Deregistrar hidden_terrain_dereg_;
 
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
@@ -209,6 +210,8 @@ struct LandViewPlane::Impl : public Plane {
         menu_plane.register_handler( e_menu_item::plow, *this );
     road_dereg_ =
         menu_plane.register_handler( e_menu_item::road, *this );
+    hidden_terrain_dereg_ = menu_plane.register_handler(
+        e_menu_item::hidden_terrain, *this );
   }
 
   Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
@@ -458,6 +461,32 @@ struct LandViewPlane::Impl : public Plane {
                                 .get<LandViewRawInput::orders>()
                                 .orders },
               raw_input.when ) );
+          break;
+        }
+        case e::leave_hidden_terrain: {
+          SHOULD_NOT_BE_HERE;
+        }
+        case e::hidden_terrain: {
+          auto new_state = LandViewMode::hidden_terrain{};
+          SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+          SCOPED_MAP_UPDATER_OPT_SET( map_updater_,
+                                      render_forests, false );
+          // Consume further inputs but eat all of them except
+          // for the ones we want.
+          while( true ) {
+            RawInput raw_input =
+                co_await raw_input_stream_.next();
+            if( raw_input.input.holds<
+                    LandViewRawInput::leave_hidden_terrain>() )
+              break;
+            if( auto tile_click =
+                    raw_input.input
+                        .get_if<LandViewRawInput::tile_click>();
+                tile_click.has_value() )
+              viewport().set_point_seek(
+                  viewport().world_tile_to_world_pixel_center(
+                      tile_click->coord ) );
+          }
           break;
         }
         case e::tile_click: {
@@ -777,6 +806,7 @@ struct LandViewPlane::Impl : public Plane {
 
     switch( landview_mode_.to_enum() ) {
       using namespace LandViewMode;
+      case e::hidden_terrain:
       case e::none: {
         // In this case the global unit animations should always
         // be empty, in which case the if statement above should
@@ -873,6 +903,9 @@ struct LandViewPlane::Impl : public Plane {
 
   void render_land_view( rr::Renderer& renderer ) const {
     render_non_entities( renderer );
+    if( landview_mode_.holds<LandViewMode::hidden_terrain>() )
+      return;
+
     Rect const covered = viewport().covered_tiles();
     double     zoom    = viewport().get_zoom();
     Coord corner = viewport().rendering_dest_rect().upper_left();
@@ -990,6 +1023,16 @@ struct LandViewPlane::Impl : public Plane {
         };
         return handler;
       }
+      case e_menu_item::hidden_terrain: {
+        if( landview_mode_
+                .holds<LandViewMode::hidden_terrain>() )
+          break;
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::hidden_terrain{} ) );
+        };
+        return handler;
+      }
       default: break;
     }
     return nothing;
@@ -1018,6 +1061,12 @@ struct LandViewPlane::Impl : public Plane {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
+        if( landview_mode_
+                .holds<LandViewMode::hidden_terrain>() ) {
+          raw_input_stream_.send( RawInput(
+              LandViewRawInput::leave_hidden_terrain{} ) );
+          break;
+        }
         // First allow the Lua hook to handle the key press if it
         // wants.
         maybe<orders_t> lua_orders = try_orders_from_lua(

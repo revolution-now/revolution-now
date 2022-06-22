@@ -31,6 +31,7 @@ sumtype.LandViewMode {
     defender 'UnitId',
     attacker_wins 'bool',
   },
+  hidden_terrain {},
 }
 
 sumtype.LandViewRawInput {
@@ -42,6 +43,8 @@ sumtype.LandViewRawInput {
   },
   center {}, # Center on blinking unit, if any.
   next_turn {},
+  hidden_terrain {},
+  leave_hidden_terrain {},
 }
 
 # These are animation primitives. A unit "move" is a slide, and a
