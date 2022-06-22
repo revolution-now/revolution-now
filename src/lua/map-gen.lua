@@ -851,8 +851,9 @@ local function create_rivers( options )
       end
     end
   end )
-  remove_river_islands()
   remove_river_quads()
+  -- Should be last.
+  remove_river_islands()
 end
 
 -----------------------------------------------------------------
