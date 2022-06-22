@@ -53,7 +53,7 @@ function M.default_options()
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
     -- rivers.
-    major_river_fraction=.2
+    major_river_fraction=.15
   }
 end
 
@@ -178,6 +178,11 @@ local function set_arctic( coord )
   square.ground = e.ground_terrain.arctic
 end
 
+local function is_arctic_square( square )
+  return square.surface == e.surface.land and square.ground ==
+             e.ground_terrain.arctic
+end
+
 local function is_sea_lane( coord )
   local square = map_gen.at( coord )
   return square.sea_lane
@@ -186,6 +191,10 @@ end
 local function set_sea_lane( coord )
   local square = map_gen.at( coord )
   square.sea_lane = true
+end
+
+local function square_has_river( square )
+  return square.river ~= nil
 end
 
 -- This will create a new empty map set all squares to water.
@@ -688,10 +697,6 @@ end
 -- But, we will do so here for two reasons: 1) because the orig-
 -- inal game did, and 2) we otherwise seem to end up with too
 -- many of them and they don't really look good.
---
--- This function will find all such Xs and will remove them by
--- choosing one of the four tiles at random and flipping its sur-
--- face type.
 local function remove_Xs()
   local size = map_gen.world_size()
   on_all( function( coord, square )
@@ -767,6 +772,31 @@ local function remove_river_islands()
   end )
 end
 
+-- The river generation algorithm we are using has a tendency to
+-- generate a lot of 2x2 squares of rivers, which look kind of
+-- unnatural. This will remove them by removing the river from
+-- the lower right tile.
+local function remove_river_quads()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if not square_has_river( square ) then return end
+    if coord.y == size.h - 1 or coord.x == size.w - 1 then
+      return
+    end
+    local square_right = map_gen.at{ x=coord.x + 1, y=coord.y }
+    if not square_has_river( square_right ) then return end
+
+    local square_down = map_gen.at{ x=coord.x, y=coord.y + 1 }
+    if not square_has_river( square_down ) then return end
+
+    local square_diag =
+        map_gen.at{ x=coord.x + 1, y=coord.y + 1 }
+    if not square_has_river( square_diag ) then return end
+
+    square_diag.river = nil
+  end )
+end
+
 -----------------------------------------------------------------
 -- River Generation
 -----------------------------------------------------------------
@@ -776,21 +806,17 @@ local function random_cardinal_direction()
   }
 end
 
-local function create_river_segment( options, coord )
+local function create_river_segment( options, coord, river_type )
   local pos = { x=coord.x, y=coord.y }
   -- This does not have to be long, since even a short range will
   -- give rise to long segments since in many cases two consecu-
   -- tive segments will be pointing in the same direction.
   local length = math.random( 1, 3 )
   local delta = random_cardinal_direction()
-  local river_type = e.river.minor
-  if random_bool( options.major_river_fraction ) then
-    river_type = e.river.major
-  end
   for i = 1, length do
     if not square_exists( pos ) then return nil end
     local square = map_gen.at( pos )
-    if square.ground == e.surface.arctic then return nil end
+    if is_arctic_square( square ) then return nil end
     square.river = river_type
     pos.x = pos.x + delta.w
     pos.y = pos.y + delta.h
@@ -806,8 +832,12 @@ end
 
 local function create_river( options, coord )
   local num_segments = math.random( 1, 8 )
+  local river_type = e.river.minor
+  if random_bool( options.major_river_fraction ) then
+    river_type = e.river.major
+  end
   for i = 1, num_segments do
-    coord = create_river_segment( options, coord )
+    coord = create_river_segment( options, coord, river_type )
     -- We've either reached the ocean or off-map.
     if not coord then break end
   end
@@ -821,6 +851,8 @@ local function create_rivers( options )
       end
     end
   end )
+  remove_river_islands()
+  remove_river_quads()
 end
 
 -----------------------------------------------------------------
@@ -1020,7 +1052,6 @@ local function generate_land( options )
   distribute_lost_city_rumors( placement_seed )
 
   create_rivers( options )
-  remove_river_islands()
 end
 
 -----------------------------------------------------------------
