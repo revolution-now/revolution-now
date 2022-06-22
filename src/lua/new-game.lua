@@ -185,7 +185,7 @@ local function add_testing_options( options )
   -- options.map.world_size = { w=4, h=4 }
   -- options.map.type = 'battlefield'
 
-  options.map.world_size = { w=16, h=16 }
+  -- options.map.world_size = { w=16, h=16 }
 end
 
 -----------------------------------------------------------------
