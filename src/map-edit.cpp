@@ -638,6 +638,7 @@ wait<> run_map_editor( Planes& planes, IMapUpdater& map_updater,
   if( standalone_mode ) {
     Delta size( 100_w, 100_h );
     reset_terrain( map_updater, size );
+    land_view_state.viewport.set_world_size_tiles( size );
   }
 
   MenuPlane    menu_plane;
