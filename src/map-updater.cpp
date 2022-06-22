@@ -63,16 +63,16 @@ void MapUpdater::modify_map_square(
   // fact that they overlap but are in different places in the
   // buffer) appears to significantly slow down rendering. This
   // will renormalize the buffer.
-  if( tiles_updated_ == 50 ) just_redraw_map();
+  if( tiles_updated_ == 50 ) redraw();
 }
 
 void MapUpdater::modify_entire_map(
     base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
   mutator( terrain_state_.mutable_world_map() );
-  just_redraw_map();
+  redraw();
 }
 
-void MapUpdater::just_redraw_map() {
+void MapUpdater::redraw() {
   render_terrain( terrain_state_, renderer_ );
   // Reset this since we just redrew the map.
   tiles_updated_ = 0;
@@ -92,7 +92,7 @@ void NonRenderingMapUpdater::modify_entire_map(
   mutator( terrain_state_.mutable_world_map() );
 }
 
-void NonRenderingMapUpdater::just_redraw_map() {}
+void NonRenderingMapUpdater::redraw() {}
 
 /****************************************************************
 ** TrappingMapUpdater
@@ -107,6 +107,6 @@ void TrappingMapUpdater::modify_entire_map(
   SHOULD_NOT_BE_HERE;
 }
 
-void TrappingMapUpdater::just_redraw_map() {}
+void TrappingMapUpdater::redraw() {}
 
 } // namespace rn

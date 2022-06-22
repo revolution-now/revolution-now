@@ -53,7 +53,7 @@ struct IMapUpdater {
   virtual void modify_entire_map( MapUpdateFunc mutator ) = 0;
 
   // Will redraw the entire map.
-  virtual void just_redraw_map() = 0;
+  virtual void redraw() = 0;
 };
 
 /****************************************************************
@@ -74,7 +74,7 @@ struct MapUpdater : IMapUpdater {
   void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void just_redraw_map() override;
+  void redraw() override;
 
  private:
   TerrainState& terrain_state_;
@@ -96,7 +96,7 @@ struct NonRenderingMapUpdater : IMapUpdater {
   void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void just_redraw_map() override;
+  void redraw() override;
 
  private:
   TerrainState& terrain_state_;
@@ -119,7 +119,7 @@ struct TrappingMapUpdater : IMapUpdater {
   void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  void just_redraw_map() override;
+  void redraw() override;
 };
 
 } // namespace rn
