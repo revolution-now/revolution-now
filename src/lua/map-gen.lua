@@ -636,30 +636,6 @@ local function set_random_placement_seed()
   return placement_seed
 end
 
--- This will clear all resources and lost city rumors and redis-
--- tribute them (with a random seed). This is useful when cre-
--- ating a map with the map editor where you'd like to have the
--- standard distribution algorithm applied after the map is fin-
--- ished.
-function M.redistribute_resources( placement_seed )
-  on_all( function( coord, square )
-    square.lost_city_rumor = false
-    square.ground_resource = nil
-    square.forest_resource = nil
-  end )
-  placement_seed = placement_seed or set_random_placement_seed()
-  distribute_prime_resources( placement_seed )
-  distribute_lost_city_rumors( placement_seed )
-  render_terrain.redraw()
-end
-
--- This will recompute the distribution of resources but with the
--- same placement seed.
-function M.refresh_resources()
-  M.redistribute_resources(
-      map_gen.terrain_state():placement_seed() )
-end
-
 -----------------------------------------------------------------
 -- Ground Terrain Assignment
 -----------------------------------------------------------------
@@ -772,7 +748,10 @@ end
 -- lakes where ships can enter).
 local function remove_river_islands()
   on_all( function( coord, square )
-    local surrounding = surrounding_squares_3x3( coord )
+    -- Note that we only consider the adjacent squares in the
+    -- cardinal directions because those are how rivers are
+    -- joined to each other in the game and visually.
+    local surrounding = surrounding_squares_cardinal( coord )
     surrounding = filter_existing_squares( surrounding )
     local has_river = false
     for _, square in ipairs( surrounding ) do
@@ -809,8 +788,9 @@ local function create_river_segment( options, coord )
     river_type = e.river.major
   end
   for i = 1, length do
-    if not square_exists( pos ) then return nil end -- stop
+    if not square_exists( pos ) then return nil end
     local square = map_gen.at( pos )
+    if square.ground == e.surface.arctic then return nil end
     square.river = river_type
     pos.x = pos.x + delta.w
     pos.y = pos.y + delta.h
@@ -818,7 +798,7 @@ local function create_river_segment( options, coord )
     -- no where else to go, but note that we did want to set the
     -- river attribute on this final ocean tile because that is
     -- what gives the river bonus to fisherman.
-    if is_water( square ) then return nil end -- stop
+    if is_water( square ) then return nil end
   end
   -- Keep going.
   return pos
@@ -1094,6 +1074,38 @@ local function generate_battlefield()
     square.surface = e.surface.land
     square.ground = e.ground_terrain.grassland
   end )
+end
+
+-- This will clear all resources and lost city rumors and redis-
+-- tribute them (with a random seed). This is useful when cre-
+-- ating a map with the map editor where you'd like to have the
+-- standard distribution algorithm applied after the map is fin-
+-- ished.
+function M.redistribute_resources( placement_seed )
+  on_all( function( coord, square )
+    square.lost_city_rumor = false
+    square.ground_resource = nil
+    square.forest_resource = nil
+  end )
+  placement_seed = placement_seed or set_random_placement_seed()
+  distribute_prime_resources( placement_seed )
+  distribute_lost_city_rumors( placement_seed )
+  render_terrain.redraw()
+end
+
+-- This will recompute the distribution of resources but with the
+-- same placement seed.
+function M.refresh_resources()
+  M.redistribute_resources(
+      map_gen.terrain_state():placement_seed() )
+end
+
+function M.remake_rivers( options )
+  -- FIXME: merge these options with the default ones.
+  options = options or M.default_options()
+  on_all( function( coord, square ) square.river = nil end )
+  create_rivers( options )
+  render_terrain.redraw()
 end
 
 -----------------------------------------------------------------
