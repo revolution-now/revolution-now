@@ -26,6 +26,7 @@
 #include "cdr/ext.hpp"
 
 // base
+#include "base/attributes.hpp"
 #include "base/fmt.hpp"
 
 // C++ standard library
@@ -91,23 +92,21 @@ class Matrix {
   Rect rect() const { return Rect::from( Coord{}, size() ); }
 
   strong_span<T const, X, W> operator[]( Y y ) const
-      [[clang::lifetimebound]] {
+      ATTR_LIFETIMEBOUND {
     CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
     return { &data_[y._ * w_._], w_ };
   }
-  strong_span<T, X, W> operator[]( Y y )
-      [[clang::lifetimebound]] {
+  strong_span<T, X, W> operator[]( Y y ) ATTR_LIFETIMEBOUND {
     CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
     return { &data_[y._ * w_._], w_ };
   }
 
-  T const& operator[]( Coord coord ) const
-      [[clang::lifetimebound]] {
+  T const& operator[]( Coord coord ) const ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
     return ( *this )[coord.y][coord.x];
   };
 
-  T& operator[]( Coord coord ) [[clang::lifetimebound]] {
+  T& operator[]( Coord coord ) ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
     return ( *this )[coord.y][coord.x];
   };

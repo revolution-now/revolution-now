@@ -41,7 +41,6 @@ struct World : testing::World {
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
-    MapSquare const S = make_sea_lane();
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{

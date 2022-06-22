@@ -738,7 +738,6 @@ struct LandViewPlane::Impl : public Plane {
                     .upper_left();
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
                              loc );
-    rr::Painter painter = renderer.painter();
     // Check if we are depixelating to another unit.
     switch( dp_anim.type ) {
       case e_depixelate_anim::death: {
