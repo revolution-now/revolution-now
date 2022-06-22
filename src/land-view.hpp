@@ -24,6 +24,9 @@
 
 namespace rn {
 
+struct IGui;
+;
+struct IMapUpdater;
 struct MenuPlane;
 struct LandViewState;
 struct Plane;
@@ -40,7 +43,8 @@ struct LandViewPlane {
   LandViewPlane( MenuPlane&          menu_plane,
                  WindowPlane&        window_plane,
                  LandViewState&      land_view_state,
-                 TerrainState const& terrain_state );
+                 TerrainState const& terrain_state,
+                 IMapUpdater& map_updater, IGui& gui );
 
   ~LandViewPlane();
 

@@ -163,6 +163,8 @@ struct LandViewPlane::Impl : public Plane {
   WindowPlane&        window_plane_;
   LandViewState&      land_view_state_;
   TerrainState const& terrain_state_;
+  IMapUpdater&        map_updater_;
+  IGui&               gui_;
 
   MenuPlane::Deregistrar zoom_in_dereg_;
   MenuPlane::Deregistrar zoom_out_dereg_;
@@ -211,10 +213,13 @@ struct LandViewPlane::Impl : public Plane {
 
   Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
         LandViewState&      land_view_state,
-        TerrainState const& terrain_state )
+        TerrainState const& terrain_state,
+        IMapUpdater& map_updater, IGui& gui )
     : window_plane_( window_plane ),
       land_view_state_( land_view_state ),
-      terrain_state_( terrain_state ) {
+      terrain_state_( terrain_state ),
+      map_updater_( map_updater ),
+      gui_( gui ) {
     register_menu_items( menu_plane );
     // Initialize general global data.
     unit_animations_.clear();
@@ -1361,9 +1366,11 @@ LandViewPlane::~LandViewPlane() = default;
 LandViewPlane::LandViewPlane( MenuPlane&     menu_plane,
                               WindowPlane&   window_plane,
                               LandViewState& land_view_state,
-                              TerrainState const& terrain_state )
+                              TerrainState const& terrain_state,
+                              IMapUpdater&        map_updater,
+                              IGui&               gui )
   : impl_( new Impl( menu_plane, window_plane, land_view_state,
-                     terrain_state ) ) {}
+                     terrain_state, map_updater, gui ) ) {}
 
 wait<> LandViewPlane::landview_ensure_visible(
     Coord const& coord ) {
