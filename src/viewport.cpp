@@ -13,11 +13,18 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "lua.hpp"
 #include "math.hpp"
 #include "tiles.hpp"
 
+// luapp
+#include "luapp/state.hpp"
+
 // config
 #include "config/rn.rds.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 using namespace std;
 
@@ -72,11 +79,13 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
     coro_smooth_scroll_{},
     zoom_point_seek_{},
     point_seek_{},
-    viewport_rect_pixels_{},
-    world_size_tiles_{} {
-  // We don't call fix_invariants here because that method de-
-  // pends on some of the other (non-serialized) state being set,
-  // such as world_size_tiles_.
+    // This one can't be updated until we know the logical screen
+    // resolution + compositor layout, so therefore we cannot
+    // know it here in the constructor, but that is ok to let it
+    // be zero for now. It is updated on each frame when the
+    // viewport state is advanced.
+    viewport_rect_pixels_{} {
+  fix_invariants();
 }
 
 base::valid_or<string> wrapped::SmoothViewport::validate()
@@ -400,10 +409,6 @@ double SmoothViewport::height_tiles() const {
   return ( upper - lower ) / g_tile_height._;
 }
 
-void SmoothViewport::set_max_viewable_size_tiles( Delta size ) {
-  world_size_tiles_ = size;
-}
-
 // These are to avoid a direct dependency on the screen module
 // and its initialization code.
 Delta SmoothViewport::world_size_pixels() const {
@@ -419,8 +424,12 @@ Rect SmoothViewport::world_rect_tiles() const {
 }
 
 Delta SmoothViewport::world_size_tiles() const {
-  DCHECK( world_size_tiles_.has_value() );
-  return *world_size_tiles_;
+  return o_.world_size_tiles;
+}
+
+void SmoothViewport::set_world_size_tiles( Delta size ) {
+  o_.world_size_tiles = size;
+  fix_invariants();
 }
 
 void SmoothViewport::fix_invariants() {
@@ -809,5 +818,25 @@ bool SmoothViewport::operator==(
   // this object won't have equality before/after saving/loading.
   return o_ == rhs.o_;
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// SmoothViewport
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::SmoothViewport;
+  auto u  = st.usertype.create<U>();
+
+  u["center_on_tile"]       = &U::center_on_tile;
+  u["get_zoom"]             = &U::get_zoom;
+  u["set_zoom"]             = &U::set_zoom;
+  u["min_zoom_allowed"]     = &U::min_zoom_allowed;
+  u["world_size_tiles"]     = &U::world_size_tiles;
+  u["set_world_size_tiles"] = &U::set_world_size_tiles;
+};
+
+} // namespace
 
 } // namespace rn

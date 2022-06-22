@@ -895,7 +895,8 @@ wait<> next_turn(
 
   // Body.
   if( st.nation.has_value() ) {
-    Player& player = players_state.players[st.nation->nation];
+    UNWRAP_CHECK( player,
+                  players_state.players[st.nation->nation] );
     co_await nation_turn(
         panel_plane, menu_plane, land_view_plane, player,
         *st.nation, terrain_state, units_state, settings,
@@ -907,7 +908,8 @@ wait<> next_turn(
   while( !st.remainder.empty() ) {
     st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
-    Player& player = players_state.players[st.nation->nation];
+    UNWRAP_CHECK( player,
+                  players_state.players[st.nation->nation] );
     co_await nation_turn(
         panel_plane, menu_plane, land_view_plane, player,
         *st.nation, terrain_state, units_state, settings,

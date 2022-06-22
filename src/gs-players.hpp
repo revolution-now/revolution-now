@@ -20,10 +20,11 @@
 
 namespace rn {
 
-using PlayersMap = std::unordered_map<e_nation, Player>;
+using PlayersMap = refl::enum_map<e_nation, maybe<Player>>;
 static_assert( std::is_same_v<
                PlayersMap, decltype( PlayersState::players )> );
 
+// FIXME: remove
 void reset_players( PlayersState&                players_state,
                     std::vector<e_nation> const& nations );
 

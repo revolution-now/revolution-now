@@ -8,12 +8,17 @@
 # Description: RDS definitions for the viewport module.
 #
 # ===============================================================
+# Revolution Now
+include "coord.hpp"
+
 namespace "rn.wrapped"
 
 struct.SmoothViewport {
   zoom 'double',
   center_x 'double',
   center_y 'double',
+
+  world_size_tiles 'Delta',
 
   _features { equality, validation }
 }

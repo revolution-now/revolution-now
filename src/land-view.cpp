@@ -231,8 +231,6 @@ struct LandViewPlane::Impl : public Plane {
     raw_input_stream_.reset();
     translated_input_stream_.reset();
     g_needs_scroll_to_unit_on_input = true;
-    viewport().set_max_viewable_size_tiles(
-        terrain_state_.world_map().size() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -1512,21 +1510,6 @@ namespace {
 // LUA_FN( center_on_blinking_unit, void ) {
 //   (void)center_on_blinking_unit_if_any();
 // }
-//
-// LUA_FN( center_on_tile, void, Coord center ) {
-//   viewport().center_on_tile( center );
-// }
-//
-// LUA_FN( set_zoom, void, double zoom ) {
-//   viewport().smooth_zoom_target( zoom );
-// }
-//
-// LUA_FN( zoom_out_optimal, void ) {
-//   viewport().smooth_zoom_target( viewport().optimal_min_zoom()
-//   );
-// }
-//
-// LUA_FN( get_zoom, double ) { return viewport().get_zoom(); }
 
 } // namespace
 

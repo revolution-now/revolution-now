@@ -414,15 +414,12 @@ struct MapEditPlane::Impl : public Plane {
   }
 
   Impl( IMapUpdater& map_updater, LandViewState& land_view_state,
-        TerrainState const& terrain_state,
-        MenuPlane&          menu_plane )
+        TerrainState const&, MenuPlane&          menu_plane )
     : S_{ .map_updater     = map_updater,
           .land_view_state = land_view_state,
           .input           = {},
           .selected_tool   = {} } {
     register_menu_items( menu_plane );
-    land_view_state.viewport.set_max_viewable_size_tiles(
-        terrain_state.world_map().size() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.

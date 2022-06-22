@@ -12,6 +12,7 @@
 #include "gs-root.hpp"
 
 // Revolution Now
+#include "gs-land-view.hpp"
 #include "gs-players.hpp"
 #include "gs-settings.hpp"
 #include "gs-turn.hpp"
@@ -119,8 +120,8 @@ LUA_STARTUP( lua::state& st ) {
   u["players"] = &U::players;
   u["turn"]    = &U::turn;
   // u["colonies"] = &U::colonies;
-  // u["land_view"] = &U::land_view;
-  u["terrain"] = &U::zzz_terrain;
+  u["land_view"] = &U::land_view;
+  u["terrain"]   = &U::zzz_terrain;
 };
 
 } // namespace

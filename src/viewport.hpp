@@ -22,6 +22,9 @@
 // Rds
 #include "viewport.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 namespace rn {
 
 // This viewport also knows where it is located on screen.
@@ -83,6 +86,9 @@ class SmoothViewport {
 
   double min_zoom_allowed() const;
 
+  Delta world_size_tiles() const;
+  void  set_world_size_tiles( Delta size );
+
   // This will provide the upper left corning where the GPU
   // should start rendering the landscape buffer (which could be
   // off screen) in order to make the covered area visible on
@@ -111,10 +117,6 @@ class SmoothViewport {
   // Given a screen pixel coordinate this will determine whether
   // it is in the viewport.
   bool screen_coord_in_viewport( Coord pixel_coord ) const;
-
-  // This should be called once when constructing a new game
-  // world.
-  void set_max_viewable_size_tiles( Delta size );
 
   // Immediate change. Note that it is tricky to make a coro ver-
   // sion of this because we have to detect when to stop, which
@@ -189,7 +191,6 @@ class SmoothViewport {
   // These are to avoid a direct dependency on the screen module
   // and its initialization code.
   Delta world_size_pixels() const;
-  Delta world_size_tiles() const;
   Rect  world_rect_pixels() const;
   Rect  world_rect_tiles() const;
 
@@ -260,10 +261,16 @@ class SmoothViewport {
   maybe<Coord> point_seek_{};
 
   Rect viewport_rect_pixels_{};
-  // This is a maybe so that we can check that it has been set
-  // before we ues it.
-  maybe<Delta> world_size_tiles_{};
 };
 NOTHROW_MOVE( SmoothViewport );
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::SmoothViewport, owned_by_cpp ){};
+
+} // namespace lua

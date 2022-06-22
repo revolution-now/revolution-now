@@ -44,24 +44,26 @@ namespace rn {
 *****************************************************************/
 Player& player_for_nation( e_nation nation ) {
   auto& players = GameState::players().players;
-  CHECK( players.contains( nation ) );
-  return players[nation];
+  UNWRAP_CHECK( player, players[nation] );
+  return player;
 }
 
 Player& player_for_nation( PlayersState& players_state,
                            e_nation      nation ) {
-  auto it = players_state.players.find( nation );
-  CHECK( it != players_state.players.end(),
-         "player for nation {} does not exist.", nation );
-  return it->second;
+  auto& players = players_state.players;
+  UNWRAP_CHECK_MSG( player, players[nation],
+                    "player for nation {} does not exist.",
+                    nation );
+  return player;
 }
 
 Player const& player_for_nation(
     PlayersState const& players_state, e_nation nation ) {
-  auto it = players_state.players.find( nation );
-  CHECK( it != players_state.players.end(),
-         "player for nation {} does not exist.", nation );
-  return it->second;
+  auto& players = players_state.players;
+  UNWRAP_CHECK_MSG( player, players[nation],
+                    "player for nation {} does not exist.",
+                    nation );
+  return player;
 }
 
 void linker_dont_discard_module_player() {}

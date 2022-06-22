@@ -37,6 +37,19 @@ enum class e_game_module_tune_points {
   start_game //
 };
 
+// TODO: temporary until we have AI.
+void ensure_human_player( PlayersState const& players_state ) {
+  maybe<e_nation> human_nation;
+  for( auto const& [nation, player] : players_state.players ) {
+    if( player.has_value() && player->human ) {
+      human_nation = nation;
+      break;
+    }
+  }
+  CHECK( human_nation.has_value(),
+         "there must be at least one human player." );
+}
+
 void play( e_game_module_tune_points tune ) {
   switch( tune ) {
     case e_game_module_tune_points::start_game:
@@ -53,13 +66,7 @@ wait<> run_loaded_game(
     LandViewState& land_view_state, UnitsState& units_state,
     SettingsState const& settings, TurnState& turn_state,
     ColoniesState& colonies_state, IMapUpdater& map_updater ) {
-  // TODO: temporary until we have AI.
-  bool found_human = false;
-  for( auto const& [nation, player] : players_state.players )
-    found_human |= player.human;
-  CHECK( found_human,
-         "there must be at least one human player." );
-
+  ensure_human_player( players_state );
   return co::erase( co::try_<game_quit_interrupt>( [&] {
     return turn_loop( planes, players_state, terrain_state,
                       land_view_state, units_state, settings,

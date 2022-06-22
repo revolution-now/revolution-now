@@ -189,9 +189,9 @@ UnitId World::add_unit_outdoors( ColonyId      colony_id,
 }
 
 void World::add_player( e_nation nation ) {
-  root().players.players[nation] = {};
+  root().players.players[nation] = Player{};
   // This is the minimal amount that we need to set for a player.
-  root().players.players[nation].nation = nation;
+  root().players.players[nation]->nation = nation;
 }
 
 Colony& World::add_colony( UnitId founder ) {
@@ -220,46 +220,50 @@ Colony& World::add_colony_with_new_unit(
 }
 
 Player& World::dutch() {
-  CHECK( root().players.players.contains( e_nation::dutch ) );
-  return root().players.players[e_nation::dutch];
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::dutch] );
+  return player;
 }
 
 Player& World::english() {
-  CHECK( root().players.players.contains( e_nation::english ) );
-  return root().players.players[e_nation::english];
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::english] );
+  return player;
 }
 
 Player& World::spanish() {
-  CHECK( root().players.players.contains( e_nation::spanish ) );
-  return root().players.players[e_nation::spanish];
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::spanish] );
+  return player;
 }
 
 Player& World::french() {
-  CHECK( root().players.players.contains( e_nation::french ) );
-  return root().players.players[e_nation::french];
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::french] );
+  return player;
 }
 
 Player const& World::dutch() const {
-  UNWRAP_CHECK( player, base::lookup( root().players.players,
-                                      e_nation::dutch ) );
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::dutch] );
   return player;
 }
 
 Player const& World::english() const {
-  UNWRAP_CHECK( player, base::lookup( root().players.players,
-                                      e_nation::english ) );
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::english] );
   return player;
 }
 
 Player const& World::spanish() const {
-  UNWRAP_CHECK( player, base::lookup( root().players.players,
-                                      e_nation::spanish ) );
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::spanish] );
   return player;
 }
 
 Player const& World::french() const {
-  UNWRAP_CHECK( player, base::lookup( root().players.players,
-                                      e_nation::french ) );
+  UNWRAP_CHECK( player,
+                root().players.players[e_nation::french] );
   return player;
 }
 

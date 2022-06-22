@@ -211,6 +211,9 @@ function M.create( options )
 
   map_gen.generate( options.map )
 
+  local world_size = root.terrain:world_size_tiles()
+  root.land_view.viewport:set_world_size_tiles( world_size )
+
   create_turn_state( root.turn )
 
   create_nations( options, root )
@@ -220,6 +223,12 @@ function M.create( options )
   else
     create_initial_units( options, root )
   end
+
+  -- Temporary.
+  root.land_view.viewport:center_on_tile{
+    x=world_size.w - 1,
+    y=world_size.h // 2
+  }
 end
 
 return M

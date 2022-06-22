@@ -27,7 +27,6 @@
 #include "refl/to-str.hpp"
 
 // base
-#include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;
@@ -120,8 +119,7 @@ struct PanelPlane::Impl : public Plane {
     // We have an active player, so print some info about it.
     e_nation            nation        = nat_st->nation;
     PlayersState const& players_state = GameState::players();
-    UNWRAP_CHECK(
-        player, base::lookup( players_state.players, nation ) );
+    UNWRAP_CHECK( player, players_state.players[nation] );
 
     if( player.discovered_new_world )
       typer.write( "{}\n", *player.discovered_new_world );

@@ -131,6 +131,8 @@ LUA_STARTUP( lua::state& st ) {
 
   u["placement_seed"]     = &U::placement_seed;
   u["set_placement_seed"] = &U::set_placement_seed;
+  u["world_size_tiles"]   = &U::world_size_tiles;
+  u["square_exists"]      = &U::square_exists;
 };
 
 } // namespace

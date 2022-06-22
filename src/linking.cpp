@@ -16,6 +16,7 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
+#include "gs-land-view.hpp"
 #include "lua-ui.hpp"
 #include "map-gen.hpp"
 #include "player.hpp"
@@ -39,6 +40,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_config_files();
   linker_dont_discard_module_fathers();
   linker_dont_discard_module_time();
+  linker_dont_discard_module_gs_land_view();
   // Add more here as needed.
 }
 

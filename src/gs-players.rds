@@ -14,13 +14,13 @@ include "player.hpp"
 # Rds
 include "nation.rds.hpp"
 
-# C++ standard library
-include "<unordered_map>"
+# refl
+include "refl/enum-map.hpp"
 
 namespace "rn"
 
 struct.PlayersState {
-  players 'std::unordered_map<e_nation, Player>',
+  players 'refl::enum_map<e_nation, maybe<Player>>',
 
   _features { equality, validation }
 }

@@ -15,4 +15,20 @@
 // Rds
 #include "gs-land-view.rds.hpp"
 
-namespace rn {} // namespace rn
+// luapp
+#include "luapp/ext-userdata.hpp"
+
+namespace rn {
+
+void linker_dont_discard_module_gs_land_view();
+
+} // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::LandViewState, owned_by_cpp ){};
+
+} // namespace lua
