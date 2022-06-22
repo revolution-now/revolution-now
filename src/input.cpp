@@ -490,6 +490,18 @@ maybe<char> ascii_char_for_event( key_event_t const& event ) {
   return res;
 }
 
+bool is_mod_key( key_event_t const& event ) {
+  switch( event.keycode ) {
+    case ::SDLK_LSHIFT:
+    case ::SDLK_RSHIFT:
+    case ::SDLK_LCTRL:
+    case ::SDLK_RCTRL:
+    case ::SDLK_LALT:
+    case ::SDLK_RALT: return true;
+    default: return false;
+  }
+}
+
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta ) {
   event_t new_event = event;

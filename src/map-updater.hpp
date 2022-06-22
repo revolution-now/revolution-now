@@ -35,15 +35,10 @@ struct TerrainState;
 /****************************************************************
 ** MapUpdaterOptions
 *****************************************************************/
-#define SCOPED_MAP_UPDATER_OPT_SET( map_updater, path, val )   \
-  auto STRING_JOIN( __scoped_map_updater_popper_, __LINE__ ) = \
-      map_updater.push_options(                                \
-          []( MapUpdaterOptions& options ) {                   \
-            options.path = val;                                \
-          } );
-
 struct MapUpdaterOptions {
-  bool render_forests = true;
+  bool render_forests   = true;
+  bool render_resources = true;
+  bool render_lcrs      = true;
 };
 
 namespace detail {
@@ -93,10 +88,14 @@ struct IMapUpdater {
   // Will redraw the entire map.
   virtual void redraw() = 0;
 
+  Popper push_options_no_redraw( OptionsUpdateFunc mutator );
+
   // Will call the function with the existing set of options and
   // allow modifying them, then will push a new (modified) copy
-  // onto the stack and return a popper.
-  Popper push_options( OptionsUpdateFunc mutator );
+  // onto the stack, perform a full redraw, and return a popper.
+  // Note that since this does perform a full redraw, you should
+  // modify multiple options in one shot.
+  Popper push_options_and_redraw( OptionsUpdateFunc mutator );
 
  protected:
   MapUpdaterOptions const& options() const;

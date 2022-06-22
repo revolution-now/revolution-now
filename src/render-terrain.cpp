@@ -1812,14 +1812,15 @@ void render_terrain_square(
   }
   render_land_overlay( terrain_state, renderer, painter, where,
                        world_square, square, options );
-  if( !square.lost_city_rumor )
+  if( !square.lost_city_rumor && options.render_resources )
     render_resources( renderer, painter, terrain_state, where,
                       square, world_square );
   render_plow_if_present( painter, where, terrain_state,
                           world_square );
   render_road_if_present( painter, where, terrain_state,
                           world_square );
-  render_lost_city_rumor( painter, where, square );
+  if( options.render_lcrs )
+    render_lost_city_rumor( painter, where, square );
   if( g_show_grid )
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,

@@ -469,8 +469,21 @@ struct LandViewPlane::Impl : public Plane {
         case e::hidden_terrain: {
           auto new_state = LandViewMode::hidden_terrain{};
           SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-          SCOPED_MAP_UPDATER_OPT_SET( map_updater_,
-                                      render_forests, false );
+          auto popper = map_updater_.push_options_and_redraw(
+              []( MapUpdaterOptions& options ) {
+                options.render_forests = false;
+                // The original game does not render LCRs or re-
+                // sources in the hidden terrain mode, likely be-
+                // cause this would allow the player to cheat and
+                // see if there is a resource under the forest or
+                // LCR tile instead of taking them time and risk
+                // to explore those tiles. What is rendered here
+                // (the underlying ground terrain) is already
+                // given to the player on the side panel (and we
+                // don't want to give away anything else).
+                options.render_resources = false;
+                options.render_lcrs      = false;
+              } );
           // Consume further inputs but eat all of them except
           // for the ones we want.
           while( true ) {
@@ -1060,7 +1073,8 @@ struct LandViewPlane::Impl : public Plane {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
-        if( landview_mode_
+        if( !input::is_mod_key( key_event ) &&
+            landview_mode_
                 .holds<LandViewMode::hidden_terrain>() ) {
           raw_input_stream_.send( RawInput(
               LandViewRawInput::leave_hidden_terrain{} ) );
@@ -1140,6 +1154,14 @@ struct LandViewPlane::Impl : public Plane {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::disband{} } ) );
+            break;
+          case ::SDLK_h:
+            if( !key_event.mod.shf_down ) break;
+            if( landview_mode_
+                    .holds<LandViewMode::hidden_terrain>() )
+              break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::hidden_terrain{} ) );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
