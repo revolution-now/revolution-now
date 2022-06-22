@@ -16,7 +16,6 @@
 #include "gs-terrain.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "render-terrain.hpp"
 
 // config
 #include "config/savegame.rds.hpp"
