@@ -3,4 +3,5 @@ add_rn_library(
   # Dependencies
   lua::lua
   rn-base
+  rn-refl
 )
