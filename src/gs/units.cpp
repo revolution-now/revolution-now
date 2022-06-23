@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-units.cpp
+**units.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Unit-related save-game state.
 *
 *****************************************************************/
-#include "gs-units.hpp"
+#include "units.hpp"
 
 // Revolution Now
 #include "cstate.hpp"

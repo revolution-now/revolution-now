@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-terrain.cpp
+**terrain.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Save-game state for terrain data.
 *
 *****************************************************************/
-#include "gs-terrain.hpp"
+#include "terrain.hpp"
 
 // Revolution Now
 #include "game-state.hpp"

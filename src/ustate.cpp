@@ -18,8 +18,6 @@
 #include "cstate.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-units.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -27,6 +25,10 @@
 #include "on-map.hpp"
 #include "player.hpp"
 #include "variant.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/units.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"

@@ -12,10 +12,12 @@
 
 // Revolution Now
 #include "game-state.hpp"
-#include "gs-root.hpp"
-#include "gs-terrain.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+
+// game-state
+#include "gs/root.hpp"
+#include "gs/terrain.hpp"
 
 // config
 #include "config/savegame.rds.hpp"

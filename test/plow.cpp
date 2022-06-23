@@ -14,13 +14,15 @@
 #include "src/plow.hpp"
 
 // Revolution Now
-#include "src/gs-terrain.hpp"
-#include "src/gs-units.hpp"
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
 #include "src/on-map.hpp"
 #include "src/terrain.hpp"
 #include "src/ustate.hpp"
+
+// game-state
+#include "src/gs/terrain.hpp"
+#include "src/gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

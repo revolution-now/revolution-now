@@ -14,8 +14,10 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
-#include "gs-colonies.hpp"
 #include "maybe.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"

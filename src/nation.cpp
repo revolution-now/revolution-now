@@ -12,10 +12,12 @@
 
 // Revolution Now
 #include "colony.hpp"
-#include "gs-colonies.hpp"
-#include "gs-units.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/nation.rds.hpp"

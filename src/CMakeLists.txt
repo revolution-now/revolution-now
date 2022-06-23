@@ -12,6 +12,7 @@ add_subdirectory( cdr )
 add_subdirectory( refl )
 add_subdirectory( render )
 add_subdirectory( config )
+add_subdirectory( gs )
 
 # === this directory ==============================================
 
@@ -36,6 +37,7 @@ add_rn_library(
   rn-config
   rn-gfx
   rn-gl
+  rn-gs
   rn-rcl
   rn-luapp
   rn-refl

@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-terrain.hpp
+**terrain.hpp
 *
 * Project: Revolution Now
 *
@@ -20,7 +20,7 @@
 #include "luapp/ext-userdata.hpp"
 
 // Rds
-#include "gs-terrain.rds.hpp"
+#include "terrain.rds.hpp"
 
 namespace rn {
 

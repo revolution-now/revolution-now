@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-players.hpp
+**players.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "gs-players.rds.hpp"
+#include "players.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

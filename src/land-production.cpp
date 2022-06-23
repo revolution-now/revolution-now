@@ -11,9 +11,11 @@
 #include "land-production.hpp"
 
 // Revolution Now
-#include "gs-terrain.hpp"
 #include "map-square.hpp"
 #include "utype.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
 
 // config
 #include "config/production.rds.hpp"

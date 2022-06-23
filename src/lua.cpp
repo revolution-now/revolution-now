@@ -13,9 +13,11 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "gs-root.hpp"
 #include "init.hpp"
 #include "logger.hpp"
+
+// game-state
+#include "gs/root.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"

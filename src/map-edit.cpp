@@ -15,8 +15,6 @@
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "game-state.hpp"
-#include "gs-land-view.hpp"
-#include "gs-terrain.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "map-gen.hpp"
@@ -30,6 +28,10 @@
 #include "tiles.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/land-view.hpp"
+#include "gs/terrain.hpp"
 
 // Rds
 #include "map-edit.rds.hpp"

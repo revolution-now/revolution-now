@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "gs-colonies.rds.hpp"
+#include "gs/colonies.rds.hpp"
 
 namespace rn {
 

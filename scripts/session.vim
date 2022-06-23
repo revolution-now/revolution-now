@@ -1,20 +1,17 @@
 " =========================== Config ============================
 let s:stems = [
  \ 'colony',
- \ 'config/colony',
- \ 'config/colony-enums',
- \ 'gs-colonies',
- \ '../test/fake/world',
- \ 'colony-mgr',
- \ 'colony-evolve',
- \ 'production',
- \ 'land-production',
- \ 'config/production',
- \ 'colony-view',
- \ 'colview-entities',
- \ 'construction',
- \ 'colview-buildings',
- \ 'colony-buildings',
+ \ 'gs/colonies',
+ \ 'gs/colony-enums',
+ \ 'gs/events',
+ \ 'gs/land-view',
+ \ 'gs/players',
+ \ 'gs/root',
+ \ 'gs/settings',
+ \ 'gs/terrain',
+ \ 'gs/turn',
+ \ 'gs/unit-type',
+ \ 'gs/units',
 \]
 
 let s:luas = [

@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-events.hpp
+**events.hpp
 *
 * Project: Revolution Now
 *
@@ -15,6 +15,6 @@
 #include "core-config.hpp"
 
 // Rds
-#include "gs-events.rds.hpp"
+#include "events.rds.hpp"
 
 namespace rn {} // namespace rn

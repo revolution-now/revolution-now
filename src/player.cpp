@@ -13,14 +13,13 @@
 // Revolution Now
 #include "fathers.hpp"
 #include "game-state.hpp"
-#include "gs-players.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "old-world-state.hpp"
 #include "util.hpp"
 
-// Rds
-#include "gs-players.rds.hpp"
+// game-state
+#include "gs/players.hpp"
 
 // luapp
 #include "luapp/as.hpp"

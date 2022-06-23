@@ -19,7 +19,6 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "dragdrop.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
@@ -27,6 +26,9 @@
 #include "plane.hpp"
 #include "text.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // render
 #include "render/renderer.hpp"

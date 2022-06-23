@@ -13,13 +13,15 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-terrain.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
 
 // render
 #include "render/renderer.hpp"

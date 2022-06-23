@@ -15,13 +15,15 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-players.hpp"
-#include "gs-turn.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
+
+// game-state
+#include "gs/players.hpp"
+#include "gs/turn.hpp"
 
 // refl
 #include "refl/to-str.hpp"

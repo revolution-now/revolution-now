@@ -21,9 +21,6 @@
 #include "construction.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
@@ -39,8 +36,11 @@
 #include "views.hpp"
 #include "window.hpp"
 
-// Rds
-#include "gs-players.rds.hpp"
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/players.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

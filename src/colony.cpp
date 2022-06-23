@@ -13,9 +13,11 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "error.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

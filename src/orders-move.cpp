@@ -19,9 +19,6 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
@@ -32,6 +29,11 @@
 #include "player.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

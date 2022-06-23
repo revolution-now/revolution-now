@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-land-view.cpp
+**land-view.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Save-game state for the land view.
 *
 *****************************************************************/
-#include "gs-land-view.hpp"
+#include "land-view.hpp"
 
 // Revolution Now
 #include "lua.hpp"

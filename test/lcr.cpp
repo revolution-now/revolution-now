@@ -12,12 +12,14 @@
 #include "test/testing.hpp"
 
 // Revolution Now
-#include "gs-players.hpp"
-#include "gs-settings.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "igui-mock.hpp"
 #include "ustate.hpp"
+
+// game-state
+#include "gs/players.hpp"
+#include "gs/settings.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // Under test.
 #include "src/lcr.hpp"

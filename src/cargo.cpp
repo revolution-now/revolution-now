@@ -12,11 +12,13 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "util.hpp"
 #include "variant.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

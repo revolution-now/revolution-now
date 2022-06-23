@@ -14,7 +14,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
-#include "gs-units.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
@@ -22,6 +21,9 @@
 #include "orders-plow.hpp"
 #include "orders-road.hpp"
 #include "ustate.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // base
 #include "base/lambda.hpp"

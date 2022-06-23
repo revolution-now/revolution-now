@@ -12,8 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "immigration.hpp"
 #include "logger.hpp"
@@ -22,6 +20,10 @@
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/lcr.rds.hpp"

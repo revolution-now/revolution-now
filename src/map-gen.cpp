@@ -11,10 +11,12 @@
 #include "map-gen.hpp"
 
 // Revolution Now
-#include "gs-land-view.hpp"
-#include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+
+// game-state
+#include "gs/land-view.hpp"
+#include "gs/terrain.hpp"
 
 // luapp
 #include "luapp/state.hpp"

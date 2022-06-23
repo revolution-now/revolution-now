@@ -10,16 +10,16 @@
 #
 # ===============================================================
 # Revolution Now
-include "gs-colonies.hpp"
-include "gs-units.hpp"
-include "gs-terrain.hpp"
+include "gs/colonies.hpp"
+include "gs/units.hpp"
+include "gs/terrain.hpp"
 
 # Rds
-include "gs-settings.rds.hpp"
-include "gs-events.rds.hpp"
-include "gs-players.rds.hpp"
-include "gs-turn.rds.hpp"
-include "gs-land-view.rds.hpp"
+include "gs/settings.rds.hpp"
+include "gs/events.rds.hpp"
+include "gs/players.rds.hpp"
+include "gs/turn.rds.hpp"
+include "gs/land-view.rds.hpp"
 
 namespace "rn"
 

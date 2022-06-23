@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-root.cpp
+**root.cpp
 *
 * Project: Revolution Now
 *
@@ -9,13 +9,13 @@
 *              saved when a game is saved.
 *
 *****************************************************************/
-#include "gs-root.hpp"
+#include "root.hpp"
 
 // Revolution Now
-#include "gs-land-view.hpp"
-#include "gs-players.hpp"
-#include "gs-settings.hpp"
-#include "gs-turn.hpp"
+#include "land-view.hpp"
+#include "players.hpp"
+#include "settings.hpp"
+#include "turn.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
 

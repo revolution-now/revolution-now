@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-turn.cpp
+**turn.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 # Description: Turn-related save-game state.
 *
 *****************************************************************/
-#include "gs-turn.hpp"
+#include "turn.hpp"
 
 // Revolution Now
 #include "lua.hpp"

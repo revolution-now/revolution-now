@@ -19,9 +19,6 @@
 #include "construction.hpp"
 #include "enum.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
@@ -32,6 +29,11 @@
 #include "road.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

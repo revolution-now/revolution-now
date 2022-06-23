@@ -17,14 +17,16 @@
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-root.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/root.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

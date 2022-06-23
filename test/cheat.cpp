@@ -16,9 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/gs-colonies.hpp"
-#include "src/gs-units.hpp"
+// game-state
+#include "src/gs/colonies.hpp"
+#include "src/gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

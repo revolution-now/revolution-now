@@ -8,7 +8,7 @@
 * Description: Save-game state for game-wide settings.
 *
 *****************************************************************/
-#include "gs-settings.hpp"
+#include "gs/settings.hpp"
 
 // Revolution Now
 #include "lua.hpp"

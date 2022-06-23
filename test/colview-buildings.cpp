@@ -16,8 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/gs-colonies.hpp"
+// game-state
+#include "src/gs/colonies.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

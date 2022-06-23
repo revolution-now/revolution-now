@@ -13,14 +13,16 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/harbor.rds.hpp"

@@ -11,10 +11,12 @@
 #include "map-updater.hpp"
 
 // Revolution Now
-#include "gs-terrain.hpp"
 #include "logger.hpp"
 #include "render-terrain.hpp"
 #include "tiles.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
 
 using namespace std;
 

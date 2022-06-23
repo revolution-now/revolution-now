@@ -12,8 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-settings.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
@@ -21,6 +19,10 @@
 #include "player.hpp"
 #include "rand-enum.hpp"
 #include "utype.hpp"
+
+// game-state
+#include "gs/settings.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/immigration.rds.hpp"

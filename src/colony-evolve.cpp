@@ -13,13 +13,15 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony.hpp"
-#include "gs-units.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
 #include "production.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

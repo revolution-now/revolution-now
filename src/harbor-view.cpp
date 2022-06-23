@@ -20,8 +20,6 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
-#include "gs-players.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "image.hpp"
@@ -39,6 +37,10 @@
 #include "variant.hpp"
 #include "wait.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/players.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

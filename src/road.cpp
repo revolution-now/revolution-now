@@ -11,12 +11,14 @@
 #include "road.hpp"
 
 // Revolution Now
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
 #include "tiles.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // render
 #include "render/painter.hpp"

@@ -12,9 +12,11 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-units.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"

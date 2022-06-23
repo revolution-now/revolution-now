@@ -16,9 +16,6 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-players.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
@@ -42,8 +39,13 @@
 #include "ustate.hpp"
 #include "window.hpp"
 
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/players.hpp"
+#include "gs/turn.rds.hpp"
+#include "gs/units.hpp"
+
 // Rds
-#include "gs-turn.rds.hpp"
 #include "menu.rds.hpp"
 
 // refl

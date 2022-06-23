@@ -8,7 +8,7 @@
 * Description: Serializable player-related state.
 *
 *****************************************************************/
-#include "gs-players.hpp"
+#include "gs/players.hpp"
 
 // Revolution Now
 #include "lua.hpp"

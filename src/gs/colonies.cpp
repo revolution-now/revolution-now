@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-colonies.cpp
+**colonies.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Colony-related save-game state.
 *
 *****************************************************************/
-#include "gs-colonies.hpp"
+#include "colonies.hpp"
 
 // refl
 #include "refl/to-str.hpp"

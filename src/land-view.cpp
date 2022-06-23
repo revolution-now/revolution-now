@@ -19,10 +19,6 @@
 #include "coord.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gs-land-view.hpp"
-#include "gs-settings.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "menu.hpp"
@@ -42,6 +38,12 @@
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/land-view.hpp"
+#include "gs/settings.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/land-view.rds.hpp"

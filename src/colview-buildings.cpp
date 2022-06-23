@@ -14,9 +14,11 @@
 #include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "game-state.hpp" // FIXME
-#include "gs-units.hpp"
 #include "production.hpp"
 #include "render.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

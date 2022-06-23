@@ -12,10 +12,12 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
-#include "src/gs-root.hpp"
 #include "src/harbor-units.hpp"
 #include "src/map-updater.hpp"
 #include "src/ustate.hpp"
+
+// game-state
+#include "src/gs/root.hpp"
 
 // base
 #include "src/base/keyval.hpp"

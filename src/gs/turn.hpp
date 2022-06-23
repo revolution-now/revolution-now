@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-turn.hpp
+**turn.hpp
 *
 * Project: Revolution Now
 *
@@ -16,7 +16,7 @@
 #include "lua-enum.hpp"
 
 // Rds
-#include "gs-turn.rds.hpp"
+#include "turn.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

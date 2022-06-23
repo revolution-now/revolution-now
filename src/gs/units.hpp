@@ -1,5 +1,5 @@
 /****************************************************************
-**gs-units.hpp
+**units.hpp
 *
 * Project: Revolution Now
 *
@@ -19,7 +19,7 @@
 #include "unit-id.hpp"
 
 // Rds
-#include "gs-units.rds.hpp"
+#include "units.rds.hpp"
 
 // C++ standard library
 #include <unordered_map>

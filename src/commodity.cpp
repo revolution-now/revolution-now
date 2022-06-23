@@ -12,13 +12,15 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "gs-units.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+
+// game-state
+#include "gs/units.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

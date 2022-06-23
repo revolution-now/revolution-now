@@ -17,9 +17,11 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
-#include "src/gs-terrain.hpp"
-#include "src/gs-units.hpp"
 #include "src/player.hpp"
+
+// game-state
+#include "src/gs/terrain.hpp"
+#include "src/gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
