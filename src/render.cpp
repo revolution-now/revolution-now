@@ -123,9 +123,11 @@ void render_nationality_icon( rr::Renderer&             renderer,
 }
 
 void depixelate_from_to(
-    rr::Renderer& renderer, double stage,
+    rr::Renderer& renderer, double stage, gfx::point anchor,
     base::function_ref<void( rr::Painter& painter )> from,
     base::function_ref<void( rr::Painter& painter )> to ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                           anchor );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
   // The ordering of these should actually not matter, because we
@@ -240,7 +242,7 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
   // one we can get that out of the way.
   if( options.shadow.has_value() )
     depixelate_from_to(
-        renderer, stage, /*from=*/
+        renderer, stage, /*anchor=*/where, /*from=*/
         [&]( rr::Painter& painter ) {
           render_sprite_silhouette(
               painter, where + options.shadow->offset,
@@ -261,7 +263,7 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
 
   // Now the unit.
   depixelate_from_to(
-      renderer, stage, /*from=*/
+      renderer, stage, /*anchor=*/where, /*from=*/
       [&]( rr::Painter& painter ) {
         render_unit_type( painter, where, unit.desc().type,
                           options );
