@@ -41,10 +41,11 @@ struct ColoniesState {
 
   Coord coord_for( ColonyId id ) const;
 
-  maybe<ColonyId> maybe_from_coord( Coord const& c ) const;
-  ColonyId        from_coord( Coord const& c ) const;
+  base::maybe<ColonyId> maybe_from_coord( Coord const& c ) const;
+  ColonyId              from_coord( Coord const& c ) const;
 
-  maybe<ColonyId> maybe_from_name( std::string_view name ) const;
+  base::maybe<ColonyId> maybe_from_name(
+      std::string_view name ) const;
 
   // The id of this colony must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-
@@ -59,8 +60,8 @@ struct ColoniesState {
  private:
   [[nodiscard]] ColonyId next_colony_id();
 
-  valid_or<std::string> validate() const;
-  void                  validate_or_die() const;
+  base::valid_or<std::string> validate() const;
+  void                        validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::ColoniesState o_;

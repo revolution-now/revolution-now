@@ -23,6 +23,9 @@
 #include "views.hpp"
 #include "window.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // base
 #include "base/keyval.hpp"
 

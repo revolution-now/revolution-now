@@ -28,11 +28,14 @@
 #include "on-map.hpp"
 #include "player.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
 
-// game-state
+// config
+#include "config/unit-type.rds.hpp"
+
+// gs
 #include "gs/colonies.hpp"
 #include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
 #include "gs/units.hpp"
 
 // refl

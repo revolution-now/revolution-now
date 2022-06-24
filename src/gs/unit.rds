@@ -8,15 +8,12 @@
 # Description: RDS definitions for the unit module.
 #
 # ===============================================================
-# Revolution Now
-include "cargo.hpp"
-include "mv-points.hpp"
-include "unit-composer.hpp"
-include "unit-id.hpp"
-
-# Rds
-include "nation.rds.hpp"
-include "unit.rds.hpp"
+# gs
+include "gs/cargo.hpp"
+include "gs/mv-points.hpp"
+include "gs/nation.rds.hpp"
+include "gs/unit-composer.hpp"
+include "gs/unit-id.hpp"
 
 namespace "rn"
 

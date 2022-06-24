@@ -18,6 +18,7 @@
 
 // luapp
 #include "luapp/c-api.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rfunction.hpp"
 #include "luapp/state.hpp"
 

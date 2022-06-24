@@ -20,6 +20,7 @@
 #include "gs/colonies.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

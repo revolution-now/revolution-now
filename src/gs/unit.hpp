@@ -13,13 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "cargo.hpp"
-#include "mv-points.hpp"
 #include "nation.hpp"
-#include "unit-composer.hpp"
-#include "unit-id.hpp"
-#include "util.hpp"
-#include "utype.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -28,6 +22,8 @@
 #include "unit.rds.hpp"
 
 namespace rn {
+
+struct UnitTypeAttributes;
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.

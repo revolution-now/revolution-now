@@ -17,6 +17,7 @@
 #include "lua.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 using namespace std;

@@ -24,6 +24,7 @@
 #include "luapp/ext-userdata.hpp"
 #include "luapp/func-push.hpp"
 #include "luapp/iter.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/usertype.hpp"
 
@@ -48,11 +49,6 @@ namespace rn {
 namespace {
 
 lua::state g_lua;
-
-auto& registration_functions() {
-  static vector<LuaRegistrationFnSig* const*> fns;
-  return fns;
-}
 
 lua::table require( string const& unsanitized_name ) {
   lua::state& st  = lua_global_state();
@@ -164,7 +160,8 @@ lua::state& lua_global_state() { return g_lua; }
 
 void run_lua_startup_routines() {
   lg.info( "registering Lua functions." );
-  for( auto fn : registration_functions() ) ( *fn )( g_lua );
+  for( auto fn : lua::registration_functions() )
+    ( *fn )( g_lua );
   register_my_type(); // for unit testing.
 }
 
@@ -183,19 +180,6 @@ void lua_reload( RootState& root_state ) {
   g_lua["ROOT_STATE"] = root_state;
   // Freeze all existing global variables and tables.
   g_lua["meta"]["freeze_all"]();
-}
-
-vector<string> format_lua_error_msg( string const& msg ) {
-  vector<string> res;
-  for( auto const& line : util::split_on_any( msg, "\n\r" ) )
-    if( !line.empty() ) //
-      res.push_back(
-          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
-  return res;
-}
-
-void register_lua_fn( LuaRegistrationFnSig* const* fn ) {
-  registration_functions().push_back( fn );
 }
 
 } // namespace rn

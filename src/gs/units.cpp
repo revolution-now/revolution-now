@@ -11,9 +11,11 @@
 #include "units.hpp"
 
 // Revolution Now
-#include "cstate.hpp"
 #include "logger.hpp"
 #include "variant.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"

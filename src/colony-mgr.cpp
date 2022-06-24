@@ -37,6 +37,7 @@
 
 // config
 #include "config/colony.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -66,8 +67,8 @@ namespace {
 unordered_set<UnitId> units_at_or_in_colony(
     Colony const& colony, UnitsState const& units_state ) {
   unordered_set<UnitId> all =
-      units_state.from_colony( colony.id() );
-  Coord colony_loc = colony.location();
+      units_state.from_colony( colony.id );
+  Coord colony_loc = colony.location;
   for( UnitId map_id : units_state.from_coord( colony_loc ) )
     all.insert( map_id );
   return all;
@@ -90,7 +91,7 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::new_colonist: {
       msg = fmt::format(
           "The @[H]{}@[] colony has produced a new colonist.",
-          colony.name() );
+          colony.name );
       break;
     }
     case ColonyNotification::e::colonist_starved: {
@@ -99,7 +100,7 @@ wait<bool> present_colony_update(
       msg = fmt::format(
           "The @[H]{}@[] colony has run out of food.  As a "
           "result, a colonist (@[H]{}@[]) has starved.",
-          colony.name(), unit_attr( o.type ).name );
+          colony.name, unit_attr( o.type ).name );
       break;
     }
     case ColonyNotification::e::spoilage: {
@@ -112,12 +113,12 @@ wait<bool> present_colony_update(
             "The store of @[H]{}@[] in @[H]{}@[] has exceeded "
             "its warehouse capacity.  @[H]{}@[] tons have been "
             "thrown out.",
-            spoiled.type, colony.name(), spoiled.quantity );
+            spoiled.type, colony.name, spoiled.quantity );
       } else { // multiple
         msg = fmt::format(
             "Some goods in @[H]{}@[] have exceeded their "
             "warehouse capacities and have been thrown out.",
-            colony.name() );
+            colony.name );
       }
       break;
     }
@@ -126,7 +127,7 @@ wait<bool> present_colony_update(
           notification.get<ColonyNotification::full_cargo>();
       msg = fmt::format(
           "A new cargo of @[H]{}@[] is available in @[H]{}@[]!",
-          commodity_display_name( o.what ), colony.name() );
+          commodity_display_name( o.what ), colony.name );
       break;
     }
     case ColonyNotification::e::construction_missing_tools: {
@@ -135,7 +136,7 @@ wait<bool> present_colony_update(
       msg = fmt::format(
           "@[H]{}@[] is in need of @[H]{}@[] more @[H]tools@[] "
           "to complete its construction work on the @[H]{}@[].",
-          colony.name(), o.need_tools - o.have_tools,
+          colony.name, o.need_tools - o.have_tools,
           construction_name( o.what ) );
       break;
     }
@@ -146,7 +147,7 @@ wait<bool> present_colony_update(
       msg = fmt::format(
           "@[H]{}@[] has completed its construction of the "
           "@[H]{}@[]!",
-          colony.name(), construction_name( o.what ) );
+          colony.name, construction_name( o.what ) );
       break;
     }
     case ColonyNotification::e::construction_already_finished: {
@@ -156,7 +157,7 @@ wait<bool> present_colony_update(
           "@[H]{}@[]'s construction of the @[H]{}@[] has "
           "already completed, we should change its production "
           "to something else.",
-          colony.name(), construction_name( o.what ) );
+          colony.name, construction_name( o.what ) );
       break;
     }
   }
@@ -211,7 +212,7 @@ ColonyJob_t find_job_for_initial_colonist(
   bool has_docks = colony_has_building_level(
       colony, e_colony_building::docks );
   for( e_direction d : refl::enum_values<e_direction> ) {
-    Coord const coord = colony.location().moved( d );
+    Coord const coord = colony.location.moved( d );
     if( !terrain_state.square_exists( coord ) ) continue;
     MapSquare const& square = terrain_state.square_at( coord );
     if( is_water( square ) && !has_docks ) continue;
@@ -242,9 +243,9 @@ ColonyJob_t find_job_for_initial_colonist(
   // This is safe because the carpenter's shop will always be
   // guaranteed to be there, since one can't build any other
   // buildings without it.
-  if( !colony.buildings()[e_colony_building::carpenters_shop] )
+  if( !colony.buildings[e_colony_building::carpenters_shop] )
     lg.error( "colony '{}' does not have a carpenter's shop.",
-              colony.name() );
+              colony.name );
   return ColonyJob::indoor{ .job = e_indoor_job::hammers };
 }
 
@@ -407,7 +408,7 @@ void change_colony_nation( Colony&     colony,
       units_at_or_in_colony( colony, units_state );
   for( UnitId unit_id : units )
     units_state.unit_for( unit_id ).change_nation( new_nation );
-  CHECK( colony.nation() != new_nation );
+  CHECK( colony.nation != new_nation );
   colony.set_nation( new_nation );
 }
 
@@ -417,8 +418,8 @@ void strip_unit_commodities( Unit& unit, Colony& colony ) {
   for( auto [type, q] : tranform_res.commodity_deltas ) {
     CHECK_GT( q, 0 );
     lg.debug( "adding {} {} to colony {}.", q, type,
-              colony.name() );
-    colony.commodities()[type] += q;
+              colony.name );
+    colony.commodities[type] += q;
   }
 }
 
@@ -428,7 +429,7 @@ void move_unit_to_colony( UnitsState& units_state,
   Unit& unit = units_state.unit_for( unit_id );
   CHECK( unit.nation() == colony.nation() );
   strip_unit_commodities( unit, colony );
-  units_state.change_to_colony( unit_id, colony.id() );
+  units_state.change_to_colony( unit_id, colony.id );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
   CHECK( !colony_has_unit( id ), "Unit {} already in colony.",
@@ -453,7 +454,7 @@ void move_unit_to_colony( UnitsState& units_state,
 void remove_unit_from_colony( UnitsState& units_state,
                               Colony& colony, UnitId unit_id ) {
   CHECK( units_state.unit_for( unit_id ).nation() ==
-         colony.nation() );
+         colony.nation );
   units_state.disown_unit( unit_id );
   // Now remove the unit from the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
@@ -495,13 +496,13 @@ wait<> evolve_colonies_for_player(
   lg.info( "processing colonies for the {}.", nation );
   queue<ColonyId> colonies;
   for( auto const& [colony_id, colony] : colonies_state.all() )
-    if( colony.nation() == nation ) colonies.push( colony_id );
+    if( colony.nation == nation ) colonies.push( colony_id );
   vector<ColonyEvolution> evolutions;
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
     Colony& colony = colonies_state.colony_for( colony_id );
-    lg.debug( "evolving colony \"{}\".", colony.name() );
+    lg.debug( "evolving colony \"{}\".", colony.name );
     evolutions.push_back( evolve_colony_one_turn(
         colony, settings, units_state, terrain_state, player,
         map_updater ) );

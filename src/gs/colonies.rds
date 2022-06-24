@@ -8,9 +8,9 @@
 # Description: RDS definitions for the sg-colonies module.
 #
 # ===============================================================
-# Revolution Now
-include "colony.hpp"
-include "colony-id.hpp"
+# gs
+include "gs/colony.hpp"
+include "gs/colony-id.hpp"
 
 # C++ standard library
 include "<unordered_map>"

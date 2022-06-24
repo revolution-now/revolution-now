@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # Revolution Now
-include "commodity.hpp"
-include "unit-id.hpp"
+include "gs/commodity.rds.hpp"
+include "gs/unit-id.hpp"
 
 # C++ standard library
 include "<vector>"

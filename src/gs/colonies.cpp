@@ -30,7 +30,7 @@ constexpr int kFirstColonyId = 1;
 /****************************************************************
 ** wrapped::ColoniesState
 *****************************************************************/
-valid_or<string> wrapped::ColoniesState::validate() const {
+base::valid_or<string> wrapped::ColoniesState::validate() const {
   unordered_set<Coord>  used_coords;
   unordered_set<string> used_names;
 
@@ -40,13 +40,13 @@ valid_or<string> wrapped::ColoniesState::validate() const {
     max_id = std::max( max_id, id );
 
     // Each colony has a unique location.
-    Coord where = colony.location();
+    Coord where = colony.location;
     REFL_VALIDATE( !used_coords.contains( where ),
                    "multiples colonies on tile {}.", where );
     used_coords.insert( where );
 
     // Each colony has a unique name.
-    string const& name = colony.name();
+    string const& name = colony.name;
     REFL_VALIDATE( !used_names.contains( name ),
                    "multiples colonies have the name \"{}\".",
                    name );
@@ -65,13 +65,13 @@ valid_or<string> wrapped::ColoniesState::validate() const {
 /****************************************************************
 ** ColoniesState
 *****************************************************************/
-valid_or<std::string> ColoniesState::validate() const {
+base::valid_or<std::string> ColoniesState::validate() const {
   HAS_VALUE_OR_RET( o_.validate() );
 
   // Colony location matches coord.
   for( auto const& [colony_id, colony] : o_.colonies ) {
-    Coord const&    coord = colony.location();
-    maybe<ColonyId> actual_colony_id =
+    Coord const&          coord = colony.location;
+    base::maybe<ColonyId> actual_colony_id =
         base::lookup( colony_from_coord_, coord );
     REFL_VALIDATE(
         actual_colony_id == colony_id,
@@ -90,11 +90,11 @@ ColoniesState::ColoniesState( wrapped::ColoniesState&& o )
   : o_( std::move( o ) ) {
   // Populate colony_from_coord_.
   for( auto const& [id, colony] : o_.colonies )
-    colony_from_coord_[colony.location()] = id;
+    colony_from_coord_[colony.location] = id;
 
   // Populate colony_from_name_.
   for( auto const& [id, colony] : o_.colonies )
-    colony_from_name_[colony.name()] = id;
+    colony_from_name_[colony.name] = id;
 }
 
 ColoniesState::ColoniesState()
@@ -121,18 +121,18 @@ Colony& ColoniesState::colony_for( ColonyId id ) {
 }
 
 Coord ColoniesState::coord_for( ColonyId id ) const {
-  return colony_for( id ).location();
+  return colony_for( id ).location;
 }
 
 ColonyId ColoniesState::add_colony( Colony&& colony ) {
-  CHECK( colony.id() == ColonyId{ 0 },
+  CHECK( colony.id == ColonyId{ 0 },
          "colony ID must be zero when creating colony." );
-  ColonyId id  = next_colony_id();
-  colony.o_.id = id;
-  CHECK( !colony_from_coord_.contains( colony.location() ) );
-  CHECK( !colony_from_name_.contains( colony.name() ) );
-  colony_from_coord_[colony.location()] = id;
-  colony_from_name_[colony.name()]      = id;
+  ColonyId id = next_colony_id();
+  colony.id   = id;
+  CHECK( !colony_from_coord_.contains( colony.location ) );
+  CHECK( !colony_from_name_.contains( colony.name ) );
+  colony_from_coord_[colony.location] = id;
+  colony_from_name_[colony.name]      = id;
   // Must be last to avoid use-after-move.
   CHECK( !o_.colonies.contains( id ) );
   o_.colonies[id] = std::move( colony );
@@ -141,12 +141,12 @@ ColonyId ColoniesState::add_colony( Colony&& colony ) {
 
 void ColoniesState::destroy_colony( ColonyId id ) {
   Colony& colony = colony_for( id );
-  CHECK( colony_from_coord_.contains( colony.location() ) );
-  colony_from_coord_.erase( colony.location() );
-  CHECK( colony_from_name_.contains( colony.name() ),
+  CHECK( colony_from_coord_.contains( colony.location ) );
+  colony_from_coord_.erase( colony.location );
+  CHECK( colony_from_name_.contains( colony.name ),
          "colony_from_name_ does not contain '{}'.",
-         colony.name() );
-  colony_from_name_.erase( colony.name() );
+         colony.name );
+  colony_from_name_.erase( colony.name );
   // Should be last so above reference doesn't dangle.
   o_.colonies.erase( id );
 }
@@ -160,7 +160,7 @@ ColonyId ColoniesState::last_colony_id() const {
   return ColonyId{ o_.next_colony_id };
 }
 
-maybe<ColonyId> ColoniesState::maybe_from_coord(
+base::maybe<ColonyId> ColoniesState::maybe_from_coord(
     Coord const& coord ) const {
   return base::lookup( colony_from_coord_, coord );
 }
@@ -170,7 +170,7 @@ ColonyId ColoniesState::from_coord( Coord const& coord ) const {
   return id;
 }
 
-maybe<ColonyId> ColoniesState::maybe_from_name(
+base::maybe<ColonyId> ColoniesState::maybe_from_name(
     string_view name ) const {
   return base::lookup( colony_from_name_, string( name ) );
 }

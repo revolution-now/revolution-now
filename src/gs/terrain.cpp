@@ -10,12 +10,11 @@
 *****************************************************************/
 #include "terrain.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
-#include "lua.hpp"
-#include "map-square.hpp"
+// gs
+#include "gs/map-square.rds.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
@@ -29,7 +28,7 @@ namespace rn {
 /****************************************************************
 ** TerrainState
 *****************************************************************/
-valid_or<std::string> TerrainState::validate() const {
+base::valid_or<std::string> TerrainState::validate() const {
   return base::valid;
 }
 
@@ -61,25 +60,27 @@ Delta TerrainState::world_size_tiles() const {
 }
 
 Rect TerrainState::world_rect_tiles() const {
-  return { 0_x, 0_y, world_size_tiles().w,
-           world_size_tiles().h };
+  return { .x = 0,
+           .y = 0,
+           .w = world_size_tiles().w,
+           .h = world_size_tiles().h };
 }
 
 bool TerrainState::square_exists( Coord coord ) const {
-  if( coord.x < 0_x || coord.y < 0_y ) return false;
+  if( coord.x < 0 || coord.y < 0 ) return false;
   return coord.is_inside(
       Rect::from( Coord{}, world_map().size() ) );
 }
 
-maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
+base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
     Coord coord ) {
-  if( !square_exists( coord ) ) return nothing;
+  if( !square_exists( coord ) ) return base::nothing;
   return mutable_world_map()[coord.y][coord.x];
 }
 
-maybe<MapSquare const&> TerrainState::maybe_square_at(
+base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     Coord coord ) const {
-  if( !square_exists( coord ) ) return nothing;
+  if( !square_exists( coord ) ) return base::nothing;
   return world_map()[coord.y][coord.x];
 }
 
@@ -104,19 +105,19 @@ MapSquare const& TerrainState::total_square_at(
 }
 
 MapSquare const& TerrainState::square_at( Coord coord ) const {
-  maybe<MapSquare const&> res = maybe_square_at( coord );
+  base::maybe<MapSquare const&> res = maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
 }
 
 MapSquare& TerrainState::mutable_square_at( Coord coord ) {
-  maybe<MapSquare&> res = mutable_maybe_square_at( coord );
+  base::maybe<MapSquare&> res = mutable_maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
 }
 
 bool TerrainState::is_land( Coord coord ) const {
-  return rn::is_land( square_at( coord ) );
+  return square_at( coord ).surface == e_surface::land;
 }
 
 /****************************************************************

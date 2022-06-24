@@ -19,9 +19,6 @@
 #include "maybe.hpp"
 #include "unit-id.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gs
 #include "gs/commodity.rds.hpp"
 
@@ -33,6 +30,10 @@
 
 // C++ standard library
 #include <string>
+
+namespace rr {
+struct Renderer;
+}
 
 namespace rn {
 

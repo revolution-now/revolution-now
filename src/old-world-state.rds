@@ -11,9 +11,9 @@
 # Revolution Now
 include "unit-id.hpp"
 
-# Rds
-include "commodity.rds.hpp"
-include "utype.rds.hpp"
+# gs
+include "gs/commodity.rds.hpp"
+include "gs/unit-type.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

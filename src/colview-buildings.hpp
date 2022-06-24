@@ -15,8 +15,8 @@
 // Revolution Now
 #include "colview-entities.hpp"
 
-// config
-#include "config/colony-enums.rds.hpp" // FIXME: to be moved.
+// gs
+#include "gs/colony-enums.rds.hpp"
 
 // Rds
 #include "colony-buildings.rds.hpp"

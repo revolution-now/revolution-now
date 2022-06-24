@@ -18,6 +18,9 @@
 #include "terrain.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"

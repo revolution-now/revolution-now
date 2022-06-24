@@ -37,6 +37,9 @@
 #include "wait.hpp"
 #include "window.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/players.hpp"
 #include "gs/units.hpp"

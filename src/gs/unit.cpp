@@ -18,8 +18,13 @@
 #include "road.hpp"
 #include "ustate.hpp"
 
+// config
+#include "config/unit-type.hpp"
+
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"

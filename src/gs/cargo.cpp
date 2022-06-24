@@ -17,6 +17,9 @@
 #include "util.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/units.hpp"
 

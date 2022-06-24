@@ -1,17 +1,17 @@
 /****************************************************************
-**utype.cpp
+**unit-type.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-09-27.
 *
-* Description: Unit tests for the src/utype.* module.
+* Description: Unit tests for the src/unit-type.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/utype.hpp"
+#include "src/unit-type.hpp"
 
 // Revolution Now
 #include "src/lua.hpp"
@@ -30,7 +30,7 @@ using namespace std;
 
 using Catch::Contains;
 
-TEST_CASE( "[utype] inventory_traits" ) {
+TEST_CASE( "[unit-type] inventory_traits" ) {
   auto& traits = config_units.composition
                      .inventory_traits[e_unit_inventory::tools];
   REQUIRE( traits.commodity == e_commodity::tools );
@@ -39,7 +39,7 @@ TEST_CASE( "[utype] inventory_traits" ) {
   REQUIRE( traits.multiple == 20 );
 }
 
-TEST_CASE( "[utype] inventory_to_modifier" ) {
+TEST_CASE( "[unit-type] inventory_to_modifier" ) {
   SECTION( "gold" ) {
     auto mod_info =
         inventory_to_modifier( e_unit_inventory::gold );
@@ -52,7 +52,7 @@ TEST_CASE( "[utype] inventory_to_modifier" ) {
   }
 }
 
-TEST_CASE( "[utype] commodity_to_inventory" ) {
+TEST_CASE( "[unit-type] commodity_to_inventory" ) {
   auto f = commodity_to_inventory;
   REQUIRE( f( e_commodity::cigars ) == nothing );
   REQUIRE( f( e_commodity::cloth ) == nothing );
@@ -72,13 +72,13 @@ TEST_CASE( "[utype] commodity_to_inventory" ) {
   REQUIRE( f( e_commodity::trade_goods ) == nothing );
 }
 
-TEST_CASE( "[utype] inventory_to_commodity" ) {
+TEST_CASE( "[unit-type] inventory_to_commodity" ) {
   auto f = inventory_to_commodity;
   REQUIRE( f( e_unit_inventory::gold ) == nothing );
   REQUIRE( f( e_unit_inventory::tools ) == e_commodity::tools );
 }
 
-TEST_CASE( "[utype] unit type attributes deserialization" ) {
+TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
   SECTION( "expert_cotton_planter" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::expert_cotton_planter );
@@ -368,10 +368,10 @@ TEST_CASE( "[utype] unit type attributes deserialization" ) {
 }
 
 // This test case contains a random selection of cases.
-TEST_CASE( "[utype] UnitType creation" ) {
+TEST_CASE( "[unit-type] UnitType creation" ) {
   using UT = e_unit_type;
   auto f   = []( UT type, UT base_type ) {
-      return UnitType::create( type, base_type );
+    return UnitType::create( type, base_type );
   };
   // Same types (base);
   REQUIRE(
@@ -485,13 +485,13 @@ TEST_CASE( "[utype] UnitType creation" ) {
 }
 
 // This test case contains a random selection of cases.
-TEST_CASE( "[utype] unit_type_modifiers" ) {
+TEST_CASE( "[unit-type] unit_type_modifiers" ) {
   using UT  = e_unit_type;
   using Mod = e_unit_type_modifier;
   using US  = unordered_set<Mod>;
   auto f    = []( UT base_type, UT type ) -> maybe<US const&> {
-       UNWRAP_RETURN( ut, UnitType::create( type, base_type ) );
-       return ut.unit_type_modifiers();
+    UNWRAP_RETURN( ut, UnitType::create( type, base_type ) );
+    return ut.unit_type_modifiers();
   };
   // Same types (base);
   REQUIRE( f( UT::free_colonist, UT::free_colonist ) == US{} );
@@ -551,7 +551,7 @@ TEST_CASE( "[utype] unit_type_modifiers" ) {
            US{ Mod::muskets, Mod::horses, Mod::independence } );
 }
 
-TEST_CASE( "[utype] on_death_demoted_type" ) {
+TEST_CASE( "[unit-type] on_death_demoted_type" ) {
   auto* f  = on_death_demoted_type;
   using UT = e_unit_type;
   // No demoting.
@@ -591,7 +591,7 @@ TEST_CASE( "[utype] on_death_demoted_type" ) {
            UnitType::create( UT::damaged_artillery ) );
 }
 
-TEST_CASE( "[utype] on_capture_demoted_type" ) {
+TEST_CASE( "[unit-type] on_capture_demoted_type" ) {
   auto* f  = on_capture_demoted_type;
   using UT = e_unit_type;
   // No demoting.
@@ -610,7 +610,7 @@ TEST_CASE( "[utype] on_capture_demoted_type" ) {
            UT::free_colonist );
 }
 
-TEST_CASE( "[utype] add_unit_type_modifiers" ) {
+TEST_CASE( "[unit-type] add_unit_type_modifiers" ) {
   auto f = []( UnitType ut,
                unordered_set<e_unit_type_modifier> const&
                    modifiers ) {
@@ -654,7 +654,7 @@ TEST_CASE( "[utype] add_unit_type_modifiers" ) {
            UnitType::create( UT::artillery ) );
 }
 
-TEST_CASE( "[utype] rm_unit_type_modifiers" ) {
+TEST_CASE( "[unit-type] rm_unit_type_modifiers" ) {
   auto f = []( UnitType ut,
                unordered_set<e_unit_type_modifier> const&
                    modifiers ) {
@@ -703,7 +703,7 @@ TEST_CASE( "[utype] rm_unit_type_modifiers" ) {
       UnitType::create( UT::scout ) );
 }
 
-TEST_CASE( "[utype] promoted_unit_type" ) {
+TEST_CASE( "[unit-type] promoted_unit_type" ) {
   auto f = []( UnitType ut, e_unit_activity activity ) {
     return promoted_unit_type( ut, activity );
   };
@@ -1057,7 +1057,7 @@ TEST_CASE( "[utype] promoted_unit_type" ) {
   }
 }
 
-TEST_CASE( "[utype] cleared_expertise" ) {
+TEST_CASE( "[unit-type] cleared_expertise" ) {
   auto* f  = cleared_expertise;
   using UT = e_unit_type;
   UnitType ut;
@@ -1156,28 +1156,28 @@ TEST_CASE( "[utype] cleared_expertise" ) {
   }
 }
 
-TEST_CASE( "[utype] lua bindings" ) {
+TEST_CASE( "[unit-type] lua bindings" ) {
   lua::state& st = lua_global_state();
 
   auto script = R"(
     local ut
     -- free_colonist
-    ut = utype.UnitType.create( e.unit_type.free_colonist )
+    ut = unit_type.UnitType.create( e.unit_type.free_colonist )
     assert( ut )
     assert( ut:type() == e.unit_type.free_colonist )
     assert( ut:base_type() == e.unit_type.free_colonist )
     -- dragoon
-    ut = utype.UnitType.create( e.unit_type.dragoon )
+    ut = unit_type.UnitType.create( e.unit_type.dragoon )
     assert( ut )
     assert( ut:type() == e.unit_type.dragoon )
     assert( ut:base_type() == e.unit_type.free_colonist )
     -- veteran_soldier
-    ut = utype.UnitType.create( e.unit_type.veteran_soldier )
+    ut = unit_type.UnitType.create( e.unit_type.veteran_soldier )
     assert( ut )
     assert( ut:type() == e.unit_type.veteran_soldier )
     assert( ut:base_type() == e.unit_type.veteran_colonist )
     -- pioneer
-    ut = utype.UnitType.create_with_base(
+    ut = unit_type.UnitType.create_with_base(
         e.unit_type.pioneer, e.unit_type.expert_farmer )
     assert( ut )
     assert( ut:type() == e.unit_type.pioneer )
@@ -1187,7 +1187,7 @@ TEST_CASE( "[utype] lua bindings" ) {
 
   script  = R"(
     local ut
-    utype.UnitType.create_with_base(
+    unit-type.UnitType.create_with_base(
         e.unit_type.hardy_pioneer, e.unit_type.expert_farmer )
   )";
   auto xp = st.script.run_safe( script );
@@ -1199,7 +1199,7 @@ TEST_CASE( "[utype] lua bindings" ) {
           "and base_type=expert_farmer." ) );
 }
 
-TEST_CASE( "[utype] unit human status" ) {
+TEST_CASE( "[unit-type] unit human status" ) {
   bool     expected;
   UnitType ut;
 

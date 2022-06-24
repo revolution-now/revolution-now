@@ -1,5 +1,5 @@
 /****************************************************************
-**utype.cpp
+**unit-type.cpp
 *
 * Project: Revolution Now
 *
@@ -8,14 +8,14 @@
 * Description: Unit type descriptors.
 *
 *****************************************************************/
-#include "utype.hpp"
+#include "unit-type.hpp"
 
 // Revolution Now
 #include "config-files.hpp"
 #include "lua.hpp"
 
-// Config
-#include "config/units.rds.hpp"
+// config
+#include "config/unit-type.rds.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -39,26 +39,6 @@
 using namespace std;
 
 namespace rn {
-
-/****************************************************************
-** e_unit_type
-*****************************************************************/
-LUA_ENUM( unit_type );
-
-/****************************************************************
-** e_unit_human
-*****************************************************************/
-LUA_ENUM( unit_human );
-
-/****************************************************************
-** e_unit_type_modifier
-*****************************************************************/
-LUA_ENUM( unit_type_modifier );
-
-/****************************************************************
-** e_unit_activity
-*****************************************************************/
-LUA_ENUM( unit_activity );
 
 /****************************************************************
 ** Unit Inventory
@@ -146,12 +126,12 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   return desc;
 }
 
-bool can_attack( UnitTypeAttributes const& attr ) {
-  return attr.attack_points > 0;
+bool can_attack( e_unit_type type ) {
+  return unit_attr( type ).attack_points > 0;
 }
 
-bool is_military_unit( UnitTypeAttributes const& attr ) {
-  return can_attack( attr );
+bool is_military_unit( e_unit_type type ) {
+  return can_attack( type );
 }
 
 // Lua

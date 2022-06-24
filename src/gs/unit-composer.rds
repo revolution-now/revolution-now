@@ -8,8 +8,8 @@
 # Description: RDS definitions for the unit-composer module.
 #
 # ===============================================================
-# Rds
-include "utype.rds.hpp"
+# gs
+include "gs/unit-type.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

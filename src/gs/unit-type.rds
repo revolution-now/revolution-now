@@ -78,6 +78,45 @@ enum.e_unit_type {
   large_treasure,
 }
 
+# This is used to represent two different things:
+#
+#   1. The activity that a unit is currently engaged in, regard-
+#      less of its type.
+#   2. The expertise that a unit has.
+#
+enum.e_unit_activity {
+  # Raw commodities.
+  farming,
+  fishing,
+  sugar_planting,
+  tobacco_planting,
+  cotton_planting,
+  fur_trapping,
+  lumberjacking,
+  ore_mining,
+  silver_mining,
+
+  # Production.
+  carpentry,
+  rum_distilling,
+  tobacconistry,
+  weaving,
+  fur_trading,
+  blacksmithing,
+  gunsmithing,
+
+  # External to colony.
+  fighting,
+  pioneering,
+  scouting,
+  missioning,
+
+  # Misc.
+  bell_ringing,
+  preaching,
+  teaching,
+}
+
 enum.e_unit_type_modifier {
   blessing,
   horses,
@@ -86,6 +125,13 @@ enum.e_unit_type_modifier {
   independence,
   strength,
 }
+
+enum.e_unit_inventory {
+  gold,
+  tools,
+}
+
+namespace "rn.wrapped"
 
 # Note that this struct needs to maintain an invariant, namely
 # that the derived unit type (`type`) can be reached starting

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "strong-span.hpp"
 
 // refl
 #include "refl/cdr.hpp"
@@ -32,6 +31,7 @@
 #include "base/fmt.hpp"
 
 // C++ standard library
+#include <span>
 #include <vector>
 
 namespace rn {
@@ -42,31 +42,26 @@ namespace rn {
 // return a value.
 template<typename T>
 class Matrix {
-  W              w_ = 0_w;
+  W              w_ = 0;
   std::vector<T> data_{};
 
  public:
-  Matrix( W w, H h ) : w_( w ) {
-    CHECK( w >= 0_w );
-    CHECK( h >= 0_h );
-    size_t size = h._ * w._;
+  Matrix( Delta delta ) : w_( delta.w ) {
+    CHECK( delta.w >= 0 );
+    CHECK( delta.h >= 0 );
+    size_t size = delta.h * delta.w;
     data_.resize( size );
     CHECK( data_.size() == size );
   }
 
-  Matrix( W w, H h, T init ) : w_( w ) {
-    CHECK( w >= 0_w );
-    CHECK( h >= 0_h );
-    size_t size = h._ * w._;
+  Matrix( Delta delta, T init ) : w_( delta.w ) {
+    CHECK( delta.w >= 0 );
+    CHECK( delta.h >= 0 );
+    size_t size = delta.h * delta.w;
     data_.assign( size, init );
     CHECK( data_.size() == size );
   }
 
-  Matrix( H h, W w, T init ) : Matrix( w, h, init ) {}
-  Matrix( H h, W w ) : Matrix( w, h ) {}
-  Matrix( Delta delta ) : Matrix( delta.w, delta.h ) {}
-  Matrix( Delta delta, T init )
-    : Matrix( delta.w, delta.h, init ) {}
   Matrix() : Matrix( Delta{} ) {}
 
   Matrix( std::vector<T>&& data, W w )
@@ -85,22 +80,19 @@ class Matrix {
   }
 
   Delta size() const {
-    using coord_underlying_t = decltype( w_._ );
     if( data_.size() == 0 ) return {};
-    return Delta{
-        w_, H{ coord_underlying_t( data_.size() / w_._ ) } };
+    return Delta{ .w = w_, .h = int( data_.size() / w_ ) };
   }
 
   Rect rect() const { return Rect::from( Coord{}, size() ); }
 
-  strong_span<T const, X, W> operator[]( Y y ) const
-      ATTR_LIFETIMEBOUND {
-    CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
-    return { &data_[y._ * w_._], w_ };
+  std::span<T const> operator[]( Y y ) const ATTR_LIFETIMEBOUND {
+    CHECK( y >= 0 && size_t( y ) < data_.size() );
+    return { &data_[y * w_], size_t( w_ ) };
   }
-  strong_span<T, X, W> operator[]( Y y ) ATTR_LIFETIMEBOUND {
-    CHECK( y >= Y{ 0 } && size_t( y._ ) < data_.size() );
-    return { &data_[y._ * w_._], w_ };
+  std::span<T> operator[]( Y y ) ATTR_LIFETIMEBOUND {
+    CHECK( y >= 0 && size_t( y ) < data_.size() );
+    return { &data_[y * w_], size_t( w_ ) };
   }
 
   T const& operator[]( Coord coord ) const ATTR_LIFETIMEBOUND {
@@ -115,7 +107,7 @@ class Matrix {
 
   void clear() {
     data_.clear();
-    w_ = 0_w;
+    w_ = 0;
   }
 
   std::vector<T> const& data() const { return data_; }

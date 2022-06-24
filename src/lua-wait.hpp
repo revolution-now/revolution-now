@@ -27,6 +27,9 @@
 
 namespace lua {
 
+using LuaRegistrationFnSig = void( lua::state& );
+void register_lua_fn( LuaRegistrationFnSig* const* fn );
+
 template<Pushable T>
 struct type_traits<::rn::wait<T>>
   : TraitsForModel<::rn::wait<T>,
@@ -58,9 +61,9 @@ struct type_traits<::rn::wait<T>>
   }
 
   inline static int registration = [] {
-    constexpr static rn::LuaRegistrationFnSig* reg_addr =
+    constexpr static LuaRegistrationFnSig* reg_addr =
         &register_usertype;
-    rn::register_lua_fn( &reg_addr );
+    lua::register_lua_fn( &reg_addr );
     return 0;
   }();
 

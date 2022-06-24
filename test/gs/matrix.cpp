@@ -5,13 +5,13 @@
 *
 * Created by dsicilia on 2022-02-14.
 *
-* Description: Unit tests for the src/matrix.* module.
+* Description: Unit tests for the src/gs/matrix.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/matrix.hpp"
+#include "src/gs/matrix.hpp"
 
 // refl
 #include "refl/cdr.hpp"
@@ -109,15 +109,15 @@ value const cdr_2x4_with_default_elem = table{
 };
 
 Matrix<int> make_m_2x4() {
-  Matrix<int> m_2x4( Delta{ 4_w, 2_h } );
-  m_2x4[0_y][0_x] = 1;
-  m_2x4[0_y][1_x] = 2;
-  m_2x4[0_y][2_x] = 3;
-  m_2x4[0_y][3_x] = 4;
-  m_2x4[1_y][0_x] = 5;
-  m_2x4[1_y][1_x] = 0;
-  m_2x4[1_y][2_x] = 7;
-  m_2x4[1_y][3_x] = 8;
+  Matrix<int> m_2x4( Delta{ .w = 4, .h = 2 } );
+  m_2x4[0][0] = 1;
+  m_2x4[0][1] = 2;
+  m_2x4[0][2] = 3;
+  m_2x4[0][3] = 4;
+  m_2x4[1][0] = 5;
+  m_2x4[1][1] = 0;
+  m_2x4[1][2] = 7;
+  m_2x4[1][3] = 8;
   return m_2x4;
 }
 

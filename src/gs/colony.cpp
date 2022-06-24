@@ -20,6 +20,7 @@
 #include "config/colony.rds.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/register.hpp"
 
 // refl
@@ -27,6 +28,7 @@
 #include "refl/to-str.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // base
@@ -44,7 +46,7 @@ namespace {
 
 // This should be called at the end of any non-const member func-
 // tion that can edit the jobs/units maps.
-void validate_job_maps( wrapped::Colony const& colony ) {
+void validate_job_maps( Colony const& colony ) {
   unordered_set<UnitId> all;
 
   // First compile a list of all unit IDs mentioned.
@@ -93,14 +95,14 @@ void validate_job_maps( wrapped::Colony const& colony ) {
 } // namespace
 
 /****************************************************************
-** wrapped::Colony
+** Colony
 *****************************************************************/
 // This function should only validate those things that don't
 // need access to any game state outside of this one colony ob-
 // ject. E.g., no validating things that require access to the
 // terrain or to unit info; that stuff should go in the top-level
 // validation functions.
-valid_or<string> wrapped::Colony::validate() const {
+valid_or<string> Colony::validate() const {
   validate_job_maps( *this );
 
   // Colony has non-empty stripped name.
@@ -151,9 +153,6 @@ valid_or<string> wrapped::Colony::validate() const {
   return valid;
 }
 
-/****************************************************************
-** Colony
-*****************************************************************/
 } // namespace rn
 
 /****************************************************************
@@ -162,18 +161,36 @@ valid_or<string> wrapped::Colony::validate() const {
 namespace rn {
 namespace {
 
-// CommodityQuantityMap
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::CommodityQuantityMap;
-  auto u  = st.usertype.create<U>();
+  // CommodityQuantityMap
+  // TODO: make this generic.
+  [&] {
+    using U = ::rn::CommodityQuantityMap;
+    auto u  = st.usertype.create<U>();
 
-  u[lua::metatable_key]["__index"] =
-      [&]( U& obj, e_commodity c ) { return obj[c]; };
+    u[lua::metatable_key]["__index"] =
+        [&]( U& obj, e_commodity c ) { return obj[c]; };
 
-  u[lua::metatable_key]["__newindex"] =
-      [&]( U& obj, e_commodity c, int quantity ) {
-        obj[c] = quantity;
-      };
+    u[lua::metatable_key]["__newindex"] =
+        [&]( U& obj, e_commodity c, int quantity ) {
+          obj[c] = quantity;
+        };
+  }();
+
+  // ColonyBuildingsMap
+  // TODO: make this generic.
+  [&] {
+    using U = ::rn::ColonyBuildingsMap;
+    auto u  = st.usertype.create<U>();
+
+    u[lua::metatable_key]["__index"] =
+        [&]( U& obj, e_colony_building c ) { return obj[c]; };
+
+    u[lua::metatable_key]["__newindex"] =
+        [&]( U& obj, e_colony_building c, bool b ) {
+          obj[c] = b;
+        };
+  }();
 
   // !! NOTE: because we overwrote the __index and __newindex
   // metamethods on this userdata we cannot add any further
@@ -186,21 +203,13 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   // Getters.
-  u["id"]       = &U::id;
-  u["nation"]   = &U::nation;
-  u["name"]     = &U::name;
-  u["location"] = &U::location;
-  u["bells"]    = &U::bells;
-
-  // Modifiers.
-  u["add_building"] = &U::add_building;
-  u["rm_building"]  = &U::rm_building;
-
-  // TODO: this should be exposed to lua as a non-function prop-
-  // erty.
-  u["commodities"] = []( U& obj ) -> decltype( auto ) {
-    return obj.commodities();
-  };
+  u["id"]          = &U::id;
+  u["nation"]      = &U::nation;
+  u["name"]        = &U::name;
+  u["location"]    = &U::location;
+  u["bells"]       = &U::bells;
+  u["buildings"]   = &U::buildings;
+  u["commodities"] = &U::commodities;
 };
 
 } // namespace

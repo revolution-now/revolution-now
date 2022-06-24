@@ -22,6 +22,9 @@
 // game-state
 #include "gs/units.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"

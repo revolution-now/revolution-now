@@ -20,7 +20,7 @@
 
 namespace rn {
 
-extern Scale g_resolution_scale_factor;
+extern Delta g_resolution_scale_factor;
 
 // These are cheap to call because their values are cached and
 // are only updated when either the main window is resized or if

@@ -12,10 +12,9 @@
 
 // Revolution Now
 #include "map-square.hpp"
-#include "utype.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
+// gs
+#include "gs/unit-type.hpp"
 
 // config
 #include "config/production.rds.hpp"

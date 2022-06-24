@@ -8,10 +8,8 @@
 # Description: Config info for colonies (non-production).
 #
 # ===============================================================
-# Rds
-include "colony-enums.rds.hpp"
-
 # gs
+include "gs/colony-enums.rds.hpp"
 include "gs/unit-type.rds.hpp"
 
 # refl

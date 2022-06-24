@@ -1,34 +1,26 @@
 # ===============================================================
-# utype.rds
+# unit-type.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2021-02-28.
+# Created by dsicilia on 2022-04-28.
 #
-# Description: RDS definitions for the utype module.
+# Description: Config info for unit types.
 #
 # ===============================================================
-# rn
-include "commodity.hpp"
-include "mv-points.hpp"
-include "tiles.hpp"
+# Revolution Now
+include "../tile-enum.rds.hpp" # FIXME
 
 # gs
 include "gs/unit-type.rds.hpp"
 
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+include "cdr/ext-base.hpp"
+
 # refl
 include "refl/enum-map.hpp"
-
-# gfx
-include "gfx/coord.hpp"
-
-# base
-include "base/maybe.hpp"
-
-# C++ standard library.
-include "<string>"
-include "<unordered_map>"
-include "<unordered_set>"
 
 namespace "rn"
 
@@ -36,11 +28,6 @@ enum.e_unit_human {
   no,
   yes,
   from_base,
-}
-
-enum.e_unit_inventory {
-  gold,
-  tools,
 }
 
 struct.UnitInventoryTraits {
@@ -77,45 +64,6 @@ sumtype.ModifierAssociation {
 struct.UnitTypeModifierTraits {
   player_can_grant 'bool',
   association 'ModifierAssociation_t',
-}
-
-# This is used to represent two different things:
-#
-#   1. The activity that a unit is currently engaged in, regard-
-#      less of its type.
-#   2. The expertise that a unit has.
-#
-enum.e_unit_activity {
-  # Raw commodities.
-  farming,
-  fishing,
-  sugar_planting,
-  tobacco_planting,
-  cotton_planting,
-  fur_trapping,
-  lumberjacking,
-  ore_mining,
-  silver_mining,
-
-  # Production.
-  carpentry,
-  rum_distilling,
-  tobacconistry,
-  weaving,
-  fur_trading,
-  blacksmithing,
-  gunsmithing,
-
-  # External to colony.
-  fighting,
-  pioneering,
-  scouting,
-  missioning,
-
-  # Misc.
-  bell_ringing,
-  preaching,
-  teaching,
 }
 
 sumtype.UnitDeathAction {
@@ -279,3 +227,20 @@ struct.UnitTypeAttributes {
   # modifiers?
   is_derived 'bool',
 }
+
+# The constituents of this struct.need to be validated together.
+struct.UnitCompositionConfig {
+  inventory_traits 'refl::enum_map<e_unit_inventory, UnitInventoryTraits>',
+  modifier_traits 'refl::enum_map<e_unit_type_modifier, UnitTypeModifierTraits>',
+  unit_types 'refl::enum_map<e_unit_type, UnitTypeAttributes>',
+
+  _features {
+    equality, validation
+  }
+}
+
+struct.config_units_t {
+  composition 'UnitCompositionConfig',
+}
+
+config.units {}

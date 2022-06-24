@@ -36,6 +36,9 @@
 #include "views.hpp"
 #include "window.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/colonies.hpp"
 #include "gs/players.rds.hpp"

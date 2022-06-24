@@ -33,15 +33,15 @@
 #include "tiles.hpp"
 #include "unit-id.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
 
-// game-state
+// gs
 #include "gs/land-view.hpp"
 #include "gs/settings.hpp"
 #include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
 #include "gs/units.hpp"
 
 // config

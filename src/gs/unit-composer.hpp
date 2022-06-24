@@ -15,9 +15,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "commodity.hpp"
 #include "expect.hpp"
-#include "utype.hpp"
+
+// gs
+#include "gs/commodity.rds.hpp"
+#include "gs/unit-type.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

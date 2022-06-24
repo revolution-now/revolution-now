@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "colony-id.hpp"
 #include "maybe.hpp"
+
+// gs
+#include "gs/colony-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

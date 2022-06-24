@@ -18,6 +18,7 @@
 #include "tiles.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // config
@@ -139,10 +140,10 @@ void SmoothViewport::advance_zoom_point_seek(
   // ter" means that the same pixel stays under the cursor as the
   // zooming happens.
   auto delta_x =
-      .98 * ( ( point_to_seek->x - center_rounded().x )._ *
+      .98 * ( ( point_to_seek->x - center_rounded().x ) *
               log_zoom_change );
   auto delta_y =
-      .98 * ( ( point_to_seek->y - center_rounded().y )._ *
+      .98 * ( ( point_to_seek->y - center_rounded().y ) *
               log_zoom_change );
   o_.center_x += delta_x;
   o_.center_y += delta_y;
@@ -341,10 +342,10 @@ void SmoothViewport::stop_auto_panning() {
 double SmoothViewport::min_zoom_for_no_border() const {
   auto min_zoom_for_x =
       double( viewport_rect_pixels_.delta().w ) /
-      double( ( world_size_tiles() * g_tile_scale ).w );
+      double( ( world_size_tiles() * g_tile_delta ).w );
   auto min_zoom_for_y =
       double( viewport_rect_pixels_.delta().h ) /
-      double( ( world_size_tiles() * g_tile_scale ).h );
+      double( ( world_size_tiles() * g_tile_delta ).h );
   return std::max( min_zoom_for_x, min_zoom_for_y );
 }
 
@@ -392,27 +393,27 @@ Coord SmoothViewport::center_rounded() const {
 // Number of tiles needed to be drawn in order to subsume the
 // half-open viewport range [start, end).
 double SmoothViewport::width_tiles() const {
-  int lower = round_down_to_nearest_int_multiple(
-      start_x(), g_tile_width._ );
-  int upper = round_up_to_nearest_int_multiple( end_x(),
-                                                g_tile_width._ );
-  return ( upper - lower ) / g_tile_width._;
+  int lower = round_down_to_nearest_int_multiple( start_x(),
+                                                  g_tile_width );
+  int upper =
+      round_up_to_nearest_int_multiple( end_x(), g_tile_width );
+  return ( upper - lower ) / g_tile_width;
 }
 
 // Number of tiles needed to be drawn in order to subsume the
 // half-open viewport range [start, end).
 double SmoothViewport::height_tiles() const {
   int lower = round_down_to_nearest_int_multiple(
-      start_y(), g_tile_height._ );
-  int upper = round_up_to_nearest_int_multiple(
-      end_y(), g_tile_height._ );
-  return ( upper - lower ) / g_tile_height._;
+      start_y(), g_tile_height );
+  int upper =
+      round_up_to_nearest_int_multiple( end_y(), g_tile_height );
+  return ( upper - lower ) / g_tile_height;
 }
 
 // These are to avoid a direct dependency on the screen module
 // and its initialization code.
 Delta SmoothViewport::world_size_pixels() const {
-  return world_size_tiles() * Scale{ 32 };
+  return world_size_tiles() * 32;
 }
 
 Rect SmoothViewport::world_rect_pixels() const {
@@ -454,8 +455,7 @@ void SmoothViewport::fix_invariants() {
       o_.center_x = double( size_x ) -
                     double( x_world_pixels_in_viewport() ) / 2;
   } else {
-    o_.center_x =
-        double( 0_x + this->world_size_pixels().w / 2_sx );
+    o_.center_x = double( 0 + this->world_size_pixels().w / 2 );
   }
   if( y_world_pixels_in_viewport() <= size_y ) {
     if( start_y() < 0 )
@@ -464,8 +464,7 @@ void SmoothViewport::fix_invariants() {
       o_.center_y = double( size_y ) -
                     double( y_world_pixels_in_viewport() ) / 2;
   } else {
-    o_.center_y =
-        double( 0_y + this->world_size_pixels().h / 2_sy );
+    o_.center_y = double( 0 + this->world_size_pixels().h / 2 );
   }
 }
 
@@ -485,12 +484,12 @@ bool SmoothViewport::are_surroundings_visible() const {
 
 bool SmoothViewport::is_fully_visible_x() const {
   Rect covered = covered_tiles();
-  return covered.x == 0_x && covered.w == world_rect_tiles().w;
+  return covered.x == 0 && covered.w == world_rect_tiles().w;
 }
 
 bool SmoothViewport::is_fully_visible_y() const {
   Rect covered = covered_tiles();
-  return covered.y == 0_y && covered.h == world_rect_tiles().h;
+  return covered.y == 0 && covered.h == world_rect_tiles().h;
 }
 
 // Tiles that are fully visible. The rect returned here will be
@@ -499,17 +498,15 @@ Rect SmoothViewport::fully_covered_tiles() const {
   // First round to the nearest pixel, then move the rectangle
   // inward to the nearest tile boundary (if we are not already
   // on one.
-  Coord upper_left(
-      X{ round_up_to_nearest_int_multiple( lround( start_x() ),
-                                           g_tile_width._ ) },
-      Y{ round_up_to_nearest_int_multiple( lround( start_y() ),
-                                           g_tile_height._ ) } );
-  Coord lower_right(
-      X{ round_down_to_nearest_int_multiple( lround( end_x() ),
-                                             g_tile_width._ ) },
-      Y{ round_down_to_nearest_int_multiple(
-          lround( end_y() ), g_tile_height._ ) } );
-  return Rect::from( upper_left, lower_right ) / g_tile_scale;
+  Coord upper_left{ .x = round_up_to_nearest_int_multiple(
+                        lround( start_x() ), g_tile_width ),
+                    .y = round_up_to_nearest_int_multiple(
+                        lround( start_y() ), g_tile_height ) };
+  Coord lower_right{ .x = round_down_to_nearest_int_multiple(
+                         lround( end_x() ), g_tile_width ),
+                     .y = round_down_to_nearest_int_multiple(
+                         lround( end_y() ), g_tile_height ) };
+  return Rect::from( upper_left, lower_right ) / g_tile_delta;
 }
 
 Rect SmoothViewport::covered_pixels() const {
@@ -526,7 +523,7 @@ Rect SmoothViewport::covered_pixels() const {
 Rect SmoothViewport::rendering_src_rect() const {
   Rect viewport = get_bounds();
   return Rect::from(
-             Coord{} + viewport.upper_left() % g_tile_scale,
+             Coord{} + viewport.upper_left() % g_tile_delta,
              viewport.delta() )
       .clamp( this->world_rect_pixels() );
 }
@@ -539,16 +536,14 @@ Rect SmoothViewport::rendering_dest_rect() const {
   if( viewport.w > max_src_width ) {
     double delta = ( double( viewport.w - max_src_width ) /
                      double( viewport.w ) ) *
-                   double( viewport_rect_pixels_.delta().w._ ) /
-                   2;
+                   double( viewport_rect_pixels_.delta().w ) / 2;
     dest.x += int( delta );
     dest.w -= int( delta * 2 );
   }
   if( viewport.h > max_src_height ) {
     double delta = ( double( viewport.h - max_src_height ) /
                      double( viewport.h ) ) *
-                   double( viewport_rect_pixels_.delta().h._ ) /
-                   2;
+                   double( viewport_rect_pixels_.delta().h ) / 2;
     dest.y += int( delta );
     dest.h -= int( delta * 2 );
   }
@@ -560,11 +555,9 @@ Coord SmoothViewport::landscape_buffer_render_upper_left()
   Coord res;
   if( rendering_dest_rect().upper_left().x <=
       viewport_rect_pixels_.upper_left().x ) {
-    res.x = X{ int( lround( -covered_pixels()
-                                 .upper_left()
-                                 .distance_from_origin()
-                                 .w._ *
-                            get_zoom() ) ) };
+    res.x = X{ int( lround(
+        -covered_pixels().upper_left().distance_from_origin().w *
+        get_zoom() ) ) };
     res.x += viewport_rect_pixels_.upper_left()
                  .distance_from_origin()
                  .w;
@@ -574,11 +567,9 @@ Coord SmoothViewport::landscape_buffer_render_upper_left()
 
   if( rendering_dest_rect().upper_left().y <=
       viewport_rect_pixels_.upper_left().y ) {
-    res.y = Y{ int( lround( -covered_pixels()
-                                 .upper_left()
-                                 .distance_from_origin()
-                                 .h._ *
-                            get_zoom() ) ) };
+    res.y = Y{ int( lround(
+        -covered_pixels().upper_left().distance_from_origin().h *
+        get_zoom() ) ) };
     res.y += viewport_rect_pixels_.upper_left()
                  .distance_from_origin()
                  .h;
@@ -593,8 +584,7 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   Rect visible_on_screen = rendering_dest_rect();
   auto from_visible_start =
       pixel_coord - visible_on_screen.upper_left();
-  if( from_visible_start.w < 0_w ||
-      from_visible_start.h < 0_h ) {
+  if( from_visible_start.w < 0 || from_visible_start.h < 0 ) {
     return nothing;
   }
   if( from_visible_start.w >= visible_on_screen.w ||
@@ -602,10 +592,10 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
     return nothing;
   }
 
-  double percent_x = double( from_visible_start.w._ + .5 ) /
-                     visible_on_screen.w._;
-  double percent_y = double( from_visible_start.h._ + .5 ) /
-                     visible_on_screen.h._;
+  double percent_x =
+      double( from_visible_start.w + .5 ) / visible_on_screen.w;
+  double percent_y =
+      double( from_visible_start.h + .5 ) / visible_on_screen.h;
 
   DCHECK( percent_x >= 0 );
   DCHECK( percent_y >= 0 );
@@ -614,12 +604,12 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
       get_bounds().clamp( this->world_rect_pixels() );
 
   auto res = Coord{
-      X{ int( lround( viewport_or_world.x._ +
-                      percent_x * viewport_or_world.w._ ) ) },
-      Y{ int( lround( viewport_or_world.y._ +
-                      percent_y * viewport_or_world.h._ ) ) } };
+      X{ int( lround( viewport_or_world.x +
+                      percent_x * viewport_or_world.w ) ) },
+      Y{ int( lround( viewport_or_world.y +
+                      percent_y * viewport_or_world.h ) ) } };
 
-  DCHECK( res.x >= 0_x && res.y >= 0_y );
+  DCHECK( res.x >= 0 && res.y >= 0 );
   return res;
 }
 
@@ -627,9 +617,9 @@ double SmoothViewport::optimal_min_zoom() const {
   Delta  world_pixels    = world_size_pixels();
   Delta  viewport_pixels = viewport_rect_pixels_.delta();
   double optimal_zoom_for_x =
-      double( viewport_pixels.w._ ) / world_pixels.w._;
+      double( viewport_pixels.w ) / world_pixels.w;
   double optimal_zoom_for_y =
-      double( viewport_pixels.h._ ) / world_pixels.h._;
+      double( viewport_pixels.h ) / world_pixels.h;
   double res =
       std::min( optimal_zoom_for_x, optimal_zoom_for_y );
   // Leave some border around it.
@@ -638,7 +628,7 @@ double SmoothViewport::optimal_min_zoom() const {
 
 Coord SmoothViewport::world_tile_to_world_pixel_center(
     Coord world_tile ) const {
-  return world_tile * g_tile_scale + g_tile_delta / Scale{ 2 };
+  return world_tile * g_tile_delta + g_tile_delta / 2;
 }
 
 maybe<Coord> SmoothViewport::world_tile_to_screen_pixel(
@@ -652,14 +642,14 @@ maybe<Coord> SmoothViewport::world_pixel_to_screen_pixel(
   Rect covered_pixels = this->covered_pixels();
   if( !world_pixel.is_inside( covered_pixels ) ) return nothing;
   double x_percent =
-      double( ( world_pixel.x - covered_pixels.x )._ ) /
-      covered_pixels.w._;
+      double( ( world_pixel.x - covered_pixels.x ) ) /
+      covered_pixels.w;
   double y_percent =
-      double( ( world_pixel.y - covered_pixels.y )._ ) /
-      covered_pixels.h._;
+      double( ( world_pixel.y - covered_pixels.y ) ) /
+      covered_pixels.h;
   Rect dst = rendering_dest_rect();
-  dst.w._ *= x_percent;
-  dst.h._ *= y_percent;
+  dst.w *= x_percent;
+  dst.h *= y_percent;
   return dst.lower_right();
 }
 
@@ -667,7 +657,7 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_tile(
     Coord pixel_coord ) const {
   auto maybe_pixel = screen_pixel_to_world_pixel( pixel_coord );
   if( !maybe_pixel.has_value() ) return {};
-  return maybe_pixel.value() / g_tile_scale;
+  return maybe_pixel.value() / g_tile_delta;
 }
 
 bool SmoothViewport::screen_coord_in_viewport(
@@ -701,13 +691,13 @@ void SmoothViewport::pan_by_screen_coords( Delta delta ) {
 
 void SmoothViewport::center_on_tile_x( Coord const& coords ) {
   o_.center_x =
-      double( coords.x * g_tile_width + g_tile_width._ / 2 );
+      double( coords.x * g_tile_width + g_tile_width / 2 );
   fix_invariants();
 }
 
 void SmoothViewport::center_on_tile_y( Coord const& coords ) {
   o_.center_y =
-      double( coords.y * g_tile_height + g_tile_height._ / 2 );
+      double( coords.y * g_tile_height + g_tile_height / 2 );
   fix_invariants();
 }
 
@@ -719,7 +709,7 @@ void SmoothViewport::center_on_tile( Coord const& coords ) {
 
 bool SmoothViewport::is_tile_fully_visible(
     Coord const& coord ) const {
-  Rect box = Rect::from( coord * g_tile_scale, g_tile_delta );
+  Rect box = Rect::from( coord * g_tile_delta, g_tile_delta );
   return box.is_inside( get_bounds() );
 }
 
@@ -728,8 +718,8 @@ bool SmoothViewport::is_tile_fully_visible(
 template<typename C>
 bool is_tile_fully_visible( SmoothViewport const& vp,
                             Coord const&          coords ) {
-  auto tile_rect       = Rect::from( coords, { 1_w, 1_h } );
-  auto tile_pixel_rect = tile_rect * g_tile_scale;
+  auto tile_rect = Rect::from( coords, Delta{ .w = 1, .h = 1 } );
+  auto tile_pixel_rect = tile_rect * g_tile_delta;
   auto covered         = vp.covered_pixels();
   return tile_pixel_rect.is_inside( covered );
 }
@@ -804,8 +794,8 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
   coro_smooth_scroll_ = SmoothScroll{
-      .x_target = XD{ double( ( coord.x * g_tile_width )._ ) },
-      .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
+      .x_target    = double( ( coord.x * g_tile_width ) ),
+      .y_target    = double( ( coord.y * g_tile_height ) ),
       .tile_target = coord,
       .promise     = {} };
   return coro_smooth_scroll_->promise.wait();

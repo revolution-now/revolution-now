@@ -20,6 +20,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"

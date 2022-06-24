@@ -18,10 +18,13 @@
 #include "lua.hpp"
 #include "player.hpp"
 #include "rand-enum.hpp"
-#include "utype.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
 
 // game-state
 #include "gs/settings.hpp"
+#include "gs/unit-type.hpp"
 #include "gs/units.hpp"
 
 // config

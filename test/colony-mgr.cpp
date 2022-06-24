@@ -20,12 +20,12 @@
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
 
-// game-state
+// gs
 #include "gs/colonies.hpp"
 #include "gs/root.hpp"
 #include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
 #include "gs/units.hpp"
 
 // refl

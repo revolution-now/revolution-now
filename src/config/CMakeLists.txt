@@ -3,4 +3,5 @@ add_rn_library(
   # Dependencies
   rn-base
   rn-gs
+  rn-luapp
 )

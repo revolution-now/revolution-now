@@ -101,7 +101,7 @@ void SilentMusicPlayer::resume() { is_paused_ = false; }
 void MusicPlayerState::log() const {
   lg.debug( "MusicPlayerState:" );
   if( tune_info.has_value() ) {
-    lg.info( "  tune_info.id:      {} ({})", tune_info->id._,
+    lg.info( "  tune_info.id:      {} ({})", tune_info->id,
              tune_display_name_from_id( tune_info->id ) );
     if( tune_info->length.has_value() )
       lg.info( "  tune_info.length:  {}sec",

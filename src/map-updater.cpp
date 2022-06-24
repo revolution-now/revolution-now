@@ -97,14 +97,14 @@ void MapUpdater::modify_map_square(
   // can derive their ground terrain from their neighbors, and
   // those in turn can affect their neighbors. Though changes of
   // this kind only happen in the map editor.
-  Rect to_update = Rect::from( tile - Delta( 2_w, 2_h ),
-                               tile + Delta( 3_w, 3_h ) );
+  Rect to_update = Rect::from( tile - Delta{ .w = 2, .h = 2 },
+                               tile + Delta{ .w = 3, .h = 3 } );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   for( Coord moved : to_update ) {
     if( !terrain_state_.square_exists( moved ) ) continue;
     render_terrain_square( terrain_state_, renderer_,
-                           moved * g_tile_scale, moved,
+                           moved * g_tile_delta, moved,
                            terrain_options );
   }
 

@@ -14,10 +14,12 @@
 #include "co-wait.hpp"
 #include "colony.hpp"
 #include "igui.hpp"
-#include "utype.hpp"
 
 // config
 #include "config/colony.rds.hpp"
+
+// gs
+#include "gs/unit-type.hpp"
 
 // refl
 #include "refl/to-str.hpp"

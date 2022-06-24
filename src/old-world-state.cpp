@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "lua.hpp"
-#include "utype.hpp"
+
+// gs
+#include "gs/unit-type.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"

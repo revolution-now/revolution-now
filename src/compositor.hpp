@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // Rds
 #include "compositor.rds.hpp"
 

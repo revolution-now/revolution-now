@@ -16,6 +16,9 @@
 #include "src/map-updater.hpp"
 #include "src/ustate.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "src/gs/root.hpp"
 

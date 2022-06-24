@@ -52,23 +52,23 @@ struct block {
       }
     }
     if( l )
-      for( Y y = 1_y; y < 0_y + size.h - 1_h; ++y )
-        if( res[y][0_x] != -1 ) res[y][0_x]++;
+      for( Y y = 1; y < 0 + size.h - 1; ++y )
+        if( res[y][0] != -1 ) res[y][0]++;
     if( r )
-      for( Y y = 1_y; y < 0_y + size.h - 1_h; ++y )
-        if( res[y][0_x + size.w - 1] != -1 )
-          res[y][0_x + size.w - 1]++;
+      for( Y y = 1; y < 0 + size.h - 1; ++y )
+        if( res[y][0 + size.w - 1] != -1 )
+          res[y][0 + size.w - 1]++;
     if( u )
-      for( X x = 1_x; x < 0_x + size.w - 1_w; ++x )
-        if( res[0_y][x] != -1 ) res[0_y][x]++;
+      for( X x = 1; x < 0 + size.w - 1; ++x )
+        if( res[0][x] != -1 ) res[0][x]++;
     if( d )
-      for( X x = 1_x; x < 0_x + size.w - 1_w; ++x )
-        if( res[0_y + size.h - 1_h][x] != -1 )
-          res[0_y + size.h - 1_h][x]++;
-    if( l && u ) res[0_y][0_x] = -1;
-    if( l && d ) res[0_y + size.h - 1_h][0_x] = -1;
-    if( r && u ) res[0_y][0_x + size.w - 1] = -1;
-    if( r && d ) res[0_y + size.h - 1_h][0_x + size.w - 1] = -1;
+      for( X x = 1; x < 0 + size.w - 1; ++x )
+        if( res[0 + size.h - 1][x] != -1 )
+          res[0 + size.h - 1][x]++;
+    if( l && u ) res[0][0] = -1;
+    if( l && d ) res[0 + size.h - 1][0] = -1;
+    if( r && u ) res[0][0 + size.w - 1] = -1;
+    if( r && d ) res[0 + size.h - 1][0 + size.w - 1] = -1;
     return res;
   }
 
@@ -141,10 +141,10 @@ void compute_merged_padding_impl( block& b ) {
     auto rect = Rect::from( coord, sub_block.size );
     // Handle each side of the sub-block so long as it is not
     // touching one of the edges of this block.
-    if( rect.top_edge() != 0_y ) {
+    if( rect.top_edge() != 0 ) {
       // [start, end] inclusive of edge not including corners.
-      auto start = rect.left_edge() + 1_w;
-      auto end   = rect.right_edge() - 1_w - 1_w;
+      auto start = rect.left_edge() + 1;
+      auto end   = rect.right_edge() - 1 - 1;
       if( start < end ) {
         auto& ranges   = horizontal_edges[rect.top_edge()];
         bool  overlaps = false;
@@ -156,14 +156,13 @@ void compute_merged_padding_impl( block& b ) {
         }
       }
     }
-    if( rect.bottom_edge() != 0_y + b.size.h ) {
+    if( rect.bottom_edge() != 0 + b.size.h ) {
       // [start, end] inclusive of edge not including corners.
-      auto start = rect.left_edge() + 1_w;
-      auto end   = rect.right_edge() - 1_w - 1_w;
+      auto start = rect.left_edge() + 1;
+      auto end   = rect.right_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges =
-            horizontal_edges[rect.bottom_edge() - 1_h];
-        bool overlaps = false;
+        auto& ranges = horizontal_edges[rect.bottom_edge() - 1];
+        bool  overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
@@ -172,10 +171,10 @@ void compute_merged_padding_impl( block& b ) {
         }
       }
     }
-    if( rect.left_edge() != 0_x ) {
+    if( rect.left_edge() != 0 ) {
       // [start, end] inclusive of edge not including corners.
-      auto start = rect.top_edge() + 1_h;
-      auto end   = rect.bottom_edge() - 1_h - 1_h;
+      auto start = rect.top_edge() + 1;
+      auto end   = rect.bottom_edge() - 1 - 1;
       if( start < end ) {
         auto& ranges   = vertical_edges[rect.left_edge()];
         bool  overlaps = false;
@@ -187,12 +186,12 @@ void compute_merged_padding_impl( block& b ) {
         }
       }
     }
-    if( rect.right_edge() != 0_x + b.size.w ) {
+    if( rect.right_edge() != 0 + b.size.w ) {
       // [start, end] inclusive of edge not including corners.
-      auto start = rect.top_edge() + 1_h;
-      auto end   = rect.bottom_edge() - 1_h - 1_h;
+      auto start = rect.top_edge() + 1;
+      auto end   = rect.bottom_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges   = vertical_edges[rect.right_edge() - 1_w];
+        auto& ranges   = vertical_edges[rect.right_edge() - 1];
         bool  overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
@@ -213,7 +212,7 @@ void compute_merged_padding( block& b ) {
 
 void inc_sizes( block& b ) {
   for( auto& sub_b : b.subdivisions ) inc_sizes( sub_b.second );
-  b.size += Delta{ 1_w, 1_h };
+  b.size += Delta{ .w = 1, .h = 1 };
 }
 
 block derive_blocks_impl( ui::View const* view );
@@ -394,25 +393,25 @@ void test_autopad() {
    * clang-format on
    */
 
-  auto block0 = block( { 25_w, 6_h }, {} );
-  auto block1 = block( { 25_w, 5_h }, {} );
-  auto block2 = block( { 26_w, 8_h }, {} );
-  auto block3 = block( { 26_w, 3_h }, {} );
-  auto block4 =
-      block( { 50_w, 10_h }, { { { 0_x, 0_y }, block0 },
-                               { { 0_x, 5_y }, block1 },
-                               { { 24_x, 2_y }, block2 },
-                               { { 24_x, 0_y }, block3 } } );
-  auto block5 = block( { 35_w, 11_h }, {} );
-  auto block6 = block( { 16_w, 11_h }, {} );
-  auto block7 = block(
-      { 50_w, 11_h },
-      { { { 15_x, 0_y }, block5 }, { { 0_x, 0_y }, block6 } } );
-  auto block8 = block( { 16_w, 20_h }, {} );
-  auto block9 =
-      block( { 65_w, 20_h }, { { { 15_x, 0_y }, block4 },
-                               { { 15_x, 9_y }, block7 },
-                               { { 0_x, 0_y }, block8 } } );
+  auto block0 = block( { .w = 25, .h = 6 }, {} );
+  auto block1 = block( { .w = 25, .h = 5 }, {} );
+  auto block2 = block( { .w = 26, .h = 8 }, {} );
+  auto block3 = block( { .w = 26, .h = 3 }, {} );
+  auto block4 = block( { .w = 50, .h = 10 },
+                       { { { .x = 0, .y = 0 }, block0 },
+                         { { .x = 0, .y = 5 }, block1 },
+                         { { .x = 24, .y = 2 }, block2 },
+                         { { .x = 24, .y = 0 }, block3 } } );
+  auto block5 = block( { .w = 35, .h = 11 }, {} );
+  auto block6 = block( { .w = 16, .h = 11 }, {} );
+  auto block7 = block( { .w = 50, .h = 11 },
+                       { { { .x = 15, .y = 0 }, block5 },
+                         { { .x = 0, .y = 0 }, block6 } } );
+  auto block8 = block( { .w = 16, .h = 20 }, {} );
+  auto block9 = block( { .w = 65, .h = 20 },
+                       { { { .x = 15, .y = 0 }, block4 },
+                         { { .x = 15, .y = 9 }, block7 },
+                         { { .x = 0, .y = 0 }, block8 } } );
   fmt::print( "\nBefore:\n" );
   print_matrix( block9.to_matrix() );
 

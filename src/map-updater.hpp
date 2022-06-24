@@ -16,9 +16,6 @@
 #include "map-square.hpp"
 #include "matrix.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/coord.hpp"
 
@@ -28,6 +25,10 @@
 
 // C++ standard library
 #include <stack>
+
+namespace rr {
+struct Renderer;
+}
 
 namespace rn {
 

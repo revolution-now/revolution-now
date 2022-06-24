@@ -12,12 +12,12 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // gs
 #include "gs/colony.rds.hpp"
 #include "gs/unit-type.rds.hpp"
-
-// Rds
-#include "utype.rds.hpp"
 
 namespace rn {
 

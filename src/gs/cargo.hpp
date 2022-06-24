@@ -12,17 +12,18 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "cargo.rds.hpp"
+
 // Revolution Now
-#include "commodity.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "macros.hpp"
-#include "unit-id.hpp"
 #include "util.hpp"
 #include "variant.hpp"
 
-// Rds
-#include "cargo.rds.hpp"
+// gs
+#include "gs/commodity.rds.hpp"
 
 // base
 #include "base/adl-tag.hpp"

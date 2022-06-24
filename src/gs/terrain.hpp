@@ -10,10 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "expect.hpp"
+// Rds
+#include "gs/terrain.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -21,8 +19,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Rds
-#include "terrain.rds.hpp"
+// base
+#include "base/expect.hpp"
+#include "base/maybe.hpp"
 
 namespace rn {
 
@@ -43,8 +42,9 @@ struct TerrainState {
 
   bool square_exists( Coord coord ) const;
 
-  MapSquare const&        square_at( Coord coord ) const;
-  maybe<MapSquare const&> maybe_square_at( Coord coord ) const;
+  MapSquare const&              square_at( Coord coord ) const;
+  base::maybe<MapSquare const&> maybe_square_at(
+      Coord coord ) const;
 
   int  placement_seed() const { return o_.placement_seed; }
   void set_placement_seed( int seed ) {
@@ -74,13 +74,13 @@ struct TerrainState {
   // the map gets redrawn accordingly. If you don't want to
   // redraw a map (e.g. you are in unit tests) then just use the
   // non-rendering map updater.
-  Matrix<MapSquare>& mutable_world_map();
-  MapSquare&         mutable_square_at( Coord coord );
-  maybe<MapSquare&>  mutable_maybe_square_at( Coord coord );
+  Matrix<MapSquare>&      mutable_world_map();
+  MapSquare&              mutable_square_at( Coord coord );
+  base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
 
  private:
-  valid_or<std::string> validate() const;
-  void                  validate_or_die() const;
+  base::valid_or<std::string> validate() const;
+  void                        validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::TerrainState o_;

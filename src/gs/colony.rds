@@ -9,12 +9,12 @@
 #
 # ===============================================================
 # gs
-include "colony-enums.rds.hpp"
-include "colony-id.hpp"
-include "commodity.rds.hpp"
-include "nation.rds.hpp"
-include "unit-id.hpp"
-include "unit-type.rds.hpp"
+include "gs/colony-enums.rds.hpp"
+include "gs/colony-id.hpp"
+include "gs/commodity.rds.hpp"
+include "gs/nation.rds.hpp"
+include "gs/unit-id.hpp"
+include "gs/unit-type.rds.hpp"
 
 # gfx
 include "gfx/coord.hpp"

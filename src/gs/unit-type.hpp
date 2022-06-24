@@ -1,5 +1,5 @@
 /****************************************************************
-**utype.hpp
+**unit-type.hpp
 *
 * Project: Revolution Now
 *
@@ -13,40 +13,23 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "commodity.hpp"
 #include "expect.hpp"
-#include "lua-enum.hpp"
+#include "maybe.hpp"
+
+// gs
+#include "gs/commodity.rds.hpp"
+#include "gs/unit-type.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Rds
-#include "utype.rds.hpp"
-
 // base
 #include "base/adl-tag.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 namespace rn {
-
-/****************************************************************
-** e_unit_type
-*****************************************************************/
-LUA_ENUM_DECL( unit_type );
-
-/****************************************************************
-** e_unit_human
-*****************************************************************/
-LUA_ENUM_DECL( unit_human );
-
-/****************************************************************
-** e_unit_type_modifier
-*****************************************************************/
-LUA_ENUM_DECL( unit_type_modifier );
-
-/****************************************************************
-** e_unit_activity
-*****************************************************************/
-LUA_ENUM_DECL( unit_activity );
 
 /****************************************************************
 ** Unit Inventory
@@ -63,19 +46,9 @@ maybe<e_commodity> inventory_to_commodity(
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
-bool can_attack( UnitTypeAttributes const& attr );
+bool can_attack( e_unit_type type );
 
-bool is_military_unit( UnitTypeAttributes const& attr );
-
-UnitTypeAttributes const& unit_attr( e_unit_type type );
-
-} // namespace rn
-
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::UnitTypeAttributes, owned_by_cpp ){};
-}
-
-namespace rn {
+bool is_military_unit( e_unit_type type );
 
 /****************************************************************
 ** UnitType
@@ -165,8 +138,6 @@ maybe<UnitType> add_unit_type_modifiers(
 maybe<UnitType> rm_unit_type_modifiers(
     UnitType                                        ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
-
-UnitTypeAttributes const& unit_attr( UnitType type );
 
 // This promotes a unit. If the promotion is possible then either
 // the base type or derived type (or both) may change. The `ac-

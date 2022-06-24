@@ -16,6 +16,9 @@
 #include "map-updater.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // game-state
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"
@@ -25,6 +28,7 @@
 
 // luapp
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

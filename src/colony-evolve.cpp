@@ -18,9 +18,9 @@
 #include "production.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
 
-// game-state
+// gs
+#include "gs/unit-type.hpp"
 #include "gs/units.hpp"
 
 // config
