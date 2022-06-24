@@ -12,8 +12,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "events.rds.hpp"
 

@@ -16,7 +16,6 @@
 #include "co-wait.hpp"
 #include "colony-id.hpp"
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
 #include "logger.hpp"
@@ -51,6 +50,9 @@
 
 // render
 #include "render/renderer.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/to-str.hpp"

@@ -15,10 +15,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "map-updater.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

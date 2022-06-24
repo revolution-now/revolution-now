@@ -13,11 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "lua-enum.hpp"
 #include "maybe.hpp"
 
 // Rds
-#include "terrain.rds.hpp"
+#include "gs/terrain-enums.rds.hpp"
 
 namespace rn {
 
@@ -49,15 +48,5 @@ maybe<e_ground_terrain> to_ground_terrain( e_terrain terrain );
 // take into account whether e.g. there is a forest on the
 // square. This is only for ground terrain.
 e_terrain from_ground_terrain( e_ground_terrain ground );
-
-/****************************************************************
-** Lua
-*****************************************************************/
-LUA_ENUM_DECL( ground_terrain );
-LUA_ENUM_DECL( surface );
-LUA_ENUM_DECL( land_overlay );
-LUA_ENUM_DECL( river );
-LUA_ENUM_DECL( natural_resource );
-LUA_ENUM_DECL( terrain );
 
 } // namespace rn

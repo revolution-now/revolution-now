@@ -13,12 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "macros.hpp"
 #include "maybe.hpp"
 
 // Rds
 #include "input.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/adl-tag.hpp"

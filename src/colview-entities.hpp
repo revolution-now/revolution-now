@@ -16,7 +16,6 @@
 #include "cargo.hpp"
 #include "colony-id.hpp"
 #include "commodity.hpp"
-#include "coord.hpp"
 #include "dragdrop.hpp"
 #include "input.hpp"
 #include "view.hpp"
@@ -24,6 +23,9 @@
 
 // render
 #include "render/renderer.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // Rds
 #include "colview-entities.rds.hpp"

@@ -1,18 +1,16 @@
 /****************************************************************
-**tile-enum.hpp
+**colony-id.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-03-19.
+* Created by dsicilia on 2022-02-13.
 *
-* Description: Enum of all sprites in game.
+* Description: Id for colonies.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// Rds
-#include "tile-enum.rds.hpp"
-
-namespace rn {} // namespace rn
+// FIXME: remove.
+using ColonyId = int;

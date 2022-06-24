@@ -43,7 +43,7 @@ base::maybe<Enum> lua_get( cthread L, int idx, tag<Enum> ) {
 
 template<refl::ReflectedEnum Enum>
 void lua_push( cthread L, Enum val ) {
-  push_str_to_stack( L, refl::enum_value_name( val ) );
+  detail::push_str_to_stack( L, refl::enum_value_name( val ) );
 }
 
 } // namespace lua

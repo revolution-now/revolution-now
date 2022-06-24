@@ -10,13 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "error.hpp"
-#include "lua-enum.hpp"
-#include "maybe.hpp"
-#include "typed-int.hpp"
+// gfx
+#include "cartesian.hpp"
 
 // Rds
 #include "coord.rds.hpp"
@@ -24,11 +19,10 @@
 // luapp
 #include "luapp/ext.hpp"
 
-// gfx
-#include "gfx/cartesian.hpp"
-
 // base
 #include "base/adl-tag.hpp"
+#include "base/error.hpp"
+#include "base/maybe.hpp"
 
 // c++ standard library
 #include <cmath>
@@ -38,8 +32,17 @@
 
 namespace rn {
 
-using ScaleX = SX;
-using ScaleY = SY;
+using X  = int;
+using Y  = int;
+using W  = int;
+using H  = int;
+using SX = int;
+using SY = int;
+
+struct DimensionX;
+struct DimensionY;
+struct DimensionW;
+struct DimensionH;
 
 /****************************************************************
 ** Fwd Decls
@@ -55,47 +58,19 @@ struct RectGridProxyIteratorHelper;
 e_direction_type direction_type( e_direction d );
 
 /****************************************************************
-** Scale
-*****************************************************************/
-struct Scale {
-  SX sx = 1_sx;
-  SY sy = 1_sy;
-
-  constexpr Scale( SX sx_, SY sy_ ) : sx( sx_ ), sy( sy_ ) {}
-
-  explicit constexpr Scale( int scale ) {
-    sx._ = scale;
-    sy._ = scale;
-  }
-
-  constexpr Scale() : Scale( 1 ) {}
-
-  constexpr bool operator==( Scale const& rhs ) const {
-    return ( sx == rhs.sx ) && ( sy == rhs.sy );
-  }
-  constexpr bool operator!=( Scale const& rhs ) const {
-    return ( sx != rhs.sx ) || ( sy != rhs.sy );
-  }
-};
-
-/****************************************************************
 ** Delta
 *****************************************************************/
 struct Delta {
-  W w;
-  H h;
+  W w = 0;
+  H h = 0;
 
   operator gfx::size() const {
-    return gfx::size{ .w = w._, .h = h._ };
+    return gfx::size{ .w = w, .h = h };
   }
 
   static Delta from_gfx( gfx::size s ) {
-    return Delta( W{ s.w }, H{ s.h } );
+    return Delta{ .w = s.w, .h = s.h };
   }
-
-  constexpr Delta() = default;
-  constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
-  constexpr Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
 
   constexpr bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
@@ -107,10 +82,14 @@ struct Delta {
 
   template<typename Dimension>
   auto get() const {
-    if constexpr( std::is_same_v<Dimension, X> ) return w;
-    if constexpr( std::is_same_v<Dimension, Y> ) return h;
-    if constexpr( std::is_same_v<Dimension, W> ) return w;
-    if constexpr( std::is_same_v<Dimension, H> ) return h;
+    if constexpr( std::is_same_v<Dimension, DimensionX> )
+      return w;
+    if constexpr( std::is_same_v<Dimension, DimensionY> )
+      return h;
+    if constexpr( std::is_same_v<Dimension, DimensionW> )
+      return w;
+    if constexpr( std::is_same_v<Dimension, DimensionH> )
+      return h;
   }
 
   Delta operator-() { return { -w, -h }; }
@@ -134,7 +113,7 @@ struct Delta {
 
   // Given a grid size this will round each dimension up to the
   // nearest multiple of that size.
-  Delta round_up( Scale grid_size ) const;
+  Delta round_up( Delta grid_size ) const;
 
   // This will reduce the magnitude of each component by one.
   // E.g., if the h component is -5, it will become -4, if the w
@@ -142,22 +121,8 @@ struct Delta {
   // will remain zero.
   Delta trimmed_by_one() const;
 
-  constexpr void operator*=( Scale const& scale ) {
-    w *= scale.sx;
-    h *= scale.sy;
-  }
-
-  void operator/=( Scale const& scale ) {
-    w /= scale.sx;
-    h /= scale.sy;
-  }
-
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
-
-  Scale to_scale() const {
-    return { SX{ w / 1_w }, SY{ h / 1_h } };
-  }
 
   Delta mirrored_vertically() const { return { w, -h }; }
   Delta mirrored_horizontally() const { return { -w, h }; }
@@ -178,10 +143,10 @@ struct Delta {
   // bounds of the given delta.
   Delta clamp( Delta const& delta ) const;
 
-  int area() const { return w._ * h._; }
+  int area() const { return w * h; }
 
-  friend maybe<Delta> lua_get( lua::cthread L, int idx,
-                               lua::tag<Delta> );
+  friend base::maybe<Delta> lua_get( lua::cthread L, int idx,
+                                     lua::tag<Delta> );
   friend void lua_push( lua::cthread L, Delta const& delta );
 };
 
@@ -189,26 +154,21 @@ struct Delta {
 ** Coord
 *****************************************************************/
 struct Coord {
-  Y y;
-  X x;
-
- public:
-  Coord() = default;
-  Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}
-  Coord( Y y_, X x_ ) : y( y_ ), x( x_ ) {}
+  X x = 0;
+  Y y = 0;
 
   operator gfx::point() const {
-    return gfx::point{ .x = x._, .y = y._ };
+    return gfx::point{ .x = x, .y = y };
   }
 
   static Coord from_gfx( gfx::point p ) {
-    return Coord( X{ p.x }, Y{ p.y } );
+    return Coord{ .x = p.x, .y = p.y };
   }
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
-  Dimension const& coordinate() const;
+  int coordinate() const;
 
   bool operator==( Coord const& other ) const {
     return ( y == other.y ) && ( x == other.x );
@@ -223,14 +183,14 @@ struct Coord {
     y += delta.h;
   }
 
-  void operator*=( Scale const& scale ) {
-    x *= scale.sx;
-    y *= scale.sy;
+  void operator*=( Delta const& delta ) {
+    x *= delta.w;
+    y *= delta.h;
   }
 
-  void operator/=( Scale const& scale ) {
-    x /= scale.sx;
-    y /= scale.sy;
+  void operator/=( Delta const& delta ) {
+    x /= delta.w;
+    y /= delta.h;
   }
 
   Coord operator-() const { return { -x, -y }; }
@@ -241,20 +201,16 @@ struct Coord {
   // TODO: change to clamp
   void clip( Rect const& rect );
 
-  Coord rounded_to_multiple_to_plus_inf( Scale multiple ) const;
   Coord rounded_to_multiple_to_plus_inf( Delta multiple ) const;
-  Coord rounded_to_multiple_to_minus_inf( Scale multiple ) const;
   Coord rounded_to_multiple_to_minus_inf( Delta multiple ) const;
 
-  Delta distance_from_origin() const {
-    return { y - 0_y, x - 0_x };
-  }
+  Delta distance_from_origin() const { return { y - 0, x - 0 }; }
 
   Coord moved( e_direction d ) const;
   // Find the direction from this coord to `dest`. If dest is not
   // equal or adjacent to this coord then nothing will be re-
   // turned.
-  maybe<e_direction> direction_to( Coord dest ) const;
+  base::maybe<e_direction> direction_to( Coord dest ) const;
 
   // Returns this coordinate with respect to a new origin.
   Coord with_new_origin( Coord new_origin ) const;
@@ -269,8 +225,8 @@ struct Coord {
   // True if e.g. x is in [x,x+w).
   bool is_on_border_of( Rect const& rect ) const;
 
-  friend maybe<Coord> lua_get( lua::cthread L, int idx,
-                               lua::tag<Coord> );
+  friend base::maybe<Coord> lua_get( lua::cthread L, int idx,
+                                     lua::tag<Coord> );
   friend void lua_push( lua::cthread L, Coord const& coord );
 };
 
@@ -278,22 +234,22 @@ struct Coord {
 ** Rect
 *****************************************************************/
 struct Rect {
-  X x;
-  Y y;
-  W w;
-  H h;
+  X x = 0;
+  Y y = 0;
+  W w = 0;
+  H h = 0;
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
 
   operator gfx::rect() const {
-    return gfx::rect{ .origin = { .x = x._, .y = y._ },
-                      .size   = { .w = w._, .h = h._ } };
+    return gfx::rect{ .origin = { .x = x, .y = y },
+                      .size   = { .w = w, .h = h } };
   }
 
   static Rect from_gfx( gfx::rect r ) {
-    return Rect::from( Coord( X{ r.origin.x }, Y{ r.origin.y } ),
-                       Delta( W{ r.size.w }, H{ r.size.h } ) );
+    return Rect::from( Coord{ .x = r.origin.x, .y = r.origin.y },
+                       Delta{ .w = r.size.w, .h = r.size.h } );
   }
 
   bool operator==( Rect const& rhs ) const {
@@ -308,13 +264,13 @@ struct Rect {
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
-  Dimension const& coordinate() const;
+  int coordinate() const;
 
   // Useful for generic code; allows referencing a width/height
   // from the of the associated dimension, i.e., with Dimension=X
   // it will return the width of type (W).
   template<typename Dimension>
-  LengthType<Dimension> const& length() const;
+  int length() const;
 
   // Upper left corner as a coordinate.
   Coord upper_left() const { return Coord{ y, x }; }
@@ -332,11 +288,11 @@ struct Rect {
   Delta delta() const { return { w, h }; }
 
   // Right edge; NOTE: this is one-past-the-end.
-  X right_edge() const { return { x + w }; }
+  X right_edge() const { return x + w; }
   // Left edge
   X left_edge() const { return x; }
   // Right edge; NOTE: this is one-past-the-end.
-  Y bottom_edge() const { return { y + h }; }
+  Y bottom_edge() const { return y + h; }
   // Left edge
   Y top_edge() const { return y; }
 
@@ -346,7 +302,7 @@ struct Rect {
 
   // Returns true if any part of the two rects overlap, which
   // does not include the borders touching.
-  maybe<Rect> overlap_with( Rect const& rhs ) const;
+  base::maybe<Rect> overlap_with( Rect const& rhs ) const;
 
   // Returns a rect that is adjusted (without respecting
   // proportions) so that it fits inside the given rect.
@@ -382,9 +338,7 @@ struct Rect {
 
   Rect as_if_origin_were( Coord const& coord ) const;
 
-  Rect with_inc_size() const {
-    return { x, y, w + 1_w, h + 1_h };
-  }
+  Rect with_inc_size() const { return { x, y, w + 1, h + 1 }; }
 
   Rect with_new_right_edge( X xp ) const {
     return Rect{ x, y, xp - x, h }.normalized();
@@ -408,7 +362,7 @@ struct Rect {
   Rect uni0n( Rect const& rhs ) const;
 
   // Will return y*w + x if the coord is in the rect.
-  maybe<int> rasterize( Coord coord );
+  base::maybe<int> rasterize( Coord coord );
 
   int area() const { return delta().area(); }
 
@@ -474,7 +428,7 @@ struct Rect {
   };
 
   const_iterator begin() const {
-    if( w == 0_w || h == 0_h ) return end();
+    if( w == 0 || h == 0 ) return end();
     return const_iterator( upper_left(), this );
   }
   const_iterator end() const {
@@ -620,56 +574,41 @@ ND Rect operator+( Rect const& rect, Delta const& delta );
 ND Rect operator+( Delta const& delta, Rect const& rect );
 ND Rect operator-( Rect const& rect, Delta const& delta );
 
-ND Coord operator+( Coord const& coord, W w );
-ND Coord operator+( Coord const& coord, H h );
-ND Coord operator-( Coord const& coord, W w );
-ND Coord operator-( Coord const& coord, H h );
-void     operator+=( Coord& coord, W w );
-void     operator+=( Coord& coord, H h );
-void     operator-=( Coord& coord, W w );
-void     operator-=( Coord& coord, H h );
-void     operator-=( Coord& coord, Delta delta );
-ND Delta operator+( Delta const& delta, W w );
-ND Delta operator+( Delta const& delta, H h );
-ND Delta operator-( Delta const& delta, W w );
-ND Delta operator-( Delta const& delta, H h );
-void     operator+=( Delta& delta, W w );
-void     operator+=( Delta& delta, H h );
-void     operator-=( Delta& delta, W w );
-void     operator-=( Delta& delta, H h );
+void operator-=( Coord& coord, Delta delta );
 
-ND Coord operator*( Coord const& coord, Scale const& scale );
+ND Coord operator*( Coord const& coord, Delta const& delta );
 ND inline constexpr Delta operator*( Delta const& delta,
-                                     Scale const& scale ) {
+                                     int          scale ) {
   Delta res = delta;
-  res *= scale;
+  res.w *= scale;
+  res.h *= scale;
   return res;
 }
-ND Coord operator*( Scale const& scale, Coord const& coord );
-ND Delta operator*( Scale const& scale, Delta const& delta );
-ND Rect  operator*( Rect const& rect, Scale const& scale );
-ND Rect  operator*( Scale const& scale, Rect const& rect );
+ND Coord operator*( Delta const& delta, Coord const& coord );
+ND Delta operator*( Delta const& lhs, Delta const& rhs );
+ND Rect  operator*( Rect const& rect, Delta const& delta );
+ND Rect  operator*( Delta const& delta, Rect const& rect );
 // FIXME: deprecated
-ND Rect  operator/( Rect const& rect, Scale const& scale );
-ND Coord operator/( Coord const& coord, Scale const& scale );
-ND Delta operator/( Delta const& delta, Scale const& scale );
-ND Delta operator%( Coord const& coord, Scale const& scale );
+ND Rect  operator/( Rect const& rect, Delta const& delta );
+ND Coord operator/( Coord const& coord, Delta const& delta );
+ND Delta operator/( Delta const& delta, int scale );
+ND Delta operator/( Delta const& lhs, Delta const& rhs );
 ND Delta operator%( Coord const& coord, Delta const& delta );
 ND constexpr Delta operator%( Delta const& lhs,
-                              Scale const& rhs ) {
-  return Delta{ lhs.w % rhs.sx, lhs.h % rhs.sy };
+                              Delta const& rhs ) {
+  return Delta{ lhs.w % rhs.w, lhs.h % rhs.h };
 }
 
-Scale operator*( Scale const& lhs, Scale const& rhs );
-Scale operator/( Scale const& lhs, Scale const& rhs );
+Delta operator*( Delta const& lhs, Delta const& rhs );
+Delta operator/( Delta const& lhs, Delta const& rhs );
 
 } // namespace rn
 
 /****************************************************************
 ** std::hash
 *****************************************************************/
-// Here  we  open up the std namespace to add a hash function
-// spe- cialization for a Coord.
+// Here we open up the std namespace to add a hash function spe-
+// cialization for a Coord.
 namespace std {
 template<>
 struct hash<::rn::Coord> {
@@ -677,8 +616,7 @@ struct hash<::rn::Coord> {
     // This assumes that the coordinate's components will be less
     // than 2^32. If that is violated, then this is not a good
     // hash function.
-    uint64_t flat =
-        ( uint64_t( c.y._ ) << 32 ) + uint64_t( c.x._ );
+    uint64_t flat = ( uint64_t( c.y ) << 32 ) + uint64_t( c.x );
     return hash<uint64_t>{}( flat );
   }
 };
@@ -689,25 +627,6 @@ struct hash<::rn::Coord> {
 ** Reflection
 *****************************************************************/
 namespace refl {
-
-// Reflection info for struct Scale.
-template<>
-struct traits<rn::Scale> {
-  using type = rn::Scale;
-
-  static constexpr type_kind kind      = type_kind::struct_kind;
-  static constexpr std::string_view ns = "rn";
-  static constexpr std::string_view name = "Scale";
-
-  using template_types = std::tuple<>;
-
-  static constexpr std::tuple fields{
-      refl::StructField{ "sx", &rn::Scale::sx,
-                         offsetof( type, sx ) },
-      refl::StructField{ "sy", &rn::Scale::sy,
-                         offsetof( type, sy ) },
-  };
-};
 
 // Reflection info for struct Delta.
 template<>
@@ -771,10 +690,3 @@ struct traits<rn::Rect> {
 };
 
 } // namespace refl
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace rn {
-LUA_ENUM_DECL( direction );
-}

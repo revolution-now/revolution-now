@@ -2489,29 +2489,29 @@ TEST_CASE( "[unit-composer] lua bindings" ) {
     local uc
     local UC = unit_composer.UnitComposition
     -- free_colonist
-    uc = UC.create_with_type( e.unit_type.free_colonist )
+    uc = UC.create_with_type( "free_colonist" )
     assert( uc )
-    assert( uc:type() == e.unit_type.free_colonist )
-    assert( uc:base_type() == e.unit_type.free_colonist )
+    assert( uc:type() == "free_colonist" )
+    assert( uc:base_type() == "free_colonist" )
     assert( uc:type_obj():base_type() ==
-            e.unit_type.free_colonist )
+            "free_colonist" )
     -- dragoon
-    uc = UC.create_with_type( e.unit_type.dragoon )
+    uc = UC.create_with_type( "dragoon" )
     assert( uc )
-    assert( uc:type() == e.unit_type.dragoon )
-    assert( uc:base_type() == e.unit_type.free_colonist )
+    assert( uc:type() == "dragoon" )
+    assert( uc:base_type() == "free_colonist" )
     -- veteran_soldier
-    uc = UC.create_with_type( e.unit_type.veteran_soldier )
+    uc = UC.create_with_type( "veteran_soldier" )
     assert( uc )
-    assert( uc:type() == e.unit_type.veteran_soldier )
-    assert( uc:base_type() == e.unit_type.veteran_colonist )
+    assert( uc:type() == "veteran_soldier" )
+    assert( uc:base_type() == "veteran_colonist" )
     -- pioneer
     local ut_obj = utype.UnitType.create_with_base(
-        e.unit_type.pioneer, e.unit_type.expert_farmer )
+        "pioneer", "expert_farmer" )
     uc = UC.create_with_type_obj( ut_obj )
     assert( uc )
-    assert( uc:type() == e.unit_type.pioneer )
-    assert( uc:base_type() == e.unit_type.expert_farmer )
+    assert( uc:type() == "pioneer" )
+    assert( uc:base_type() == "expert_farmer" )
   )";
   REQUIRE( st.script.run_safe( script ) == valid );
 }

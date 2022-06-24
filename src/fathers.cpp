@@ -14,6 +14,7 @@
 #include "lua.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -36,8 +37,6 @@ namespace {} // namespace
 /****************************************************************
 ** e_founding_father
 *****************************************************************/
-LUA_ENUM( founding_father );
-
 string_view founding_father_name( e_founding_father father ) {
   return config_fathers.fathers[father].name;
 }
@@ -45,8 +44,6 @@ string_view founding_father_name( e_founding_father father ) {
 /****************************************************************
 ** e_founding_father_type
 *****************************************************************/
-LUA_ENUM( founding_father_type );
-
 e_founding_father_type founding_father_type(
     e_founding_father father ) {
   return config_fathers.fathers[father].type;

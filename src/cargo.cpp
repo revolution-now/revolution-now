@@ -171,11 +171,6 @@ maybe<CargoSlot_t const&> CargoHold::at( int slot ) const {
   return ( *this )[slot];
 }
 
-maybe<CargoSlot_t const&> CargoHold::at(
-    CargoSlotIndex slot ) const {
-  return this->at( slot._ );
-}
-
 CargoSlot_t const& CargoHold::operator[]( int idx ) const {
   CHECK( idx >= 0 && idx < int( o_.slots.size() ) );
   return o_.slots[idx];
@@ -184,11 +179,6 @@ CargoSlot_t const& CargoHold::operator[]( int idx ) const {
 CargoSlot_t& CargoHold::operator[]( int idx ) {
   CHECK( idx >= 0 && idx < int( o_.slots.size() ) );
   return o_.slots[idx];
-}
-
-CargoSlot_t const& CargoHold::operator[](
-    CargoSlotIndex idx ) const {
-  return this->operator[]( idx._ );
 }
 
 maybe<int> CargoHold::find_unit( UnitId id ) const {

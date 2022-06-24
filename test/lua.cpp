@@ -13,7 +13,6 @@
 #define LUA_MODULE_NAME_OVERRIDE "testing"
 
 // Revolution Now
-#include "coord.hpp"
 #include "expect.hpp"
 #include "game-state.hpp"
 #include "lua.hpp"
@@ -21,6 +20,9 @@
 
 // game-state
 #include "gs/root.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/as.hpp"
@@ -120,38 +122,6 @@ TEST_CASE( "[lua] returns string" ) {
            "hello!" );
 }
 
-// FIXME: need to implement some kind of "from string" method for
-// lua enums when registering them, then we can re-enable this
-// test.
-// TEST_CASE( "[lua] enums exist" ) {
-//  auto script = R"(
-//    return tostring( e.nation.dutch ) .. type( e.nation.dutch )
-//  )";
-//  REQUIRE( st.script.run_safe<string>( script ) ==
-//  "dutchuserdata" );
-//}
-
-TEST_CASE( "[lua] enums no assign" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
-    e.nation.dutch = 3
-  )";
-
-  auto xp = st.script.run_safe( script );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(),
-                Contains( "modify a read-only table" ) );
-}
-
-TEST_CASE( "[lua] enums from string" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
-    return e.nation.dutch == e.nation["dutch"]
-  )";
-
-  REQUIRE( st.script.run_safe<bool>( script ) == true );
-}
-
 TEST_CASE( "[lua] has new_game.create" ) {
   lua::state& st = lua_global_state();
   lua_reload( GameState::root() );
@@ -170,17 +140,17 @@ TEST_CASE( "[lua] C++ function binding" ) {
   lua_reload( GameState::root() );
   auto script = R"(
     local soldier_type =
-        utype.UnitType.create( e.unit_type.soldier )
+        utype.UnitType.create( "soldier" )
     local soldier_comp = unit_composer
                         .UnitComposition
                         .create_with_type_obj( soldier_type )
-    local unit1 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit1 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
-    local unit2 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit2 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
-    local unit3 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit3 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
     return unit3:id()-unit1:id()

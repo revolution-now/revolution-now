@@ -10,17 +10,17 @@
 *****************************************************************/
 #include "colony.hpp"
 
-// Revolution Now
-#include "commodity.hpp"
-#include "error.hpp"
-#include "logger.hpp"
-#include "lua.hpp"
+// gs
+#include "commodity.rds.hpp"
 
 // game-state
 #include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
+
+// luapp
+#include "luapp/register.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -30,6 +30,7 @@
 #include "luapp/state.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
 #include "base/string.hpp"
@@ -90,16 +91,6 @@ void validate_job_maps( wrapped::Colony const& colony ) {
 }
 
 } // namespace
-
-/****************************************************************
-** e_colony_building
-*****************************************************************/
-LUA_ENUM( colony_building );
-
-/****************************************************************
-** e_indoor_job
-*****************************************************************/
-LUA_ENUM( indoor_job );
 
 /****************************************************************
 ** wrapped::Colony
@@ -163,98 +154,6 @@ valid_or<string> wrapped::Colony::validate() const {
 /****************************************************************
 ** Colony
 *****************************************************************/
-int Colony::population() const {
-  int size = 0;
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
-    size += o_.indoor_jobs[job].size();
-  for( e_direction d : refl::enum_values<e_direction> )
-    size += o_.outdoor_jobs[d].has_value() ? 1 : 0;
-  return size;
-}
-
-string Colony::debug_string() const {
-  return fmt::format(
-      "Colony{{name=\"{}\",id={},nation={},coord={},population={"
-      "}}}",
-      name(), id(), nation(), location(), population() );
-}
-
-void Colony::add_building( e_colony_building building ) {
-  o_.buildings[building] = true;
-}
-
-void Colony::rm_building( e_colony_building building ) {
-  o_.buildings[building] = false;
-}
-
-vector<UnitId> Colony::all_units() const {
-  vector<UnitId> res;
-  res.reserve( 40 );
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
-    res.insert( res.end(), o_.indoor_jobs[job].begin(),
-                o_.indoor_jobs[job].end() );
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( maybe<OutdoorUnit> const& job = o_.outdoor_jobs[d];
-        job.has_value() )
-      res.push_back( job->unit_id );
-  return res;
-}
-
-void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
-  SCOPE_EXIT( CHECK( validate() ) );
-  CHECK( !has_unit( id ), "Unit {} already in colony.", id );
-  switch( job.to_enum() ) {
-    case ColonyJob::e::indoor: {
-      auto const& o = job.get<ColonyJob::indoor>();
-      o_.indoor_jobs[o.job].push_back( id );
-      break;
-    }
-    case ColonyJob::e::outdoor: {
-      auto const&         o = job.get<ColonyJob::outdoor>();
-      maybe<OutdoorUnit>& outdoor_unit =
-          o_.outdoor_jobs[o.direction];
-      CHECK( !outdoor_unit.has_value() );
-      outdoor_unit = OutdoorUnit{ .unit_id = id, .job = o.job };
-      break;
-    }
-  }
-}
-
-void Colony::remove_unit( UnitId id ) {
-  SCOPE_EXIT( CHECK( validate() ) );
-
-  for( auto& [job, units] : o_.indoor_jobs ) {
-    if( find( units.begin(), units.end(), id ) != units.end() ) {
-      units.erase( find( units.begin(), units.end(), id ) );
-      return;
-    }
-  }
-
-  for( auto& [direction, outdoor_unit] : o_.outdoor_jobs ) {
-    if( outdoor_unit.has_value() &&
-        outdoor_unit->unit_id == id ) {
-      outdoor_unit = nothing;
-      return;
-    }
-  }
-
-  FATAL( "unit {} not found in colony.", id );
-}
-
-bool Colony::has_unit( UnitId id ) const {
-  vector<UnitId> units = all_units();
-  return find( units.begin(), units.end(), id ) != units.end();
-}
-
-void Colony::set_nation( e_nation new_nation ) {
-  o_.nation = new_nation;
-}
-
-void Colony::add_hammers( int hammers ) {
-  o_.hammers += hammers;
-  CHECK_GE( o_.hammers, 0 );
-}
-
 } // namespace rn
 
 /****************************************************************

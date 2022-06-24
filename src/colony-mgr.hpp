@@ -15,7 +15,6 @@
 // Revolution Now
 #include "colony-id.hpp"
 #include "colony.hpp"
-#include "coord.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "map-updater.hpp"
@@ -25,6 +24,9 @@
 
 // Rds
 #include "colony-mgr.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <string_view>
@@ -97,5 +99,11 @@ void remove_unit_from_colony( UnitsState& units_state,
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
+
+int colony_population( Colony const& colony );
+
+std::vector<UnitId> colony_units_all( Colony const& colony );
+
+bool colony_has_unit( Colony const& colony, UnitId id );
 
 } // namespace rn

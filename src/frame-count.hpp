@@ -13,11 +13,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "typed-int.hpp"
 #include "wait.hpp"
 
 // Strongly-typed integer for representing frame counts.
-TYPED_INT( FrameCount, frames );
+struct FrameCount {
+  int frames = 0;
+};
 
 namespace rn {
 

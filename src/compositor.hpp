@@ -12,11 +12,11 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "coord.hpp"
-
 // Rds
 #include "compositor.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn::compositor {
 

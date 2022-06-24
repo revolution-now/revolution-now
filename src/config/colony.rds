@@ -10,7 +10,9 @@
 # ===============================================================
 # Rds
 include "colony-enums.rds.hpp"
-include "unit-type.rds.hpp"
+
+# gs
+include "gs/unit-type.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

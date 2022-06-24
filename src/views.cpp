@@ -11,7 +11,6 @@
 #include "views.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "logger.hpp"
 #include "render.hpp"
 #include "text.hpp"
@@ -19,6 +18,9 @@
 
 // config
 #include "config/ui.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/lambda.hpp"

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "cargo.hpp"
-#include "lua-enum.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "unit-composer.hpp"
@@ -60,7 +59,7 @@ struct ND Unit {
   }
   MovementPoints movement_points() const { return o_.mv_pts; }
   e_unit_type    base_type() const {
-       return o_.composition.base_type();
+    return o_.composition.base_type();
   }
   e_unit_type type() const { return o_.composition.type(); }
   UnitType type_obj() const { return o_.composition.type_obj(); }
@@ -198,8 +197,6 @@ struct ND Unit {
 NOTHROW_MOVE( Unit );
 
 std::string debug_string( Unit const& unit );
-
-LUA_ENUM_DECL( unit_orders );
 
 } // namespace rn
 

@@ -25,16 +25,16 @@ local orders = {
 
 local key_map = {
   -- Directional move orders.
-  ['u']=orders.move( e.direction.nw ),
-  ['i']=orders.move( e.direction.n ),
-  ['o']=orders.move( e.direction.ne ),
-  ['j']=orders.move( e.direction.w ),
-  ['h']=orders.move( e.direction.w ),
-  ['l']=orders.move( e.direction.e ),
-  ['m']=orders.move( e.direction.sw ),
-  ['n']=orders.move( e.direction.sw ),
-  [',']=orders.move( e.direction.s ),
-  ['.']=orders.move( e.direction.se ),
+  ['u']=orders.move( 'nw' ),
+  ['i']=orders.move( 'n' ),
+  ['o']=orders.move( 'ne' ),
+  ['j']=orders.move( 'w' ),
+  ['h']=orders.move( 'w' ),
+  ['l']=orders.move( 'e' ),
+  ['m']=orders.move( 'sw' ),
+  ['n']=orders.move( 'sw' ),
+  [',']=orders.move( 's' ),
+  ['.']=orders.move( 'se' ),
   -- Other orders.
   ['k']=orders.forfeight(),
   ['f']=orders.fortify(),

@@ -8,11 +8,11 @@
 # Description: RDS definitions for the map-square module.
 #
 # ===============================================================
-# Revolution Now
-include "maybe.hpp"
-
 # Rds
 include "terrain.rds.hpp"
+
+# base
+include "base/maybe.hpp"
 
 namespace "rn"
 
@@ -47,11 +47,11 @@ struct.MapSquare {
   ground 'e_ground_terrain',
 
   # Forest, hills, or mountains.
-  overlay 'maybe<e_land_overlay>',
+  overlay 'base::maybe<e_land_overlay>',
 
   # Note that forest squares can have rivers too, but not moun-
   # tains or hills.
-  river 'maybe<e_river>',
+  river 'base::maybe<e_river>',
 
   # This is any special resource that a square has that increases
   # production of a certain commodity beyond what can normally be
@@ -70,8 +70,8 @@ struct.MapSquare {
   # given square will have at most one of these set (that is not
   # how the original game represented it data wise, but it has
   # the same result with more flexibility for modding).
-  ground_resource 'maybe<e_natural_resource>',
-  forest_resource 'maybe<e_natural_resource>',
+  ground_resource 'base::maybe<e_natural_resource>',
+  forest_resource 'base::maybe<e_natural_resource>',
 
   # This can only be done on certain squares, and also can't
   # co-exist with a forest terrain type.

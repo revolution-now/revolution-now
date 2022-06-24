@@ -17,7 +17,6 @@
 #include "error.hpp"
 #include "expect.hpp"
 #include "macros.hpp"
-#include "typed-int.hpp"
 #include "unit-id.hpp"
 #include "util.hpp"
 #include "variant.hpp"
@@ -35,7 +34,7 @@
 // C++ standard library
 #include <vector>
 
-TYPED_INDEX( CargoSlotIndex );
+using CargoSlotIndex = int;
 
 // Friends.
 namespace rn {
@@ -81,10 +80,8 @@ class CargoHold {
   auto end() const { return o_.slots.end(); }
 
   maybe<CargoSlot_t const&> at( int slot ) const;
-  maybe<CargoSlot_t const&> at( CargoSlotIndex slot ) const;
 
-  CargoSlot_t const& operator[]( int idx ) const;
-  CargoSlot_t const& operator[]( CargoSlotIndex idx ) const;
+  CargoSlot_t const&              operator[]( int idx ) const;
   std::vector<CargoSlot_t> const& slots() const {
     return o_.slots;
   }
@@ -124,9 +121,6 @@ class CargoHold {
   // cargo.
   ND bool fits( UnitsState const& units_state,
                 Cargo_t const& cargo, int slot ) const;
-  ND bool fits( UnitsState const& units_state,
-                Cargo_t const&    cargo,
-                CargoSlotIndex    slot ) const;
 
   // Precondition: there must be a cargo item whose first slot is
   // the given slot; if not, then an error will be thrown. This

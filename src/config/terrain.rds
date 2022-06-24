@@ -11,9 +11,8 @@
 # Revolution Now
 include "mv-points.hpp"
 
-# Rds
-include "../terrain.rds.hpp" # Need ../ so that we don't include
-                             # ourselves.
+# gs
+include "gs/terrain-enums.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

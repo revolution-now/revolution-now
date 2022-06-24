@@ -15,11 +15,13 @@
 // Revolution Now
 #include "colony-id.hpp"
 #include "colony.hpp"
-#include "coord.hpp"
 #include "unit-id.hpp"
 
 // Rds
 #include "units.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <unordered_map>

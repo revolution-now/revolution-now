@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "expect.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

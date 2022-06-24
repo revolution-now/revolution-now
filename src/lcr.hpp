@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "igui.hpp"
 #include "map-updater.hpp"
 #include "player.hpp"
@@ -22,6 +21,9 @@
 
 // Rds
 #include "lcr.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "game-state.hpp"
 #include "input.hpp"
 #include "logger.hpp"
@@ -35,6 +34,9 @@
 
 // Rds
 #include "map-edit.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/enum-map.hpp"

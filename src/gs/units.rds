@@ -10,9 +10,11 @@
 # ===============================================================
 # Revolution Now
 include "colony-id.hpp"
-include "coord.hpp"
 include "unit-id.hpp"
 include "unit.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 # C++ standard library
 include "<unordered_map>"

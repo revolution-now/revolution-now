@@ -14,13 +14,15 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "error.hpp"
 #include "physics.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "viewport.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

@@ -12,11 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "lua-enum.hpp"
-
-// Rds
-#include "fathers.rds.hpp"
+// gs
+#include "gs/fathers.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -33,16 +30,12 @@ using FoundingFathersMap =
 /****************************************************************
 ** e_founding_father
 *****************************************************************/
-LUA_ENUM_DECL( founding_father );
-
 std::string_view founding_father_name(
     e_founding_father father );
 
 /****************************************************************
 ** e_founding_father_type
 *****************************************************************/
-LUA_ENUM_DECL( founding_father );
-
 e_founding_father_type founding_father_type(
     e_founding_father father );
 

@@ -13,12 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "mv-points.hpp"
 #include "terrain.hpp"
 
 // Rds
-#include "map-square.rds.hpp"
+#include "gs/map-square.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

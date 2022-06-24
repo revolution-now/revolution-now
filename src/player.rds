@@ -9,13 +9,15 @@
 #
 # ===============================================================
 # Revolution Now
-include "coord.hpp"
 include "maybe.hpp"
 
 # Rds
 include "fathers.rds.hpp"
 include "old-world-state.rds.hpp"
 include "nation.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 namespace "rn"
 

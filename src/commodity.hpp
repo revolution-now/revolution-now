@@ -12,16 +12,21 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "commodity.rds.hpp"
+
 // Revolution Now
-#include "coord.hpp"
-#include "lua-enum.hpp"
+#include "maybe.hpp"
 #include "unit-id.hpp"
 
 // render
 #include "render/renderer.hpp"
 
-// Rds
-#include "commodity.rds.hpp"
+// gs
+#include "gs/commodity.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -34,7 +39,7 @@ namespace rn {
 struct UnitsState;
 
 constexpr Delta const kCommodityInCargoHoldRenderingOffset{
-    8_w, 3_h };
+    .w = 8, .h = 3 };
 
 /****************************************************************
 ** Commodity List
@@ -114,14 +119,5 @@ void render_commodity_annotated( rr::Renderer& renderer,
 void render_commodity_annotated( rr::Renderer&    renderer,
                                  Coord            where,
                                  Commodity const& comm );
-
-} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace rn {
-
-LUA_ENUM_DECL( commodity );
 
 } // namespace rn

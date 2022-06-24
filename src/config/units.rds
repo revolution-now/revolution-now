@@ -8,15 +8,29 @@
 # Description: Config info for unit types.
 #
 # ===============================================================
-# Revolution Now
-include "../utype.rds.hpp"
+# gs
+include "gs/unit-type.rds.hpp"
 
 # Cdr.
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 include "cdr/ext-base.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
+
+# The constituents of this struct.need to be validated together.
+struct.UnitCompositionConfig {
+  inventory_traits 'refl::enum_map<e_unit_inventory, UnitInventoryTraits>',
+  modifier_traits 'refl::enum_map<e_unit_type_modifier, UnitTypeModifierTraits>',
+  unit_types 'refl::enum_map<e_unit_type, UnitTypeAttributes>',
+
+  _features {
+    equality, validation
+  }
+}
 
 struct.config_units_t {
   composition 'UnitCompositionConfig',

@@ -48,6 +48,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
@@ -268,6 +269,33 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
   } ) );
 }
 
+int colony_population( Colony const& colony ) {
+  int size = 0;
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    size += colony.indoor_jobs[job].size();
+  for( e_direction d : refl::enum_values<e_direction> )
+    size += colony.outdoor_jobs[d].has_value() ? 1 : 0;
+  return size;
+}
+
+vector<UnitId> colony_units_all( Colony const& colony ) {
+  vector<UnitId> res;
+  res.reserve( 40 );
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    res.insert( res.end(), colony.indoor_jobs[job].begin(),
+                colony.indoor_jobs[job].end() );
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( maybe<OutdoorUnit> const& job = colony.outdoor_jobs[d];
+        job.has_value() )
+      res.push_back( job->unit_id );
+  return res;
+}
+
+bool colony_has_unit( Colony const& colony, UnitId id ) {
+  vector<UnitId> units = colony_units_all();
+  return find( units.begin(), units.end(), id ) != units.end();
+}
+
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, string_view name ) {
   if( colonies_state.maybe_from_name( name ).has_value() )
@@ -401,7 +429,25 @@ void move_unit_to_colony( UnitsState& units_state,
   CHECK( unit.nation() == colony.nation() );
   strip_unit_commodities( unit, colony );
   units_state.change_to_colony( unit_id, colony.id() );
-  colony.add_unit( unit_id, job );
+  // Now add the unit to the colony.
+  SCOPE_EXIT( CHECK( colony.validate() ) );
+  CHECK( !colony_has_unit( id ), "Unit {} already in colony.",
+         id );
+  switch( job.to_enum() ) {
+    case ColonyJob::e::indoor: {
+      auto const& o = job.get<ColonyJob::indoor>();
+      colony.indoor_jobs[o.job].push_back( id );
+      break;
+    }
+    case ColonyJob::e::outdoor: {
+      auto const&         o = job.get<ColonyJob::outdoor>();
+      maybe<OutdoorUnit>& outdoor_unit =
+          colony..outdoor_jobs[o.direction];
+      CHECK( !outdoor_unit.has_value() );
+      outdoor_unit = OutdoorUnit{ .unit_id = id, .job = o.job };
+      break;
+    }
+  }
 }
 
 void remove_unit_from_colony( UnitsState& units_state,
@@ -409,7 +455,25 @@ void remove_unit_from_colony( UnitsState& units_state,
   CHECK( units_state.unit_for( unit_id ).nation() ==
          colony.nation() );
   units_state.disown_unit( unit_id );
-  colony.remove_unit( unit_id );
+  // Now remove the unit from the colony.
+  SCOPE_EXIT( CHECK( colony.validate() ) );
+
+  for( auto& [job, units] : colony.indoor_jobs ) {
+    if( find( units.begin(), units.end(), id ) != units.end() ) {
+      units.erase( find( units.begin(), units.end(), id ) );
+      return;
+    }
+  }
+
+  for( auto& [direction, outdoor_unit] : colony.outdoor_jobs ) {
+    if( outdoor_unit.has_value() &&
+        outdoor_unit->unit_id == id ) {
+      outdoor_unit = nothing;
+      return;
+    }
+  }
+
+  FATAL( "unit {} not found in colony '{}'.", colony.name );
 }
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,

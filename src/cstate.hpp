@@ -14,8 +14,10 @@
 
 // Revolution Now
 #include "colony-id.hpp"
-#include "coord.hpp"
 #include "maybe.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <vector>

@@ -13,12 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "error.hpp"
 #include "strong-span.hpp"
 
 // refl
 #include "refl/cdr.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // Cdr
 #include "cdr/converter.hpp"

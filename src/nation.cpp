@@ -58,9 +58,4 @@ maybe<e_nation> nation_from_coord(
   return first;
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-LUA_ENUM( nation );
-
 } // namespace rn

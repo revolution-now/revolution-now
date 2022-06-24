@@ -24,8 +24,7 @@ function soldier()
           'Cannot convert a naval unit to a soldier.' )
   unit:change_type( unit_composer.UnitComposition
                         .create_with_type_obj(
-                        utype.UnitType.create(
-                            e.unit_type.soldier ) ) )
+                        utype.UnitType.create( 'soldier' ) ) )
 end
 
 -- Convert all land units that are directly on land in the upper

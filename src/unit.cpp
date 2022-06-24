@@ -225,8 +225,6 @@ void Unit::consume_20_tools() {
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
-LUA_ENUM( unit_orders );
-
 namespace {
 
 LUA_STARTUP( lua::state& st ) {

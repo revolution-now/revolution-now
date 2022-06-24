@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "logger.hpp"
@@ -25,6 +24,9 @@
 
 // config
 #include "config/rn.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 using namespace std;
 

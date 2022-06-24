@@ -93,14 +93,4 @@ e_terrain from_ground_terrain( e_ground_terrain ground ) {
   }
 }
 
-/****************************************************************
-** Lua
-*****************************************************************/
-LUA_ENUM( ground_terrain );
-LUA_ENUM( surface );
-LUA_ENUM( land_overlay );
-LUA_ENUM( river );
-LUA_ENUM( natural_resource );
-LUA_ENUM( terrain );
-
 } // namespace rn

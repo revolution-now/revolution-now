@@ -5,8 +5,7 @@
 #
 # Created by dsicilia on 2022-05-31.
 #
-# Description: Some types needed by both rn and config regarding
-#              unit types.
+# Description: Describes unit types.
 #
 # ===============================================================
 namespace "rn"
@@ -77,4 +76,33 @@ enum.e_unit_type {
   # Treasure.
   small_treasure,
   large_treasure,
+}
+
+enum.e_unit_type_modifier {
+  blessing,
+  horses,
+  muskets,
+  tools,
+  independence,
+  strength,
+}
+
+# Note that this struct needs to maintain an invariant, namely
+# that the derived unit type (`type`) can be reached starting
+# from the base type (`base_type`) via some set of modifiers.
+#
+# The reason that it must store the base type and not just the
+# final type is because the game rules allow units to lose modi-
+# fiers in various ways, in which case a unit must "remember"
+# what it's base type was. For example, when an indentured ser-
+# vant (the base type) is made into a soldier (the final type)
+# and that soldier loses a battle then the unit must be demoted
+# back to an indentured servant (and not e.g. a free colonist)
+# and so therefore when we store the type of a unit we must in-
+# clude this base type.
+struct.UnitType {
+  base_type 'e_unit_type',
+  type      'e_unit_type',
+
+  _features { equality, validation }
 }

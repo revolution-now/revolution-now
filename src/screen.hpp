@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "error.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

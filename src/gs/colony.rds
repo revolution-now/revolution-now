@@ -8,25 +8,25 @@
 # Description: RDS definitions for the colony module.
 #
 # ===============================================================
-# Revolution Now
+# gs
+include "colony-enums.rds.hpp"
 include "colony-id.hpp"
-include "commodity.hpp"
-include "coord.hpp"
-include "maybe.hpp"
-include "unit-id.hpp"
-
-# Rds
+include "commodity.rds.hpp"
 include "nation.rds.hpp"
-include "config/colony-enums.rds.hpp"
-include "config/unit-type.rds.hpp"
+include "unit-id.hpp"
+include "unit-type.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 # refl
 include "refl/enum-map.hpp"
 
+# base
+include "base/maybe.hpp"
+
 # C++ standard library
 include "<string>"
-include "<unordered_map>"
-include "<unordered_set>"
 
 namespace "rn"
 
@@ -54,8 +54,6 @@ sumtype.Construction {
   }
 }
 
-namespace "rn.wrapped"
-
 struct.Colony {
   # Basic info.
   id 'ColonyId',
@@ -70,12 +68,12 @@ struct.Colony {
   # preserve the order in which units are added for UI purposes.
   indoor_jobs 'refl::enum_map<e_indoor_job, std::vector<UnitId>>',
 
-  outdoor_jobs 'refl::enum_map<e_direction, maybe<OutdoorUnit>>',
+  outdoor_jobs 'refl::enum_map<e_direction, base::maybe<OutdoorUnit>>',
 
   buildings 'refl::enum_map<e_colony_building, bool>',
 
   # What building is the colony currently constructing.
-  construction 'maybe<Construction_t>',
+  construction 'base::maybe<Construction_t>',
 
   hammers 'int',
 

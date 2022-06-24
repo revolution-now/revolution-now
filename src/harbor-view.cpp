@@ -17,7 +17,6 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
 #include "gui.hpp"
@@ -41,6 +40,9 @@
 // game-state
 #include "gs/players.hpp"
 #include "gs/units.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

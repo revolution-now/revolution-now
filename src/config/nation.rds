@@ -8,9 +8,9 @@
 # Description: Nation-specific config info.
 #
 # ===============================================================
-# Rds
-include "../nation.rds.hpp" # FIXME: dependency not ideal
-include "unit-type.rds.hpp"
+# gs
+include "gs/nation.rds.hpp"
+include "gs/unit-type.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

@@ -8,12 +8,8 @@
 * Description: Configuration info for terrain.
 *
 *****************************************************************/
-// Revolution Now
-#include "terrain.hpp"
-
 // Rds
-#include "../terrain.rds.hpp"
-#include "terrain.rds.hpp"
+#include "gs/terrain-enums.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"

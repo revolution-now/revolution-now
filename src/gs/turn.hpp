@@ -12,23 +12,13 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "lua-enum.hpp"
-
 // Rds
 #include "turn.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-/****************************************************************
-** e_season
-*****************************************************************/
-LUA_ENUM_DECL( season );
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua
