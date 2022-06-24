@@ -734,10 +734,11 @@ bool is_tile_fully_visible( SmoothViewport const& vp,
   return tile_pixel_rect.is_inside( covered );
 }
 
-// Determines if the surroundings of the coordinate in the
-// C-dimension are fully visible in the viewport.  This is
-// non-trivial because we have to apply less stringent rules
-// as the coordinate gets closer to the edges of the world.
+// Determines if two tiles of surroundings in each direction of
+// the coordinate in the C-dimension are fully visible in the
+// viewport. This is non-trivial because we have to apply less
+// stringent rules as the coordinate gets closer to the edges of
+// the world.
 template<typename C>
 bool are_tile_surroundings_as_fully_visible_as_can_be(
     SmoothViewport const& vp, Coord const& coords ) {
@@ -748,13 +749,17 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
            coords.coordinate<C>() < end;
   };
 
-  // The use of fully_covered_tiles will ensure that we eliminate
-  // any partial tiles at the boundary, then remove another layer
-  // of edge.
+  // We have to remove edges in the same way from both the vis-
+  // ible region and the world rect in order for the below to
+  // work properly at the world's edge.
+  auto remove_edges = []( Rect r ) {
+    return r.edges_removed().edges_removed();
+  };
+
   bool visible_in_inner_viewport =
-      is_in( vp.fully_covered_tiles().edges_removed() );
+      is_in( remove_edges( vp.fully_covered_tiles() ) );
   bool on_world_border =
-      !is_in( vp.world_rect_tiles().edges_removed() );
+      !is_in( remove_edges( vp.world_rect_tiles() ) );
 
   if( visible_in_inner_viewport ) return true;
 
@@ -776,12 +781,12 @@ bool SmoothViewport::need_to_scroll_to_reveal_tile(
     Coord const& coord ) const {
   // Our approach here is to say the following: if the location
   // of the coord in a given dimension (either X or Y) is such
-  // that its position (plus two surrounding squares) could be
+  // that its position (plus some surrounding squares) could be
   // better brought into view by panning the viewport then we
   // will pan the viewport in _both_ coordinates to center on the
-  // unit. Panning both coordinates together makes for more
-  // natural panning behavior when a unit is close to the corner
-  // of the viewport.
+  // unit. Panning both coordinates together makes for more nat-
+  // ural panning behavior when a unit is close to the corner of
+  // the viewport.
   return !are_tile_surroundings_as_fully_visible_as_can_be<X>(
              *this, coord ) ||
          !are_tile_surroundings_as_fully_visible_as_can_be<Y>(

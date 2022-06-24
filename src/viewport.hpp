@@ -51,9 +51,9 @@ class SmoothViewport {
   // Will give us a rect of world pixels covered by the viewport.
   Rect covered_pixels() const;
 
-  // This function will shift the viewport to make the tile
-  // coordinate visible, but will avoid shifting if it is already
-  // visible.
+  // This function will shift the viewport to make the tile coor-
+  // dinate visible plus some surrounding squares, but will avoid
+  // shifting if it is already visible in that sense.
   void ensure_tile_visible( Coord const& coord );
   // Same as above but will animate the motion as opposed to a
   // sudden shift. The wait will be fulfilled when the given
