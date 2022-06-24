@@ -136,12 +136,12 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   }
 }
 
-void reset_turn_obj( TurnState& st ) {
+void reset_turn_obj( PlayersState const& players_state,
+                     TurnState&          st ) {
   queue<e_nation> remainder;
-  remainder.push( e_nation::english );
-  remainder.push( e_nation::french );
-  remainder.push( e_nation::dutch );
-  remainder.push( e_nation::spanish );
+  for( e_nation nation : refl::enum_values<e_nation> )
+    if( players_state.players[nation].has_value() )
+      remainder.push( nation );
   st.started   = false;
   st.nation    = nothing;
   st.remainder = std::move( remainder );
@@ -889,7 +889,7 @@ wait<> next_turn(
     print_bar( '=', "[ Starting Turn ]" );
     map_units( units_state,
                []( Unit& unit ) { unit.new_turn(); } );
-    reset_turn_obj( st );
+    reset_turn_obj( players_state, st );
     st.started = true;
   }
 
@@ -918,7 +918,7 @@ wait<> next_turn(
     st.nation.reset();
   }
 
-  reset_turn_obj( st );
+  reset_turn_obj( players_state, st );
   co_await advance_time( gui, st.time_point );
 }
 
