@@ -670,7 +670,8 @@ void SmoothViewport::scale_zoom( double factor ) {
 }
 
 void SmoothViewport::fix_zoom_rounding() {
-  o_.zoom = double( lround( o_.zoom * 1000.0 ) ) / 1000.0;
+  // FIXME
+  // o_.zoom = double( lround( o_.zoom * 1000.0 ) ) / 1000.0;
   fix_invariants();
 }
 
