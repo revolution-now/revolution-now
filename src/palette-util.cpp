@@ -84,7 +84,7 @@ array<char const*, hue_buckets> constexpr hue_names{
 static_assert( hue_names.size() == hue_buckets );
 
 // Only relevant for testing/displaying palettes.
-Coord const palette_render_origin{ 10_y, 10_x };
+Coord const palette_render_origin{ .x = 10, .y = 10 };
 
 // Takes a hue in [0,360) and returns a bucket index from
 // [0,hue_buckets-1). Our strategy here is that the firt bucket
@@ -459,10 +459,9 @@ void show_color_adjustment( rr::Renderer& renderer,
 
 void write_palette_png( fs::path const& /*png_file*/ ) {
   NOT_IMPLEMENTED;
-  // auto tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
-  // auto const& colors = g_palette();
-  // show_palette( renderer, hsl_bucket( colors ) );
-  // tx.save_png( png_file );
+  // auto tx = create_texture( Delta{ .w=W{ 500 }, .h=H{ 480 } }
+  // ); auto const& colors = g_palette(); show_palette( renderer,
+  // hsl_bucket( colors ) ); tx.save_png( png_file );
 }
 
 void update_palette( fs::path const& where ) {

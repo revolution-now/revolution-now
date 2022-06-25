@@ -13,10 +13,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "map-square.hpp"
 #include "mv-points.hpp"
 #include "unit.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

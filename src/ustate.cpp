@@ -18,18 +18,25 @@
 #include "cstate.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-units.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/unit-type.hpp"
+
+// gs
+#include "gs/colonies.hpp"
+#include "gs/player.rds.hpp"
+#include "gs/units.hpp"
+
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -82,14 +89,14 @@ maybe<e_unit_activity> current_activity_for_unit(
       // First check outdoor jobs.
       for( e_direction d : refl::enum_values<e_direction> ) {
         maybe<OutdoorUnit const&> outdoor_unit =
-            colony.outdoor_jobs()[d];
+            colony.outdoor_jobs[d];
         if( outdoor_unit.has_value() &&
             outdoor_unit->unit_id == id )
           return activity_for_outdoor_job( outdoor_unit->job );
       }
       // Next check indoor jobs.
       for( e_indoor_job job : refl::enum_values<e_indoor_job> ) {
-        vector<UnitId> const& units = colony.indoor_jobs()[job];
+        vector<UnitId> const& units = colony.indoor_jobs[job];
         if( find( units.begin(), units.end(), id ) !=
             units.end() )
           return activity_for_indoor_job( job );
@@ -275,7 +282,7 @@ maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
   if( auto maybe_map = coord_for_unit_indirect( id ); maybe_map )
     return maybe_map;
   if( auto maybe_colony = colony_for_unit_who_is_worker( id ) )
-    return colony_from_id( *maybe_colony ).location();
+    return colony_from_id( *maybe_colony ).location;
   return nothing;
 }
 

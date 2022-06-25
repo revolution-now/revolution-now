@@ -12,13 +12,17 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "gs-units.hpp"
-#include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+
+// game-state
+#include "gs/units.hpp"
+
+// render
+#include "render/renderer.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -89,8 +93,9 @@ void render_commodity_impl( rr::Renderer& renderer, Coord where,
   Delta comm_size = sprite_size( tile );
   Delta label_size =
       rendered_text_size( /*reflow_info=*/{}, *label );
-  auto origin = where + comm_size.h + 2_h -
-                ( label_size.w - comm_size.w ) / 2_sx;
+  auto origin =
+      where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
+                     .h = comm_size.h + 2 };
   render_commodity_label( renderer, origin, *label );
 }
 
@@ -114,11 +119,6 @@ Commodity with_quantity( Commodity const& in,
   Commodity res = in;
   res.quantity  = new_quantity;
   return res;
-}
-
-base::valid_or<string> Commodity::validate() const {
-  REFL_VALIDATE( quantity >= 0 );
-  return base::valid;
 }
 
 /****************************************************************
@@ -282,10 +282,5 @@ void render_commodity_annotated( rr::Renderer&    renderer,
       renderer, where, comm.type,
       CommodityLabel::quantity{ comm.quantity } );
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-LUA_ENUM( commodity )
 
 } // namespace rn

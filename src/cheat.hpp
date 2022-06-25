@@ -12,12 +12,14 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "unit-id.hpp"
-#include "wait.hpp"
-
 // Rds
 #include "cheat.rds.hpp"
+
+// Revolution Now
+#include "wait.hpp"
+
+// gs
+#include "gs/unit-id.hpp"
 
 namespace rn {
 

@@ -15,7 +15,6 @@
 // Revolution Now
 #include "maybe.hpp"
 #include "time.hpp"
-#include "typed-int.hpp"
 
 // Rds
 #include "tune.rds.hpp"
@@ -23,7 +22,7 @@
 // base-util
 #include "base-util/pp.hpp"
 
-TYPED_ID( TuneId )
+using TuneId = int;
 
 namespace rn {
 
@@ -161,9 +160,3 @@ std::vector<TuneId> tunes_not_like( TuneId id );
 TuneId random_tune();
 
 } // namespace rn
-
-namespace std {
-
-DEFINE_HASH_FOR_TYPED_INT( ::rn::TuneId )
-
-} // namespace std

@@ -13,10 +13,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "game-state.hpp"
-#include "gs-land-view.hpp"
-#include "gs-terrain.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "map-gen.hpp"
@@ -31,8 +28,18 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// game-state
+#include "gs/land-view.hpp"
+#include "gs/terrain.hpp"
+
 // Rds
 #include "map-edit.rds.hpp"
+
+// render
+#include "render/renderer.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -116,7 +123,7 @@ Rect toolbar_rect() {
 wait<> click_on_toolbar( PS& S, Coord tile ) {
   UNWRAP_CHECK( item,
                 refl::enum_from_integral<editor::e_toolbar_item>(
-                    tile.x._ ) );
+                    tile.x ) );
   S.selected_tool = item;
   co_return;
 }
@@ -265,7 +272,7 @@ wait<bool> handle_event(
     co_await click_on_toolbar(
         S,
         Coord{} + ( click_pos - toolbar_rect().upper_left() ) /
-                      g_tile_scale );
+                      g_tile_delta );
     co_return false;
   }
   co_return false;
@@ -321,7 +328,7 @@ void render_toolbar( PS const& S, rr::Renderer& renderer ) {
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect(
       toolbar_rect().with_new_right_edge(
-          0_x + renderer.logical_screen_size().w ),
+          0 + renderer.logical_screen_size().w ),
       gfx::pixel::black() );
   Coord where = toolbar_rect().upper_left();
   for( editor::e_toolbar_item item :
@@ -636,7 +643,7 @@ wait<> run_map_editor( Planes& planes, IMapUpdater& map_updater,
                        TerrainState const& terrain_state,
                        bool                standalone_mode ) {
   if( standalone_mode ) {
-    Delta size( 100_w, 100_h );
+    Delta size{ .w = 100, .h = 100 };
     reset_terrain( map_updater, size );
     land_view_state.viewport.set_world_size_tiles( size );
   }

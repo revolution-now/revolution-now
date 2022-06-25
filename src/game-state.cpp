@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "game-state.hpp"
 
-// Revolution Now
-#include "gs-root.hpp"
+// game-state
+#include "gs/root.hpp"
 
 // refl
 #include "refl/to-str.hpp"

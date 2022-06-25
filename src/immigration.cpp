@@ -12,24 +12,26 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-settings.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
-#include "player.hpp"
 #include "rand-enum.hpp"
-#include "utype.hpp"
 
 // config
 #include "config/immigration.rds.hpp"
 #include "config/nation.rds.hpp"
+#include "config/unit-type.hpp"
 
-// Rds
-#include "old-world-state.rds.hpp"
+// gs
+#include "gs/old-world-state.rds.hpp"
+#include "gs/player.hpp"
+#include "gs/settings.hpp"
+#include "gs/unit-type.hpp"
+#include "gs/units.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

@@ -12,15 +12,17 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
 // Rds
 #include "colony-buildings.rds.hpp"
-#include "colony.rds.hpp"
-#include "config/colony-enums.rds.hpp"
+
+// Revolution Now
+#include "maybe.hpp"
 #include "tile-enum.rds.hpp"
-#include "utype.rds.hpp"
+
+// gs
+#include "gs/colony-enums.rds.hpp"
+#include "gs/colony.rds.hpp"
+#include "gs/unit-type.rds.hpp"
 
 namespace rn {
 

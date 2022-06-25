@@ -17,18 +17,15 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "dragdrop.hpp"
 #include "game-state.hpp"
-#include "gs-players.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "image.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "old-world-state.hpp"
+#include "old-world-state.rds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "render.hpp"
@@ -39,6 +36,16 @@
 #include "variant.hpp"
 #include "wait.hpp"
 #include "window.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
+
+// game-state
+#include "gs/players.hpp"
+#include "gs/units.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -133,16 +140,11 @@ maybe<Cargo_t> draggable_to_cargo_object(
 }
 
 maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
-    PS& S, CargoSlotIndex slot ) {
+    PS& S, int slot ) {
   HarborState const& hb_state = S.harbor_state();
   return hb_state.selected_unit.fmap( unit_from_id )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
-}
-
-maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
-    PS& S, int slot ) {
-  return draggable_in_cargo_slot( S, CargoSlotIndex{ slot } );
 }
 
 /****************************************************************
@@ -185,32 +187,32 @@ struct EntityBase {
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
 class MarketCommodities : EntityBase {
-  static constexpr W single_layer_blocks_width  = 16_w;
-  static constexpr W double_layer_blocks_width  = 8_w;
-  static constexpr H single_layer_blocks_height = 1_h;
-  static constexpr H double_layer_blocks_height = 2_h;
+  static constexpr W single_layer_blocks_width  = 16;
+  static constexpr W double_layer_blocks_width  = 8;
+  static constexpr H single_layer_blocks_height = 1;
+  static constexpr H double_layer_blocks_height = 2;
 
   // Commodities will be 24x24 + 8 pixels for text.
-  static constexpr auto sprite_scale = Scale{ 32 };
-  static constexpr auto sprite_delta =
-      Delta{ 1_w, 1_h } * sprite_scale;
+  static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
+  static inline auto    sprite_delta =
+      Delta{ .w = 1, .h = 1 } * sprite_scale;
 
   static constexpr W single_layer_width =
-      single_layer_blocks_width * sprite_scale.sx;
+      single_layer_blocks_width * sprite_scale.w;
   static constexpr W double_layer_width =
-      double_layer_blocks_width * sprite_scale.sx;
+      double_layer_blocks_width * sprite_scale.w;
   static constexpr H single_layer_height =
-      single_layer_blocks_height * sprite_scale.sy;
+      single_layer_blocks_height * sprite_scale.h;
   static constexpr H double_layer_height =
-      double_layer_blocks_height * sprite_scale.sy;
+      double_layer_blocks_height * sprite_scale.h;
 
  public:
   Rect bounds() const {
-    return Rect::from( origin_,
-                       Delta{ doubled_ ? double_layer_width
-                                       : single_layer_width,
-                              doubled_ ? double_layer_height
-                                       : single_layer_height } );
+    return Rect::from(
+        origin_, Delta{ .w = doubled_ ? double_layer_width
+                                      : single_layer_width,
+                        .h = doubled_ ? double_layer_height
+                                      : single_layer_height } );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
@@ -247,20 +249,18 @@ class MarketCommodities : EntityBase {
           S,
           /*doubled_=*/false,
           /*origin_=*/
-          Coord{
-              /*x=*/rect.center().x - single_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - single_layer_height -
-                  1_h } );
+          Coord{ /*x=*/rect.center().x - single_layer_width / 2,
+                 /*y=*/rect.bottom_edge() - single_layer_height -
+                     1 } );
     } else if( rect.w >= double_layer_width &&
                rect.h >= double_layer_height ) {
       res = MarketCommodities{
           S,
           /*doubled_=*/true,
           /*origin_=*/
-          Coord{
-              /*x=*/rect.center().x - double_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - double_layer_height -
-                  1_h } };
+          Coord{ /*x=*/rect.center().x - double_layer_width / 2,
+                 /*y=*/rect.bottom_edge() - double_layer_height -
+                     1 } };
 
     } else {
       // cannot draw.
@@ -287,7 +287,8 @@ class MarketCommodities : EntityBase {
                 .as_if_origin_were( bounds().upper_left() ) +
             kCommodityInCargoHoldRenderingOffset;
         auto box = Rect::from( box_origin,
-                               Delta{ 1_w, 1_h } * Scale{ 16 } );
+                               Delta{ .w = 1, .h = 1 } *
+                                   Delta{ .w = 16, .h = 16 } );
 
         res = pair{ *maybe_type, box };
       }
@@ -305,14 +306,14 @@ class MarketCommodities : EntityBase {
 NOTHROW_MOVE( MarketCommodities );
 
 class ActiveCargoBox : EntityBase {
-  static constexpr Delta size_blocks{ 6_w, 1_h };
+  static constexpr Delta size_blocks{ .w = 6, .h = 1 };
 
  public:
   // Commodities will be 24x24.
-  static constexpr auto box_scale = Scale{ 32 };
-  static constexpr auto box_delta =
-      Delta{ 1_w, 1_h } * box_scale;
-  static constexpr Delta size_pixels = size_blocks * box_scale;
+  static constexpr auto box_scale = Delta{ .w = 32, .h = 32 };
+  static inline auto    box_delta =
+      Delta{ .w = 1, .h = 1 } * box_scale;
+  static inline Delta size_pixels = size_blocks * box_scale;
 
   Rect bounds() const {
     return Rect::from( origin_, size_pixels );
@@ -342,21 +343,23 @@ class ActiveCargoBox : EntityBase {
       return res;
     if( maybe_market_commodities.has_value() ) {
       auto const& market_commodities = *maybe_market_commodities;
-      if( market_commodities.origin_.y < 0_y + size_pixels.h )
+      if( market_commodities.origin_.y < 0 + size_pixels.h )
         return res;
       if( market_commodities.doubled_ ) {
         res = ActiveCargoBox(
             S,
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h,
-                rect.center().x - size_pixels.w / 2_sx } );
+                .x = rect.center().x - size_pixels.w / 2,
+                .y = market_commodities.origin_.y -
+                     size_pixels.h } );
       } else {
         // Possibly just for now do this.
         res = ActiveCargoBox(
             S,
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h,
-                rect.center().x - size_pixels.w / 2_sx } );
+                .x = rect.center().x - size_pixels.w / 2,
+                .y = market_commodities.origin_.y -
+                     size_pixels.h } );
       }
     }
     return res;
@@ -370,7 +373,7 @@ class ActiveCargoBox : EntityBase {
 NOTHROW_MOVE( ActiveCargoBox );
 
 class DockAnchor : EntityBase {
-  static constexpr H above_active_cargo_box{ 32_h };
+  static constexpr H above_active_cargo_box{ 32 };
 
  public:
   Rect bounds() const {
@@ -405,14 +408,14 @@ class DockAnchor : EntityBase {
       auto location_y =
           active_cargo_box_top - above_active_cargo_box;
       auto location_x =
-          maybe_market_commodities->bounds().right_edge() - 32_w;
-      auto x_upper_bound = 0_x + size.w - 60_w;
+          maybe_market_commodities->bounds().right_edge() - 32;
+      auto x_upper_bound = 0 + size.w - 60;
       auto x_lower_bound =
           maybe_active_cargo_box->bounds().right_edge();
       if( x_upper_bound < x_lower_bound ) return res;
       location_x =
           std::clamp( location_x, x_lower_bound, x_upper_bound );
-      if( location_y < 0_y ) return res;
+      if( location_y < 0 ) return res;
       res              = DockAnchor( S, {} );
       res->location_.x = location_x;
       res->location_.y = location_y;
@@ -428,8 +431,8 @@ class DockAnchor : EntityBase {
 NOTHROW_MOVE( DockAnchor );
 
 class Backdrop : EntityBase {
-  static constexpr Delta image_distance_from_anchor{ 950_w,
-                                                     544_h };
+  static constexpr Delta image_distance_from_anchor{ .w = 950,
+                                                     .h = 544 };
 
  public:
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
@@ -469,14 +472,14 @@ NOTHROW_MOVE( Backdrop );
 
 class InPortBox : EntityBase {
  public:
-  static constexpr Delta block_size{ 32_w, 32_h };
+  static constexpr Delta block_size{ .w = 32, .h = 32 };
   static constexpr SY    height_blocks{ 3 };
   static constexpr SX    width_wide{ 3 };
   static constexpr SX    width_narrow{ 2 };
 
   Rect bounds() const {
     return Rect::from( origin_, block_size * size_in_blocks_ +
-                                    Delta{ 1_w, 1_h } );
+                                    Delta{ .w = 1, .h = 1 } );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
@@ -485,7 +488,7 @@ class InPortBox : EntityBase {
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::white() );
     rr::Typer typer = renderer.typer(
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        bounds().upper_left() + Delta{ .w = 2, .h = 2 } + offset,
         gfx::pixel::white() );
     typer.write( "In Port" );
   }
@@ -501,17 +504,17 @@ class InPortBox : EntityBase {
     maybe<InPortBox> res;
     if( maybe_active_cargo_box && maybe_market_commodities ) {
       bool  is_wide = !maybe_market_commodities->doubled_;
-      Scale size_in_blocks;
-      size_in_blocks.sy = height_blocks;
-      size_in_blocks.sx = is_wide ? width_wide : width_narrow;
+      Delta size_in_blocks;
+      size_in_blocks.h = height_blocks;
+      size_in_blocks.w = is_wide ? width_wide : width_narrow;
       auto origin =
           maybe_active_cargo_box->bounds().upper_left() -
-          block_size.h * size_in_blocks.sy;
-      if( origin.y < 0_y || origin.x < 0_x ) return res;
+          Delta{ .h = block_size.h } * size_in_blocks.h;
+      if( origin.y < 0 || origin.x < 0 ) return res;
 
-      res = InPortBox{ S, origin,      //
+      res = InPortBox( S, origin,      //
                        size_in_blocks, //
-                       is_wide };
+                       is_wide );
 
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
@@ -521,11 +524,11 @@ class InPortBox : EntityBase {
   }
 
   Coord origin_{};
-  Scale size_in_blocks_{};
+  Delta size_in_blocks_{};
   bool  is_wide_{};
 
  private:
-  InPortBox( PS& S, Coord origin, Scale size_in_blocks,
+  InPortBox( PS& S, Coord origin, Delta size_in_blocks,
              bool is_wide )
     : EntityBase( S ),
       origin_( origin ),
@@ -539,7 +542,7 @@ class InboundBox : EntityBase {
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
-                           Delta{ 1_w, 1_h } );
+                           Delta{ .w = 1, .h = 1 } );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
@@ -548,7 +551,7 @@ class InboundBox : EntityBase {
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::white() );
     rr::Typer typer = renderer.typer(
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        bounds().upper_left() + Delta{ .w = 2, .h = 2 } + offset,
         gfx::pixel::white() );
     typer.write( "Inbound" );
   }
@@ -562,29 +565,26 @@ class InboundBox : EntityBase {
     maybe<InboundBox> res;
     if( maybe_in_port_box ) {
       bool  is_wide = maybe_in_port_box->is_wide_;
-      Scale size_in_blocks;
-      size_in_blocks.sy = InPortBox::height_blocks;
-      size_in_blocks.sx = is_wide ? InPortBox::width_wide
-                                  : InPortBox::width_narrow;
+      Delta size_in_blocks;
+      size_in_blocks.h = InPortBox::height_blocks;
+      size_in_blocks.w = is_wide ? InPortBox::width_wide
+                                 : InPortBox::width_narrow;
       auto origin = maybe_in_port_box->bounds().upper_left() -
-                    InPortBox::block_size.w * size_in_blocks.sx;
-      if( origin.x < 0_x ) {
+                    Delta{ .w = InPortBox::block_size.w } *
+                        size_in_blocks.w;
+      if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InPortBox.
         origin = maybe_in_port_box->bounds().upper_left() -
-                 InPortBox::block_size.h * size_in_blocks.sy;
+                 Delta{ .h = InPortBox::block_size.h } *
+                     size_in_blocks.h;
       }
-      res = InboundBox{
-          S,
-          origin,         //
-          size_in_blocks, //
-          is_wide         //
-      };
+      res = InboundBox( S, origin, size_in_blocks, is_wide );
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( res->bounds().y < 0_y ) res = nothing;
-      if( res->bounds().x < 0_x ) res = nothing;
+      if( res->bounds().y < 0 ) res = nothing;
+      if( res->bounds().x < 0 ) res = nothing;
     }
     return res;
   }
@@ -592,14 +592,14 @@ class InboundBox : EntityBase {
   bool is_wide() const { return is_wide_; }
 
  private:
-  InboundBox( PS& S, Coord origin, Scale size_in_blocks,
+  InboundBox( PS& S, Coord origin, Delta size_in_blocks,
               bool is_wide )
     : EntityBase( S ),
       origin_( origin ),
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
   Coord origin_{};
-  Scale size_in_blocks_{};
+  Delta size_in_blocks_{};
   bool  is_wide_{};
 };
 NOTHROW_MOVE( InboundBox );
@@ -609,7 +609,7 @@ class OutboundBox : EntityBase {
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
-                           Delta{ 1_w, 1_h } );
+                           Delta{ .w = 1, .h = 1 } );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
@@ -618,7 +618,7 @@ class OutboundBox : EntityBase {
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::white() );
     rr::Typer typer = renderer.typer(
-        bounds().upper_left() + Delta{ 2_w, 2_h } + offset,
+        bounds().upper_left() + Delta{ .w = 2, .h = 2 } + offset,
         gfx::pixel::white() );
     typer.write( "outbound" );
   }
@@ -632,17 +632,19 @@ class OutboundBox : EntityBase {
     maybe<OutboundBox> res;
     if( maybe_inbound_box ) {
       bool  is_wide = maybe_inbound_box->is_wide();
-      Scale size_in_blocks;
-      size_in_blocks.sy = InPortBox::height_blocks;
-      size_in_blocks.sx = is_wide ? InPortBox::width_wide
-                                  : InPortBox::width_narrow;
+      Delta size_in_blocks;
+      size_in_blocks.h = InPortBox::height_blocks;
+      size_in_blocks.w = is_wide ? InPortBox::width_wide
+                                 : InPortBox::width_narrow;
       auto origin = maybe_inbound_box->bounds().upper_left() -
-                    InPortBox::block_size.w * size_in_blocks.sx;
-      if( origin.x < 0_x ) {
+                    Delta{ .w = InPortBox::block_size.w } *
+                        size_in_blocks.w;
+      if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InboundBox.
         origin = maybe_inbound_box->bounds().upper_left() -
-                 InPortBox::block_size.h * size_in_blocks.sy;
+                 Delta{ .h = InPortBox::block_size.h } *
+                     size_in_blocks.h;
       }
       res = OutboundBox{
           S,
@@ -653,8 +655,8 @@ class OutboundBox : EntityBase {
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( res->bounds().y < 0_y ) res = nothing;
-      if( res->bounds().x < 0_x ) res = nothing;
+      if( res->bounds().y < 0 ) res = nothing;
+      if( res->bounds().x < 0 ) res = nothing;
     }
     return res;
   }
@@ -662,20 +664,20 @@ class OutboundBox : EntityBase {
   bool is_wide() const { return is_wide_; }
 
  private:
-  OutboundBox( PS& S, Coord origin, Scale size_in_blocks,
+  OutboundBox( PS& S, Coord origin, Delta size_in_blocks,
                bool is_wide )
     : EntityBase( S ),
       origin_( origin ),
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
   Coord origin_{};
-  Scale size_in_blocks_{};
+  Delta size_in_blocks_{};
   bool  is_wide_{};
 };
 NOTHROW_MOVE( OutboundBox );
 
 class Exit : EntityBase {
-  static constexpr Delta exit_block_pixels{ 26_w, 26_h };
+  static constexpr Delta exit_block_pixels{ .w = 26, .h = 26 };
 
  public:
   Rect bounds() const {
@@ -689,7 +691,8 @@ class Exit : EntityBase {
     Delta         text_size = Delta::from_gfx(
                 rr::rendered_text_line_size_pixels( text ) );
     rr::Typer typer = renderer.typer(
-        centered( text_size, bds + Delta( 1_w, 1_h ) ) + offset,
+        centered( text_size, bds + Delta{ .w = 1, .h = 1 } ) +
+            offset,
         gfx::pixel::red() );
     typer.write( text );
     painter.draw_empty_rect( bds.shifted_by( offset ),
@@ -707,21 +710,21 @@ class Exit : EntityBase {
     if( maybe_market_commodities ) {
       auto origin =
           maybe_market_commodities->bounds().lower_right() -
-          exit_block_pixels.h;
+          Delta{ .h = exit_block_pixels.h };
       auto lr_delta = origin + exit_block_pixels - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h ) {
         origin =
             maybe_market_commodities->bounds().upper_right() -
             exit_block_pixels;
       }
-      res = Exit( S, origin );
-      lr_delta =
-          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
-          Coord{};
+      res      = Exit( S, origin );
+      lr_delta = ( res->bounds().lower_right() -
+                   Delta{ .w = 1, .h = 1 } ) -
+                 Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( res->bounds().y < 0_y ) res = nothing;
-      if( res->bounds().x < 0_x ) res = nothing;
+      if( res->bounds().y < 0 ) res = nothing;
+      if( res->bounds().x < 0 ) res = nothing;
     }
     return res;
   }
@@ -734,15 +737,16 @@ class Exit : EntityBase {
 NOTHROW_MOVE( Exit );
 
 class Dock : EntityBase {
-  static constexpr Scale dock_block_pixels{ 24 };
-  static constexpr Delta dock_block_pixels_delta =
-      Delta{ 1_w, 1_h } * dock_block_pixels;
+  static constexpr Delta dock_block_pixels{ .w = 24, .h = 24 };
+  static inline Delta    dock_block_pixels_delta =
+      Delta{ .w = 1, .h = 1 } * dock_block_pixels;
 
  public:
   Rect bounds() const {
     return Rect::from(
-        origin_, Delta{ length_in_blocks_ * dock_block_pixels.sx,
-                        1_h * dock_block_pixels.sy } );
+        origin_,
+        Delta{ .w = length_in_blocks_ * dock_block_pixels.w,
+               .h = 1 * dock_block_pixels.h } );
   }
 
   void draw( rr::Renderer& renderer, Delta offset ) const {
@@ -767,19 +771,20 @@ class Dock : EntityBase {
     if( maybe_dock_anchor && maybe_in_port_box ) {
       auto available = maybe_dock_anchor->bounds().left_edge() -
                        maybe_in_port_box->bounds().right_edge();
-      available /= dock_block_pixels.sx;
-      auto origin = maybe_dock_anchor->bounds().upper_left() -
-                    ( available * dock_block_pixels.sx );
-      origin -= 1_h * dock_block_pixels.sy / 2;
-      res = Dock( S, /*origin_=*/origin,
-                  /*length_in_blocks_=*/available );
-      auto lr_delta =
-          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
-          Coord{};
+      available /= dock_block_pixels.w;
+      auto origin =
+          maybe_dock_anchor->bounds().upper_left() -
+          Delta{ .w = ( available * dock_block_pixels.w ) };
+      origin -= Delta{ .h = 1 * dock_block_pixels.h / 2 };
+      res           = Dock( S, /*origin_=*/origin,
+                            /*length_in_blocks_=*/available );
+      auto lr_delta = ( res->bounds().lower_right() -
+                        Delta{ .w = 1, .h = 1 } ) -
+                      Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( res->bounds().y < 0_y ) res = nothing;
-      if( res->bounds().x < 0_x ) res = nothing;
+      if( res->bounds().y < 0 ) res = nothing;
+      if( res->bounds().x < 0 ) res = nothing;
     }
     return res;
   }
@@ -829,7 +834,7 @@ class UnitCollection : EntityBase {
           painter.draw_empty_rect(
               Rect::from( coord, g_tile_delta )
                       .shifted_by( offset ) -
-                  Delta( 1_w, 1_h ),
+                  Delta{ .w = 1, .h = 1 },
               rr::Painter::e_border_mode::in_out,
               gfx::pixel::green() );
           break;
@@ -888,12 +893,13 @@ class UnitsOnDock : public UnitCollection {
       for( auto id : harbor_units_on_dock( S.units_state,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
-        coord -= g_tile_delta.w;
+        coord -= Delta{ .w = g_tile_delta.w };
         if( coord.x < maybe_dock->bounds().left_edge() )
-          coord = Coord{ ( maybe_dock->bounds().upper_right() -
-                           g_tile_delta )
-                             .x,
-                         coord.y - g_tile_delta.h };
+          coord =
+              Coord{ .x = ( maybe_dock->bounds().upper_right() -
+                            g_tile_delta )
+                              .x,
+                     .y = coord.y - g_tile_delta.h };
       }
       // populate units...
       res = UnitsOnDock(
@@ -902,11 +908,12 @@ class UnitsOnDock : public UnitCollection {
           /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
+          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
+          Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( bds.y < 0_y ) res = nothing;
-      if( bds.x < 0_x ) res = nothing;
+      if( bds.y < 0 ) res = nothing;
+      if( bds.x < 0 ) res = nothing;
     }
     return res;
   }
@@ -934,7 +941,7 @@ class ShipsInPort : public UnitCollection {
       for( auto id : harbor_units_in_port( S.units_state,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
-        coord -= g_tile_delta.w;
+        coord -= Delta{ .w = g_tile_delta.w };
         if( coord.x < in_port_bds.left_edge() )
           coord = Coord{
               ( in_port_bds.upper_right() - g_tile_delta ).x,
@@ -947,11 +954,12 @@ class ShipsInPort : public UnitCollection {
           /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
+          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
+          Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( bds.y < 0_y ) res = nothing;
-      if( bds.x < 0_x ) res = nothing;
+      if( bds.y < 0 ) res = nothing;
+      if( bds.x < 0 ) res = nothing;
     }
     return res;
   }
@@ -979,11 +987,11 @@ class ShipsInbound : public UnitCollection {
       for( auto id : harbor_units_inbound( S.units_state,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
-        coord -= g_tile_delta.w;
+        coord -= Delta{ .w = g_tile_delta.w };
         if( coord.x < frame_bds.left_edge() )
           coord = Coord{
-              ( frame_bds.upper_right() - g_tile_delta ).x,
-              coord.y - g_tile_delta.h };
+              .x = ( frame_bds.upper_right() - g_tile_delta ).x,
+              .y = coord.y - g_tile_delta.h };
       }
       // populate units...
       res = ShipsInbound(
@@ -992,11 +1000,12 @@ class ShipsInbound : public UnitCollection {
           /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
+          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
+          Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( bds.y < 0_y ) res = nothing;
-      if( bds.x < 0_x ) res = nothing;
+      if( bds.y < 0 ) res = nothing;
+      if( bds.x < 0 ) res = nothing;
     }
     return res;
   }
@@ -1024,7 +1033,7 @@ class ShipsOutbound : public UnitCollection {
       for( auto id : harbor_units_outbound( S.units_state,
                                             S.player.nation ) ) {
         units.push_back( { id, coord } );
-        coord -= g_tile_delta.w;
+        coord -= Delta{ .w = g_tile_delta.w };
         if( coord.x < frame_bds.left_edge() )
           coord = Coord{
               ( frame_bds.upper_right() - g_tile_delta ).x,
@@ -1037,11 +1046,12 @@ class ShipsOutbound : public UnitCollection {
           /*units_=*/std::move( units ) );
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
+          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
+          Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( bds.y < 0_y ) res = nothing;
-      if( bds.x < 0_x ) res = nothing;
+      if( bds.y < 0 ) res = nothing;
+      if( bds.x < 0 ) res = nothing;
     }
     return res;
   }
@@ -1070,7 +1080,7 @@ class ActiveCargo : EntityBase {
         if( S->drag_state.has_value() ) {
           if_get( S->drag_state->object,
                   HarborDraggableObject::cargo_commodity, cc ) {
-            if( cc.slot._ == idx ) continue;
+            if( cc.slot == idx ) continue;
           }
         }
         auto dst_coord       = rect.upper_left() + offset;
@@ -1137,13 +1147,13 @@ class ActiveCargo : EntityBase {
       // FIXME: if we are inside the active cargo box, and the
       // active cargo box exists, do we need the following
       // checks?
-      auto lr_delta =
-          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
-          Coord{};
+      auto lr_delta = ( res->bounds().lower_right() -
+                        Delta{ .w = 1, .h = 1 } ) -
+                      Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nothing;
-      if( res->bounds().y < 0_y ) res = nothing;
-      if( res->bounds().x < 0_x ) res = nothing;
+      if( res->bounds().y < 0 ) res = nothing;
+      if( res->bounds().x < 0 ) res = nothing;
     }
     return res;
   }
@@ -1170,10 +1180,10 @@ class ActiveCargo : EntityBase {
           if( draggable_in_cargo_slot( *S, *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += kCommodityInCargoHoldRenderingOffset;
-            scale = Scale{ 16 };
+            scale = Delta{ .w = 16, .h = 16 };
           }
-          auto box = Rect::from( box_origin,
-                                 Delta{ 1_w, 1_h } * scale );
+          auto box = Rect::from(
+              box_origin, Delta{ .w = 1, .h = 1 } * scale );
 
           res = pair{ *maybe_slot, box };
         }
@@ -1529,7 +1539,7 @@ struct DragConnector {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( S.units_state, ship ) ) return false;
     return unit_from_id( ship ).cargo().fits_somewhere(
-        GameState::units(), Cargo::unit{ src.id }, dst.slot._ );
+        GameState::units(), Cargo::unit{ src.id }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<HarborDraggableObject::unit>(
@@ -1625,8 +1635,7 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( ship ).cargo().fits_somewhere(
-        GameState::units(), Cargo::commodity{ comm },
-        dst.slot._ );
+        GameState::units(), Cargo::commodity{ comm }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( market, inport_ship ) const {
     auto comm = Commodity{
@@ -1646,7 +1655,7 @@ struct DragConnector {
     return unit_from_id( ship )
         .cargo()
         .template slot_holds_cargo_type<Cargo::commodity>(
-            src.slot._ )
+            src.slot )
         .has_value();
   }
   bool operator()( auto const&, auto const& ) const {
@@ -1709,7 +1718,7 @@ struct DragUserInput {
         unit_from_id( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
-                src.slot._ ) );
+                src.slot ) );
     src.quantity = co_await ask_for_quantity(
         S, commodity_ref.obj.type, "sell" );
     co_return src.quantity.has_value();
@@ -1721,7 +1730,7 @@ struct DragUserInput {
         unit_from_id( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
-                src.slot._ );
+                src.slot );
     if( !maybe_commodity_ref.has_value() )
       // It's a unit.
       co_return true;
@@ -1758,9 +1767,9 @@ struct DragPerform {
     // the player,
     if( unit_from_id( ship ).cargo().fits( GameState::units(),
                                            Cargo::unit{ src.id },
-                                           dst.slot._ ) )
+                                           dst.slot ) )
       S.units_state.change_to_cargo_somewhere( ship, src.id,
-                                               dst.slot._ );
+                                               dst.slot );
     else
       S.units_state.change_to_cargo_somewhere( ship, src.id );
   }
@@ -1780,12 +1789,11 @@ struct DragPerform {
           // Will first "disown" unit which will remove it
           // from the cargo.
           S.units_state.change_to_cargo_somewhere( ship, u.id,
-                                                   dst.slot._ );
+                                                   dst.slot );
         },
         [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
-              GameState::units(), ship, src.slot._, ship,
-              dst.slot._,
+              GameState::units(), ship, src.slot, ship, dst.slot,
               /*max_quantity=*/nothing,
               /*try_other_dst_slots=*/false );
         } );
@@ -1837,7 +1845,7 @@ struct DragPerform {
           UNWRAP_CHECK( src_ship,
                         active_cargo_ship( entities ) );
           move_commodity_as_much_as_possible(
-              GameState::units(), src_ship, src.slot._,
+              GameState::units(), src_ship, src.slot,
               /*dst_ship=*/dst.id,
               /*dst_slot=*/0,
               /*max_quantity=*/src.quantity,
@@ -1861,7 +1869,7 @@ struct DragPerform {
         std::min( comm.quantity, k_default_market_quantity );
     CHECK( comm.quantity > 0 );
     add_commodity_to_cargo( GameState::units(), comm, ship,
-                            /*slot=*/dst.slot._,
+                            /*slot=*/dst.slot,
                             /*try_other_slots=*/true );
   }
   void DRAG_PERFORM_CASE( market, inport_ship ) const {
@@ -1890,7 +1898,7 @@ struct DragPerform {
         unit_from_id( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
-                src.slot._ ) );
+                src.slot ) );
     auto quantity_wants_to_sell =
         src.quantity.value_or( commodity_ref.obj.quantity );
     int       amount_to_sell = std::min( quantity_wants_to_sell,
@@ -1898,10 +1906,10 @@ struct DragPerform {
     Commodity new_comm       = commodity_ref.obj;
     new_comm.quantity -= amount_to_sell;
     rm_commodity_from_cargo( GameState::units(), ship,
-                             src.slot._ );
+                             src.slot );
     if( new_comm.quantity > 0 )
       add_commodity_to_cargo( GameState::units(), new_comm, ship,
-                              /*slot=*/src.slot._,
+                              /*slot=*/src.slot,
                               /*try_other_slots=*/false );
   }
   void operator()( auto const&, auto const& ) const {
@@ -1914,11 +1922,12 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
-           tile_size / Scale{ 2 } - state.click_offset;
+           tile_size / Delta{ .w = 2, .h = 2 } -
+           state.click_offset;
   };
   using namespace HarborDraggableObject;
   // Render the dragged item.

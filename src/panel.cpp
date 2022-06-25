@@ -15,13 +15,15 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-players.hpp"
-#include "gs-turn.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
+
+// game-state
+#include "gs/players.hpp"
+#include "gs/turn.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -57,9 +59,9 @@ struct PanelPlane::Impl : public Plane {
     button_view->blink( /*enabled=*/true );
 
     auto button_size = button_view->delta();
-    auto where =
-        Coord{} + ( panel_width() / 2 ) - ( button_size.w / 2 );
-    where += 16_h;
+    auto where = Coord{} + Delta{ .w = ( panel_width() / 2 ) -
+                                       ( button_size.w / 2 ) };
+    where += Delta{ .h = 16 };
 
     ui::OwningPositionedView p_view( std::move( button_view ),
                                      where );
@@ -137,7 +139,8 @@ struct PanelPlane::Impl : public Plane {
     rr::Painter painter = renderer.painter();
     tile_sprite( painter, e_tile::wood_middle, rect() );
     view->draw( renderer, origin() );
-    Coord p = rect().upper_left() + 44_h + 8_w;
+    Coord p =
+        rect().upper_left() + Delta{ .h = 44 } + Delta{ .w = 8 };
     draw_some_stats( renderer, p );
   }
 

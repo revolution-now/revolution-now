@@ -12,22 +12,23 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "immigration.hpp"
 #include "logger.hpp"
 #include "rand-enum.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
 #include "window.hpp"
+
+// gs
+#include "gs/old-world-state.rds.hpp"
+#include "gs/player.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/lcr.rds.hpp"
-
-// Rds
-#include "old-world-state.rds.hpp"
 
 // refl
 #include "refl/enum-map.hpp"

@@ -15,9 +15,11 @@
 
 // Revolution Now
 #include "src/game-state.hpp"
-#include "src/gs-root.hpp"
 #include "src/lua.hpp"
 #include "src/rand.hpp"
+
+// game-state
+#include "src/gs/root.hpp"
 
 // luapp
 #include "luapp/state.hpp"

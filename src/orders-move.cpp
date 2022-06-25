@@ -19,9 +19,6 @@
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
@@ -29,9 +26,18 @@
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
+
+// config
+#include "config/nation.hpp"
+#include "config/unit-type.rds.hpp"
+
+// gs
+#include "gs/colonies.hpp"
+#include "gs/player.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -417,7 +423,7 @@ TravelHandler::confirm_sail_high_seas() const {
   // the game.
   bool is_atlantic =
       ( move_src.x >=
-        0_x + terrain_state_.world_size_tiles().w / 2_sx );
+        0 + terrain_state_.world_size_tiles().w / 2 );
   bool is_pacific  = !is_atlantic;
   bool correct_dst = is_high_seas( terrain_state_, move_dst );
   bool correct_src =
@@ -446,8 +452,8 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
   // high seas when a ship attempts to sail off of the left or
   // right edge of the map.
   bool ask =
-      ( move_dst.x._ == -1 ||
-        move_dst.x._ == terrain_state_.world_size_tiles().w._ );
+      ( move_dst.x == -1 ||
+        move_dst.x == terrain_state_.world_size_tiles().w );
   if( !ask ) co_return e_travel_verdict::cancelled;
   ui::e_confirm confirmed = co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
@@ -663,9 +669,8 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto    id     = unit_id;
-  auto&   unit   = units_state_.unit_for( id );
-  Player& player = player_for_nation( unit.nation() );
+  auto  id   = unit_id;
+  auto& unit = units_state_.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -694,7 +699,7 @@ wait<> TravelHandler::perform() {
         }
       }
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -714,14 +719,14 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::offboard_ship:
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       // When a ship moves into port it forfeights its movement
       // points.
@@ -931,7 +936,7 @@ struct AttackHandler : public OrdersHandler {
           units_state_.unit_for( unit_id ).nation() );
       co_await gui_.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
-          attacker_nation.display_name, colony.name() );
+          attacker_nation.display_name, colony.name );
       co_await show_colony_view(
           planes_, colonies_state_.colony_for( colony_id ),
           terrain_state_, units_state_, colonies_state_, player_,
@@ -997,7 +1002,7 @@ AttackHandler::confirm_attack_impl() {
   if( is_unit_onboard( id ) )
     co_return e_attack_verdict::attack_from_ship;
 
-  if( !can_attack( unit.desc() ) )
+  if( !can_attack( unit.type() ) )
     co_return e_attack_verdict::unit_cannot_attack;
 
   if( unit.movement_points() < 1 ) {
@@ -1048,7 +1053,7 @@ AttackHandler::confirm_attack_impl() {
               LC( units_state_.unit_for( _ ).desc().ship ) );
     erase_if( units_at_dst,
               LC( !is_military_unit(
-                  units_state_.unit_for( _ ).desc() ) ) );
+                  units_state_.unit_for( _ ).type() ) ) );
   }
 
   // If military units are exhausted then attack the colony.
@@ -1089,7 +1094,7 @@ AttackHandler::confirm_attack_impl() {
     if( unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = can_attack( unit.desc() ) ? bh_t::attack
+      bh = can_attack( unit.type() ) ? bh_t::attack
                                      : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
@@ -1113,7 +1118,7 @@ AttackHandler::confirm_attack_impl() {
     // Possible results: never, attack, trade.
     if( unit.desc().ship )
       bh = bh_t::trade;
-    else if( is_military_unit( unit.desc() ) )
+    else if( is_military_unit( unit.type() ) )
       bh = bh_t::attack;
     else
       bh = bh_t::never;
@@ -1124,7 +1129,7 @@ AttackHandler::confirm_attack_impl() {
         e_attack_verdict which =
             is_military_unit(
                 units_state_.unit_for( highest_defense_unit )
-                    .desc() )
+                    .type() )
                 ? e_attack_verdict::colony_defended
                 : e_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit;
@@ -1144,7 +1149,7 @@ AttackHandler::confirm_attack_impl() {
     if( !unit.desc().ship )
       bh = bh_t::no_bombard;
     else
-      bh = can_attack( unit.desc() ) ? bh_t::attack
+      bh = can_attack( unit.type() ) ? bh_t::attack
                                      : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
@@ -1225,7 +1230,7 @@ wait<> AttackHandler::perform() {
       // colony?
       lg.info( "the {} have captured the colony of {}.",
                nation_obj( attacker.nation() ).display_name,
-               colony_from_id( colony_id ).name() );
+               colony_from_id( colony_id ).name );
       co_return;
     }
     case e_attack_verdict::colony_defended:
@@ -1264,10 +1269,12 @@ wait<> AttackHandler::perform() {
           loser.cargo().items_of_type<Cargo::unit>().size();
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
-      string msg = fmt::format(
-          "{} @[H]{}@[] sunk by @[H]{}@[] {}",
-          loser.nation_desc().adjective, loser.desc().name,
-          winner.nation_desc().adjective, winner.desc().name );
+      string msg =
+          fmt::format( "{} @[H]{}@[] sunk by @[H]{}@[] {}",
+                       nation_obj( loser.nation() ).adjective,
+                       loser.desc().name,
+                       nation_obj( winner.nation() ).adjective,
+                       winner.desc().name );
       if( num_units_lost == 1 )
         msg += fmt::format(
             ", @[H]1@[] unit onboard has been lost" );

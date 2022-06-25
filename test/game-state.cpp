@@ -13,8 +13,8 @@
 // Under test.
 #include "src/game-state.hpp"
 
-// Revolution Now
-#include "src/gs-root.hpp"
+// game-state
+#include "src/gs/root.hpp"
 
 // refl
 #include "refl/cdr.hpp"

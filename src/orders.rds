@@ -8,8 +8,8 @@
 # Description: RDS definitions for the orders module.
 #
 # ===============================================================
-# Revolution Now
-include "coord.hpp"
+# gfx
+include "gfx/coord.hpp"
 
 namespace "rn"
 

@@ -8,8 +8,8 @@
 # Description: Config structures for immigration game logic.
 #
 # ===============================================================
-# Rds
-include "../utype.rds.hpp"
+# gs
+include "gs/unit-type.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

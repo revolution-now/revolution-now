@@ -13,12 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
-#include "lua-enum.hpp"
 #include "maybe.hpp"
 
 // Rds
-#include "nation.rds.hpp"
+#include "gs/nation.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -30,8 +31,6 @@ namespace rn {
 
 struct UnitsState;
 struct ColoniesState;
-
-Nationality const& nation_obj( e_nation nation );
 
 maybe<e_nation> nation_from_coord(
     UnitsState const&    units_state,
@@ -49,10 +48,5 @@ constexpr auto all_nations() {
   static_assert( nations.size() == refl::enum_count<e_nation> );
   return nations;
 }
-
-/****************************************************************
-** Lua
-*****************************************************************/
-LUA_ENUM_DECL( nation );
 
 } // namespace rn

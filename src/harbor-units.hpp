@@ -13,13 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "harbor-units.rds.hpp"
 #include "nation.hpp"
 #include "unit-composer.hpp"
 #include "unit-id.hpp"
 
-// Rds
-#include "harbor-units.rds.hpp"
-#include "utype.rds.hpp"
+// gs
+#include "gs/unit-type.rds.hpp"
 
 namespace rn {
 

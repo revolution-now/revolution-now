@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "compositor.hpp"
-#include "coord.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "logger.hpp"
@@ -25,6 +24,9 @@
 
 // config
 #include "config/rn.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 using namespace std;
 
@@ -44,8 +46,8 @@ constexpr uint8_t text_alpha  = 225;
 constexpr uint8_t cmds_alpha  = 240;
 constexpr uint8_t stats_alpha = 255;
 
-constexpr H kDividerHeight = 2_h;
-constexpr W kDividerWidth  = 2_w;
+constexpr H kDividerHeight = 2;
+constexpr W kDividerWidth  = 2;
 
 struct ConsolePlane::Impl : public Plane {
   // State.
@@ -92,7 +94,7 @@ struct ConsolePlane::Impl : public Plane {
 
     if( console_rect.h < total_area.h ) {
       // Console is either at the top or bottom.
-      if( console_rect.y == 0_y ) {
+      if( console_rect.y == 0 ) {
         // Console is at the top.
         console_rect = console_rect.with_new_bottom_edge(
             console_rect.bottom_edge() - kDividerHeight );
@@ -108,7 +110,7 @@ struct ConsolePlane::Impl : public Plane {
     }
     if( console_rect.w < total_area.w ) {
       // Console is either at the left or right.
-      if( console_rect.x == 0_x ) {
+      if( console_rect.x == 0 ) {
         // Console is on the left.
         console_rect = console_rect.with_new_right_edge(
             console_rect.right_edge() - kDividerWidth );
@@ -126,7 +128,8 @@ struct ConsolePlane::Impl : public Plane {
     // Render edit box.
     Delta const edit_box_delta = le_view_.get().delta();
     auto        console_edit_rect =
-        Rect::from( console_rect.lower_left() - edit_box_delta.h,
+        Rect::from( console_rect.lower_left() -
+                        Delta{ .h = edit_box_delta.h },
                     edit_box_delta );
     Rect text_rect = console_rect;
     if( render_edit_box ) text_rect.h -= edit_box_delta.h;
@@ -146,14 +149,14 @@ struct ConsolePlane::Impl : public Plane {
     static constexpr int kFontHeight = 8;
 
     auto delta_for = []( string_view text ) {
-      return Delta( W{ int( text.size() ) * 6 },
-                    H{ kFontHeight } );
+      return Delta{ .w = W{ int( text.size() ) * 6 },
+                    .h = H{ kFontHeight } };
     };
 
     // Render the log
-    int const max_lines = text_rect.h._ / kFontHeight;
+    int const max_lines = text_rect.h / kFontHeight;
     auto      log_px_start =
-        text_rect.lower_left() - H{ kFontHeight };
+        text_rect.lower_left() - Delta{ .h = H{ kFontHeight } };
     for( auto i = 0; i < max_lines; ++i ) {
       auto maybe_line = term::line( i );
       if( !maybe_line ) break;
@@ -163,14 +166,15 @@ struct ConsolePlane::Impl : public Plane {
       Delta text_size = delta_for( *maybe_line );
       renderer.typer( "simple", log_px_start, color )
           .write( *maybe_line );
-      log_px_start -= text_size.h;
+      log_px_start -= Delta{ .h = text_size.h };
     }
 
     if( render_edit_box )
       le_view_.get().draw(
-          renderer, console_edit_rect.upper_left() - 1_w );
+          renderer,
+          console_edit_rect.upper_left() - Delta{ .w = 1 } );
 
-    auto info_start = text_rect.lower_right() - 1_w;
+    auto info_start = text_rect.lower_right() - Delta{ .w = 1 };
 
     for( auto const& [name, mv_avg] : event_counts() ) {
       auto formatted = fmt::format(
@@ -181,7 +185,7 @@ struct ConsolePlane::Impl : public Plane {
           .typer( "simple", info_start - formatted_size,
                   stats_color )
           .write( formatted );
-      info_start -= formatted_size.h;
+      info_start -= Delta{ .h = formatted_size.h };
     }
   }
 

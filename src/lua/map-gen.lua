@@ -149,7 +149,7 @@ function M.initial_ships_pos()
   local y = size.h / 2
   local x = size.w - 1
   while map_gen.at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { [e.nation.dutch]={ x=x + 1, y=y } }
+  return { ['dutch']={ x=x + 1, y=y } }
 end
 
 -----------------------------------------------------------------
@@ -157,30 +157,29 @@ end
 -----------------------------------------------------------------
 local function set_land( coord )
   local square = map_gen.at( coord )
-  square.surface = e.surface.land
-  square.ground = e.ground_terrain.grassland
+  square.surface = 'land'
+  square.ground = 'grassland'
 end
 
 local function set_water( coord )
   local square = map_gen.at( coord )
-  square.surface = e.surface.water
-  square.ground = e.ground_terrain.arctic
+  square.surface = 'water'
+  square.ground = 'arctic'
   square.sea_lane = false
 end
 
 local function is_square_water( square )
-  return square.surface == e.surface.water
+  return square.surface == 'water'
 end
 
 local function set_arctic( coord )
   local square = map_gen.at( coord )
-  square.surface = e.surface.land
-  square.ground = e.ground_terrain.arctic
+  square.surface = 'land'
+  square.ground = 'arctic'
 end
 
 local function is_arctic_square( square )
-  return square.surface == e.surface.land and square.ground ==
-             e.ground_terrain.arctic
+  return square.surface == 'land' and square.ground == 'arctic'
 end
 
 local function is_sea_lane( coord )
@@ -208,25 +207,22 @@ local function row_has_land( row )
   local size = map_gen.world_size()
   for x = 0, size.w - 1 do
     local square = map_gen.at{ x=x, y=row }
-    if square.surface == e.surface.land then return true end
+    if square.surface == 'land' then return true end
   end
   return false
 end
 
-local function is_land( square )
-  return square.surface == e.surface.land
-end
+local function is_land( square ) return square.surface == 'land' end
 
-local function is_water( square )
-  return square.surface == e.surface.water
-end
+local function is_water( square ) return
+    square.surface == 'water' end
 
 local function right_most_land_square_in_row( row )
   local size = map_gen.world_size()
   for x = size.w - 1, 0, -1 do
     local coord = { x=x, y=row }
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land then return coord end
+    if square.surface == 'land' then return coord end
   end
   return nil
 end
@@ -323,10 +319,10 @@ local function forest_cover()
   local size = map_gen.world_size()
   on_all( function( coord )
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land then
-      if square.ground ~= e.ground_terrain.arctic then
+    if square.surface == 'land' then
+      if square.ground ~= 'arctic' then
         if math.random() <= .95 then
-          square.overlay = e.land_overlay.forest
+          square.overlay = 'forest'
         end
       end
     end
@@ -413,8 +409,9 @@ local function create_sea_lanes()
         for x = s.x, 0, -1 do
           local coord = { x=x, y=s.y }
           local square = map_gen.at( coord )
-          if square.surface == e.surface.water and
-              not square.sea_lane then break end
+          if square.surface == 'water' and not square.sea_lane then
+            break
+          end
           if square.sea_lane then
             square.sea_lane = false
           end
@@ -507,8 +504,7 @@ local function distribute_lost_city_rumors( placement_seed )
                                                 placement_seed )
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land and square.ground ~=
-        e.ground_terrain.arctic then
+    if square.surface == 'land' and square.ground ~= 'arctic' then
       square.lost_city_rumor = true
     end
   end
@@ -520,30 +516,30 @@ end
 -- Prime Resource Generation
 -----------------------------------------------------------------
 local RESOURCES_GROUND = {
-  [e.ground_terrain.arctic]=nil,
-  [e.ground_terrain.desert]=e.natural_resource.oasis,
-  [e.ground_terrain.grassland]=e.natural_resource.tobacco,
-  [e.ground_terrain.marsh]=e.natural_resource.minerals,
-  [e.ground_terrain.plains]=e.natural_resource.wheat,
-  [e.ground_terrain.prairie]=e.natural_resource.cotton,
-  [e.ground_terrain.savannah]=e.natural_resource.sugar,
-  [e.ground_terrain.swamp]=e.natural_resource.minerals,
-  [e.ground_terrain.tundra]=e.natural_resource.minerals
+  ['arctic']=nil,
+  ['desert']='oasis',
+  ['grassland']='tobacco',
+  ['marsh']='minerals',
+  ['plains']='wheat',
+  ['prairie']='cotton',
+  ['savannah']='sugar',
+  ['swamp']='minerals',
+  ['tundra']='minerals'
 }
 
 -- If a forest tile has a prime resource then this table will
 -- give the resource that it would have based on the ground tile
 -- in accordance with the original game's rules.
 local RESOURCES_FOREST = {
-  [e.ground_terrain.arctic]=nil,
-  [e.ground_terrain.desert]=e.natural_resource.oasis,
-  [e.ground_terrain.grassland]=e.natural_resource.tree,
-  [e.ground_terrain.marsh]=e.natural_resource.minerals,
-  [e.ground_terrain.plains]=e.natural_resource.beaver,
-  [e.ground_terrain.prairie]=e.natural_resource.deer,
-  [e.ground_terrain.savannah]=e.natural_resource.tree,
-  [e.ground_terrain.swamp]=e.natural_resource.minerals,
-  [e.ground_terrain.tundra]=e.natural_resource.deer
+  ['arctic']=nil,
+  ['desert']='oasis',
+  ['grassland']='tree',
+  ['marsh']='minerals',
+  ['plains']='beaver',
+  ['prairie']='deer',
+  ['savannah']='tree',
+  ['swamp']='minerals',
+  ['tundra']='deer'
 }
 
 -- The original game checks to see if there is at least one land
@@ -556,9 +552,7 @@ local function can_place_fish( coord )
   local squares = filter_existing_squares(
                       surrounding_squares_3x3( coord ) )
   for _, coord in ipairs( squares ) do
-    if map_gen.at( coord ).surface == e.surface.land then
-      return true
-    end
+    if map_gen.at( coord ).surface == 'land' then return true end
   end
   return false
 end
@@ -572,18 +566,18 @@ end
 -- cleared (the ground resource has no effect on production until
 -- the forest is cleared).
 local function add_ground_prime_resource( coord, square )
-  if square.surface == e.surface.water then
+  if square.surface == 'water' then
     if can_place_fish( coord ) then
-      square.ground_resource = e.natural_resource.fish
+      square.ground_resource = 'fish'
     end
     return
   end
-  if square.overlay == e.land_overlay.hills then
-    square.ground_resource = e.natural_resource.ore
+  if square.overlay == 'hills' then
+    square.ground_resource = 'ore'
     return
   end
-  if square.overlay == e.land_overlay.mountains then
-    square.ground_resource = e.natural_resource.silver
+  if square.overlay == 'mountains' then
+    square.ground_resource = 'silver'
     return
   end
   -- We apply the ground resource whether or not the tile has
@@ -593,8 +587,8 @@ local function add_ground_prime_resource( coord, square )
 end
 
 local function add_forest_prime_resource( coord, square )
-  assert( square.overlay == e.land_overlay.forest )
-  assert( square.surface ~= e.surface.water )
+  assert( square.overlay == 'forest' )
+  assert( square.surface ~= 'water' )
   local resource = RESOURCES_FOREST[square.ground]
   if resource then square.forest_resource = resource end
 end
@@ -617,8 +611,7 @@ local function distribute_prime_forest_resources( y_offset )
                                                       y_offset )
   for _, coord in ipairs( coords ) do
     local square = map_gen.at( coord )
-    if square.surface == e.surface.land and square.overlay ==
-        e.land_overlay.forest then
+    if square.surface == 'land' and square.overlay == 'forest' then
       -- Our distribution algorithm will never place a forest
       -- prime resource on the same square as a ground prime re-
       -- source, but theoretically that would not be a problem if
@@ -653,15 +646,13 @@ local function assign_ground_types()
   on_all( function( coord, square )
     if is_water( square ) then return end
     if coord.y == 0 or coord.y == size.h - 1 then
-      square.ground = e.ground_terrain.arctic
+      square.ground = 'arctic'
       return
     end
     -- TODO
     square.ground = random_list_elem{
-      e.ground_terrain.plains, e.ground_terrain.grassland,
-      e.ground_terrain.prairie, e.ground_terrain.marsh,
-      e.ground_terrain.savannah, e.ground_terrain.desert,
-      e.ground_terrain.swamp
+      'plains', 'grassland', 'prairie', 'marsh', 'savannah',
+      'desert', 'swamp'
     }
   end )
 end
@@ -709,11 +700,11 @@ local function remove_Xs()
       }
       if is_land( square ) and is_water( square_right ) and
           is_water( square_down ) and is_land( square_diag ) then
-        square_diag.surface = e.surface.water
+        square_diag.surface = 'water'
       end
       if is_water( square ) and is_land( square_right ) and
           is_land( square_down ) and is_water( square_diag ) then
-        square_diag.surface = e.surface.land
+        square_diag.surface = 'land'
       end
     end
   end )
@@ -734,14 +725,14 @@ local function remove_islands()
       surrounding = filter_existing_squares( surrounding )
       local has_land = false
       for _, square in ipairs( surrounding ) do
-        if map_gen.at( square ).surface == e.surface.land then
+        if map_gen.at( square ).surface == 'land' then
           has_land = true
           break
         end
       end
       if not has_land then
         -- We have an island.
-        square.surface = e.surface.water
+        square.surface = 'water'
       end
     end
   end )
@@ -832,9 +823,9 @@ end
 
 local function create_river( options, coord )
   local num_segments = math.random( 1, 8 )
-  local river_type = e.river.minor
+  local river_type = 'minor'
   if random_bool( options.major_river_fraction ) then
-    river_type = e.river.major
+    river_type = 'major'
   end
   for i = 1, num_segments do
     coord = create_river_segment( options, coord, river_type )
@@ -883,7 +874,7 @@ end
 
 local function set_land_if_needed( coord )
   if not square_exists( coord ) then return 0 end
-  if map_gen.at( coord ).surface == e.surface.land then
+  if map_gen.at( coord ).surface == 'land' then
     -- Bail here so that we don't clame to have added land where
     -- it already existed, which would mess up the land density
     -- calculations.
@@ -1063,23 +1054,21 @@ local function generate_testing_land()
   on_all( function( coord, square )
     local main = { x=coord.x, y=coord.y - 2 }
     if main.x > 5 and main.x < 50 and main.y > 5 and main.y < 60 then
-      square.surface = e.surface.land
-      square.ground = (main.y // 6) % 9 -- e.ground_terrain.plains
-      if main.x // 5 % 2 == 1 then
-        square.overlay = e.land_overlay.forest
-      end
+      square.surface = 'land'
+      square.ground = (main.y // 6) % 9 -- "plains"
+      if main.x // 5 % 2 == 1 then square.overlay = 'forest' end
       if main.x >= 40 and main.x <= 44 then
         if main.y // 6 % 2 == 1 then
-          square.overlay = e.land_overlay.hills
+          square.overlay = 'hills'
         else
-          square.overlay = e.land_overlay.mountains
+          square.overlay = 'mountains'
         end
       end
     else
-      square.surface = e.surface.water
+      square.surface = 'water'
     end
     if coord.y < 4 or coord.y > 65 then
-      square.surface = e.surface.land
+      square.surface = 'land'
       square.ground = math.random( 0, 8 )
       if math.random( 1, 5 ) == 1 then
         square.overlay = math.random( 0, 3 )
@@ -1092,7 +1081,7 @@ local function generate_testing_land()
   distribute_lost_city_rumors( placement_seed )
 
   -- on_all( function( coord, square )
-  --   if square.surface == e.surface.land then
+  --   if square.surface == "land" then
   --     square.lost_city_rumor = true
   --     square.road = true
   --   end
@@ -1103,8 +1092,8 @@ end
 local function generate_battlefield()
   local size = map_gen.world_size()
   on_all( function( coord, square )
-    square.surface = e.surface.land
-    square.ground = e.ground_terrain.grassland
+    square.surface = 'land'
+    square.ground = 'grassland'
   end )
 end
 

@@ -15,6 +15,9 @@
 // Revolution Now
 #include "unit-id.hpp"
 
+// C++ standard library
+#include <utility>
+
 namespace rn {
 
 struct FightStatistics {

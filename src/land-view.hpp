@@ -14,13 +14,15 @@
 
 // Revolution Now
 #include "colony-id.hpp"
-#include "coord.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "land-view.rds.hpp"
 #include "orders.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

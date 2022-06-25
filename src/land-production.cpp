@@ -11,12 +11,15 @@
 #include "land-production.hpp"
 
 // Revolution Now
-#include "gs-terrain.hpp"
 #include "map-square.hpp"
-#include "utype.hpp"
+
+// gs
+#include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
 
 // config
 #include "config/production.rds.hpp"
+#include "config/unit-type.hpp"
 
 using namespace std;
 

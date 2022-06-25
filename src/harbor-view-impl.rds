@@ -9,10 +9,12 @@
 #
 # ===============================================================
 # Revolution Now
-include "cargo.hpp"
-include "commodity.hpp"
 include "maybe.hpp"
-include "unit-id.hpp"
+
+# gs
+include "gs/cargo.hpp"
+include "gs/commodity.rds.hpp"
+include "gs/unit-id.hpp"
 
 namespace "rn"
 

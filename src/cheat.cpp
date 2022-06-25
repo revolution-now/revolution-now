@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
-#include "colony.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
 #include "unit.hpp"
@@ -22,6 +21,10 @@
 // config
 #include "config/colony.rds.hpp"
 #include "config/rn.rds.hpp"
+#include "config/unit-type.hpp"
+
+// gs
+#include "gs/colony.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -43,13 +46,13 @@ namespace {
 
 bool can_remove_building( Colony const&     colony,
                           e_colony_building building ) {
-  if( !colony.buildings()[building] ) return true;
+  if( !colony.buildings[building] ) return true;
   e_colony_building_slot slot = slot_for_building( building );
   UNWRAP_CHECK( foremost, building_for_slot( colony, slot ) );
   if( foremost != building ) return true;
   maybe<e_indoor_job> job = indoor_job_for_slot( slot );
   if( !job.has_value() ) return true;
-  return colony.indoor_jobs()[*job].empty();
+  return colony.indoor_jobs[*job].empty();
 }
 
 } // namespace
@@ -67,14 +70,14 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
     case e_cheat_colony_buildings_option::give_all_buildings:
       for( e_colony_building building :
            refl::enum_values<e_colony_building> )
-        colony.add_building( building );
+        colony.buildings[building] = true;
       break;
     case e_cheat_colony_buildings_option::remove_all_buildings: {
       bool can_not_remove_all = false;
       for( e_colony_building building :
            refl::enum_values<e_colony_building> ) {
         if( can_remove_building( colony, building ) )
-          colony.rm_building( building );
+          colony.buildings[building] = false;
         else
           can_not_remove_all = true;
       }
@@ -87,17 +90,17 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
     case e_cheat_colony_buildings_option::set_default_buildings:
       for( e_colony_building building :
            refl::enum_values<e_colony_building> )
-        colony.rm_building( building );
+        colony.buildings[building] = false;
       for( e_colony_building building :
            config_colony.initial_colony_buildings )
-        colony.add_building( building );
+        colony.buildings[building] = true;
       break;
     case e_cheat_colony_buildings_option::add_one_building: {
       maybe<e_colony_building> building =
           co_await gui.enum_choice<e_colony_building>(
               /*sort=*/true );
       if( building.has_value() )
-        colony.add_building( *building );
+        colony.buildings[*building] = true;
       break;
     }
     case e_cheat_colony_buildings_option::remove_one_building: {
@@ -111,7 +114,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
             "colonists working in it." );
         co_return;
       }
-      colony.rm_building( *building );
+      colony.buildings[*building] = false;
       break;
     }
   }
@@ -243,9 +246,9 @@ UnitId cheat_create_new_colonist( UnitsState&   units_state,
                                   IMapUpdater&  map_updater,
                                   Colony const& colony ) {
   return create_unit_on_map_non_interactive(
-      units_state, map_updater, colony.nation(),
+      units_state, map_updater, colony.nation,
       UnitComposition::create( e_unit_type::free_colonist ),
-      colony.location() );
+      colony.location );
 }
 
 } // namespace rn

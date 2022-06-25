@@ -1,0 +1,90 @@
+# ===============================================================
+# colony.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the colony module.
+#
+# ===============================================================
+# gs
+include "gs/colony-enums.rds.hpp"
+include "gs/colony-id.hpp"
+include "gs/commodity.rds.hpp"
+include "gs/nation.rds.hpp"
+include "gs/unit-id.hpp"
+include "gs/unit-type.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.OutdoorUnit {
+  unit_id 'UnitId',
+  job     'e_outdoor_job',
+}
+
+sumtype.ColonyJob {
+  outdoor {
+    direction 'e_direction',
+    job       'e_outdoor_job',
+  },
+  indoor {
+    job       'e_indoor_job',
+  },
+}
+
+sumtype.Construction {
+  building {
+    what 'e_colony_building',
+  },
+  unit {
+    type 'e_unit_type',
+  }
+}
+
+struct.Colony {
+  # Basic info.
+  id 'ColonyId',
+  nation 'e_nation',
+  name 'std::string',
+  location 'Coord',
+
+  # Commodities.
+  commodities 'refl::enum_map<e_commodity, int>',
+
+  # This is a vector and not a set because it is desirable to
+  # preserve the order in which units are added for UI purposes.
+  indoor_jobs 'refl::enum_map<e_indoor_job, std::vector<UnitId>>',
+
+  outdoor_jobs 'refl::enum_map<e_direction, base::maybe<OutdoorUnit>>',
+
+  buildings 'refl::enum_map<e_colony_building, bool>',
+
+  # What building is the colony currently constructing.
+  construction 'base::maybe<Construction_t>',
+
+  hammers 'int',
+
+  # How many bells this colony has accumulated. A certain number
+  # of bells generated in a turn are consumed by colonists, and
+  # the remainder (which might be negative) is added to this.
+  # Then, the value this ends up having each turn determines the
+  # percentage of Sons of Liberty membership by comparing its
+  # value to the population size (the formula used for this is
+  # not yet clear).
+  bells 'int',
+
+  _features { equality, validation }
+}

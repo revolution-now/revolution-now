@@ -14,10 +14,13 @@
 #include "colony-id.hpp"
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
 #include "lua.hpp"
 
+// game-state
+#include "gs/colonies.hpp"
+
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

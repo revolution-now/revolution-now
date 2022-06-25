@@ -14,12 +14,14 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "igui.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
-#include "player.hpp"
+
+// game-state
+#include "gs/player.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/nation.rds.hpp"

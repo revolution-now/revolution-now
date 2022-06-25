@@ -12,19 +12,23 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "colony-mgr.rds.hpp"
+
 // Revolution Now
-#include "colony-id.hpp"
-#include "colony.hpp"
-#include "coord.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "map-updater.hpp"
-#include "nation.hpp"
-#include "unit-id.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "colony-mgr.rds.hpp"
+// gs
+#include "gs/colony-id.hpp"
+#include "gs/colony.hpp"
+#include "gs/nation.rds.hpp"
+#include "gs/unit-id.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <string_view>
@@ -97,5 +101,11 @@ void remove_unit_from_colony( UnitsState& units_state,
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
+
+int colony_population( Colony const& colony );
+
+std::vector<UnitId> colony_units_all( Colony const& colony );
+
+bool colony_has_unit( Colony const& colony, UnitId id );
 
 } // namespace rn

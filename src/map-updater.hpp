@@ -13,12 +13,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "map-square.hpp"
 #include "matrix.hpp"
 
-// render
-#include "render/renderer.hpp"
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -26,6 +25,10 @@
 
 // C++ standard library
 #include <stack>
+
+namespace rr {
+struct Renderer;
+}
 
 namespace rn {
 

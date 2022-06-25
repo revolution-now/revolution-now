@@ -20,9 +20,11 @@
 #include "ui-enums.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
-#include "utype.hpp"
 #include "view.hpp"
 #include "wait.hpp"
+
+// gs
+#include "gs/unit-type.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -312,7 +314,7 @@ class SpriteView : public View {
              Coord         coord ) const override;
   // Implement Object
   Delta delta() const override {
-    return Delta{ 1_w, 1_h } * sprite_size( tile_ ).to_scale();
+    return Delta{ .w = 1, .h = 1 } * sprite_size( tile_ );
   }
 
  private:

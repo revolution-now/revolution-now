@@ -16,13 +16,15 @@
 #include "config-files.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
-#include "gs-land-view.hpp"
 #include "lua-ui.hpp"
 #include "map-gen.hpp"
 #include "player.hpp"
 #include "sound.hpp"
 #include "time.hpp"
 #include "turn.hpp"
+
+// game-state
+#include "gs/land-view.hpp"
 
 // base
 #include "base/stack-trace.hpp"

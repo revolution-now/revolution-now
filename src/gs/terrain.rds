@@ -1,0 +1,20 @@
+# ===============================================================
+# gs-terrain.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-13.
+#
+# Description: RDS definitions for the gs-terrain module.
+#
+# ===============================================================
+# gs
+include "gs/map-square.rds.hpp"
+include "gs/matrix.hpp"
+
+namespace "rn.wrapped"
+
+struct.TerrainState {
+  placement_seed 'int',
+  world_map 'Matrix<::rn::MapSquare>',
+}

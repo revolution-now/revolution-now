@@ -16,8 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/gs-colonies.hpp"
+// game-state
+#include "src/gs/colonies.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -44,7 +44,7 @@ struct World : testing::World {
       _, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3_w );
+    build_map( std::move( tiles ), 3 );
   }
 };
 
@@ -54,7 +54,7 @@ struct World : testing::World {
 TEST_CASE( "[colview-buildings] layout" ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
 
   // TODO
   (void)colony;

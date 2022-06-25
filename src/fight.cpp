@@ -15,6 +15,9 @@
 #include "rand.hpp"
 #include "ustate.hpp"
 
+// config
+#include "config/unit-type.hpp"
+
 namespace rn {
 
 namespace {} // namespace

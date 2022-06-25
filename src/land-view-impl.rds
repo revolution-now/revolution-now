@@ -9,12 +9,14 @@
 #
 # ===============================================================
 # Revolution Now
-include "coord.hpp"
 include "physics.hpp"
 include "unit-id.hpp"
 
 # Rds
 include "orders.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 namespace "rn"
 

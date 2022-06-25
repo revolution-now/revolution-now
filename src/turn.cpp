@@ -16,9 +16,6 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-players.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
@@ -42,8 +39,16 @@
 #include "ustate.hpp"
 #include "window.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/players.hpp"
+#include "gs/turn.rds.hpp"
+#include "gs/units.hpp"
+
 // Rds
-#include "gs-turn.rds.hpp"
 #include "menu.rds.hpp"
 
 // refl
@@ -787,7 +792,7 @@ wait<> units_turn( Planes& planes, MenuPlane& menu_plane,
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( units_state, st.nation );
-    util::sort_by_key( units, []( auto id ) { return id._; } );
+    util::sort_by_key( units, []( auto id ) { return id; } );
     erase_if( units, should_remove_unit_from_queue );
     if( units.empty() ) co_return;
     for( UnitId id : units ) q.push_back( id );

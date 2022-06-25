@@ -8,8 +8,8 @@
 # Description: Config info for founding fathers.
 #
 # ===============================================================
-# Rds
-include "../fathers.rds.hpp"
+# gs
+include "gs/fathers.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

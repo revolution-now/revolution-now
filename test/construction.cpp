@@ -13,8 +13,8 @@
 // Under test.
 #include "src/construction.hpp"
 
-// Revolution Now
-#include "src/gs-units.hpp" // FIXME: remove if not needed.
+// game-state
+#include "src/gs/units.hpp" // FIXME: remove if not needed.
 
 // Must be last.
 #include "test/catch-common.hpp"

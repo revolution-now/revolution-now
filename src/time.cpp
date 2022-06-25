@@ -10,10 +10,8 @@
 *****************************************************************/
 #include "time.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // C++ standard library

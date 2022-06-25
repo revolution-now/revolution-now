@@ -39,8 +39,8 @@ namespace rn {
 
 ::SDL_Window* g_window = nullptr;
 
-Scale g_resolution_scale_factor{ 0 };
-Scale g_optimal_resolution_scale_factor{ 0 };
+Delta g_resolution_scale_factor{ .w = 0, .h = 0 };
+Delta g_optimal_resolution_scale_factor{ .w = 0, .h = 0 };
 Delta g_screen_physical_size{};
 
 namespace rl = ::base::rl;
@@ -85,7 +85,7 @@ Delta screen_logical_size() {
 
 double monitor_diagonal_length( float ddpi, DisplayMode dm ) {
   double length =
-      sqrt( pow( dm.size.w._, 2.0 ) + pow( dm.size.h._, 2.0 ) ) /
+      sqrt( pow( dm.size.w, 2.0 ) + pow( dm.size.h, 2.0 ) ) /
       ddpi;
   // Round to hearest 1/2 inch.
   return double( lround( length * 2.0 ) ) / 2.0;
@@ -179,13 +179,13 @@ struct ScaleInfo {
 NOTHROW_MOVE( ScaleInfo );
 
 ScaleInfo scale_info( int scale_ ) {
-  Scale scale{ scale_ };
+  Delta scale{ .w = scale_, .h = scale_ };
   Delta resolution = current_display_mode().size / scale;
 
   // Tile size in inches if it were measured on the surface of
   // the screen.
   double tile_size_screen_surface =
-      ( scale * g_tile_scale ).sx._ / monitor_ddpi();
+      ( scale * g_tile_delta ).w / monitor_ddpi();
 
   // Compute the angular size (this is what actually determines
   // how big it looks to the viewer).
@@ -251,8 +251,10 @@ void find_pixel_scale_factor() {
 #endif
   ///////////////////////////////////////////////////////////////
 
-  g_resolution_scale_factor         = Scale{ optimal.scale };
-  g_optimal_resolution_scale_factor = Scale{ optimal.scale };
+  g_resolution_scale_factor =
+      Delta{ .w = optimal.scale, .h = optimal.scale };
+  g_optimal_resolution_scale_factor =
+      Delta{ .w = optimal.scale, .h = optimal.scale };
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
   lg.info( "screen physical resolution: {}",
@@ -261,11 +263,13 @@ void find_pixel_scale_factor() {
            screen_logical_size() );
 
   // If this is violated then we have non-integer scaling.
-  CHECK( g_screen_physical_size % Scale{ optimal.scale } ==
+  CHECK( ( g_screen_physical_size %
+           Delta{ .w = optimal.scale, .h = optimal.scale } ) ==
          Delta{} );
 
   // For informational purposes
-  if( current_display_mode().size % Scale{ optimal.scale } !=
+  if( current_display_mode().size %
+          Delta{ .w = optimal.scale, .h = optimal.scale } !=
       Delta{} )
     lg.warn(
         "Desktop display resolution not commensurate with scale "
@@ -284,7 +288,7 @@ void init_screen() {
 
   g_window =
       ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
-                          0, dm.w._, dm.h._, flags );
+                          0, dm.w, dm.h, flags );
   CHECK( g_window != nullptr, "failed to create window" );
 }
 
@@ -354,22 +358,22 @@ REGISTER_INIT_ROUTINE( screen );
 void* main_os_window_handle() { return (void*)g_window; }
 
 void inc_resolution_scale() {
-  int scale     = g_resolution_scale_factor.sx._;
+  int scale     = g_resolution_scale_factor.w;
   int old_scale = scale;
   scale++;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.sx = SX{ scale };
-  g_resolution_scale_factor.sy = SY{ scale };
+  g_resolution_scale_factor.w = scale;
+  g_resolution_scale_factor.h = scale;
   if( old_scale != scale ) on_renderer_scale_factor_changed();
 }
 
 void dec_resolution_scale() {
-  int scale     = g_resolution_scale_factor.sx._;
+  int scale     = g_resolution_scale_factor.w;
   int old_scale = scale;
   scale--;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.sx = SX{ scale };
-  g_resolution_scale_factor.sy = SY{ scale };
+  g_resolution_scale_factor.w = scale;
+  g_resolution_scale_factor.h = scale;
   if( old_scale != scale ) on_renderer_scale_factor_changed();
 }
 
@@ -407,7 +411,8 @@ Delta main_window_physical_size() {
     CHECK( g_window != nullptr );
     int w{}, h{};
     ::SDL_GetWindowSize( g_window, &w, &h );
-    main_window_physical_size_cache = Delta{ W{ w }, H{ h } };
+    main_window_physical_size_cache =
+        Delta{ .w = W{ w }, .h = H{ h } };
   }
   return *main_window_physical_size_cache;
 }

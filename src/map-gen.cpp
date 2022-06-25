@@ -11,12 +11,15 @@
 #include "map-gen.hpp"
 
 // Revolution Now
-#include "gs-land-view.hpp"
-#include "gs-terrain.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
 
+// game-state
+#include "gs/land-view.hpp"
+#include "gs/terrain.hpp"
+
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -57,18 +60,18 @@ void ascii_map_gen() {
 
   auto bar = [&] {
     fmt::print( "+" );
-    for( X x = 0_x; x < 0_x + world_map.size().w; ++x )
+    for( X x = 0; x < 0 + world_map.size().w; ++x )
       fmt::print( "-" );
     fmt::print( "+\n" );
   };
   bar();
-  for( Y y = 0_y; y < 0_y + world_map.size().h; y += 2_h ) {
+  for( Y y = 0; y < 0 + world_map.size().h; y += 2 ) {
     fmt::print( "|" );
-    for( X x = 0_x; x < 0_x + world_map.size().w; ++x ) {
+    for( X x = 0; x < 0 + world_map.size().w; ++x ) {
       bool land_top =
           ( world_map[y][x].surface == e_surface::land );
       bool land_bottom =
-          ( world_map[y + 1_h][x].surface == e_surface::land );
+          ( world_map[y + 1][x].surface == e_surface::land );
       if( land_top || land_bottom ) {
         int mask = ( ( land_top ? 1 : 0 ) << 1 ) |
                    ( land_bottom ? 1 : 0 );
@@ -84,7 +87,7 @@ void ascii_map_gen() {
       }
 
       bool sea_lane_top     = world_map[y][x].sea_lane;
-      bool seal_lane_bottom = world_map[y + 1_h][x].sea_lane;
+      bool seal_lane_bottom = world_map[y + 1][x].sea_lane;
       if( sea_lane_top || seal_lane_bottom ) {
         int mask = ( ( sea_lane_top ? 1 : 0 ) << 1 ) |
                    ( seal_lane_bottom ? 1 : 0 );

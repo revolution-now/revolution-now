@@ -18,16 +18,18 @@
 #include "test/mocking.hpp"
 
 // Revolution Now
-#include "src/gs-settings.hpp"
-#include "src/gs-terrain.hpp"
-#include "src/gs-units.hpp"
 #include "src/harbor-units.hpp"
 #include "src/igui-mock.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
-#include "src/player.hpp"
 #include "src/ustate.hpp"
+
+// gs
+#include "src/gs/player.rds.hpp"
+#include "src/gs/settings.hpp"
+#include "src/gs/terrain.hpp"
+#include "src/gs/units.hpp"
 
 // Rds
 #include "old-world-state.rds.hpp"
@@ -61,7 +63,7 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{ L };
-    build_map( std::move( tiles ), 1_w );
+    build_map( std::move( tiles ), 1 );
   }
 };
 

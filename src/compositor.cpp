@@ -74,14 +74,14 @@ maybe<Rect> section_inverted( e_section sec ) {
   if( !can_be_inverted ) return nothing;
 
   Rect res = *non_inverted;
-  if( non_inverted->left_edge() > 0_x )
-    return res.with_new_left_edge( 0_x ).with_new_right_edge(
+  if( non_inverted->left_edge() > 0 )
+    return res.with_new_left_edge( 0 ).with_new_right_edge(
         non_inverted->left_edge() );
   if( non_inverted->right_edge() < screen.right_edge() )
     return res.with_new_right_edge( screen.right_edge() )
         .with_new_left_edge( non_inverted->right_edge() );
-  if( non_inverted->top_edge() > 0_y )
-    return res.with_new_top_edge( 0_y ).with_new_bottom_edge(
+  if( non_inverted->top_edge() > 0 )
+    return res.with_new_top_edge( 0 ).with_new_bottom_edge(
         non_inverted->top_edge() );
   if( non_inverted->bottom_edge() < screen.bottom_edge() )
     return res.with_new_bottom_edge( screen.bottom_edge() )
@@ -103,7 +103,7 @@ maybe<Rect> section( e_section sec ) {
   maybe<Rect> res;
   auto        menu_height = is_menu_plane_enabled()
                                 ? config_ui.menus.menu_bar_height
-                                : 0_h;
+                                : 0;
   switch( sec ) {
     case e_section::menu_bar: {
       if( !is_menu_plane_enabled() ) break;
@@ -137,17 +137,17 @@ maybe<Rect> section( e_section sec ) {
       res = total;
       switch( g_console_loc ) {
         case e_composite_location::top: //
-          res->h._ *= g_console_size;
+          res->h *= g_console_size;
           break;
         case e_composite_location::bottom:
-          res->h._ *= g_console_size;
+          res->h *= g_console_size;
           res->y = total.bottom_edge() - res->h;
           break;
         case e_composite_location::left: //
-          res->w._ *= g_console_size;
+          res->w *= g_console_size;
           break;
         case e_composite_location::right:
-          res->w._ *= g_console_size;
+          res->w *= g_console_size;
           res->x = total.right_edge() - res->w;
           break;
       }

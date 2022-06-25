@@ -13,18 +13,20 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-terrain.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 
+// game-state
+#include "gs/terrain.hpp"
+
 // render
 #include "render/renderer.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -73,38 +75,38 @@ maybe<e_ground_terrain> ground_terrain_for_square(
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
   // We have a water so get it from the surroundings.
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
   if( left.surface == e_surface::land ) return left.ground;
 
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
   if( up.surface == e_surface::land ) return up.ground;
 
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
   if( right.surface == e_surface::land ) return right.ground;
 
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
   if( down.surface == e_surface::land ) return down.ground;
 
-  MapSquare const& up_left =
-      terrain_state.total_square_at( world_square - 1_w - 1_h );
+  MapSquare const& up_left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } - Delta{ .h = 1 } );
   if( up_left.surface == e_surface::land ) return up_left.ground;
 
-  MapSquare const& up_right =
-      terrain_state.total_square_at( world_square - 1_h + 1_w );
+  MapSquare const& up_right = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } + Delta{ .w = 1 } );
   if( up_right.surface == e_surface::land )
     return up_right.ground;
 
-  MapSquare const& down_right =
-      terrain_state.total_square_at( world_square + 1_w + 1_h );
+  MapSquare const& down_right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } + Delta{ .h = 1 } );
   if( down_right.surface == e_surface::land )
     return down_right.ground;
 
-  MapSquare const& down_left =
-      terrain_state.total_square_at( world_square + 1_h - 1_w );
+  MapSquare const& down_left = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } - Delta{ .w = 1 } );
   if( down_left.surface == e_surface::land )
     return down_left.ground;
 
@@ -255,19 +257,18 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
                               Coord where, Coord world_square,
                               double chop_percent,
                               Delta  anchor_offset ) {
-  MapSquare const& west =
-      terrain_state.total_square_at( world_square - 1_w );
-  MapSquare const& north =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& east =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& south =
-      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& west = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
+  MapSquare const& north = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& east = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& south = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
 
-  int chop_pixels =
-      std::lround( g_tile_delta.w._ * chop_percent );
-  W chop_w = W{ chop_pixels };
-  H chop_h = H{ chop_pixels };
+  int chop_pixels = std::lround( g_tile_delta.w * chop_percent );
+  W   chop_w      = W{ chop_pixels };
+  H   chop_h      = H{ chop_pixels };
 
   {
     // Render east part of western tile.
@@ -275,13 +276,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     Coord dst = where;
     src.w -= chop_w;
     src.x += chop_w;
-    dst.x += 0_w;
+    dst.x += 0;
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
                              dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, west, world_square - 1_w );
+         terrain_state, west, world_square - Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -294,13 +295,13 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     Coord dst = where;
     src.h -= chop_h;
     src.y += chop_h;
-    dst.y += 0_h;
+    dst.y += 0;
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
                              dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, north, world_square - 1_h );
+         terrain_state, north, world_square - Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -312,14 +313,14 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.h -= chop_h;
-    src.y += 0_h;
+    src.y += 0;
     dst.y += chop_h;
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
                              dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, south, world_square + 1_h );
+         terrain_state, south, world_square + Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -331,14 +332,14 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     Rect  src = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.w -= chop_w;
-    src.x += 0_w;
+    src.x += 0;
     dst.x += chop_w;
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
                              dst + anchor_offset );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, east, world_square + 1_w );
+         terrain_state, east, world_square + Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -371,7 +372,8 @@ void render_terrain_ground( TerrainState const& terrain_state,
   //      is calibrated for.
   //
   Delta const anchor_offset =
-      Scale{ 10 } * ( world_square % Scale{ 10 } );
+      Delta{ .w = 10, .h = 10 } *
+      ( world_square % Delta{ .w = 10, .h = 10 } );
   {
 #if 1
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
@@ -401,16 +403,16 @@ void render_terrain_ground( TerrainState const& terrain_state,
 #endif
   }
 
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& up_left =
-      terrain_state.total_square_at( world_square - 1_h - 1_w );
-  MapSquare const& up_right =
-      terrain_state.total_square_at( world_square + 1_w - 1_h );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& up_left = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } - Delta{ .w = 1 } );
+  MapSquare const& up_right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } - Delta{ .h = 1 } );
 
   // This should be done at the end.
   if( up_right.surface == e_surface::land &&
@@ -510,14 +512,14 @@ void render_river_on_ocean( TerrainState const& terrain_state,
                             Coord            world_square,
                             MapSquare const& square ) {
   CHECK( square.river.has_value() );
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
 
   bool river_up =
       up.river.has_value() && up.surface == e_surface::land;
@@ -567,14 +569,14 @@ void render_river_on_land( TerrainState const& terrain_state,
                            MapSquare const& square,
                            bool             no_bank ) {
   DCHECK( square.river.has_value() );
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
 
   bool river_up    = up.river.has_value();
   bool river_right = right.river.has_value();
@@ -820,14 +822,14 @@ void render_river_on_land( TerrainState const& terrain_state,
 
 bool has_surrounding_nonforest_river_squares(
     TerrainState const& terrain_state, Coord world_square ) {
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
 
   int res = 0;
 
@@ -923,22 +925,22 @@ void render_terrain_ocean_square(
     Coord world_square ) {
   DCHECK( square.surface == e_surface::water );
 
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& right =
-      terrain_state.total_square_at( world_square + 1_w );
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
-  MapSquare const& up_left =
-      terrain_state.total_square_at( world_square - 1_h - 1_w );
-  MapSquare const& up_right =
-      terrain_state.total_square_at( world_square + 1_w - 1_h );
-  MapSquare const& down_right =
-      terrain_state.total_square_at( world_square + 1_h + 1_w );
-  MapSquare const& down_left =
-      terrain_state.total_square_at( world_square - 1_w + 1_h );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
+  MapSquare const& up_left = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } - Delta{ .w = 1 } );
+  MapSquare const& up_right = terrain_state.total_square_at(
+      world_square + Delta{ .w = 1 } - Delta{ .h = 1 } );
+  MapSquare const& down_right = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } + Delta{ .w = 1 } );
+  MapSquare const& down_left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } + Delta{ .h = 1 } );
 
   bool water_up    = up.surface == e_surface::water;
   bool water_right = right.surface == e_surface::water;
@@ -1697,12 +1699,12 @@ void render_lost_city_rumor( rr::Painter& painter, Coord where,
 void render_fish( TerrainState const& terrain_state,
                   rr::Renderer& renderer, Coord where,
                   Coord world_square ) {
-  MapSquare const& up =
-      terrain_state.total_square_at( world_square - 1_h );
-  MapSquare const& left =
-      terrain_state.total_square_at( world_square - 1_w );
-  MapSquare const& down =
-      terrain_state.total_square_at( world_square + 1_h );
+  MapSquare const& up = terrain_state.total_square_at(
+      world_square - Delta{ .h = 1 } );
+  MapSquare const& left = terrain_state.total_square_at(
+      world_square - Delta{ .w = 1 } );
+  MapSquare const& down = terrain_state.total_square_at(
+      world_square + Delta{ .h = 1 } );
 
   bool const land_up   = up.surface == e_surface::land;
   bool const land_left = left.surface == e_surface::land;
@@ -1730,11 +1732,11 @@ void render_fish( TerrainState const& terrain_state,
     // TODO: insert mod here.
     rr::Painter painter = renderer.painter();
     if( should_outline_up )
-      render_sprite_silhouette( painter, where - 1_h, fish_body,
-                                outline_color );
+      render_sprite_silhouette( painter, where - Delta{ .h = 1 },
+                                fish_body, outline_color );
     if( should_outline_left )
-      render_sprite_silhouette( painter, where - 1_w, fish_body,
-                                outline_color );
+      render_sprite_silhouette( painter, where - Delta{ .w = 1 },
+                                fish_body, outline_color );
   }
 
   rr::Painter painter = renderer.painter();
@@ -1838,7 +1840,7 @@ void render_terrain( TerrainState const&         terrain_state,
   auto start_time = chrono::system_clock::now();
   for( Coord square : terrain_state.world_rect_tiles() )
     render_terrain_square( terrain_state, renderer,
-                           square * g_tile_scale, square,
+                           square * g_tile_delta, square,
                            options );
   auto end_time = chrono::system_clock::now();
   lg.info(

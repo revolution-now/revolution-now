@@ -14,9 +14,11 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "coord.hpp"
 #include "error.hpp"
 #include "input.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/scope-exit.hpp"

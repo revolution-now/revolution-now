@@ -14,7 +14,6 @@
 #include "co-combinator.hpp"
 #include "conductor.hpp"
 #include "game-state.hpp"
-#include "gs-root.hpp"
 #include "interrupts.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -23,6 +22,9 @@
 #include "renderer.hpp" // FIXME: remove
 #include "save-game.hpp"
 #include "turn.hpp"
+
+// game-state
+#include "gs/root.hpp"
 
 // luapp
 #include "luapp/state.hpp"

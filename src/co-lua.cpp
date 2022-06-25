@@ -14,10 +14,10 @@
 #include "co-lua-scheduler.hpp"
 #include "co-wait.hpp"
 #include "lua-wait.hpp"
-#include "lua.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rfunction.hpp"
 #include "luapp/state.hpp"
 

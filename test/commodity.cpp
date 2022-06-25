@@ -13,8 +13,10 @@
 // Revolution Now
 #include "src/commodity.hpp"
 #include "src/game-state.hpp"
-#include "src/gs-units.hpp"
 #include "src/ustate.hpp"
+
+// game-state
+#include "src/gs/units.hpp"
 
 // Must be last.
 #include "catch-common.hpp"

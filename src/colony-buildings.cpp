@@ -165,7 +165,7 @@ e_colony_building_slot slot_for_indoor_job( e_indoor_job job ) {
 maybe<e_colony_building> building_for_slot(
     Colony const& colony, e_colony_building_slot slot ) {
   refl::enum_map<e_colony_building, bool> const& buildings =
-      colony.buildings();
+      colony.buildings;
   for( e_colony_building building : buildings_for_slot( slot ) )
     if( buildings[building] ) //
       return building;
@@ -304,7 +304,7 @@ bool colony_has_building_level( Colony const&     colony,
       buildings_for_slot( slot );
   for( e_colony_building possible_building :
        possible_buildings ) {
-    if( colony.buildings()[possible_building] ) return true;
+    if( colony.buildings[possible_building] ) return true;
     if( possible_building == building ) return false;
   }
   return false;

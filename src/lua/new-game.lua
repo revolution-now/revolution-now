@@ -30,10 +30,10 @@ function M.default_options()
     -- This determines which nations are enabled and some proper-
     -- ties.
     nations={
-      [e.nation.english]={ human=false },
-      [e.nation.french]={ human=false },
-      [e.nation.spanish]={ human=false },
-      [e.nation.dutch]={ human=true }
+      ['english']={ human=false },
+      ['french']={ human=false },
+      ['spanish']={ human=false },
+      ['dutch']={ human=true }
     },
     map={} -- use default map options.
   }
@@ -52,13 +52,14 @@ end
 -----------------------------------------------------------------
 -- Units
 -----------------------------------------------------------------
-local function unit_type( type, base_type )
+local function build_unit_type( type, base_type )
   if base_type == nil then
     return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create( type ) )
+               unit_type.UnitType.create( type ) )
   else
     return unit_composer.UnitComposition.create_with_type_obj(
-               utype.UnitType.create_with_base( type, base_type ) )
+               unit_type.UnitType.create_with_base( type,
+                                                    base_type ) )
   end
 end
 
@@ -66,9 +67,9 @@ local function create_initial_units_for_nation( nation, root )
   local player = root.players.players:get( nation )
   local coord = map_gen.initial_ships_pos()[nation]
   if not coord then return { x=0, y=0 } end
-  local merchantman = unit_type( e.unit_type.merchantman )
-  local soldier = unit_type( e.unit_type.soldier )
-  local pioneer = unit_type( e.unit_type.pioneer )
+  local merchantman = build_unit_type( 'merchantman' )
+  local soldier = build_unit_type( 'soldier' )
+  local pioneer = build_unit_type( 'pioneer' )
 
   local merchantman_unit = ustate.create_unit_on_map( nation,
                                                       merchantman,
@@ -97,8 +98,7 @@ local function create_battlefield_units( options, root )
   end
   assert( nation1 )
   assert( nation2 )
-  local veteran_dragoon =
-      unit_type( e.unit_type.veteran_dragoon )
+  local veteran_dragoon = build_unit_type( 'veteran_dragoon' )
 
   ustate.create_unit_on_map( nation1, veteran_dragoon,
                              { x=1, y=1 } ):fortify()
@@ -128,14 +128,12 @@ local function create_old_world_state( settings, player )
   old_world.taxes.tax_rate = 7
 
   -- Market state.
-  local cotton_item = old_world.market.commodities[e.commodity
-                          .cotton]
+  local cotton_item = old_world.market.commodities['cotton']
   cotton_item.sell_price_in_hundreds = 4
   cotton_item.boycott = true
   cotton_item.price_movement = .33
 
-  local muskets_item = old_world.market.commodities[e.commodity
-                           .muskets]
+  local muskets_item = old_world.market.commodities['muskets']
   muskets_item.sell_price_in_hundreds = 5
   muskets_item.boycott = false
   muskets_item.price_movement = .44
@@ -171,7 +169,7 @@ end
 -----------------------------------------------------------------
 local function create_turn_state( turns_state )
   turns_state.time_point.year = 1492
-  turns_state.time_point.season = e.season.spring
+  turns_state.time_point.season = 'spring'
 end
 
 -----------------------------------------------------------------
@@ -179,8 +177,8 @@ end
 -----------------------------------------------------------------
 local function add_testing_options( options )
   -- options.nations = {
-  --   [e.nation.french]={ human=true },
-  --   [e.nation.dutch]={ human=true }
+  --   ["french"]={ human=true },
+  --   ["dutch"]={ human=true }
   -- }
   -- options.map.world_size = { w=4, h=4 }
   -- options.map.type = 'battlefield'

@@ -12,10 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "coord.hpp"
-
 // gfx
+#include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
 
 // SDL

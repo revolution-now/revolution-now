@@ -1,0 +1,51 @@
+# ===============================================================
+# gs-root.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: RDS definitions for the top-level of the game
+#              state.
+#
+# ===============================================================
+# Revolution Now
+include "gs/colonies.hpp"
+include "gs/units.hpp"
+include "gs/terrain.hpp"
+
+# Rds
+include "gs/settings.rds.hpp"
+include "gs/events.rds.hpp"
+include "gs/players.rds.hpp"
+include "gs/turn.rds.hpp"
+include "gs/land-view.rds.hpp"
+
+namespace "rn"
+
+struct.FormatVersion {
+  major 'int',
+  minor 'int',
+  patch 'int',
+
+  _features { equality, validation }
+}
+
+namespace "rn"
+
+struct.RootState {
+  version 'rn::FormatVersion',
+  settings 'rn::SettingsState',
+  events 'rn::EventsState',
+  units 'rn::UnitsState',
+  players 'rn::PlayersState',
+  turn 'rn::TurnState',
+  colonies 'rn::ColoniesState',
+  land_view 'rn::LandViewState',
+  # Use a zzz prefix to make sure that the terrain field will be
+  # last in the save file (keys are alphabetized) for convenience
+  # because it is so large.
+  zzz_terrain 'rn::TerrainState',
+
+  _features { equality, validation }
+}

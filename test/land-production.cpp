@@ -41,7 +41,7 @@ struct World : testing::World {
       _, L, L, _, _, _,
     };
     // clang-format on
-    build_map( std::move( tiles ), 6_w );
+    build_map( std::move( tiles ), 6 );
   }
 };
 

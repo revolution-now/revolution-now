@@ -1,0 +1,71 @@
+# ===============================================================
+# fathers.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-26.
+#
+# Description: Game state for founding fathers.
+#
+# ===============================================================
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn"
+
+enum.e_founding_father {
+  # trade
+  adam_smith,
+  jakob_fugger,
+  peter_minuit,
+  peter_stuyvesant,
+  jan_de_witt,
+
+  # exploration
+  ferdinand_magellan,
+  francisco_de_coronado,
+  hernando_de_soto,
+  henry_hudson,
+  sieur_de_la_salle,
+
+  # military
+  hernan_cortes,
+  george_washington,
+  paul_revere,
+  francis_drake,
+  john_paul_jones,
+
+  # political
+  thomas_jefferson,
+  pocahontas,
+  thomas_paine,
+  simon_bolivar,
+  benjamin_franklin,
+
+  # religious
+  william_brewster,
+  william_penn,
+  father_jean_de_brebeuf,
+  juan_de_sepulveda,
+  bartolome_de_las_casas,
+}
+
+enum.e_founding_father_type {
+  exploration,
+  military,
+  political,
+  religious,
+  trade,
+}
+
+struct.FoundingFathersState {
+  # This is the total number of bells thus accumulated toward the
+  # next founding father. This will be reset to zero when a new
+  # father joins the congress. Sources say that the original game
+  # keeps this count separate from the accumulation of bells in
+  # each individual colony.
+  bells 'int',
+
+  # Which founding fathers does this player have.
+  has 'refl::enum_map<e_founding_father, bool>',
+}

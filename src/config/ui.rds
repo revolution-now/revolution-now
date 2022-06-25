@@ -10,7 +10,6 @@
 # ===============================================================
 # Revolution Now
 include "font.hpp"
-include "typed-int.hpp"
 
 # Rds
 include "../compositor.rds.hpp"
@@ -40,13 +39,13 @@ struct.config_ui_dialog_text {
 }
 
 struct.config_ui_menus {
-  first_menu_start 'rn::W',
-  item_vertical_padding 'rn::H',
-  padding 'rn::W',
-  spacing 'rn::W',
-  body_min_width 'rn::W',
+  first_menu_start_x_offset 'int',
+  item_vertical_padding 'int',
+  padding_x 'int',
+  spacing_x 'int',
+  body_min_width 'int',
   font 'e_font',
-  menu_bar_height 'rn::H',
+  menu_bar_height 'int',
 }
 
 struct.config_ui_console {

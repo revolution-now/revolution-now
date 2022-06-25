@@ -21,9 +21,6 @@
 #include "construction.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "gui.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
@@ -39,12 +36,18 @@
 #include "views.hpp"
 #include "window.hpp"
 
-// Rds
-#include "gs-players.rds.hpp"
+// config
+#include "config/unit-type.hpp"
+
+// game-state
+#include "gs/colonies.hpp"
+#include "gs/players.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
-#include "config/units.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -88,10 +91,9 @@ namespace {
 /****************************************************************
 ** Constants
 *****************************************************************/
-constexpr Delta kCommodityTileSize  = Delta{ 16_w, 16_h };
-constexpr Scale kCommodityTileScale = Scale{ 16_sx, 16_sy };
+constexpr Delta kCommodityTileSize = Delta{ .w = 16, .h = 16 };
 
-constexpr W kCommodityTileWidth = 16_w;
+constexpr W kCommodityTileWidth = 16;
 
 /****************************************************************
 ** Globals
@@ -152,7 +154,7 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
 maybe<string> check_abandon() {
   ColoniesState& colonies_state = GameState::colonies();
   Colony& colony = colonies_state.colony_for( colony_id() );
-  if( colony.population() == 1 )
+  if( colony_population( colony ) == 1 )
     return "This action would abandon the colony, which is not "
            "yet supported.";
   return nothing;
@@ -183,8 +185,8 @@ class TitleBar : public ui::View, public ColonySubView {
 
   string title() const {
     auto const& colony = colony_from_id( colony_id() );
-    return fmt::format( "{}, population {}", colony.name(),
-                        colony.population() );
+    return fmt::format( "{}, population {}", colony.name,
+                        colony_population( colony ) );
   }
 
   void draw( rr::Renderer& renderer,
@@ -219,7 +221,7 @@ class MarketCommodities : public ui::View,
   Delta delta() const override {
     return Delta{
         block_width_ * SX{ refl::enum_count<e_commodity> },
-        1_h * 32_sy };
+        1 * 32 };
   }
 
   maybe<e_colview_entity> entity() const override {
@@ -235,9 +237,9 @@ class MarketCommodities : public ui::View,
   // played.
   Delta rendered_commodity_offset() const {
     Delta res;
-    res.h = 3_h;
-    res.w = ( block_width_ - kCommodityTileWidth ) / 2_sx;
-    if( res.w < 0_w ) res.w = 0_w;
+    res.h = 3;
+    res.w = ( block_width_ - kCommodityTileWidth ) / 2;
+    if( res.w < 0 ) res.w = 0;
     return res;
   }
 
@@ -249,11 +251,12 @@ class MarketCommodities : public ui::View,
     Coord       pos     = coord;
     auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
-      auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
+      auto rect =
+          Rect::from( pos, Delta{ .w = block_width_, .h = 32 } );
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::black() );
-      label.value = colony.commodities()[*comm_it];
+      label.value = colony.commodities[*comm_it];
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
       // of label for buckets), but we want the quantity to
@@ -265,7 +268,7 @@ class MarketCommodities : public ui::View,
           renderer,
           rect.upper_left() + rendered_commodity_offset(),
           *comm_it, label );
-      pos += block_width_;
+      pos.x += block_width_;
       comm_it++;
     }
   }
@@ -276,16 +279,17 @@ class MarketCommodities : public ui::View,
   }
 
   int quantity_of( e_commodity type ) const {
-    return colony().commodities()[type];
+    return colony().commodities[type];
   }
 
   maybe<ColViewObjectWithBounds> object_here(
       Coord const& coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
-    auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
+    auto sprite_scale =
+        Delta{ .w = SX{ block_width_ }, .h = SY{ 32 } };
     auto box_upper_left =
         ( coord / sprite_scale ) * sprite_scale;
-    auto idx = ( coord / sprite_scale - Coord{} ).w._;
+    auto idx = ( coord / sprite_scale - Coord{} ).w;
     UNWRAP_CHECK( type, commodity_from_index( idx ) );
     int quantity = quantity_of( type );
     if( quantity == 0 ) return nothing;
@@ -294,7 +298,7 @@ class MarketCommodities : public ui::View,
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ 1_w, 1_h } * kCommodityTileScale ) };
+            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject_t const& o,
@@ -322,7 +326,7 @@ class MarketCommodities : public ui::View,
     e_commodity type = dragging_->type;
     int new_quantity = quantity_of( type ) - dragging_->quantity;
     CHECK( new_quantity >= 0 );
-    colony().commodities()[type] = new_quantity;
+    colony().commodities[type] = new_quantity;
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -336,9 +340,9 @@ class MarketCommodities : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
-    int q = colony().commodities()[c.type];
+    int q = colony().commodities[c.type];
     q += c.quantity;
-    colony().commodities()[c.type] = q;
+    colony().commodities[c.type] = q;
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
@@ -391,12 +395,12 @@ class PopulationView : public ui::View, public ColonySubView {
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     auto const&    colony   = colony_from_id( colony_id() );
-    vector<UnitId> units    = colony.all_units();
-    auto           unit_pos = coord + 16_h;
+    vector<UnitId> units    = colony_units_all( colony );
+    auto           unit_pos = coord + Delta{ .h = 16 };
     for( UnitId unit_id : units ) {
       render_unit( renderer, unit_pos, unit_id,
                    UnitRenderOptions{ .flag = false } );
-      unit_pos += 24_w;
+      unit_pos.x += 24;
     }
   }
 
@@ -437,9 +441,8 @@ class CargoView : public ui::View,
   maybe<pair<bool, int>> slot_idx_from_coord(
       Coord const& c ) const {
     if( !c.is_inside( rect( {} ) ) ) return nothing;
-    if( c.y > 0_y + g_tile_delta.h ) return nothing;
-    int slot_idx =
-        ( c / g_tile_scale ).distance_from_origin().w._;
+    if( c.y > 0 + g_tile_delta.h ) return nothing;
+    int slot_idx = ( c / g_tile_delta ).distance_from_origin().w;
     bool is_open =
         holder_.has_value() &&
         slot_idx < unit_from_id( *holder_ ).desc().cargo_slots;
@@ -451,7 +454,7 @@ class CargoView : public ui::View,
     if( slot < 0 ) return nothing;
     if( slot >= max_slots_drawable() ) return nothing;
     Coord slot_upper_left =
-        Coord{} + g_tile_delta.w * SX{ slot };
+        Coord{} + Delta{ .w = g_tile_delta.w * slot };
     bool is_open =
         holder_.has_value() &&
         slot < unit_from_id( *holder_ ).desc().cargo_slots;
@@ -472,7 +475,7 @@ class CargoView : public ui::View,
       Rect rect = relative_rect.as_if_origin_were( coord );
       if( !is_open ) {
         painter.draw_solid_rect(
-            rect.shifted_by( Delta( 1_w, 0_h ) ),
+            rect.shifted_by( Delta{ .w = 1, .h = 0 } ),
             gfx::pixel::wood() );
         continue;
       }
@@ -785,7 +788,7 @@ class UnitsAtGateColonyView : public ui::View,
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ) -
-                Delta( 1_w, 1_h ),
+                Delta{ .w = 1, .h = 1 },
             rr::Painter::e_border_mode::in_out,
             gfx::pixel::green() );
     }
@@ -942,7 +945,7 @@ class UnitsAtGateColonyView : public ui::View,
 
     erase_if( possibilities, []( auto const& xform_res ) {
       for( auto [mod, _] : xform_res.modifier_deltas )
-        if( !config_units.composition.modifier_traits[mod]
+        if( !config_unit_type.composition.modifier_traits[mod]
                  .player_can_grant )
           return true;
       return false; // don't erase.
@@ -1009,7 +1012,7 @@ class UnitsAtGateColonyView : public ui::View,
             TrappingMapUpdater map_updater;
             unit_to_map_square_non_interactive(
                 GameState::units(), map_updater, unit.id,
-                colony().location() );
+                colony().location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1114,14 +1117,14 @@ class UnitsAtGateColonyView : public ui::View,
 
   void update() override {
     auto const& colony   = colony_from_id( colony_id() );
-    auto const& units    = units_from_coord( colony.location() );
-    auto        unit_pos = Coord{} + 16_h + 1_w;
+    auto const& units    = units_from_coord( colony.location );
+    auto        unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
     for( auto unit_id : units ) {
       positioned_units_.push_back(
           { .id = unit_id, .pos = unit_pos } );
-      unit_pos += 32_w;
+      unit_pos.x += 32;
       if( !first_with_cargo.has_value() &&
           unit_from_id( unit_id ).desc().cargo_slots > 0 )
         first_with_cargo = unit_id;
@@ -1171,13 +1174,13 @@ class ProductionView : public ui::View, public ColonySubView {
                              gfx::pixel::black() );
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                              coord.distance_from_origin() );
-    rr::Typer typer =
-        renderer.typer( Coord{ 2_x, 2_y }, gfx::pixel::black() );
-    typer.write( "Hammers:      {}\n", colony().hammers() );
+    rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
+                                      gfx::pixel::black() );
+    typer.write( "Hammers:      {}\n", colony().hammers );
     typer.write( "Construction: " );
-    if( colony().construction().has_value() )
-      typer.write( "{}\n", construction_name(
-                               *colony().construction() ) );
+    if( colony().construction.has_value() )
+      typer.write( "{}\n",
+                   construction_name( *colony().construction ) );
     else
       typer.write( "nothing\n" );
   }
@@ -1233,27 +1236,28 @@ class LandView : public ui::View,
         side_length_in_squares = 6;
         break;
     }
-    return Delta{ 32_w, 32_h } * Scale{ side_length_in_squares };
+    return Delta{ .w = 32, .h = 32 } *
+           Delta{ .w = side_length_in_squares,
+                  .h = side_length_in_squares };
   }
 
   maybe<e_direction> direction_under_cursor(
       Coord coord ) const {
     switch( mode_ ) {
       case e_render_mode::_3x3:
-        return Coord( 1_x, 1_y )
-            .direction_to( coord / g_tile_scale );
+        return Coord{ .x = 1, .y = 1 }.direction_to(
+            coord / g_tile_delta );
       case e_render_mode::_5x5: {
         // TODO: this will probably have to be made more sophis-
         // ticated.
         Coord shifted = coord - g_tile_delta;
-        if( shifted.x < 0_x || shifted.y < 0_y ) return nothing;
-        return Coord( 1_x, 1_y )
-            .direction_to( shifted / g_tile_scale );
+        if( shifted.x < 0 || shifted.y < 0 ) return nothing;
+        return Coord{ .x = 1, .y = 1 }.direction_to(
+            shifted / g_tile_delta );
       }
       case e_render_mode::_6x6:
-        return Coord( 1_x, 1_y )
-            .direction_to( coord /
-                           ( g_tile_scale * Scale{ 2 } ) );
+        return Coord{ .x = 1, .y = 1 }.direction_to(
+            coord / ( g_tile_delta * Delta{ .w = 2, .h = 2 } ) );
     }
   }
 
@@ -1264,30 +1268,31 @@ class LandView : public ui::View,
     switch( mode_ ) {
       case e_render_mode::_3x3:
         return Rect::from(
-            Coord( 1_x, 1_y ).moved( d ) * g_tile_scale,
+            Coord{ .x = 1, .y = 1 }.moved( d ) * g_tile_delta,
             g_tile_delta );
       case e_render_mode::_5x5: {
         NOT_IMPLEMENTED;
       }
       case e_render_mode::_6x6:
-        return Rect::from( Coord( 1_x, 1_y ).moved( d ) *
-                                   g_tile_scale * Scale{ 2 } +
-                               ( g_tile_delta / Scale{ 2 } ),
-                           g_tile_delta );
+        return Rect::from(
+            Coord{ .x = 1, .y = 1 }.moved( d ) * g_tile_delta *
+                    Delta{ .w = 2, .h = 2 } +
+                ( g_tile_delta / Delta{ .w = 2, .h = 2 } ),
+            g_tile_delta );
     }
   }
 
   maybe<UnitId> unit_for_direction( e_direction d ) const {
     ColoniesState& colonies_state = GameState::colonies();
     Colony& colony = colonies_state.colony_for( colony_id() );
-    return colony.outdoor_jobs()[d].member(
+    return colony.outdoor_jobs[d].member(
         &OutdoorUnit::unit_id );
   }
 
   maybe<e_outdoor_job> job_for_direction( e_direction d ) const {
     ColoniesState& colonies_state = GameState::colonies();
     Colony& colony = colonies_state.colony_for( colony_id() );
-    return colony.outdoor_jobs()[d].member( &OutdoorUnit::job );
+    return colony.outdoor_jobs[d].member( &OutdoorUnit::job );
   }
 
   maybe<UnitId> unit_under_cursor( Coord where ) const {
@@ -1363,7 +1368,7 @@ class LandView : public ui::View,
     maybe<e_direction>  d = direction_under_cursor( where );
     CHECK( d );
     MapSquare const& square =
-        terrain_state.square_at( colony.location().moved( *d ) );
+        terrain_state.square_at( colony.location.moved( *d ) );
 
     if( is_water( square ) &&
         !colony_has_building_level(
@@ -1453,44 +1458,48 @@ class LandView : public ui::View,
     // here.
     rr::Painter painter      = renderer.painter();
     auto const& colony       = colony_from_id( colony_id() );
-    Coord       world_square = colony.location();
+    Coord       world_square = colony.location;
     // Render terrain.
-    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+    for( auto local_coord :
+         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
-                           Delta{ 1_w, 1_h };
+                           Delta{ .w = 1, .h = 1 };
       render_terrain_square(
-          terrain_state, renderer, local_coord * g_tile_scale,
+          terrain_state, renderer, local_coord * g_tile_delta,
           render_square, TerrainRenderOptions{} );
     }
     // Render irrigation.
-    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+    for( auto local_coord :
+         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
-                           Delta{ 1_w, 1_h };
+                           Delta{ .w = 1, .h = 1 };
       render_plow_if_present( painter,
-                              local_coord * g_tile_scale,
+                              local_coord * g_tile_delta,
                               terrain_state, render_square );
     }
     // Render roads.
-    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+    for( auto local_coord :
+         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
-                           Delta{ 1_w, 1_h };
+                           Delta{ .w = 1, .h = 1 };
       render_road_if_present( painter,
-                              local_coord * g_tile_scale,
+                              local_coord * g_tile_delta,
                               terrain_state, render_square );
     }
     // Render colonies.
-    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+    for( auto local_coord :
+         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
       auto render_square = world_square +
                            local_coord.distance_from_origin() -
-                           Delta{ 1_w, 1_h };
+                           Delta{ .w = 1, .h = 1 };
       auto maybe_col_id = colony_from_coord( render_square );
       if( !maybe_col_id ) continue;
       render_colony(
           painter,
-          local_coord * g_tile_scale - Delta{ 6_w, 6_h },
+          local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
           *maybe_col_id );
     }
   }
@@ -1509,19 +1518,20 @@ class LandView : public ui::View,
     UnitsState const&    units_state    = GameState::units();
     Colony const&        colony =
         colonies_state.colony_for( colony_id() );
-    Coord const center = Coord( 1_x, 1_y );
+    Coord const center = Coord{ .x = 1, .y = 1 };
 
     for( auto const& [direction, outdoor_unit] :
-         colony.outdoor_jobs() ) {
+         colony.outdoor_jobs ) {
       if( !outdoor_unit.has_value() ) continue;
       if( dragging_.has_value() && dragging_->d == direction )
         continue;
       Coord const square_coord =
-          coord + ( center.moved( direction ) * g_tile_scale *
-                    Scale{ 2 } )
+          coord + ( center.moved( direction ) * g_tile_delta *
+                    Delta{ .w = 2, .h = 2 } )
                       .distance_from_origin();
       Coord const unit_coord =
-          square_coord + ( g_tile_delta / Scale{ 2 } );
+          square_coord +
+          ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
       UnitId const unit_id = outdoor_unit->unit_id;
       Unit const&  unit    = units_state.unit_for( unit_id );
       UnitTypeAttributes const& desc = unit_attr( unit.type() );
@@ -1539,7 +1549,7 @@ class LandView : public ui::View,
       int const    quantity = production.quantity;
       string const q_str    = fmt::format( "x {}", quantity );
       Coord const  text_coord =
-          product_coord + product_tile_size.w;
+          product_coord + Delta{ .w = product_tile_size.w };
       render_text_markup(
           renderer, text_coord, {},
           TextMarkupInfo{
@@ -1686,7 +1696,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Title Bar] ------------------------------------------------
   auto title_bar =
-      TitleBar::create( Delta{ 10_h, canvas_size.w } );
+      TitleBar::create( Delta{ .w = canvas_size.w, .h = 10 } );
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
   pos = Coord{};
@@ -1699,7 +1709,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   W comm_block_width =
       canvas_size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
-      std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
+      std::clamp( comm_block_width, kCommodityTileSize.w, 32 );
   auto market_commodities =
       MarketCommodities::create( gui, comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
@@ -1711,17 +1721,16 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       std::move( market_commodities ), pos ) );
 
   // [Middle Strip] ---------------------------------------------
-  Delta   middle_strip_size{ canvas_size.w, 32_h + 32_h + 16_h };
+  Delta   middle_strip_size{ canvas_size.w, 32 + 32 + 16 };
   Y const middle_strip_top =
       market_commodities_top - middle_strip_size.h;
 
   // [Population] -----------------------------------------------
-  auto population_view =
-      PopulationView::create( middle_strip_size.with_width(
-          middle_strip_size.w / 3_sx ) );
+  auto population_view = PopulationView::create(
+      middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::population] =
       population_view.get();
-  pos = Coord{ 0_x, middle_strip_top };
+  pos = Coord{ .x = 0, .y = middle_strip_top };
   X const population_right_edge =
       population_view->rect( pos ).right_edge();
   views.push_back( ui::OwningPositionedView(
@@ -1730,12 +1739,12 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
       gui,
-      middle_strip_size.with_width( middle_strip_size.w / 3_sx )
-          .with_height( 32_h ) );
+      middle_strip_size.with_width( middle_strip_size.w / 3 )
+          .with_height( 32 ) );
   g_composition.entities[e_colview_entity::cargo] =
       cargo_view.get();
-  pos = Coord{ population_right_edge,
-               middle_strip_top + 32_h + 16_h };
+  pos = Coord{ .x = population_right_edge,
+               .y = middle_strip_top + 32 + 16 };
   X const cargo_right_edge =
       cargo_view->rect( pos ).right_edge();
   auto* p_cargo_view = cargo_view.get();
@@ -1745,22 +1754,23 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
       p_cargo_view,
-      middle_strip_size.with_width( middle_strip_size.w / 3_sx )
-          .with_height( middle_strip_size.h - 32_h ),
+      middle_strip_size.with_width( middle_strip_size.w / 3 )
+          .with_height( middle_strip_size.h - 32 ),
       gui );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
-  pos = Coord{ population_right_edge, middle_strip_top };
+  pos =
+      Coord{ .x = population_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView(
       std::move( units_at_gate_view ), pos ) );
 
   // [Production] -----------------------------------------------
   auto production_view = ProductionView::create(
-      middle_strip_size.with_width( middle_strip_size.w / 3_sx ),
+      middle_strip_size.with_width( middle_strip_size.w / 3 ),
       gui );
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
-  pos = Coord{ cargo_right_edge, middle_strip_top };
+  pos = Coord{ .x = cargo_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView(
       std::move( production_view ), pos ) );
 
@@ -1786,19 +1796,20 @@ void recomposite( ColonyId id, Delta const& canvas_size,
             ->view()
             .rect( Coord{} )
             .lower_right() -
-        land_view->delta().w;
+        Delta{ .w = land_view->delta().w };
   X const land_view_left_edge = pos.x;
   views.push_back(
       ui::OwningPositionedView( std::move( land_view ), pos ) );
 
   // [Buildings] ------------------------------------------------
-  Delta buildings_size( land_view_left_edge - 0_x,
-                        middle_strip_top - title_bar_bottom );
-  auto  buildings = ColViewBuildings::create(
-       buildings_size, colony(), player, gui );
+  Delta buildings_size{
+      .w = land_view_left_edge - 0,
+      .h = middle_strip_top - title_bar_bottom };
+  auto buildings = ColViewBuildings::create(
+      buildings_size, colony(), player, gui );
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
-  pos = Coord( 0_x, title_bar_bottom );
+  pos = Coord{ .x = 0, .y = title_bar_bottom };
   views.push_back(
       ui::OwningPositionedView( std::move( buildings ), pos ) );
 
@@ -1898,7 +1909,7 @@ void set_colview_colony( IGui&               gui,
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( colony.id(), normal.delta(), gui, player );
+  recomposite( colony.id, normal.delta(), gui, player );
 }
 
 } // namespace rn

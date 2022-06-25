@@ -22,10 +22,11 @@ wait<> co_await_transform( FrameCount count ) {
 }
 
 wait<> wait_n_frames( FrameCount n ) {
-  if( n == 0_frames ) return make_wait<>();
+  if( n.frames == 0 ) return make_wait<>();
   wait_promise<> p;
   auto after_ticks = [p]() mutable { p.set_value_emplace(); };
-  subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
+  subscribe_to_frame_tick( after_ticks, n,
+                           /*repeating=*/false );
   return p.wait();
 }
 

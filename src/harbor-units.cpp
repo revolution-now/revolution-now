@@ -13,19 +13,25 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
+
+// gs
+#include "gs/player.rds.hpp"
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/harbor.rds.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -65,7 +71,7 @@ int turns_needed_for_high_seas(
       terrain_state.world_rect_tiles().lower_right() );
 
   if( sailed_from.x >=
-      terrain_state.world_rect_tiles().right_edge() / 2_sx )
+      terrain_state.world_rect_tiles().right_edge() / 2 )
     return config_harbor.high_seas_turns_east;
 
   // We're on the west.
@@ -158,8 +164,8 @@ maybe<Coord> find_new_world_arrival_square(
   // the unit here. We will procede to search the squares in an
   // outward fashion until we find one.
   Delta const world_size = terrain_state.world_size_tiles();
-  Rect search     = Rect::from( candidate, Delta( 1_w, 1_h ) );
-  int  max_radius = std::max( world_size.w._, world_size.h._ );
+  Rect search = Rect::from( candidate, Delta{ .w = 1, .h = 1 } );
+  int  max_radius = std::max( world_size.w, world_size.h );
 
   for( int radius = 0; radius < max_radius; ++radius ) {
     search = search.with_border_added();

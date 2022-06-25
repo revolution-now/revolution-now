@@ -12,12 +12,14 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "plow.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

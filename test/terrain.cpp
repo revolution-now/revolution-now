@@ -13,6 +13,9 @@
 // Under test.
 #include "src/terrain.hpp"
 
+// config
+#include "config/terrain.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 

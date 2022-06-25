@@ -22,7 +22,6 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
-#include "typed-int.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -221,23 +220,23 @@ void Window::draw( rr::Renderer& renderer ) const {
   rr::Painter painter = renderer.painter();
   Rect        r       = rect();
   // Render shadow behind window.
-  painter.draw_solid_rect( r + Delta{ 4_w, 4_h },
+  painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                            gfx::pixel{ 0, 0, 0, 64 } );
   painter.draw_solid_rect(
       inside_border_rect(),
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
   // Render window border, highlights on top and right.
   painter.draw_horizontal_line(
-      r.lower_left(), r.w._,
+      r.lower_left(), r.w,
       gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
   painter.draw_vertical_line(
-      r.upper_left(), r.h._,
+      r.upper_left(), r.h,
       gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
   painter.draw_horizontal_line(
-      r.upper_left(), r.w._,
+      r.upper_left(), r.w,
       gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
   painter.draw_vertical_line(
-      r.upper_right(), r.h._,
+      r.upper_right(), r.h,
       gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
   painter.draw_point(
       r.upper_left(),
@@ -258,13 +257,13 @@ Delta Window::delta() const {
   Delta res;
   res.w = std::max( title_view->delta().w, view->delta().w );
   res.h += title_view->delta().h + view->delta().h +
-           window_padding().h * 2_sy;
+           window_padding().h * 2;
   // Padding inside window border.
   res.w += config_ui.window.window_padding * 2;
   // Padding under title bar.
   res.h += config_ui.window.ui_padding;
   // multiply by two since there is top/bottom or left/right.
-  res += Scale( 2 ) * window_border();
+  res += window_border() * 2;
   return res;
 }
 
@@ -289,12 +288,12 @@ Rect Window::inside_padding_rect() const {
   auto res = rect();
   res.x += window_border().w;
   res.y += window_border().h;
-  res.w -= window_border().w * 2_sx;
-  res.h -= window_border().h * 2_sy;
+  res.w -= window_border().w * 2;
+  res.h -= window_border().h * 2;
   res.x += window_padding().w;
   res.y += window_padding().h;
-  res.w -= window_padding().w * 2_sx;
-  res.h -= window_padding().h * 2_sy;
+  res.w -= window_padding().w * 2;
+  res.h -= window_padding().h * 2;
   return res;
 }
 
@@ -307,8 +306,9 @@ Rect Window::title_bar() const {
 }
 
 Coord Window::view_pos() const {
-  return inside_padding() + title_view->delta().h +
-         H{ config_ui.window.ui_padding };
+  return inside_padding() +
+         Delta{ .h = title_view->delta().h +
+                     config_ui.window.ui_padding };
 }
 
 void WindowManager::draw_layout( rr::Renderer& renderer ) const {
@@ -427,10 +427,9 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
-    pos.y =
-        clamp( pos.y, 16_y, normal_area.bottom_edge() - 16_h );
-    pos.x = clamp( pos.x, 0_x - focused().delta().w + 16_w,
-                   normal_area.right_edge() - 16_w );
+    pos.y = clamp( pos.y, 16, normal_area.bottom_edge() - 16 );
+    pos.x = clamp( pos.x, 0 - focused().delta().w + 16,
+                   normal_area.right_edge() - 16 );
   }
 }
 

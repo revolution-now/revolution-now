@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "coord.hpp"
-
 // Rds
 #include "tile-enum.rds.hpp"
 

@@ -1,0 +1,100 @@
+# ===============================================================
+# sg-units.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: RDS definitions for the units save game state.
+#
+# ===============================================================
+# gs
+include "gs/colony-id.hpp"
+include "gs/unit-id.hpp"
+include "gs/unit.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn"
+
+sumtype.PortStatus {
+  # For ships that are venturing to europe. ``turns` gives the
+  # number of turns that elapsed since starting the journey. The
+  # initial value of it is 0.
+  outbound {
+    turns 'int',
+  },
+
+  # For ships that are venturing to europe. ``turns` gives the
+  # number of turns that elapsed since starting the journey. The
+  # initial value of it is 0.
+  inbound {
+    turns 'int',
+  },
+
+  # If a ship is in this state then it is in port (shown in the
+  # "in port" box) whereas for land units this means that they
+  # are on the dock.
+  in_port {},
+
+  _features { equality, validation }
+}
+
+struct.UnitHarborViewState {
+  port_status 'PortStatus_t',
+
+  # This field only has a value if the unit is a ship and the
+  # ship arrived in europe by sailing the high seas in the new
+  # world. In that case it specifies the square from which the
+  # unit sailed the high seas. This is so that, when the ship
+  # eventually returns to the new world, it can be placed where
+  # it left. Note that this square is not the destination square
+  # of the last move order but the source square, since the des-
+  # tination square might not exist if the unit moved off the
+  # edge of the map.
+  #
+  # On the other hand if the ship ended up in europe without
+  # having sailed there (possibly because it was purchased there
+  # or it was damaged and was transported there) then this will
+  # not have a value. In those cases, the game will place the
+  # ship on the last sea lane square sailed by the player, re-
+  # gardless of which side of the map it is on. If, in turn, that
+  # value is not present (i.e. at the very start of the game)
+  # then it will use the player's starting position as a final
+  # fallback.
+  sailed_from 'maybe<Coord>',
+}
+
+sumtype.UnitOwnership {
+  free {},
+  world {
+    coord 'Coord',
+  },
+  cargo {
+    holder 'UnitId',
+  },
+  harbor {
+    st 'UnitHarborViewState',
+  },
+  colony {
+    id 'ColonyId',
+  },
+}
+
+struct.UnitState {
+  unit 'Unit',
+  ownership 'UnitOwnership_t',
+}
+
+namespace "rn.wrapped"
+
+struct.UnitsState {
+  next_unit_id 'int',
+  units 'std::unordered_map<UnitId, UnitState>',
+
+  _features { equality, validation }
+}

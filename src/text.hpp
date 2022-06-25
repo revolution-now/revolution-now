@@ -14,13 +14,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "font.hpp"
 
 // render
 #include "render/renderer.hpp"
 
 // gfx
+#include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
 
 // C++ standard library

@@ -307,9 +307,9 @@ struct MenuPlane::Impl : public Plane {
   ** Menu Headers
   *****************************************************************/
   Delta menu_header_delta( e_menu menu ) const {
-    return Delta{ W{ menu_name_width_pixels_[menu] +
-                     config_ui.menus.padding * 2_sx },
-                  menu_bar_height() - 4_h };
+    return Delta{ .w = menu_name_width_pixels_[menu] +
+                       config_ui.menus.padding_x * 2,
+                  .h = menu_bar_height() - 4 };
   }
 
   X menu_header_x_pos( e_menu target ) const {
@@ -321,18 +321,18 @@ struct MenuPlane::Impl : public Plane {
                         .remove_if_L( !g_menus[_].right_side )
                         .take_while_incl_L( _ != target )
                         .map_L( menu_header_delta( _ ).w )
-                        .intersperse( config_ui.menus.spacing )
+                        .intersperse( config_ui.menus.spacing_x )
                         .accumulate();
     } else {
       width_delta = rl::all( refl::enum_values<e_menu> )
                         .remove_if_L( g_menus[_].right_side )
                         .take_while_L( _ != target )
                         .map_L( menu_header_delta( _ ).w +
-                                config_ui.menus.spacing )
+                                config_ui.menus.spacing_x )
                         .accumulate();
     }
-    width_delta += config_ui.menus.first_menu_start;
-    CHECK( width_delta >= 0_w );
+    width_delta += config_ui.menus.first_menu_start_x_offset;
+    CHECK( width_delta >= 0 );
     Rect rect = menu_bar_rect();
     return rect.x + ( !desc.right_side ? width_delta
                                        : rect.w - width_delta );
@@ -340,14 +340,14 @@ struct MenuPlane::Impl : public Plane {
 
   // Rectangle around a menu header.
   Rect menu_header_rect( e_menu menu ) const {
-    return Rect::from( Coord{ menu_bar_rect().y + 2_h,
-                              menu_header_x_pos( menu ) },
+    return Rect::from( Coord{ .x = menu_header_x_pos( menu ),
+                              .y = menu_bar_rect().y + 2 },
                        menu_header_delta( menu ) );
   }
 
   Delta menu_header_text_size( e_menu menu ) const {
-    return Delta{ W{ menu_name_width_pixels_[menu] },
-                  max_text_height() };
+    return Delta{ .w = W{ menu_name_width_pixels_[menu] },
+                  .h = max_text_height() };
   }
 
   Rect menu_header_text_rect( e_menu menu ) const {
@@ -369,12 +369,11 @@ struct MenuPlane::Impl : public Plane {
                       W{ menu_item_name_width_pixels_[item] } );
     // At this point, res holds the width of the largest rendered
     // text texture in this menu.  Now add padding on each side:
-    res += config_ui.menus.padding * 2_sx;
-    res =
-        clamp( res, config_ui.menus.body_min_width, 1000000_w );
+    res += config_ui.menus.padding_x * 2;
+    res = clamp( res, config_ui.menus.body_min_width, 1000000 );
     // round up to nearest multiple of 8, since that is the menu
     // tile width.
-    if( res % 8_sx != 0_w ) res += ( 8_w - ( res % 8_sx ) );
+    if( res % 8 != 0 ) res += ( 8 - ( res % 8 ) );
     // Sanity check
     CHECK( res > 0 && res < 2000 );
     return res;
@@ -382,19 +381,19 @@ struct MenuPlane::Impl : public Plane {
 
   H menu_item_height() const {
     return max_text_height() +
-           config_ui.menus.item_vertical_padding * 2_sy;
+           config_ui.menus.item_vertical_padding * 2;
   }
 
   Delta menu_item_delta( e_menu menu ) const {
-    return Delta{ menu_body_width_inner( menu ),
-                  menu_item_height() };
+    return Delta{ .w = menu_body_width_inner( menu ),
+                  .h = menu_item_height() };
   }
 
   H divider_height() const { return menu_item_height() / 2; }
 
   Delta divider_delta( e_menu menu ) const {
-    return Delta{ divider_height(),
-                  menu_body_width_inner( menu ) };
+    return Delta{ .w = menu_body_width_inner( menu ),
+                  .h = divider_height() };
   }
 
   // This is the width of the menu body not including the
@@ -413,7 +412,7 @@ struct MenuPlane::Impl : public Plane {
     }
     // round up to nearest multiple of 8, since that is the menu
     // tile width.
-    if( h % 8_sy != 0_h ) h += ( 8_h - ( h % 8_sy ) );
+    if( h % 8 != 0 ) h += ( 8 - ( h % 8 ) );
     return h;
   }
 
@@ -423,13 +422,13 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Delta menu_body_delta( e_menu menu ) const {
-    return Delta{ 8_w, 8_h } + Delta{ 8_w, 8_h } +
+    return Delta{ .w = 8, .h = 8 } + Delta{ .w = 8, .h = 8 } +
            menu_body_delta_inner( menu );
   }
 
   Rect menu_body_rect_inner( e_menu menu ) const {
     Coord pos;
-    pos.y = menu_bar_rect().bottom_edge() + 8_h;
+    pos.y = menu_bar_rect().bottom_edge() + 8;
     if( g_menus[menu].right_side ) {
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w -
@@ -445,10 +444,10 @@ struct MenuPlane::Impl : public Plane {
     pos.y = menu_bar_rect().bottom_edge();
     if( g_menus[menu].right_side )
       pos.x = menu_header_x_pos( menu ) +
-              menu_header_delta( menu ).w + 8_w -
+              menu_header_delta( menu ).w + 8 -
               menu_body_delta( menu ).w;
     else
-      pos.x = menu_header_x_pos( menu ) - 8_w;
+      pos.x = menu_header_x_pos( menu ) - 8;
     return Rect::from( pos, menu_body_delta( menu ) );
   }
 
@@ -457,9 +456,9 @@ struct MenuPlane::Impl : public Plane {
   // decide if the user has clicked on or off of an open menu.
   Rect menu_body_clickable_area( e_menu menu ) const {
     auto res = menu_body_rect( menu );
-    res.x += 8_w / 2_sx;
-    res.w -= 8_w / 2_sx * 2_sx;
-    res.h -= 8_h / 2_sy;
+    res.x += 8 / 2;
+    res.w -= 8 / 2 * 2;
+    res.h -= 8 / 2;
     return res;
   }
 
@@ -524,7 +523,7 @@ struct MenuPlane::Impl : public Plane {
     gfx::pixel color_fore = menu_theme_color2.shaded( 3 );
     pos.y += delta.h / 2;
     pos.x += 2;
-    renderer.painter().draw_horizontal_line( pos, delta.w._ - 5,
+    renderer.painter().draw_horizontal_line( pos, delta.w - 5,
                                              color_fore );
   }
 
@@ -560,22 +559,22 @@ struct MenuPlane::Impl : public Plane {
     }
 
     render_rect_of_sprites_with_border(
-        painter,                                       //
-        pos,                                           //
-        menu_body_delta( menu ) / Scale{ 8_sx, 8_sy }, //
-        e_tile::menu_body,                             //
-        e_tile::menu_top,                              //
-        e_tile::menu_bottom,                           //
-        e_tile::menu_left,                             //
-        e_tile::menu_right,                            //
-        e_tile::menu_top_left,                         //
-        e_tile::menu_top_right,                        //
-        e_tile::menu_bottom_left,                      //
-        e_tile::menu_bottom_right                      //
+        painter,                                           //
+        pos,                                               //
+        menu_body_delta( menu ) / Delta{ .w = 8, .h = 8 }, //
+        e_tile::menu_body,                                 //
+        e_tile::menu_top,                                  //
+        e_tile::menu_bottom,                               //
+        e_tile::menu_left,                                 //
+        e_tile::menu_right,                                //
+        e_tile::menu_top_left,                             //
+        e_tile::menu_top_right,                            //
+        e_tile::menu_bottom_left,                          //
+        e_tile::menu_bottom_right                          //
     );
 
-    pos.x += 8_w;
-    pos.y += 8_h;
+    pos.x += 8;
+    pos.y += 8;
 
     H const item_height = menu_item_height();
     for( auto const& item : g_menu_def[menu] ) {
@@ -583,7 +582,7 @@ struct MenuPlane::Impl : public Plane {
           item,
           [&]( MenuItem::menu_divider ) {
             render_divider( renderer, pos, menu );
-            pos += divider_height();
+            pos.y += divider_height();
           },
           [&]( MenuItem::menu_clickable const& clickable ) {
             bool on = ( clickable.item == subject );
@@ -597,11 +596,12 @@ struct MenuPlane::Impl : public Plane {
                      : menu_theme_color1;
             render_menu_element(
                 renderer,
-                pos + config_ui.menus.padding +
-                    ( ( item_height - max_text_height() ) /
-                      2_sy ),
+                pos + Delta{ .w = config_ui.menus.padding_x,
+                             .h = ( ( item_height -
+                                      max_text_height() ) /
+                                    2 ) },
                 clickable.item, foreground_color );
-            pos += item_height;
+            pos.y += item_height;
           } );
     }
   }
@@ -654,16 +654,16 @@ struct MenuPlane::Impl : public Plane {
         compositor::section( compositor::e_section::panel )
             .value_or( Rect{} )
             .upper_left();
-    auto        bar_rect   = menu_bar_rect();
-    Delta       wood_size  = sprite_size( e_tile::wood_middle );
-    Coord       start      = panel_upper_left - wood_size.h;
-    auto        wood_width = wood_size.w;
-    rr::Painter painter    = renderer.painter();
-    for( Coord c = start; c.x >= 0_x - wood_width;
-         c -= wood_width )
+    auto  bar_rect  = menu_bar_rect();
+    Delta wood_size = sprite_size( e_tile::wood_middle );
+    Coord start = panel_upper_left - Delta{ .h = wood_size.h };
+    auto  wood_width    = wood_size.w;
+    rr::Painter painter = renderer.painter();
+    for( Coord c = start; c.x >= 0 - wood_width;
+         c -= Delta{ .w = wood_width } )
       render_sprite( painter, e_tile::wood_middle, c );
     for( Coord c = start; c.x < bar_rect.right_edge();
-         c += wood_width )
+         c += Delta{ .w = wood_width } )
       render_sprite( painter, e_tile::wood_middle, c );
 
     for( auto menu : refl::enum_values<e_menu> ) {

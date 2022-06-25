@@ -1,0 +1,154 @@
+# ===============================================================
+# unit-type.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-05-31.
+#
+# Description: Describes unit types.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_unit_type {
+  # Basic colonists.
+  petty_criminal,
+  indentured_servant,
+  free_colonist,
+
+  # Non-expert colonist with modifiers.
+  soldier,
+  dragoon,
+  pioneer,
+  missionary,
+  scout,
+
+  # Expert colonists.
+  expert_farmer,
+  expert_fisherman,
+  expert_sugar_planter,
+  expert_tobacco_planter,
+  expert_cotton_planter,
+  expert_fur_trapper,
+  expert_lumberjack,
+  expert_ore_miner,
+  expert_silver_miner,
+  master_carpenter,
+  master_rum_distiller,
+  master_tobacconist,
+  master_weaver,
+  master_fur_trader,
+  master_blacksmith,
+  master_gunsmith,
+  elder_statesman,
+  firebrand_preacher,
+  hardy_colonist,
+  jesuit_colonist,
+  seasoned_colonist,
+  veteran_colonist,
+
+  # Expert colonist with modifier.
+  veteran_soldier,
+  veteran_dragoon,
+  continental_army,
+  continental_cavalry,
+  regular,
+  cavalry,
+  hardy_pioneer,
+  jesuit_missionary,
+  seasoned_scout,
+
+  # Non-human combat units.
+  artillery,
+  damaged_artillery,
+
+  # Ships.
+  caravel,
+  merchantman,
+  galleon,
+  privateer,
+  frigate,
+  man_o_war,
+
+  # Land transport.
+  wagon_train,
+
+  # Treasure.
+  small_treasure,
+  large_treasure,
+}
+
+# This is used to represent two different things:
+#
+#   1. The activity that a unit is currently engaged in, regard-
+#      less of its type.
+#   2. The expertise that a unit has.
+#
+enum.e_unit_activity {
+  # Raw commodities.
+  farming,
+  fishing,
+  sugar_planting,
+  tobacco_planting,
+  cotton_planting,
+  fur_trapping,
+  lumberjacking,
+  ore_mining,
+  silver_mining,
+
+  # Production.
+  carpentry,
+  rum_distilling,
+  tobacconistry,
+  weaving,
+  fur_trading,
+  blacksmithing,
+  gunsmithing,
+
+  # External to colony.
+  fighting,
+  pioneering,
+  scouting,
+  missioning,
+
+  # Misc.
+  bell_ringing,
+  preaching,
+  teaching,
+}
+
+enum.e_unit_type_modifier {
+  blessing,
+  horses,
+  muskets,
+  tools,
+  independence,
+  strength,
+}
+
+enum.e_unit_inventory {
+  gold,
+  tools,
+}
+
+namespace "rn.wrapped"
+
+# Note that this struct needs to maintain an invariant, namely
+# that the derived unit type (`type`) can be reached starting
+# from the base type (`base_type`) via some set of modifiers.
+#
+# The reason that it must store the base type and not just the
+# final type is because the game rules allow units to lose modi-
+# fiers in various ways, in which case a unit must "remember"
+# what it's base type was. For example, when an indentured ser-
+# vant (the base type) is made into a soldier (the final type)
+# and that soldier loses a battle then the unit must be demoted
+# back to an indentured servant (and not e.g. a free colonist)
+# and so therefore when we store the type of a unit we must in-
+# clude this base type.
+struct.UnitType {
+  base_type 'e_unit_type',
+  type      'e_unit_type',
+
+  _features { equality, validation }
+}

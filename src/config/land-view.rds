@@ -10,7 +10,9 @@
 # ===============================================================
 # Revolution Now
 include "font.hpp"
-include "coord.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 # refl
 include "refl/cdr.hpp"

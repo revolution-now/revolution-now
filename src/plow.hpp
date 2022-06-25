@@ -13,13 +13,15 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "game-state.hpp"
 #include "map-updater.hpp"
 #include "unit.hpp"
 
 // render
 #include "render/fwd.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

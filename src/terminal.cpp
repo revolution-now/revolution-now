@@ -25,6 +25,7 @@
 #include "luapp/as.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/metatable.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rstring.hpp"
 #include "luapp/ruserdata.hpp"
 #include "luapp/state.hpp"
@@ -69,6 +70,18 @@ vector<string> g_history;
 // the logging framework.
 mutex          g_buffer_mutex;
 vector<string> g_buffer;
+
+/****************************************************************
+** Errors
+*****************************************************************/
+vector<string> format_lua_error_msg( string const& msg ) {
+  vector<string> res;
+  for( auto const& line : util::split_on_any( msg, "\n\r" ) )
+    if( !line.empty() ) //
+      res.push_back(
+          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
+  return res;
+}
 
 /****************************************************************
 ** Terminal Log

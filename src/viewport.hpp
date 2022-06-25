@@ -14,13 +14,15 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "error.hpp"
 #include "physics.hpp"
 #include "wait.hpp"
 
 // Rds
 #include "viewport.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -237,9 +239,9 @@ class SmoothViewport {
   maybe<double> smooth_zoom_target_{};
 
   struct SmoothScroll {
-    XD    x_target{};
-    YD    y_target{};
-    Coord tile_target{};
+    double x_target{};
+    double y_target{};
+    Coord  tile_target{};
     // This promise will be fulfilled when the above tile becomes
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.

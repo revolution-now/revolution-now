@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "mv-calc.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // base
 #include "base/error.hpp"
 

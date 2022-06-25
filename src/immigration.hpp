@@ -12,13 +12,16 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "immigration.rds.hpp"
+
 // Revolution Now
 #include "wait.hpp"
 
-// Rds
-#include "immigration.rds.hpp"
-#include "nation.rds.hpp"
-#include "utype.rds.hpp"
+// gs
+#include "gs/nation.rds.hpp"
+#include "gs/unit-id.hpp"
+#include "gs/unit-type.rds.hpp"
 
 namespace rn {
 

@@ -11,15 +11,16 @@
 #pragma once
 
 // Revolution Now
-#include "src/colony-id.hpp"
-#include "src/map-square.hpp"
-#include "src/unit-id.hpp"
+#include "src/gs/colony-id.hpp"
+#include "src/gs/colony.rds.hpp"
+#include "src/gs/map-square.rds.hpp"
+#include "src/gs/nation.rds.hpp"
+#include "src/gs/unit-id.hpp"
+#include "src/gs/unit-type.rds.hpp"
+#include "src/maybe.hpp"
 
-// Rds
-#include "src/colony.rds.hpp"
-#include "src/config/unit-type.rds.hpp"
-#include "src/coord.hpp"
-#include "src/nation.rds.hpp"
+// gfx
+#include "src/gfx/coord.hpp"
 
 // C++ standard library
 #include <memory>

@@ -13,17 +13,22 @@
 #define LUA_MODULE_NAME_OVERRIDE "testing"
 
 // Revolution Now
-#include "coord.hpp"
 #include "expect.hpp"
 #include "game-state.hpp"
-#include "gs-root.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
+
+// game-state
+#include "gs/root.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // luapp
 #include "luapp/as.hpp"
 #include "luapp/error.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rstring.hpp"
 #include "luapp/state.hpp"
 
@@ -38,13 +43,13 @@ using namespace rn;
 using Catch::Contains;
 using Catch::Equals;
 
-Coord const kSquare( 0_x, 0_y );
+Coord const kSquare{};
 
 // This will preprare a 1x1 map with a grassland tile.
 void prepare_world( TerrainState& terrain_state ) {
   NonRenderingMapUpdater map_updater( terrain_state );
   map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
     m[kSquare] = map_square_for_terrain( e_terrain::grassland );
   } );
 }
@@ -118,38 +123,6 @@ TEST_CASE( "[lua] returns string" ) {
            "hello!" );
 }
 
-// FIXME: need to implement some kind of "from string" method for
-// lua enums when registering them, then we can re-enable this
-// test.
-// TEST_CASE( "[lua] enums exist" ) {
-//  auto script = R"(
-//    return tostring( e.nation.dutch ) .. type( e.nation.dutch )
-//  )";
-//  REQUIRE( st.script.run_safe<string>( script ) ==
-//  "dutchuserdata" );
-//}
-
-TEST_CASE( "[lua] enums no assign" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
-    e.nation.dutch = 3
-  )";
-
-  auto xp = st.script.run_safe( script );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(),
-                Contains( "modify a read-only table" ) );
-}
-
-TEST_CASE( "[lua] enums from string" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
-    return e.nation.dutch == e.nation["dutch"]
-  )";
-
-  REQUIRE( st.script.run_safe<bool>( script ) == true );
-}
-
 TEST_CASE( "[lua] has new_game.create" ) {
   lua::state& st = lua_global_state();
   lua_reload( GameState::root() );
@@ -168,17 +141,17 @@ TEST_CASE( "[lua] C++ function binding" ) {
   lua_reload( GameState::root() );
   auto script = R"(
     local soldier_type =
-        utype.UnitType.create( e.unit_type.soldier )
+        unit_type.UnitType.create( "soldier" )
     local soldier_comp = unit_composer
                         .UnitComposition
                         .create_with_type_obj( soldier_type )
-    local unit1 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit1 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
-    local unit2 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit2 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
-    local unit3 = ustate.create_unit_on_map( e.nation.dutch,
+    local unit3 = ustate.create_unit_on_map( "dutch",
                                              soldier_comp,
                                              { x=0, y=0 } )
     return unit3:id()-unit1:id()
@@ -189,13 +162,7 @@ TEST_CASE( "[lua] C++ function binding" ) {
 
 TEST_CASE( "[lua] frozen globals" ) {
   lua::state& st = lua_global_state();
-  auto        xp = st.script.run_safe( "e = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only global" ) );
-
-  xp = st.script.run_safe( "new_game = 1" );
+  auto        xp = st.script.run_safe( "new_game = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
@@ -262,8 +229,8 @@ TEST_CASE( "[lua] throwing" ) {
 
 LUA_FN( coord_test, Coord, Coord const& coord ) {
   auto new_coord = coord;
-  new_coord.x += 1_w;
-  new_coord.y += 1_h;
+  new_coord.x += 1;
+  new_coord.y += 1;
   return new_coord;
 }
 
@@ -287,7 +254,7 @@ TEST_CASE( "[lua] Coord" ) {
     return coord
   )";
   REQUIRE( st.script.run_safe<Coord>( script ) ==
-           Coord{ 4_x, 5_y } );
+           Coord{ .x = 4, .y = 5 } );
 }
 
 LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
@@ -300,8 +267,9 @@ LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
 
 LUA_FN( opt_test2, maybe<Coord>,
         maybe<Coord> const& maybe_coord ) {
-  if( !maybe_coord ) return Coord{ 5_x, 7_y };
-  return Coord{ maybe_coord->x + 1_w, maybe_coord->y + 1_y };
+  if( !maybe_coord ) return Coord{ .x = 5, .y = 7 };
+  return Coord{ .x = maybe_coord->x + 1,
+                .y = maybe_coord->y + 1 };
 }
 
 TEST_CASE( "[lua] optional" ) {
@@ -335,7 +303,8 @@ TEST_CASE( "[lua] optional" ) {
   REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
            nothing );
   REQUIRE( st.script.run_safe<maybe<Coord>>(
-               "return Coord{x=9, y=8}" ) == Coord{ 9_x, 8_y } );
+               "return Coord{x=9, y=8}" ) ==
+           Coord{ .x = 9, .y = 8 } );
   REQUIRE( st.script.run_safe<maybe<Coord>>(
                "return 'hello'" ) == nothing );
   REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==
@@ -349,15 +318,15 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-          return lua::as<string>( o ) + "!";
+      return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-          return fmt::format( "a double: {}", *maybe_double );
+      return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-          return fmt::format( "a bool: {}", *maybe_bool );
+      return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-          return "?";
+      return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==

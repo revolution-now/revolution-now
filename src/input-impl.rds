@@ -8,7 +8,8 @@
 # Description: RDS definitions for the input module impl.
 #
 # ===============================================================
-include "coord.hpp"
+# gfx
+include "gfx/coord.hpp"
 
 namespace "rn.input"
 

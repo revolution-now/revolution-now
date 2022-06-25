@@ -16,6 +16,9 @@
 #include "unit.hpp"
 #include "ustate.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 

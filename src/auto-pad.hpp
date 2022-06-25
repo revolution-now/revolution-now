@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "views.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <vector>

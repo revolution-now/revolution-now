@@ -17,14 +17,16 @@
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "game-state.hpp"
-#include "gs-colonies.hpp"
-#include "gs-root.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
-#include "utype.hpp"
+
+// gs
+#include "gs/colonies.hpp"
+#include "gs/root.hpp"
+#include "gs/terrain.hpp"
+#include "gs/unit-type.hpp"
+#include "gs/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -60,7 +62,7 @@ struct World : testing::World {
       _, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3_w );
+    build_map( std::move( tiles ), 3 );
   }
 };
 
@@ -82,8 +84,8 @@ void generate_unittest_terrain( TerrainState& terrain_state ) {
 
   NonRenderingMapUpdater map_updater( terrain_state );
   map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m = Matrix<MapSquare>( 10_w, 10_h );
-    Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
+    m = Matrix<MapSquare>( Delta{ .w = 10, .h = 10 } );
+    Rect land_rect{ .x = 2, .y = 2, .w = 6, .h = 6 };
     for( auto const& coord : terrain_state.world_map().rect() ) {
       m[coord] = O;
       if( coord.is_inside( land_rect ) ) m[coord] = L;
@@ -158,7 +160,7 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 2_x, 2_y };
+  Coord coord = { .x = 2, .y = 2 };
   auto  id =
       create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
@@ -168,7 +170,7 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
       found_colony( colonies_state, terrain_state, units_state,
                     id, map_updater, "colony" );
   Colony& col = colonies_state.colony_for( col_id );
-  for( auto [type, q] : col.commodities() ) {
+  for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(
                       kExpectedInitialColonyCommodityQuantities,
@@ -185,7 +187,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   NonRenderingMapUpdater map_updater( terrain_state );
 
   SECTION( "dragoon" ) {
-    Coord  coord = { 2_x, 2_y };
+    Coord  coord = { .x = 2, .y = 2 };
     UnitId id =
         create_dragoon_on_map( units_state, coord, map_updater );
     Unit& founder = units_state.unit_for( id );
@@ -200,7 +202,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     Colony& col = colonies_state.colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
     // modities into the colony commodity store.
-    for( auto [type, q] : col.commodities() ) {
+    for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
         case e_commodity::horses:
@@ -231,7 +233,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   }
 
   SECTION( "hardy_pioneer" ) {
-    Coord  coord = { 2_x, 2_y };
+    Coord  coord = { .x = 2, .y = 2 };
     UnitId id = create_hardy_pioneer_on_map( units_state, coord,
                                              map_updater );
     Unit&  founder = units_state.unit_for( id );
@@ -246,7 +248,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     Colony& col = colonies_state.colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
     // modities into the colony commodity store.
-    for( auto [type, q] : col.commodities() ) {
+    for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
         case e_commodity::tools:
@@ -277,7 +279,7 @@ TEST_CASE(
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 2_x, 2_y };
+  Coord coord = { .x = 2, .y = 2 };
   auto  id =
       create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
@@ -287,7 +289,7 @@ TEST_CASE(
       found_colony( colonies_state, terrain_state, units_state,
                     id, map_updater, "colony 1" );
   Colony& col = colonies_state.colony_for( col_id );
-  for( auto [type, q] : col.commodities() ) {
+  for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(
                       kExpectedInitialColonyCommodityQuantities,
@@ -309,7 +311,7 @@ TEST_CASE(
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 2_x, 2_y };
+  Coord coord = { .x = 2, .y = 2 };
   auto  id =
       create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
@@ -319,7 +321,7 @@ TEST_CASE(
       found_colony( colonies_state, terrain_state, units_state,
                     id, map_updater, "colony" );
   Colony& col = colonies_state.colony_for( col_id );
-  for( auto [type, q] : col.commodities() ) {
+  for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == base::lookup(
                       kExpectedInitialColonyCommodityQuantities,
@@ -327,7 +329,7 @@ TEST_CASE(
                       .value_or( 0 ) );
   }
 
-  coord += 2_w;
+  coord.x += 2;
   id = create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id )
@@ -343,7 +345,7 @@ TEST_CASE(
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 2_x, 2_y };
+  Coord coord = { .x = 2, .y = 2 };
   auto  id =
       create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
@@ -351,7 +353,7 @@ TEST_CASE(
                .valid() );
   found_colony( colonies_state, terrain_state, units_state, id,
                 map_updater, "colony" );
-  coord += 1_w;
+  coord.x += 1;
   id = create_colonist_on_map( units_state, coord, map_updater );
   REQUIRE( unit_can_found_colony( colonies_state, units_state,
                                   terrain_state, id ) ==
@@ -365,7 +367,7 @@ TEST_CASE( "[colony-mgr] found_colony in water fails" ) {
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord   = { 1_x, 1_y };
+  Coord coord   = { .x = 1, .y = 1 };
   auto  ship_id = create_ship( units_state, coord, map_updater );
   auto  unit_id = create_colonist( units_state );
   units_state.change_to_cargo_somewhere( ship_id, unit_id );
@@ -398,7 +400,7 @@ TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 1_x, 1_y };
+  Coord coord = { .x = 1, .y = 1 };
   auto  id    = create_ship( units_state, coord, map_updater );
   REQUIRE(
       unit_can_found_colony( colonies_state, units_state,
@@ -413,7 +415,7 @@ TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
   generate_unittest_terrain( terrain_state );
   NonRenderingMapUpdater map_updater( terrain_state );
 
-  Coord coord = { 1_x, 1_y };
+  Coord coord = { .x = 1, .y = 1 };
   auto  id    = create_wagon( units_state, coord, map_updater );
   REQUIRE(
       unit_can_found_colony( colonies_state, units_state,
@@ -434,7 +436,7 @@ vector<ColonyId> colonies_all(
     ColoniesState const& colonies_state, e_nation nation ) {
   vector<ColonyId> ids;
   for( auto const& [id, colony] : colonies_state.all() )
-    if( colony.nation() == nation ) ids.push_back( id );
+    if( colony.nation == nation ) ids.push_back( id );
   return ids;
 }
 
@@ -443,23 +445,23 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   ColoniesState colonies_state;
   UnitsState    units_state;
   generate_unittest_terrain( terrain_state );
-  auto xp =
-      create_empty_colony( colonies_state, e_nation::english,
-                           Coord{ 1_x, 2_y }, "my colony" );
+  auto xp = create_empty_colony(
+      colonies_state, e_nation::english, Coord{ .x = 1, .y = 2 },
+      "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
 
   Colony const& colony =
       colonies_state.colony_for( ColonyId{ 1 } );
-  REQUIRE( colony.id() == ColonyId{ 1 } );
-  REQUIRE( colony.nation() == e_nation::english );
-  REQUIRE( colony.name() == "my colony" );
-  REQUIRE( colony.location() == Coord{ 1_x, 2_y } );
+  REQUIRE( colony.id == ColonyId{ 1 } );
+  REQUIRE( colony.nation == e_nation::english );
+  REQUIRE( colony.name == "my colony" );
+  REQUIRE( colony.location == Coord{ .x = 1, .y = 2 } );
 
   REQUIRE( colony_exists( colonies_state, ColonyId{ 1 } ) );
   REQUIRE( !colony_exists( colonies_state, ColonyId{ 2 } ) );
 
   auto xp2 = create_empty_colony(
-      colonies_state, e_nation::dutch, Coord{ 1_x, 3_y },
+      colonies_state, e_nation::dutch, Coord{ .x = 1, .y = 3 },
       "my second colony" );
   REQUIRE( xp2 == ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all( colonies_state ),
@@ -490,9 +492,9 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
   World W;
   W.create_default_map();
   Colony& colony =
-      W.add_colony_with_new_unit( Coord( 1_x, 1_y ) );
+      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   unordered_set<e_colony_building> buildings;
-  for( auto const& [building, has] : colony.buildings() )
+  for( auto const& [building, has] : colony.buildings )
     if( has ) buildings.insert( building );
   REQUIRE( buildings ==
            unordered_set<e_colony_building>{
@@ -511,7 +513,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
   W.create_default_map();
 
   UnitId founder = W.add_unit_on_map( e_unit_type::free_colonist,
-                                      Coord( 1_x, 1_y ) );
+                                      Coord{ .x = 1, .y = 1 } );
   // Don't use W.add_colony here because we are testing
   // found_colony specifically.
   ColonyId id =
@@ -519,16 +521,16 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
                     founder, W.map_updater(), "my colony" );
   Colony& colony = W.colonies().colony_for( id );
 
-  REQUIRE( colony.outdoor_jobs()[e_direction::nw] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::ne] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::w] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::e] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::sw] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::s] == nothing );
-  REQUIRE( colony.outdoor_jobs()[e_direction::se] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::nw] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::ne] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::w] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::e] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::sw] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::s] == nothing );
+  REQUIRE( colony.outdoor_jobs[e_direction::se] == nothing );
 
   // Colonist should have been placed here.
-  REQUIRE( colony.outdoor_jobs()[e_direction::n] ==
+  REQUIRE( colony.outdoor_jobs[e_direction::n] ==
            ( OutdoorUnit{ .unit_id = founder,
                           .job     = e_outdoor_job::food } ) );
 }
@@ -536,19 +538,19 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
 TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Note that the founding colonist will have been placed on the
   // north tile.
-  UnitId farmer = W.add_unit_outdoors(
-      colony.id(), e_direction::w, e_outdoor_job::food );
+  UnitId farmer = W.add_unit_outdoors( colony.id, e_direction::w,
+                                       e_outdoor_job::food );
   UnitId ore_miner = W.add_unit_outdoors(
-      colony.id(), e_direction::e, e_outdoor_job::ore );
+      colony.id, e_direction::e, e_outdoor_job::ore );
 
   // Sanity check.
-  REQUIRE( colony.outdoor_jobs()[e_direction::w] ==
+  REQUIRE( colony.outdoor_jobs[e_direction::w] ==
            ( OutdoorUnit{ .unit_id = farmer,
                           .job     = e_outdoor_job::food } ) );
-  REQUIRE( colony.outdoor_jobs()[e_direction::e] ==
+  REQUIRE( colony.outdoor_jobs[e_direction::e] ==
            ( OutdoorUnit{ .unit_id = ore_miner,
                           .job     = e_outdoor_job::ore } ) );
 
@@ -556,10 +558,10 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
   change_unit_outdoor_job( colony, farmer,
                            e_outdoor_job::lumber );
 
-  REQUIRE( colony.outdoor_jobs()[e_direction::w] ==
+  REQUIRE( colony.outdoor_jobs[e_direction::w] ==
            ( OutdoorUnit{ .unit_id = farmer,
                           .job     = e_outdoor_job::lumber } ) );
-  REQUIRE( colony.outdoor_jobs()[e_direction::e] ==
+  REQUIRE( colony.outdoor_jobs[e_direction::e] ==
            ( OutdoorUnit{ .unit_id = ore_miner,
                           .job     = e_outdoor_job::ore } ) );
 }

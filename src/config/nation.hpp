@@ -10,9 +10,11 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
-#include "nation.rds.hpp"
+#include "config/nation.rds.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+Nationality const& nation_obj( e_nation nation );
+
+} // namespace rn

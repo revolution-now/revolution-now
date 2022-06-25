@@ -12,11 +12,13 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "gs-terrain.hpp"
-#include "gs-units.hpp"
 #include "logger.hpp"
 #include "road.hpp"
 #include "window.hpp"
+
+// game-state
+#include "gs/terrain.hpp"
+#include "gs/units.hpp"
 
 using namespace std;
 

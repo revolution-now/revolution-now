@@ -11,7 +11,6 @@
 #include "views.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "logger.hpp"
 #include "render.hpp"
 #include "text.hpp"
@@ -19,6 +18,10 @@
 
 // config
 #include "config/ui.rds.hpp"
+#include "config/unit-type.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -211,9 +214,9 @@ ButtonBaseView::ButtonBaseView( string label, e_type type )
   : ButtonBaseView(
         label,
         rendered_text_size( /*reflow_info=*/{}, label )
-                    .round_up( Scale{ 8 } ) /
-                Scale{ 8 } +
-            2_w + 1_h,
+                    .round_up( Delta{ .w = 8, .h = 8 } ) /
+                Delta{ .w = 8, .h = 8 } +
+            Delta{ .w = 2 } + Delta{ .h = 1 },
         type ) {}
 
 ButtonBaseView::ButtonBaseView( string label,
@@ -226,7 +229,7 @@ ButtonBaseView::ButtonBaseView( string label,
                                 e_type type )
   : label_( std::move( label ) ),
     type_( type ),
-    size_in_pixels_( size_in_blocks * Scale{ 8 } ),
+    size_in_pixels_( size_in_blocks * Delta{ .w = 8, .h = 8 } ),
     text_size_in_pixels_(
         rendered_text_size( /*reflow_info=*/{}, label_ ) ) {}
 
@@ -270,7 +273,7 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
       painter, Coord::from_gfx( where ),
-      size_in_pixels_ / Scale{ 8 }, //
+      size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
       e_tile::button_up_mr, e_tile::button_up_ul,
@@ -285,7 +288,7 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
       centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
-      1_w - 1_h;
+      Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
                       markup_info, label_ );
 }
@@ -295,7 +298,7 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
       painter, Coord::from_gfx( where ),
-      size_in_pixels_ / Scale{ 8 }, //
+      size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_down_mm, e_tile::button_down_um,
       e_tile::button_down_lm, e_tile::button_down_ml,
       e_tile::button_down_mr, e_tile::button_down_ul,
@@ -309,7 +312,7 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
       centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
-      -1_w + 1_h;
+      -Delta{ .w = 1 } + Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
                       markup_info, label_ );
 }
@@ -319,7 +322,7 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
       painter, Coord::from_gfx( where ),
-      size_in_pixels_ / Scale{ 8 }, //
+      size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
       e_tile::button_up_mr, e_tile::button_up_ul,
@@ -334,7 +337,7 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
       centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
-      1_w - 1_h;
+      Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
                       markup_info, label_ );
 }
@@ -344,7 +347,7 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
       painter, Coord::from_gfx( where ),
-      size_in_pixels_ / Scale{ 8 }, //
+      size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
       e_tile::button_up_mr, e_tile::button_up_ul,
@@ -358,7 +361,7 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
       centered( text_size_in_pixels_,
                 Rect::from( Coord::from_gfx( where ),
                             size_in_pixels_ ) ) +
-      1_w - 1_h;
+      Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
                       markup_info, label_ );
 }
@@ -422,7 +425,7 @@ LineEditorView::LineEditorView( int         chars_wide,
 Delta LineEditorView::delta() const {
   return Delta::from_gfx( rr::rendered_text_line_size_pixels(
              string( input_view_.width(), 'X' ) ) ) +
-         Delta{ 4_w, 4_h };
+         Delta{ .w = 4, .h = 4 };
 }
 
 void LineEditorView::render_background( rr::Renderer& renderer,
@@ -440,8 +443,8 @@ void LineEditorView::draw( rr::Renderer& renderer,
       rr::rendered_text_line_size_pixels( current_rendering_ );
   Y text_pos_y =
       centered( Delta::from_gfx( text_size ), rect( coord ) ).y;
-  rr::Typer typer =
-      renderer.typer( Coord( text_pos_y, coord.x + 1_w ), fg_ );
+  rr::Typer typer = renderer.typer(
+      Coord{ .x = coord.x + 1, .y = text_pos_y }, fg_ );
   typer.write( all_chars );
 
   auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
@@ -456,8 +459,10 @@ void LineEditorView::draw( rr::Renderer& renderer,
                : Delta::from_gfx( rr::rendered_text_line_size_pixels(
                                       string_up_to_cursor ) )
                 .w;
-  Rect cursor{ coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,
-               cursor_width_, delta().h - 2_h };
+  Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
+               .y = coord.y + 1,
+               .w = cursor_width_,
+               .h = delta().h - 2 };
   renderer.painter().draw_solid_rect( cursor, fg_ );
 }
 
@@ -533,27 +538,28 @@ bool PlainMessageBoxView::on_key(
 *****************************************************************/
 PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
                           bool l, bool r, bool u, bool d )
-  : CompositeSingleView( std::move( view ),
-                         Coord{} +                       //
-                             ( l ? W{ pixels } : 0_w ) + //
-                             ( u ? H{ pixels } : 0_h ) ),
+  : CompositeSingleView(
+        std::move( view ),
+        Coord{} +                                   //
+            Delta{ .w = ( l ? W{ pixels } : 0 ) } + //
+            Delta{ .h = ( u ? H{ pixels } : 0 ) } ),
     pixels_( pixels ),
     l_( l ),
     r_( r ),
     u_( u ),
     d_( d ),
     delta_( single()->delta() + //
-            ( l ? W{ pixels_ } : 0_w ) +
-            ( u ? H{ pixels_ } : 0_h ) + //
-            ( r ? W{ pixels_ } : 0_w ) + //
-            ( d ? H{ pixels_ } : 0_h ) ) {}
+            Delta{ .w = ( l ? W{ pixels_ } : 0 ) } +
+            Delta{ .h = ( u ? H{ pixels_ } : 0 ) } + //
+            Delta{ .w = ( r ? W{ pixels_ } : 0 ) } + //
+            Delta{ .h = ( d ? H{ pixels_ } : 0 ) } ) {}
 
 void PaddingView::notify_children_updated() {
   delta_ = single()->delta() + //
-           ( l_ ? W{ pixels_ } : 0_w ) +
-           ( u_ ? H{ pixels_ } : 0_h ) + //
-           ( r_ ? W{ pixels_ } : 0_w ) + //
-           ( d_ ? H{ pixels_ } : 0_h );
+           Delta{ .w = ( l_ ? W{ pixels_ } : 0 ) } +
+           Delta{ .h = ( u_ ? H{ pixels_ } : 0 ) } + //
+           Delta{ .w = ( r_ ? W{ pixels_ } : 0 ) } + //
+           Delta{ .h = ( d_ ? H{ pixels_ } : 0 ) };
 }
 
 // This prevents more padding from being added (this is already
@@ -646,7 +652,7 @@ void ButtonView::blink( bool enabled ) {
 /****************************************************************
 ** OkCancelView
 *****************************************************************/
-constexpr Delta ok_cancel_button_size_blocks{ 2_h, 8_w };
+constexpr Delta ok_cancel_button_size_blocks{ .w = 8, .h = 2 };
 
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
                             ButtonView::OnClickFunc on_cancel ) {
@@ -665,7 +671,7 @@ OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
 
 Coord OkCancelView::pos_of( int idx ) const {
   if( idx == 0 ) return Coord{};
-  if( idx == 1 ) return Coord{} + ok_->delta().w;
+  if( idx == 1 ) return Coord{} + Delta{ .w = ok_->delta().w };
   SHOULD_NOT_BE_HERE;
   return {};
 }
@@ -708,25 +714,25 @@ void VerticalArrayView::notify_children_updated() {
 // When a child view is updated then we must recompute the posi-
 // tions of all the views.
 void VerticalArrayView::recompute_child_positions() {
-  W max_width = 0_w;
+  W max_width = 0;
   for( int i = 0; i < count(); ++i )
     max_width = std::max( max_width, at( i ).view->delta().w );
-  Y y = 0_y;
+  Y y = 0;
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
     auto  size = view->delta();
     X     x{ 0 };
     switch( alignment_ ) {
-      case align::left: x = 0_x; break;
-      case align::right: x = 0_x + ( max_width - size.w ); break;
+      case align::left: x = 0; break;
+      case align::right: x = 0 + ( max_width - size.w ); break;
       case align::center:
-        x = 0_x + ( max_width / 2 - size.w / 2 );
+        x = 0 + ( max_width / 2 - size.w / 2 );
         break;
     }
-    CHECK( x >= 0_x );
-    CHECK( x <= 0_x + max_width );
+    CHECK( x >= 0 );
+    CHECK( x <= 0 + max_width );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ x, y } );
+                                   Coord{ .x = x, .y = y } );
     ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
@@ -754,25 +760,25 @@ void HorizontalArrayView::notify_children_updated() {
 // When a child view is updated then we must recompute the posi-
 // tions of all the views.
 void HorizontalArrayView::recompute_child_positions() {
-  H max_height = 0_h;
+  H max_height = 0;
   for( int i = 0; i < count(); ++i )
     max_height = std::max( max_height, at( i ).view->delta().h );
-  X x = 0_x;
+  X x = 0;
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
     auto  size = view->delta();
     Y     y{ 0 };
     switch( alignment_ ) {
-      case align::up: y = 0_y; break;
-      case align::down: y = 0_y + ( max_height - size.h ); break;
+      case align::up: y = 0; break;
+      case align::down: y = 0 + ( max_height - size.h ); break;
       case align::middle:
-        y = 0_y + ( max_height / 2 - size.h / 2 );
+        y = 0 + ( max_height / 2 - size.h / 2 );
         break;
     }
-    CHECK( y >= 0_y );
-    CHECK( y <= 0_y + max_height );
+    CHECK( y >= 0 );
+    CHECK( y <= 0 + max_height );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ x, y } );
+                                   Coord{ .x = x, .y = y } );
     ( *this )[i] = std::move( pos_view );
     x += size.w;
   }
@@ -1021,22 +1027,22 @@ BorderView::BorderView( unique_ptr<View> view, gfx::pixel color,
                         int padding, bool on_initially )
   : CompositeSingleView(
         std::move( view ),
-        Coord{ 1_x + W{ padding }, 1_y + H{ padding } } ),
+        Coord{ .x = 1 + W{ padding }, .y = 1 + H{ padding } } ),
     color_( color ),
     on_( on_initially ),
     padding_( padding ) {}
 
 Delta BorderView::delta() const {
   return this->CompositeSingleView::delta() +
-         Delta{ ( 1_w + W{ padding_ } ) * 2_sx,
-                ( 1_h + H{ padding_ } ) * 2_sy };
+         Delta{ .w = ( 1 + W{ padding_ } ) * 2,
+                .h = ( 1 + H{ padding_ } ) * 2 };
 }
 
 void BorderView::draw( rr::Renderer& renderer,
                        Coord         coord ) const {
   this->CompositeSingleView::draw(
-      renderer, coord + Delta{ 1_w + W{ padding_ },
-                               1_h + H{ padding_ } } );
+      renderer, coord + Delta{ .w = 1 + W{ padding_ },
+                               .h = 1 + H{ padding_ } } );
   if( on_ )
     renderer.painter().draw_empty_rect(
         Rect::from( coord, delta() ),

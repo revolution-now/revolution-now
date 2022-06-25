@@ -13,12 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
 #include "tile-enum.hpp"
 #include "util.hpp"
 
 // render
 #include "render/painter.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <string_view>
@@ -34,10 +36,8 @@ constexpr int tile_pixel_size{ 32 };
 
 inline constexpr SX    g_tile_width{ detail::tile_pixel_size };
 inline constexpr SY    g_tile_height{ detail::tile_pixel_size };
-inline constexpr Scale g_tile_scale{ detail::tile_pixel_size };
-
-inline constexpr Delta g_tile_delta =
-    Delta{ W{ 1 } * g_tile_width, H{ 1 } * g_tile_height };
+inline constexpr Delta g_tile_delta = Delta{
+    .w = W{ 1 } * g_tile_width, .h = H{ 1 } * g_tile_height };
 
 /****************************************************************
 ** Querying Tiles

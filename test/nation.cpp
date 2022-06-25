@@ -13,6 +13,9 @@
 // Under test.
 #include "src/nation.hpp"
 
+// config
+#include "config/nation.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 

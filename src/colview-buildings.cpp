@@ -12,11 +12,15 @@
 
 // Revolution Now
 #include "colony-buildings.hpp"
-#include "colony.hpp"
+#include "colony-mgr.hpp"
 #include "game-state.hpp" // FIXME
-#include "gs-units.hpp"
 #include "production.hpp"
 #include "render.hpp"
+#include "tiles.hpp"
+
+// game-state
+#include "gs/colony.hpp"
+#include "gs/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -73,34 +77,34 @@ maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
 Rect ColViewBuildings::rect_for_slot(
     e_colony_building_slot slot ) const {
   // TODO: Temporary.
-  Delta const box_size = delta() / Scale{ 4 };
+  Delta const box_size = delta() / Delta{ .w = 4, .h = 4 };
   int const   idx      = static_cast<int>( slot );
-  Coord const coord( X{ idx % 4 }, Y{ idx / 4 } );
-  Coord const upper_left  = coord * box_size.to_scale();
+  Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
+  Coord const upper_left  = coord * box_size;
   Coord       lower_right = upper_left + box_size;
-  if( idx / 4 == 3 ) lower_right.y = 0_y + delta().h;
+  if( idx / 4 == 3 ) lower_right.y = 0 + delta().h;
   return Rect::from( upper_left, lower_right );
 }
 
-int const kEffectiveUnitWidthPixels = g_tile_delta.w._ / 2;
+int const kEffectiveUnitWidthPixels = g_tile_delta.w / 2;
 
 Rect ColViewBuildings::visible_rect_for_unit_in_slot(
     e_colony_building_slot slot, int unit_idx ) const {
   Rect  rect = rect_for_slot( slot );
-  Coord pos  = rect.lower_left() - g_tile_delta.h;
-  pos += 3_w;
-  pos += W{ kEffectiveUnitWidthPixels } * SX{ unit_idx };
-  return Rect::from(
-      pos, Delta( g_tile_delta.w / 2_sx, g_tile_delta.h ) );
+  Coord pos  = rect.lower_left() - Delta{ .h = g_tile_delta.h };
+  pos.x += 3;
+  pos.x += W{ kEffectiveUnitWidthPixels } * unit_idx;
+  return Rect::from( pos, Delta{ .w = g_tile_delta.w / 2,
+                                 .h = g_tile_delta.h } );
 }
 
 Rect ColViewBuildings::sprite_rect_for_unit_in_slot(
     e_colony_building_slot slot, int unit_idx ) const {
   return visible_rect_for_unit_in_slot( slot, unit_idx ) -
-         Delta( W{ ( g_tile_delta.w._ -
-                     kEffectiveUnitWidthPixels ) /
-                   2 },
-                0_h );
+         Delta{ .w = W{ ( g_tile_delta.w -
+                          kEffectiveUnitWidthPixels ) /
+                        2 },
+                .h = 0 };
 }
 
 maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
@@ -124,7 +128,8 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::black() );
     rr::Typer typer = renderer.typer(
-        rect.upper_left() + 1_w + 1_h, gfx::pixel::black() );
+        rect.upper_left() + Delta{ .w = 1 } + Delta{ .h = 1 },
+        gfx::pixel::black() );
     maybe<e_colony_building> const building =
         building_for_slot( colony_, slot );
     if( !building.has_value() ) {
@@ -141,7 +146,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
         .r = 60, .g = 80, .b = 80, .a = 255 };
     if( indoor_job ) {
       vector<UnitId> const& colonists =
-          colony_.indoor_jobs()[*indoor_job];
+          colony_.indoor_jobs[*indoor_job];
       for( int idx = 0; idx < int( colonists.size() ); ++idx ) {
         UnitId unit_id = colonists[idx];
         if( dragging_.has_value() && dragging_->id == unit_id )
@@ -173,10 +178,12 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     if( quantity.has_value() ) {
       UNWRAP_CHECK( tile, tile_for_slot( slot ) );
       Coord pos =
-          rect.upper_left() + 2_h +
-          H{ rr::rendered_text_line_size_pixels( "x" ).h };
+          rect.upper_left() + Delta{ .w = 2 } +
+          Delta{ .h =
+                     H{ rr::rendered_text_line_size_pixels( "x" )
+                            .h } };
       render_sprite( painter, pos, tile );
-      pos += sprite_size( tile ).w;
+      pos.x += sprite_size( tile ).w;
       rr::Typer typer =
           renderer.typer( pos, gfx::pixel::black() );
       typer.write( "x {}", *quantity );
@@ -228,7 +235,7 @@ ColViewBuildings::check( ColViewObject_t const&,
     co_return IColViewDragSinkCheck::Rejection{};
   // Check that there aren't more than the max allowed units in
   // this slot.
-  if( int( colony_.indoor_jobs()[indoor_job].size() ) >=
+  if( int( colony_.indoor_jobs[indoor_job].size() ) >=
       config_colony.max_workers_per_building ) {
     co_return IColViewDragSinkCheck::Rejection{
         .reason = fmt::format(
@@ -257,7 +264,7 @@ maybe<ColViewObjectWithBounds> ColViewBuildings::object_here(
   UNWRAP_RETURN( slot, slot_for_coord( where ) );
   UNWRAP_RETURN( indoor_job, indoor_job_for_slot( slot ) );
   vector<UnitId> const& colonists =
-      colony_.indoor_jobs()[indoor_job];
+      colony_.indoor_jobs[indoor_job];
   if( colonists.size() == 0 ) return nothing;
   for( int idx = colonists.size() - 1; idx >= 0; --idx ) {
     Rect rect = visible_rect_for_unit_in_slot( slot, idx );
