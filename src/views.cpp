@@ -273,7 +273,7 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
       painter, Coord::from_gfx( where ),
-      size_in_pixels_ / Delta{ .w = 8, .h = 9 }, //
+      size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
       e_tile::button_up_mr, e_tile::button_up_ul,

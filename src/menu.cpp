@@ -307,8 +307,8 @@ struct MenuPlane::Impl : public Plane {
   ** Menu Headers
   *****************************************************************/
   Delta menu_header_delta( e_menu menu ) const {
-    return Delta{ .w = W{ menu_name_width_pixels_[menu] +
-                          config_ui.menus.padding * 2 },
+    return Delta{ .w = menu_name_width_pixels_[menu] +
+                       config_ui.menus.padding_x * 2,
                   .h = menu_bar_height() - 4 };
   }
 
@@ -321,17 +321,17 @@ struct MenuPlane::Impl : public Plane {
                         .remove_if_L( !g_menus[_].right_side )
                         .take_while_incl_L( _ != target )
                         .map_L( menu_header_delta( _ ).w )
-                        .intersperse( config_ui.menus.spacing )
+                        .intersperse( config_ui.menus.spacing_x )
                         .accumulate();
     } else {
       width_delta = rl::all( refl::enum_values<e_menu> )
                         .remove_if_L( g_menus[_].right_side )
                         .take_while_L( _ != target )
                         .map_L( menu_header_delta( _ ).w +
-                                config_ui.menus.spacing )
+                                config_ui.menus.spacing_x )
                         .accumulate();
     }
-    width_delta += config_ui.menus.first_menu_start;
+    width_delta += config_ui.menus.first_menu_start_x_offset;
     CHECK( width_delta >= 0 );
     Rect rect = menu_bar_rect();
     return rect.x + ( !desc.right_side ? width_delta
@@ -369,7 +369,7 @@ struct MenuPlane::Impl : public Plane {
                       W{ menu_item_name_width_pixels_[item] } );
     // At this point, res holds the width of the largest rendered
     // text texture in this menu.  Now add padding on each side:
-    res += config_ui.menus.padding * 2;
+    res += config_ui.menus.padding_x * 2;
     res = clamp( res, config_ui.menus.body_min_width, 1000000 );
     // round up to nearest multiple of 8, since that is the menu
     // tile width.
@@ -392,8 +392,8 @@ struct MenuPlane::Impl : public Plane {
   H divider_height() const { return menu_item_height() / 2; }
 
   Delta divider_delta( e_menu menu ) const {
-    return Delta{ .w = divider_height(),
-                  .h = menu_body_width_inner( menu ) };
+    return Delta{ .w = menu_body_width_inner( menu ),
+                  .h = divider_height() };
   }
 
   // This is the width of the menu body not including the
@@ -596,8 +596,8 @@ struct MenuPlane::Impl : public Plane {
                      : menu_theme_color1;
             render_menu_element(
                 renderer,
-                pos + Delta{ .h = config_ui.menus.padding +
-                                  ( ( item_height -
+                pos + Delta{ .w = config_ui.menus.padding_x,
+                             .h = ( ( item_height -
                                       max_text_height() ) /
                                     2 ) },
                 clickable.item, foreground_color );

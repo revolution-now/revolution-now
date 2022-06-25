@@ -12,13 +12,13 @@ dialog_text {
 }
 
 menus {
-  first_menu_start:      8
-  item_vertical_padding: 2
-  padding:               6
-  spacing:               0
-  body_min_width:        120 # must be a multiple of 8
-  font:                  habbo_15
-  menu_bar_height:       16
+  first_menu_start_x_offset: 8
+  item_vertical_padding:     2
+  padding_x:                 6
+  spacing_x:                 0
+  body_min_width:            120 # must be a multiple of 8
+  font:                      habbo_15
+  menu_bar_height:           16
 }
 
 console {

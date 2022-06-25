@@ -39,10 +39,10 @@ struct.config_ui_dialog_text {
 }
 
 struct.config_ui_menus {
-  first_menu_start 'int',
+  first_menu_start_x_offset 'int',
   item_vertical_padding 'int',
-  padding 'int',
-  spacing 'int',
+  padding_x 'int',
+  spacing_x 'int',
   body_min_width 'int',
   font 'e_font',
   menu_bar_height 'int',

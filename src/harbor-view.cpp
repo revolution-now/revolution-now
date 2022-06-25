@@ -349,15 +349,17 @@ class ActiveCargoBox : EntityBase {
         res = ActiveCargoBox(
             S,
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h,
-                rect.center().x - size_pixels.w / 2 } );
+                .x = rect.center().x - size_pixels.w / 2,
+                .y = market_commodities.origin_.y -
+                     size_pixels.h } );
       } else {
         // Possibly just for now do this.
         res = ActiveCargoBox(
             S,
             /*origin_=*/Coord{
-                market_commodities.origin_.y - size_pixels.h,
-                rect.center().x - size_pixels.w / 2 } );
+                .x = rect.center().x - size_pixels.w / 2,
+                .y = market_commodities.origin_.y -
+                     size_pixels.h } );
       }
     }
     return res;
@@ -735,7 +737,7 @@ class Exit : EntityBase {
 NOTHROW_MOVE( Exit );
 
 class Dock : EntityBase {
-  static constexpr Delta dock_block_pixels{ 24 };
+  static constexpr Delta dock_block_pixels{ .w = 24, .h = 24 };
   static inline Delta    dock_block_pixels_delta =
       Delta{ .w = 1, .h = 1 } * dock_block_pixels;
 
@@ -1920,7 +1922,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
