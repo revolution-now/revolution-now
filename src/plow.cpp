@@ -30,6 +30,7 @@
 
 // luapp
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

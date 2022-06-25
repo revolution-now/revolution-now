@@ -16,7 +16,8 @@
 #include "igui.hpp"
 
 // config
-#include "config/colony.rds.hpp"
+#include "config/colony.hpp"
+#include "config/unit-type.hpp"
 
 // gs
 #include "gs/unit-type.hpp"
@@ -52,9 +53,9 @@ string fmt_construction(
 void adjust_materials( Colony const&          colony,
                        ConstructionMaterials& materials ) {
   materials.hammers =
-      std::max( materials.hammers - colony.hammers(), 0 );
+      std::max( materials.hammers - colony.hammers, 0 );
   materials.tools = std::max(
-      materials.tools - colony.commodities()[e_commodity::tools],
+      materials.tools - colony.commodities[e_commodity::tools],
       0 );
 }
 
@@ -108,12 +109,12 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
   for( e_colony_building building :
        refl::enum_values<e_colony_building> ) {
     // TODO: need to check prerequisistes for these buildings.
-    if( colony.buildings()[building] ) continue;
+    if( colony.buildings[building] ) continue;
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( building ),
         .display_name = fmt_building( colony, building ) } );
-    if( colony.construction().has_value() &&
-        colony.construction() ==
+    if( colony.construction.has_value() &&
+        colony.construction ==
             Construction_t{
                 Construction::building{ .what = building } } )
       initial_selection = config.options.size() - 1;
@@ -122,15 +123,15 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
     if( !config_colony.materials_for_unit[type].has_value() )
       continue;
     if( unit_attr( type ).ship &&
-        !colony.buildings()[e_colony_building::shipyard] )
+        !colony.buildings[e_colony_building::shipyard] )
       // Can't build ships without a shipyard.
       continue;
     // TODO: need to check prerequisistes for these units.
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( type ),
         .display_name = fmt_unit( colony, type ) } );
-    if( colony.construction().has_value() &&
-        colony.construction() ==
+    if( colony.construction.has_value() &&
+        colony.construction ==
             Construction_t{
                 Construction::unit{ .type = type } } )
       initial_selection = config.options.size() - 1;
@@ -142,14 +143,14 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
   if( !what.has_value() ) co_return;
 
   if( what == kNoProductionKey ) {
-    colony.construction().reset();
+    colony.construction.reset();
     co_return;
   }
 
   for( e_colony_building building :
        refl::enum_values<e_colony_building> ) {
     if( what == fmt::to_string( building ) ) {
-      colony.construction() =
+      colony.construction =
           Construction::building{ .what = building };
       co_return;
     }
@@ -157,7 +158,7 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
 
   for( e_unit_type type : refl::enum_values<e_unit_type> ) {
     if( what == fmt::to_string( type ) ) {
-      colony.construction() = Construction::unit{ .type = type };
+      colony.construction = Construction::unit{ .type = type };
       co_return;
     }
   }

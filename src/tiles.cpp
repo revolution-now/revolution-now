@@ -111,34 +111,31 @@ void render_sprite_stencil( rr::Painter& painter, Coord where,
 
 void tile_sprite( rr::Painter& painter, e_tile tile,
                   Rect const& rect ) {
-  Delta info       = sprite_size( tile );
-  Scale info_scale = info.to_scale();
-  auto  mod        = rect.delta() % info_scale;
-  if( mod.w == 0_w && rect.delta().w != 0_w )
-    mod.w = 1_w * info_scale.sx;
-  if( mod.h == 0_h && rect.delta().h != 0_h )
-    mod.h = 1_h * info_scale.sy;
-  auto smaller_rect = Rect::from(
-      rect.upper_left(), rect.delta() - Delta{ 1_w, 1_h } );
+  Delta info = sprite_size( tile );
+  auto  mod  = rect.delta() % info;
+  if( mod.w == 0 && rect.delta().w != 0 ) mod.w = 1 * info.w;
+  if( mod.h == 0 && rect.delta().h != 0 ) mod.h = 1 * info.h;
+  auto smaller_rect =
+      Rect::from( rect.upper_left(),
+                  rect.delta() - Delta{ .w = 1, .h = 1 } );
   for( auto coord :
-       Rect::from( Coord{}, smaller_rect.delta() / info_scale ) )
-    render_sprite(
-        painter, tile,
-        rect.upper_left() +
-            coord.distance_from_origin() * info_scale );
-  for( H h = 0_h; h < smaller_rect.h / info_scale.sy; ++h ) {
-    auto where = rect.upper_right() - mod.w + h * info_scale.sy;
+       Rect::from( Coord{}, smaller_rect.delta() / info ) )
+    render_sprite( painter, tile,
+                   rect.upper_left() +
+                       coord.distance_from_origin() * info );
+  for( H h = 0; h < smaller_rect.h / info.h; ++h ) {
+    auto where = rect.upper_right() - Delta{ .w = mod.w } +
+                 Delta{ .h = h } * info.h;
     render_sprite_section(
         painter, tile, where,
-        Rect::from( Coord{},
-                    mod.with_height( 1_h * info_scale.sy ) ) );
+        Rect::from( Coord{}, mod.with_height( 1 * info.h ) ) );
   }
-  for( W w = 0_w; w < smaller_rect.w / info_scale.sx; ++w ) {
-    auto where = rect.lower_left() - mod.h + w * info_scale.sx;
+  for( W w = 0; w < smaller_rect.w / info.w; ++w ) {
+    auto where = rect.lower_left() - Delta{ .h = mod.h } +
+                 Delta{ .w = w } * info.w;
     render_sprite_section(
         painter, tile, where,
-        Rect::from( Coord{},
-                    mod.with_width( 1_w * info_scale.sx ) ) );
+        Rect::from( Coord{}, mod.with_width( 1 * info.w ) ) );
   }
   auto where = rect.lower_right() - mod;
   render_sprite_section( painter, tile, where,
@@ -164,13 +161,13 @@ void render_rect_of_sprites_with_border(
     e_tile       bottom_right //
 ) {
   Delta sprite_middle = sprite_size( middle );
-  CHECK( sprite_middle.w._ == sprite_middle.h._ );
+  CHECK( sprite_middle.w == sprite_middle.h );
   for( auto tile : { middle, top, bottom, left, right, top_left,
                      top_right, bottom_left, bottom_right } ) {
     CHECK( sprite_size( tile ) == sprite_middle );
   }
 
-  auto scale = sprite_middle.to_scale();
+  auto scale = sprite_middle;
 
   auto to_pixels = [&]( Coord coord ) {
     coord = scale * coord;
@@ -183,39 +180,44 @@ void render_rect_of_sprites_with_border(
   for( auto coord : dst_tile_rect.edges_removed() )
     render_sprite( painter, middle, to_pixels( coord ) );
 
-  for( X x = dst_tile_rect.x + 1_w;
-       x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite( painter, top, to_pixels( { 0_y, x } ) );
-  for( X x = dst_tile_rect.x + 1_w;
-       x < dst_tile_rect.right_edge() - 1_w; ++x )
+  for( X x = dst_tile_rect.x + 1;
+       x < dst_tile_rect.right_edge() - 1; ++x )
+    render_sprite( painter, top,
+                   to_pixels( { .x = x, .y = 0 } ) );
+  for( X x = dst_tile_rect.x + 1;
+       x < dst_tile_rect.right_edge() - 1; ++x )
     render_sprite(
         painter, bottom,
-        to_pixels( { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-                     x } ) );
-  for( Y y = dst_tile_rect.y + 1_h;
-       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite( painter, left, to_pixels( { y, 0_x } ) );
-  for( Y y = dst_tile_rect.y + 1_h;
-       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
+        to_pixels(
+            { .x = x,
+              .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
+  for( Y y = dst_tile_rect.y + 1;
+       y < dst_tile_rect.bottom_edge() - 1; ++y )
+    render_sprite( painter, left,
+                   to_pixels( { .x = 0, .y = y } ) );
+  for( Y y = dst_tile_rect.y + 1;
+       y < dst_tile_rect.bottom_edge() - 1; ++y )
     render_sprite(
         painter, right,
-        to_pixels( { y, 0_x + ( dst_tile_rect.right_edge() -
-                                1_w ) } ) );
+        to_pixels( { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
+                     .y = y } ) );
 
-  render_sprite( painter, top_left, to_pixels( { 0_y, 0_x } ) );
+  render_sprite( painter, top_left,
+                 to_pixels( { .x = 0, .y = 0 } ) );
   render_sprite(
       painter, top_right,
-      to_pixels( { 0_y, 0_x + ( dst_tile_rect.right_edge() -
-                                1_w ) } ) );
+      to_pixels( { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
+                   .y = 0 } ) );
   render_sprite(
       painter, bottom_left,
-      to_pixels( { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-                   0_x } ) );
+      to_pixels(
+          { .x = 0,
+            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
   render_sprite(
       painter, bottom_right,
       to_pixels(
-          { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-            0_x + ( dst_tile_rect.right_edge() - 1_w ) } ) );
+          { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
+            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
 }
 
 } // namespace rn

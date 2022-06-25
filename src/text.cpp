@@ -14,6 +14,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "logger.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/range-lite.hpp"

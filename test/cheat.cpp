@@ -51,10 +51,10 @@ struct World : testing::World {
       _, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3_w );
+    build_map( std::move( tiles ), 3 );
   }
 
-  inline static Coord const kLand = Coord( 1_x, 1_y );
+  inline static Coord const kLand = Coord{ .x = 1, .y = 1 };
 };
 
 /****************************************************************
@@ -77,7 +77,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     Unit& unit = W.units().unit_for( id );
     expected   = UnitComposition( wrapped::UnitComposition{
@@ -325,7 +325,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          unit_id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     Unit& unit = W.units().unit_for( unit_id );
     expected   = UnitComposition( wrapped::UnitComposition{

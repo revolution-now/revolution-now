@@ -12,18 +12,20 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "colony-mgr.rds.hpp"
+
 // Revolution Now
-#include "colony-id.hpp"
-#include "colony.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 #include "map-updater.hpp"
-#include "nation.hpp"
-#include "unit-id.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "colony-mgr.rds.hpp"
+// gs
+#include "gs/colony-id.hpp"
+#include "gs/colony.hpp"
+#include "gs/nation.rds.hpp"
+#include "gs/unit-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

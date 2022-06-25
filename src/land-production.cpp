@@ -14,10 +14,12 @@
 #include "map-square.hpp"
 
 // gs
+#include "gs/terrain.hpp"
 #include "gs/unit-type.hpp"
 
 // config
 #include "config/production.rds.hpp"
+#include "config/unit-type.hpp"
 
 using namespace std;
 

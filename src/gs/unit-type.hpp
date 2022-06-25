@@ -34,9 +34,6 @@ namespace rn {
 /****************************************************************
 ** Unit Inventory
 *****************************************************************/
-maybe<e_unit_type_modifier> inventory_to_modifier(
-    e_unit_inventory inv );
-
 maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm );
 

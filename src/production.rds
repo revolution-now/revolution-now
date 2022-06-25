@@ -8,12 +8,15 @@
 # Description: Rds definitions for the production module.
 #
 # ===============================================================
+# gs
+include "gs/colony.rds.hpp"
+include "gs/commodity.rds.hpp"
+
+# gfx
+include "gfx/coord.rds.hpp"
+
 # refl
 include "refl/enum-map.hpp"
-
-# Rds
-include "commodity.rds.hpp"
-include "colony.rds.hpp"
 
 namespace "rn"
 

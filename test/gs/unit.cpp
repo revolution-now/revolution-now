@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/unit.hpp"
+#include "src/gs/unit.hpp"
 
 // Revolution Now
 #include "src/ustate.hpp"

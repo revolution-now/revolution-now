@@ -51,7 +51,7 @@ struct World : testing::World {
       _, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3_w );
+    build_map( std::move( tiles ), 3 );
   }
 };
 
@@ -114,7 +114,7 @@ TEST_CASE( "[production] production_for_slot" ) {
 TEST_CASE( "[production] crosses" ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   Player& player = W.dutch();
 
   auto crosses = [&] {
@@ -127,26 +127,26 @@ TEST_CASE( "[production] crosses" ) {
   REQUIRE( crosses() == 1 );
 
   // With church.
-  colony.add_building( e_colony_building::church );
+  colony.buildings[e_colony_building::church] = true;
   REQUIRE( crosses() == 2 );
 
   // With free colonist working in church.
-  W.add_unit_indoors( colony.id(), e_indoor_job::crosses );
+  W.add_unit_indoors( colony.id, e_indoor_job::crosses );
   REQUIRE( crosses() == 2 + 3 );
 
   // With free colonist and firebrand preacher working in church.
-  W.add_unit_indoors( colony.id(), e_indoor_job::crosses,
+  W.add_unit_indoors( colony.id, e_indoor_job::crosses,
                       e_unit_type::firebrand_preacher );
   REQUIRE( crosses() == 2 + 3 + 6 );
 
   // With free colonist and firebrand preacher working in cathe-
   // dral.
-  colony.add_building( e_colony_building::cathedral );
+  colony.buildings[e_colony_building::cathedral] = true;
   REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
 
   // Taking away the church should have no effect because the
   // cathedral should override it.
-  colony.rm_building( e_colony_building::church );
+  colony.buildings[e_colony_building::church] = false;
   REQUIRE( crosses() == 3 + ( 3 + 6 ) * 2 );
 
   // With free colonist and firebrand preacher working in cathe-
@@ -164,7 +164,7 @@ TEST_CASE( "[production] crosses" ) {
 TEST_CASE( "[production] lumber/hammers" ) {
   World W;
   W.create_default_map();
-  Colony&    colony = W.add_colony( Coord( 1_x, 1_y ) );
+  Colony&    colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   gfx::point P{ .x = 0, .y = 1 };
 
   auto lum = [&] {
@@ -177,7 +177,7 @@ TEST_CASE( "[production] lumber/hammers" ) {
   // Need to add hammers.
 
   SECTION( "petty_criminal" ) {
-    W.add_unit_outdoors( colony.id(), e_direction::w,
+    W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::lumber,
                          e_unit_type::petty_criminal );
     SECTION( "grassland" ) {
@@ -246,7 +246,7 @@ TEST_CASE( "[production] lumber/hammers" ) {
   }
 
   SECTION( "free_colonist" ) {
-    W.add_unit_outdoors( colony.id(), e_direction::w,
+    W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::lumber,
                          e_unit_type::free_colonist );
     SECTION( "grassland" ) {
@@ -315,7 +315,7 @@ TEST_CASE( "[production] lumber/hammers" ) {
   }
 
   SECTION( "expert_lumberjack" ) {
-    W.add_unit_outdoors( colony.id(), e_direction::w,
+    W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::lumber,
                          e_unit_type::expert_lumberjack );
     SECTION( "grassland" ) {

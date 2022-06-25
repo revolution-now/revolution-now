@@ -67,6 +67,7 @@
 #endif
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/state.hpp"
 
@@ -132,17 +133,18 @@ void render_backdrop( rr::Renderer& renderer ) {
       compositor::section( compositor::e_section::viewport ) );
   auto const [shortest_side, longest_side] = [&] {
     Delta const delta         = viewport_rect_pixels.delta();
-    int         shortest_side = std::min( delta.w._, delta.h._ );
-    int         longest_side  = std::max( delta.w._, delta.h._ );
+    int         shortest_side = std::min( delta.w, delta.h );
+    int         longest_side  = std::max( delta.w, delta.h );
     return pair{ shortest_side, longest_side };
   }();
   int const num_squares_needed =
       longest_side / shortest_side + 1;
   Delta const tile_size =
-      Delta( W{ shortest_side }, H{ shortest_side } );
+      Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
   Rect const tiled_rect =
       Rect::from( Coord{},
-                  tile_size * Scale{ num_squares_needed } )
+                  tile_size * Delta{ .w = num_squares_needed,
+                                     .h = num_squares_needed } )
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels.center() -
                       viewport_rect_pixels.upper_left();
@@ -636,7 +638,7 @@ struct LandViewPlane::Impl : public Plane {
   // rendered.
   Rect render_rect_for_tile( Rect covered, Coord tile ) const {
     Delta delta_in_tiles  = tile - covered.upper_left();
-    Delta delta_in_pixels = delta_in_tiles * g_tile_scale;
+    Delta delta_in_pixels = delta_in_tiles * g_tile_delta;
     return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
   }
 
@@ -721,7 +723,7 @@ struct LandViewPlane::Impl : public Plane {
     Delta tile_delta = slide.target - mover_coord;
     CHECK( -1 <= tile_delta.w && tile_delta.w <= 1 );
     CHECK( -1 <= tile_delta.h && tile_delta.h <= 1 );
-    tile_delta *= g_tile_scale;
+    tile_delta = tile_delta * g_tile_delta;
     Delta pixel_delta =
         tile_delta.multiply_and_round( slide.percent );
     Coord pixel_coord =
@@ -791,7 +793,7 @@ struct LandViewPlane::Impl : public Plane {
       Coord tile_coord =
           render_rect_for_tile( covered, tile ).upper_left();
       Coord colony_sprite_upper_left =
-          tile_coord - Delta{ 6_w, 6_h };
+          tile_coord - Delta{ .w = 6, .h = 6 };
       render_colony( painter, colony_sprite_upper_left,
                      *col_id );
       Coord name_coord =
@@ -802,7 +804,7 @@ struct LandViewPlane::Impl : public Plane {
           TextMarkupInfo{
               .shadowed_text_color   = gfx::pixel::white(),
               .shadowed_shadow_color = gfx::pixel::black() },
-          fmt::format( "@[S]{}@[]", colony.name() ) );
+          fmt::format( "@[S]{}@[]", colony.name ) );
     }
   }
 
@@ -894,8 +896,9 @@ struct LandViewPlane::Impl : public Plane {
         int shadow_offset = lround( 20 * viewport().get_zoom() );
         rr::Painter painter = renderer.painter();
         painter.draw_solid_rect(
-            viewport().rendering_dest_rect().shifted_by( Delta(
-                W{ shadow_offset }, H{ shadow_offset } ) ),
+            viewport().rendering_dest_rect().shifted_by(
+                Delta{ .w = W{ shadow_offset },
+                       .h = H{ shadow_offset } } ),
             gfx::pixel::black().with_alpha( 100 ) );
       }
 
@@ -924,10 +927,10 @@ struct LandViewPlane::Impl : public Plane {
     double     zoom    = viewport().get_zoom();
     Coord corner = viewport().rendering_dest_rect().upper_left();
     Delta hidden =
-        viewport().covered_pixels().upper_left() % g_tile_scale;
+        viewport().covered_pixels().upper_left() % g_tile_delta;
     if( hidden != Delta{} ) {
-      DCHECK( hidden.w >= 0_w );
-      DCHECK( hidden.h >= 0_h );
+      DCHECK( hidden.w >= 0 );
+      DCHECK( hidden.h >= 0 );
       // Move the rendering start slightly off screen (in the
       // upper-left direction) by an amount that is within the
       // span of one tile to partially show that tile row/column.
@@ -1422,7 +1425,7 @@ struct LandViewPlane::Impl : public Plane {
         direction,
         coord_for_unit( attacker_id )
             ->direction_to(
-                colony_from_id( colony_id ).location() ) );
+                colony_from_id( colony_id ).location ) );
     co_await landview_animate_move( terrain_state, settings,
                                     attacker_id, direction );
   }

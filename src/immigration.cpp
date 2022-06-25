@@ -20,7 +20,7 @@
 #include "rand-enum.hpp"
 
 // config
-#include "config/unit-type.rds.hpp"
+#include "config/unit-type.hpp"
 
 // game-state
 #include "gs/settings.hpp"
@@ -35,6 +35,8 @@
 #include "old-world-state.rds.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

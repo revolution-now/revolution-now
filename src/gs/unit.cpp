@@ -19,6 +19,7 @@
 #include "ustate.hpp"
 
 // config
+#include "config/nation.hpp"
 #include "config/unit-type.hpp"
 
 // luapp
@@ -260,8 +261,8 @@ LUA_STARTUP( lua::state& st ) {
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
     return fmt::format( "{} {} (id={})",
-                        u.nation_desc().adjective, u.desc().name,
-                        u.id() );
+                        nation_obj( u.nation() ).adjective,
+                        u.desc().name, u.id() );
   };
 };
 

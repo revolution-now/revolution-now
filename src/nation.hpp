@@ -32,8 +32,6 @@ namespace rn {
 struct UnitsState;
 struct ColoniesState;
 
-Nationality const& nation_obj( e_nation nation );
-
 maybe<e_nation> nation_from_coord(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state, Coord coord );

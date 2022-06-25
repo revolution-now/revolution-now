@@ -16,10 +16,12 @@
 #include "terrain.hpp"
 
 // config
-#include "config/terrain.rds.hpp"
+#include "config/terrain.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 

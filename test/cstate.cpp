@@ -38,9 +38,9 @@ TEST_CASE( "[cstate] lua create colony" ) {
   lua::state& st = lua_global_state();
   testing::default_construct_all_game_state();
   ColoniesState& colonies_state = GameState::colonies();
-  auto           xp =
-      create_empty_colony( colonies_state, e_nation::english,
-                           Coord{ 1_x, 2_y }, "my colony" );
+  auto           xp             = create_empty_colony(
+                            colonies_state, e_nation::english, Coord{ .x = 1, .y = 2 },
+                            "my colony" );
   REQUIRE( xp == ColonyId{ 1 } );
   auto script = R"(
     local colony = cstate.colony_from_id( 1 )

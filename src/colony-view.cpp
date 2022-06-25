@@ -659,7 +659,7 @@ wait<> show_colony_view( Planes& planes, Colony& colony,
   PlaneGroup& group  = planes.back();
   group.push( colony_plane );
   group.push( window_plane );
-  lg.info( "viewing colony {}.", colony.debug_string() );
+  lg.info( "viewing colony '{}'.", colony.name );
   co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
 }

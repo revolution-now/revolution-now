@@ -41,6 +41,10 @@ bool valid_ship( e_unit_type u ) {
 
 } // namespace
 
+Nationality const& nation_obj( e_nation nation ) {
+  return config_nation.nations[nation];
+}
+
 base::valid_or<string> SpecialAbility::validate() const {
   // NOTE: unfortunately we cannot validate the properties of the
   // unit type fields because that would require config data from

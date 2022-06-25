@@ -8,13 +8,15 @@
 * Description: Unit tests for cargo module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Revolution Now
-#include "src/cargo.hpp"
 #include "src/game-state.hpp"
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
+
+// gs
+#include "src/gs/cargo.hpp"
 
 // refl
 #include "refl/cdr.hpp"
@@ -28,7 +30,7 @@
 #include "absl/strings/str_replace.h"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
 #define REQUIRE_BROKEN_INVARIANTS \
   REQUIRE( !ch.validate( GameState::units() ) )

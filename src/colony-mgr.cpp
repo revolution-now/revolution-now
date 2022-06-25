@@ -16,6 +16,7 @@
 #include "colony-evolve.hpp"
 #include "colony-view.hpp"
 #include "colony.hpp"
+#include "commodity.hpp"
 #include "construction.hpp"
 #include "enum.hpp"
 #include "game-state.hpp"
@@ -37,7 +38,8 @@
 
 // config
 #include "config/colony.rds.hpp"
-#include "config/unit-type.rds.hpp"
+#include "config/nation.hpp"
+#include "config/unit-type.hpp"
 
 // luapp
 #include "luapp/ext-base.hpp"
@@ -252,7 +254,7 @@ ColonyJob_t find_job_for_initial_colonist(
 void create_initial_buildings( Colony& colony ) {
   for( e_colony_building building :
        config_colony.initial_colony_buildings )
-    colony.add_building( building );
+    colony.buildings[building] = true;
 }
 
 } // namespace
@@ -263,11 +265,11 @@ void create_initial_buildings( Colony& colony ) {
 ColonyId create_empty_colony( ColoniesState& colonies_state,
                               e_nation nation, Coord where,
                               string_view name ) {
-  return colonies_state.add_colony( Colony( wrapped::Colony{
+  return colonies_state.add_colony( Colony{
       .nation   = nation,
       .name     = string( name ),
       .location = where,
-  } ) );
+  } );
 }
 
 int colony_population( Colony const& colony ) {
@@ -293,7 +295,7 @@ vector<UnitId> colony_units_all( Colony const& colony ) {
 }
 
 bool colony_has_unit( Colony const& colony, UnitId id ) {
-  vector<UnitId> units = colony_units_all();
+  vector<UnitId> units = colony_units_all( colony );
   return find( units.begin(), units.end(), id ) != units.end();
 }
 
@@ -409,7 +411,7 @@ void change_colony_nation( Colony&     colony,
   for( UnitId unit_id : units )
     units_state.unit_for( unit_id ).change_nation( new_nation );
   CHECK( colony.nation != new_nation );
-  colony.set_nation( new_nation );
+  colony.nation = new_nation;
 }
 
 void strip_unit_commodities( Unit& unit, Colony& colony ) {
@@ -427,25 +429,26 @@ void move_unit_to_colony( UnitsState& units_state,
                           Colony& colony, UnitId unit_id,
                           ColonyJob_t const& job ) {
   Unit& unit = units_state.unit_for( unit_id );
-  CHECK( unit.nation() == colony.nation() );
+  CHECK( unit.nation() == colony.nation );
   strip_unit_commodities( unit, colony );
   units_state.change_to_colony( unit_id, colony.id );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
-  CHECK( !colony_has_unit( id ), "Unit {} already in colony.",
-         id );
+  CHECK( !colony_has_unit( colony, unit_id ),
+         "Unit {} already in colony.", unit_id );
   switch( job.to_enum() ) {
     case ColonyJob::e::indoor: {
       auto const& o = job.get<ColonyJob::indoor>();
-      colony.indoor_jobs[o.job].push_back( id );
+      colony.indoor_jobs[o.job].push_back( unit_id );
       break;
     }
     case ColonyJob::e::outdoor: {
       auto const&         o = job.get<ColonyJob::outdoor>();
       maybe<OutdoorUnit>& outdoor_unit =
-          colony..outdoor_jobs[o.direction];
+          colony.outdoor_jobs[o.direction];
       CHECK( !outdoor_unit.has_value() );
-      outdoor_unit = OutdoorUnit{ .unit_id = id, .job = o.job };
+      outdoor_unit =
+          OutdoorUnit{ .unit_id = unit_id, .job = o.job };
       break;
     }
   }
@@ -460,26 +463,28 @@ void remove_unit_from_colony( UnitsState& units_state,
   SCOPE_EXIT( CHECK( colony.validate() ) );
 
   for( auto& [job, units] : colony.indoor_jobs ) {
-    if( find( units.begin(), units.end(), id ) != units.end() ) {
-      units.erase( find( units.begin(), units.end(), id ) );
+    if( find( units.begin(), units.end(), unit_id ) !=
+        units.end() ) {
+      units.erase( find( units.begin(), units.end(), unit_id ) );
       return;
     }
   }
 
   for( auto& [direction, outdoor_unit] : colony.outdoor_jobs ) {
     if( outdoor_unit.has_value() &&
-        outdoor_unit->unit_id == id ) {
+        outdoor_unit->unit_id == unit_id ) {
       outdoor_unit = nothing;
       return;
     }
   }
 
-  FATAL( "unit {} not found in colony '{}'.", colony.name );
+  FATAL( "unit {} not found in colony '{}'.", unit_id,
+         colony.name );
 }
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job ) {
-  auto& outdoor_jobs = colony.outdoor_jobs();
+  auto& outdoor_jobs = colony.outdoor_jobs;
   for( e_direction d : refl::enum_values<e_direction> )
     if( outdoor_jobs[d].has_value() )
       if( outdoor_jobs[d]->unit_id == id )
@@ -510,7 +515,7 @@ wait<> evolve_colonies_for_player(
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
     co_await land_view_plane.landview_ensure_visible(
-        colony.location() );
+        colony.location );
     bool zoom_to_colony = co_await present_colony_updates(
         gui, colony, ev.notifications );
     if( zoom_to_colony )

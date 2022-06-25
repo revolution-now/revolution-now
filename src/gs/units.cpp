@@ -375,8 +375,7 @@ bool UnitsState::exists( UnitId id ) const {
   // Note that we don't consult the deleted units cache here
   // since that is only transient state. It is more robust to
   // check the next_unit_id.
-  CHECK( id._ < o_.next_unit_id, "unit id {} never existed.",
-         id );
+  CHECK( id < o_.next_unit_id, "unit id {} never existed.", id );
   return o_.units.contains( id );
 }
 

@@ -25,6 +25,9 @@ UnitTypeAttributes const& unit_attr( e_unit_type type );
 
 UnitTypeAttributes const& unit_attr( UnitType type );
 
+base::maybe<e_unit_type_modifier> inventory_to_modifier(
+    e_unit_inventory inv );
+
 } // namespace rn
 
 namespace lua {

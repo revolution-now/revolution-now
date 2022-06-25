@@ -62,24 +62,24 @@ struct MainMenuPlane::Impl : public Plane {
         normal_area,
         compositor::section( compositor::e_section::normal ) );
     tile_sprite( painter, e_tile::wood_middle, normal_area );
-    H    h         = normal_area.h / 2_sy;
+    H    h         = normal_area.h / 2;
     auto num_items = refl::enum_count<e_main_menu_item>;
     h -= H{ rr::rendered_text_line_size_pixels( "X" ).h } *
-         SY{ int( num_items ) } / 2_sy;
+         SY{ int( num_items ) } / 2;
     for( auto e : refl::enum_values<e_main_menu_item> ) {
       gfx::pixel c = gfx::pixel::banana().shaded( 3 );
       Delta      text_size =
           Delta::from_gfx( rr::rendered_text_line_size_pixels(
               enum_to_display_name( e ) ) );
-      auto w   = normal_area.w / 2_sx - text_size.w / 2_sx;
+      auto w   = normal_area.w / 2 - text_size.w / 2;
       auto dst = Rect::from( Coord{}, text_size )
                      .shifted_by( Delta{ w, h } );
       dst = dst.as_if_origin_were( normal_area.upper_left() );
       rr::Typer typer = renderer.typer( dst.upper_left(), c );
       typer.write( enum_to_display_name( e ) );
       dst = dst.with_border_added( 2 );
-      dst.x -= 3_w;
-      dst.w += 6_w;
+      dst.x -= 3;
+      dst.w += 6;
       if( e == curr_item_ )
         painter.draw_empty_rect(
             dst, rr::Painter::e_border_mode::outside,

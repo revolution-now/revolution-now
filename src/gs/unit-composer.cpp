@@ -16,10 +16,12 @@
 #include "lua.hpp"
 
 // Config
-#include "config/units.rds.hpp"
+#include "config/unit-type.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -421,8 +423,9 @@ std::vector<UnitTransformationFromCommodityResult>
 unit_lose_commodity( UnitComposition const& comp,
                      Commodity const&       commodity ) {
   CHECK_GT( commodity.quantity, 0 );
-  return unit_delta_commodity(
-      comp, with_quantity( commodity, -commodity.quantity ) );
+  Commodity new_comm{ .type     = commodity.type,
+                      .quantity = -commodity.quantity };
+  return unit_delta_commodity( comp, new_comm );
 }
 
 namespace {

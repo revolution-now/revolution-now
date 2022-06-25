@@ -28,6 +28,7 @@
 #include "luapp/as.hpp"
 #include "luapp/error.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
 #include "luapp/rstring.hpp"
 #include "luapp/state.hpp"
 
@@ -42,13 +43,13 @@ using namespace rn;
 using Catch::Contains;
 using Catch::Equals;
 
-Coord const kSquare( 0_x, 0_y );
+Coord const kSquare{};
 
 // This will preprare a 1x1 map with a grassland tile.
 void prepare_world( TerrainState& terrain_state ) {
   NonRenderingMapUpdater map_updater( terrain_state );
   map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
     m[kSquare] = map_square_for_terrain( e_terrain::grassland );
   } );
 }
@@ -234,8 +235,8 @@ TEST_CASE( "[lua] throwing" ) {
 
 LUA_FN( coord_test, Coord, Coord const& coord ) {
   auto new_coord = coord;
-  new_coord.x += 1_w;
-  new_coord.y += 1_h;
+  new_coord.x += 1;
+  new_coord.y += 1;
   return new_coord;
 }
 
@@ -259,7 +260,7 @@ TEST_CASE( "[lua] Coord" ) {
     return coord
   )";
   REQUIRE( st.script.run_safe<Coord>( script ) ==
-           Coord{ 4_x, 5_y } );
+           Coord{ .x = 4, .y = 5 } );
 }
 
 LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
@@ -272,8 +273,8 @@ LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
 
 LUA_FN( opt_test2, maybe<Coord>,
         maybe<Coord> const& maybe_coord ) {
-  if( !maybe_coord ) return Coord{ 5_x, 7_y };
-  return Coord{ maybe_coord->x + 1_w, maybe_coord->y + 1_y };
+  if( !maybe_coord ) return Coord{ .x = 5, .y = 7 };
+  return Coord{ maybe_coord->x + 1, maybe_coord->y + 1 };
 }
 
 TEST_CASE( "[lua] optional" ) {
@@ -307,7 +308,8 @@ TEST_CASE( "[lua] optional" ) {
   REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
            nothing );
   REQUIRE( st.script.run_safe<maybe<Coord>>(
-               "return Coord{x=9, y=8}" ) == Coord{ 9_x, 8_y } );
+               "return Coord{x=9, y=8}" ) ==
+           Coord{ .x = 9, .y = 8 } );
   REQUIRE( st.script.run_safe<maybe<Coord>>(
                "return 'hello'" ) == nothing );
   REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==

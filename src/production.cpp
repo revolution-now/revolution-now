@@ -147,7 +147,7 @@ int crosses_production_for_colony( UnitsState const& units_state,
   if( !maybe_building.has_value() ) {
     // If we have no relevant buildings then we're left with the
     // base value. Sanity check and leave.
-    CHECK( colony.indoor_jobs()[e_indoor_job::crosses].size() ==
+    CHECK( colony.indoor_jobs[e_indoor_job::crosses].size() ==
            0 );
     return base_quantity;
   }
@@ -160,7 +160,7 @@ int crosses_production_for_colony( UnitsState const& units_state,
 
   // Now let's get the quantity added by the units.
   vector<UnitId> const& unit_ids =
-      colony.indoor_jobs()[e_indoor_job::crosses];
+      colony.indoor_jobs[e_indoor_job::crosses];
   int units_quantity = 0;
   for( UnitId id : unit_ids )
     units_quantity += production_for_indoor_job(
@@ -211,13 +211,12 @@ void compute_raw_and_product_impl(
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
-    if( maybe<OutdoorUnit> const& unit =
-            colony.outdoor_jobs()[d];
+    if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == outdoor_job ) {
       int const quantity = production_on_square(
           outdoor_job, terrain_state,
           units_state.unit_for( unit->unit_id ).type(),
-          colony.location().moved( d ) );
+          colony.location.moved( d ) );
       out.raw_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = outdoor_job, .quantity = quantity };
@@ -228,7 +227,7 @@ void compute_raw_and_product_impl(
 
   int const product_produced_no_bonus = [&] {
     int res = 0;
-    for( UnitId unit_id : colony.indoor_jobs()[indoor_job] )
+    for( UnitId unit_id : colony.indoor_jobs[indoor_job] )
       res += production_for_indoor_job(
           indoor_job, units_state.unit_for( unit_id ).type() );
     return res;
@@ -255,7 +254,7 @@ void compute_raw_and_product_impl(
   // enough total supply of the raw material. This is nontrivial
   // because of factory-level buildings.
   int const available_raw_input =
-      out.raw_produced + colony.commodities()[raw_commodity];
+      out.raw_produced + colony.commodities[raw_commodity];
   out.raw_consumed_actual = std::min(
       out.raw_consumed_theoretical, available_raw_input );
   out.product_produced_actual = raw_to_produced_for_bonus_type(
@@ -265,7 +264,7 @@ void compute_raw_and_product_impl(
       colony_warehouse_capacity( colony );
 
   int const current_raw_quantity =
-      colony.commodities()[raw_commodity];
+      colony.commodities[raw_commodity];
   int const proposed_raw_quantity = current_raw_quantity +
                                     out.raw_produced -
                                     out.raw_consumed_actual;
@@ -294,7 +293,7 @@ void compute_raw_and_product_generic(
   int const warehouse_capacity =
       colony_warehouse_capacity( colony );
   int const current_product_quantity =
-      colony.commodities()[product_commodity];
+      colony.commodities[product_commodity];
   int const proposed_product_quantity =
       current_product_quantity + out.product_produced_actual;
   out.product_delta_final =
@@ -327,14 +326,13 @@ void compute_silver_production(
     TerrainState const& terrain_state,
     UnitsState const&   units_state ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
-    if( maybe<OutdoorUnit> const& unit =
-            colony.outdoor_jobs()[d];
+    if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() &&
         unit->job == e_outdoor_job::silver ) {
       int const quantity = production_on_square(
           e_outdoor_job::silver, terrain_state,
           units_state.unit_for( unit->unit_id ).type(),
-          colony.location().moved( d ) );
+          colony.location.moved( d ) );
       pr.silver += quantity;
       pr.land_production[d] = SquareProduction{
           .what = e_outdoor_job::silver, .quantity = quantity };
@@ -347,7 +345,7 @@ void compute_silver_production(
       colony_warehouse_capacity( colony );
 
   int const current_raw_quantity =
-      colony.commodities()[e_commodity::silver];
+      colony.commodities[e_commodity::silver];
   int const proposed_raw_quantity =
       current_raw_quantity + pr.silver;
   pr.silver =

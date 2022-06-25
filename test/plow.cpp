@@ -35,7 +35,7 @@ namespace {
 
 using namespace std;
 
-Coord const kSquare( 0_x, 0_y );
+Coord const kSquare{};
 
 // This will prepare a world with a 1x1 map of the given terrain
 // type with one unit on it of the given type.
@@ -44,13 +44,13 @@ void prepare_world( TerrainState& terrain_state,
                     e_unit_type unit_type ) {
   NonRenderingMapUpdater map_updater( terrain_state );
   map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
     m[kSquare] = map_square_for_terrain( terrain );
   } );
   UnitComposition comp = UnitComposition::create( unit_type );
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
-  CHECK( id == 1_id );
+  CHECK( id == 1 );
   unit_to_map_square_non_interactive( units_state, map_updater,
                                       id, kSquare );
 }
@@ -62,7 +62,7 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   prepare_world( terrain_state, units_state, e_terrain::conifer,
                  e_unit_type::pioneer );
 
-  UnitId           id       = 1_id;
+  UnitId           id       = 1;
   Unit&            unit     = units_state.unit_for( id );
   Coord            location = units_state.coord_for( id );
   MapSquare const& square   = terrain_state.square_at( kSquare );
@@ -198,7 +198,7 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   prepare_world( terrain_state, units_state,
                  e_terrain::grassland, e_unit_type::pioneer );
 
-  UnitId           id       = 1_id;
+  UnitId           id       = 1;
   Unit&            unit     = units_state.unit_for( id );
   Coord            location = units_state.coord_for( id );
   MapSquare const& square   = terrain_state.square_at( kSquare );

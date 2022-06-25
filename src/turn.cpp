@@ -792,7 +792,7 @@ wait<> units_turn( Planes& planes, MenuPlane& menu_plane,
     CHECK( q.empty() );
     // Refill the queue.
     auto units = units_all( units_state, st.nation );
-    util::sort_by_key( units, []( auto id ) { return id._; } );
+    util::sort_by_key( units, []( auto id ) { return id; } );
     erase_if( units, should_remove_unit_from_queue );
     if( units.empty() ) co_return;
     for( UnitId id : units ) q.push_back( id );

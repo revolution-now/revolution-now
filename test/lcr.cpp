@@ -40,7 +40,7 @@ using namespace ::mock::matchers;
 TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
   TerrainState terrain_state;
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
 
   REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
@@ -81,7 +81,7 @@ TEST_CASE( "[test/lcr] nothing but rumors" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -141,7 +141,7 @@ TEST_CASE( "[test/lcr] small village, chief gift" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -206,7 +206,7 @@ TEST_CASE( "[test/lcr] small village, ruins of lost colony" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -272,7 +272,7 @@ TEST_CASE( "[test/lcr] fountain of youth" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -344,7 +344,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -384,7 +384,7 @@ TEST_CASE( "[test/lcr] free colonist" ) {
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
-      2_id );
+      2 );
   REQUIRE( player.money == 0 );
   REQUIRE( units_state.exists( unit_id ) );
   REQUIRE( units_state.all().size() == 2 );
@@ -408,7 +408,7 @@ TEST_CASE( "[test/lcr] unit lost" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -473,7 +473,7 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -514,8 +514,8 @@ TEST_CASE( "[test/lcr] burial mounds / treasure" ) {
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
-      2_id );
-  Unit const& unit = units_state.unit_for( 2_id );
+      2 );
+  Unit const& unit = units_state.unit_for( 2 );
   REQUIRE( unit.type() == e_unit_type::large_treasure );
   unordered_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
@@ -556,7 +556,7 @@ TEST_CASE( "[test/lcr] burial mounds / cold and empty" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -622,7 +622,7 @@ TEST_CASE( "[test/lcr] burial mounds / trinkets" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -693,7 +693,7 @@ TEST_CASE( "[test/lcr] burial mounds / no explore" ) {
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
@@ -757,7 +757,7 @@ TEST_CASE(
 
   // Create map.
   terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
   MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;

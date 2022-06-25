@@ -224,7 +224,7 @@ void CargoHold::compactify( UnitsState const& units_state ) {
   auto comms       = rl::all( comms_pairs ).keys().to_vector();
   // First sort by ID, then do a stable sort on slot occupancy to
   // get "deterministic" results.
-  util::sort_by_key( unit_ids, []( auto id ) { return id._; } );
+  util::sort_by_key( unit_ids, []( auto id ) { return id; } );
   // Negative to do reverse sort.
   util::stable_sort_by_key(
       unit_ids, LC( -units_state.unit_for( _ )
@@ -340,18 +340,12 @@ bool CargoHold::fits( UnitsState const& units_state,
       } );
 }
 
-ND bool CargoHold::fits( UnitsState const& units_state,
-                         Cargo_t const&    cargo,
-                         CargoSlotIndex    slot ) const {
-  return fits( units_state, cargo, slot._ );
-}
-
 ND bool CargoHold::fits_with_item_removed(
     UnitsState const& units_state, Cargo_t const& cargo,
     CargoSlotIndex remove_slot,
     CargoSlotIndex insert_slot ) const {
   CargoHold new_hold = *this;
-  new_hold.remove( remove_slot._ );
+  new_hold.remove( remove_slot );
   return new_hold.fits( units_state, cargo, insert_slot );
 }
 

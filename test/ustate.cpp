@@ -44,10 +44,10 @@ struct World : testing::World {
       _, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3_w );
+    build_map( std::move( tiles ), 3 );
   }
 
-  inline static Coord const kLand = Coord( 1_x, 1_y );
+  inline static Coord const kLand = Coord{ .x = 1, .y = 1 };
 };
 
 /****************************************************************
@@ -66,7 +66,7 @@ TEST_CASE( "[ustate] try_promote_unit_for_current_activity" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     Unit& unit = W.units().unit_for( id );
     expected   = UnitComposition( wrapped::UnitComposition{
@@ -83,7 +83,7 @@ TEST_CASE( "[ustate] try_promote_unit_for_current_activity" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     Unit& unit = W.units().unit_for( id );
     expected   = UnitComposition( wrapped::UnitComposition{
@@ -128,7 +128,7 @@ TEST_CASE( "[ustate] try_promote_unit_for_current_activity" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id     = W.add_unit_outdoors(
-                     colony.id(), e_direction::w, e_outdoor_job::food,
+                     colony.id, e_direction::w, e_outdoor_job::food,
                      e_unit_type::petty_criminal );
     Unit& unit = W.units().unit_for( id );
     expected   = UnitComposition( wrapped::UnitComposition{
@@ -346,7 +346,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     REQUIRE( f( id ) == e_unit_activity::carpentry );
   }
@@ -355,7 +355,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id(), e_indoor_job::hammers,
+        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     REQUIRE( f( id ) == e_unit_activity::carpentry );
   }
@@ -364,7 +364,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id     = W.add_unit_outdoors(
-                     colony.id(), e_direction::w, e_outdoor_job::food,
+                     colony.id, e_direction::w, e_outdoor_job::food,
                      e_unit_type::petty_criminal );
     REQUIRE( f( id ) == e_unit_activity::farming );
   }

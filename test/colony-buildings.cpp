@@ -13,8 +13,8 @@
 // Under test.
 #include "src/colony-buildings.hpp"
 
-// Revolution Now
-#include "src/colony.hpp"
+// gs
+#include "src/gs/colony.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -205,37 +205,37 @@ TEST_CASE( "[colony-buildings] building_for_slot" ) {
 
   // Add some buidings but not all. In some cases add multiple
   // per slot, in others just one.
-  colony.add_building( OUT_E::magazine );
-  colony.add_building( OUT_E::armory );
+  colony.buildings[OUT_E::magazine] = true;
+  colony.buildings[OUT_E::armory]   = true;
 
-  colony.add_building( OUT_E::iron_works );
-  colony.add_building( OUT_E::blacksmiths_house );
+  colony.buildings[OUT_E::iron_works]        = true;
+  colony.buildings[OUT_E::blacksmiths_house] = true;
 
-  colony.add_building( OUT_E::rum_factory );
-  colony.add_building( OUT_E::rum_distillers_house );
+  colony.buildings[OUT_E::rum_factory]          = true;
+  colony.buildings[OUT_E::rum_distillers_house] = true;
 
-  colony.add_building( OUT_E::fur_trading_post );
+  colony.buildings[OUT_E::fur_trading_post] = true;
 
-  colony.add_building( OUT_E::cigar_factory );
-  colony.add_building( OUT_E::tobacconists_shop );
-  colony.add_building( OUT_E::tobacconists_house );
+  colony.buildings[OUT_E::cigar_factory]      = true;
+  colony.buildings[OUT_E::tobacconists_shop]  = true;
+  colony.buildings[OUT_E::tobacconists_house] = true;
 
-  colony.add_building( OUT_E::carpenters_shop );
+  colony.buildings[OUT_E::carpenters_shop] = true;
 
-  colony.add_building( OUT_E::town_hall );
+  colony.buildings[OUT_E::town_hall] = true;
 
-  colony.add_building( OUT_E::college );
+  colony.buildings[OUT_E::college] = true;
 
-  colony.add_building( OUT_E::docks );
+  colony.buildings[OUT_E::docks] = true;
 
-  colony.add_building( OUT_E::stable );
+  colony.buildings[OUT_E::stable] = true;
 
-  colony.add_building( OUT_E::warehouse_expansion );
+  colony.buildings[OUT_E::warehouse_expansion] = true;
 
-  colony.add_building( OUT_E::cathedral );
-  colony.add_building( OUT_E::church );
+  colony.buildings[OUT_E::cathedral] = true;
+  colony.buildings[OUT_E::church]    = true;
 
-  colony.add_building( OUT_E::custom_house );
+  colony.buildings[OUT_E::custom_house] = true;
 
   auto f = [&]( IN o ) {
     used.insert( o );
@@ -271,33 +271,33 @@ TEST_CASE( "[colony-buildings] colony_has_building_level" ) {
   Colony colony;
 
   // Has all three.
-  colony.add_building( e_colony_building::arsenal );
-  colony.add_building( e_colony_building::magazine );
-  colony.add_building( e_colony_building::armory );
+  colony.buildings[e_colony_building::arsenal]  = true;
+  colony.buildings[e_colony_building::magazine] = true;
+  colony.buildings[e_colony_building::armory]   = true;
 
   // Has first and last.
-  colony.add_building( e_colony_building::iron_works );
-  colony.add_building( e_colony_building::blacksmiths_house );
+  colony.buildings[e_colony_building::iron_works]        = true;
+  colony.buildings[e_colony_building::blacksmiths_house] = true;
 
   // Has first and second.
-  colony.add_building( e_colony_building::rum_factory );
-  colony.add_building( e_colony_building::rum_distillery );
+  colony.buildings[e_colony_building::rum_factory]    = true;
+  colony.buildings[e_colony_building::rum_distillery] = true;
 
   // Has only last.
-  colony.add_building( e_colony_building::fur_traders_house );
+  colony.buildings[e_colony_building::fur_traders_house] = true;
 
   // Has only first.
-  colony.add_building( e_colony_building::cigar_factory );
+  colony.buildings[e_colony_building::cigar_factory] = true;
 
   // Has only.
-  colony.add_building( e_colony_building::town_hall );
+  colony.buildings[e_colony_building::town_hall] = true;
 
   // Has only middle.
-  colony.add_building( e_colony_building::college );
+  colony.buildings[e_colony_building::college] = true;
 
   // Bas second and third.
-  colony.add_building( e_colony_building::drydock );
-  colony.add_building( e_colony_building::docks );
+  colony.buildings[e_colony_building::drydock] = true;
+  colony.buildings[e_colony_building::docks]   = true;
 
   auto f = [&]( IN o ) {
     return colony_has_building_level( colony, o );
@@ -350,13 +350,15 @@ TEST_CASE( "[colony-buildings] colony_has_building_level" ) {
 TEST_CASE( "[colony-buildings] colony_warehouse_capacity" ) {
   Colony colony;
   REQUIRE( colony_warehouse_capacity( colony ) == 100 );
-  colony.add_building( e_colony_building::warehouse );
+  colony.buildings[e_colony_building::warehouse] = true;
   REQUIRE( colony_warehouse_capacity( colony ) == 200 );
-  colony.add_building( e_colony_building::warehouse_expansion );
+  colony.buildings[e_colony_building::warehouse_expansion] =
+      true;
   REQUIRE( colony_warehouse_capacity( colony ) == 300 );
-  colony.rm_building( e_colony_building::warehouse );
+  colony.buildings[e_colony_building::warehouse] = false;
   REQUIRE( colony_warehouse_capacity( colony ) == 300 );
-  colony.rm_building( e_colony_building::warehouse_expansion );
+  colony.buildings[e_colony_building::warehouse_expansion] =
+      false;
   REQUIRE( colony_warehouse_capacity( colony ) == 100 );
 }
 

@@ -27,6 +27,7 @@
 #include "config/rn.rds.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // base
@@ -86,7 +87,7 @@ void notify_subscribers() {
         []( FrameSubscriptionTick& tick_sub ) {
           auto& [done, interval, last_message, func] = tick_sub;
           auto total = total_frame_count();
-          if( total - last_message >= interval ) {
+          if( int( total - last_message ) >= interval.frames ) {
             last_message = total;
             func();
             done = true;

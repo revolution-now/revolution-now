@@ -33,7 +33,7 @@ using namespace std;
 
 using Catch::Contains;
 
-Coord const kSquare( 0_x, 0_y );
+Coord const kSquare{};
 
 // This will prepare a world with a 1x1 map consisting of a
 // single grassland square with one unit on it of the given type.
@@ -42,13 +42,13 @@ void prepare_world( TerrainState& terrain_state,
                     e_unit_type   unit_type ) {
   NonRenderingMapUpdater map_updater( terrain_state );
   map_updater.modify_entire_map( []( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta( 1_w, 1_h ) );
+    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
     m[kSquare] = map_square_for_terrain( e_terrain::grassland );
   } );
   UnitComposition comp = UnitComposition::create( unit_type );
   UnitId          id =
       create_unit( units_state, e_nation::english, comp );
-  CHECK( id == 1_id );
+  CHECK( id == 1 );
   unit_to_map_square_non_interactive( units_state, map_updater,
                                       id, kSquare );
 }
@@ -60,7 +60,7 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
-  UnitId id       = 1_id;
+  UnitId id       = 1;
   Unit&  unit     = units_state.unit_for( id );
   Coord  location = units_state.coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -120,7 +120,7 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
-  UnitId id       = 1_id;
+  UnitId id       = 1;
   Unit&  unit     = units_state.unit_for( id );
   Coord  location = units_state.coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -186,7 +186,7 @@ TEST_CASE(
   prepare_world( terrain_state, units_state,
                  e_unit_type::hardy_pioneer );
 
-  UnitId id       = 1_id;
+  UnitId id       = 1;
   Unit&  unit     = units_state.unit_for( id );
   Coord  location = units_state.coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
@@ -251,7 +251,7 @@ TEST_CASE( "[src/road] perform_road_work with cancel" ) {
   prepare_world( terrain_state, units_state,
                  e_unit_type::pioneer );
 
-  UnitId id       = 1_id;
+  UnitId id       = 1;
   Unit&  unit     = units_state.unit_for( id );
   Coord  location = units_state.coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );

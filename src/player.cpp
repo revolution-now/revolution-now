@@ -23,8 +23,10 @@
 
 // luapp
 #include "luapp/as.hpp"
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/iter.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl

@@ -9,12 +9,13 @@
 #
 # ===============================================================
 # Revolution Now
-include "unit-id.hpp"
-
-# Rds
-include "colony.rds.hpp"
-include "commodity.rds.hpp"
+include "maybe.hpp"
 include "production.rds.hpp"
+
+# gs
+include "gs/colony.rds.hpp"
+include "gs/commodity.rds.hpp"
+include "gs/unit-id.hpp"
 
 # C++ standard library
 include "<vector>"

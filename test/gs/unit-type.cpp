@@ -11,14 +11,14 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/unit-type.hpp"
+#include "src/gs/unit-type.hpp"
 
 // Revolution Now
 #include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
 // Config
-#include "config/units.rds.hpp"
+#include "config/unit-type.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -122,8 +122,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::expert_cotton_planter );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( can_attack( desc ) == false );
-    REQUIRE( is_military_unit( desc ) == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
   }
   SECTION( "petty_criminal" ) {
     UnitTypeAttributes const& desc =
@@ -169,8 +169,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::petty_criminal );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( can_attack( desc ) == false );
-    REQUIRE( is_military_unit( desc ) == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
   }
   SECTION( "free_colonist" ) {
     UnitTypeAttributes const& desc =
@@ -215,8 +215,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::free_colonist );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( can_attack( desc ) == false );
-    REQUIRE( is_military_unit( desc ) == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
   }
   SECTION( "veteran_dragoon" ) {
     UnitTypeAttributes const& desc =
@@ -254,8 +254,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::veteran_dragoon );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( can_attack( desc ) == true );
-    REQUIRE( is_military_unit( desc ) == true );
+    REQUIRE( can_attack( desc.type ) == true );
+    REQUIRE( is_military_unit( desc.type ) == true );
   }
   SECTION( "scout" ) {
     UnitTypeAttributes const& desc =
@@ -290,8 +290,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::scout );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( can_attack( desc ) == true );
-    REQUIRE( is_military_unit( desc ) == true );
+    REQUIRE( can_attack( desc.type ) == true );
+    REQUIRE( is_military_unit( desc.type ) == true );
   }
   SECTION( "pioneer" ) {
     UnitTypeAttributes const& desc =
@@ -327,8 +327,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::pioneer );
     REQUIRE( desc.is_derived == true );
-    REQUIRE( can_attack( desc ) == false );
-    REQUIRE( is_military_unit( desc ) == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
   }
   SECTION( "large_treasure" ) {
     UnitTypeAttributes const& desc =
@@ -362,8 +362,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::large_treasure );
     REQUIRE( desc.is_derived == false );
-    REQUIRE( can_attack( desc ) == false );
-    REQUIRE( is_military_unit( desc ) == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
   }
 }
 

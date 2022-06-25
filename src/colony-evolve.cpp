@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "colony-buildings.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "on-map.hpp"
 #include "player.hpp"
@@ -47,7 +48,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
 
   vector<Commodity>                 spoiled;
   refl::enum_map<e_commodity, int>& commodities =
-      colony.commodities();
+      colony.commodities;
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     int const max = ( c == e_commodity::food )
                         ? food_capacity
@@ -92,13 +93,14 @@ void check_create_or_starve_colonist(
     vector<ColonyNotification_t>& notifications,
     IMapUpdater&                  map_updater ) {
   if( pr.food.colonist_starved ) {
-    vector<UnitId> const units_in_colony = colony.all_units();
+    vector<UnitId> const units_in_colony =
+        colony_units_all( colony );
     CHECK( !units_in_colony.empty() );
     // vector must be non-empty for this.
     UnitId      unit_id = rng::pick_one( units_in_colony );
     e_unit_type type    = units_state.unit_for( unit_id ).type();
     remove_unit_from_colony( units_state, colony, unit_id );
-    notifications.push_back(
+    notifications.emplace_back(
         ColonyNotification::colonist_starved{ .type = type } );
     // At this point we may as well return because we can't have
     // a new colonist created in the same turn as one starved.
@@ -108,7 +110,7 @@ void check_create_or_starve_colonist(
   // Check for a colonist created. After all is said and done, if
   // the colony will have enough food, then we can potentially
   // produce a new colonist.
-  int& current_food = colony.commodities()[e_commodity::food];
+  int&      current_food = colony.commodities[e_commodity::food];
   int const food_needed_for_creation =
       config_colony.food_for_creating_new_colonist;
 
@@ -116,29 +118,29 @@ void check_create_or_starve_colonist(
 
   current_food -= food_needed_for_creation;
   UnitId unit_id = create_unit(
-      units_state, colony.nation(),
+      units_state, colony.nation,
       UnitType::create( e_unit_type::free_colonist ) );
-  unit_to_map_square_non_interactive(
-      units_state, map_updater, unit_id, colony.location() );
-  notifications.push_back(
+  unit_to_map_square_non_interactive( units_state, map_updater,
+                                      unit_id, colony.location );
+  notifications.emplace_back(
       ColonyNotification::new_colonist{ .id = unit_id } );
 
   // One final sanity check.
-  CHECK_GE( colony.commodities()[e_commodity::food], 0 );
+  CHECK_GE( colony.commodities[e_commodity::food], 0 );
 }
 
 void check_construction( UnitsState&  units_state,
                          IMapUpdater& map_updater,
                          Colony& colony, ColonyEvolution& ev ) {
-  if( !colony.construction().has_value() ) return;
-  Construction_t const& construction = *colony.construction();
+  if( !colony.construction.has_value() ) return;
+  Construction_t const& construction = *colony.construction;
 
   // First check if it's a building that the colony already has.
   if( auto building =
           construction.get_if<Construction::building>();
       building.has_value() ) {
-    if( colony.buildings()[building->what] ) {
-      ev.notifications.push_back(
+    if( colony.buildings[building->what] ) {
+      ev.notifications.emplace_back(
           ColonyNotification::construction_already_finished{
               .what = construction } );
       return;
@@ -148,13 +150,12 @@ void check_construction( UnitsState&  units_state,
   auto const [hammers_needed, tools_needed] =
       materials_needed( construction );
 
-  if( colony.hammers() < hammers_needed ) return;
+  if( colony.hammers < hammers_needed ) return;
 
-  int const have_tools =
-      colony.commodities()[e_commodity::tools];
+  int const have_tools = colony.commodities[e_commodity::tools];
 
-  if( colony.commodities()[e_commodity::tools] < tools_needed ) {
-    ev.notifications.push_back(
+  if( colony.commodities[e_commodity::tools] < tools_needed ) {
+    ev.notifications.emplace_back(
         ColonyNotification::construction_missing_tools{
             .what       = construction,
             .have_tools = have_tools,
@@ -172,19 +173,19 @@ void check_construction( UnitsState&  units_state,
   // construction) and those hammers can then be reused on the
   // next construction (to some extent, depending on difficulty
   // level).
-  colony.hammers() = 0;
-  colony.commodities()[e_commodity::tools] -= tools_needed;
-  CHECK_GE( colony.commodities()[e_commodity::tools], 0 );
+  colony.hammers = 0;
+  colony.commodities[e_commodity::tools] -= tools_needed;
+  CHECK_GE( colony.commodities[e_commodity::tools], 0 );
 
-  ev.notifications.push_back(
+  ev.notifications.emplace_back(
       ColonyNotification::construction_complete{
           .what = construction } );
 
   switch( construction.to_enum() ) {
     using namespace Construction;
     case e::building: {
-      auto& o = construction.get<building>();
-      colony.add_building( o.what );
+      auto& o                  = construction.get<building>();
+      colony.buildings[o.what] = true;
       DCHECK( !ev.built.has_value() );
       ev.built = o.what;
       return;
@@ -192,8 +193,8 @@ void check_construction( UnitsState&  units_state,
     case e::unit: {
       auto& o = construction.get<unit>();
       create_unit_on_map_non_interactive(
-          units_state, map_updater, colony.nation(),
-          UnitComposition::create( o.type ), colony.location() );
+          units_state, map_updater, colony.nation,
+          UnitComposition::create( o.type ), colony.location );
       break;
     }
   }
@@ -205,7 +206,7 @@ void apply_commodity_increase(
   int const old_value = store[what];
   int const new_value = old_value + delta;
   if( old_value < 100 && new_value >= 100 )
-    notifications.push_back(
+    notifications.emplace_back(
         ColonyNotification::full_cargo{ .what = what } );
   store[what] = new_value;
 }
@@ -214,7 +215,7 @@ void apply_production_to_colony(
     Colony& colony, ColonyProduction const& production,
     vector<ColonyNotification_t>& notifications ) {
   refl::enum_map<e_commodity, int>& commodities =
-      colony.commodities();
+      colony.commodities;
 
   auto inc = [&]( e_commodity what, int delta ) {
     apply_commodity_increase( commodities, what, delta,
@@ -255,13 +256,13 @@ void apply_production_to_colony(
   inc( e_commodity::muskets,
        production.ore_products.muskets_delta_final );
 
-  colony.add_hammers(
-      production.lumber_hammers.product_delta_final );
+  colony.hammers +=
+      production.lumber_hammers.product_delta_final;
 
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     CHECK( commodities[c] >= 0,
            "colony {} has a negative quantity ({}) of {}.",
-           colony.name(), commodities[c], c );
+           colony.name, commodities[c], c );
   }
 }
 
@@ -292,7 +293,7 @@ ColonyEvolution evolve_colony_one_turn(
   maybe<ColonyNotification::spoilage> spoilage_notification =
       check_spoilage( colony );
   if( spoilage_notification.has_value() )
-    ev.notifications.push_back(
+    ev.notifications.emplace_back(
         std::move( *spoilage_notification ) );
 
   return ev;

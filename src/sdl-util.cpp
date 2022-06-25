@@ -52,17 +52,17 @@ void check_SDL_compile_link_version(
 
 ::SDL_Rect to_SDL( Rect const& rect ) {
   ::SDL_Rect res;
-  res.x = rect.x._;
-  res.y = rect.y._;
-  res.w = rect.w._;
-  res.h = rect.h._;
+  res.x = rect.x;
+  res.y = rect.y;
+  res.w = rect.w;
+  res.h = rect.h;
   return res;
 }
 
 ::SDL_Point to_SDL( Coord const& coord ) {
   ::SDL_Point p;
-  p.x = coord.x._;
-  p.y = coord.y._;
+  p.x = coord.x;
+  p.y = coord.y;
   return p;
 }
 

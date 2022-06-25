@@ -12,14 +12,16 @@
 #include "root.hpp"
 
 // Revolution Now
+#include "colony-mgr.hpp"
 #include "land-view.hpp"
+#include "lua.hpp"
+#include "map-square.hpp"
 #include "players.hpp"
 #include "settings.hpp"
 #include "turn.hpp"
-#include "lua.hpp"
-#include "map-square.hpp"
 
 // luapp
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -38,7 +40,8 @@ namespace {
 valid_or<string> validate_interaction(
     ColoniesState const& colonies, UnitsState const& units ) {
   for( auto const& [colony_id, colony] : colonies.all() ) {
-    vector<UnitId> const colony_units = colony.all_units();
+    vector<UnitId> const colony_units =
+        colony_units_all( colony );
     // All units owned by colony are colony's units.
     for( UnitId unit_id : units.from_colony( colony_id ) ) {
       REFL_VALIDATE(
@@ -46,16 +49,16 @@ valid_or<string> validate_interaction(
                 unit_id ) != colony_units.end(),
           "unit {} owned by colony is not in colony {}.",
           debug_string( units.unit_for( unit_id ) ),
-          colony.debug_string() );
+          colony.name );
     }
 
     // All colony's units are of same nation.
     for( UnitId unit_id : colony_units ) {
       auto unit_nation = units.unit_for( unit_id ).nation();
-      REFL_VALIDATE( colony.nation() == unit_nation,
+      REFL_VALIDATE( colony.nation == unit_nation,
                      "Colony {} has nation {} but contains a "
                      "unit that has nation {}.",
-                     colony.id(), colony.nation(), unit_nation );
+                     colony.id, colony.nation, unit_nation );
     }
 
     // All colony's units owned by colony.
@@ -65,7 +68,7 @@ valid_or<string> validate_interaction(
               UnitOwnership::e::colony,
           "{} in Colony {} is not owned by colony.",
           debug_string( units.unit_for( unit_id ) ),
-          colony.debug_string() );
+          colony.name );
     }
   }
   return base::valid;
@@ -78,8 +81,8 @@ valid_or<string> validate_interaction(
   for( auto const& [colony_id, colony] : colonies.all() ) {
     // Colony is on land.
     REFL_VALIDATE(
-        is_land( terrain.world_map()[colony.location()] ),
-        "Colony {} is not on land.", colony.debug_string() );
+        is_land( terrain.world_map()[colony.location] ),
+        "Colony {} is not on land.", colony.name );
   }
   return base::valid;
 }

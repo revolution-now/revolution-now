@@ -427,10 +427,9 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
-    pos.y =
-        clamp( pos.y, 16_y, normal_area.bottom_edge() - 16_h );
-    pos.x = clamp( pos.x, 0_x - focused().delta().w + 16_w,
-                   normal_area.right_edge() - 16_w );
+    pos.y = clamp( pos.y, 16, normal_area.bottom_edge() - 16 );
+    pos.x = clamp( pos.x, 0 - focused().delta().w + 16,
+                   normal_area.right_edge() - 16 );
   }
 }
 

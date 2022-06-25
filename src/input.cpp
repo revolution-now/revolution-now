@@ -74,7 +74,7 @@ unordered_map<::SDL_Keycode, e_direction> nav_keys{
 bool is_in_drag_zone( Coord current, Coord origin ) {
   auto delta = current - origin;
   auto buf   = config_input.mouse.drag_buffer;
-  return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
+  return abs( delta.w ) > buf || abs( delta.h ) > buf;
 }
 
 // Should not call this from outside this module; should instead
@@ -119,11 +119,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   // use that because it may not be current with this event.
   // FIXME: should instead use mouse coord current with this
   //        event if it starts causing issues.
-  ::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
+  ::SDL_GetMouseState( &mouse.x, &mouse.y );
 
   // mouse.clip( ... );
-  mouse.x /= g_resolution_scale_factor.sx;
-  mouse.y /= g_resolution_scale_factor.sy;
+  mouse.x /= g_resolution_scale_factor.w;
+  mouse.y /= g_resolution_scale_factor.h;
 
   if_get( l_drag, drag_phase::dragging, val ) {
     if( val.phase == e_drag_phase::begin )
@@ -392,12 +392,12 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( Coord new_pos ) {
-  new_pos.x *= g_resolution_scale_factor.sx;
-  new_pos.y *= g_resolution_scale_factor.sy;
+  new_pos.x *= g_resolution_scale_factor.w;
+  new_pos.y *= g_resolution_scale_factor.h;
   // Apparently we can use nullptr for the window and it will use
   // the "focused" one, which seems to work for us.
-  ::SDL_WarpMouseInWindow( /*window=*/nullptr, new_pos.x._,
-                           new_pos.y._ );
+  ::SDL_WarpMouseInWindow( /*window=*/nullptr, new_pos.x,
+                           new_pos.y );
 }
 
 /****************************************************************

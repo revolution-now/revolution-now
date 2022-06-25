@@ -11,7 +11,6 @@
 #include "render.hpp"
 
 // Revolution Now
-#include "colony.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "error.hpp"
@@ -24,7 +23,11 @@
 #include "window.hpp"
 
 // config
-#include "config/unit-type.rds.hpp"
+#include "config/nation.hpp"
+#include "config/unit-type.hpp"
+
+// gs
+#include "gs/colony.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -38,7 +41,7 @@ namespace rn {
 
 namespace {
 
-constexpr Delta nationality_icon_size( 14_h, 14_w );
+constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
 
 // Unit only, no flag.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
@@ -46,15 +49,16 @@ void render_unit_no_icon( rr::Painter& painter, Coord where,
                           maybe<UnitShadow> const& shadow ) {
   auto const& desc = unit_attr( unit_type );
   if( shadow.has_value() )
-    render_sprite_silhouette( painter, where + shadow->offset,
-                              desc.tile, shadow->color );
+    render_sprite_silhouette(
+        painter, where + Delta{ .w = shadow->offset }, desc.tile,
+        shadow->color );
   render_sprite( painter, Rect::from( where, g_tile_delta ),
                  desc.tile );
 }
 
 void render_colony_flag( rr::Painter& painter, Coord coord,
                          gfx::pixel color ) {
-  auto cloth_rect = Rect::from( coord, Delta{ 8_w, 6_h } );
+  auto cloth_rect = Rect::from( coord, Delta{ .w = 8, .h = 6 } );
   painter.draw_solid_rect( cloth_rect, color );
   painter.draw_vertical_line( cloth_rect.upper_right(), 12,
                               gfx::pixel::wood().shaded( 4 ) );
@@ -98,16 +102,16 @@ void render_nationality_icon( rr::Renderer&             renderer,
   switch( position ) {
     case e_direction::nw: break;
     case e_direction::ne:
-      delta +=
-          ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
+      delta.w +=
+          ( ( 1 * g_tile_width ) - nationality_icon_size.w );
       break;
     case e_direction::se:
-      delta += ( ( Delta{ 1_w, 1_h } * g_tile_scale ) -
+      delta += ( ( Delta{ .w = 1, .h = 1 } * g_tile_delta ) -
                  nationality_icon_size );
       break;
     case e_direction::sw:
-      delta +=
-          ( ( 1_h * g_tile_height ) - nationality_icon_size.h );
+      delta.h +=
+          ( ( 1 * g_tile_height ) - nationality_icon_size.h );
       break;
       // By default we keep it in the northwest corner.
     default: break;
@@ -184,8 +188,9 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
       UnitTypeAttributes const& desc = unit.desc();
       if( options.shadow.has_value() )
         render_sprite_silhouette(
-            painter, where + options.shadow->offset, desc.tile,
-            options.shadow->color );
+            painter,
+            where + Delta{ .w = options.shadow->offset },
+            desc.tile, options.shadow->color );
       render_nationality_icon( renderer, where, id );
       render_sprite( painter, Rect::from( where, g_tile_delta ),
                      desc.tile );
@@ -210,13 +215,13 @@ void render_unit_type( rr::Painter& painter, Coord where,
 void render_colony( rr::Painter& painter, Coord where,
                     ColonyId id ) {
   auto const& colony = colony_from_id( id );
-  auto        tile   = colony_from_id( id )
-                      .buildings()[e_colony_building::stockade]
-                           ? e_tile::colony_stockade
-                           : e_tile::colony_basic;
+  auto        tile =
+      colony_from_id( id ).buildings[e_colony_building::stockade]
+                 ? e_tile::colony_stockade
+                 : e_tile::colony_basic;
   render_sprite( painter, where, tile );
-  auto const& nation = nation_obj( colony.nation() );
-  render_colony_flag( painter, where + Delta{ 8_w, 8_h },
+  auto const& nation = nation_obj( colony.nation );
+  render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
                       nation.flag_color );
 }
 
@@ -246,13 +251,15 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
         renderer, stage, /*from=*/
         [&]( rr::Painter& painter ) {
           render_sprite_silhouette(
-              painter, where + options.shadow->offset,
+              painter,
+              where + Delta{ .w = options.shadow->offset },
               unit.desc().tile, options.shadow->color );
         },
         /*to=*/
         [&]( rr::Painter& painter ) {
           render_sprite_silhouette(
-              painter, where + options.shadow->offset,
+              painter,
+              where + Delta{ .w = options.shadow->offset },
               unit_attr( target ).tile, options.shadow->color );
         } );
   options.shadow.reset();

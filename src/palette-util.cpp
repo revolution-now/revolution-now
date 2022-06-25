@@ -84,7 +84,7 @@ array<char const*, hue_buckets> constexpr hue_names{
 static_assert( hue_names.size() == hue_buckets );
 
 // Only relevant for testing/displaying palettes.
-Coord const palette_render_origin{ 10_y, 10_x };
+Coord const palette_render_origin{ .x = 10, .y = 10 };
 
 // Takes a hue in [0,360) and returns a bucket index from
 // [0,hue_buckets-1). Our strategy here is that the firt bucket

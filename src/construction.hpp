@@ -16,8 +16,8 @@
 #include "maybe.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "colony.rds.hpp"
+// gs
+#include "gs/colony.rds.hpp"
 
 // C++ standard library
 #include <string>

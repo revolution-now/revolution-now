@@ -166,9 +166,9 @@ UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
 UnitId World::add_unit_indoors( ColonyId     colony_id,
                                 e_indoor_job indoor_job,
                                 e_unit_type  type ) {
-  Colony& colony = colonies().colony_for( colony_id );
-  Coord   loc    = colonies().coord_for( colony_id );
-  UnitId unit_id = add_unit_on_map( type, loc, colony.nation() );
+  Colony& colony  = colonies().colony_for( colony_id );
+  Coord   loc     = colonies().coord_for( colony_id );
+  UnitId  unit_id = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::indoor job{ .job = indoor_job };
   move_unit_to_colony( units(), colony, unit_id, job );
   return unit_id;
@@ -185,9 +185,9 @@ UnitId World::add_unit_outdoors( ColonyId      colony_id,
                                  e_direction   d,
                                  e_outdoor_job outdoor_job,
                                  e_unit_type   type ) {
-  Colony& colony = colonies().colony_for( colony_id );
-  Coord   loc    = colonies().coord_for( colony_id );
-  UnitId unit_id = add_unit_on_map( type, loc, colony.nation() );
+  Colony& colony  = colonies().colony_for( colony_id );
+  Coord   loc     = colonies().coord_for( colony_id );
+  UnitId  unit_id = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
   move_unit_to_colony( units(), colony, unit_id, job );
   return unit_id;
@@ -201,7 +201,7 @@ void World::add_player( e_nation nation ) {
 
 Colony& World::add_colony( UnitId founder ) {
   string name =
-      fmt::to_string( colonies().last_colony_id()._ + 1 );
+      fmt::to_string( colonies().last_colony_id() + 1 );
   ColonyId id = found_colony( colonies(), terrain(), units(),
                               founder, map_updater(), name );
   return colonies().colony_for( id );
@@ -210,7 +210,7 @@ Colony& World::add_colony( UnitId founder ) {
 Colony& World::add_colony( Coord           where,
                            maybe<e_nation> nation ) {
   string name =
-      fmt::to_string( colonies().last_colony_id()._ + 1 );
+      fmt::to_string( colonies().last_colony_id() + 1 );
   return colonies().colony_for( create_empty_colony(
       colonies(), nation.value_or( default_nation_ ), where,
       name ) );

@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/mv-points.hpp"
+#include "src/gs/mv-points.hpp"
 
 // Revolution Now
 #include "src/lua.hpp"

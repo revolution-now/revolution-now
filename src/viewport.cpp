@@ -772,10 +772,10 @@ bool SmoothViewport::need_to_scroll_to_reveal_tile(
   // unit. Panning both coordinates together makes for more
   // natural panning behavior when a unit is close to the corner
   // of the viewport.
-  return !are_tile_surroundings_as_fully_visible_as_can_be<X>(
-             *this, coord ) ||
-         !are_tile_surroundings_as_fully_visible_as_can_be<Y>(
-             *this, coord );
+  return !are_tile_surroundings_as_fully_visible_as_can_be<
+             DimensionX>( *this, coord ) ||
+         !are_tile_surroundings_as_fully_visible_as_can_be<
+             DimensionY>( *this, coord );
 }
 
 void SmoothViewport::ensure_tile_visible( Coord const& coord ) {

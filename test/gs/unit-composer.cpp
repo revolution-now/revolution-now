@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/unit-composer.hpp"
+#include "src/gs/unit-composer.hpp"
 
 // Revolution Now
 #include "src/lua.hpp"

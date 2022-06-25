@@ -18,6 +18,9 @@
 // Rds
 #include "main.rds.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/cli-args.hpp"
 #include "base/error.hpp"

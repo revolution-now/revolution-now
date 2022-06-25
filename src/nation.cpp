@@ -33,18 +33,13 @@ namespace rn {
 
 namespace {} // namespace
 
-Nationality const& nation_obj( e_nation nation ) {
-  return config_nation.nations[nation];
-}
-
 maybe<e_nation> nation_from_coord(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state, Coord coord ) {
   if( auto maybe_colony_id =
           colonies_state.maybe_from_coord( coord );
       maybe_colony_id )
-    return colonies_state.colony_for( *maybe_colony_id )
-        .nation();
+    return colonies_state.colony_for( *maybe_colony_id ).nation;
 
   unordered_set<UnitId> const& units =
       units_state.from_coord( coord );

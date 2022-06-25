@@ -8,14 +8,56 @@
 * Description: Configuration for unit types.
 *
 *****************************************************************/
-#include "units.hpp"
+#include "unit-type.hpp"
 
 // refl
 #include "refl/ext.hpp"
+#include "refl/to-str.hpp"
+
+// base
+#include "base/keyval.hpp"
+
+// C++ standard library
+#include <set>
 
 using namespace std;
 
 namespace rn {
+
+// Defined elsewhere (FIXME).
+bool configs_loaded();
+
+namespace {
+
+unordered_map<e_unit_inventory, e_unit_type_modifier>
+create_inventory_to_modifier_map(
+    refl::enum_map<e_unit_type_modifier,
+                   UnitTypeModifierTraits> const&
+        modifier_traits ) {
+  unordered_map<e_unit_inventory, e_unit_type_modifier> res;
+  for( auto const& [mod, val] : modifier_traits ) {
+    auto inventory =
+        val.association.get_if<ModifierAssociation::inventory>();
+    if( !inventory ) continue;
+    bool was_inserted =
+        res.try_emplace( inventory->type, mod ).second;
+    CHECK( was_inserted );
+  }
+  return res;
+}
+
+} // namespace
+
+maybe<e_unit_type_modifier> inventory_to_modifier(
+    e_unit_inventory inv ) {
+  static auto const m = [] {
+    DCHECK( configs_loaded() );
+    return create_inventory_to_modifier_map(
+        config_units.composition.modifier_traits );
+  }();
+  DCHECK( !m.empty() );
+  return base::lookup( m, inv );
+}
 
 /****************************************************************
 ** UnitCompositionConfig
@@ -69,8 +111,8 @@ valid_or<string> UnitCompositionConfig::validate() const {
   // loses its on-death-lost modifiers.
   for( auto& [type, type_struct] : m ) {
     for( auto& [mtype, mod_list] : type_struct.modifiers ) {
-      UNWRAP_CHECK( mtype_desc, base::lookup( m, mtype ) );
-      auto demote =
+      UnitTypeAttributes const& mtype_desc = m[mtype];
+      auto                      demote =
           mtype_desc.on_death.get_if<UnitDeathAction::demote>();
       if( !demote ) continue;
       // Sanity check: make sure that the modifiers that the
@@ -118,8 +160,8 @@ valid_or<string> UnitCompositionConfig::validate() const {
             "`canonical_base` field.",
             type );
       e_unit_type base_type = *type_struct.canonical_base;
-      UNWRAP_CHECK( base_desc, base::lookup( m, base_type ) );
-      auto& modifiers = base_desc.modifiers;
+      UnitTypeAttributes const& base_desc = m[base_type];
+      auto&                     modifiers = base_desc.modifiers;
       if( !modifiers.contains( type ) )
         return fmt::format(
             "derived type {} lists the {} type as its canonical "
@@ -208,8 +250,8 @@ valid_or<string> UnitCompositionConfig::validate() const {
               "derived type {} cannot have value `fixed` for "
               "its promotion field.",
               type );
-        UNWRAP_CHECK( new_type_desc,
-                      base::lookup( m, o_fixed.type ) );
+        UnitTypeAttributes const& new_type_desc =
+            m[o_fixed.type];
         if( new_type_desc.is_derived )
           return fmt::format(
               "type {} has type {} as its fixed promotion "
