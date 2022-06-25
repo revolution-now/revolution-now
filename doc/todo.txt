@@ -77,7 +77,8 @@
       through to what is underneath of it.
   16. Fix that when clicking on the exit tile in the harbor view,
       up click carries through to the land view and scrolls the
-      map.
+      map. Also, the same things seems to happen when closing an
+      open menu by clicking away from it.
 
 # Minimap:
 
