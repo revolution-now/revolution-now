@@ -73,7 +73,7 @@ struct MainMenuPlane::Impl : public Plane {
               enum_to_display_name( e ) ) );
       auto w   = normal_area.w / 2 - text_size.w / 2;
       auto dst = Rect::from( Coord{}, text_size )
-                     .shifted_by( Delta{ w, h } );
+                     .shifted_by( Delta{ .w = w, .h = h } );
       dst = dst.as_if_origin_were( normal_area.upper_left() );
       rr::Typer typer = renderer.typer( dst.upper_left(), c );
       typer.write( enum_to_display_name( e ) );

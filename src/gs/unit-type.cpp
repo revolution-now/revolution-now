@@ -533,10 +533,10 @@ maybe<UnitType> cleared_expertise( UnitType ut ) {
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  auto utype = st.usertype.create<UnitType>();
+  auto unit_type = st.usertype.create<UnitType>();
 
-  utype["base_type"] = &UnitType::base_type;
-  utype["type"]      = &UnitType::type;
+  unit_type["base_type"] = &UnitType::base_type;
+  unit_type["type"]      = &UnitType::type;
 
   lua::table utype_tbl =
       lua::table::create_or_get( st["unit_type"] );

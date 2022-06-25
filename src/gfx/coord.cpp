@@ -94,8 +94,9 @@ Rect Rect::with_border_added( int thickness ) const {
 }
 
 Rect Rect::with_new_origin( Coord new_origin ) const {
-  return Rect::from( Coord{ x, y }.with_new_origin( new_origin ),
-                     Delta{ .w = w, .h = h } );
+  return Rect::from(
+      Coord{ .x = x, .y = y }.with_new_origin( new_origin ),
+      Delta{ .w = w, .h = h } );
 }
 
 Rect Rect::as_if_origin_were( Coord const& coord ) const {
@@ -145,8 +146,9 @@ base::maybe<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto const&       new_y1 = std::max( y, rhs.y );
   auto /*!!*/       new_x2 = std::min( x + w, rhs.x + rhs.w );
   auto /*!!*/       new_y2 = std::min( y + h, rhs.y + rhs.h );
-  base::maybe<Rect> res    = Rect::from( Coord{ new_x1, new_y1 },
-                                         Coord{ new_x2, new_y2 } );
+  base::maybe<Rect> res =
+      Rect::from( Coord{ .x = new_x1, .y = new_y1 },
+                  Coord{ .x = new_x2, .y = new_y2 } );
   if( res->area() == 0 ) res = base::nothing;
   return res;
 }

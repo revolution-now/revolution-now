@@ -179,7 +179,7 @@ struct ScaleInfo {
 NOTHROW_MOVE( ScaleInfo );
 
 ScaleInfo scale_info( int scale_ ) {
-  Delta scale{ scale_ };
+  Delta scale{ .w = scale_, .h = scale_ };
   Delta resolution = current_display_mode().size / scale;
 
   // Tile size in inches if it were measured on the surface of
@@ -411,7 +411,8 @@ Delta main_window_physical_size() {
     CHECK( g_window != nullptr );
     int w{}, h{};
     ::SDL_GetWindowSize( g_window, &w, &h );
-    main_window_physical_size_cache = Delta{ W{ w }, H{ h } };
+    main_window_physical_size_cache =
+        Delta{ .w = W{ w }, .h = H{ h } };
   }
   return *main_window_physical_size_cache;
 }

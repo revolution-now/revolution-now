@@ -36,8 +36,8 @@ constexpr int tile_pixel_size{ 32 };
 
 inline constexpr SX    g_tile_width{ detail::tile_pixel_size };
 inline constexpr SY    g_tile_height{ detail::tile_pixel_size };
-inline constexpr Delta g_tile_delta =
-    Delta{ W{ 1 } * g_tile_width, H{ 1 } * g_tile_height };
+inline constexpr Delta g_tile_delta = Delta{
+    .w = W{ 1 } * g_tile_width, .h = H{ 1 } * g_tile_height };
 
 /****************************************************************
 ** Querying Tiles

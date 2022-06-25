@@ -77,7 +77,7 @@ maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
 Rect ColViewBuildings::rect_for_slot(
     e_colony_building_slot slot ) const {
   // TODO: Temporary.
-  Delta const box_size = delta() / Delta{ 4 };
+  Delta const box_size = delta() / Delta{ .w = 4, .h = 4 };
   int const   idx      = static_cast<int>( slot );
   Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
   Coord const upper_left  = coord * box_size;

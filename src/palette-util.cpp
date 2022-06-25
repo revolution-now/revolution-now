@@ -459,10 +459,9 @@ void show_color_adjustment( rr::Renderer& renderer,
 
 void write_palette_png( fs::path const& /*png_file*/ ) {
   NOT_IMPLEMENTED;
-  // auto tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
-  // auto const& colors = g_palette();
-  // show_palette( renderer, hsl_bucket( colors ) );
-  // tx.save_png( png_file );
+  // auto tx = create_texture( Delta{ .w=W{ 500 }, .h=H{ 480 } }
+  // ); auto const& colors = g_palette(); show_palette( renderer,
+  // hsl_bucket( colors ) ); tx.save_png( png_file );
 }
 
 void update_palette( fs::path const& where ) {

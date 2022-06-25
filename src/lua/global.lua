@@ -24,7 +24,7 @@ function soldier()
           'Cannot convert a naval unit to a soldier.' )
   unit:change_type( unit_composer.UnitComposition
                         .create_with_type_obj(
-                        utype.UnitType.create( 'soldier' ) ) )
+                        unit_type.UnitType.create( 'soldier' ) ) )
 end
 
 -- Convert all land units that are directly on land in the upper
@@ -33,7 +33,7 @@ end
 function convert_units( unit_type, nation )
   for y = 0, 20 do
     for x = 0, 20 do
-      local ids = ustate.units_from_coord( Coord{ x=x, y=y } )
+      local ids = ustate.units_from_coord( { x=x, y=y } )
       for _, id in ipairs( ids ) do
         local unit = ustate.unit_from_id( id )
         local correct_nation = (nation == nil) or
@@ -43,8 +43,8 @@ function convert_units( unit_type, nation )
           log.debug( 'changing unit ' .. id .. '.' )
           unit:change_type( unit_composer.UnitComposition
                                 .create_with_type_obj(
-                                utype.UnitType
-                                    .create( unit_type ) ) )
+                                unit_type.UnitType.create(
+                                    unit_type ) ) )
         end
       end
     end

@@ -346,8 +346,8 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Delta menu_header_text_size( e_menu menu ) const {
-    return Delta{ W{ menu_name_width_pixels_[menu] },
-                  max_text_height() };
+    return Delta{ .w = W{ menu_name_width_pixels_[menu] },
+                  .h = max_text_height() };
   }
 
   Rect menu_header_text_rect( e_menu menu ) const {
@@ -385,15 +385,15 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Delta menu_item_delta( e_menu menu ) const {
-    return Delta{ menu_body_width_inner( menu ),
-                  menu_item_height() };
+    return Delta{ .w = menu_body_width_inner( menu ),
+                  .h = menu_item_height() };
   }
 
   H divider_height() const { return menu_item_height() / 2; }
 
   Delta divider_delta( e_menu menu ) const {
-    return Delta{ divider_height(),
-                  menu_body_width_inner( menu ) };
+    return Delta{ .w = divider_height(),
+                  .h = menu_body_width_inner( menu ) };
   }
 
   // This is the width of the menu body not including the
@@ -422,7 +422,7 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Delta menu_body_delta( e_menu menu ) const {
-    return Delta{ 8, 8 } + Delta{ 8, 8 } +
+    return Delta{ .w = 8, .h = 8 } + Delta{ .w = 8, .h = 8 } +
            menu_body_delta_inner( menu );
   }
 

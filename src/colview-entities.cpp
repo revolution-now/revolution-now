@@ -1743,8 +1743,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
           .with_height( 32 ) );
   g_composition.entities[e_colview_entity::cargo] =
       cargo_view.get();
-  pos =
-      Coord{ population_right_edge, middle_strip_top + 32 + 16 };
+  pos = Coord{ .x = population_right_edge,
+               .y = middle_strip_top + 32 + 16 };
   X const cargo_right_edge =
       cargo_view->rect( pos ).right_edge();
   auto* p_cargo_view = cargo_view.get();
@@ -1759,7 +1759,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       gui );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
-  pos = Coord{ population_right_edge, middle_strip_top };
+  pos =
+      Coord{ .x = population_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView(
       std::move( units_at_gate_view ), pos ) );
 
@@ -1769,7 +1770,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       gui );
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
-  pos = Coord{ cargo_right_edge, middle_strip_top };
+  pos = Coord{ .x = cargo_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView(
       std::move( production_view ), pos ) );
 

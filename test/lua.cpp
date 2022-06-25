@@ -268,7 +268,8 @@ LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
 LUA_FN( opt_test2, maybe<Coord>,
         maybe<Coord> const& maybe_coord ) {
   if( !maybe_coord ) return Coord{ .x = 5, .y = 7 };
-  return Coord{ maybe_coord->x + 1, maybe_coord->y + 1 };
+  return Coord{ .x = maybe_coord->x + 1,
+                .y = maybe_coord->y + 1 };
 }
 
 TEST_CASE( "[lua] optional" ) {
@@ -317,15 +318,15 @@ TEST_CASE( "[lua] get as maybe" ) {
   st["func"]     = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-      return lua::as<string>( o ) + "!";
+          return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-      return fmt::format( "a double: {}", *maybe_double );
+          return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-      return fmt::format( "a bool: {}", *maybe_bool );
+          return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-      return "?";
+          return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==

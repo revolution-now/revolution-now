@@ -732,7 +732,7 @@ void VerticalArrayView::recompute_child_positions() {
     CHECK( x >= 0 );
     CHECK( x <= 0 + max_width );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ x, y } );
+                                   Coord{ .x = x, .y = y } );
     ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
@@ -778,7 +778,7 @@ void HorizontalArrayView::recompute_child_positions() {
     CHECK( y >= 0 );
     CHECK( y <= 0 + max_height );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ x, y } );
+                                   Coord{ .x = x, .y = y } );
     ( *this )[i] = std::move( pos_view );
     x += size.w;
   }
@@ -1027,7 +1027,7 @@ BorderView::BorderView( unique_ptr<View> view, gfx::pixel color,
                         int padding, bool on_initially )
   : CompositeSingleView(
         std::move( view ),
-        Coord{ 1 + W{ padding }, 1 + H{ padding } } ),
+        Coord{ .x = 1 + W{ padding }, .y = 1 + H{ padding } } ),
     color_( color ),
     on_( on_initially ),
     padding_( padding ) {}
@@ -1041,8 +1041,8 @@ Delta BorderView::delta() const {
 void BorderView::draw( rr::Renderer& renderer,
                        Coord         coord ) const {
   this->CompositeSingleView::draw(
-      renderer,
-      coord + Delta{ 1 + W{ padding_ }, 1 + H{ padding_ } } );
+      renderer, coord + Delta{ .w = 1 + W{ padding_ },
+                               .h = 1 + H{ padding_ } } );
   if( on_ )
     renderer.painter().draw_empty_rect(
         Rect::from( coord, delta() ),

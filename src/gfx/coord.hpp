@@ -108,8 +108,12 @@ struct Delta {
     return zero;
   }
 
-  Delta with_height( H h_ ) const { return Delta{ w, h_ }; }
-  Delta with_width( W w_ ) const { return Delta{ w_, h }; }
+  Delta with_height( H h_ ) const {
+    return Delta{ .w = w, .h = h_ };
+  }
+  Delta with_width( W w_ ) const {
+    return Delta{ .w = w_, .h = h };
+  }
 
   // Given a grid size this will round each dimension up to the
   // nearest multiple of that size.
@@ -124,8 +128,12 @@ struct Delta {
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
 
-  Delta mirrored_vertically() const { return { w, -h }; }
-  Delta mirrored_horizontally() const { return { -w, h }; }
+  Delta mirrored_vertically() const {
+    return { .w = w, .h = -h };
+  }
+  Delta mirrored_horizontally() const {
+    return { .w = -w, .h = h };
+  }
 
   // Will project this delta along the given one; the length of
   // the returned delta will generally be different than this
@@ -275,15 +283,23 @@ struct Rect {
   int length() const;
 
   // Upper left corner as a coordinate.
-  Coord upper_left() const { return Coord{ x, y }; }
+  Coord upper_left() const { return Coord{ .x = x, .y = y }; }
   // Lower right corner; NOTE, this is one-past-the-end.
-  Coord lower_right() const { return Coord{ x + w, y + h }; }
+  Coord lower_right() const {
+    return Coord{ .x = x + w, .y = y + h };
+  }
   // Lower left corner; NOTE, this is one-past-the-end.
-  Coord lower_left() const { return Coord{ x, y + h }; }
+  Coord lower_left() const {
+    return Coord{ .x = x, .y = y + h };
+  }
   // Upper right corner; NOTE, this is one-past-the-end.
-  Coord upper_right() const { return Coord{ x + w, y }; }
+  Coord upper_right() const {
+    return Coord{ .x = x + w, .y = y };
+  }
   // Center
-  Coord center() const { return Coord{ x + w / 2, y + h / 2 }; }
+  Coord center() const {
+    return Coord{ .x = x + w / 2, .y = y + h / 2 };
+  }
 
   Rect centered_on( Coord coord ) const;
 
@@ -480,8 +496,8 @@ struct RectGridProxyIteratorHelper {
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
     auto const&                        operator*() const {
-      DCHECK( it.is_inside( rect_proxy->rect ) );
-      return it;
+                             DCHECK( it.is_inside( rect_proxy->rect ) );
+                             return it;
     }
     const_iterator& operator++() {
       it.x += rect_proxy->chunk_size.w;
