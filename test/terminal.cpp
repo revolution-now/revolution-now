@@ -74,59 +74,30 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
-  out = { "unit" };
+  out = { "unit_" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "unit_";
+  out = { "unit_composer", "unit_type" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "unit_t";
+  out = { "unit_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate";
   out = { "ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "e.";
-  out = { "e.nation", "e.unit_type", "e.unit_orders" };
-  REQUIRE_THAT( autocomplete( in ), Contains( out ) );
-
-  in  = "e.nat";
-  out = { "e.nation", "e.natural_resource" };
+  in  = "map_";
+  out = { "map_gen" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "e.natu";
-  out = { "e.natural_resource" };
+  in  = "map_gen";
+  out = { "map_gen", "map_gen.classic.resource_dist" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "e.natural_resource";
-  out = { "e.natural_resource." };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation";
-  out = { "e.nation." };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation_xxx";
-  out = {};
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation.";
-  out = {
-      "e.nation.dutch",
-      "e.nation.english",
-      "e.nation.french",
-      "e.nation.spanish",
-  };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation.engli";
-  out = { "e.nation.english" };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation.english";
-  out = { "e.nation.english" };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation.englishx";
-  out = {};
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "e.nation.english.";
+  in  = "map_gen.nation_xxx";
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
@@ -228,7 +199,11 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";
-  out = { "unit" };
+  out = { "unit_" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "unit_c";
+  out = { "unit_composer.UnitComposition.create_with_type" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "ustate.u";
@@ -247,50 +222,9 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = { "ustate.last_unit_id(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "e.";
-  out = { "e.nation", "e.unit_type", "e.unit_orders" };
+  in  = "che";
+  out = { "cheat.reveal_map(" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
-
-  in  = "e.nat";
-  out = { "e.nation", "e.natural_resource" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nati";
-  out = { "e.nation." };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation";
-  out = { "e.nation." };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation_xxx";
-  out = {};
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation.";
-  out = {
-      "e.nation.dutch",
-      "e.nation.english",
-      "e.nation.french",
-      "e.nation.spanish",
-  };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation.engli";
-  out = { "e.nation.english" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation.english";
-  out = { "e.nation.english" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation.englishx";
-  out = {};
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "e.nation.english.";
-  out = {};
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = ".";
   out = {};

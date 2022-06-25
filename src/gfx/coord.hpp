@@ -204,7 +204,9 @@ struct Coord {
   Coord rounded_to_multiple_to_plus_inf( Delta multiple ) const;
   Coord rounded_to_multiple_to_minus_inf( Delta multiple ) const;
 
-  Delta distance_from_origin() const { return { y - 0, x - 0 }; }
+  Delta distance_from_origin() const {
+    return { .w = x, .h = y };
+  }
 
   Coord moved( e_direction d ) const;
   // Find the direction from this coord to `dest`. If dest is not
@@ -273,15 +275,15 @@ struct Rect {
   int length() const;
 
   // Upper left corner as a coordinate.
-  Coord upper_left() const { return Coord{ y, x }; }
+  Coord upper_left() const { return Coord{ x, y }; }
   // Lower right corner; NOTE, this is one-past-the-end.
-  Coord lower_right() const { return Coord{ y + h, x + w }; }
+  Coord lower_right() const { return Coord{ x + w, y + h }; }
   // Lower left corner; NOTE, this is one-past-the-end.
-  Coord lower_left() const { return Coord{ y + h, x }; }
+  Coord lower_left() const { return Coord{ x, y + h }; }
   // Upper right corner; NOTE, this is one-past-the-end.
-  Coord upper_right() const { return Coord{ y, x + w }; }
+  Coord upper_right() const { return Coord{ x + w, y }; }
   // Center
-  Coord center() const { return Coord{ y + h / 2, x + w / 2 }; }
+  Coord center() const { return Coord{ x + w / 2, y + h / 2 }; }
 
   Rect centered_on( Coord coord ) const;
 
@@ -395,7 +397,6 @@ struct Rect {
 
     Coord const& operator*() const {
       DCHECK( rect );
-      // TODO: can remove this check eventually.
       DCHECK( it.is_inside( *rect ) );
       return it;
     }
@@ -406,7 +407,6 @@ struct Rect {
         it.x = rect->left_edge();
         ++it.y;
       }
-      // TODO: can remove this check eventually.
       DCHECK( it == rect->lower_left() ||
               it.is_inside( *rect ) );
       return *this;

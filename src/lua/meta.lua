@@ -82,12 +82,6 @@ local function freeze_table( parent, tbl_name )
   } );
 end
 
-local function freeze_table_members( tbl )
-  for k, v in pairs( tbl ) do
-    if type( v ) == 'table' then freeze_table( tbl, k ) end
-  end
-end
-
 -- Redefine the global builtin function rawset since the real
 -- version is unsafe.
 local real_rawset = rawset
@@ -125,8 +119,6 @@ local function freeze_existing_globals()
 end
 
 function M.freeze_all()
-  -- Freeze enums.
-  freeze_table_members( _G['e'] )
   -- Freeze global tables.
   for k, v in pairs( _G ) do
     if type( v ) == 'table' and k ~= '_G' then

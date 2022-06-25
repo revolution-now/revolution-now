@@ -44,17 +44,17 @@ TEST_CASE( "[cstate] lua create colony" ) {
   REQUIRE( xp == ColonyId{ 1 } );
   auto script = R"(
     local colony = cstate.colony_from_id( 1 )
-    assert_eq( colony:id(), 1 )
-    assert_eq( colony:name(), "my colony" )
-    assert_eq( colony:nation(), "english" )
-    assert_eq( colony:location(), Coord{x=1,y=2} )
+    assert_eq( colony.id, 1 )
+    assert_eq( colony.name, "my colony" )
+    assert_eq( colony.nation, "english" )
+    assert_eq( colony.location, Coord{ x=1, y=2 } )
   )";
   REQUIRE( st.script.run_safe( script ) == valid );
 
   auto xp2 = st.script.run_safe( "cstate.colony_from_id( 2 )" );
   REQUIRE( !xp2.valid() );
   REQUIRE_THAT( xp2.error(),
-                Contains( "colony 2_id does not exist" ) );
+                Contains( "colony 2 does not exist" ) );
 }
 
 } // namespace

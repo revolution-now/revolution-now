@@ -53,7 +53,7 @@ valid_or<string> wrapped::UnitComposition::validate() const {
     int const quantity = inventory[type];
     if( quantity == 0 ) continue;
     UnitInventoryTraits const& traits =
-        config_units.composition.inventory_traits[type];
+        config_unit_type.composition.inventory_traits[type];
     REFL_VALIDATE( quantity >= traits.min_quantity,
                    "{} inventory must have at least {} items.",
                    type, traits.min_quantity );
@@ -69,7 +69,7 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   // Validation: make sure that the unit has all of the inventory
   // types that it is supposed to have.
   for( e_unit_inventory inv :
-       config_units.composition.unit_types[type.type()]
+       config_unit_type.composition.unit_types[type.type()]
            .inventory_types )
     REFL_VALIDATE( inventory[inv] > 0,
                    "unit requires inventory type `{}' but it "
@@ -81,7 +81,7 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   for( auto [inv, q] : inventory )
     if( q > 0 )
       REFL_VALIDATE(
-          config_units.composition.unit_types[type.type()]
+          config_unit_type.composition.unit_types[type.type()]
               .inventory_types.contains( inv ),
           "unit has inventory type `{}' but it is not in the "
           "list of allowed inventory types for that unit type.",
@@ -93,10 +93,10 @@ valid_or<string> wrapped::UnitComposition::validate() const {
 UnitComposition UnitComposition::create( UnitType type ) {
   UnitComposition::UnitInventoryMap inventory;
   for( e_unit_inventory inv :
-       config_units.composition.unit_types[type.type()]
+       config_unit_type.composition.unit_types[type.type()]
            .inventory_types )
     inventory[inv] =
-        config_units.composition.inventory_traits[inv]
+        config_unit_type.composition.inventory_traits[inv]
             .default_quantity;
   UNWRAP_CHECK( res, UnitComposition::create(
                          type, std::move( inventory ) ) );
@@ -132,7 +132,7 @@ namespace {
 maybe<Commodity> commodity_from_modifier(
     UnitComposition const& comp, e_unit_type_modifier mod ) {
   UnitTypeModifierTraits const& traits =
-      config_units.composition.modifier_traits[mod];
+      config_unit_type.composition.modifier_traits[mod];
   switch( traits.association.to_enum() ) {
     using namespace ModifierAssociation;
     case e::none: return nothing;
@@ -144,7 +144,7 @@ maybe<Commodity> commodity_from_modifier(
       auto const& o        = traits.association.get<inventory>();
       int const   quantity = comp.inventory()[o.type];
       UnitInventoryTraits const& inv_traits =
-          config_units.composition.inventory_traits[o.type];
+          config_unit_type.composition.inventory_traits[o.type];
       UNWRAP_RETURN( comm_type, inv_traits.commodity );
       return Commodity{ .type     = comm_type,
                         .quantity = quantity };
@@ -180,7 +180,8 @@ maybe<int> max_valid_inventory_quantity(
     ModifierAssociation::inventory const& inventory,
     int                                   max_available ) {
   UnitInventoryTraits const& inv_traits =
-      config_units.composition.inventory_traits[inventory.type];
+      config_unit_type.composition
+          .inventory_traits[inventory.type];
   int adjusted_max =
       std::min( max_available, inv_traits.max_quantity );
   adjusted_max -= adjusted_max % inv_traits.multiple;
@@ -268,7 +269,7 @@ vector<UnitTransformationResult> possible_unit_transformations(
     // quire a fixed number of commodities.
     for( e_unit_type_modifier mod : mods ) {
       maybe<Commodity> comm =
-          config_units.composition.modifier_traits[mod]
+          config_unit_type.composition.modifier_traits[mod]
               .association
               .get_if<ModifierAssociation::commodity>()
               .member(
@@ -285,14 +286,14 @@ vector<UnitTransformationResult> possible_unit_transformations(
     remove_commodities_from_inventory( new_inventory );
     for( e_unit_type_modifier mod : mods ) {
       auto inventory =
-          config_units.composition.modifier_traits[mod]
+          config_unit_type.composition.modifier_traits[mod]
               .association
               .get_if<ModifierAssociation::inventory>();
       if( !inventory.has_value() )
         // Does not require any inventory commodities.
         continue;
       maybe<e_commodity> comm =
-          config_units.composition
+          config_unit_type.composition
               .inventory_traits[inventory->type]
               .commodity;
       if( !comm.has_value() ) continue;

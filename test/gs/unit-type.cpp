@@ -31,7 +31,7 @@ using namespace std;
 using Catch::Contains;
 
 TEST_CASE( "[unit-type] inventory_traits" ) {
-  auto& traits = config_units.composition
+  auto& traits = config_unit_type.composition
                      .inventory_traits[e_unit_inventory::tools];
   REQUIRE( traits.commodity == e_commodity::tools );
   REQUIRE( traits.min_quantity == 20 );
@@ -1162,33 +1162,33 @@ TEST_CASE( "[unit-type] lua bindings" ) {
   auto script = R"(
     local ut
     -- free_colonist
-    ut = unit_type.UnitType.create( e.unit_type.free_colonist )
+    ut = unit_type.UnitType.create( "free_colonist" )
     assert( ut )
-    assert( ut:type() == e.unit_type.free_colonist )
-    assert( ut:base_type() == e.unit_type.free_colonist )
+    assert( ut:type() == "free_colonist" )
+    assert( ut:base_type() == "free_colonist" )
     -- dragoon
-    ut = unit_type.UnitType.create( e.unit_type.dragoon )
+    ut = unit_type.UnitType.create( "dragoon" )
     assert( ut )
-    assert( ut:type() == e.unit_type.dragoon )
-    assert( ut:base_type() == e.unit_type.free_colonist )
+    assert( ut:type() == "dragoon" )
+    assert( ut:base_type() == "free_colonist" )
     -- veteran_soldier
-    ut = unit_type.UnitType.create( e.unit_type.veteran_soldier )
+    ut = unit_type.UnitType.create( "veteran_soldier" )
     assert( ut )
-    assert( ut:type() == e.unit_type.veteran_soldier )
-    assert( ut:base_type() == e.unit_type.veteran_colonist )
+    assert( ut:type() == "veteran_soldier" )
+    assert( ut:base_type() == "veteran_colonist" )
     -- pioneer
     ut = unit_type.UnitType.create_with_base(
-        e.unit_type.pioneer, e.unit_type.expert_farmer )
+        "pioneer", "expert_farmer" )
     assert( ut )
-    assert( ut:type() == e.unit_type.pioneer )
-    assert( ut:base_type() == e.unit_type.expert_farmer )
+    assert( ut:type() == "pioneer" )
+    assert( ut:base_type() == "expert_farmer" )
   )";
   REQUIRE( st.script.run_safe( script ) == valid );
 
   script  = R"(
     local ut
-    unit-type.UnitType.create_with_base(
-        e.unit_type.hardy_pioneer, e.unit_type.expert_farmer )
+    unit_type.UnitType.create_with_base(
+        "hardy_pioneer", "expert_farmer" )
   )";
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );

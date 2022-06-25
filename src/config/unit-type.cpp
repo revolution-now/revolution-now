@@ -53,7 +53,7 @@ maybe<e_unit_type_modifier> inventory_to_modifier(
   static auto const m = [] {
     DCHECK( configs_loaded() );
     return create_inventory_to_modifier_map(
-        config_units.composition.modifier_traits );
+        config_unit_type.composition.modifier_traits );
   }();
   DCHECK( !m.empty() );
   return base::lookup( m, inv );
@@ -291,8 +291,9 @@ valid_or<string> UnitCompositionConfig::validate() const {
   }
 
   // Get the inventory-to-modifier traits this way because we
-  // cannot use config_units.composition.modifier_traits because
-  // that structure has not yet been populated at this stage.
+  // cannot use config_unit_type.composition.modifier_traits be-
+  // cause that structure has not yet been populated at this
+  // stage.
   unordered_map<e_unit_inventory, e_unit_type_modifier> const
       inv_to_mod =
           create_inventory_to_modifier_map( modifier_traits );

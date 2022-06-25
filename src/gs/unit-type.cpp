@@ -56,7 +56,7 @@ maybe<e_unit_inventory> commodity_to_inventory(
 
 maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type ) {
-  return config_units.composition.inventory_traits[inv_type]
+  return config_unit_type.composition.inventory_traits[inv_type]
       .commodity;
 }
 
@@ -92,7 +92,8 @@ valid_or<string> UnitInventoryTraits::validate() const {
 UnitTypeAttributes const& unit_attr( e_unit_type type ) {
   UNWRAP_CHECK_MSG(
       desc,
-      base::lookup( config_units.composition.unit_types, type ),
+      base::lookup( config_unit_type.composition.unit_types,
+                    type ),
       "internal error: unit type {} does not have a type "
       "descriptor.",
       type );
@@ -244,13 +245,14 @@ maybe<UnitType> find_unit_type_modifiers(
 
 bool is_unit_human( UnitType ut ) {
   e_unit_human res =
-      config_units.composition.unit_types[ut.type()].human;
+      config_unit_type.composition.unit_types[ut.type()].human;
   switch( res ) {
     case e_unit_human::no: return false;
     case e_unit_human::yes: return true;
     case e_unit_human::from_base: {
-      res = config_units.composition.unit_types[ut.base_type()]
-                .human;
+      res =
+          config_unit_type.composition.unit_types[ut.base_type()]
+              .human;
       switch( res ) {
         case e_unit_human::no: return false;
         case e_unit_human::yes: return true;
@@ -337,7 +339,8 @@ namespace {
 e_unit_type expert_for_activity( e_unit_activity activity ) {
   // During config deserialization it should have been verified
   // that there is precisely one expert for each activity.
-  for( auto& [type, attr] : config_units.composition.unit_types )
+  for( auto& [type, attr] :
+       config_unit_type.composition.unit_types )
     if( attr.expertise == activity ) return type;
   SHOULD_NOT_BE_HERE;
 }
@@ -536,7 +539,7 @@ LUA_STARTUP( lua::state& st ) {
   utype["type"]      = &UnitType::type;
 
   lua::table utype_tbl =
-      lua::table::create_or_get( st["utype"] );
+      lua::table::create_or_get( st["unit_type"] );
 
   lua::table tbl_UnitType =
       lua::table::create_or_get( utype_tbl["UnitType"] );

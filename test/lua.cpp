@@ -141,7 +141,7 @@ TEST_CASE( "[lua] C++ function binding" ) {
   lua_reload( GameState::root() );
   auto script = R"(
     local soldier_type =
-        utype.UnitType.create( "soldier" )
+        unit_type.UnitType.create( "soldier" )
     local soldier_comp = unit_composer
                         .UnitComposition
                         .create_with_type_obj( soldier_type )
@@ -162,13 +162,7 @@ TEST_CASE( "[lua] C++ function binding" ) {
 
 TEST_CASE( "[lua] frozen globals" ) {
   lua::state& st = lua_global_state();
-  auto        xp = st.script.run_safe( "e = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only global" ) );
-
-  xp = st.script.run_safe( "new_game = 1" );
+  auto        xp = st.script.run_safe( "new_game = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),

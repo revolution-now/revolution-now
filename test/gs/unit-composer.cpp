@@ -2506,7 +2506,7 @@ TEST_CASE( "[unit-composer] lua bindings" ) {
     assert( uc:type() == "veteran_soldier" )
     assert( uc:base_type() == "veteran_colonist" )
     -- pioneer
-    local ut_obj = utype.UnitType.create_with_base(
+    local ut_obj = unit_type.UnitType.create_with_base(
         "pioneer", "expert_farmer" )
     uc = UC.create_with_type_obj( ut_obj )
     assert( uc )

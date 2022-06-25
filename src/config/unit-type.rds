@@ -244,8 +244,8 @@ struct.UnitCompositionConfig {
   }
 }
 
-struct.config_units_t {
+struct.config_unit_type_t {
   composition 'UnitCompositionConfig',
 }
 
-config.units {}
+config.unit_type {}

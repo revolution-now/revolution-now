@@ -109,6 +109,7 @@ LUA_TEST_CASE( "[luapp/enum] push/get" ) {
   push( L, "xxx" );
   e = lua::get<my_ns::my_enum>( L, -1 );
   REQUIRE( e == base::nothing );
+  C.pop();
 }
 
 } // namespace
