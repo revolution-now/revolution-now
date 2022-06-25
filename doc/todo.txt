@@ -75,6 +75,9 @@
   15. Fix that when clicking outside of an open menu to close it
       the menu plane does not handle the click and it goes
       through to what is underneath of it.
+  16. Fix that when clicking on the exit tile in the harbor view,
+      up click carries through to the land view and scrolls the
+      map.
 
 # Minimap:
 
