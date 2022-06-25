@@ -8,10 +8,8 @@
 # Description: Config info for terrain.
 #
 # ===============================================================
-# Revolution Now
-include "mv-points.hpp"
-
 # gs
+include "gs/mv-points.hpp"
 include "gs/terrain-enums.rds.hpp"
 
 # refl

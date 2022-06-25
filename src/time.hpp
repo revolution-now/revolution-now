@@ -20,9 +20,10 @@
 namespace rn {
 
 using Clock_t    = ::std::chrono::system_clock;
-using Time_t     = decltype( Clock_t::now() );
 using Duration_t = ::std::chrono::nanoseconds;
 using Seconds    = ::std::chrono::seconds;
+using Time_t =
+    std::chrono::time_point<std::chrono::system_clock>;
 
 namespace chrono_literals = ::std::literals::chrono_literals;
 

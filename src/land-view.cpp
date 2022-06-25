@@ -31,6 +31,7 @@
 #include "sound.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "time.hpp"
 #include "unit-id.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"

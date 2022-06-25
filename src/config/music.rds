@@ -8,9 +8,6 @@
 # Description: Config info for tunes/music.
 #
 # ===============================================================
-# Revolution Now
-include "time.hpp"
-
 # Rds
 include "conductor.rds.hpp"
 include "tune.rds.hpp"
@@ -39,7 +36,7 @@ struct.config_music_t {
   first_choice_music_player 'e_music_player',
   second_choice_music_player 'e_music_player',
 
-  threshold_previous_tune_secs 'Seconds',
+  threshold_previous_tune_secs 'std::chrono::seconds',
 
   tunes 'std::vector<Tune>',
 

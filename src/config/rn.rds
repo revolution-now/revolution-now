@@ -10,7 +10,6 @@
 # ===============================================================
 # Revolution Now
 include "font.hpp"
-include "time.hpp"
 
 # Rds
 include "nation.rds.hpp"
@@ -52,7 +51,7 @@ struct.config_rn_console {
 }
 
 struct.config_rn_power {
-  time_till_slow_fps 'Seconds',
+  time_till_slow_fps 'std::chrono::seconds',
 }
 
 struct.config_rn_t {
