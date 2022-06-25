@@ -14,7 +14,6 @@
 #include "co-lua-scheduler.hpp"
 #include "co-wait.hpp"
 #include "lua-wait.hpp"
-#include "lua.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"

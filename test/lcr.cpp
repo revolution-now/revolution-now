@@ -37,6 +37,12 @@ namespace {
 using namespace ::std;
 using namespace ::mock::matchers;
 
+Player& player_for_nation( PlayersState& players_state,
+                           e_nation      nation ) {
+  UNWRAP_CHECK( player, players_state.players[nation] );
+  return player;
+}
+
 TEST_CASE( "[test/lcr] has_lost_city_rumor" ) {
   TerrainState terrain_state;
   terrain_state.mutable_world_map() =

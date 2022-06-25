@@ -13,7 +13,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "lua.hpp"
 #include "math.hpp"
 #include "tiles.hpp"
 

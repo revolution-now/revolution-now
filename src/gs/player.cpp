@@ -10,22 +10,13 @@
 *****************************************************************/
 #include "player.hpp"
 
-// Revolution Now
-#include "fathers.hpp"
-#include "game-state.hpp"
-#include "logger.hpp"
-#include "lua.hpp"
-#include "old-world-state.hpp"
-#include "util.hpp"
-
-// game-state
-#include "gs/players.hpp"
+// gs
+#include "gs/fathers.hpp"
+#include "gs/old-world-state.hpp"
 
 // luapp
-#include "luapp/as.hpp"
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/iter.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
@@ -34,38 +25,10 @@
 
 // base
 #include "base/to-str-ext-std.hpp"
-#include "base/to-str-tags.hpp"
 
 using namespace std;
 
 namespace rn {
-
-/****************************************************************
-** Public API
-*****************************************************************/
-Player& player_for_nation( e_nation nation ) {
-  auto& players = GameState::players().players;
-  UNWRAP_CHECK( player, players[nation] );
-  return player;
-}
-
-Player& player_for_nation( PlayersState& players_state,
-                           e_nation      nation ) {
-  auto& players = players_state.players;
-  UNWRAP_CHECK_MSG( player, players[nation],
-                    "player for nation {} does not exist.",
-                    nation );
-  return player;
-}
-
-Player const& player_for_nation(
-    PlayersState const& players_state, e_nation nation ) {
-  auto& players = players_state.players;
-  UNWRAP_CHECK_MSG( player, players[nation],
-                    "player for nation {} does not exist.",
-                    nation );
-  return player;
-}
 
 void linker_dont_discard_module_player() {}
 

@@ -14,10 +14,10 @@
 #include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "land-production.hpp"
-#include "player.hpp"
 #include "unit.hpp"
 
-// game-state
+// gs
+#include "gs/player.rds.hpp"
 #include "gs/units.hpp"
 
 // config

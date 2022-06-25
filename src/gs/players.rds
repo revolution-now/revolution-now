@@ -8,11 +8,9 @@
 # Description: RDS definitions for the sg-players module.
 #
 # ===============================================================
-# Revolution Now
-include "player.hpp"
-
-# Rds
-include "nation.rds.hpp"
+# gs
+include "gs/nation.rds.hpp"
+include "gs/player.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

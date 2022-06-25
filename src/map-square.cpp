@@ -11,7 +11,6 @@
 #include "map-square.hpp"
 
 // Revolution Now
-#include "lua.hpp"
 #include "nation.hpp"
 #include "terrain.hpp"
 

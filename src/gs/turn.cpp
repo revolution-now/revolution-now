@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "turn.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/register.hpp"

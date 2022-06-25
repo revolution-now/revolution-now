@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "old-world-state.rds.hpp"
 

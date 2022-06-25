@@ -15,7 +15,6 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "production.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
@@ -33,6 +32,8 @@
 using namespace std;
 
 namespace rn {
+
+struct Player;
 
 namespace {
 

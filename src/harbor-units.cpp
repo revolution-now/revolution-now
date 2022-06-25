@@ -14,16 +14,15 @@
 #include "error.hpp"
 #include "game-state.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
+// gs
+#include "gs/player.rds.hpp"
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"
 

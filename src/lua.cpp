@@ -15,6 +15,7 @@
 #include "expect.hpp"
 #include "init.hpp"
 #include "logger.hpp"
+#include "lua.hpp"
 
 // game-state
 #include "gs/root.hpp"

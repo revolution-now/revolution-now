@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "game-state.hpp"
-#include "lua.hpp"
 #include "plow.hpp"
 #include "road.hpp"
 #include "ustate.hpp"

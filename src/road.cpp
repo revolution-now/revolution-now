@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "logger.hpp"
-#include "lua.hpp"
 #include "map-updater.hpp"
 #include "tiles.hpp"
 

@@ -17,9 +17,9 @@
 #include "igui.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
-#include "player.hpp"
 
 // game-state
+#include "gs/player.rds.hpp"
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"
 

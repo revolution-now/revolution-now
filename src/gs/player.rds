@@ -11,10 +11,10 @@
 # Revolution Now
 include "maybe.hpp"
 
-# Rds
-include "fathers.rds.hpp"
-include "old-world-state.rds.hpp"
-include "nation.rds.hpp"
+# gs
+include "gs/fathers.rds.hpp"
+include "gs/nation.rds.hpp"
+include "gs/old-world-state.rds.hpp"
 
 # gfx
 include "gfx/coord.hpp"

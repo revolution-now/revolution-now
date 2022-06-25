@@ -25,7 +25,6 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "player.hpp"
 #include "rand.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
@@ -33,6 +32,7 @@
 
 // game-state
 #include "gs/colonies.hpp"
+#include "gs/player.rds.hpp"
 #include "gs/terrain.hpp"
 #include "gs/units.hpp"
 

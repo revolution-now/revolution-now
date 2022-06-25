@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "gs/players.hpp"
 
-// Revolution Now
-#include "lua.hpp"
+// gs
+#include "gs/player.hpp"
 
 // luapp
 #include "luapp/enum.hpp"

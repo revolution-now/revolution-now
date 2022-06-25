@@ -25,7 +25,7 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "old-world-state.hpp"
+#include "old-world-state.rds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "render.hpp"

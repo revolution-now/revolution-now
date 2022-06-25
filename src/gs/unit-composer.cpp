@@ -12,9 +12,6 @@
 *****************************************************************/
 #include "unit-composer.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // Config
 #include "config/unit-type.hpp"
 

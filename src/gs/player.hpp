@@ -10,32 +10,13 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "nation.hpp"
-
 // Rds
 #include "player.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Abseil
-#include "absl/types/span.h"
-
 namespace rn {
-
-struct PlayersState;
-
-Player& player_for_nation( PlayersState& players_state,
-                           e_nation      nation );
-
-Player const& player_for_nation(
-    PlayersState const& players_state, e_nation nation );
-
-// FIXME: deprecated
-Player& player_for_nation( e_nation nation );
 
 void linker_dont_discard_module_player();
 

@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "gs/settings.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // luapp
 #include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"

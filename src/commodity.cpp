@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"

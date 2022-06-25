@@ -14,7 +14,6 @@
 // Revolution Now
 #include "colony-mgr.hpp"
 #include "land-view.hpp"
-#include "lua.hpp"
 #include "map-square.hpp"
 #include "players.hpp"
 #include "settings.hpp"

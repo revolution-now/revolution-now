@@ -8,11 +8,9 @@
 # Description: Per-player old world state.
 #
 # ===============================================================
-# Revolution Now
-include "unit-id.hpp"
-
 # gs
 include "gs/commodity.rds.hpp"
+include "gs/unit-id.hpp"
 include "gs/unit-type.rds.hpp"
 
 # refl

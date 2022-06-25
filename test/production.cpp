@@ -16,10 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/player.hpp"
-
-// game-state
+// gs
+#include "src/gs/player.rds.hpp"
 #include "src/gs/terrain.hpp"
 #include "src/gs/units.hpp"
 

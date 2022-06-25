@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "old-world-state.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // gs
 #include "gs/unit-type.hpp"
 

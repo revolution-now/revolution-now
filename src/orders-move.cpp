@@ -26,7 +26,6 @@
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "ustate.hpp"
 
 // config
@@ -35,6 +34,7 @@
 
 // gs
 #include "gs/colonies.hpp"
+#include "gs/player.rds.hpp"
 #include "gs/terrain.hpp"
 #include "gs/unit-type.hpp"
 #include "gs/units.hpp"
@@ -669,9 +669,8 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto    id     = unit_id;
-  auto&   unit   = units_state_.unit_for( id );
-  Player& player = player_for_nation( unit.nation() );
+  auto  id   = unit_id;
+  auto& unit = units_state_.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
@@ -700,7 +699,7 @@ wait<> TravelHandler::perform() {
         }
       }
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -720,14 +719,14 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::offboard_ship:
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
       co_await unit_to_map_square( units_state_, terrain_state_,
-                                   player, settings_, gui_,
+                                   player_, settings_, gui_,
                                    map_updater_, id, move_dst );
       // When a ship moves into port it forfeights its movement
       // points.

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "co-lua-scheduler.hpp"
-#include "lua.hpp"
 #include "wait.hpp"
 
 // luapp

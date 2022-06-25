@@ -10,10 +10,6 @@
 *****************************************************************/
 #include "unit-type.hpp"
 
-// Revolution Now
-#include "config-files.hpp"
-#include "lua.hpp"
-
 // config
 #include "config/unit-type.hpp"
 

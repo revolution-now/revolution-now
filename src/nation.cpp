@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "colony.hpp"
-#include "lua.hpp"
 #include "ustate.hpp"
 
 // game-state

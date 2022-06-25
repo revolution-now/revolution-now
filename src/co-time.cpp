@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "frame.hpp"
 #include "lua-wait.hpp"
-#include "lua.hpp"
 
 // luapp
 #include "luapp/register.hpp"

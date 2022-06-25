@@ -12,10 +12,6 @@
 
 #include "core-config.hpp"
 
-// base
-#include "base/cc-specific.hpp"
-#include "base/fs.hpp"
-
 namespace lua {
 
 struct state;

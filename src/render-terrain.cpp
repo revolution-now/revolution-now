@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "game-state.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"

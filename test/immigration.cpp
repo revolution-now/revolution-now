@@ -23,10 +23,10 @@
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
-#include "src/player.hpp"
 #include "src/ustate.hpp"
 
-// game-state
+// gs
+#include "src/gs/player.rds.hpp"
 #include "src/gs/settings.hpp"
 #include "src/gs/terrain.hpp"
 #include "src/gs/units.hpp"

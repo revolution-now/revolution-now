@@ -23,14 +23,14 @@
 #include "lua.hpp"
 #include "macros.hpp"
 #include "on-map.hpp"
-#include "player.hpp"
 #include "variant.hpp"
 
 // config
 #include "config/unit-type.hpp"
 
-// game-state
+// gs
 #include "gs/colonies.hpp"
+#include "gs/player.rds.hpp"
 #include "gs/units.hpp"
 
 // luapp

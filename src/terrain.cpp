@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "terrain.hpp"
 
-// Revolution Now
-#include "lua.hpp"
-
 // config
 #include "config/terrain.rds.hpp"
 

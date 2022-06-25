@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-runner.hpp"
 #include "input.hpp"
-#include "lua.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
 #include "plane-stack.hpp"
