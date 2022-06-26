@@ -53,17 +53,23 @@ struct TerrainState {
 
   // This essentially returns what square_at does, except it also
   // returns valid values for any squares outside of the map, in
-  // which case it will return arctic squares for the top and
-  // bottom and sea lane squares for the left and right sides.
-  // This is very useful for rendering for two reasons: 1) the
-  // renderer doesn't have to make special cases for tiles on the
-  // map edge, and 2) it helps to replicate the behavior of the
-  // original game where tiles at the map edge are rendered as if
-  // there are more tiles off of the map.
-  //
-  // The word "total" in the name refers to the fact that, unlike
-  // `square_at`, this is a total function.
+  // which case it will return the "proto" squares specified in
+  // the terrain data structure. This is very useful for ren-
+  // dering for two reasons: 1) the renderer doesn't have to make
+  // special cases for tiles on the map edge, and 2) it helps to
+  // replicate the behavior of the original game where tiles at
+  // the map edge are rendered as if there are more tiles off of
+  // the map. The word "total" in the name refers to the fact
+  // that, unlike `square_at`, this is a total function.
   MapSquare const& total_square_at( Coord coord ) const;
+
+  // Given a tile coordinate that is off of the map, this will
+  // return the proto square direction for it. If the tile is on
+  // the map then it returns nothing.
+  base::maybe<e_cardinal_direction>
+  proto_square_direction_for_tile( Coord tile ) const;
+
+  MapSquare const& proto_square( e_cardinal_direction d ) const;
 
   // Throws if coord is not on map.
   bool is_land( Coord coord ) const;
@@ -78,6 +84,11 @@ struct TerrainState {
   MapSquare&              mutable_square_at( Coord coord );
   base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
 
+  // This should only be called by code doing map generation.
+  // Once a map is generated, the proto squares should not be
+  // modified.
+  MapSquare& mutable_proto_square( e_cardinal_direction d );
+
  private:
   base::valid_or<std::string> validate() const;
   void                        validate_or_die() const;
@@ -89,6 +100,9 @@ struct TerrainState {
   // none.
 };
 
+using ProtoSquaresMap =
+    refl::enum_map<e_cardinal_direction, MapSquare>;
+
 } // namespace rn
 
 /****************************************************************
@@ -96,4 +110,5 @@ struct TerrainState {
 *****************************************************************/
 namespace lua {
 LUA_USERDATA_TRAITS( ::rn::TerrainState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::ProtoSquaresMap, owned_by_cpp ){};
 }

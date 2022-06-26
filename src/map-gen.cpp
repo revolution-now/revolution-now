@@ -14,8 +14,9 @@
 #include "lua.hpp"
 #include "map-square.hpp"
 
-// game-state
+// gs
 #include "gs/land-view.hpp"
+#include "gs/map-square.hpp"
 #include "gs/terrain.hpp"
 
 // luapp
@@ -124,11 +125,11 @@ LUA_FN( reset_terrain, void, Delta size ) {
 // which is available from Lua.
 LUA_FN( at, MapSquare&, Coord tile ) {
   TerrainState& terrain_state = GameState::terrain();
-  // FIXME: this generates a formatting error because `tile` for-
-  // mats into a string with curly braces which somehow need to
-  // be escaped.
-  LUA_CHECK( st, terrain_state.square_exists( tile ),
-             "There is no tile at coordinate {}.", tile );
+  maybe<e_cardinal_direction> d =
+      terrain_state.proto_square_direction_for_tile( tile );
+  if( d.has_value() )
+    return terrain_state.mutable_proto_square( *d );
+  // This should never fail since coord should now be on the map.
   return terrain_state.mutable_square_at( tile );
 }
 

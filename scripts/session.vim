@@ -1,9 +1,9 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'colony',
+ \ 'gs/colony',
  \ 'config/colony',
- \ 'config/colony-enums',
- \ 'gs-colonies',
+ \ 'gs/colony-enums',
+ \ 'gs/colonies',
  \ '../test/fake/world',
  \ 'colony-mgr',
  \ 'colony-evolve',

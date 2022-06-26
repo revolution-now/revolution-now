@@ -12,9 +12,21 @@
 include "gs/map-square.rds.hpp"
 include "gs/matrix.hpp"
 
+# gfx
+include "gfx/coord.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn.wrapped"
 
 struct.TerrainState {
   placement_seed 'int',
-  world_map 'Matrix<::rn::MapSquare>',
+  world_map 'Matrix<MapSquare>',
+
+  # For rendering purposes it is necessary to know the contents
+  # of squares that are "off of the map edge." These will specify
+  # that for each map edge. Note that squares off of the map edge
+  # are not accessible to units and don't actually exist.
+  proto_squares 'refl::enum_map<e_cardinal_direction, MapSquare>',
 }

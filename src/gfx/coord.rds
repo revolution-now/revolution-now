@@ -16,6 +16,12 @@ enum.e_direction {
   sw, s, se,
 }
 
+enum.e_cardinal_direction {
+      n,
+   w,     e,
+      s,
+}
+
 enum.e_direction_type {
   cardinal, # n, w, e, s
   diagonal, # nw, ne, sw, se
