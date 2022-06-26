@@ -48,7 +48,7 @@ function M.default_options()
     brush='rand',
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
-    river_density=.08,
+    river_density=.10,
     -- This is the probability that a given river segment will be
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
@@ -832,7 +832,15 @@ local function create_rivers( options )
   on_all( function( coord, square )
     if is_land( square ) then
       if random_bool( options.river_density ) then
+        -- Before starting a new river make sure there are no ex-
+        -- isting rivers in the vicinity. Without this, the
+        -- rivers tend to clump too much.
+        local squares = surrounding_squares_3x3( coord )
+        for _, coord in ipairs( squares ) do
+          if square_at( coord ).river then goto skip end
+        end
         create_river( options, coord )
+        ::skip::
       end
     end
   end )
