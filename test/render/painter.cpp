@@ -65,6 +65,10 @@ constexpr pixel G{ .r = 0, .g = 255, .b = 0, .a = 128 };
 constexpr pixel B{ .r = 0, .g = 0, .b = 255, .a = 10 };
 constexpr pixel W{ .r = 255, .g = 255, .b = 255, .a = 255 };
 
+point get_atlas_center( int id ) {
+  return atlas_map().lookup( id ).center();
+}
+
 TEST_CASE( "[render/painter] draw_solid_rect" ) {
   vector<GenericVertex> v, expected;
 
@@ -628,8 +632,10 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
 
   point p;
 
+  point const atlas_center = get_atlas_center( 1 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p ).generic();
+    return SpriteVertex( p, atlas_p, atlas_center ).generic();
   };
 
   p            = { .x = 20, .y = 30 };
@@ -656,8 +662,11 @@ TEST_CASE( "[render/painter] draw_silhouette" ) {
 
   point p;
 
+  point const atlas_center = get_atlas_center( 2 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return SilhouetteVertex( p, atlas_p, R ).generic();
+    return SilhouetteVertex( p, atlas_p, atlas_center, R )
+        .generic();
   };
 
   p            = { .x = 20, .y = 30 };
@@ -687,8 +696,11 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   // placement point.
   gfx::size offset{ .w = 1, .h = 1 };
 
+  point const atlas_center = get_atlas_center( 2 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return StencilVertex( p, atlas_p, offset, R ).generic();
+    return StencilVertex( p, atlas_p, atlas_center, offset, R )
+        .generic();
   };
 
   p                  = { .x = 20, .y = 30 };
@@ -719,8 +731,10 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
 
   rect r;
 
+  point const atlas_center = get_atlas_center( 1 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p ).generic();
+    return SpriteVertex( p, atlas_p, atlas_center ).generic();
   };
 
   r            = rect{ .origin = { .x = 20, .y = 30 },
@@ -746,8 +760,10 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
+  point const atlas_center = point{ .x = 4, .y = 6 };
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p ).generic();
+    return SpriteVertex( p, atlas_p, atlas_center ).generic();
   };
 
   point p{ .x = 20, .y = 30 };
@@ -777,8 +793,11 @@ TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
 
   rect r;
 
+  point const atlas_center = get_atlas_center( 1 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    return SilhouetteVertex( p, atlas_p, G ).generic();
+    return SilhouetteVertex( p, atlas_p, atlas_center, G )
+        .generic();
   };
 
   r            = rect{ .origin = { .x = 20, .y = 30 },
@@ -814,8 +833,10 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   point p;
 
+  point const atlas_center = get_atlas_center( 2 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SilhouetteVertex( p, atlas_p, R );
+    auto vert = SilhouetteVertex( p, atlas_p, atlas_center, R );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
@@ -853,8 +874,10 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
 
   point p;
 
+  point const atlas_center = get_atlas_center( 2 );
+
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SilhouetteVertex( p, atlas_p, R );
+    auto vert = SilhouetteVertex( p, atlas_p, atlas_center, R );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_inversion( true );
     vert.set_depixelation_anchor( { .x = 1, .y = 2 } );

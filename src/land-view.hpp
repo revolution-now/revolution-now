@@ -27,7 +27,6 @@
 namespace rn {
 
 struct IGui;
-;
 struct IMapUpdater;
 struct MenuPlane;
 struct LandViewState;

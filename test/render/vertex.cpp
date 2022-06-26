@@ -28,13 +28,15 @@ using ::gfx::size;
 
 TEST_CASE( "[render/vertex] SpriteVertex" ) {
   SpriteVertex         vert( point{ .x = 1, .y = 2 },
-                             point{ .x = 3, .y = 4 } );
+                             point{ .x = 3, .y = 4 },
+                             point{ .x = 5, .y = 6 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 0 );
   REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{} );
   REQUIRE( gv.alpha_multiplier == 1.0f );
@@ -50,6 +52,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{} );
+  REQUIRE( gv.atlas_center == gl::vec2{} );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
@@ -61,6 +64,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
 TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   SilhouetteVertex vert(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
+      point{ .x = 5, .y = 6 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 2 );
@@ -68,6 +72,7 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
@@ -79,7 +84,7 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
 TEST_CASE( "[render/vertex] StencilVertex" ) {
   StencilVertex vert(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
-      size{ .w = 2, .h = 3 },
+      point{ .x = 5, .y = 6 }, size{ .w = 2, .h = 3 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 3 );
@@ -87,6 +92,7 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
   REQUIRE( gv.atlas_target_offset ==
            gl::vec2{ .x = 2, .y = 3 } );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
@@ -98,12 +104,14 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
 
 TEST_CASE( "[render/vertex] add_vertex" ) {
   SpriteVertex vert1( point{ .x = 1, .y = 2 },
-                      point{ .x = 3, .y = 4 } );
+                      point{ .x = 3, .y = 4 },
+                      point{ .x = 5, .y = 6 } );
   SolidVertex  vert2(
        point{ .x = 1, .y = 2 },
        pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   SilhouetteVertex vert3(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
+      point{ .x = 5, .y = 6 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
 
   vector<GenericVertex> vec;
@@ -120,7 +128,8 @@ TEST_CASE( "[render/vertex] add_vertex" ) {
 
 TEST_CASE( "[render/vertex] depixelation" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.depixelation_stage() == 0.0 );
   REQUIRE( vert.depixelation_anchor() == gl::vec2{} );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
@@ -150,7 +159,8 @@ TEST_CASE( "[render/vertex] depixelation" ) {
 
 TEST_CASE( "[render/vertex] visibility" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.is_visible() );
   vert.set_visible( true );
   REQUIRE( vert.is_visible() );
@@ -162,7 +172,8 @@ TEST_CASE( "[render/vertex] visibility" ) {
 
 TEST_CASE( "[render/vertex] alpha" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   vert.reset_alpha();
   REQUIRE( vert.alpha() == 1.0 );
   vert.set_alpha( .5 );
@@ -175,7 +186,8 @@ TEST_CASE( "[render/vertex] alpha" ) {
 
 TEST_CASE( "[render/vertex] scaling" ) {
   SpriteVertex vert( point{ .x = 6, .y = 12 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.generic().scaling == 1.0 );
   vert.set_scaling( .5 );
   REQUIRE( vert.generic().scaling == .5f );
@@ -185,7 +197,8 @@ TEST_CASE( "[render/vertex] scaling" ) {
 
 TEST_CASE( "[render/vertex] translation" ) {
   SpriteVertex vert( point{ .x = 6, .y = 12 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.generic().translation ==
            gl::vec2{ .x = 0, .y = 0 } );
   vert.set_translation( gfx::size{ .w = 2, .h = -4 } );
@@ -195,7 +208,8 @@ TEST_CASE( "[render/vertex] translation" ) {
 
 TEST_CASE( "[render/vertex] color_cycle" ) {
   SpriteVertex vert( point{ .x = 6, .y = 12 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.generic().color_cycle == 0 );
   vert.set_color_cycle( true );
   REQUIRE( vert.generic().color_cycle == 1 );
@@ -205,7 +219,8 @@ TEST_CASE( "[render/vertex] color_cycle" ) {
 
 TEST_CASE( "[render/vertex] use_camera" ) {
   SpriteVertex vert( point{ .x = 6, .y = 12 },
-                     point{ .x = 3, .y = 4 } );
+                     point{ .x = 3, .y = 4 },
+                     point{ .x = 5, .y = 6 } );
   REQUIRE( vert.generic().use_camera == 0 );
   vert.set_use_camera( true );
   REQUIRE( vert.generic().use_camera == 1 );
