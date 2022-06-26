@@ -22,9 +22,6 @@
 // gfx
 #include "gfx/coord.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {
 
 bool is_land( MapSquare const& square );
@@ -68,10 +65,3 @@ maybe<e_natural_resource> effective_resource(
     MapSquare const& square );
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::MapSquare, owned_by_cpp ){};
-}

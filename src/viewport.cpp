@@ -795,9 +795,9 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   // FIXME: this seems to never finish if the viewport is zoomed
   // in too far (to where a unit and its surroundings are not
   // fully visible).
-  stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
+  stop_auto_panning();
   coro_smooth_scroll_ = SmoothScroll{
       .x_target    = double( ( coord.x * g_tile_width ) ),
       .y_target    = double( ( coord.y * g_tile_height ) ),

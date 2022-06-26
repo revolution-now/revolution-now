@@ -5,7 +5,7 @@
 #
 # Created by dsicilia on 2021-03-02.
 #
-# Description: RDS definitions for the map-square module.
+# Description: Serializable state representing a map square.
 #
 # ===============================================================
 # Rds

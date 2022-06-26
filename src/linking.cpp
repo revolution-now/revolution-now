@@ -25,6 +25,7 @@
 
 // game-state
 #include "gs/land-view.hpp"
+#include "gs/map-square.hpp"
 
 // base
 #include "base/stack-trace.hpp"
@@ -43,6 +44,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_fathers();
   linker_dont_discard_module_time();
   linker_dont_discard_module_gs_land_view();
+  linker_dont_discard_module_gs_map_square();
   // Add more here as needed.
 }
 

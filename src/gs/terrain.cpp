@@ -11,15 +11,19 @@
 #include "terrain.hpp"
 
 // gs
-#include "gs/map-square.rds.hpp"
+#include "gs/map-square.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -86,22 +90,36 @@ base::maybe<MapSquare const&> TerrainState::maybe_square_at(
 
 MapSquare const& TerrainState::total_square_at(
     Coord coord ) const {
-  static MapSquare const kArctic =
-      MapSquare{ .surface = e_surface::land,
-                 .ground  = e_ground_terrain::arctic };
-  static MapSquare const kSeaLane =
-      MapSquare{ .surface  = e_surface::water,
-                 .ground   = {},
-                 .sea_lane = true };
-  Rect rect = world_rect_tiles();
-  if( coord.x < rect.left_edge() ||
-      coord.x >= rect.right_edge() )
-    return kSeaLane;
-  if( coord.y < rect.top_edge() ||
-      coord.y >= rect.bottom_edge() )
-    return kArctic;
+  base::maybe<e_cardinal_direction> d =
+      proto_square_direction_for_tile( coord );
+  if( d.has_value() ) return proto_square( *d );
   // This should never fail since coord should now be on the map.
   return square_at( coord );
+}
+
+base::maybe<e_cardinal_direction>
+TerrainState::proto_square_direction_for_tile(
+    Coord coord ) const {
+  Rect rect = world_rect_tiles();
+  if( coord.x < rect.left_edge() )
+    return e_cardinal_direction::w;
+  if( coord.y < rect.top_edge() ) //
+    return e_cardinal_direction::n;
+  if( coord.x >= rect.right_edge() )
+    return e_cardinal_direction::e;
+  if( coord.y >= rect.bottom_edge() )
+    return e_cardinal_direction::s;
+  return base::nothing;
+}
+
+MapSquare const& TerrainState::proto_square(
+    e_cardinal_direction d ) const {
+  return o_.proto_squares[d];
+}
+
+MapSquare& TerrainState::mutable_proto_square(
+    e_cardinal_direction d ) {
+  return o_.proto_squares[d];
 }
 
 MapSquare const& TerrainState::square_at( Coord coord ) const {
@@ -134,6 +152,18 @@ LUA_STARTUP( lua::state& st ) {
   u["set_placement_seed"] = &U::set_placement_seed;
   u["world_size_tiles"]   = &U::world_size_tiles;
   u["square_exists"]      = &U::square_exists;
+
+  // ProtoSquaresMap.
+  // TODO: make this generic.
+  [&] {
+    using U = ::rn::ProtoSquaresMap;
+    auto u  = st.usertype.create<U>();
+
+    u[lua::metatable_key]["__index"] =
+        [&]( U& obj, e_cardinal_direction c ) -> MapSquare& {
+      return obj[c];
+    };
+  }();
 };
 
 } // namespace

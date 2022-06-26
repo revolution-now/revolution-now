@@ -108,6 +108,69 @@ cdr::value cdr_game_state_default =
                         "data"_key       = cdr::list{},
                         "has_coords"_key = false,
                     },
+                "proto_squares"_key =
+                    cdr::table{
+                        "n"_key =
+                            cdr::table{
+                                "surface"_key = "water",
+                                "ground"_key  = "arctic",
+                                "overlay"_key = cdr::null,
+                                "river"_key   = cdr::null,
+                                "ground_resource"_key =
+                                    cdr::null,
+                                "forest_resource"_key =
+                                    cdr::null,
+                                "irrigation"_key      = false,
+                                "road"_key            = false,
+                                "sea_lane"_key        = false,
+                                "lost_city_rumor"_key = false,
+                            },
+                        "w"_key =
+                            cdr::table{
+                                "surface"_key = "water",
+                                "ground"_key  = "arctic",
+                                "overlay"_key = cdr::null,
+                                "river"_key   = cdr::null,
+                                "ground_resource"_key =
+                                    cdr::null,
+                                "forest_resource"_key =
+                                    cdr::null,
+                                "irrigation"_key      = false,
+                                "road"_key            = false,
+                                "sea_lane"_key        = false,
+                                "lost_city_rumor"_key = false,
+                            },
+                        "s"_key =
+                            cdr::table{
+                                "surface"_key = "water",
+                                "ground"_key  = "arctic",
+                                "overlay"_key = cdr::null,
+                                "river"_key   = cdr::null,
+                                "ground_resource"_key =
+                                    cdr::null,
+                                "forest_resource"_key =
+                                    cdr::null,
+                                "irrigation"_key      = false,
+                                "road"_key            = false,
+                                "sea_lane"_key        = false,
+                                "lost_city_rumor"_key = false,
+                            },
+                        "e"_key =
+                            cdr::table{
+                                "surface"_key = "water",
+                                "ground"_key  = "arctic",
+                                "overlay"_key = cdr::null,
+                                "river"_key   = cdr::null,
+                                "ground_resource"_key =
+                                    cdr::null,
+                                "forest_resource"_key =
+                                    cdr::null,
+                                "irrigation"_key      = false,
+                                "road"_key            = false,
+                                "sea_lane"_key        = false,
+                                "lost_city_rumor"_key = false,
+                            },
+                    },
             },
     };
 
