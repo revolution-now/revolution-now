@@ -21,7 +21,6 @@
 #include "dragdrop.hpp"
 #include "gui.hpp"
 #include "logger.hpp"
-#include "map-updater.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
@@ -45,6 +44,8 @@
 using namespace std;
 
 namespace rn {
+
+struct IMapUpdater;
 
 namespace {
 

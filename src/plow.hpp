@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "game-state.hpp"
-#include "map-updater.hpp"
 #include "unit.hpp"
 
 // render
@@ -24,6 +23,8 @@
 #include "gfx/coord.hpp"
 
 namespace rn {
+
+struct IMapUpdater;
 
 /****************************************************************
 ** Plow State

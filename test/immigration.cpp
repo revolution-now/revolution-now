@@ -22,7 +22,6 @@
 #include "src/igui-mock.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
-#include "src/map-updater.hpp"
 #include "src/ustate.hpp"
 
 // gs

@@ -1,19 +1,19 @@
 /****************************************************************
-**game-state.cpp
+**ss.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-02-12.
 *
-* Description: Unit tests for the src/game-state.* module.
+* Description: Unit tests for the src/ss.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/game-state.hpp"
+#include "src/gs/ss.hpp"
 
-// game-state
+// gs
 #include "src/gs/root.hpp"
 
 // refl

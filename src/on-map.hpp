@@ -15,7 +15,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "map-updater.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
@@ -24,6 +23,7 @@
 
 namespace rn {
 
+struct IMapUpdater;
 struct TerrainState;
 struct UnitsState;
 struct SettingsState;

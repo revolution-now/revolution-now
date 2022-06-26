@@ -14,9 +14,10 @@
 
 // Revolution Now
 #include "game-state.hpp"
-#include "map-updater.hpp"
 
 namespace rn {
+
+struct IMapUpdater;
 
 void generate_terrain( IMapUpdater& map_updater );
 

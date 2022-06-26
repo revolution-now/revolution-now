@@ -20,24 +20,9 @@
 
 namespace rn {
 
-struct ColoniesState;
-struct IMapUpdater;
-struct LandViewState;
-struct SettingsState;
-struct Planes;
-struct PlayersState;
-struct UnitsState;
-struct TerrainState;
-struct TurnState;
-struct WindowPlane;
+struct SS;
+struct TS;
 
-wait<> turn_loop( Planes& planes, PlayersState& players_state,
-                  TerrainState const&  terrain_state,
-                  LandViewState&       land_view_state,
-                  UnitsState&          units_state,
-                  SettingsState const& settings,
-                  TurnState&           turn_state,
-                  ColoniesState&       colonies_state,
-                  IMapUpdater&         map_updater );
+wait<> turn_loop( SS& ss, TS& ts );
 
 } // namespace rn

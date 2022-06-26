@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "igui.hpp"
-#include "map-updater.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
@@ -26,6 +25,7 @@
 
 namespace rn {
 
+struct IMapUpdater;
 struct Player;
 struct TerrainState;
 struct UnitsState;

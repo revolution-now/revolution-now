@@ -18,7 +18,6 @@
 #include "logger.hpp"
 #include "map-gen.hpp"
 #include "map-square.hpp"
-#include "map-updater.hpp"
 #include "menu.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -51,6 +50,8 @@
 using namespace std;
 
 namespace rn {
+
+struct IMapUpdater;
 
 namespace {
 

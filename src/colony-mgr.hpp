@@ -18,7 +18,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "map-updater.hpp"
 #include "wait.hpp"
 
 // gs
@@ -38,6 +37,7 @@ namespace rn {
 struct ColoniesState;
 struct Colony;
 struct IGui;
+struct IMapUpdater;
 struct LandViewPlane;
 struct Planes;
 struct Player;

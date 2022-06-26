@@ -15,7 +15,6 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
-#include "game-state.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
@@ -23,7 +22,6 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
-#include "map-updater.hpp"
 #include "menu.hpp"
 #include "on-map.hpp"
 #include "orders.hpp"
@@ -34,6 +32,7 @@
 #include "road.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
+#include "ts.hpp"
 #include "turn-plane.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -45,6 +44,7 @@
 // game-state
 #include "gs/colonies.hpp"
 #include "gs/players.hpp"
+#include "gs/ss.hpp"
 #include "gs/turn.rds.hpp"
 #include "gs/units.hpp"
 
@@ -70,6 +70,8 @@
 using namespace std;
 
 namespace rn {
+
+struct IMapUpdater;
 
 namespace {
 
@@ -631,7 +633,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -647,7 +649,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( units_state, id ) ) {
@@ -932,37 +934,8 @@ wait<> next_turn(
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> turn_loop( Planes& planes, PlayersState& players_state,
-                  TerrainState const&  terrain_state,
-                  LandViewState&       land_view_state,
-                  UnitsState&          units_state,
-                  SettingsState const& settings,
-                  TurnState&           turn_state,
-                  ColoniesState&       colonies_state,
-                  IMapUpdater&         map_updater ) {
-  WindowPlane   window_plane;
-  RealGui       gui( window_plane );
-  MenuPlane     menu_plane;
-  LandViewPlane land_view_plane( menu_plane, window_plane,
-                                 land_view_state, terrain_state,
-                                 map_updater, gui );
-  PanelPlane    panel_plane( menu_plane );
-
-  auto        popper = planes.new_group();
-  PlaneGroup& group  = planes.back();
-  group.push( land_view_plane );
-  group.push( panel_plane );
-  group.push( menu_plane );
-  group.push( window_plane );
-
-  // land_view_plane.zoom_out_full();
-
-  while( true )
-    co_await next_turn( panel_plane, menu_plane, land_view_plane,
-                        players_state, terrain_state,
-                        units_state, settings, turn_state,
-                        colonies_state, map_updater, gui, planes,
-                        land_view_state );
+wait<> turn_loop( SS& ss, TS& ts ) {
+  while( true ) co_await next_turn( ss, ts );
 }
 
 } // namespace rn

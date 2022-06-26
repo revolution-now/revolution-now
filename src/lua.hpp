@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2019-09-13.
 *
-* Description: Interface to lua.
+* Description: Lua state initialization.
 *
 *****************************************************************/
 #pragma once
@@ -13,26 +13,14 @@
 #include "core-config.hpp"
 
 namespace lua {
-
 struct state;
-
 }
 
 namespace rn {
 
-struct RootState;
-
 /****************************************************************
-** Lua State
+** Public API
 *****************************************************************/
-lua::state& lua_global_state();
-
-/****************************************************************
-** Lua Modules
-*****************************************************************/
-void run_lua_startup_routines();
-void load_lua_modules();
-
-void lua_reload( RootState& root_state );
+void lua_init( lua::state& st );
 
 } // namespace rn
