@@ -94,6 +94,13 @@ struct.GenericVertex {
   # the coordinates of the vertex in the texture atlas.
   atlas_position 'gl::vec2',
 
+  # This is a flat vertex that will be populated when a sprite is
+  # rendered from the atlas and will contain the atlas position
+  # of the center of the sprite. This is used for helping to cor-
+  # rect for rounding errors when reading from the atlas that
+  # would otherwise cause visual artifacts.
+  atlas_center 'gl::vec2',
+
   # For stencil types this points to the alternate texture in the
   # atlas that will be used for pixels of the key color.
   atlas_target_offset 'gl::vec2',

@@ -155,6 +155,13 @@ rect rect::with_origin( point const p ) const {
   return res;
 }
 
+point rect::center() const {
+  return point{
+      .x = origin.x + size.w / 2,
+      .y = origin.y + size.h / 2,
+  };
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

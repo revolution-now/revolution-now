@@ -89,6 +89,9 @@ struct rect {
   // by `p`.
   rect with_origin( point const p ) const;
 
+  // Returns the center rounded toward 0.
+  point center() const;
+
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it
   // will return nothing. If the borders are just touching then

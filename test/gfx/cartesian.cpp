@@ -442,5 +442,17 @@ TEST_CASE( "[gfx/cartesian] rect::with_origin" ) {
            expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::center" ) {
+  rect  r{ .origin = { .x = 4, .y = 2 },
+           .size   = { .w = 3, .h = 4 } };
+  point expected{ .x = 5, .y = 4 };
+  REQUIRE( r.center() == expected );
+
+  r        = rect{ .origin = { .x = 0, .y = 0 },
+                   .size   = { .w = 10, .h = 11 } };
+  expected = point{ .x = 5, .y = 5 };
+  REQUIRE( r.center() == expected );
+}
+
 } // namespace
 } // namespace gfx

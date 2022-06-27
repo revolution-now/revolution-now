@@ -371,8 +371,6 @@ Rect viewport_rect() {
 void advance_viewport_state( SmoothViewport& viewport ) {
   viewport.advance_state( viewport_rect() );
 
-  viewport.fix_zoom_rounding();
-
   // TODO: should only do the following when the viewport has
   // input focus.
   auto const* __state = ::SDL_GetKeyboardState( nullptr );

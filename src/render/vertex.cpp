@@ -34,6 +34,7 @@ GenericVertex proto_vertex( vertex_type type,
       .depixelate          = gl::vec4{},
       .position            = gl::vec2::from_point( position ),
       .atlas_position      = {},
+      .atlas_center        = {},
       .atlas_target_offset = {},
       .fixed_color         = {},
       .alpha_multiplier    = 1.0f,
@@ -105,9 +106,11 @@ void VertexBase::set_use_camera( bool enabled ) {
 ** SpriteVertex
 *****************************************************************/
 SpriteVertex::SpriteVertex( gfx::point position,
-                            gfx::point atlas_position )
+                            gfx::point atlas_position,
+                            gfx::point atlas_center )
   : VertexBase( proto_vertex( vertex_type::sprite, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
+  this->atlas_center   = gl::vec2::from_point( atlas_center );
 }
 
 /****************************************************************
@@ -123,10 +126,12 @@ SolidVertex::SolidVertex( gfx::point position, gfx::pixel color )
 *****************************************************************/
 SilhouetteVertex::SilhouetteVertex( gfx::point position,
                                     gfx::point atlas_position,
+                                    gfx::point atlas_center,
                                     gfx::pixel color )
   : VertexBase(
         proto_vertex( vertex_type::silhouette, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
+  this->atlas_center   = gl::vec2::from_point( atlas_center );
   this->fixed_color    = gl::color::from_pixel( color );
 }
 
@@ -135,11 +140,13 @@ SilhouetteVertex::SilhouetteVertex( gfx::point position,
 *****************************************************************/
 StencilVertex::StencilVertex( gfx::point position,
                               gfx::point atlas_position,
+                              gfx::point atlas_center,
                               gfx::size  atlas_target_offset,
                               gfx::pixel key_color )
   : VertexBase(
         proto_vertex( vertex_type::stencil, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
+  this->atlas_center   = gl::vec2::from_point( atlas_center );
   this->atlas_target_offset =
       gl::vec2::from_size( atlas_target_offset );
   this->fixed_color = gl::color::from_pixel( key_color );
