@@ -312,6 +312,14 @@ local function square_exists( square )
           square.y < size.h
 end
 
+local function filter_on_map( coords )
+  local res = {}
+  for _, coord in ipairs( coords ) do
+    if square_exists( coord ) then table.insert( res, coord ) end
+  end
+  return res
+end
+
 -----------------------------------------------------------------
 -- Forest Generation
 -----------------------------------------------------------------
@@ -399,6 +407,7 @@ local function create_sea_lanes()
       -- the same effect.
       repeat
         block_edge = surrounding_squares_7x7_right_edge( coord )
+        block_edge = filter_on_map( block_edge )
         coord.x = coord.x - 1
       until #block_edge > 0
       for _, s in ipairs( block_edge ) do
@@ -868,7 +877,7 @@ local function generate_proto_squares()
   set_arctic{ x=0, y=size.h }
 
   -- Sea lane.
-  set_sea_lane{ x=0, y=0 }
+  set_sea_lane{ x=-1, y=0 }
   set_sea_lane{ x=size.w, y=0 }
 end
 
