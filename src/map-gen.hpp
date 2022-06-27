@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 

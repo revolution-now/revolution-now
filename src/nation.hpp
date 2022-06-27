@@ -16,7 +16,7 @@
 #include "maybe.hpp"
 
 // Rds
-#include "gs/nation.rds.hpp"
+#include "ss/nation.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

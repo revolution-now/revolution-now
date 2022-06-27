@@ -20,8 +20,8 @@
 #include "ustate.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

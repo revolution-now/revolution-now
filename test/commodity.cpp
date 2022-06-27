@@ -15,7 +15,7 @@
 #include "src/game-state.hpp"
 #include "src/ustate.hpp"
 
-// game-state
+// ss
 #include "src/gs/units.hpp"
 
 // Must be last.

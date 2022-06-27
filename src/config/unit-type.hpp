@@ -14,7 +14,7 @@
 #include "config/unit-type.rds.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
+#include "ss/unit-type.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"

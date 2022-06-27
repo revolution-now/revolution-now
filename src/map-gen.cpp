@@ -15,9 +15,9 @@
 #include "map-square.hpp"
 
 // gs
-#include "gs/land-view.hpp"
-#include "gs/map-square.hpp"
-#include "gs/terrain.hpp"
+#include "ss/land-view.hpp"
+#include "ss/map-square.hpp"
+#include "ss/terrain.hpp"
 
 // luapp
 #include "luapp/register.hpp"

@@ -30,11 +30,11 @@
 #include "ustate.hpp"
 #include "window.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/player.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -307,9 +307,7 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
 }
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    ColoniesState const& colonies_state,
-    UnitsState const&    units_state,
-    TerrainState const& terrain_state, UnitId founder ) {
+    SSConst& ss, TS& ts, UnitId founder ) {
   using Res_t      = e_found_colony_err;
   Unit const& unit = units_state.unit_for( founder );
 
@@ -344,11 +342,8 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   return valid;
 }
 
-ColonyId found_colony( ColoniesState&      colonies_state,
-                       TerrainState const& terrain_state,
-                       UnitsState& units_state, UnitId founder,
-                       IMapUpdater& map_updater,
-                       string_view  name ) {
+ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
+                       std::string_view name ) {
   if( auto res =
           is_valid_new_colony_name( colonies_state, name );
       !res )

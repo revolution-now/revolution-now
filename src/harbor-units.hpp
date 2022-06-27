@@ -19,7 +19,7 @@
 #include "unit-id.hpp"
 
 // gs
-#include "gs/unit-type.rds.hpp"
+#include "ss/unit-type.rds.hpp"
 
 namespace rn {
 

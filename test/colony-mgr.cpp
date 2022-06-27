@@ -22,11 +22,11 @@
 #include "ustate.hpp"
 
 // gs
-#include "gs/colonies.hpp"
-#include "gs/root.hpp"
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/colonies.hpp"
+#include "ss/root.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

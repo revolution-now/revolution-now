@@ -32,6 +32,9 @@
 
 namespace rn {
 
+struct SS;
+struct TS;
+
 struct Colony;
 struct ColonyProduction;
 struct IGui;
@@ -211,11 +214,8 @@ void update_production( TerrainState const& terrain_state,
                         Colony const&       colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( IGui&               gui,
-                         TerrainState const& terrain_state,
-                         UnitsState const&   units_state,
-                         Player const&       player,
-                         Colony const&       colony );
+void set_colview_colony( SS& ss, TS& ts, Player const& player,
+                         Colony const& colony );
 
 void colview_drag_n_drop_draw(
     rr::Renderer&                       renderer,

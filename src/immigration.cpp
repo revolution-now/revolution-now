@@ -23,11 +23,11 @@
 #include "config/unit-type.hpp"
 
 // gs
-#include "gs/old-world-state.rds.hpp"
-#include "gs/player.hpp"
-#include "gs/settings.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/old-world-state.rds.hpp"
+#include "ss/player.hpp"
+#include "ss/settings.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // luapp
 #include "luapp/enum.hpp"

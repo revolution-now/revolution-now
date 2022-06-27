@@ -20,17 +20,12 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // render
 #include "render/painter.hpp"
-
-// luapp
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -164,28 +159,5 @@ void render_plow_if_present( rr::Painter& painter, Coord where,
   if( !has_irrigation( terrain_state, world_tile ) ) return;
   render_sprite( painter, where, e_tile::irrigation );
 }
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace {
-
-LUA_FN( plow_square, void, Coord tile ) {
-  TerrainState& terrain_state = GameState::terrain();
-  if( !terrain_state.is_land( tile ) )
-    st.error( "cannot plow on water tile {}.", tile );
-  // FIXME: needs to render.
-  NonRenderingMapUpdater map_updater( terrain_state );
-  plow_square( terrain_state, map_updater, tile );
-}
-
-LUA_FN( clear_irrigation, void, Coord tile ) {
-  TerrainState& terrain_state = GameState::terrain();
-  // FIXME: needs to render.
-  NonRenderingMapUpdater map_updater( terrain_state );
-  clear_irrigation( map_updater, tile );
-}
-
-} // namespace
 
 } // namespace rn

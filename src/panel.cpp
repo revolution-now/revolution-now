@@ -21,9 +21,9 @@
 #include "screen.hpp"
 #include "views.hpp"
 
-// game-state
-#include "gs/players.hpp"
-#include "gs/turn.hpp"
+// ss
+#include "ss/players.hpp"
+#include "ss/turn.hpp"
 
 // refl
 #include "refl/to-str.hpp"

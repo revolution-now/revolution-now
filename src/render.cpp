@@ -27,7 +27,7 @@
 #include "config/unit-type.hpp"
 
 // gs
-#include "gs/colony.hpp"
+#include "ss/colony.hpp"
 
 // base
 #include "base/keyval.hpp"

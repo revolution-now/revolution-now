@@ -18,9 +18,9 @@
 #include "render.hpp"
 #include "tiles.hpp"
 
-// game-state
-#include "gs/colony.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colony.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

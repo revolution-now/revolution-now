@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // gs
-#include "gs/fathers.rds.hpp"
+#include "ss/fathers.rds.hpp"
 
 // C++ standard library
 #include <string_view>

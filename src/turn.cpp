@@ -41,12 +41,12 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/players.hpp"
-#include "gs/ss.hpp"
-#include "gs/turn.rds.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/players.hpp"
+#include "ss/ss.hpp"
+#include "ss/turn.rds.hpp"
+#include "ss/units.hpp"
 
 // Rds
 #include "menu.rds.hpp"
@@ -633,7 +633,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::road );
+    co_return( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -649,7 +649,7 @@ wait<bool> advance_unit( Planes&              planes,
       co_await gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::plow );
+    co_return( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( units_state, id ) ) {

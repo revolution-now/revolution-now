@@ -19,25 +19,16 @@
 namespace rn {
 
 struct Colony;
-struct ColoniesState;
-struct IGui;
-struct IMapUpdater;
 struct Plane;
-struct Planes;
 struct Player;
-struct TerrainState;
-struct UnitsState;
+struct SS;
+struct TS;
 
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
 struct ColonyPlane {
-  ColonyPlane( Colony& colony, IGui& gui );
-  ColonyPlane( Colony& colony, IGui& gui,
-               TerrainState const&  terrain_state,
-               UnitsState&          units_state,
-               ColoniesState const& colonies_state,
-               Player& player, IMapUpdater& map_updater );
+  ColonyPlane( SS& ss, TS& ts, Colony& colony, Player& player );
 
   ~ColonyPlane();
 
@@ -54,11 +45,6 @@ struct ColonyPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, Colony& colony,
-                         TerrainState const&  terrain_state,
-                         UnitsState&          units_state,
-                         ColoniesState const& colonies_state,
-                         Player&              player,
-                         IMapUpdater&         map_updater );
+wait<> show_colony_view( SS& ss, TS& ts, Colony& colony );
 
 } // namespace rn

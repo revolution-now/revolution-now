@@ -24,7 +24,7 @@
 #include "config/unit-type.hpp"
 
 // gs
-#include "gs/colony.hpp"
+#include "ss/colony.hpp"
 
 // refl
 #include "refl/to-str.hpp"

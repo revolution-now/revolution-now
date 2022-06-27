@@ -15,9 +15,11 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "maybe.hpp"
+#include "ts.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/ref.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"
@@ -46,45 +48,32 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( IMapUpdater* map_updater_arg, IGui& gui_arg,
-                UnitId              unit_id_,
-                ColoniesState&      colonies_state_arg,
-                TerrainState const& terrain_state_arg,
-                UnitsState& units_state_arg, Planes& planes_arg,
-                Player& player_arg )
-    : map_updater( map_updater_arg ),
-      gui( gui_arg ),
-      unit_id( unit_id_ ),
-      colonies_state( colonies_state_arg ),
-      terrain_state( terrain_state_arg ),
-      units_state( units_state_arg ),
-      planes( planes_arg ),
-      player( player_arg ) {}
+  BuildHandler( SS& ss, TS& ts, UnitId unit_id_ )
+    : ss_( ss ), ts_( ts ), unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
-    if( auto valid =
-            unit_can_found_colony( colonies_state, units_state,
-                                   terrain_state, unit_id );
+    if( auto valid = unit_can_found_colony( SSConst( ss_ ), ts_,
+                                            unit_id );
         !valid ) {
       switch( valid.error() ) {
         case e_found_colony_err::colony_exists_here:
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "There is already a colony on this "
               "square." );
           co_return false;
         case e_found_colony_err::too_close_to_colony:
           // TODO: put the name of the adjacent colony here for a
           // better message.
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "Cannot found a colony in a square that is "
               "adjacent to an existing colony." );
           co_return false;
         case e_found_colony_err::no_water_colony:
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "Cannot found a colony on water." );
           co_return false;
         case e_found_colony_err::non_human_cannot_found_colony:
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "Only human units can found colonies." );
           co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
@@ -97,47 +86,40 @@ struct BuildHandler : public OrdersHandler {
     }
 
     ui::e_confirm proceed =
-        co_await gui.yes_no( { .msg       = "Build colony here?",
-                               .yes_label = "Yes",
-                               .no_label  = "No" } );
+        co_await ts_.gui.yes_no( { .msg = "Build colony here?",
+                                   .yes_label = "Yes",
+                                   .no_label  = "No" } );
     if( proceed == ui::e_confirm::no ) co_return false;
     while( true ) {
-      colony_name = co_await gui.string_input(
+      colony_name = co_await ts_.gui.string_input(
           { .msg =
                 "What shall this colony be named, your majesty?",
             .initial_text = colony_name.value_or( "" ) } );
       if( !colony_name.has_value() ) co_return false;
-      valid_or<string> is_valid = is_valid_colony_name_msg(
-          colonies_state, *colony_name );
+      valid_or<string> is_valid =
+          is_valid_colony_name_msg( ss_.colonies, *colony_name );
       if( is_valid ) co_return true;
-      co_await gui.message_box( is_valid.error() );
+      co_await ts_.gui.message_box( is_valid.error() );
     }
   }
 
   wait<> perform() override {
-    colony_id =
-        found_colony( colonies_state, terrain_state, units_state,
-                      unit_id, *map_updater, *colony_name );
+    colony_id = found_colony( ss_, ts_, unit_id, *colony_name );
     co_return;
   }
 
   wait<> post() const override {
     co_await show_colony_view(
-        planes, colonies_state.colony_for( colony_id ),
-        terrain_state, units_state, colonies_state, player,
-        *map_updater );
+        ss_, ts_, ss_.colonies.colony_for( colony_id ) );
   }
 
-  IMapUpdater*        map_updater;
-  IGui&               gui;
-  UnitId              unit_id;
-  maybe<string>       colony_name;
-  ColonyId            colony_id;
-  ColoniesState&      colonies_state;
-  TerrainState const& terrain_state;
-  UnitsState&         units_state;
-  Planes&             planes;
-  Player&             player;
+  SS& ss_;
+  TS& ts_;
+
+  UnitId unit_id;
+
+  maybe<string> colony_name;
+  ColonyId      colony_id;
 };
 
 } // namespace
@@ -145,15 +127,10 @@ struct BuildHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders(
-    UnitId       id, orders::build const& /*build*/,
-    IMapUpdater* map_updater, IGui& gui, Player& player,
-    TerrainState const& terrain_state, UnitsState& units_state,
-    ColoniesState& colonies_state, SettingsState const&,
-    LandViewPlane&, Planes& planes ) {
-  return make_unique<BuildHandler>(
-      map_updater, gui, id, colonies_state, terrain_state,
-      units_state, planes, player );
+unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts,
+                                         UnitId id,
+                                         orders::build const& ) {
+  return make_unique<BuildHandler>( ss, ts, id );
 }
 
 } // namespace rn

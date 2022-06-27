@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # gs
-include "gs/colony-enums.rds.hpp"
-include "gs/terrain-enums.rds.hpp"
+include "ss/colony-enums.rds.hpp"
+include "ss/terrain-enums.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

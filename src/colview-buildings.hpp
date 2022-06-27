@@ -16,7 +16,7 @@
 #include "colview-entities.hpp"
 
 // gs
-#include "gs/colony-enums.rds.hpp"
+#include "ss/colony-enums.rds.hpp"
 
 // Rds
 #include "colony-buildings.rds.hpp"

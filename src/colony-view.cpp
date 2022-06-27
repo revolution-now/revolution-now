@@ -24,10 +24,12 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
+#include "ts.hpp"
 #include "window.hpp"
 
-// game-state
-#include "gs/units.hpp"
+// ss
+#include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -46,23 +48,6 @@ using namespace std;
 namespace rn {
 
 struct IMapUpdater;
-
-namespace {
-
-struct PS {
-  IGui&                gui;
-  TerrainState const&  terrain_state;
-  UnitsState&          units_state;
-  ColoniesState const& colonies_state;
-  Player const&        player;
-  IMapUpdater&         map_updater;
-
-  ColonyId                            colony_id  = {};
-  co::stream<input::event_t>          input      = {};
-  maybe<drag::State<ColViewObject_t>> drag_state = {};
-};
-
-} // namespace
 
 /****************************************************************
 ** Drawing
@@ -532,25 +517,21 @@ void clear_non_essential_events( PS& S ) {
 ** Colony Plane
 *****************************************************************/
 struct ColonyPlane::Impl : public Plane {
-  PS      S_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
   Colony& colony_;
-  IGui&   gui_;
 
-  Impl( Colony& colony, IGui& gui,
-        TerrainState const&  terrain_state,
-        UnitsState&          units_state,
-        ColoniesState const& colonies_state, Player& player,
-        IMapUpdater& map_updater )
-    : S_{ .gui            = gui,
-          .terrain_state  = terrain_state,
-          .units_state    = units_state,
-          .colonies_state = colonies_state,
-          .player         = player,
-          .map_updater    = map_updater },
-      colony_( colony ),
-      gui_( gui ) {
-    set_colview_colony( S_.gui, S_.terrain_state, S_.units_state,
-                        S_.player, colony );
+  ColonyId                            colony_id  = {};
+  co::stream<input::event_t>          input      = {};
+  maybe<drag::State<ColViewObject_t>> drag_state = {};
+
+  Impl( SS& ss, TS& ts, Colony& colony, Player& player )
+    : ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      colony_( colony ) {
+    set_colview_colony( ss_, ts_, player_, colony_ );
   }
 
   bool covers_screen() const override { return true; }
@@ -629,14 +610,8 @@ Plane& ColonyPlane::impl() { return *impl_; }
 
 ColonyPlane::~ColonyPlane() = default;
 
-ColonyPlane::ColonyPlane( Colony& colony, IGui& gui,
-                          TerrainState const&  terrain_state,
-                          UnitsState&          units_state,
-                          ColoniesState const& colonies_state,
-                          Player&              player,
-                          IMapUpdater&         map_updater )
-  : impl_( new Impl( colony, gui, terrain_state, units_state,
-                     colonies_state, player, map_updater ) ) {}
+ColonyPlane::ColonyPlane( SS& ss, TS& ts, Colony& colony )
+  : impl_( new Impl( ss, ts, colony ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();
@@ -645,19 +620,14 @@ wait<> ColonyPlane::show_colony_view() const {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, Colony& colony,
-                         TerrainState const&  terrain_state,
-                         UnitsState&          units_state,
-                         ColoniesState const& colonies_state,
-                         Player&              player,
-                         IMapUpdater&         map_updater ) {
+wait<> show_colony_view( SS& ss, TS& ts_old, Colony& colony ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
-  ColonyPlane colony_plane( colony, gui, terrain_state,
-                            units_state, colonies_state, player,
-                            map_updater );
-  auto        popper = planes.new_group();
-  PlaneGroup& group  = planes.back();
+  TS          ts = ts_old.with_new( window_plane, gui );
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  ColonyPlane colony_plane( ss, ts, colony, player );
+  auto        popper = ts.planes.new_group();
+  PlaneGroup& group  = ts.planes.back();
   group.push( colony_plane );
   group.push( window_plane );
   lg.info( "viewing colony '{}'.", colony.name );

@@ -19,8 +19,8 @@
 #include "road.hpp"
 #include "tiles.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
+// ss
+#include "ss/terrain.hpp"
 
 // render
 #include "render/renderer.hpp"

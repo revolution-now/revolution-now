@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "ts.hpp"
 
+// base
+#include "base/error.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -17,6 +20,36 @@ namespace rn {
 /****************************************************************
 ** TS
 *****************************************************************/
+OmniPlane& TS::omni_plane_or_die() const {
+  UNWRAP_CHECK( p, omni_plane );
+  return p;
+}
+
+ConsolePlane& TS::console_plane_or_die() const {
+  UNWRAP_CHECK( p, console_plane );
+  return p;
+}
+
+WindowPlane& TS::window_plane_or_die() const {
+  UNWRAP_CHECK( p, window_plane );
+  return p;
+}
+
+MenuPlane& TS::menu_plane_or_die() const {
+  UNWRAP_CHECK( p, menu_plane );
+  return p;
+}
+
+PanelPlane& TS::panel_plane_or_die() const {
+  UNWRAP_CHECK( p, panel_plane );
+  return p;
+}
+
+LandViewPlane& TS::land_view_plane_or_die() const {
+  UNWRAP_CHECK( p, land_view_plane );
+  return p;
+}
+
 TS TS::with_new( ConsolePlane& p ) const {
   return TS{
       .planes          = planes,          //

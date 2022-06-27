@@ -19,7 +19,7 @@
 #include "src/on-map.hpp"
 #include "src/ustate.hpp"
 
-// game-state
+// ss
 #include "src/gs/terrain.hpp"
 #include "src/gs/units.hpp"
 

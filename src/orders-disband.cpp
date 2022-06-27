@@ -12,14 +12,16 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "gs/units.hpp"
+// ss
+#include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"
@@ -61,12 +63,9 @@ struct DisbandHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::disband const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState& units_state,
-    ColoniesState&, SettingsState const&, LandViewPlane&,
-    Planes& ) {
-  return make_unique<DisbandHandler>( id, gui, units_state );
+unique_ptr<OrdersHandler> handle_orders(
+    SS& ss, TS& ts, UnitId id, orders::disband const& ) {
+  return make_unique<DisbandHandler>( id, ts.gui, ss.units );
 }
 
 } // namespace rn

@@ -30,8 +30,8 @@
 #include "window.hpp"
 
 // gs
-#include "gs/root.hpp"
-#include "gs/ss.hpp"
+#include "ss/ref.hpp"
+#include "ss/root.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -74,16 +74,16 @@ wait<> load_and_run_game(
     base::function_ref<void( SS& ss, lua::state& st )> loader ) {
   SS         ss;
   MapUpdater map_updater(
-      ss.mutable_terrain_use_with_care(),
+      ss.mutable_terrain_use_with_care,
       global_renderer_use_only_when_needed() );
   map_updater.redraw();
-  ensure_human_player( ss.players() );
+  ensure_human_player( ss.players );
 
   WindowPlane   window_plane;
   RealGui       gui( window_plane );
   MenuPlane     menu_plane;
   LandViewPlane land_view_plane( menu_plane, window_plane,
-                                 ss.land_view(), ss.terrain(),
+                                 ss.land_view, ss.terrain,
                                  map_updater, gui );
   PanelPlane    panel_plane( menu_plane );
 
@@ -100,7 +100,7 @@ wait<> load_and_run_game(
   lua_init( st );
   loader( ss, st );
   // FIXME: need to deal with frozen globals.
-  st["ROOT"] = ss.root();
+  st["ROOT"] = ss.root;
 
   // TODO: give lua access to the renderer and map_updater as
   // well. That should then allow getting rid of all global state
@@ -130,7 +130,7 @@ wait<> load_and_run_game(
 *****************************************************************/
 wait<> run_existing_game( Planes& planes ) {
   co_await load_and_run_game( planes, []( SS& ss, lua::state& ) {
-    CHECK_HAS_VALUE( load_game( ss.root(), 0 ) );
+    CHECK_HAS_VALUE( load_game( ss.root, 0 ) );
   } );
 }
 

@@ -15,8 +15,8 @@
 #include "render-terrain.hpp"
 #include "tiles.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
+// ss
+#include "ss/terrain.hpp"
 
 using namespace std;
 

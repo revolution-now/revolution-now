@@ -20,7 +20,7 @@
 #include "unit-id.hpp"
 
 // gs
-#include "gs/commodity.rds.hpp"
+#include "ss/commodity.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

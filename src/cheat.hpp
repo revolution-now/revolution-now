@@ -19,7 +19,7 @@
 #include "wait.hpp"
 
 // gs
-#include "gs/unit-id.hpp"
+#include "ss/unit-id.hpp"
 
 namespace rn {
 

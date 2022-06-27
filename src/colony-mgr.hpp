@@ -21,10 +21,10 @@
 #include "wait.hpp"
 
 // gs
-#include "gs/colony-id.hpp"
-#include "gs/colony.hpp"
-#include "gs/nation.rds.hpp"
-#include "gs/unit-id.hpp"
+#include "ss/colony-id.hpp"
+#include "ss/colony.hpp"
+#include "ss/nation.rds.hpp"
+#include "ss/unit-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -33,6 +33,10 @@
 #include <string_view>
 
 namespace rn {
+
+struct SS;
+struct SSConst;
+struct TS;
 
 struct ColoniesState;
 struct Colony;
@@ -50,9 +54,7 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    ColoniesState const& colonies_state,
-    UnitsState const&    units_state,
-    TerrainState const& terrain_state, UnitId founder );
+    SSConst const& ss, TS& ts, UnitId founder );
 
 // This will change the nation of the colony and all units that
 // are workers in the colony as well as units that are in the
@@ -64,10 +66,7 @@ void change_colony_nation( Colony&     colony,
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
 // and thus if it doesn't, it will check-fail.
-ColonyId found_colony( ColoniesState&      colonies_state,
-                       TerrainState const& terrain_state,
-                       UnitsState& units_state, UnitId founder,
-                       IMapUpdater&     map_updater,
+ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
                        std::string_view name );
 
 // Evolve the colony by one turn.

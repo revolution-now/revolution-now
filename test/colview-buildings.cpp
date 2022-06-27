@@ -16,7 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// game-state
+// ss
 #include "src/gs/colonies.hpp"
 
 // Must be last.

@@ -17,8 +17,8 @@
 #include "unit.hpp"
 
 // gs
-#include "gs/player.rds.hpp"
-#include "gs/units.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

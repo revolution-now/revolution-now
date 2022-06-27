@@ -15,9 +15,9 @@
 #include "logger.hpp"
 #include "macros.hpp"
 
-// game-state
-#include "gs/root.hpp"
-#include "gs/terrain.hpp"
+// ss
+#include "ss/root.hpp"
+#include "ss/terrain.hpp"
 
 // config
 #include "config/savegame.rds.hpp"

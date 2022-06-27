@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "game-state.hpp"
 #include "unit.hpp"
 
 // render
@@ -25,6 +24,8 @@
 namespace rn {
 
 struct IMapUpdater;
+struct TerrainState;
+struct UnitsState;
 
 /****************************************************************
 ** Road State

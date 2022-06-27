@@ -17,20 +17,10 @@
 
 namespace rn {
 
-struct IMapUpdater;
-struct LandViewPlane;
-struct SettingsState;
-struct UnitsState;
-struct ColoniesState;
-struct TerrainState;
-struct Player;
-struct Planes;
+struct SS;
+struct TS;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::disband const& disband,
-    IMapUpdater* map_updater, IGui& gui, Player& player,
-    TerrainState const& terrain_state, UnitsState& units_state,
-    ColoniesState& colonies_state, SettingsState const& settings,
-    LandViewPlane& land_view_plane, Planes& planes );
+    SS& ss, TS& ts, UnitId id, orders::disband const& disband );
 
 } // namespace rn

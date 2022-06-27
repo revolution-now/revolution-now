@@ -18,8 +18,8 @@
 #include "lua.hpp"
 #include "map-updater.hpp"
 
-// game-state
-#include "gs/root.hpp"
+// ss
+#include "ss/root.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

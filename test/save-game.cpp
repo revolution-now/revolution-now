@@ -18,7 +18,7 @@
 #include "src/lua.hpp"
 #include "src/rand.hpp"
 
-// game-state
+// ss
 #include "src/gs/root.hpp"
 
 // luapp

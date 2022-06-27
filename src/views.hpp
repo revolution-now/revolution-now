@@ -24,7 +24,7 @@
 #include "wait.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
+#include "ss/unit-type.hpp"
 
 // render
 #include "render/renderer.hpp"

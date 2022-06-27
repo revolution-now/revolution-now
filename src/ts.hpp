@@ -48,6 +48,13 @@ struct TS {
   maybe<PanelPlane&>    panel_plane     = {};
   maybe<LandViewPlane&> land_view_plane = {};
 
+  OmniPlane&     omni_plane_or_die() const;
+  ConsolePlane&  console_plane_or_die() const;
+  WindowPlane&   window_plane_or_die() const;
+  MenuPlane&     menu_plane_or_die() const;
+  PanelPlane&    panel_plane_or_die() const;
+  LandViewPlane& land_view_plane_or_die() const;
+
   TS with_new( ConsolePlane& p ) const;
   TS with_new( WindowPlane& p, IGui& gui ) const;
   TS with_new( MenuPlane& p ) const;

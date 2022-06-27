@@ -18,8 +18,8 @@
 #include "game-state.hpp"
 #include "lua.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
+// ss
+#include "ss/colonies.hpp"
 
 // luapp
 #include "luapp/state.hpp"

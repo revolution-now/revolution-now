@@ -39,11 +39,11 @@
 // config
 #include "config/unit-type.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/players.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/players.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"

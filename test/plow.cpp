@@ -20,7 +20,7 @@
 #include "src/terrain.hpp"
 #include "src/ustate.hpp"
 
-// game-state
+// ss
 #include "src/gs/terrain.hpp"
 #include "src/gs/units.hpp"
 

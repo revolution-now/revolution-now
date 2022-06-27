@@ -21,11 +21,11 @@
 #include "window.hpp"
 
 // gs
-#include "gs/old-world-state.rds.hpp"
-#include "gs/player.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/old-world-state.rds.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/lcr.rds.hpp"

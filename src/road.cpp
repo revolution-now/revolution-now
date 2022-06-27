@@ -18,17 +18,12 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // render
 #include "render/painter.hpp"
-
-// luapp
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -145,28 +140,5 @@ void render_road_if_present( rr::Painter& painter, Coord where,
   if( !road_in_surroundings )
     render_sprite( painter, where, e_tile::road_island );
 }
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace {
-
-LUA_FN( set_road, void, Coord tile ) {
-  TerrainState& terrain_state = GameState::terrain();
-  if( !terrain_state.is_land( tile ) )
-    st.error( "cannot put road on water tile {}.", tile );
-  // FIXME: needs to render.
-  NonRenderingMapUpdater map_updater( terrain_state );
-  set_road( map_updater, tile );
-}
-
-LUA_FN( clear_road, void, Coord tile ) {
-  TerrainState& terrain_state = GameState::terrain();
-  // FIXME: needs to render.
-  NonRenderingMapUpdater map_updater( terrain_state );
-  clear_road( map_updater, tile );
-}
-
-} // namespace
 
 } // namespace rn

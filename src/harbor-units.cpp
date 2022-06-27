@@ -22,9 +22,9 @@
 #include "config/unit-type.rds.hpp"
 
 // gs
-#include "gs/player.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/harbor.rds.hpp"

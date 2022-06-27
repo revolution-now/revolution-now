@@ -16,7 +16,7 @@
 #include "maybe.hpp"
 
 // gs
-#include "gs/colony-id.hpp"
+#include "ss/colony-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

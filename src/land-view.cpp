@@ -39,11 +39,11 @@
 #include "window.hpp"
 
 // gs
-#include "gs/land-view.hpp"
-#include "gs/settings.hpp"
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/land-view.hpp"
+#include "ss/settings.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/land-view.rds.hpp"

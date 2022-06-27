@@ -1,0 +1,45 @@
+# ===============================================================
+# unit.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RDS definitions for the unit module.
+#
+# ===============================================================
+# gs
+include "ss/cargo.hpp"
+include "ss/mv-points.hpp"
+include "ss/nation.rds.hpp"
+include "ss/unit-composer.hpp"
+include "ss/unit-id.hpp"
+
+namespace "rn"
+
+enum.e_unit_orders {
+  none,
+  sentry,
+  fortified,
+  road,
+  plow,
+}
+
+namespace "rn.wrapped"
+
+struct.Unit {
+  id 'UnitId',
+  composition 'rn::UnitComposition',
+  orders 'e_unit_orders',
+  cargo 'rn::CargoHold',
+  nation 'e_nation',
+  mv_pts 'MovementPoints',
+
+  # If the unit is building a road or plowing, this is the number
+  # of turns it has work (does not include the turn where they
+  # are first assigned the job). This number is only relevant
+  # when the unit has orders to build a road or plow.
+  turns_worked 'int',
+
+  _features { equality, validation }
+}

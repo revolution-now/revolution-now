@@ -40,9 +40,9 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "gs/players.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/players.hpp"
+#include "ss/units.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

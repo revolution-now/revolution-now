@@ -29,9 +29,9 @@
 #include "config/unit-type.hpp"
 
 // gs
-#include "gs/colonies.hpp"
-#include "gs/player.rds.hpp"
-#include "gs/units.hpp"
+#include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/units.hpp"
 
 // luapp
 #include "luapp/enum.hpp"

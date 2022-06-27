@@ -15,11 +15,11 @@
 #include "igui-mock.hpp"
 #include "ustate.hpp"
 
-// game-state
-#include "gs/players.hpp"
-#include "gs/settings.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/players.hpp"
+#include "ss/settings.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // Under test.
 #include "src/lcr.hpp"

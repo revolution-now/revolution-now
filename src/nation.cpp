@@ -14,9 +14,9 @@
 #include "colony.hpp"
 #include "ustate.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/nation.rds.hpp"

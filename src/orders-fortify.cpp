@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
@@ -65,18 +66,14 @@ struct SentryHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const&, LandViewPlane&, Planes& ) {
-  return make_unique<FortifyHandler>( id, gui );
+unique_ptr<OrdersHandler> handle_orders(
+    SS&, TS& ts, UnitId id, orders::fortify const& ) {
+  return make_unique<FortifyHandler>( id, ts.gui );
 }
 
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const&, LandViewPlane&, Planes& ) {
-  return make_unique<SentryHandler>( id, gui );
+unique_ptr<OrdersHandler> handle_orders(
+    SS&, TS& ts, UnitId id, orders::sentry const& ) {
+  return make_unique<SentryHandler>( id, ts.gui );
 }
 
 } // namespace rn
