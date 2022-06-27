@@ -88,12 +88,14 @@ void try_promote_demote_unit( PS& S, Coord where, bool demote ) {
   maybe<ColViewObjectWithBounds> obj =
       colview_top_level().object_here( where );
   if( !obj.has_value() ) return;
-  UNWRAP_CHECK( unit_id,
-                obj->obj.get_if<ColViewObject::unit>().member(
-                    &ColViewObject::unit::id ) );
+  // Could be a commodity.
+  maybe<UnitId> unit_id =
+      obj->obj.get_if<ColViewObject::unit>().member(
+          &ColViewObject::unit::id );
+  if( !unit_id.has_value() ) return;
 
   // Cheat mode.
-  Unit& unit = S.units_state.unit_for( unit_id );
+  Unit& unit = S.units_state.unit_for( *unit_id );
   if( demote )
     cheat_downgrade_unit_expertise( unit );
   else
