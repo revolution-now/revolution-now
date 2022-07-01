@@ -102,6 +102,19 @@ TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
   REQUIRE( p.truncate() == point{ .x = 4, .y = 2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] dpoint::modded_by" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  REQUIRE( p.modded_by( 2.1 ) == dsize{ .w = .2, .h = .3 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  dsize  s{ .w = 5.2, .h = 1.5 };
+  p -= s;
+  REQUIRE( p == dpoint{ .x = -.8, .y = .9 } );
+  REQUIRE( ( p - s ) == dpoint{ .x = -6.0, .y = -.6 } );
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

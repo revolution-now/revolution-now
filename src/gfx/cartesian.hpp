@@ -97,8 +97,14 @@ struct dpoint {
     return point{ .x = int( x ), .y = int( y ) };
   }
 
+  dsize modded_by( double d ) const;
+
+  void operator-=( dsize s );
+
   bool operator==( dpoint const& ) const = default;
 };
+
+dpoint operator-( dpoint p, dsize s );
 
 /****************************************************************
 ** rect

@@ -71,6 +71,24 @@ point point::moved_left( int by ) const {
 }
 
 /****************************************************************
+** dpoint
+*****************************************************************/
+dsize dpoint::modded_by( double d ) const {
+  return dsize{ .w = fmod( x, d ), .h = fmod( y, d ) };
+}
+
+void dpoint::operator-=( dsize s ) {
+  x -= s.w;
+  y -= s.h;
+}
+
+dpoint operator-( dpoint p, dsize s ) {
+  dpoint res = p;
+  res -= s;
+  return res;
+}
+
+/****************************************************************
 ** rect
 *****************************************************************/
 bool rect::contains( point const p ) const {
