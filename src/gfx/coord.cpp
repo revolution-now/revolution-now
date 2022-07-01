@@ -346,6 +346,11 @@ Delta Delta::multiply_and_round( double scale ) const {
       H{ static_cast<int>( std::lround( h * scale ) ) } };
 }
 
+Delta Delta::multiply_and_truncate( double scale ) const {
+  return Delta{ W{ static_cast<int>( w * scale ) },
+                H{ static_cast<int>( h * scale ) } };
+}
+
 Delta Delta::uni0n( Delta const& rhs ) const {
   return { .w = std::max( w, rhs.w ),
            .h = std::max( h, rhs.h ) };

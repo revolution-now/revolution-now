@@ -143,6 +143,9 @@ struct Delta {
   // Multiply both components by the scale and round.
   Delta multiply_and_round( double scale ) const;
 
+  // Multiply both components by the scale and truncate.
+  Delta multiply_and_truncate( double scale ) const;
+
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
@@ -496,8 +499,8 @@ struct RectGridProxyIteratorHelper {
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
     auto const&                        operator*() const {
-                             DCHECK( it.is_inside( rect_proxy->rect ) );
-                             return it;
+      DCHECK( it.is_inside( rect_proxy->rect ) );
+      return it;
     }
     const_iterator& operator++() {
       it.x += rect_proxy->chunk_size.w;
