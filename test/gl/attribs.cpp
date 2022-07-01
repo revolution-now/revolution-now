@@ -128,6 +128,10 @@ TEST_CASE( "[attribs] gfx conversion" ) {
   REQUIRE( vec2::from_size( gfx::size{ .w = 1, .h = 2 } ) ==
            vec2{ .x = 1.0, .y = 2.0 } );
 
+  REQUIRE(
+      vec2::from_dsize( gfx::dsize{ .w = 1.1, .h = 2.2 } ) ==
+      vec2{ .x = 1.1, .y = 2.2 } );
+
   REQUIRE( color::from_pixel( gfx::pixel{
                .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
            color{ .r = 0.0f,
