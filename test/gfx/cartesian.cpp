@@ -45,18 +45,29 @@ TEST_CASE( "[gfx/cartesian] size::operator/( int )" ) {
   REQUIRE( s / 2 == size{ .w = 2, .h = 1 } );
 }
 
-TEST_CASE( "[gfx/cartesian] operator+( size, size )" ) {
+TEST_CASE( "[gfx/cartesian] size::operator+( size, size )" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 4, .h = 3 };
   REQUIRE( s1 + s2 == size{ .w = 8, .h = 5 } );
 }
 
-TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
+TEST_CASE( "[gfx/cartesian] size::operator+=( size )" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 4, .h = 3 };
   s1 += s2;
   REQUIRE( s1 == size{ .w = 8, .h = 5 } );
   REQUIRE( s2 == size{ .w = 4, .h = 3 } );
+}
+
+/****************************************************************
+** size
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
+  dsize s1{ .w = 4.3, .h = 2.1 };
+  dsize s2{ .w = 4, .h = 3 };
+  s1 += s2;
+  REQUIRE( s1 == dsize{ .w = 8.3, .h = 5.1 } );
+  REQUIRE( s2 == dsize{ .w = 4, .h = 3 } );
 }
 
 /****************************************************************

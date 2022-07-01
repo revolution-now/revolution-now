@@ -44,6 +44,19 @@ struct size {
 };
 
 /****************************************************************
+** dsize
+*****************************************************************/
+// Note: this type should be passed by value for efficiency.
+struct dsize {
+  double w = 0.0;
+  double h = 0.0;
+
+  void operator+=( dsize term );
+
+  bool operator==( dsize const& ) const = default;
+};
+
+/****************************************************************
 ** point
 *****************************************************************/
 // Note: this type should be passed by value for efficiency.
