@@ -617,9 +617,9 @@ sheets {
       img_path: assets/art/tiles/units.png
       sprite_size: { w: 32, h: 32 }
       sprites {
-        petty_criminal:         { y: 0, x: 0 }
-        indentured_servant:     { y: 0, x: 0 }
-        free_colonist:          { y: 1, x: 0 }
+        petty_criminal:         { y: 3, x: 0 }
+        indentured_servant:     { y: 3, x: 1 }
+        free_colonist:          { y: 3, x: 2 }
         soldier:                { y: 1, x: 1 }
         dragoon:                { y: 1, x: 2 }
         pioneer:                { y: 1, x: 4 }
