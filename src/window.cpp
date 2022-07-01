@@ -758,12 +758,14 @@ wait<int> WindowPlane::select_box(
       std::move( vert_views ),
       ui::VerticalArrayView::align::left );
 
-  unique_ptr<ui::View> view = std::move( va_view );
+  unique_ptr<ui::View> view   = std::move( va_view );
+  ui::CompositeView*   p_view = view->cast<ui::CompositeView>();
   unique_ptr<Window>   win =
       async_window_builder( *this, std::move( view ),
                             /*auto_pad=*/true );
 
-  p_selector_view->grow_to( win->inside_padding_rect().w );
+  p_selector_view->grow_to( p_view->delta().w );
+  p_view->children_updated();
 
   // Need to co_await instead of returning so that the window
   // stays alive while we wait.

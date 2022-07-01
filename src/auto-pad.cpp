@@ -279,7 +279,6 @@ void autopad_fancy_impl_composite( ui::CompositeView& view,
       sub_view = std::move( new_sub_view );
     }
   }
-  view.notify_children_updated();
 }
 
 void insert_padding_views_fancy( ui::View& view, block const& b,
@@ -318,7 +317,6 @@ void autopad_simple_impl_composite( ui::CompositeView& view,
       sub_view = std::move( new_sub_view );
     }
   }
-  view.notify_children_updated();
 }
 
 void insert_padding_views_simple( ui::View& view, int pixels ) {
@@ -362,6 +360,10 @@ void autopad( ui::View& view, bool use_fancy, int pixels ) {
     // TODO: reimplement this with a generic visitor that tra-
     // verses the views.
     autopad_simple( view, pixels );
+
+  if( auto cv = view.cast_safe<ui::CompositeView>();
+      cv.has_value() )
+    ( *cv )->children_updated();
 }
 
 void autopad( ui::View& view, bool use_fancy ) {
