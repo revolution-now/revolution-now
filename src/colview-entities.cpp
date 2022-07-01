@@ -292,7 +292,10 @@ class MarketCommodities : public ui::View,
     auto idx = ( coord / sprite_scale - Coord{} ).w;
     UNWRAP_CHECK( type, commodity_from_index( idx ) );
     int quantity = quantity_of( type );
-    if( quantity == 0 ) return nothing;
+    // NOTE: we don't enforce that the quantity be greater than
+    // zero here, instead we do that in try_drag. That way we can
+    // still recognize what is under the cursor even if there is
+    // zero quantity of it.
     return ColViewObjectWithBounds{
         .obj    = ColViewObject::commodity{ Commodity{
                .type = type, .quantity = quantity } },
@@ -304,8 +307,8 @@ class MarketCommodities : public ui::View,
   bool try_drag( ColViewObject_t const& o,
                  Coord const&           where ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
+    if( c.quantity == 0 ) return false;
     // Sanity checks.
-    CHECK( c.quantity > 0 );
     UNWRAP_CHECK( here, object_here( where ) );
     UNWRAP_CHECK( comm_at_source,
                   here.obj.get_if<ColViewObject::commodity>() );

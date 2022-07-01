@@ -242,13 +242,33 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
   }
 }
 
-UnitId cheat_create_new_colonist( UnitsState&   units_state,
-                                  IMapUpdater&  map_updater,
-                                  Colony const& colony ) {
-  return create_unit_on_map_non_interactive(
+void cheat_create_new_colonist( UnitsState&   units_state,
+                                IMapUpdater&  map_updater,
+                                Colony const& colony ) {
+  RETURN_IF_NO_CHEAT;
+  create_unit_on_map_non_interactive(
       units_state, map_updater, colony.nation,
       UnitComposition::create( e_unit_type::free_colonist ),
       colony.location );
+}
+
+void cheat_increase_commodity( Colony&     colony,
+                               e_commodity type ) {
+  RETURN_IF_NO_CHEAT;
+  int& quantity = colony.commodities[type];
+  quantity += 50;
+  quantity = quantity - ( quantity % 50 );
+}
+
+void cheat_decrease_commodity( Colony&     colony,
+                               e_commodity type ) {
+  RETURN_IF_NO_CHEAT;
+  int& quantity = colony.commodities[type];
+  if( quantity % 50 != 0 )
+    quantity -= ( quantity % 50 );
+  else
+    quantity -= 50;
+  quantity = std::max( quantity, 0 );
 }
 
 } // namespace rn

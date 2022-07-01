@@ -19,6 +19,7 @@
 #include "wait.hpp"
 
 // gs
+#include "gs/commodity.rds.hpp"
 #include "gs/unit-id.hpp"
 
 namespace rn {
@@ -54,8 +55,13 @@ void cheat_upgrade_unit_expertise(
 
 void cheat_downgrade_unit_expertise( Unit& unit );
 
-UnitId cheat_create_new_colonist( UnitsState&   units_state,
-                                  IMapUpdater&  map_updater,
-                                  Colony const& colony );
+void cheat_create_new_colonist( UnitsState&   units_state,
+                                IMapUpdater&  map_updater,
+                                Colony const& colony );
+
+void cheat_increase_commodity( Colony&     colony,
+                               e_commodity type );
+void cheat_decrease_commodity( Colony&     colony,
+                               e_commodity type );
 
 } // namespace rn

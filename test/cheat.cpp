@@ -473,5 +473,47 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   }
 }
 
+TEST_CASE( "[cheat] cheat change commodity quantity" ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( /*where=*/World::kLand );
+
+  e_commodity const type = e_commodity::horses;
+
+  colony.commodities[type] = 66;
+
+  auto up = [&] {
+    cheat_increase_commodity( colony, type );
+    return colony.commodities[type];
+  };
+  auto down = [&] {
+    cheat_decrease_commodity( colony, type );
+    return colony.commodities[type];
+  };
+
+  // Sanity check.
+  REQUIRE( colony.commodities[type] == 66 );
+
+  SECTION( "up then down" ) {
+    REQUIRE( up() == 100 );
+    REQUIRE( up() == 150 );
+    REQUIRE( up() == 200 );
+    REQUIRE( up() == 250 );
+    REQUIRE( down() == 200 );
+    REQUIRE( down() == 150 );
+    REQUIRE( down() == 100 );
+    REQUIRE( down() == 50 );
+    REQUIRE( down() == 0 );
+    REQUIRE( down() == 0 );
+  }
+  SECTION( "down then up" ) {
+    REQUIRE( down() == 50 );
+    REQUIRE( down() == 0 );
+    REQUIRE( down() == 0 );
+    REQUIRE( up() == 50 );
+    REQUIRE( up() == 100 );
+  }
+}
+
 } // namespace
 } // namespace rn
