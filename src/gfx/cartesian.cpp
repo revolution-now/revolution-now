@@ -51,6 +51,13 @@ void dsize::operator+=( dsize term ) {
   h += term.h;
 }
 
+dsize to_double( size s ) {
+  return dsize{
+      .w = double( s.w ),
+      .h = double( s.h ),
+  };
+}
+
 /****************************************************************
 ** point
 *****************************************************************/

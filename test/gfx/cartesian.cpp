@@ -60,14 +60,24 @@ TEST_CASE( "[gfx/cartesian] size::operator+=( size )" ) {
 }
 
 /****************************************************************
-** size
+** dsize
 *****************************************************************/
-TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
+TEST_CASE( "[gfx/cartesian] dsize::operator+=( size )" ) {
   dsize s1{ .w = 4.3, .h = 2.1 };
   dsize s2{ .w = 4, .h = 3 };
   s1 += s2;
   REQUIRE( s1 == dsize{ .w = 8.3, .h = 5.1 } );
   REQUIRE( s2 == dsize{ .w = 4, .h = 3 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dsize::truncate" ) {
+  dsize s{ .w = 4.3, .h = 2.1 };
+  REQUIRE( s.truncate() == size{ .w = 4, .h = 2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
+  size s{ .w = 4, .h = 2 };
+  REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
 }
 
 /****************************************************************
@@ -82,6 +92,14 @@ TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
   REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+}
+
+/****************************************************************
+** dpoint
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  REQUIRE( p.truncate() == point{ .x = 4, .y = 2 } );
 }
 
 /****************************************************************

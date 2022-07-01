@@ -51,10 +51,16 @@ struct dsize {
   double w = 0.0;
   double h = 0.0;
 
+  size truncate() const {
+    return size{ .w = int( w ), .h = int( h ) };
+  }
+
   void operator+=( dsize term );
 
   bool operator==( dsize const& ) const = default;
 };
+
+dsize to_double( size s );
 
 /****************************************************************
 ** point
@@ -82,6 +88,14 @@ struct point {
 struct dpoint {
   double x = 0.0;
   double y = 0.0;
+
+  dsize distance_from_origin() const {
+    return dsize{ .w = x, .h = y };
+  }
+
+  point truncate() const {
+    return point{ .x = int( x ), .y = int( y ) };
+  }
 
   bool operator==( dpoint const& ) const = default;
 };
@@ -191,6 +205,25 @@ struct traits<gfx::size> {
   };
 };
 
+// Reflection info for struct dsize.
+template<>
+struct traits<gfx::dsize> {
+  using type = gfx::dsize;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "dsize";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "w", &gfx::dsize::w,
+                         offsetof( type, w ) },
+      refl::StructField{ "h", &gfx::dsize::h,
+                         offsetof( type, h ) },
+  };
+};
+
 // Reflection info for struct point.
 template<>
 struct traits<gfx::point> {
@@ -210,6 +243,25 @@ struct traits<gfx::point> {
   };
 };
 
+// Reflection info for struct dpoint.
+template<>
+struct traits<gfx::dpoint> {
+  using type = gfx::dpoint;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "dpoint";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gfx::dpoint::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gfx::dpoint::y,
+                         offsetof( type, y ) },
+  };
+};
+
 // Reflection info for struct rect.
 template<>
 struct traits<gfx::rect> {
@@ -225,6 +277,24 @@ struct traits<gfx::rect> {
       refl::StructField{ "origin", &gfx::rect::origin,
                          offsetof( type, origin ) },
       refl::StructField{ "size", &gfx::rect::size,
+                         offsetof( type, size ) } };
+};
+
+// Reflection info for struct drect.
+template<>
+struct traits<gfx::drect> {
+  using type = gfx::drect;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "drect";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "origin", &gfx::drect::origin,
+                         offsetof( type, origin ) },
+      refl::StructField{ "size", &gfx::drect::size,
                          offsetof( type, size ) } };
 };
 
