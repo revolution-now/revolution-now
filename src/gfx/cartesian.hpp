@@ -46,7 +46,7 @@ struct size {
 /****************************************************************
 ** dsize
 *****************************************************************/
-// Note: this type should be passed by value for efficiency.
+// Same as above (see comments) but with doubles.
 struct dsize {
   double w = 0.0;
   double h = 0.0;
@@ -73,6 +73,17 @@ struct point {
   bool operator==( point const& ) const = default;
 
   point moved_left( int by = 1 ) const;
+};
+
+/****************************************************************
+** dpoint
+*****************************************************************/
+// Same as above (see comments) but with doubles.
+struct dpoint {
+  double x = 0.0;
+  double y = 0.0;
+
+  bool operator==( dpoint const& ) const = default;
 };
 
 /****************************************************************
@@ -127,6 +138,17 @@ struct rect {
   int left() const;
 
   bool operator==( rect const& ) const = default;
+};
+
+/****************************************************************
+** drect
+*****************************************************************/
+// Same as above (see comments) but with doubles.
+struct drect {
+  dpoint origin = {}; // upper left when normalized.
+  dsize  size   = {};
+
+  bool operator==( drect const& ) const = default;
 };
 
 /****************************************************************
