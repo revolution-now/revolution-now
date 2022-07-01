@@ -194,6 +194,17 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
             where + Delta{ .w = options.shadow->offset },
             desc.tile, options.shadow->color );
       render_nationality_icon( renderer, where, id );
+      if( options.shadow.has_value() ) {
+        // Draw a light shadow over the flag so that we can dif-
+        // ferentiate the edge of the unit from the flag, but not
+        // so dark that it will cover up the flag.
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
+        rr::Painter painter = renderer.painter();
+        render_sprite_silhouette(
+            painter,
+            where + Delta{ .w = options.shadow->offset },
+            desc.tile, options.shadow->color );
+      }
       render_sprite( painter, Rect::from( where, g_tile_delta ),
                      desc.tile );
     } else {
