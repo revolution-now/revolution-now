@@ -33,7 +33,6 @@ namespace rn {
 struct Plane;
 
 struct IntInputBoxOptions {
-  std::string_view title   = "";
   std::string_view msg     = "";
   maybe<int>       min     = nothing;
   maybe<int>       max     = nothing;
@@ -65,8 +64,7 @@ struct WindowPlane {
                         maybe<int> initial_selection );
 
   wait<maybe<std::string>> str_input_box(
-      std::string_view title, std::string_view msg,
-      std::string_view initial_text );
+      std::string_view msg, std::string_view initial_text );
 
   wait<maybe<int>> int_input_box(
       IntInputBoxOptions const& options );

@@ -76,7 +76,7 @@ wait<string> RealGui::string_input(
   // quires input.
   while( !res.has_value() )
     res = co_await window_plane_.str_input_box(
-        "title?", config.msg, config.initial_text );
+        config.msg, config.initial_text );
   DCHECK( res.has_value() );
   co_return *res;
 }
@@ -87,7 +87,6 @@ wait<int> RealGui::int_input( IntInputConfig const& config ) {
   // quires input.
   while( !res.has_value() )
     res = co_await window_plane_.int_input_box( {
-        .title   = "title?",
         .msg     = config.msg,
         .min     = config.min,
         .max     = config.max,

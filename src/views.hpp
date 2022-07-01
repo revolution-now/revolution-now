@@ -40,6 +40,9 @@ namespace rn::ui {
 // NOTE: Don't put anymore views in here that are specific to
 // game logic.
 
+TextMarkupInfo const& default_text_markup_info();
+TextReflowInfo const& default_text_reflow_info();
+
 /****************************************************************
 ** Fundamental Views
 *****************************************************************/

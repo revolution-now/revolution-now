@@ -498,14 +498,24 @@ void LineEditorView::set( std::string_view new_string,
 /****************************************************************
 ** PlainMessageBoxView
 *****************************************************************/
-unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
-    string_view msg, wait_promise<> on_close ) {
-  TextMarkupInfo m_info{
+TextMarkupInfo const& default_text_markup_info() {
+  static TextMarkupInfo info{
       /*normal=*/config_ui.dialog_text.normal,
       /*highlight=*/config_ui.dialog_text.highlighted };
-  TextReflowInfo r_info{
+  return info;
+}
+
+TextReflowInfo const& default_text_reflow_info() {
+  static TextReflowInfo info{
       /*max_cols=*/config_ui.dialog_text.columns };
-  unique_ptr<TextView> tview =
+  return info;
+}
+
+unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
+    string_view msg, wait_promise<> on_close ) {
+  TextMarkupInfo const& m_info = default_text_markup_info();
+  TextReflowInfo const& r_info = default_text_reflow_info();
+  unique_ptr<TextView>  tview =
       make_unique<TextView>( msg, m_info, r_info );
   return make_unique<PlainMessageBoxView>(
       std::move( tview ), std::move( on_close ) );

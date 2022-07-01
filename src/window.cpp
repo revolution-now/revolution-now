@@ -59,8 +59,7 @@ using ::base::function_ref;
 ** Window
 *****************************************************************/
 struct Window {
-  Window( WindowPlane& window_plane, std::string title_,
-          Coord position_ );
+  Window( WindowPlane& window_plane, Coord position_ );
   // Removes this window from the window manager.
   ~Window() noexcept;
 
@@ -86,15 +85,12 @@ struct Window {
   Rect  inside_border_rect() const;
   Coord inside_padding() const;
   Rect  inside_padding_rect() const;
-  Rect  title_bar() const;
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
-  WindowPlane&                           window_plane_;
-  std::string                            title;
-  std::unique_ptr<ui::View>              view;
-  std::unique_ptr<ui::OneLineStringView> title_view;
-  Coord                                  position;
+  WindowPlane&              window_plane_;
+  std::unique_ptr<ui::View> view;
+  Coord                     position;
 };
 
 /****************************************************************
@@ -198,16 +194,10 @@ Delta const& window_padding() {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-Window::Window( WindowPlane& window_plane, string title_,
-                Coord position_ )
+Window::Window( WindowPlane& window_plane, Coord position_ )
   : window_plane_( window_plane ),
-    title( move( title_ ) ),
     view{},
-    title_view{},
     position( position_ ) {
-  title_view = make_unique<ui::OneLineStringView>(
-      title,
-      gfx::pixel{ .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } );
   window_plane_.impl_->wm.add_window( this );
 }
 
@@ -245,9 +235,6 @@ void Window::draw( rr::Renderer& renderer ) const {
       r.lower_right(),
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
 
-  auto title_start =
-      centered( title_view->delta(), title_bar() );
-  title_view->draw( renderer, title_start );
   view->draw( renderer, view_pos() );
 }
 
@@ -255,13 +242,10 @@ void Window::draw( rr::Renderer& renderer ) const {
 Delta Window::delta() const {
   CHECK( view );
   Delta res;
-  res.w = std::max( title_view->delta().w, view->delta().w );
-  res.h += title_view->delta().h + view->delta().h +
-           window_padding().h * 2;
+  res.w = view->delta().w;
+  res.h += view->delta().h + window_padding().h * 2;
   // Padding inside window border.
   res.w += config_ui.window.window_padding * 2;
-  // Padding under title bar.
-  res.h += config_ui.window.ui_padding;
   // multiply by two since there is top/bottom or left/right.
   res += window_border() * 2;
   return res;
@@ -297,19 +281,7 @@ Rect Window::inside_padding_rect() const {
   return res;
 }
 
-Rect Window::title_bar() const {
-  CHECK( view );
-  auto title_bar_rect = title_view->rect( inside_padding() );
-  title_bar_rect.w =
-      std::max( title_bar_rect.w, view->delta().w );
-  return title_bar_rect;
-}
-
-Coord Window::view_pos() const {
-  return inside_padding() +
-         Delta{ .h = title_view->delta().h +
-                     config_ui.window.ui_padding };
-}
+Coord Window::view_pos() const { return inside_padding(); }
 
 void WindowManager::draw_layout( rr::Renderer& renderer ) const {
   for( Window* window : active_windows() )
@@ -393,22 +365,15 @@ e_input_handled WindowManager::input(
 }
 
 Plane::e_accept_drag WindowManager::can_drag(
-    input::e_mouse_button /*unused*/, Coord origin ) {
+    input::e_mouse_button /*button*/, Coord origin ) {
   if( num_windows() == 0 ) return Plane::e_accept_drag::no;
   maybe<Window&> win = window_for_cursor_pos( origin );
   // If it's not in a window then swallow it to prevent any other
   // plane from handling it.
   if( !win ) return Plane::e_accept_drag::swallow;
   dragging_win_ = &*win;
-  // If we're in the title bar then we'll drag; if we not, but
-  // still in the window somewhere, we will "swallow" which means
-  // that no other planes should get this drag even (because the
-  // cursor is rightly in the window) but we don't want to handle
-  // it ourselves because we only drag from the title bar.
-  if( origin.is_inside( win->title_bar() ) )
-    return Plane::e_accept_drag::yes;
-  // Receive drag events as normal mouse events.
-  return Plane::e_accept_drag::motion;
+  // Allow dragging from anywhere in the window.
+  return Plane::e_accept_drag::yes;
 }
 
 void WindowManager::on_drag( input::mod_keys const& /*unused*/,
@@ -460,10 +425,9 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
 // We need to have pointer stability on the returned window since
 // its address needs to go into callbacks.
 [[nodiscard]] unique_ptr<Window> async_window_builder(
-    WindowPlane& window_plane, std::string_view title,
-    unique_ptr<ui::View> view, bool auto_pad ) {
-  auto win = make_unique<Window>( window_plane, string( title ),
-                                  Coord{} );
+    WindowPlane& window_plane, unique_ptr<ui::View> view,
+    bool auto_pad ) {
+  auto win = make_unique<Window>( window_plane, Coord{} );
   if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   win->center_window();
@@ -476,8 +440,7 @@ using GetOkCancelSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_cancel_window_builder(
-    WindowPlane& window_plane, string_view title,
-    function<ResultT()>              get_result,
+    WindowPlane& window_plane, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( maybe<ResultT> )>         on_result,
@@ -516,8 +479,7 @@ template<typename ResultT>
   auto view = make_unique<ui::VerticalArrayView>(
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
-  return async_window_builder( window_plane, title,
-                               std::move( view ),
+  return async_window_builder( window_plane, std::move( view ),
                                /*auto_pad=*/true );
 }
 
@@ -527,8 +489,7 @@ using GetOkBoxSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_box_window_builder(
-    WindowPlane& window_plane, string_view title,
-    function<ResultT()>              get_result,
+    WindowPlane& window_plane, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( ResultT )>             on_result,
@@ -558,8 +519,7 @@ template<typename ResultT>
   auto view = make_unique<ui::VerticalArrayView>(
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
-  return async_window_builder( window_plane, title,
-                               std::move( view ),
+  return async_window_builder( window_plane, std::move( view ),
                                /*auto_pad=*/true );
 }
 
@@ -590,7 +550,6 @@ template<typename ResultT>
   // Use <int> for lack of anything better.
   return ok_cancel_window_builder<int>(
       window_plane,
-      /*title=*/"Question",
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
       /*on_result=*/std::move( on_ok_cancel_result ),
@@ -609,9 +568,8 @@ wait<ui::e_ok_cancel> ok_cancel( WindowPlane&     window_plane,
 
 namespace {
 [[nodiscard]] unique_ptr<Window> text_input_box(
-    WindowPlane& window_plane, string_view title,
-    string_view msg, string_view initial_text,
-    ui::ValidatorFunc               validator,
+    WindowPlane& window_plane, string_view msg,
+    string_view initial_text, ui::ValidatorFunc validator,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -651,7 +609,6 @@ namespace {
 
   return ok_cancel_window_builder<string>(
       window_plane,
-      /*title=*/title,
       /*get_result=*/
       [p_le_view]() -> string { return p_le_view->text(); },
       /*validator=*/validator, // must be copied.
@@ -711,7 +668,6 @@ wait<vector<UnitSelection>> unit_selection_box(
   unique_ptr<Window> win = ok_cancel_window_builder<
       unordered_map<UnitId, UnitActivationInfo>>(
       window_plane,
-      /*title=*/"Activate Units",
       /*get_result=*/
       [p_unit_activation_view]() {
         return p_unit_activation_view->info_map();
@@ -736,8 +692,7 @@ WindowPlane::WindowPlane() : impl_( new Impl() ) {}
 wait<> WindowPlane::message_box( string_view msg ) {
   wait_promise<>     p;
   unique_ptr<Window> win = async_window_builder(
-      *this, /*title=*/"note",
-      ui::PlainMessageBoxView::create( string( msg ), p ),
+      *this, ui::PlainMessageBoxView::create( string( msg ), p ),
       /*auto_pad=*/true );
   co_await p.wait();
 }
@@ -792,10 +747,21 @@ wait<int> WindowPlane::select_box(
 
   auto on_input_view = make_unique<ui::OnInputView>(
       std::move( selector_view ), std::move( on_input ) );
+  TextMarkupInfo const& m_info = ui::default_text_markup_info();
+  TextReflowInfo const& r_info = ui::default_text_reflow_info();
+  auto                  text_view =
+      make_unique<ui::TextView>( msg, m_info, r_info );
+  vector<unique_ptr<ui::View>> vert_views;
+  vert_views.push_back( std::move( text_view ) );
+  vert_views.push_back( std::move( on_input_view ) );
+  auto va_view = make_unique<ui::VerticalArrayView>(
+      std::move( vert_views ),
+      ui::VerticalArrayView::align::left );
 
-  unique_ptr<ui::View> view = std::move( on_input_view );
-  unique_ptr<Window>   win  = async_window_builder(
-         *this, msg, std::move( view ), /*auto_pad=*/false );
+  unique_ptr<ui::View> view = std::move( va_view );
+  unique_ptr<Window>   win =
+      async_window_builder( *this, std::move( view ),
+                            /*auto_pad=*/true );
 
   p_selector_view->grow_to( win->inside_padding_rect().w );
 
@@ -805,11 +771,10 @@ wait<int> WindowPlane::select_box(
 }
 
 wait<maybe<string>> WindowPlane::str_input_box(
-    string_view title, string_view msg,
-    string_view initial_text ) {
+    string_view msg, string_view initial_text ) {
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
-               *this, title, msg, initial_text, L( _.size() > 0 ),
+               *this, msg, initial_text, L( _.size() > 0 ),
                [p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
@@ -823,7 +788,7 @@ wait<maybe<int>> WindowPlane::int_input_box(
           ? fmt::format( "{}", *options.initial )
           : "";
   unique_ptr<Window> win = text_input_box(
-      *this, options.title, options.msg, initial_text,
+      *this, options.msg, initial_text,
       make_int_validator( options.min, options.max ),
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
