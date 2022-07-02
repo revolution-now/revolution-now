@@ -59,6 +59,8 @@ struct dsize {
 
   void operator+=( dsize term );
 
+  dsize operator*( double factor ) const;
+
   bool operator==( dsize const& ) const = default;
 };
 
@@ -99,9 +101,13 @@ struct dpoint {
     return point{ .x = int( x ), .y = int( y ) };
   }
 
-  dsize modded_by( double d ) const;
+  dsize fmod( double d ) const;
 
   void operator-=( dsize s );
+
+  dpoint operator-() const { return dpoint{ .x = -x, .y = -y }; }
+
+  dpoint operator*( double factor ) const;
 
   bool operator==( dpoint const& ) const = default;
 };
@@ -197,6 +203,11 @@ struct drect {
 drect to_double( rect r );
 
 /****************************************************************
+** Free Functions
+*****************************************************************/
+dpoint centered_in( dsize s, drect r );
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s );
@@ -209,7 +220,8 @@ size operator+( size const s1, size const s2 );
 
 void operator+=( point& p, size const s );
 
-size operator-( point const p1, point const p2 );
+size  operator-( point const p1, point const p2 );
+dsize operator-( dpoint const p1, dpoint const p2 );
 
 point operator*( point const p, size const s );
 

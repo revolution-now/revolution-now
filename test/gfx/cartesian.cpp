@@ -80,6 +80,11 @@ TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
   REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] dsize::operator*( double )" ) {
+  dsize s{ .w = 4, .h = 2 };
+  REQUIRE( s * 10 == dsize{ .w = 40, .h = 20 } );
+}
+
 /****************************************************************
 ** point
 *****************************************************************/
@@ -102,9 +107,9 @@ TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
   REQUIRE( p.truncate() == point{ .x = 4, .y = 2 } );
 }
 
-TEST_CASE( "[gfx/cartesian] dpoint::modded_by" ) {
+TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
   dpoint p{ .x = 4.4, .y = 2.4 };
-  REQUIRE( p.modded_by( 2.1 ) == dsize{ .w = .2, .h = .3 } );
+  REQUIRE( p.fmod( 2.1 ) == dsize{ .w = .2, .h = .3 } );
 }
 
 TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
@@ -136,6 +141,12 @@ TEST_CASE( "[gfx/cartesian] point - point" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 2, .y = 4 };
   REQUIRE( p1 - p2 == size{ .w = 2, .h = -2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint - dpoint" ) {
+  dpoint p1{ .x = 4.1, .y = 2 };
+  dpoint p2{ .x = 2, .y = 4 };
+  REQUIRE( p1 - p2 == dsize{ .w = 2.1, .h = -2 } );
 }
 
 TEST_CASE( "[gfx/cartesian] point*size" ) {
@@ -610,6 +621,27 @@ TEST_CASE( "[gfx/cartesian] drect::nw, rect::se, etc." ) {
   REQUIRE( r.bottom() == 7 );
   REQUIRE( r.right() == 4 );
   REQUIRE( r.left() == 3 );
+}
+
+/****************************************************************
+** Free Functions
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] centered*" ) {
+  drect  rect;
+  dsize  delta;
+  dpoint expect;
+
+  rect   = drect{ .origin = { .x = 1, .y = 1 },
+                  .size   = { .w = 0, .h = 0 } };
+  delta  = dsize{ .w = 4, .h = 3 };
+  expect = dpoint{ .x = -1, .y = 0 };
+  REQUIRE( centered_in( delta, rect ) == expect );
+
+  rect   = drect{ .origin = { .x = 1, .y = 2 },
+                  .size   = { .w = 5, .h = 6 } };
+  delta  = dsize{ .w = 3, .h = 4 };
+  expect = dpoint{ .x = 2, .y = 3 };
+  REQUIRE( centered_in( delta, rect ) == expect );
 }
 
 } // namespace

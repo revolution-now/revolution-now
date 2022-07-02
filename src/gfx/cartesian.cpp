@@ -58,6 +58,13 @@ dsize to_double( size s ) {
   };
 }
 
+dsize dsize::operator*( double factor ) const {
+  dsize res = *this;
+  res.w *= factor;
+  res.h *= factor;
+  return res;
+}
+
 /****************************************************************
 ** point
 *****************************************************************/
@@ -73,8 +80,8 @@ point point::moved_left( int by ) const {
 /****************************************************************
 ** dpoint
 *****************************************************************/
-dsize dpoint::modded_by( double d ) const {
-  return dsize{ .w = fmod( x, d ), .h = fmod( y, d ) };
+dsize dpoint::fmod( double d ) const {
+  return dsize{ .w = std::fmod( x, d ), .h = std::fmod( y, d ) };
 }
 
 void dpoint::operator-=( dsize s ) {
@@ -86,6 +93,10 @@ dpoint operator-( dpoint p, dsize s ) {
   dpoint res = p;
   res -= s;
   return res;
+}
+
+dpoint dpoint::operator*( double factor ) const {
+  return dpoint{ .x = x * factor, .y = y * factor };
 }
 
 /****************************************************************
@@ -281,6 +292,14 @@ drect drect::normalized() const {
 }
 
 /****************************************************************
+** Free Functions
+*****************************************************************/
+dpoint centered_in( dsize s, drect r ) {
+  return { .x = r.origin.x + r.size.w / 2 - s.w / 2,
+           .y = r.origin.y + r.size.h / 2 - s.h / 2 };
+}
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s ) {
@@ -309,6 +328,10 @@ point operator*( point const p, size const s ) {
 
 size operator-( point const p1, point const p2 ) {
   return size{ .w = p1.x - p2.x, .h = p1.y - p2.y };
+}
+
+dsize operator-( dpoint const p1, dpoint const p2 ) {
+  return dsize{ .w = p1.x - p2.x, .h = p1.y - p2.y };
 }
 
 } // namespace gfx
