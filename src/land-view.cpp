@@ -154,8 +154,9 @@ void render_backdrop( rr::Renderer& renderer ) {
   int const    kNumLayers = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             shift );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        gfx::to_double( gfx::size( shift ) ) );
     rr::Painter painter = renderer.painter();
     for( Coord coord : tiled_rect.to_grid_noalign( tile_size ) )
       render_sprite( painter, Rect::from( coord, tile_size ),
@@ -892,13 +893,21 @@ struct LandViewPlane::Impl : public Plane {
       {
         // This is the shadow behind the land rectangle.
         SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
-        int shadow_offset = lround( 20 * viewport().get_zoom() );
+        double const zoom          = viewport().get_zoom();
+        int          shadow_offset = int( 40 * zoom );
+        gfx::dpoint  corner =
+            viewport().landscape_buffer_render_upper_left();
+        corner.x += shadow_offset;
+        corner.y += shadow_offset;
+        Rect const shadow_rect{
+            .x = int( corner.x ),
+            .y = int( corner.y ),
+            .w = int( viewport().world_size_pixels().w * zoom ),
+            .h = int( viewport().world_size_pixels().h * zoom ),
+        };
         rr::Painter painter = renderer.painter();
         painter.draw_solid_rect(
-            viewport().rendering_dest_rect().shifted_by(
-                Delta{ .w = W{ shadow_offset },
-                       .h = H{ shadow_offset } } ),
-            gfx::pixel::black().with_alpha( 100 ) );
+            shadow_rect, gfx::pixel::black().with_alpha( 100 ) );
       }
 
       renderer.render_buffer(
@@ -906,12 +915,11 @@ struct LandViewPlane::Impl : public Plane {
     }
 
     // Now the actual land.
-    double zoom = viewport().get_zoom();
-    renderer.set_camera(
-        viewport()
-            .landscape_buffer_render_upper_left()
-            .distance_from_origin(),
-        zoom );
+    double const      zoom = viewport().get_zoom();
+    gfx::dpoint const translation =
+        viewport().landscape_buffer_render_upper_left();
+    renderer.set_camera( translation.distance_from_origin(),
+                         zoom );
     // Should do this after setting the camera.
     renderer.render_buffer(
         rr::e_render_target_buffer::landscape );
@@ -922,29 +930,25 @@ struct LandViewPlane::Impl : public Plane {
     if( landview_mode_.holds<LandViewMode::hidden_terrain>() )
       return;
 
-    Rect const covered = viewport().covered_tiles();
-    double     zoom    = viewport().get_zoom();
-    Coord corner = viewport().rendering_dest_rect().upper_left();
-    Delta hidden =
-        viewport().covered_pixels().upper_left() % g_tile_delta;
-    if( hidden != Delta{} ) {
-      DCHECK( hidden.w >= 0 );
-      DCHECK( hidden.h >= 0 );
-      // Move the rendering start slightly off screen (in the
-      // upper-left direction) by an amount that is within the
-      // span of one tile to partially show that tile row/column.
-      corner -= hidden.multiply_and_round( zoom );
-    }
+    // Move the rendering start slightly off screen (in the
+    // upper-left direction) by an amount that is within the span
+    // of one tile to partially show that tile row/column.
+    gfx::dpoint const corner =
+        viewport().rendering_dest_rect().origin -
+        viewport().covered_pixels().origin.fmod( 32.0 ) *
+            viewport().get_zoom();
 
     // The below render_* functions will always render at normal
     // scale and starting at 0,0 on the screen, and then the ren-
     // derer mods that we've install above will automatically do
     // the shifting and scaling.
-    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, zoom );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             viewport().get_zoom() );
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                              corner.distance_from_origin() );
-    render_colonies( renderer, covered );
-    render_units( renderer, covered );
+    Rect const covered_tiles = viewport().covered_tiles();
+    render_colonies( renderer, covered_tiles );
+    render_units( renderer, covered_tiles );
   }
 
   void draw( rr::Renderer& renderer ) const override {

@@ -11,28 +11,15 @@
   5.  Fix beach tiles.
   6.  Consider adding connectors to diagonally adjacent forest
       island tiles.
-  7.  Fix that colony position seems to wiggle slightly as the
-      map is scrolled. The solution to this may be render it as
-      part of the landscape. However, before doing that, there
-      would have to be a mechanism in place to allow animations
-      of colony icons; specifically, the colony icon has to be
-      able to depixelate when a new enclosure is added (such as a
-      fort, in which case it would animate from a stockade to a
-      fort). Maybe we should add a new buffer to the renderer
-      called a landscape animation buffer which will get recre-
-      ated each frame and is always rendered between the land-
-      scape buffer and the normal buffer. This landscape anima-
-      tion buffer would only have a rendering of those squares
-      around the thing being animated.
-  8.  Implement world generation.
-  9.  Implement terrain visibility. This probably has to be de-
+  7.  Implement world generation.
+  8.  Implement terrain visibility. This probably has to be de-
       signed together with the zones-of-control and fog-of-war
       mechanisms. Current thinking is that the TerrainState will
       contain additional maps for each nation containing a sepa-
       rate set of MapSquares that are visible to them. This will
       be extra space, but will allow for a simple implementation
       of fog-of-war.
-  10. [reproducible on darter, lenovo, and macbook] There is cur-
+  9.  [reproducible on darter, lenovo, and macbook] There is cur-
       rently a (potentially significant) performance problem with
       rendering the map that needs to be better understood and
       fixed. The problem is that, after some map squares have
@@ -52,7 +39,7 @@
       the fog). This doesn't seem to be reproducible on all sys-
       tems, so it could be driver-specific. But it is repro-
       ducible on enough systems such that it must be fixed.
-  11. On large maps the current method of updating tiles is to
+  10. On large maps the current method of updating tiles is to
       laggy due to the time taken to upload it to the GPU, and
       this is bad because it could happen often. To fix this,
       split the landscape buffer into two -- the main buffer and
@@ -60,22 +47,22 @@
       frame. When tiles are added they are added to the adjunct
       buffer and so only that has to be uploaded. When the map is
       redrawn, the adjunct buffer will be empty.
-  12. Need to make sure that units at the colony gate have an
+  11. Need to make sure that units at the colony gate have an
       order to them for a good UX. Actually we may want to have
       an ordering of units on all map squares. Need to see what
       the original game does in this regard.
-  13. Fix that a land unit entering a water square when it has
+  12. Fix that a land unit entering a water square when it has
       partial movement points left presents the player with a
       message that it doesn't have enough movement points left,
       when it should not be able to enter that square anyway.
-  14. Make sure that the immediate starting area doesn't have any
+  13. Make sure that the immediate starting area doesn't have any
       lost city rumors on it, since that would be a weird experi-
       ence to e.g. land in the new world for the first time and
       discover the fountain of youth.
-  15. Fix that when clicking outside of an open menu to close it
+  14. Fix that when clicking outside of an open menu to close it
       the menu plane does not handle the click and it goes
       through to what is underneath of it.
-  16. Fix that when clicking on the exit tile in the harbor view,
+  15. Fix that when clicking on the exit tile in the harbor view,
       up click carries through to the land view and scrolls the
       map. Also, the same things seems to happen when closing an
       open menu by clicking away from it.

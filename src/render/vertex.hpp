@@ -70,7 +70,7 @@ struct VertexBase : protected GenericVertex {
 
   // *** Repositioning.
   void set_scaling( double scale );
-  void set_translation( gfx::size translation );
+  void set_translation( gfx::dsize translation );
 
   // *** Color Cycling.
   void set_color_cycle( bool enabled );

@@ -1175,8 +1175,10 @@ class ProductionView : public ui::View, public ColonySubView {
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             coord.distance_from_origin() );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        gfx::to_double(
+            gfx::size( coord.distance_from_origin() ) ) );
     rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
                                       gfx::pixel::black() );
     typer.write( "Hammers:      {}\n", colony().hammers );
@@ -1453,8 +1455,9 @@ class LandView : public ui::View,
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord         coord ) const {
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             coord.distance_from_origin() );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        to_double( gfx::size( coord.distance_from_origin() ) ) );
 
     TerrainState const& terrain_state = GameState::terrain();
     // FIXME: Should not be duplicating land-view rendering code

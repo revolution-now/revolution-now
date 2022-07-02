@@ -22,6 +22,7 @@
 #include "viewport.rds.hpp"
 
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/coord.hpp"
 
 // luapp
@@ -51,7 +52,8 @@ class SmoothViewport {
   bool is_fully_visible_y() const;
 
   // Will give us a rect of world pixels covered by the viewport.
-  Rect covered_pixels() const;
+  gfx::drect covered_pixels() const;
+  Rect       covered_pixels_rounded() const;
 
   // This function will shift the viewport to make the tile coor-
   // dinate visible plus some surrounding squares, but will avoid
@@ -63,19 +65,13 @@ class SmoothViewport {
   // bit after that.
   wait<> ensure_tile_visible_smooth( Coord const& coord );
 
-  // This function will compute the rectangle in the source
-  // viewport texture that should be rendered to the screen.
-  // NOTE: this function assumes that only the covered_tiles()
-  // will have been rendered to the texture. So mainly this
-  // function deals with slightly shifting the rect within the
-  // width of a single tile, along with some edge cases.
-  Rect rendering_src_rect() const;
   // This function computes the rectangle on the screen to which
   // the viewport should be rendered. This would be trivial but
   // it also deals with the situation where the world is smaller
   // than the viewport, in which case it will center the rect in
   // the available area.
-  Rect rendering_dest_rect() const;
+  gfx::drect rendering_dest_rect() const;
+  Rect       rendering_dest_rect_rounded() const;
 
   // Computes the zoom required so that the entire map is visible
   // with a bit of map surrounds visible as well.
@@ -95,7 +91,9 @@ class SmoothViewport {
   // should start rendering the landscape buffer (which could be
   // off screen) in order to make the covered area visible on
   // screen.
-  Coord landscape_buffer_render_upper_left() const;
+  gfx::dpoint landscape_buffer_render_upper_left() const;
+
+  Delta world_size_pixels() const;
 
   // Given a screen pixel coordinate this will return the world
   // coordinate.
@@ -186,9 +184,8 @@ class SmoothViewport {
 
   // These are to avoid a direct dependency on the screen module
   // and its initialization code.
-  Delta world_size_pixels() const;
-  Rect  world_rect_pixels() const;
-  Rect  world_rect_tiles() const;
+  Rect world_rect_pixels() const;
+  Rect world_rect_tiles() const;
 
   double start_x() const;
   double start_y() const;
@@ -198,7 +195,8 @@ class SmoothViewport {
   X start_tile_x() const;
   Y start_tile_y() const;
 
-  Rect get_bounds() const;
+  gfx::drect get_bounds() const;
+  Rect       get_bounds_rounded() const;
 
   // Returns world coordinates of center in pixels, rounded
   // to the nearest pixel.

@@ -90,8 +90,8 @@ void VertexBase::set_alpha( double alpha ) {
 
 void VertexBase::set_scaling( double scale ) { scaling = scale; }
 
-void VertexBase::set_translation( gfx::size trans ) {
-  translation = gl::vec2::from_size( trans );
+void VertexBase::set_translation( gfx::dsize trans ) {
+  translation = gl::vec2::from_dsize( trans );
 }
 
 void VertexBase::set_color_cycle( bool enabled ) {

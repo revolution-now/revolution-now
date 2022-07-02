@@ -24,7 +24,10 @@ namespace {
 
 using namespace std;
 
+using namespace Catch::literals;
+
 using ::base::nothing;
+using ::Catch::Approx;
 
 /****************************************************************
 ** size
@@ -109,15 +112,19 @@ TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
 
 TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
   dpoint p{ .x = 4.4, .y = 2.4 };
-  REQUIRE( p.fmod( 2.1 ) == dsize{ .w = .2, .h = .3 } );
+  // _a is a literal from Catch2 that means "approximately".
+  REQUIRE( p.fmod( 2.1 ).w == .2_a );
+  REQUIRE( p.fmod( 2.1 ).h == .3_a );
 }
 
 TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
   dpoint p{ .x = 4.4, .y = 2.4 };
   dsize  s{ .w = 5.2, .h = 1.5 };
   p -= s;
-  REQUIRE( p == dpoint{ .x = -.8, .y = .9 } );
-  REQUIRE( ( p - s ) == dpoint{ .x = -6.0, .y = -.6 } );
+  REQUIRE( p.x == -.8_a );
+  REQUIRE( p.y == .9_a );
+  REQUIRE( ( p - s ).x == -6.0_a );
+  REQUIRE( ( p - s ).y == -.6_a );
 }
 
 /****************************************************************
@@ -146,7 +153,8 @@ TEST_CASE( "[gfx/cartesian] point - point" ) {
 TEST_CASE( "[gfx/cartesian] dpoint - dpoint" ) {
   dpoint p1{ .x = 4.1, .y = 2 };
   dpoint p2{ .x = 2, .y = 4 };
-  REQUIRE( p1 - p2 == dsize{ .w = 2.1, .h = -2 } );
+  REQUIRE( ( p1 - p2 ).w == 2.1_a );
+  REQUIRE( ( p1 - p2 ).h == -2.0_a );
 }
 
 TEST_CASE( "[gfx/cartesian] point*size" ) {
@@ -526,9 +534,9 @@ TEST_CASE( "[gfx/cartesian] to_double( rect )" ) {
 }
 
 TEST_CASE( "[gfx/cartesian] drect::normalized()" ) {
-  rect r{ .origin = { .x = 3, .y = 4 },
-          .size   = { .w = -4, .h = -2 } };
-  REQUIRE( to_double( r ) ==
+  drect r{ .origin = { .x = 3, .y = 4 },
+           .size   = { .w = -4, .h = -2 } };
+  REQUIRE( r.normalized() ==
            drect{ .origin = { .x = -1, .y = 2 },
                   .size   = { .w = 4, .h = 2 } } );
 }
@@ -634,7 +642,7 @@ TEST_CASE( "[gfx/cartesian] centered*" ) {
   rect   = drect{ .origin = { .x = 1, .y = 1 },
                   .size   = { .w = 0, .h = 0 } };
   delta  = dsize{ .w = 4, .h = 3 };
-  expect = dpoint{ .x = -1, .y = 0 };
+  expect = dpoint{ .x = -1, .y = -.5 };
   REQUIRE( centered_in( delta, rect ) == expect );
 
   rect   = drect{ .origin = { .x = 1, .y = 2 },
