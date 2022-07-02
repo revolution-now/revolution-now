@@ -51,6 +51,8 @@ struct dsize {
   double w = 0.0;
   double h = 0.0;
 
+  bool negative() const { return w < 0 || h < 0; };
+
   size truncate() const {
     return size{ .w = int( w ), .h = int( h ) };
   }
@@ -168,14 +170,40 @@ struct drect {
   dpoint origin = {}; // upper left when normalized.
   dsize  size   = {};
 
+  // Will clip off any parts of this rect that fall outside of
+  // `other`. If the entire rect falls outside of `other` then it
+  // will return nothing. If the borders are just touching then
+  // it will return a rect with zero area by whose length covers
+  // that portion of overlapped border (i.e., it will be a
+  // "line").
+  [[nodiscard]] base::maybe<drect> clipped_by(
+      drect const other ) const;
+
+  drect normalized() const;
+
+  dpoint nw() const;
+  dpoint ne() const;
+  dpoint se() const;
+  dpoint sw() const;
+
+  double top() const;
+  double bottom() const;
+  double right() const;
+  double left() const;
+
   bool operator==( drect const& ) const = default;
 };
+
+drect to_double( rect r );
 
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s );
 point operator+( size const s, point const p );
+
+dpoint operator+( dpoint const p, dsize const s );
+dpoint operator+( dsize const s, dpoint const p );
 
 size operator+( size const s1, size const s2 );
 

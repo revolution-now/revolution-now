@@ -196,6 +196,91 @@ point rect::center() const {
 }
 
 /****************************************************************
+** drect
+*****************************************************************/
+drect to_double( rect r ) {
+  return drect{
+      .origin = { .x = double( r.origin.x ),
+                  .y = double( r.origin.y ) },
+      .size   = { .w = double( r.size.w ),
+                  .h = double( r.size.h ) },
+  };
+}
+
+maybe<drect> drect::clipped_by( drect const other ) const {
+  drect res = this->normalized();
+  if( res.right() > other.right() )
+    res.size.w -= ( res.right() - other.right() );
+  if( res.bottom() > other.bottom() )
+    res.size.h -= ( res.bottom() - other.bottom() );
+  if( res.left() < other.left() ) {
+    int delta = ( other.left() - res.left() );
+    res.origin.x += delta;
+    res.size.w -= delta;
+  }
+  if( res.top() < other.top() ) {
+    int delta = ( other.top() - res.top() );
+    res.origin.y += delta;
+    res.size.h -= delta;
+  }
+  if( res.size.negative() ) return nothing;
+  // Note that res.size.area() could be zero here.
+  return res;
+}
+
+dpoint drect::nw() const { return normalized().origin; }
+
+dpoint drect::ne() const {
+  drect norm = normalized();
+  return dpoint{ .x = norm.origin.x + norm.size.w,
+                 .y = norm.origin.y };
+}
+
+dpoint drect::se() const {
+  drect norm = normalized();
+  return norm.origin + norm.size;
+}
+
+dpoint drect::sw() const {
+  drect norm = normalized();
+  return dpoint{ .x = norm.origin.x,
+                 .y = norm.origin.y + norm.size.h };
+}
+
+double drect::top() const {
+  drect norm = normalized();
+  return norm.origin.y;
+}
+
+double drect::bottom() const {
+  drect norm = normalized();
+  return norm.origin.y + norm.size.h;
+}
+
+double drect::left() const {
+  drect norm = normalized();
+  return norm.origin.x;
+}
+
+double drect::right() const {
+  drect norm = normalized();
+  return norm.origin.x + norm.size.w;
+}
+
+drect drect::normalized() const {
+  drect res = *this;
+  if( res.size.w < 0 ) {
+    res.origin.x += res.size.w;
+    res.size.w = -res.size.w;
+  }
+  if( res.size.h < 0 ) {
+    res.origin.y += res.size.h;
+    res.size.h = -res.size.h;
+  }
+  return res;
+}
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s ) {
@@ -203,6 +288,14 @@ point operator+( point const p, size const s ) {
 }
 
 point operator+( size const s, point const p ) { return p + s; }
+
+dpoint operator+( dpoint const p, dsize const s ) {
+  return dpoint{ .x = p.x + s.w, .y = p.y + s.h };
+}
+
+dpoint operator+( dsize const s, dpoint const p ) {
+  return p + s;
+}
 
 size operator+( size const s1, size const s2 ) {
   return size{ .w = s1.w + s2.w, .h = s1.h + s2.h };
