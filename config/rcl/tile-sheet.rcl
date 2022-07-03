@@ -627,18 +627,18 @@ sheets {
         scout:                  { y: 1, x: 3 }
         expert_farmer:          { y: 0, x: 0 }
         expert_fisherman:       { y: 0, x: 0 }
-        expert_sugar_planter:   { y: 0, x: 0 }
-        expert_tobacco_planter: { y: 0, x: 0 }
-        expert_cotton_planter:  { y: 0, x: 0 }
-        expert_fur_trapper:     { y: 0, x: 0 }
-        expert_lumberjack:      { y: 0, x: 0 }
+        expert_sugar_planter:   { y: 4, x: 2 }
+        expert_tobacco_planter: { y: 4, x: 0 }
+        expert_cotton_planter:  { y: 4, x: 1 }
+        expert_fur_trapper:     { y: 4, x: 3 }
+        expert_lumberjack:      { y: 6, x: 0 }
         expert_ore_miner:       { y: 0, x: 0 }
         expert_silver_miner:    { y: 0, x: 0 }
         master_carpenter:       { y: 0, x: 0 }
-        master_rum_distiller:   { y: 0, x: 0 }
-        master_tobacconist:     { y: 0, x: 0 }
-        master_weaver:          { y: 0, x: 0 }
-        master_fur_trader:      { y: 0, x: 0 }
+        master_rum_distiller:   { y: 5, x: 2 }
+        master_tobacconist:     { y: 5, x: 0 }
+        master_weaver:          { y: 5, x: 1 }
+        master_fur_trader:      { y: 5, x: 3 }
         master_blacksmith:      { y: 0, x: 0 }
         master_gunsmith:        { y: 0, x: 0 }
         elder_statesman:        { y: 0, x: 0 }
