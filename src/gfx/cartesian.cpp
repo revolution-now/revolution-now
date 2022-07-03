@@ -10,6 +10,8 @@
 *****************************************************************/
 #include "cartesian.hpp"
 
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace gfx {
@@ -225,16 +227,24 @@ maybe<drect> drect::clipped_by( drect const other ) const {
   if( res.bottom() > other.bottom() )
     res.size.h -= ( res.bottom() - other.bottom() );
   if( res.left() < other.left() ) {
-    int delta = ( other.left() - res.left() );
-    res.origin.x += delta;
+    int delta    = ( other.left() - res.left() );
+    res.origin.x = other.left();
     res.size.w -= delta;
+    if( res.right() > other.right() )
+      res.size.w -= ( res.right() - other.right() );
   }
   if( res.top() < other.top() ) {
-    int delta = ( other.top() - res.top() );
-    res.origin.y += delta;
+    int delta    = ( other.top() - res.top() );
+    res.origin.y = other.top();
     res.size.h -= delta;
+    if( res.bottom() > other.bottom() )
+      res.size.h -= ( res.bottom() - other.bottom() );
   }
   if( res.size.negative() ) return nothing;
+  CHECK_GE( res.top(), other.top() );
+  CHECK_GE( res.left(), other.left() );
+  CHECK_LE( res.bottom(), other.bottom() );
+  CHECK_LE( res.right(), other.right() );
   // Note that res.size.area() could be zero here.
   return res;
 }

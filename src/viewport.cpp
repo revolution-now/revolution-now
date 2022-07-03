@@ -371,13 +371,6 @@ double SmoothViewport::end_x() const {
 double SmoothViewport::end_y() const {
   return o_.center_y + y_world_pixels_in_viewport() / 2;
 }
-X SmoothViewport::start_tile_x() const {
-  return X( int( start_x() ) ) / g_tile_width;
-}
-Y SmoothViewport::start_tile_y() const {
-  return Y( int( start_y() ) ) / g_tile_height;
-}
-
 gfx::drect SmoothViewport::get_bounds() const {
   return {
       .origin = gfx::dpoint{ .x = start_x(), .y = start_y() },
@@ -396,26 +389,6 @@ Rect SmoothViewport::get_bounds_rounded() const {
 Coord SmoothViewport::center_rounded() const {
   return Coord{ X{ int( long( o_.center_x ) ) },
                 Y{ int( long( o_.center_y ) ) } };
-}
-
-// Number of tiles needed to be drawn in order to subsume the
-// half-open viewport range [start, end).
-double SmoothViewport::width_tiles() const {
-  int lower = round_down_to_nearest_int_multiple( start_x(),
-                                                  g_tile_width );
-  int upper =
-      round_up_to_nearest_int_multiple( end_x(), g_tile_width );
-  return ( upper - lower ) / g_tile_width;
-}
-
-// Number of tiles needed to be drawn in order to subsume the
-// half-open viewport range [start, end).
-double SmoothViewport::height_tiles() const {
-  int lower = round_down_to_nearest_int_multiple(
-      start_y(), g_tile_height );
-  int upper =
-      round_up_to_nearest_int_multiple( end_y(), g_tile_height );
-  return ( upper - lower ) / g_tile_height;
 }
 
 // These are to avoid a direct dependency on the screen module
@@ -479,10 +452,18 @@ void SmoothViewport::fix_invariants() {
 // Tiles touched by the viewport (tiles at the edge may only be
 // partially visible).
 Rect SmoothViewport::covered_tiles() const {
-  return Rect{ X( start_tile_x() ), Y( start_tile_y() ),
-               W{ static_cast<int>( ( width_tiles() ) ) },
-               H{ static_cast<int>( ( height_tiles() ) ) } }
-      .clamp( this->world_rect_tiles() );
+  // This needs to be consistent with covered_pixels(), hence we
+  // compute it based on that.
+  gfx::drect const pixels = covered_pixels();
+  Rect             res;
+  res.x = int( pixels.origin.x / 32.0 );
+  res.y = int( pixels.origin.y / 32.0 );
+  res.w = int( pixels.right() / 32.0 ) - res.x;
+  res.h = int( pixels.bottom() / 32.0 ) - res.y;
+  if( fmod( pixels.right(), 32.0 ) > 0 ) ++res.w;
+  if( fmod( pixels.bottom(), 32.0 ) > 0 ) ++res.h;
+  res = res.clamp( world_rect_tiles() );
+  return res;
 }
 
 bool SmoothViewport::are_surroundings_visible() const {
@@ -490,13 +471,19 @@ bool SmoothViewport::are_surroundings_visible() const {
 }
 
 bool SmoothViewport::is_fully_visible_x() const {
-  Rect covered = covered_tiles();
-  return covered.x == 0 && covered.w == world_rect_tiles().w;
+  // Need to use pixels here instead of tiles because it is more
+  // accurate.
+  gfx::drect const covered = covered_pixels();
+  return covered.origin.x == 0 &&
+         covered.size.w == world_rect_pixels().w;
 }
 
 bool SmoothViewport::is_fully_visible_y() const {
-  Rect covered = covered_tiles();
-  return covered.y == 0 && covered.h == world_rect_tiles().h;
+  // Need to use pixels here instead of tiles because it is more
+  // accurate.
+  gfx::drect const covered = covered_pixels();
+  return covered.origin.y == 0 &&
+         covered.size.h == world_rect_pixels().h;
 }
 
 // Tiles that are fully visible. The rect returned here will be
@@ -550,6 +537,10 @@ gfx::drect SmoothViewport::rendering_dest_rect() const {
     res.origin.y = centered.y;
     res.size.h   = world_size_screen_pixels.h;
   }
+  CHECK_GE( res.origin.x, 0 );
+  CHECK_GE( res.origin.y, 0 );
+  CHECK_LE( res.right(), viewport_rect_pixels_.right_edge() );
+  CHECK_LE( res.bottom(), viewport_rect_pixels_.bottom_edge() );
   return res;
 }
 

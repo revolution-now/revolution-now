@@ -192,18 +192,12 @@ class SmoothViewport {
   double end_x() const;
   double end_y() const;
 
-  X start_tile_x() const;
-  Y start_tile_y() const;
-
   gfx::drect get_bounds() const;
   Rect       get_bounds_rounded() const;
 
   // Returns world coordinates of center in pixels, rounded
   // to the nearest pixel.
   Coord center_rounded() const;
-
-  double width_tiles() const;
-  double height_tiles() const;
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );
