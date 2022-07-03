@@ -152,7 +152,7 @@ struct Delta {
 
   // Will clamp each dimension individually to be within the
   // bounds of the given delta.
-  Delta clamp( Delta const& delta ) const;
+  [[nodiscard]] Delta clamp( Delta const& delta ) const;
 
   int area() const { return w * h; }
 
@@ -327,7 +327,7 @@ struct Rect {
 
   // Returns a rect that is adjusted (without respecting
   // proportions) so that it fits inside the given rect.
-  Rect clamp( Rect const& rect ) const;
+  [[nodiscard]] Rect clamp( Rect const& rect ) const;
 
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
