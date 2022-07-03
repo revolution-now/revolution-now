@@ -943,10 +943,10 @@ wait<> turn_loop( Planes& planes, PlayersState& players_state,
   WindowPlane   window_plane;
   RealGui       gui( window_plane );
   MenuPlane     menu_plane;
-  LandViewPlane land_view_plane( menu_plane, window_plane,
-                                 land_view_state, terrain_state,
-                                 map_updater, gui );
-  PanelPlane    panel_plane( menu_plane );
+  LandViewPlane land_view_plane(
+      menu_plane, window_plane, land_view_state, colonies_state,
+      units_state, terrain_state, map_updater, gui );
+  PanelPlane panel_plane( menu_plane );
 
   auto        popper = planes.new_group();
   PlaneGroup& group  = planes.back();
