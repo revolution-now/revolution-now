@@ -46,12 +46,15 @@ constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
 // Unit only, no flag.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
                           e_unit_type              unit_type,
-                          maybe<UnitShadow> const& shadow ) {
+                          UnitRenderOptions const& options ) {
   auto const& desc = unit_attr( unit_type );
-  if( shadow.has_value() )
+  if( options.shadow.has_value() )
     render_sprite_silhouette(
-        painter, where + Delta{ .w = shadow->offset }, desc.tile,
-        shadow->color );
+        painter, where + Delta{ .w = options.shadow->offset },
+        desc.tile, options.shadow->color );
+  if( options.outline_right )
+    render_sprite_silhouette( painter, where + Delta{ .w = 1 },
+                              desc.tile, options.outline_color );
   render_sprite( painter, Rect::from( where, g_tile_delta ),
                  desc.tile );
 }
@@ -205,24 +208,22 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
             where + Delta{ .w = options.shadow->offset },
             desc.tile, options.shadow->color );
       }
-      render_sprite( painter, Rect::from( where, g_tile_delta ),
-                     desc.tile );
+      render_sprite( painter, where, desc.tile );
     } else {
       render_unit_no_icon( painter, where, unit.desc().type,
-                           options.shadow );
+                           options );
       render_nationality_icon( renderer, where, id );
     }
   } else {
     render_unit_no_icon( painter, where, unit.desc().type,
-                         options.shadow );
+                         options );
   }
 }
 
 void render_unit_type( rr::Painter& painter, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where, unit_type,
-                       options.shadow );
+  render_unit_no_icon( painter, where, unit_type, options );
 }
 
 void render_colony( rr::Painter& painter, Coord where,
