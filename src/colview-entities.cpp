@@ -1114,7 +1114,7 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      strip_unit_commodities( unit, colony() );
+      strip_unit_to_base_type( unit, colony() );
     }
   }
 
