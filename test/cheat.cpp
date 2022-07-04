@@ -95,6 +95,27 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
     REQUIRE( unit.composition() == expected );
   }
 
+  SECTION( "free_colonist fishing" ) {
+    UnitComposition expected;
+    Colony&         colony = W.add_colony( W.kLand );
+    UnitId id = W.add_unit_outdoors( colony.id, e_direction::ne,
+                                     e_outdoor_job::fish );
+    Unit&  unit = W.units().unit_for( id );
+    expected    = UnitComposition( wrapped::UnitComposition{
+           .type = UnitType::create( e_unit_type::free_colonist ),
+           .inventory = {},
+    } );
+    REQUIRE( unit.composition() == expected );
+
+    up( unit );
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type =
+            UnitType::create( e_unit_type::expert_fisherman ),
+        .inventory = {},
+    } );
+    REQUIRE( unit.composition() == expected );
+  }
+
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
     UnitId          id =
