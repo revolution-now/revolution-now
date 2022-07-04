@@ -1459,7 +1459,10 @@ class LandView : public ui::View,
         painter_mods.repos.translation,
         to_double( gfx::size( coord.distance_from_origin() ) ) );
 
-    double const alpha = .75;
+    // This alpha is to fade the land tiles behind the units so
+    // as to make the units more visible. Not sure yet if we want
+    // to do that.
+    double const alpha = 1.0;
 
     TerrainState const& terrain_state = GameState::terrain();
     // FIXME: Should not be duplicating land-view rendering code

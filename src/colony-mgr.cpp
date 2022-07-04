@@ -378,7 +378,7 @@ ColonyId found_colony( ColoniesState&      colonies_state,
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
-  strip_unit_commodities( unit, col );
+  strip_unit_to_base_type( unit, col );
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job =
@@ -414,7 +414,7 @@ void change_colony_nation( Colony&     colony,
   colony.nation = new_nation;
 }
 
-void strip_unit_commodities( Unit& unit, Colony& colony ) {
+void strip_unit_to_base_type( Unit& unit, Colony& colony ) {
   UnitTransformationResult tranform_res =
       unit.strip_to_base_type();
   for( auto [type, q] : tranform_res.commodity_deltas ) {
@@ -430,7 +430,7 @@ void move_unit_to_colony( UnitsState& units_state,
                           ColonyJob_t const& job ) {
   Unit& unit = units_state.unit_for( unit_id );
   CHECK( unit.nation() == colony.nation );
-  strip_unit_commodities( unit, colony );
+  strip_unit_to_base_type( unit, colony );
   units_state.change_to_colony( unit_id, colony.id );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );

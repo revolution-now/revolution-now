@@ -156,7 +156,11 @@ struct ND Unit {
   // colony. In that situation, the unit needs to be stripped to
   // its base type and all of the commodities that it has should
   // be added into the colony's commodity store. All modifiers
-  // will be stripped from the unit as well.
+  // will be stripped from the unit as well. Note that you
+  // shouldn't call this method directly. Instead call the free
+  // method (defined elsewhere) that takes a colony as input so
+  // that it can deposit any commodities there that are stripped
+  // from the unit.
   UnitTransformationResult strip_to_base_type();
 
   maybe<e_unit_type> demoted_type() const;

@@ -88,7 +88,7 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 
 // Will strip the unit of any commodities (including inventory
 // and modifiers) and deposit the commodities into the colony.
-void strip_unit_commodities( Unit& unit, Colony& colony );
+void strip_unit_to_base_type( Unit& unit, Colony& colony );
 
 void move_unit_to_colony( UnitsState& units_state,
                           Colony& colony, UnitId unit_id,
