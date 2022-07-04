@@ -622,28 +622,28 @@ sheets {
         free_colonist:          { y: 3, x: 2 }
         soldier:                { y: 1, x: 1 }
         dragoon:                { y: 1, x: 2 }
-        pioneer:                { y: 1, x: 4 }
+        pioneer:                { y: 8, x: 0 }
         missionary:             { y: 7, x: 0 }
         scout:                  { y: 1, x: 3 }
-        expert_farmer:          { y: 0, x: 0 }
-        expert_fisherman:       { y: 0, x: 0 }
+        expert_farmer:          { y: 6, x: 1 }
+        expert_fisherman:       { y: 6, x: 2 }
         expert_sugar_planter:   { y: 4, x: 2 }
         expert_tobacco_planter: { y: 4, x: 0 }
         expert_cotton_planter:  { y: 4, x: 1 }
         expert_fur_trapper:     { y: 4, x: 3 }
         expert_lumberjack:      { y: 6, x: 0 }
-        expert_ore_miner:       { y: 0, x: 0 }
-        expert_silver_miner:    { y: 0, x: 0 }
-        master_carpenter:       { y: 0, x: 0 }
+        expert_ore_miner:       { y: 6, x: 4 }
+        expert_silver_miner:    { y: 6, x: 5 }
+        master_carpenter:       { y: 6, x: 3 }
         master_rum_distiller:   { y: 5, x: 2 }
         master_tobacconist:     { y: 5, x: 0 }
         master_weaver:          { y: 5, x: 1 }
         master_fur_trader:      { y: 5, x: 3 }
-        master_blacksmith:      { y: 0, x: 0 }
-        master_gunsmith:        { y: 0, x: 0 }
-        elder_statesman:        { y: 0, x: 0 }
-        firebrand_preacher:     { y: 0, x: 0 }
-        hardy_colonist:         { y: 0, x: 0 }
+        master_blacksmith:      { y: 6, x: 6 }
+        master_gunsmith:        { y: 6, x: 7 }
+        elder_statesman:        { y: 6, x: 8 }
+        firebrand_preacher:     { y: 6, x: 9 }
+        hardy_colonist:         { y: 8, x: 2 }
         jesuit_colonist:        { y: 7, x: 2 }
         seasoned_colonist:      { y: 0, x: 0 }
         veteran_colonist:       { y: 0, x: 0 }
@@ -653,7 +653,7 @@ sheets {
         continental_cavalry:    { y: 0, x: 0 }
         regular:                { y: 0, x: 0 }
         cavalry:                { y: 0, x: 0 }
-        hardy_pioneer:          { y: 0, x: 0 }
+        hardy_pioneer:          { y: 8, x: 1 }
         jesuit_missionary:      { y: 7, x: 1 }
         seasoned_scout:         { y: 0, x: 0 }
         artillery:              { y: 0, x: 0 }
