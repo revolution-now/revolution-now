@@ -1459,6 +1459,8 @@ class LandView : public ui::View,
         painter_mods.repos.translation,
         to_double( gfx::size( coord.distance_from_origin() ) ) );
 
+    double const alpha = .75;
+
     TerrainState const& terrain_state = GameState::terrain();
     // FIXME: Should not be duplicating land-view rendering code
     // here.
@@ -1468,32 +1470,16 @@ class LandView : public ui::View,
     // Render terrain.
     for( auto local_coord :
          Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
+      Coord render_square = world_square +
+                            local_coord.distance_from_origin() -
+                            Delta{ .w = 1, .h = 1 };
+      painter.draw_solid_rect(
+          Rect::from( local_coord * g_tile_delta, g_tile_delta ),
+          gfx::pixel::black() );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
       render_terrain_square(
           terrain_state, renderer, local_coord * g_tile_delta,
           render_square, TerrainRenderOptions{} );
-    }
-    // Render irrigation.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      render_plow_if_present( painter,
-                              local_coord * g_tile_delta,
-                              terrain_state, render_square );
-    }
-    // Render roads.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      render_road_if_present( painter,
-                              local_coord * g_tile_delta,
-                              terrain_state, render_square );
     }
     // Render colonies.
     for( auto local_coord :
@@ -1544,9 +1530,10 @@ class LandView : public ui::View,
       render_unit_type(
           painter, unit_coord, desc.type,
           UnitRenderOptions{ .shadow = UnitShadow{} } );
-      e_outdoor_job const job    = outdoor_unit->job;
-      e_tile const product_tile  = tile_for_outdoor_job( job );
-      Coord const  product_coord = square_coord;
+      e_outdoor_job const job   = outdoor_unit->job;
+      e_tile const product_tile = tile_for_outdoor_job( job );
+      Coord const  product_coord =
+          square_coord + Delta{ .w = 4, .h = 4 };
       render_sprite( painter, product_coord, product_tile );
       Delta const product_tile_size =
           sprite_size( product_tile );
