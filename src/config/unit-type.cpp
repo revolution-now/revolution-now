@@ -48,6 +48,10 @@ create_inventory_to_modifier_map(
 
 } // namespace
 
+UnitTypeAttributes const& unit_attr( e_unit_type type ) {
+  return config_unit_type.composition.unit_types[type];
+}
+
 maybe<e_unit_type_modifier> inventory_to_modifier(
     e_unit_inventory inv ) {
   static auto const m = [] {

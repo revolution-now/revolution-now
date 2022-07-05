@@ -85,17 +85,6 @@ valid_or<string> UnitInventoryTraits::validate() const {
 /****************************************************************
 ** UnitTypeAttributes
 *****************************************************************/
-UnitTypeAttributes const& unit_attr( e_unit_type type ) {
-  UNWRAP_CHECK_MSG(
-      desc,
-      base::lookup( config_unit_type.composition.unit_types,
-                    type ),
-      "internal error: unit type {} does not have a type "
-      "descriptor.",
-      type );
-  return desc;
-}
-
 bool can_attack( e_unit_type type ) {
   return unit_attr( type ).attack_points > 0;
 }
