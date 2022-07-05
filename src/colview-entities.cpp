@@ -400,10 +400,11 @@ class PopulationView : public ui::View, public ColonySubView {
     auto const&    colony   = colony_from_id( colony_id() );
     vector<UnitId> units    = colony_units_all( colony );
     auto           unit_pos = coord + Delta{ .h = 16 };
+    unit_pos.x -= 3;
     for( UnitId unit_id : units ) {
       render_unit( renderer, unit_pos, unit_id,
                    UnitRenderOptions{ .flag = false } );
-      unit_pos.x += 24;
+      unit_pos.x += 15;
     }
   }
 
