@@ -146,7 +146,7 @@ UnitId World::add_unit_on_map( e_unit_type type, Coord where,
                           nation );
 }
 
-UnitId World::add_unit_on_map( UnitType const& type, Coord where,
+UnitId World::add_unit_on_map( UnitType type, Coord where,
                                maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   return create_unit_on_map_non_interactive(
@@ -224,6 +224,18 @@ Colony& World::add_colony_with_new_unit(
   return add_colony( founder );
 }
 
+// --------------------------------------------------------------
+// Colony setup.
+// --------------------------------------------------------------
+void World::give_all_buildings( Colony& colony ) {
+  for( e_colony_building b :
+       refl::enum_values<e_colony_building> )
+    colony.buildings[b] = true;
+}
+
+// --------------------------------------------------------------
+// Players.
+// --------------------------------------------------------------
 Player& World::dutch() {
   UNWRAP_CHECK( player,
                 root().players.players[e_nation::dutch] );

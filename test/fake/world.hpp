@@ -93,7 +93,7 @@ struct World {
   UnitId add_unit_on_map( e_unit_type type, Coord where,
                           maybe<e_nation> nation = nothing );
 
-  UnitId add_unit_on_map( UnitType const& type, Coord where,
+  UnitId add_unit_on_map( UnitType type, Coord where,
                           maybe<e_nation> nation = nothing );
 
   UnitId add_unit_in_cargo( e_unit_type type, UnitId holder,
@@ -137,6 +137,11 @@ struct World {
   // found a colony, this it should be a realistic valid colony.
   Colony& add_colony_with_new_unit(
       Coord where, maybe<e_nation> nation = nothing );
+
+  // ------------------------------------------------------------
+  // Colony setup.
+  // ------------------------------------------------------------
+  void give_all_buildings( Colony& colony );
 
   // ------------------------------------------------------------
   // Players.

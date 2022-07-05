@@ -24,6 +24,7 @@
 #include "gui.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
+#include "missionary.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
 #include "production.hpp"
@@ -1092,6 +1093,11 @@ class UnitsAtGateColonyView : public ui::View,
         .options = {
             { .key = "orders", .display_name = "Change Orders" },
             { .key = "strip", .display_name = "Strip Unit" } } };
+    if( can_bless_missionaries( colony() ) &&
+        unit_can_be_blessed( unit.type_obj() ) )
+      config.options.push_back(
+          { .key          = "missionary",
+            .display_name = "Bless as Missionary" } );
     string mode = co_await gui_.choice( config );
     if( mode == "orders" ) {
       ChoiceConfig config{
@@ -1116,6 +1122,8 @@ class UnitsAtGateColonyView : public ui::View,
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
       strip_unit_to_base_type( unit, colony() );
+    } else if( mode == "missionary" ) {
+      bless_as_missionary( colony(), unit );
     }
   }
 
