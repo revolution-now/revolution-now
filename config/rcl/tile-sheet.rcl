@@ -620,11 +620,11 @@ sheets {
         petty_criminal:         { y: 3, x: 0 }
         indentured_servant:     { y: 3, x: 1 }
         free_colonist:          { y: 3, x: 2 }
-        soldier:                { y: 1, x: 1 }
-        dragoon:                { y: 1, x: 2 }
+        soldier:                { y: 1, x: 0 }
+        dragoon:                { y: 1, x: 3 }
         pioneer:                { y: 8, x: 0 }
         missionary:             { y: 7, x: 0 }
-        scout:                  { y: 1, x: 3 }
+        scout:                  { y: 9, x: 0 }
         expert_farmer:          { y: 6, x: 1 }
         expert_fisherman:       { y: 6, x: 2 }
         expert_sugar_planter:   { y: 4, x: 2 }
@@ -645,17 +645,17 @@ sheets {
         firebrand_preacher:     { y: 6, x: 9 }
         hardy_colonist:         { y: 8, x: 2 }
         jesuit_colonist:        { y: 7, x: 2 }
-        seasoned_colonist:      { y: 0, x: 0 }
-        veteran_colonist:       { y: 0, x: 0 }
-        veteran_soldier:        { y: 2, x: 3 }
-        veteran_dragoon:        { y: 2, x: 2 }
         continental_army:       { y: 0, x: 0 }
         continental_cavalry:    { y: 0, x: 0 }
         regular:                { y: 0, x: 0 }
         cavalry:                { y: 0, x: 0 }
+        seasoned_colonist:      { y: 9, x: 2 }
+        veteran_colonist:       { y: 1, x: 2 }
+        veteran_soldier:        { y: 1, x: 1 }
+        veteran_dragoon:        { y: 1, x: 4 }
         hardy_pioneer:          { y: 8, x: 1 }
         jesuit_missionary:      { y: 7, x: 1 }
-        seasoned_scout:         { y: 0, x: 0 }
+        seasoned_scout:         { y: 9, x: 1 }
         artillery:              { y: 0, x: 0 }
         damaged_artillery:      { y: 0, x: 0 }
         caravel:                { y: 0, x: 0 }
