@@ -48,6 +48,8 @@ outdoors {
     ore:     Ore Miner
     silver:  Silver Miner
   }
+
+  unit_glow_color: '#EEEEAA'
 }
 
 materials_for_building {

@@ -53,6 +53,16 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
   }
 }
 
+void render_glow( rr::Renderer& renderer, Coord unit_coord,
+                  e_unit_type type ) {
+  UnitTypeAttributes const& desc    = unit_attr( type );
+  e_tile const              tile    = desc.tile;
+  rr::Painter               painter = renderer.painter();
+  render_sprite_silhouette(
+      painter, unit_coord + Delta{ .w = 1 }, tile,
+      config_colony.outdoors.unit_glow_color );
+}
+
 } // namespace
 
 /****************************************************************
@@ -295,7 +305,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
                           Delta{ .w = 1, .h = 1 };
     painter.draw_solid_rect(
         Rect::from( local_coord * g_tile_delta, g_tile_delta ),
-        gfx::pixel::black() );
+        gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     render_terrain_square(
         terrain_state, renderer, local_coord * g_tile_delta,
@@ -346,6 +356,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     UnitId const unit_id = outdoor_unit->unit_id;
     Unit const&  unit    = units_state.unit_for( unit_id );
     UnitTypeAttributes const& desc = unit_attr( unit.type() );
+    render_glow( renderer, unit_coord, unit.type() );
     render_unit_type(
         painter, unit_coord, desc.type,
         UnitRenderOptions{ .shadow = UnitShadow{} } );
