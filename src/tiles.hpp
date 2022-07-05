@@ -61,6 +61,11 @@ void render_sprite( rr::Painter& painter, Rect where,
 void render_sprite_silhouette( rr::Painter& painter, Coord where,
                                e_tile tile, gfx::pixel color );
 
+// TODO: change this to a mod.
+void render_sprite_silhouette_scale( rr::Painter& painter,
+                                     Rect where, e_tile tile,
+                                     gfx::pixel color );
+
 // This will render a rectangular subsection of the sprite. The
 // `source` rect has its origin relative to the upper left corner
 // of the sprite in the atlas. Any part of the source rect that
