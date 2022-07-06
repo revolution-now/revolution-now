@@ -116,6 +116,12 @@ void render_nationality_icon( rr::Renderer&             renderer,
       delta.h +=
           ( ( 1 * g_tile_height ) - nationality_icon_size.h );
       break;
+    case e_direction::w:
+      delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
+      break;
+    case e_direction::n:
+      delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
+      break;
       // By default we keep it in the northwest corner.
     default: break;
   };

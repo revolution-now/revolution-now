@@ -656,8 +656,8 @@ sheets {
         hardy_pioneer:          { y: 8, x: 1 }
         jesuit_missionary:      { y: 7, x: 1 }
         seasoned_scout:         { y: 9, x: 1 }
-        artillery:              { y: 0, x: 0 }
-        damaged_artillery:      { y: 0, x: 0 }
+        artillery:              { y: 2, x: 2 }
+        damaged_artillery:      { y: 2, x: 3 }
         caravel:                { y: 0, x: 0 }
         merchantman:            { y: 0, x: 1 }
         galleon:                { y: 0, x: 0 }

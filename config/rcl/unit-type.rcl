@@ -1300,7 +1300,7 @@ composition {
       ship:                  false
       human:                 no
       nat_icon_front:        false
-      nat_icon_position:     n
+      nat_icon_position:     w
       visibility:            1
       movement_points:       1
       attack_points:         5
@@ -1329,7 +1329,7 @@ composition {
       ship:                  false
       human:                 from_base
       nat_icon_front:        false
-      nat_icon_position:     n
+      nat_icon_position:     w
       visibility:            1
       movement_points:       1
       attack_points:         7
