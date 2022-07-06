@@ -76,6 +76,25 @@ bool allow_fountain_of_youth( Player const& player ) {
   return !player.independence_declared;
 }
 
+UnitId create_treasure_train( UnitsState&   units_state,
+                              IMapUpdater&  map_updater,
+                              Player const& player,
+                              Coord world_square, int amount ) {
+  UNWRAP_CHECK(
+      uc_treasure,
+      UnitComposition::create(
+          UnitType::create( e_unit_type::large_treasure ),
+          { { e_unit_inventory::gold, amount } } ) );
+  // Use the non-coroutine version of this because it avoids an
+  // inifinite-regress issue where the new unit created redis-
+  // covers the LCR on this tile; also, there are no further UI
+  // actions needed in response to creating this unit, apart from
+  // what we will do here.
+  return create_unit_on_map_non_interactive(
+      units_state, map_updater, player.nation, uc_treasure,
+      world_square );
+}
+
 wait<LostCityRumorResult_t> run_burial_mounds_result(
     e_burial_mounds_type type, bool has_burial_grounds,
     UnitsState& units_state, IGui& gui, Player& player,
@@ -109,22 +128,13 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
             .multiple =
                 config_lcr.burial_mounds_treasure_multiple } );
       co_await gui.message_box(
-          "You've recovered a treasure worth @[H]{}@[].",
+          "You've recovered a treasure worth @[H]{}@[]!",
           amount );
-      UNWRAP_CHECK(
-          uc_treasure,
-          UnitComposition::create(
-              UnitType::create( e_unit_type::large_treasure ),
-              { { e_unit_inventory::gold, amount } } ) );
-      // Use the non-coroutine version of this because it avoids
-      // an inifinite-regress issue where the new unit created
-      // rediscovers the LCR on this tile; also, there are no
-      // further UI actions needed in response to creating this
-      // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_non_interactive(
-          units_state, map_updater, player.nation, uc_treasure,
-          world_square );
-      result = LostCityRumorResult::unit_created{ .id = id };
+      UnitId unit_id =
+          create_treasure_train( units_state, map_updater,
+                                 player, world_square, amount );
+      result =
+          LostCityRumorResult::unit_created{ .id = unit_id };
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
@@ -272,6 +282,22 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_await gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};
+    }
+    case e_rumor_type::cibola: {
+      int amount = random_gift(
+          { .min      = config_lcr.cibola_treasure_min[explorer],
+            .max      = config_lcr.cibola_treasure_max[explorer],
+            .multiple = config_lcr.cibola_treasure_multiple } );
+      co_await gui.message_box(
+          "You've discovered one of the @[H]Seven Cities of "
+          "Cibola@[] and have recovered a treasure worth "
+          "@[H]{}@[]!",
+          amount );
+      UnitId unit_id =
+          create_treasure_train( units_state, map_updater,
+                                 player, world_square, amount );
+      co_return LostCityRumorResult::unit_created{ .id =
+                                                       unit_id };
     }
   }
   SHOULD_NOT_BE_HERE;

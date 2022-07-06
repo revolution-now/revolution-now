@@ -16,25 +16,27 @@ fountain_of_youth_num_immigrants: 8
 rumor_type_weights {
   seasoned_scout {
     none:              46
-    fountain_of_youth: 15
+    fountain_of_youth: 13
     free_colonist:     13
     ruins:             10
     burial_mounds:      7
     chief_gift:         7
     unit_lost:          2
+    cibola:             2
   }
   scout {
     none:              49
-    fountain_of_youth: 12
+    fountain_of_youth: 10
     free_colonist:     11
     ruins:             10
     burial_mounds:      5
     chief_gift:        11
     unit_lost:          2
+    cibola:             2
   }
   other {
     none:              56
-    fountain_of_youth: 12
+    fountain_of_youth: 10
     free_colonist:     13
     ruins:              8
     burial_mounds:      5
@@ -44,6 +46,7 @@ rumor_type_weights {
     # player from losing the initial units, since the first few
     # LCRs explored will probably be done by them.
     unit_lost:          0
+    cibola:             2
   }
 }
 
@@ -120,9 +123,8 @@ trinkets_gift_max {
 }
 
 # The range of values of gold that can emerge on a treasure train
-# when discovering a lost city (e.g., Seven Cities of Cibola)
-# after having investigated burial mounds. Will be rounded down
-# to the nearest multiple provided.
+# when after having investigated burial mounds. Will be rounded
+# down to the nearest multiple provided.
 burial_mounds_treasure_multiple: 100
 
 burial_mounds_treasure_min {
@@ -134,6 +136,26 @@ burial_mounds_treasure_max {
   seasoned_scout: 4500
   scout:          4000
   other:          3500
+}
+
+# The range of values of gold that can emerge on a treasure train
+# when discovering a lost city (e.g., Seven Cities of Cibola). It
+# is difficult to determine what the ranges are for the amounts
+# in the original game because it seems to happen so rarely. Cur-
+# rently it is set to have maximum values that are triple the
+# values for the burial mounds, but it also happens more rarely.
+# Will be rounded down to the nearest multiple provided.
+cibola_treasure_multiple: 100
+
+cibola_treasure_min {
+  seasoned_scout: 3000
+  scout:          2500
+  other:          2000
+}
+cibola_treasure_max {
+  seasoned_scout: 13500
+  scout:          12000
+  other:          10500
 }
 
 burial_grounds_probability {
