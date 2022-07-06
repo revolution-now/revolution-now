@@ -1131,6 +1131,20 @@ local function generate_battlefield()
   end )
 end
 
+-- FIXME move this
+local function generate_half_land()
+  local size = map_gen.world_size()
+  on_all( function( coord, square )
+    if coord.x == size.w // 2 then
+      square.surface = 'land'
+      square.ground = 'desert'
+    elseif coord.x < size.w // 2 then
+      square.surface = 'land'
+      square.ground = 'grassland'
+    end
+  end )
+end
+
 -- This will clear all resources and lost city rumors and redis-
 -- tribute them (with a random seed). This is useful when cre-
 -- ating a map with the map editor where you'd like to have the
@@ -1191,6 +1205,8 @@ local function generate( options )
   if options.type == 'battlefield' then
     generate_battlefield( options )
     return
+  elseif options.type == 'half_and_half' then
+    generate_half_land()
   elseif options.type == 'testing' then
     generate_testing_land()
   else
