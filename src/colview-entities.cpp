@@ -1096,8 +1096,15 @@ class UnitsAtGateColonyView : public ui::View,
         unit.clear_orders();
       else if( new_orders == "sentry" )
         unit.sentry();
-      else if( new_orders == "fortify" )
-        unit.fortify();
+      else if( new_orders == "fortify" ) {
+        if( unit.orders() != e_unit_orders::fortified )
+          // This will place them in the "fortifying" state and
+          // will consume all movement points. The only time we
+          // don't want to do this is if the unit's state is
+          // "fortified", since then this would represent a pes-
+          // simisation.
+          unit.start_fortify();
+      }
     } else if( mode == "strip" ) {
       // Clear orders just in case it is a pioneer building a
       // road or plowing; that would put the pioneer into an in-

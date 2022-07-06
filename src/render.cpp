@@ -23,6 +23,7 @@
 #include "window.hpp"
 
 // config
+#include "config/gfx.rds.hpp"
 #include "config/nation.hpp"
 #include "config/unit-type.hpp"
 
@@ -72,16 +73,17 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
 *****************************************************************/
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_nation nation,
-                              char c ) {
+                              char c, bool is_greyed ) {
   Delta       delta    = nationality_icon_size;
   Rect        rect     = Rect::from( where, delta );
   auto const& nation_o = nation_obj( nation );
 
-  auto color      = nation_o.flag_color;
-  auto dark       = color.shaded( 2 );
-  auto text_color = color.shaded( 7 );
-
-  rr::Painter painter = renderer.painter();
+  auto        color      = nation_o.flag_color;
+  auto        dark       = color.shaded( 2 );
+  auto        text_color = is_greyed
+                               ? config_gfx.unit_flag_text_color_greyed
+                               : config_gfx.unit_flag_text_color;
+  rr::Painter painter    = renderer.painter();
 
   painter.draw_solid_rect( rect, color );
   painter.draw_empty_rect(
@@ -132,10 +134,16 @@ void render_nationality_icon( rr::Renderer&             renderer,
     case e_unit_orders::none: c = '-'; break;
     case e_unit_orders::sentry: c = 'S'; break;
     case e_unit_orders::fortified: c = 'F'; break;
+    case e_unit_orders::fortifying: c = 'F'; break;
     case e_unit_orders::road: c = 'R'; break;
     case e_unit_orders::plow: c = 'P'; break;
   };
-  render_nationality_icon( renderer, where, nation, c );
+  // We don't grey out the "fortifying" state to signal to the
+  // player that the unit is not yet fully fortified.
+  bool is_greyed = ( orders == e_unit_orders::fortified ||
+                     orders == e_unit_orders::sentry );
+  render_nationality_icon( renderer, where, nation, c,
+                           is_greyed );
 }
 
 void depixelate_from_to(

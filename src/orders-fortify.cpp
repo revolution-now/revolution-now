@@ -36,8 +36,11 @@ struct FortifyHandler : public OrdersHandler {
 
   wait<> perform() override {
     Unit& unit = unit_from_id( unit_id );
-    unit.forfeight_mv_points();
-    unit.fortify();
+    // Note that this will forfeight movement points, since the
+    // original game appears to end a unit's turn when the F
+    // order is given (as well as the following turn when it is
+    // transitioned to "fortified").
+    unit.start_fortify();
     co_return;
   }
 

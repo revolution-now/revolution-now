@@ -20,6 +20,14 @@ namespace "rn"
 enum.e_unit_orders {
   none,
   sentry,
+  # In the original game, when a unit fortifies, it does not gain
+  # the benefits of fortification until the next turn. That way
+  # you can't just immediately fortify when an enemy approaches
+  # and gain the benefits. This is visually indicated on the flag
+  # by rendering a dimmer 'F' after the fortification has gone
+  # into effect. A unit will remain in the `fortifying` stage
+  # until the next turn.
+  fortifying,
   fortified,
   road,
   plow,

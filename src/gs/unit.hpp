@@ -136,7 +136,10 @@ struct ND Unit {
   // rigating. Note: after calling this don't forget to call
   // set_turns_worked with zero.
   void plow();
-  // Mark a unit as fortified.
+  // Mark a unit as fortifying.
+  void start_fortify();
+  // Mark a unit as fully fortified. This happens after one turn
+  // of beying in the "fortifying" state.
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { o_.orders = e_unit_orders::none; }

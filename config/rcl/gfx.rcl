@@ -1,3 +1,7 @@
 target_frame_rate: 61
 
 wait_for_vsync: true
+
+unit_flag_text_color: "#222222"
+
+unit_flag_text_color_greyed: "#777777"
