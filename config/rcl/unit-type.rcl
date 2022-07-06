@@ -1415,7 +1415,7 @@ composition {
       ship:                  true
       human:                 no
       nat_icon_front:        false
-      nat_icon_position:     nw
+      nat_icon_position:     ne
       visibility:            1
       movement_points:       6
       attack_points:         0
