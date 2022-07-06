@@ -660,11 +660,11 @@ sheets {
         damaged_artillery:      { y: 2, x: 3 }
         caravel:                { y: 0, x: 0 }
         merchantman:            { y: 0, x: 1 }
-        galleon:                { y: 0, x: 3 }
-        privateer:              { y: 0, x: 2 }
-        frigate:                { y: 0, x: 0 }
-        man_o_war:              { y: 0, x: 0 }
-        wagon_train:            { y: 0, x: 0 }
+        galleon:                { y: 0, x: 2 }
+        privateer:              { y: 0, x: 3 }
+        frigate:                { y: 0, x: 4 }
+        man_o_war:              { y: 0, x: 5 }
+        wagon_train:            { y: 2, x: 4 }
         small_treasure:         { y: 2, x: 1 }
         large_treasure:         { y: 2, x: 0 }
       }
