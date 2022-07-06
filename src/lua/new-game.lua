@@ -110,6 +110,70 @@ local function create_battlefield_units( options, root )
                              { x=2, y=2 } )
 end
 
+-- FIXME: temporary
+local function create_all_units( options, root )
+  local nation1
+  for nation, _ in pairs( options.nations ) do
+    nation1 = nation
+    if nation1 then break end
+  end
+  assert( nation1 )
+
+  local size = map_gen.world_size()
+  local origin = { x=size.w // 2 - 8, y=size.h // 2 - 4 }
+
+  local land_units = {
+    'petty_criminal', 'indentured_servant', 'free_colonist',
+    'native_convert', 'soldier', 'dragoon', 'pioneer',
+    'missionary', 'scout', 'expert_farmer', 'expert_fisherman',
+    'expert_sugar_planter', 'expert_tobacco_planter',
+    'expert_cotton_planter', 'expert_fur_trapper',
+    'expert_lumberjack', 'expert_ore_miner',
+    'expert_silver_miner', 'master_carpenter',
+    'master_rum_distiller', 'master_tobacconist',
+    'master_weaver', 'master_fur_trader', 'master_blacksmith',
+    'master_gunsmith', 'elder_statesman', 'firebrand_preacher',
+    'hardy_colonist', 'jesuit_colonist', 'seasoned_colonist',
+    'veteran_colonist', 'veteran_soldier', 'veteran_dragoon',
+    'continental_army', 'continental_cavalry', 'regular',
+    'cavalry', 'hardy_pioneer', 'jesuit_missionary',
+    'seasoned_scout', 'artillery', 'damaged_artillery',
+    'wagon_train', 'small_treasure', 'large_treasure'
+  }
+
+  local function create( where, unit_name )
+    local unit = ustate.create_unit_on_map( nation1,
+                                            build_unit_type(
+                                                unit_name ),
+                                            where )
+    unit:fortify()
+  end
+
+  for i, unit_name in ipairs( land_units ) do
+    local coord = {
+      x=origin.x + (i - 1) % 7,
+      y=origin.y + (i - 1) // 7
+    }
+    create( coord, unit_name )
+  end
+
+  origin = { x=size.w // 2 + 2, y=size.h // 2 - 1 }
+
+  -- Ships
+  local ships = {
+    'caravel', 'merchantman', 'galleon', 'privateer', 'frigate',
+    'man_o_war'
+  }
+
+  for i, unit_name in ipairs( ships ) do
+    local coord = {
+      x=origin.x + (i - 1) % 3,
+      y=origin.y + (i - 1) // 3
+    }
+    create( coord, unit_name )
+  end
+end
+
 -----------------------------------------------------------------
 -- Players State
 -----------------------------------------------------------------
@@ -218,6 +282,9 @@ function M.create( options )
 
   if options.map.type == 'battlefield' then
     create_battlefield_units( options, root )
+  elseif options.map.type == 'half_and_half' then
+    -- FIXME: temporary
+    create_all_units( options, root )
   else
     create_initial_units( options, root )
   end
