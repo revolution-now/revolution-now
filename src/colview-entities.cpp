@@ -540,6 +540,10 @@ class CargoView : public ui::View,
       case e::unit: {
         UnitId      id = o.get<ColViewObject::unit>().id;
         UnitsState& units_state = GameState::units();
+        // Note that we allow wagon trains to recieve units at
+        // this stage as long as they theoretically fit. In the
+        // next stage we will reject that and present a message
+        // to the user.
         if( !unit.cargo().fits_somewhere( units_state,
                                           Cargo::unit{ id } ) )
           return nothing;
@@ -557,8 +561,15 @@ class CargoView : public ui::View,
   }
 
   wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
-      ColViewObject_t const&, e_colview_entity from,
+      ColViewObject_t const& o, e_colview_entity from,
       Coord const ) const override {
+    CHECK( holder_.has_value() );
+    if( GameState::units().unit_for( *holder_ ).type() ==
+            e_unit_type::wagon_train &&
+        o.holds<ColViewObject::unit>() )
+      co_return IColViewDragSinkCheck::Rejection{
+          .reason =
+              "Only ships can hold other units as cargo." };
     switch( from ) {
       case e_colview_entity::units_at_gate:
       case e_colview_entity::cargo:
