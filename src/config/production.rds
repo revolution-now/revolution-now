@@ -55,6 +55,11 @@ struct.IndoorProduction {
   # indoor job (e.g. rum distiller).
   petty_criminal_base_production 'int',
 
+  # Amount produced per turn by a native convert working in an
+  # indoor job (e.g. rum distiller). In the original game this is
+  # equivalent to a petty criminal.
+  native_convert_base_production 'int',
+
   # Amount produced per turn by an indentured servant working in
   # an indoor job (e.g. rum distiller).
   indentured_servant_base_production 'int',
@@ -122,6 +127,15 @@ struct.OutdoorJobProduction {
   road_bonus        'OutdoorJobBonus_t',
   plow_bonus        'OutdoorJobBonus_t',
   expert_bonus      'OutdoorJobBonus_t',
+
+  # If the worker is a native convert then its production will be
+  # computed from that of a free colonist, but with this bonus
+  # added. In the original game, this bonus is always +1 for
+  # planting-based jobs as well as for fur trapping and fishing,
+  # and is +0 for everything else. Note that this bonus is ap-
+  # plied after all other bonuses, and is only applied if the
+  # production value at that point is non-zero.
+  native_bonus 'OutdoorJobBonus_t',
 
   # For ocean tiles.
   coast_bonus    'OutdoorJobBonus_t',

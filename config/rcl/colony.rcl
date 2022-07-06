@@ -125,6 +125,7 @@ materials_for_unit  {
   petty_criminal:         null
   indentured_servant:     null
   free_colonist:          null
+  native_convert:         null
   soldier:                null
   dragoon:                null
   pioneer:                null

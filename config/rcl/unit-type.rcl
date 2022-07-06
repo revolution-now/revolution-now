@@ -168,6 +168,33 @@ composition {
       }
     }
 
+    native_convert {
+      type:                  native_convert
+      name:                  Native Convert
+      tile:                  native_convert
+      expertise:             null
+      type_activity:         null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death               capture{}
+      road_turns:            null
+      plow_turns:            null
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      is_derived:            false
+      modifiers:             {}
+    }
+
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     # Non-expert modified colonists.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

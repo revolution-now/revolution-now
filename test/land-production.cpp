@@ -207,6 +207,46 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     REQUIRE( f() == 2 );
   }
 
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::grassland;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 0 );
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::prairie;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 4 );
+    S().river = e_river::major;
+    REQUIRE( f() == 6 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 5 );
+    S().irrigation = true;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 9 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 3 );
+  }
+
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
@@ -294,6 +334,39 @@ TEST_CASE( "[production] production_on_square/silver" ) {
     auto f = [&] {
       return production_on_square( job, W.terrain(),
                                    e_unit_type::free_colonist,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::grassland;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().road    = false;
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::silver_depleted;
+    REQUIRE( f() == 1 );
+    S().ground_resource = e_natural_resource::silver;
+    REQUIRE( f() == 3 );
+    S().road = true;
+    REQUIRE( f() == 4 );
+    S().river = e_river::major;
+    REQUIRE( f() == 6 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 5 );
+  }
+
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
                                    Coord::from_gfx( P ) );
     };
 
@@ -485,6 +558,64 @@ TEST_CASE( "[production] production_on_square/food" ) {
     REQUIRE( f() == 3 );
   }
 
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::grassland;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 4 );
+    S().irrigation = true;
+    REQUIRE( f() == 5 );
+    S().river = e_river::major;
+    REQUIRE( f() == 6 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::wheat;
+    REQUIRE( f() == 8 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 4 );
+    S().forest_resource = e_natural_resource::deer;
+    REQUIRE( f() == 6 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 4 );
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::plains;
+    REQUIRE( f() == 6 );
+    S().road = true;
+    REQUIRE( f() == 6 );
+    S().river = e_river::major;
+    REQUIRE( f() == 7 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 7 );
+    S().irrigation = true;
+    REQUIRE( f() == 8 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 8 );
+    S().ground_resource = e_natural_resource::wheat;
+    REQUIRE( f() == 10 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 5 );
+    S().forest_resource = e_natural_resource::deer;
+    REQUIRE( f() == 7 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 4 );
+  }
+
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square( job, W.terrain(),
@@ -654,6 +785,60 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     REQUIRE( f() == 8 );
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 2 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+  }
+
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::grassland;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::sugar;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::savannah;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 4 );
+    S().river = e_river::major;
+    REQUIRE( f() == 6 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 5 );
+    S().irrigation = true;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::sugar;
+    REQUIRE( f() == 9 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 3 );
     S().overlay = e_land_overlay::mountains;
     REQUIRE( f() == 0 );
     S().ground_resource = nothing;
@@ -833,6 +1018,60 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     REQUIRE( f() == 0 );
   }
 
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::savannah;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::tobacco;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::grassland;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 4 );
+    S().river = e_river::major;
+    REQUIRE( f() == 6 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 5 );
+    S().irrigation = true;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::cotton;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::tobacco;
+    REQUIRE( f() == 9 );
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 3 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+  }
+
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
@@ -983,6 +1222,49 @@ TEST_CASE( "[production] production_on_square/fur" ) {
     REQUIRE( f() == 0 );
   }
 
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::savannah;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::beaver;
+    REQUIRE( f() == 0 );
+
+    S()         = { .surface = e_surface::land };
+    S().ground  = e_ground_terrain::savannah;
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 3 );
+    S().road = true;
+    REQUIRE( f() == 5 );
+    S().river = e_river::major;
+    REQUIRE( f() == 9 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 7 );
+    S().irrigation = true;
+    REQUIRE( f() == 7 );
+    S().forest_resource = e_natural_resource::minerals;
+    REQUIRE( f() == 7 );
+    S().forest_resource = e_natural_resource::beaver;
+    REQUIRE( f() == 10 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+  }
+
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
@@ -1083,6 +1365,49 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     auto f = [&] {
       return production_on_square( job, W.terrain(),
                                    e_unit_type::free_colonist,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::savannah;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::tree;
+    REQUIRE( f() == 0 );
+
+    S()         = { .surface = e_surface::land };
+    S().ground  = e_ground_terrain::savannah;
+    S().overlay = e_land_overlay::forest;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 6 );
+    S().river = e_river::major;
+    REQUIRE( f() == 10 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 8 );
+    S().irrigation = true;
+    REQUIRE( f() == 8 );
+    S().forest_resource = e_natural_resource::minerals;
+    REQUIRE( f() == 8 );
+    S().forest_resource = e_natural_resource::tree;
+    REQUIRE( f() == 12 );
+    S().overlay = e_land_overlay::mountains;
+    REQUIRE( f() == 0 );
+    S().overlay = e_land_overlay::hills;
+    REQUIRE( f() == 0 );
+  }
+
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
                                    Coord::from_gfx( P ) );
     };
 
@@ -1263,6 +1588,49 @@ TEST_CASE( "[production] production_on_square/ore" ) {
     REQUIRE( f() == 6 );
   }
 
+  SECTION( "native_convert" ) {
+    auto f = [&] {
+      return production_on_square( job, W.terrain(),
+                                   e_unit_type::native_convert,
+                                   Coord::from_gfx( P ) );
+    };
+
+    S()        = { .surface = e_surface::land };
+    S().ground = e_ground_terrain::savannah;
+    REQUIRE( f() == 0 );
+    S().road = true;
+    REQUIRE( f() == 0 );
+    S().irrigation = true;
+    REQUIRE( f() == 0 );
+    S().river = e_river::major;
+    REQUIRE( f() == 0 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 0 );
+    S().ground_resource = e_natural_resource::ore;
+    REQUIRE( f() == 0 );
+
+    S()         = { .surface = e_surface::land };
+    S().overlay = e_land_overlay::hills;
+    REQUIRE( f() == 4 );
+    S().road = true;
+    REQUIRE( f() == 5 );
+    S().river = e_river::major;
+    REQUIRE( f() == 7 );
+    S().river = e_river::minor;
+    REQUIRE( f() == 6 );
+    S().irrigation = true;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::tree;
+    REQUIRE( f() == 6 );
+    S().ground_resource = e_natural_resource::ore;
+    REQUIRE( f() == 8 );
+    S().ground_resource = e_natural_resource::minerals;
+    REQUIRE( f() == 9 );
+    S().ground_resource = nothing;
+    S().overlay         = e_land_overlay::mountains;
+    REQUIRE( f() == 6 );
+  }
+
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square( job, W.terrain(),
@@ -1391,6 +1759,42 @@ TEST_CASE( "[production] production_on_square/fish" ) {
       REQUIRE( f() == 6 );
     }
 
+    SECTION( "native_convert" ) {
+      auto f = [&] {
+        return production_on_square( job, W.terrain(),
+                                     e_unit_type::native_convert,
+                                     Coord::from_gfx( P ) );
+      };
+
+      S() = { .surface = e_surface::land };
+      REQUIRE( f() == 0 );
+      S().road = true;
+      REQUIRE( f() == 0 );
+      S().irrigation = true;
+      REQUIRE( f() == 0 );
+      S().river = e_river::major;
+      REQUIRE( f() == 0 );
+      S().river = e_river::minor;
+      REQUIRE( f() == 0 );
+      S().ground_resource = e_natural_resource::fish;
+      REQUIRE( f() == 0 );
+      S().overlay = e_land_overlay::mountains;
+      REQUIRE( f() == 0 );
+
+      S() = { .surface = e_surface::water };
+      REQUIRE( f() == 3 );
+      S().road = true;
+      REQUIRE( f() == 3 );
+      S().river = e_river::major;
+      REQUIRE( f() == 5 );
+      S().river = e_river::minor;
+      REQUIRE( f() == 4 );
+      S().ground_resource = e_natural_resource::fish;
+      REQUIRE( f() == 7 );
+      S().overlay = e_land_overlay::mountains;
+      REQUIRE( f() == 7 );
+    }
+
     SECTION( "expert" ) {
       auto f = [&] {
         return production_on_square(
@@ -1503,6 +1907,42 @@ TEST_CASE( "[production] production_on_square/fish" ) {
       REQUIRE( f() == 8 );
       S().overlay = e_land_overlay::mountains;
       REQUIRE( f() == 8 );
+    }
+
+    SECTION( "native_convert" ) {
+      auto f = [&] {
+        return production_on_square( job, W.terrain(),
+                                     e_unit_type::native_convert,
+                                     Coord::from_gfx( P ) );
+      };
+
+      S() = { .surface = e_surface::land };
+      REQUIRE( f() == 0 );
+      S().road = true;
+      REQUIRE( f() == 0 );
+      S().irrigation = true;
+      REQUIRE( f() == 0 );
+      S().river = e_river::major;
+      REQUIRE( f() == 0 );
+      S().river = e_river::minor;
+      REQUIRE( f() == 0 );
+      S().ground_resource = e_natural_resource::fish;
+      REQUIRE( f() == 0 );
+      S().overlay = e_land_overlay::mountains;
+      REQUIRE( f() == 0 );
+
+      S() = { .surface = e_surface::water };
+      REQUIRE( f() == 5 );
+      S().road = true;
+      REQUIRE( f() == 5 );
+      S().river = e_river::major;
+      REQUIRE( f() == 7 );
+      S().river = e_river::minor;
+      REQUIRE( f() == 6 );
+      S().ground_resource = e_natural_resource::fish;
+      REQUIRE( f() == 9 );
+      S().overlay = e_land_overlay::mountains;
+      REQUIRE( f() == 9 );
     }
 
     SECTION( "expert" ) {

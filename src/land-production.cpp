@@ -243,6 +243,11 @@ int production_on_square( e_outdoor_job       job,
     res =
         apply_outdoor_bonus( res, is_expert, conf.expert_bonus );
 
+  // 5. Native convert bonus.
+  if( type == e_unit_type::native_convert )
+    res =
+        apply_outdoor_bonus( res, is_expert, conf.native_bonus );
+
   return res;
 }
 

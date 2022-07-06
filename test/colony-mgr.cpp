@@ -129,6 +129,15 @@ UnitId create_hardy_pioneer_on_map( UnitsState&  units_state,
       where );
 }
 
+UnitId create_native_convert_on_map( UnitsState&  units_state,
+                                     Coord        where,
+                                     IMapUpdater& map_updater ) {
+  return create_unit_on_map_non_interactive(
+      units_state, map_updater, e_nation::english,
+      UnitComposition::create( e_unit_type::native_convert ),
+      where );
+}
+
 UnitId create_ship( UnitsState& units_state, Coord where,
                     IMapUpdater& map_updater ) {
   return create_unit_on_map_non_interactive(
@@ -177,6 +186,21 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
                       type )
                       .value_or( 0 ) );
   }
+}
+
+TEST_CASE( "[colony-mgr] native convert cannot found" ) {
+  TerrainState  terrain_state;
+  ColoniesState colonies_state;
+  UnitsState    units_state;
+  generate_unittest_terrain( terrain_state );
+  NonRenderingMapUpdater map_updater( terrain_state );
+
+  Coord coord = { .x = 2, .y = 2 };
+  auto  id    = create_native_convert_on_map( units_state, coord,
+                                              map_updater );
+  REQUIRE( unit_can_found_colony( colonies_state, units_state,
+                                  terrain_state, id ) ==
+           e_found_colony_err::native_convert_cannot_found );
 }
 
 TEST_CASE( "[colony-mgr] found_colony strips unit" ) {

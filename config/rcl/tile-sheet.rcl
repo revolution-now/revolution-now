@@ -620,6 +620,7 @@ sheets {
         petty_criminal:         { y: 3, x: 0 }
         indentured_servant:     { y: 3, x: 1 }
         free_colonist:          { y: 3, x: 2 }
+        native_convert:         { y: 3, x: 3 }
         soldier:                { y: 1, x: 0 }
         dragoon:                { y: 1, x: 3 }
         pioneer:                { y: 8, x: 0 }

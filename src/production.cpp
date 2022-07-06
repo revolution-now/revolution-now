@@ -45,6 +45,9 @@ int production_for_indoor_job( e_indoor_job job,
     case e_unit_type::petty_criminal:
       return config_production.indoor_production
           .petty_criminal_base_production;
+    case e_unit_type::native_convert:
+      return config_production.indoor_production
+          .native_convert_base_production;
     case e_unit_type::indentured_servant:
       return config_production.indoor_production
           .indentured_servant_base_production;

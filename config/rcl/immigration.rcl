@@ -58,8 +58,8 @@ base_weights {
   hardy_colonist:             0.0
   jesuit_colonist:            0.0
 
-  # Non-human units, ships, and post-independence units should
-  # not appear and thus get zero weights.
+  # Non-human units, native converts, ships, and post indepen-
+  # dence units should not appear and thus get zero weights.
   artillery:                  0.0
   damaged_artillery:          0.0
   wagon_train:                0.0
@@ -75,6 +75,7 @@ base_weights {
   continental_cavalry:        0.0
   regular:                    0.0
   cavalry:                    0.0
+  native_convert:             0.0
 }
 
 # These factors adjust the weights for each difficulty level. The
@@ -131,8 +132,9 @@ difficulty_factor_per_level {
   hardy_colonist:          1.0
   jesuit_colonist:         1.0
 
-  # Non-human units, ships, and post-independence units don't ap-
-  # pear on the docks and thus these values are irrelevant.
+  # Non-human units, native converts, ships, and post indepen-
+  # dence units don't appear on the docks and thus these values
+  # are irrelevant.
   artillery:               1.0
   damaged_artillery:       1.0
   wagon_train:             1.0
@@ -148,4 +150,5 @@ difficulty_factor_per_level {
   continental_cavalry:     1.0
   regular:                 1.0
   cavalry:                 1.0
+  native_convert:          1.0
 }
