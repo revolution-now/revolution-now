@@ -20,6 +20,12 @@
 // Config
 #include "config/unit-type.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -564,7 +570,6 @@ TEST_CASE( "[unit-type] on_death_demoted_type" ) {
   REQUIRE( f( UnitType::create( UT::damaged_artillery ) ) ==
            nothing );
   REQUIRE( f( UnitType::create( UT::caravel ) ) == nothing );
-  REQUIRE( f( UnitType::create( UT::cavalry ) ) == nothing );
   // Demoting.
   REQUIRE( f( UnitType::create( UT::soldier ) ) ==
            UnitType::create( UT::free_colonist ) );
@@ -583,6 +588,8 @@ TEST_CASE( "[unit-type] on_death_demoted_type" ) {
            UnitType::create( UT::veteran_colonist ) );
   REQUIRE( f( UnitType::create( UT::veteran_dragoon ) ) ==
            UnitType::create( UT::veteran_soldier ) );
+  REQUIRE( f( UnitType::create( UT::cavalry ) ) ==
+           UnitType::create( UT::regular ) );
   REQUIRE( f( UnitType::create( UT::continental_army ) ) ==
            UnitType::create( UT::veteran_colonist ) );
   REQUIRE( f( UnitType::create( UT::continental_cavalry ) ) ==
