@@ -240,14 +240,9 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  -- options.nations = {
-  --   ["french"]={ human=true },
-  --   ["dutch"]={ human=true }
-  -- }
+  options.nations = { ['dutch']={ human=true } }
+  options.map.type = 'half_and_half'
   -- options.map.world_size = { w=4, h=4 }
-  -- options.map.type = 'battlefield'
-
-  -- options.map.world_size = { w=16, h=16 }
 end
 
 -----------------------------------------------------------------
@@ -291,8 +286,8 @@ function M.create( options )
 
   -- Temporary.
   root.land_view.viewport:center_on_tile{
-    x=world_size.w - 1,
-    y=world_size.h // 2
+    x=world_size.w // 2 - 2,
+    y=world_size.h // 2 - 1
   }
 end
 
