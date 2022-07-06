@@ -645,14 +645,14 @@ sheets {
         firebrand_preacher:     { y: 6, x: 9 }
         hardy_colonist:         { y: 8, x: 2 }
         jesuit_colonist:        { y: 7, x: 2 }
-        continental_army:       { y: 0, x: 0 }
-        continental_cavalry:    { y: 0, x: 0 }
-        regular:                { y: 0, x: 0 }
-        cavalry:                { y: 0, x: 0 }
         seasoned_colonist:      { y: 9, x: 2 }
         veteran_colonist:       { y: 1, x: 2 }
         veteran_soldier:        { y: 1, x: 1 }
         veteran_dragoon:        { y: 1, x: 4 }
+        continental_army:       { y: 1, x: 5 }
+        continental_cavalry:    { y: 1, x: 6 }
+        regular:                { y: 1, x: 7 }
+        cavalry:                { y: 1, x: 8 }
         hardy_pioneer:          { y: 8, x: 1 }
         jesuit_missionary:      { y: 7, x: 1 }
         seasoned_scout:         { y: 9, x: 1 }
