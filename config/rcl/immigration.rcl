@@ -75,9 +75,6 @@ base_weights {
   continental_cavalry:        0.0
   regular:                    0.0
   cavalry:                    0.0
-  hardy_pioneer:              0.0
-  jesuit_missionary:          0.0
-  seasoned_scout:             0.0
 }
 
 # These factors adjust the weights for each difficulty level. The
@@ -151,7 +148,4 @@ difficulty_factor_per_level {
   continental_cavalry:     1.0
   regular:                 1.0
   cavalry:                 1.0
-  hardy_pioneer:           1.0
-  jesuit_missionary:       1.0
-  seasoned_scout:          1.0
 }
