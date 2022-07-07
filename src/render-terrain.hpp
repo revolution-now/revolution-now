@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
-
 // render
 #include "render/renderer.hpp"
 
@@ -22,6 +19,8 @@
 #include "gfx/coord.hpp"
 
 namespace rn {
+
+struct TerrainState;
 
 /****************************************************************
 ** TerrainRenderOptions

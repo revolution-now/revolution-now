@@ -23,7 +23,8 @@
 
 namespace rn {
 
-struct IGui;
+struct SS;
+struct TS;
 struct Player;
 
 /****************************************************************
@@ -35,7 +36,25 @@ class ColViewBuildings : public ui::View,
                          public IColViewDragSinkCheck,
                          public IColViewDragSource {
  public:
+  static std::unique_ptr<ColViewBuildings> create(
+      SS& ss, TS& ts, Colony& colony, Delta size,
+      Player const& player ) {
+    return std::make_unique<ColViewBuildings>( ss, ts, colony,
+                                               size, player );
+  }
+
+  ColViewBuildings( SS& ss, TS& ts, Colony& colony, Delta size,
+                    Player const& player )
+    : ColonySubView( ss, ts, colony ),
+      size_( size ),
+      colony_( colony ),
+      player_( player ) {}
+
   Delta delta() const override { return size_; }
+
+  // Implement ui::Object.
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
 
   // Implement ColonySubView.
   maybe<e_colview_entity> entity() const override {
@@ -94,24 +113,6 @@ class ColViewBuildings : public ui::View,
   maybe<e_colony_building_slot> slot_for_coord(
       Coord where ) const;
 
- public:
-  void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
-
-  static std::unique_ptr<ColViewBuildings> create(
-      Delta size, Colony& colony, Player const& player,
-      IGui& gui ) {
-    return std::make_unique<ColViewBuildings>( size, colony,
-                                               player, gui );
-  }
-
-  ColViewBuildings( Delta size, Colony& colony,
-                    Player const& player, IGui& gui )
-    : size_( size ),
-      colony_( colony ),
-      player_( player ),
-      gui_( gui ) {}
-
  private:
   struct Dragging {
     UnitId                 id   = {};
@@ -121,7 +122,6 @@ class ColViewBuildings : public ui::View,
   Delta           size_;
   Colony&         colony_;
   Player const&   player_;
-  IGui&           gui_;
   maybe<Dragging> dragging_ = {};
 };
 

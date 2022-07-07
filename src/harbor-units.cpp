@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "ustate.hpp"
@@ -28,11 +27,6 @@
 
 // config
 #include "config/harbor.rds.hpp"
-
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -415,18 +409,5 @@ UnitId create_unit_in_harbor( UnitsState& units_state,
   return create_unit_in_harbor(
       units_state, nation, UnitComposition::create( type ) );
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_FN( create_unit_in_port, UnitId, e_nation nation,
-        UnitComposition comp ) {
-  return create_unit_in_harbor( GameState::units(), nation,
-                                comp );
-};
-
-} // namespace
 
 } // namespace rn

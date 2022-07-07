@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
@@ -23,6 +22,7 @@
 
 // ss
 #include "ss/players.hpp"
+#include "ss/ref.hpp"
 #include "ss/turn.hpp"
 
 // refl
@@ -43,7 +43,8 @@ namespace {} // namespace
 struct PanelPlane::Impl : public Plane {
   MenuPlane::Deregistrar eot_click_dereg_;
 
-  Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
+  Impl( SS& ss, MenuPlane& menu_plane )
+    : ss_( ss ), menu_plane_( menu_plane ) {
     // Register menu handlers.
     eot_click_dereg_ = menu_plane_.register_handler(
         e_menu_item::next_turn, *this );
@@ -108,7 +109,7 @@ struct PanelPlane::Impl : public Plane {
         renderer.typer( where, gfx::pixel::banana() );
 
     // First some general stats that are not player specific.
-    TurnState const& turn_state = GameState::turn();
+    TurnState const& turn_state = ss_.turn;
     typer.write( "{} {}\n",
                  season_str( turn_state.time_point.season ),
                  turn_state.time_point.year );
@@ -120,7 +121,7 @@ struct PanelPlane::Impl : public Plane {
 
     // We have an active player, so print some info about it.
     e_nation            nation        = nat_st->nation;
-    PlayersState const& players_state = GameState::players();
+    PlayersState const& players_state = ss_.players;
     UNWRAP_CHECK( player, players_state.players[nation] );
 
     if( player.discovered_new_world )
@@ -184,6 +185,7 @@ struct PanelPlane::Impl : public Plane {
     return user_hits_eot_button();
   }
 
+  SS&                           ss_;
   MenuPlane&                    menu_plane_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<>                w_promise;
@@ -207,8 +209,8 @@ Plane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( MenuPlane& menu_plane )
-  : impl_( new Impl( menu_plane ) ) {}
+PanelPlane::PanelPlane( SS& ss, MenuPlane& menu_plane )
+  : impl_( new Impl( ss, menu_plane ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

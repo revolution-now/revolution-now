@@ -18,7 +18,6 @@
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "dragdrop.hpp"
-#include "game-state.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "image.hpp"
@@ -32,6 +31,7 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "wait.hpp"
@@ -42,6 +42,7 @@
 
 // ss
 #include "ss/players.hpp"
+#include "ss/ref.hpp"
 #include "ss/units.hpp"
 
 // gfx
@@ -77,10 +78,9 @@ constexpr int const k_default_market_quantity = 100;
 ** State
 *****************************************************************/
 struct PS {
-  Player&             player;
-  UnitsState&         units_state;
-  TerrainState const& terrain_state;
-  IGui&               gui;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player;
 
   wait_promise<> exit_promise = {};
 
@@ -890,7 +890,7 @@ class UnitsOnDock : public UnitCollection {
       vector<UnitWithPosition> units;
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
-      for( auto id : harbor_units_on_dock( S.units_state,
+      for( auto id : harbor_units_on_dock( S.ss_.units,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= Delta{ .w = g_tile_delta.w };
@@ -938,7 +938,7 @@ class ShipsInPort : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_in_port( S.units_state,
+      for( auto id : harbor_units_in_port( S.ss_.units,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= Delta{ .w = g_tile_delta.w };
@@ -984,7 +984,7 @@ class ShipsInbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_inbound( S.units_state,
+      for( auto id : harbor_units_inbound( S.ss_.units,
                                            S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= Delta{ .w = g_tile_delta.w };
@@ -1030,7 +1030,7 @@ class ShipsOutbound : public UnitCollection {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_outbound( S.units_state,
+      for( auto id : harbor_units_outbound( S.ss_.units,
                                             S.player.nation ) ) {
         units.push_back( { id, coord } );
         coord -= Delta{ .w = g_tile_delta.w };
@@ -1360,7 +1360,7 @@ maybe<HarborDragSrcInfo> drag_src_from_coord(
     auto        in_port =
         active_cargo.active_unit()
             .fmap( [&]( UnitId id ) {
-              return is_unit_in_port( S.units_state, id );
+              return is_unit_in_port( S.ss_.units, id );
             } )
             .is_value_truish();
     auto maybe_pair = base::just( coord ).bind(
@@ -1537,9 +1537,9 @@ struct DragConnector {
     : S( S_arg ), entities( entities_ ) {}
   bool DRAG_CONNECT_CASE( dock, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.units_state, ship ) ) return false;
+    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
     return unit_from_id( ship ).cargo().fits_somewhere(
-        GameState::units(), Cargo::unit{ src.id }, dst.slot );
+        S.ss_.units, Cargo::unit{ src.id }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<HarborDraggableObject::unit>(
@@ -1548,7 +1548,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.units_state, ship ) ) return false;
+    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
     if( src.slot == dst.slot ) return true;
     UNWRAP_CHECK( cargo_object,
                   draggable_to_cargo_object(
@@ -1559,7 +1559,7 @@ struct DragConnector {
           return unit_from_id( ship )
               .cargo()
               .fits_with_item_removed(
-                  GameState::units(),
+                  S.ss_.units,
                   /*cargo=*/cargo_object,   //
                   /*remove_slot=*/src.slot, //
                   /*insert_slot=*/dst.slot  //
@@ -1572,7 +1572,7 @@ struct DragConnector {
           auto size_one     = c.obj;
           size_one.quantity = 1;
           return unit_from_id( ship ).cargo().fits(
-              GameState::units(),
+              S.ss_.units,
               /*cargo=*/Cargo::commodity{ size_one },
               /*slot=*/dst.slot );
         } );
@@ -1581,9 +1581,8 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UnitsState const& units_state = S.units_state;
     UNWRAP_CHECK(
-        info, units_state.maybe_harbor_view_state_of( src.id ) );
+        info, S.ss_.units.maybe_harbor_view_state_of( src.id ) );
     ASSIGN_CHECK_V( outbound, info.port_status,
                     PortStatus::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
@@ -1598,7 +1597,7 @@ struct DragConnector {
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        GameState::units(), Cargo::unit{ src.id } );
+        S.ss_.units, Cargo::unit{ src.id } );
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
     auto dst_ship = dst.id;
@@ -1611,7 +1610,7 @@ struct DragConnector {
           if( is_unit_onboard( u.id ) == dst_ship ) return false;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( GameState::units(), u );
+              .fits_somewhere( S.ss_.units, u );
         },
         [&]( Cargo::commodity const& c ) {
           // If even 1 quantity can fit then we can proceed
@@ -1620,13 +1619,13 @@ struct DragConnector {
           size_one.quantity = 1;
           return unit_from_id( dst_ship )
               .cargo()
-              .fits_somewhere( GameState::units(),
+              .fits_somewhere( S.ss_.units,
                                Cargo::commodity{ size_one } );
         } );
   }
   bool DRAG_CONNECT_CASE( market, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.units_state, ship ) ) return false;
+    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
     auto comm = Commodity{
         /*type=*/src.type, //
         // If the commodity can fit even with just one quan-
@@ -1635,7 +1634,7 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( ship ).cargo().fits_somewhere(
-        GameState::units(), Cargo::commodity{ comm }, dst.slot );
+        S.ss_.units, Cargo::commodity{ comm }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( market, inport_ship ) const {
     auto comm = Commodity{
@@ -1646,12 +1645,12 @@ struct DragConnector {
         /*quantity=*/1 //
     };
     return unit_from_id( dst.id ).cargo().fits_somewhere(
-        GameState::units(), Cargo::commodity{ comm },
+        S.ss_.units, Cargo::commodity{ comm },
         /*starting_slot=*/0 );
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.units_state, ship ) ) return false;
+    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
     return unit_from_id( ship )
         .cargo()
         .template slot_holds_cargo_type<Cargo::commodity>(
@@ -1693,10 +1692,10 @@ struct DragUserInput {
     // FIXME: allow the user to cancel by hitting escape.
     //
     // FIXME: add proper initial value.
-    int res = co_await S.gui.int_input( { .msg           = text,
-                                          .initial_value = 0,
-                                          .min           = 0,
-                                          .max = 100 } );
+    int res = co_await S.ts_.gui.int_input( { .msg = text,
+                                              .initial_value = 0,
+                                              .min           = 0,
+                                              .max = 100 } );
     co_return res;
   }
 
@@ -1712,7 +1711,7 @@ struct DragUserInput {
   }
   wait<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    CHECK( is_unit_in_port( S.units_state, ship ) );
+    CHECK( is_unit_in_port( S.ss_.units, ship ) );
     UNWRAP_CHECK(
         commodity_ref,
         unit_from_id( ship )
@@ -1725,7 +1724,7 @@ struct DragUserInput {
   }
   wait<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    CHECK( is_unit_in_port( S.units_state, ship ) );
+    CHECK( is_unit_in_port( S.ss_.units, ship ) );
     auto maybe_commodity_ref =
         unit_from_id( ship )
             .cargo()
@@ -1765,18 +1764,17 @@ struct DragPerform {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     // First try to respect the destination slot chosen by
     // the player,
-    if( unit_from_id( ship ).cargo().fits( GameState::units(),
-                                           Cargo::unit{ src.id },
-                                           dst.slot ) )
-      S.units_state.change_to_cargo_somewhere( ship, src.id,
-                                               dst.slot );
+    if( unit_from_id( ship ).cargo().fits(
+            S.ss_.units, Cargo::unit{ src.id }, dst.slot ) )
+      S.ss_.units.change_to_cargo_somewhere( ship, src.id,
+                                             dst.slot );
     else
-      S.units_state.change_to_cargo_somewhere( ship, src.id );
+      S.ss_.units.change_to_cargo_somewhere( ship, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( S, src ),
                     HarborDraggableObject::unit );
-    unit_move_to_port( S.units_state, unit.id );
+    unit_move_to_port( S.ss_.units, unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
@@ -1788,32 +1786,32 @@ struct DragPerform {
         [&]( Cargo::unit u ) {
           // Will first "disown" unit which will remove it
           // from the cargo.
-          S.units_state.change_to_cargo_somewhere( ship, u.id,
-                                                   dst.slot );
+          S.ss_.units.change_to_cargo_somewhere( ship, u.id,
+                                                 dst.slot );
         },
         [&]( Cargo::commodity const& ) {
           move_commodity_as_much_as_possible(
-              GameState::units(), ship, src.slot, ship, dst.slot,
+              S.ss_.units, ship, src.slot, ship, dst.slot,
               /*max_quantity=*/nothing,
               /*try_other_dst_slots=*/false );
         } );
   }
   void DRAG_PERFORM_CASE( outbound, inbound ) const {
-    unit_sail_to_harbor( S.terrain_state, S.units_state,
-                         S.player, src.id );
+    unit_sail_to_harbor( S.ss_.terrain, S.ss_.units, S.player,
+                         src.id );
   }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
-    unit_sail_to_harbor( S.terrain_state, S.units_state,
-                         S.player, src.id );
+    unit_sail_to_harbor( S.ss_.terrain, S.ss_.units, S.player,
+                         src.id );
   }
   void DRAG_PERFORM_CASE( inbound, outbound ) const {
-    unit_sail_to_new_world( S.terrain_state, S.units_state,
-                            S.player, src.id );
+    unit_sail_to_new_world( S.ss_.terrain, S.ss_.units, S.player,
+                            src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
     HarborState& hb_state = S.harbor_state();
-    unit_sail_to_new_world( S.terrain_state, S.units_state,
-                            S.player, src.id );
+    unit_sail_to_new_world( S.ss_.terrain, S.ss_.units, S.player,
+                            src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
     // (if any) since that is likely what the user wants to work
@@ -1822,11 +1820,11 @@ struct DragPerform {
     // just deselect.
     hb_state.selected_unit = nothing;
     vector<UnitId> units_in_port =
-        harbor_units_in_port( S.units_state, S.player.nation );
+        harbor_units_in_port( S.ss_.units, S.player.nation );
     hb_state.selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
-    S.units_state.change_to_cargo_somewhere( dst.id, src.id );
+    S.ss_.units.change_to_cargo_somewhere( dst.id, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK( cargo_object,
@@ -1838,14 +1836,13 @@ struct DragPerform {
           CHECK( !src.quantity.has_value() );
           // Will first "disown" unit which will remove it
           // from the cargo.
-          S.units_state.change_to_cargo_somewhere( dst.id,
-                                                   u.id );
+          S.ss_.units.change_to_cargo_somewhere( dst.id, u.id );
         },
         [&]( Cargo::commodity const& ) {
           UNWRAP_CHECK( src_ship,
                         active_cargo_ship( entities ) );
           move_commodity_as_much_as_possible(
-              GameState::units(), src_ship, src.slot,
+              S.ss_.units, src_ship, src.slot,
               /*dst_ship=*/dst.id,
               /*dst_slot=*/0,
               /*max_quantity=*/src.quantity,
@@ -1868,7 +1865,7 @@ struct DragPerform {
     comm.quantity =
         std::min( comm.quantity, k_default_market_quantity );
     CHECK( comm.quantity > 0 );
-    add_commodity_to_cargo( GameState::units(), comm, ship,
+    add_commodity_to_cargo( S.ss_.units, comm, ship,
                             /*slot=*/dst.slot,
                             /*try_other_slots=*/true );
   }
@@ -1887,7 +1884,7 @@ struct DragPerform {
     comm.quantity =
         std::min( comm.quantity, k_default_market_quantity );
     CHECK( comm.quantity > 0 );
-    add_commodity_to_cargo( GameState::units(), comm, dst.id,
+    add_commodity_to_cargo( S.ss_.units, comm, dst.id,
                             /*slot=*/0,
                             /*try_other_slots=*/true );
   }
@@ -1905,10 +1902,9 @@ struct DragPerform {
                                          commodity_ref.obj.quantity );
     Commodity new_comm       = commodity_ref.obj;
     new_comm.quantity -= amount_to_sell;
-    rm_commodity_from_cargo( GameState::units(), ship,
-                             src.slot );
+    rm_commodity_from_cargo( S.ss_.units, ship, src.slot );
     if( new_comm.quantity > 0 )
-      add_commodity_to_cargo( GameState::units(), new_comm, ship,
+      add_commodity_to_cargo( S.ss_.units, new_comm, ship,
                               /*slot=*/src.slot,
                               /*try_other_slots=*/false );
   }
@@ -1922,7 +1918,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-     return c + canvas.upper_left().distance_from_origin();
+    return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
@@ -2077,12 +2073,8 @@ wait<> dragging_thread( PS& S, Entities* entities,
 struct HarborPlane::Impl : public Plane {
   PS S_;
 
-  Impl( Player& player, UnitsState& units_state,
-        TerrainState const& terrain_state, IGui& gui )
-    : S_{ .player        = player,
-          .units_state   = units_state,
-          .terrain_state = terrain_state,
-          .gui           = gui } {}
+  Impl( SS& ss, TS& ts, Player& player )
+    : S_{ .ss_ = ss, .ts_ = ts, .player = player } {}
 
   bool covers_screen() const override { return true; }
 
@@ -2239,8 +2231,8 @@ struct HarborPlane::Impl : public Plane {
       // We could have a case where the unit that was last
       // selected went to the new world and was then disbanded,
       // or is just no longer in the harbor.
-      if( !S_.units_state.exists( id ) ||
-          !S_.units_state.maybe_harbor_view_state_of( id ) )
+      if( !S_.ss_.units.exists( id ) ||
+          !S_.ss_.units.maybe_harbor_view_state_of( id ) )
         hb_state.selected_unit = nothing;
     }
     lg.info( "entering harbor view." );
@@ -2250,7 +2242,7 @@ struct HarborPlane::Impl : public Plane {
 
   void set_selected_unit( UnitId id ) {
     HarborState&      hb_state    = S_.harbor_state();
-    UnitsState const& units_state = S_.units_state;
+    UnitsState const& units_state = S_.ss_.units;
     // Ensure that the unit is either in port or on the high
     // seas, otherwise it doesn't make sense for the unit to be
     // selected on this screen.
@@ -2272,12 +2264,8 @@ Plane& HarborPlane::impl() { return *impl_; }
 
 HarborPlane::~HarborPlane() = default;
 
-HarborPlane::HarborPlane( Player&             player,
-                          UnitsState&         units_state,
-                          TerrainState const& terrain_state,
-                          IGui&               gui )
-  : impl_(
-        new Impl( player, units_state, terrain_state, gui ) ) {}
+HarborPlane::HarborPlane( SS& ss, TS& ts, Player& player )
+  : impl_( new Impl( ss, ts, player ) ) {}
 
 void HarborPlane::set_selected_unit( UnitId id ) {
   impl_->set_selected_unit( id );
@@ -2290,18 +2278,16 @@ wait<> HarborPlane::show_harbor_view() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( Planes& planes, Player& player,
-                         UnitsState&         units_state,
-                         TerrainState const& terrain_state,
-                         maybe<UnitId>       selected_unit ) {
+wait<> show_harbor_view( SS& ss, TS& ts_old, Player& player,
+                         maybe<UnitId> selected_unit ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
-  HarborPlane harbor_plane( player, units_state, terrain_state,
-                            gui );
+  TS          ts = ts_old.with_new( window_plane, gui );
+  HarborPlane harbor_plane( ss, ts, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
-  auto        popper = planes.new_group();
-  PlaneGroup& group  = planes.back();
+  auto        popper = ts.planes.new_group();
+  PlaneGroup& group  = ts.planes.back();
   group.push( harbor_plane );
   group.push( window_plane );
   co_await harbor_plane.show_harbor_view();

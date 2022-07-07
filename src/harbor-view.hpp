@@ -18,19 +18,16 @@
 
 namespace rn {
 
-struct IGui;
 struct Plane;
-struct Planes;
 struct Player;
-struct UnitsState;
-struct TerrainState;
+struct SS;
+struct TS;
 
 /****************************************************************
 ** HarborPlane
 *****************************************************************/
 struct HarborPlane {
-  HarborPlane( Player& player, UnitsState& units_state,
-               TerrainState const& terrain_state, IGui& gui );
+  HarborPlane( SS& ss, TS& ts, Player& player );
 
   ~HarborPlane();
 
@@ -49,9 +46,6 @@ struct HarborPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( Planes& planes, Player& player,
-                         UnitsState&         units_state,
-                         TerrainState const& terrain_state,
-                         maybe<UnitId>       selected_unit );
+wait<> show_harbor_view( SS& ss, TS& ts, Player& player );
 
 } // namespace rn

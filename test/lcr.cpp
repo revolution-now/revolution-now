@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "igui-mock.hpp"
+#include "map-updater.hpp"
 #include "ustate.hpp"
 
 // ss

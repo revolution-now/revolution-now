@@ -19,12 +19,13 @@ namespace rn {
 
 struct MenuPlane;
 struct Plane;
+struct SS;
 
 /****************************************************************
 ** PanelPlane
 *****************************************************************/
 struct PanelPlane {
-  PanelPlane( MenuPlane& menu_plane );
+  PanelPlane( SS& ss, MenuPlane& menu_plane );
   ~PanelPlane();
 
   wait<> wait_for_eot_button_click();

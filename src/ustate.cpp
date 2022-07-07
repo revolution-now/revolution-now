@@ -15,9 +15,7 @@
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony.hpp"
-#include "cstate.hpp"
 #include "error.hpp"
-#include "game-state.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
@@ -31,6 +29,7 @@
 // gs
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 #include "ss/units.hpp"
 
 // luapp
@@ -60,10 +59,10 @@ using ::base::function_ref;
 // If the unit is working in the colony then this will return it;
 // however it will not return a ColonyId if the unit simply occu-
 // pies the same square as the colony.
-maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
-  auto const&     gs_units = GameState::units();
+maybe<ColonyId> colony_for_unit_who_is_worker( SSConst const& ss,
+                                               UnitId id ) {
   maybe<ColonyId> res;
-  if_get( gs_units.ownership_of( id ), UnitOwnership::colony,
+  if_get( ss.units.ownership_of( id ), UnitOwnership::colony,
           colony_state ) {
     return colony_state.id;
   }
@@ -130,10 +129,6 @@ bool try_promote_unit_for_current_activity(
 
 string debug_string( UnitsState const& units_state, UnitId id ) {
   return debug_string( units_state.unit_for( id ) );
-}
-
-Unit& unit_from_id( UnitId id ) {
-  return GameState::units().unit_for( id );
 }
 
 UnitId create_unit( UnitsState& units_state, e_nation nation,

@@ -12,13 +12,14 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "igui.hpp"
-#include "unit-id.hpp"
-#include "wait.hpp"
-
 // Rds
 #include "lcr.rds.hpp"
+
+// Revolution Now
+#include "igui.hpp"
+#include "wait.hpp"
+
+#include "ss/unit-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

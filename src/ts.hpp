@@ -38,7 +38,7 @@ struct IGui;
 struct TS {
   Planes&      planes;
   IMapUpdater& map_updater;
-  lua::state&  lua_state;
+  lua::state&  lua;
   IGui&        gui;
 
   maybe<OmniPlane&>     omni_plane      = {};

@@ -15,12 +15,13 @@
 #include "harbor-units.hpp"
 #include "immigration.hpp"
 #include "logger.hpp"
+#include "map-updater.hpp"
 #include "rand-enum.hpp"
 #include "rand.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
-// gs
+// ss
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/terrain.hpp"

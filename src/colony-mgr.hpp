@@ -40,13 +40,7 @@ struct TS;
 
 struct ColoniesState;
 struct Colony;
-struct IGui;
-struct IMapUpdater;
-struct LandViewPlane;
-struct Planes;
 struct Player;
-struct SettingsState;
-struct TerrainState;
 struct Unit;
 struct UnitsState;
 
@@ -54,7 +48,7 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    SSConst const& ss, TS& ts, UnitId founder );
+    SSConst const& ss, UnitId founder );
 
 // This will change the nation of the colony and all units that
 // are workers in the colony as well as units that are in the
@@ -70,12 +64,8 @@ ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
                        std::string_view name );
 
 // Evolve the colony by one turn.
-wait<> evolve_colonies_for_player(
-    LandViewPlane& land_view_plane,
-    ColoniesState& colonies_state, SettingsState const& settings,
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IMapUpdater& map_updater, IGui& gui,
-    Planes& planes );
+wait<> evolve_colonies_for_player( SS& ss, TS& ts,
+                                   Player& player );
 
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is

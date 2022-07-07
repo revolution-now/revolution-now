@@ -42,9 +42,6 @@ struct UnitsState;
 std::string debug_string( UnitsState const& units_state,
                           UnitId            id );
 
-// FIXME: replace this with UnitsState::unit_for.
-ND Unit& unit_from_id( UnitId id );
-
 // This gets the activity that the unit is currently engaged in.
 // If it is working in a colony then it will be whatever job it
 // is doing. If it is e.g. a soldier on the map then it will be
@@ -108,8 +105,6 @@ ND Coord coord_for_unit_indirect_or_die( UnitId id );
 
 ND maybe<Coord> coord_for_unit_indirect(
     UnitsState const& units_state, UnitId id );
-// FIXME: deprecated
-ND maybe<Coord> coord_for_unit_indirect( UnitId id );
 
 // This will return true for a unit if it is owned by the map or
 // if its owner is on the map.

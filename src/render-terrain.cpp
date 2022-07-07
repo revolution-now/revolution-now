@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
+#include "map-updater.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
