@@ -183,16 +183,17 @@ UnitId create_unit_on_map_non_interactive(
   return id;
 }
 
-wait<UnitId> create_unit_on_map(
+wait<maybe<UnitId>> create_unit_on_map(
     UnitsState& units_state, TerrainState const& terrain_state,
     Player& player, SettingsState const& settings, IGui& gui,
     IMapUpdater& map_updater, UnitComposition comp,
     Coord coord ) {
   UnitId id = create_unit( units_state, player.nation,
                            std::move( comp ) );
-  co_await unit_to_map_square( units_state, terrain_state,
-                               player, settings, gui,
-                               map_updater, id, coord );
+  maybe<UnitDeleted> unit_deleted = co_await unit_to_map_square(
+      units_state, terrain_state, player, settings, gui,
+      map_updater, id, coord );
+  if( unit_deleted.has_value() ) co_return nothing;
   co_return id;
 }
 

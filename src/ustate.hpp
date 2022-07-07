@@ -137,7 +137,11 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
 UnitId create_unit( UnitsState& units_state, e_nation nation,
                     e_unit_type type );
 
-wait<UnitId> create_unit_on_map(
+// This has to return a maybe because the unit could theoreti-
+// cally by placed on an LCR square, and, since this is the
+// coroutine version, the LCR will be explored and one of the
+// outcomes is that the unit could be lost.
+wait<maybe<UnitId>> create_unit_on_map(
     UnitsState& units_state, TerrainState const& terrain_state,
     Player& player, SettingsState const& settings, IGui& gui,
     IMapUpdater& map_updater, UnitComposition comp,

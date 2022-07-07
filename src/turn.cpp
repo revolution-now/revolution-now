@@ -690,9 +690,12 @@ wait<bool> advance_unit( Planes&              planes,
           break;
         }
         units_state.unit_for( id ).clear_orders();
-        co_await unit_to_map_square(
-            units_state, terrain_state, player, settings, gui,
-            map_updater, id, *dst_coord );
+        maybe<UnitDeleted> unit_deleted =
+            co_await unit_to_map_square(
+                units_state, terrain_state, player, settings,
+                gui, map_updater, id, *dst_coord );
+        // There are no LCR tiles on water squares.
+        CHECK( !unit_deleted.has_value() );
         unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
       }
