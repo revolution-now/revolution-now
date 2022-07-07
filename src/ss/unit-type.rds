@@ -15,6 +15,7 @@ enum.e_unit_type {
   petty_criminal,
   indentured_servant,
   free_colonist,
+  native_convert,
 
   # Non-expert colonist with modifiers.
   soldier,

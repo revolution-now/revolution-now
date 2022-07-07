@@ -7,6 +7,11 @@ indoor_production {
   # indoor job (e.g. rum distiller).
   petty_criminal_base_production: 1
 
+  # Amount produced per turn by a native convert working in an
+  # indoor job (e.g. rum distiller). In the original game this is
+  # equivalent to a petty criminal.
+  native_convert_base_production: 1
+
   # Amount produced per turn by an indentured servant working in
   # an indoor job (e.g. rum distiller).
   indentured_servant_base_production: 2
@@ -173,6 +178,7 @@ outdoor_production {
       # The non_expert field is irrelevant here. Note that the
       # in-game numbers say that this is 3, but it is actually 2.
       expert_bonus.add      { non_expert=0, expert=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         beaver.none          {}
@@ -226,6 +232,7 @@ outdoor_production {
       # The non_expert field is irrelevant here. Note that the
       # in-game numbers say that this is 3, but it is actually 2.
       expert_bonus.add      { non_expert=0, expert=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         beaver.none          {}
@@ -276,6 +283,7 @@ outdoor_production {
       plow_bonus.add        { non_expert=1, expert=1 }
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         beaver.none          {}
@@ -325,6 +333,7 @@ outdoor_production {
       plow_bonus.add        { non_expert=1, expert=1 }
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         beaver.none          {}
@@ -374,6 +383,7 @@ outdoor_production {
       plow_bonus.add        { non_expert=1, expert=1 }
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         beaver.none          {}
@@ -425,6 +435,7 @@ outdoor_production {
       plow_bonus.none       {}
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=1, expert=1 }
 
       resource_bonus {
         # TODO: check this
@@ -476,6 +487,7 @@ outdoor_production {
       plow_bonus.none       {}
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=0, expert=0 }
 
       resource_bonus {
         beaver.none          {}
@@ -526,6 +538,7 @@ outdoor_production {
       plow_bonus.none       {}
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=0, expert=0 }
 
       resource_bonus {
         beaver.none          {}
@@ -581,6 +594,7 @@ outdoor_production {
       plow_bonus.none       {}
       coast_bonus.none      {}
       expert_bonus.mul      { by=2 }
+      native_bonus.add      { non_expert=0, expert=0 }
 
       # The available documentation on the classic game states
       # the following for the forumla for silver:

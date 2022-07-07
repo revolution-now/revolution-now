@@ -201,7 +201,7 @@ TEST_CASE( "[render/vertex] translation" ) {
                      point{ .x = 5, .y = 6 } );
   REQUIRE( vert.generic().translation ==
            gl::vec2{ .x = 0, .y = 0 } );
-  vert.set_translation( gfx::size{ .w = 2, .h = -4 } );
+  vert.set_translation( gfx::dsize{ .w = 2, .h = -4 } );
   REQUIRE( vert.generic().translation ==
            gl::vec2{ .x = 2, .y = -4 } );
 }

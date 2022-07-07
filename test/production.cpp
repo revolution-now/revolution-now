@@ -243,6 +243,75 @@ TEST_CASE( "[production] lumber/hammers" ) {
     }
   }
 
+  SECTION( "native_convert" ) {
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::native_convert );
+    SECTION( "grassland" ) {
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+    SECTION( "conifer forest" ) {
+      W.add_forest( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 6,
+                            .raw_delta_theoretical = 6,
+                            .raw_delta_final       = 6,
+                        } );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 8,
+                            .raw_delta_theoretical = 8,
+                            .raw_delta_final       = 8,
+                        } );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 10,
+                            .raw_delta_theoretical = 10,
+                            .raw_delta_final       = 10,
+                        } );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{
+                            .raw_produced          = 12,
+                            .raw_delta_theoretical = 12,
+                            .raw_delta_final       = 12,
+                        } );
+    }
+    SECTION( "mountains" ) {
+      W.add_mountains( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With road.
+      W.add_road( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With minor river.
+      W.add_minor_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+
+      // With major river.
+      W.add_major_river( P );
+      REQUIRE( lum() == RawMaterialAndProduct{} );
+    }
+  }
+
   SECTION( "free_colonist" ) {
     W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::lumber,

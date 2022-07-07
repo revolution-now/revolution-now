@@ -26,14 +26,16 @@
 
 namespace rn {
 
+struct ColoniesState;
 struct IGui;
 struct IMapUpdater;
-struct MenuPlane;
 struct LandViewState;
+struct MenuPlane;
 struct Plane;
 struct SettingsState;
 struct TerrainState;
 struct WindowPlane;
+struct UnitsState;
 
 enum class e_depixelate_anim { death, demote };
 
@@ -44,6 +46,8 @@ struct LandViewPlane {
   LandViewPlane( MenuPlane&          menu_plane,
                  WindowPlane&        window_plane,
                  LandViewState&      land_view_state,
+                 ColoniesState&      colonies_state,
+                 UnitsState&         units_state,
                  TerrainState const& terrain_state,
                  IMapUpdater& map_updater, IGui& gui );
 

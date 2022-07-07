@@ -29,6 +29,7 @@ namespace {
 using namespace std;
 
 using ::base::nothing;
+using ::gfx::dsize;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -973,14 +974,14 @@ TEST_CASE( "[render/painter] mod reposition" ) {
         .alpha      = {},
         .repos      = RepositionInfo{
                  .scale       = 2.0,
-                 .translation = size{ .w = 5, .h = 3 },
+                 .translation = dsize{ .w = 5, .h = 3 },
                  .use_camera  = false,
         } } );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_scaling( 2.0 );
-    vert.set_translation( size{ .w = 5, .h = 3 } );
+    vert.set_translation( dsize{ .w = 5, .h = 3 } );
     return vert.generic();
   };
 
@@ -1008,14 +1009,14 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
         .alpha      = {},
         .repos      = RepositionInfo{
                  .scale       = 2.0,
-                 .translation = size{ .w = 5, .h = 3 },
+                 .translation = dsize{ .w = 5.3, .h = 3 },
                  .use_camera  = true,
         } } );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_scaling( 2.0 );
-    vert.set_translation( size{ .w = 5, .h = 3 } );
+    vert.set_translation( dsize{ .w = 5.3, .h = 3 } );
     vert.set_use_camera( true );
     return vert.generic();
   };

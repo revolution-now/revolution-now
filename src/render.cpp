@@ -23,6 +23,7 @@
 #include "window.hpp"
 
 // config
+#include "config/gfx.rds.hpp"
 #include "config/nation.hpp"
 #include "config/unit-type.hpp"
 
@@ -46,12 +47,15 @@ constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
 // Unit only, no flag.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
                           e_unit_type              unit_type,
-                          maybe<UnitShadow> const& shadow ) {
+                          UnitRenderOptions const& options ) {
   auto const& desc = unit_attr( unit_type );
-  if( shadow.has_value() )
+  if( options.shadow.has_value() )
     render_sprite_silhouette(
-        painter, where + Delta{ .w = shadow->offset }, desc.tile,
-        shadow->color );
+        painter, where + Delta{ .w = options.shadow->offset },
+        desc.tile, options.shadow->color );
+  if( options.outline_right )
+    render_sprite_silhouette( painter, where + Delta{ .w = 1 },
+                              desc.tile, options.outline_color );
   render_sprite( painter, Rect::from( where, g_tile_delta ),
                  desc.tile );
 }
@@ -69,16 +73,17 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
 *****************************************************************/
 void render_nationality_icon( rr::Renderer& renderer,
                               Coord where, e_nation nation,
-                              char c ) {
+                              char c, bool is_greyed ) {
   Delta       delta    = nationality_icon_size;
   Rect        rect     = Rect::from( where, delta );
   auto const& nation_o = nation_obj( nation );
 
-  auto color      = nation_o.flag_color;
-  auto dark       = color.shaded( 2 );
-  auto text_color = color.shaded( 7 );
-
-  rr::Painter painter = renderer.painter();
+  auto        color      = nation_o.flag_color;
+  auto        dark       = color.shaded( 2 );
+  auto        text_color = is_greyed
+                               ? config_gfx.unit_flag_text_color_greyed
+                               : config_gfx.unit_flag_text_color;
+  rr::Painter painter    = renderer.painter();
 
   painter.draw_solid_rect( rect, color );
   painter.draw_empty_rect(
@@ -113,6 +118,12 @@ void render_nationality_icon( rr::Renderer&             renderer,
       delta.h +=
           ( ( 1 * g_tile_height ) - nationality_icon_size.h );
       break;
+    case e_direction::w:
+      delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
+      break;
+    case e_direction::n:
+      delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
+      break;
       // By default we keep it in the northwest corner.
     default: break;
   };
@@ -123,10 +134,16 @@ void render_nationality_icon( rr::Renderer&             renderer,
     case e_unit_orders::none: c = '-'; break;
     case e_unit_orders::sentry: c = 'S'; break;
     case e_unit_orders::fortified: c = 'F'; break;
+    case e_unit_orders::fortifying: c = 'F'; break;
     case e_unit_orders::road: c = 'R'; break;
     case e_unit_orders::plow: c = 'P'; break;
   };
-  render_nationality_icon( renderer, where, nation, c );
+  // We don't grey out the "fortifying" state to signal to the
+  // player that the unit is not yet fully fortified.
+  bool is_greyed = ( orders == e_unit_orders::fortified ||
+                     orders == e_unit_orders::sentry );
+  render_nationality_icon( renderer, where, nation, c,
+                           is_greyed );
 }
 
 void depixelate_from_to(
@@ -194,24 +211,33 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
             where + Delta{ .w = options.shadow->offset },
             desc.tile, options.shadow->color );
       render_nationality_icon( renderer, where, id );
-      render_sprite( painter, Rect::from( where, g_tile_delta ),
-                     desc.tile );
+      if( options.shadow.has_value() ) {
+        // Draw a light shadow over the flag so that we can dif-
+        // ferentiate the edge of the unit from the flag, but not
+        // so dark that it will cover up the flag.
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
+        rr::Painter painter = renderer.painter();
+        render_sprite_silhouette(
+            painter,
+            where + Delta{ .w = options.shadow->offset },
+            desc.tile, options.shadow->color );
+      }
+      render_sprite( painter, where, desc.tile );
     } else {
       render_unit_no_icon( painter, where, unit.desc().type,
-                           options.shadow );
+                           options );
       render_nationality_icon( renderer, where, id );
     }
   } else {
     render_unit_no_icon( painter, where, unit.desc().type,
-                         options.shadow );
+                         options );
   }
 }
 
 void render_unit_type( rr::Painter& painter, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where, unit_type,
-                       options.shadow );
+  render_unit_no_icon( painter, where, unit_type, options );
 }
 
 void render_colony( rr::Painter& painter, Coord where,

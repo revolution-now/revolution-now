@@ -141,7 +141,7 @@ struct Renderer {
 
   void set_color_cycle_stage( int stage );
 
-  void set_camera( gfx::size translation, double zoom );
+  void set_camera( gfx::dsize translation, double zoom );
 
   // This is the one to call to do a full render pass; it
   //

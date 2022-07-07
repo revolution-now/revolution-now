@@ -87,6 +87,7 @@ struct vec2 {
 
   static vec2 from_point( gfx::point p );
   static vec2 from_size( gfx::size s );
+  static vec2 from_dsize( gfx::dsize s );
 
   bool operator==( vec2 const& ) const = default;
 };

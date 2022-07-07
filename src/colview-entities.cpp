@@ -16,6 +16,7 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "colview-buildings.hpp"
+#include "colview-land.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "construction.hpp"
@@ -24,10 +25,10 @@
 #include "land-production.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
+#include "missionary.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
 #include "production.hpp"
-#include "render-terrain.hpp"
 #include "render.hpp"
 #include "road.hpp"
 #include "screen.hpp"
@@ -133,21 +134,6 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       []( Cargo::commodity const& c ) {
         return ColViewObject::commodity{ .comm = c.obj };
       } );
-}
-
-e_tile tile_for_outdoor_job( e_outdoor_job job ) {
-  switch( job ) {
-    case e_outdoor_job::food: return e_tile::commodity_food;
-    case e_outdoor_job::fish: return e_tile::product_fish;
-    case e_outdoor_job::sugar: return e_tile::commodity_sugar;
-    case e_outdoor_job::tobacco:
-      return e_tile::commodity_tobacco;
-    case e_outdoor_job::cotton: return e_tile::commodity_cotton;
-    case e_outdoor_job::fur: return e_tile::commodity_fur;
-    case e_outdoor_job::lumber: return e_tile::commodity_lumber;
-    case e_outdoor_job::ore: return e_tile::commodity_ore;
-    case e_outdoor_job::silver: return e_tile::commodity_silver;
-  }
 }
 
 maybe<string> check_abandon( Colony const& colony ) {
@@ -299,7 +285,10 @@ class MarketCommodities : public ui::View,
     auto idx = ( coord / sprite_scale - Coord{} ).w;
     UNWRAP_CHECK( type, commodity_from_index( idx ) );
     int quantity = quantity_of( type );
-    if( quantity == 0 ) return nothing;
+    // NOTE: we don't enforce that the quantity be greater than
+    // zero here, instead we do that in try_drag. That way we can
+    // still recognize what is under the cursor even if there is
+    // zero quantity of it.
     return ColViewObjectWithBounds{
         .obj    = ColViewObject::commodity{ Commodity{
                .type = type, .quantity = quantity } },
@@ -311,8 +300,8 @@ class MarketCommodities : public ui::View,
   bool try_drag( ColViewObject_t const& o,
                  Coord const&           where ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
+    if( c.quantity == 0 ) return false;
     // Sanity checks.
-    CHECK( c.quantity > 0 );
     UNWRAP_CHECK( here, object_here( where ) );
     UNWRAP_CHECK( comm_at_source,
                   here.obj.get_if<ColViewObject::commodity>() );
@@ -409,10 +398,11 @@ class PopulationView : public ui::View, public ColonySubView {
     auto const& colony   = ss_.colonies.colony_for( colony_.id );
     vector<UnitId> units = colony_units_all( colony );
     auto           unit_pos = coord + Delta{ .h = 16 };
+    unit_pos.x -= 3;
     for( UnitId unit_id : units ) {
       render_unit( renderer, unit_pos, unit_id,
                    UnitRenderOptions{ .flag = false } );
-      unit_pos.x += 24;
+      unit_pos.x += 15;
     }
   }
 
@@ -558,6 +548,10 @@ class CargoView : public ui::View,
       using namespace ColViewObject;
       case e::unit: {
         UnitId id = o.get<ColViewObject::unit>().id;
+        // Note that we allow wagon trains to recieve units at
+        // this stage as long as they theoretically fit. In the
+        // next stage we will reject that and present a message
+        // to the user.
         if( !unit.cargo().fits_somewhere( ss_.units,
                                           Cargo::unit{ id } ) )
           return nothing;
@@ -575,8 +569,15 @@ class CargoView : public ui::View,
   }
 
   wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
-      ColViewObject_t const&, e_colview_entity from,
+      ColViewObject_t const& o, e_colview_entity from,
       Coord const ) const override {
+    CHECK( holder_.has_value() );
+    if( GameState::units().unit_for( *holder_ ).type() ==
+            e_unit_type::wagon_train &&
+        o.holds<ColViewObject::unit>() )
+      co_return IColViewDragSinkCheck::Rejection{
+          .reason =
+              "Only ships can hold other units as cargo." };
     switch( from ) {
       case e_colview_entity::units_at_gate:
       case e_colview_entity::cargo:
@@ -1096,6 +1097,11 @@ class UnitsAtGateColonyView : public ui::View,
         .options = {
             { .key = "orders", .display_name = "Change Orders" },
             { .key = "strip", .display_name = "Strip Unit" } } };
+    if( can_bless_missionaries( colony() ) &&
+        unit_can_be_blessed( unit.type_obj() ) )
+      config.options.push_back(
+          { .key          = "missionary",
+            .display_name = "Bless as Missionary" } );
     string mode = co_await ts_.gui.choice( config );
     if( mode == "orders" ) {
       ChoiceConfig config{
@@ -1110,8 +1116,15 @@ class UnitsAtGateColonyView : public ui::View,
         unit.clear_orders();
       else if( new_orders == "sentry" )
         unit.sentry();
-      else if( new_orders == "fortify" )
-        unit.fortify();
+      else if( new_orders == "fortify" ) {
+        if( unit.orders() != e_unit_orders::fortified )
+          // This will place them in the "fortifying" state and
+          // will consume all movement points. The only time we
+          // don't want to do this is if the unit's state is
+          // "fortified", since then this would represent a pes-
+          // simisation.
+          unit.start_fortify();
+      }
     } else if( mode == "strip" ) {
       // Clear orders just in case it is a pioneer building a
       // road or plowing; that would put the pioneer into an in-
@@ -1119,7 +1132,10 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      strip_unit_commodities( unit, colony_ );
+      strip_unit_to_base_type( unit, colony() );
+    } else if( mode == "missionary" ) {
+      // TODO: play blessing tune.
+      bless_as_missionary( colony(), unit );
     }
   }
 
@@ -1188,8 +1204,10 @@ class ProductionView : public ui::View, public ColonySubView {
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             coord.distance_from_origin() );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        gfx::to_double(
+            gfx::size( coord.distance_from_origin() ) ) );
     rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
                                       gfx::pixel::black() );
     typer.write( "Hammers:      {}\n", colony_.hammers );
@@ -1210,383 +1228,6 @@ class ProductionView : public ui::View, public ColonySubView {
 
  private:
   Delta size_;
-};
-
-class LandView : public ui::View,
-                 public ColonySubView,
-                 public IColViewDragSource,
-                 public IColViewDragSink,
-                 public IColViewDragSinkCheck {
- public:
-  enum class e_render_mode {
-    // Three tiles by three tiles, with unscaled tiles and
-    // colonists on the land files.
-    _3x3,
-    // Land is 3x3 with unscaled tiles, and there is a one-tile
-    // wood border around it where colonists stay.
-    _5x5,
-    // Land is 3x3 tiles by each tile is scaled by a factor of
-    // two to easily fit both colonists and commodities inline.
-    _6x6
-  };
-
-  static unique_ptr<LandView> create( SS& ss, TS& ts,
-                                      Colony&       colony,
-                                      Player const& player,
-                                      e_render_mode mode ) {
-    return make_unique<LandView>( ss, ts, colony, player, mode );
-  }
-
-  LandView( SS& ss, TS& ts, Colony& colony, Player const& player,
-            e_render_mode mode )
-    : ColonySubView( ss, ts, colony ),
-      player_( player ),
-      mode_( mode ) {}
-
-  static Delta size_needed( e_render_mode mode ) {
-    int side_length_in_squares = 3;
-    switch( mode ) {
-      case e_render_mode::_3x3:
-        side_length_in_squares = 3;
-        break;
-      case e_render_mode::_5x5:
-        side_length_in_squares = 5;
-        break;
-      case e_render_mode::_6x6:
-        side_length_in_squares = 6;
-        break;
-    }
-    return Delta{ .w = 32, .h = 32 } *
-           Delta{ .w = side_length_in_squares,
-                  .h = side_length_in_squares };
-  }
-
-  maybe<e_direction> direction_under_cursor(
-      Coord coord ) const {
-    switch( mode_ ) {
-      case e_render_mode::_3x3:
-        return Coord{ .x = 1, .y = 1 }.direction_to(
-            coord / g_tile_delta );
-      case e_render_mode::_5x5: {
-        // TODO: this will probably have to be made more sophis-
-        // ticated.
-        Coord shifted = coord - g_tile_delta;
-        if( shifted.x < 0 || shifted.y < 0 ) return nothing;
-        return Coord{ .x = 1, .y = 1 }.direction_to(
-            shifted / g_tile_delta );
-      }
-      case e_render_mode::_6x6:
-        return Coord{ .x = 1, .y = 1 }.direction_to(
-            coord / ( g_tile_delta * Delta{ .w = 2, .h = 2 } ) );
-    }
-  }
-
-  // Gets the bounding rectangle for the unit position on the
-  // given square (whether there actually is a unit there or
-  // not).
-  Rect rect_for_unit( e_direction d ) const {
-    switch( mode_ ) {
-      case e_render_mode::_3x3:
-        return Rect::from(
-            Coord{ .x = 1, .y = 1 }.moved( d ) * g_tile_delta,
-            g_tile_delta );
-      case e_render_mode::_5x5: {
-        NOT_IMPLEMENTED;
-      }
-      case e_render_mode::_6x6:
-        return Rect::from(
-            Coord{ .x = 1, .y = 1 }.moved( d ) * g_tile_delta *
-                    Delta{ .w = 2, .h = 2 } +
-                ( g_tile_delta / Delta{ .w = 2, .h = 2 } ),
-            g_tile_delta );
-    }
-  }
-
-  maybe<UnitId> unit_for_direction( e_direction d ) const {
-    Colony& colony = ss_.colonies.colony_for( colony_.id );
-    return colony.outdoor_jobs[d].member(
-        &OutdoorUnit::unit_id );
-  }
-
-  maybe<e_outdoor_job> job_for_direction( e_direction d ) const {
-    Colony& colony = ss_.colonies.colony_for( colony_.id );
-    return colony.outdoor_jobs[d].member( &OutdoorUnit::job );
-  }
-
-  maybe<UnitId> unit_under_cursor( Coord where ) const {
-    UNWRAP_RETURN( d, direction_under_cursor( where ) );
-    return unit_for_direction( d );
-  }
-
-  Delta delta() const override { return size_needed( mode_ ); }
-
-  maybe<e_colview_entity> entity() const override {
-    return e_colview_entity::land;
-  }
-
-  ui::View&       view() noexcept override { return *this; }
-  ui::View const& view() const noexcept override {
-    return *this;
-  }
-
-  // Implement AwaitView.
-  wait<> perform_click(
-      input::mouse_button_event_t const& event ) override {
-    CHECK( event.pos.is_inside( rect( {} ) ) );
-    maybe<UnitId> unit_id = unit_under_cursor( event.pos );
-    if( !unit_id.has_value() ) co_return;
-
-    EnumChoiceConfig     config{ .msg = "Select Occupation",
-                                 .choice_required = false };
-    maybe<e_outdoor_job> new_job = co_await ts_.gui.enum_choice(
-        config, config_colony.outdoors.job_names );
-    if( !new_job.has_value() ) co_return;
-    Colony& colony = ss_.colonies.colony_for( colony_.id );
-    change_unit_outdoor_job( colony, *unit_id, *new_job );
-    update_production( ss_, player_, colony_ );
-  }
-
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, e_colview_entity,
-      Coord const&           where ) const override {
-    // Verify that the dragged object is a unit.
-    maybe<UnitId> unit_id =
-        o.get_if<ColViewObject::unit>().member(
-            &ColViewObject::unit::id );
-    if( !unit_id.has_value() ) return nothing;
-    // Check if the unit is a human.
-    Unit const& unit = ss_.units.unit_for( *unit_id );
-    if( !unit.is_human() ) return nothing;
-    // Check if there is a land square under the cursor that is
-    // not the center.
-    maybe<e_direction> d = direction_under_cursor( where );
-    if( !d.has_value() ) return nothing;
-    // Check if this is the same unit currently being dragged, if
-    // so we'll allow it.
-    if( dragging_.has_value() && d == dragging_->d ) return o;
-    // Check if there is already a unit on the square.
-    if( unit_under_cursor( where ).has_value() ) return nothing;
-    // Note that we don't check for water/docks here; that is
-    // done in the check function.
-
-    // We're good to go.
-    return o;
-  }
-
-  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
-      ColViewObject_t const&, e_colview_entity,
-      Coord const where ) const override {
-    Colony const& colony = ss_.colonies.colony_for( colony_.id );
-    TerrainState const& terrain_state = ss_.terrain;
-    maybe<e_direction>  d = direction_under_cursor( where );
-    CHECK( d );
-    MapSquare const& square =
-        terrain_state.square_at( colony.location.moved( *d ) );
-
-    if( is_water( square ) &&
-        !colony_has_building_level(
-            colony, e_colony_building::docks ) ) {
-      co_return IColViewDragSinkCheck::Rejection{
-          .reason =
-              "We must build @[H]docks@[] in this colony in "
-              "order to work on sea squares." };
-    }
-
-    if( square.lost_city_rumor ) {
-      co_return IColViewDragSinkCheck::Rejection{
-          .reason =
-              "We must explore this Lost City Rumor before we "
-              "can work this square." };
-    }
-
-    co_return base::valid;
-  }
-
-  ColonyJob_t make_job_for_square( e_direction d ) const {
-    // The original game seems to always choose food.
-    return ColonyJob::outdoor{ .direction = d,
-                               .job = e_outdoor_job::food };
-  }
-
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override {
-    UNWRAP_CHECK( unit_id,
-                  o.get_if<ColViewObject::unit>().member(
-                      &ColViewObject::unit::id ) );
-    Colony& colony = ss_.colonies.colony_for( colony_.id );
-    UNWRAP_CHECK( d, direction_under_cursor( where ) );
-    ColonyJob_t job = make_job_for_square( d );
-    if( dragging_.has_value() ) {
-      // The unit being dragged is coming from another square on
-      // the land view, so keep its job the same.
-      job = ColonyJob::outdoor{ .direction = d,
-                                .job       = dragging_->job };
-    }
-    move_unit_to_colony( ss_.units, colony, unit_id, job );
-    CHECK_HAS_VALUE( colony.validate() );
-  }
-
-  maybe<ColViewObjectWithBounds> object_here(
-      Coord const& where ) const override {
-    UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
-    UNWRAP_RETURN( d, direction_under_cursor( where ) );
-    return ColViewObjectWithBounds{
-        .obj    = ColViewObject::unit{ .id = unit_id },
-        .bounds = rect_for_unit( d ) };
-  }
-
-  struct Draggable {
-    e_direction   d   = {};
-    e_outdoor_job job = {};
-  };
-
-  bool try_drag( ColViewObject_t const&,
-                 Coord const& where ) override {
-    UNWRAP_CHECK( d, direction_under_cursor( where ) );
-    UNWRAP_CHECK( job, job_for_direction( d ) );
-    dragging_ = Draggable{ .d = d, .job = job };
-    return true;
-  }
-
-  void cancel_drag() override { dragging_ = nothing; }
-
-  void disown_dragged_object() override {
-    UNWRAP_CHECK( draggable, dragging_ );
-    UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
-    Colony& colony = ss_.colonies.colony_for( colony_.id );
-    remove_unit_from_colony( ss_.units, colony, unit_id );
-  }
-
-  void draw_land_3x3( rr::Renderer& renderer,
-                      Coord         coord ) const {
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             coord.distance_from_origin() );
-
-    TerrainState const& terrain_state = ss_.terrain;
-    // FIXME: Should not be duplicating land-view rendering code
-    // here.
-    rr::Painter painter = renderer.painter();
-    auto const& colony  = ss_.colonies.colony_for( colony_.id );
-    Coord       world_square = colony.location;
-    // Render terrain.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      render_terrain_square(
-          terrain_state, renderer, local_coord * g_tile_delta,
-          render_square, TerrainRenderOptions{} );
-    }
-    // Render irrigation.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      render_plow_if_present( painter,
-                              local_coord * g_tile_delta,
-                              terrain_state, render_square );
-    }
-    // Render roads.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      render_road_if_present( painter,
-                              local_coord * g_tile_delta,
-                              terrain_state, render_square );
-    }
-    // Render colonies.
-    for( auto local_coord :
-         Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-      auto render_square = world_square +
-                           local_coord.distance_from_origin() -
-                           Delta{ .w = 1, .h = 1 };
-      auto maybe_col_id = colony_from_coord( render_square );
-      if( !maybe_col_id ) continue;
-      render_colony(
-          painter,
-          local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-          *maybe_col_id );
-    }
-  }
-
-  void draw_land_6x6( rr::Renderer& renderer,
-                      Coord         coord ) const {
-    {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 2.0 );
-      draw_land_3x3( renderer, coord );
-    }
-    // Further drawing should not be scaled.
-
-    // Render units.
-    rr::Painter   painter = renderer.painter();
-    Colony const& colony = ss_.colonies.colony_for( colony_.id );
-    Coord const   center = Coord{ .x = 1, .y = 1 };
-
-    for( auto const& [direction, outdoor_unit] :
-         colony.outdoor_jobs ) {
-      if( !outdoor_unit.has_value() ) continue;
-      if( dragging_.has_value() && dragging_->d == direction )
-        continue;
-      Coord const square_coord =
-          coord + ( center.moved( direction ) * g_tile_delta *
-                    Delta{ .w = 2, .h = 2 } )
-                      .distance_from_origin();
-      Coord const unit_coord =
-          square_coord +
-          ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
-      UnitId const unit_id = outdoor_unit->unit_id;
-      Unit const&  unit    = ss_.units.unit_for( unit_id );
-      UnitTypeAttributes const& desc = unit_attr( unit.type() );
-      render_unit_type(
-          painter, unit_coord, desc.type,
-          UnitRenderOptions{ .shadow = UnitShadow{} } );
-      e_outdoor_job const job    = outdoor_unit->job;
-      e_tile const product_tile  = tile_for_outdoor_job( job );
-      Coord const  product_coord = square_coord;
-      render_sprite( painter, product_coord, product_tile );
-      Delta const product_tile_size =
-          sprite_size( product_tile );
-      SquareProduction const& production =
-          colview_production().land_production[direction];
-      int const    quantity = production.quantity;
-      string const q_str    = fmt::format( "x {}", quantity );
-      Coord const  text_coord =
-          product_coord + Delta{ .w = product_tile_size.w };
-      render_text_markup(
-          renderer, text_coord, {},
-          TextMarkupInfo{
-              .shadowed_text_color   = gfx::pixel::white(),
-              .shadowed_shadow_color = gfx::pixel::black() },
-          fmt::format( "@[S]{}@[]", q_str ) );
-    }
-  }
-
-  void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
-    rr::Painter painter = renderer.painter();
-    switch( mode_ ) {
-      case e_render_mode::_3x3:
-        draw_land_3x3( renderer, coord );
-        break;
-      case e_render_mode::_5x5:
-        painter.draw_solid_rect( rect( coord ),
-                                 gfx::pixel::wood() );
-        draw_land_3x3( renderer, coord + g_tile_delta );
-        break;
-      case e_render_mode::_6x6:
-        draw_land_6x6( renderer, coord );
-        break;
-    }
-  }
-
- private:
-  Player const&    player_;
-  e_render_mode    mode_;
-  maybe<Draggable> dragging_;
 };
 
 /****************************************************************
@@ -1771,20 +1412,20 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   views.push_back( ui::OwningPositionedView(
       std::move( production_view ), pos ) );
 
-  // [LandView] -------------------------------------------------
+  // [ColonyLandView] -------------------------------------------
   available = Delta{ canvas_size.w,
                      middle_strip_top - title_bar_bottom };
 
   H max_landview_height = available.h;
 
-  LandView::e_render_mode land_view_mode =
-      LandView::e_render_mode::_6x6;
-  if( LandView::size_needed( land_view_mode ).h >
+  ColonyLandView::e_render_mode land_view_mode =
+      ColonyLandView::e_render_mode::_6x6;
+  if( ColonyLandView::size_needed( land_view_mode ).h >
       max_landview_height )
-    land_view_mode = LandView::e_render_mode::_5x5;
-  if( LandView::size_needed( land_view_mode ).h >
+    land_view_mode = ColonyLandView::e_render_mode::_5x5;
+  if( ColonyLandView::size_needed( land_view_mode ).h >
       max_landview_height )
-    land_view_mode = LandView::e_render_mode::_3x3;
+    land_view_mode = ColonyLandView::e_render_mode::_3x3;
   auto land_view =
       LandView::create( ss, ts, colony, player, land_view_mode );
   g_composition.entities[e_colview_entity::land] =

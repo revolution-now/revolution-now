@@ -521,6 +521,7 @@ enum.e_tile {
   petty_criminal,
   indentured_servant,
   free_colonist,
+  native_convert,
   soldier,
   dragoon,
   pioneer,

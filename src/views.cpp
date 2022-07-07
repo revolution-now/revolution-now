@@ -39,6 +39,16 @@ namespace {} // namespace
 /****************************************************************
 ** CompositeView
 *****************************************************************/
+void CompositeView::children_updated() {
+  for( auto p_view : *this )
+    if( auto cv = p_view.view->cast_safe<CompositeView>();
+        cv.has_value() )
+      ( *cv )->children_updated();
+  // Finally, this node. Note that this is the only place that
+  // this notify_children_updated function should be called.
+  notify_children_updated();
+}
+
 void CompositeView::draw( rr::Renderer& renderer,
                           Coord         coord ) const {
   // Draw each of the sub views, by augmenting its origin (which
@@ -51,7 +61,7 @@ void CompositeView::draw( rr::Renderer& renderer,
 Delta CompositeView::delta() const {
   auto uni0n = L2( _1.uni0n( _2.view->rect( _2.coord ) ) );
   auto rect  = accumulate( begin(), end(), Rect{}, uni0n );
-  return { rect.w, rect.h };
+  return { .w = rect.w, .h = rect.h };
 }
 
 bool CompositeView::dispatch_mouse_event(
@@ -498,14 +508,24 @@ void LineEditorView::set( std::string_view new_string,
 /****************************************************************
 ** PlainMessageBoxView
 *****************************************************************/
-unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
-    string_view msg, wait_promise<> on_close ) {
-  TextMarkupInfo m_info{
+TextMarkupInfo const& default_text_markup_info() {
+  static TextMarkupInfo info{
       /*normal=*/config_ui.dialog_text.normal,
       /*highlight=*/config_ui.dialog_text.highlighted };
-  TextReflowInfo r_info{
+  return info;
+}
+
+TextReflowInfo const& default_text_reflow_info() {
+  static TextReflowInfo info{
       /*max_cols=*/config_ui.dialog_text.columns };
-  unique_ptr<TextView> tview =
+  return info;
+}
+
+unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
+    string_view msg, wait_promise<> on_close ) {
+  TextMarkupInfo const& m_info = default_text_markup_info();
+  TextReflowInfo const& r_info = default_text_reflow_info();
+  unique_ptr<TextView>  tview =
       make_unique<TextView>( msg, m_info, r_info );
   return make_unique<PlainMessageBoxView>(
       std::move( tview ), std::move( on_close ) );
@@ -702,7 +722,7 @@ VerticalArrayView::VerticalArrayView(
     OwningPositionedView pos_view( std::move( view ), Coord{} );
     push_back( std::move( pos_view ) );
   }
-  notify_children_updated();
+  recompute_child_positions();
 }
 
 // When a child view is updated then we must recompute the posi-
@@ -748,7 +768,7 @@ HorizontalArrayView::HorizontalArrayView(
     OwningPositionedView pos_view( std::move( view ), Coord{} );
     push_back( std::move( pos_view ) );
   }
-  notify_children_updated();
+  recompute_child_positions();
 }
 
 // When a child view is updated then we must recompute the posi-
@@ -840,7 +860,6 @@ unique_ptr<View>& OptionSelectItemView::mutable_at( int idx ) {
         case e_option_active::inactive:
           return background_inactive_;
       }
-      break;
     case 1:
       switch( active_ ) {
         case e_option_active::active: return foreground_active_;
@@ -950,8 +969,8 @@ bool OptionSelectView::on_key(
 maybe<int> OptionSelectView::item_under_point(
     Coord coord ) const {
   int i = 0;
-  for( PositionedViewConst puc : *this ) {
-    if( coord.is_inside( puc.rect() ) ) return i;
+  for( PositionedViewConst pvc : *this ) {
+    if( coord.is_inside( pvc.rect() ) ) return i;
     ++i;
   }
   return nothing;

@@ -267,6 +267,7 @@ bool should_remove_unit_from_queue( UnitId id ) {
   if( finished_turn( id ) ) return true;
   switch( unit.orders() ) {
     case e_unit_orders::fortified: return true;
+    case e_unit_orders::fortifying: return true;
     case e_unit_orders::sentry: return true;
     case e_unit_orders::road: return false;
     case e_unit_orders::plow: return false;
@@ -299,6 +300,11 @@ void try_unsentry_unit( Unit& unit ) {
   }
 }
 
+void fortify_units( Unit& unit ) {
+  if( unit.orders() != e_unit_orders::fortifying ) return;
+  unit.fortify();
+}
+
 // See if any foreign units in the vicinity of src_id need to be
 // unsentry'd.
 void unsentry_surroundings( UnitId src_id ) {
@@ -323,16 +329,19 @@ vector<UnitId> units_all( UnitsState const& units_state,
 
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( UnitsState&                       units_state,
-                base::function_ref<void( Unit& )> func ) {
+void map_all_units( UnitsState& units_state,
+                    base::function_ref<void( Unit& )> func ) {
   for( auto& p : units_state.all() )
     func( units_state.unit_for( p.first ) );
 }
 
-void map_units( UnitsState& units_state, e_nation nation,
-                base::function_ref<void( Unit& )> func ) {
+// This will map only over those that haven't yet moved this
+// turn.
+void map_active_units( UnitsState& units_state, e_nation nation,
+                       base::function_ref<void( Unit& )> func ) {
   for( auto& p : units_state.all() ) {
     Unit& unit = units_state.unit_for( p.first );
+    if( unit.mv_pts_exhausted() ) continue;
     if( unit.nation() == nation ) func( unit );
   }
 }
@@ -683,9 +692,12 @@ wait<bool> advance_unit( Planes&              planes,
           break;
         }
         units_state.unit_for( id ).clear_orders();
-        co_await unit_to_map_square(
-            units_state, terrain_state, player, settings, gui,
-            map_updater, id, *dst_coord );
+        maybe<UnitDeleted> unit_deleted =
+            co_await unit_to_map_square(
+                units_state, terrain_state, player, settings,
+                gui, map_updater, id, *dst_coord );
+        // There are no LCR tiles on water squares.
+        CHECK( !unit_deleted.has_value() );
         unsentry_surroundings( id );
         co_return true; // needs to ask for orders.
       }
@@ -768,8 +780,33 @@ wait<> units_turn( Planes& planes, MenuPlane& menu_plane,
   auto& q  = st.units;
 
   // Unsentry any units that are sentried but have foreign units
-  // in an adjacent square.
-  map_units( units_state, st.nation, try_unsentry_unit );
+  // in an adjacent square. FIXME: move this to the the function
+  // that is called to put a unit on a new map square.
+  map_active_units( units_state, st.nation, try_unsentry_unit );
+
+  // Any units that are in the "fortifying" state at the start of
+  // their turn get "promoted" for the "fortified" status, which
+  // means they are actually fortified and get those benefits. We
+  // only do this to the active units, i.e. the ones that still
+  // have movement points. The reason for this is so that if we
+  // save the game just after hitting 'F' on a unit, then reload
+  // it, we won't (incorrectly) try to transition the unit to the
+  // "fortified" state. Instead we will (correctly) do so on the
+  // following turn.
+  //
+  // FIXME: it is probably better put this into a dedicated func-
+  // tion that will run only once at the start of each turn, re-
+  // gardless of save/load patterns. Then we could just map over
+  // all of this nation's units without worrying about whether
+  // they are active or not (and also by the way it is not good
+  // to begin with that we have to rely on the movement points
+  // indicator for this because it ideally should be an arbitrary
+  // game logic decision as to whether a unit's movement points
+  // get consumed when they initiate a fortify). Maybe we could
+  // go even further an implement a general mechanism for holding
+  // the state of the turn in serialized form so that we don't
+  // rely on a bunch of ad hoc bool flags.
+  map_active_units( units_state, st.nation, fortify_units );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
@@ -894,8 +931,8 @@ wait<> next_turn(
   // Starting.
   if( !st.started ) {
     print_bar( '=', "[ Starting Turn ]" );
-    map_units( units_state,
-               []( Unit& unit ) { unit.new_turn(); } );
+    map_all_units( units_state,
+                   []( Unit& unit ) { unit.new_turn(); } );
     reset_turn_obj( players_state, st );
     st.started = true;
   }

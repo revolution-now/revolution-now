@@ -100,7 +100,26 @@ void Unit::set_turns_worked( int turns ) {
   o_.turns_worked = turns;
 }
 
-void Unit::fortify() { o_.orders = e_unit_orders::fortified; }
+void Unit::start_fortify() {
+  // See comment in the `fortify` method below for an explanation
+  // of movement point forfeighture vs. fortification.
+  forfeight_mv_points();
+  o_.orders = e_unit_orders::fortifying;
+}
+
+void Unit::fortify() {
+  // Note that, although we consume movement points when the
+  // final fortify action is performed (because the original game
+  // seems to) that does not mean that a unit gets it movement
+  // points consumed automatically each turn thereafter. To the
+  // contrary, once a unit is fortified fully, although it
+  // doesn't ask for orders, it can be awakened during a turn and
+  // can move. It's only during the initial `fortifying` and
+  // `fortified` stages (which span two turns) that the movement
+  // points get consumed.
+  forfeight_mv_points();
+  o_.orders = e_unit_orders::fortified;
+}
 
 void Unit::change_nation( e_nation nation ) {
   // This could happen if we capture a colony containing a ship
@@ -256,6 +275,7 @@ LUA_STARTUP( lua::state& st ) {
   u["build_road"]    = &U::build_road;
   u["plow"]          = &U::plow;
   u["fortify"]       = &U::fortify;
+  u["start_fortify"] = &U::start_fortify;
   u["clear_orders"]  = &U::clear_orders;
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {

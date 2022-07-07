@@ -10,6 +10,8 @@
 *****************************************************************/
 #include "cartesian.hpp"
 
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace gfx {
@@ -44,6 +46,28 @@ void size::operator+=( size term ) {
 }
 
 /****************************************************************
+** dsize
+*****************************************************************/
+void dsize::operator+=( dsize term ) {
+  w += term.w;
+  h += term.h;
+}
+
+dsize to_double( size s ) {
+  return dsize{
+      .w = double( s.w ),
+      .h = double( s.h ),
+  };
+}
+
+dsize dsize::operator*( double factor ) const {
+  dsize res = *this;
+  res.w *= factor;
+  res.h *= factor;
+  return res;
+}
+
+/****************************************************************
 ** point
 *****************************************************************/
 point point::origin() {
@@ -53,6 +77,28 @@ point point::origin() {
 
 point point::moved_left( int by ) const {
   return point{ .x = x - by, .y = y };
+}
+
+/****************************************************************
+** dpoint
+*****************************************************************/
+dsize dpoint::fmod( double d ) const {
+  return dsize{ .w = std::fmod( x, d ), .h = std::fmod( y, d ) };
+}
+
+void dpoint::operator-=( dsize s ) {
+  x -= s.w;
+  y -= s.h;
+}
+
+dpoint operator-( dpoint p, dsize s ) {
+  dpoint res = p;
+  res -= s;
+  return res;
+}
+
+dpoint dpoint::operator*( double factor ) const {
+  return dpoint{ .x = x * factor, .y = y * factor };
 }
 
 /****************************************************************
@@ -163,6 +209,107 @@ point rect::center() const {
 }
 
 /****************************************************************
+** drect
+*****************************************************************/
+drect to_double( rect r ) {
+  return drect{
+      .origin = { .x = double( r.origin.x ),
+                  .y = double( r.origin.y ) },
+      .size   = { .w = double( r.size.w ),
+                  .h = double( r.size.h ) },
+  };
+}
+
+maybe<drect> drect::clipped_by( drect const other ) const {
+  drect res = this->normalized();
+  if( res.right() > other.right() )
+    res.size.w -= ( res.right() - other.right() );
+  if( res.bottom() > other.bottom() )
+    res.size.h -= ( res.bottom() - other.bottom() );
+  if( res.left() < other.left() ) {
+    int delta    = ( other.left() - res.left() );
+    res.origin.x = other.left();
+    res.size.w -= delta;
+    if( res.right() > other.right() )
+      res.size.w -= ( res.right() - other.right() );
+  }
+  if( res.top() < other.top() ) {
+    int delta    = ( other.top() - res.top() );
+    res.origin.y = other.top();
+    res.size.h -= delta;
+    if( res.bottom() > other.bottom() )
+      res.size.h -= ( res.bottom() - other.bottom() );
+  }
+  if( res.size.negative() ) return nothing;
+  CHECK_GE( res.top(), other.top() );
+  CHECK_GE( res.left(), other.left() );
+  CHECK_LE( res.bottom(), other.bottom() );
+  CHECK_LE( res.right(), other.right() );
+  // Note that res.size.area() could be zero here.
+  return res;
+}
+
+dpoint drect::nw() const { return normalized().origin; }
+
+dpoint drect::ne() const {
+  drect norm = normalized();
+  return dpoint{ .x = norm.origin.x + norm.size.w,
+                 .y = norm.origin.y };
+}
+
+dpoint drect::se() const {
+  drect norm = normalized();
+  return norm.origin + norm.size;
+}
+
+dpoint drect::sw() const {
+  drect norm = normalized();
+  return dpoint{ .x = norm.origin.x,
+                 .y = norm.origin.y + norm.size.h };
+}
+
+double drect::top() const {
+  drect norm = normalized();
+  return norm.origin.y;
+}
+
+double drect::bottom() const {
+  drect norm = normalized();
+  return norm.origin.y + norm.size.h;
+}
+
+double drect::left() const {
+  drect norm = normalized();
+  return norm.origin.x;
+}
+
+double drect::right() const {
+  drect norm = normalized();
+  return norm.origin.x + norm.size.w;
+}
+
+drect drect::normalized() const {
+  drect res = *this;
+  if( res.size.w < 0 ) {
+    res.origin.x += res.size.w;
+    res.size.w = -res.size.w;
+  }
+  if( res.size.h < 0 ) {
+    res.origin.y += res.size.h;
+    res.size.h = -res.size.h;
+  }
+  return res;
+}
+
+/****************************************************************
+** Free Functions
+*****************************************************************/
+dpoint centered_in( dsize s, drect r ) {
+  return { .x = r.origin.x + r.size.w / 2 - s.w / 2,
+           .y = r.origin.y + r.size.h / 2 - s.h / 2 };
+}
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s ) {
@@ -170,6 +317,14 @@ point operator+( point const p, size const s ) {
 }
 
 point operator+( size const s, point const p ) { return p + s; }
+
+dpoint operator+( dpoint const p, dsize const s ) {
+  return dpoint{ .x = p.x + s.w, .y = p.y + s.h };
+}
+
+dpoint operator+( dsize const s, dpoint const p ) {
+  return p + s;
+}
 
 size operator+( size const s1, size const s2 ) {
   return size{ .w = s1.w + s2.w, .h = s1.h + s2.h };
@@ -183,6 +338,10 @@ point operator*( point const p, size const s ) {
 
 size operator-( point const p1, point const p2 ) {
   return size{ .w = p1.x - p2.x, .h = p1.y - p2.y };
+}
+
+dsize operator-( dpoint const p1, dpoint const p2 ) {
+  return dsize{ .w = p1.x - p2.x, .h = p1.y - p2.y };
 }
 
 } // namespace gfx

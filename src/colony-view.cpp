@@ -74,19 +74,47 @@ void try_promote_demote_unit( PS& S, Coord where, bool demote ) {
   maybe<ColViewObjectWithBounds> obj =
       colview_top_level().object_here( where );
   if( !obj.has_value() ) return;
-  UNWRAP_CHECK( unit_id,
-                obj->obj.get_if<ColViewObject::unit>().member(
-                    &ColViewObject::unit::id ) );
+  // Could be a commodity.
+  maybe<UnitId> unit_id =
+      obj->obj.get_if<ColViewObject::unit>().member(
+          &ColViewObject::unit::id );
+  if( !unit_id.has_value() ) return;
 
-  // Cheat mode.
-  Unit& unit = S.units_state.unit_for( unit_id );
+  Unit& unit = S.units_state.unit_for( *unit_id );
   if( demote )
     cheat_downgrade_unit_expertise( unit );
   else
     cheat_upgrade_unit_expertise( S.units_state,
                                   S.colonies_state, unit );
   colview_top_level().update();
-  return;
+}
+
+void try_increase_commodity( Colony& colony, Coord where ) {
+  maybe<ColViewObjectWithBounds> obj =
+      colview_top_level().object_here( where );
+  if( !obj.has_value() ) return;
+  // Could be a unit.
+  maybe<Commodity> comm =
+      obj->obj.get_if<ColViewObject::commodity>().member(
+          &ColViewObject::commodity::comm );
+  if( !comm.has_value() ) return;
+
+  cheat_increase_commodity( colony, comm->type );
+  colview_top_level().update();
+}
+
+void try_decrease_commodity( Colony& colony, Coord where ) {
+  maybe<ColViewObjectWithBounds> obj =
+      colview_top_level().object_here( where );
+  if( !obj.has_value() ) return;
+  // Could be a unit.
+  maybe<Commodity> comm =
+      obj->obj.get_if<ColViewObject::commodity>().member(
+          &ColViewObject::commodity::comm );
+  if( !comm.has_value() ) return;
+
+  cheat_decrease_commodity( colony, comm->type );
+  colview_top_level().update();
 }
 
 /****************************************************************
@@ -448,7 +476,8 @@ wait<bool> handle_event( PS& S, Colony& colony,
 
 // Returns true if the user wants to exit the colony view.
 wait<bool> handle_event(
-    PS& S, Colony&, input::mouse_button_event_t const& event ) {
+    PS& S, Colony& colony,
+    input::mouse_button_event_t const& event ) {
   // Need to filter these out otherwise the start of drag events
   // will call perform_click which we don't want.
   if( event.buttons != input::e_mouse_button_event::left_up &&
@@ -460,10 +489,12 @@ wait<bool> handle_event(
       case input::e_mouse_button_event::left_up:
         try_promote_demote_unit( S, event.pos,
                                  /*demote=*/false );
+        try_increase_commodity( colony, event.pos );
         break;
       case input::e_mouse_button_event::right_up:
         try_promote_demote_unit( S, event.pos,
                                  /*demote=*/true );
+        try_decrease_commodity( colony, event.pos );
         break;
       default: break;
     }

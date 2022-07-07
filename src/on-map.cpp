@@ -63,16 +63,15 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
   }
 }
 
-wait<> try_lost_city_rumor( UnitsState&          units_state,
-                            TerrainState const&  terrain_state,
-                            Player&              player,
-                            SettingsState const& settings,
-                            IGui& gui, IMapUpdater& map_updater,
-                            UnitId id, Coord world_square ) {
+// Returns true if the unit was deleted.
+wait<bool> try_lost_city_rumor(
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, SettingsState const& settings, IGui& gui,
+    IMapUpdater& map_updater, UnitId id, Coord world_square ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   if( !has_lost_city_rumor( terrain_state, world_square ) )
-    co_return;
+    co_return false;
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( units_state, id );
   e_rumor_type rumor_type =
@@ -87,8 +86,7 @@ wait<> try_lost_city_rumor( UnitsState&          units_state,
           world_square, rumor_type, burial_type,
           has_burial_grounds );
 
-  // Not currently doing anything with the results.
-  (void)lcr_res;
+  co_return lcr_res.holds<LostCityRumorResult::unit_lost>();
 }
 
 } // namespace
@@ -111,12 +109,10 @@ void unit_to_map_square_non_interactive( UnitsState& units_state,
   // TODO: mind founding father de soto here.
 }
 
-wait<> unit_to_map_square( UnitsState&          units_state,
-                           TerrainState const&  terrain_state,
-                           Player&              player,
-                           SettingsState const& settings,
-                           IGui& gui, IMapUpdater& map_updater,
-                           UnitId id, Coord world_square ) {
+wait<maybe<UnitDeleted>> unit_to_map_square(
+    UnitsState& units_state, TerrainState const& terrain_state,
+    Player& player, SettingsState const& settings, IGui& gui,
+    IMapUpdater& map_updater, UnitId id, Coord world_square ) {
   unit_to_map_square_non_interactive( units_state, map_updater,
                                       id, world_square );
 
@@ -125,11 +121,13 @@ wait<> unit_to_map_square( UnitsState&          units_state,
                                      world_square );
 
   if( has_lost_city_rumor( terrain_state, world_square ) )
-    co_await try_lost_city_rumor(
-        units_state, terrain_state, player, settings, gui,
-        map_updater, id, world_square );
+    if( co_await try_lost_city_rumor(
+            units_state, terrain_state, player, settings, gui,
+            map_updater, id, world_square ) )
+      co_return UnitDeleted{};
 
-  // !! Note that the LCR may have removed the unit!
+  // Unit is still alive.
+  co_return nothing;
 }
 
 } // namespace rn

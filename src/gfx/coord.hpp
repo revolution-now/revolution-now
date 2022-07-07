@@ -143,13 +143,16 @@ struct Delta {
   // Multiply both components by the scale and round.
   Delta multiply_and_round( double scale ) const;
 
+  // Multiply both components by the scale and truncate.
+  Delta multiply_and_truncate( double scale ) const;
+
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
 
   // Will clamp each dimension individually to be within the
   // bounds of the given delta.
-  Delta clamp( Delta const& delta ) const;
+  [[nodiscard]] Delta clamp( Delta const& delta ) const;
 
   int area() const { return w * h; }
 
@@ -324,7 +327,7 @@ struct Rect {
 
   // Returns a rect that is adjusted (without respecting
   // proportions) so that it fits inside the given rect.
-  Rect clamp( Rect const& rect ) const;
+  [[nodiscard]] Rect clamp( Rect const& rect ) const;
 
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
@@ -496,8 +499,8 @@ struct RectGridProxyIteratorHelper {
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
     auto const&                        operator*() const {
-                             DCHECK( it.is_inside( rect_proxy->rect ) );
-                             return it;
+      DCHECK( it.is_inside( rect_proxy->rect ) );
+      return it;
     }
     const_iterator& operator++() {
       it.x += rect_proxy->chunk_size.w;

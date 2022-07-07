@@ -51,6 +51,8 @@ enum.e_rumor_type {
   free_colonist,
   # Unit vanishes.
   unit_lost,
+  # Discovery of one of the Seven Cities of Cibola.
+  cibola,
 }
 
 # This communicates the result of a Lost City Rumor to the rest

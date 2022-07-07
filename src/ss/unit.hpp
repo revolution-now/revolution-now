@@ -136,7 +136,10 @@ struct ND Unit {
   // rigating. Note: after calling this don't forget to call
   // set_turns_worked with zero.
   void plow();
-  // Mark a unit as fortified.
+  // Mark a unit as fortifying.
+  void start_fortify();
+  // Mark a unit as fully fortified. This happens after one turn
+  // of beying in the "fortifying" state.
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { o_.orders = e_unit_orders::none; }
@@ -156,7 +159,11 @@ struct ND Unit {
   // colony. In that situation, the unit needs to be stripped to
   // its base type and all of the commodities that it has should
   // be added into the colony's commodity store. All modifiers
-  // will be stripped from the unit as well.
+  // will be stripped from the unit as well. Note that you
+  // shouldn't call this method directly. Instead call the free
+  // method (defined elsewhere) that takes a colony as input so
+  // that it can deposit any commodities there that are stripped
+  // from the unit.
   UnitTransformationResult strip_to_base_type();
 
   maybe<e_unit_type> demoted_type() const;

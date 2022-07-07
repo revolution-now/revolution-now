@@ -20,6 +20,12 @@
 // Config
 #include "config/unit-type.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -376,6 +382,8 @@ TEST_CASE( "[unit-type] UnitType creation" ) {
   // Same types (base);
   REQUIRE(
       f( UT::free_colonist, UT::free_colonist ).has_value() );
+  REQUIRE(
+      f( UT::native_convert, UT::native_convert ).has_value() );
   REQUIRE( f( UT::free_colonist, UT::free_colonist )->type() ==
            UT::free_colonist );
   REQUIRE(
@@ -393,6 +401,10 @@ TEST_CASE( "[unit-type] UnitType creation" ) {
   // Invalid.
   REQUIRE(
       !f( UT::petty_criminal, UT::free_colonist ).has_value() );
+  REQUIRE(
+      !f( UT::native_convert, UT::free_colonist ).has_value() );
+  REQUIRE(
+      !f( UT::free_colonist, UT::native_convert ).has_value() );
   REQUIRE( !f( UT::expert_fur_trapper, UT::veteran_dragoon )
                 .has_value() );
   REQUIRE( !f( UT::artillery, UT::free_colonist ).has_value() );
@@ -557,6 +569,8 @@ TEST_CASE( "[unit-type] on_death_demoted_type" ) {
   // No demoting.
   REQUIRE( f( UnitType::create( UT::free_colonist ) ) ==
            nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ) ) ==
+           nothing );
   REQUIRE( f( UnitType::create( UT::indentured_servant ) ) ==
            nothing );
   REQUIRE( f( UnitType::create( UT::expert_sugar_planter ) ) ==
@@ -564,7 +578,6 @@ TEST_CASE( "[unit-type] on_death_demoted_type" ) {
   REQUIRE( f( UnitType::create( UT::damaged_artillery ) ) ==
            nothing );
   REQUIRE( f( UnitType::create( UT::caravel ) ) == nothing );
-  REQUIRE( f( UnitType::create( UT::cavalry ) ) == nothing );
   // Demoting.
   REQUIRE( f( UnitType::create( UT::soldier ) ) ==
            UnitType::create( UT::free_colonist ) );
@@ -583,6 +596,8 @@ TEST_CASE( "[unit-type] on_death_demoted_type" ) {
            UnitType::create( UT::veteran_colonist ) );
   REQUIRE( f( UnitType::create( UT::veteran_dragoon ) ) ==
            UnitType::create( UT::veteran_soldier ) );
+  REQUIRE( f( UnitType::create( UT::cavalry ) ) ==
+           UnitType::create( UT::regular ) );
   REQUIRE( f( UnitType::create( UT::continental_army ) ) ==
            UnitType::create( UT::veteran_colonist ) );
   REQUIRE( f( UnitType::create( UT::continental_cavalry ) ) ==
@@ -596,6 +611,8 @@ TEST_CASE( "[unit-type] on_capture_demoted_type" ) {
   using UT = e_unit_type;
   // No demoting.
   REQUIRE( f( UnitType::create( UT::free_colonist ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ) ) ==
            nothing );
   REQUIRE( f( UnitType::create( UT::indentured_servant ) ) ==
            nothing );
@@ -622,10 +639,14 @@ TEST_CASE( "[unit-type] add_unit_type_modifiers" ) {
   // Empty modifiers.
   REQUIRE( f( UnitType::create( UT::petty_criminal ), {} ) ==
            UnitType::create( UT::petty_criminal ) );
+  REQUIRE( f( UnitType::create( UT::native_convert ), {} ) ==
+           UnitType::create( UT::native_convert ) );
   REQUIRE( f( UnitType::create( UT::dragoon ), {} ) ==
            UnitType::create( UT::dragoon ) );
   // Invalid.
   REQUIRE( f( UnitType::create( UT::veteran_soldier ),
+              { Mod::muskets } ) == nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ),
               { Mod::muskets } ) == nothing );
   REQUIRE( f( UnitType::create( UT::veteran_soldier,
                                 UT::veteran_colonist )
@@ -671,6 +692,8 @@ TEST_CASE( "[unit-type] rm_unit_type_modifiers" ) {
   // Invalid.
   REQUIRE( f( UnitType::create( UT::scout ),
               { Mod::muskets } ) == nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ),
+              { Mod::horses } ) == nothing );
   REQUIRE( f( UnitType::create( UT::veteran_soldier,
                                 UT::veteran_colonist )
                   .value(),
@@ -795,6 +818,18 @@ TEST_CASE( "[unit-type] promoted_unit_type" ) {
     REQUIRE( f( ut, act ) == nothing );
     // damaged_artillery.
     ut  = UnitType::create( UT::damaged_artillery );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // native_convert.
+    ut  = UnitType::create( UT::native_convert );
     act = Act::farming;
     REQUIRE( f( ut, act ) == nothing );
     act = Act::bell_ringing;
@@ -1073,6 +1108,9 @@ TEST_CASE( "[unit-type] cleared_expertise" ) {
     // free_colonist.
     ut = UnitType::create( UT::free_colonist );
     REQUIRE( f( ut ) == nothing );
+    // native_convert.
+    ut = UnitType::create( UT::native_convert );
+    REQUIRE( f( ut ) == nothing );
     // expert_farmer.
     ut       = UnitType::create( UT::expert_farmer );
     expected = UnitType::create( UT::free_colonist );
@@ -1204,6 +1242,10 @@ TEST_CASE( "[unit-type] unit human status" ) {
   UnitType ut;
 
   ut       = UnitType::create( e_unit_type::free_colonist );
+  expected = true;
+  REQUIRE( is_unit_human( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::native_convert );
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 

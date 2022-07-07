@@ -40,6 +40,9 @@ namespace rn::ui {
 // NOTE: Don't put anymore views in here that are specific to
 // game logic.
 
+TextMarkupInfo const& default_text_markup_info();
+TextReflowInfo const& default_text_reflow_info();
+
 /****************************************************************
 ** Fundamental Views
 *****************************************************************/
@@ -81,11 +84,10 @@ class CompositeView : public View {
   virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView      at( int idx );
 
-  // This has to be implemented if the view holds any state that
-  // must be recomputed if the child views are changed in either
-  // number of geometry. For example, this may be called if the
-  // child views change size.
-  virtual void notify_children_updated() = 0;
+  // This should be called to notify all of the child views that
+  // one of their children may have been updated and that they
+  // should recompute their state.
+  void children_updated();
 
   struct iter {
     CompositeView* cview;
@@ -109,6 +111,18 @@ class CompositeView : public View {
   citer begin() const { return citer{ this, 0 }; }
   citer end() const { return citer{ this, count() }; }
 
+ protected:
+  // This has to be implemented if the view holds any state that
+  // must be recomputed if the child views are changed in either
+  // number of geometry. For example, this may be called if the
+  // child views change size.
+  //
+  // Note that this is protected because it should not be called
+  // by client code; instead, if a child in a view hierarchy has
+  // been changed, just all the children_updated method once at
+  // the end and it should recursively update everything.
+  virtual void notify_children_updated() = 0;
+
  private:
   bool dispatch_mouse_event( input::event_t const& event );
 };
@@ -131,7 +145,6 @@ class CompositeSingleView : public CompositeView {
   void set_view( std::unique_ptr<View> view, Coord coord ) {
     view_  = std::move( view );
     coord_ = coord;
-    notify_children_updated();
   }
 
  private:
@@ -565,6 +578,8 @@ class OptionSelectItemView : public CompositeView {
   std::unique_ptr<View> foreground_inactive_;
 };
 
+// TODO: reimplement this by inheriting from the VerticalAr-
+// rayView.
 class OptionSelectView : public VectorView {
  public:
   OptionSelectView( std::vector<std::string> const& options,

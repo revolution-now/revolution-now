@@ -652,6 +652,8 @@ wait<> TravelHandler::perform() {
   // should always be ok at this point if we're moving it.
   auto old_coord = coord_for_unit_indirect_or_die( id );
 
+  maybe<UnitDeleted> unit_deleted;
+
   switch( verdict ) {
     case e_travel_verdict::cancelled:
     case e_travel_verdict::map_edge:
@@ -671,10 +673,11 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      co_await unit_to_map_square(
+      unit_deleted = co_await unit_to_map_square(
           ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
           ts_.map_updater, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
+      if( unit_deleted.has_value() ) break;
       unit.consume_mv_points( mv_points_to_subtract_ );
       break;
     }
@@ -691,16 +694,18 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      co_await unit_to_map_square(
+      unit_deleted = co_await unit_to_map_square(
           ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
           ts_.map_updater, id, move_dst );
+      if( unit_deleted.has_value() ) break;
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      co_await unit_to_map_square(
+      unit_deleted = co_await unit_to_map_square(
           ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
           ts_.map_updater, id, move_dst );
+      CHECK( !unit_deleted.has_value() );
       // When a ship moves into port it forfeights its movement
       // points.
       unit.forfeight_mv_points();
@@ -764,6 +769,10 @@ wait<> TravelHandler::perform() {
       break;
     }
   }
+
+  // !! NOTE: unit could be gone here.
+
+  if( unit_deleted.has_value() ) co_return;
 
   // Now do a sanity check for units that are on the map. The
   // vast majority of the time they are on the map. An example of
@@ -1168,9 +1177,12 @@ wait<> AttackHandler::perform() {
       change_colony_nation( ss_.colonies.colony_for( colony_id ),
                             ss_.units, attacker.nation() );
       // 2. The attacker moves into the colony square.
-      co_await unit_to_map_square(
-          ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
-          ts_.map_updater, attacker.id(), attack_dst );
+      maybe<UnitDeleted> unit_deleted =
+          co_await unit_to_map_square(
+              ss_.units, ss_.terrain, player_, ss_.settings,
+              ts_.gui, ts_.map_updater, attacker.id(),
+              attack_dst );
+      CHECK( !unit_deleted.has_value() );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
       // TODO: what if there are trade routes that involve this
@@ -1188,10 +1200,12 @@ wait<> AttackHandler::perform() {
 
   auto capture_unit = [&]() -> wait<> {
     loser.change_nation( winner.nation() );
-    co_await unit_to_map_square(
-        ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
-        ts_.map_updater, loser.id(),
-        coord_for_unit_indirect_or_die( winner.id() ) );
+    maybe<UnitDeleted> unit_deleted =
+        co_await unit_to_map_square(
+            ss_.units, ss_.terrain, player_, ss_.settings,
+            ts_.gui, ts_.map_updater, loser.id(),
+            coord_for_unit_indirect_or_die( winner.id() ) );
+    CHECK( !unit_deleted.has_value() );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
     loser.forfeight_mv_points();

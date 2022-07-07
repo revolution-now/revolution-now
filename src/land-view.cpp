@@ -38,7 +38,7 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
-// gs
+// ss
 #include "ss/land-view.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
@@ -154,8 +154,9 @@ void render_backdrop( rr::Renderer& renderer ) {
   int const    kNumLayers = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                             shift );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        gfx::to_double( gfx::size( shift ) ) );
     rr::Painter painter = renderer.painter();
     for( Coord coord : tiled_rect.to_grid_noalign( tile_size ) )
       render_sprite( painter, Rect::from( coord, tile_size ),
@@ -169,6 +170,8 @@ void render_backdrop( rr::Renderer& renderer ) {
 struct LandViewPlane::Impl : public Plane {
   WindowPlane&        window_plane_;
   LandViewState&      land_view_state_;
+  ColoniesState&      colonies_state_;
+  UnitsState const&   units_state_;
   TerrainState const& terrain_state_;
   IMapUpdater&        map_updater_;
   IGui&               gui_;
@@ -223,10 +226,14 @@ struct LandViewPlane::Impl : public Plane {
 
   Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
         LandViewState&      land_view_state,
+        ColoniesState&      colonies_state,
+        UnitsState const&   units_state,
         TerrainState const& terrain_state,
         IMapUpdater& map_updater, IGui& gui )
     : window_plane_( window_plane ),
       land_view_state_( land_view_state ),
+      colonies_state_( colonies_state ),
+      units_state_( units_state ),
       terrain_state_( terrain_state ),
       map_updater_( map_updater ),
       gui_( gui ) {
@@ -659,6 +666,33 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
+  vector<pair<Coord, UnitId>> units_to_render(
+      Rect covered ) const {
+    // This is for efficiency. When we are sufficiently zoomed
+    // out then it is more efficient to iterate over units then
+    // covered tiles, whereas the reverse is true when zoomed in.
+    unordered_map<UnitId, UnitState> const& all =
+        units_state_.all();
+    int const                   num_units = all.size();
+    int const                   num_tiles = covered.area();
+    vector<pair<Coord, UnitId>> res;
+    res.reserve( num_units );
+    if( num_tiles > num_units ) {
+      // Iterate over units.
+      for( auto const& [id, state] : all )
+        if( maybe<Coord> coord =
+                coord_for_unit_indirect( units_state_, id );
+            coord.has_value() && coord->is_inside( covered ) )
+          res.emplace_back( *coord, id );
+    } else {
+      // Iterate over covered tiles.
+      for( Coord tile : covered )
+        for( UnitId id : units_state_.from_coord( tile ) )
+          res.emplace_back( tile, id );
+    }
+    return res;
+  }
+
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile ) const {
     render_units_on_square( renderer, covered, tile,
@@ -667,7 +701,7 @@ struct LandViewPlane::Impl : public Plane {
 
   void render_units_default( rr::Renderer& renderer,
                              Rect          covered ) const {
-    for( Coord tile : covered ) {
+    for( auto [tile, id] : units_to_render( covered ) ) {
       if( colony_from_coord( tile ).has_value() ) continue;
       render_units_on_square( renderer, covered, tile );
     }
@@ -678,7 +712,7 @@ struct LandViewPlane::Impl : public Plane {
     UnitId blinker_id = id;
     Coord  blink_coord =
         coord_for_unit_indirect_or_die( blinker_id );
-    for( auto coord : covered ) {
+    for( auto [coord, unit_id] : units_to_render( covered ) ) {
       if( coord == blink_coord ) continue;
       if( colony_from_coord( coord ).has_value() ) continue;
       render_units_on_square( renderer, covered, coord );
@@ -703,7 +737,8 @@ struct LandViewPlane::Impl : public Plane {
         target_unit.bind( coord_for_unit_multi_ownership );
     // First render all units other than the sliding unit and
     // other than units on colony squares.
-    for( auto coord : covered ) {
+    for( auto const& p : units_to_render( covered ) ) {
+      Coord const& coord = p.first;
       bool has_colony = colony_from_coord( coord ).has_value();
       if( has_colony && coord != target_unit_coord ) continue;
       auto skip = [&]( UnitId id ) {
@@ -744,7 +779,7 @@ struct LandViewPlane::Impl : public Plane {
         coord_for_unit_multi_ownership_or_die( depixelate_id );
     // First render all units other than units on colony squares
     // and unites on the same tile as the depixelating unit.
-    for( Coord tile : covered ) {
+    for( auto [tile, id] : units_to_render( covered ) ) {
       if( tile == depixelate_tile ) continue;
       if( colony_from_coord( tile ).has_value() ) continue;
       render_units_on_square( renderer, covered, tile );
@@ -778,33 +813,37 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
+  void render_colony( rr::Renderer& renderer,
+                      rr::Painter& painter, Rect covered,
+                      Colony const& colony ) const {
+    Coord tile_coord =
+        render_rect_for_tile( covered, colony.location )
+            .upper_left();
+    Coord colony_sprite_upper_left =
+        tile_coord - Delta{ .w = 6, .h = 6 };
+    rn::render_colony( painter, colony_sprite_upper_left,
+                       colony.id );
+    Coord name_coord =
+        tile_coord + config_land_view.colony_name_offset;
+    render_text_markup(
+        renderer, name_coord, config_land_view.colony_name_font,
+        TextMarkupInfo{
+            .shadowed_text_color   = gfx::pixel::white(),
+            .shadowed_shadow_color = gfx::pixel::black() },
+        fmt::format( "@[S]{}@[]", colony.name ) );
+  }
+
   void render_colonies( rr::Renderer& renderer,
                         Rect          covered ) const {
     rr::Painter painter = renderer.painter();
     // FIXME: since colony icons spill over the usual 32x32 tile
     // we need to render colonies that are beyond the `covered`
     // rect.
-    for( Coord tile : covered ) {
-      maybe<ColonyId> col_id = colony_from_coord( tile );
-      if( !col_id.has_value() ) continue;
-      Colony const& colony = colony_from_id( *col_id );
-
-      Coord tile_coord =
-          render_rect_for_tile( covered, tile ).upper_left();
-      Coord colony_sprite_upper_left =
-          tile_coord - Delta{ .w = 6, .h = 6 };
-      render_colony( painter, colony_sprite_upper_left,
-                     *col_id );
-      Coord name_coord =
-          tile_coord + config_land_view.colony_name_offset;
-      render_text_markup(
-          renderer, name_coord,
-          config_land_view.colony_name_font,
-          TextMarkupInfo{
-              .shadowed_text_color   = gfx::pixel::white(),
-              .shadowed_shadow_color = gfx::pixel::black() },
-          fmt::format( "@[S]{}@[]", colony.name ) );
-    }
+    unordered_map<ColonyId, Colony> const& all =
+        colonies_state_.all();
+    for( auto const& [id, colony] : all )
+      if( colony.location.is_inside( covered ) )
+        render_colony( renderer, painter, covered, colony );
   }
 
   // Units (rendering strategy depends on land view state).
@@ -892,13 +931,21 @@ struct LandViewPlane::Impl : public Plane {
       {
         // This is the shadow behind the land rectangle.
         SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
-        int shadow_offset = lround( 20 * viewport().get_zoom() );
+        double const zoom          = viewport().get_zoom();
+        int          shadow_offset = int( 40 * zoom );
+        gfx::dpoint  corner =
+            viewport().landscape_buffer_render_upper_left();
+        corner.x += shadow_offset;
+        corner.y += shadow_offset;
+        Rect const shadow_rect{
+            .x = int( corner.x ),
+            .y = int( corner.y ),
+            .w = int( viewport().world_size_pixels().w * zoom ),
+            .h = int( viewport().world_size_pixels().h * zoom ),
+        };
         rr::Painter painter = renderer.painter();
         painter.draw_solid_rect(
-            viewport().rendering_dest_rect().shifted_by(
-                Delta{ .w = W{ shadow_offset },
-                       .h = H{ shadow_offset } } ),
-            gfx::pixel::black().with_alpha( 100 ) );
+            shadow_rect, gfx::pixel::black().with_alpha( 100 ) );
       }
 
       renderer.render_buffer(
@@ -906,12 +953,11 @@ struct LandViewPlane::Impl : public Plane {
     }
 
     // Now the actual land.
-    double zoom = viewport().get_zoom();
-    renderer.set_camera(
-        viewport()
-            .landscape_buffer_render_upper_left()
-            .distance_from_origin(),
-        zoom );
+    double const      zoom = viewport().get_zoom();
+    gfx::dpoint const translation =
+        viewport().landscape_buffer_render_upper_left();
+    renderer.set_camera( translation.distance_from_origin(),
+                         zoom );
     // Should do this after setting the camera.
     renderer.render_buffer(
         rr::e_render_target_buffer::landscape );
@@ -922,29 +968,25 @@ struct LandViewPlane::Impl : public Plane {
     if( landview_mode_.holds<LandViewMode::hidden_terrain>() )
       return;
 
-    Rect const covered = viewport().covered_tiles();
-    double     zoom    = viewport().get_zoom();
-    Coord corner = viewport().rendering_dest_rect().upper_left();
-    Delta hidden =
-        viewport().covered_pixels().upper_left() % g_tile_delta;
-    if( hidden != Delta{} ) {
-      DCHECK( hidden.w >= 0 );
-      DCHECK( hidden.h >= 0 );
-      // Move the rendering start slightly off screen (in the
-      // upper-left direction) by an amount that is within the
-      // span of one tile to partially show that tile row/column.
-      corner -= hidden.multiply_and_round( zoom );
-    }
+    // Move the rendering start slightly off screen (in the
+    // upper-left direction) by an amount that is within the span
+    // of one tile to partially show that tile row/column.
+    gfx::dpoint const corner =
+        viewport().rendering_dest_rect().origin -
+        viewport().covered_pixels().origin.fmod( 32.0 ) *
+            viewport().get_zoom();
 
     // The below render_* functions will always render at normal
     // scale and starting at 0,0 on the screen, and then the ren-
     // derer mods that we've install above will automatically do
     // the shifting and scaling.
-    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, zoom );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             viewport().get_zoom() );
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                              corner.distance_from_origin() );
-    render_colonies( renderer, covered );
-    render_units( renderer, covered );
+    Rect const covered_tiles = viewport().covered_tiles();
+    render_colonies( renderer, covered_tiles );
+    render_units( renderer, covered_tiles );
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -957,8 +999,8 @@ struct LandViewPlane::Impl : public Plane {
     // zooming in/out with the menus.
     double constexpr zoom_in_factor  = 2.0;
     double constexpr zoom_out_factor = 1.0 / zoom_in_factor;
-    // This is so that a zoom-in followed by a zoom-out will
-    // re- store to previous state.
+    // This is so that a zoom-in followed by a zoom-out will re-
+    // store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
       case e_menu_item::zoom_in: {
@@ -1197,8 +1239,8 @@ struct LandViewPlane::Impl : public Plane {
       }
       case input::e_input_event::mouse_wheel_event: {
         auto& val = event.get<input::mouse_wheel_event_t>();
-        // If the mouse is in the viewport and its a wheel
-        // event then we are in business.
+        // If the mouse is in the viewport and its a wheel event
+        // then we are in business.
         UNWRAP_CHECK( viewport_rect_pixels,
                       compositor::section(
                           compositor::e_section::viewport ) );
@@ -1209,8 +1251,8 @@ struct LandViewPlane::Impl : public Plane {
           if( val.wheel_delta > 0 )
             viewport().set_zoom_push( e_push_direction::positive,
                                       val.pos );
-          // A user zoom request halts any auto zooming that
-          // may currently be happening.
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
           viewport().stop_auto_zoom();
           viewport().stop_auto_panning();
           handled = e_input_handled::yes;
@@ -1332,11 +1374,11 @@ struct LandViewPlane::Impl : public Plane {
     // When we start on a new unit clear the input queue so that
     // commands that were accidentally buffered while controlling
     // the previous unit don't affect this new one, which would
-    // al- most certainly not be desirable. Also, we only pan to
+    // almost certainly not be desirable. Also, we only pan to
     // the unit here because if we did that outside of this if
-    // state- ment then the viewport would pan to the blinking
-    // unit after the player e.g. clicks on another unit to
-    // activate it.
+    // statement then the viewport would pan to the blinking unit
+    // after the player e.g. clicks on another unit to activate
+    // it.
     if( last_unit_input_ != id )
       g_needs_scroll_to_unit_on_input = true;
 
@@ -1374,7 +1416,7 @@ struct LandViewPlane::Impl : public Plane {
     co_await landview_ensure_visible( src );
     // The destination square may not exist if it is a ship
     // sailing the high seas by moving off of the map edge (which
-    // the orig- inal game allows).
+    // the original game allows).
     if( terrain_state.square_exists( dst ) )
       co_await landview_ensure_visible( dst );
     SCOPED_SET_AND_RESTORE(
@@ -1410,9 +1452,9 @@ struct LandViewPlane::Impl : public Plane {
         attacker_wins ? defender : attacker, dp_anim );
   }
 
-  // FIXME: Would be nice to make this animation a bit more
-  // sophis- ticated, but we first need to fix the animation
-  // framework in this module to be more flexible.
+  // FIXME: Would be nice to make this animation a bit more so-
+  // phisticated, but we first need to fix the animation frame-
+  // work in this module to be more flexible.
   wait<> landview_animate_colony_capture(
       TerrainState const&  terrain_state,
       SettingsState const& settings, UnitId attacker_id,
@@ -1440,11 +1482,14 @@ LandViewPlane::~LandViewPlane() = default;
 LandViewPlane::LandViewPlane( MenuPlane&     menu_plane,
                               WindowPlane&   window_plane,
                               LandViewState& land_view_state,
+                              ColoniesState& colonies_state,
+                              UnitsState&    units_state,
                               TerrainState const& terrain_state,
                               IMapUpdater&        map_updater,
                               IGui&               gui )
   : impl_( new Impl( menu_plane, window_plane, land_view_state,
-                     terrain_state, map_updater, gui ) ) {}
+                     colonies_state, units_state, terrain_state,
+                     map_updater, gui ) ) {}
 
 wait<> LandViewPlane::landview_ensure_visible(
     Coord const& coord ) {

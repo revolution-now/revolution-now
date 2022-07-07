@@ -27,6 +27,7 @@ namespace {
 
 using namespace std;
 
+using ::Catch::Contains;
 using ::testing::data_dir;
 
 TEST_CASE( "[parse] complex doc" ) {
@@ -282,6 +283,35 @@ TEST_CASE( "[parse] table keys with quotes" ) {
   }
 
   REQUIRE( fmt::to_string( doc ) == expected );
+}
+
+TEST_CASE( "[parse] table with duplicate keys" ) {
+  SECTION( "top-level" ) {
+    static string const input =
+        "one: 1\n"
+        "one: 2";
+
+    auto doc = parse( "fake-file", input );
+    REQUIRE( !doc.has_value() );
+    REQUIRE_THAT(
+        doc.error(),
+        Contains(
+            "fake-file:error:2:4: unexpected character" ) );
+  }
+  SECTION( "nested" ) {
+    static string const input =
+        "one {\n"
+        "  a: b\n"
+        "  a: c\n"
+        "}";
+
+    auto doc = parse( "fake-file", input );
+    REQUIRE( !doc.has_value() );
+    REQUIRE_THAT(
+        doc.error(),
+        Contains(
+            "fake-file:error:3:4: unexpected character" ) );
+  }
 }
 
 } // namespace

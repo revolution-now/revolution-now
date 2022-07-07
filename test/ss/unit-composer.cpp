@@ -1935,6 +1935,19 @@ TEST_CASE(
           .modifier_deltas  = {},
           .commodity_deltas = {},
       },
+      UnitTransformationResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::cavalry,
+                              e_unit_type::regular )
+                              .value(),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::horses,
+                  e_unit_type_modifier_delta::add } },
+          .commodity_deltas = { { e_commodity::horses, -50 } },
+      },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1948,7 +1961,20 @@ TEST_CASE(
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
                           /*type=*/UnitType::create(
-                              e_unit_type::cavalry ),
+                              e_unit_type::regular ),
+                          /*inventory=*/{} )
+                          .value(),
+          .modifier_deltas =
+              { { e_unit_type_modifier::horses,
+                  e_unit_type_modifier_delta::del } },
+          .commodity_deltas = { { e_commodity::horses, 50 } },
+      },
+      UnitTransformationResult{
+          .new_comp = UnitComposition::create(
+                          /*type=*/UnitType::create(
+                              e_unit_type::cavalry,
+                              e_unit_type::regular )
+                              .value(),
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas  = {},

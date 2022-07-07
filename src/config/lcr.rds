@@ -70,6 +70,14 @@ struct.config_lcr_t {
   burial_mounds_treasure_max 'refl::enum_map<e_lcr_explorer_category, int>',
   burial_mounds_treasure_multiple 'int',
 
+  # The range of values of gold that can emerge on a treasure
+  # train when having discovered one of the Seven Cities of Ci-
+  # bola. These are rounded down to the nearest multiple pro-
+  # vided.
+  cibola_treasure_min 'refl::enum_map<e_lcr_explorer_category, int>',
+  cibola_treasure_max 'refl::enum_map<e_lcr_explorer_category, int>',
+  cibola_treasure_multiple 'int',
+
   # If it is determined (by various game logic) that this LCR
   # could potentially contain native burial grounds (which cause
   # them to declare war) then this will be the probability that

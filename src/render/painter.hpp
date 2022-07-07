@@ -54,9 +54,9 @@ struct DepixelateInfo {
 // done around the origin (in screen coords), and then the trans-
 // lation.
 struct RepositionInfo {
-  base::maybe<double>    scale       = {};
-  base::maybe<gfx::size> translation = {};
-  bool                   use_camera  = false;
+  base::maybe<double>     scale       = {};
+  base::maybe<gfx::dsize> translation = {};
+  bool                    use_camera  = false;
 };
 
 struct ColorCyclingInfo {
@@ -113,10 +113,11 @@ struct Painter {
   // and right.
   enum class e_border_mode { inside, outside, in_out };
 
-  // FIXME: this expensive, requires 24 vertices. Probably should
-  // have shader support for these builtin.
+  // FIXME: these are expensive, requires 24 vertices. Probably
+  // should have shader support for these builtin.
   Painter& draw_empty_rect( gfx::rect rect, e_border_mode mode,
                             gfx::pixel color );
+  Painter& draw_empty_rect( gfx::rect rect, gfx::pixel color );
 
   // ......................[[ Sprites ]]...................... //
 

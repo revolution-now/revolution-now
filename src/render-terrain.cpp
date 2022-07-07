@@ -1814,11 +1814,11 @@ void render_terrain_square(
   }
   render_land_overlay( terrain_state, renderer, painter, where,
                        world_square, square, options );
+  render_plow_if_present( painter, where, terrain_state,
+                          world_square );
   if( !square.lost_city_rumor && options.render_resources )
     render_resources( renderer, painter, terrain_state, where,
                       square, world_square );
-  render_plow_if_present( painter, where, terrain_state,
-                          world_square );
   render_road_if_present( painter, where, terrain_state,
                           world_square );
   if( options.render_lcrs )

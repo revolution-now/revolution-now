@@ -12,6 +12,9 @@
 include "ss/colony-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
 
+# gfx
+include "gfx/pixel.hpp"
+
 # refl
 include "refl/enum-map.hpp"
 
@@ -52,6 +55,11 @@ struct.Warehouses {
 
 struct.config_colony_outdoors {
   job_names 'refl::enum_map<e_outdoor_job, std::string>',
+
+  # In addition to a black shadow behind the unit (to the left),
+  # we render a one-pixel "glow" on the right side of the unit
+  # for ease of discerning the unit over the background terrain.
+  unit_glow_color 'gfx::pixel',
 }
 
 # How many of each are needed for a given construction project.

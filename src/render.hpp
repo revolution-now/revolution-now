@@ -38,8 +38,11 @@ struct UnitShadow {
 ** UnitRenderingOptions
 *****************************************************************/
 struct UnitRenderOptions {
-  bool              flag   = false;
-  maybe<UnitShadow> shadow = {};
+  bool              flag          = false;
+  maybe<UnitShadow> shadow        = {};
+  bool              outline_right = false;
+  // This is only relevant if outlining is enabled.
+  gfx::pixel outline_color = gfx::pixel::black();
 };
 
 /****************************************************************

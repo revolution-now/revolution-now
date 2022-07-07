@@ -174,6 +174,10 @@ Painter& Painter::draw_empty_rect( rect r, e_border_mode mode,
   return *this;
 }
 
+Painter& Painter::draw_empty_rect( rect r, pixel color ) {
+  return draw_empty_rect( r, e_border_mode::in_out, color );
+}
+
 Painter& Painter::draw_solid_rect( rect r, pixel color ) {
   emit_solid_quad( r, [&, this]( point p ) {
     emit( SolidVertex( p, color ) );

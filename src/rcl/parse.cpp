@@ -391,6 +391,7 @@ bool parse_key_val( table* out ) {
   eat_blanks();
   string_view key;
   if( !parse_key( &key ) ) return false;
+  if( out->contains( string( key ) ) ) return false;
   if( !parse_assignment() ) return false;
   value v;
   if( !parse_value( &v ) ) return false;

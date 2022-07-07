@@ -132,8 +132,11 @@ struct PanelPlane::Impl : public Plane {
                  player.old_world.taxes.tax_rate );
 
     typer.newline();
-
     typer.write( "Crosses: {}\n", player.crosses );
+
+    typer.newline();
+    typer.write( "Zoom: {:.4}\n",
+                 GameState::land_view().viewport.get_zoom() );
   }
 
   void draw( rr::Renderer& renderer ) const override {

@@ -44,6 +44,29 @@ struct size {
 };
 
 /****************************************************************
+** dsize
+*****************************************************************/
+// Same as above (see comments) but with doubles.
+struct dsize {
+  double w = 0.0;
+  double h = 0.0;
+
+  bool negative() const { return w < 0 || h < 0; };
+
+  size truncate() const {
+    return size{ .w = int( w ), .h = int( h ) };
+  }
+
+  void operator+=( dsize term );
+
+  dsize operator*( double factor ) const;
+
+  bool operator==( dsize const& ) const = default;
+};
+
+dsize to_double( size s );
+
+/****************************************************************
 ** point
 *****************************************************************/
 // Note: this type should be passed by value for efficiency.
@@ -61,6 +84,35 @@ struct point {
 
   point moved_left( int by = 1 ) const;
 };
+
+/****************************************************************
+** dpoint
+*****************************************************************/
+// Same as above (see comments) but with doubles.
+struct dpoint {
+  double x = 0.0;
+  double y = 0.0;
+
+  dsize distance_from_origin() const {
+    return dsize{ .w = x, .h = y };
+  }
+
+  point truncate() const {
+    return point{ .x = int( x ), .y = int( y ) };
+  }
+
+  dsize fmod( double d ) const;
+
+  void operator-=( dsize s );
+
+  dpoint operator-() const { return dpoint{ .x = -x, .y = -y }; }
+
+  dpoint operator*( double factor ) const;
+
+  bool operator==( dpoint const& ) const = default;
+};
+
+dpoint operator-( dpoint p, dsize s );
 
 /****************************************************************
 ** rect
@@ -117,16 +169,59 @@ struct rect {
 };
 
 /****************************************************************
+** drect
+*****************************************************************/
+// Same as above (see comments) but with doubles.
+struct drect {
+  dpoint origin = {}; // upper left when normalized.
+  dsize  size   = {};
+
+  // Will clip off any parts of this rect that fall outside of
+  // `other`. If the entire rect falls outside of `other` then it
+  // will return nothing. If the borders are just touching then
+  // it will return a rect with zero area by whose length covers
+  // that portion of overlapped border (i.e., it will be a
+  // "line").
+  [[nodiscard]] base::maybe<drect> clipped_by(
+      drect const other ) const;
+
+  drect normalized() const;
+
+  dpoint nw() const;
+  dpoint ne() const;
+  dpoint se() const;
+  dpoint sw() const;
+
+  double top() const;
+  double bottom() const;
+  double right() const;
+  double left() const;
+
+  bool operator==( drect const& ) const = default;
+};
+
+drect to_double( rect r );
+
+/****************************************************************
+** Free Functions
+*****************************************************************/
+dpoint centered_in( dsize s, drect r );
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s );
 point operator+( size const s, point const p );
 
+dpoint operator+( dpoint const p, dsize const s );
+dpoint operator+( dsize const s, dpoint const p );
+
 size operator+( size const s1, size const s2 );
 
 void operator+=( point& p, size const s );
 
-size operator-( point const p1, point const p2 );
+size  operator-( point const p1, point const p2 );
+dsize operator-( dpoint const p1, dpoint const p2 );
 
 point operator*( point const p, size const s );
 
@@ -156,6 +251,25 @@ struct traits<gfx::size> {
   };
 };
 
+// Reflection info for struct dsize.
+template<>
+struct traits<gfx::dsize> {
+  using type = gfx::dsize;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "dsize";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "w", &gfx::dsize::w,
+                         offsetof( type, w ) },
+      refl::StructField{ "h", &gfx::dsize::h,
+                         offsetof( type, h ) },
+  };
+};
+
 // Reflection info for struct point.
 template<>
 struct traits<gfx::point> {
@@ -175,6 +289,25 @@ struct traits<gfx::point> {
   };
 };
 
+// Reflection info for struct dpoint.
+template<>
+struct traits<gfx::dpoint> {
+  using type = gfx::dpoint;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "dpoint";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gfx::dpoint::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gfx::dpoint::y,
+                         offsetof( type, y ) },
+  };
+};
+
 // Reflection info for struct rect.
 template<>
 struct traits<gfx::rect> {
@@ -190,6 +323,24 @@ struct traits<gfx::rect> {
       refl::StructField{ "origin", &gfx::rect::origin,
                          offsetof( type, origin ) },
       refl::StructField{ "size", &gfx::rect::size,
+                         offsetof( type, size ) } };
+};
+
+// Reflection info for struct drect.
+template<>
+struct traits<gfx::drect> {
+  using type = gfx::drect;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "drect";
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "origin", &gfx::drect::origin,
+                         offsetof( type, origin ) },
+      refl::StructField{ "size", &gfx::drect::size,
                          offsetof( type, size ) } };
 };
 

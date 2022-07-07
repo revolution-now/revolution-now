@@ -488,9 +488,10 @@ void Renderer::set_color_cycle_stage( int stage ) {
   impl_->program["u_color_cycle_stage"_t] = stage;
 }
 
-void Renderer::set_camera( gfx::size translation, double zoom ) {
+void Renderer::set_camera( gfx::dsize translation,
+                           double     zoom ) {
   impl_->program["u_camera_translation"_t] =
-      gl::vec2::from_size( translation );
+      gl::vec2::from_dsize( translation );
   impl_->program["u_camera_zoom"_t] = zoom;
 }
 

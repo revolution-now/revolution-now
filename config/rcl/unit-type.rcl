@@ -168,6 +168,33 @@ composition {
       }
     }
 
+    native_convert {
+      type:                  native_convert
+      name:                  Native Convert
+      tile:                  native_convert
+      expertise:             null
+      type_activity:         null
+      cleared_expertise:     null
+      ship:                  false
+      human:                 yes
+      nat_icon_front:        false
+      nat_icon_position:     sw
+      visibility:            1
+      movement_points:       1
+      attack_points:         0
+      defense_points:        1
+      on_death               capture{}
+      road_turns:            null
+      plow_turns:            null
+      canonical_base:        null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      inventory_types:       []
+      promotion:             null
+      is_derived:            false
+      modifiers:             {}
+    }
+
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     # Non-expert modified colonists.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -1174,7 +1201,9 @@ composition {
       inventory_types:       []
       promotion:             null
       is_derived:            false
-      modifiers:             {}
+      modifiers {
+        cavalry: [horses]
+      }
     }
 
     cavalry {
@@ -1185,22 +1214,22 @@ composition {
       type_activity:         fighting
       cleared_expertise:     null
       ship:                  false
-      human:                 yes
+      human:                 from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
       movement_points:       4
       attack_points:         6
       defense_points:        6
-      on_death               destroy{}
+      on_death               demote{ lose=[horses] }
       road_turns:            null
       plow_turns:            null
-      canonical_base:        null
+      canonical_base:        regular
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
       promotion:             null
-      is_derived:            false
+      is_derived:            true
       modifiers:             {}
     }
 
@@ -1300,7 +1329,7 @@ composition {
       ship:                  false
       human:                 no
       nat_icon_front:        false
-      nat_icon_position:     n
+      nat_icon_position:     w
       visibility:            1
       movement_points:       1
       attack_points:         5
@@ -1329,7 +1358,7 @@ composition {
       ship:                  false
       human:                 from_base
       nat_icon_front:        false
-      nat_icon_position:     n
+      nat_icon_position:     w
       visibility:            1
       movement_points:       1
       attack_points:         7
@@ -1413,7 +1442,7 @@ composition {
       ship:                  true
       human:                 no
       nat_icon_front:        false
-      nat_icon_position:     nw
+      nat_icon_position:     ne
       visibility:            1
       movement_points:       6
       attack_points:         0

@@ -107,6 +107,13 @@ vec2 vec2::from_size( gfx::size s ) {
   };
 }
 
+vec2 vec2::from_dsize( gfx::dsize ds ) {
+  return vec2{
+      .x = static_cast<float>( ds.w ),
+      .y = static_cast<float>( ds.h ),
+  };
+}
+
 /****************************************************************
 ** color
 *****************************************************************/

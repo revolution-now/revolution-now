@@ -41,10 +41,23 @@ namespace {
 // farming.
 int production_for_indoor_job( e_indoor_job job,
                                e_unit_type  type ) {
+  if( job == e_indoor_job::bells ) {
+    // Bells seems to be an exception to the rule for indoor pro-
+    // duction, so we need a special case for it. In particular,
+    // it seems that a free colonist produces 5 bells, indentured
+    // servant 3, and petty criminal/convert produces 2.
+    TODO(
+        "Need to make this mechanism more general so that we "
+        "can specify production for each indoor job "
+        "individually." );
+  }
   switch( type ) {
     case e_unit_type::petty_criminal:
       return config_production.indoor_production
           .petty_criminal_base_production;
+    case e_unit_type::native_convert:
+      return config_production.indoor_production
+          .native_convert_base_production;
     case e_unit_type::indentured_servant:
       return config_production.indoor_production
           .indentured_servant_base_production;
@@ -61,8 +74,10 @@ int production_for_indoor_job( e_indoor_job job,
         .non_expert_base_production;
   };
   switch( job ) {
-    case e_indoor_job::bells:
-      return switch_expert( e_unit_type::elder_statesman );
+    case e_indoor_job::bells: {
+      // See above.
+      SHOULD_NOT_BE_HERE;
+    }
     case e_indoor_job::crosses:
       return switch_expert( e_unit_type::firebrand_preacher );
     case e_indoor_job::hammers:

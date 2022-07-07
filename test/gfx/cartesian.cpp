@@ -24,7 +24,10 @@ namespace {
 
 using namespace std;
 
+using namespace Catch::literals;
+
 using ::base::nothing;
+using ::Catch::Approx;
 
 /****************************************************************
 ** size
@@ -51,12 +54,38 @@ TEST_CASE( "[gfx/cartesian] operator+( size, size )" ) {
   REQUIRE( s1 + s2 == size{ .w = 8, .h = 5 } );
 }
 
-TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
+TEST_CASE( "[gfx/cartesian] size::operator+=( size )" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 4, .h = 3 };
   s1 += s2;
   REQUIRE( s1 == size{ .w = 8, .h = 5 } );
   REQUIRE( s2 == size{ .w = 4, .h = 3 } );
+}
+
+/****************************************************************
+** dsize
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] dsize::operator+=( size )" ) {
+  dsize s1{ .w = 4.3, .h = 2.1 };
+  dsize s2{ .w = 4, .h = 3 };
+  s1 += s2;
+  REQUIRE( s1 == dsize{ .w = 8.3, .h = 5.1 } );
+  REQUIRE( s2 == dsize{ .w = 4, .h = 3 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dsize::truncate" ) {
+  dsize s{ .w = 4.3, .h = 2.1 };
+  REQUIRE( s.truncate() == size{ .w = 4, .h = 2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
+  size s{ .w = 4, .h = 2 };
+  REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dsize::operator*( double )" ) {
+  dsize s{ .w = 4, .h = 2 };
+  REQUIRE( s * 10 == dsize{ .w = 40, .h = 20 } );
 }
 
 /****************************************************************
@@ -71,6 +100,31 @@ TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
   REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+}
+
+/****************************************************************
+** dpoint
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  REQUIRE( p.truncate() == point{ .x = 4, .y = 2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  // _a is a literal from Catch2 that means "approximately".
+  REQUIRE( p.fmod( 2.1 ).w == .2_a );
+  REQUIRE( p.fmod( 2.1 ).h == .3_a );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  dsize  s{ .w = 5.2, .h = 1.5 };
+  p -= s;
+  REQUIRE( p.x == -.8_a );
+  REQUIRE( p.y == .9_a );
+  REQUIRE( ( p - s ).x == -6.0_a );
+  REQUIRE( ( p - s ).y == -.6_a );
 }
 
 /****************************************************************
@@ -96,10 +150,24 @@ TEST_CASE( "[gfx/cartesian] point - point" ) {
   REQUIRE( p1 - p2 == size{ .w = 2, .h = -2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] dpoint - dpoint" ) {
+  dpoint p1{ .x = 4.1, .y = 2 };
+  dpoint p2{ .x = 2, .y = 4 };
+  REQUIRE( ( p1 - p2 ).w == 2.1_a );
+  REQUIRE( ( p1 - p2 ).h == -2.0_a );
+}
+
 TEST_CASE( "[gfx/cartesian] point*size" ) {
   point p{ .x = 4, .y = 2 };
   size  s{ .w = 2, .h = 8 };
   REQUIRE( p * s == point{ .x = 8, .y = 16 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint + dsize" ) {
+  dpoint p{ .x = 4, .y = 2 };
+  dsize  s{ .w = 2, .h = 8 };
+  REQUIRE( p + s == dpoint{ .x = 6, .y = 10 } );
+  REQUIRE( s + p == dpoint{ .x = 6, .y = 10 } );
 }
 
 /****************************************************************
@@ -452,6 +520,147 @@ TEST_CASE( "[gfx/cartesian] rect::center" ) {
                    .size   = { .w = 10, .h = 11 } };
   expected = point{ .x = 5, .y = 5 };
   REQUIRE( r.center() == expected );
+}
+
+/****************************************************************
+** drect
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] to_double( rect )" ) {
+  rect r{ .origin = { .x = 3, .y = 4 },
+          .size   = { .w = 4, .h = 2 } };
+  REQUIRE( to_double( r ) ==
+           drect{ .origin = { .x = 3.0, .y = 4.0 },
+                  .size   = { .w = 4.0, .h = 2.0 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::normalized()" ) {
+  drect r{ .origin = { .x = 3, .y = 4 },
+           .size   = { .w = -4, .h = -2 } };
+  REQUIRE( r.normalized() ==
+           drect{ .origin = { .x = -1, .y = 2 },
+                  .size   = { .w = 4, .h = 2 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::clipped_by" ) {
+  drect expected, r1, r2;
+
+  r1       = drect{ .origin = { .x = -1, .y = 0 },
+                    .size   = { .w = 3, .h = 3 } };
+  r2       = drect{ .origin = { .x = 1, .y = 1 },
+                    .size   = { .w = 5, .h = 7 } };
+  expected = drect{ .origin = { .x = 1, .y = 1 },
+                    .size   = { .w = 1, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 3 } };
+  r2       = drect{ .origin = { .x = 0, .y = 1 },
+                    .size   = { .w = 5, .h = 7 } };
+  expected = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 3 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = drect{ .origin = { .x = 0, .y = 0 },
+                    .size   = { .w = 2, .h = 2 } };
+  r2       = drect{ .origin = { .x = 1, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  expected = drect{ .origin = { .x = 1, .y = 2 },
+                    .size   = { .w = 1, .h = 0 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  r2       = drect{ .origin = { .x = 2, .y = 0 },
+                    .size   = { .w = 2, .h = 2 } };
+  expected = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 0 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  r2       = drect{ .origin = { .x = 4, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  expected = drect{ .origin = { .x = 4, .y = 2 },
+                    .size   = { .w = 0, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1 = drect{ .origin = { .x = 2, .y = 2 },
+              .size   = { .w = 2, .h = 2 } };
+  r2 = drect{ .origin = { .x = 6, .y = 2 },
+              .size   = { .w = 2, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == nothing );
+
+  r1       = drect{ .origin = { .x = 2, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  r2       = drect{ .origin = { .x = 3, .y = 2 },
+                    .size   = { .w = 2, .h = 2 } };
+  expected = drect{ .origin = { .x = 3, .y = 2 },
+                    .size   = { .w = 1, .h = 2 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1       = drect{ .origin = { .x = 0, .y = 0 },
+                    .size   = { .w = 5, .h = 10 } };
+  r2       = drect{ .origin = { .x = 1, .y = 1 },
+                    .size   = { .w = 1, .h = 1 } };
+  expected = drect{ .origin = { .x = 1, .y = 1 },
+                    .size   = { .w = 1, .h = 1 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+
+  r1 = drect{ .origin = { .x = -16.72272810753941,
+                          .y = 459.980374966315 },
+              .size   = { .w = 1825.4454562150786,
+                          .h = 1186.539546539801 } };
+  r2 = drect{ .origin = { .x = 0, .y = 0 },
+              .size   = { .w = 1792, .h = 2240 } };
+  expected =
+      drect{ .origin = { .x = 0, .y = 459.980374966315 },
+             .size   = { .w = 1792, .h = 1186.539546539801 } };
+  REQUIRE( r1.clipped_by( r2 ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::nw, rect::se, etc." ) {
+  drect r;
+
+  REQUIRE( r.nw() == dpoint{} );
+  REQUIRE( r.ne() == dpoint{} );
+  REQUIRE( r.se() == dpoint{} );
+  REQUIRE( r.sw() == dpoint{} );
+  REQUIRE( r.top() == 0 );
+  REQUIRE( r.bottom() == 0 );
+  REQUIRE( r.right() == 0 );
+  REQUIRE( r.left() == 0 );
+
+  r = drect{ .origin = { .x = 3, .y = 4 },
+             .size   = { .w = 1, .h = 3 } };
+  REQUIRE( r.nw() == dpoint{ .x = 3, .y = 4 } );
+  REQUIRE( r.ne() == dpoint{ .x = 4, .y = 4 } );
+  REQUIRE( r.se() == dpoint{ .x = 4, .y = 7 } );
+  REQUIRE( r.sw() == dpoint{ .x = 3, .y = 7 } );
+  REQUIRE( r.top() == 4 );
+  REQUIRE( r.bottom() == 7 );
+  REQUIRE( r.right() == 4 );
+  REQUIRE( r.left() == 3 );
+}
+
+/****************************************************************
+** Free Functions
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] centered*" ) {
+  drect  rect;
+  dsize  delta;
+  dpoint expect;
+
+  rect   = drect{ .origin = { .x = 1, .y = 1 },
+                  .size   = { .w = 0, .h = 0 } };
+  delta  = dsize{ .w = 4, .h = 3 };
+  expect = dpoint{ .x = -1, .y = -.5 };
+  REQUIRE( centered_in( delta, rect ) == expect );
+
+  rect   = drect{ .origin = { .x = 1, .y = 2 },
+                  .size   = { .w = 5, .h = 6 } };
+  delta  = dsize{ .w = 3, .h = 4 };
+  expect = dpoint{ .x = 2, .y = 3 };
+  REQUIRE( centered_in( delta, rect ) == expect );
 }
 
 } // namespace
