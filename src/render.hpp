@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "colony-id.hpp"
 #include "orders.hpp"
 #include "unit-id.hpp"
 #include "unit.hpp"
@@ -22,6 +21,8 @@
 #include "render/renderer.hpp"
 
 namespace rn {
+
+struct Colony;
 
 /****************************************************************
 ** UnitShadow
@@ -49,7 +50,8 @@ struct UnitRenderOptions {
 ** Public API
 *****************************************************************/
 // Render an actual unit.
-void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
+void render_unit( rr::Renderer& renderer, Coord where,
+                  Unit const&              unit,
                   UnitRenderOptions const& options = {} );
 
 // Render an abstract unit of a given type.
@@ -58,16 +60,16 @@ void render_unit_type( rr::Painter& painter, Coord where,
                        UnitRenderOptions const& options = {} );
 
 void render_unit_depixelate(
-    rr::Renderer& renderer, Coord where, UnitId id, double stage,
-    UnitRenderOptions const& options = {} );
+    rr::Renderer& renderer, Coord where, Unit const& unit,
+    double stage, UnitRenderOptions const& options = {} );
 
 void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, UnitId id,
+                                Coord where, Unit const& unit,
                                 e_unit_type target, double stage,
                                 UnitRenderOptions options = {} );
 
 void render_colony( rr::Painter& painter, Coord where,
-                    ColonyId id );
+                    Colony const& colony );
 
 // Note that the coordinate provided here is the coordinate of
 // the unit whose flag is being drawn, not the flag position it-
@@ -81,6 +83,6 @@ void render_nationality_icon( rr::Renderer& renderer,
 // the unit whose flag is being drawn, not the flag position it-
 // self (which could be shifted to another corner).
 void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, UnitId id );
+                              Coord where, Unit const& unit );
 
 } // namespace rn

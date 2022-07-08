@@ -29,6 +29,7 @@ struct TerrainRenderOptions {
   bool render_forests   = true;
   bool render_resources = true;
   bool render_lcrs      = true;
+  bool grid             = false;
 };
 
 /****************************************************************

@@ -19,6 +19,9 @@
 #include "unit.hpp"
 #include "wait.hpp"
 
+// ss
+#include "ss/ref.hpp"
+
 // base
 #include "base/function-ref.hpp"
 
@@ -76,50 +79,40 @@ bool try_promote_unit_for_current_activity(
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-// Function for mapping between units and coordinates on the map.
-// These will only give the units that are owned immediately by
-// the map; it will not give units who are cargo of those units.
-// TODO: replace usage of this with UnitsState::from_coord.
-ND std::unordered_set<UnitId> const& units_from_coord(
-    Coord const& c );
-
 // This will give all units that are on a square or are cargo of
 // units on that square. This should not recurse more than one
 // level deep (beyond the first) because it is a game rule that a
 // unit cannot be held as cargo if it itself if capable of
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
-std::vector<UnitId> units_from_coord_recursive( Coord coord );
-
-// Returns the map coordinates for the unit if it is on the map
-// (which does NOT include being cargo of a unit on the map; for
-// that, see `coord_for_unit_indirect`).
-// TODO: replace usages of this with UnitsState::maybe_coord_for,
-// or UnitsState::coord_for.
-maybe<Coord> coord_for_unit( UnitId id );
+std::vector<UnitId> units_from_coord_recursive(
+    UnitsState const& units_state, Coord coord );
 
 // These will return the coordinates for a unit if it is owned by
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
-ND Coord coord_for_unit_indirect_or_die( UnitId id );
+ND Coord coord_for_unit_indirect_or_die(
+    UnitsState const& units_state, UnitId id );
 
 ND maybe<Coord> coord_for_unit_indirect(
     UnitsState const& units_state, UnitId id );
 
 // This will return true for a unit if it is owned by the map or
 // if its owner is on the map.
-bool is_unit_on_map_indirect( UnitId id );
+bool is_unit_on_map_indirect( UnitsState const& units_state,
+                              UnitId            id );
 
 // These will return true for a unit if it is directly on the
 // map.
-bool is_unit_on_map( UnitId id );
+bool is_unit_on_map( UnitsState const& units_state, UnitId id );
 
 /****************************************************************
 ** Cargo Ownership
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
-maybe<UnitId> is_unit_onboard( UnitId id );
+maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
+                               UnitId            id );
 
 /****************************************************************
 ** Creation
@@ -157,8 +150,10 @@ UnitId create_unit_on_map_non_interactive(
 // possible to map the unit to a coordinate, e.g., applies to map
 // ownership, cargo ownership (where holder is on map), colony
 // ownership.
-maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
-Coord        coord_for_unit_multi_ownership_or_die( UnitId id );
+maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
+                                             UnitId         id );
+Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
+                                             UnitId         id );
 
 // Create unit with no ownership. Note that the unit will always
 // have id=0, since a unit does not get assigned an ID until it

@@ -17,6 +17,10 @@
 // config
 #include "config/unit-type.rds.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -410,5 +414,23 @@ unordered_set<UnitId> const& UnitsState::from_colony(
                 base::lookup( worker_units_from_colony_, id ) );
   return units;
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::UnitsState;
+
+  auto u = st.usertype.create<U>();
+
+  u["last_unit_id"] = &U::last_unit_id;
+  u["unit_from_id"] = []( U& o, UnitId id ) -> Unit& {
+    return o.unit_for( id );
+  };
+};
+
+} // namespace
 
 } // namespace rn

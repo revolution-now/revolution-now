@@ -17,10 +17,12 @@
 
 namespace rn {
 
+struct Planes;
 struct SS;
 struct TS;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS& ts, UnitId id, orders::road const& road );
+    Planes& planes, SS& ss, TS& ts, UnitId id,
+    orders::road const& road );
 
 } // namespace rn

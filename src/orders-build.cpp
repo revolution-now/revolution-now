@@ -48,12 +48,15 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( SS& ss, TS& ts, UnitId unit_id_ )
-    : ss_( ss ), ts_( ts ), unit_id( unit_id_ ) {}
+  BuildHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_ )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
-    if( auto valid = unit_can_found_colony( SSConst( ss_ ), ts_,
-                                            unit_id );
+    if( auto valid =
+            unit_can_found_colony( SSConst( ss_ ), unit_id );
         !valid ) {
       switch( valid.error() ) {
         case e_found_colony_err::colony_exists_here:
@@ -77,7 +80,7 @@ struct BuildHandler : public OrdersHandler {
               "Only human units can found colonies." );
           co_return false;
         case e_found_colony_err::native_convert_cannot_found:
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "Native converts cannot found new colonies." );
           co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
@@ -114,11 +117,13 @@ struct BuildHandler : public OrdersHandler {
 
   wait<> post() const override {
     co_await show_colony_view(
-        ss_, ts_, ss_.colonies.colony_for( colony_id ) );
+        planes_, ss_, ts_,
+        ss_.colonies.colony_for( colony_id ) );
   }
 
-  SS& ss_;
-  TS& ts_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
 
   UnitId unit_id;
 
@@ -131,10 +136,10 @@ struct BuildHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts,
-                                         UnitId id,
+unique_ptr<OrdersHandler> handle_orders( Planes& planes, SS& ss,
+                                         TS& ts, UnitId id,
                                          orders::build const& ) {
-  return make_unique<BuildHandler>( ss, ts, id );
+  return make_unique<BuildHandler>( planes, ss, ts, id );
 }
 
 } // namespace rn

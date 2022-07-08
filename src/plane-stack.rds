@@ -1,0 +1,29 @@
+# ===============================================================
+# plane-stack.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-07-07.
+#
+# Description: Rds definitions for the plane-stack module.
+#
+# ===============================================================
+namespace "rn"
+
+# These need to be in order from top-most to bottom-most. They
+# don't all have to exist or be active at a time, but whichever
+# ones are active at a given time will still have to be in the
+# specified order. That said, the ordering of two planes that
+# will never be simultaneously visible is not relevant.
+enum.e_plane {
+  omni,
+  console,
+  window,
+  main_menu,
+  menu,
+  panel,
+  map_edit,
+  land_view,
+  colony,
+  harbor,
+}

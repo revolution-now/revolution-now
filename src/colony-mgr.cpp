@@ -25,6 +25,7 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
+#include "plane-stack.hpp"
 #include "rand.hpp"
 #include "road.hpp"
 #include "ts.hpp"
@@ -283,19 +284,6 @@ int colony_population( Colony const& colony ) {
   return size;
 }
 
-vector<UnitId> colony_units_all( Colony const& colony ) {
-  vector<UnitId> res;
-  res.reserve( 40 );
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
-    res.insert( res.end(), colony.indoor_jobs[job].begin(),
-                colony.indoor_jobs[job].end() );
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( maybe<OutdoorUnit> const& job = colony.outdoor_jobs[d];
-        job.has_value() )
-      res.push_back( job->unit_id );
-  return res;
-}
-
 bool colony_has_unit( Colony const& colony, UnitId id ) {
   vector<UnitId> units = colony_units_all( colony );
   return find( units.begin(), units.end(), id ) != units.end();
@@ -309,7 +297,7 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
 }
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    SSConst& ss, UnitId founder ) {
+    SSConst const& ss, UnitId founder ) {
   using Res_t      = e_found_colony_err;
   Unit const& unit = ss.units.unit_for( founder );
 
@@ -404,7 +392,8 @@ void change_colony_nation( Colony&     colony,
   unordered_set<UnitId> units =
       units_at_or_in_colony( colony, units_state );
   for( UnitId unit_id : units )
-    units_state.unit_for( unit_id ).change_nation( new_nation );
+    units_state.unit_for( unit_id ).change_nation( units_state,
+                                                   new_nation );
   CHECK( colony.nation != new_nation );
   colony.nation = new_nation;
 }
@@ -486,8 +475,8 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
         outdoor_jobs[d]->job = new_job;
 }
 
-wait<> evolve_colonies_for_player( SS& ss, TS& ts,
-                                   Player& player ) {
+wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
+                                   TS& ts, Player& player ) {
   e_nation nation = player.nation;
   lg.info( "processing colonies for the {}.", nation );
   queue<ColonyId> colonies;
@@ -504,12 +493,12 @@ wait<> evolve_colonies_for_player( SS& ss, TS& ts,
     ColonyEvolution const& ev = evolutions.back();
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
-    co_await ts.land_view_plane_or_die().landview_ensure_visible(
+    co_await planes.land_view().landview_ensure_visible(
         colony.location );
     bool zoom_to_colony = co_await present_colony_updates(
         ts.gui, colony, ev.notifications );
     if( zoom_to_colony )
-      co_await show_colony_view( ss, ts, colony );
+      co_await show_colony_view( planes, ss, ts, colony );
   }
 
   // Crosses/immigration.

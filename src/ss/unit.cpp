@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "game-state.hpp"
 #include "plow.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
@@ -20,6 +19,9 @@
 // config
 #include "config/nation.hpp"
 #include "config/unit-type.hpp"
+
+// ss
+#include "ss/units.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
@@ -121,11 +123,13 @@ void Unit::fortify() {
   o_.orders = e_unit_orders::fortified;
 }
 
-void Unit::change_nation( e_nation nation ) {
+void Unit::change_nation( UnitsState& units_state,
+                          e_nation    nation ) {
   // This could happen if we capture a colony containing a ship
   // that itself has units in its cargo.
   for( Cargo::unit u : o_.cargo.items_of_type<Cargo::unit>() )
-    unit_from_id( u.id ).change_nation( nation );
+    units_state.unit_for( u.id ).change_nation( units_state,
+                                                nation );
 
   o_.nation = nation;
 }

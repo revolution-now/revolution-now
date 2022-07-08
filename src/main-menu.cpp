@@ -43,16 +43,13 @@ namespace rn {
 struct MainMenuPlane::Impl : public Plane {
   // State
   Planes&                      planes_;
-  WindowPlane&                 window_plane_;
   RealGui                      gui_;
   e_main_menu_item             curr_item_ = {};
   co::stream<e_main_menu_item> selection_stream_;
 
  public:
-  Impl( Planes& planes, WindowPlane& window_plane )
-    : planes_( planes ),
-      window_plane_( window_plane ),
-      gui_( window_plane ) {}
+  Impl( Planes& planes )
+    : planes_( planes ), gui_( planes.window() ) {}
 
   bool covers_screen() const override { return true; }
 
@@ -152,9 +149,8 @@ Plane& MainMenuPlane::impl() { return *impl_; }
 
 MainMenuPlane::~MainMenuPlane() = default;
 
-MainMenuPlane::MainMenuPlane( Planes&      planes,
-                              WindowPlane& window_plane )
-  : impl_( new Impl( planes, window_plane ) ) {}
+MainMenuPlane::MainMenuPlane( Planes& planes )
+  : impl_( new Impl( planes ) ) {}
 
 wait<> MainMenuPlane::run() {
   conductor::play_request(
@@ -181,11 +177,11 @@ wait<> MainMenuPlane::run() {
 *****************************************************************/
 wait<> run_main_menu( Planes& planes ) {
   WindowPlane   window_plane;
-  MainMenuPlane main_menu_plane( planes, window_plane );
-  auto          popper = planes.new_group();
-  PlaneGroup&   group  = planes.back();
-  group.push( main_menu_plane );
-  group.push( window_plane );
+  MainMenuPlane main_menu_plane( planes );
+  auto          popper    = planes.new_copied_group();
+  PlaneGroup&   new_group = planes.back();
+  new_group.main_menu     = &main_menu_plane;
+  new_group.window        = &window_plane;
   co_await main_menu_plane.run();
 }
 

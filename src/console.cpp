@@ -51,12 +51,13 @@ constexpr W kDividerWidth  = 2;
 
 struct ConsolePlane::Impl : public Plane {
   // State.
+  Terminal&                    terminal_;
   bool                         show_{ false };
   double                       show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int                          history_index_{ 0 };
 
-  Impl() {
+  Impl( Terminal& terminal ) : terminal_( terminal ) {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(
@@ -158,7 +159,7 @@ struct ConsolePlane::Impl : public Plane {
     auto      log_px_start =
         text_rect.lower_left() - Delta{ .h = H{ kFontHeight } };
     for( auto i = 0; i < max_lines; ++i ) {
-      auto maybe_line = term::line( i );
+      auto maybe_line = terminal_.line( i );
       if( !maybe_line ) break;
       auto color = text_color;
       if( maybe_line->starts_with( prompt ) )
@@ -208,7 +209,7 @@ struct ConsolePlane::Impl : public Plane {
     if( !is_mouse_over_console() ) return e_input_handled::no;
     if( key_event.keycode == ::SDLK_l &&
         key_event.mod.ctrl_down ) {
-      term::clear();
+      terminal_.clear();
       return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_u &&
@@ -221,21 +222,22 @@ struct ConsolePlane::Impl : public Plane {
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
       if( int( text.size() ) == le_view_.get().cursor_pos() ) {
-        auto options = term::autocomplete_iterative( text );
+        auto options = terminal_.autocomplete_iterative( text );
         if( options.size() == 1 ) {
           // Set cursor pos to one-past-the-end.
           le_view_.get().set( options[0], /*cursor_pos=*/-1 );
         } else if( options.size() > 1 ) {
-          term::log( "--" );
+          terminal_.log( "--" );
           for( auto const& option : options )
-            term::log( option );
+            terminal_.log( option );
         }
       }
       return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_UP ) {
       CHECK( history_index_ >= -1 );
-      auto maybe_item_ref = term::history( history_index_ + 1 );
+      auto maybe_item_ref =
+          terminal_.history( history_index_ + 1 );
       if( !maybe_item_ref ) return e_input_handled::yes;
       history_index_++;
       le_view_.get().set( *maybe_item_ref,
@@ -247,7 +249,7 @@ struct ConsolePlane::Impl : public Plane {
       CHECK( history_index_ >= 0 );
       history_index_--;
       if( history_index_ == -1 ) return e_input_handled::yes;
-      auto maybe_item_ref = term::history( history_index_ );
+      auto maybe_item_ref = terminal_.history( history_index_ );
       if( !maybe_item_ref ) return e_input_handled::yes;
       le_view_.get().set( *maybe_item_ref,
                           /*cursor_pos=*/-1 );
@@ -258,7 +260,7 @@ struct ConsolePlane::Impl : public Plane {
       if( !text.empty() ) {
         history_index_ = -1;
         // Don't care here whether command succeeded or not.
-        (void)term::run_cmd( text );
+        (void)terminal_.run_cmd( text );
         le_view_.get().clear();
         return e_input_handled::yes;
       }
@@ -290,6 +292,13 @@ Plane& ConsolePlane::impl() { return *impl_; }
 
 ConsolePlane::~ConsolePlane() = default;
 
-ConsolePlane::ConsolePlane() : impl_( new Impl ) {}
+ConsolePlane::ConsolePlane( Terminal& terminal )
+  : impl_( new Impl( terminal ) ) {}
+
+Terminal& ConsolePlane::terminal() { return impl_->terminal_; }
+
+lua::state& ConsolePlane::lua_state() {
+  return impl_->terminal_.lua_state();
+}
 
 } // namespace rn

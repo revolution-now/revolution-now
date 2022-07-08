@@ -18,9 +18,9 @@
 // config
 #include "config/unit-type.hpp"
 
-// gs
-#include "gs/colony.rds.hpp"
-#include "gs/unit-type.hpp"
+// ss
+#include "ss/colony.rds.hpp"
+#include "ss/unit-type.hpp"
 
 using namespace std;
 

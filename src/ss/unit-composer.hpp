@@ -27,6 +27,9 @@
 // Rds
 #include "unit-composer.rds.hpp"
 
+// C++ standard library
+#include <vector>
+
 namespace rn {
 
 /****************************************************************

@@ -5,7 +5,6 @@
 #include "linking.hpp"
 #include "logger.hpp"
 #include "lua-ui.hpp"
-#include "lua.hpp"
 #include "map-edit.hpp"
 #include "map-gen.hpp"
 #include "omni.hpp"
@@ -40,56 +39,41 @@ rr::Renderer& renderer() {
   return global_renderer_use_only_when_needed();
 }
 
-void full_init() {
-  run_all_init_routines( e_log_level::debug );
-  lua_reload( GameState::root() );
-  MapUpdater map_updater( GameState::terrain(), renderer() );
-}
+void full_init() { run_all_init_routines( e_log_level::debug ); }
 
 void run( e_mode mode ) {
+  Planes planes;
   switch( mode ) {
     case e_mode::game: {
       full_init();
       print_bar( '-', "[ Starting Game ]" );
-      frame_loop( revolution_now(), renderer() );
+      frame_loop( planes, revolution_now( planes ), renderer() );
       print_bar( '-', "[ Shutting Down ]" );
       break;
     }
     case e_mode::map_editor: {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
-      MapUpdater map_updater( GameState::terrain(), renderer() );
-      Planes&    planes      = Planes::global();
-      PlaneGroup&  top_group = planes.top_group();
-      ConsolePlane console_plane;
-      OmniPlane    omni_plane;
-      top_group.push( console_plane );
-      top_group.push( omni_plane );
-      frame_loop( run_map_editor( Planes::global(), map_updater,
-                                  GameState::land_view(),
-                                  GameState::terrain(),
-                                  /*standalone_mode=*/true ),
+      frame_loop( planes, run_map_editor_standalone( planes ),
                   renderer() );
       break;
     }
     case e_mode::map_gen: {
       run_all_init_routines(
           e_log_level::warn,
-          { e_init_routine::configs, e_init_routine::lua,
-            e_init_routine::rng } );
-      lua_reload( GameState::root() );
-      NonRenderingMapUpdater map_updater( GameState::terrain() );
-      ascii_map_gen();
+          { e_init_routine::configs, e_init_routine::rng } );
+      NOT_IMPLEMENTED;
+      // ascii_map_gen();
       break;
     }
     case e_mode::test_ui: {
       full_init();
-      frame_loop( test_ui(), renderer() );
+      frame_loop( planes, test_ui(), renderer() );
       break;
     }
     case e_mode::test_lua_ui: {
       full_init();
-      frame_loop( rn::test_lua_ui(), renderer() );
+      frame_loop( planes, rn::test_lua_ui(), renderer() );
       break;
     }
     case e_mode::gl_test: {

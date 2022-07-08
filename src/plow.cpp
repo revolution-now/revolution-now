@@ -39,12 +39,6 @@ namespace rn {
 
 namespace {
 
-void clear_irrigation( IMapUpdater& map_updater, Coord tile ) {
-  map_updater.modify_map_square( tile, []( MapSquare& square ) {
-    square.irrigation = false;
-  } );
-}
-
 void irrigate( IMapUpdater& map_updater, Coord tile ) {
   map_updater.modify_map_square(
       tile, []( MapSquare& square ) { irrigate( square ); } );

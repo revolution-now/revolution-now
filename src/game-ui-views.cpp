@@ -18,6 +18,9 @@
 // config
 #include "config/unit-type.rds.hpp"
 
+// ss
+#include "ss/units.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -89,14 +92,15 @@ void UnitActivationView::on_click_unit( UnitId id ) {
  *     +-...
  */
 unique_ptr<UnitActivationView> UnitActivationView::Create(
-    vector<UnitId> const& ids_, bool allow_activation ) {
+    UnitsState const& units_state, vector<UnitId> const& ids_,
+    bool allow_activation ) {
   auto unit_activation_view =
       std::make_unique<UnitActivationView>( allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
 
-  auto cmp = []( UnitId l, UnitId r ) {
-    auto const& unit1 = unit_from_id( l ).desc();
-    auto const& unit2 = unit_from_id( r ).desc();
+  auto cmp = [&]( UnitId l, UnitId r ) {
+    auto const& unit1 = units_state.unit_for( l ).desc();
+    auto const& unit2 = units_state.unit_for( r ).desc();
     if( unit1.ship && !unit2.ship ) return true;
     if( unit1.cargo_slots > unit2.cargo_slots ) return true;
     if( unit1.attack_points > unit2.attack_points ) return true;
@@ -110,7 +114,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
 
   auto& infos = unit_activation_view->info_map();
   for( auto id : ids ) {
-    auto const& unit = unit_from_id( id );
+    auto const& unit = units_state.unit_for( id );
     infos[id] =
         UnitActivationInfo{ /*original_orders=*/unit.orders(),
                             /*current_orders=*/unit.orders(),
@@ -134,7 +138,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
    *     No Orders --> ...
    */
   for( auto id : ids ) {
-    auto const& unit = unit_from_id( id );
+    auto const& unit = units_state.unit_for( id );
 
     auto fake_unit_view = make_unique<ui::FakeUnitView>(
         unit.desc().type, unit.nation(), unit.orders() );

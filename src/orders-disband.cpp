@@ -40,8 +40,9 @@ struct DisbandHandler : public OrdersHandler {
       units_state( units_state_arg ) {}
 
   wait<bool> confirm() override {
-    auto q = fmt::format( "Really disband {}?",
-                          unit_from_id( unit_id ).desc().name );
+    auto q = fmt::format(
+        "Really disband {}?",
+        units_state.unit_for( unit_id ).desc().name );
 
     ui::e_confirm answer = co_await gui.yes_no(
         { .msg = q, .yes_label = "Yes", .no_label = "No" } );
@@ -64,7 +65,8 @@ struct DisbandHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS& ts, UnitId id, orders::disband const& ) {
+    Planes&, SS& ss, TS& ts, UnitId id,
+    orders::disband const& ) {
   return make_unique<DisbandHandler>( id, ts.gui, ss.units );
 }
 

@@ -18,16 +18,25 @@
 // C++ standard library
 #include <memory>
 
+namespace lua {
+struct state;
+}
+
 namespace rn {
 
 struct Plane;
+struct Terminal;
 
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
-  ConsolePlane();
+  ConsolePlane( Terminal& terminal );
   ~ConsolePlane();
+
+  Terminal& terminal();
+
+  lua::state& lua_state();
 
  private:
   struct Impl;

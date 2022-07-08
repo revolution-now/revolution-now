@@ -242,9 +242,9 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( wait<> const& what, rr::Renderer& renderer ) {
-  Planes& planes = Planes::global();
-  g_target_fps   = config_gfx.target_frame_rate;
+void frame_loop( Planes& planes, wait<> const& what,
+                 rr::Renderer& renderer ) {
+  g_target_fps = config_gfx.target_frame_rate;
   frame_loop_scheduler( what, renderer, planes,
                         frame_loop_body );
   deinit_frame();

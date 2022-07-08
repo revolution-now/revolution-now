@@ -20,6 +20,7 @@ namespace rn {
 
 struct Colony;
 struct Plane;
+struct Planes;
 struct Player;
 struct SS;
 struct TS;
@@ -28,7 +29,7 @@ struct TS;
 ** ColonyPlane
 *****************************************************************/
 struct ColonyPlane {
-  ColonyPlane( SS& ss, TS& ts, Colony& colony, Player& player );
+  ColonyPlane( SS& ss, TS& ts, Colony& colony );
 
   ~ColonyPlane();
 
@@ -45,6 +46,7 @@ struct ColonyPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( SS& ss, TS& ts, Colony& colony );
+wait<> show_colony_view( Planes& planes, SS& ss, TS& ts,
+                         Colony& colony );
 
 } // namespace rn

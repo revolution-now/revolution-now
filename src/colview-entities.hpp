@@ -216,11 +216,10 @@ void update_production( SSConst const& ss, Player const& player,
                         Colony const& colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( SS& ss, TS& ts, Player const& player,
-                         Colony const& colony );
+void set_colview_colony( SS& ss, TS& ts, Colony& colony );
 
 void colview_drag_n_drop_draw(
-    rr::Renderer&                       renderer,
+    SS& ss, rr::Renderer& renderer,
     drag::State<ColViewObject_t> const& state,
     Coord const&                        canvas_origin );
 

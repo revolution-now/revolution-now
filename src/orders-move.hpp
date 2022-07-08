@@ -20,8 +20,10 @@ namespace rn {
 
 struct SS;
 struct TS;
+struct Planes;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS& ts, UnitId id, orders::move const& mv );
+    Planes& planes, SS& ss, TS& ts, UnitId id,
+    orders::move const& mv );
 
 } // namespace rn

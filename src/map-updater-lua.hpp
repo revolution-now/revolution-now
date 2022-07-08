@@ -1,38 +1,29 @@
 /****************************************************************
-**ts.hpp
+**map-updater-lua.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-06-25.
+* Created by dsicilia on 2022-07-07.
 *
-* Description: Non-serialized (transient) game state.
+* Description: Lua extension for IMapUpdater.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
-namespace lua {
-struct state;
-}
+// luapp
+#include "luapp/ext-userdata.hpp"
 
 namespace rn {
 
-struct Planes;
 struct IMapUpdater;
-struct IGui;
-
-/****************************************************************
-** TS
-*****************************************************************/
-struct TS {
-  Planes&      planes;
-  IMapUpdater& map_updater;
-  lua::state&  lua;
-  IGui&        gui;
-};
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::IMapUpdater, owned_by_cpp ){};
+}

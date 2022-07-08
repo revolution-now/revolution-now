@@ -22,6 +22,8 @@ using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
 using ColonyBuildingsMap =
     refl::enum_map<e_colony_building, bool>;
 
+std::vector<UnitId> colony_units_all( Colony const& colony );
+
 } // namespace rn
 
 /****************************************************************

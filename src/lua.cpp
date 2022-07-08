@@ -73,12 +73,13 @@ lua::table require( lua::state&   st,
 }
 
 void reset_lua_state( lua::state& st ) {
+  st = lua::state{};
   // FIXME
   st.lib.open_all();
   CHECK( st["log"] == lua::nil );
   lua::table log = lua::table::create_or_get( st["log"] );
   log["info"]    = []( string const& msg ) {
-       lg.info( "{}", msg );
+    lg.info( "{}", msg );
   };
   log["debug"] = []( string const& msg ) {
     lg.debug( "{}", msg );
@@ -101,7 +102,9 @@ void reset_lua_state( lua::state& st ) {
     lua::c_api C( o.this_cthread() );
     lg.info( "{}", C.pop_tostring() );
   };
-  st["require"] = require;
+  st["require"] = [&]( string const& name ) {
+    require( st, name );
+  };
 }
 
 void run_lua_startup_routines( lua::state& st ) {
@@ -122,7 +125,7 @@ void load_lua_modules( lua::state& st ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-void lua_reload( lua::state& st ) {
+void lua_init( lua::state& st ) {
   reset_lua_state( st );
   run_lua_startup_routines( st );
   load_lua_modules( st );

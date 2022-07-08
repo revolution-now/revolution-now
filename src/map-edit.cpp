@@ -13,8 +13,10 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "compositor.hpp"
+#include "gui.hpp" // FIXME
 #include "input.hpp"
 #include "logger.hpp"
+#include "lua.hpp" // FIXME
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
@@ -22,7 +24,9 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
+#include "renderer.hpp" // FIXME
 #include "road.hpp"
+#include "terminal.hpp" // FIXME
 #include "tiles.hpp"
 #include "ts.hpp"
 #include "viewport.hpp"
@@ -41,6 +45,9 @@
 
 // gfx
 #include "gfx/coord.hpp"
+
+// luapp
+#include "luapp/state.hpp" // FIXME
 
 // refl
 #include "refl/enum-map.hpp"
@@ -111,8 +118,9 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
 ** Map Editor Plane
 *****************************************************************/
 struct MapEditPlane::Impl : public Plane {
-  SS& ss_;
-  TS& ts_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
 
   co::stream<input::event_t>    input_;
   maybe<editor::e_toolbar_item> selected_tool_;
@@ -131,9 +139,13 @@ struct MapEditPlane::Impl : public Plane {
         e_menu_item::restore_zoom, *this );
   }
 
-  Impl( SS& ss, TS& ts )
-    : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
-    register_menu_items( ts.menu_plane_or_die() );
+  Impl( Planes& planes, SS& ss, TS& ts )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      input_{},
+      selected_tool_{} {
+    register_menu_items( planes_.menu() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -188,10 +200,10 @@ struct MapEditPlane::Impl : public Plane {
 
   wait<bool> handle_event( auto const& );
 
-  SmoothViewport& viewport() { return ss_.land_view().viewport; }
+  SmoothViewport& viewport() { return ss_.land_view.viewport; }
 
   SmoothViewport const& viewport() const {
-    return ss_.land_view().viewport;
+    return ss_.land_view.viewport;
   }
 
   maybe<function<void()>> menu_click_handler(
@@ -388,7 +400,7 @@ Rect MapEditPlane::Impl::viewport_rect() const {
 wait<> MapEditPlane::Impl::click_on_tile( Coord    tile,
                                           e_action action ) {
   if( !selected_tool_.has_value() ) co_return;
-  MapSquare new_square = ss_.terrain().square_at( tile );
+  MapSquare new_square = ss_.terrain.square_at( tile );
   switch( *selected_tool_ ) {
     case editor::e_toolbar_item::ocean:
       if( action == e_action::remove ) break;
@@ -592,8 +604,8 @@ Plane& MapEditPlane::impl() { return *impl_; }
 
 MapEditPlane::~MapEditPlane() = default;
 
-MapEditPlane::MapEditPlane( SS& ss, TS& ts )
-  : impl_( new Impl( ss, ts ) ) {}
+MapEditPlane::MapEditPlane( Planes& planes, SS& ss, TS& ts )
+  : impl_( new Impl( planes, ss, ts ) ) {}
 
 wait<> MapEditPlane::run_map_editor() {
   lg.info( "entering map editor." );
@@ -604,25 +616,47 @@ wait<> MapEditPlane::run_map_editor() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_map_editor( SS& ss, TS& ts, bool standalone_mode ) {
-  if( standalone_mode ) {
-    Delta size{ .w = 100, .h = 100 };
-    reset_terrain( ts.map_updater, size );
-    ss.land_view().viewport.set_world_size_tiles( size );
-  }
+wait<> run_map_editor_standalone( Planes& planes ) {
+  // FIXME: this duplicates initialization code in app-ctrl.
+  SS         ss;
+  Delta      size{ .w = 100, .h = 100 };
+  MapUpdater map_updater(
+      ss.mutable_terrain_use_with_care,
+      global_renderer_use_only_when_needed() );
+  reset_terrain( map_updater, size );
+  ss.land_view.viewport.set_world_size_tiles( size );
+  lua::state st;
+  lua_init( st );
+  Terminal terminal( st );
+  set_console_terminal( &terminal );
+  SCOPE_EXIT( set_console_terminal( nullptr ) );
+  lua::table::create_or_get( st["log"] )["console"] =
+      [&]( string const& msg ) { terminal.log( msg ); };
+  WindowPlane window_plane;
+  RealGui     gui( window_plane );
+  TS          ts{
+               .planes      = planes,
+               .map_updater = map_updater,
+               .lua         = st,
+               .gui         = gui,
+  };
+  co_await run_map_editor( planes, ss, ts );
+}
 
+wait<> run_map_editor( Planes& planes, SS& ss, TS& ts ) {
   MenuPlane    menu_plane;
-  MapEditPlane map_edit_plane( ss, ts );
+  MapEditPlane map_edit_plane( planes, ss, ts );
   WindowPlane  window_plane;
 
-  auto        popper = ts.planes.new_group();
-  PlaneGroup& group  = ts.planes.back();
+  PlaneGroup& old_group = planes.back();
+  auto        popper    = planes.new_group();
+  PlaneGroup& new_group = planes.back();
 
-  // The menu plane goes first because we want to hide it
-  // behind the main menu screen.
-  group.push( map_edit_plane );
-  group.push( menu_plane );
-  group.push( window_plane );
+  new_group.map_edit = &map_edit_plane;
+  new_group.menu     = &menu_plane;
+  new_group.window   = &window_plane;
+  new_group.console  = old_group.console;
+  new_group.omni     = old_group.omni;
 
   co_await map_edit_plane.run_map_editor();
 }

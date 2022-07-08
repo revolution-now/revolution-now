@@ -20,6 +20,8 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
+#include "map-updater-lua.hpp"
+#include "map-updater.hpp"
 #include "on-map.hpp"
 #include "variant.hpp"
 
@@ -59,10 +61,10 @@ using ::base::function_ref;
 // If the unit is working in the colony then this will return it;
 // however it will not return a ColonyId if the unit simply occu-
 // pies the same square as the colony.
-maybe<ColonyId> colony_for_unit_who_is_worker( SSConst const& ss,
-                                               UnitId id ) {
+maybe<ColonyId> colony_for_unit_who_is_worker(
+    UnitsState const& units_state, UnitId id ) {
   maybe<ColonyId> res;
-  if_get( ss.units.ownership_of( id ), UnitOwnership::colony,
+  if_get( units_state.ownership_of( id ), UnitOwnership::colony,
           colony_state ) {
     return colony_state.id;
   }
@@ -195,16 +197,12 @@ wait<maybe<UnitId>> create_unit_on_map(
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-unordered_set<UnitId> const& units_from_coord( Coord const& c ) {
-  return GameState::units().from_coord( c );
-}
-
-vector<UnitId> units_from_coord_recursive( Coord coord ) {
-  auto&          gs_units = GameState::units();
+vector<UnitId> units_from_coord_recursive(
+    UnitsState const& units_state, Coord coord ) {
   vector<UnitId> res;
-  for( auto id : units_from_coord( coord ) ) {
+  for( auto id : units_state.from_coord( coord ) ) {
     res.push_back( id );
-    auto held_units = gs_units.unit_for( id )
+    auto held_units = units_state.unit_for( id )
                           .cargo()
                           .items_of_type<Cargo::unit>();
     for( auto held : held_units ) res.push_back( held.id );
@@ -212,12 +210,10 @@ vector<UnitId> units_from_coord_recursive( Coord coord ) {
   return res;
 }
 
-maybe<Coord> coord_for_unit( UnitId id ) {
-  return GameState::units().maybe_coord_for( id );
-}
-
-Coord coord_for_unit_indirect_or_die( UnitId id ) {
-  UNWRAP_CHECK( res, coord_for_unit_indirect( id ) );
+Coord coord_for_unit_indirect_or_die(
+    UnitsState const& units_state, UnitId id ) {
+  UNWRAP_CHECK( res,
+                coord_for_unit_indirect( units_state, id ) );
   return res;
 }
 
@@ -244,20 +240,13 @@ maybe<Coord> coord_for_unit_indirect(
   };
 }
 
-// If this function makes recursive calls it should always call
-// the _safe variant since this function should not throw.
-maybe<Coord> coord_for_unit_indirect( UnitId id ) {
-  auto const& units_state = GameState::units();
-  return coord_for_unit_indirect( units_state, id );
+bool is_unit_on_map_indirect( UnitsState const& units_state,
+                              UnitId            id ) {
+  return coord_for_unit_indirect( units_state, id ).has_value();
 }
 
-bool is_unit_on_map_indirect( UnitId id ) {
-  return coord_for_unit_indirect( id ).has_value();
-}
-
-bool is_unit_on_map( UnitId id ) {
-  auto const& gs_units = GameState::units();
-  return gs_units.ownership_of( id )
+bool is_unit_on_map( UnitsState const& units_state, UnitId id ) {
+  return units_state.ownership_of( id )
       .holds<UnitOwnership::world>();
 }
 
@@ -266,24 +255,28 @@ bool is_unit_on_map( UnitId id ) {
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
-maybe<UnitId> is_unit_onboard( UnitId id ) {
-  auto& gs_units = GameState::units();
-  return gs_units.maybe_holder_of( id );
+maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
+                               UnitId            id ) {
+  return units_state.maybe_holder_of( id );
 }
 
 /****************************************************************
 ** Multi
 *****************************************************************/
-maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
-  if( auto maybe_map = coord_for_unit_indirect( id ); maybe_map )
+maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
+                                             UnitId id ) {
+  if( auto maybe_map = coord_for_unit_indirect( ss.units, id );
+      maybe_map )
     return maybe_map;
-  if( auto maybe_colony = colony_for_unit_who_is_worker( id ) )
-    return colony_from_id( *maybe_colony ).location;
+  if( auto maybe_colony =
+          colony_for_unit_who_is_worker( ss.units, id ) )
+    return ss.colonies.colony_for( *maybe_colony ).location;
   return nothing;
 }
 
-Coord coord_for_unit_multi_ownership_or_die( UnitId id ) {
-  UNWRAP_CHECK( res, coord_for_unit_multi_ownership( id ) );
+Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
+                                             UnitId id ) {
+  UNWRAP_CHECK( res, coord_for_unit_multi_ownership( ss, id ) );
   return res;
 }
 
@@ -294,20 +287,20 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
-  UnitsState& units_state = GameState::units();
-  // FIXME: this needs to render but can't cause it causes
-  // trouble for unit tests.
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
-  auto                   id = create_unit_on_map_non_interactive(
-                        units_state, map_updater, nation, comp, coord );
+  UnitsState& units_state =
+      st["ROOT"]["units"].as<UnitsState&>();
+  IMapUpdater& map_updater =
+      st["TS"]["map_updater"].as<IMapUpdater&>();
+  UnitId id = create_unit_on_map_non_interactive(
+      units_state, map_updater, nation, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
-  auto& gs_units = GameState::units();
-  return gs_units.unit_for( id );
+  return units_state.unit_for( id );
 }
 
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
-  UnitsState& units_state = GameState::units();
+  UnitsState& units_state =
+      st["ROOT"]["units"].as<UnitsState&>();
   lg.info( "adding unit {} to cargo of unit {}.",
            debug_string( units_state, held ),
            debug_string( units_state, holder ) );
@@ -316,35 +309,14 @@ LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
 
 LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
-  UnitsState& units_state = GameState::units();
-  UnitId      unit_id = create_unit( units_state, nation, comp );
+  UnitsState& units_state =
+      st["ROOT"]["units"].as<UnitsState&>();
+  UnitId unit_id = create_unit( units_state, nation, comp );
   lg.info( "created unit {}.",
            debug_string( units_state, unit_id ),
            debug_string( units_state, holder ) );
   units_state.change_to_cargo_somewhere( holder, unit_id );
   return units_state.unit_for( unit_id );
-}
-
-LUA_FN( unit_from_id, Unit&, UnitId id ) {
-  return unit_from_id( id );
-}
-
-LUA_FN( coord_for_unit, maybe<Coord>, UnitId id ) {
-  return coord_for_unit( id );
-}
-
-LUA_FN( units_from_coord, lua::table, Coord c ) {
-  lua::state& st  = lua_global_state();
-  lua::table  res = st.table.create();
-  int         i   = 1;
-  for( UnitId id : units_from_coord( c ) ) res[i++] = id;
-  return res;
-}
-
-// TODO: move this?
-LUA_FN( last_unit_id, UnitId ) {
-  auto& gs_units = GameState::units();
-  return gs_units.last_unit_id();
 }
 
 } // namespace

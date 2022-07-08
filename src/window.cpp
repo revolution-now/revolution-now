@@ -15,7 +15,6 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
-#include "game-state.hpp"
 #include "game-ui-views.hpp"
 #include "input.hpp"
 #include "logger.hpp"
@@ -622,8 +621,8 @@ namespace {
 ** High-level Methods
 *****************************************************************/
 wait<vector<UnitSelection>> unit_selection_box(
-    WindowPlane& window_plane, vector<UnitId> const& ids,
-    bool allow_activation ) {
+    UnitsState const& units_state, WindowPlane& window_plane,
+    vector<UnitId> const& ids, bool allow_activation ) {
   wait_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
@@ -645,17 +644,11 @@ wait<vector<UnitSelection>> unit_selection_box(
             }
           }
         }
-        for( auto selection : selections )
-          lg.debug(
-              "selection: {} --> {}",
-              debug_string( GameState::units(), selection.id ),
-              // FIXME: until we can format this enum.
-              static_cast<int>( selection.what ) );
         s_promise.set_value( std::move( selections ) );
       };
 
-  auto unit_activation_view =
-      UnitActivationView::Create( ids, allow_activation );
+  auto unit_activation_view = UnitActivationView::Create(
+      units_state, ids, allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   // We can capture by reference here because the function will

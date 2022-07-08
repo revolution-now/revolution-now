@@ -16,7 +16,6 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "conductor.hpp"
-#include "cstate.hpp"
 #include "fight.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
@@ -25,6 +24,7 @@
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
+#include "plane-stack.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 
@@ -32,7 +32,7 @@
 #include "config/nation.hpp"
 #include "config/unit-type.rds.hpp"
 
-// gs
+// ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
@@ -177,9 +177,10 @@ wait<maybe<MovementPoints>> check_movement_points(
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
-  TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
-                 Player& player )
-    : ss_( ss ),
+  TravelHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_,
+                 e_direction d, Player& player )
+    : planes_( planes ),
+      ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
       direction( d ),
@@ -240,8 +241,8 @@ struct TravelHandler : public OrdersHandler {
     CHECK( move_src != move_dst );
     CHECK( find( prioritize.begin(), prioritize.end(),
                  unit_id ) == prioritize.end() );
-    CHECK( move_src ==
-           coord_for_unit_indirect_or_die( unit_id ) );
+    CHECK( move_src == coord_for_unit_indirect_or_die(
+                           ss_.units, unit_id ) );
     CHECK( move_src.is_adjacent_to( move_dst ) );
     CHECK( target_unit != unit_id );
 
@@ -257,8 +258,8 @@ struct TravelHandler : public OrdersHandler {
     // a ship and board it.
     if( verdict == e_travel_verdict::land_fall ) co_return;
 
-    co_await ts_.land_view_plane_or_die().landview_animate_move(
-        ss_.terrain, ss_.settings, unit_id, direction );
+    co_await planes_.land_view().landview_animate_move(
+        unit_id, direction );
   }
 
   wait<> perform() override;
@@ -281,8 +282,9 @@ struct TravelHandler : public OrdersHandler {
   wait<e_travel_verdict> confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
-  SS& ss_;
-  TS& ts_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
 
   // The unit that is moving.
   UnitId      unit_id;
@@ -333,7 +335,7 @@ TravelHandler::analyze_unload() const {
       to_offload.push_back( unit_item.id );
   }
   if( !to_offload.empty() ) {
-    if( colony_from_coord( move_src ) ) {
+    if( ss_.colonies.maybe_from_coord( move_src ) ) {
       co_await ts_.gui.message_box(
           "A ship containing units cannot make landfall while "
           "in port." );
@@ -440,8 +442,8 @@ wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
   UnitId      id   = unit_id;
   Unit const& unit = ss_.units.unit_for( id );
-  move_src         = coord_for_unit_indirect_or_die( id );
-  move_dst         = move_src.moved( direction );
+  move_src = coord_for_unit_indirect_or_die( ss_.units, id );
+  move_dst = move_src.moved( direction );
 
   if( !move_dst.is_inside( ss_.terrain.world_rect_tiles() ) ) {
     if( unit.desc().ship )
@@ -472,12 +474,12 @@ TravelHandler::confirm_travel_impl() {
     relationship = e_unit_relationship::friendly;
   }
 
-  auto units_at_dst = units_from_coord( move_dst );
+  auto units_at_dst = ss_.units.from_coord( move_dst );
 
   e_entity_category category = e_entity_category::empty;
   if( !units_at_dst.empty() ) category = e_entity_category::unit;
   // This must override the above for units.
-  if( colony_from_coord( move_dst ).has_value() )
+  if( ss_.colonies.maybe_from_coord( move_dst ).has_value() )
     category = e_entity_category::colony;
 
   // We are entering an empty land square.
@@ -492,7 +494,8 @@ TravelHandler::confirm_travel_impl() {
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
         // in that case will be *holder.
-        if( auto holder = is_unit_onboard( unit.id() );
+        if( auto holder =
+                is_unit_onboard( ss_.units, unit.id() );
             holder ) {
           // We have a unit onboard a ship moving onto
           // land.
@@ -518,7 +521,8 @@ TravelHandler::confirm_travel_impl() {
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
         // in that case will be *holder.
-        if( auto holder = is_unit_onboard( unit.id() );
+        if( auto holder =
+                is_unit_onboard( ss_.units, unit.id() );
             holder ) {
           // We have a unit onboard a ship moving onto
           // land.
@@ -546,7 +550,8 @@ TravelHandler::confirm_travel_impl() {
         // `holder` will be a valid value if the unit is cargo of
         // another unit; the holder's id in that case will be
         // *holder.
-        if( auto holder = is_unit_onboard( unit.id() );
+        if( auto holder =
+                is_unit_onboard( ss_.units, unit.id() );
             holder ) {
           // We have a unit onboard a ship moving onto
           // a land square with a friendly colony.
@@ -650,7 +655,8 @@ wait<> TravelHandler::perform() {
 
   // This will throw if the unit has no coords, but I think it
   // should always be ok at this point if we're moving it.
-  auto old_coord = coord_for_unit_indirect_or_die( id );
+  auto old_coord =
+      coord_for_unit_indirect_or_die( ss_.units, id );
 
   maybe<UnitDeleted> unit_deleted;
 
@@ -710,7 +716,8 @@ wait<> TravelHandler::perform() {
       // points.
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
-      UNWRAP_CHECK( colony_id, colony_from_coord( move_dst ) );
+      UNWRAP_CHECK( colony_id,
+                    ss_.colonies.maybe_from_coord( move_dst ) );
       // TODO: by default we should not open the colony view when
       // a ship moves into port. But it would be convenient to
       // allow the user to specify that they want to open it by
@@ -719,9 +726,8 @@ wait<> TravelHandler::perform() {
       // TODO: consider prioritizing units that are brought in by
       // the ship.
       co_await show_colony_view(
-          ts_.planes, ss_.colonies.colony_for( colony_id ),
-          ss_.terrain, ss_.units, ss_.colonies, player_,
-          ts_.map_updater );
+          planes_, ss_, ts_,
+          ss_.colonies.colony_for( colony_id ) );
       break;
     }
     case e_travel_verdict::land_fall:
@@ -778,8 +784,9 @@ wait<> TravelHandler::perform() {
   // vast majority of the time they are on the map. An example of
   // a case where the unit is no longer on the map at this point
   // would be a ship that was sent to sail the high seas.
-  if( is_unit_on_map_indirect( id ) ) {
-    auto new_coord = coord_for_unit_indirect_or_die( id );
+  if( is_unit_on_map_indirect( ss_.units, id ) ) {
+    auto new_coord =
+        coord_for_unit_indirect_or_die( ss_.units, id );
     CHECK( unit_would_move == ( new_coord == move_dst ) );
   }
 
@@ -790,9 +797,10 @@ wait<> TravelHandler::perform() {
 ** AttackHandler
 *****************************************************************/
 struct AttackHandler : public OrdersHandler {
-  AttackHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
-                 Player& player )
-    : ss_( ss ),
+  AttackHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_,
+                 e_direction d, Player& player )
+    : planes_( planes ),
+      ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
       direction( d ),
@@ -843,8 +851,8 @@ struct AttackHandler : public OrdersHandler {
     }
 
     CHECK( attack_src != attack_dst );
-    CHECK( attack_src ==
-           coord_for_unit_indirect_or_die( unit_id ) );
+    CHECK( attack_src == coord_for_unit_indirect_or_die(
+                             ss_.units, unit_id ) );
     CHECK( attack_src.is_adjacent_to( attack_dst ) );
     CHECK( target_unit != unit_id );
     CHECK( target_unit.has_value() );
@@ -856,13 +864,12 @@ struct AttackHandler : public OrdersHandler {
   wait<> animate() const override {
     if( verdict == e_attack_verdict::colony_undefended &&
         fight_stats->attacker_wins ) {
-      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
+      UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
+                                   attack_dst ) );
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
-      return ts_.land_view_plane_or_die()
-          .landview_animate_colony_capture(
-              ss_.terrain, ss_.settings, attacker_id,
-              defender_id, colony_id );
+      return planes_.land_view().landview_animate_colony_capture(
+          attacker_id, defender_id, colony_id );
     }
 
     auto attacker = unit_id;
@@ -883,9 +890,8 @@ struct AttackHandler : public OrdersHandler {
                         .holds<UnitDeathAction::demote>()
                     ? e_depixelate_anim::demote
                     : e_depixelate_anim::death );
-    return ts_.land_view_plane_or_die().landview_animate_attack(
-        ss_.settings, attacker, defender, stats.attacker_wins,
-        dp_anim );
+    return planes_.land_view().landview_animate_attack(
+        attacker, defender, stats.attacker_wins, dp_anim );
   }
 
   wait<> perform() override;
@@ -900,24 +906,26 @@ struct AttackHandler : public OrdersHandler {
       conductor::play_request(
           conductor::e_request::fife_drum_happy,
           conductor::e_request_probability::always );
-      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
-      Colony const&      colony = colony_from_id( colony_id );
+      UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
+                                   attack_dst ) );
+      Colony const& colony =
+          ss_.colonies.colony_for( colony_id );
       Nationality const& attacker_nation =
           nation_obj( ss_.units.unit_for( unit_id ).nation() );
       co_await ts_.gui.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name );
       co_await show_colony_view(
-          ts_.planes, ss_.colonies.colony_for( colony_id ),
-          ss_.terrain, ss_.units, ss_.colonies, player_,
-          ts_.map_updater );
+          planes_, ss_, ts_,
+          ss_.colonies.colony_for( colony_id ) );
     }
   }
 
   wait<e_attack_verdict> confirm_attack_impl();
 
-  SS& ss_;
-  TS& ts_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
 
   // The unit doing the attacking.
   UnitId      unit_id;
@@ -950,13 +958,13 @@ struct AttackHandler : public OrdersHandler {
 wait<AttackHandler::e_attack_verdict>
 AttackHandler::confirm_attack_impl() {
   auto id    = unit_id;
-  attack_src = coord_for_unit_indirect_or_die( id );
+  attack_src = coord_for_unit_indirect_or_die( ss_.units, id );
   attack_dst = attack_src.moved( direction );
 
   auto& unit = ss_.units.unit_for( id );
   CHECK( !unit.mv_pts_exhausted() );
 
-  if( is_unit_onboard( id ) )
+  if( is_unit_onboard( ss_.units, id ) )
     co_return e_attack_verdict::attack_from_ship;
 
   if( !can_attack( unit.type() ) )
@@ -990,13 +998,15 @@ AttackHandler::confirm_attack_impl() {
   auto surface      = surface_type( square );
   auto relationship = e_unit_relationship::foreign;
   auto category     = e_entity_category::unit;
-  if( colony_from_coord( attack_dst ).has_value() )
+  if( ss_.colonies.maybe_from_coord( attack_dst ).has_value() )
     category = e_entity_category::colony;
 
-  auto const& units_at_dst_set = units_from_coord( attack_dst );
+  auto const& units_at_dst_set =
+      ss_.units.from_coord( attack_dst );
   vector<UnitId> units_at_dst( units_at_dst_set.begin(),
                                units_at_dst_set.end() );
-  auto           colony_at_dst = colony_from_coord( attack_dst );
+  auto           colony_at_dst =
+      ss_.colonies.maybe_from_coord( attack_dst );
 
   // If we have a colony then we only want to get units that are
   // military units (and not ships), since we want the following
@@ -1039,8 +1049,10 @@ AttackHandler::confirm_attack_impl() {
 
   // Deferred evaluation until we know that the attack makes
   // sense.
-  auto run_stats = [id, highest_defense_unit] {
-    return fight_statistics( id, highest_defense_unit );
+  auto run_stats = [this, id, highest_defense_unit] {
+    return fight_statistics(
+        ss_.units.unit_for( id ),
+        ss_.units.unit_for( highest_defense_unit ) );
   };
 
   // We are entering a land square containing a foreign unit.
@@ -1189,7 +1201,7 @@ wait<> AttackHandler::perform() {
       // colony?
       lg.info( "the {} have captured the colony of {}.",
                nation_obj( attacker.nation() ).display_name,
-               colony_from_id( colony_id ).name );
+               ss_.colonies.colony_for( colony_id ).name );
       co_return;
     }
     case e_attack_verdict::colony_defended:
@@ -1199,12 +1211,13 @@ wait<> AttackHandler::perform() {
   }
 
   auto capture_unit = [&]() -> wait<> {
-    loser.change_nation( winner.nation() );
+    loser.change_nation( ss_.units, winner.nation() );
     maybe<UnitDeleted> unit_deleted =
         co_await unit_to_map_square(
             ss_.units, ss_.terrain, player_, ss_.settings,
             ts_.gui, ts_.map_updater, loser.id(),
-            coord_for_unit_indirect_or_die( winner.id() ) );
+            coord_for_unit_indirect_or_die( ss_.units,
+                                            winner.id() ) );
     CHECK( !unit_deleted.has_value() );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
@@ -1275,9 +1288,11 @@ wait<> AttackHandler::perform() {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts, UnitId id,
+unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
+                                    TS& ts, UnitId id,
                                     e_direction d ) {
-  Coord dst  = coord_for_unit_indirect_or_die( id ).moved( d );
+  Coord dst =
+      coord_for_unit_indirect_or_die( ss.units, id ).moved( d );
   auto& unit = ss.units.unit_for( id );
 
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
@@ -1285,21 +1300,25 @@ unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts, UnitId id,
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( ss, ts, id, d, player );
+    return make_unique<TravelHandler>( planes, ss, ts, id, d,
+                                       player );
 
   auto dst_nation =
       nation_from_coord( ss.units, ss.colonies, dst );
 
   if( !dst_nation.has_value() )
     // No units on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( ss, ts, id, d, player );
+    return make_unique<TravelHandler>( planes, ss, ts, id, d,
+                                       player );
 
   if( *dst_nation == unit.nation() )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( ss, ts, id, d, player );
+    return make_unique<TravelHandler>( planes, ss, ts, id, d,
+                                       player );
 
   // Must be an attack.
-  return make_unique<AttackHandler>( ss, ts, id, d, player );
+  return make_unique<AttackHandler>( planes, ss, ts, id, d,
+                                     player );
 }
 
 } // namespace
@@ -1308,8 +1327,9 @@ unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts, UnitId id,
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS& ts, UnitId id, orders::move const& mv ) {
-  return dispatch( ss, ts, id, mv.d );
+    Planes& planes, SS& ss, TS& ts, UnitId id,
+    orders::move const& mv ) {
+  return dispatch( planes, ss, ts, id, mv.d );
 }
 
 } // namespace rn

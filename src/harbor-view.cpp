@@ -142,7 +142,10 @@ maybe<Cargo_t> draggable_to_cargo_object(
 maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
     PS& S, int slot ) {
   HarborState const& hb_state = S.harbor_state();
-  return hb_state.selected_unit.fmap( unit_from_id )
+  return hb_state.selected_unit
+      .fmap( [&]( UnitId id ) {
+        return S.ss_.units.unit_for( id );
+      } )
       .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
@@ -826,7 +829,7 @@ class UnitCollection : EntityBase {
                                         unit_with_pos.id } } )
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
-                     unit_with_pos.id,
+                     S->ss_.units.unit_for( unit_with_pos.id ),
                      UnitRenderOptions{ .flag = false } );
     if( hb_state.selected_unit ) {
       for( auto [id, coord] : units_ ) {
@@ -1072,7 +1075,7 @@ class ActiveCargo : EntityBase {
     auto        bds     = bounds();
     auto grid = bds.to_grid_noalign( ActiveCargoBox::box_delta );
     if( maybe_active_unit_ ) {
-      auto&       unit = unit_from_id( *maybe_active_unit_ );
+      auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();
       for( auto const& [idx, cargo_slot, rect] :
            rl::zip( rl::ints(), cargo_slots,
@@ -1103,7 +1106,8 @@ class ActiveCargo : EntityBase {
                               HarborDraggableObject::unit{
                                   u.id } } )
                     render_unit(
-                        renderer, dst_coord, u.id,
+                        renderer, dst_coord,
+                        S->ss_.units.unit_for( u.id ),
                         UnitRenderOptions{ .flag = false } );
                 },
                 [&]( Cargo::commodity const& c ) {
@@ -1188,7 +1192,7 @@ class ActiveCargo : EntityBase {
           res = pair{ *maybe_slot, box };
         }
       }
-      auto& unit = unit_from_id( *maybe_active_unit_ );
+      auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
       if( res && res->first >= unit.cargo().slots_total() )
         res = nothing;
     }
@@ -1538,7 +1542,7 @@ struct DragConnector {
   bool DRAG_CONNECT_CASE( dock, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
-    return unit_from_id( ship ).cargo().fits_somewhere(
+    return S.ss_.units.unit_for( ship ).cargo().fits_somewhere(
         S.ss_.units, Cargo::unit{ src.id }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
@@ -1556,7 +1560,7 @@ struct DragConnector {
     return overload_visit(
         cargo_object,
         [&]( Cargo::unit ) {
-          return unit_from_id( ship )
+          return S.ss_.units.unit_for( ship )
               .cargo()
               .fits_with_item_removed(
                   S.ss_.units,
@@ -1571,7 +1575,7 @@ struct DragConnector {
           // transfer) to proceed.
           auto size_one     = c.obj;
           size_one.quantity = 1;
-          return unit_from_id( ship ).cargo().fits(
+          return S.ss_.units.unit_for( ship ).cargo().fits(
               S.ss_.units,
               /*cargo=*/Cargo::commodity{ size_one },
               /*slot=*/dst.slot );
@@ -1596,7 +1600,7 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
-    return unit_from_id( dst.id ).cargo().fits_somewhere(
+    return S.ss_.units.unit_for( dst.id ).cargo().fits_somewhere(
         S.ss_.units, Cargo::unit{ src.id } );
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
@@ -1607,8 +1611,9 @@ struct DragConnector {
     return overload_visit(
         cargo_object,
         [&]( Cargo::unit u ) {
-          if( is_unit_onboard( u.id ) == dst_ship ) return false;
-          return unit_from_id( dst_ship )
+          if( is_unit_onboard( S.ss_.units, u.id ) == dst_ship )
+            return false;
+          return S.ss_.units.unit_for( dst_ship )
               .cargo()
               .fits_somewhere( S.ss_.units, u );
         },
@@ -1617,7 +1622,7 @@ struct DragConnector {
           // with (at least) a partial transfer.
           auto size_one     = c.obj;
           size_one.quantity = 1;
-          return unit_from_id( dst_ship )
+          return S.ss_.units.unit_for( dst_ship )
               .cargo()
               .fits_somewhere( S.ss_.units,
                                Cargo::commodity{ size_one } );
@@ -1633,7 +1638,7 @@ struct DragConnector {
         // as much as possible if we can't insert 100.
         /*quantity=*/1 //
     };
-    return unit_from_id( ship ).cargo().fits_somewhere(
+    return S.ss_.units.unit_for( ship ).cargo().fits_somewhere(
         S.ss_.units, Cargo::commodity{ comm }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( market, inport_ship ) const {
@@ -1644,14 +1649,14 @@ struct DragConnector {
         // as much as possible if we can't insert 100.
         /*quantity=*/1 //
     };
-    return unit_from_id( dst.id ).cargo().fits_somewhere(
+    return S.ss_.units.unit_for( dst.id ).cargo().fits_somewhere(
         S.ss_.units, Cargo::commodity{ comm },
         /*starting_slot=*/0 );
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
-    return unit_from_id( ship )
+    return S.ss_.units.unit_for( ship )
         .cargo()
         .template slot_holds_cargo_type<Cargo::commodity>(
             src.slot )
@@ -1714,7 +1719,7 @@ struct DragUserInput {
     CHECK( is_unit_in_port( S.ss_.units, ship ) );
     UNWRAP_CHECK(
         commodity_ref,
-        unit_from_id( ship )
+        S.ss_.units.unit_for( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
                 src.slot ) );
@@ -1726,7 +1731,7 @@ struct DragUserInput {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     CHECK( is_unit_in_port( S.ss_.units, ship ) );
     auto maybe_commodity_ref =
-        unit_from_id( ship )
+        S.ss_.units.unit_for( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
                 src.slot );
@@ -1764,7 +1769,7 @@ struct DragPerform {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     // First try to respect the destination slot chosen by
     // the player,
-    if( unit_from_id( ship ).cargo().fits(
+    if( S.ss_.units.unit_for( ship ).cargo().fits(
             S.ss_.units, Cargo::unit{ src.id }, dst.slot ) )
       S.ss_.units.change_to_cargo_somewhere( ship, src.id,
                                              dst.slot );
@@ -1858,7 +1863,7 @@ struct DragPerform {
     };
     comm.quantity = std::min(
         comm.quantity,
-        unit_from_id( ship )
+        S.ss_.units.unit_for( ship )
             .cargo()
             .max_commodity_quantity_that_fits( src.type ) );
     // Cap it.
@@ -1877,7 +1882,7 @@ struct DragPerform {
     };
     comm.quantity = std::min(
         comm.quantity,
-        unit_from_id( dst.id )
+        S.ss_.units.unit_for( dst.id )
             .cargo()
             .max_commodity_quantity_that_fits( src.type ) );
     // Cap it.
@@ -1892,7 +1897,7 @@ struct DragPerform {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     UNWRAP_CHECK(
         commodity_ref,
-        unit_from_id( ship )
+        S.ss_.units.unit_for( ship )
             .cargo()
             .template slot_holds_cargo_type<Cargo::commodity>(
                 src.slot ) );
@@ -1930,9 +1935,10 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   overload_visit(
       state.object,
       [&]( unit const& o ) {
-        auto size =
-            sprite_size( unit_from_id( o.id ).desc().tile );
-        render_unit( renderer, origin_for( size ), o.id,
+        auto size = sprite_size(
+            S.ss_.units.unit_for( o.id ).desc().tile );
+        render_unit( renderer, origin_for( size ),
+                     S.ss_.units.unit_for( o.id ),
                      UnitRenderOptions{ .flag = false } );
       },
       [&]( market_commodity const& o ) {
@@ -2278,18 +2284,16 @@ wait<> HarborPlane::show_harbor_view() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( SS& ss, TS& ts_old, Player& player,
+wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
+                         Player&       player,
                          maybe<UnitId> selected_unit ) {
-  WindowPlane window_plane;
-  RealGui     gui( window_plane );
-  TS          ts = ts_old.with_new( window_plane, gui );
+  auto        popper    = planes.new_copied_group();
+  PlaneGroup& new_group = planes.back();
+
   HarborPlane harbor_plane( ss, ts, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
-  auto        popper = ts.planes.new_group();
-  PlaneGroup& group  = ts.planes.back();
-  group.push( harbor_plane );
-  group.push( window_plane );
+  new_group.harbor = &harbor_plane;
   co_await harbor_plane.show_harbor_view();
 }
 

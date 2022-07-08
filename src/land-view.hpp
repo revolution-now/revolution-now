@@ -26,16 +26,10 @@
 
 namespace rn {
 
-struct ColoniesState;
-struct IGui;
-struct IMapUpdater;
-struct LandViewState;
-struct MenuPlane;
 struct Plane;
-struct SettingsState;
-struct TerrainState;
-struct WindowPlane;
-struct UnitsState;
+struct Planes;
+struct SS;
+struct TS;
 
 enum class e_depixelate_anim { death, demote };
 
@@ -43,13 +37,7 @@ enum class e_depixelate_anim { death, demote };
 ** LandViewPlane
 *****************************************************************/
 struct LandViewPlane {
-  LandViewPlane( MenuPlane&          menu_plane,
-                 WindowPlane&        window_plane,
-                 LandViewState&      land_view_state,
-                 ColoniesState&      colonies_state,
-                 UnitsState&         units_state,
-                 TerrainState const& terrain_state,
-                 IMapUpdater& map_updater, IGui& gui );
+  LandViewPlane( Planes& planes, SS& ss, TS& ts );
 
   ~LandViewPlane();
 
@@ -61,21 +49,17 @@ struct LandViewPlane {
 
   wait<LandViewPlayerInput_t> landview_eot_get_next_input();
 
-  wait<> landview_animate_move(
-      TerrainState const&  terrain_state,
-      SettingsState const& settings, UnitId id,
-      e_direction direction );
+  wait<> landview_animate_move( UnitId      id,
+                                e_direction direction );
 
-  wait<> landview_animate_attack( SettingsState const& settings,
-                                  UnitId               attacker,
-                                  UnitId               defender,
-                                  bool attacker_wins,
+  wait<> landview_animate_attack( UnitId attacker,
+                                  UnitId defender,
+                                  bool   attacker_wins,
                                   e_depixelate_anim dp_anim );
 
-  wait<> landview_animate_colony_capture(
-      TerrainState const&  terrain_state,
-      SettingsState const& settings, UnitId attacker_id,
-      UnitId defender_id, ColonyId colony_id );
+  wait<> landview_animate_colony_capture( UnitId   attacker_id,
+                                          UnitId   defender_id,
+                                          ColonyId colony_id );
 
   // Clear any buffer input.
   void landview_reset_input_buffers();

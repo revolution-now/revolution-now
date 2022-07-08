@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "compositor.hpp"
-#include "cstate.hpp"
 #include "error.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
@@ -189,16 +188,15 @@ void render_nationality_icon( rr::Renderer& renderer,
 }
 
 void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, UnitId id ) {
-  auto const& unit = unit_from_id( id );
+                              Coord where, Unit const& unit ) {
   render_nationality_icon( renderer, where, unit.desc(),
                            unit.nation(), unit.orders() );
 }
 
-void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
+void render_unit( rr::Renderer& renderer, Coord where,
+                  Unit const&              unit,
                   UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
-  auto const& unit    = unit_from_id( id );
   if( options.flag ) {
     // Should the icon be in front of the unit or in back.
     if( !unit.desc().nat_icon_front ) {
@@ -210,7 +208,7 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
             painter,
             where + Delta{ .w = options.shadow->offset },
             desc.tile, options.shadow->color );
-      render_nationality_icon( renderer, where, id );
+      render_nationality_icon( renderer, where, unit );
       if( options.shadow.has_value() ) {
         // Draw a light shadow over the flag so that we can dif-
         // ferentiate the edge of the unit from the flag, but not
@@ -226,7 +224,7 @@ void render_unit( rr::Renderer& renderer, Coord where, UnitId id,
     } else {
       render_unit_no_icon( painter, where, unit.desc().type,
                            options );
-      render_nationality_icon( renderer, where, id );
+      render_nationality_icon( renderer, where, unit );
     }
   } else {
     render_unit_no_icon( painter, where, unit.desc().type,
@@ -241,12 +239,10 @@ void render_unit_type( rr::Painter& painter, Coord where,
 }
 
 void render_colony( rr::Painter& painter, Coord where,
-                    ColonyId id ) {
-  auto const& colony = colony_from_id( id );
-  auto        tile =
-      colony_from_id( id ).buildings[e_colony_building::stockade]
-                 ? e_tile::colony_stockade
-                 : e_tile::colony_basic;
+                    Colony const& colony ) {
+  auto tile = colony.buildings[e_colony_building::stockade]
+                  ? e_tile::colony_stockade
+                  : e_tile::colony_basic;
   render_sprite( painter, where, tile );
   auto const& nation = nation_obj( colony.nation );
   render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
@@ -254,11 +250,11 @@ void render_colony( rr::Painter& painter, Coord where,
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,
-                             UnitId id, double stage,
+                             Unit const& unit, double stage,
                              UnitRenderOptions const& options ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
-  render_unit( renderer, where, id, options );
+  render_unit( renderer, where, unit, options );
 }
 
 // This is a bit tricky because we need to render the shadow, the
@@ -267,11 +263,9 @@ void render_unit_depixelate( rr::Renderer& renderer, Coord where,
 // don't want to depixelate the flag since we have a target unit,
 // so it would look strange if the flag depixelated.
 void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, UnitId id,
+                                Coord where, Unit const& unit,
                                 e_unit_type target, double stage,
                                 UnitRenderOptions options ) {
-  auto const& unit = unit_from_id( id );
-
   // The shadow always goes in back of the flag, so if there is
   // one we can get that out of the way.
   if( options.shadow.has_value() )
@@ -295,7 +289,7 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
   // If the flag is on then it goes in between the shadow and
   // unit.
   if( options.flag && !unit.desc().nat_icon_front )
-    render_nationality_icon( renderer, where, id );
+    render_nationality_icon( renderer, where, unit );
 
   // Now the unit.
   depixelate_from_to(
@@ -310,7 +304,7 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
       } );
 
   if( options.flag && unit.desc().nat_icon_front )
-    render_nationality_icon( renderer, where, id );
+    render_nationality_icon( renderer, where, unit );
 }
 
 } // namespace rn

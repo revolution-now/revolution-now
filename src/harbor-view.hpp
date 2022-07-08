@@ -19,6 +19,7 @@
 namespace rn {
 
 struct Plane;
+struct Planes;
 struct Player;
 struct SS;
 struct TS;
@@ -46,6 +47,8 @@ struct HarborPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( SS& ss, TS& ts, Player& player );
+wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
+                         Player&       player,
+                         maybe<UnitId> selected_unit );
 
 } // namespace rn

@@ -11,13 +11,17 @@
 *****************************************************************/
 #include "root.hpp"
 
-// Revolution Now
-#include "colony-mgr.hpp"
-#include "land-view.hpp"
-#include "map-square.hpp"
+// ss
 #include "players.hpp"
-#include "settings.hpp"
 #include "turn.hpp"
+
+// ss
+#include "ss/colonies.hpp"
+#include "ss/land-view.hpp"
+#include "ss/players.hpp"
+#include "ss/settings.hpp"
+#include "ss/terrain.hpp"
+#include "ss/turn.hpp"
 
 // luapp
 #include "luapp/register.hpp"
@@ -80,7 +84,8 @@ valid_or<string> validate_interaction(
   for( auto const& [colony_id, colony] : colonies.all() ) {
     // Colony is on land.
     REFL_VALIDATE(
-        is_land( terrain.world_map()[colony.location] ),
+        terrain.world_map()[colony.location].surface ==
+            e_surface::land,
         "Colony {} is not on land.", colony.name );
   }
   return base::valid;
@@ -118,7 +123,7 @@ LUA_STARTUP( lua::state& st ) {
   // u["version"] = &U::version;
   u["settings"] = &U::settings;
   // u["events"] = &U::events;
-  // u["units"] = &U::units;
+  u["units"]   = &U::units;
   u["players"] = &U::players;
   u["turn"]    = &U::turn;
   // u["colonies"] = &U::colonies;

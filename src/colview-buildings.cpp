@@ -169,7 +169,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
             renderer,
             sprite_rect_for_unit_in_slot( slot, idx )
                 .upper_left(),
-            unit_id,
+            ss_.units.unit_for( unit_id ),
             UnitRenderOptions{ .flag   = false,
                                .shadow = UnitShadow{
                                    .color = kShadowColor } } );

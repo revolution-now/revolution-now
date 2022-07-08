@@ -34,6 +34,7 @@
 
 namespace rn {
 
+struct Planes;
 struct SS;
 struct SSConst;
 struct TS;
@@ -64,8 +65,8 @@ ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
                        std::string_view name );
 
 // Evolve the colony by one turn.
-wait<> evolve_colonies_for_player( SS& ss, TS& ts,
-                                   Player& player );
+wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
+                                   TS& ts, Player& player );
 
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is
@@ -92,8 +93,6 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
 
 int colony_population( Colony const& colony );
-
-std::vector<UnitId> colony_units_all( Colony const& colony );
 
 bool colony_has_unit( Colony const& colony, UnitId id );
 

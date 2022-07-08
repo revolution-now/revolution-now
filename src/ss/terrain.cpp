@@ -150,8 +150,13 @@ LUA_STARTUP( lua::state& st ) {
 
   u["placement_seed"]     = &U::placement_seed;
   u["set_placement_seed"] = &U::set_placement_seed;
-  u["world_size_tiles"]   = &U::world_size_tiles;
+  u["size"]               = &U::world_size_tiles;
   u["square_exists"]      = &U::square_exists;
+  u["square_at"]          = &U::mutable_square_at;
+
+  u["reset"] = []( U& o, Delta size ) {
+    o.mutable_world_map() = Matrix<MapSquare>( size );
+  };
 
   // ProtoSquaresMap.
   // TODO: make this generic.

@@ -53,7 +53,7 @@ void to_str( char ( &o )[N], std::string& out, ADL_t ) {
 }
 
 template<typename T>
-concept Show = requires( T o, std::string s ) {
+concept Show = requires( T const& o, std::string s ) {
   { to_str( o, s, ADL ) } -> std::same_as<void>;
 };
 

@@ -32,7 +32,7 @@ struct WindowPlane;
 ** MainMenuPlane
 *****************************************************************/
 struct MainMenuPlane {
-  MainMenuPlane( Planes& planes, WindowPlane& window_plane );
+  MainMenuPlane( Planes& planes );
   ~MainMenuPlane();
 
   wait<> run();

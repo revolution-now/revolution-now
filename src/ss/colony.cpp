@@ -153,6 +153,19 @@ valid_or<string> Colony::validate() const {
   return valid;
 }
 
+vector<UnitId> colony_units_all( Colony const& colony ) {
+  vector<UnitId> res;
+  res.reserve( 40 );
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    res.insert( res.end(), colony.indoor_jobs[job].begin(),
+                colony.indoor_jobs[job].end() );
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( maybe<OutdoorUnit> const& job = colony.outdoor_jobs[d];
+        job.has_value() )
+      res.push_back( job->unit_id );
+  return res;
+}
+
 } // namespace rn
 
 /****************************************************************

@@ -24,6 +24,7 @@
 namespace rn {
 
 struct UnitTypeAttributes;
+struct UnitsState;
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
@@ -64,7 +65,7 @@ struct ND Unit {
 
   // This would be used when e.g. a colonist is captured and
   // changes nations.
-  void change_nation( e_nation nation );
+  void change_nation( UnitsState& units_state, e_nation nation );
 
   /************************** Cargo ****************************/
 

@@ -17,7 +17,6 @@
 #include "colony.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
-#include "cstate.hpp"
 #include "dragdrop.hpp"
 #include "gui.hpp"
 #include "logger.hpp"
@@ -28,6 +27,7 @@
 #include "window.hpp"
 
 // ss
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -70,7 +70,8 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 /****************************************************************
 ** Cheat Stuff
 *****************************************************************/
-void try_promote_demote_unit( PS& S, Coord where, bool demote ) {
+void try_promote_demote_unit( SS& ss, Coord where,
+                              bool demote ) {
   maybe<ColViewObjectWithBounds> obj =
       colview_top_level().object_here( where );
   if( !obj.has_value() ) return;
@@ -80,12 +81,11 @@ void try_promote_demote_unit( PS& S, Coord where, bool demote ) {
           &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return;
 
-  Unit& unit = S.units_state.unit_for( *unit_id );
+  Unit& unit = ss.units.unit_for( *unit_id );
   if( demote )
     cheat_downgrade_unit_expertise( unit );
   else
-    cheat_upgrade_unit_expertise( S.units_state,
-                                  S.colonies_state, unit );
+    cheat_upgrade_unit_expertise( ss.units, ss.colonies, unit );
   colview_top_level().update();
 }
 
@@ -129,16 +129,17 @@ void try_decrease_commodity( Colony& colony, Coord where ) {
 //
 // FIXME: make this into a template function after clang learns
 // to handle function templates that are coroutines.
-#define NO_DRAG( ... )                       \
-  {                                          \
-    lg.debug( "cannot drag: " __VA_ARGS__ ); \
-    co_await eat_remaining_drag_events( S ); \
-    co_return;                               \
+#define NO_DRAG( ... )                           \
+  {                                              \
+    lg.debug( "cannot drag: " __VA_ARGS__ );     \
+    co_await eat_remaining_drag_events( input ); \
+    co_return;                                   \
   }
 
-wait<> eat_remaining_drag_events( PS& S ) {
+wait<> eat_remaining_drag_events(
+    co::stream<input::event_t>& input ) {
   while( true ) {
-    input::event_t event = co_await S.input.next();
+    input::event_t event = co_await input.next();
     auto drag = event.get_if<input::mouse_drag_event_t>();
     if( !drag ) continue;
     CHECK( drag->state.phase != input::e_drag_phase::begin )
@@ -150,9 +151,11 @@ wait<> eat_remaining_drag_events( PS& S ) {
 // Note that the mouse events received here will be relative to
 // the colony-view canvas.
 wait<> drag_drop_routine(
-    PS& S, input::mouse_drag_event_t const& event ) {
+    co::stream<input::event_t>&          input,
+    maybe<drag::State<ColViewObject_t>>& drag_state, IGui& gui,
+    input::mouse_drag_event_t const& event ) {
   CHECK( event.state.phase == input::e_drag_phase::begin );
-  CHECK( !S.drag_state.has_value() );
+  CHECK( !drag_state.has_value() );
   if( event.button != input::e_mouse_button::l )
     NO_DRAG( "wrong mouse button." );
   Coord const& origin = event.state.origin;
@@ -208,7 +211,7 @@ wait<> drag_drop_routine(
   lg.debug( "dragging {} with bounds {}.", source_object,
             source_object_bounds );
 
-  S.drag_state = drag::State<ColViewObject_t>{
+  drag_state = drag::State<ColViewObject_t>{
       .stream              = {}, // FIXME: unused
       .object              = source_object,
       .indicator           = drag::e_status_indicator::none,
@@ -216,7 +219,7 @@ wait<> drag_drop_routine(
       .where               = origin,
       .click_offset = origin - source_object_bounds.upper_left(),
   };
-  SCOPE_EXIT( S.drag_state = nothing );
+  SCOPE_EXIT( drag_state = nothing );
 
   // This can optionally be populated to be displayed as a mes-
   // sage to the user after the drag is rejected and the item is
@@ -239,7 +242,7 @@ wait<> drag_drop_routine(
       lg.debug( "drag rejected." );
       break;
     }
-    latest = co_await S.input.next();
+    latest = co_await input.next();
     // Optional sanity check.
     if( auto drag =
             latest.get_if<input::mouse_drag_event_t>() ) {
@@ -264,7 +267,7 @@ wait<> drag_drop_routine(
       // We know that this event is not the last drag event,
       // since it is a window resize event.  So we need to eat
       // the remainder of the drag events.
-      co_await eat_remaining_drag_events( S );
+      co_await eat_remaining_drag_events( input );
       co_return; // no rubber banding.
     }
 
@@ -276,9 +279,9 @@ wait<> drag_drop_routine(
     // to key events, in particular when the user presses the
     // shift key to ask for user input.
 
-    S.drag_state->where     = mouse_pos;
-    S.drag_state->indicator = drag::e_status_indicator::none;
-    S.drag_state->user_requests_input = false;
+    drag_state->where     = mouse_pos;
+    drag_state->indicator = drag::e_status_indicator::none;
+    drag_state->user_requests_input = false;
 
     // Check if there is a view under the current mouse pos.
     maybe<PositionedColSubView> maybe_target_p_view =
@@ -296,7 +299,7 @@ wait<> drag_drop_routine(
     Coord             sink_coord =
         mouse_pos.with_new_origin( target_upper_left );
     // Assume the drag won't work unless we find out otherwise.
-    S.drag_state->indicator = drag::e_status_indicator::bad;
+    drag_state->indicator = drag::e_status_indicator::bad;
 
     // Check if the target view can receive the object that is
     // being dragged and can do so at the current mouse position.
@@ -306,7 +309,7 @@ wait<> drag_drop_routine(
                 source_object );
       continue;
     }
-    S.drag_state->indicator = drag::e_status_indicator::good;
+    drag_state->indicator = drag::e_status_indicator::good;
 
     // Check if the user is allowed to request user input. If so,
     // then check if they are holding down shift, which is how
@@ -316,7 +319,7 @@ wait<> drag_drop_routine(
     if( drag_user_input ) {
       auto const& base =
           variant_base<input::event_base_t>( latest );
-      S.drag_state->user_requests_input = base.mod.shf_down;
+      drag_state->user_requests_input = base.mod.shf_down;
     }
 
     // E.g. if this is a keyboard event, then we're done with it.
@@ -334,7 +337,7 @@ wait<> drag_drop_routine(
 
     // Check if the user wants to input anything.
     if( drag_user_input.has_value() &&
-        S.drag_state->user_requests_input ) {
+        drag_state->user_requests_input ) {
       maybe<ColViewObject_t> new_obj =
           co_await drag_user_input->user_edit_object();
       if( !new_obj ) {
@@ -412,16 +415,16 @@ wait<> drag_drop_routine(
   }
 
   // Rubber-band back to starting point.
-  S.drag_state->indicator = drag::e_status_indicator::none;
-  S.drag_state->user_requests_input = false;
+  drag_state->indicator = drag::e_status_indicator::none;
+  drag_state->user_requests_input = false;
 
-  Coord         start   = S.drag_state->where;
+  Coord         start   = drag_state->where;
   Coord         end     = origin;
   double        percent = 0.0;
   AnimThrottler throttle( kAlmostStandardFrame );
   while( percent <= 1.0 ) {
     co_await throttle();
-    S.drag_state->where =
+    drag_state->where =
         start + ( end - start ).multiply_and_round( percent );
     if( percent >= 1.0 ) break;
     percent += 0.15;
@@ -434,114 +437,11 @@ wait<> drag_drop_routine(
   // into smaller functions that maybe we can remove these and
   // just let the scope-exit macros do this if we place the
   // closing braces in the right spot.
-  S.drag_state = nothing;
+  drag_state = nothing;
   drag_source.cancel_drag();
 
   if( post_reject_message.has_value() )
-    co_await S.gui.message_box( "{}", *post_reject_message );
-}
-
-/****************************************************************
-** Input Handling
-*****************************************************************/
-// Returns true if the user wants to exit the colony view.
-wait<bool> handle_event( PS& S, Colony& colony,
-                         input::key_event_t const& event ) {
-  if( event.change != input::e_key_change::down )
-    co_return false;
-  if( event.mod.shf_down ) {
-    // Cheat commands.
-    switch( event.keycode ) {
-      case ::SDLK_1:
-        co_await cheat_colony_buildings( colony, S.gui );
-        colview_top_level().update();
-        break;
-      case ::SDLK_t:
-        cheat_create_new_colonist( S.units_state, S.map_updater,
-                                   colony );
-        colview_top_level().update();
-        break;
-      default: //
-        break;
-    }
-  }
-  switch( event.keycode ) {
-    case ::SDLK_ESCAPE: //
-      co_return true;
-    default: //
-      break;
-  }
-  co_return false;
-}
-
-// Returns true if the user wants to exit the colony view.
-wait<bool> handle_event(
-    PS& S, Colony& colony,
-    input::mouse_button_event_t const& event ) {
-  // Need to filter these out otherwise the start of drag events
-  // will call perform_click which we don't want.
-  if( event.buttons != input::e_mouse_button_event::left_up &&
-      event.buttons != input::e_mouse_button_event::right_up )
-    co_return false;
-  if( event.mod.shf_down ) {
-    // Cheat commands.
-    switch( event.buttons ) {
-      case input::e_mouse_button_event::left_up:
-        try_promote_demote_unit( S, event.pos,
-                                 /*demote=*/false );
-        try_increase_commodity( colony, event.pos );
-        break;
-      case input::e_mouse_button_event::right_up:
-        try_promote_demote_unit( S, event.pos,
-                                 /*demote=*/true );
-        try_decrease_commodity( colony, event.pos );
-        break;
-      default: break;
-    }
-    co_return false;
-  }
-  co_await colview_top_level().perform_click( event );
-  co_return false;
-}
-
-wait<bool> handle_event( PS& S, Colony& colony,
-                         input::win_event_t const& event ) {
-  if( event.type == input::e_win_event_type::resized )
-    // Force a re-composite.
-    set_colview_colony( S.gui, S.terrain_state, S.units_state,
-                        S.player, colony );
-  co_return false;
-}
-
-wait<bool> handle_event(
-    PS& S, Colony&, input::mouse_drag_event_t const& event ) {
-  co_await drag_drop_routine( S, event );
-  co_return false;
-}
-
-wait<bool> handle_event( PS&, Colony&, auto const& ) {
-  co_return false;
-}
-
-// Remove all input events from the queue corresponding to normal
-// user input, but save the ones that we always need to process,
-// such as window resize events (which are needed to maintain
-// proper drawing as the window is resized).
-void clear_non_essential_events( PS& S ) {
-  vector<input::event_t> saved;
-  while( S.input.ready() ) {
-    input::event_t e = S.input.next().get();
-    switch( e.to_enum() ) {
-      case input::e_input_event::win_event:
-        saved.push_back( std::move( e ) );
-        break;
-      default: break;
-    }
-  }
-  CHECK( !S.input.ready() );
-  // Re-insert the ones we want to save.
-  for( input::event_t& e : saved )
-    S.input.send( std::move( e ) );
+    co_await gui.message_box( "{}", *post_reject_message );
 }
 
 /****************************************************************
@@ -553,16 +453,16 @@ struct ColonyPlane::Impl : public Plane {
   Player& player_;
   Colony& colony_;
 
-  ColonyId                            colony_id  = {};
-  co::stream<input::event_t>          input      = {};
-  maybe<drag::State<ColViewObject_t>> drag_state = {};
+  ColonyId                            colony_id_  = {};
+  co::stream<input::event_t>          input_      = {};
+  maybe<drag::State<ColViewObject_t>> drag_state_ = {};
 
-  Impl( SS& ss, TS& ts, Colony& colony, Player& player )
+  Impl( SS& ss, TS& ts, Colony& colony )
     : ss_( ss ),
       ts_( ts ),
-      player_( player ),
+      player_( ss.players.players[colony.nation].value() ),
       colony_( colony ) {
-    set_colview_colony( ss_, ts_, player_, colony_ );
+    set_colview_colony( ss_, ts_, colony_ );
   }
 
   bool covers_screen() const override { return true; }
@@ -588,7 +488,7 @@ struct ColonyPlane::Impl : public Plane {
       // during a drag operation (which would cause dangling
       // pointers; see the comment about that in the dragging
       // coroutine. This should probably be fixed).
-      S_.input.send( input::win_event_t{
+      input_.send( input::win_event_t{
           input::event_base_t{},
           /*type=*/input::e_win_event_type::resized } );
     }
@@ -596,15 +496,15 @@ struct ColonyPlane::Impl : public Plane {
 
   void draw( rr::Renderer& renderer ) const override {
     draw_colony_view( colony_, renderer );
-    if( S_.drag_state.has_value() )
-      colview_drag_n_drop_draw( renderer, *S_.drag_state,
+    if( drag_state_.has_value() )
+      colview_drag_n_drop_draw( ss_, renderer, *drag_state_,
                                 canvas_.upper_left() );
   }
 
   e_input_handled input( input::event_t const& event ) override {
     input::event_t event_translated = move_mouse_origin_by(
         event, canvas_.upper_left().distance_from_origin() );
-    S_.input.send( event_translated );
+    input_.send( event_translated );
     if( event_translated.holds<input::win_event_t>() )
       // Generally we should return no here because this is an
       // event that we want all planes to see. FIXME: need to
@@ -616,19 +516,122 @@ struct ColonyPlane::Impl : public Plane {
   Plane::e_accept_drag can_drag(
       input::e_mouse_button /*button*/,
       Coord /*origin*/ ) override {
-    if( S_.drag_state ) return Plane::e_accept_drag::swallow;
+    if( drag_state_ ) return Plane::e_accept_drag::swallow;
     return e_accept_drag::yes_but_raw;
   }
 
   wait<> run_colview() {
     while( true ) {
-      input::event_t event = co_await S_.input.next();
+      input::event_t event = co_await input_.next();
       auto [exit, suspended] =
           co_await co::detect_suspend( std::visit(
-              LC( handle_event( S_, colony_, _ ) ), event ) );
-      if( suspended ) clear_non_essential_events( S_ );
+              LC( handle_event( colony_, _ ) ), event ) );
+      if( suspended ) clear_non_essential_events();
       if( exit ) co_return;
     }
+  }
+
+  /**************************************************************
+  ** Input Handling
+  ***************************************************************/
+  // Returns true if the user wants to exit the colony view.
+  wait<bool> handle_event( Colony&                   colony,
+                           input::key_event_t const& event ) {
+    if( event.change != input::e_key_change::down )
+      co_return false;
+    if( event.mod.shf_down ) {
+      // Cheat commands.
+      switch( event.keycode ) {
+        case ::SDLK_1:
+          co_await cheat_colony_buildings( colony, ts_.gui );
+          colview_top_level().update();
+          break;
+        case ::SDLK_t:
+          cheat_create_new_colonist( ss_.units, ts_.map_updater,
+                                     colony );
+          colview_top_level().update();
+          break;
+        default: //
+          break;
+      }
+    }
+    switch( event.keycode ) {
+      case ::SDLK_ESCAPE: //
+        co_return true;
+      default: //
+        break;
+    }
+    co_return false;
+  }
+
+  // Returns true if the user wants to exit the colony view.
+  wait<bool> handle_event(
+      Colony&                            colony,
+      input::mouse_button_event_t const& event ) {
+    // Need to filter these out otherwise the start of drag
+    // events will call perform_click which we don't want.
+    if( event.buttons != input::e_mouse_button_event::left_up &&
+        event.buttons != input::e_mouse_button_event::right_up )
+      co_return false;
+    if( event.mod.shf_down ) {
+      // Cheat commands.
+      switch( event.buttons ) {
+        case input::e_mouse_button_event::left_up:
+          try_promote_demote_unit( ss_, event.pos,
+                                   /*demote=*/false );
+          try_increase_commodity( colony, event.pos );
+          break;
+        case input::e_mouse_button_event::right_up:
+          try_promote_demote_unit( ss_, event.pos,
+                                   /*demote=*/true );
+          try_decrease_commodity( colony, event.pos );
+          break;
+        default: break;
+      }
+      co_return false;
+    }
+    co_await colview_top_level().perform_click( event );
+    co_return false;
+  }
+
+  wait<bool> handle_event( Colony&                   colony,
+                           input::win_event_t const& event ) {
+    if( event.type == input::e_win_event_type::resized )
+      // Force a re-composite.
+      set_colview_colony( ss_, ts_, colony );
+    co_return false;
+  }
+
+  wait<bool> handle_event(
+      Colony&, input::mouse_drag_event_t const& event ) {
+    co_await drag_drop_routine( input_, drag_state_, ts_.gui,
+                                event );
+    co_return false;
+  }
+
+  wait<bool> handle_event( Colony&, auto const& ) {
+    co_return false;
+  }
+
+  // Remove all input events from the queue corresponding to
+  // normal user input, but save the ones that we always need to
+  // process, such as window resize events (which are needed to
+  // maintain proper drawing as the window is resized).
+  void clear_non_essential_events() {
+    vector<input::event_t> saved;
+    while( input_.ready() ) {
+      input::event_t e = input_.next().get();
+      switch( e.to_enum() ) {
+        case input::e_input_event::win_event:
+          saved.push_back( std::move( e ) );
+          break;
+        default: break;
+      }
+    }
+    CHECK( !input_.ready() );
+    // Re-insert the ones we want to save.
+    for( input::event_t& e : saved )
+      input_.send( std::move( e ) );
   }
 
   Rect canvas_;
@@ -651,16 +654,18 @@ wait<> ColonyPlane::show_colony_view() const {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( SS& ss, TS& ts_old, Colony& colony ) {
-  WindowPlane window_plane;
-  RealGui     gui( window_plane );
-  TS          ts = ts_old.with_new( window_plane, gui );
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-  ColonyPlane colony_plane( ss, ts, colony, player );
-  auto        popper = ts.planes.new_group();
-  PlaneGroup& group  = ts.planes.back();
-  group.push( colony_plane );
-  group.push( window_plane );
+wait<> show_colony_view( Planes& planes, SS& ss, TS& ts,
+                         Colony& colony ) {
+  WindowPlane       window_plane;
+  RealGui           gui( window_plane );
+  PlaneGroup const& old_group = planes.back();
+  ColonyPlane       colony_plane( ss, ts, colony );
+  auto              popper    = ts.planes.new_group();
+  PlaneGroup&       new_group = ts.planes.back();
+  new_group.colony            = &colony_plane;
+  new_group.window            = &window_plane;
+  new_group.omni              = old_group.omni;
+  new_group.console           = old_group.console;
   lg.info( "viewing colony '{}'.", colony.name );
   co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
