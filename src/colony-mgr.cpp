@@ -43,10 +43,6 @@
 #include "config/nation.hpp"
 #include "config/unit-type.hpp"
 
-// luapp
-#include "luapp/ext-base.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -376,10 +372,6 @@ ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
            desc.adjective, where );
-
-  // Let Lua do anything that it needs to the colony.
-  CHECK_HAS_VALUE(
-      ts.lua["colony_mgr"]["on_founded_colony"].pcall( col ) );
 
   return col_id;
 }

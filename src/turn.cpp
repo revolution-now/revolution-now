@@ -351,7 +351,7 @@ wait<> process_player_input( e_menu_item item, Planes& planes,
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              Planes& planes, SS& ss, TS& ts,
-                             Player& player ) {
+                             Player& ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -364,8 +364,8 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
   }
 }
 
-wait<> process_player_input( next_turn_t, Planes& planes, SS& ss,
-                             TS& ts, Player& player ) {
+wait<> process_player_input( next_turn_t, Planes&, SS&, TS&,
+                             Player& ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
@@ -424,7 +424,7 @@ wait<> process_player_input( UnitId, e_menu_item item,
 wait<> process_player_input( UnitId                       id,
                              LandViewPlayerInput_t const& input,
                              Planes& planes, SS& ss, TS& ts,
-                             Player&          player,
+                             Player&,
                              NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;

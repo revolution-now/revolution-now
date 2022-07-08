@@ -14,6 +14,8 @@
 #include "src/colony-mgr.hpp"
 #include "src/harbor-units.hpp"
 #include "src/igui-mock.hpp"
+#include "src/lua.hpp"
+#include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"
@@ -28,8 +30,12 @@
 // luapp
 #include "luapp/state.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "src/base/keyval.hpp"
+#include "src/base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -80,8 +86,15 @@ Planes& World::planes() {
 }
 
 lua::state& World::lua() {
-  if( uninitialized_lua_ == nullptr )
+  if( uninitialized_lua_ == nullptr ) {
     uninitialized_lua_ = make_unique<lua::state>();
+    lua::state& st     = *uninitialized_lua_;
+    // FIXME: need to dedupe this logic.
+    st["ROOT"] = root();
+    st["TS"]   = st.table.create();
+    st["TS"]["map_updater"] =
+        static_cast<IMapUpdater&>( map_updater() );
+  }
   return *uninitialized_lua_;
 }
 
@@ -360,6 +373,11 @@ base::valid_or<string> World::validate_colonies() const {
                           colony_id, res.error() );
   }
   return base::valid;
+}
+
+void World::expensive_run_lua_init() {
+  lua::state& st = lua();
+  lua_init( st );
 }
 
 World::World()

@@ -45,8 +45,6 @@ using namespace std;
 using Catch::Contains;
 using Catch::Equals;
 
-Coord const kSquare{};
-
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -97,7 +95,8 @@ TEST_CASE( "[lua] semantic error" ) {
 
 TEST_CASE( "[lua] has base lib" ) {
   lua::state st;
-  auto       script = R"(
+  st.lib.open_all();
+  auto script = R"(
     return tostring( 5 ) .. type( function() end )
   )";
   REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
@@ -132,79 +131,7 @@ TEST_CASE( "[lua] returns string" ) {
            "hello!" );
 }
 
-TEST_CASE( "[lua] C++ function binding" ) {
-  lua::state st;
-  lua_init( st );
-  World W;
-  auto  script = R"(
-    local soldier_type =
-        unit_type.UnitType.create( "soldier" )
-    local soldier_comp = unit_composer
-                        .UnitComposition
-                        .create_with_type_obj( soldier_type )
-    local unit1 = ustate.create_unit_on_map( "dutch",
-                                             soldier_comp,
-                                             { x=0, y=0 } )
-    local unit2 = ustate.create_unit_on_map( "dutch",
-                                             soldier_comp,
-                                             { x=0, y=0 } )
-    local unit3 = ustate.create_unit_on_map( "dutch",
-                                             soldier_comp,
-                                             { x=0, y=0 } )
-    return unit3:id()-unit1:id()
-  )";
-
-  REQUIRE( st.script.run_safe<int>( script ) == 2 );
-}
-
-TEST_CASE( "[lua] frozen globals" ) {
-  lua::state st;
-  auto       xp = st.script.run_safe( "new_game = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only global" ) );
-
-  xp = st.script.run_safe( "new_game.x = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only table:" ) );
-
-  xp = st.script.run_safe( "ustate = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only global" ) );
-
-  xp = st.script.run_safe( "ustate.x = 1" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "attempt to modify a read-only table:" ) );
-
-  REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
-
-  REQUIRE( st.script.run_safe<int>(
-               "d = {}; d.x = 1; return d.x" ) == 1 );
-}
-
-TEST_CASE( "[lua] rawset is locked down" ) {
-  lua::state st;
-  // `id` is locked down.
-  auto xp = st.script.run_safe( "rawset( _ENV, 'id', 3 )" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
-
-  // `xxx` is not locked down, but rawset should fail for any
-  // key.
-  xp = st.script.run_safe( "rawset( _ENV, 'xxx', 3 )" );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
-}
-
 LUA_FN( throwing, int, int x ) {
-  lua::state   st;
   lua::cthread L = st.thread.main().cthread();
   if( x >= 10 )
     lua::throw_lua_error(
@@ -212,47 +139,11 @@ LUA_FN( throwing, int, int x ) {
   return x + 1;
 };
 
-TEST_CASE( "[lua] throwing" ) {
-  lua::state st;
-  auto       script = "return testing.throwing( 5 )";
-  REQUIRE( st.script.run_safe<int>( script ) == 6 );
-
-  script  = "return testing.throwing( 11 )";
-  auto xp = st.script.run_safe<int>( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT(
-      xp.error(),
-      Contains( "x (which is 11) must be less than 10." ) );
-}
-
 LUA_FN( coord_test, Coord, Coord const& coord ) {
   auto new_coord = coord;
   new_coord.x += 1;
   new_coord.y += 1;
   return new_coord;
-}
-
-TEST_CASE( "[lua] Coord" ) {
-  lua::state st;
-  auto       script = R"(
-    local coord = Coord{x=2, y=2}
-    -- Test equality.
-    assert_eq( coord, Coord{x=2,y=2} )
-    -- Test tostring.
-    assert_eq( tostring( coord ), "Coord{x=2,y=2}" )
-
-    coord = testing.coord_test( coord )
-    -- Test equality.
-    assert_eq( coord, Coord{x=3,y=3} )
-    -- Test tostring.
-    assert_eq( tostring( coord ), "Coord{x=3,y=3}" )
-
-    coord.x = coord.x + 1
-    coord.y = coord.y + 2
-    return coord
-  )";
-  REQUIRE( st.script.run_safe<Coord>( script ) ==
-           Coord{ .x = 4, .y = 5 } );
 }
 
 LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
@@ -270,43 +161,126 @@ LUA_FN( opt_test2, maybe<Coord>,
                 .y = maybe_coord->y + 1 };
 }
 
-TEST_CASE( "[lua] optional" ) {
+TEST_CASE( "[lua] after initialization" ) {
+  World W;
+  W.expensive_run_lua_init();
+  lua::state& st = W.lua();
+
+  // Function binding.
+  {
+    auto script = R"(
+      assert( type( ustate.create_unit_on_map ) == 'function' )
+      local soldier_type =
+          unit_type.UnitType.create( "soldier" )
+      local soldier_comp = unit_composer
+                          .UnitComposition
+                          .create_with_type_obj( soldier_type )
+      local unit1 = ustate.create_unit_on_map( "dutch",
+                                               soldier_comp,
+                                               { x=0, y=0 } )
+      local unit2 = ustate.create_unit_on_map( "dutch",
+                                               soldier_comp,
+                                               { x=0, y=0 } )
+      local unit3 = ustate.create_unit_on_map( "dutch",
+                                               soldier_comp,
+                                               { x=0, y=0 } )
+      return unit3:id()-unit1:id()
+    )";
+
+    REQUIRE( W.lua().script.run_safe<int>( script ) == 2 );
+  }
+
+  // Frozen globals.
+  {
+    auto xp = st.script.run_safe( "new_game = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error(),
+        Contains( "attempt to modify a read-only global" ) );
+
+    xp = st.script.run_safe( "new_game.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error(),
+        Contains( "attempt to modify a read-only table:" ) );
+
+    xp = st.script.run_safe( "ustate = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error(),
+        Contains( "attempt to modify a read-only global" ) );
+
+    xp = st.script.run_safe( "ustate.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error(),
+        Contains( "attempt to modify a read-only table:" ) );
+
+    REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
+
+    REQUIRE( st.script.run_safe<int>(
+                 "d = {}; d.x = 1; return d.x" ) == 1 );
+  }
+
+  // Throwing.
+  {
+    auto script = "return testing.throwing( 5 )";
+    REQUIRE( st.script.run_safe<int>( script ) == 6 );
+
+    script  = "return testing.throwing( 11 )";
+    auto xp = st.script.run_safe<int>( script );
+    REQUIRE( !xp.has_value() );
+    REQUIRE_THAT(
+        xp.error(),
+        Contains( "x (which is 11) must be less than 10." ) );
+  }
+
+  // optional
+  {
+    // string/int
+    auto script = R"(
+      assert( testing.opt_test( nil ) == "got nothing"  )
+      assert( testing.opt_test( 0   ) ==  nil           )
+      assert( testing.opt_test( 4   ) ==  nil           )
+      assert( testing.opt_test( 5   ) == "less than 10" )
+      assert( testing.opt_test( 9   ) == "less than 10" )
+      assert( testing.opt_test( 10  ) == "10"           )
+      assert( testing.opt_test( 100 ) == "100"          )
+    )";
+    REQUIRE( st.script.run_safe( script ) == valid );
+
+    REQUIRE( st.script.run_safe<maybe<string>>( "return nil" ) ==
+             nothing );
+    REQUIRE( st.script.run_safe<maybe<string>>(
+                 "return 'hello'" ) == "hello" );
+    REQUIRE( st.script.run_safe<maybe<int>>(
+                 "return 'hello'" ) == nothing );
+
+    // Coord
+    REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
+             nothing );
+    REQUIRE( st.script.run_safe<maybe<Coord>>(
+                 "return {x=9, y=8}" ) ==
+             Coord{ .x = 9, .y = 8 } );
+    REQUIRE( st.script.run_safe<maybe<Coord>>(
+                 "return 'hello'" ) == nothing );
+    REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==
+             nothing );
+  }
+}
+
+TEST_CASE( "[lua] rawset is locked down" ) {
   lua::state st;
-  // string/int
-  auto script = R"(
-    assert( testing.opt_test( nil ) == "got nothing"  )
-    assert( testing.opt_test( 0   ) ==  nil           )
-    assert( testing.opt_test( 4   ) ==  nil           )
-    assert( testing.opt_test( 5   ) == "less than 10" )
-    assert( testing.opt_test( 9   ) == "less than 10" )
-    assert( testing.opt_test( 10  ) == "10"           )
-    assert( testing.opt_test( 100 ) == "100"          )
-  )";
-  REQUIRE( st.script.run_safe( script ) == valid );
+  // `id` is locked down.
+  auto xp = st.script.run_safe( "rawset( _ENV, 'id', 3 )" );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
 
-  REQUIRE( st.script.run_safe<maybe<string>>( "return nil" ) ==
-           nothing );
-  REQUIRE( st.script.run_safe<maybe<string>>(
-               "return 'hello'" ) == "hello" );
-  REQUIRE( st.script.run_safe<maybe<int>>( "return 'hello'" ) ==
-           nothing );
-
-  // Coord
-  auto script2 = R"(
-    assert( testing.opt_test2( nil            ) == Coord{x=5,y=7} )
-    assert( testing.opt_test2( Coord{x=2,y=3} ) == Coord{x=3,y=4} )
-  )";
-  REQUIRE( st.script.run_safe( script2 ) == valid );
-
-  REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
-           nothing );
-  REQUIRE( st.script.run_safe<maybe<Coord>>(
-               "return Coord{x=9, y=8}" ) ==
-           Coord{ .x = 9, .y = 8 } );
-  REQUIRE( st.script.run_safe<maybe<Coord>>(
-               "return 'hello'" ) == nothing );
-  REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==
-           nothing );
+  // `xxx` is not locked down, but rawset should fail for any
+  // key.
+  xp = st.script.run_safe( "rawset( _ENV, 'xxx', 3 )" );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
 }
 
 // Test the o.as<maybe<?>>() constructs. This tests the custom
@@ -335,17 +309,6 @@ TEST_CASE( "[lua] get as maybe" ) {
 
   REQUIRE( lua::as<maybe<string>>( st["func"]( false ) ) ==
            "a bool: false" );
-}
-
-TEST_CASE( "[lua] new_usertype" ) {
-  lua::state st;
-  auto       script = R"(
-    u = MyType.new()
-    assert( u.x == 5 )
-    assert( u:get() == "c" )
-    assert( u:add( 4, 5 ) == 9+5 )
-  )";
-  REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 TEST_CASE( "[lua] run lua tests" ) {

@@ -537,9 +537,7 @@ void lua_push( lua::cthread L, Coord const& coord ) {
   t["x"]       = coord.x;
   t["y"]       = coord.y;
 
-  // Delegate to the Lua factory function because it puts some
-  // metatables in there for us.
-  lua::push( L, st["Coord"]( t ) );
+  lua::push( L, t );
 }
 
 base::maybe<Delta> lua_get( lua::cthread L, int idx,
@@ -563,9 +561,7 @@ void lua_push( lua::cthread L, Delta const& delta ) {
   t["w"]       = delta.w;
   t["h"]       = delta.h;
 
-  // Delegate to the Lua factory function because it puts some
-  // metatables in there for us.
-  lua::push( L, st["Delta"]( t ) );
+  lua::push( L, t );
 }
 
 } // namespace rn

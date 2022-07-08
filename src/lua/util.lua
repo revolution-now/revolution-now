@@ -12,32 +12,6 @@
 local M = {}
 
 -- FIXME: global
-function Coord( arg )
-  return setmetatable( { x=arg.x, y=arg.y }, {
-    __tostring=function( self )
-      return 'Coord{x=' .. tostring( self.x ) .. ',y=' ..
-                 tostring( self.y ) .. '}'
-    end,
-    __eq=function( lhs, rhs )
-      return lhs.x == rhs.x and lhs.y == rhs.y
-    end
-  } )
-end
-
--- FIXME: global
-function Delta( arg )
-  return setmetatable( { w=arg.w, h=arg.h }, {
-    __tostring=function( self )
-      return 'Delta{w=' .. tostring( self.w ) .. ',h=' ..
-                 tostring( self.h ) .. '}'
-    end,
-    __eq=function( lhs, rhs )
-      return lhs.w == rhs.w and lhs.h == rhs.h
-    end
-  } )
-end
-
--- FIXME: global
 function assert_eq( lhs, rhs )
   if lhs ~= rhs then
     error( 'assertion failed: ' .. tostring( lhs ) .. ' != ' ..

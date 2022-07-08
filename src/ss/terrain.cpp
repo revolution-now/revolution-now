@@ -144,20 +144,6 @@ bool TerrainState::is_land( Coord coord ) const {
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::TerrainState;
-
-  auto u = st.usertype.create<U>();
-
-  u["placement_seed"]     = &U::placement_seed;
-  u["set_placement_seed"] = &U::set_placement_seed;
-  u["size"]               = &U::world_size_tiles;
-  u["square_exists"]      = &U::square_exists;
-  u["square_at"]          = &U::mutable_square_at;
-
-  u["reset"] = []( U& o, Delta size ) {
-    o.mutable_world_map() = Matrix<MapSquare>( size );
-  };
-
   // ProtoSquaresMap.
   // TODO: make this generic.
   [&] {
@@ -167,6 +153,24 @@ LUA_STARTUP( lua::state& st ) {
     u[lua::metatable_key]["__index"] =
         [&]( U& obj, e_cardinal_direction c ) -> MapSquare& {
       return obj[c];
+    };
+  }();
+
+  // TerrainState.
+  [&] {
+    using U = ::rn::TerrainState;
+
+    auto u = st.usertype.create<U>();
+
+    u["placement_seed"]     = &U::placement_seed;
+    u["set_placement_seed"] = &U::set_placement_seed;
+    u["size"]               = &U::world_size_tiles;
+    u["square_exists"]      = &U::square_exists;
+    u["square_at"]          = &U::mutable_square_at;
+    u["proto_square"]       = &U::mutable_proto_square;
+
+    u["reset"] = []( U& o, Delta size ) {
+      o.mutable_world_map() = Matrix<MapSquare>( size );
     };
   }();
 };

@@ -216,6 +216,11 @@ struct World {
 
   IMapUpdater& map_updater() { return *map_updater_; }
 
+  // Run lua_init. This will load all of the lua modules; should
+  // only be done when needed. It is very bad to have many test
+  // cases calling this.
+  void expensive_run_lua_init();
+
  private:
   e_nation default_nation_ = e_nation::dutch;
 

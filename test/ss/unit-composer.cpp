@@ -14,6 +14,9 @@
 #include "src/ss/unit-composer.hpp"
 
 // Revolution Now
+#include "src/lua.hpp"
+
+// luapp
 #include "src/luapp/state.hpp"
 
 // refl
@@ -2509,6 +2512,8 @@ TEST_CASE( "[unit-composer] adjust_for_independence_status" ) {
 
 TEST_CASE( "[unit-composer] lua bindings" ) {
   lua::state st;
+  st.lib.open_all();
+  run_lua_startup_routines( st );
 
   auto script = R"(
     local uc

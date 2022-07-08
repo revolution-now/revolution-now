@@ -14,10 +14,13 @@
 #include "src/ss/unit-type.hpp"
 
 // Revolution Now
-#include "src/luapp/state.hpp"
+#include "src/lua.hpp"
 
 // Config
 #include "config/unit-type.hpp"
+
+// luapp
+#include "src/luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -1195,6 +1198,8 @@ TEST_CASE( "[unit-type] cleared_expertise" ) {
 
 TEST_CASE( "[unit-type] lua bindings" ) {
   lua::state st;
+  st.lib.open_all();
+  run_lua_startup_routines( st );
 
   auto script = R"(
     local ut

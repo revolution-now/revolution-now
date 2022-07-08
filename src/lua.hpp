@@ -21,6 +21,12 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
+// This runs the full init routine including loading all modules,
+// which is expensive.
 void lua_init( lua::state& st );
+
+// This is mainly for unit tests where we want to run the startup
+// routines but nothing else, for efficiency.
+void run_lua_startup_routines( lua::state& st );
 
 } // namespace rn

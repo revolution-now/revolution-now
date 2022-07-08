@@ -72,8 +72,7 @@ lua::table require( lua::state&   st,
   return module_table;
 }
 
-void reset_lua_state( lua::state& st ) {
-  st = lua::state{};
+void add_some_members( lua::state& st ) {
   // FIXME
   st.lib.open_all();
   CHECK( st["log"] == lua::nil );
@@ -103,13 +102,8 @@ void reset_lua_state( lua::state& st ) {
     lg.info( "{}", C.pop_tostring() );
   };
   st["require"] = [&]( string const& name ) {
-    require( st, name );
+    return require( st, name );
   };
-}
-
-void run_lua_startup_routines( lua::state& st ) {
-  lg.info( "registering Lua functions." );
-  for( auto fn : lua::registration_functions() ) ( *fn )( st );
 }
 
 void load_lua_modules( lua::state& st ) {
@@ -125,8 +119,13 @@ void load_lua_modules( lua::state& st ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
+void run_lua_startup_routines( lua::state& st ) {
+  lg.info( "registering Lua functions." );
+  for( auto fn : lua::registration_functions() ) ( *fn )( st );
+}
+
 void lua_init( lua::state& st ) {
-  reset_lua_state( st );
+  add_some_members( st );
   run_lua_startup_routines( st );
   load_lua_modules( st );
   // Freeze all existing global variables and tables.

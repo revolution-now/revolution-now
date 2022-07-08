@@ -125,6 +125,17 @@ local function random_point_in_rect( rect )
 end
 
 -----------------------------------------------------------------
+-- Basic map access.
+-----------------------------------------------------------------
+-- The square must exist.
+local function square_at( coord )
+  assert( ROOT.terrain:square_exists( coord ) )
+  return ROOT.terrain:square_at( coord )
+end
+
+local function world_size() return ROOT.terrain:size() end
+
+-----------------------------------------------------------------
 -- Algorithms
 -----------------------------------------------------------------
 -- This will call the function on each square of the map, passing
@@ -139,23 +150,6 @@ local function on_all( f )
       f( coord, square )
     end
   end
-end
-
------------------------------------------------------------------
--- Basic map access.
------------------------------------------------------------------
--- The square must exist.
-local function square_at( coord )
-  return ROOT.terrain:square_at( coord )
-end
-
-local function world_size() return ROOT.terrain:size() end
-
--- This will create a new empty map set all squares to water.
-local function reset_terrain( options )
-  ROOT.terrain.reset( options.world_size )
-  -- FIXME: needed?
-  on_all( set_water )
 end
 
 -----------------------------------------------------------------
@@ -185,14 +179,25 @@ local function set_water( coord )
   square.sea_lane = false
 end
 
+-- This will create a new empty map set all squares to water.
+local function reset_terrain( options )
+  ROOT.terrain:reset( options.world_size )
+  -- FIXME: needed?
+  on_all( set_water )
+end
+
 local function is_square_water( square )
   return square.surface == 'water'
 end
 
-local function set_arctic( coord )
-  local square = square_at( coord )
+local function set_square_arctic( square )
   square.surface = 'land'
   square.ground = 'arctic'
+end
+
+local function set_arctic( coord )
+  local square = square_at( coord )
+  set_square_arctic( square )
 end
 
 local function is_arctic_square( square )
@@ -204,10 +209,14 @@ local function is_sea_lane( coord )
   return square.sea_lane
 end
 
-local function set_sea_lane( coord )
-  local square = square_at( coord )
+local function set_square_sea_lane( square )
   square.surface = 'water'
   square.sea_lane = true
+end
+
+local function set_sea_lane( coord )
+  local square = square_at( coord )
+  set_square_sea_lane( square )
 end
 
 local function square_has_river( square )
@@ -561,7 +570,8 @@ local RESOURCES_FOREST = {
 -- are the only squares that will be accessible to any colony. So
 -- here we will just do one square.
 local function can_place_fish( coord )
-  local squares = surrounding_squares_3x3( coord )
+  local squares =
+      filter_on_map( surrounding_squares_3x3( coord ) )
   for _, coord in ipairs( squares ) do
     if square_at( coord ).surface == 'land' then return true end
   end
@@ -730,7 +740,8 @@ local function remove_islands()
   local size = world_size()
   on_all( function( coord, square )
     if coord.y > 0 and coord.y < size.h - 1 then
-      local surrounding = surrounding_squares_3x3( coord )
+      local surrounding = filter_on_map(
+                              surrounding_squares_3x3( coord ) )
       local has_land = false
       for _, square in ipairs( surrounding ) do
         if square_at( square ).surface == 'land' then
@@ -755,7 +766,8 @@ local function remove_river_islands()
     -- Note that we only consider the adjacent squares in the
     -- cardinal directions because those are how rivers are
     -- joined to each other in the game and visually.
-    local surrounding = surrounding_squares_cardinal( coord )
+    local surrounding = filter_on_map(
+                            surrounding_squares_cardinal( coord ) )
     local has_river = false
     for _, square in ipairs( surrounding ) do
       if square_at( square ).river ~= nil then
@@ -847,7 +859,8 @@ local function create_rivers( options )
         -- Before starting a new river make sure there are no ex-
         -- isting rivers in the vicinity. Without this, the
         -- rivers tend to clump too much.
-        local squares = surrounding_squares_3x3( coord )
+        local squares = filter_on_map(
+                            surrounding_squares_3x3( coord ) )
         for _, coord in ipairs( squares ) do
           if square_at( coord ).river then goto skip end
         end
@@ -876,12 +889,12 @@ local function generate_proto_squares()
   local size = world_size()
 
   -- Arctic.
-  set_arctic{ x=0, y=-1 }
-  set_arctic{ x=0, y=size.h }
+  set_square_arctic( ROOT.terrain:proto_square( 'n' ) )
+  set_square_arctic( ROOT.terrain:proto_square( 's' ) )
 
   -- Sea lane.
-  set_sea_lane{ x=-1, y=0 }
-  set_sea_lane{ x=size.w, y=0 }
+  set_square_sea_lane( ROOT.terrain:proto_square( 'e' ) )
+  set_square_sea_lane( ROOT.terrain:proto_square( 'w' ) )
 end
 
 -----------------------------------------------------------------
@@ -1220,6 +1233,8 @@ local function generate( options )
   create_indian_villages()
 end
 
-M.generate = timer.timed( 'map generation', generate )
+function M.generate( ... )
+  timer.log_time( 'map generation', generate, ... )
+end
 
 return M

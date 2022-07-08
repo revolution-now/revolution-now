@@ -59,7 +59,7 @@ struct World : testing::World {
       _, L, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 5 );
+    build_map( std::move( tiles ), 4 );
   }
 };
 
@@ -93,8 +93,12 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
 
   SECTION( "dragoon" ) {
     Coord const coord = { .x = 1, .y = 1 };
-    UnitId id = W.add_unit_on_map( e_unit_type::dragoon, coord );
-    Unit&  founder = W.units().unit_for( id );
+    UnitId      id    = W.add_unit_on_map(
+                UnitType::create( e_unit_type::dragoon,
+                                  e_unit_type::petty_criminal )
+                    .value(),
+                coord );
+    Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
     ColonyId col_id =
@@ -224,22 +228,6 @@ TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
           e_found_colony_err::non_human_cannot_found_colony ) );
 }
 
-vector<ColonyId> colonies_all(
-    ColoniesState const& colonies_state ) {
-  vector<ColonyId> ids;
-  for( auto const& [id, colony] : colonies_state.all() )
-    ids.push_back( id );
-  return ids;
-}
-
-vector<ColonyId> colonies_all(
-    ColoniesState const& colonies_state, e_nation nation ) {
-  vector<ColonyId> ids;
-  for( auto const& [id, colony] : colonies_state.all() )
-    if( colony.nation == nation ) ids.push_back( id );
-  return ids;
-}
-
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   World   W;
   Colony& colony =
@@ -253,11 +241,12 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
 
   // These will check-fail if they don't exist.
   W.colonies().colony_for( ColonyId{ 1 } );
-  W.colonies().colony_for( ColonyId{ 2 } );
 
   Colony& colony2 =
       W.add_colony( Coord{ .x = 1, .y = 3 }, e_nation::dutch );
   REQUIRE( colony2.id == 2 );
+  W.colonies().colony_for( ColonyId{ 1 } );
+  W.colonies().colony_for( ColonyId{ 2 } );
   REQUIRE( W.colonies().all().size() == 2 );
   REQUIRE( W.colonies().all().contains( 1 ) );
   REQUIRE( W.colonies().all().contains( 2 ) );

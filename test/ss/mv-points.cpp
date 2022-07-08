@@ -13,7 +13,7 @@
 // Under test.
 #include "src/ss/mv-points.hpp"
 
-// Revolution Now
+// luapp
 #include "src/luapp/state.hpp"
 
 // cdr
@@ -74,6 +74,7 @@ TEST_CASE( "[mv-points] negative" ) {
 
 TEST_CASE( "[mv-points] lua conversion" ) {
   lua::state st;
+  st.lib.open_all();
 
   auto script = R"(
     function f( mv_points )

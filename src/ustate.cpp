@@ -288,6 +288,7 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
+  CHECK( st["ROOT"] != lua::nil );
   UnitsState& units_state =
       st["ROOT"]["units"].as<UnitsState&>();
   IMapUpdater& map_updater =

@@ -166,7 +166,7 @@ ColonyId ColoniesState::next_colony_id() {
 
 ColonyId ColoniesState::last_colony_id() const {
   CHECK( o_.next_colony_id > 0, "no colonies yet created." );
-  return ColonyId{ o_.next_colony_id };
+  return ColonyId{ o_.next_colony_id - 1 };
 }
 
 base::maybe<ColonyId> ColoniesState::maybe_from_coord(

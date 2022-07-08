@@ -8,9 +8,12 @@
 * Description: Provides main() for the unit tests.
 *
 *****************************************************************/
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
-#include "init.hpp"
-#include "linking.hpp"
+#include "src/init.hpp"
+#include "src/linking.hpp"
 
 #define CATCH_CONFIG_RUNNER
 #include "catch2/catch.hpp"

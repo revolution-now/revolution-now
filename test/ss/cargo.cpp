@@ -208,10 +208,12 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   World           W;
   CargoHoldTester ch( 1 );
 
-  auto cargo = GENERATE_REF(
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ create_unit(
-          W.units(), e_nation::english,
-          UnitType::create( e_unit_type::free_colonist ) ) } },
+  UnitId id = create_unit(
+      W.units(), e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ) );
+
+  CargoSlot::cargo cargo = GENERATE_REF(
+      CargoSlot::cargo{ /*contents=*/Cargo::unit{ id } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100 } } } );
 
@@ -301,10 +303,12 @@ TEST_CASE(
   World           W;
   CargoHoldTester ch( 6 );
 
+  UnitId id = create_unit(
+      W.units(), e_nation::english,
+      UnitType::create( e_unit_type::free_colonist ) );
+
   auto cargo = GENERATE_REF(
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ create_unit(
-          W.units(), e_nation::english,
-          UnitType::create( e_unit_type::free_colonist ) ) } },
+      CargoSlot::cargo{ /*contents=*/Cargo::unit{ id } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100 } } } );
 
