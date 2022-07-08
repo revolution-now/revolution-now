@@ -1175,7 +1175,7 @@ function M.redistribute_resources( placement_seed )
   placement_seed = placement_seed or set_random_placement_seed()
   distribute_prime_resources( placement_seed )
   distribute_lost_city_rumors( placement_seed )
-  render_terrain.redraw()
+  TS.map_updater:redraw()
 end
 
 -- This will recompute the distribution of resources but with the
@@ -1189,7 +1189,7 @@ function M.remake_rivers( options )
   options = options or M.default_options()
   on_all( function( coord, square ) square.river = nil end )
   create_rivers( options )
-  render_terrain.redraw()
+  TS.map_updater:redraw()
 end
 
 -----------------------------------------------------------------
@@ -1197,7 +1197,7 @@ end
 -----------------------------------------------------------------
 function M.regen( options )
   M.generate( options )
-  render_terrain.redraw()
+  TS.map_updater:redraw()
 end
 
 local function generate( options )
