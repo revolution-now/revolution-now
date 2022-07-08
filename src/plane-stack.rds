@@ -16,14 +16,14 @@ namespace "rn"
 # specified order. That said, the ordering of two planes that
 # will never be simultaneously visible is not relevant.
 enum.e_plane {
-  omni,
-  console,
-  window,
   main_menu,
-  menu,
-  panel,
-  map_edit,
   land_view,
+  map_edit,
+  panel,
+  menu,
   colony,
   harbor,
+  window,
+  console,
+  omni,
 }

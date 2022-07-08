@@ -12,12 +12,14 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
+#include "co-wait.hpp"
 #include "conductor.hpp"
 #include "console.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
+#include "lua.hpp"
 #include "map-updater-lua.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
@@ -86,19 +88,29 @@ wait<> run_game(
       global_renderer_use_only_when_needed() );
 
   lua::state& st = planes.console().lua_state();
-  loader( ss, st );
-  // FIXME: need to deal with frozen globals.
-  st["ROOT"] = ss.root;
-
-  st["TS"] = st.table.create();
+  st["ROOT"]     = ss.root;
+  st["TS"]       = st.table.create();
   st["TS"]["map_updater"] =
       static_cast<IMapUpdater&>( map_updater );
+
+  loader( ss, st );
 
   map_updater.redraw();
   ensure_human_player( ss.players );
 
+  auto        popper = planes.new_copied_group();
+  PlaneGroup& group  = planes.back();
+
   WindowPlane window_plane;
-  RealGui     gui( window_plane );
+  group.window = &window_plane;
+
+  MenuPlane menu_plane;
+  group.menu = &menu_plane;
+
+  PanelPlane panel_plane( planes, ss );
+  group.panel = &panel_plane;
+
+  RealGui gui( window_plane );
 
   TS ts{
       .planes      = planes,
@@ -107,26 +119,14 @@ wait<> run_game(
       .gui         = gui,
   };
 
-  MenuPlane     menu_plane;
   LandViewPlane land_view_plane( planes, ss, ts );
-  PanelPlane    panel_plane( planes, ss );
-
-  auto        popper = planes.new_copied_group();
-  PlaneGroup& group  = planes.back();
-  group.land_view    = &land_view_plane;
-  group.panel        = &panel_plane;
-  group.menu         = &menu_plane;
-  group.window       = &window_plane;
+  group.land_view = &land_view_plane;
 
   // land_view_plane.zoom_out_full();
 
-  // TODO: give lua access to the renderer and map_updater as
-  // well. That should then allow getting rid of all global state
-  // completely. Put the lua definitions for those types in sepa-
-  // rate files.
-
   play( e_game_module_tune_points::start_game );
-  return co::erase( co::try_<game_quit_interrupt>(
+  // All of the above needs to stay alive, so we must wait.
+  co_await co::erase( co::try_<game_quit_interrupt>(
       [&] { return turn_loop( planes, ss, ts ); } ) );
 }
 

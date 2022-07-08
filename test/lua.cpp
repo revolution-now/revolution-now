@@ -165,6 +165,7 @@ TEST_CASE( "[lua] after initialization" ) {
   World W;
   W.expensive_run_lua_init();
   lua::state& st = W.lua();
+  freeze_globals( st );
 
   // Function binding.
   {

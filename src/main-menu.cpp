@@ -176,12 +176,14 @@ wait<> MainMenuPlane::run() {
 ** API
 *****************************************************************/
 wait<> run_main_menu( Planes& planes ) {
-  WindowPlane   window_plane;
+  auto        popper    = planes.new_copied_group();
+  PlaneGroup& new_group = planes.back();
+  WindowPlane window_plane;
+  new_group.window = &window_plane;
+
+  // Relies on the window plane being present.
   MainMenuPlane main_menu_plane( planes );
-  auto          popper    = planes.new_copied_group();
-  PlaneGroup&   new_group = planes.back();
-  new_group.main_menu     = &main_menu_plane;
-  new_group.window        = &window_plane;
+  new_group.main_menu = &main_menu_plane;
   co_await main_menu_plane.run();
 }
 

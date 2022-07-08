@@ -158,6 +158,10 @@ vector<Plane*> Planes::active_planes() const {
   for( e_plane plane : refl::enum_values<e_plane> ) {
     maybe<Plane&> p = plane_pointer( pg, plane );
     if( !p.has_value() ) continue;
+    // This will ensure that planes that are completely obscured
+    // by a another plane on top of them will not be considered
+    // for either drawing or input.
+    if( p->covers_screen() ) res.clear();
     res.push_back( addressof( *p ) );
   }
   return res;

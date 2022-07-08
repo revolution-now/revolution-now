@@ -124,12 +124,15 @@ void run_lua_startup_routines( lua::state& st ) {
   for( auto fn : lua::registration_functions() ) ( *fn )( st );
 }
 
+void freeze_globals( lua::state& st ) {
+  // Freeze all existing global variables and global tables.
+  st["meta"]["freeze_all"]();
+}
+
 void lua_init( lua::state& st ) {
   add_some_members( st );
   run_lua_startup_routines( st );
   load_lua_modules( st );
-  // Freeze all existing global variables and tables.
-  st["meta"]["freeze_all"]();
 }
 
 } // namespace rn

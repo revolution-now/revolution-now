@@ -29,4 +29,6 @@ void lua_init( lua::state& st );
 // routines but nothing else, for efficiency.
 void run_lua_startup_routines( lua::state& st );
 
+void freeze_globals( lua::state& st );
+
 } // namespace rn
