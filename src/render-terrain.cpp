@@ -34,8 +34,6 @@ namespace rn {
 
 namespace {
 
-bool g_show_grid = false;
-
 constexpr double g_tile_overlap_scaling       = .8;
 constexpr double g_tile_overlap_width_percent = .2;
 
@@ -1819,7 +1817,7 @@ void render_terrain_square(
                           world_square );
   if( options.render_lcrs )
     render_lost_city_rumor( painter, where, square );
-  if( g_show_grid )
+  if( options.grid )
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel{ 0, 0, 0, 30 } );

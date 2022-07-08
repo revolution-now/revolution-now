@@ -18,6 +18,7 @@
 #include "fathers.hpp"
 #include "lua-ui.hpp"
 #include "map-gen.hpp"
+#include "map-updater-lua.hpp"
 #include "player.hpp"
 #include "sound.hpp"
 #include "time.hpp"
@@ -45,6 +46,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_time();
   linker_dont_discard_module_gs_land_view();
   linker_dont_discard_module_gs_map_square();
+  linker_dont_discard_module_map_updater_lua();
   // Add more here as needed.
 }
 

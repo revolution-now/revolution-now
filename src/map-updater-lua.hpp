@@ -19,6 +19,8 @@ namespace rn {
 
 struct IMapUpdater;
 
+void linker_dont_discard_module_map_updater_lua();
+
 } // namespace rn
 
 /****************************************************************

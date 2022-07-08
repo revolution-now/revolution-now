@@ -654,18 +654,30 @@ wait<> ColonyPlane::show_colony_view() const {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, SS& ss, TS& ts,
+wait<> show_colony_view( Planes& planes, SS& ss, TS& ts_old,
                          Colony& colony ) {
-  WindowPlane       window_plane;
-  RealGui           gui( window_plane );
   PlaneGroup const& old_group = planes.back();
-  ColonyPlane       colony_plane( ss, ts, colony );
-  auto              popper    = ts.planes.new_group();
-  PlaneGroup&       new_group = ts.planes.back();
-  new_group.colony            = &colony_plane;
-  new_group.window            = &window_plane;
-  new_group.omni              = old_group.omni;
-  new_group.console           = old_group.console;
+  auto              popper    = planes.new_group();
+  PlaneGroup&       new_group = planes.back();
+
+  new_group.omni    = old_group.omni;
+  new_group.console = old_group.console;
+
+  WindowPlane window_plane;
+  new_group.window = &window_plane;
+
+  RealGui gui( window_plane );
+
+  TS ts{
+      .planes      = planes,
+      .map_updater = ts_old.map_updater,
+      .lua         = ts_old.lua,
+      .gui         = gui,
+  };
+
+  ColonyPlane colony_plane( ss, ts, colony );
+  new_group.colony = &colony_plane;
+
   lg.info( "viewing colony '{}'.", colony.name );
   co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
