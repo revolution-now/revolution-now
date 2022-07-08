@@ -316,11 +316,14 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
 
-  if( unit.type() == e_unit_type::native_convert )
-    return invalid( Res_t::native_convert_cannot_found );
-
   if( !unit.is_human() )
     return invalid( Res_t::non_human_cannot_found_colony );
+
+  if( !can_unit_found( unit.type_obj() ) ) {
+    if( unit.type() == e_unit_type::native_convert )
+      return invalid( Res_t::native_convert_cannot_found );
+    return invalid( Res_t::unit_cannot_found );
+  }
 
   auto maybe_coord =
       coord_for_unit_indirect( units_state, founder );

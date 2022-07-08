@@ -94,6 +94,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -140,6 +141,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -187,6 +189,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -233,6 +236,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.can_found ==
+             e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 4 );
     REQUIRE( desc.attack_points == 4 );
@@ -272,6 +277,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.can_found ==
+             e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 2 );
     REQUIRE( desc.movement_points == 4 );
     REQUIRE( desc.attack_points == 1 );
@@ -308,6 +315,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.can_found ==
+             e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -345,6 +354,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_position == e_direction::n );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::no );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::no );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
@@ -1268,6 +1278,39 @@ TEST_CASE( "[unit-type] unit human status" ) {
   ut       = UnitType::create( e_unit_type::small_treasure );
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
+}
+
+TEST_CASE( "[unit-type] unit can_found status" ) {
+  bool     expected;
+  UnitType ut;
+
+  ut       = UnitType::create( e_unit_type::free_colonist );
+  expected = true;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::native_convert );
+  expected = false;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::dragoon );
+  expected = true;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::veteran_colonist );
+  expected = true;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::hardy_pioneer );
+  expected = true;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::wagon_train );
+  expected = false;
+  REQUIRE( can_unit_found( ut ) == expected );
+
+  ut       = UnitType::create( e_unit_type::small_treasure );
+  expected = false;
+  REQUIRE( can_unit_found( ut ) == expected );
 }
 
 } // namespace

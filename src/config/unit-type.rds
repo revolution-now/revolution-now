@@ -35,6 +35,12 @@ enum.e_unit_human {
   from_base,
 }
 
+enum.e_unit_can_found_colony {
+  no,
+  yes,
+  from_base,
+}
+
 struct.UnitInventoryTraits {
   commodity 'base::maybe<e_commodity>',
   min_quantity 'int',
@@ -180,6 +186,10 @@ struct.UnitTypeAttributes {
   # well-defined value for this field for a derived type. For a
   # base type, it can be either "yes" or "no".
   human 'e_unit_human',
+
+  # Can this unit found a colony. Derived types must have a value
+  # of from_base.
+  can_found 'e_unit_can_found_colony',
 
   # If this is a derived unit type then it must specify a canon-
   # ical base type that will be used to construct.it when none is

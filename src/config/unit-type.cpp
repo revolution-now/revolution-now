@@ -183,6 +183,37 @@ valid_or<string> UnitCompositionConfig::validate() const {
     }
   }
 
+  // Validate that only base types have can_found == yes/no and
+  // derived types have can_found == from_base.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.is_derived ) {
+      REFL_VALIDATE(
+          type_struct.can_found ==
+              e_unit_can_found_colony::from_base,
+          "derived type {} must have `from_base` for its "
+          "`can_found` field.",
+          type );
+    } else {
+      // Not derived type.
+      REFL_VALIDATE(
+          type_struct.can_found !=
+              e_unit_can_found_colony::from_base,
+          "base type {} must not have `from_base` for its "
+          "`can_found` field.",
+          type );
+    }
+  }
+
+  // Validate that if can_found is yes, then is_human is true.
+  for( auto& [type, type_struct] : m ) {
+    if( type_struct.can_found == e_unit_can_found_colony::yes ) {
+      REFL_VALIDATE( type_struct.human != e_unit_human::no,
+                     "type {} has can_found=yes but it is a "
+                     "non-human unit.",
+                     type );
+    }
+  }
+
   // Validate that only base types have human == yes/no and
   // derived types have human == from_base.
   for( auto& [type, type_struct] : m ) {

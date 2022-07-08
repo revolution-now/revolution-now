@@ -111,6 +111,9 @@ static_assert( std::is_trivially_destructible_v<UnitType> );
 
 bool is_unit_human( UnitType ut );
 
+// Can this unit type found a colony?
+bool can_unit_found( UnitType ut );
+
 // This will return nothing if the unit does not have an
 // on_death.demoted property, otherwise it will return the new
 // UnitType representing the demoted unit, which is guaranteed by

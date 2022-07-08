@@ -78,6 +78,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -111,6 +112,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -144,6 +146,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -177,6 +180,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 yes
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -207,6 +211,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -234,6 +239,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -261,6 +267,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            2
@@ -290,6 +297,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -317,6 +325,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -347,6 +356,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -380,6 +390,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -413,6 +424,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -446,6 +458,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -479,6 +492,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -512,6 +526,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -545,6 +560,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -578,6 +594,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -611,6 +628,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -644,6 +662,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -677,6 +696,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -710,6 +730,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -743,6 +764,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -776,6 +798,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -809,6 +832,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -842,6 +866,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -875,6 +900,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -908,6 +934,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -941,6 +968,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -974,6 +1002,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1007,6 +1036,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1040,6 +1070,7 @@ composition {
       cleared_expertise:     free_colonist
       ship:                  false
       human:                 yes
+      can_found:             yes
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1078,6 +1109,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1105,6 +1137,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1132,6 +1165,7 @@ composition {
       cleared_expertise:     soldier
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1159,6 +1193,7 @@ composition {
       cleared_expertise:     dragoon
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1186,6 +1221,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 yes
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1215,6 +1251,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1242,6 +1279,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1269,6 +1307,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
@@ -1296,6 +1335,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            2
@@ -1328,6 +1368,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     w
       visibility:            1
@@ -1357,6 +1398,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 from_base
+      can_found:             from_base
       nat_icon_front:        false
       nat_icon_position:     w
       visibility:            1
@@ -1387,6 +1429,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
@@ -1414,6 +1457,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
@@ -1441,6 +1485,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     ne
       visibility:            1
@@ -1468,6 +1513,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
@@ -1495,6 +1541,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
@@ -1522,6 +1569,7 @@ composition {
       cleared_expertise:     null
       ship:                  true
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
@@ -1552,6 +1600,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1
@@ -1583,6 +1632,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1
@@ -1610,6 +1660,7 @@ composition {
       cleared_expertise:     null
       ship:                  false
       human:                 no
+      can_found:             no
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1

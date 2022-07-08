@@ -249,6 +249,28 @@ bool is_unit_human( UnitType ut ) {
   }
 }
 
+bool can_unit_found( UnitType ut ) {
+  e_unit_can_found_colony res =
+      config_unit_type.composition.unit_types[ut.type()]
+          .can_found;
+  switch( res ) {
+    case e_unit_can_found_colony::no: return false;
+    case e_unit_can_found_colony::yes: return true;
+    case e_unit_can_found_colony::from_base: {
+      res =
+          config_unit_type.composition.unit_types[ut.base_type()]
+              .can_found;
+      switch( res ) {
+        case e_unit_can_found_colony::no: return false;
+        case e_unit_can_found_colony::yes: return true;
+        case e_unit_can_found_colony::from_base: {
+          SHOULD_NOT_BE_HERE;
+        }
+      }
+    }
+  }
+}
+
 maybe<UnitType> on_death_demoted_type( UnitType ut ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =
       ut.unit_type_modifiers();
