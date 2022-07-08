@@ -8,9 +8,9 @@
 * Description: Backend for lua terminal.
 *
 *****************************************************************/
-// We  need to define this first because a preprocessor symbol
-// de- fined by the {fmt}  library  ("fmt")  conflicts with
-// something inside str_join.
+// We need to define this first because a preprocessor symbol de-
+// fined by the {fmt} library ("fmt") conflicts with something
+// inside str_join.
 #include "absl/strings/str_join.h"
 
 #include "terminal.hpp"
@@ -18,18 +18,11 @@
 // Revolution Now
 #include "error.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 
 // luapp
-#include "luapp/any.hpp"
-#include "luapp/as.hpp"
 #include "luapp/iter.hpp"
-#include "luapp/metatable.hpp"
-#include "luapp/register.hpp"
-#include "luapp/rstring.hpp"
 #include "luapp/ruserdata.hpp"
 #include "luapp/state.hpp"
-#include "luapp/types.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -45,67 +38,32 @@
 #include "absl/strings/str_split.h"
 
 // C++ standard library
-#include <mutex>
 #include <unordered_map>
 
 using namespace std;
 
-namespace rn::term {
-
-namespace rl = ::base::rl;
+namespace rn {
 
 namespace {
+
+namespace rl = ::base::rl;
 
 using ::base::function_ref;
 using ::lua::lua_valid;
 
-/****************************************************************
-** Global State
-*****************************************************************/
 size_t constexpr max_scrollback_lines = 10000;
-vector<string> g_history;
 
-// The g_buffer MUST ONLY be accessed while holding the below
-// mutex because it can be modified by multiple threads by way of
-// the logging framework.
-mutex          g_buffer_mutex;
-vector<string> g_buffer;
-
-/****************************************************************
-** Errors
-*****************************************************************/
-vector<string> format_lua_error_msg( string const& msg ) {
-  vector<string> res;
-  for( auto const& line : util::split_on_any( msg, "\n\r" ) )
-    if( !line.empty() ) //
-      res.push_back(
-          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
-  return res;
-}
-
-/****************************************************************
-** Terminal Log
-*****************************************************************/
-// NOTE: this function should only be called while holding the
-// g_muffer_mutex.
-void trim() {
-  if( g_buffer.size() > max_scrollback_lines )
-    g_buffer = vector<string>(
-        g_buffer.begin() + max_scrollback_lines / 2,
-        g_buffer.end() );
-}
-
-/****************************************************************
-** Running Commands
-*****************************************************************/
-unordered_map<string, function_ref<void()>> g_console_commands{
-    { "clear", clear }, //
-    { "abort",
-      [] {
-        FATAL( "aborting in response to terminal command." );
-      } },                                     //
-    { "quit", [] { throw exception_exit{}; } } //
-};
+unordered_map<string, function_ref<void( Terminal& )>> const
+    kConsoleCommands{
+        { "clear",
+          []( Terminal& terminal ) { terminal.clear(); } }, //
+        { "abort",
+          []( Terminal& ) {
+            FATAL( "aborting in response to terminal command." );
+          } }, //
+        { "quit",
+          []( Terminal& ) { throw exception_exit{}; } } //
+    };
 
 bool is_statement( string const& cmd ) {
   return util::contains( cmd, "=" ) ||
@@ -119,11 +77,20 @@ bool is_placeholder( string const& cmd ) {
          cmd[1] <= '9';
 }
 
-lua_valid run_lua_cmd( string const& cmd ) {
+vector<string> format_lua_error_msg( string const& msg ) {
+  vector<string> res;
+  for( auto const& line : util::split_on_any( msg, "\n\r" ) )
+    if( !line.empty() ) //
+      res.push_back(
+          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
+  return res;
+}
+
+lua_valid run_lua_cmd( Terminal& terminal, lua::state& st,
+                       string const& cmd ) {
   lua_valid result = valid;
   // Wrap the command if it's an expression.
-  auto        cmd_wrapper = cmd;
-  lua::state& st          = lua_global_state();
+  auto cmd_wrapper = cmd;
   if( !is_statement( cmd ) ) {
     lua::any val = st["_"];
     // Wrap command.
@@ -150,60 +117,77 @@ lua_valid run_lua_cmd( string const& cmd ) {
       result = run_result.error();
   }
   if( !result ) {
-    log( "lua command failed:" );
+    terminal.log( "lua command failed:" );
     for( auto const& line :
          format_lua_error_msg( result.error() ) )
-      log( "  "s + line );
+      terminal.log( "  "s + line );
   }
   return result;
 }
 
-lua_valid run_cmd_impl( string const& cmd ) {
-  g_history.push_back( cmd );
-  log( "> "s + cmd );
-  auto maybe_fn = base::lookup( g_console_commands, cmd );
+lua_valid run_cmd_impl( Terminal& terminal, string const& cmd ) {
+  terminal.push_history( cmd );
+  terminal.log( "> "s + cmd );
+  auto maybe_fn = base::lookup( kConsoleCommands, cmd );
   if( maybe_fn.has_value() ) {
-    ( *maybe_fn )();
+    ( *maybe_fn )( terminal );
     return valid;
   }
-  return run_lua_cmd( cmd );
+  return run_lua_cmd( terminal, terminal.lua_state(), cmd );
 }
 
 } // namespace
 
+void Terminal::push_history( std::string const& what ) {
+  history_.push_back( what );
+}
+
+/****************************************************************
+** Terminal Log
+*****************************************************************/
+// NOTE: this function should only be called while holding the
+// g_muffer_mutex.
+void Terminal::trim() {
+  if( buffer_.size() > max_scrollback_lines )
+    buffer_ = vector<string>(
+        buffer_.begin() + max_scrollback_lines / 2,
+        buffer_.end() );
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
-void clear() {
-  lock_guard<mutex> lock( g_buffer_mutex );
-  g_buffer.clear();
+void Terminal::clear() {
+  lock_guard<mutex> lock( buffer_mutex_ );
+  buffer_.clear();
 }
 
-void log( std::string_view msg ) {
-  lock_guard<mutex> lock( g_buffer_mutex );
-  g_buffer.push_back( string( msg ) );
+void Terminal::log( string_view msg ) {
+  lock_guard<mutex> lock( buffer_mutex_ );
+  buffer_.push_back( string( msg ) );
   trim();
 }
 
-lua_valid run_cmd( string const& cmd ) {
-  if( auto res = run_cmd_impl( cmd ); !res ) return res.error();
+lua_valid Terminal::run_cmd( string const& cmd ) {
+  if( auto res = run_cmd_impl( *this, cmd ); !res )
+    return res.error();
   return valid;
 }
 
-maybe<string const&> line( int idx ) {
-  lock_guard<mutex> lock( g_buffer_mutex );
-  if( idx < int( g_buffer.size() ) )
-    return g_buffer[g_buffer.size() - 1 - idx];
+maybe<string const&> Terminal::line( int idx ) {
+  lock_guard<mutex> lock( buffer_mutex_ );
+  if( idx < int( buffer_.size() ) )
+    return buffer_[buffer_.size() - 1 - idx];
   return nothing;
 }
 
-maybe<string const&> history( int idx ) {
-  if( idx < int( g_history.size() ) )
-    return g_history[g_history.size() - 1 - idx];
+maybe<string const&> Terminal::history( int idx ) {
+  if( idx < int( history_.size() ) )
+    return history_[history_.size() - 1 - idx];
   return nothing;
 }
 
-vector<string> autocomplete( string_view fragment ) {
+vector<string> Terminal::autocomplete( string_view fragment ) {
   auto is_autocomplete_char = []( char c ) {
     return std::isalnum( c ) || ( c == ':' ) || ( c == '.' ) ||
            ( c == '_' );
@@ -254,10 +238,9 @@ vector<string> autocomplete( string_view fragment ) {
     return res;
   };
 
-  auto lifted_pairs_for_table = []( lua::table t ) {
+  auto lifted_pairs_for_table = [this]( lua::table t ) {
     // FIXME: luapp should access __pairs.
-    return lua::as<lua::table>(
-        lua_global_state()["meta"]["all_pairs"]( t ) );
+    return lua::as<lua::table>( st_["meta"]["all_pairs"]( t ) );
   };
 
   auto table_count_if = [&]( lua::table t, auto&& func ) {
@@ -290,9 +273,8 @@ vector<string> autocomplete( string_view fragment ) {
         } );
   };
 
-  lua::table curr_table = lua_global_state().table.global();
-  lua::any   curr_obj =
-      lua::any( lua_global_state().table.global() );
+  lua::table curr_table = st_.table.global();
+  lua::any   curr_obj   = lua::any( st_.table.global() );
 
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
@@ -393,7 +375,8 @@ vector<string> autocomplete( string_view fragment ) {
   return res;
 }
 
-vector<string> autocomplete_iterative( string_view fragment ) {
+vector<string> Terminal::autocomplete_iterative(
+    string_view fragment ) {
   vector<string> res;
   string         single_result( fragment );
   do {
@@ -418,22 +401,8 @@ vector<string> autocomplete_iterative( string_view fragment ) {
   return res;
 }
 
-} // namespace rn::term
+Terminal::Terminal( lua::state& st ) : st_( st ) {}
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace rn {
-namespace {
+Terminal::~Terminal() {}
 
-LUA_STARTUP( lua::state& st ) {
-  // Need to do this somewhere.
-  lua::table::create_or_get( st["terminal"] );
-
-  st["log"]["console"] = []( string const& msg ) {
-    ::rn::term::log( msg );
-  };
-};
-
-} // namespace
 } // namespace rn

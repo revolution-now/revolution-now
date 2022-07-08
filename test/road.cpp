@@ -19,9 +19,9 @@
 #include "src/on-map.hpp"
 #include "src/ustate.hpp"
 
-// game-state
-#include "src/gs/terrain.hpp"
-#include "src/gs/units.hpp"
+// ss
+#include "src/ss/terrain.hpp"
+#include "src/ss/units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -47,7 +47,7 @@ void prepare_world( TerrainState& terrain_state,
   } );
   UnitComposition comp = UnitComposition::create( unit_type );
   UnitId          id =
-      create_unit( units_state, e_nation::english, comp );
+      create_free_unit( units_state, e_nation::english, comp );
   CHECK( id == 1 );
   unit_to_map_square_non_interactive( units_state, map_updater,
                                       id, kSquare );

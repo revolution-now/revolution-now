@@ -13,24 +13,25 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
-#include "cstate.hpp"
-#include "game-state.hpp"
 #include "gui.hpp"
+#include "map-square.hpp"
 #include "production.rds.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "text.hpp"
 #include "tile-enum.rds.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/colony.rds.hpp"
 #include "config/unit-type.hpp"
 
-// gs
-#include "gs/colonies.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/ref.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 using namespace std;
 
@@ -120,15 +121,13 @@ Rect ColonyLandView::rect_for_unit( e_direction d ) const {
 
 maybe<UnitId> ColonyLandView::unit_for_direction(
     e_direction d ) const {
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_.id );
+  Colony& colony = ss_.colonies.colony_for( colony_.id );
   return colony.outdoor_jobs[d].member( &OutdoorUnit::unit_id );
 }
 
 maybe<e_outdoor_job> ColonyLandView::job_for_direction(
     e_direction d ) const {
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_.id );
+  Colony& colony = ss_.colonies.colony_for( colony_.id );
   return colony.outdoor_jobs[d].member( &OutdoorUnit::job );
 }
 
@@ -160,14 +159,12 @@ wait<> ColonyLandView::perform_click(
 
   EnumChoiceConfig     config{ .msg = "Select Occupation",
                                .choice_required = false };
-  maybe<e_outdoor_job> new_job = co_await gui_.enum_choice(
+  maybe<e_outdoor_job> new_job = co_await ts_.gui.enum_choice(
       config, config_colony.outdoors.job_names );
   if( !new_job.has_value() ) co_return;
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_.id );
+  Colony& colony = ss_.colonies.colony_for( colony_.id );
   change_unit_outdoor_job( colony, *unit_id, *new_job );
-  update_production( GameState::terrain(), GameState::units(),
-                     player_, colony_ );
+  update_production( ss_, player_, colony_ );
 }
 
 maybe<ColViewObject_t> ColonyLandView::can_receive(
@@ -178,8 +175,7 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
       &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return nothing;
   // Check if the unit is a human.
-  UnitsState const& units_state = GameState::units();
-  Unit const&       unit = units_state.unit_for( *unit_id );
+  Unit const& unit = ss_.units.unit_for( *unit_id );
   if( !unit.is_human() ) return nothing;
   // Check if there is a land square under the cursor that is
   // not the center.
@@ -200,13 +196,11 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
 wait<base::valid_or<IColViewDragSinkCheck::Rejection>>
 ColonyLandView::check( ColViewObject_t const&, e_colview_entity,
                        Coord const where ) const {
-  ColoniesState const& colonies_state = GameState::colonies();
-  Colony const& colony = colonies_state.colony_for( colony_.id );
-  TerrainState const& terrain_state = GameState::terrain();
-  maybe<e_direction>  d = direction_under_cursor( where );
+  Colony const& colony = ss_.colonies.colony_for( colony_.id );
+  maybe<e_direction> d = direction_under_cursor( where );
   CHECK( d );
   MapSquare const& square =
-      terrain_state.square_at( colony.location.moved( *d ) );
+      ss_.terrain.square_at( colony.location.moved( *d ) );
 
   if( is_water( square ) &&
       !colony_has_building_level( colony,
@@ -238,8 +232,7 @@ void ColonyLandView::drop( ColViewObject_t const& o,
                            Coord const&           where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_.id );
+  Colony& colony = ss_.colonies.colony_for( colony_.id );
   UNWRAP_CHECK( d, direction_under_cursor( where ) );
   ColonyJob_t job = make_job_for_square( d );
   if( dragging_.has_value() ) {
@@ -248,8 +241,7 @@ void ColonyLandView::drop( ColViewObject_t const& o,
     job = ColonyJob::outdoor{ .direction = d,
                               .job       = dragging_->job };
   }
-  move_unit_to_colony( GameState::units(), colony, unit_id,
-                       job );
+  move_unit_to_colony( ss_.units, colony, unit_id, job );
   CHECK_HAS_VALUE( colony.validate() );
 }
 
@@ -275,10 +267,8 @@ void ColonyLandView::cancel_drag() { dragging_ = nothing; }
 void ColonyLandView::disown_dragged_object() {
   UNWRAP_CHECK( draggable, dragging_ );
   UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
-  UnitsState&    units_state    = GameState::units();
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_.id );
-  remove_unit_from_colony( units_state, colony, unit_id );
+  Colony& colony = ss_.colonies.colony_for( colony_.id );
+  remove_unit_from_colony( ss_.units, colony, unit_id );
 }
 
 void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
@@ -292,7 +282,6 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // to do that.
   double const alpha = 1.0;
 
-  TerrainState const& terrain_state = GameState::terrain();
   // FIXME: Should not be duplicating land-view rendering code
   // here.
   rr::Painter painter      = renderer.painter();
@@ -308,7 +297,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
         gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     render_terrain_square(
-        terrain_state, renderer, local_coord * g_tile_delta,
+        ss_.terrain, renderer, local_coord * g_tile_delta,
         render_square, TerrainRenderOptions{} );
   }
   // Render colonies.
@@ -317,12 +306,13 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     auto render_square = world_square +
                          local_coord.distance_from_origin() -
                          Delta{ .w = 1, .h = 1 };
-    auto maybe_col_id = colony_from_coord( render_square );
+    auto maybe_col_id =
+        ss_.colonies.maybe_from_coord( render_square );
     if( !maybe_col_id ) continue;
     render_colony(
         painter,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-        *maybe_col_id );
+        ss_.colonies.colony_for( *maybe_col_id ) );
   }
 }
 
@@ -335,11 +325,9 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   // Further drawing should not be scaled.
 
   // Render units.
-  rr::Painter          painter        = renderer.painter();
-  ColoniesState const& colonies_state = GameState::colonies();
-  UnitsState const&    units_state    = GameState::units();
-  Colony const& colony = colonies_state.colony_for( colony_.id );
-  Coord const   center = Coord{ .x = 1, .y = 1 };
+  rr::Painter   painter = renderer.painter();
+  Colony const& colony  = ss_.colonies.colony_for( colony_.id );
+  Coord const   center  = Coord{ .x = 1, .y = 1 };
 
   for( auto const& [direction, outdoor_unit] :
        colony.outdoor_jobs ) {
@@ -354,7 +342,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         square_coord +
         ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
     UnitId const unit_id = outdoor_unit->unit_id;
-    Unit const&  unit    = units_state.unit_for( unit_id );
+    Unit const&  unit    = ss_.units.unit_for( unit_id );
     UnitTypeAttributes const& desc = unit_attr( unit.type() );
     render_glow( renderer, unit_coord, unit.type() );
     render_unit_type(
@@ -400,18 +388,17 @@ void ColonyLandView::draw( rr::Renderer& renderer,
 }
 
 unique_ptr<ColonyLandView> ColonyLandView::create(
-    IGui& gui, Player const& player, Colony& colony,
+    SS& ss, TS& ts, Colony& colony, Player const& player,
     e_render_mode mode ) {
-  return make_unique<ColonyLandView>( gui, player, colony,
+  return make_unique<ColonyLandView>( ss, ts, colony, player,
                                       mode );
 }
 
-ColonyLandView::ColonyLandView( IGui& gui, Player const& player,
-                                Colony&       colony,
+ColonyLandView::ColonyLandView( SS& ss, TS& ts, Colony& colony,
+                                Player const& player,
                                 e_render_mode mode )
-  : gui_( gui ),
+  : ColonySubView( ss, ts, colony ),
     player_( player ),
-    colony_( colony ),
     mode_( mode ) {}
 
 } // namespace rn

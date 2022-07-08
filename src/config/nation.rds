@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # gs
-include "gs/nation.rds.hpp"
-include "gs/unit-type.rds.hpp"
+include "ss/nation.rds.hpp"
+include "ss/unit-type.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

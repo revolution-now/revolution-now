@@ -18,9 +18,9 @@
 // Revolution Now
 #include "wait.hpp"
 
-// gs
-#include "gs/commodity.rds.hpp"
-#include "gs/unit-id.hpp"
+// ss
+#include "ss/commodity.rds.hpp"
+#include "ss/unit-id.hpp"
 
 namespace rn {
 

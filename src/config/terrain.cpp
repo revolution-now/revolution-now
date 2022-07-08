@@ -11,7 +11,7 @@
 #include "terrain.hpp"
 
 // Rds
-#include "gs/terrain-enums.rds.hpp"
+#include "ss/terrain-enums.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"

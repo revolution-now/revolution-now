@@ -86,15 +86,24 @@ struct ConsoleLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
             base::SourceLoc const& ) override {
     if( target < global_log_level() ) return;
-    // Note that the console has its own mutex, so we don't need
-    // to guard this.
-    term::log( what );
+    if( terminal_ )
+      // Note that the console has its own mutex, so we don't
+      // need to guard this.
+      terminal_->log( what );
   }
+  Terminal* terminal_ = nullptr;
 };
 
-ILogger& console_logger() {
+ConsoleLogger& console_logger_storage() {
   static ConsoleLogger l;
   return l;
+}
+
+ILogger& console_logger() { return console_logger_storage(); }
+
+void set_console_terminal( Terminal* terminal ) {
+  // Could be nullptr or not.
+  console_logger_storage().terminal_ = terminal;
 }
 
 /****************************************************************

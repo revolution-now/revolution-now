@@ -20,11 +20,10 @@
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "construction.hpp"
-#include "cstate.hpp"
-#include "game-state.hpp"
 #include "gui.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
+#include "map-updater.hpp"
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
@@ -32,6 +31,8 @@
 #include "render.hpp"
 #include "road.hpp"
 #include "screen.hpp"
+#include "text.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "views.hpp"
 #include "window.hpp"
@@ -39,11 +40,13 @@
 // config
 #include "config/unit-type.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/players.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/players.rds.hpp"
+#include "ss/ref.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-composer.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -105,16 +108,13 @@ struct ColViewComposited {
   unordered_map<e_colview_entity, ColonySubView*> entities;
 };
 
+// FIXME
 ColViewComposited g_composition;
 ColonyProduction  g_production;
 
 /****************************************************************
 ** Helpers
 *****************************************************************/
-ColonyId colony_id() { return g_composition.id; }
-
-Colony& colony() { return colony_from_id( colony_id() ); }
-
 Cargo_t to_cargo( ColViewObject_t const& o ) {
   switch( o.to_enum() ) {
     using namespace ColViewObject;
@@ -136,9 +136,7 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       } );
 }
 
-maybe<string> check_abandon() {
-  ColoniesState& colonies_state = GameState::colonies();
-  Colony& colony = colonies_state.colony_for( colony_id() );
+maybe<string> check_abandon( Colony const& colony ) {
   if( colony_population( colony ) == 1 )
     return "This action would abandon the colony, which is not "
            "yet supported.";
@@ -157,6 +155,15 @@ maybe<string> check_seige() {
 *****************************************************************/
 class TitleBar : public ui::View, public ColonySubView {
  public:
+  static unique_ptr<TitleBar> create( SS& ss, TS& ts,
+                                      Colony& colony,
+                                      Delta   size ) {
+    return make_unique<TitleBar>( ss, ts, colony, size );
+  }
+
+  TitleBar( SS& ss, TS& ts, Colony& colony, Delta size )
+    : ColonySubView( ss, ts, colony ), size_( size ) {}
+
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -169,7 +176,7 @@ class TitleBar : public ui::View, public ColonySubView {
   }
 
   string title() const {
-    auto const& colony = colony_from_id( colony_id() );
+    auto const& colony = ss_.colonies.colony_for( colony_.id );
     return fmt::format( "{}, population {}", colony.name,
                         colony_population( colony ) );
   }
@@ -187,12 +194,6 @@ class TitleBar : public ui::View, public ColonySubView {
         .write( title() );
   }
 
-  static unique_ptr<TitleBar> create( Delta size ) {
-    return make_unique<TitleBar>( size );
-  }
-
-  TitleBar( Delta size ) : size_( size ) {}
-
  private:
   Delta size_;
 };
@@ -203,6 +204,18 @@ class MarketCommodities : public ui::View,
                           public IColViewDragSourceUserInput,
                           public IColViewDragSink {
  public:
+  static unique_ptr<MarketCommodities> create( SS& ss, TS& ts,
+                                               Colony& colony,
+                                               W block_width ) {
+    return make_unique<MarketCommodities>( ss, ts, colony,
+                                           block_width );
+  }
+
+  MarketCommodities( SS& ss, TS& ts, Colony& colony,
+                     W block_width )
+    : ColonySubView( ss, ts, colony ),
+      block_width_( block_width ) {}
+
   Delta delta() const override {
     return Delta{
         block_width_ * SX{ refl::enum_count<e_commodity> },
@@ -234,7 +247,7 @@ class MarketCommodities : public ui::View,
     auto        comm_it = refl::enum_values<e_commodity>.begin();
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
-    auto const& colony  = colony_from_id( colony_id() );
+    auto const& colony  = ss_.colonies.colony_for( colony_.id );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect =
           Rect::from( pos, Delta{ .w = block_width_, .h = 32 } );
@@ -258,13 +271,8 @@ class MarketCommodities : public ui::View,
     }
   }
 
-  static unique_ptr<MarketCommodities> create( IGui& gui,
-                                               W block_width ) {
-    return make_unique<MarketCommodities>( gui, block_width );
-  }
-
   int quantity_of( e_commodity type ) const {
-    return colony().commodities[type];
+    return colony_.commodities[type];
   }
 
   maybe<ColViewObjectWithBounds> object_here(
@@ -314,7 +322,7 @@ class MarketCommodities : public ui::View,
     e_commodity type = dragging_->type;
     int new_quantity = quantity_of( type ) - dragging_->quantity;
     CHECK( new_quantity >= 0 );
-    colony().commodities[type] = new_quantity;
+    colony_.commodities[type] = new_quantity;
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -328,9 +336,9 @@ class MarketCommodities : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
-    int q = colony().commodities[c.type];
+    int q = colony_.commodities[c.type];
     q += c.quantity;
-    colony().commodities[c.type] = q;
+    colony_.commodities[c.type] = q;
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
@@ -343,10 +351,10 @@ class MarketCommodities : public ui::View,
         "({}-{}):",
         commodity_display_name( dragging_->type ), min, max );
     maybe<int> quantity =
-        co_await gui_.int_input( { .msg           = text,
-                                   .initial_value = max,
-                                   .min           = min,
-                                   .max           = max } );
+        co_await ts_.gui.int_input( { .msg           = text,
+                                      .initial_value = max,
+                                      .min           = min,
+                                      .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = *dragging_;
     new_comm.quantity  = *quantity;
@@ -354,17 +362,22 @@ class MarketCommodities : public ui::View,
     co_return from_cargo( Cargo::commodity{ new_comm } );
   }
 
-  MarketCommodities( IGui& gui, W block_width )
-    : block_width_( block_width ), gui_( gui ) {}
-
  private:
   W                block_width_;
   maybe<Commodity> dragging_;
-  IGui&            gui_;
 };
 
 class PopulationView : public ui::View, public ColonySubView {
  public:
+  static unique_ptr<PopulationView> create( SS& ss, TS& ts,
+                                            Colony& colony,
+                                            Delta   size ) {
+    return make_unique<PopulationView>( ss, ts, colony, size );
+  }
+
+  PopulationView( SS& ss, TS& ts, Colony& colony, Delta size )
+    : ColonySubView( ss, ts, colony ), size_( size ) {}
+
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -382,22 +395,17 @@ class PopulationView : public ui::View, public ColonySubView {
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
-    auto const&    colony   = colony_from_id( colony_id() );
-    vector<UnitId> units    = colony_units_all( colony );
+    auto const& colony   = ss_.colonies.colony_for( colony_.id );
+    vector<UnitId> units = colony_units_all( colony );
     auto           unit_pos = coord + Delta{ .h = 16 };
     unit_pos.x -= 3;
     for( UnitId unit_id : units ) {
-      render_unit( renderer, unit_pos, unit_id,
+      render_unit( renderer, unit_pos,
+                   ss_.units.unit_for( unit_id ),
                    UnitRenderOptions{ .flag = false } );
       unit_pos.x += 15;
     }
   }
-
-  static unique_ptr<PopulationView> create( Delta size ) {
-    return make_unique<PopulationView>( size );
-  }
-
-  PopulationView( Delta size ) : size_( size ) {}
 
  private:
   Delta size_;
@@ -410,6 +418,15 @@ class CargoView : public ui::View,
                   public IColViewDragSink,
                   public IColViewDragSinkCheck {
  public:
+  static unique_ptr<CargoView> create( SS& ss, TS& ts,
+                                       Colony& colony,
+                                       Delta   size ) {
+    return make_unique<CargoView>( ss, ts, colony, size );
+  }
+
+  CargoView( SS& ss, TS& ts, Colony& colony, Delta size )
+    : ColonySubView( ss, ts, colony ), size_( size ) {}
+
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -434,7 +451,8 @@ class CargoView : public ui::View,
     int slot_idx = ( c / g_tile_delta ).distance_from_origin().w;
     bool is_open =
         holder_.has_value() &&
-        slot_idx < unit_from_id( *holder_ ).desc().cargo_slots;
+        slot_idx <
+            ss_.units.unit_for( *holder_ ).desc().cargo_slots;
     return pair{ is_open, slot_idx };
   }
 
@@ -446,7 +464,7 @@ class CargoView : public ui::View,
         Coord{} + Delta{ .w = g_tile_delta.w * slot };
     bool is_open =
         holder_.has_value() &&
-        slot < unit_from_id( *holder_ ).desc().cargo_slots;
+        slot < ss_.units.unit_for( *holder_ ).desc().cargo_slots;
     return pair{ is_open,
                  Rect::from( slot_upper_left, g_tile_delta ) };
   }
@@ -457,7 +475,8 @@ class CargoView : public ui::View,
     painter.draw_empty_rect( rect( coord ),
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::black() );
-    auto unit = holder_.fmap( unit_from_id );
+    auto unit = holder_.fmap(
+        [&]( UnitId id ) { return ss_.units.unit_for( id ); } );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
       UNWRAP_CHECK( info, slot_rect_from_idx( idx ) );
       auto [is_open, relative_rect] = info;
@@ -486,7 +505,8 @@ class CargoView : public ui::View,
               cargo.contents,
               [&]( Cargo::unit u ) {
                 render_unit(
-                    renderer, rect.upper_left(), u.id,
+                    renderer, rect.upper_left(),
+                    ss_.units.unit_for( u.id ),
                     UnitRenderOptions{ .flag = false } );
               },
               [&]( Cargo::commodity const& c ) {
@@ -501,13 +521,6 @@ class CargoView : public ui::View,
       }
     }
   }
-
-  static unique_ptr<CargoView> create( IGui& gui, Delta size ) {
-    return make_unique<CargoView>( gui, size );
-  }
-
-  CargoView( IGui& gui, Delta size )
-    : size_( size ), gui_( gui ) {}
 
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
 
@@ -534,17 +547,16 @@ class CargoView : public ui::View,
     }
     // We are dragging from another source, so we must check to
     // see if we have room for what is being dragged.
-    auto& unit = unit_from_id( *holder_ );
+    auto& unit = ss_.units.unit_for( *holder_ );
     switch( o.to_enum() ) {
       using namespace ColViewObject;
       case e::unit: {
-        UnitId      id = o.get<ColViewObject::unit>().id;
-        UnitsState& units_state = GameState::units();
+        UnitId id = o.get<ColViewObject::unit>().id;
         // Note that we allow wagon trains to recieve units at
         // this stage as long as they theoretically fit. In the
         // next stage we will reject that and present a message
         // to the user.
-        if( !unit.cargo().fits_somewhere( units_state,
+        if( !unit.cargo().fits_somewhere( ss_.units,
                                           Cargo::unit{ id } ) )
           return nothing;
         return o;
@@ -564,7 +576,7 @@ class CargoView : public ui::View,
       ColViewObject_t const& o, e_colview_entity from,
       Coord const ) const override {
     CHECK( holder_.has_value() );
-    if( GameState::units().unit_for( *holder_ ).type() ==
+    if( ss_.units.unit_for( *holder_ ).type() ==
             e_unit_type::wagon_train &&
         o.holds<ColViewObject::unit>() )
       co_return IColViewDragSinkCheck::Rejection{
@@ -577,7 +589,8 @@ class CargoView : public ui::View,
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        if( auto msg = check_abandon(); msg.has_value() )
+        if( auto msg = check_abandon( colony_ );
+            msg.has_value() )
           co_return IColViewDragSinkCheck::Rejection{ .reason =
                                                           *msg };
         if( auto msg = check_seige(); msg.has_value() )
@@ -594,22 +607,21 @@ class CargoView : public ui::View,
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override {
     CHECK( holder_ );
-    auto&       cargo_hold  = unit_from_id( *holder_ ).cargo();
-    Cargo_t     cargo       = to_cargo( o );
-    UnitsState& units_state = GameState::units();
-    CHECK( cargo_hold.fits_somewhere( units_state, cargo ) );
+    auto&   cargo_hold = ss_.units.unit_for( *holder_ ).cargo();
+    Cargo_t cargo      = to_cargo( o );
+    CHECK( cargo_hold.fits_somewhere( ss_.units, cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
         [this, slot_idx = slot_idx]( Cargo::unit u ) {
-          GameState::units().change_to_cargo_somewhere(
+          ss_.units.change_to_cargo_somewhere(
               *holder_, u.id, /*starting_slot=*/slot_idx );
         },
         [this,
          slot_idx = slot_idx]( Cargo::commodity const& c ) {
-          add_commodity_to_cargo( GameState::units(), c.obj,
-                                  *holder_, slot_idx,
+          add_commodity_to_cargo( ss_.units, c.obj, *holder_,
+                                  slot_idx,
                                   /*try_other_slots=*/true );
         } );
   }
@@ -624,7 +636,7 @@ class CargoView : public ui::View,
     auto [is_open, rect] = *slot_rect;
     if( !is_open ) return nothing;
     maybe<pair<Cargo_t const&, int>> maybe_cargo =
-        unit_from_id( *holder_ )
+        ss_.units.unit_for( *holder_ )
             .cargo()
             .cargo_covering_slot( slot );
     if( !maybe_cargo ) return nothing;
@@ -687,13 +699,13 @@ class CargoView : public ui::View,
     Cargo_t cargo_to_remove = to_cargo( dragging_->object );
     overload_visit(
         cargo_to_remove,
-        []( Cargo::unit held ) {
-          GameState::units().disown_unit( held.id );
+        [this]( Cargo::unit held ) {
+          ss_.units.disown_unit( held.id );
         },
         [this]( Cargo::commodity const& to_remove ) {
           UNWRAP_CHECK(
               existing_cargo,
-              unit_from_id( *holder_ )
+              ss_.units.unit_for( *holder_ )
                   .cargo()
                   .cargo_starting_at_slot( dragging_->slot ) );
           UNWRAP_CHECK(
@@ -704,12 +716,11 @@ class CargoView : public ui::View,
           CHECK( reduced_comm.type == to_remove.obj.type );
           reduced_comm.quantity -= to_remove.obj.quantity;
           CHECK( reduced_comm.quantity >= 0 );
-          rm_commodity_from_cargo( GameState::units(), *holder_,
+          rm_commodity_from_cargo( ss_.units, *holder_,
                                    dragging_->slot );
           if( reduced_comm.quantity > 0 )
-            add_commodity_to_cargo( GameState::units(),
-                                    reduced_comm, *holder_,
-                                    dragging_->slot,
+            add_commodity_to_cargo( ss_.units, reduced_comm,
+                                    *holder_, dragging_->slot,
                                     /*try_other_slots=*/false );
         } );
   }
@@ -731,10 +742,10 @@ class CargoView : public ui::View,
                                           "({}-{}):",
                          commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity =
-        co_await gui_.int_input( { .msg           = text,
-                                   .initial_value = max,
-                                   .min           = min,
-                                   .max           = max } );
+        co_await ts_.gui.int_input( { .msg           = text,
+                                      .initial_value = max,
+                                      .min           = min,
+                                      .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = comm.obj;
     new_comm.quantity  = *quantity;
@@ -755,7 +766,6 @@ class CargoView : public ui::View,
   maybe<UnitId>    holder_;
   Delta            size_;
   maybe<Draggable> dragging_;
-  IGui&            gui_;
 };
 
 class UnitsAtGateColonyView : public ui::View,
@@ -764,6 +774,21 @@ class UnitsAtGateColonyView : public ui::View,
                               public IColViewDragSink,
                               public IColViewDragSinkCheck {
  public:
+  static unique_ptr<UnitsAtGateColonyView> create(
+      SS& ss, TS& ts, Colony& colony, CargoView* cargo_view,
+      Delta size ) {
+    return make_unique<UnitsAtGateColonyView>(
+        ss, ts, colony, cargo_view, size );
+  }
+
+  UnitsAtGateColonyView( SS& ss, TS& ts, Colony& colony,
+                         CargoView* cargo_view, Delta size )
+    : ColonySubView( ss, ts, colony ),
+      cargo_view_( cargo_view ),
+      size_( size ) {
+    update();
+  }
+
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -783,7 +808,8 @@ class UnitsAtGateColonyView : public ui::View,
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
-      render_unit( renderer, draw_pos, unit_id,
+      render_unit( renderer, draw_pos,
+                   ss_.units.unit_for( unit_id ),
                    UnitRenderOptions{ .flag = true } );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
@@ -792,18 +818,6 @@ class UnitsAtGateColonyView : public ui::View,
             rr::Painter::e_border_mode::in_out,
             gfx::pixel::green() );
     }
-  }
-
-  static unique_ptr<UnitsAtGateColonyView> create(
-      CargoView* cargo_view, Delta size, IGui& gui ) {
-    return make_unique<UnitsAtGateColonyView>( cargo_view, size,
-                                               gui );
-  }
-
-  UnitsAtGateColonyView( CargoView* cargo_view, Delta size,
-                         IGui& gui )
-    : cargo_view_( cargo_view ), size_( size ), gui_( gui ) {
-    update();
   }
 
   // Implement AwaitView.
@@ -842,7 +856,7 @@ class UnitsAtGateColonyView : public ui::View,
   maybe<ColViewObject_t> can_receive_unit(
       UnitId       dragged, e_colview_entity /*from*/,
       Coord const& where ) const {
-    auto& unit = unit_from_id( dragged );
+    auto& unit = ss_.units.unit_for( dragged );
     // Player should not be dragging ships or wagons.
     CHECK( unit.desc().cargo_slots == 0 );
     // See if the draga target is over top of a unit.
@@ -851,7 +865,7 @@ class UnitsAtGateColonyView : public ui::View,
       // The player is moving a unit outside of the colony, let's
       // check if the unit is already outside the colony, in
       // which case there is no reason to drag the unit here.
-      if( is_unit_on_map( dragged ) ) return nothing;
+      if( is_unit_on_map( ss_.units, dragged ) ) return nothing;
       // The player is moving the unit outside the colony, which
       // is always allowed, at least for now. If the unit is in
       // the colony (as opposed to cargo) and there is a stockade
@@ -860,12 +874,13 @@ class UnitsAtGateColonyView : public ui::View,
       // stage.
       return ColViewObject::unit{ .id = dragged };
     }
-    Unit const& target_unit = unit_from_id( *over_unit_id );
+    Unit const& target_unit =
+        ss_.units.unit_for( *over_unit_id );
     if( target_unit.desc().cargo_slots == 0 ) return nothing;
     // Check if the target_unit is already holding the dragged
     // unit.
     maybe<UnitId> maybe_holder_of_dragged =
-        is_unit_onboard( dragged );
+        is_unit_onboard( ss_.units, dragged );
     if( maybe_holder_of_dragged &&
         *maybe_holder_of_dragged == over_unit_id )
       // The dragged unit is already in the cargo of the target
@@ -875,7 +890,7 @@ class UnitsAtGateColonyView : public ui::View,
     // unit that has cargo slots but is not already being held by
     // that unit, so we need to check if the unit fits.
     if( !target_unit.cargo().fits_somewhere(
-            GameState::units(), Cargo::unit{ dragged } ) )
+            ss_.units, Cargo::unit{ dragged } ) )
       return nothing;
     return ColViewObject::unit{ .id = dragged };
   }
@@ -890,7 +905,8 @@ class UnitsAtGateColonyView : public ui::View,
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        if( auto msg = check_abandon(); msg.has_value() )
+        if( auto msg = check_abandon( colony_ );
+            msg.has_value() )
           co_return IColViewDragSinkCheck::Rejection{ .reason =
                                                           *msg };
         if( auto msg = check_seige(); msg.has_value() )
@@ -907,13 +923,16 @@ class UnitsAtGateColonyView : public ui::View,
   maybe<ColViewObject_t> can_cargo_unit_receive_commodity(
       Commodity const& comm, e_colview_entity from,
       UnitId cargo_unit_id ) const {
-    Unit const& target_unit = unit_from_id( cargo_unit_id );
+    Unit const& target_unit =
+        ss_.units.unit_for( cargo_unit_id );
     CHECK( target_unit.desc().cargo_slots != 0 );
     // Check if the target_unit is already holding the dragged
     // commodity.
     if( from == e_colview_entity::cargo ) {
       CHECK( selected_.has_value() );
-      CHECK( unit_from_id( *selected_ ).desc().cargo_slots > 0 );
+      CHECK(
+          ss_.units.unit_for( *selected_ ).desc().cargo_slots >
+          0 );
       if( cargo_unit_id == *selected_ )
         // The commodity is already in the cargo of the unit
         // under the mouse.
@@ -964,7 +983,7 @@ class UnitsAtGateColonyView : public ui::View,
     // muskets to a colonist.
     UNWRAP_RETURN( xform_res,
                    transformed_unit_composition_from_commodity(
-                       unit_from_id( id ), comm ) );
+                       ss_.units.unit_for( id ), comm ) );
     return ColViewObject::commodity{
         .comm = with_quantity( comm, xform_res.quantity_used ) };
   }
@@ -974,7 +993,8 @@ class UnitsAtGateColonyView : public ui::View,
       Coord const& where ) const {
     maybe<UnitId> over_unit_id = contains_unit( where );
     if( !over_unit_id ) return nothing;
-    Unit const& target_unit = unit_from_id( *over_unit_id );
+    Unit const& target_unit =
+        ss_.units.unit_for( *over_unit_id );
     if( target_unit.desc().cargo_slots != 0 )
       return can_cargo_unit_receive_commodity( comm, from,
                                                *over_unit_id );
@@ -1005,27 +1025,27 @@ class UnitsAtGateColonyView : public ui::View,
         o, //
         [&]( ColViewObject::unit const& unit ) {
           if( target_unit ) {
-            GameState::units().change_to_cargo_somewhere(
+            ss_.units.change_to_cargo_somewhere(
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
             TrappingMapUpdater map_updater;
             unit_to_map_square_non_interactive(
-                GameState::units(), map_updater, unit.id,
-                colony().location );
+                ss_.units, map_updater, unit.id,
+                colony_.location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
             // player wants.
-            unit_from_id( unit.id ).clear_orders();
+            ss_.units.unit_for( unit.id ).clear_orders();
           }
         },
         [&]( ColViewObject::commodity const& comm ) {
           CHECK( target_unit );
-          Unit& unit = unit_from_id( *target_unit );
+          Unit& unit = ss_.units.unit_for( *target_unit );
           if( unit.desc().cargo_slots > 0 ) {
-            add_commodity_to_cargo( GameState::units(),
-                                    comm.comm, *target_unit,
+            add_commodity_to_cargo( ss_.units, comm.comm,
+                                    *target_unit,
                                     /*slot=*/0,
                                     /*try_other_slots=*/true );
           } else {
@@ -1048,7 +1068,7 @@ class UnitsAtGateColonyView : public ui::View,
                  Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [id], o.get_if<ColViewObject::unit>() );
     bool is_cargo_unit =
-        unit_from_id( id ).desc().cargo_slots > 0;
+        ss_.units.unit_for( id ).desc().cargo_slots > 0;
     if( is_cargo_unit ) return false;
     dragging_ = id;
     return true;
@@ -1058,7 +1078,7 @@ class UnitsAtGateColonyView : public ui::View,
 
   void disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
-    GameState::units().disown_unit( unit_id );
+    ss_.units.disown_unit( unit_id );
   }
 
  private:
@@ -1068,10 +1088,9 @@ class UnitsAtGateColonyView : public ui::View,
   }
 
   wait<> click_on_unit( UnitId id ) {
-    UnitsState& units_state = GameState::units();
     lg.info( "clicked on unit {}.",
-             debug_string( units_state, id ) );
-    Unit& unit = units_state.unit_for( id );
+             debug_string( ss_.units, id ) );
+    Unit& unit = ss_.units.unit_for( id );
     if( selected_ != id ) {
       set_selected_unit( id );
       // The first time we select a unit, just select it, but
@@ -1088,12 +1107,13 @@ class UnitsAtGateColonyView : public ui::View,
         .options = {
             { .key = "orders", .display_name = "Change Orders" },
             { .key = "strip", .display_name = "Strip Unit" } } };
-    if( can_bless_missionaries( colony() ) &&
+    if( can_bless_missionaries( colony_ ) &&
+
         unit_can_be_blessed( unit.type_obj() ) )
       config.options.push_back(
           { .key          = "missionary",
             .display_name = "Bless as Missionary" } );
-    string mode = co_await gui_.choice( config );
+    string mode = co_await ts_.gui.choice( config );
     if( mode == "orders" ) {
       ChoiceConfig config{
           .msg     = "Change unit orders to:",
@@ -1102,7 +1122,7 @@ class UnitsAtGateColonyView : public ui::View,
               { .key = "sentry", .display_name = "Sentry" },
               { .key          = "fortify",
                 .display_name = "Fortify" } } };
-      string new_orders = co_await gui_.choice( config );
+      string new_orders = co_await ts_.gui.choice( config );
       if( new_orders == "clear" )
         unit.clear_orders();
       else if( new_orders == "sentry" )
@@ -1123,15 +1143,16 @@ class UnitsAtGateColonyView : public ui::View,
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
-      strip_unit_to_base_type( unit, colony() );
+      strip_unit_to_base_type( unit, colony_ );
     } else if( mode == "missionary" ) {
-      bless_as_missionary( colony(), unit );
+      // TODO: play blessing tune.
+      bless_as_missionary( colony_, unit );
     }
   }
 
   void update() override {
-    auto const& colony   = colony_from_id( colony_id() );
-    auto const& units    = units_from_coord( colony.location );
+    auto const& colony = ss_.colonies.colony_for( colony_.id );
+    auto const& units  = ss_.units.from_coord( colony.location );
     auto        unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
@@ -1140,7 +1161,7 @@ class UnitsAtGateColonyView : public ui::View,
           { .id = unit_id, .pos = unit_pos } );
       unit_pos.x += 32;
       if( !first_with_cargo.has_value() &&
-          unit_from_id( unit_id ).desc().cargo_slots > 0 )
+          ss_.units.unit_for( unit_id ).desc().cargo_slots > 0 )
         first_with_cargo = unit_id;
     }
     if( selected_.has_value() && !units.contains( *selected_ ) )
@@ -1164,11 +1185,19 @@ class UnitsAtGateColonyView : public ui::View,
   CargoView*    cargo_view_;
   Delta         size_;
   maybe<UnitId> dragging_;
-  IGui&         gui_;
 };
 
 class ProductionView : public ui::View, public ColonySubView {
  public:
+  static unique_ptr<ProductionView> create( SS& ss, TS& ts,
+                                            Colony& colony,
+                                            Delta   size ) {
+    return make_unique<ProductionView>( ss, ts, colony, size );
+  }
+
+  ProductionView( SS& ss, TS& ts, Colony& colony, Delta size )
+    : ColonySubView( ss, ts, colony ), size_( size ) {}
+
   Delta delta() const override { return size_; }
 
   maybe<e_colview_entity> entity() const override {
@@ -1192,11 +1221,11 @@ class ProductionView : public ui::View, public ColonySubView {
             gfx::size( coord.distance_from_origin() ) ) );
     rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
                                       gfx::pixel::black() );
-    typer.write( "Hammers:      {}\n", colony().hammers );
+    typer.write( "Hammers:      {}\n", colony_.hammers );
     typer.write( "Construction: " );
-    if( colony().construction.has_value() )
+    if( colony_.construction.has_value() )
       typer.write( "{}\n",
-                   construction_name( *colony().construction ) );
+                   construction_name( *colony_.construction ) );
     else
       typer.write( "nothing\n" );
   }
@@ -1205,20 +1234,11 @@ class ProductionView : public ui::View, public ColonySubView {
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override {
     CHECK( event.pos.is_inside( rect( {} ) ) );
-    co_await select_colony_construction( colony(), gui_ );
+    co_await select_colony_construction( colony_, ts_.gui );
   }
-
-  static unique_ptr<ProductionView> create( Delta size,
-                                            IGui& gui ) {
-    return make_unique<ProductionView>( size, gui );
-  }
-
-  ProductionView( Delta size, IGui& gui )
-    : size_( size ), gui_( gui ) {}
 
  private:
   Delta size_;
-  IGui& gui_;
 };
 
 /****************************************************************
@@ -1227,9 +1247,11 @@ class ProductionView : public ui::View, public ColonySubView {
 struct CompositeColSubView : public ui::InvisibleView,
                              public ColonySubView {
   CompositeColSubView(
-      Delta size, std::vector<ui::OwningPositionedView> views,
-      Player const& player )
+      SS& ss, TS& ts, Colony& colony, Delta size,
+      std::vector<ui::OwningPositionedView> views,
+      Player const&                         player )
     : ui::InvisibleView( size, std::move( views ) ),
+      ColonySubView( ss, ts, colony ),
       player_( player ) {
     for( ui::PositionedView v : *this ) {
       auto* col_view = dynamic_cast<ColonySubView*>( v.view );
@@ -1299,8 +1321,7 @@ struct CompositeColSubView : public ui::InvisibleView,
 
   void update() override {
     // FIXME: this seems like it should go somewhere else.
-    update_production( GameState::terrain(), GameState::units(),
-                       player_, colony() );
+    update_production( ss_, player_, colony_ );
     for( ColonySubView* p : ptrs_ ) p->update();
   }
 
@@ -1308,11 +1329,11 @@ struct CompositeColSubView : public ui::InvisibleView,
   Player const&          player_;
 };
 
-void recomposite( ColonyId id, Delta const& canvas_size,
-                  IGui& gui, Player const& player ) {
+void recomposite( SS& ss, TS& ts, Colony& colony,
+                  Delta const& canvas_size ) {
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
   lg.trace( "recompositing colony view." );
-  CHECK( colony_exists( id ) );
-  g_composition.id          = id;
+  g_composition.id          = colony.id;
   g_composition.canvas_size = canvas_size;
 
   g_composition.top_level = nullptr;
@@ -1323,8 +1344,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   Delta available;
 
   // [Title Bar] ------------------------------------------------
-  auto title_bar =
-      TitleBar::create( Delta{ .w = canvas_size.w, .h = 10 } );
+  auto title_bar = TitleBar::create(
+      ss, ts, colony, Delta{ .w = canvas_size.w, .h = 10 } );
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
   pos = Coord{};
@@ -1338,8 +1359,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       canvas_size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32 );
-  auto market_commodities =
-      MarketCommodities::create( gui, comm_block_width );
+  auto market_commodities = MarketCommodities::create(
+      ss, ts, colony, comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
       market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
@@ -1355,6 +1376,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Population] -----------------------------------------------
   auto population_view = PopulationView::create(
+      ss, ts, colony,
       middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::population] =
       population_view.get();
@@ -1366,7 +1388,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
-      gui,
+      ss, ts, colony,
       middle_strip_size.with_width( middle_strip_size.w / 3 )
           .with_height( 32 ) );
   g_composition.entities[e_colview_entity::cargo] =
@@ -1381,10 +1403,9 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
-      p_cargo_view,
+      ss, ts, colony, p_cargo_view,
       middle_strip_size.with_width( middle_strip_size.w / 3 )
-          .with_height( middle_strip_size.h - 32 ),
-      gui );
+          .with_height( middle_strip_size.h - 32 ) );
   g_composition.entities[e_colview_entity::units_at_gate] =
       units_at_gate_view.get();
   pos =
@@ -1394,8 +1415,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Production] -----------------------------------------------
   auto production_view = ProductionView::create(
-      middle_strip_size.with_width( middle_strip_size.w / 3 ),
-      gui );
+      ss, ts, colony,
+      middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
   pos = Coord{ .x = cargo_right_edge, .y = middle_strip_top };
@@ -1416,8 +1437,8 @@ void recomposite( ColonyId id, Delta const& canvas_size,
   if( ColonyLandView::size_needed( land_view_mode ).h >
       max_landview_height )
     land_view_mode = ColonyLandView::e_render_mode::_3x3;
-  auto land_view = ColonyLandView::create( gui, player, colony(),
-                                           land_view_mode );
+  auto land_view = ColonyLandView::create(
+      ss, ts, colony, player, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
@@ -1434,7 +1455,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
       .w = land_view_left_edge - 0,
       .h = middle_strip_top - title_bar_bottom };
   auto buildings = ColViewBuildings::create(
-      buildings_size, colony(), player, gui );
+      ss, ts, colony, buildings_size, player );
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
   pos = Coord{ .x = 0, .y = title_bar_bottom };
@@ -1443,7 +1464,7 @@ void recomposite( ColonyId id, Delta const& canvas_size,
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(
-      canvas_size, std::move( views ), player );
+      ss, ts, colony, canvas_size, std::move( views ), player );
   invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
@@ -1469,7 +1490,7 @@ ColonySubView& colview_top_level() {
 // FIXME: a lot of this needs to be de-duped with the corre-
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
-    rr::Renderer&                       renderer,
+    SS& ss, rr::Renderer& renderer,
     drag::State<ColViewObject_t> const& state,
     Coord const&                        canvas_origin ) {
   Coord sprite_upper_left = state.where - state.click_offset +
@@ -1479,7 +1500,8 @@ void colview_drag_n_drop_draw(
   overload_visit(
       state.object,
       [&]( unit const& o ) {
-        render_unit( renderer, sprite_upper_left, o.id,
+        render_unit( renderer, sprite_upper_left,
+                     ss.units.unit_for( o.id ),
                      UnitRenderOptions{ .flag = false } );
       },
       [&]( commodity const& o ) {
@@ -1518,26 +1540,20 @@ ColonyProduction const& colview_production() {
   return g_production;
 }
 
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony ) {
-  g_production = production_for_colony(
-      terrain_state, units_state, player, colony );
+void update_production( SSConst const& ss, Player const& player,
+                        Colony const& colony ) {
+  g_production = production_for_colony( ss.terrain, ss.units,
+                                        player, colony );
 }
 
-void set_colview_colony( IGui&               gui,
-                         TerrainState const& terrain_state,
-                         UnitsState const&   units_state,
-                         Player const&       player,
-                         Colony const&       colony ) {
-  update_production( terrain_state, units_state, player,
-                     colony );
+void set_colview_colony( SS& ss, TS& ts, Colony& colony ) {
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  update_production( ss, player, colony );
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( colony.id, normal.delta(), gui, player );
+  recomposite( ss, ts, colony, normal.delta() );
 }
 
 } // namespace rn

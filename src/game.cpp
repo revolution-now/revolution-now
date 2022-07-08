@@ -13,21 +13,34 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "conductor.hpp"
-#include "game-state.hpp"
+#include "console.hpp"
+#include "gui.hpp"
 #include "interrupts.hpp"
+#include "land-view.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
+#include "map-updater-lua.hpp"
 #include "map-updater.hpp"
-#include "plane.hpp"
+#include "menu.hpp"
+#include "panel.hpp"
+#include "plane-stack.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "save-game.hpp"
+#include "ts.hpp"
 #include "turn.hpp"
+#include "window.hpp"
 
-// game-state
-#include "gs/root.hpp"
+// ss
+#include "ss/ref.hpp"
+#include "ss/root.hpp"
 
 // luapp
 #include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -62,18 +75,59 @@ void play( e_game_module_tune_points tune ) {
   }
 }
 
-wait<> run_loaded_game(
-    Planes& planes, PlayersState& players_state,
-    TerrainState const& terrain_state,
-    LandViewState& land_view_state, UnitsState& units_state,
-    SettingsState const& settings, TurnState& turn_state,
-    ColoniesState& colonies_state, IMapUpdater& map_updater ) {
-  ensure_human_player( players_state );
-  return co::erase( co::try_<game_quit_interrupt>( [&] {
-    return turn_loop( planes, players_state, terrain_state,
-                      land_view_state, units_state, settings,
-                      turn_state, colonies_state, map_updater );
-  } ) );
+wait<> run_game(
+    Planes&                                            planes,
+    base::function_ref<void( SS& ss, lua::state& st )> loader ) {
+  // This is the entire (serializable) state representing a game.
+  SS ss;
+
+  MapUpdater map_updater(
+      ss.mutable_terrain_use_with_care,
+      global_renderer_use_only_when_needed() );
+
+  lua::state& st = planes.console().lua_state();
+  loader( ss, st );
+  // FIXME: need to deal with frozen globals.
+  st["ROOT"] = ss.root;
+
+  st["TS"] = st.table.create();
+  st["TS"]["map_updater"] =
+      static_cast<IMapUpdater&>( map_updater );
+
+  map_updater.redraw();
+  ensure_human_player( ss.players );
+
+  WindowPlane window_plane;
+  RealGui     gui( window_plane );
+
+  TS ts{
+      .planes      = planes,
+      .map_updater = map_updater,
+      .lua         = st,
+      .gui         = gui,
+  };
+
+  MenuPlane     menu_plane;
+  LandViewPlane land_view_plane( planes, ss, ts );
+  PanelPlane    panel_plane( planes, ss );
+
+  auto        popper = planes.new_copied_group();
+  PlaneGroup& group  = planes.back();
+  group.land_view    = &land_view_plane;
+  group.panel        = &panel_plane;
+  group.menu         = &menu_plane;
+  group.window       = &window_plane;
+
+  // land_view_plane.zoom_out_full();
+
+  // TODO: give lua access to the renderer and map_updater as
+  // well. That should then allow getting rid of all global state
+  // completely. Put the lua definitions for those types in sepa-
+  // rate files.
+
+  play( e_game_module_tune_points::start_game );
+  return co::erase( co::try_<game_quit_interrupt>(
+      [&] { return turn_loop( planes, ss, ts ); } ) );
 }
 
 } // namespace
@@ -82,53 +136,15 @@ wait<> run_loaded_game(
 ** Public API
 *****************************************************************/
 wait<> run_existing_game( Planes& planes ) {
-  CHECK_HAS_VALUE( load_game( 0 ) );
-  // Leave this here because it depends on the terrain which,
-  // when we eventually move away from global game state, may not
-  // exist higher than us in the call stack.
-  MapUpdater map_updater(
-      GameState::terrain(),
-      global_renderer_use_only_when_needed() );
-  map_updater.redraw();
-  lua_reload( GameState::root() );
-  play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game(
-      planes, GameState::players(), GameState::terrain(),
-      GameState::land_view(), GameState::units(),
-      GameState::settings(), GameState::turn(),
-      GameState::colonies(), map_updater );
+  co_await run_game( planes, []( SS& ss, lua::state& ) {
+    CHECK_HAS_VALUE( load_game( ss.root, 0 ) );
+  } );
 }
 
 wait<> run_new_game( Planes& planes ) {
-  default_construct_game_state();
-  lua_reload( GameState::root() );
-  lua::state& st = lua_global_state();
-  CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
-  // Leave this here because it depends on the terrain which,
-  // when we eventually move away from global game state, may not
-  // exist higher than us in the call stack.
-  MapUpdater map_updater(
-      GameState::terrain(),
-      global_renderer_use_only_when_needed() );
-  map_updater.redraw();
-
-  // 1. Take user through game setup/configuration.
-
-  // 2. Generate game world.
-
-  // 3. Game intro sequence in old world view.
-
-  // 4. Animate ship sailing a few squares.
-
-  // 5. Display some messages to the player.
-
-  // 6. Player takes control.
-  play( e_game_module_tune_points::start_game );
-  co_await run_loaded_game(
-      planes, GameState::players(), GameState::terrain(),
-      GameState::land_view(), GameState::units(),
-      GameState::settings(), GameState::turn(),
-      GameState::colonies(), map_updater );
+  co_await run_game( planes, []( SS&, lua::state& st ) {
+    CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
+  } );
 }
 
 } // namespace rn

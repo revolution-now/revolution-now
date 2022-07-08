@@ -20,7 +20,7 @@
 #include "config/unit-type.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
+#include "ss/unit-type.hpp"
 
 // refl
 #include "refl/to-str.hpp"

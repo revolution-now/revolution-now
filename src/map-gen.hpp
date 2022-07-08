@@ -12,15 +12,23 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
-#include "map-updater.hpp"
+// gfx
+#include "gfx/coord.hpp"
+
+namespace lua {
+struct state;
+}
 
 namespace rn {
 
-void generate_terrain( IMapUpdater& map_updater );
+struct IMapUpdater;
+struct TerrainState;
 
-void ascii_map_gen();
+void generate_terrain( lua::state&  st,
+                       IMapUpdater& map_updater );
+
+void ascii_map_gen( lua::state&   st,
+                    TerrainState& terrain_state );
 
 void linker_dont_discard_module_map_gen();
 

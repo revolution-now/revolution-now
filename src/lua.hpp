@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2019-09-13.
 *
-* Description: Interface to lua.
+* Description: Lua state initialization.
 *
 *****************************************************************/
 #pragma once
@@ -13,26 +13,20 @@
 #include "core-config.hpp"
 
 namespace lua {
-
 struct state;
-
 }
 
 namespace rn {
 
-struct RootState;
-
 /****************************************************************
-** Lua State
+** Public API
 *****************************************************************/
-lua::state& lua_global_state();
+// This runs the full init routine including loading all modules,
+// which is expensive.
+void lua_init( lua::state& st );
 
-/****************************************************************
-** Lua Modules
-*****************************************************************/
-void run_lua_startup_routines();
-void load_lua_modules();
-
-void lua_reload( RootState& root_state );
+// This is mainly for unit tests where we want to run the startup
+// routines but nothing else, for efficiency.
+void run_lua_startup_routines( lua::state& st );
 
 } // namespace rn

@@ -13,14 +13,15 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
-#include "game-state.hpp" // FIXME
 #include "production.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
-// game-state
-#include "gs/colony.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colony.hpp"
+#include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -168,7 +169,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
             renderer,
             sprite_rect_for_unit_in_slot( slot, idx )
                 .upper_left(),
-            unit_id,
+            ss_.units.unit_for( unit_id ),
             UnitRenderOptions{ .flag   = false,
                                .shadow = UnitShadow{
                                    .color = kShadowColor } } );
@@ -209,7 +210,7 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
       &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return nothing;
   // Check if the unit is a human.
-  UnitsState const& units_state = GameState::units();
+  UnitsState const& units_state = ss_.units;
   Unit const&       unit = units_state.unit_for( *unit_id );
   if( !unit.is_human() ) return nothing;
   // Check if this unit is coming from another building; if so
@@ -256,8 +257,7 @@ void ColViewBuildings::drop( ColViewObject_t const& o,
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );
   ColonyJob_t job = ColonyJob::indoor{ .job = indoor_job };
-  move_unit_to_colony( GameState::units(), colony_, unit_id,
-                       job );
+  move_unit_to_colony( ss_.units, colony_, unit_id, job );
   CHECK_HAS_VALUE( colony_.validate() );
 }
 
@@ -295,8 +295,7 @@ void ColViewBuildings::cancel_drag() { dragging_ = nothing; }
 // Implement IColViewDragSource.
 void ColViewBuildings::disown_dragged_object() {
   CHECK( dragging_.has_value() );
-  UnitsState& units_state = GameState::units();
-  remove_unit_from_colony( units_state, colony_, dragging_->id );
+  remove_unit_from_colony( ss_.units, colony_, dragging_->id );
 }
 
 // Implement AwaitView.

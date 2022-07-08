@@ -13,8 +13,8 @@
 // Under test.
 #include "src/construction.hpp"
 
-// game-state
-#include "src/gs/units.hpp" // FIXME: remove if not needed.
+// ss
+#include "src/ss/units.hpp" // FIXME: remove if not needed.
 
 // Must be last.
 #include "test/catch-common.hpp"

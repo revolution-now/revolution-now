@@ -19,9 +19,9 @@
 #include "wait.hpp"
 
 // gs
-#include "gs/nation.rds.hpp"
-#include "gs/unit-id.hpp"
-#include "gs/unit-type.rds.hpp"
+#include "ss/nation.rds.hpp"
+#include "ss/unit-id.hpp"
+#include "ss/unit-type.rds.hpp"
 
 namespace rn {
 

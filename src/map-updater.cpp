@@ -15,8 +15,8 @@
 #include "render-terrain.hpp"
 #include "tiles.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
+// ss
+#include "ss/terrain.hpp"
 
 using namespace std;
 
@@ -29,7 +29,8 @@ TerrainRenderOptions make_terrain_options(
   return TerrainRenderOptions{
       .render_forests   = our_options.render_forests,
       .render_resources = our_options.render_resources,
-      .render_lcrs      = our_options.render_lcrs };
+      .render_lcrs      = our_options.render_lcrs,
+      .grid             = our_options.grid };
 }
 
 }
@@ -68,6 +69,15 @@ IMapUpdater::Popper IMapUpdater::push_options_and_redraw(
 MapUpdaterOptions const& IMapUpdater::options() const {
   CHECK( !options_.empty() );
   return options_.top();
+}
+
+MapUpdaterOptions& IMapUpdater::mutable_options() {
+  CHECK( !options_.empty() );
+  return options_.top();
+}
+
+void to_str( IMapUpdater const&, string& out, base::ADL_t ) {
+  out += "IMapUpdater";
 }
 
 /****************************************************************

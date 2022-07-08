@@ -12,20 +12,15 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "unit-id.hpp"
-
-// C++ standard library
-#include <utility>
-
 namespace rn {
+
+struct Unit;
 
 struct FightStatistics {
   bool attacker_wins{};
 };
-NOTHROW_MOVE( FightStatistics );
 
-FightStatistics fight_statistics( UnitId attacker_id,
-                                  UnitId defender_id );
+FightStatistics fight_statistics( Unit const& attacker,
+                                  Unit const& defender );
 
 } // namespace rn

@@ -20,9 +20,9 @@
 #include "tile-enum.rds.hpp"
 
 // gs
-#include "gs/colony-enums.rds.hpp"
-#include "gs/colony.rds.hpp"
-#include "gs/unit-type.rds.hpp"
+#include "ss/colony-enums.rds.hpp"
+#include "ss/colony.rds.hpp"
+#include "ss/unit-type.rds.hpp"
 
 namespace rn {
 

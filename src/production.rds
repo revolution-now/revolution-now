@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # gs
-include "gs/colony.rds.hpp"
-include "gs/commodity.rds.hpp"
+include "ss/colony.rds.hpp"
+include "ss/commodity.rds.hpp"
 
 # gfx
 include "gfx/coord.rds.hpp"

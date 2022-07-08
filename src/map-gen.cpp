@@ -11,16 +11,15 @@
 #include "map-gen.hpp"
 
 // Revolution Now
-#include "lua.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
 
-// gs
-#include "gs/land-view.hpp"
-#include "gs/map-square.hpp"
-#include "gs/terrain.hpp"
+// ss
+#include "ss/land-view.hpp"
+#include "ss/map-square.hpp"
+#include "ss/terrain.hpp"
 
 // luapp
-#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -35,8 +34,8 @@ namespace rn {
 
 namespace {
 
-void generate_terrain_impl( Matrix<MapSquare>& ) {
-  lua::state& st = lua_global_state();
+void generate_terrain_impl( lua::state& st,
+                            Matrix<MapSquare>& ) {
   CHECK_HAS_VALUE( st["map_gen"]["generate"].pcall() );
 }
 
@@ -49,14 +48,17 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
       } );
 }
 
-void generate_terrain( IMapUpdater& map_updater ) {
-  map_updater.modify_entire_map( generate_terrain_impl );
+void generate_terrain( lua::state&  st,
+                       IMapUpdater& map_updater ) {
+  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
+    generate_terrain_impl( st, m );
+  } );
 }
 
-void ascii_map_gen() {
-  TerrainState&          terrain_state = GameState::terrain();
+void ascii_map_gen( lua::state&   st,
+                    TerrainState& terrain_state ) {
   NonRenderingMapUpdater map_updater( terrain_state );
-  generate_terrain( map_updater );
+  generate_terrain( st, map_updater );
   Matrix<MapSquare> const& world_map = terrain_state.world_map();
 
   auto bar = [&] {
@@ -110,43 +112,5 @@ void ascii_map_gen() {
 }
 
 void linker_dont_discard_module_map_gen() {}
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_FN( reset_terrain, void, Delta size ) {
-  NonRenderingMapUpdater map_updater( GameState::terrain() );
-  reset_terrain( map_updater, size );
-}
-
-// FIXME: get rid of this and access it via the TerrainState
-// which is available from Lua.
-LUA_FN( at, MapSquare&, Coord tile ) {
-  TerrainState& terrain_state = GameState::terrain();
-  maybe<e_cardinal_direction> d =
-      terrain_state.proto_square_direction_for_tile( tile );
-  if( d.has_value() )
-    return terrain_state.mutable_proto_square( *d );
-  // This should never fail since coord should now be on the map.
-  return terrain_state.mutable_square_at( tile );
-}
-
-// FIXME: get rid of this; lua should access the terrain state
-// via the root state.
-LUA_FN( terrain_state, TerrainState& ) {
-  return GameState::terrain();
-}
-
-LUA_FN( world_size, lua::table ) {
-  TerrainState& terrain_state = GameState::terrain();
-  lua::table    res           = st.table.create();
-  res["w"] = terrain_state.world_map().size().w;
-  res["h"] = terrain_state.world_map().size().h;
-  return res;
-}
-
-} // namespace
 
 } // namespace rn

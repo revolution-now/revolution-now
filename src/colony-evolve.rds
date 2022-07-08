@@ -13,9 +13,9 @@ include "maybe.hpp"
 include "production.rds.hpp"
 
 # gs
-include "gs/colony.rds.hpp"
-include "gs/commodity.rds.hpp"
-include "gs/unit-id.hpp"
+include "ss/colony.rds.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/unit-id.hpp"
 
 # C++ standard library
 include "<vector>"

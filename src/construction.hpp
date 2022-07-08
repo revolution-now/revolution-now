@@ -17,7 +17,7 @@
 #include "wait.hpp"
 
 // gs
-#include "gs/colony.rds.hpp"
+#include "ss/colony.rds.hpp"
 
 // C++ standard library
 #include <string>

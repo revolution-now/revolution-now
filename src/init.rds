@@ -15,7 +15,6 @@ enum.e_init_routine {
   compositor,
   conductor,
   configs,
-  lua,
   midiplayer,
   midiseq,
   oggplayer,

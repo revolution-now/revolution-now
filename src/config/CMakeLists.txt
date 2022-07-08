@@ -2,6 +2,6 @@ add_rn_library(
   rn-config
   # Dependencies
   rn-base
-  rn-gs
+  rn-ss
   rn-luapp
 )

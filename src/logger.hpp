@@ -93,6 +93,11 @@ ILogger& terminal_logger();
 ILogger& console_logger();
 ILogger& hybrid_logger();
 
+struct Terminal;
+// This must be called when the Terminal object is created and
+// destroyed (in the latter case, set it to nullptr).
+void set_console_terminal( Terminal* terminal );
+
 // The game's default standard logger sends output to both the
 // terminal and the in-game console.
 inline ILogger& lg = hybrid_logger();

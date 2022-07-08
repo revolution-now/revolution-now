@@ -17,35 +17,61 @@
 #include "maybe.hpp"
 
 // C++ standard library
+#include <mutex>
 #include <string>
 #include <string_view>
+#include <vector>
 
-namespace rn::term {
+namespace lua {
+struct state;
+}
 
-// This function is thread safe.
-void log( std::string_view msg );
+namespace rn {
 
-valid_or<std::string> run_cmd( std::string const& cmd );
+struct Terminal {
+  Terminal( lua::state& st );
+  ~Terminal();
 
-// This function is thread safe.
-void clear();
+  // This function is thread safe.
+  void log( std::string_view msg );
 
-// idx zero is most recent. This function is thread safe.
-maybe<std::string const&> line( int idx );
+  valid_or<std::string> run_cmd( std::string const& cmd );
 
-// idx zero is most recent.
-maybe<std::string const&> history( int idx );
+  // This function is thread safe.
+  void clear();
 
-// Given a fragment of Lua this will return a vector of all pos-
-// sible (immediate) completions. If it returns an empty vector
-// then that means the fragment is invalid (i.e., it is not a
-// prefix of any valid completion).
-std::vector<std::string> autocomplete(
-    std::string_view fragment );
+  // idx zero is most recent. This function is thread safe.
+  maybe<std::string const&> line( int idx );
 
-// Will keep autocompleting so long as there is a single result,
-// until the result converges and stops changing.
-std::vector<std::string> autocomplete_iterative(
-    std::string_view fragment );
+  // idx zero is most recent.
+  maybe<std::string const&> history( int idx );
 
-} // namespace rn::term
+  void push_history( std::string const& what );
+
+  // Given a fragment of Lua this will return a vector of all
+  // possible (immediate) completions. If it returns an empty
+  // vector then that means the fragment is invalid (i.e., it is
+  // not a prefix of any valid completion).
+  std::vector<std::string> autocomplete(
+      std::string_view fragment );
+
+  // Will keep autocompleting so long as there is a single re-
+  // sult, until the result converges and stops changing.
+  std::vector<std::string> autocomplete_iterative(
+      std::string_view fragment );
+
+  lua::state& lua_state() { return st_; }
+
+ private:
+  void trim();
+
+  lua::state&              st_;
+  std::vector<std::string> history_;
+  // The g_buffer MUST ONLY be accessed while holding the below
+  // mutex because it can be modified by multiple threads by way
+  // of the logging framework.
+  std::mutex               buffer_mutex_;
+  std::vector<std::string> buffer_;
+};
+
+} // namespace rn

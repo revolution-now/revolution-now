@@ -125,12 +125,15 @@ local function random_point_in_rect( rect )
 end
 
 -----------------------------------------------------------------
--- Map square access.
+-- Basic map access.
 -----------------------------------------------------------------
--- Note that this function will ALWAYS return a square, since the
--- function that it calls will return a proto square if it is off
--- of the map.
-local function square_at( coord ) return map_gen.at( coord ) end
+-- The square must exist.
+local function square_at( coord )
+  assert( ROOT.terrain:square_exists( coord ) )
+  return ROOT.terrain:square_at( coord )
+end
+
+local function world_size() return ROOT.terrain:size() end
 
 -----------------------------------------------------------------
 -- Algorithms
@@ -139,7 +142,7 @@ local function square_at( coord ) return map_gen.at( coord ) end
 -- in the coordinate and the square object which the function may
 -- use. Note that the coordinates are zero based.
 local function on_all( f )
-  local size = map_gen.world_size()
+  local size = world_size()
   for y = 0, size.h - 1 do
     for x = 0, size.w - 1 do --
       local coord = { x=x, y=y }
@@ -153,7 +156,7 @@ end
 -- Unit Placement
 -----------------------------------------------------------------
 function M.initial_ships_pos()
-  local size = map_gen.world_size()
+  local size = world_size()
   local y = size.h / 2
   local x = size.w - 1
   while square_at{ x=x, y=y }.sea_lane do x = x - 1 end
@@ -176,14 +179,25 @@ local function set_water( coord )
   square.sea_lane = false
 end
 
+-- This will create a new empty map set all squares to water.
+local function reset_terrain( options )
+  ROOT.terrain:reset( options.world_size )
+  -- FIXME: needed?
+  on_all( set_water )
+end
+
 local function is_square_water( square )
   return square.surface == 'water'
 end
 
-local function set_arctic( coord )
-  local square = square_at( coord )
+local function set_square_arctic( square )
   square.surface = 'land'
   square.ground = 'arctic'
+end
+
+local function set_arctic( coord )
+  local square = square_at( coord )
+  set_square_arctic( square )
 end
 
 local function is_arctic_square( square )
@@ -195,25 +209,23 @@ local function is_sea_lane( coord )
   return square.sea_lane
 end
 
-local function set_sea_lane( coord )
-  local square = square_at( coord )
+local function set_square_sea_lane( square )
   square.surface = 'water'
   square.sea_lane = true
+end
+
+local function set_sea_lane( coord )
+  local square = square_at( coord )
+  set_square_sea_lane( square )
 end
 
 local function square_has_river( square )
   return square.river ~= nil
 end
 
--- This will create a new empty map set all squares to water.
-local function reset_terrain( options )
-  map_gen.reset_terrain( options.world_size )
-  on_all( set_water )
-end
-
 -- row is zero-based.
 local function row_has_land( row )
-  local size = map_gen.world_size()
+  local size = world_size()
   for x = 0, size.w - 1 do
     local square = square_at{ x=x, y=row }
     if square.surface == 'land' then return true end
@@ -227,7 +239,7 @@ local function is_water( square ) return
     square.surface == 'water' end
 
 local function right_most_land_square_in_row( row )
-  local size = map_gen.world_size()
+  local size = world_size()
   for x = size.w - 1, 0, -1 do
     local coord = { x=x, y=row }
     local square = square_at( coord )
@@ -306,7 +318,7 @@ local function surrounding_squares_cardinal( square )
 end
 
 local function square_exists( square )
-  local size = map_gen.world_size()
+  local size = world_size()
   return
       square.x >= 0 and square.y >= 0 and square.x < size.w and
           square.y < size.h
@@ -325,7 +337,7 @@ end
 -----------------------------------------------------------------
 -- TODO: tweak the density of forest to match the original game.
 local function forest_cover()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord )
     local square = square_at( coord )
     if square.surface == 'land' then
@@ -345,7 +357,7 @@ end
 -- that land doesn't get too close to the map edge and we still
 -- have room for sea lane squares.
 local function clear_buffer_area( buffer )
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord )
     local x = coord.x
     local y = coord.y
@@ -357,7 +369,7 @@ local function clear_buffer_area( buffer )
 end
 
 local function create_arctic_along_row( y )
-  local size = map_gen.world_size()
+  local size = world_size()
   -- Note that we don't include the edges.
   for x = 1, size.w - 2 do
     if math.random( 1, 2 ) == 1 then set_arctic{ x=x, y=y } end
@@ -365,7 +377,7 @@ local function create_arctic_along_row( y )
 end
 
 local function create_arctic()
-  local size = map_gen.world_size()
+  local size = world_size()
   create_arctic_along_row( 0 )
   create_arctic_along_row( size.h - 1 )
 end
@@ -374,7 +386,7 @@ end
 -- Sea Lane Generation
 -----------------------------------------------------------------
 local function create_sea_lanes()
-  local size = map_gen.world_size()
+  local size = world_size()
 
   -- First set all water tiles to sea lane.
   on_all( function( coord, square )
@@ -508,7 +520,7 @@ end
 -- Lost City Rumors
 -----------------------------------------------------------------
 local function distribute_lost_city_rumors( placement_seed )
-  local size = map_gen.world_size()
+  local size = world_size()
   local coords = dist.compute_lost_city_rumors( size,
                                                 placement_seed )
   for _, coord in ipairs( coords ) do
@@ -558,7 +570,8 @@ local RESOURCES_FOREST = {
 -- are the only squares that will be accessible to any colony. So
 -- here we will just do one square.
 local function can_place_fish( coord )
-  local squares = surrounding_squares_3x3( coord )
+  local squares =
+      filter_on_map( surrounding_squares_3x3( coord ) )
   for _, coord in ipairs( squares ) do
     if square_at( coord ).surface == 'land' then return true end
   end
@@ -602,7 +615,7 @@ local function add_forest_prime_resource( coord, square )
 end
 
 local function distribute_prime_ground_resources( y_offset )
-  local size = map_gen.world_size()
+  local size = world_size()
   local coords = dist.compute_prime_ground_resources( size,
                                                       y_offset )
   for _, coord in ipairs( coords ) do
@@ -614,7 +627,7 @@ local function distribute_prime_ground_resources( y_offset )
 end
 
 local function distribute_prime_forest_resources( y_offset )
-  local size = map_gen.world_size()
+  local size = world_size()
   local coords = dist.compute_prime_forest_resources( size,
                                                       y_offset )
   for _, coord in ipairs( coords ) do
@@ -642,7 +655,7 @@ end
 
 local function set_random_placement_seed()
   local placement_seed = math.random( 0, 256 )
-  map_gen.terrain_state():set_placement_seed( placement_seed )
+  ROOT.terrain:set_placement_seed( placement_seed )
   return placement_seed
 end
 
@@ -650,7 +663,7 @@ end
 -- Ground Terrain Assignment
 -----------------------------------------------------------------
 local function assign_ground_types()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     if is_water( square ) then return end
     if coord.y == 0 or coord.y == size.h - 1 then
@@ -697,7 +710,7 @@ end
 -- inal game did, and 2) we otherwise seem to end up with too
 -- many of them and they don't really look good.
 local function remove_Xs()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
       local square_right = square_at{ x=coord.x + 1, y=coord.y }
@@ -724,10 +737,11 @@ end
 -- lands. If the player wants to use that as a loop hole, so be
 -- it.
 local function remove_islands()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     if coord.y > 0 and coord.y < size.h - 1 then
-      local surrounding = surrounding_squares_3x3( coord )
+      local surrounding = filter_on_map(
+                              surrounding_squares_3x3( coord ) )
       local has_land = false
       for _, square in ipairs( surrounding ) do
         if square_at( square ).surface == 'land' then
@@ -752,7 +766,8 @@ local function remove_river_islands()
     -- Note that we only consider the adjacent squares in the
     -- cardinal directions because those are how rivers are
     -- joined to each other in the game and visually.
-    local surrounding = surrounding_squares_cardinal( coord )
+    local surrounding = filter_on_map(
+                            surrounding_squares_cardinal( coord ) )
     local has_river = false
     for _, square in ipairs( surrounding ) do
       if square_at( square ).river ~= nil then
@@ -772,7 +787,7 @@ end
 -- unnatural. This will remove them by removing the river from
 -- the lower right tile.
 local function remove_river_quads()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     if not square_has_river( square ) then return end
     if coord.y == size.h - 1 or coord.x == size.w - 1 then
@@ -844,7 +859,8 @@ local function create_rivers( options )
         -- Before starting a new river make sure there are no ex-
         -- isting rivers in the vicinity. Without this, the
         -- rivers tend to clump too much.
-        local squares = surrounding_squares_3x3( coord )
+        local squares = filter_on_map(
+                            surrounding_squares_3x3( coord ) )
         for _, coord in ipairs( squares ) do
           if square_at( coord ).river then goto skip end
         end
@@ -870,15 +886,15 @@ end
 -- code doesn't have to filter out non-exstent squares in every
 -- algorithm.
 local function generate_proto_squares()
-  local size = map_gen.world_size()
+  local size = world_size()
 
   -- Arctic.
-  set_arctic{ x=0, y=-1 }
-  set_arctic{ x=0, y=size.h }
+  set_square_arctic( ROOT.terrain:proto_square( 'n' ) )
+  set_square_arctic( ROOT.terrain:proto_square( 's' ) )
 
   -- Sea lane.
-  set_sea_lane{ x=-1, y=0 }
-  set_sea_lane{ x=size.w, y=0 }
+  set_square_sea_lane( ROOT.terrain:proto_square( 'e' ) )
+  set_square_sea_lane( ROOT.terrain:proto_square( 'w' ) )
 end
 
 -----------------------------------------------------------------
@@ -897,7 +913,7 @@ end
 -- scale will affect continent size.
 --
 local function continent_stretch_for_seed( seed_square, scale )
-  local size = map_gen.world_size()
+  local size = world_size()
   local stretch_x = math.min( seed_square.x,
                               size.w - seed_square.x )
   local stretch_y = math.min( seed_square.y,
@@ -982,7 +998,7 @@ end
 -- Land Generation
 -----------------------------------------------------------------
 local function total_land_density( land_count )
-  local size = map_gen.world_size()
+  local size = world_size()
   local total_count = size.w * size.h
   local density = land_count / total_count
   assert( density <= 1.0 )
@@ -1003,7 +1019,7 @@ local function round_buffer( target )
 end
 
 local function generate_land( options )
-  local size = map_gen.world_size()
+  local size = world_size()
   -- The buffer zone will have no land in it, so it should be
   -- relatively small. These are calculated so that for the orig-
   -- inal game's map size they should yeild the buffer values
@@ -1124,7 +1140,7 @@ end
 
 -- FIXME move this
 local function generate_battlefield()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     square.surface = 'land'
     square.ground = 'grassland'
@@ -1133,7 +1149,7 @@ end
 
 -- FIXME move this
 local function generate_half_land()
-  local size = map_gen.world_size()
+  local size = world_size()
   on_all( function( coord, square )
     if coord.x == size.w // 2 then
       square.surface = 'land'
@@ -1165,8 +1181,7 @@ end
 -- This will recompute the distribution of resources but with the
 -- same placement seed.
 function M.refresh_resources()
-  M.redistribute_resources(
-      map_gen.terrain_state():placement_seed() )
+  M.redistribute_resources( ROOT.terrain:placement_seed() )
 end
 
 function M.remake_rivers( options )
@@ -1218,6 +1233,8 @@ local function generate( options )
   create_indian_villages()
 end
 
-M.generate = timer.timed( 'map generation', generate )
+function M.generate( ... )
+  timer.log_time( 'map generation', generate, ... )
+end
 
 return M

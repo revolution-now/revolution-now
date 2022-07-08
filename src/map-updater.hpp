@@ -22,6 +22,7 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/macros.hpp"
+#include "base/to-str.hpp"
 
 // C++ standard library
 #include <stack>
@@ -42,6 +43,7 @@ struct MapUpdaterOptions {
   bool render_forests   = true;
   bool render_resources = true;
   bool render_lcrs      = true;
+  bool grid             = false;
 };
 
 namespace detail {
@@ -100,8 +102,14 @@ struct IMapUpdater {
   // modify multiple options in one shot.
   Popper push_options_and_redraw( OptionsUpdateFunc mutator );
 
- protected:
   MapUpdaterOptions const& options() const;
+
+  // Before using this consider if it would be better to use the
+  // push/pop method.
+  MapUpdaterOptions& mutable_options();
+
+  friend void to_str( IMapUpdater const& o, std::string& out,
+                      base::ADL_t );
 
  private:
   friend struct detail::MapUpdaterOptionsPopper;

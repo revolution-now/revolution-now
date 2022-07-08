@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # gs
-include "gs/mv-points.hpp"
-include "gs/terrain-enums.rds.hpp"
+include "ss/mv-points.hpp"
+include "ss/terrain-enums.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"

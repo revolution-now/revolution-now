@@ -16,8 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// game-state
-#include "src/gs/units.hpp"
+// ss
+#include "src/ss/units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

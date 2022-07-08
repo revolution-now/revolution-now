@@ -13,8 +13,8 @@
 // Under test.
 #include "src/colony-buildings.hpp"
 
-// gs
-#include "src/gs/colony.hpp"
+// ss
+#include "src/ss/colony.hpp"
 
 // refl
 #include "refl/to-str.hpp"

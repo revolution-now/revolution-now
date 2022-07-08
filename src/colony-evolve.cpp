@@ -17,11 +17,13 @@
 #include "on-map.hpp"
 #include "production.hpp"
 #include "rand.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+#include "ss/players.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -118,7 +120,7 @@ void check_create_or_starve_colonist(
   if( current_food < food_needed_for_creation ) return;
 
   current_food -= food_needed_for_creation;
-  UnitId unit_id = create_unit(
+  UnitId unit_id = create_free_unit(
       units_state, colony.nation,
       UnitType::create( e_unit_type::free_colonist ) );
   unit_to_map_square_non_interactive( units_state, map_updater,
@@ -269,24 +271,23 @@ void apply_production_to_colony(
 
 } // namespace
 
-ColonyEvolution evolve_colony_one_turn(
-    Colony&     colony, SettingsState const&,
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IMapUpdater& map_updater ) {
+ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        Colony& colony ) {
   ColonyEvolution ev;
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
 
-  ev.production = production_for_colony(
-      terrain_state, units_state, player, colony );
+  ev.production = production_for_colony( ss.terrain, ss.units,
+                                         player, colony );
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );
 
-  check_construction( units_state, map_updater, colony, ev );
+  check_construction( ss.units, ts.map_updater, colony, ev );
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
-      units_state, colony, ev.production, ev.notifications,
-      map_updater );
+      ss.units, colony, ev.production, ev.notifications,
+      ts.map_updater );
 
   // NOTE: This should be done last, so that anything above that
   // could potentially consume commodities can do so before they

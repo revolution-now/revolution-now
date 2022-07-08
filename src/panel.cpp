@@ -14,17 +14,18 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
 
-// game-state
-#include "gs/land-view.hpp"
-#include "gs/players.hpp"
-#include "gs/turn.hpp"
+// ss
+#include "ss/land-view.rds.hpp"
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
+#include "ss/turn.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -42,11 +43,15 @@ namespace {} // namespace
 ** PanelPlane::Impl
 *****************************************************************/
 struct PanelPlane::Impl : public Plane {
-  MenuPlane::Deregistrar eot_click_dereg_;
+  Planes&                       planes_;
+  SS&                           ss_;
+  unique_ptr<ui::InvisibleView> view;
+  wait_promise<>                w_promise;
+  MenuPlane::Deregistrar        eot_click_dereg_;
 
-  Impl( MenuPlane& menu_plane ) : menu_plane_( menu_plane ) {
+  Impl( Planes& planes, SS& ss ) : planes_( planes ), ss_( ss ) {
     // Register menu handlers.
-    eot_click_dereg_ = menu_plane_.register_handler(
+    eot_click_dereg_ = planes_.menu().register_handler(
         e_menu_item::next_turn, *this );
 
     vector<ui::OwningPositionedView> view_vec;
@@ -109,7 +114,7 @@ struct PanelPlane::Impl : public Plane {
         renderer.typer( where, gfx::pixel::banana() );
 
     // First some general stats that are not player specific.
-    TurnState const& turn_state = GameState::turn();
+    TurnState const& turn_state = ss_.turn;
     typer.write( "{} {}\n",
                  season_str( turn_state.time_point.season ),
                  turn_state.time_point.year );
@@ -121,7 +126,7 @@ struct PanelPlane::Impl : public Plane {
 
     // We have an active player, so print some info about it.
     e_nation            nation        = nat_st->nation;
-    PlayersState const& players_state = GameState::players();
+    PlayersState const& players_state = ss_.players;
     UNWRAP_CHECK( player, players_state.players[nation] );
 
     if( player.discovered_new_world )
@@ -136,7 +141,7 @@ struct PanelPlane::Impl : public Plane {
 
     typer.newline();
     typer.write( "Zoom: {:.4}\n",
-                 GameState::land_view().viewport.get_zoom() );
+                 ss_.land_view.viewport.get_zoom() );
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -187,10 +192,6 @@ struct PanelPlane::Impl : public Plane {
   wait<> wait_for_eot_button_click() {
     return user_hits_eot_button();
   }
-
-  MenuPlane&                    menu_plane_;
-  unique_ptr<ui::InvisibleView> view;
-  wait_promise<>                w_promise;
 };
 
 /****************************************************************
@@ -211,8 +212,8 @@ Plane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( MenuPlane& menu_plane )
-  : impl_( new Impl( menu_plane ) ) {}
+PanelPlane::PanelPlane( Planes& planes, SS& ss )
+  : impl_( new Impl( planes, ss ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

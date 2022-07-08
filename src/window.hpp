@@ -31,6 +31,7 @@
 namespace rn {
 
 struct Plane;
+struct UnitsState;
 
 struct IntInputBoxOptions {
   std::string_view msg     = "";
@@ -91,8 +92,8 @@ struct UnitSelection {
 NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
-    WindowPlane& window_plane, std::vector<UnitId> const& ids_,
-    bool allow_activation );
+    UnitsState const& units_state, WindowPlane& window_plane,
+    std::vector<UnitId> const& ids_, bool allow_activation );
 
 } // namespace rn
 

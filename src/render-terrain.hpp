@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
-
 // render
 #include "render/renderer.hpp"
 
@@ -23,6 +20,8 @@
 
 namespace rn {
 
+struct TerrainState;
+
 /****************************************************************
 ** TerrainRenderOptions
 *****************************************************************/
@@ -30,6 +29,7 @@ struct TerrainRenderOptions {
   bool render_forests   = true;
   bool render_resources = true;
   bool render_lcrs      = true;
+  bool grid             = false;
 };
 
 /****************************************************************

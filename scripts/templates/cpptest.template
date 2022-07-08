@@ -14,7 +14,6 @@
 #include "src/{{CURSOR}}{{FILEP}}/{{FILE}}.hpp"
 
 // Revolution Now
-#include "src/lua.hpp"         // FIXME: remove if not needed.
 #include "src/luapp/state.hpp" // FIXME: remove if not needed.
 
 // Must be last.
@@ -28,20 +27,11 @@ using namespace std;
 // using Catch::Contains;
 
 TEST_CASE( "[{{FILEP}}/{{FILE}}] some test" ) {
-  int x = 4;
-  REQUIRE( x == 4 );
-
-  SECTION( "even" ) {
-    REQUIRE( x % 2 == 0 );
-  }
-
-  SECTION( "non negative" ) {
-    REQUIRE( x >= 0 );
-  }
+  // TODO
 }
 
 TEST_CASE( "[{{FILEP}}/{{FILE}}] lua bindings" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
 
   auto script = R"(
     local x = 5+6

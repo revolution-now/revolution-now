@@ -11,21 +11,32 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "terminal.hpp"
+#include "src/lua.hpp"
+#include "src/terminal.hpp"
+
+// luapp
+#include "src/luapp/state.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
+namespace rn {
 namespace {
 
 using namespace std;
-using namespace rn;
 
 using Catch::Contains;
 using Catch::Equals;
 
 TEST_CASE( "[terminal] autocomplete" ) {
-  using term::autocomplete;
+  lua::state st;
+  // NOTE: this is expensive, but this test currently needs it.
+  lua_init( st );
+  Terminal term( st );
+
+  auto autocomplete = [&]( string_view in ) {
+    return term.autocomplete( in );
+  };
 
   auto empty = vector<string>{};
 
@@ -47,30 +58,28 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = vector<string>{ "ustate.create_unit_on_map",
-                        "ustate.unit_from_id" };
+  out = vector<string>{ "ustate.add_unit_to_cargo",
+                        "ustate.create_unit_in_cargo",
+                        "ustate.create_unit_on_map" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
-  in  = "ustate.unit_fr";
-  out = vector<string>{ "ustate.unit_from_id" };
+  in  = "ustate.add_un";
+  out = vector<string>{ "ustate.add_unit_to_cargo" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate.unit_from_id";
-  out = vector<string>{ "ustate.unit_from_id(" };
+  in  = "ustate.create_unit_in_cargo";
+  out = vector<string>{ "ustate.create_unit_in_cargo(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in = "ustate.unit_from_id(";
+  in = "ustate.create_unit_on_map(";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in = "ustate.unit_from_id(";
-  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
-
-  in  = "ustate.unit_from_id( usta";
-  out = vector<string>{ "ustate.unit_from_id( ustate" };
+  in  = "ustate.create_unit_on_map( usta";
+  out = vector<string>{ "ustate.create_unit_on_map( ustate" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate.unit_from_id( ustate";
-  out = vector<string>{ "ustate.unit_from_id( ustate." };
+  in  = "ustate.create_unit_on_map( ustate";
+  out = vector<string>{ "ustate.create_unit_on_map( ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
@@ -117,7 +126,8 @@ TEST_CASE( "[terminal] autocomplete" ) {
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
+  REQUIRE( term.run_cmd( "my_type = unit_type.UnitType.create( "
+                         "'free_colonist' )" ) == valid );
 
   in  = "my_t";
   out = { "my_type" };
@@ -128,31 +138,23 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.";
-  out = { "my_type.x", "my_type:get", "my_type:add" };
+  out = { "my_type:base_type", "my_type:type" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
-
-  in  = "my_type.x";
-  out = { "my_type.x" };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
-
-  in  = "my_type:x";
-  out = { "my_type.x" };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.xxx";
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "my_type.get";
-  out = { "my_type:get" };
+  in  = "my_type.base_type";
+  out = { "my_type:base_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "my_type.add";
-  out = { "my_type:add" };
+  in  = "my_type.type";
+  out = { "my_type:type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "my_type:add";
-  out = { "my_type:add(" };
+  in  = "my_type:type";
+  out = { "my_type:type(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "abcabc:";
@@ -161,16 +163,19 @@ TEST_CASE( "[terminal] autocomplete" ) {
 }
 
 TEST_CASE( "[terminal] autocomplete_iterative" ) {
-  using term::autocomplete_iterative;
+  lua::state st;
+  // NOTE: this is expensive, but this test currently needs it.
+  lua_init( st );
+  Terminal term( st );
+
+  auto ac_i = [&]( string_view in ) {
+    return term.autocomplete_iterative( in );
+  };
 
   auto empty = vector<string>{};
 
   string         in;
   vector<string> out;
-
-  auto ac_i = []( auto& in ) {
-    return autocomplete_iterative( in );
-  };
 
   in = "";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
@@ -183,19 +188,20 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = vector<string>{ "ustate.create_unit_on_map",
-                        "ustate.unit_from_id" };
+  out = vector<string>{ "ustate.add_unit_to_cargo",
+                        "ustate.create_unit_in_cargo",
+                        "ustate.create_unit_on_map" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
-  in  = "ustate.unit_fr";
-  out = vector<string>{ "ustate.unit_from_id(" };
+  in  = "ustate.add_unit_";
+  out = vector<string>{ "ustate.add_unit_to_cargo(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in = "ustate.unit_from_id(";
+  in = "ustate.add_unit_to_cargo(";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
-  in  = "ustate.unit_from_id( usta";
-  out = vector<string>{ "ustate.unit_from_id( ustate." };
+  in  = "ustate.add_unit_to_cargo( usta";
+  out = vector<string>{ "ustate.add_unit_to_cargo( ustate." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";
@@ -206,24 +212,20 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = { "unit_composer.UnitComposition.create_with_type" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.u";
-  out = { "ustate.unit" };
+  in  = "ustate.a";
+  out = { "ustate.add_unit_to_cargo(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.unit";
-  out = { "ustate.unit_from_id", "ustate.units_from_coord" };
+  in  = "ustate.create";
+  out = { "ustate.create_unit_" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "cstate.last_";
-  out = { "cstate.last_colony_id(" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+  in  = "map_g";
+  out = { "map_gen" };
+  REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
-  in  = "ustate.last_u";
-  out = { "ustate.last_unit_id(" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "che";
-  out = { "cheat.reveal_map(" };
+  in  = "map_gen.ge";
+  out = { "map_gen.generate(" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = ".";
@@ -242,42 +244,35 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
+  REQUIRE( term.run_cmd( "my_type = unit_type.UnitType.create( "
+                         "'free_colonist' )" ) == valid );
 
   in  = "my_t";
-  out = { "my_type" };
+  out = { "my_type:" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type";
-  out = { "my_type.x", "my_type:get", "my_type:add" };
+  out = { "my_type:" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "my_type.";
-  out = { "my_type.x", "my_type:get", "my_type:add" };
+  out = { "my_type:type", "my_type:base_type" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
-  in  = "my_type.x";
-  out = { "my_type.x" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "my_type:x";
-  out = { "my_type.x" };
+  in  = "my_type.base_type";
+  out = { "my_type:base_type(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type.xxx";
   out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "my_type.get";
-  out = { "my_type:get(" };
+  in  = "my_type.base_type";
+  out = { "my_type:base_type(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "my_type.add";
-  out = { "my_type:add(" };
-  REQUIRE_THAT( ac_i( in ), Equals( out ) );
-
-  in  = "my_type:add";
-  out = { "my_type:add(" };
+  in  = "my_type.type";
+  out = { "my_type:type(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "abcabc:";
@@ -286,3 +281,4 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
 }
 
 } // namespace
+} // namespace rn

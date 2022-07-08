@@ -1,20 +1,16 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'gs/colony',
- \ 'config/colony',
- \ 'gs/colony-enums',
- \ 'gs/colonies',
- \ '../test/fake/world',
- \ 'colony-mgr',
- \ 'colony-evolve',
- \ 'production',
- \ 'land-production',
- \ 'config/production',
- \ 'colony-view',
- \ 'colview-entities',
- \ 'construction',
- \ 'colview-buildings',
- \ 'colony-buildings',
+ \ 'map-updater',
+ \ 'map-updater-lua',
+ \ 'lua',
+ \ 'ss/ref',
+ \ 'ts',
+ \ 'plane-stack',
+ \ 'app-ctrl',
+ \ 'main-menu',
+ \ 'game',
+ \ 'turn',
+ \ 'save-game',
 \]
 
 let s:luas = [

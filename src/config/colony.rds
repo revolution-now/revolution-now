@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # gs
-include "gs/colony-enums.rds.hpp"
-include "gs/unit-type.rds.hpp"
+include "ss/colony-enums.rds.hpp"
+include "ss/unit-type.rds.hpp"
 
 # gfx
 include "gfx/pixel.hpp"

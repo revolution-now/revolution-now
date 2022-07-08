@@ -12,9 +12,9 @@
 include "../tile-enum.rds.hpp" # FIXME
 
 # gs
-include "gs/commodity.rds.hpp"
-include "gs/mv-points.hpp"
-include "gs/unit-type.rds.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/mv-points.hpp"
+include "ss/unit-type.rds.hpp"
 
 # Cdr.
 include "cdr/ext-builtin.hpp"

@@ -13,6 +13,9 @@
 // Under test.
 #include "src/co-lua.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "src/co-runner.hpp"
 #include "src/co-wait.hpp"
@@ -22,6 +25,7 @@
 
 // luapp
 #include "src/luapp/ext-monostate.hpp"
+#include "src/luapp/state.hpp"
 
 // base
 #include "base/valid.hpp"
@@ -68,10 +72,9 @@ string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-wait<int> do_lua_coroutine( int n ) {
+wait<int> do_lua_coroutine( lua::state& st, int n ) {
   TRACE( A );
-  lua::state& st = lua_global_state();
-  int         r  = co_await lua_wait<int>( st["get_int"], n );
+  int r = co_await lua_wait<int>( st["get_int"], n );
   TRACE( B );
   co_return r;
 }
@@ -102,14 +105,15 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 0" ) {
   using namespace scenario_0;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   trace_log = {};
   setup( st );
 
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine( 0 );
+  wait<int> w = do_lua_coroutine( st, 0 );
   run_all_coroutines();
   REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ACcBba" );
@@ -120,14 +124,15 @@ TEST_CASE( "[co-lua] scenario 0" ) {
 
 TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
   using namespace scenario_0;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   trace_log = {};
   setup( st );
 
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine( 50 );
+  wait<int> w = do_lua_coroutine( st, 50 );
   REQUIRE( w.has_exception() );
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ACca" );
@@ -152,9 +157,8 @@ string            trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-wait<int> do_lua_coroutine() {
+wait<int> do_lua_coroutine( lua::state& st ) {
   TRACE( A );
-  lua::state& st = lua_global_state();
   int r = co_await lua_wait<int>( st["get_and_add_ints"], 5 );
   TRACE( B );
   co_return r;
@@ -194,12 +198,11 @@ wait<int> get_int_from_user1() {
   co_return result;
 }
 
-wait<int> get_int_from_user2() {
+wait<int> get_int_from_user2( lua::state& st ) {
   TRACE( I );
   int result = co_await p2.wait();
   if( result == 42 ) throw runtime_error( "error from cpp" );
   if( result == 43 ) {
-    lua::state& st = lua_global_state();
     TRACE( O );
     co_await lua_wait<>( st["throw_error_from_lua"],
                          "error from lua" );
@@ -230,7 +233,8 @@ void setup( lua::state& st ) {
   };
 
   st["get_int_from_user2"] = [&]() -> wait<lua::any> {
-    co_return st.as<lua::any>( co_await get_int_from_user2() );
+    co_return st.as<lua::any>(
+        co_await get_int_from_user2( st ) );
   };
 
   st["display_int"] = [&]( int n ) -> wait<lua::any> {
@@ -245,7 +249,9 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   using namespace scenario_1;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
+  setup( st );
 
   p1        = {};
   p2        = {};
@@ -253,15 +259,13 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   shown_int = {};
   trace_log = {};
 
-  setup( st );
-
   REQUIRE( !p1.has_value() );
   REQUIRE( !p2.has_value() );
   REQUIRE( !p3.has_value() );
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine( st );
   p1.set_value( 7 );
   p2.set_value( 8 );
   p3.finish();
@@ -276,7 +280,9 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
 
 TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   using namespace scenario_1;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
+  setup( st );
 
   p1        = {};
   p2        = {};
@@ -284,15 +290,13 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   shown_int = {};
   trace_log = {};
 
-  setup( st );
-
   REQUIRE( !p1.has_value() );
   REQUIRE( !p2.has_value() );
   REQUIRE( !p3.has_value() );
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine( st );
   REQUIRE( trace_log == "ACG" );
   run_all_coroutines();
   REQUIRE_NO_EXCEPTION( w );
@@ -329,7 +333,9 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
 
 TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   using namespace scenario_1;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
+  setup( st );
 
   p1        = {};
   p2        = {};
@@ -337,15 +343,13 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   shown_int = {};
   trace_log = {};
 
-  setup( st );
-
   REQUIRE( !p1.has_value() );
   REQUIRE( !p2.has_value() );
   REQUIRE( !p3.has_value() );
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine( st );
   p1.set_value( 7 );
   p2.set_value( 42 );
   run_all_coroutines();
@@ -371,7 +375,9 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
 
 TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   using namespace scenario_1;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
+  setup( st );
 
   p1        = {};
   p2        = {};
@@ -379,15 +385,13 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   shown_int = {};
   trace_log = {};
 
-  setup( st );
-
   REQUIRE( !p1.has_value() );
   REQUIRE( !p2.has_value() );
   REQUIRE( !p3.has_value() );
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  wait<int> w = do_lua_coroutine();
+  wait<int> w = do_lua_coroutine( st );
   p1.set_value( 7 );
   p2.set_value( 43 );
   run_all_coroutines();
@@ -418,7 +422,8 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
 
 TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   using namespace scenario_1;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   p1        = {};
   p2        = {};
@@ -495,8 +500,7 @@ string               trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
-wait<string> accum_cpp( int n ) {
-  lua::state& st = lua_global_state();
+wait<string> accum_cpp( lua::state& st, int n ) {
   TRACE( A );
   if( n == 1 ) {
     TRACE( L );
@@ -512,7 +516,7 @@ wait<string> accum_cpp( int n ) {
     co_return to_string( m );
   }
   TRACE( D );
-  string s = co_await accum_cpp( n - 1 );
+  string s = co_await accum_cpp( st, n - 1 );
   TRACE( E );
   int s_int = stoi( s.c_str() );
   co_return to_string( n + s_int );
@@ -544,9 +548,8 @@ constexpr string_view lua_1 = R"(
 
 void setup( lua::state& st ) {
   st["trace"]     = trace;
-  st["accum_cpp"] = []( int n ) -> wait<lua::any> {
-    lua::state& st = lua_global_state();
-    co_return st.as<lua::any>( co_await accum_cpp( n ) );
+  st["accum_cpp"] = [&]( int n ) -> wait<lua::any> {
+    co_return st.as<lua::any>( co_await accum_cpp( st, n ) );
   };
   st.script.run( lua_1 );
 }
@@ -555,7 +558,8 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   using namespace scenario_2;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   p1        = {};
   p2        = {};
@@ -592,7 +596,8 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
 
 TEST_CASE( "[co-lua] scenario 2 error" ) {
   using namespace scenario_2;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   p1        = {};
   p2        = {};
@@ -665,7 +670,8 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
 
 TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   using namespace scenario_2;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   p1        = {};
   p2        = {};
@@ -804,7 +810,8 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 3" ) {
   using namespace scenario_3;
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   p1        = {};
   p2        = {};
@@ -862,7 +869,8 @@ namespace rn {
 namespace {
 
 TEST_CASE( "[co-lua] wait auto registration" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
+  lua_init( st ); // NOTE: expensive.
 
   st.script.run( R"(
     function assert_func( f )

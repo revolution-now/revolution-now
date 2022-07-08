@@ -18,10 +18,10 @@
 #include "lcr.hpp"
 #include "logger.hpp"
 
-// game-state
-#include "gs/player.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/player.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/nation.rds.hpp"

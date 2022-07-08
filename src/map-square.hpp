@@ -17,7 +17,7 @@
 #include "terrain.hpp"
 
 // Rds
-#include "gs/map-square.rds.hpp"
+#include "ss/map-square.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

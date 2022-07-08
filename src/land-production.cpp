@@ -14,8 +14,8 @@
 #include "map-square.hpp"
 
 // gs
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-type.hpp"
 
 // config
 #include "config/production.rds.hpp"

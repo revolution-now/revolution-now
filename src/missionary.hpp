@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // gs
-#include "gs/unit-type.hpp"
+#include "ss/unit-type.hpp"
 
 namespace rn {
 

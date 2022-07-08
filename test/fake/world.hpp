@@ -11,13 +11,15 @@
 #pragma once
 
 // Revolution Now
-#include "src/gs/colony-id.hpp"
-#include "src/gs/colony.rds.hpp"
-#include "src/gs/map-square.rds.hpp"
-#include "src/gs/nation.rds.hpp"
-#include "src/gs/unit-id.hpp"
-#include "src/gs/unit-type.rds.hpp"
 #include "src/maybe.hpp"
+
+// ss
+#include "src/ss/colony-id.hpp"
+#include "src/ss/colony.rds.hpp"
+#include "src/ss/map-square.rds.hpp"
+#include "src/ss/nation.rds.hpp"
+#include "src/ss/unit-id.hpp"
+#include "src/ss/unit-type.rds.hpp"
 
 // gfx
 #include "src/gfx/coord.hpp"
@@ -25,6 +27,10 @@
 // C++ standard library
 #include <memory>
 #include <vector>
+
+namespace lua {
+struct state;
+}
 
 namespace rn {
 
@@ -46,6 +52,11 @@ struct UnitType;
 struct Colony;
 struct IMapUpdater;
 struct Player;
+
+struct IGui;
+struct Planes;
+struct SS;
+struct TS;
 
 } // namespace rn
 
@@ -191,17 +202,39 @@ struct World {
   LandViewState const& land_view() const;
   TerrainState const&  terrain() const;
 
-  RootState&       root() { return *root_; }
-  RootState const& root() const { return *root_; }
+  RootState&       root();
+  RootState const& root() const;
+
+  SS& ss();
+
+  // These will initialize their respective objects the first
+  // time they are called, so they should always be used.
+  Planes&     planes();
+  lua::state& lua();
+  IGui&       gui();
+  TS&         ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
+
+  // Run lua_init. This will load all of the lua modules; should
+  // only be done when needed. It is very bad to have many test
+  // cases calling this.
+  void expensive_run_lua_init();
 
  private:
   e_nation default_nation_ = e_nation::dutch;
 
-  std::unique_ptr<RootState> root_;
-
+  // These are unique_ptrs so that we can forward declare them.
+  // Otherwise every unit test would have to pull in all of these
+  // headers.
+  std::unique_ptr<SS>          ss_;
   std::unique_ptr<IMapUpdater> map_updater_;
+  // These should not be accessed directly since they are ini-
+  // tially nullptr.
+  std::unique_ptr<Planes>     uninitialized_planes_;
+  std::unique_ptr<lua::state> uninitialized_lua_;
+  std::unique_ptr<IGui>       uninitialized_gui_;
+  std::unique_ptr<TS>         uninitialized_ts_;
 };
 
 } // namespace rn::testing

@@ -12,9 +12,9 @@
 include "maybe.hpp"
 
 # gs
-include "gs/cargo.hpp"
-include "gs/commodity.rds.hpp"
-include "gs/unit-id.hpp"
+include "ss/cargo.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/unit-id.hpp"
 
 namespace "rn"
 

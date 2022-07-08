@@ -22,14 +22,13 @@
 #include "src/igui-mock.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
-#include "src/map-updater.hpp"
 #include "src/ustate.hpp"
 
-// gs
-#include "src/gs/player.rds.hpp"
-#include "src/gs/settings.hpp"
-#include "src/gs/terrain.hpp"
-#include "src/gs/units.hpp"
+// ss
+#include "src/ss/player.rds.hpp"
+#include "src/ss/settings.hpp"
+#include "src/ss/terrain.hpp"
+#include "src/ss/units.hpp"
 
 // Rds
 #include "old-world-state.rds.hpp"

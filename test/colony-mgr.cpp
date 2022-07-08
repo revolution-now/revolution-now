@@ -15,24 +15,16 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
-#include "cstate.hpp"
-#include "game-state.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
 
-// gs
-#include "gs/colonies.hpp"
-#include "gs/root.hpp"
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
-
-// base
-#include "base/keyval.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -50,246 +42,99 @@ using ::Catch::UnorderedEquals;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() {
+    add_player( e_nation::dutch );
+    create_default_map();
+  }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _,
-      L, L, L,
-      _, L, L,
+      _, L, _, L,
+      L, L, L, L,
+      _, L, L, L,
+      _, L, _, L,
+      _, L, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 4 );
   }
 };
 
-/****************************************************************
-** FIXME: Legacy World Setup
-*****************************************************************/
-MapSquare make_land_square() {
-  return map_square_for_terrain( e_terrain::grassland );
-}
-
-MapSquare make_ocean_square() {
-  return map_square_for_terrain( e_terrain::ocean );
-}
-
-// FIXME: remove
-void generate_unittest_terrain( TerrainState& terrain_state ) {
-  MapSquare const L = make_land_square();
-  MapSquare const O = make_ocean_square();
-
-  NonRenderingMapUpdater map_updater( terrain_state );
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m = Matrix<MapSquare>( Delta{ .w = 10, .h = 10 } );
-    Rect land_rect{ .x = 2, .y = 2, .w = 6, .h = 6 };
-    for( auto const& coord : terrain_state.world_map().rect() ) {
-      m[coord] = O;
-      if( coord.is_inside( land_rect ) ) m[coord] = L;
-    }
-  } );
-}
-
-UnitId create_colonist_on_map( UnitsState&  units_state,
-                               Coord        where,
-                               IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create( e_unit_type::free_colonist ),
-      where );
-}
-
-UnitId create_colonist( UnitsState& units_state ) {
-  return create_unit(
-      units_state, e_nation::english,
-      UnitType::create( e_unit_type::free_colonist ) );
-}
-
-UnitId create_dragoon_on_map( UnitsState&  units_state,
-                              Coord        where,
-                              IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create(
-          UnitType::create( e_unit_type::dragoon,
-                            e_unit_type::petty_criminal )
-              .value() ),
-      where );
-}
-
-UnitId create_hardy_pioneer_on_map( UnitsState&  units_state,
-                                    Coord        where,
-                                    IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create( e_unit_type::hardy_pioneer ),
-      where );
-}
-
-UnitId create_native_convert_on_map( UnitsState&  units_state,
-                                     Coord        where,
-                                     IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create( e_unit_type::native_convert ),
-      where );
-}
-
-UnitId create_ship( UnitsState& units_state, Coord where,
-                    IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create( e_unit_type::merchantman ),
-      where );
-}
-
-UnitId create_wagon( UnitsState& units_state, Coord where,
-                     IMapUpdater& map_updater ) {
-  return create_unit_on_map_non_interactive(
-      units_state, map_updater, e_nation::english,
-      UnitComposition::create( e_unit_type::wagon_train ),
-      where );
-}
-
-unordered_map<e_commodity, int> const
-    kExpectedInitialColonyCommodityQuantities{
-        { e_commodity::horses, 0 },
-        { e_commodity::tools, 0 },
-        { e_commodity::muskets, 0 },
-        // ...
-    };
-
 TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 2, .y = 2 };
-  auto  id =
-      create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state,
-                                  id ) == base::valid );
-  ColonyId col_id =
-      found_colony( colonies_state, terrain_state, units_state,
-                    id, map_updater, "colony" );
-  Colony& col = colonies_state.colony_for( col_id );
+  Coord const coord = { .x = 1, .y = 1 };
+  UnitId      id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ) == base::valid );
+  ColonyId col_id = found_colony( W.ss(), W.ts(), id, "colony" );
+  Colony&  col    = W.colonies().colony_for( col_id );
   for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == base::lookup(
-                      kExpectedInitialColonyCommodityQuantities,
-                      type )
-                      .value_or( 0 ) );
+    REQUIRE( q == 0 );
   }
 }
 
 TEST_CASE( "[colony-mgr] native convert cannot found" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 2, .y = 2 };
-  auto  id    = create_native_convert_on_map( units_state, coord,
-                                              map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id ) ==
+  Coord const coord = { .x = 1, .y = 1 };
+  UnitId      id =
+      W.add_unit_on_map( e_unit_type::native_convert, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            e_found_colony_err::native_convert_cannot_found );
 }
 
 TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
   SECTION( "dragoon" ) {
-    Coord  coord = { .x = 2, .y = 2 };
-    UnitId id =
-        create_dragoon_on_map( units_state, coord, map_updater );
-    Unit& founder = units_state.unit_for( id );
+    Coord const coord = { .x = 1, .y = 1 };
+    UnitId      id    = W.add_unit_on_map(
+                UnitType::create( e_unit_type::dragoon,
+                                  e_unit_type::petty_criminal )
+                    .value(),
+                coord );
+    Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
-    REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                    terrain_state, id )
-                 .valid() );
+    REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
     ColonyId col_id =
-        found_colony( colonies_state, terrain_state, units_state,
-                      id, map_updater, "colony" );
+        found_colony( W.ss(), W.ts(), id, "colony" );
     REQUIRE( founder.type() == e_unit_type::petty_criminal );
-    Colony& col = colonies_state.colony_for( col_id );
+    Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
     // modities into the colony commodity store.
     for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::horses:
-          REQUIRE( q ==
-                   base::lookup(
-                       kExpectedInitialColonyCommodityQuantities,
-                       e_commodity::horses )
-                           .value_or( 0 ) +
-                       50 );
-          break;
-        case e_commodity::muskets:
-          REQUIRE( q ==
-                   base::lookup(
-                       kExpectedInitialColonyCommodityQuantities,
-                       e_commodity::muskets )
-                           .value_or( 0 ) +
-                       50 );
-          break;
-        default:
-          REQUIRE( q ==
-                   base::lookup(
-                       kExpectedInitialColonyCommodityQuantities,
-                       type )
-                       .value_or( 0 ) );
-          break;
+        case e_commodity::horses: REQUIRE( q == 50 ); break;
+        case e_commodity::muskets: REQUIRE( q == 50 ); break;
+        default: REQUIRE( q == 0 ); break;
       }
     }
   }
 
   SECTION( "hardy_pioneer" ) {
-    Coord  coord = { .x = 2, .y = 2 };
-    UnitId id = create_hardy_pioneer_on_map( units_state, coord,
-                                             map_updater );
-    Unit&  founder = units_state.unit_for( id );
+    Coord const coord = { .x = 1, .y = 1 };
+    UnitId      id =
+        W.add_unit_on_map( e_unit_type::hardy_pioneer, coord );
+    Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
-    REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                    terrain_state, id )
-                 .valid() );
+    REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
     ColonyId col_id =
-        found_colony( colonies_state, terrain_state, units_state,
-                      id, map_updater, "colony" );
+        found_colony( W.ss(), W.ts(), id, "colony" );
     REQUIRE( founder.type() == e_unit_type::hardy_colonist );
-    Colony& col = colonies_state.colony_for( col_id );
+    Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
     // modities into the colony commodity store.
     for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::tools:
-          REQUIRE( q ==
-                   base::lookup(
-                       kExpectedInitialColonyCommodityQuantities,
-                       e_commodity::tools )
-                           .value_or( 0 ) +
-                       100 );
-          break;
-        default:
-          REQUIRE( q ==
-                   base::lookup(
-                       kExpectedInitialColonyCommodityQuantities,
-                       type )
-                       .value_or( 0 ) );
-          break;
+        case e_commodity::tools: REQUIRE( q == 100 ); break;
+        default: REQUIRE( q == 0 ); break;
       }
     }
   }
@@ -297,224 +142,135 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
 
 TEST_CASE(
     "[colony-mgr] found_colony on existing colony fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 2, .y = 2 };
-  auto  id =
-      create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id )
-               .valid() );
+  Coord const coord = { .x = 1, .y = 1 };
+  UnitId      id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
   ColonyId col_id =
-      found_colony( colonies_state, terrain_state, units_state,
-                    id, map_updater, "colony 1" );
-  Colony& col = colonies_state.colony_for( col_id );
+      found_colony( W.ss(), W.ts(), id, "colony 1" );
+  Colony& col = W.colonies().colony_for( col_id );
   for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == base::lookup(
-                      kExpectedInitialColonyCommodityQuantities,
-                      type )
-                      .value_or( 0 ) );
+    REQUIRE( q == 0 );
   }
 
-  id = create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id ) ==
+  id = W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::colony_exists_here ) );
-}
-
-TEST_CASE(
-    "[colony-mgr] found_colony with existing name fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
-
-  Coord coord = { .x = 2, .y = 2 };
-  auto  id =
-      create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id )
-               .valid() );
-  ColonyId col_id =
-      found_colony( colonies_state, terrain_state, units_state,
-                    id, map_updater, "colony" );
-  Colony& col = colonies_state.colony_for( col_id );
-  for( auto [type, q] : col.commodities ) {
-    INFO( fmt::format( "type: {}, q: {}", type, q ) );
-    REQUIRE( q == base::lookup(
-                      kExpectedInitialColonyCommodityQuantities,
-                      type )
-                      .value_or( 0 ) );
-  }
-
-  coord.x += 2;
-  id = create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id )
-               .valid() );
 }
 
 TEST_CASE(
     "[colony-mgr] found_colony too close to another colony "
     "fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 2, .y = 2 };
-  auto  id =
-      create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id )
-               .valid() );
-  found_colony( colonies_state, terrain_state, units_state, id,
-                map_updater, "colony" );
+  Coord  coord = { .x = 1, .y = 1 };
+  UnitId id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
+  found_colony( W.ss(), W.ts(), id, "colony" );
   coord.x += 1;
-  id = create_colonist_on_map( units_state, coord, map_updater );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id ) ==
+  id = W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::too_close_to_colony ) );
 }
 
 TEST_CASE( "[colony-mgr] found_colony in water fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord   = { .x = 1, .y = 1 };
-  auto  ship_id = create_ship( units_state, coord, map_updater );
-  auto  unit_id = create_colonist( units_state );
-  units_state.change_to_cargo_somewhere( ship_id, unit_id );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, unit_id ) ==
+  Coord const coord = { .x = 2, .y = 3 };
+  CHECK( W.square( coord ).surface == e_surface::water );
+  UnitId ship_id =
+      W.add_unit_on_map( e_unit_type::merchantman, coord );
+  UnitId unit_id =
+      create_free_unit( W.units(), W.default_nation(),
+                        e_unit_type::free_colonist );
+  W.units().change_to_cargo_somewhere( ship_id, unit_id );
+  REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
 }
 
 TEST_CASE(
     "[colony-mgr] found_colony by unit not on map fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
+  World W;
 
-  auto id = create_colonist( units_state );
-  units_state.change_to_harbor_view(
+  UnitId id = create_free_unit( W.units(), W.default_nation(),
+                                e_unit_type::free_colonist );
+  W.units().change_to_harbor_view(
       id,
       UnitHarborViewState{ .port_status = PortStatus::in_port{},
                            .sailed_from = {} } );
-  REQUIRE( unit_can_found_colony( colonies_state, units_state,
-                                  terrain_state, id ) ==
+  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }
 
 TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 1, .y = 1 };
-  auto  id    = create_ship( units_state, coord, map_updater );
+  Coord const coord = { .x = 2, .y = 3 };
+  CHECK( W.square( coord ).surface == e_surface::water );
+  auto id = W.add_unit_on_map( e_unit_type::merchantman, coord );
   REQUIRE(
-      unit_can_found_colony( colonies_state, units_state,
-                             terrain_state, id ) ==
+      unit_can_found_colony( W.ss(), id ) ==
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
 }
 
 TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  NonRenderingMapUpdater map_updater( terrain_state );
+  World W;
 
-  Coord coord = { .x = 1, .y = 1 };
-  auto  id    = create_wagon( units_state, coord, map_updater );
+  Coord const coord = { .x = 1, .y = 1 };
+  auto id = W.add_unit_on_map( e_unit_type::wagon_train, coord );
   REQUIRE(
-      unit_can_found_colony( colonies_state, units_state,
-                             terrain_state, id ) ==
+      unit_can_found_colony( W.ss(), id ) ==
       invalid(
           e_found_colony_err::non_human_cannot_found_colony ) );
 }
 
-vector<ColonyId> colonies_all(
-    ColoniesState const& colonies_state ) {
-  vector<ColonyId> ids;
-  for( auto const& [id, colony] : colonies_state.all() )
-    ids.push_back( id );
-  return ids;
-}
-
-vector<ColonyId> colonies_all(
-    ColoniesState const& colonies_state, e_nation nation ) {
-  vector<ColonyId> ids;
-  for( auto const& [id, colony] : colonies_state.all() )
-    if( colony.nation == nation ) ids.push_back( id );
-  return ids;
-}
-
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {
-  TerrainState  terrain_state;
-  ColoniesState colonies_state;
-  UnitsState    units_state;
-  generate_unittest_terrain( terrain_state );
-  auto xp = create_empty_colony(
-      colonies_state, e_nation::english, Coord{ .x = 1, .y = 2 },
-      "my colony" );
-  REQUIRE( xp == ColonyId{ 1 } );
+  World   W;
+  Colony& colony =
+      W.add_colony( Coord{ .x = 1, .y = 2 }, e_nation::english );
+  REQUIRE( colony.id == ColonyId{ 1 } );
 
-  Colony const& colony =
-      colonies_state.colony_for( ColonyId{ 1 } );
   REQUIRE( colony.id == ColonyId{ 1 } );
   REQUIRE( colony.nation == e_nation::english );
-  REQUIRE( colony.name == "my colony" );
+  REQUIRE( colony.name == "1" );
   REQUIRE( colony.location == Coord{ .x = 1, .y = 2 } );
 
-  REQUIRE( colony_exists( colonies_state, ColonyId{ 1 } ) );
-  REQUIRE( !colony_exists( colonies_state, ColonyId{ 2 } ) );
+  // These will check-fail if they don't exist.
+  W.colonies().colony_for( ColonyId{ 1 } );
 
-  auto xp2 = create_empty_colony(
-      colonies_state, e_nation::dutch, Coord{ .x = 1, .y = 3 },
-      "my second colony" );
-  REQUIRE( xp2 == ColonyId{ 2 } );
-  REQUIRE_THAT( colonies_all( colonies_state ),
-                UnorderedEquals( vector<ColonyId>{
-                    ColonyId{ 1 }, ColonyId{ 2 } } ) );
+  Colony& colony2 =
+      W.add_colony( Coord{ .x = 1, .y = 3 }, e_nation::dutch );
+  REQUIRE( colony2.id == 2 );
+  W.colonies().colony_for( ColonyId{ 1 } );
+  W.colonies().colony_for( ColonyId{ 2 } );
+  REQUIRE( W.colonies().all().size() == 2 );
+  REQUIRE( W.colonies().all().contains( 1 ) );
+  REQUIRE( W.colonies().all().contains( 2 ) );
   REQUIRE_THAT(
-      colonies_all( colonies_state, e_nation::dutch ),
+      W.colonies().for_nation( e_nation::dutch ),
       UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
   REQUIRE_THAT(
-      colonies_all( colonies_state, e_nation::english ),
+      W.colonies().for_nation( e_nation::english ),
       UnorderedEquals( vector<ColonyId>{ ColonyId{ 1 } } ) );
-  REQUIRE_THAT( colonies_all( colonies_state, e_nation::french ),
+  REQUIRE_THAT( W.colonies().for_nation( e_nation::french ),
                 UnorderedEquals( vector<ColonyId>{} ) );
 
-  REQUIRE( colonies_state.maybe_from_name( "my colony" ) ==
+  REQUIRE( W.colonies().maybe_from_name( "1" ) ==
            ColonyId{ 1 } );
-  colonies_state.destroy_colony( ColonyId{ 1 } );
-  REQUIRE_THAT(
-      colonies_all( colonies_state ),
-      UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
+  W.colonies().destroy_colony( ColonyId{ 1 } );
+  REQUIRE( W.colonies().all().size() == 1 );
+  REQUIRE( W.colonies().all().contains( 2 ) );
 
-  colonies_state.destroy_colony( ColonyId{ 2 } );
-  REQUIRE_THAT( colonies_all( colonies_state ),
-                UnorderedEquals( vector<ColonyId>{} ) );
+  W.colonies().destroy_colony( ColonyId{ 2 } );
+  REQUIRE( W.colonies().all().size() == 0 );
 }
 
 TEST_CASE( "[colony-mgr] initial colony buildings." ) {
-  World W;
-  W.create_default_map();
+  World   W;
   Colony& colony =
       W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   unordered_set<e_colony_building> buildings;
@@ -534,15 +290,13 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
 
 TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
   World W;
-  W.create_default_map();
 
   UnitId founder = W.add_unit_on_map( e_unit_type::free_colonist,
                                       Coord{ .x = 1, .y = 1 } );
   // Don't use W.add_colony here because we are testing
   // found_colony specifically.
   ColonyId id =
-      found_colony( W.colonies(), W.terrain(), W.units(),
-                    founder, W.map_updater(), "my colony" );
+      found_colony( W.ss(), W.ts(), founder, "my colony" );
   Colony& colony = W.colonies().colony_for( id );
 
   REQUIRE( colony.outdoor_jobs[e_direction::nw] == nothing );
@@ -560,8 +314,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
 }
 
 TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
-  World W;
-  W.create_default_map();
+  World   W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Note that the founding colonist will have been placed on the
   // north tile.

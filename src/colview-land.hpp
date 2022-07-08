@@ -15,13 +15,14 @@
 // Revolution Now
 #include "colview-entities.hpp"
 
-// gs
-#include "gs/colony-enums.rds.hpp"
-#include "gs/colony.rds.hpp"
+// ss
+#include "ss/colony-enums.rds.hpp"
+#include "ss/colony.rds.hpp"
 
 namespace rn {
 
-struct IGui;
+struct SS;
+struct TS;
 struct Player;
 
 struct ColonyLandView : public ui::View,
@@ -42,11 +43,11 @@ struct ColonyLandView : public ui::View,
   };
 
   static std::unique_ptr<ColonyLandView> create(
-      IGui& gui, Player const& player, Colony& colony,
+      SS& ss, TS& ts, Colony& colony, Player const& player,
       e_render_mode mode );
 
-  ColonyLandView( IGui& gui, Player const& player,
-                  Colony& colony, e_render_mode mode );
+  ColonyLandView( SS& ss, TS& ts, Colony& colony,
+                  Player const& player, e_render_mode mode );
 
   static Delta size_needed( e_render_mode mode );
 
@@ -114,9 +115,7 @@ struct ColonyLandView : public ui::View,
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
-  IGui&            gui_;
   Player const&    player_;
-  Colony&          colony_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
 };

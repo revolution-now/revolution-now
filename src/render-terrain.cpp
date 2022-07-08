@@ -12,22 +12,18 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
+#include "map-updater.hpp"
 #include "plow.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 
-// game-state
-#include "gs/terrain.hpp"
+// ss
+#include "ss/terrain.hpp"
 
 // render
 #include "render/renderer.hpp"
-
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -1852,32 +1848,5 @@ void render_terrain( TerrainState const&         terrain_state,
       renderer.buffer_vertex_count( kLandscapeBuf ),
       renderer.buffer_size_mb( kLandscapeBuf ) );
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_FN( toggle_grid, void ) {
-  g_show_grid = !g_show_grid;
-  lg.debug( "terrain grid is {}.", g_show_grid ? "on" : "off" );
-  LUA_CHECK( st, is_renderer_loaded(),
-             "the renderer has not yet been initialized." );
-  MapUpdater map_updater(
-      GameState::terrain(),
-      global_renderer_use_only_when_needed() );
-  map_updater.redraw();
-}
-
-LUA_FN( redraw, void ) {
-  LUA_CHECK( st, is_renderer_loaded(),
-             "the renderer has not yet been initialized." );
-  MapUpdater map_updater(
-      GameState::terrain(),
-      global_renderer_use_only_when_needed() );
-  map_updater.redraw();
-}
-
-} // namespace
 
 } // namespace rn

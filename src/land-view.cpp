@@ -16,13 +16,12 @@
 #include "co-wait.hpp"
 #include "colony-id.hpp"
 #include "compositor.hpp"
-#include "cstate.hpp"
-#include "game-state.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
+#include "map-updater.hpp"
 #include "menu.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
+#include "plane-stack.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
 #include "render.hpp"
@@ -32,19 +31,21 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "time.hpp"
+#include "ts.hpp"
 #include "unit-id.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
 
-// gs
-#include "gs/colonies.hpp"
-#include "gs/land-view.hpp"
-#include "gs/settings.hpp"
-#include "gs/terrain.hpp"
-#include "gs/unit-type.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/land-view.hpp"
+#include "ss/ref.hpp"
+#include "ss/settings.hpp"
+#include "ss/terrain.hpp"
+#include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/land-view.rds.hpp"
@@ -169,13 +170,9 @@ void render_backdrop( rr::Renderer& renderer ) {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  WindowPlane&        window_plane_;
-  LandViewState&      land_view_state_;
-  ColoniesState&      colonies_state_;
-  UnitsState const&   units_state_;
-  TerrainState const& terrain_state_;
-  IMapUpdater&        map_updater_;
-  IGui&               gui_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
 
   MenuPlane::Deregistrar zoom_in_dereg_;
   MenuPlane::Deregistrar zoom_out_dereg_;
@@ -196,12 +193,10 @@ struct LandViewPlane::Impl : public Plane {
   bool g_needs_scroll_to_unit_on_input = true;
 
   SmoothViewport const& viewport() const {
-    return land_view_state_.viewport;
+    return ss_.land_view.viewport;
   }
 
-  SmoothViewport& viewport() {
-    return land_view_state_.viewport;
-  }
+  SmoothViewport& viewport() { return ss_.land_view.viewport; }
 
   void register_menu_items( MenuPlane& menu_plane ) {
     // Register menu handlers.
@@ -225,20 +220,9 @@ struct LandViewPlane::Impl : public Plane {
         e_menu_item::hidden_terrain, *this );
   }
 
-  Impl( MenuPlane& menu_plane, WindowPlane& window_plane,
-        LandViewState&      land_view_state,
-        ColoniesState&      colonies_state,
-        UnitsState const&   units_state,
-        TerrainState const& terrain_state,
-        IMapUpdater& map_updater, IGui& gui )
-    : window_plane_( window_plane ),
-      land_view_state_( land_view_state ),
-      colonies_state_( colonies_state ),
-      units_state_( units_state ),
-      terrain_state_( terrain_state ),
-      map_updater_( map_updater ),
-      gui_( gui ) {
-    register_menu_items( menu_plane );
+  Impl( Planes& planes, SS& ss, TS& ts )
+    : planes_( planes ), ss_( ss ), ts_( ts ) {
+    register_menu_items( planes.menu() );
     // Initialize general global data.
     unit_animations_.clear();
     landview_mode_   = LandViewMode::none{};
@@ -264,7 +248,7 @@ struct LandViewPlane::Impl : public Plane {
     } );
     depixelate.type   = dp_anim;
     depixelate.stage  = 0.0;
-    depixelate.target = unit_from_id( id ).demoted_type();
+    depixelate.target = ss_.units.unit_for( id ).demoted_type();
 
     AnimThrottler throttle( kAlmostStandardFrame );
     while( depixelate.stage <= 1.0 ) {
@@ -305,10 +289,10 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  wait<> animate_slide( SettingsState const& settings, UnitId id,
-                        e_direction d ) {
+  wait<> animate_slide( UnitId id, e_direction d ) {
     CHECK( !unit_animations_.contains( id ) );
-    Coord target = coord_for_unit_indirect_or_die( id );
+    Coord target =
+        coord_for_unit_indirect_or_die( ss_.units, id );
     UnitAnimation::slide& mv =
         unit_animations_[id].emplace<UnitAnimation::slide>();
     SCOPE_EXIT( {
@@ -318,7 +302,7 @@ struct LandViewPlane::Impl : public Plane {
 
     // TODO: make this a game option.
     double const kMaxVelocity =
-        settings.fast_piece_slide ? .1 : .07;
+        ss_.settings.fast_piece_slide ? .1 : .07;
 
     mv = UnitAnimation::slide{
         .target      = target.moved( d ),
@@ -387,14 +371,16 @@ struct LandViewPlane::Impl : public Plane {
         landview_mode_.holds<LandViewMode::unit_input>();
 
     // First check for colonies.
-    if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
+    if( auto maybe_id = ss_.colonies.maybe_from_coord( coord );
+        maybe_id ) {
       auto& colony = add( LandViewPlayerInput::colony{} );
       colony.id    = *maybe_id;
       co_return res;
     }
 
     // Now check for units.
-    auto const& units = units_from_coord_recursive( coord );
+    auto const& units =
+        units_from_coord_recursive( ss_.units, coord );
     if( units.size() != 0 ) {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
@@ -402,19 +388,20 @@ struct LandViewPlane::Impl : public Plane {
         auto          id = *units.begin();
         UnitSelection selection{
             id, e_unit_selection::clear_orders };
-        if( !unit_from_id( id ).has_orders() && allow_activate )
+        if( !ss_.units.unit_for( id ).has_orders() &&
+            allow_activate )
           selection.what = e_unit_selection::activate;
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            window_plane_, units, allow_activate );
+            ss_.units, planes_.window(), units, allow_activate );
       }
 
       vector<UnitId> prioritize;
       for( auto const& selection : selections ) {
         switch( selection.what ) {
           case e_unit_selection::clear_orders:
-            unit_from_id( selection.id ).clear_orders();
+            ss_.units.unit_for( selection.id ).clear_orders();
             break;
           case e_unit_selection::activate:
             CHECK( allow_activate );
@@ -425,7 +412,7 @@ struct LandViewPlane::Impl : public Plane {
             // the orders should still be upheld, because that
             // can always be done, hence they are done
             // separately.
-            unit_from_id( selection.id ).clear_orders();
+            ss_.units.unit_for( selection.id ).clear_orders();
             prioritize.push_back( selection.id );
             break;
         }
@@ -482,7 +469,7 @@ struct LandViewPlane::Impl : public Plane {
         case e::hidden_terrain: {
           auto new_state = LandViewMode::hidden_terrain{};
           SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-          auto popper = map_updater_.push_options_and_redraw(
+          auto popper = ts_.map_updater.push_options_and_redraw(
               []( MapUpdaterOptions& options ) {
                 options.render_forests = false;
                 // The original game does not render LCRs or re-
@@ -591,7 +578,7 @@ struct LandViewPlane::Impl : public Plane {
   maybe<orders_t> try_orders_from_lua( int  keycode,
                                        bool ctrl_down,
                                        bool shf_down ) {
-    lua::state& st = lua_global_state();
+    lua::state& st = ts_.lua;
 
     lua::any lua_orders = st["land_view"]["key_to_orders"](
         keycode, ctrl_down, shf_down );
@@ -659,9 +646,9 @@ struct LandViewPlane::Impl : public Plane {
     // (stacked) to indicate that visually.
     Coord loc =
         render_rect_for_tile( covered, tile ).upper_left();
-    for( UnitId id : units_from_coord( tile ) ) {
+    for( UnitId id : ss_.units.from_coord( tile ) ) {
       if( skip( id ) ) continue;
-      render_unit( renderer, loc, id,
+      render_unit( renderer, loc, ss_.units.unit_for( id ),
                    UnitRenderOptions{ .flag   = true,
                                       .shadow = UnitShadow{} } );
     }
@@ -673,7 +660,7 @@ struct LandViewPlane::Impl : public Plane {
     // out then it is more efficient to iterate over units then
     // covered tiles, whereas the reverse is true when zoomed in.
     unordered_map<UnitId, UnitState> const& all =
-        units_state_.all();
+        ss_.units.all();
     int const                   num_units = all.size();
     int const                   num_tiles = covered.area();
     vector<pair<Coord, UnitId>> res;
@@ -682,13 +669,13 @@ struct LandViewPlane::Impl : public Plane {
       // Iterate over units.
       for( auto const& [id, state] : all )
         if( maybe<Coord> coord =
-                coord_for_unit_indirect( units_state_, id );
+                coord_for_unit_indirect( ss_.units, id );
             coord.has_value() && coord->is_inside( covered ) )
           res.emplace_back( *coord, id );
     } else {
       // Iterate over covered tiles.
       for( Coord tile : covered )
-        for( UnitId id : units_state_.from_coord( tile ) )
+        for( UnitId id : ss_.units.from_coord( tile ) )
           res.emplace_back( tile, id );
     }
     return res;
@@ -703,7 +690,8 @@ struct LandViewPlane::Impl : public Plane {
   void render_units_default( rr::Renderer& renderer,
                              Rect          covered ) const {
     for( auto [tile, id] : units_to_render( covered ) ) {
-      if( colony_from_coord( tile ).has_value() ) continue;
+      if( ss_.colonies.maybe_from_coord( tile ).has_value() )
+        continue;
       render_units_on_square( renderer, covered, tile );
     }
   }
@@ -712,17 +700,19 @@ struct LandViewPlane::Impl : public Plane {
                            UnitId id, bool visible ) const {
     UnitId blinker_id = id;
     Coord  blink_coord =
-        coord_for_unit_indirect_or_die( blinker_id );
+        coord_for_unit_indirect_or_die( ss_.units, blinker_id );
     for( auto [coord, unit_id] : units_to_render( covered ) ) {
       if( coord == blink_coord ) continue;
-      if( colony_from_coord( coord ).has_value() ) continue;
+      if( ss_.colonies.maybe_from_coord( coord ).has_value() )
+        continue;
       render_units_on_square( renderer, covered, coord );
     }
     // Now render the blinking unit.
     Coord loc = render_rect_for_tile( covered, blink_coord )
                     .upper_left();
     if( visible )
-      render_unit( renderer, loc, blinker_id,
+      render_unit( renderer, loc,
+                   ss_.units.unit_for( blinker_id ),
                    UnitRenderOptions{ .flag   = true,
                                       .shadow = UnitShadow{} } );
   }
@@ -733,14 +723,17 @@ struct LandViewPlane::Impl : public Plane {
       UnitAnimation::slide const& slide ) const {
     UnitId mover_id = id;
     Coord  mover_coord =
-        coord_for_unit_indirect_or_die( mover_id );
+        coord_for_unit_indirect_or_die( ss_.units, mover_id );
     maybe<Coord> target_unit_coord =
-        target_unit.bind( coord_for_unit_multi_ownership );
+        target_unit.bind( [this]( UnitId id ) {
+          return coord_for_unit_multi_ownership( ss_, id );
+        } );
     // First render all units other than the sliding unit and
     // other than units on colony squares.
     for( auto const& p : units_to_render( covered ) ) {
       Coord const& coord = p.first;
-      bool has_colony = colony_from_coord( coord ).has_value();
+      bool         has_colony =
+          ss_.colonies.maybe_from_coord( coord ).has_value();
       if( has_colony && coord != target_unit_coord ) continue;
       auto skip = [&]( UnitId id ) {
         // Always draw the target unit, if any.
@@ -765,7 +758,8 @@ struct LandViewPlane::Impl : public Plane {
         render_rect_for_tile( covered, mover_coord )
             .upper_left();
     pixel_coord += pixel_delta;
-    render_unit( renderer, pixel_coord, mover_id,
+    render_unit( renderer, pixel_coord,
+                 ss_.units.unit_for( mover_id ),
                  UnitRenderOptions{ .flag   = true,
                                     .shadow = UnitShadow{} } );
   }
@@ -777,12 +771,14 @@ struct LandViewPlane::Impl : public Plane {
     // pixelating a colonist that is owned by a colony, which
     // happens when the colony is captured.
     Coord depixelate_tile =
-        coord_for_unit_multi_ownership_or_die( depixelate_id );
+        coord_for_unit_multi_ownership_or_die( ss_,
+                                               depixelate_id );
     // First render all units other than units on colony squares
     // and unites on the same tile as the depixelating unit.
     for( auto [tile, id] : units_to_render( covered ) ) {
       if( tile == depixelate_tile ) continue;
-      if( colony_from_coord( tile ).has_value() ) continue;
+      if( ss_.colonies.maybe_from_coord( tile ).has_value() )
+        continue;
       render_units_on_square( renderer, covered, tile );
     }
     // Now render the depixelating unit.
@@ -795,7 +791,8 @@ struct LandViewPlane::Impl : public Plane {
       case e_depixelate_anim::death: {
         // Render and depixelate both the unit and the flag.
         render_unit_depixelate(
-            renderer, loc, depixelate_id, dp_anim.stage,
+            renderer, loc, ss_.units.unit_for( depixelate_id ),
+            dp_anim.stage,
             UnitRenderOptions{ .flag   = true,
                                .shadow = UnitShadow{} } );
         break;
@@ -805,8 +802,8 @@ struct LandViewPlane::Impl : public Plane {
         // Render and the unit and the flag but only depixelate
         // the unit to the target unit.
         render_unit_depixelate_to(
-            renderer, loc, depixelate_id, *dp_anim.target,
-            dp_anim.stage,
+            renderer, loc, ss_.units.unit_for( depixelate_id ),
+            *dp_anim.target, dp_anim.stage,
             UnitRenderOptions{ .flag   = true,
                                .shadow = UnitShadow{} } );
         break;
@@ -823,7 +820,7 @@ struct LandViewPlane::Impl : public Plane {
     Coord colony_sprite_upper_left =
         tile_coord - Delta{ .w = 6, .h = 6 };
     rn::render_colony( painter, colony_sprite_upper_left,
-                       colony.id );
+                       colony );
     Coord name_coord =
         tile_coord + config_land_view.colony_name_offset;
     render_text_markup(
@@ -841,7 +838,7 @@ struct LandViewPlane::Impl : public Plane {
     // we need to render colonies that are beyond the `covered`
     // rect.
     unordered_map<ColonyId, Colony> const& all =
-        colonies_state_.all();
+        ss_.colonies.all();
     for( auto const& [id, colony] : all )
       if( colony.location.is_inside( covered ) )
         render_colony( renderer, painter, covered, colony );
@@ -1162,6 +1159,7 @@ struct LandViewPlane::Impl : public Plane {
                       viewport()
                           .world_tile_to_world_pixel_center(
                               coord_for_unit_indirect_or_die(
+                                  ss_.units,
                                   blinking_unit->unit_id ) ) );
               }
             }
@@ -1362,7 +1360,8 @@ struct LandViewPlane::Impl : public Plane {
     // Need multi-ownership variant because sometimes the unit in
     // question is a worker in a colony, as can happen if we are
     // attacking an undefended colony.
-    UNWRAP_CHECK( coord, coord_for_unit_multi_ownership( id ) );
+    UNWRAP_CHECK( coord,
+                  coord_for_unit_multi_ownership( ss_, id ) );
     return landview_ensure_visible( coord );
   }
 
@@ -1407,30 +1406,27 @@ struct LandViewPlane::Impl : public Plane {
     return next_player_input_object();
   }
 
-  wait<> landview_animate_move(
-      TerrainState const&  terrain_state,
-      SettingsState const& settings, UnitId id,
-      e_direction direction ) {
+  wait<> landview_animate_move( UnitId      id,
+                                e_direction direction ) {
     // Ensure that both src and dst squares are visible.
-    Coord src = coord_for_unit_indirect_or_die( id );
+    Coord src = coord_for_unit_indirect_or_die( ss_.units, id );
     Coord dst = src.moved( direction );
     co_await landview_ensure_visible( src );
     // The destination square may not exist if it is a ship
     // sailing the high seas by moving off of the map edge (which
     // the original game allows).
-    if( terrain_state.square_exists( dst ) )
+    if( ss_.terrain.square_exists( dst ) )
       co_await landview_ensure_visible( dst );
     SCOPED_SET_AND_RESTORE(
         landview_mode_,
         LandViewMode::unit_move{ .unit_id = id } );
     play_sound_effect( e_sfx::move );
-    co_await animate_slide( settings, id, direction );
+    co_await animate_slide( id, direction );
   }
 
-  wait<> landview_animate_attack( SettingsState const& settings,
-                                  UnitId               attacker,
-                                  UnitId               defender,
-                                  bool attacker_wins,
+  wait<> landview_animate_attack( UnitId attacker,
+                                  UnitId defender,
+                                  bool   attacker_wins,
                                   e_depixelate_anim dp_anim ) {
     co_await landview_ensure_visible( defender );
     co_await landview_ensure_visible( attacker );
@@ -1439,13 +1435,14 @@ struct LandViewPlane::Impl : public Plane {
         .defender      = defender,
         .attacker_wins = attacker_wins };
     SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-    UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
-    UNWRAP_CHECK( defender_coord,
-                  coord_for_unit_multi_ownership( defender ) );
+    UNWRAP_CHECK( attacker_coord,
+                  ss_.units.maybe_coord_for( attacker ) );
+    UNWRAP_CHECK( defender_coord, coord_for_unit_multi_ownership(
+                                      ss_, defender ) );
     UNWRAP_CHECK(
         d, attacker_coord.direction_to( defender_coord ) );
     play_sound_effect( e_sfx::move );
-    co_await animate_slide( settings, attacker, d );
+    co_await animate_slide( attacker, d );
 
     play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                      : e_sfx::attacker_lost );
@@ -1456,20 +1453,18 @@ struct LandViewPlane::Impl : public Plane {
   // FIXME: Would be nice to make this animation a bit more so-
   // phisticated, but we first need to fix the animation frame-
   // work in this module to be more flexible.
-  wait<> landview_animate_colony_capture(
-      TerrainState const&  terrain_state,
-      SettingsState const& settings, UnitId attacker_id,
-      UnitId defender_id, ColonyId colony_id ) {
-    co_await landview_animate_attack(
-        settings, attacker_id, defender_id,
-        /*attacker_wins=*/true, e_depixelate_anim::death );
+  wait<> landview_animate_colony_capture( UnitId   attacker_id,
+                                          UnitId   defender_id,
+                                          ColonyId colony_id ) {
+    co_await landview_animate_attack( attacker_id, defender_id,
+                                      /*attacker_wins=*/true,
+                                      e_depixelate_anim::death );
     UNWRAP_CHECK(
         direction,
-        coord_for_unit( attacker_id )
-            ->direction_to(
-                colony_from_id( colony_id ).location ) );
-    co_await landview_animate_move( terrain_state, settings,
-                                    attacker_id, direction );
+        ss_.units.coord_for( attacker_id )
+            .direction_to( ss_.colonies.colony_for( colony_id )
+                               .location ) );
+    co_await landview_animate_move( attacker_id, direction );
   }
 };
 
@@ -1480,17 +1475,8 @@ Plane& LandViewPlane::impl() { return *impl_; }
 
 LandViewPlane::~LandViewPlane() = default;
 
-LandViewPlane::LandViewPlane( MenuPlane&     menu_plane,
-                              WindowPlane&   window_plane,
-                              LandViewState& land_view_state,
-                              ColoniesState& colonies_state,
-                              UnitsState&    units_state,
-                              TerrainState const& terrain_state,
-                              IMapUpdater&        map_updater,
-                              IGui&               gui )
-  : impl_( new Impl( menu_plane, window_plane, land_view_state,
-                     colonies_state, units_state, terrain_state,
-                     map_updater, gui ) ) {}
+LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts )
+  : impl_( new Impl( planes, ss, ts ) ) {}
 
 wait<> LandViewPlane::landview_ensure_visible(
     Coord const& coord ) {
@@ -1512,28 +1498,22 @@ LandViewPlane::landview_eot_get_next_input() {
 }
 
 wait<> LandViewPlane::landview_animate_move(
-    TerrainState const&  terrain_state,
-    SettingsState const& settings, UnitId id,
-    e_direction direction ) {
-  return impl_->landview_animate_move( terrain_state, settings,
-                                       id, direction );
+    UnitId id, e_direction direction ) {
+  return impl_->landview_animate_move( id, direction );
 }
 
 wait<> LandViewPlane::landview_animate_attack(
-    SettingsState const& settings, UnitId attacker,
-    UnitId defender, bool attacker_wins,
+    UnitId attacker, UnitId defender, bool attacker_wins,
     e_depixelate_anim dp_anim ) {
   return impl_->landview_animate_attack(
-      settings, attacker, defender, attacker_wins, dp_anim );
+      attacker, defender, attacker_wins, dp_anim );
 }
 
 wait<> LandViewPlane::landview_animate_colony_capture(
-    TerrainState const&  terrain_state,
-    SettingsState const& settings, UnitId attacker_id,
-    UnitId defender_id, ColonyId colony_id ) {
+    UnitId attacker_id, UnitId defender_id,
+    ColonyId colony_id ) {
   return impl_->landview_animate_colony_capture(
-      terrain_state, settings, attacker_id, defender_id,
-      colony_id );
+      attacker_id, defender_id, colony_id );
 }
 
 void LandViewPlane::landview_reset_input_buffers() {
@@ -1547,22 +1527,5 @@ void LandViewPlane::landview_start_new_turn() {
 void LandViewPlane::zoom_out_full() {
   return impl_->zoom_out_full();
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// LUA_FN( blinking_unit, maybe<UnitId> ) {
-//   using u_i = LandViewMode::unit_input;
-//   return landview_mode_.get_if<u_i>().member(
-//       &u_i::unit_id );
-// }
-//
-// LUA_FN( center_on_blinking_unit, void ) {
-//   (void)center_on_blinking_unit_if_any();
-// }
-
-} // namespace
 
 } // namespace rn

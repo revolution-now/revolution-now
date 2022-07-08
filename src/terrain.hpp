@@ -16,7 +16,7 @@
 #include "maybe.hpp"
 
 // Rds
-#include "gs/terrain-enums.rds.hpp"
+#include "ss/terrain-enums.rds.hpp"
 
 namespace rn {
 

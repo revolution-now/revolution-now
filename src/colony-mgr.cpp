@@ -19,31 +19,29 @@
 #include "commodity.hpp"
 #include "construction.hpp"
 #include "enum.hpp"
-#include "game-state.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
+#include "map-square.hpp"
+#include "plane-stack.hpp"
 #include "rand.hpp"
 #include "road.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
-// game-state
-#include "gs/colonies.hpp"
-#include "gs/player.rds.hpp"
-#include "gs/terrain.hpp"
-#include "gs/units.hpp"
+// ss
+#include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // config
 #include "config/colony.rds.hpp"
 #include "config/nation.hpp"
 #include "config/unit-type.hpp"
-
-// luapp
-#include "luapp/ext-base.hpp"
-#include "luapp/state.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -68,9 +66,8 @@ namespace {
 // or who are on the map on the colony square.
 unordered_set<UnitId> units_at_or_in_colony(
     Colony const& colony, UnitsState const& units_state ) {
-  unordered_set<UnitId> all =
-      units_state.from_colony( colony.id );
-  Coord colony_loc = colony.location;
+  unordered_set<UnitId> all = units_state.from_colony( colony );
+  Coord                 colony_loc = colony.location;
   for( UnitId map_id : units_state.from_coord( colony_loc ) )
     all.insert( map_id );
   return all;
@@ -281,19 +278,6 @@ int colony_population( Colony const& colony ) {
   return size;
 }
 
-vector<UnitId> colony_units_all( Colony const& colony ) {
-  vector<UnitId> res;
-  res.reserve( 40 );
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
-    res.insert( res.end(), colony.indoor_jobs[job].begin(),
-                colony.indoor_jobs[job].end() );
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( maybe<OutdoorUnit> const& job = colony.outdoor_jobs[d];
-        job.has_value() )
-      res.push_back( job->unit_id );
-  return res;
-}
-
 bool colony_has_unit( Colony const& colony, UnitId id ) {
   vector<UnitId> units = colony_units_all( colony );
   return find( units.begin(), units.end(), id ) != units.end();
@@ -307,11 +291,9 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
 }
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    ColoniesState const& colonies_state,
-    UnitsState const&    units_state,
-    TerrainState const& terrain_state, UnitId founder ) {
+    SSConst const& ss, UnitId founder ) {
   using Res_t      = e_found_colony_err;
-  Unit const& unit = units_state.unit_for( founder );
+  Unit const& unit = ss.units.unit_for( founder );
 
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
@@ -326,11 +308,11 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   }
 
   auto maybe_coord =
-      coord_for_unit_indirect( units_state, founder );
+      coord_for_unit_indirect( ss.units, founder );
   if( !maybe_coord.has_value() )
     return invalid( Res_t::colonist_not_on_map );
 
-  if( colonies_state.maybe_from_coord( *maybe_coord ) )
+  if( ss.colonies.maybe_from_coord( *maybe_coord ) )
     return invalid( Res_t::colony_exists_here );
 
   // Check if we are too close to another colony.
@@ -338,45 +320,38 @@ valid_or<e_found_colony_err> unit_can_found_colony(
     // Note that at this point we already know that there is no
     // colony on the center square.
     Coord new_coord = maybe_coord->moved( d );
-    if( !terrain_state.square_exists( new_coord ) ) continue;
-    if( colonies_state.maybe_from_coord(
-            maybe_coord->moved( d ) ) )
+    if( !ss.terrain.square_exists( new_coord ) ) continue;
+    if( ss.colonies.maybe_from_coord( maybe_coord->moved( d ) ) )
       return invalid( Res_t::too_close_to_colony );
   }
 
-  if( !terrain_state.is_land( *maybe_coord ) )
+  if( !ss.terrain.is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
   return valid;
 }
 
-ColonyId found_colony( ColoniesState&      colonies_state,
-                       TerrainState const& terrain_state,
-                       UnitsState& units_state, UnitId founder,
-                       IMapUpdater& map_updater,
-                       string_view  name ) {
-  if( auto res =
-          is_valid_new_colony_name( colonies_state, name );
+ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
+                       std::string_view name ) {
+  if( auto res = is_valid_new_colony_name( ss.colonies, name );
       !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  if( auto res = unit_can_found_colony(
-          colonies_state, units_state, terrain_state, founder );
-      !res )
+  if( auto res = unit_can_found_colony( ss, founder ); !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  Unit&    unit   = units_state.unit_for( founder );
+  Unit&    unit   = ss.units.unit_for( founder );
   e_nation nation = unit.nation();
-  Coord    where  = units_state.coord_for( founder );
+  Coord    where  = ss.units.coord_for( founder );
 
   // Create colony object.
   ColonyId col_id =
-      create_empty_colony( colonies_state, nation, where, name );
-  Colony& col = colonies_state.colony_for( col_id );
+      create_empty_colony( ss.colonies, nation, where, name );
+  Colony& col = ss.colonies.colony_for( col_id );
 
   // Populate the colony with the initial set of buildings that
   // are given for free.
@@ -388,23 +363,18 @@ ColonyId found_colony( ColoniesState&      colonies_state,
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job =
-      find_job_for_initial_colonist( terrain_state, col, unit );
+      find_job_for_initial_colonist( ss.terrain, col, unit );
 
   // Move unit into it.
-  move_unit_to_colony( units_state, col, founder, job );
+  move_unit_to_colony( ss.units, col, founder, job );
 
   // Add road onto colony square.
-  set_road( map_updater, where );
+  set_road( ts.map_updater, where );
 
   // Done.
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
            desc.adjective, where );
-
-  // Let Lua do anything that it needs to the colony.
-  CHECK_HAS_VALUE(
-      lua_global_state()["colony_mgr"]["on_founded_colony"]
-          .pcall( col ) );
 
   return col_id;
 }
@@ -415,7 +385,8 @@ void change_colony_nation( Colony&     colony,
   unordered_set<UnitId> units =
       units_at_or_in_colony( colony, units_state );
   for( UnitId unit_id : units )
-    units_state.unit_for( unit_id ).change_nation( new_nation );
+    units_state.unit_for( unit_id ).change_nation( units_state,
+                                                   new_nation );
   CHECK( colony.nation != new_nation );
   colony.nation = new_nation;
 }
@@ -497,49 +468,42 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
         outdoor_jobs[d]->job = new_job;
 }
 
-wait<> evolve_colonies_for_player(
-    LandViewPlane& land_view_plane,
-    ColoniesState& colonies_state, SettingsState const& settings,
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IMapUpdater& map_updater, IGui& gui,
-    Planes& planes ) {
+wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
+                                   TS& ts, Player& player ) {
   e_nation nation = player.nation;
   lg.info( "processing colonies for the {}.", nation );
   queue<ColonyId> colonies;
-  for( auto const& [colony_id, colony] : colonies_state.all() )
+  for( auto const& [colony_id, colony] : ss.colonies.all() )
     if( colony.nation == nation ) colonies.push( colony_id );
   vector<ColonyEvolution> evolutions;
   while( !colonies.empty() ) {
     ColonyId colony_id = colonies.front();
     colonies.pop();
-    Colony& colony = colonies_state.colony_for( colony_id );
+    Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
-    evolutions.push_back( evolve_colony_one_turn(
-        colony, settings, units_state, terrain_state, player,
-        map_updater ) );
+    evolutions.push_back(
+        evolve_colony_one_turn( ss, ts, colony ) );
     ColonyEvolution const& ev = evolutions.back();
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
-    co_await land_view_plane.landview_ensure_visible(
+    co_await planes.land_view().landview_ensure_visible(
         colony.location );
     bool zoom_to_colony = co_await present_colony_updates(
-        gui, colony, ev.notifications );
+        ts.gui, colony, ev.notifications );
     if( zoom_to_colony )
-      co_await show_colony_view( planes, colony, terrain_state,
-                                 units_state, colonies_state,
-                                 player, map_updater );
+      co_await show_colony_view( planes, ss, ts, colony );
   }
 
   // Crosses/immigration.
   CrossesCalculation const crosses_calc =
-      compute_crosses( units_state, player.nation );
+      compute_crosses( ss.units, player.nation );
   give_new_crosses_to_player( player, crosses_calc, evolutions );
   maybe<UnitId> immigrant = co_await check_for_new_immigrant(
-      gui, units_state, player, settings,
+      ts.gui, ss.units, player, ss.settings,
       crosses_calc.crosses_needed );
   if( immigrant.has_value() )
     lg.info( "a new immigrant ({}) has arrived.",
-             units_state.unit_for( *immigrant ).desc().name );
+             ss.units.unit_for( *immigrant ).desc().name );
 }
 
 } // namespace rn

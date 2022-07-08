@@ -23,9 +23,9 @@
 #include "time.hpp"
 #include "turn.hpp"
 
-// game-state
-#include "gs/land-view.hpp"
-#include "gs/map-square.hpp"
+// ss
+#include "ss/land-view.hpp"
+#include "ss/map-square.hpp"
 
 // base
 #include "base/stack-trace.hpp"

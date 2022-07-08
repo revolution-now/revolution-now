@@ -16,10 +16,10 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// gs
-#include "src/gs/player.rds.hpp"
-#include "src/gs/terrain.hpp"
-#include "src/gs/units.hpp"
+// ss
+#include "src/ss/player.rds.hpp"
+#include "src/ss/terrain.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

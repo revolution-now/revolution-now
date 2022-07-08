@@ -860,12 +860,14 @@ unique_ptr<View>& OptionSelectItemView::mutable_at( int idx ) {
         case e_option_active::inactive:
           return background_inactive_;
       }
+      break;
     case 1:
       switch( active_ ) {
         case e_option_active::active: return foreground_active_;
         case e_option_active::inactive:
           return foreground_inactive_;
       }
+      break;
   }
   SHOULD_NOT_BE_HERE;
 }

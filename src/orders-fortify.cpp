@@ -12,8 +12,13 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
+
+// ss
+#include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 using namespace std;
 
@@ -22,12 +27,12 @@ namespace rn {
 namespace {
 
 struct FortifyHandler : public OrdersHandler {
-  FortifyHandler( UnitId unit_id_, IGui& gui_arg )
-    : unit_id( unit_id_ ), gui( gui_arg ) {}
+  FortifyHandler( SS& ss, TS& ts, UnitId unit_id )
+    : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
-    if( is_unit_onboard( unit_id ) ) {
-      co_await gui.message_box(
+    if( is_unit_onboard( ss_.units, unit_id_ ) ) {
+      co_await ts_.gui.message_box(
           "Cannot fortify as cargo of another unit." );
       co_return false;
     }
@@ -35,7 +40,7 @@ struct FortifyHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    Unit& unit = unit_from_id( unit_id );
+    Unit& unit = ss_.units.unit_for( unit_id_ );
     // Note that this will forfeight movement points, since the
     // original game appears to end a unit's turn when the F
     // order is given (as well as the following turn when it is
@@ -44,23 +49,24 @@ struct FortifyHandler : public OrdersHandler {
     co_return;
   }
 
-  UnitId unit_id;
-  IGui&  gui;
+  SS&    ss_;
+  TS&    ts_;
+  UnitId unit_id_;
 };
 
 struct SentryHandler : public OrdersHandler {
-  SentryHandler( UnitId unit_id_, IGui& gui_arg )
-    : unit_id( unit_id_ ), gui( gui_arg ) {}
+  SentryHandler( SS& ss, UnitId unit_id )
+    : ss_( ss ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override { co_return true; }
 
   wait<> perform() override {
-    unit_from_id( unit_id ).sentry();
+    ss_.units.unit_for( unit_id_ ).sentry();
     co_return;
   }
 
-  UnitId unit_id;
-  IGui&  gui;
+  SS&    ss_;
+  UnitId unit_id_;
 };
 
 } // namespace
@@ -68,18 +74,15 @@ struct SentryHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const&, LandViewPlane&, Planes& ) {
-  return make_unique<FortifyHandler>( id, gui );
+unique_ptr<OrdersHandler> handle_orders(
+    Planes&, SS& ss, TS& ts, UnitId id,
+    orders::fortify const& ) {
+  return make_unique<FortifyHandler>( ss, ts, id );
 }
 
-std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const&, IMapUpdater*, IGui& gui,
-    Player&, TerrainState const&, UnitsState&, ColoniesState&,
-    SettingsState const&, LandViewPlane&, Planes& ) {
-  return make_unique<SentryHandler>( id, gui );
+unique_ptr<OrdersHandler> handle_orders(
+    Planes&, SS& ss, TS&, UnitId id, orders::sentry const& ) {
+  return make_unique<SentryHandler>( ss, id );
 }
 
 } // namespace rn

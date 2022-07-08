@@ -1,0 +1,25 @@
+# ===============================================================
+# sg-colonies.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-13.
+#
+# Description: RDS definitions for the sg-colonies module.
+#
+# ===============================================================
+# gs
+include "ss/colony.hpp"
+include "ss/colony-id.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn.wrapped"
+
+struct.ColoniesState {
+  next_colony_id 'int',
+  colonies 'std::unordered_map<ColonyId, rn::Colony>',
+
+  _features { equality, validation }
+}

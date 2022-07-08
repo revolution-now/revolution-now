@@ -18,14 +18,13 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "map-updater.hpp"
 #include "wait.hpp"
 
 // gs
-#include "gs/colony-id.hpp"
-#include "gs/colony.hpp"
-#include "gs/nation.rds.hpp"
-#include "gs/unit-id.hpp"
+#include "ss/colony-id.hpp"
+#include "ss/colony.hpp"
+#include "ss/nation.rds.hpp"
+#include "ss/unit-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -35,14 +34,14 @@
 
 namespace rn {
 
+struct Planes;
+struct SS;
+struct SSConst;
+struct TS;
+
 struct ColoniesState;
 struct Colony;
-struct IGui;
-struct LandViewPlane;
-struct Planes;
 struct Player;
-struct SettingsState;
-struct TerrainState;
 struct Unit;
 struct UnitsState;
 
@@ -50,9 +49,7 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
 
 valid_or<e_found_colony_err> unit_can_found_colony(
-    ColoniesState const& colonies_state,
-    UnitsState const&    units_state,
-    TerrainState const& terrain_state, UnitId founder );
+    SSConst const& ss, UnitId founder );
 
 // This will change the nation of the colony and all units that
 // are workers in the colony as well as units that are in the
@@ -64,19 +61,12 @@ void change_colony_nation( Colony&     colony,
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
 // and thus if it doesn't, it will check-fail.
-ColonyId found_colony( ColoniesState&      colonies_state,
-                       TerrainState const& terrain_state,
-                       UnitsState& units_state, UnitId founder,
-                       IMapUpdater&     map_updater,
+ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
                        std::string_view name );
 
 // Evolve the colony by one turn.
-wait<> evolve_colonies_for_player(
-    LandViewPlane& land_view_plane,
-    ColoniesState& colonies_state, SettingsState const& settings,
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, IMapUpdater& map_updater, IGui& gui,
-    Planes& planes );
+wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
+                                   TS& ts, Player& player );
 
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is
@@ -103,8 +93,6 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
 
 int colony_population( Colony const& colony );
-
-std::vector<UnitId> colony_units_all( Colony const& colony );
 
 bool colony_has_unit( Colony const& colony, UnitId id );
 

@@ -18,8 +18,8 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
-// game-state
-#include "gs/units.hpp"
+// ss
+#include "ss/units.hpp"
 
 // render
 #include "render/renderer.hpp"

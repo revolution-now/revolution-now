@@ -17,14 +17,15 @@
 
 namespace rn {
 
-struct MenuPlane;
 struct Plane;
+struct Planes;
+struct SS;
 
 /****************************************************************
 ** PanelPlane
 *****************************************************************/
 struct PanelPlane {
-  PanelPlane( MenuPlane& menu_plane );
+  PanelPlane( Planes& planes, SS& ss );
   ~PanelPlane();
 
   wait<> wait_for_eot_button_click();

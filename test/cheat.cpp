@@ -16,9 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// game-state
-#include "src/gs/colonies.hpp"
-#include "src/gs/units.hpp"
+// ss
+#include "src/ss/colonies.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

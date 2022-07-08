@@ -32,6 +32,10 @@
 
 namespace rn {
 
+struct SS;
+struct SSConst;
+struct TS;
+
 struct Colony;
 struct ColonyProduction;
 struct IGui;
@@ -161,7 +165,8 @@ struct IColViewDragSink {
 
 class ColonySubView : public AwaitView {
  public:
-  ColonySubView() = default;
+  ColonySubView( SS& ss, TS& ts, Colony& colony )
+    : ss_( ss ), ts_( ts ), colony_( colony ) {}
 
   virtual maybe<e_colview_entity> entity() const = 0;
 
@@ -193,8 +198,10 @@ class ColonySubView : public AwaitView {
   maybe<IColViewDragSource&> drag_source();
   maybe<IColViewDragSink&>   drag_sink();
 
- private:
-  ColonyId id_;
+ protected:
+  SS&     ss_;
+  TS&     ts_;
+  Colony& colony_;
 };
 
 // The pointer returned from these will be invalidated if
@@ -205,20 +212,14 @@ ColonySubView& colview_top_level();
 // FIXME: global state.
 ColonyProduction const& colview_production();
 
-void update_production( TerrainState const& terrain_state,
-                        UnitsState const&   units_state,
-                        Player const&       player,
-                        Colony const&       colony );
+void update_production( SSConst const& ss, Player const& player,
+                        Colony const& colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( IGui&               gui,
-                         TerrainState const& terrain_state,
-                         UnitsState const&   units_state,
-                         Player const&       player,
-                         Colony const&       colony );
+void set_colview_colony( SS& ss, TS& ts, Colony& colony );
 
 void colview_drag_n_drop_draw(
-    rr::Renderer&                       renderer,
+    SS& ss, rr::Renderer& renderer,
     drag::State<ColViewObject_t> const& state,
     Coord const&                        canvas_origin );
 

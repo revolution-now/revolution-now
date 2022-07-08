@@ -119,7 +119,7 @@ local function create_all_units( options, root )
   end
   assert( nation1 )
 
-  local size = map_gen.world_size()
+  local size = ROOT.terrain:size()
   local origin = { x=size.w // 2 - 8, y=size.h // 2 - 4 }
 
   local land_units = {
@@ -262,13 +262,13 @@ function M.create( options )
 
   add_testing_options( options )
 
-  local root = ROOT_STATE
+  local root = ROOT
 
   set_default_settings( options, root.settings )
 
   map_gen.generate( options.map )
 
-  local world_size = root.terrain:world_size_tiles()
+  local world_size = root.terrain:size()
   root.land_view.viewport:set_world_size_tiles( world_size )
 
   create_turn_state( root.turn )
