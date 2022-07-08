@@ -84,7 +84,7 @@ struct BuildHandler : public OrdersHandler {
               "Native converts cannot found new colonies." );
           co_return false;
         case e_found_colony_err::unit_cannot_found:
-          co_await gui.message_box(
+          co_await ts_.gui.message_box(
               "This unit cannot found new colonies." );
           co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
