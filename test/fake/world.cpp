@@ -109,8 +109,7 @@ namespace {
 // We need this because we can't (yet?) do aggregate initializa-
 // tion for an object on the heap.
 TS make_ts( World& world ) {
-  return TS{ .planes      = world.planes(),
-             .map_updater = world.map_updater(),
+  return TS{ .map_updater = world.map_updater(),
              .lua         = world.lua(),
              .gui         = world.gui() };
 }

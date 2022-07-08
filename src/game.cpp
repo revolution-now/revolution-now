@@ -113,7 +113,6 @@ wait<> run_game(
   RealGui gui( window_plane );
 
   TS ts{
-      .planes      = planes,
       .map_updater = map_updater,
       .lua         = st,
       .gui         = gui,

@@ -669,7 +669,6 @@ wait<> show_colony_view( Planes& planes, SS& ss, TS& ts_old,
   RealGui gui( window_plane );
 
   TS ts{
-      .planes      = planes,
       .map_updater = ts_old.map_updater,
       .lua         = ts_old.lua,
       .gui         = gui,

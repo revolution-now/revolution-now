@@ -29,7 +29,6 @@ struct IGui;
 ** TS
 *****************************************************************/
 struct TS {
-  Planes&      planes;
   IMapUpdater& map_updater;
   lua::state&  lua;
   IGui&        gui;

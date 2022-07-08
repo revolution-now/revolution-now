@@ -635,7 +635,6 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
   TS          ts{
-               .planes      = planes,
                .map_updater = map_updater,
                .lua         = st,
                .gui         = gui,
