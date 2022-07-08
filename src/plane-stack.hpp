@@ -83,7 +83,7 @@ maybe<Plane&> plane_pointer( PlaneGroup const& group,
 ** Planes
 *****************************************************************/
 struct Planes {
-  Planes() = default;
+  Planes();
 
   static constexpr int kNumPlanes = refl::enum_count<e_plane>;
 

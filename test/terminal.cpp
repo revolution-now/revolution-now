@@ -11,21 +11,29 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "terminal.hpp"
+#include "src/terminal.hpp"
+
+// luapp
+#include "src/luapp/state.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp"
 
+namespace rn {
 namespace {
 
 using namespace std;
-using namespace rn;
 
 using Catch::Contains;
 using Catch::Equals;
 
 TEST_CASE( "[terminal] autocomplete" ) {
-  using term::autocomplete;
+  lua::state st;
+  Terminal   term( st );
+
+  auto autocomplete = [&]( string_view in ) {
+    return term.autocomplete( in );
+  };
 
   auto empty = vector<string>{};
 
@@ -117,7 +125,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
+  REQUIRE( term.run_cmd( "my_type = MyType.new()" ).valid() );
 
   in  = "my_t";
   out = { "my_type" };
@@ -161,16 +169,17 @@ TEST_CASE( "[terminal] autocomplete" ) {
 }
 
 TEST_CASE( "[terminal] autocomplete_iterative" ) {
-  using term::autocomplete_iterative;
+  lua::state st;
+  Terminal   term( st );
+
+  auto ac_i = [&]( string_view in ) {
+    return term.autocomplete_iterative( in );
+  };
 
   auto empty = vector<string>{};
 
   string         in;
   vector<string> out;
-
-  auto ac_i = []( auto& in ) {
-    return autocomplete_iterative( in );
-  };
 
   in = "";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
@@ -242,7 +251,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
+  REQUIRE( term.run_cmd( "my_type = MyType.new()" ).valid() );
 
   in  = "my_t";
   out = { "my_type" };
@@ -286,3 +295,4 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
 }
 
 } // namespace
+} // namespace rn

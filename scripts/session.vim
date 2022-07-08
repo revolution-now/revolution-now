@@ -1,7 +1,5 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'render/renderer',
- \ 'render/renderer-lua',
  \ 'map-updater',
  \ 'map-updater-lua',
  \ 'lua',

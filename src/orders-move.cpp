@@ -1026,7 +1026,8 @@ AttackHandler::confirm_attack_impl() {
   // If military units are exhausted then attack the colony.
   if( colony_at_dst && units_at_dst.empty() ) {
     unordered_set<UnitId> const& units_working_in_colony =
-        ss_.units.from_colony( *colony_at_dst );
+        ss_.units.from_colony(
+            ss_.colonies.colony_for( *colony_at_dst ) );
     vector<UnitId> sorted( units_working_in_colony.begin(),
                            units_working_in_colony.end() );
     CHECK( sorted.size() > 0 );

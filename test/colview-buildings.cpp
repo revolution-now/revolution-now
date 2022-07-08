@@ -17,7 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
-#include "src/gs/colonies.hpp"
+#include "src/ss/colonies.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

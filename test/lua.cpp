@@ -12,9 +12,11 @@
 
 #define LUA_MODULE_NAME_OVERRIDE "testing"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "expect.hpp"
-#include "game-state.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
 
@@ -35,36 +37,43 @@
 // Must be last.
 #include "catch-common.hpp"
 
+namespace rn {
 namespace {
 
 using namespace std;
-using namespace rn;
 
 using Catch::Contains;
 using Catch::Equals;
 
 Coord const kSquare{};
 
-// This will preprare a 1x1 map with a grassland tile.
-void prepare_world( TerrainState& terrain_state ) {
-  NonRenderingMapUpdater map_updater( terrain_state );
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
-    m[kSquare] = map_square_for_terrain( e_terrain::grassland );
-  } );
-}
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    // add_player( e_nation::dutch );
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+  }
+};
 
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[lua] run trivial script" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     local x = 5+6
   )";
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     local x =
   )";
 
@@ -74,8 +83,8 @@ TEST_CASE( "[lua] syntax error" ) {
 }
 
 TEST_CASE( "[lua] semantic error" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     local a, b
     local x = a + b
   )";
@@ -87,8 +96,8 @@ TEST_CASE( "[lua] semantic error" ) {
 }
 
 TEST_CASE( "[lua] has base lib" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     return tostring( 5 ) .. type( function() end )
   )";
   REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
@@ -96,24 +105,24 @@ TEST_CASE( "[lua] has base lib" ) {
 }
 
 TEST_CASE( "[lua] no implicit conversions from double to int" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     return 5+8.5
   )";
   REQUIRE( st.script.run_safe<maybe<int>>( script ) == nothing );
 }
 
 TEST_CASE( "[lua] returns double" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     return 5+8.5
   )";
   REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
 }
 
 TEST_CASE( "[lua] returns string" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     local function f( s )
       return s .. '!'
     end
@@ -123,23 +132,11 @@ TEST_CASE( "[lua] returns string" ) {
            "hello!" );
 }
 
-TEST_CASE( "[lua] has new_game.create" ) {
-  lua::state& st = lua_global_state();
-  lua_reload( GameState::root() );
-  auto script = R"(
-    return tostring( new_game.create )
-  )";
-
-  auto xp = st.script.run_safe<lua::rstring>( script );
-  REQUIRE( xp.has_value() );
-  REQUIRE_THAT( xp.value().as_cpp(), Contains( "function" ) );
-}
-
 TEST_CASE( "[lua] C++ function binding" ) {
-  lua::state& st = lua_global_state();
-  prepare_world( GameState::root().zzz_terrain );
-  lua_reload( GameState::root() );
-  auto script = R"(
+  lua::state st;
+  lua_init( st );
+  World W;
+  auto  script = R"(
     local soldier_type =
         unit_type.UnitType.create( "soldier" )
     local soldier_comp = unit_composer
@@ -161,8 +158,8 @@ TEST_CASE( "[lua] C++ function binding" ) {
 }
 
 TEST_CASE( "[lua] frozen globals" ) {
-  lua::state& st = lua_global_state();
-  auto        xp = st.script.run_safe( "new_game = 1" );
+  lua::state st;
+  auto       xp = st.script.run_safe( "new_game = 1" );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
       xp.error(),
@@ -193,7 +190,7 @@ TEST_CASE( "[lua] frozen globals" ) {
 }
 
 TEST_CASE( "[lua] rawset is locked down" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
   // `id` is locked down.
   auto xp = st.script.run_safe( "rawset( _ENV, 'id', 3 )" );
   REQUIRE( !xp.valid() );
@@ -207,7 +204,8 @@ TEST_CASE( "[lua] rawset is locked down" ) {
 }
 
 LUA_FN( throwing, int, int x ) {
-  lua::cthread L = lua_global_state().thread.main().cthread();
+  lua::state   st;
+  lua::cthread L = st.thread.main().cthread();
   if( x >= 10 )
     lua::throw_lua_error(
         L, "x (which is {}) must be less than 10.", x );
@@ -215,8 +213,8 @@ LUA_FN( throwing, int, int x ) {
 };
 
 TEST_CASE( "[lua] throwing" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = "return testing.throwing( 5 )";
+  lua::state st;
+  auto       script = "return testing.throwing( 5 )";
   REQUIRE( st.script.run_safe<int>( script ) == 6 );
 
   script  = "return testing.throwing( 11 )";
@@ -235,8 +233,8 @@ LUA_FN( coord_test, Coord, Coord const& coord ) {
 }
 
 TEST_CASE( "[lua] Coord" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     local coord = Coord{x=2, y=2}
     -- Test equality.
     assert_eq( coord, Coord{x=2,y=2} )
@@ -273,7 +271,7 @@ LUA_FN( opt_test2, maybe<Coord>,
 }
 
 TEST_CASE( "[lua] optional" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
   // string/int
   auto script = R"(
     assert( testing.opt_test( nil ) == "got nothing"  )
@@ -314,19 +312,19 @@ TEST_CASE( "[lua] optional" ) {
 // Test the o.as<maybe<?>>() constructs. This tests the custom
 // handlers that we've defined for maybe<>.
 TEST_CASE( "[lua] get as maybe" ) {
-  lua::state& st = lua_global_state();
-  st["func"]     = []( lua::any o ) -> string {
+  lua::state st;
+  st["func"] = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
-          return lua::as<string>( o ) + "!";
+      return lua::as<string>( o ) + "!";
     } else if( auto maybe_double = lua::as<maybe<double>>( o );
                maybe_double.has_value() ) {
-          return fmt::format( "a double: {}", *maybe_double );
+      return fmt::format( "a double: {}", *maybe_double );
     } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
                maybe_bool.has_value() ) {
-          return fmt::format( "a bool: {}", *maybe_bool );
+      return fmt::format( "a bool: {}", *maybe_bool );
     } else {
-          return "?";
+      return "?";
     }
   };
   REQUIRE( lua::as<string>( st["func"]( "hello" ) ) ==
@@ -340,8 +338,8 @@ TEST_CASE( "[lua] get as maybe" ) {
 }
 
 TEST_CASE( "[lua] new_usertype" ) {
-  lua::state& st     = lua_global_state();
-  auto        script = R"(
+  lua::state st;
+  auto       script = R"(
     u = MyType.new()
     assert( u.x == 5 )
     assert( u:get() == "c" )
@@ -369,3 +367,4 @@ TEST_CASE( "[lua] run lua tests" ) {
 }
 
 } // namespace
+} // namespace rn

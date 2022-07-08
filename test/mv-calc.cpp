@@ -40,14 +40,14 @@ TEST_CASE( "[src/mv-calc] expense" ) {
       map_square_for_terrain( e_terrain::mountains );
   mountains_with_river.river = e_river::major;
 
-  Unit privateer = create_free_unit(
+  Unit privateer = create_unregistered_unit(
       e_nation::english,
       UnitComposition::create( e_unit_type::privateer ) );
-  Unit const free_colonist_1_pristine = create_free_unit(
+  Unit const free_colonist_1_pristine = create_unregistered_unit(
       e_nation::english,
       UnitComposition::create( e_unit_type::free_colonist ) );
   Unit free_colonist = free_colonist_1_pristine;
-  Unit dragoon       = create_free_unit(
+  Unit dragoon       = create_unregistered_unit(
             e_nation::english,
             UnitComposition::create( e_unit_type::dragoon ) );
 

@@ -110,6 +110,8 @@ maybe<Plane&> plane_pointer( PlaneGroup const& group,
 /****************************************************************
 ** Planes
 *****************************************************************/
+Planes::Planes() { groups_.emplace_back(); }
+
 PlaneGroup& Planes::back() {
   CHECK( !groups_.empty() );
   return groups_.back();

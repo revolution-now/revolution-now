@@ -10,9 +10,8 @@
 *****************************************************************/
 #include "testing.hpp"
 
-// Revolution Now
-#include "game-state.hpp"
-#include "lua.hpp"
+// base
+#include "base/fs.hpp"
 
 using namespace std;
 
@@ -21,11 +20,6 @@ namespace testing {
 fs::path const& data_dir() {
   static fs::path data{ "test/data" };
   return data;
-}
-
-void default_construct_all_game_state() {
-  rn::default_construct_game_state();
-  rn::lua_reload( rn::GameState::root() );
 }
 
 } // namespace testing

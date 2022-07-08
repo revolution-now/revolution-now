@@ -124,6 +124,15 @@ Coord ColoniesState::coord_for( ColonyId id ) const {
   return colony_for( id ).location;
 }
 
+vector<ColonyId> ColoniesState::for_nation(
+    e_nation nation ) const {
+  vector<ColonyId> res;
+  res.reserve( o_.colonies.size() );
+  for( auto const& [id, colony] : o_.colonies )
+    if( colony.nation == nation ) res.push_back( id );
+  return res;
+}
+
 ColonyId ColoniesState::add_colony( Colony&& colony ) {
   CHECK( colony.id == ColonyId{ 0 },
          "colony ID must be zero when creating colony." );

@@ -14,7 +14,7 @@
 #include "src/construction.hpp"
 
 // ss
-#include "src/gs/units.hpp" // FIXME: remove if not needed.
+#include "src/ss/units.hpp" // FIXME: remove if not needed.
 
 // Must be last.
 #include "test/catch-common.hpp"

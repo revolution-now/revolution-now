@@ -1,20 +1,20 @@
 /****************************************************************
-**ss.cpp
+**ref.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-02-12.
 *
-* Description: Unit tests for the src/ss.* module.
+* Description: Unit tests for the src/ss/ref.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/gs/ss.hpp"
+#include "src/ss/ref.hpp"
 
-// gs
-#include "src/gs/root.hpp"
+// ss
+#include "src/ss/root.hpp"
 
 // refl
 #include "refl/cdr.hpp"

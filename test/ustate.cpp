@@ -17,7 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
-#include "src/gs/units.hpp"
+#include "src/ss/units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

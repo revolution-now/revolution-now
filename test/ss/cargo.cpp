@@ -11,12 +11,11 @@
 #include "test/testing.hpp"
 
 // Revolution Now
-#include "src/game-state.hpp"
 #include "src/rand.hpp"
 #include "src/ustate.hpp"
 
-// gs
-#include "src/gs/cargo.hpp"
+// ss
+#include "src/ss/cargo.hpp"
 
 // refl
 #include "refl/cdr.hpp"
@@ -29,14 +28,17 @@
 // Abseil
 #include "absl/strings/str_replace.h"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
 #define REQUIRE_BROKEN_INVARIANTS \
-  REQUIRE( !ch.validate( GameState::units() ) )
+  REQUIRE( !ch.validate( W.units() ) )
 
 #define REQUIRE_GOOD_INVARIANTS \
-  REQUIRE( ch.validate( GameState::units() ) )
+  REQUIRE( ch.validate( W.units() ) )
 
 namespace rn {
 namespace {
@@ -46,6 +48,30 @@ using namespace rn;
 
 using Catch::UnorderedEquals;
 
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    // add_player( e_nation::dutch );
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+  }
+};
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+UnitId create_unit( UnitsState& units_state, e_nation nation,
+                    UnitType ut ) {
+  return create_free_unit( units_state, nation, ut );
+}
+
+/****************************************************************
+** CargoHoldTester
+*****************************************************************/
 // This is so that we can call private members.
 struct CargoHoldTester : public CargoHold {
   CargoHoldTester( int slots ) : CargoHold( slots ) {}
@@ -73,6 +99,9 @@ struct CargoHoldTester : public CargoHold {
   }
 };
 
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "CargoHold slot bounds zero" ) {
   CargoHoldTester ch0( 0 );
   REQUIRE( ch0.begin() == ch0.end() );
@@ -105,6 +134,7 @@ TEST_CASE( "CargoHold slot bounds six" ) {
 }
 
 TEST_CASE( "CargoHold zero size" ) {
+  World           W;
   CargoHoldTester ch( 0 );
   REQUIRE_GOOD_INVARIANTS;
 
@@ -151,22 +181,23 @@ TEST_CASE( "CargoHold has slots but empty" ) {
 }
 
 TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
+  World           W;
   CargoHoldTester ch( 0 );
 
   auto unit_id = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto comm1 = Commodity{ /*type=*/e_commodity::food,
                           /*quantity=*/100 };
 
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
-                                    Cargo::unit{ unit_id } ) );
+  REQUIRE_FALSE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::unit{ unit_id } ) );
+      W.units(), Cargo::unit{ unit_id } ) );
   REQUIRE_FALSE( ch.fits_somewhere(
-      GameState::units(), Cargo::commodity{ comm1 } ) );
+      W.units(), Cargo::commodity{ comm1 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::commodity{ comm1 } ) );
+      W.units(), Cargo::commodity{ comm1 } ) );
 
   REQUIRE( ch.count_items() == 0 );
 
@@ -174,11 +205,12 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
 }
 
 TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
+  World           W;
   CargoHoldTester ch( 1 );
 
-  auto cargo = GENERATE(
+  auto cargo = GENERATE_REF(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ create_unit(
-          GameState::units(), e_nation::english,
+          W.units(), e_nation::english,
           UnitType::create( e_unit_type::free_colonist ) ) } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100 } } } );
@@ -187,13 +219,12 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.fits( GameState::units(), cargo.contents, 0 ) );
+  REQUIRE( ch.fits( W.units(), cargo.contents, 0 ) );
 
   REQUIRE( ch.debug_string() == "[empty]" );
 
   SECTION( "specify slot" ) {
-    REQUIRE(
-        ch.try_add( GameState::units(), cargo.contents, 0 ) );
+    REQUIRE( ch.try_add( W.units(), cargo.contents, 0 ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 1 );
     REQUIRE( ch.slots_remaining() == 0 );
@@ -227,10 +258,8 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                cargo.contents ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   cargo.contents ) );
+    REQUIRE( ch.fits_somewhere( W.units(), cargo.contents ) );
+    REQUIRE( ch.try_add_somewhere( W.units(), cargo.contents ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 1 );
     REQUIRE( ch.slots_remaining() == 0 );
@@ -269,11 +298,12 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
 TEST_CASE(
     "CargoHold add/remove size-1 cargo from size-6 cargo "
     "hold" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
-  auto cargo = GENERATE(
+  auto cargo = GENERATE_REF(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ create_unit(
-          GameState::units(), e_nation::english,
+          W.units(), e_nation::english,
           UnitType::create( e_unit_type::free_colonist ) ) } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100 } } } );
@@ -282,12 +312,11 @@ TEST_CASE(
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.fits( GameState::units(), cargo.contents, 0 ) );
-  REQUIRE( ch.fits( GameState::units(), cargo.contents, 3 ) );
+  REQUIRE( ch.fits( W.units(), cargo.contents, 0 ) );
+  REQUIRE( ch.fits( W.units(), cargo.contents, 3 ) );
 
   SECTION( "specify zero slot" ) {
-    REQUIRE(
-        ch.try_add( GameState::units(), cargo.contents, 0 ) );
+    REQUIRE( ch.try_add( W.units(), cargo.contents, 0 ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
@@ -320,8 +349,7 @@ TEST_CASE(
   }
 
   SECTION( "specify middle slot" ) {
-    REQUIRE(
-        ch.try_add( GameState::units(), cargo.contents, 3 ) );
+    REQUIRE( ch.try_add( W.units(), cargo.contents, 3 ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
@@ -354,10 +382,8 @@ TEST_CASE(
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                cargo.contents ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   cargo.contents ) );
+    REQUIRE( ch.fits_somewhere( W.units(), cargo.contents ) );
+    REQUIRE( ch.try_add_somewhere( W.units(), cargo.contents ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
@@ -399,28 +425,26 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold add/remove size-4 cargo from size-6 cargo "
     "hold" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
 
-  REQUIRE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 0 ) );
-  REQUIRE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 1 ) );
-  REQUIRE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 2 ) );
+  REQUIRE( ch.fits( W.units(), Cargo::unit{ unit_id }, 0 ) );
+  REQUIRE( ch.fits( W.units(), Cargo::unit{ unit_id }, 1 ) );
+  REQUIRE( ch.fits( W.units(), Cargo::unit{ unit_id }, 2 ) );
   REQUIRE_FALSE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 3 ) );
+      ch.fits( W.units(), Cargo::unit{ unit_id }, 3 ) );
   REQUIRE_FALSE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 4 ) );
+      ch.fits( W.units(), Cargo::unit{ unit_id }, 4 ) );
   REQUIRE_FALSE(
-      ch.fits( GameState::units(), Cargo::unit{ unit_id }, 5 ) );
+      ch.fits( W.units(), Cargo::unit{ unit_id }, 5 ) );
 
   SECTION( "specify middle slot" ) {
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id }, 1 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id }, 1 ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 2 );
@@ -451,9 +475,9 @@ TEST_CASE(
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::unit{ unit_id } ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
+    REQUIRE(
+        ch.fits_somewhere( W.units(), Cargo::unit{ unit_id } ) );
+    REQUIRE( ch.try_add_somewhere( W.units(),
                                    Cargo::unit{ unit_id } ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
@@ -492,20 +516,20 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold try to add same unit twice" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, 1 ) );
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id2 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
 
   ch.clear();
@@ -513,60 +537,61 @@ TEST_CASE( "CargoHold try to add same unit twice" ) {
 }
 
 TEST_CASE( "CargoHold add item too large for cargo hold" ) {
+  World           W;
   CargoHoldTester ch( 4 );
   auto            unit_id1 = create_unit(
-                 GameState::units(), e_nation::english,
+                 W.units(), e_nation::english,
                  UnitType::create( e_unit_type::large_treasure ) );
-  REQUIRE_FALSE( ch.fits( GameState::units(),
-                          Cargo::unit{ unit_id1 }, 0 ) );
-  REQUIRE_FALSE( ch.fits( GameState::units(),
-                          Cargo::unit{ unit_id1 }, 1 ) );
-  REQUIRE_FALSE( ch.fits( GameState::units(),
-                          Cargo::unit{ unit_id1 }, 2 ) );
-  REQUIRE_FALSE( ch.try_add( GameState::units(),
-                             Cargo::unit{ unit_id1 }, 0 ) );
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
-                                    Cargo::unit{ unit_id1 } ) );
+  REQUIRE_FALSE(
+      ch.fits( W.units(), Cargo::unit{ unit_id1 }, 0 ) );
+  REQUIRE_FALSE(
+      ch.fits( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
+  REQUIRE_FALSE(
+      ch.fits( W.units(), Cargo::unit{ unit_id1 }, 2 ) );
+  REQUIRE_FALSE(
+      ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 0 ) );
+  REQUIRE_FALSE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::unit{ unit_id1 } ) );
+      W.units(), Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.count_items() == 0 );
 
   ch.clear();
 }
 
 TEST_CASE( "CargoHold try to add too many things" ) {
+  World           W;
   CargoHoldTester ch( 5 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto comm1 = Commodity{ /*type=*/e_commodity::food,
                           /*quantity=*/100 };
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id2 }, 1 ) );
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
-                                    Cargo::unit{ unit_id3 } ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 1 ) );
+  REQUIRE_FALSE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id3 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::unit{ unit_id3 } ) );
-  REQUIRE( ch.fits_somewhere( GameState::units(),
+      W.units(), Cargo::unit{ unit_id3 } ) );
+  REQUIRE( ch.fits_somewhere( W.units(),
                               Cargo::commodity{ comm1 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::commodity{ comm1 } ) );
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
-                                    Cargo::unit{ unit_id1 } ) );
+  REQUIRE_FALSE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::unit{ unit_id1 } ) );
+      W.units(), Cargo::unit{ unit_id1 } ) );
   REQUIRE_FALSE( ch.fits_somewhere(
-      GameState::units(), Cargo::commodity{ comm1 } ) );
+      W.units(), Cargo::commodity{ comm1 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::commodity{ comm1 } ) );
+      W.units(), Cargo::commodity{ comm1 } ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE(
       ch.debug_string() ==
@@ -580,21 +605,22 @@ TEST_CASE( "CargoHold try to add too many things" ) {
 }
 
 TEST_CASE( "CargoHold add multiple units" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id1 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.count_items_of_type<Cargo::unit>() == 1 );
@@ -603,9 +629,9 @@ TEST_CASE( "CargoHold add multiple units" ) {
   REQUIRE_THAT( ch.items_of_type<Cargo::unit>(),
                 UnorderedEquals( vector<Cargo::unit>{
                     Cargo::unit{ unit_id1 } } ) );
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id2 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.count_items_of_type<Cargo::unit>() == 2 );
@@ -615,9 +641,9 @@ TEST_CASE( "CargoHold add multiple units" ) {
       ch.items_of_type<Cargo::unit>(),
       UnorderedEquals( vector<Cargo::unit>{
           Cargo::unit{ unit_id1 }, Cargo::unit{ unit_id2 } } ) );
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id3 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id3 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id3 } ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.count_items_of_type<Cargo::unit>() == 3 );
@@ -656,14 +682,15 @@ TEST_CASE( "CargoHold remove from empty slot" ) {
 }
 
 TEST_CASE( "CargoHold remove from overflow slot" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id1 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.o_.slots[1] ==
            CargoSlot_t{ CargoSlot::overflow{} } );
@@ -675,13 +702,13 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
 }
 
 TEST_CASE( "CargoHold remove large cargo" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, 1 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
   REQUIRE( ch.o_.slots[0] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch.o_.slots[1] ==
            CargoSlot_t{ CargoSlot::cargo{
@@ -711,23 +738,22 @@ TEST_CASE( "CargoHold remove large cargo" ) {
 }
 
 TEST_CASE( "CargoHold clear" ) {
+  World           W;
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id2 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto comm =
       Commodity{ /*type=*/e_commodity::food, /*quantity=*/100 };
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, 0 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id2 }, 4 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ comm }, 5 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 0 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 4 ) );
+  REQUIRE(
+      ch.try_add( W.units(), Cargo::commodity{ comm }, 5 ) );
 
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 6 );
@@ -749,15 +775,16 @@ TEST_CASE( "CargoHold clear" ) {
 }
 
 TEST_CASE( "CargoHold try add as available from invalid" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id1 }, 0 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 },
+                              0 ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 }, 0 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -767,29 +794,30 @@ TEST_CASE( "CargoHold try add as available from invalid" ) {
 
 TEST_CASE(
     "CargoHold try add as available from beginning (units)" ) {
+  World           W;
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id4 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id5 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
   vector<CargoSlot_t> cmp_slots( 12 );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id1 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -797,9 +825,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id2 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
@@ -809,9 +837,9 @@ TEST_CASE(
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id3 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id3 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id3 } ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 11 );
@@ -821,9 +849,9 @@ TEST_CASE(
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id4 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id4 } ) );
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id4 } ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 12 );
@@ -831,10 +859,10 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
-                                    Cargo::unit{ unit_id5 } ) );
+  REQUIRE_FALSE(
+      ch.fits_somewhere( W.units(), Cargo::unit{ unit_id5 } ) );
   REQUIRE_FALSE( ch.try_add_somewhere(
-      GameState::units(), Cargo::unit{ unit_id5 } ) );
+      W.units(), Cargo::unit{ unit_id5 } ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 12 );
 
@@ -843,42 +871,42 @@ TEST_CASE(
 
 TEST_CASE(
     "CargoHold try add as available from middle (units)" ) {
+  World           W;
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id4 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id5 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id6 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id7 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id8 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id9 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
   vector<CargoSlot_t> cmp_slots( 12 );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id1 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id1 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 1 );
@@ -887,10 +915,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id2 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 2 );
@@ -901,19 +928,18 @@ TEST_CASE(
     cmp_slots[i] = CargoSlot_t{ CargoSlot::overflow{} };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.fits_somewhere( W.units(),
                                     Cargo::unit{ unit_id3 },
                                     /*starting_slot=*/2 ) );
-  REQUIRE_FALSE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.try_add_somewhere( W.units(),
                                        Cargo::unit{ unit_id3 },
                                        /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id4 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id4 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id4 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 3 );
@@ -922,10 +948,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id5 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id5 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id5 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 4 );
@@ -934,10 +959,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id5 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id6 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id6 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id6 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 5 );
@@ -946,10 +970,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id6 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id7 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id7 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id7 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 6 );
@@ -958,10 +981,9 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id7 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE( ch.fits_somewhere( GameState::units(),
-                              Cargo::unit{ unit_id8 },
+  REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id8 },
                               /*starting_slot=*/2 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id8 },
                                  /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 7 );
@@ -970,22 +992,22 @@ TEST_CASE(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id8 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.fits_somewhere( W.units(),
                                     Cargo::unit{ unit_id9 },
                                     /*starting_slot=*/2 ) );
-  REQUIRE_FALSE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.try_add_somewhere( W.units(),
                                        Cargo::unit{ unit_id9 },
                                        /*starting_slot=*/2 ) );
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.fits_somewhere( W.units(),
                                     Cargo::unit{ unit_id9 },
                                     /*starting_slot=*/0 ) );
-  REQUIRE_FALSE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.try_add_somewhere( W.units(),
                                        Cargo::unit{ unit_id9 },
                                        /*starting_slot=*/0 ) );
-  REQUIRE_FALSE( ch.fits_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.fits_somewhere( W.units(),
                                     Cargo::unit{ unit_id9 },
                                     /*starting_slot=*/6 ) );
-  REQUIRE_FALSE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE_FALSE( ch.try_add_somewhere( W.units(),
                                        Cargo::unit{ unit_id9 },
                                        /*starting_slot=*/6 ) );
 
@@ -993,6 +1015,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold try add as available from all (units)" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto start = GENERATE( 0, 1, 2, 3, 4, 5 );
@@ -1000,16 +1023,16 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
   UnitId unit_ids[6];
   for( auto i = 0; i < 6; ++i )
     unit_ids[i] = create_unit(
-        GameState::units(), e_nation::english,
+        W.units(), e_nation::english,
         UnitType::create( e_unit_type::free_colonist ) );
 
   vector<CargoSlot_t> cmp_slots( 6 );
 
   for( auto i = 0; i < 6; ++i ) {
-    REQUIRE( ch.fits_somewhere( GameState::units(),
+    REQUIRE( ch.fits_somewhere( W.units(),
                                 Cargo::unit{ unit_ids[i] },
                                 /*starting_slot=*/start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
+    REQUIRE( ch.try_add_somewhere( W.units(),
                                    Cargo::unit{ unit_ids[i] },
                                    /*starting_slot=*/start ) );
     REQUIRE( ch.count_items() == i + 1 );
@@ -1023,14 +1046,15 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
 }
 
 TEST_CASE( "CargoHold check broken invariants" ) {
+  World           W;
   CargoHoldTester ch( 6 );
   REQUIRE_GOOD_INVARIANTS;
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto comm1 = Commodity{ /*type=*/e_commodity::food,
                           /*quantity=*/100 };
@@ -1153,6 +1177,7 @@ TEST_CASE( "CargoHold check broken invariants" ) {
 }
 
 TEST_CASE( "CargoHold commodity consolidation like types" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
@@ -1162,7 +1187,7 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
 
   SECTION( "full slot" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_full }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
@@ -1170,20 +1195,20 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/100 } } } } );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_full }, 0 ) );
+        W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_part }, 0 ) );
+        W.units(), Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
   }
 
   SECTION( "partial slot" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
@@ -1191,19 +1216,19 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE( ch.fits( GameState::units(),
-                      Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_full }, 0 ) );
+        W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
@@ -1211,11 +1236,11 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE( ch.fits( GameState::units(),
-                      Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
@@ -1224,11 +1249,11 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                                 /*quantity=*/75 } } } } );
     REQUIRE( ch[1] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE( ch.fits( GameState::units(),
-                      Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
@@ -1237,18 +1262,19 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                                 /*quantity=*/100 } } } } );
     REQUIRE( ch[1] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_part }, 0 ) );
+        W.units(), Cargo::commodity{ food_part }, 0 ) );
   }
 
   ch.clear();
 }
 
 TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
@@ -1262,7 +1288,7 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
 
   SECTION( "full slot" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_full }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
@@ -1270,32 +1296,28 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/100 } } } } );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ sugar_full },
-                            0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ sugar_part },
-                            0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE( ch.fits(
+        W.units(), Cargo::commodity{ sugar_full }, 0 ) );
+    REQUIRE_FALSE( ch.fits(
+        W.units(), Cargo::commodity{ sugar_part }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_full }, 0 ) );
+        W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE_FALSE( ch.try_add( GameState::units(),
-                               Cargo::commodity{ sugar_full },
-                               0 ) );
-    REQUIRE_FALSE( ch.try_add( GameState::units(),
-                               Cargo::commodity{ sugar_part },
-                               0 ) );
+        W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE( ch.try_add(
+        W.units(), Cargo::commodity{ sugar_full }, 0 ) );
+    REQUIRE_FALSE( ch.try_add(
+        W.units(), Cargo::commodity{ sugar_part }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
   }
 
   SECTION( "partial slot" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
@@ -1303,31 +1325,27 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE( ch.fits( GameState::units(),
-                      Cargo::commodity{ food_part }, 0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ sugar_full },
-                            0 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ sugar_part },
-                            0 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 0 ) );
+    REQUIRE_FALSE( ch.fits(
+        W.units(), Cargo::commodity{ sugar_full }, 0 ) );
+    REQUIRE_FALSE( ch.fits(
+        W.units(), Cargo::commodity{ sugar_part }, 0 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_full }, 0 ) );
-    REQUIRE_FALSE( ch.try_add( GameState::units(),
-                               Cargo::commodity{ sugar_full },
-                               0 ) );
-    REQUIRE_FALSE( ch.try_add( GameState::units(),
-                               Cargo::commodity{ sugar_part },
-                               0 ) );
+        W.units(), Cargo::commodity{ food_full }, 0 ) );
+    REQUIRE_FALSE( ch.try_add(
+        W.units(), Cargo::commodity{ sugar_full }, 0 ) );
+    REQUIRE_FALSE( ch.try_add(
+        W.units(), Cargo::commodity{ sugar_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot_t{
@@ -1335,25 +1353,23 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch.slots_occupied() == 1 );
-    REQUIRE( ch.try_add( GameState::units(),
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ sugar_part }, 1 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_full }, 1 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ food_part }, 1 ) );
-    REQUIRE_FALSE( ch.fits( GameState::units(),
-                            Cargo::commodity{ sugar_full },
-                            1 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_full }, 1 ) );
+    REQUIRE_FALSE(
+        ch.fits( W.units(), Cargo::commodity{ food_part }, 1 ) );
+    REQUIRE_FALSE( ch.fits(
+        W.units(), Cargo::commodity{ sugar_full }, 1 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_full }, 1 ) );
+        W.units(), Cargo::commodity{ food_full }, 1 ) );
     REQUIRE_FALSE( ch.try_add(
-        GameState::units(), Cargo::commodity{ food_part }, 1 ) );
-    REQUIRE_FALSE( ch.try_add( GameState::units(),
-                               Cargo::commodity{ sugar_full },
-                               1 ) );
-    REQUIRE( ch.fits( GameState::units(),
-                      Cargo::commodity{ sugar_part }, 1 ) );
-    REQUIRE( ch.try_add( GameState::units(),
+        W.units(), Cargo::commodity{ food_part }, 1 ) );
+    REQUIRE_FALSE( ch.try_add(
+        W.units(), Cargo::commodity{ sugar_full }, 1 ) );
+    REQUIRE( ch.fits( W.units(), Cargo::commodity{ sugar_part },
+                      1 ) );
+    REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ sugar_part }, 1 ) );
     REQUIRE( ch[1] ==
              CargoSlot_t{
@@ -1368,6 +1384,7 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
 
 TEST_CASE(
     "CargoHold commodity consolidation try add as available" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
@@ -1387,12 +1404,10 @@ TEST_CASE(
 
   SECTION( "same types" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_full },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_full },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[start] ==
@@ -1400,24 +1415,20 @@ TEST_CASE(
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/100 } } } } );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_part },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_part },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch[next] ==
              CargoSlot_t{
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_part },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_part },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[next] ==
              CargoSlot_t{
@@ -1426,12 +1437,10 @@ TEST_CASE(
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch.slots_occupied() == 2 );
     // This should cause overflow.
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_full },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_full },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[next] ==
              CargoSlot_t{
@@ -1445,12 +1454,10 @@ TEST_CASE(
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch[next3] == CargoSlot_t{ CargoSlot::empty{} } );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_part },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_part },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[next2] ==
              CargoSlot_t{
@@ -1463,24 +1470,20 @@ TEST_CASE(
 
   SECTION( "unlike types" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_part },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_part },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[start] ==
              CargoSlot_t{
                  CargoSlot::cargo{ /*contents=*/Cargo::commodity{
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ sugar_part },
-                                start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ sugar_part }, start ) );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ sugar_part },
-        start ) );
+        W.units(), Cargo::commodity{ sugar_part }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[next] ==
              CargoSlot_t{
@@ -1488,12 +1491,10 @@ TEST_CASE(
                      Commodity{ /*type=*/e_commodity::sugar,
                                 /*quantity=*/25 } } } } );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ sugar_part },
-                                start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ sugar_part }, start ) );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ sugar_part },
-        start ) );
+        W.units(), Cargo::commodity{ sugar_part }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[start] ==
              CargoSlot_t{
@@ -1506,12 +1507,10 @@ TEST_CASE(
                      Commodity{ /*type=*/e_commodity::sugar,
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_full },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_full },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_full }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[start] ==
              CargoSlot_t{
@@ -1529,12 +1528,10 @@ TEST_CASE(
                      Commodity{ /*type=*/e_commodity::food,
                                 /*quantity=*/25 } } } } );
     REQUIRE( ch.slots_occupied() == 3 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ food_part },
-                                start ) );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
-                                   Cargo::commodity{ food_part },
-                                   start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
+    REQUIRE( ch.try_add_somewhere(
+        W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[start] ==
              CargoSlot_t{
@@ -1553,12 +1550,10 @@ TEST_CASE(
                                 /*quantity=*/50 } } } } );
     REQUIRE( ch[next3] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.slots_occupied() == 3 );
-    REQUIRE( ch.fits_somewhere( GameState::units(),
-                                Cargo::commodity{ sugar_full },
-                                start ) );
+    REQUIRE( ch.fits_somewhere(
+        W.units(), Cargo::commodity{ sugar_full }, start ) );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ sugar_full },
-        start ) );
+        W.units(), Cargo::commodity{ sugar_full }, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch[start] ==
              CargoSlot_t{
@@ -1588,8 +1583,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold compactify empty" ) {
+  World           W;
   CargoHoldTester ch( 0 );
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 0 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 0 );
@@ -1598,24 +1594,25 @@ TEST_CASE( "CargoHold compactify empty" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-1 with unit" ) {
+  World           W;
   CargoHoldTester ch( 1 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1627,18 +1624,19 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 },
                                  /*starting_slot=*/3 ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1649,7 +1647,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
            CargoSlot_t{ CargoSlot::cargo{
                /*contents=*/Cargo::unit{ unit_id1 } } } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1659,7 +1657,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
                /*contents=*/Cargo::unit{ unit_id1 } } } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1672,22 +1670,22 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE_FALSE( ch.try_add( GameState::units(),
-                             Cargo::unit{ unit_id1 },
+  REQUIRE_FALSE( ch.try_add( W.units(), Cargo::unit{ unit_id1 },
                              /*slot=*/3 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, /*slot=*/2 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 },
+                       /*slot=*/2 ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 4 );
@@ -1700,7 +1698,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
   REQUIRE( ch[4] == CargoSlot_t{ CargoSlot::overflow{} } );
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::overflow{} } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 4 );
@@ -1714,7 +1712,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::empty{} } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 4 );
@@ -1731,22 +1729,22 @@ TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE_FALSE( ch.try_add( GameState::units(),
-                             Cargo::unit{ unit_id1 },
+  REQUIRE_FALSE( ch.try_add( W.units(), Cargo::unit{ unit_id1 },
                              /*slot=*/1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, /*slot=*/0 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 },
+                       /*slot=*/0 ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 6 );
@@ -1759,7 +1757,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
   REQUIRE( ch[4] == CargoSlot_t{ CargoSlot::overflow{} } );
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::overflow{} } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 6 );
@@ -1776,37 +1774,38 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify multiple units" ) {
+  World           W;
   CargoHoldTester ch( 20 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id4 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id5 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 20 );
   REQUIRE( ch.slots_remaining() == 20 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id3 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id5 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id4 } ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch[0] ==
            CargoSlot_t{ CargoSlot::cargo{
@@ -1827,7 +1826,7 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 16 );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 20 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 16 );
@@ -1848,7 +1847,7 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
                /*contents=*/Cargo::unit{ unit_id2 } } } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 20 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 16 );
@@ -1872,23 +1871,24 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
+  World           W;
   CargoHoldTester ch( 1 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 0 );
 
   REQUIRE( ch.try_add_somewhere(
-      GameState::units(), Cargo::commodity{ food_full } ) );
+      W.units(), Cargo::commodity{ food_full } ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1901,17 +1901,18 @@ TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
 
 TEST_CASE(
     "CargoHold compactify size-6 single commodity partial" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_part = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/75 };
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::commodity{ food_part },
                                  /*starting_slot=*/3 ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1922,7 +1923,7 @@ TEST_CASE(
            CargoSlot_t{ CargoSlot::cargo{
                /*contents=*/Cargo::commodity{ food_part } } } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1932,7 +1933,7 @@ TEST_CASE(
                /*contents=*/Cargo::commodity{ food_part } } } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1947,23 +1948,24 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities same type "
     "full" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::commodity{ food_full },
                                  /*starting_slot=*/3 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::commodity{ food_full },
                                  /*starting_slot=*/3 ) );
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::commodity{ food_full },
                                  /*starting_slot=*/3 ) );
   REQUIRE( ch[0] == CargoSlot_t{ CargoSlot::empty{} } );
@@ -1979,7 +1981,7 @@ TEST_CASE(
            CargoSlot_t{ CargoSlot::cargo{
                /*contents=*/Cargo::commodity{ food_full } } } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 3 );
   REQUIRE( ch.slots_occupied() == 3 );
@@ -1997,7 +1999,7 @@ TEST_CASE(
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::empty{} } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 3 );
   REQUIRE( ch.slots_occupied() == 3 );
@@ -2020,6 +2022,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities same type "
     "partial" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto food_full        = Commodity{ /*type=*/e_commodity::food,
@@ -2029,19 +2032,16 @@ TEST_CASE(
   auto food_part        = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/66 };
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/3 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/4 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/5 ) );
   REQUIRE( ch[0] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch[1] == CargoSlot_t{ CargoSlot::empty{} } );
@@ -2056,7 +2056,7 @@ TEST_CASE(
            CargoSlot_t{ CargoSlot::cargo{
                /*contents=*/Cargo::commodity{ food_part } } } );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 2 );
@@ -2072,7 +2072,7 @@ TEST_CASE(
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::empty{} } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 2 );
@@ -2093,6 +2093,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities different "
     "types" ) {
+  World           W;
   CargoHoldTester ch( 7 );
 
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
@@ -2108,34 +2109,28 @@ TEST_CASE(
   auto sugar_part     = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 7 );
   REQUIRE( ch.slots_remaining() == 7 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ sugar_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ sugar_part },
                        /*slot=*/1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/2 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ sugar_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ sugar_part },
                        /*slot=*/3 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ sugar_full },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ sugar_full },
                        /*slot=*/4 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/5 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_full },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_full },
                        /*slot=*/6 ) );
   REQUIRE( ch.slots_total() == 7 );
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 6 );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 7 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 5 );
@@ -2158,7 +2153,7 @@ TEST_CASE(
   REQUIRE( ch[6] == CargoSlot_t{ CargoSlot::empty{} } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 7 );
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 5 );
@@ -2184,6 +2179,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold compactify units and commodities" ) {
+  World           W;
   CargoHoldTester ch( 24 );
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -2196,56 +2192,51 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   auto sugar_part     = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
   auto unit_id1       = create_unit(
-            GameState::units(), e_nation::english,
+            W.units(), e_nation::english,
             UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id4 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id5 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 24 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, /*slot=*/0 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_full },
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 },
+                       /*slot=*/0 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_full },
                        /*slot=*/1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id5 }, /*slot=*/2 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ sugar_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id5 },
+                       /*slot=*/2 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ sugar_part },
                        /*slot=*/8 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/9 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id4 }, /*slot=*/10 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ sugar_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id4 },
+                       /*slot=*/10 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ sugar_part },
                        /*slot=*/14 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id3 }, /*slot=*/15 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id2 }, /*slot=*/19 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food_part },
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id3 },
+                       /*slot=*/15 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 },
+                       /*slot=*/19 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::commodity{ food_part },
                        /*slot=*/20 ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 3 );
   REQUIRE( ch.slots_occupied() == 21 );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
@@ -2286,6 +2277,7 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
 
 TEST_CASE(
     "CargoHold compactify units and commodities shuffle" ) {
+  World           W;
   CargoHoldTester ch( 24 );
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -2298,22 +2290,22 @@ TEST_CASE(
   auto sugar_part     = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
   auto unit_id1       = create_unit(
-            GameState::units(), e_nation::english,
+            W.units(), e_nation::english,
             UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
   auto unit_id4 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id5 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 24 );
   REQUIRE( ch.slots_occupied() == 0 );
@@ -2346,9 +2338,9 @@ TEST_CASE(
     auto maybe_idx = util::find_index(
         ch.o_.slots, CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( maybe_idx.has_value() );
-    // Don't use try_add_somewhere GameState::units(),here
+    // Don't use try_add_somewhere W.units(),here
     // because we don't want to consolidate commodities a priori.
-    REQUIRE( ch.try_add( GameState::units(), cargo,
+    REQUIRE( ch.try_add( W.units(), cargo,
                          /*slot=*/*maybe_idx ) );
     INFO( fmt::format( "index {}: {}", *maybe_idx, cargo ) );
   }
@@ -2359,7 +2351,7 @@ TEST_CASE(
   INFO( fmt::format( "Shuffled cargo: {}",
                      base::FmtJsonStyleList{ shuffled } ) );
 
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
@@ -2396,7 +2388,7 @@ TEST_CASE(
   REQUIRE( ch[23] == CargoSlot_t{ CargoSlot::empty{} } );
 
   // Test idempotency.
-  REQUIRE_NOTHROW( ch.compactify( GameState::units() ) );
+  REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
@@ -2447,37 +2439,38 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold find_unit" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == nothing );
   REQUIRE( ch.find_unit( unit_id2 ) == nothing );
   REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id1 } ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == nothing );
   REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
   REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
-  REQUIRE( ch.try_add_somewhere( GameState::units(),
+  REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id3 } ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
@@ -2492,150 +2485,152 @@ TEST_CASE( "CargoHold find_unit" ) {
 }
 
 TEST_CASE( "CargoHold fits_with_item_removed" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
   SECTION( "insert small unit first" ) {
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id1 }, 1 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
 
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 0 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 0 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 1 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 1 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 2 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 2 } ) );
 
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 0 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 0 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 1 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 1 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 2 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 2 } ) );
 
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id3 }, 5 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id3 }, 5 ) );
 
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 0 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 0 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 1 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 1 } ) );
     REQUIRE_FALSE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 2 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 2 } ) );
   }
 
   SECTION( "insert large unit first" ) {
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id2 }, 1 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 1 ) );
 
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 0 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 0 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 1 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 1 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id1 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 2 } ) );
+        W.units(), Cargo::unit{ unit_id1 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 2 } ) );
 
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 0 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 0 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 1 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 1 } ) );
     REQUIRE( ch.fits_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
-        CargoSlotIndex{ 1 }, CargoSlotIndex{ 2 } ) );
+        W.units(), Cargo::unit{ unit_id2 }, CargoSlotIndex{ 1 },
+        CargoSlotIndex{ 2 } ) );
   }
 
   ch.clear();
 }
 
 TEST_CASE( "CargoHold fits_somewhere_with_item_removed" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
   auto unit_id3 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::large_treasure ) );
   auto unit_id4 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
   auto unit_id5 =
-      create_unit( GameState::units(), e_nation::english,
+      create_unit( W.units(), e_nation::english,
                    UnitType::create( e_unit_type::soldier ) );
 
   SECTION( "insert large unit" ) {
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id1 }, 1 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
     REQUIRE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id3 },
+        W.units(), Cargo::unit{ unit_id3 },
         /*remove_slot=*/1,
         /*starting_slot=*/0 ) );
 
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id4 }, 5 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id4 }, 5 ) );
     REQUIRE_FALSE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id3 },
+        W.units(), Cargo::unit{ unit_id3 },
         /*remove_slot=*/1,
         /*starting_slot=*/0 ) );
   }
 
   SECTION( "insert samll units" ) {
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id1 }, 1 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
     REQUIRE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/1,
         /*starting_slot=*/0 ) );
     REQUIRE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/1,
         /*starting_slot=*/1 ) );
 
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id4 }, 4 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id4 }, 4 ) );
     REQUIRE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/4,
         /*starting_slot=*/0 ) );
     REQUIRE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/4,
         /*starting_slot=*/1 ) );
 
-    REQUIRE( ch.try_add( GameState::units(),
-                         Cargo::unit{ unit_id5 }, 3 ) );
+    REQUIRE(
+        ch.try_add( W.units(), Cargo::unit{ unit_id5 }, 3 ) );
     REQUIRE_FALSE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/3,
         /*starting_slot=*/0 ) );
     REQUIRE_FALSE( ch.fits_somewhere_with_item_removed(
-        GameState::units(), Cargo::unit{ unit_id2 },
+        W.units(), Cargo::unit{ unit_id2 },
         /*remove_slot=*/3,
         /*starting_slot=*/1 ) );
   }
@@ -2644,18 +2639,17 @@ TEST_CASE( "CargoHold fits_somewhere_with_item_removed" ) {
 }
 
 TEST_CASE( "CargoHold cago_starting_at_slot" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, 1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id2 }, 2 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 2 ) );
 
   {
     maybe<Cargo_t const&> c = ch.cargo_starting_at_slot( 0 );
@@ -2688,18 +2682,17 @@ TEST_CASE( "CargoHold cago_starting_at_slot" ) {
 }
 
 TEST_CASE( "CargoHold cago_covering_slot" ) {
+  World           W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id1 }, 1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id2 }, 2 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 1 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 2 ) );
 
   {
     maybe<pair<Cargo_t const&, int>> c =
@@ -2746,15 +2739,16 @@ TEST_CASE( "CargoHold cago_covering_slot" ) {
 }
 
 TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
-  auto food_full  = Commodity{ /*type=*/e_commodity::food,
+  World W;
+  auto  food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
-  auto food_part  = Commodity{ /*type=*/e_commodity::food,
+  auto  food_part  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/66 };
-  auto sugar_part = Commodity{ /*type=*/e_commodity::sugar,
+  auto  sugar_part = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
-  auto unit_id1   = create_unit(
-        GameState::units(), e_nation::english,
-        UnitType::create( e_unit_type::small_treasure ) );
+  auto  unit_id1   = create_unit(
+         W.units(), e_nation::english,
+         UnitType::create( e_unit_type::small_treasure ) );
 
   SECTION( "size zero" ) {
     CargoHoldTester ch( 0 );
@@ -2772,7 +2766,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 100 );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ food_full } ) );
+        W.units(), Cargo::commodity{ food_full } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 0 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2787,7 +2781,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 100 );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ food_part } ) );
+        W.units(), Cargo::commodity{ food_part } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 34 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2802,13 +2796,13 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 600 );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ food_full } ) );
+        W.units(), Cargo::commodity{ food_full } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 500 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 500 );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ sugar_part } ) );
+        W.units(), Cargo::commodity{ sugar_part } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 400 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2822,14 +2816,14 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
                  e_commodity::food ) == 600 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 600 );
-    REQUIRE( ch.try_add_somewhere( GameState::units(),
+    REQUIRE( ch.try_add_somewhere( W.units(),
                                    Cargo::unit{ unit_id1 } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 200 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 200 );
     REQUIRE( ch.try_add_somewhere(
-        GameState::units(), Cargo::commodity{ sugar_part } ) );
+        W.units(), Cargo::commodity{ sugar_part } ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 100 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2839,18 +2833,18 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
 }
 
 TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
+  World           W;
   CargoHoldTester ch( 8 );
 
   auto food    = Commodity{ /*type=*/e_commodity::food,
                          /*quantity=*/100 };
   auto unit_id = create_unit(
-      GameState::units(), e_nation::english,
+      W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
 
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::commodity{ food }, 1 ) );
-  REQUIRE( ch.try_add( GameState::units(),
-                       Cargo::unit{ unit_id }, 2 ) );
+  REQUIRE(
+      ch.try_add( W.units(), Cargo::commodity{ food }, 1 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id }, 2 ) );
 
   REQUIRE_FALSE( ch.slot_holds_cargo_type<Cargo::unit>( 0 ) );
   REQUIRE( ch.slot_holds_cargo_type<Cargo::unit>( 2 ) );

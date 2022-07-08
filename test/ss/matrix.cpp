@@ -5,13 +5,13 @@
 *
 * Created by dsicilia on 2022-02-14.
 *
-* Description: Unit tests for the src/gs/matrix.* module.
+* Description: Unit tests for the src/ss/matrix.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/gs/matrix.hpp"
+#include "src/ss/matrix.hpp"
 
 // refl
 #include "refl/cdr.hpp"

@@ -81,7 +81,7 @@ struct UnitsState {
   // Note this returns only units that are working in the colony,
   // not units that are on the map at the location of the colony.
   std::unordered_set<UnitId> const& from_colony(
-      ColonyId id ) const;
+      Colony const& colony ) const;
 
   // The id of this unit must be zero (i.e., you can't select the
   // ID); a new ID will be generated for this unit and returned.

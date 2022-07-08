@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "test/testing.hpp"
 
-// Under test.
-#include "src/gs/unit.hpp"
+// ss
+#include "src/ss/unit.hpp"
 
 // Revolution Now
 #include "src/ustate.hpp"
@@ -27,7 +27,8 @@ using namespace std;
 TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
   UnitComposition comp =
       UnitComposition::create( e_unit_type::pioneer );
-  Unit unit = create_free_unit( e_nation::english, comp );
+  Unit unit =
+      create_unregistered_unit( e_nation::english, comp );
 
   // Initially.
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -57,7 +58,8 @@ TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
 TEST_CASE( "[test/unit] consume_20_tools hardy_pioneer" ) {
   UnitComposition comp =
       UnitComposition::create( e_unit_type::hardy_pioneer );
-  Unit unit = create_free_unit( e_nation::english, comp );
+  Unit unit =
+      create_unregistered_unit( e_nation::english, comp );
 
   // Initially.
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );

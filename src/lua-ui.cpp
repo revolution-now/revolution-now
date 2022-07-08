@@ -15,7 +15,6 @@
 #include "co-wait.hpp"
 #include "logger.hpp"
 #include "lua-wait.hpp"
-#include "lua.hpp"
 #include "window.hpp"
 
 // luapp

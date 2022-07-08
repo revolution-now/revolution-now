@@ -17,8 +17,8 @@
 #include "test/fake/world.hpp"
 
 // ss
-#include "src/gs/colonies.hpp"
-#include "src/gs/units.hpp"
+#include "src/ss/colonies.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"

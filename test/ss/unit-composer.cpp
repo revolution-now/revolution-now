@@ -11,10 +11,9 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/gs/unit-composer.hpp"
+#include "src/ss/unit-composer.hpp"
 
 // Revolution Now
-#include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
 // refl
@@ -2509,7 +2508,7 @@ TEST_CASE( "[unit-composer] adjust_for_independence_status" ) {
 }
 
 TEST_CASE( "[unit-composer] lua bindings" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
 
   auto script = R"(
     local uc

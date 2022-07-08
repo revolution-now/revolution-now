@@ -120,7 +120,7 @@ void check_create_or_starve_colonist(
   if( current_food < food_needed_for_creation ) return;
 
   current_food -= food_needed_for_creation;
-  UnitId unit_id = create_unit(
+  UnitId unit_id = create_free_unit(
       units_state, colony.nation,
       UnitType::create( e_unit_type::free_colonist ) );
   unit_to_map_square_non_interactive( units_state, map_updater,

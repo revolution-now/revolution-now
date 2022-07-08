@@ -117,13 +117,21 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 /****************************************************************
 ** Creation
 *****************************************************************/
-// Creates a unit with no ownership.
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    UnitComposition comp );
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    UnitType type );
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    e_unit_type type );
+// Creates a unit that is registered (with a valid ID) but with
+// no ownership.
+UnitId create_free_unit( UnitsState& units_state,
+                         e_nation nation, UnitComposition comp );
+UnitId create_free_unit( UnitsState& units_state,
+                         e_nation nation, UnitType type );
+UnitId create_free_unit( UnitsState& units_state,
+                         e_nation nation, e_unit_type type );
+
+// Create unit that is not registered in the unit database, and
+// thus has no ID and no ownership. The unit will always have
+// id=0, since a unit does not get assigned an ID until it is
+// added into the units database.
+Unit create_unregistered_unit( e_nation        nation,
+                               UnitComposition comp );
 
 // This has to return a maybe because the unit could theoreti-
 // cally by placed on an LCR square, and, since this is the
@@ -154,10 +162,5 @@ maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
                                              UnitId         id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
                                              UnitId         id );
-
-// Create unit with no ownership. Note that the unit will always
-// have id=0, since a unit does not get assigned an ID until it
-// is added into a UnitsState with some ownership.
-Unit create_free_unit( e_nation nation, UnitComposition comp );
 
 } // namespace rn

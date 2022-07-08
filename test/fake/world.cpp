@@ -13,14 +13,20 @@
 // Revolution Now
 #include "src/colony-mgr.hpp"
 #include "src/harbor-units.hpp"
+#include "src/igui-mock.hpp"
 #include "src/map-updater.hpp"
+#include "src/plane-stack.hpp"
+#include "src/ts.hpp"
 #include "src/ustate.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
 
-// game-state
-#include "src/gs/root.hpp"
+// ss
+#include "src/ss/root.hpp"
+
+// luapp
+#include "luapp/state.hpp"
 
 // base
 #include "src/base/keyval.hpp"
@@ -38,6 +44,7 @@ TurnState&     World::turn() { return root().turn; }
 ColoniesState& World::colonies() { return root().colonies; }
 LandViewState& World::land_view() { return root().land_view; }
 TerrainState&  World::terrain() { return root().zzz_terrain; }
+RootState&     World::root() { return ss_->root; }
 
 FormatVersion const& World::version() const {
   return root().version;
@@ -61,6 +68,46 @@ LandViewState const& World::land_view() const {
 }
 TerrainState const& World::terrain() const {
   return root().zzz_terrain;
+}
+RootState const& World::root() const { return ss_->root; }
+
+SS& World::ss() { return *ss_; }
+
+Planes& World::planes() {
+  if( uninitialized_planes_ == nullptr )
+    uninitialized_planes_ = make_unique<Planes>();
+  return *uninitialized_planes_;
+}
+
+lua::state& World::lua() {
+  if( uninitialized_lua_ == nullptr )
+    uninitialized_lua_ = make_unique<lua::state>();
+  return *uninitialized_lua_;
+}
+
+IGui& World::gui() {
+  if( uninitialized_gui_ == nullptr )
+    uninitialized_gui_ = make_unique<MockIGui>();
+  return *uninitialized_gui_;
+}
+
+namespace {
+
+// We need this because we can't (yet?) do aggregate initializa-
+// tion for an object on the heap.
+TS make_ts( World& world ) {
+  return TS{ .planes      = world.planes(),
+             .map_updater = world.map_updater(),
+             .lua         = world.lua(),
+             .gui         = world.gui() };
+}
+
+}
+
+TS& World::ts() {
+  if( uninitialized_ts_ == nullptr )
+    uninitialized_ts_ = make_unique<TS>( make_ts( *this ) );
+  return *uninitialized_ts_;
 }
 
 MapSquare World::make_ocean() {
@@ -157,8 +204,8 @@ UnitId World::add_unit_on_map( UnitType type, Coord where,
 UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
                                  maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
-  UnitId held = create_unit( units(), *nation,
-                             UnitComposition::create( type ) );
+  UnitId held = create_free_unit(
+      units(), *nation, UnitComposition::create( type ) );
   units().change_to_cargo_somewhere( holder, held );
   return held;
 }
@@ -202,8 +249,7 @@ void World::add_player( e_nation nation ) {
 Colony& World::add_colony( UnitId founder ) {
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
-  ColonyId id = found_colony( colonies(), terrain(), units(),
-                              founder, map_updater(), name );
+  ColonyId id = found_colony( ss(), ts(), founder, name );
   return colonies().colony_for( id );
 }
 
@@ -317,9 +363,14 @@ base::valid_or<string> World::validate_colonies() const {
 }
 
 World::World()
-  : root_( new RootState ),
+  : ss_( new SS ),
     map_updater_(
-        new NonRenderingMapUpdater( root_->zzz_terrain ) ) {}
+        new NonRenderingMapUpdater( ss_->root.zzz_terrain ) ),
+    // These are left uninitialized until they are needed.
+    uninitialized_planes_(),
+    uninitialized_lua_(),
+    uninitialized_gui_(),
+    uninitialized_ts_() {}
 
 World::~World() noexcept = default;
 

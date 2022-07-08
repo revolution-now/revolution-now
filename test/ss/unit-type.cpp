@@ -11,10 +11,9 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/gs/unit-type.hpp"
+#include "src/ss/unit-type.hpp"
 
 // Revolution Now
-#include "src/lua.hpp"
 #include "src/luapp/state.hpp"
 
 // Config
@@ -1195,7 +1194,7 @@ TEST_CASE( "[unit-type] cleared_expertise" ) {
 }
 
 TEST_CASE( "[unit-type] lua bindings" ) {
-  lua::state& st = lua_global_state();
+  lua::state st;
 
   auto script = R"(
     local ut

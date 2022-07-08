@@ -14,12 +14,10 @@
 #include "src/save-game.hpp"
 
 // Revolution Now
-#include "src/game-state.hpp"
-#include "src/lua.hpp"
 #include "src/rand.hpp"
 
 // ss
-#include "src/gs/root.hpp"
+#include "src/ss/root.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -55,15 +53,13 @@ void print_line( string_view what ) {
 #  endif
 }
 
-void reset_seeds() {
+void reset_seeds( lua::state& st ) {
   rng::reseed( 0 );
-  lua::state& st = lua_global_state();
   st["math"]["randomseed"]( 0 );
 }
 
-void create_new_game_from_lua() {
-  lua::state& st       = lua_global_state();
-  lua::table  new_game = st["new_game"].as<lua::table>();
+void create_new_game_from_lua( lua::state& st ) {
+  lua::table new_game = st["new_game"].as<lua::table>();
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
   CHECK_HAS_VALUE( new_game["create"].pcall( options ) );

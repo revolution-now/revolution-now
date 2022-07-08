@@ -23,7 +23,6 @@
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "map-square.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
@@ -71,9 +70,8 @@ namespace {
 // or who are on the map on the colony square.
 unordered_set<UnitId> units_at_or_in_colony(
     Colony const& colony, UnitsState const& units_state ) {
-  unordered_set<UnitId> all =
-      units_state.from_colony( colony.id );
-  Coord colony_loc = colony.location;
+  unordered_set<UnitId> all = units_state.from_colony( colony );
+  Coord                 colony_loc = colony.location;
   for( UnitId map_id : units_state.from_coord( colony_loc ) )
     all.insert( map_id );
   return all;

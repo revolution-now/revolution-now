@@ -398,7 +398,7 @@ UnitId create_unit_in_harbor( UnitsState&     units_state,
                               e_nation        nation,
                               UnitComposition comp ) {
   UnitId id =
-      create_unit( units_state, nation, std::move( comp ) );
+      create_free_unit( units_state, nation, std::move( comp ) );
   unit_move_to_port( units_state, id );
   return id;
 }

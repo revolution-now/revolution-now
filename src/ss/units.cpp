@@ -401,17 +401,9 @@ unordered_set<UnitId> const& UnitsState::from_coord(
 }
 
 unordered_set<UnitId> const& UnitsState::from_colony(
-    ColonyId id ) const {
-  // FIXME: consider reinstating this check once we can pass in
-  // global state as a parameter. In this case, we should pass in
-  // the colony state. As it is now, we can't call it because it
-  // breaks during load-game validation, since it is called by
-  // said validation but it queries the current global state (and
-  // not the one being validated).
-  // CHECK( colony_exists( id ), "colony {} does not exist.", id
-  // );
-  UNWRAP_CHECK( units,
-                base::lookup( worker_units_from_colony_, id ) );
+    Colony const& colony ) const {
+  UNWRAP_CHECK( units, base::lookup( worker_units_from_colony_,
+                                     colony.id ) );
   return units;
 }
 

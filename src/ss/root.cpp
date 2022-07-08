@@ -46,7 +46,7 @@ valid_or<string> validate_interaction(
     vector<UnitId> const colony_units =
         colony_units_all( colony );
     // All units owned by colony are colony's units.
-    for( UnitId unit_id : units.from_colony( colony_id ) ) {
+    for( UnitId unit_id : units.from_colony( colony ) ) {
       REFL_VALIDATE(
           find( colony_units.begin(), colony_units.end(),
                 unit_id ) != colony_units.end(),

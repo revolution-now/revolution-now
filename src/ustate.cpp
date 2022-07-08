@@ -18,7 +18,6 @@
 #include "error.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
-#include "lua.hpp"
 #include "macros.hpp"
 #include "map-updater-lua.hpp"
 #include "map-updater.hpp"
@@ -133,8 +132,9 @@ string debug_string( UnitsState const& units_state, UnitId id ) {
   return debug_string( units_state.unit_for( id ) );
 }
 
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    UnitComposition comp ) {
+UnitId create_free_unit( UnitsState&     units_state,
+                         e_nation        nation,
+                         UnitComposition comp ) {
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
@@ -146,7 +146,8 @@ UnitId create_unit( UnitsState& units_state, e_nation nation,
   return units_state.add_unit( Unit( std::move( refl_unit ) ) );
 }
 
-Unit create_free_unit( e_nation nation, UnitComposition comp ) {
+Unit create_unregistered_unit( e_nation        nation,
+                               UnitComposition comp ) {
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
@@ -158,23 +159,23 @@ Unit create_free_unit( e_nation nation, UnitComposition comp ) {
   return Unit( std::move( refl_unit ) );
 }
 
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    UnitType type ) {
-  return create_unit( units_state, nation,
-                      UnitComposition::create( type ) );
+UnitId create_free_unit( UnitsState& units_state,
+                         e_nation nation, UnitType type ) {
+  return create_free_unit( units_state, nation,
+                           UnitComposition::create( type ) );
 }
 
-UnitId create_unit( UnitsState& units_state, e_nation nation,
-                    e_unit_type type ) {
-  return create_unit( units_state, nation,
-                      UnitType::create( type ) );
+UnitId create_free_unit( UnitsState& units_state,
+                         e_nation nation, e_unit_type type ) {
+  return create_free_unit( units_state, nation,
+                           UnitType::create( type ) );
 }
 
 UnitId create_unit_on_map_non_interactive(
     UnitsState& units_state, IMapUpdater& map_updater,
     e_nation nation, UnitComposition comp, Coord coord ) {
   UnitId id =
-      create_unit( units_state, nation, std::move( comp ) );
+      create_free_unit( units_state, nation, std::move( comp ) );
   unit_to_map_square_non_interactive( units_state, map_updater,
                                       id, coord );
   return id;
@@ -185,8 +186,8 @@ wait<maybe<UnitId>> create_unit_on_map(
     Player& player, SettingsState const& settings, IGui& gui,
     IMapUpdater& map_updater, UnitComposition comp,
     Coord coord ) {
-  UnitId id = create_unit( units_state, player.nation,
-                           std::move( comp ) );
+  UnitId id = create_free_unit( units_state, player.nation,
+                                std::move( comp ) );
   maybe<UnitDeleted> unit_deleted = co_await unit_to_map_square(
       units_state, terrain_state, player, settings, gui,
       map_updater, id, coord );
@@ -311,7 +312,7 @@ LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
   UnitsState& units_state =
       st["ROOT"]["units"].as<UnitsState&>();
-  UnitId unit_id = create_unit( units_state, nation, comp );
+  UnitId unit_id = create_free_unit( units_state, nation, comp );
   lg.info( "created unit {}.",
            debug_string( units_state, unit_id ),
            debug_string( units_state, holder ) );
