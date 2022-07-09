@@ -1570,8 +1570,8 @@ composition {
       ship:                  true
       human:                 no
       can_found:             no
-      nat_icon_front:        false
-      nat_icon_position:     nw
+      nat_icon_front:        true
+      nat_icon_position:     ne
       visibility:            1
       movement_points:       5
       attack_points:         24
