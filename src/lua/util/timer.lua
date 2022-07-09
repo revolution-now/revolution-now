@@ -33,14 +33,14 @@ local function format_duration( d )
   local mins = s // 60
   s = s % 60
   if mins < 60 then
-    local res = tostring( s ) .. 'mins'
+    local res = tostring( mins ) .. 'mins'
     if mins < 10 then res = res .. ' ' .. tostring( s ) .. 's' end
     return res
   end
   local hours = mins // 60
   mins = mins % 60
   if hours < 60 then
-    local res = tostring( s ) .. 'hrs'
+    local res = tostring( hours ) .. 'hrs'
     if hours < 10 then
       res = res .. ' ' .. tostring( mins ) .. 'mins'
     end
@@ -48,7 +48,7 @@ local function format_duration( d )
   end
   local days = hours // 24
   hours = hours % 24
-  local res = tostring( s ) .. 'days'
+  local res = tostring( days ) .. 'days'
   if days < 10 then
     res = res .. ' ' .. tostring( hours ) .. 'hours'
   end
