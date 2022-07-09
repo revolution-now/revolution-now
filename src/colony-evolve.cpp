@@ -69,7 +69,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
       .spoiled = std::move( spoiled ) };
 }
 
-ConstructionMaterials materials_needed(
+config::colony::construction_materials materials_needed(
     Construction_t const& construction ) {
   switch( construction.to_enum() ) {
     using namespace Construction;
@@ -79,8 +79,8 @@ ConstructionMaterials materials_needed(
     }
     case e::unit: {
       auto& o = construction.get<unit>();
-      maybe<ConstructionMaterials> const& materials =
-          config_colony.materials_for_unit[o.type];
+      maybe<config::colony::construction_materials> const&
+          materials = config_colony.materials_for_unit[o.type];
       CHECK( materials.has_value(),
              "a colony is constructing unit {}, but that unit "
              "is not buildable.",

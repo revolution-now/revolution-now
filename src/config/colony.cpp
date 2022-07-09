@@ -14,7 +14,8 @@ using namespace std;
 
 namespace rn {
 
-base::valid_or<string> Warehouses::validate() const {
+base::valid_or<string> config::colony::warehouses::validate()
+    const {
   REFL_VALIDATE(
       warehouse_max_quantity > default_max_quantity,
       "The warehouse capacity must be larger than the default "
@@ -43,7 +44,8 @@ base::valid_or<string> config_colony_t::validate() const {
   REFL_VALIDATE(
       materials_for_building
               [e_colony_building::carpenters_shop] ==
-          ( ConstructionMaterials{ .hammers = 0, .tools = 0 } ),
+          ( config::colony::construction_materials{
+              .hammers = 0, .tools = 0 } ),
       "The capenter's shop must cost no hammers and no tools to "
       "build." );
 

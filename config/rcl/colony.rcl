@@ -48,8 +48,6 @@ outdoors {
     ore:     Ore Miner
     silver:  Silver Miner
   }
-
-  unit_glow_color: '#EEEEAA'
 }
 
 materials_for_building {
@@ -206,4 +204,16 @@ building_display_names {
   newspaper:            "Newspaper"
   town_hall:            "Town Hall"
   custom_house:         "Custom House"
+}
+
+colors {
+  # In addition to a black shadow behind the unit (to the left),
+  # we render a one-pixel "glow" on the right side of the unit
+  # for ease of discerning the unit over the background terrain.
+  outdoor_unit_glow_color: '#EEEEAA'
+
+  # Units that are on a lighter background (such as indoor units)
+  # that don't need as pronounced of a shadow color will get this
+  # shadow color.
+  unit_shadow_color_light: '#3C5050'
 }

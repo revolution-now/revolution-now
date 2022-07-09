@@ -61,7 +61,7 @@ void render_glow( rr::Renderer& renderer, Coord unit_coord,
   rr::Painter               painter = renderer.painter();
   render_sprite_silhouette(
       painter, unit_coord + Delta{ .w = 1 }, tile,
-      config_colony.outdoors.unit_glow_color );
+      config_colony.colors.outdoor_unit_glow_color );
 }
 
 } // namespace

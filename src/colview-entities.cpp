@@ -808,9 +808,13 @@ class UnitsAtGateColonyView : public ui::View,
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
-      render_unit( renderer, draw_pos,
-                   ss_.units.unit_for( unit_id ),
-                   UnitRenderOptions{ .flag = true } );
+      render_unit(
+          renderer, draw_pos, ss_.units.unit_for( unit_id ),
+          UnitRenderOptions{
+              .flag   = true,
+              .shadow = UnitShadow{
+                  .color = config_colony.colors
+                               .unit_shadow_color_light } } );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ) -

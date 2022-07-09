@@ -30,6 +30,8 @@
 
 using namespace std;
 
+using ::rn::config::colony::construction_materials;
+
 namespace rn {
 
 namespace {
@@ -41,8 +43,8 @@ string fmt_construction( string const& name,
 }
 
 string fmt_construction(
-    string const&                name,
-    ConstructionMaterials const& materials ) {
+    string const&                 name,
+    construction_materials const& materials ) {
   string needed =
       fmt::format( "{:>3} hammers", materials.hammers );
   if( materials.tools != 0 )
@@ -50,8 +52,8 @@ string fmt_construction(
   return fmt_construction( name, needed );
 }
 
-void adjust_materials( Colony const&          colony,
-                       ConstructionMaterials& materials ) {
+void adjust_materials( Colony const&           colony,
+                       construction_materials& materials ) {
   materials.hammers =
       std::max( materials.hammers - colony.hammers, 0 );
   materials.tools = std::max(
@@ -61,7 +63,7 @@ void adjust_materials( Colony const&          colony,
 
 string fmt_building( Colony const&     colony,
                      e_colony_building building ) {
-  ConstructionMaterials materials =
+  construction_materials materials =
       config_colony.materials_for_building[building];
   adjust_materials( colony, materials );
   return fmt_construction(
@@ -71,7 +73,7 @@ string fmt_building( Colony const&     colony,
 }
 
 string fmt_unit( Colony const& colony, e_unit_type type ) {
-  maybe<ConstructionMaterials> materials =
+  maybe<construction_materials> materials =
       config_colony.materials_for_unit[type];
   CHECK( materials.has_value() );
   adjust_materials( colony, *materials );

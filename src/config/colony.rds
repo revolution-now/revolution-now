@@ -29,9 +29,9 @@ include "base/maybe.hpp"
 # C++ standard library
 include "<string>"
 
-namespace "rn"
+namespace "rn.config.colony"
 
-struct.Warehouses {
+struct.warehouses {
   # Maximum amount of non-food quantity of a commodity that can
   # be stored in a colony with no warehouses.
   default_max_quantity 'int',
@@ -53,25 +53,34 @@ struct.Warehouses {
   _features { validation, equality }
 }
 
-struct.config_colony_outdoors {
+struct.outdoors {
   job_names 'refl::enum_map<e_outdoor_job, std::string>',
-
-  # In addition to a black shadow behind the unit (to the left),
-  # we render a one-pixel "glow" on the right side of the unit
-  # for ease of discerning the unit over the background terrain.
-  unit_glow_color 'gfx::pixel',
 }
 
 # How many of each are needed for a given construction project.
-struct.ConstructionMaterials {
+struct.construction_materials {
   hammers 'int',
   tools   'int',
 }
 
+struct.colors {
+  # In addition to a black shadow behind the unit (to the left),
+  # we render a one-pixel "glow" on the right side of the unit
+  # for ease of discerning the unit over the background terrain.
+  outdoor_unit_glow_color 'gfx::pixel',
+
+  # Units that are on a lighter background (such as indoor units)
+  # that don't need as pronounced of a shadow color will get this
+  # shadow color.
+  unit_shadow_color_light 'gfx::pixel',
+}
+
+namespace "rn"
+
 # Note that this config is for non-production related things. For
 # production-related things there is a dedicated config file.
 struct.config_colony_t {
-  warehouses 'Warehouses',
+  warehouses 'config::colony::warehouses',
 
   food_for_creating_new_colonist 'int',
 
@@ -83,17 +92,19 @@ struct.config_colony_t {
   # for free.
   initial_colony_buildings 'std::unordered_set<e_colony_building>',
 
-  outdoors 'config_colony_outdoors',
+  outdoors 'config::colony::outdoors',
 
   # All buildings are theoretically buildable, and this will
   # specify how many hammers and tools are needed for each.
-  materials_for_building 'refl::enum_map<e_colony_building, ConstructionMaterials>',
+  materials_for_building 'refl::enum_map<e_colony_building, config::colony::construction_materials>',
 
   # This gives the list of units that are buildable in a colony
   # as well as how many hammers and tools are needed for each.
-  materials_for_unit 'refl::enum_map<e_unit_type, base::maybe<ConstructionMaterials>>',
+  materials_for_unit 'refl::enum_map<e_unit_type, base::maybe<config::colony::construction_materials>>',
 
   building_display_names 'refl::enum_map<e_colony_building, std::string>',
+
+  colors 'config::colony::colors',
 
   _features { validation, equality }
 }

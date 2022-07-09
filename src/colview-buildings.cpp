@@ -145,8 +145,6 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     maybe<e_indoor_job> const indoor_job =
         indoor_job_for_slot( slot );
 
-    gfx::pixel const kShadowColor{
-        .r = 60, .g = 80, .b = 80, .a = 255 };
     if( indoor_job ) {
       vector<UnitId> const& colonists =
           colony_.indoor_jobs[*indoor_job];
@@ -170,9 +168,11 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
             sprite_rect_for_unit_in_slot( slot, idx )
                 .upper_left(),
             ss_.units.unit_for( unit_id ),
-            UnitRenderOptions{ .flag   = false,
-                               .shadow = UnitShadow{
-                                   .color = kShadowColor } } );
+            UnitRenderOptions{
+                .flag   = false,
+                .shadow = UnitShadow{
+                    .color = config_colony.colors
+                                 .unit_shadow_color_light } } );
       }
     }
 
