@@ -5,6 +5,7 @@ let s:stems = [
  \ 'colony-mgr',
  \ 'colony-evolve',
  \ 'production',
+ \ 'ss/difficulty',
  \ 'config/production',
  \ 'land-production',
 \]
