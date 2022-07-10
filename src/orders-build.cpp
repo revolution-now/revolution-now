@@ -75,6 +75,10 @@ struct BuildHandler : public OrdersHandler {
           co_await ts_.gui.message_box(
               "Cannot found a colony on water." );
           co_return false;
+        case e_found_colony_err::no_mountain_colony:
+          co_await ts_.gui.message_box(
+              "Cannot found a colony on mountains." );
+          co_return false;
         case e_found_colony_err::non_human_cannot_found_colony:
           co_await ts_.gui.message_box(
               "Only human units can found colonies." );

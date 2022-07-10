@@ -327,6 +327,10 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( !ss.terrain.is_land( *maybe_coord ) )
     return invalid( Res_t::no_water_colony );
 
+  if( ss.terrain.square_at( *maybe_coord ).overlay ==
+      e_land_overlay::mountains )
+    return invalid( Res_t::no_mountain_colony );
+
   return valid;
 }
 

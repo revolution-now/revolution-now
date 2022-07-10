@@ -177,7 +177,7 @@ TEST_CASE(
            invalid( e_found_colony_err::too_close_to_colony ) );
 }
 
-TEST_CASE( "[colony-mgr] found_colony in water fails" ) {
+TEST_CASE( "[colony-mgr] can't build colony in water" ) {
   World W;
 
   Coord const coord = { .x = 2, .y = 3 };
@@ -190,6 +190,18 @@ TEST_CASE( "[colony-mgr] found_colony in water fails" ) {
   W.units().change_to_cargo_somewhere( ship_id, unit_id );
   REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
+}
+
+TEST_CASE( "[colony-mgr] can't build colony on moutains" ) {
+  World W;
+
+  Coord const coord = { .x = 1, .y = 1 };
+  CHECK( W.square( coord ).surface == e_surface::land );
+  W.square( coord ).overlay = e_land_overlay::mountains;
+  UnitId unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
+           invalid( e_found_colony_err::no_mountain_colony ) );
 }
 
 TEST_CASE(
