@@ -16,7 +16,6 @@
 #include "map-square.hpp"
 #include "plow.hpp"
 #include "ts.hpp"
-#include "window.hpp"
 
 // ss
 #include "ss/ref.hpp"

@@ -19,7 +19,6 @@
 #include "text.hpp"
 #include "ustate.hpp"
 #include "views.hpp"
-#include "window.hpp"
 
 // config
 #include "config/gfx.rds.hpp"

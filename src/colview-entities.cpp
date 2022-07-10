@@ -35,7 +35,6 @@
 #include "ts.hpp"
 #include "ustate.hpp"
 #include "views.hpp"
-#include "window.hpp"
 
 // config
 #include "config/unit-type.hpp"

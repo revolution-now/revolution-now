@@ -35,7 +35,6 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "wait.hpp"
-#include "window.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"

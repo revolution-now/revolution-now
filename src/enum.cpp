@@ -18,7 +18,7 @@
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
 #include "main-menu.hpp"
-#include "window.hpp"
+#include "ui-enums.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

@@ -20,7 +20,6 @@
 #include "oggplayer.hpp"
 #include "rand.hpp"
 #include "time.hpp"
-#include "window.hpp"
 
 // config
 #include "config/music.rds.hpp"
