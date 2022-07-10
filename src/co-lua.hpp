@@ -114,6 +114,4 @@ struct LuaWaitable {
 template<GettableOrMonostate R = std::monostate>
 inline constexpr LuaWaitable<R> lua_wait{};
 
-void linker_dont_discard_module_co_lua();
-
 } // namespace rn

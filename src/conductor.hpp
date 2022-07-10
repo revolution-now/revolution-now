@@ -129,6 +129,4 @@ void play_request( e_request             request,
 // Testing
 void test();
 
-void linker_dont_discard_module_conductor();
-
 } // namespace rn::conductor

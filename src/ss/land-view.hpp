@@ -18,11 +18,7 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-void linker_dont_discard_module_gs_land_view();
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua

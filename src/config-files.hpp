@@ -19,6 +19,4 @@ namespace rn {
 // loaded from the contents of config files.
 bool configs_loaded();
 
-void linker_dont_discard_module_config_files();
-
 } // namespace rn

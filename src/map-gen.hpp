@@ -30,8 +30,6 @@ void generate_terrain( lua::state&  st,
 void ascii_map_gen( lua::state&   st,
                     TerrainState& terrain_state );
 
-void linker_dont_discard_module_map_gen();
-
 void reset_terrain( IMapUpdater& map_updater, Delta size );
 
 } // namespace rn

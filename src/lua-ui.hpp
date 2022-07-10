@@ -17,8 +17,6 @@
 
 namespace rn {
 
-void linker_dont_discard_module_lua_ui();
-
 wait<> lua_ui_test();
 
 } // namespace rn

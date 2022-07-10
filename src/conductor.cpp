@@ -893,6 +893,8 @@ void test() {
   }
 }
 
-void linker_dont_discard_module_conductor() {}
-
 } // namespace rn::conductor
+
+namespace rn {
+void linker_dont_discard_module_conductor() {}
+}

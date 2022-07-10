@@ -10,43 +10,36 @@
 *****************************************************************/
 #include "linking.hpp"
 
-// Revolution Now
-#include "co-lua.hpp"
-#include "conductor.hpp"
-#include "config-files.hpp"
-#include "error.hpp"
-#include "fathers.hpp"
-#include "lua-ui.hpp"
-#include "map-gen.hpp"
-#include "map-updater-lua.hpp"
-#include "player.hpp"
-#include "sound.hpp"
-#include "time.hpp"
-#include "turn.hpp"
-
-// ss
-#include "ss/land-view.hpp"
-#include "ss/map-square.hpp"
-
-// base
-#include "base/stack-trace.hpp"
-
 namespace rn {
 
+void linker_dont_discard_module_map_updater_lua();
+void linker_dont_discard_module_player();
+void linker_dont_discard_module_sound();
+void linker_dont_discard_module_error();
+void linker_dont_discard_module_conductor();
+void linker_dont_discard_module_co_lua();
+void linker_dont_discard_module_lua_ui();
+void linker_dont_discard_module_map_gen();
+void linker_dont_discard_module_config_files();
+void linker_dont_discard_module_fathers();
+void linker_dont_discard_module_time();
+void linker_dont_discard_module_ss_land_view();
+void linker_dont_discard_module_ss_map_square();
+
 void linker_dont_discard_me() {
+  linker_dont_discard_module_map_updater_lua();
   linker_dont_discard_module_player();
   linker_dont_discard_module_sound();
   linker_dont_discard_module_error();
-  conductor::linker_dont_discard_module_conductor();
+  linker_dont_discard_module_conductor();
   linker_dont_discard_module_co_lua();
   linker_dont_discard_module_lua_ui();
   linker_dont_discard_module_map_gen();
   linker_dont_discard_module_config_files();
   linker_dont_discard_module_fathers();
   linker_dont_discard_module_time();
-  linker_dont_discard_module_gs_land_view();
-  linker_dont_discard_module_gs_map_square();
-  linker_dont_discard_module_map_updater_lua();
+  linker_dont_discard_module_ss_land_view();
+  linker_dont_discard_module_ss_map_square();
   // Add more here as needed.
 }
 

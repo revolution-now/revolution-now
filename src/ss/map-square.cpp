@@ -24,7 +24,7 @@ using namespace std;
 
 namespace rn {
 
-void linker_dont_discard_module_gs_map_square() {}
+void linker_dont_discard_module_ss_map_square() {}
 
 /****************************************************************
 ** Lua Bindings

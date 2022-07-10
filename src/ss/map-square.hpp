@@ -16,11 +16,7 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-void linker_dont_discard_module_gs_map_square();
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua

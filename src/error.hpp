@@ -33,6 +33,4 @@ struct exception_exit : public std::exception {};
 using ::base::generic_err;
 using ::base::GenericError;
 
-void linker_dont_discard_module_error();
-
 } // namespace rn
