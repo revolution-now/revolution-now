@@ -101,7 +101,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   };
 
 #  if REGENERATE_FILES
-  generate_save_file( src, opts );
+  generate_save_file( W, src, opts );
 #  else
   (void)generate_save_file;
 #  endif
@@ -140,7 +140,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
   };
 
 #  if REGENERATE_FILES
-  generate_save_file( src, opts );
+  generate_save_file( W, src, opts );
 #  else
   (void)generate_save_file;
 #  endif
