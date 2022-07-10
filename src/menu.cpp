@@ -116,10 +116,11 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
       } },
     { e_menu::orders,
       {
-          ITEM( sentry, "Sentry" ),         //
-          ITEM( fortify, "Fortify" ),       //
-          ITEM( road, "Build Road" ),       //
-          ITEM( plow, "Clear Forest/Plow" ) //
+          ITEM( sentry, "Sentry" ),             //
+          ITEM( fortify, "Fortify" ),           //
+          ITEM( road, "Build Road" ),           //
+          ITEM( plow, "Clear Forest/Plow" ),    //
+          ITEM( dump, "Dump Cargo Overboard" ), //
       } },
     { e_menu::advisors,
       {

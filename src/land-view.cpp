@@ -50,6 +50,7 @@
 // config
 #include "config/land-view.rds.hpp"
 #include "config/rn.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -180,6 +181,7 @@ struct LandViewPlane::Impl : public Plane {
   MenuPlane::Deregistrar find_blinking_unit_dereg_;
   MenuPlane::Deregistrar sentry_dereg_;
   MenuPlane::Deregistrar fortify_dereg_;
+  MenuPlane::Deregistrar dump_dereg_;
   MenuPlane::Deregistrar plow_dereg_;
   MenuPlane::Deregistrar road_dereg_;
   MenuPlane::Deregistrar hidden_terrain_dereg_;
@@ -212,6 +214,8 @@ struct LandViewPlane::Impl : public Plane {
         e_menu_item::sentry, *this );
     fortify_dereg_ = menu_plane.register_handler(
         e_menu_item::fortify, *this );
+    dump_dereg_ =
+        menu_plane.register_handler( e_menu_item::dump, *this );
     plow_dereg_ =
         menu_plane.register_handler( e_menu_item::plow, *this );
     road_dereg_ =
@@ -1059,6 +1063,25 @@ struct LandViewPlane::Impl : public Plane {
         };
         return handler;
       }
+      case e_menu_item::dump: {
+        if( !landview_mode_.holds<LandViewMode::unit_input>() )
+          break;
+        // Only for things that can carry cargo (ships and wagon
+        // trains).
+        if( ss_.units
+                .unit_for( landview_mode_
+                               .get<LandViewMode::unit_input>()
+                               .unit_id )
+                .desc()
+                .cargo_slots == 0 )
+          break;
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::orders{
+                  .orders = orders::dump{} } ) );
+        };
+        return handler;
+      }
       case e_menu_item::plow: {
         if( !landview_mode_.holds<LandViewMode::unit_input>() )
           break;
@@ -1182,6 +1205,13 @@ struct LandViewPlane::Impl : public Plane {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::fortify{} } ) );
+            break;
+          case ::SDLK_o:
+            // Capital O.
+            if( !key_event.mod.shf_down ) break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::dump{} } ) );
             break;
           case ::SDLK_b:
             if( key_event.mod.shf_down ) break;

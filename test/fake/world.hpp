@@ -53,7 +53,7 @@ struct Colony;
 struct IMapUpdater;
 struct Player;
 
-struct IGui;
+struct MockIGui;
 struct Planes;
 struct SS;
 struct TS;
@@ -211,7 +211,7 @@ struct World {
   // time they are called, so they should always be used.
   Planes&     planes();
   lua::state& lua();
-  IGui&       gui();
+  MockIGui&   gui();
   TS&         ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
@@ -233,7 +233,7 @@ struct World {
   // tially nullptr.
   std::unique_ptr<Planes>     uninitialized_planes_;
   std::unique_ptr<lua::state> uninitialized_lua_;
-  std::unique_ptr<IGui>       uninitialized_gui_;
+  std::unique_ptr<MockIGui>   uninitialized_gui_;
   std::unique_ptr<TS>         uninitialized_ts_;
 };
 

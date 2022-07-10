@@ -98,7 +98,7 @@ lua::state& World::lua() {
   return *uninitialized_lua_;
 }
 
-IGui& World::gui() {
+MockIGui& World::gui() {
   if( uninitialized_gui_ == nullptr )
     uninitialized_gui_ = make_unique<MockIGui>();
   return *uninitialized_gui_;

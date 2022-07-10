@@ -16,6 +16,7 @@
 #include "co-wait.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
+#include "orders-dump.hpp"
 #include "orders-fortify.hpp"
 #include "orders-move.hpp"
 #include "orders-plow.hpp"

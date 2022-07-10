@@ -36,6 +36,7 @@ enum.e_menu_item {
   scale_down,
   scale_optimal,
   sentry,
+  dump,
   road,
   plow,
   fortify,

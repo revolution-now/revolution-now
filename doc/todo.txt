@@ -2,8 +2,6 @@
 # TODOs
 # ===============================================================
 
-# Land rendering:
-
   1.  Render natural resource tiles.
   2.  Add overlay connector tiles.
   3.  Render rivers, with color cycling.
@@ -66,6 +64,17 @@
       up click carries through to the land view and scrolls the
       map. Also, the same things seems to happen when closing an
       open menu by clicking away from it.
+  16. In the original game, when a ship defeats (sinks or dam-
+      ages) another ship in battle, it advances to its square
+      after doing so (as opposed to land units where this does
+      not happen).
+  17. When a colony is captured a certain amount of gold is
+      stolen (investigate how this is calculated). In the case
+      where there is only one colony and it is captured, it ap-
+      pears that all of that players gold is taken. It seems rea-
+      sonable to compute the gold stolen as a percentage based on
+      the percentage that the captured colony's population repre-
+      sents of the entire population.
 
 # Minimap:
 

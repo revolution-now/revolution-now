@@ -33,5 +33,6 @@ sumtype.orders {
   fortify   {},
   sentry    {},
   disband   {},
+  dump      {},
   move      { d 'e_direction' },
 }
