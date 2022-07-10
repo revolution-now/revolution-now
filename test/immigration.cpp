@@ -314,7 +314,8 @@ TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
   Player player;
   player.fathers.has[e_founding_father::william_brewster] = true;
 
-  for( int difficulty = 0; difficulty < 5; ++difficulty ) {
+  for( e_difficulty difficulty :
+       refl::enum_values<e_difficulty> ) {
     settings.difficulty = difficulty;
     for( int i = 0; i < 50; ++i ) {
       e_unit_type type =

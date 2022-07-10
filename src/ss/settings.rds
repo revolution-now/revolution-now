@@ -8,11 +8,13 @@
 # Description: Rds definitions for save-game settings data.
 #
 # ===============================================================
+include "ss/difficulty.rds.hpp"
+
 namespace "rn"
 
 struct.SettingsState {
-  # 0 is easiest (discoverer), 4 is hardest (viceroy).
-  difficulty 'int',
+  # discoverer, explorer, etc.
+  difficulty 'e_difficulty',
 
   # Units slide more quickly when moving and attacking. For the
   # impatient.

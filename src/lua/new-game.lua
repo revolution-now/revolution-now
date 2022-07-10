@@ -16,17 +16,9 @@ local map_gen = require( 'map-gen' )
 -----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
-local DIFFICULTY_NAMES = {
-  ['discoverer']=0,
-  ['explorer']=1,
-  ['conquistador']=2,
-  ['governor']=3,
-  ['viceroy']=4
-}
-
 function M.default_options()
   return {
-    difficulty_name='discoverer',
+    difficulty='discoverer',
     -- This determines which nations are enabled and some proper-
     -- ties.
     nations={
@@ -43,9 +35,7 @@ end
 -- Settings
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
-  local difficulty_int =
-      DIFFICULTY_NAMES[options.difficulty_name]
-  settings.difficulty = assert( difficulty_int )
+  settings.difficulty = options.difficulty
   settings.fast_piece_slide = true
 end
 
@@ -213,7 +203,7 @@ local function create_player_state(settings, nation, player,
                                    is_human )
   player.nation = nation
   player.human = is_human
-  player.money = 1000 - 250 * settings.difficulty
+  player.money = 1000 -- TODO: depends on difficulty.
   -- This is temporary so that it doesn't keep asking us.
   player.discovered_new_world = 'New Netherlands'
   create_old_world_state( settings, player )

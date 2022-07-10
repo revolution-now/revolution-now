@@ -11,6 +11,7 @@
 #include "ss/settings.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
@@ -24,11 +25,6 @@ using namespace std;
 namespace rn {
 
 base::valid_or<string> SettingsState::validate() const {
-  REFL_VALIDATE( difficulty >= 0,
-                 "the difficulty level must be >= 0" );
-  REFL_VALIDATE( difficulty <= 4,
-                 "the difficulty level must be <= 4" );
-
   return base::valid;
 }
 

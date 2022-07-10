@@ -129,8 +129,8 @@ e_unit_type take_immigrant_from_pool(
 
 e_unit_type pick_next_unit_for_pool(
     Player const& player, SettingsState const& settings ) {
-  WeightsMap weights =
-      immigrant_weights_for_level( settings.difficulty );
+  WeightsMap weights = immigrant_weights_for_level(
+      static_cast<int>( settings.difficulty ) );
 
   // Having William Brewster prevents criminals and servants from
   // showing up on the docks.

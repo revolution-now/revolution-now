@@ -1,0 +1,19 @@
+# ===============================================================
+# difficulty.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-07-10.
+#
+# Description: Rds definitions for the difficulty module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_difficulty {
+  discoverer,
+  explorer,
+  conquistador,
+  governor,
+  viceroy,
+}
