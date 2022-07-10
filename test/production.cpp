@@ -16,6 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "colony-mgr.hpp"
+
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/terrain.hpp"
@@ -448,6 +451,87 @@ TEST_CASE( "[production] lumber/hammers" ) {
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{} );
     }
+  }
+}
+
+TEST_CASE( "[production] food/horses" ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  REQUIRE( colony_population( colony ) == 0 );
+
+  SECTION( "no units no horses/arctic" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "no units no horses" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer no horses" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one fisherman no horses" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer breaking even" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer breaking even, horses=2" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer surplus=1, horses=1" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer surplus=1, horses=2" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one fisherman surplus=3, horses=0" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer surplus=3, horses=25" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer surplus=3, horses=max" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "one farmer surplus=3, horses=25, +stable" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "deficit no starve, horses=0" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "deficit no starve, horses=50" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "deficit and starve" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "deficit and starve, horses=50" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION( "two farmers, two fisherman, surplus" ) {
+    // TODO: implement center production first.
+  }
+
+  SECTION(
+      "one farmer, surplus=2, warehouse expansion, horses=100, "
+      "+stable" ) {
+    // TODO: implement center production first.
   }
 }
 

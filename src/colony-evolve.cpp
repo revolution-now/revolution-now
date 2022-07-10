@@ -99,12 +99,28 @@ void check_create_or_starve_colonist(
     vector<UnitId> const units_in_colony =
         colony_units_all( colony );
     CHECK( !units_in_colony.empty() );
-    // vector must be non-empty for this.
-    UnitId      unit_id = rng::pick_one( units_in_colony );
-    e_unit_type type    = units_state.unit_for( unit_id ).type();
-    remove_unit_from_colony( units_state, colony, unit_id );
-    notifications.emplace_back(
-        ColonyNotification::colonist_starved{ .type = type } );
+    if( units_in_colony.size() == 1 ) {
+      // In the original game it seems that colonies (even those
+      // on arctic squares) will always produce a minimum of two
+      // food in the center square, which can support one
+      // colonist, and so in the original game we would never
+      // have a colonist starve when the population is one. In
+      // our case we don't want to commit to that food minimum in
+      // the center square, and so we will allow the possibility
+      // that we get to this code path. TODO: It seems that the
+      // proper thing to do here would be to delete both the
+      // colonist and the colony. But for now we will just have
+      // mercy on the colonist and ignore it.
+    } else {
+      UnitId      unit_id = rng::pick_one( units_in_colony );
+      e_unit_type type = units_state.unit_for( unit_id ).type();
+      // Note that calling `destroy_unit` is not enough, we have
+      // to remove it from the colony as well.
+      remove_unit_from_colony( units_state, colony, unit_id );
+      units_state.destroy_unit( unit_id );
+      notifications.emplace_back(
+          ColonyNotification::colonist_starved{ .type = type } );
+    }
     // At this point we may as well return because we can't have
     // a new colonist created in the same turn as one starved.
     return;

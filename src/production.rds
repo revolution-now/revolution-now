@@ -70,7 +70,9 @@ struct.FoodProduction {
   corn_produced 'int',
   fish_produced 'int',
 
-  # Sum of corn and fish, for convenience.
+  # Sum of corn and fish, for convenience. This is before any
+  # other considerations are factored in, it's just a sum of the
+  # above.
   food_produced 'int',
 
   food_consumed_by_colonists_theoretical 'int',
@@ -79,21 +81,48 @@ struct.FoodProduction {
   # food in the warehouse.
   food_consumed_by_colonists_actual 'int',
 
+  # This is zero or positive, and indicates the amount of food
+  # that we are short this turn for supporting the existing
+  # colonists, after this turn's food production and current
+  # warehouse stores are accounted for. Note that this is inde-
+  # pendent of the status of the horses since horses can never
+  # create a deficiency; they only feed on surpluses (strange,
+  # but that's the way it goes).
+  food_deficit 'int',
+
+  # This is >= 0, and represents the amount of extra food avail-
+  # able when colonists are fed only from the food produced this
+  # turn (ignoring warehouse contents). This is the amount that
+  # is available for horses (since horses never consume food in
+  # the warehouse), though horses might not consume all of it.
+  food_surplus_before_horses 'int',
+
   # The number of horses that theoretically could be produced
   # this turn given an infinite amount of food production (not
   # food in the warehouse, since horses never consume that).
   horses_produced_theoretical 'int',
 
-  # The amount that should actually be added to the commodity
-  # store. Will never be negative.
-  horses_delta_final 'int',
+  # This factors in the amount of food consumed per new horse to-
+  # gether with the surplus to see how many horses we are allowed
+  # to produce just based on that (not based on the number of
+  # horses currently present).
+  max_new_horses_allowed 'int',
 
-  # The amount actually consumed by horses. This is both the real
-  # and theoretical value, because horses only consume food if
-  # there is a surplus each turn (because they don't draw from
-  # the warehouse). This will only be larger than zero if the
-  # theoretical food consumed by colonists < the food produced.
+  # The actual number of horses produced given the limited food
+  # surplus. Note that this does not take into account warehouse
+  # capacity.
+  horses_produced_actual 'int',
+
+  # The amount actually consumed by horses given the amount that
+  # was actually produced. This will only be larger than zero if
+  # the theoretical food consumed by colonists < the food pro-
+  # duced.
   food_consumed_by_horses 'int',
+
+  # The amount that should actually be added to the commodity
+  # store. Will never be negative. This accounts for warehouse
+  # capacity. Note that this does not take into account spoilage.
+  horses_delta_final 'int',
 
   # The amount that should actually be added to the commodity
   # store. Could be positive or negative, but will never cause

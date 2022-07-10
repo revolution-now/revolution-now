@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "colony-buildings.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "land-production.hpp"
 #include "unit.hpp"
@@ -209,8 +210,155 @@ int crosses_production_for_colony( UnitsState const& units_state,
   return total;
 }
 
-void compute_food_production( Colony const&, FoodProduction& ) {
-  // TODO
+void compute_food_production(
+    TerrainState const& terrain_state,
+    UnitsState const& units_state, Colony const& colony,
+    FoodProduction& out,
+    refl::enum_map<e_direction, SquareProduction>&
+        out_land_production ) {
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
+        unit.has_value() && unit->job == e_outdoor_job::food ) {
+      int const quantity = production_on_square(
+          e_outdoor_job::food, terrain_state,
+          units_state.unit_for( unit->unit_id ).type(),
+          colony.location.moved( d ) );
+      out.corn_produced += quantity;
+      out_land_production[d] = SquareProduction{
+          .what = e_outdoor_job::food, .quantity = quantity };
+    }
+  }
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
+        unit.has_value() && unit->job == e_outdoor_job::fish ) {
+      int const quantity = production_on_square(
+          e_outdoor_job::fish, terrain_state,
+          units_state.unit_for( unit->unit_id ).type(),
+          colony.location.moved( d ) );
+      out.fish_produced += quantity;
+      out_land_production[d] = SquareProduction{
+          .what = e_outdoor_job::fish, .quantity = quantity };
+    }
+  }
+
+  // TODO: take into account center square here.
+
+  out.food_produced = out.corn_produced + out.fish_produced;
+  CHECK_GE( out.food_produced, 0 );
+
+  int const population = colony_population( colony );
+  out.food_consumed_by_colonists_theoretical = population * 2;
+  CHECK_GE( out.food_consumed_by_colonists_theoretical, 0 );
+
+  int const food_in_warehouse_before =
+      colony.commodities[e_commodity::food];
+  out.food_consumed_by_colonists_actual =
+      ( food_in_warehouse_before + out.food_produced ) >=
+              out.food_consumed_by_colonists_theoretical
+          ? out.food_consumed_by_colonists_theoretical
+          : ( food_in_warehouse_before + out.food_produced );
+  CHECK_GE( out.food_consumed_by_colonists_actual, 0 );
+
+  // Either zero or positive.
+  out.food_deficit =
+      ( food_in_warehouse_before + out.food_produced ) >=
+              out.food_consumed_by_colonists_theoretical
+          ? 0
+          : out.food_consumed_by_colonists_theoretical -
+                ( food_in_warehouse_before + out.food_produced );
+  CHECK_GE( out.food_deficit, 0 );
+
+  out.food_surplus_before_horses = std::max(
+      0, out.food_produced -
+             out.food_consumed_by_colonists_theoretical );
+
+  int const warehouse_capacity =
+      colony_warehouse_capacity( colony );
+
+  if( out.food_surplus_before_horses > 0 ) {
+    // We have the opportunity to produce some horses since we
+    // have some (non-warehouse) food surplus this turn.
+    int const current_horses =
+        colony.commodities[e_commodity::horses];
+
+    // We must have at least two horses to breed. If we do, then
+    // we produce one extra horse per 25 (or less) horses. I.e.,
+    // 50 horses produces two horses per turn, and 51 produces
+    // three per turn.
+    out.horses_produced_theoretical =
+        ( current_horses < 2 ) ? 0
+                               : ( current_horses + 24 ) / 25;
+    if( colony.buildings[e_colony_building::stable] )
+      out.horses_produced_theoretical *= 2;
+
+    int const food_per_new_horse = 1;
+    out.max_new_horses_allowed =
+        out.food_surplus_before_horses / food_per_new_horse;
+    out.horses_produced_actual =
+        std::min( out.max_new_horses_allowed,
+                  out.horses_produced_theoretical );
+    out.food_consumed_by_horses =
+        food_per_new_horse * out.horses_produced_actual;
+    if( out.horses_produced_actual > 0 ||
+        out.max_new_horses_allowed > 0 ) {
+      CHECK( out.food_deficit == 0 );
+    }
+
+    int const proposed_new_horse_quantity =
+        current_horses + out.horses_produced_actual;
+    out.horses_delta_final =
+        std::min( proposed_new_horse_quantity,
+                  warehouse_capacity ) -
+        current_horses;
+    if( out.horses_delta_final < 0 ) {
+      // Since horse quantities can never decrease due to food
+      // shortages, if we are here then this means that we are
+      // over warehouse capacity. We will therefore set the delta
+      // to zero and let the spoilage detector (which happens
+      // separately) remove the excess quantity.
+      out.horses_delta_final = 0;
+    }
+    CHECK( out.horses_delta_final + current_horses >= 0,
+           "colony supply of horses has gone negative ({}).",
+           out.horses_delta_final + current_horses );
+  }
+
+  // Do this again since it is important.
+  CHECK_GE( out.food_deficit, 0 );
+
+  if( out.food_deficit > 0 ) {
+    CHECK( out.horses_produced_actual == 0 );
+    // Final food delta can be computed without regard to horses.
+    out.horses_delta_final               = 0;
+    int const proposed_new_food_quantity = std::max(
+        0, food_in_warehouse_before - out.food_deficit );
+    // Since there are no warehouse limits on the amount of food,
+    // we can just compute the final delta.
+    out.food_delta_final = ( proposed_new_food_quantity -
+                             food_in_warehouse_before );
+    out.colonist_starved =
+        ( food_in_warehouse_before < out.food_deficit );
+  } else {
+    // Final food delta must take into account horses.
+    int const proposed_new_food_quantity =
+        food_in_warehouse_before +
+        out.food_surplus_before_horses -
+        out.food_consumed_by_horses;
+    out.food_delta_final =
+        proposed_new_food_quantity - food_in_warehouse_before;
+    // Given that there is not (pre-horse) food shortange, our
+    // final food delta can never be negative.
+    CHECK_GE( out.food_delta_final, 0 );
+    CHECK( out.colonist_starved == false );
+  }
+
+  CHECK( out.food_delta_final + food_in_warehouse_before >= 0,
+         "colony supply of food has gone negative ({}).",
+         out.food_delta_final + food_in_warehouse_before );
+  if( out.colonist_starved ) {
+    CHECK( out.food_delta_final + food_in_warehouse_before ==
+           0 );
+  }
 }
 
 // This will compute all of the fields in the RawMaterialAnd-
@@ -412,6 +560,9 @@ void compute_land_production( ColonyProduction&   pr,
   compute_silver_production( pr, colony, terrain_state,
                              units_state );
 
+  compute_food_production( terrain_state, units_state, colony,
+                           pr.food, pr.land_production );
+
   // TODO
 }
 
@@ -459,8 +610,6 @@ ColonyProduction production_for_colony(
   res.crosses = crosses_production_for_colony( units_state,
                                                player, colony );
   // TODO: factor in sons of liberty bonuses and/or tory penalty.
-
-  compute_food_production( colony, res.food );
 
   compute_land_production( res, colony, terrain_state,
                            units_state );

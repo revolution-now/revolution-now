@@ -1,16 +1,12 @@
 " =========================== Config ============================
 let s:stems = [
- \ 'map-updater',
- \ 'map-updater-lua',
- \ 'lua',
- \ 'ss/ref',
- \ 'ts',
- \ 'plane-stack',
- \ 'app-ctrl',
- \ 'main-menu',
- \ 'game',
- \ 'turn',
- \ 'save-game',
+ \ 'ss/colony',
+ \ 'config/colony',
+ \ 'colony-mgr',
+ \ 'colony-evolve',
+ \ 'production',
+ \ 'config/production',
+ \ 'land-production',
 \]
 
 let s:luas = [
