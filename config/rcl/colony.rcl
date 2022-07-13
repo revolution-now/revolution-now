@@ -50,72 +50,416 @@ outdoors {
   }
 }
 
-materials_for_building {
+requirements_for_building {
   # The carpenter's shop is the only one that must cost nothing
   # to build, since without it you would not be able to build
   # anything else, including the carpenter's shop.
-  carpenters_shop:      { hammers=0,   tools=0   }
-  lumber_mill:          { hammers=52,  tools=0   }
+  carpenters_shop: {
+    hammers:             0
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  blacksmiths_house:    { hammers=10,  tools=0   }
-  blacksmiths_shop:     { hammers=64,  tools=20  }
-  iron_works:           { hammers=240, tools=100 }
+  lumber_mill: {
+    hammers:             52
+    tools:               0
+    required_building:   carpenters_shop
+    minimum_population:  3
+    required_father:     null
+    requires_water:      false
+  }
 
-  stockade:             { hammers=64,  tools=0   }
-  fort:                 { hammers=120, tools=100 }
-  fortress:             { hammers=320, tools=200 }
+  blacksmiths_house: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  tobacconists_house:   { hammers=10,  tools=0   }
-  tobacconists_shop:    { hammers=64,  tools=20  }
-  cigar_factory:        { hammers=160, tools=100 }
+  blacksmiths_shop: {
+    hammers:             64
+    tools:               20
+    required_building:   blacksmiths_house
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  weavers_house:        { hammers=10,  tools=0   }
-  weavers_shop:         { hammers=64,  tools=20  }
-  textile_mill:         { hammers=160, tools=100 }
+  iron_works: {
+    hammers:             240
+    tools:               100
+    required_building:   blacksmiths_shop
+    minimum_population:  8
+    required_father:     adam_smith
+    requires_water:      false
+  }
 
-  rum_distillers_house: { hammers=10,  tools=0   }
-  rum_distillery:       { hammers=64,  tools=20  }
-  rum_factory:          { hammers=160, tools=100 }
+  stockade: {
+    hammers:             64
+    tools:               0
+    required_building:   null
+    minimum_population:  3
+    required_father:     null
+    requires_water:      false
+  }
 
-  fur_traders_house:    { hammers=10,  tools=0   }
-  fur_trading_post:     { hammers=56,  tools=20  }
-  fur_factory:          { hammers=160, tools=100 }
+  fort: {
+    hammers:             120
+    tools:               100
+    required_building:   stockade
+    minimum_population:  3
+    required_father:     null
+    requires_water:      false
+  }
 
-  armory:               { hammers=52,  tools=0   }
-  magazine:             { hammers=120, tools=50  }
-  arsenal:              { hammers=240, tools=100 }
+  fortress: {
+    hammers:             320
+    tools:               200
+    required_building:   fort
+    minimum_population:  8
+    required_father:     null
+    requires_water:      false
+  }
 
-  docks:                { hammers=52,  tools=0   }
-  drydock:              { hammers=80,  tools=50  }
-  shipyard:             { hammers=240, tools=100 }
+  tobacconists_house: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  schoolhouse:          { hammers=64,  tools=0   }
-  college:              { hammers=160, tools=50  }
-  university:           { hammers=200, tools=100 }
+  tobacconists_shop: {
+    hammers:             64
+    tools:               20
+    required_building:   tobacconists_house
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  warehouse:            { hammers=80,  tools=0   }
-  warehouse_expansion:  { hammers=80,  tools=20  }
-  stable:               { hammers=64,  tools=0   }
+  cigar_factory: {
+    hammers:             160
+    tools:               100
+    required_building:   tobacconists_shop
+    minimum_population:  8
+    required_father:     adam_smith
+    requires_water:      false
+  }
 
-  church:               { hammers=64,  tools=0   }
-  cathedral:            { hammers=176, tools=100 }
+  weavers_house: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  printing_press:       { hammers=52,  tools=20  }
-  newspaper:            { hammers=120, tools=50  }
+  weavers_shop: {
+    hammers:             64
+    tools:               20
+    required_building:   weavers_house
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
-  town_hall:            { hammers=10,  tools=0   }
+  textile_mill: {
+    hammers:             160
+    tools:               100
+    required_building:   weavers_shop
+    minimum_population:  8
+    required_father:     adam_smith
+    requires_water:      false
+  }
 
-  custom_house:         { hammers=150, tools=50  }
+  rum_distillers_house: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  rum_distillery: {
+    hammers:             64
+    tools:               20
+    required_building:   rum_distillers_house
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  rum_factory: {
+    hammers:             160
+    tools:               100
+    required_building:   rum_distillery
+    minimum_population:  8
+    required_father:     adam_smith
+    requires_water:      false
+  }
+
+  fur_traders_house: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  fur_trading_post: {
+    hammers:             56
+    tools:               20
+    required_building:   fur_traders_house
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  fur_factory: {
+    hammers:             160
+    tools:               100
+    required_building:   fur_trading_post
+    minimum_population:  8
+    required_father:     adam_smith
+    requires_water:      false
+  }
+
+  armory: {
+    hammers:             52
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  magazine: {
+    hammers:             120
+    tools:               50
+    required_building:   armory
+    minimum_population:  8  # confirmed.
+    required_father:     null
+    requires_water:      false
+  }
+
+  arsenal: {
+    hammers:             240
+    tools:               100
+    required_building:   magazine
+    minimum_population:  8  # same as magazine.
+    required_father:     adam_smith
+    requires_water:      false
+  }
+
+  docks: {
+    hammers:             52
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  drydock: {
+    hammers:             80
+    tools:               50
+    required_building:   docks
+    minimum_population:  4
+    required_father:     null
+    requires_water:      true
+  }
+
+  shipyard: {
+    hammers:             240
+    tools:               100
+    required_building:   drydock
+    minimum_population:  8
+    required_father:     null
+    requires_water:      true
+  }
+
+  schoolhouse: {
+    hammers:             64
+    tools:               0
+    required_building:   null
+    minimum_population:  4
+    required_father:     null
+    requires_water:      false
+  }
+
+  college: {
+    hammers:             160
+    tools:               50
+    required_building:   schoolhouse
+    minimum_population:  8
+    required_father:     null
+    requires_water:      false
+  }
+
+  university: {
+    hammers:             200
+    tools:               100
+    required_building:   college
+    minimum_population:  10
+    required_father:     null
+    requires_water:      false
+  }
+
+  warehouse: {
+    hammers:             80
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  warehouse_expansion: {
+    hammers:             80
+    tools:               20
+    required_building:   warehouse
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  stable: {
+    hammers:             64
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  church: {
+    hammers:             64
+    tools:               0
+    required_building:   null
+    minimum_population:  3
+    required_father:     null
+    requires_water:      false
+  }
+
+  cathedral: {
+    hammers:             176
+    tools:               100
+    required_building:   church
+    minimum_population:  8
+    required_father:     null
+    requires_water:      false
+  }
+
+  printing_press: {
+    hammers:             52
+    tools:               20
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  newspaper: {
+    hammers:             120
+    tools:               50
+    required_building:   printing_press
+    minimum_population:  4
+    required_father:     null
+    requires_water:      false
+  }
+
+  town_hall: {
+    hammers:             10
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  custom_house: {
+    hammers:             150
+    tools:               50
+    required_building:   null
+    minimum_population:  1
+    required_father:     peter_stuyvesant
+    requires_water:      false
+  }
 }
 
-materials_for_unit  {
-  wagon_train:          { hammers=40,  tools=0   }
-  caravel:              { hammers=128, tools=40  }
-  merchantman:          { hammers=192, tools=80  }
-  galleon:              { hammers=320, tools=100 }
-  privateer:            { hammers=256, tools=120 }
-  frigate:              { hammers=512, tools=200 }
-  artillery:            { hammers=192, tools=40  }
+requirements_for_unit  {
+  wagon_train: {
+    hammers:             40
+    tools:               0
+    required_building:   null
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
+
+  caravel: {
+    hammers:             128
+    tools:               40
+    required_building:   shipyard
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  merchantman: {
+    hammers:             192
+    tools:               80
+    required_building:   shipyard
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  galleon: {
+    hammers:             320
+    tools:               100
+    required_building:   shipyard
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  privateer: {
+    hammers:             256
+    tools:               120
+    required_building:   shipyard
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  frigate: {
+    hammers:             512
+    tools:               200
+    required_building:   shipyard
+    minimum_population:  1
+    required_father:     null
+    requires_water:      true
+  }
+
+  artillery: {
+    hammers:             192
+    tools:               40
+    required_building:   armory
+    minimum_population:  1
+    required_father:     null
+    requires_water:      false
+  }
 
   # Not buildable in the original game.
   man_o_war:              null

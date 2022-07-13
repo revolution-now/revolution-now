@@ -11,6 +11,7 @@
 # gs
 include "ss/colony-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
+include "ss/fathers.rds.hpp"
 
 # gfx
 include "gfx/pixel.hpp"
@@ -28,6 +29,7 @@ include "base/maybe.hpp"
 
 # C++ standard library
 include "<string>"
+include "<unordered_map>"
 
 namespace "rn.config.colony"
 
@@ -58,9 +60,28 @@ struct.outdoors {
 }
 
 # How many of each are needed for a given construction project.
-struct.construction_materials {
+struct.construction_requirements {
   hammers 'int',
   tools   'int',
+
+  # If a building is required for this. In that case, the
+  # building itself and any higher building in the same slot will
+  # suffice as well.
+  required_building 'base::maybe<e_colony_building>',
+
+  # Colonies with a population less than this will not see the
+  # option to build this item.
+  minimum_population 'int',
+
+  # Is a founding father required for this building.
+  required_father 'base::maybe<e_founding_father>',
+
+  # Does this item require an adjacent water tile. Note that the
+  # water tile does not have to have ocean access, but must be
+  # immediately adjacent in any direction.
+  requires_water 'bool',
+
+  _features { validation, equality }
 }
 
 struct.colors {
@@ -96,11 +117,11 @@ struct.config_colony_t {
 
   # All buildings are theoretically buildable, and this will
   # specify how many hammers and tools are needed for each.
-  materials_for_building 'refl::enum_map<e_colony_building, config::colony::construction_materials>',
+  requirements_for_building 'refl::enum_map<e_colony_building, config::colony::construction_requirements>',
 
   # This gives the list of units that are buildable in a colony
   # as well as how many hammers and tools are needed for each.
-  materials_for_unit 'refl::enum_map<e_unit_type, base::maybe<config::colony::construction_materials>>',
+  requirements_for_unit 'refl::enum_map<e_unit_type, base::maybe<config::colony::construction_requirements>>',
 
   building_display_names 'refl::enum_map<e_colony_building, std::string>',
 

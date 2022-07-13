@@ -49,6 +49,23 @@ sumtype.ColonyNotification {
   construction_already_finished {
     what 'Construction_t',
   },
+  construction_lacking_population {
+    # The UI should not allow initiating construction of some-
+    # thing when the population is lacking, so this message would
+    # only get displayed if the colony population dropped below
+    # the minimum required after construction was initiated.
+    what 'Construction_t',
+    required_population 'int',
+  },
+  construction_lacking_building {
+    # The UI should not allow initiating construction of some-
+    # thing when the population is lacking, so this message would
+    # only get displayed if a required building in the colony
+    # were destroyed (e.g., but an attack from natives) after
+    # construction was initiated.
+    what 'Construction_t',
+    required_building 'e_colony_building',
+  },
 }
 
 struct.ColonyEvolution {

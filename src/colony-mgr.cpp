@@ -158,6 +158,31 @@ wait<bool> present_colony_update(
           colony.name, construction_name( o.what ) );
       break;
     }
+    case ColonyNotification::e::construction_lacking_building: {
+      auto& o = notification.get<
+          ColonyNotification::construction_lacking_building>();
+      msg = fmt::format(
+          "@[H]{}@[]'s construction of the @[H]{}@[] requires "
+          "the presence of the @[H]{}@[] as a prerequisite, and "
+          "thus cannot be completed.",
+          colony.name, construction_name( o.what ),
+          construction_name( Construction::building{
+              .what = o.required_building } ) );
+      break;
+    }
+    // clang-format off
+    case ColonyNotification::e::construction_lacking_population: {
+      // clang-format on
+      auto& o = notification.get<
+          ColonyNotification::construction_lacking_population>();
+      msg = fmt::format(
+          "@[H]{}@[]'s construction of the @[H]{}@[] requires a "
+          "minimum population of {}, but only has a population "
+          "of {}.",
+          colony.name, construction_name( o.what ),
+          o.required_population, colony_population( colony ) );
+      break;
+    }
   }
 
   if( ask_to_zoom ) {

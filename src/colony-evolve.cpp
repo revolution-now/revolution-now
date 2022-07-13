@@ -69,18 +69,19 @@ maybe<ColonyNotification::spoilage> check_spoilage(
       .spoiled = std::move( spoiled ) };
 }
 
-config::colony::construction_materials materials_needed(
+config::colony::construction_requirements materials_needed(
     Construction_t const& construction ) {
   switch( construction.to_enum() ) {
     using namespace Construction;
     case e::building: {
       auto& o = construction.get<building>();
-      return config_colony.materials_for_building[o.what];
+      return config_colony.requirements_for_building[o.what];
     }
     case e::unit: {
       auto& o = construction.get<unit>();
-      maybe<config::colony::construction_materials> const&
-          materials = config_colony.materials_for_unit[o.type];
+      maybe<config::colony::construction_requirements> const&
+          materials =
+              config_colony.requirements_for_unit[o.type];
       CHECK( materials.has_value(),
              "a colony is constructing unit {}, but that unit "
              "is not buildable.",
@@ -166,19 +167,40 @@ void check_construction( UnitsState&  units_state,
     }
   }
 
-  auto const [hammers_needed, tools_needed] =
-      materials_needed( construction );
+  auto const requirements = materials_needed( construction );
 
-  if( colony.hammers < hammers_needed ) return;
+  if( colony_population( colony ) <
+      requirements.minimum_population ) {
+    ev.notifications.emplace_back(
+        ColonyNotification::construction_lacking_population{
+            .what = construction,
+            .required_population =
+                requirements.minimum_population } );
+    return;
+  }
+
+  if( requirements.required_building.has_value() &&
+      !colony_has_building_level(
+          colony, *requirements.required_building ) ) {
+    ev.notifications.emplace_back(
+        ColonyNotification::construction_lacking_building{
+            .what = construction,
+            .required_building =
+                *requirements.required_building } );
+    return;
+  }
+
+  if( colony.hammers < requirements.hammers ) return;
 
   int const have_tools = colony.commodities[e_commodity::tools];
 
-  if( colony.commodities[e_commodity::tools] < tools_needed ) {
+  if( colony.commodities[e_commodity::tools] <
+      requirements.tools ) {
     ev.notifications.emplace_back(
         ColonyNotification::construction_missing_tools{
             .what       = construction,
             .have_tools = have_tools,
-            .need_tools = tools_needed } );
+            .need_tools = requirements.tools } );
     return;
   }
 
@@ -193,7 +215,7 @@ void check_construction( UnitsState&  units_state,
   // next construction (to some extent, depending on difficulty
   // level).
   colony.hammers = 0;
-  colony.commodities[e_commodity::tools] -= tools_needed;
+  colony.commodities[e_commodity::tools] -= requirements.tools;
   CHECK_GE( colony.commodities[e_commodity::tools], 0 );
 
   ev.notifications.emplace_back(

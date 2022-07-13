@@ -38,16 +38,31 @@ base::valid_or<string> config_colony_t::validate() const {
       "The amount of food required for creating a new colonist "
       "must be <= to the maximum quantity of food allowed." );
 
-  // The capenter's shop must not cost anything to build, since
-  // one would not be able to produce the hammers to build it
-  // without the building itself.
+  // The capenter's shop must not cost any hammers to build,
+  // since one would not be able to produce the hammers to build
+  // it without the building itself.
   REFL_VALIDATE(
-      materials_for_building
-              [e_colony_building::carpenters_shop] ==
-          ( config::colony::construction_materials{
-              .hammers = 0, .tools = 0 } ),
-      "The capenter's shop must cost no hammers and no tools to "
-      "build." );
+      requirements_for_building
+              [e_colony_building::carpenters_shop]
+                  .hammers == 0,
+      "The carpenter's shop must cost no hammers to build." );
+
+  // Similarly, it should not have any prerequisites, since those
+  // would not be buildable.
+  REFL_VALIDATE( requirements_for_building
+                         [e_colony_building::carpenters_shop]
+                             .required_building == base::nothing,
+                 "The carpenter's shop must not require any "
+                 "prerequisites to build." );
+
+  return base::valid;
+}
+
+base::valid_or<string>
+config::colony::construction_requirements::validate() const {
+  REFL_VALIDATE( minimum_population > 0,
+                 "The minimum-required popoulation for a "
+                 "construction item must be > 0." );
 
   return base::valid;
 }

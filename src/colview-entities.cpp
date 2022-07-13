@@ -1237,7 +1237,7 @@ class ProductionView : public ui::View, public ColonySubView {
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override {
     CHECK( event.pos.is_inside( rect( {} ) ) );
-    co_await select_colony_construction( colony_, ts_.gui );
+    co_await select_colony_construction( ss_, colony_, ts_.gui );
   }
 
  private:

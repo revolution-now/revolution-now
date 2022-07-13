@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-buildings.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "igui.hpp"
 
@@ -19,7 +21,10 @@
 #include "config/colony.hpp"
 #include "config/unit-type.hpp"
 
-// gs
+// ss
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
 
 // refl
@@ -30,7 +35,7 @@
 
 using namespace std;
 
-using ::rn::config::colony::construction_materials;
+using ::rn::config::colony::construction_requirements;
 
 namespace rn {
 
@@ -43,8 +48,8 @@ string fmt_construction( string const& name,
 }
 
 string fmt_construction(
-    string const&                 name,
-    construction_materials const& materials ) {
+    string const&                    name,
+    construction_requirements const& materials ) {
   string needed =
       fmt::format( "{:>3} hammers", materials.hammers );
   if( materials.tools != 0 )
@@ -52,8 +57,8 @@ string fmt_construction(
   return fmt_construction( name, needed );
 }
 
-void adjust_materials( Colony const&           colony,
-                       construction_materials& materials ) {
+void adjust_materials( Colony const&              colony,
+                       construction_requirements& materials ) {
   materials.hammers =
       std::max( materials.hammers - colony.hammers, 0 );
   materials.tools = std::max(
@@ -63,23 +68,34 @@ void adjust_materials( Colony const&           colony,
 
 string fmt_building( Colony const&     colony,
                      e_colony_building building ) {
-  construction_materials materials =
-      config_colony.materials_for_building[building];
-  adjust_materials( colony, materials );
+  construction_requirements requirements =
+      config_colony.requirements_for_building[building];
+  adjust_materials( colony, requirements );
   return fmt_construction(
       construction_name(
           Construction::building{ .what = building } ),
-      materials );
+      requirements );
 }
 
 string fmt_unit( Colony const& colony, e_unit_type type ) {
-  maybe<construction_materials> materials =
-      config_colony.materials_for_unit[type];
-  CHECK( materials.has_value() );
-  adjust_materials( colony, *materials );
+  maybe<construction_requirements> requirements =
+      config_colony.requirements_for_unit[type];
+  CHECK( requirements.has_value() );
+  adjust_materials( colony, *requirements );
   return fmt_construction(
       construction_name( Construction::unit{ .type = type } ),
-      *materials );
+      *requirements );
+}
+
+// Note that the bordering water tile does not need to have ocean
+// access (that's the behavior from the original game).
+bool colony_borders_water( SSConst const& ss,
+                           Colony const&  colony ) {
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( ss.terrain.total_square_at( colony.location.moved( d ) )
+            .surface == e_surface::water )
+      return true;
+  return false;
 }
 
 } // namespace
@@ -101,17 +117,31 @@ string construction_name( Construction_t const& construction ) {
   }
 }
 
-wait<> select_colony_construction( Colony& colony, IGui& gui ) {
+wait<> select_colony_construction( SSConst const& ss,
+                                   Colony& colony, IGui& gui ) {
   static string const kNoProductionKey = "none";
   ChoiceConfig config{ .msg = "Select One", .options = {} };
   config.options.push_back(
       ChoiceConfigOption{ .key          = kNoProductionKey,
                           .display_name = "(no production)" } );
   maybe<int> initial_selection;
+  int const  population = colony_population( colony );
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  bool const has_water = colony_borders_water( ss, colony );
   for( e_colony_building building :
        refl::enum_values<e_colony_building> ) {
-    // TODO: need to check prerequisistes for these buildings.
     if( colony.buildings[building] ) continue;
+    auto const& requirements =
+        config_colony.requirements_for_building[building];
+    if( population < requirements.minimum_population ) continue;
+    if( requirements.required_building.has_value() &&
+        !colony_has_building_level(
+            colony, *requirements.required_building ) )
+      continue;
+    if( requirements.required_father.has_value() &&
+        !player.fathers.has[*requirements.required_father] )
+      continue;
+    if( requirements.requires_water && !has_water ) continue;
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( building ),
         .display_name = fmt_building( colony, building ) } );
@@ -122,13 +152,19 @@ wait<> select_colony_construction( Colony& colony, IGui& gui ) {
       initial_selection = config.options.size() - 1;
   }
   for( e_unit_type type : refl::enum_values<e_unit_type> ) {
-    if( !config_colony.materials_for_unit[type].has_value() )
+    if( !config_colony.requirements_for_unit[type].has_value() )
       continue;
-    if( unit_attr( type ).ship &&
-        !colony.buildings[e_colony_building::shipyard] )
-      // Can't build ships without a shipyard.
+    auto const& requirements =
+        *config_colony.requirements_for_unit[type];
+    if( population < requirements.minimum_population ) continue;
+    if( requirements.required_building.has_value() &&
+        !colony_has_building_level(
+            colony, *requirements.required_building ) )
       continue;
-    // TODO: need to check prerequisistes for these units.
+    if( requirements.required_father.has_value() &&
+        !player.fathers.has[*requirements.required_father] )
+      continue;
+    if( requirements.requires_water && !has_water ) continue;
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( type ),
         .display_name = fmt_unit( colony, type ) } );

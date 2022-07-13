@@ -26,12 +26,14 @@ namespace rn {
 
 struct IGui;
 struct Colony;
+struct SSConst;
 
 std::string construction_name(
     Construction_t const& construction );
 
 // The outter maybe is when the user just escapes, the inner one
 // is for when they select no production.
-wait<> select_colony_construction( Colony& colony, IGui& gui );
+wait<> select_colony_construction( SSConst const& ss,
+                                   Colony& colony, IGui& gui );
 
 } // namespace rn
