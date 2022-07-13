@@ -36,4 +36,15 @@ base::valid_or<string> OutdoorJobBonus::mul::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> CenterSquareProduction::validate() const {
+  REFL_VALIDATE(
+      food_bonus_by_difficulty[e_difficulty::viceroy] == 0,
+      "The food_bonus_by_difficulty must be zero for viceroy." );
+  REFL_VALIDATE(
+      secondary_bonus_by_difficulty[e_difficulty::viceroy] == 0,
+      "The secondary_bonus_by_difficulty must be zero for "
+      "viceroy." );
+  return base::valid;
+}
+
 } // namespace rn

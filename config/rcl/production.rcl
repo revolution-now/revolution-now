@@ -688,3 +688,70 @@ outdoor_production {
     }
   }
 }
+
+# Config for what and how much gets produced in the center
+# square. Note that the secondary good is selected by choosing
+# the good that yields most; it is not hard-coded in the config
+# for each terrain type.
+center_square_production {
+  # For some reason the original game seems to apply the river
+  # bonus to the production of the secondary good, but not to
+  # food.
+  apply_river_bonus_on_food:      false
+  apply_river_bonus_on_secondary: true
+
+  # For some reason the original game does not seem to apply ei-
+  # ther the road bonus or the plow bonus to secondary good pro-
+  # duction (only applies the river bonus), despite the fact that
+  # colony squares are supposed to have roads on them and can be
+  # plowed.
+  apply_road_bonus_on_secondary: false
+  apply_plow_bonus_on_secondary: false
+
+  viceroy_base_food {
+    arctic:    0
+    boreal:    1
+    broadleaf: 2
+    conifer:   2
+    desert:    1
+    grassland: 3
+    hills:     2
+    marsh:     3
+    mixed:     2
+    mountains: 0 # irrelevant for original game rules.
+    ocean:     0 # irrelevant.
+    plains:    3
+    prairie:   3
+    rain:      2
+    savannah:  3
+    scrub:     1
+    swamp:     3
+    tropical:  2
+    tundra:    3
+    wetland:   2
+  }
+
+  # It appears that the original game uses a set of base produc-
+  # tion values on the "conquistador", "governor", and "viceroy"
+  # difficulty levels. Then the "explorer" values are those +1,
+  # and the "discoverer" values are viceroy values +2. To empha-
+  # size, these bonus are added to the values specified for the
+  # viceroy level above.
+  food_bonus_by_difficulty {
+    discoverer:   2
+    explorer:     1
+    conquistador: 0
+    governor:     0
+    viceroy:      0  # Must be zero.
+  }
+
+  # It appears that the original game that all difficulty levels
+  # yield the same except for "discoverer", which gets +1.
+  secondary_bonus_by_difficulty {
+    discoverer:   1
+    explorer:     0
+    conquistador: 0
+    governor:     0
+    viceroy:      0  # Must be zero.
+  }
+}

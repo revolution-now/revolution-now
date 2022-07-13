@@ -8,9 +8,10 @@
 # Description: Config info for colony production.
 #
 # ===============================================================
-# gs
+# ss
 include "ss/colony-enums.rds.hpp"
 include "ss/terrain-enums.rds.hpp"
+include "ss/difficulty.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
@@ -166,6 +167,47 @@ struct.OutdoorProduction {
   num_land_tiles_for_coast 'int',
 }
 
+struct.CenterSquareProduction {
+  # For some reason the original game seems to apply the river
+  # bonus to the production of the secondary good, but not to
+  # food.
+  apply_river_bonus_on_food 'bool',
+  apply_river_bonus_on_secondary 'bool',
+
+  # It seems that in the original game, the base values of food
+  # production (on the harder difficulty levels) are tweaked from
+  # their standard values. Even on the easy difficulty levels, it
+  # appears that the base values are still not their standard
+  # values, but instead are computed from these viceroy-level
+  # base values. This is a bit strange, since it prevents the
+  # player from calculating center square production from the
+  # standard terrain production docs, but perhaps was done for
+  # game balancing.
+  viceroy_base_food 'refl::enum_map<e_terrain, int>',
+
+  # It appears that the original game uses a set of base produc-
+  # tion values on the "conquistador", "governor", and "viceroy"
+  # difficulty levels. Then the "explorer" values are those +1,
+  # and the "discoverer" values are viceroy values +2. To empha-
+  # size, these bonus are added to the values specified for the
+  # viceroy level above.
+  food_bonus_by_difficulty 'refl::enum_map<e_difficulty, int>',
+
+  # For some reason the original game does not seem to apply ei-
+  # ther the road bonus or the plow bonus to secondary good pro-
+  # duction (only applies the river bonus), despite the fact that
+  # colony squares are supposed to have roads on them and can be
+  # plowed.
+  apply_road_bonus_on_secondary 'bool',
+  apply_plow_bonus_on_secondary 'bool',
+
+  # It appears that the original game that all difficulty levels
+  # yield the same except for "discoverer", which gets +1.
+  secondary_bonus_by_difficulty 'refl::enum_map<e_difficulty, int>',
+
+  _features { validation, equality }
+}
+
 struct.config_production_t {
   # How many crosses are produced by a colony just by virtue of
   # it existing (i.e., with no churches or cathedrals)?
@@ -190,6 +232,12 @@ struct.config_production_t {
   # Newspaper do seem to get applied to the base production. Note
   # that the original game appears to ROUND DOWN on 1/2.
   building_production_bonus 'refl::enum_map<e_colony_building, BuildingBonus_t>',
+
+  # Config for what and how much gets produced in the center
+  # square. Note that the secondary good is selected by choosing
+  # the good that yields most; it is not hard-coded in the config
+  # for each terrain type.
+  center_square_production 'CenterSquareProduction',
 
   _features { validation, equality }
 }
