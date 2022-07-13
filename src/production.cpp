@@ -336,25 +336,25 @@ void compute_food_production(
     CHECK( out.horses_produced_actual == 0 );
     // Final food delta can be computed without regard to horses.
     out.horses_delta_final               = 0;
-    int const proposed_new_food_quantity = std::max(
-        0, food_in_warehouse_before - out.food_deficit );
+    int const proposed_new_food_quantity = 0;
     // Since there are no warehouse limits on the amount of food,
     // we can just compute the final delta.
     out.food_delta_final = ( proposed_new_food_quantity -
                              food_in_warehouse_before );
-    out.colonist_starved =
-        ( food_in_warehouse_before < out.food_deficit );
+    CHECK( food_in_warehouse_before + out.food_delta_final ==
+           0 );
+    out.colonist_starved = true;
   } else {
     // Final food delta must take into account horses.
     int const proposed_new_food_quantity =
-        food_in_warehouse_before +
-        out.food_surplus_before_horses -
+        food_in_warehouse_before + out.food_produced -
+        out.food_consumed_by_colonists_actual -
         out.food_consumed_by_horses;
     out.food_delta_final =
         proposed_new_food_quantity - food_in_warehouse_before;
-    // Given that there is not (pre-horse) food shortange, our
-    // final food delta can never be negative.
-    CHECK_GE( out.food_delta_final, 0 );
+    // Note that food_delta_final could be positive or negative
+    // here, since the fact that we have no food deficit may just
+    // mean that there was enough in the warehouse to draw from.
     CHECK( out.colonist_starved == false );
   }
 
