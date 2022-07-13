@@ -694,39 +694,45 @@ outdoor_production {
 # the good that yields most; it is not hard-coded in the config
 # for each terrain type.
 center_square_production {
-  # For some reason the original game seems to apply the river
-  # bonus to the production of the secondary good, but not to
-  # food.
+  # The original game seems to compute production values using a
+  # free_colonist as a the model (generally; it tweaks those
+  # values a bit, but not much). In particular, it never applies
+  # the expert bonus and always takes the non-expert resource
+  # bonuses where relevant. This allows changing that.
+  is_expert: false
+
+  # These represent what the original does. For some reason it
+  # only appears to apply some bonuses when on the center square,
+  # and does so differently between food and secondary.
   apply_river_bonus_on_food:      false
+  apply_road_bonus_on_food:       false
+  apply_plow_bonus_on_food:       true
   apply_river_bonus_on_secondary: true
+  apply_road_bonus_on_secondary:  false
+  apply_plow_bonus_on_secondary:  false
 
-  # For some reason the original game does not seem to apply ei-
-  # ther the road bonus or the plow bonus to secondary good pro-
-  # duction (only applies the river bonus), despite the fact that
-  # colony squares are supposed to have roads on them and can be
-  # plowed.
-  apply_road_bonus_on_secondary: false
-  apply_plow_bonus_on_secondary: false
-
+  # These were inferred empirically from the original game. They
+  # are generally different from what they would be on a
+  # non-center square.
   viceroy_base_food {
     arctic:    0
-    boreal:    1
+    boreal:    1 # normally 2.
     broadleaf: 2
     conifer:   2
-    desert:    1
+    desert:    1 # normally 2.
     grassland: 3
     hills:     2
     marsh:     3
-    mixed:     2
-    mountains: 0 # irrelevant for original game rules.
-    ocean:     0 # irrelevant.
-    plains:    3
+    mixed:     2 # normally 3.
+    mountains: 0
+    ocean:     0 # (irrelevant).
+    plains:    3 # normally 5 (!!).
     prairie:   3
     rain:      2
-    savannah:  3
-    scrub:     1
+    savannah:  3 # normally 4.
+    scrub:     1 # normally 2.
     swamp:     3
-    tropical:  2
+    tropical:  2 # normally 3.
     tundra:    3
     wetland:   2
   }

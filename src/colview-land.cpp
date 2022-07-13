@@ -164,7 +164,7 @@ wait<> ColonyLandView::perform_click(
   if( !new_job.has_value() ) co_return;
   Colony& colony = ss_.colonies.colony_for( colony_.id );
   change_unit_outdoor_job( colony, *unit_id, *new_job );
-  update_production( ss_, player_, colony_ );
+  update_production( ss_, colony_ );
 }
 
 maybe<ColViewObject_t> ColonyLandView::can_receive(
@@ -358,6 +358,54 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         colview_production().land_production[direction];
     int const    quantity = production.quantity;
     string const q_str    = fmt::format( "x {}", quantity );
+    Coord const  text_coord =
+        product_coord + Delta{ .w = product_tile_size.w };
+    render_text_markup(
+        renderer, text_coord, {},
+        TextMarkupInfo{
+            .shadowed_text_color   = gfx::pixel::white(),
+            .shadowed_shadow_color = gfx::pixel::black() },
+        fmt::format( "@[S]{}@[]", q_str ) );
+  }
+
+  // Center square.
+  Coord const square_coord =
+      coord + ( center * g_tile_delta * Delta{ .w = 2, .h = 2 } )
+                  .distance_from_origin();
+  ColonyProduction const& production = colview_production();
+
+  // food.
+  {
+    e_tile const product_tile =
+        tile_for_outdoor_job( e_outdoor_job::food );
+    Coord const product_coord =
+        square_coord + Delta{ .w = 12, .h = 4 };
+    render_sprite( painter, product_coord, product_tile );
+    Delta const  product_tile_size = sprite_size( product_tile );
+    int          quantity = production.center_food_production;
+    string const q_str    = fmt::format( "x {}", quantity );
+    Coord const  text_coord =
+        product_coord + Delta{ .w = product_tile_size.w };
+    render_text_markup(
+        renderer, text_coord, {},
+        TextMarkupInfo{
+            .shadowed_text_color   = gfx::pixel::white(),
+            .shadowed_shadow_color = gfx::pixel::black() },
+        fmt::format( "@[S]{}@[]", q_str ) );
+  }
+
+  // secondary.
+  if( production.center_extra_production.has_value() ) {
+    e_outdoor_job const job =
+        production.center_extra_production->what;
+    e_tile const product_tile = tile_for_outdoor_job( job );
+    Coord const  product_coord =
+        square_coord + Delta{ .w = 12, .h = 32 };
+    render_sprite( painter, product_coord, product_tile );
+    Delta const product_tile_size = sprite_size( product_tile );
+    int const   quantity =
+        production.center_extra_production->quantity;
+    string const q_str = fmt::format( "x {}", quantity );
     Coord const  text_coord =
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(

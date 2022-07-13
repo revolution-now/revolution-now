@@ -1324,7 +1324,7 @@ struct CompositeColSubView : public ui::InvisibleView,
 
   void update() override {
     // FIXME: this seems like it should go somewhere else.
-    update_production( ss_, player_, colony_ );
+    update_production( ss_, colony_ );
     for( ColonySubView* p : ptrs_ ) p->update();
   }
 
@@ -1543,15 +1543,13 @@ ColonyProduction const& colview_production() {
   return g_production;
 }
 
-void update_production( SSConst const& ss, Player const& player,
-                        Colony const& colony ) {
-  g_production = production_for_colony( ss.terrain, ss.units,
-                                        player, colony );
+void update_production( SSConst const& ss,
+                        Colony const&  colony ) {
+  g_production = production_for_colony( ss, colony );
 }
 
 void set_colview_colony( SS& ss, TS& ts, Colony& colony ) {
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-  update_production( ss, player, colony );
+  update_production( ss, colony );
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(

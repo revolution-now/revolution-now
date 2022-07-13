@@ -15,8 +15,11 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// gs
+// ss
 #include "ss/colony.rds.hpp"
+#include "ss/commodity.rds.hpp"
+#include "ss/difficulty.rds.hpp"
+#include "ss/map-square.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
 namespace rn {
@@ -26,6 +29,25 @@ struct TerrainState;
 int production_on_square( e_outdoor_job       job,
                           TerrainState const& terrain_state,
                           e_unit_type unit_type, Coord where );
+
+int food_production_on_center_square( MapSquare const& square,
+                                      e_difficulty difficulty );
+
+// We will call this for various outdoor jobs and then choose one
+// based on what produces the most. Note that the rules that de-
+// termine production of a commodity in the center square are
+// different from on normal squares.
+int commodity_production_on_center_square(
+    e_outdoor_commons_secondary_job job, MapSquare const& square,
+    e_difficulty difficulty );
+
+// If a colony were on this square, which secondary good would it
+// choose to produce. This will just run through all of the
+// available ones and choose the one that yields the most. If
+// none of them yield anything it will return nothing, which can
+// happen e.g. on arctic tiles.
+maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
+    MapSquare const& square, e_difficulty difficulty );
 
 // Given a unit activity this will convert it to an outdoor job,
 // if the mapping exists. Basically this can be used to take a

@@ -96,3 +96,31 @@ enum.e_outdoor_job {
   ore,
   silver,
 }
+
+# In this list we don't have silver, because in the original
+# game, silver can only be mined on mountains, and colonies
+# cannot be founded on mountains. Actually, in the version of the
+# game used for measuring production stats, it is the case that
+# in non-resource mountain tiles a non-expert (which is what we
+# use to compute secondary job production) yields no silver; a
+# non-expert can only yield silver from a mountain tile with a
+# silver resource. But even if we were to support configuring the
+# game to allow colonies to be founded on mountain tiles, there
+# would be two issues. First, the silver resource (which is re-
+# quired, as mentioned above) is the one resource in the game
+# that can get depleted and eventually disappears (at which point
+# the secondary job would revert to ore), which might be con-
+# fusing for the player since the resource icon would not be vis-
+# ible under the colony (or in "hidden terrain" mode). Second,
+# the algorithm for choosing the secondary job would likely not
+# choose silver anyway because there'd be more ore produced.
+#
+# Also, just as in the original game, we don't have lumber.  The
+# reason for this is
+enum.e_outdoor_commons_secondary_job {
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  ore,
+}

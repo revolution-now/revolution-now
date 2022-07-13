@@ -219,7 +219,9 @@ struct.ColonyProduction {
   # fields already take them into account.
   land_production 'refl::enum_map<e_direction, SquareProduction>',
   center_food_production 'int',
-  center_extra_production 'SquareProduction',
+  # Some tiles, such as arctic, produce nothing at least on some
+  # difficulty levels.
+  center_extra_production 'base::maybe<SquareProduction>',
 
   sugar_rum      'RawMaterialAndProduct',
   tobacco_cigars 'RawMaterialAndProduct',

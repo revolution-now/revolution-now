@@ -17,8 +17,13 @@
 #include "land-production.hpp"
 #include "unit.hpp"
 
-// gs
+// ss
+#include "ss/colony-enums.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
+#include "ss/ref.hpp"
+#include "ss/settings.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // config
@@ -213,7 +218,7 @@ int crosses_production_for_colony( UnitsState const& units_state,
 void compute_food_production(
     TerrainState const& terrain_state,
     UnitsState const& units_state, Colony const& colony,
-    FoodProduction& out,
+    int const center_food_produced, FoodProduction& out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
@@ -228,6 +233,9 @@ void compute_food_production(
           .what = e_outdoor_job::food, .quantity = quantity };
     }
   }
+  // This must have already been computed.
+  out.corn_produced += center_food_produced;
+
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == e_outdoor_job::fish ) {
@@ -240,8 +248,6 @@ void compute_food_production(
           .what = e_outdoor_job::fish, .quantity = quantity };
     }
   }
-
-  // TODO: take into account center square here.
 
   out.food_produced = out.corn_produced + out.fish_produced;
   CHECK_GE( out.food_produced, 0 );
@@ -370,7 +376,8 @@ void compute_raw_and_product_impl(
     Colony const& colony, TerrainState const& terrain_state,
     UnitsState const& units_state, e_outdoor_job outdoor_job,
     e_indoor_job indoor_job, e_commodity raw_commodity,
-    RawMaterialAndProduct& out,
+    maybe<SquareProduction const&> center_secondary,
+    RawMaterialAndProduct&         out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
@@ -386,7 +393,10 @@ void compute_raw_and_product_impl(
     }
   }
 
-  // TODO: take into account center square here.
+  if( center_secondary.has_value() &&
+      center_secondary->what == outdoor_job )
+    // This must have already been computed.
+    out.raw_produced += center_secondary->quantity;
 
   int const product_produced_no_bonus = [&] {
     int res = 0;
@@ -447,12 +457,14 @@ void compute_raw_and_product_generic(
     Colony const& colony, TerrainState const& terrain_state,
     UnitsState const& units_state, e_outdoor_job outdoor_job,
     e_indoor_job indoor_job, e_commodity raw_commodity,
+    maybe<SquareProduction const&> center_secondary,
     e_commodity product_commodity, RawMaterialAndProduct& out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   compute_raw_and_product_impl(
       colony, terrain_state, units_state, outdoor_job,
-      indoor_job, raw_commodity, out, out_land_production );
+      indoor_job, raw_commodity, center_secondary, out,
+      out_land_production );
   int const warehouse_capacity =
       colony_warehouse_capacity( colony );
   int const current_product_quantity =
@@ -467,15 +479,22 @@ void compute_raw_and_product_generic(
          product_commodity, out.product_delta_final );
 }
 
+// Note that in the original game, lumber is never produced as a
+// secondary good on the colony square, but we will thread the
+// center_secondary parameter through anyway to avoid making spe-
+// cial cases (and also because that behavior could be changed in
+// the config files).
 void compute_lumber_hammers(
     Colony const& colony, TerrainState const& terrain_state,
-    UnitsState const& units_state, RawMaterialAndProduct& out,
+    UnitsState const&              units_state,
+    maybe<SquareProduction const&> center_secondary,
+    RawMaterialAndProduct&         out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   compute_raw_and_product_impl(
       colony, terrain_state, units_state, e_outdoor_job::lumber,
-      e_indoor_job::hammers, e_commodity::lumber, out,
-      out_land_production );
+      e_indoor_job::hammers, e_commodity::lumber,
+      center_secondary, out, out_land_production );
 
   // There are no limits on the number of hammers it seems.
   out.product_delta_final = out.product_produced_actual;
@@ -530,8 +549,8 @@ void compute_land_production( ColonyProduction&   pr,
                       RawMaterialAndProduct& out ) {
     return compute_raw_and_product_generic(
         colony, terrain_state, units_state, outdoor_job,
-        indoor_job, raw_commodity, product_commodity, out,
-        pr.land_production );
+        indoor_job, raw_commodity, pr.center_extra_production,
+        product_commodity, out, pr.land_production );
   };
 
   // Sugar+Rum.
@@ -554,6 +573,7 @@ void compute_land_production( ColonyProduction&   pr,
 
   // Lumber+Hammers.
   compute_lumber_hammers( colony, terrain_state, units_state,
+                          pr.center_extra_production,
                           pr.lumber_hammers,
                           pr.land_production );
 
@@ -561,9 +581,33 @@ void compute_land_production( ColonyProduction&   pr,
                              units_state );
 
   compute_food_production( terrain_state, units_state, colony,
-                           pr.food, pr.land_production );
+                           pr.center_food_production, pr.food,
+                           pr.land_production );
 
   // TODO
+}
+
+void fill_in_center_square( SSConst const&    ss,
+                            Colony const&     colony,
+                            ColonyProduction& pr ) {
+  MapSquare const& square =
+      ss.terrain.square_at( colony.location );
+
+  // Food.
+  pr.center_food_production = food_production_on_center_square(
+      square, ss.settings.difficulty );
+
+  // Secondary good.
+  maybe<e_outdoor_commons_secondary_job> center_secondary =
+      choose_secondary_job( square, ss.settings.difficulty );
+  if( !center_secondary.has_value() ) return;
+  pr.center_extra_production = SquareProduction{
+      .what = to_outdoor_job( *center_secondary ),
+      // Note that this quantity must be checked by the functions
+      // dedicated to individual goods in order to factor them in
+      // to the total calculations.
+      .quantity = commodity_production_on_center_square(
+          *center_secondary, square, ss.settings.difficulty ) };
 }
 
 } // namespace
@@ -601,18 +645,20 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
   }
 }
 
-ColonyProduction production_for_colony(
-    TerrainState const& terrain_state,
-    UnitsState const& units_state, Player const& player,
-    Colony const& colony ) {
+ColonyProduction production_for_colony( SSConst const& ss,
+                                        Colony const&  colony ) {
   ColonyProduction res;
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
 
-  res.crosses = crosses_production_for_colony( units_state,
-                                               player, colony );
+  res.crosses =
+      crosses_production_for_colony( ss.units, player, colony );
   // TODO: factor in sons of liberty bonuses and/or tory penalty.
 
-  compute_land_production( res, colony, terrain_state,
-                           units_state );
+  // Note that this must be done before processing any of the
+  // other land squares.
+  fill_in_center_square( ss, colony, res );
+
+  compute_land_production( res, colony, ss.terrain, ss.units );
 
   return res;
 }

@@ -212,8 +212,8 @@ ColonySubView& colview_top_level();
 // FIXME: global state.
 ColonyProduction const& colview_production();
 
-void update_production( SSConst const& ss, Player const& player,
-                        Colony const& colony );
+void update_production( SSConst const& ss,
+                        Colony const&  colony );
 
 // Must be called before any other method in this module.
 void set_colview_colony( SS& ss, TS& ts, Colony& colony );

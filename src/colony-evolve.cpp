@@ -318,10 +318,7 @@ void apply_production_to_colony(
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
                                         Colony& colony ) {
   ColonyEvolution ev;
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-
-  ev.production = production_for_colony( ss.terrain, ss.units,
-                                         player, colony );
+  ev.production = production_for_colony( ss, colony );
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );

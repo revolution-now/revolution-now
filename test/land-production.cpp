@@ -1983,5 +1983,18 @@ TEST_CASE( "[production] production_on_square/fish" ) {
   }
 }
 
+TEST_CASE( "[production] food_production_on_center_square" ) {
+  // TODO
+}
+
+TEST_CASE(
+    "[production] commodity_production_on_center_square" ) {
+  // TODO
+}
+
+TEST_CASE( "[production] choose_secondary_job" ) {
+  // TODO
+}
+
 } // namespace
 } // namespace rn

@@ -168,11 +168,22 @@ struct.OutdoorProduction {
 }
 
 struct.CenterSquareProduction {
-  # For some reason the original game seems to apply the river
-  # bonus to the production of the secondary good, but not to
-  # food.
+  # The original game seems to compute production values using a
+  # free_colonist as a the model (generally; it tweaks those
+  # values a bit, but not much). In particular, it never applies
+  # the expert bonus and always takes the non-expert resource
+  # bonuses where relevant. This allows changing that.
+  is_expert 'bool',
+
+  # These model what the original does. For some reason it only
+  # appears to apply some bonuses when on the center square, and
+  # does so differently between food and secondary.
   apply_river_bonus_on_food 'bool',
   apply_river_bonus_on_secondary 'bool',
+  apply_road_bonus_on_food 'bool',
+  apply_road_bonus_on_secondary 'bool',
+  apply_plow_bonus_on_food 'bool',
+  apply_plow_bonus_on_secondary 'bool',
 
   # It seems that in the original game, the base values of food
   # production (on the harder difficulty levels) are tweaked from
@@ -192,14 +203,6 @@ struct.CenterSquareProduction {
   # size, these bonus are added to the values specified for the
   # viceroy level above.
   food_bonus_by_difficulty 'refl::enum_map<e_difficulty, int>',
-
-  # For some reason the original game does not seem to apply ei-
-  # ther the road bonus or the plow bonus to secondary good pro-
-  # duction (only applies the river bonus), despite the fact that
-  # colony squares are supposed to have roads on them and can be
-  # plowed.
-  apply_road_bonus_on_secondary 'bool',
-  apply_plow_bonus_on_secondary 'bool',
 
   # It appears that the original game that all difficulty levels
   # yield the same except for "discoverer", which gets +1.
