@@ -21,8 +21,7 @@
 
 // ss
 #include "src/ss/player.rds.hpp"
-#include "src/ss/terrain.hpp"
-#include "src/ss/units.hpp"
+#include "src/ss/ref.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -119,8 +118,8 @@ TEST_CASE( "[production] crosses" ) {
   Player& player = W.dutch();
 
   auto crosses = [&] {
-    ColonyProduction pr = production_for_colony(
-        W.terrain(), W.units(), player, colony );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
     return pr.crosses;
   };
 
@@ -169,8 +168,7 @@ TEST_CASE( "[production] lumber/hammers" ) {
   gfx::point P{ .x = 0, .y = 1 };
 
   auto lum = [&] {
-    return production_for_colony( W.terrain(), W.units(),
-                                  W.player(), colony )
+    return production_for_colony( W.ss(), colony )
         .lumber_hammers;
   };
 
