@@ -204,6 +204,18 @@ struct.CenterSquareProduction {
   # viceroy level above.
   food_bonus_by_difficulty 'refl::enum_map<e_difficulty, int>',
 
+  # The original game seems to selectively override the river
+  # bonus on fur production in the center square. It is not clear
+  # whether this is a bug or not. But one positive consequence is
+  # that it prevents furs from dominating over ore when selecting
+  # the secondary commodity on e.g. a boreal forest tile con-
+  # taining a major river and minerals; in that case the fur pro-
+  # duction would receive a river bonus of +4, putting it at
+  # 3+4=7, whereas for ore it would be 1+3+2=6. By nurfing the
+  # river bonus for fur we can prevent this.
+  override_secondary_minor_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus_t>>',
+  override_secondary_major_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus_t>>',
+
   # It appears that the original game that all difficulty levels
   # yield the same except for "discoverer", which gets +1.
   secondary_bonus_by_difficulty 'refl::enum_map<e_difficulty, int>',
