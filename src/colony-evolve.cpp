@@ -247,8 +247,14 @@ void apply_commodity_increase(
   int const old_value = store[what];
   int const new_value = old_value + delta;
   if( old_value < 100 && new_value >= 100 )
-    notifications.emplace_back(
-        ColonyNotification::full_cargo{ .what = what } );
+    // Don't report food because food is not typically something
+    // that gets loaded as cargo and traded. Typically the player
+    // will want to allow it to grow beyond 100 to 200 (which it
+    // can always do because there are no warehouse limits on
+    // food) in order to produce a new colonist.
+    if( what != e_commodity::food )
+      notifications.emplace_back(
+          ColonyNotification::full_cargo{ .what = what } );
   store[what] = new_value;
 }
 
