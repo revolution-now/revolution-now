@@ -13,7 +13,8 @@
 // Revolution Now
 #include "map-square.hpp"
 
-// gs
+// ss
+#include "ss/colony-enums.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
 
@@ -123,6 +124,212 @@ bool has_required_resources(
       required_resources.contains( *square.forest_resource ) )
     return true;
   return false;
+}
+
+int food_production_on_center_square( MapSquare const& square,
+                                      e_difficulty difficulty ) {
+  auto const& conf = config_production.outdoor_production
+                         .jobs[e_outdoor_job::food];
+  auto const& center_conf =
+      config_production.center_square_production;
+
+  e_terrain const terrain = effective_terrain( square );
+
+  // NOTE: the difficulty bonus needs to be applied at the start
+  // in order to replicate the original game's rules. First of
+  // all, in practice all food bonuses are additive, so it
+  // doesn't matter when we apply this. But second, we need to
+  // apply it so that e.g. the arctic tiles (which normally pro-
+  // duce zero food) will produce two food, and not get
+  // short-circuited by an otherwise zero base value below. This
+  // is to replicate the fact that in the original game, the
+  // arctic tiles yield two food. This will also mean that moun-
+  // tain tiles will yield two food, but in the original game
+  // rules we don't allow colonies to be founded there.
+  int const base =
+      center_conf.viceroy_base_food[terrain] +
+      center_conf.food_bonus_by_difficulty[difficulty];
+
+  // If the base production is zero then that is taken to mean
+  // that the square should never produce any food regardless of
+  // the terrain bonuses, and so we short circuit here. This will
+  // prevent e.g. producing food on arctic squares that are
+  // plowed (assuming a scenario where plowing is allowed there).
+  if( base == 0 ) return 0;
+
+  bool const is_expert = center_conf.is_expert;
+
+  // In general the order in which these are applied matters be-
+  // cause some of them are additive and some multiplicative. In
+  // the case of food, it happens that they are all additive in
+  // the original game, so order does not matter. But we'll
+  // follow this order just for consistency with non-food goods.
+  //
+  //   1. base:                   3
+  //   2. resource:              x2
+  //   3. plow/road/coast:       +1 each
+  //   4. major/minor river      +1 (+2 for major)
+  //   5. expert:                x2
+  //
+
+  // 1. Base.
+  int res = base;
+
+  // 2. Resource Bonus.
+  maybe<e_natural_resource> const& resource =
+      has_forest( square ) ? square.forest_resource
+                           : square.ground_resource;
+  if( resource.has_value() )
+    res = apply_outdoor_bonus( res, is_expert,
+                               conf.resource_bonus[*resource] );
+
+  // 3. Plow/River/Road/Coast Bonus.
+  if( center_conf.apply_river_bonus_on_food &&
+      square.river.has_value() ) {
+    // In the original game this is not applied to food.
+    switch( *square.river ) {
+      case e_river::minor:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.minor_river_bonus );
+        break;
+      case e_river::major:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.major_river_bonus );
+        break;
+    }
+  }
+
+  if( center_conf.apply_road_bonus_on_food && square.road )
+    // In the original game this is not applied to food.
+    res = apply_outdoor_bonus( res, is_expert, conf.road_bonus );
+
+  if( center_conf.apply_plow_bonus_on_food &&
+      square.irrigation && /*defense*/ !square.overlay )
+    // In the original game this IS applied to food.
+    res = apply_outdoor_bonus( res, is_expert, conf.plow_bonus );
+
+  // 4. Expert Bonus.
+  if( is_expert )
+    // In the original game this is not applied to food.
+    res =
+        apply_outdoor_bonus( res, is_expert, conf.expert_bonus );
+
+  return res;
+}
+
+int commodity_production_on_center_square(
+    e_outdoor_commons_secondary_job job, MapSquare const& square,
+    e_difficulty difficulty ) {
+  auto const& conf = config_production.outdoor_production
+                         .jobs[to_outdoor_job( job )];
+  auto const& center_conf =
+      config_production.center_square_production;
+
+  e_terrain const terrain = effective_terrain( square );
+
+  // If the base production is zero then that is taken to mean
+  // that the square should never produce any of this good re-
+  // gardless of the terrain bonuses, and so we short circuit
+  // here. This will prevent e.g. a mountain tile with a road
+  // producing 2 lumber via the road bonus.
+  if( conf.base_productions[terrain] == 0 ) return 0;
+
+  bool const is_expert = center_conf.is_expert;
+
+  // If this field is present on a square that has no resources
+  // then it overrides everything else. This is used to reproduce
+  // some non-standard behavior with regard to silver production
+  // that seems to have been inserted into some versions of the
+  // game to nerf silver production.
+  if( conf.non_resource_override.has_value() &&
+      !has_required_resources(
+          square,
+          conf.non_resource_override->required_resources ) )
+    return is_expert ? conf.non_resource_override->expert
+                     : conf.non_resource_override->non_expert;
+
+  // In general the order in which these are applied matters be-
+  // cause some of them are additive and some multiplicative.
+  // When they are all additive, as in e.g. the case of farming
+  // in the original game, the order does not matter. In the case
+  // of e.g. cotton on prairie tiles, the original game appears
+  // to compute in this order, where each is present:
+  //
+  //   1. base:                   3
+  //   2. resource:              x2
+  //   3. plow/road/coast:       +1 each
+  //   4. major/minor river      +1 (+2 for major)
+  //   5. expert:                x2
+  //
+
+  // 1. Base.
+  int res = conf.base_productions[terrain];
+
+  // 2. Resource Bonus.
+  maybe<e_natural_resource> const& resource =
+      has_forest( square ) ? square.forest_resource
+                           : square.ground_resource;
+  if( resource.has_value() )
+    res = apply_outdoor_bonus( res, is_expert,
+                               conf.resource_bonus[*resource] );
+
+  // 3. Plow/River/Road/Coast Bonus.
+  if( center_conf.apply_river_bonus_on_secondary &&
+      square.river.has_value() ) {
+    // Note that in the original game, when furs are produced as
+    // a secondary good, the game seems to break with the normal
+    // river bonus (which would be 2 for a minor river and 4 for
+    // a major river) and it will halve those values. We're not
+    // going to bother doing that here because that could just be
+    // a bug in the original game, and plus it would make this
+    // center square calculation even more complicated then it
+    // already is.
+    switch( *square.river ) {
+      case e_river::minor:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.minor_river_bonus );
+        break;
+      case e_river::major:
+        res = apply_outdoor_bonus( res, is_expert,
+                                   conf.major_river_bonus );
+        break;
+    }
+  }
+
+  if( center_conf.apply_road_bonus_on_secondary && square.road )
+    res = apply_outdoor_bonus( res, is_expert, conf.road_bonus );
+
+  if( center_conf.apply_plow_bonus_on_secondary &&
+      square.irrigation && /*defense*/ !square.overlay )
+    res = apply_outdoor_bonus( res, is_expert, conf.plow_bonus );
+
+  // 4. Expert Bonus.
+  if( is_expert )
+    res =
+        apply_outdoor_bonus( res, is_expert, conf.expert_bonus );
+
+  // 5. Difficulty bonus. Unlike with food on the center square,
+  // we apply this at the end. Otherwise artic tiles on "discov-
+  // erer" would produce some secondary goods, which they don't
+  // in the original game.
+  res += center_conf.secondary_bonus_by_difficulty[difficulty];
+
+  return res;
+}
+
+maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
+    MapSquare const& square, e_difficulty difficulty ) {
+  maybe<e_outdoor_commons_secondary_job> res;
+  int                                    max_found = 0;
+  for( e_outdoor_commons_secondary_job commons_job :
+       refl::enum_values<e_outdoor_commons_secondary_job> ) {
+    int const quantity = commodity_production_on_center_square(
+        commons_job, square, difficulty );
+    if( quantity <= max_found ) continue;
+    max_found = quantity;
+    res       = commons_job;
+  }
+  return res;
 }
 
 int production_on_square( e_outdoor_job       job,

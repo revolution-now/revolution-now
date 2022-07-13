@@ -46,6 +46,13 @@ int commodity_production_on_center_square(
 // available ones and choose the one that yields the most. If
 // none of them yield anything it will return nothing, which can
 // happen e.g. on arctic tiles.
+//
+// In the original game, the commodity produced seems to be what-
+// ever yields the most, with some kind of tie-breaking heuris-
+// tic. E.g., on a rain forest square the game chooses sugar (and
+// it yields one, which is tied with fur and ore). But if the
+// rain forest square has minerals in it then the game selects
+// ore.
 maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
     MapSquare const& square, e_difficulty difficulty );
 
