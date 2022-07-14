@@ -89,7 +89,7 @@ thread_status to_thread_status( int status ) noexcept {
 ** errors
 *****************************************************************/
 lua_valid lua_invalid( lua_error_t err ) {
-  return base::invalid<lua_error_t>( move( err ) );
+  return base::invalid<lua_error_t>( std::move( err ) );
 }
 
 /****************************************************************
@@ -912,7 +912,7 @@ lua_expect<resume_result> c_api::resume_or_leak(
   lua_State*    L_from   = L;
   int           nresults = 0;
   thread_status status   = to_thread_status(
-        lua_resume( L_toresume, L_from, nargs, &nresults ) );
+      lua_resume( L_toresume, L_from, nargs, &nresults ) );
   HAS_VALUE_OR_RET( C_toresume.thread_ok() );
   CHECK( status != thread_status::err );
   return resume_result{ .status = ( status == thread_status::ok )

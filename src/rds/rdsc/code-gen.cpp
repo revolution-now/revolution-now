@@ -46,7 +46,7 @@ auto max_of( Range&& rng, Projection&& proj, Default value )
                        typename decay_t<Range>::value_type> {
   if( rng.empty() ) return value;
   auto t = proj( *rng.begin() );
-  for( auto&& elem : forward<Range>( rng ) ) {
+  for( auto&& elem : std::forward<Range>( rng ) ) {
     auto p = proj( elem );
     if( p > t ) t = p;
   }
@@ -114,7 +114,7 @@ struct CodeGenerator {
   }
 
   void push( Options options ) {
-    options_.push( move( options ) );
+    options_.push( std::move( options ) );
   }
 
   void pop() {
@@ -127,9 +127,9 @@ struct CodeGenerator {
     AutoPopper( CodeGenerator& gen ) : gen_( &gen ) {
       assert( gen_ != nullptr );
     }
-    AutoPopper( AutoPopper const& ) = delete;
+    AutoPopper( AutoPopper const& )            = delete;
     AutoPopper& operator=( AutoPopper const& ) = delete;
-    AutoPopper& operator=( AutoPopper&& ) = delete;
+    AutoPopper& operator=( AutoPopper&& )      = delete;
     AutoPopper( AutoPopper&& rhs ) {
       gen_     = rhs.gen_;
       rhs.gen_ = nullptr;
@@ -167,8 +167,8 @@ struct CodeGenerator {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     string indent( options().indent_level * 2, ' ' );
     string to_print = trim_trailing_spaces( fmt::format(
-        fmt::runtime( fmt_str ), forward<Arg1>( arg1 ),
-        forward<Args>( args )... ) );
+        fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
+        std::forward<Args>( args )... ) );
     // Only print empty strings if they are to be quoted.
     if( options().quotes )
       oss_ << indent << std::quoted( to_print );
@@ -185,9 +185,10 @@ struct CodeGenerator {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
     curr_line_ = absl::StrCat(
-        *curr_line_, fmt::format( fmt::runtime( fmt_str ),
-                                  std::forward<Arg1>( arg1 ),
-                                  forward<Args>( args )... ) );
+        *curr_line_,
+        fmt::format( fmt::runtime( fmt_str ),
+                     std::forward<Arg1>( arg1 ),
+                     std::forward<Args>( args )... ) );
   }
 
   // Braces {} do NOT have to be escaped for this one.
@@ -195,7 +196,7 @@ struct CodeGenerator {
 
   void flush() {
     if( !curr_line_.has_value() ) return;
-    string to_write = move( *curr_line_ );
+    string to_write = std::move( *curr_line_ );
     curr_line_.reset();
     line( to_write );
   }
@@ -206,7 +207,7 @@ struct CodeGenerator {
   void comment( string_view fmt_str, Args&&... args ) {
     frag( "// " );
     frag( "{}", fmt::format( fmt::runtime( fmt_str ),
-                             forward<Args>( args )... ) );
+                             std::forward<Args>( args )... ) );
     flush();
   }
 

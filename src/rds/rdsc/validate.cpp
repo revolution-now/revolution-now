@@ -35,9 +35,9 @@ struct Validator {
   template<typename Arg1, typename... Args>
   void error( string_view fmt_str, Arg1&& arg1,
               Args&&... args ) {
-    errors_.push_back( fmt::format( fmt::runtime( fmt_str ),
-                                    forward<Arg1>( arg1 ),
-                                    forward<Args>( args )... ) );
+    errors_.push_back( fmt::format(
+        fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
+        std::forward<Args>( args )... ) );
   }
 
   void error( string_view msg ) { errors_.emplace_back( msg ); }
@@ -83,7 +83,7 @@ vector<string> validate( expr::Rds const& rds ) {
   Validator validator;
   validator.validate_sumtypes( rds );
   validator.validate_configs( rds );
-  return move( validator.errors_ );
+  return std::move( validator.errors_ );
 }
 
 } // namespace rds

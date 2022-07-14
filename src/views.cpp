@@ -184,7 +184,7 @@ void SolidRectView::draw( rr::Renderer& renderer,
 // to add it into the calculation of the text size as well.
 OneLineStringView::OneLineStringView( string     msg,
                                       gfx::pixel color )
-  : msg_( move( msg ) ),
+  : msg_( std::move( msg ) ),
     text_size_( rendered_text_size_no_reflow( msg_ ) ),
     color_( color ) {}
 
@@ -404,7 +404,7 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     cursor_width_{} {
   string text( 100, 'X' );
   Delta  char_delta = Delta::from_gfx(
-       rr::rendered_text_line_size_pixels( text ) );
+      rr::rendered_text_line_size_pixels( text ) );
 
   cursor_width_ = char_delta.w / SX{ int( text.size() ) };
 
@@ -467,7 +467,7 @@ void LineEditorView::draw( rr::Renderer& renderer,
                ? W{ 0 }
           // The rendered text might have width 1 in this case.
                : Delta::from_gfx( rr::rendered_text_line_size_pixels(
-                                      string_up_to_cursor ) )
+                                 string_up_to_cursor ) )
                 .w;
   Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
                .y = coord.y + 1,
@@ -900,7 +900,7 @@ OptionSelectView::OptionSelectView(
     auto width  = view->delta().w;
     auto height = view->delta().h;
     this->push_back(
-        OwningPositionedView( move( view ), so_far ) );
+        OwningPositionedView( std::move( view ), so_far ) );
     // `view` is no longer available here (moved from).
     so_far.y += height;
     min_width = std::max( min_width, width );
