@@ -760,4 +760,20 @@ center_square_production {
     governor:     0
     viceroy:      0  # Must be zero.
   }
+
+  override_secondary_minor_river_bonus  {
+    sugar:   null
+    tobacco: null
+    cotton:  null
+    fur.add: { non_expert=1, expert=1 }
+    ore:     null
+  }
+
+  override_secondary_major_river_bonus  {
+    sugar:   null
+    tobacco: null
+    cotton:  null
+    fur.add: { non_expert=2, expert=2 }
+    ore:     null
+  }
 }

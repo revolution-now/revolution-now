@@ -276,22 +276,25 @@ int commodity_production_on_center_square(
   // 3. Plow/River/Road/Coast Bonus.
   if( center_conf.apply_river_bonus_on_secondary &&
       square.river.has_value() ) {
-    // Note that in the original game, when furs are produced as
-    // a secondary good, the game seems to break with the normal
-    // river bonus (which would be 2 for a minor river and 4 for
-    // a major river) and it will halve those values. We're not
-    // going to bother doing that here because that could just be
-    // a bug in the original game, and plus it would make this
-    // center square calculation even more complicated then it
-    // already is.
     switch( *square.river ) {
-      case e_river::minor:
-        res = apply_outdoor_bonus( res, is_expert,
-                                   conf.minor_river_bonus );
+      case e_river::minor: {
+        OutdoorJobBonus_t const bonus =
+            center_conf.override_secondary_minor_river_bonus[job]
+                    .has_value()
+                ? *center_conf
+                       .override_secondary_minor_river_bonus[job]
+                : conf.minor_river_bonus;
+        res = apply_outdoor_bonus( res, is_expert, bonus );
         break;
+      }
       case e_river::major:
-        res = apply_outdoor_bonus( res, is_expert,
-                                   conf.major_river_bonus );
+        OutdoorJobBonus_t const bonus =
+            center_conf.override_secondary_major_river_bonus[job]
+                    .has_value()
+                ? *center_conf
+                       .override_secondary_major_river_bonus[job]
+                : conf.major_river_bonus;
+        res = apply_outdoor_bonus( res, is_expert, bonus );
         break;
     }
   }
