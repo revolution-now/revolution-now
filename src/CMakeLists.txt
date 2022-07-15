@@ -26,7 +26,6 @@ find_package( Threads REQUIRED )
 add_rn_library(
   rn
   # Dependencies
-  absl::function_ref
   absl::strings
   base-util
   glad::glad # TODO: remove/isolate this.

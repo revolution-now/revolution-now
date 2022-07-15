@@ -53,7 +53,8 @@ using ::lua::lua_valid;
 
 size_t constexpr max_scrollback_lines = 10000;
 
-unordered_map<string, function_ref<void( Terminal& )>> const
+unordered_map<string,
+              function_ref<void( Terminal& ) const>> const
     kConsoleCommands{
         { "clear",
           []( Terminal& terminal ) { terminal.clear(); } }, //
