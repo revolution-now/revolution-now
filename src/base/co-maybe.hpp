@@ -19,6 +19,11 @@
 // C++ standard library
 #include <coroutine>
 
+// NOTE: Currently broken with latest clang; see:
+//
+//   https://github.com/llvm/llvm-project/issues/56532
+//
+
 // FIXME: maybes, expecteds, etc. should probably not be used
 // with coroutines until it is verified in godbolt that both
 // clang and gcc can optimize away all of the coroutine state

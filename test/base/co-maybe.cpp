@@ -21,6 +21,11 @@ namespace {
 
 using namespace std;
 
+// Currently broken with latest clang; see:
+//
+//   https://github.com/llvm/llvm-project/issues/56532
+//
+#if 0
 maybe<int> get_num() { return 110; }
 maybe<int> get_den() { return 10; }
 maybe<int> get_den0() { return 0; }
@@ -52,6 +57,7 @@ TEST_CASE( "[co-maybe] simple test" ) {
   auto res0 = my_coroutine0();
   REQUIRE( !res0.has_value() );
 }
+#endif
 
 } // namespace
 } // namespace base
