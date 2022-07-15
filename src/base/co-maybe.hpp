@@ -79,8 +79,8 @@ struct maybe_holder {
 
 namespace std {
 
-template<typename T>
-struct coroutine_traits<::base::maybe<T>> {
+template<typename T, typename... Args>
+struct coroutine_traits<::base::maybe<T>, Args...> {
   struct promise_type {
     ::base::maybe<T>* o_ = nullptr;
 
