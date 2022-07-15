@@ -17,9 +17,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// C++ standard library
-#include <random>
-
 using namespace std;
 
 using ::base::maybe;
@@ -181,20 +178,6 @@ uint32_t pixel::to_uint32() const {
   i <<= 8;
   i += a;
   return i;
-}
-
-// A random color.
-pixel pixel::random() {
-  MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE;
-  // Seed with a real random value, if available
-  random_device r;
-
-  default_random_engine e( r() );
-  // Choose a random mean between 0 and 255
-  uniform_int_distribution<uint8_t> uniform_dist( 0, 255 );
-
-  return { uniform_dist( e ), uniform_dist( e ),
-           uniform_dist( e ), 255 };
 }
 
 pixel pixel::with_alpha( uint8_t a_new ) const {

@@ -52,9 +52,6 @@ struct pixel {
   static base::maybe<pixel> parse_from_hex(
       std::string_view hex );
 
-  // A random color.
-  static pixel random();
-
   // Returns this color but with changed alpha.
   pixel with_alpha( uint8_t a_new ) const;
 
