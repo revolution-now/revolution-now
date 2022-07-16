@@ -14,6 +14,7 @@
 
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace base {
 
@@ -33,5 +34,15 @@ std::string str_replace_all(
     std::string_view sv,
     std::initializer_list<std::pair<std::string, std::string>>
         pairs );
+
+// Split a string on a character.
+std::vector<std::string> str_split( std::string_view sv,
+                                    char             c );
+
+// Split a string on any character from the list. This does not
+// split on the `chars` string as a whole, it splits on any of
+// the individual characters in the `chars`.
+std::vector<std::string> str_split_on_any(
+    std::string_view sv, std::string_view chars );
 
 } // namespace base

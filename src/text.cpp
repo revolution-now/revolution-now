@@ -18,13 +18,11 @@
 
 // base
 #include "base/range-lite.hpp"
+#include "base/string.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/string.hpp"
-
-// Abseil
-#include "absl/strings/str_split.h"
 
 using namespace std;
 
@@ -100,11 +98,12 @@ auto parse_markup( string_view sv ) -> maybe<MarkupStyle> {
 }
 
 vector<vector<MarkedUpText>> parse_text( string_view text ) {
-  vector<string_view> lines = absl::StrSplit( text, '\n' );
+  vector<string> lines = base::str_split( text, '\n' );
   vector<vector<MarkedUpText>> line_frags;
   line_frags.reserve( lines.size() );
   MarkupStyle curr_style{};
-  for( auto line : lines ) {
+  for( auto sline : lines ) {
+    string_view          line = sline;
     vector<MarkedUpText> line_mkup;
     auto                 start = line.begin();
     auto                 end   = line.end();
@@ -353,7 +352,7 @@ void render_text( rr::Renderer& renderer, gfx::point where,
   (void)font; // TODO
   // The color will be set later.
   rr::Typer typer = renderer.typer( where, gfx::pixel{} );
-  render_lines( typer, color, absl::StrSplit( text, '\n' ) );
+  render_lines( typer, color, base::str_split( text, '\n' ) );
 }
 
 void render_text( rr::Renderer& renderer, gfx::point where,

@@ -64,4 +64,22 @@ string str_replace_all(
   return res;
 }
 
+vector<string> str_split( string_view sv, char c ) {
+  return str_split_on_any( sv, string_view( &c, 1 ) );
+}
+
+vector<string> str_split_on_any( string_view sv,
+                                 string_view chars ) {
+  vector<string> res;
+  while( true ) {
+    auto next = sv.find_first_of( chars );
+    if( next == string_view::npos ) break;
+    res.push_back( string( sv.substr( 0, next ) ) );
+    // Remove what we just added, plus c.
+    sv.remove_prefix( next + 1 );
+  }
+  res.push_back( string( sv ) );
+  return res;
+}
+
 } // namespace base

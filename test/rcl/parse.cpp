@@ -15,9 +15,7 @@
 
 // base
 #include "base/io.hpp"
-
-// Abseil
-#include "absl/strings/str_split.h"
+#include "base/string.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -272,9 +270,9 @@ TEST_CASE( "[parse] table keys with quotes" ) {
 
   string doc_str = fmt::to_string( doc );
 
-  vector<string> doc_split = absl::StrSplit( doc_str, "\n" );
+  vector<string> doc_split = base::str_split( doc_str, '\n' );
   vector<string> expected_split =
-      absl::StrSplit( expected, "\n" );
+      base::str_split( expected, '\n' );
 
   for( int i = 0; i < int( doc_split.size() ); ++i ) {
     if( i >= int( expected_split.size() ) ) break;

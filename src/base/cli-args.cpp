@@ -13,9 +13,7 @@
 // base
 #include "error.hpp"
 #include "fmt.hpp"
-
-// Abseil
-#include "absl/strings/str_split.h"
+#include "string.hpp"
 
 // C++ standard library
 #include <string_view>
@@ -30,7 +28,7 @@ expect<ProgramArguments> parse_args( span<string const> args ) {
     if( arg.starts_with( "--" ) ) {
       string stem( arg.begin() + 2, arg.end() ); // remove --
       if( arg.find( "=" ) != string::npos ) {
-        vector<string> parts = absl::StrSplit( stem, "=" );
+        vector<string> parts = base::str_split( stem, '=' );
         RETURN_IF( parts.size() != 2, "invalid argument `{}'.",
                    stem );
         string const& key = parts[0];

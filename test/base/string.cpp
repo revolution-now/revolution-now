@@ -138,5 +138,45 @@ TEST_CASE( "[string] str_replace_all" ) {
            "this_is_a_test_ " );
 }
 
+TEST_CASE( "[string] string splitting" ) {
+  vector<string> expected;
+
+  expected = { "" };
+  REQUIRE( str_split( "", ',' ) == expected );
+
+  expected = { "" };
+  REQUIRE( str_split_on_any( "", ", " ) == expected );
+
+  expected = { "" };
+  REQUIRE( str_split_on_any( "", "" ) == expected );
+
+  expected = { "ab" };
+  REQUIRE( str_split( "ab", ',' ) == expected );
+
+  expected = { "", "" };
+  REQUIRE( str_split_on_any( "a", "ab" ) == expected );
+
+  expected = { "", "", "" };
+  REQUIRE( str_split_on_any( "ab", "ab" ) == expected );
+
+  expected = { "ab", "cd", "ef" };
+  REQUIRE( str_split( "ab,cd,ef", ',' ) == expected );
+
+  expected = { "ab", "cd", "ef" };
+  REQUIRE( str_split_on_any( "ab,cd-ef", ",-" ) == expected );
+
+  expected = { "ab", "cd", "ef", "" };
+  REQUIRE( str_split_on_any( "ab,cd-ef-", ",-" ) == expected );
+
+  expected = { "", "" };
+  REQUIRE( str_split_on_any( "-", ",-" ) == expected );
+
+  expected = { "", "", "" };
+  REQUIRE( str_split_on_any( "--", ",-" ) == expected );
+
+  expected = { "ab,cd-ef" };
+  REQUIRE( str_split_on_any( "ab,cd-ef", "" ) == expected );
+}
+
 } // namespace
 } // namespace base

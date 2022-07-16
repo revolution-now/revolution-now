@@ -34,9 +34,6 @@
 // base-util
 #include "base-util/string.hpp"
 
-// Abseil
-#include "absl/strings/str_split.h"
-
 // C++ standard library
 #include <unordered_map>
 
@@ -209,7 +206,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   // range-v3 split doesn't do the right thing here if the string
   // ends in a dot.
   vector<string> segments =
-      absl::StrSplit( to_autocomplete, absl::ByAnyChar( ".:" ) );
+      base::str_split_on_any( to_autocomplete, ".:" );
   CHECK( segments.size() > 0 );
   lg.trace( "segments.size(): {}", segments.size() );
   // This is a "drop last".
