@@ -30,9 +30,6 @@
 // rtmidi
 #include "RtMidi.h"
 
-// Abseil
-#include "absl/strings/ascii.h"
-
 // C++ standard library
 #include <algorithm>
 #include <queue>
@@ -267,7 +264,7 @@ class MidiIO {
   bool is_valid_output_port_name( string_view port_name ) {
     auto valid = [&]( auto const& n ) {
       return base::str_contains(
-          absl::AsciiStrToLower( port_name ), n );
+          base::ascii_str_to_lower( port_name ), n );
     };
     return valid( "fluid" ) || valid( "timidity" );
   }

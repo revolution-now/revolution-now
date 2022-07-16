@@ -114,4 +114,11 @@ bool str_contains( string_view haystack, string_view needle ) {
   return haystack.find( needle ) != string_view::npos;
 }
 
+string ascii_str_to_lower( string_view sv ) {
+  string res;
+  res.reserve( sv.size() );
+  for( char c : sv ) res.push_back( std::tolower( c ) );
+  return res;
+}
+
 } // namespace base

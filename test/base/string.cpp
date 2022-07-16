@@ -225,5 +225,15 @@ TEST_CASE( "[string] str_contains" ) {
   REQUIRE_FALSE( str_contains( "aba", "aaba" ) );
 }
 
+TEST_CASE( "[string] ascii_str_to_lower" ) {
+  REQUIRE( ascii_str_to_lower( "" ) == "" );
+  REQUIRE( ascii_str_to_lower( "a" ) == "a" );
+  REQUIRE( ascii_str_to_lower( "A" ) == "a" );
+  REQUIRE( ascii_str_to_lower( "Aa" ) == "aa" );
+  REQUIRE( ascii_str_to_lower( "AbCdE" ) == "abcde" );
+  REQUIRE( ascii_str_to_lower( "this IS-A_teSt." ) ==
+           "this is-a_test." );
+}
+
 } // namespace
 } // namespace base

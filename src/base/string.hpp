@@ -53,4 +53,8 @@ std::string str_join( std::vector<std::string> const& v,
 bool str_contains( std::string_view haystack,
                    std::string_view needle );
 
+// For an ascii string (not UTF-8) this will convert all charac-
+// ters to lowercase.
+std::string ascii_str_to_lower( std::string_view sv );
+
 } // namespace base
