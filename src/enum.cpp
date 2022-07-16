@@ -26,9 +26,6 @@
 // base-util
 #include "base-util/pp.hpp"
 
-// Abseil
-#include "absl/strings/str_split.h"
-
 // C++ standard library
 #include <functional>
 #include <typeinfo>

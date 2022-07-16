@@ -19,9 +19,6 @@
 // base
 #include "base/io.hpp"
 
-// Abseil
-#include "absl/strings/str_split.h"
-
 // Must be last.
 #include "test/catch-common.hpp"
 

@@ -4,7 +4,6 @@ find_package( Threads REQUIRED )
 add_rn_library(
   rn-base
   # Dependencies
-  absl::strings
   base-util
   fmt::fmt
 )

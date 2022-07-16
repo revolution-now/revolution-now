@@ -26,7 +26,6 @@ find_package( Threads REQUIRED )
 add_rn_library(
   rn
   # Dependencies
-  absl::strings
   base-util
   glad::glad # TODO: remove/isolate this.
   lua::lua

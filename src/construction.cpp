@@ -30,9 +30,6 @@
 // refl
 #include "refl/to-str.hpp"
 
-// Abseil
-#include "absl/strings/str_replace.h"
-
 using namespace std;
 
 using ::rn::config::colony::construction_requirements;

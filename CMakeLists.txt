@@ -47,7 +47,7 @@ add_subdirectory( test )
 # === external dependencies =======================================
 
 # Some libraries will build as shared objects if we don't explic-
-# itly turn this off (e.g. {fmt}, Abseil).
+# itly turn this off (e.g. {fmt}).
 set( BUILD_SHARED_LIBS NO )
 
 # These should not be necessary, but some subdirectories' cmake
@@ -61,7 +61,6 @@ set( CMAKE_CXX_STANDARD 20 )
 set( BUILD_TESTING OFF )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
-add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
