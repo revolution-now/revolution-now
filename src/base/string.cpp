@@ -110,4 +110,8 @@ string str_join( vector<string> const& v,
   return res;
 }
 
+bool str_contains( string_view haystack, string_view needle ) {
+  return haystack.find( needle ) != string_view::npos;
+}
+
 } // namespace base

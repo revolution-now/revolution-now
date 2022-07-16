@@ -18,6 +18,7 @@
 #include "time.hpp"
 
 // base
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -31,7 +32,6 @@
 
 // Abseil
 #include "absl/strings/ascii.h"
-#include "absl/strings/match.h"
 
 // C++ standard library
 #include <algorithm>
@@ -266,7 +266,7 @@ class MidiIO {
 
   bool is_valid_output_port_name( string_view port_name ) {
     auto valid = [&]( auto const& n ) {
-      return absl::StrContains(
+      return base::str_contains(
           absl::AsciiStrToLower( port_name ), n );
     };
     return valid( "fluid" ) || valid( "timidity" );
@@ -310,7 +310,7 @@ void rtmidi_error_callback( RtMidiError::Type,
                             string const& error_text,
                             void* /*unused*/ ) {
   lg.warn( "rt-midi: {}", error_text );
-  if( absl::StrContains( error_text, "event parsing error" ) ) {
+  if( base::str_contains( error_text, "event parsing error" ) ) {
     if( !g_midi.has_value() ) {
       lg.critical(
           "programmer error: should not be here ({}:{})",

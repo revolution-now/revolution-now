@@ -49,4 +49,8 @@ std::vector<std::string> str_split_on_any(
 std::string str_join( std::vector<std::string> const& v,
                       std::string_view const          sep );
 
+// Is `needle` in `haystack`.
+bool str_contains( std::string_view haystack,
+                   std::string_view needle );
+
 } // namespace base

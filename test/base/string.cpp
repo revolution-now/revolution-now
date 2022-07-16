@@ -213,5 +213,17 @@ TEST_CASE( "[string] string joining" ) {
            "ab,cd,ef" );
 }
 
+TEST_CASE( "[string] str_contains" ) {
+  REQUIRE( str_contains( "a", "" ) );
+  REQUIRE( str_contains( "a", "a" ) );
+  REQUIRE( str_contains( "aaa", "a" ) );
+  REQUIRE( str_contains( "aba", "b" ) );
+  REQUIRE( str_contains( "aba", "ab" ) );
+  REQUIRE( str_contains( "aba", "ba" ) );
+  REQUIRE_FALSE( str_contains( "aba", "baa" ) );
+  REQUIRE_FALSE( str_contains( "aba", "abaa" ) );
+  REQUIRE_FALSE( str_contains( "aba", "aaba" ) );
+}
+
 } // namespace
 } // namespace base
