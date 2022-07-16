@@ -24,9 +24,6 @@
 // base-util
 #include "base-util/string.hpp"
 
-// Abseil
-#include "absl/strings/str_cat.h"
-
 // c++ standard library
 #include <fstream>
 #include <string_view>
@@ -79,10 +76,9 @@ int main( int argc, char** argv ) {
   // Need to do this before we compare with existing_contents.
   string_view stem = filename;
   stem.remove_suffix( 4 );
-  cpp_code =
-      absl::StrCat( "// Auto-Generated file, do not modify! (",
-                    fs::path( output_file ).stem().string(),
-                    ").\n", *cpp_code );
+  cpp_code = "// Auto-Generated file, do not modify! ("s +
+             fs::path( output_file ).stem().string() + ").\n" +
+             *cpp_code;
 
   auto existing_contents =
       base::read_text_file_as_string( output_file );

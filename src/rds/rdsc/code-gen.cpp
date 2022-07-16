@@ -14,6 +14,7 @@
 #include "rds-util.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/lambda.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
@@ -21,9 +22,6 @@
 
 // {fmt}
 #include "fmt/format.h"
-
-// Abseil
-#include "absl/strings/str_cat.h"
 
 // c++ standard library
 #include <iomanip>
@@ -116,14 +114,14 @@ struct CodeGenerator {
   }
 
   void pop() {
-    assert( !options_.empty() );
+    CHECK( !options_.empty() );
     options_.pop();
   }
 
   struct [[nodiscard]] AutoPopper {
     CodeGenerator* gen_;
     AutoPopper( CodeGenerator& gen ) : gen_( &gen ) {
-      assert( gen_ != nullptr );
+      CHECK( gen_ != nullptr );
     }
     AutoPopper( AutoPopper const& )            = delete;
     AutoPopper& operator=( AutoPopper const& ) = delete;
@@ -151,9 +149,9 @@ struct CodeGenerator {
   }
 
   string result() const {
-    assert( !curr_line_.has_value() );
-    assert( options_.empty() );
-    assert( options() == Options{} );
+    CHECK( !curr_line_.has_value() );
+    CHECK( options_.empty() );
+    CHECK( options() == Options{} );
     return oss_.str();
   }
 
@@ -161,8 +159,8 @@ struct CodeGenerator {
   // is the only function that should be using oss_.
   template<typename Arg1, typename... Args>
   void line( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
-    assert( !curr_line_.has_value() );
-    assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
+    CHECK( !curr_line_.has_value() );
+    CHECK( fmt_str.find_first_of( "\n" ) == string_view::npos );
     string indent( options().indent_level * 2, ' ' );
     string to_print = trim_trailing_spaces( fmt::format(
         fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
@@ -180,13 +178,12 @@ struct CodeGenerator {
 
   template<typename Arg1, typename... Args>
   void frag( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
-    assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
+    CHECK( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
-    curr_line_ = absl::StrCat(
-        *curr_line_,
-        fmt::format( fmt::runtime( fmt_str ),
-                     std::forward<Arg1>( arg1 ),
-                     std::forward<Args>( args )... ) );
+    curr_line_ = *curr_line_ +
+                 fmt::format( fmt::runtime( fmt_str ),
+                              std::forward<Arg1>( arg1 ),
+                              std::forward<Args>( args )... );
   }
 
   // Braces {} do NOT have to be escaped for this one.
@@ -321,7 +318,7 @@ struct CodeGenerator {
 
   void emit_enum_for_sumtype(
       vector<expr::Alternative> const& alternatives ) {
-    assert( !alternatives.empty() );
+    CHECK( !alternatives.empty() );
     line( "enum class e {" );
     {
       auto _ = indent();
@@ -544,10 +541,10 @@ struct CodeGenerator {
       line( "using {}_t = base::variant<", sumtype.name );
       vector<string> variants;
       for( expr::Alternative const& alt : sumtype.alternatives )
-        variants.push_back( absl::StrCat(
-            "  ", sumtype.name, "::", alt.name,
+        variants.push_back(
+            "  "s + sumtype.name + "::" + alt.name +
             template_params( sumtype.tmpl_params,
-                             /*put_typename=*/false ) ) );
+                             /*put_typename=*/false ) );
       emit_vert_list( variants, "," );
       line( ">;" );
       // Ensure that the variant is nothrow move'able since this
