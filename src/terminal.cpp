@@ -28,13 +28,13 @@
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 #include "base/range-lite.hpp"
+#include "base/string.hpp"
 #include "base/to-str-tags.hpp"
 
 // base-util
 #include "base-util/string.hpp"
 
 // Abseil
-#include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
 // C++ standard library
@@ -83,7 +83,7 @@ vector<string> format_lua_error_msg( string const& msg ) {
   for( auto const& line : util::split_on_any( msg, "\n\r" ) )
     if( !line.empty() ) //
       res.push_back(
-          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
+          base::str_replace_all( line, { { "\t", "  " } } ) );
   return res;
 }
 
@@ -322,9 +322,9 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
 
   for( auto const& match : res ) {
     auto match_dots =
-        absl::StrReplaceAll( match, { { ":", "." } } );
+        base::str_replace_all( match, { { ":", "." } } );
     auto fragment_dots =
-        absl::StrReplaceAll( fragment, { { ":", "." } } );
+        base::str_replace_all( fragment, { { ":", "." } } );
     DCHECK( util::starts_with( match_dots, fragment_dots ),
             "`{}` does not start with `{}`", match_dots,
             fragment_dots );

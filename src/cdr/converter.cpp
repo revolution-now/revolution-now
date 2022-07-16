@@ -13,9 +13,6 @@
 // base
 #include "base/string.hpp"
 
-// Abseil
-#include "absl/strings/str_replace.h"
-
 using namespace std;
 
 namespace cdr {
@@ -60,14 +57,15 @@ string converter::dump_error_stack() const {
   // This will probably need to be tweaked when compiler versions
   // change. The idea is to make whatever substitutions are nec-
   // essary to make the output clean and readable.
-  static vector<pair<string, string>> to_replace{
+  static initializer_list<pair<string, string>> to_replace{
       { base::demangled_typename<string>(), "std::string" },
       { "::__1", "" },
       { "::(anonymous namespace)", "" },
       { " >", ">" },
   };
   for( string const& frame : error_stack() ) {
-    string sanitized = absl::StrReplaceAll( frame, to_replace );
+    string sanitized =
+        base::str_replace_all( frame, to_replace );
     if( sanitized.size() > 62 ) {
       sanitized.resize( 62 );
       sanitized = base::trim( sanitized );

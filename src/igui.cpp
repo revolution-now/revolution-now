@@ -13,9 +13,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 
-// Abseil
-#include "absl/strings/str_replace.h"
-
 // base
 #include "base/string.hpp"
 
@@ -42,7 +39,7 @@ wait<ui::e_confirm> IGui::yes_no( YesNoConfig const& config ) {
 string IGui::identifier_to_display_name(
     string_view ident ) const {
   return base::capitalize_initials(
-      absl::StrReplaceAll( ident, { { "_", " " } } ) );
+      base::str_replace_all( ident, { { "_", " " } } ) );
 }
 
 } // namespace rn

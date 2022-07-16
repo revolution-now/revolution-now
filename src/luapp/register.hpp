@@ -15,13 +15,11 @@
 
 // base
 #include "base/fs.hpp" // FIXME
+#include "base/string.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
 #include "base-util/pp.hpp"
-
-// Abseil
-#include "absl/strings/str_replace.h" // FIXME
 
 namespace lua {
 
@@ -100,7 +98,7 @@ auto lua_module_name__ =
     LUA_MODULE_NAME_OVERRIDE;
 #else
     // Used by above macros when registering functions.
-    absl::StrReplaceAll(
+    base::str_replace_all(
         fs::path( __BASE_FILE__ ).filename().stem().string(),
         { { "-", "_" } } );
 #endif

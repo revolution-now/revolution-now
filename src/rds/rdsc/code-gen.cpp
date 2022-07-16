@@ -17,6 +17,7 @@
 #include "base/lambda.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
+#include "base/string.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -24,7 +25,6 @@
 // Abseil
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
-#include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
 // c++ standard library
@@ -608,7 +608,7 @@ struct CodeGenerator {
 
   void emit_item( expr::Item const& item ) {
     string cpp_ns =
-        absl::StrReplaceAll( item.ns, { { ".", "::" } } );
+        base::str_replace_all( item.ns, { { ".", "::" } } );
     auto visitor = [&]( auto const& v ) { emit( cpp_ns, v ); };
     for( expr::Construct const& construct : item.constructs ) {
       newline();

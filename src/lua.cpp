@@ -25,6 +25,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -33,7 +34,6 @@
 
 // Abseil
 #include "absl/strings/match.h"
-#include "absl/strings/str_replace.h"
 
 using namespace std;
 
@@ -43,9 +43,9 @@ namespace {
 
 lua::table require( lua::state&   st,
                     string const& unsanitized_name ) {
-  lua::table ext = lua::table::create_or_get( st["ext"] );
-  string     name =
-      absl::StrReplaceAll( unsanitized_name, { { "-", "_" } } );
+  lua::table ext  = lua::table::create_or_get( st["ext"] );
+  string     name = base::str_replace_all( unsanitized_name,
+                                           { { "-", "_" } } );
   lg.debug( "requiring lua module \"{}\".", name );
   if( ext[name] != lua::nil ) {
     LUA_CHECK( st, ext[name] != "loading",
@@ -55,9 +55,9 @@ lua::table require( lua::state&   st,
   lg.info( "loading lua module \"{}\".", name );
   // Set the module to something while we're loading in order to
   // detect and break cyclic dependencies.
-  ext[name] = "loading";
-  string with_slashes =
-      absl::StrReplaceAll( unsanitized_name, { { ".", "/" } } );
+  ext[name]           = "loading";
+  string with_slashes = base::str_replace_all(
+      unsanitized_name, { { ".", "/" } } );
   fs::path file_name = "src/lua/" + with_slashes + ".lua";
   LUA_CHECK( st, fs::exists( file_name ),
              "file {} does not exist.", file_name );

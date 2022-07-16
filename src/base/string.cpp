@@ -38,4 +38,30 @@ string capitalize_initials( string_view sv ) {
   return res;
 }
 
+string str_replace( string_view sv, string_view from,
+                    string_view to ) {
+  string res;
+  if( from.size() == 0 ) return string( sv );
+  size_t pos   = 0;
+  size_t where = sv.find( from, pos );
+  res.reserve( sv.size() );
+  while( where != string_view::npos ) {
+    while( pos < where ) res.push_back( sv[pos++] );
+    res += to;
+    pos += from.size();
+    where = sv.find( from, pos );
+  }
+  while( pos < sv.size() ) res.push_back( sv[pos++] );
+  return res;
+}
+
+string str_replace_all(
+    string_view                            sv,
+    initializer_list<pair<string, string>> pairs ) {
+  string res( sv );
+  for( auto const& [from, to] : pairs )
+    res = str_replace( res, from, to );
+  return res;
+}
+
 } // namespace base
